@@ -1,4 +1,5 @@
 use super::*;
+use std::fmt::Write as _;
 
 #[derive(Debug, Clone, Copy, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -172,19 +173,10 @@ pub(super) fn write_sidecars(
         )
         .as_bytes(),
     )?;
-    atomic_write_bytes(
-        &out_dir.join("stdout.log"),
-        b"captured-by-dispatch-runner\n",
-    )?;
+    atomic_write_bytes(&out_dir.join("stdout.log"), b"captured-by-dispatch-runner\n")?;
     atomic_write_bytes(&out_dir.join("stderr.log"), b"")?;
-    atomic_write_bytes(
-        &chunk_logs_dir.join("command.txt"),
-        command_payload.as_bytes(),
-    )?;
-    atomic_write_bytes(
-        &chunk_logs_dir.join("stdout.log"),
-        b"captured-by-dispatch-runner\n",
-    )?;
+    atomic_write_bytes(&chunk_logs_dir.join("command.txt"), command_payload.as_bytes())?;
+    atomic_write_bytes(&chunk_logs_dir.join("stdout.log"), b"captured-by-dispatch-runner\n")?;
     atomic_write_bytes(&chunk_logs_dir.join("stderr.log"), b"")?;
     Ok(())
 }
@@ -248,7 +240,7 @@ fn stage_checksum_hex(bytes: &[u8]) -> String {
     use sha2::Digest as _;
     let mut hasher = sha2::Sha256::new();
     hasher.update(bytes);
-    format!("{:x}", hasher.finalize())
+    sha256_hex(hasher.finalize())
 }
 
 pub(super) fn resolve_stage_tool_digest(tool_id: &str) -> Result<String> {
@@ -277,10 +269,7 @@ pub(super) fn resolve_stage_tool_digest(tool_id: &str) -> Result<String> {
                 container_ref.as_deref().unwrap_or("registry_lock"),
                 version.as_deref().unwrap_or("planned")
             );
-            Some(format!(
-                "sha256:{}",
-                stage_checksum_hex(digest_source.as_bytes())
-            ))
+            Some(format!("sha256:{}", stage_checksum_hex(digest_source.as_bytes())))
         };
         for line in raw.lines() {
             let trimmed = line.trim();
@@ -319,6 +308,15 @@ pub(super) fn resolve_stage_tool_digest(tool_id: &str) -> Result<String> {
         }
     }
     bail!("tool {tool_id} missing from VCF registries")
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }
 
 pub(super) fn resolve_call_alias(ctx: &VcfStageRunContext<'_>) -> Result<VcfDomainStage> {
@@ -401,18 +399,10 @@ pub(super) fn try_resume_stage(
         return Ok(None);
     }
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&checksums)?)?;
-    let rows = payload
-        .get("artifacts")
-        .and_then(|v| v.as_array())
-        .cloned()
-        .unwrap_or_default();
+    let rows = payload.get("artifacts").and_then(|v| v.as_array()).cloned().unwrap_or_default();
     for row in rows {
         let path = row.get("path").and_then(|v| v.as_str()).unwrap_or_default();
-        let expected = row
-            .get("sha256")
-            .and_then(|v| v.as_str())
-            .unwrap_or_default()
-            .to_string();
+        let expected = row.get("sha256").and_then(|v| v.as_str()).unwrap_or_default().to_string();
         let path_buf = PathBuf::from(path);
         if !path_buf.exists() {
             return Ok(None);
@@ -428,10 +418,6 @@ pub(super) fn try_resume_stage(
         primary_output: None,
         artifacts: vec![manifest.clone(), checksums],
         stage_manifest: manifest,
-        runtime: StageRuntimeStats {
-            wall_time_ms: 0,
-            exit_code: 0,
-            rss_kb: None,
-        },
+        runtime: StageRuntimeStats { wall_time_ms: 0, exit_code: 0, rss_kb: None },
     }))
 }

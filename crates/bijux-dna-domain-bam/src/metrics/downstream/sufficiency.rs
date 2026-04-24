@@ -39,11 +39,7 @@ pub struct SexSufficiencyV1 {
 impl SexSufficiencyV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            sufficient: false,
-            confidence: 0.0,
-            reason: "unknown".to_string(),
-        }
+        Self { sufficient: false, confidence: 0.0, reason: "unknown".to_string() }
     }
 }
 
@@ -64,11 +60,7 @@ pub struct ContaminationSufficiencyV1 {
 impl ContaminationSufficiencyV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            sufficient: false,
-            estimate: 0.0,
-            reason: "unknown".to_string(),
-        }
+        Self { sufficient: false, estimate: 0.0, reason: "unknown".to_string() }
     }
 }
 
@@ -89,11 +81,7 @@ pub struct HaplogroupSufficiencyV1 {
 impl HaplogroupSufficiencyV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            sufficient: false,
-            min_coverage: 0.0,
-            reason: "unknown".to_string(),
-        }
+        Self { sufficient: false, min_coverage: 0.0, reason: "unknown".to_string() }
     }
 }
 
@@ -114,11 +102,7 @@ pub struct KinshipSufficiencyV1 {
 impl KinshipSufficiencyV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            sufficient: false,
-            overlap_snps: 0,
-            reason: "unknown".to_string(),
-        }
+        Self { sufficient: false, overlap_snps: 0, reason: "unknown".to_string() }
     }
 }
 

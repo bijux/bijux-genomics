@@ -32,12 +32,7 @@ pub fn verify_tool_wrapper(
     }
     Ok(ToolVersionCheck {
         tool: tool.to_string(),
-        version: version_output
-            .lines()
-            .next()
-            .unwrap_or(version_output)
-            .trim()
-            .to_string(),
+        version: version_output.lines().next().unwrap_or(version_output).trim().to_string(),
         help_ok,
     })
 }

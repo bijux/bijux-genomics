@@ -20,9 +20,7 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             tool_adapters::stages_adna::damage::plan(request.tool, bam, request.out_dir, &params)
         }
         BamStage::Authenticity => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("authenticity requires bam"))?;
+            let bam = request.bam.ok_or_else(|| anyhow!("authenticity requires bam"))?;
             let params = params::effective_params_for_stage(stage, request.params)?;
             let BamEffectiveParams::Authenticity(params) = params else {
                 return Err(anyhow!("authenticity params mismatch"));
@@ -35,9 +33,7 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             )
         }
         BamStage::Contamination => {
-            let bam = request
-                .bam
-                .ok_or_else(|| anyhow!("contamination requires bam"))?;
+            let bam = request.bam.ok_or_else(|| anyhow!("contamination requires bam"))?;
             let params = params::effective_params_for_stage(stage, request.params)?;
             let BamEffectiveParams::Contamination(params) = params else {
                 return Err(anyhow!("contamination params mismatch"));
@@ -57,9 +53,6 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             };
             tool_adapters::stages_adna::sex::plan(request.tool, bam, request.out_dir, &params)
         }
-        _ => Err(anyhow!(
-            "stage {} is not handled by the ancient-DNA dispatcher",
-            stage.as_str()
-        )),
+        _ => Err(anyhow!("stage {} is not handled by the ancient-DNA dispatcher", stage.as_str())),
     }
 }

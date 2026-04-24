@@ -6,9 +6,7 @@ pub(crate) fn workspace_root() -> Option<PathBuf> {
 
 pub(crate) fn license_metadata_for_tool_exists(tool_id: &str) -> bool {
     workspace_root().is_some_and(|root| {
-        root.join("containers/licenses")
-            .join(format!("{tool_id}.license.toml"))
-            .exists()
+        root.join("containers/licenses").join(format!("{tool_id}.license.toml")).exists()
     })
 }
 
@@ -111,10 +109,7 @@ pub(crate) fn load_imputation_qc_thresholds() -> std::collections::BTreeMap<Stri
         ("vcf_missingness_block_fail", 6.0_f64),
     ];
     for (key, fallback) in defaults {
-        out.insert(
-            key.to_string(),
-            parse_threshold_value(&raw, key).unwrap_or(fallback),
-        );
+        out.insert(key.to_string(), parse_threshold_value(&raw, key).unwrap_or(fallback));
     }
     out
 }
@@ -224,11 +219,7 @@ fn apply_failure_cleanup_policy(out_dir: &Path) {
 }
 
 fn read_vcf_text_runtime(path: &Path) -> Result<String> {
-    if path
-        .extension()
-        .and_then(|x| x.to_str())
-        .is_some_and(|x| x == "gz" || x == "bcf")
-    {
+    if path.extension().and_then(|x| x.to_str()).is_some_and(|x| x == "gz" || x == "bcf") {
         let output = std::process::Command::new("bcftools")
             .args(["view", &path.display().to_string()])
             .output()?;
@@ -263,11 +254,7 @@ fn write_bgzip_index_best_effort(
 }
 
 fn try_backend_invocation(bin: &str, args: &[&str]) -> bool {
-    std::process::Command::new(bin)
-        .args(args)
-        .output()
-        .map(|x| x.status.success())
-        .unwrap_or(false)
+    std::process::Command::new(bin).args(args).output().map(|x| x.status.success()).unwrap_or(false)
 }
 
 fn eagle_acceptance_allowed(species: &str, build: &str) -> bool {
@@ -278,15 +265,10 @@ fn parse_region_bounds(region: &str) -> Result<(String, u64, u64)> {
     let (contig, range) = region
         .split_once(':')
         .ok_or_else(|| anyhow!("region must match <contig>:<start>-<end>"))?;
-    let (start, end) = range
-        .split_once('-')
-        .ok_or_else(|| anyhow!("region must match <contig>:<start>-<end>"))?;
-    let start_bp = start
-        .parse::<u64>()
-        .map_err(|_| anyhow!("region start must be numeric"))?;
-    let end_bp = end
-        .parse::<u64>()
-        .map_err(|_| anyhow!("region end must be numeric"))?;
+    let (start, end) =
+        range.split_once('-').ok_or_else(|| anyhow!("region must match <contig>:<start>-<end>"))?;
+    let start_bp = start.parse::<u64>().map_err(|_| anyhow!("region start must be numeric"))?;
+    let end_bp = end.parse::<u64>().map_err(|_| anyhow!("region end must be numeric"))?;
     if start_bp == 0 || end_bp < start_bp {
         bail!("region bounds must satisfy 0 < start <= end");
     }
@@ -367,15 +349,8 @@ fn run_phasing_stage_inner(
         );
     }
 
-    let map = if matches!(
-        resolved_backend,
-        PhasingBackend::Shapeit5 | PhasingBackend::Eagle
-    ) {
-        Some(resolve_map(
-            &params.species_id,
-            &params.build_id,
-            params.map_id.as_deref(),
-        )?)
+    let map = if matches!(resolved_backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle) {
+        Some(resolve_map(&params.species_id, &params.build_id, params.map_id.as_deref())?)
     } else {
         params
             .map_id
@@ -384,17 +359,8 @@ fn run_phasing_stage_inner(
             .transpose()?
     };
     if let Some(map_ref) = &map {
-        if !map_ref
-            .compatibility
-            .tool_tags
-            .iter()
-            .any(|tag| tag == backend_tool)
-        {
-            bail!(
-                "map {} is not compatible with backend {}",
-                map_ref.id,
-                backend_tool
-            );
+        if !map_ref.compatibility.tool_tags.iter().any(|tag| tag == backend_tool) {
+            bail!("map {} is not compatible with backend {}", map_ref.id, backend_tool);
         }
     }
 
@@ -461,11 +427,7 @@ fn run_phasing_stage_inner(
     if !saw_records {
         bail!("phasing requires non-empty VCF records");
     }
-    if matches!(
-        resolved_backend,
-        PhasingBackend::Shapeit5 | PhasingBackend::Eagle
-    ) && !has_gt
-    {
+    if matches!(resolved_backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle) && !has_gt {
         bail!("backend {} requires GT field", backend_tool);
     }
     if matches!(resolved_backend, PhasingBackend::Beagle) && !has_gt && !has_gl_or_gp {
@@ -474,25 +436,14 @@ fn run_phasing_stage_inner(
     if has_gl_or_gp
         && !has_gt
         && !params.allow_gl_only_input
-        && matches!(
-            resolved_backend,
-            PhasingBackend::Beagle | PhasingBackend::Auto
-        )
+        && matches!(resolved_backend, PhasingBackend::Beagle | PhasingBackend::Auto)
     {
         bail!("GL-only/GP-only inputs are refused for phasing unless allow_gl_only_input=true");
     }
-    if matches!(
-        resolved_backend,
-        PhasingBackend::Shapeit5 | PhasingBackend::Eagle
-    ) && !diploid_ok
-    {
+    if matches!(resolved_backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle) && !diploid_ok {
         bail!("backend {} requires diploid GT genotypes", backend_tool);
     }
-    if has_sex_chr
-        && species_context
-            .par_policy
-            .eq_ignore_ascii_case("unsupported")
-    {
+    if has_sex_chr && species_context.par_policy.eq_ignore_ascii_case("unsupported") {
         bail!("sex chromosome phasing requires explicit PAR policy in SpeciesContext");
     }
     if has_sex_chr && !has_sample_sex_metadata {
@@ -530,10 +481,7 @@ fn run_phasing_stage_inner(
                 "--memory-mb".to_string(),
                 memory_mb.to_string(),
                 "--output".to_string(),
-                out_dir
-                    .join("shapeit5.out.vcf.gz")
-                    .to_string_lossy()
-                    .to_string(),
+                out_dir.join("shapeit5.out.vcf.gz").to_string_lossy().to_string(),
             ];
             if let Some(region) = &params.region {
                 argv.push("--region".to_string());
@@ -579,38 +527,24 @@ fn run_phasing_stage_inner(
         PhasingBackend::Auto => vec![],
     };
     let phased_records = if matches!(resolved_backend, PhasingBackend::Beagle) {
-        out_records
-            .iter()
-            .map(|line| beagle_with_gt_from_gl(line))
-            .collect::<Vec<_>>()
+        out_records.iter().map(|line| beagle_with_gt_from_gl(line)).collect::<Vec<_>>()
     } else {
         out_records.clone()
     };
-    let phased_payload = format!(
-        "{}\n{}\n",
-        header_lines.join("\n"),
-        phased_records.join("\n")
-    );
+    let phased_payload = format!("{}\n{}\n", header_lines.join("\n"), phased_records.join("\n"));
     let phasing_backend_attempted = if backend_argv.is_empty() {
         false
     } else {
         let cmd = backend_argv[0].clone();
-        let args = backend_argv
-            .iter()
-            .skip(1)
-            .map(|s| s.as_str())
-            .collect::<Vec<_>>();
+        let args = backend_argv.iter().skip(1).map(|s| s.as_str()).collect::<Vec<_>>();
         try_backend_invocation(&cmd, &args)
     };
     let phased_tbi = write_bgzip_index_best_effort(&phased_vcf, &phased_payload, "phased.tmp.vcf")?;
     assert_bgzip_tabix_artifacts(&phased_vcf, &phased_tbi)?;
 
     let phase_block_n50 = (variant_count / 2).max(1);
-    let switch_proxy = if variant_count == 0 {
-        0.0
-    } else {
-        phase_switches as f64 / variant_count as f64
-    };
+    let switch_proxy =
+        if variant_count == 0 { 0.0 } else { phase_switches as f64 / variant_count as f64 };
     atomic_write_bytes(
         &phase_block_stats_tsv,
         format!("metric\tvalue\nphase_block_n50\t{phase_block_n50}\n").as_bytes(),
@@ -703,10 +637,7 @@ fn run_phasing_stage_inner(
             "backend={backend_tool}\nseed={}\nthreads={}\nmap_required={}\nbackend_attempted={}\n",
             params.seed,
             params.threads,
-            matches!(
-                resolved_backend,
-                PhasingBackend::Shapeit5 | PhasingBackend::Eagle
-            ),
+            matches!(resolved_backend, PhasingBackend::Shapeit5 | PhasingBackend::Eagle),
             phasing_backend_attempted
         )
         .as_bytes(),

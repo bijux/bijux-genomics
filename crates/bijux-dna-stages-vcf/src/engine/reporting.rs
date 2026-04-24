@@ -9,11 +9,9 @@ use super::{
 pub(super) fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> {
     fn expected_stage_artifacts(stage_id: &str) -> &'static [&'static str] {
         match stage_id {
-            "vcf.call" | "vcf.call_gl" | "vcf.call_diploid" | "vcf.call_pseudohaploid" => &[
-                "call_metrics.json",
-                "call_metrics.tsv",
-                "call_manifest.json",
-            ],
+            "vcf.call" | "vcf.call_gl" | "vcf.call_diploid" | "vcf.call_pseudohaploid" => {
+                &["call_metrics.json", "call_metrics.tsv", "call_manifest.json"]
+            }
             "vcf.filter" => &[
                 "filtered.vcf.gz",
                 "filtered.vcf.gz.tbi",
@@ -38,22 +36,15 @@ pub(super) fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> 
     }
 
     for stage in &result.stages {
-        if !stage
-            .artifact_dir
-            .starts_with(result.artifact_root.join(""))
-        {
+        if !stage.artifact_dir.starts_with(result.artifact_root.join("")) {
             return Err(refusal(
                 VcfRefusalCode::ContractViolation,
                 format!("artifact root violation for {}", stage.stage_id),
             ));
         }
-        for required in [
-            "stage_manifest.json",
-            "stdout.log",
-            "stderr.log",
-            "command.txt",
-            "env.txt",
-        ] {
+        for required in
+            ["stage_manifest.json", "stdout.log", "stderr.log", "command.txt", "env.txt"]
+        {
             let p = stage.artifact_dir.join(required);
             if !p.exists() {
                 return Err(refusal(
@@ -67,20 +58,13 @@ pub(super) fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> 
             if !p.exists() {
                 return Err(refusal(
                     VcfRefusalCode::ContractViolation,
-                    format!(
-                        "stage {} missing required artifact {}",
-                        stage.stage_id,
-                        p.display()
-                    ),
+                    format!("stage {} missing required artifact {}", stage.stage_id, p.display()),
                 ));
             }
         }
     }
     if !result.report_path.exists() {
-        return Err(refusal(
-            VcfRefusalCode::ContractViolation,
-            "missing report.json",
-        ));
+        return Err(refusal(VcfRefusalCode::ContractViolation, "missing report.json"));
     }
     Ok(())
 }
@@ -95,21 +79,9 @@ pub(super) fn maybe_bam_handoff(
     artifact_root: &std::path::Path,
 ) -> Result<Option<serde_json::Value>> {
     let candidates = [
-        request
-            .run_root
-            .join("artifacts")
-            .join("bam")
-            .join("bam_metrics.json"),
-        request
-            .run_root
-            .join("artifacts")
-            .join("bam")
-            .join("metrics.json"),
-        request
-            .run_root
-            .join("artifacts")
-            .join("bam")
-            .join("summary.json"),
+        request.run_root.join("artifacts").join("bam").join("bam_metrics.json"),
+        request.run_root.join("artifacts").join("bam").join("metrics.json"),
+        request.run_root.join("artifacts").join("bam").join("summary.json"),
     ];
     let bam_metrics = candidates.iter().find_map(|p| read_json(p));
     let Some(bam_metrics) = bam_metrics else {
@@ -154,14 +126,8 @@ pub(super) fn write_runtime_explain(
         let imputation_manifest = stage.artifact_dir.join("imputation_manifest.json");
         if backend.is_null() && imputation_manifest.exists() {
             if let Some(json) = read_json(&imputation_manifest) {
-                backend = json
-                    .get("backend")
-                    .cloned()
-                    .unwrap_or(serde_json::Value::Null);
-                chunk_strategy = json
-                    .get("chunk_plan")
-                    .cloned()
-                    .unwrap_or(serde_json::Value::Null);
+                backend = json.get("backend").cloned().unwrap_or(serde_json::Value::Null);
+                chunk_strategy = json.get("chunk_plan").cloned().unwrap_or(serde_json::Value::Null);
                 panel_lock = serde_json::json!({
                     "panel_id": json.get("panel_id").cloned().unwrap_or(serde_json::Value::Null),
                     "panel_checksums": json.get("panel_checksums").cloned().unwrap_or(serde_json::json!([])),
@@ -245,16 +211,8 @@ pub(super) fn build_vcf_provenance_line(stages: &[VcfStageOutputs]) -> String {
     digests.dedup();
     format!(
         "tools={} | digests={} | panel_lock={} | reference_lock={}",
-        if tools.is_empty() {
-            "none".to_string()
-        } else {
-            tools.join(",")
-        },
-        if digests.is_empty() {
-            "none".to_string()
-        } else {
-            digests.join(",")
-        },
+        if tools.is_empty() { "none".to_string() } else { tools.join(",") },
+        if digests.is_empty() { "none".to_string() } else { digests.join(",") },
         panel_lock,
         reference_lock
     )

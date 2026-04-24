@@ -12,11 +12,7 @@ pub(crate) fn parse_record_fields(line: &str) -> Option<Vec<&str>> {
 }
 
 pub(crate) fn read_vcf_text(path: &Path) -> Result<String> {
-    if path
-        .extension()
-        .and_then(|x| x.to_str())
-        .is_some_and(|x| x == "gz" || x == "bcf")
-    {
+    if path.extension().and_then(|x| x.to_str()).is_some_and(|x| x == "gz" || x == "bcf") {
         let output = std::process::Command::new("bcftools")
             .args(["view", &path.display().to_string()])
             .output()?;
@@ -46,15 +42,11 @@ pub(crate) fn variant_key(fields: &[&str]) -> Option<(String, String)> {
 }
 
 pub(crate) fn normalize_alleles(reference: &str, alternate: &str) -> (String, String) {
-    (
-        reference.to_ascii_uppercase(),
-        alternate.to_ascii_uppercase(),
-    )
+    (reference.to_ascii_uppercase(), alternate.to_ascii_uppercase())
 }
 
 pub(crate) fn format_has_token(fmt: &str, tokens: &[&str]) -> bool {
-    fmt.split(':')
-        .any(|key| tokens.iter().any(|token| token == &key))
+    fmt.split(':').any(|key| tokens.iter().any(|token| token == &key))
 }
 
 pub(crate) fn sample_has_diploid_gt(fmt: &str, sample: &str) -> bool {
@@ -81,10 +73,7 @@ pub(crate) fn sample_to_haploid_gt(fmt: &str, sample: &str) -> String {
     }
     if let Some(gp_idx) = keys.iter().position(|k| *k == "GP") {
         if let Some(gp) = vals.get(gp_idx) {
-            let probs = gp
-                .split(',')
-                .filter_map(|x| x.parse::<f64>().ok())
-                .collect::<Vec<_>>();
+            let probs = gp.split(',').filter_map(|x| x.parse::<f64>().ok()).collect::<Vec<_>>();
             if probs.len() >= 3 {
                 let best_idx = probs
                     .iter()
@@ -99,10 +88,7 @@ pub(crate) fn sample_to_haploid_gt(fmt: &str, sample: &str) -> String {
     }
     if let Some(pl_idx) = keys.iter().position(|k| *k == "PL") {
         if let Some(pl) = vals.get(pl_idx) {
-            let scores = pl
-                .split(',')
-                .filter_map(|x| x.parse::<f64>().ok())
-                .collect::<Vec<_>>();
+            let scores = pl.split(',').filter_map(|x| x.parse::<f64>().ok()).collect::<Vec<_>>();
             if scores.len() >= 3 {
                 let best_idx = scores
                     .iter()
@@ -153,10 +139,8 @@ pub(crate) fn normalize_header_sample_order(vcf_text: &str) -> String {
             if fields.len() > 9 {
                 let mut row = fields.iter().map(|x| (*x).to_string()).collect::<Vec<_>>();
                 let samples = row[9..].to_vec();
-                let reordered = order
-                    .iter()
-                    .filter_map(|idx| samples.get(*idx).cloned())
-                    .collect::<Vec<_>>();
+                let reordered =
+                    order.iter().filter_map(|idx| samples.get(*idx).cloned()).collect::<Vec<_>>();
                 row.truncate(9);
                 row.extend(reordered);
                 out.push_str(&row.join("\t"));
@@ -182,10 +166,7 @@ pub(crate) fn parse_info_value_f64(info: &str, key: &str) -> Option<f64> {
 
 pub(crate) fn normalize_sample_fields(format_field: &str, sample_field: &str) -> String {
     let keys = format_field.split(':').collect::<Vec<_>>();
-    let mut vals = sample_field
-        .split(':')
-        .map(str::to_string)
-        .collect::<Vec<_>>();
+    let mut vals = sample_field.split(':').map(str::to_string).collect::<Vec<_>>();
     if vals.len() < keys.len() {
         vals.resize(keys.len(), ".".to_string());
     }
@@ -221,9 +202,5 @@ pub(crate) fn genotype_missing_fraction(format_field: &str, sample_fields: &[&st
             }
         }
     }
-    Some(if total == 0 {
-        0.0
-    } else {
-        missing as f64 / total as f64
-    })
+    Some(if total == 0 { 0.0 } else { missing as f64 / total as f64 })
 }

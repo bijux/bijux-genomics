@@ -9,13 +9,8 @@ fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(format!("tool.{stage}")),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/dummy:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), stage.to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), stage.to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -47,11 +42,7 @@ fn bam_plan_reasons_include_defaults_and_contract_hash() -> anyhow::Result<()> {
             params: None,
         })?;
         assert!(!plan.reason.summary.trim().is_empty());
-        assert!(plan
-            .reason
-            .details
-            .get("defaults_diff")
-            .is_some_and(|value| value.is_object()));
+        assert!(plan.reason.details.get("defaults_diff").is_some_and(|value| value.is_object()));
         assert!(plan
             .reason
             .details
@@ -68,10 +59,7 @@ fn bam_adna_plan_reasons_are_deterministic_for_new_stages() -> anyhow::Result<()
     let target: Vec<String> = stages
         .into_iter()
         .filter(|stage| {
-            matches!(
-                stage.as_str(),
-                "bam.damage" | "bam.authenticity" | "bam.contamination"
-            )
+            matches!(stage.as_str(), "bam.damage" | "bam.authenticity" | "bam.contamination")
         })
         .collect();
     let temp = bijux_dna_infra::temp_dir("bam-plan-reasons-adna-deterministic")?;

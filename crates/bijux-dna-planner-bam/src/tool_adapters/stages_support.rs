@@ -52,12 +52,7 @@ pub fn ensure_effective_params(value: serde_json::Value) -> Result<serde_json::V
 pub fn ensure_required_outputs(plan: StagePlanV1, required: &[&str]) -> Result<StagePlanV1> {
     let mut missing = Vec::new();
     for name in required {
-        if !plan
-            .io
-            .outputs
-            .iter()
-            .any(|output| output.name.as_str() == *name)
-        {
+        if !plan.io.outputs.iter().any(|output| output.name.as_str() == *name) {
             missing.push(*name);
         }
     }

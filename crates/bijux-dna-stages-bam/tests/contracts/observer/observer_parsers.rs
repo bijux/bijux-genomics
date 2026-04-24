@@ -8,9 +8,7 @@ use bijux_dna_stages_bam::observer::{
 };
 
 fn fixture(path: &str) -> std::path::PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/observer/default")
-        .join(path)
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/observer/default").join(path)
 }
 
 #[test]

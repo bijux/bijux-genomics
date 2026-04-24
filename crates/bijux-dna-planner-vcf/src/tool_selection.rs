@@ -25,10 +25,7 @@ pub fn choose_tool(
     }
     if matches!(stage, VcfDomainStage::Imputation | VcfDomainStage::Impute) {
         if resolved_coverage == CoverageRegime::LowCovGl {
-            return Ok((
-                "glimpse".to_string(),
-                "lowcov_gl_default_glimpse".to_string(),
-            ));
+            return Ok(("glimpse".to_string(), "lowcov_gl_default_glimpse".to_string()));
         }
         let phased_gt_ready = planned_stages.contains(&VcfDomainStage::Phasing);
         let big_panel = panel.id.contains("full");
@@ -39,17 +36,11 @@ pub fn choose_tool(
                     "phased_gt_plus_big_panel_minimac4".to_string(),
                 ));
             }
-            return Ok((
-                "impute5".to_string(),
-                "phased_gt_plus_big_panel_impute5".to_string(),
-            ));
+            return Ok(("impute5".to_string(), "phased_gt_plus_big_panel_impute5".to_string()));
         }
         return Ok(("beagle".to_string(), "fallback_beagle_rule".to_string()));
     }
-    Ok((
-        default_tool(stage, resolved_coverage).to_string(),
-        "coverage_regime_default".to_string(),
-    ))
+    Ok((default_tool(stage, resolved_coverage).to_string(), "coverage_regime_default".to_string()))
 }
 
 /// # Errors
@@ -70,11 +61,7 @@ pub fn validate_selected_tool(
     ) {
         if !(stage == VcfDomainStage::Impute
             && tool == "beagle"
-            && panel_catalog
-                .compatibility
-                .tool_tags
-                .iter()
-                .any(|tag| tag == "beagle"))
+            && panel_catalog.compatibility.tool_tags.iter().any(|tag| tag == "beagle"))
         {
             validate_imputation_tool_compatibility(tool, panel_catalog, map_catalog)?;
         }
@@ -101,11 +88,7 @@ pub fn validate_selected_tool(
         }
     }
     if !stage_compat_tools(stage).contains(&tool) {
-        bail!(
-            "selected tool {} is not compatible with stage {}",
-            tool,
-            stage.as_str()
-        );
+        bail!("selected tool {} is not compatible with stage {}", tool, stage.as_str());
     }
     Ok(())
 }

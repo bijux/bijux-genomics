@@ -33,11 +33,7 @@ pub fn stage_io_contract(stage: VcfDomainStage) -> Option<StageIoContract> {
         data_type: &'static str,
         cardinality: PortCardinality,
     ) -> StagePortContract {
-        StagePortContract {
-            name,
-            data_type,
-            cardinality,
-        }
+        StagePortContract { name, data_type, cardinality }
     }
 
     let one = PortCardinality::One;

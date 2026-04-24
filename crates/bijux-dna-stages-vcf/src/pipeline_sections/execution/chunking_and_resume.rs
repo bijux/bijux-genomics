@@ -131,7 +131,7 @@ pub fn plan_regions_deterministic(
 fn checksum_hex(bytes: &[u8]) -> String {
     let mut hasher = Sha256::new();
     hasher.update(bytes);
-    format!("{:x}", hasher.finalize())
+    sha256_hex(hasher.finalize())
 }
 
 fn chunk_canonical_contig_label(raw: &str) -> String {
@@ -188,6 +188,15 @@ fn normalize_header_deterministic(
         normalized.push(line);
     }
     normalized
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }
 
 /// # Errors
@@ -395,3 +404,4 @@ pub fn run_chunked_regions(
         },
     })
 }
+use std::fmt::Write as _;

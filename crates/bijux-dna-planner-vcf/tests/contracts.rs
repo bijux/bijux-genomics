@@ -43,14 +43,8 @@ fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
             contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
                 .to_string(),
             contigs: vec![
-                ContigSpec {
-                    name: "1".to_string(),
-                    length_bp: 248956422,
-                },
-                ContigSpec {
-                    name: "2".to_string(),
-                    length_bp: 242193529,
-                },
+                ContigSpec { name: "1".to_string(), length_bp: 248956422 },
+                ContigSpec { name: "2".to_string(), length_bp: 242193529 },
             ],
             sex_system: "xy".to_string(),
             par_policy: "grch38_par".to_string(),
@@ -87,9 +81,7 @@ fn assert_snapshot_json(name: &str, kind: &str, value: &serde_json::Value) {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("snapshots")
-        .join(format!(
-            "bijux-dna-planner-vcf__contracts__{name}.{kind}.json"
-        ));
+        .join(format!("bijux-dna-planner-vcf__contracts__{name}.{kind}.json"));
     let actual = serde_json::to_string_pretty(value).expect("serialize snapshot json");
     if std::env::var("UPDATE_SNAPSHOTS").ok().as_deref() == Some("1") {
         std::fs::write(&path, format!("{actual}\n")).expect("write snapshot");
@@ -97,12 +89,7 @@ fn assert_snapshot_json(name: &str, kind: &str, value: &serde_json::Value) {
     }
     let expected = std::fs::read_to_string(&path)
         .unwrap_or_else(|err| panic!("read snapshot {}: {err}", path.display()));
-    assert_eq!(
-        actual,
-        expected.trim_end(),
-        "snapshot mismatch for {}",
-        path.display()
-    );
+    assert_eq!(actual, expected.trim_end(), "snapshot mismatch for {}", path.display());
 }
 
 fn snapshot_plan_and_explain(name: &str, inputs: &VcfPipelineInputs) {
@@ -144,12 +131,8 @@ fn vcf_downstream_snapshot_pseudohaploid_default() {
 #[test]
 fn vcf_downstream_snapshot_diploid_override_tools() {
     let mut input = base_inputs(CoverageRegime::Diploid);
-    input
-        .stage_tool_overrides
-        .insert("vcf.phasing".to_string(), "eagle".to_string());
-    input
-        .stage_tool_overrides
-        .insert("vcf.impute".to_string(), "minimac4".to_string());
+    input.stage_tool_overrides.insert("vcf.phasing".to_string(), "eagle".to_string());
+    input.stage_tool_overrides.insert("vcf.impute".to_string(), "minimac4".to_string());
     snapshot_plan_and_explain("vcf_downstream_diploid_override_tools", &input);
 }
 
@@ -199,15 +182,11 @@ fn vcf_planner_refuses_unknown_stage_knob_override() {
 #[test]
 fn vcf_planner_refuses_tool_not_declared_in_required_tools_lists() {
     let mut input = base_inputs(CoverageRegime::Diploid);
-    input.stage_tool_overrides.insert(
-        "vcf.impute".to_string(),
-        "not_a_real_required_tool".to_string(),
-    );
+    input
+        .stage_tool_overrides
+        .insert("vcf.impute".to_string(), "not_a_real_required_tool".to_string());
     let err = plan_vcf_stage_plans(&input).expect_err("unknown required tool override must fail");
-    assert!(
-        err.to_string().contains("required_tools_vcf"),
-        "unexpected planner refusal: {err}"
-    );
+    assert!(err.to_string().contains("required_tools_vcf"), "unexpected planner refusal: {err}");
 }
 
 #[test]
@@ -216,15 +195,11 @@ fn vcf_planner_resolves_coverage_regime_from_mean_depth() {
     input.mean_depth_x = Some(0.3);
     let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans: {err}"));
     assert!(
-        plans
-            .iter()
-            .any(|p| p.stage_id.to_string() == "vcf.call_gl"),
+        plans.iter().any(|p| p.stage_id.to_string() == "vcf.call_gl"),
         "low-depth run should resolve to lowcov_gl default stages"
     );
     assert!(
-        !plans
-            .iter()
-            .any(|p| p.stage_id.to_string() == "vcf.call_diploid"),
+        !plans.iter().any(|p| p.stage_id.to_string() == "vcf.call_diploid"),
         "low-depth run must not keep diploid default stage list"
     );
     let explain = explain_vcf_plan(&input, &plans);

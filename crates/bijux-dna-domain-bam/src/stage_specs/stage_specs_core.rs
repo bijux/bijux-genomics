@@ -10,448 +10,151 @@ use crate::{ArtifactPolicy, AuditArtifact, BamStage, BamStageSpec};
 pub fn required_audit_artifacts(stage: BamStage) -> &'static [AuditArtifact] {
     match stage {
         BamStage::Align => &[
-            AuditArtifact {
-                name: "align_bam",
-                filename: "align.bam",
-            },
-            AuditArtifact {
-                name: "align_bai",
-                filename: "align.bam.bai",
-            },
-            AuditArtifact {
-                name: "flagstat",
-                filename: "flagstat.txt",
-            },
-            AuditArtifact {
-                name: "idxstats",
-                filename: "idxstats.txt",
-            },
-            AuditArtifact {
-                name: "stats",
-                filename: "samtools_stats.txt",
-            },
-            AuditArtifact {
-                name: "align_metrics",
-                filename: "align.metrics.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "align_bam", filename: "align.bam" },
+            AuditArtifact { name: "align_bai", filename: "align.bam.bai" },
+            AuditArtifact { name: "flagstat", filename: "flagstat.txt" },
+            AuditArtifact { name: "idxstats", filename: "idxstats.txt" },
+            AuditArtifact { name: "stats", filename: "samtools_stats.txt" },
+            AuditArtifact { name: "align_metrics", filename: "align.metrics.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Validate => &[
-            AuditArtifact {
-                name: "validation_report",
-                filename: "validation.json",
-            },
-            AuditArtifact {
-                name: "flagstat",
-                filename: "flagstat.txt",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "validation_report", filename: "validation.json" },
+            AuditArtifact { name: "flagstat", filename: "flagstat.txt" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::QcPre => &[
-            AuditArtifact {
-                name: "flagstat",
-                filename: "flagstat.txt",
-            },
-            AuditArtifact {
-                name: "idxstats",
-                filename: "idxstats.txt",
-            },
-            AuditArtifact {
-                name: "stats",
-                filename: "samtools_stats.txt",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "flagstat", filename: "flagstat.txt" },
+            AuditArtifact { name: "idxstats", filename: "idxstats.txt" },
+            AuditArtifact { name: "stats", filename: "samtools_stats.txt" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::MappingSummary => &[
-            AuditArtifact {
-                name: "flagstat",
-                filename: "flagstat.txt",
-            },
-            AuditArtifact {
-                name: "idxstats",
-                filename: "idxstats.txt",
-            },
-            AuditArtifact {
-                name: "stats",
-                filename: "samtools_stats.txt",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "mapping.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "flagstat", filename: "flagstat.txt" },
+            AuditArtifact { name: "idxstats", filename: "idxstats.txt" },
+            AuditArtifact { name: "stats", filename: "samtools_stats.txt" },
+            AuditArtifact { name: "summary", filename: "mapping.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Filter => &[
-            AuditArtifact {
-                name: "filtered_bam",
-                filename: "filtered.bam",
-            },
-            AuditArtifact {
-                name: "filtered_bai",
-                filename: "filtered.bam.bai",
-            },
-            AuditArtifact {
-                name: "flagstat_before",
-                filename: "flagstat.before.txt",
-            },
-            AuditArtifact {
-                name: "flagstat_after",
-                filename: "flagstat.after.txt",
-            },
-            AuditArtifact {
-                name: "idxstats_before",
-                filename: "idxstats.before.txt",
-            },
-            AuditArtifact {
-                name: "idxstats_after",
-                filename: "idxstats.after.txt",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "filter.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "filtered_bam", filename: "filtered.bam" },
+            AuditArtifact { name: "filtered_bai", filename: "filtered.bam.bai" },
+            AuditArtifact { name: "flagstat_before", filename: "flagstat.before.txt" },
+            AuditArtifact { name: "flagstat_after", filename: "flagstat.after.txt" },
+            AuditArtifact { name: "idxstats_before", filename: "idxstats.before.txt" },
+            AuditArtifact { name: "idxstats_after", filename: "idxstats.after.txt" },
+            AuditArtifact { name: "summary", filename: "filter.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::MapqFilter => &[
-            AuditArtifact {
-                name: "filtered_bam",
-                filename: "filtered.bam",
-            },
-            AuditArtifact {
-                name: "filtered_bai",
-                filename: "filtered.bam.bai",
-            },
-            AuditArtifact {
-                name: "flagstat_before",
-                filename: "flagstat.before.txt",
-            },
-            AuditArtifact {
-                name: "flagstat_after",
-                filename: "flagstat.after.txt",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "mapq_filter.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "filtered_bam", filename: "filtered.bam" },
+            AuditArtifact { name: "filtered_bai", filename: "filtered.bam.bai" },
+            AuditArtifact { name: "flagstat_before", filename: "flagstat.before.txt" },
+            AuditArtifact { name: "flagstat_after", filename: "flagstat.after.txt" },
+            AuditArtifact { name: "summary", filename: "mapq_filter.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::LengthFilter => &[
-            AuditArtifact {
-                name: "filtered_bam",
-                filename: "filtered.bam",
-            },
-            AuditArtifact {
-                name: "filtered_bai",
-                filename: "filtered.bam.bai",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "length_filter.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "filtered_bam", filename: "filtered.bam" },
+            AuditArtifact { name: "filtered_bai", filename: "filtered.bam.bai" },
+            AuditArtifact { name: "summary", filename: "length_filter.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Markdup => &[
-            AuditArtifact {
-                name: "markdup_bam",
-                filename: "markdup.bam",
-            },
-            AuditArtifact {
-                name: "markdup_bai",
-                filename: "markdup.bam.bai",
-            },
-            AuditArtifact {
-                name: "flagstat_before",
-                filename: "flagstat.before.txt",
-            },
-            AuditArtifact {
-                name: "flagstat_after",
-                filename: "flagstat.after.txt",
-            },
-            AuditArtifact {
-                name: "idxstats_before",
-                filename: "idxstats.before.txt",
-            },
-            AuditArtifact {
-                name: "idxstats_after",
-                filename: "idxstats.after.txt",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "markdup.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "markdup_bam", filename: "markdup.bam" },
+            AuditArtifact { name: "markdup_bai", filename: "markdup.bam.bai" },
+            AuditArtifact { name: "flagstat_before", filename: "flagstat.before.txt" },
+            AuditArtifact { name: "flagstat_after", filename: "flagstat.after.txt" },
+            AuditArtifact { name: "idxstats_before", filename: "idxstats.before.txt" },
+            AuditArtifact { name: "idxstats_after", filename: "idxstats.after.txt" },
+            AuditArtifact { name: "summary", filename: "markdup.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::DuplicationMetrics => &[
-            AuditArtifact {
-                name: "duplication_report",
-                filename: "duplication.metrics.json",
-            },
-            AuditArtifact {
-                name: "duplication_histogram",
-                filename: "duplication.histogram.txt",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "duplication.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "duplication_report", filename: "duplication.metrics.json" },
+            AuditArtifact { name: "duplication_histogram", filename: "duplication.histogram.txt" },
+            AuditArtifact { name: "summary", filename: "duplication.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Complexity => &[
-            AuditArtifact {
-                name: "complexity_report",
-                filename: "complexity.json",
-            },
-            AuditArtifact {
-                name: "preseq",
-                filename: "preseq.txt",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "complexity.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "complexity_report", filename: "complexity.json" },
+            AuditArtifact { name: "preseq", filename: "preseq.txt" },
+            AuditArtifact { name: "summary", filename: "complexity.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Coverage => &[
-            AuditArtifact {
-                name: "coverage_summary",
-                filename: "coverage.mosdepth.summary.txt",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "coverage_summary", filename: "coverage.mosdepth.summary.txt" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::InsertSize => &[
-            AuditArtifact {
-                name: "insert_size_report",
-                filename: "insert_size.metrics.txt",
-            },
-            AuditArtifact {
-                name: "insert_size_histogram",
-                filename: "insert_size.histogram.pdf",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "insert_size.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "insert_size_report", filename: "insert_size.metrics.txt" },
+            AuditArtifact { name: "insert_size_histogram", filename: "insert_size.histogram.pdf" },
+            AuditArtifact { name: "summary", filename: "insert_size.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::GcBias => &[
-            AuditArtifact {
-                name: "gc_bias_report",
-                filename: "gc_bias.metrics.txt",
-            },
-            AuditArtifact {
-                name: "gc_bias_plot",
-                filename: "gc_bias.plot.pdf",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "gc_bias.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "gc_bias_report", filename: "gc_bias.metrics.txt" },
+            AuditArtifact { name: "gc_bias_plot", filename: "gc_bias.plot.pdf" },
+            AuditArtifact { name: "summary", filename: "gc_bias.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::EndogenousContent => &[
-            AuditArtifact {
-                name: "endogenous_report",
-                filename: "endogenous.content.json",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "endogenous.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "endogenous_report", filename: "endogenous.content.json" },
+            AuditArtifact { name: "summary", filename: "endogenous.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::OverlapCorrection => &[
-            AuditArtifact {
-                name: "overlap_corrected_bam",
-                filename: "overlap.corrected.bam",
-            },
-            AuditArtifact {
-                name: "overlap_corrected_bai",
-                filename: "overlap.corrected.bam.bai",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "overlap_correction.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "overlap_corrected_bam", filename: "overlap.corrected.bam" },
+            AuditArtifact { name: "overlap_corrected_bai", filename: "overlap.corrected.bam.bai" },
+            AuditArtifact { name: "summary", filename: "overlap_correction.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Damage => &[
-            AuditArtifact {
-                name: "damage_pydamage",
-                filename: "damage.pydamage.json",
-            },
-            AuditArtifact {
-                name: "damage_mapdamage2",
-                filename: "damage.mapdamage2.txt",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "damage_pydamage", filename: "damage.pydamage.json" },
+            AuditArtifact { name: "damage_mapdamage2", filename: "damage.mapdamage2.txt" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Authenticity => &[
-            AuditArtifact {
-                name: "authenticity_report",
-                filename: "authenticity.json",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "authenticity.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "authenticity_report", filename: "authenticity.json" },
+            AuditArtifact { name: "summary", filename: "authenticity.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Contamination => &[
-            AuditArtifact {
-                name: "contamination_report",
-                filename: "contamination.json",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "contamination.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "contamination_report", filename: "contamination.json" },
+            AuditArtifact { name: "summary", filename: "contamination.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Sex => &[
-            AuditArtifact {
-                name: "sex_report",
-                filename: "sex.json",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "sex.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "sex_report", filename: "sex.json" },
+            AuditArtifact { name: "summary", filename: "sex.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::BiasMitigation => &[
-            AuditArtifact {
-                name: "bias_report",
-                filename: "bias.json",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "bias.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "bias_report", filename: "bias.json" },
+            AuditArtifact { name: "summary", filename: "bias.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Recalibration => &[
-            AuditArtifact {
-                name: "recal_bam",
-                filename: "recal.bam",
-            },
-            AuditArtifact {
-                name: "recal_bai",
-                filename: "recal.bam.bai",
-            },
-            AuditArtifact {
-                name: "recal_report",
-                filename: "recal.report.txt",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "recal.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "recal_bam", filename: "recal.bam" },
+            AuditArtifact { name: "recal_bai", filename: "recal.bam.bai" },
+            AuditArtifact { name: "recal_report", filename: "recal.report.txt" },
+            AuditArtifact { name: "summary", filename: "recal.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Haplogroups => &[
-            AuditArtifact {
-                name: "haplogroups",
-                filename: "haplogroups.json",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "haplogroups.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "haplogroups", filename: "haplogroups.json" },
+            AuditArtifact { name: "summary", filename: "haplogroups.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Genotyping => &[
-            AuditArtifact {
-                name: "genotyping_report",
-                filename: "genotyping.json",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "genotyping.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "genotyping_report", filename: "genotyping.json" },
+            AuditArtifact { name: "summary", filename: "genotyping.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
         BamStage::Kinship => &[
-            AuditArtifact {
-                name: "kinship_report",
-                filename: "kinship.json",
-            },
-            AuditArtifact {
-                name: "summary",
-                filename: "kinship.summary.json",
-            },
-            AuditArtifact {
-                name: "stage_metrics",
-                filename: "stage.metrics.json",
-            },
+            AuditArtifact { name: "kinship_report", filename: "kinship.json" },
+            AuditArtifact { name: "summary", filename: "kinship.summary.json" },
+            AuditArtifact { name: "stage_metrics", filename: "stage.metrics.json" },
         ],
     }
 }

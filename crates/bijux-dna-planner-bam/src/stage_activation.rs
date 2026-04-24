@@ -9,10 +9,7 @@ fn stage_status(stage_id: &str) -> Option<String> {
     entries.iter().find_map(|entry| {
         let id = entry.get("id").and_then(toml::Value::as_str)?;
         if id == stage_id {
-            entry
-                .get("status")
-                .and_then(toml::Value::as_str)
-                .map(std::string::ToString::to_string)
+            entry.get("status").and_then(toml::Value::as_str).map(std::string::ToString::to_string)
         } else {
             None
         }

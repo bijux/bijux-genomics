@@ -88,11 +88,7 @@ pub struct ContaminationReconciliationV1 {
 impl ContaminationReconciliationV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            mt_fraction: None,
-            nuclear_fraction: None,
-            assessment: "unknown".to_string(),
-        }
+        Self { mt_fraction: None, nuclear_fraction: None, assessment: "unknown".to_string() }
     }
 }
 
@@ -113,26 +109,13 @@ pub fn parse_contamination_json(path: &std::path::Path) -> anyhow::Result<Contam
             .and_then(serde_json::Value::as_str)
             .unwrap_or("unknown")
             .to_string(),
-        estimate: value
-            .get("estimate")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0),
-        ci_low: value
-            .get("ci_low")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0),
-        ci_high: value
-            .get("ci_high")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0),
+        estimate: value.get("estimate").and_then(serde_json::Value::as_f64).unwrap_or(0.0),
+        ci_low: value.get("ci_low").and_then(serde_json::Value::as_f64).unwrap_or(0.0),
+        ci_high: value.get("ci_high").and_then(serde_json::Value::as_f64).unwrap_or(0.0),
         assumptions: value
             .get("assumptions")
             .and_then(|v| v.as_array())
-            .map(|arr| {
-                arr.iter()
-                    .filter_map(|v| v.as_str().map(str::to_string))
-                    .collect()
-            })
+            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(str::to_string)).collect())
             .unwrap_or_default(),
     })
 }

@@ -14,11 +14,7 @@ pub struct ComplexityMetricsV1 {
 impl ComplexityMetricsV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            observed_reads: 0,
-            projected_reads: Vec::new(),
-            saturation_estimate: 0.0,
-        }
+        Self { observed_reads: 0, projected_reads: Vec::new(), saturation_estimate: 0.0 }
     }
 }
 

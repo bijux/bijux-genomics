@@ -22,9 +22,7 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
             image: "bijux/bwa".to_string(),
             digest: Some("sha256:bwa".to_string()),
         },
-        command: CommandSpecV1 {
-            template: vec!["bwa".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["bwa".to_string()] },
         resources: ToolConstraints {
             runtime: "short".to_string(),
             mem_gb: 2,
@@ -78,14 +76,9 @@ fn pipeline_plan_snapshots_are_stable() -> Result<()> {
         out_dir: temp.path().join("out"),
         allow_planned: false,
     };
-    let payload = serde_json::to_value(bijux_dna_planner_bam::plan_bam_to_bam__adna_shotgun__v1(
-        &inputs,
-    )?)?;
-    assert_snapshot(
-        "pipeline__bam__bam-to-bam__adna_shotgun__v1",
-        &payload,
-        temp.path(),
-    )?;
+    let payload =
+        serde_json::to_value(bijux_dna_planner_bam::plan_bam_to_bam__adna_shotgun__v1(&inputs)?)?;
+    assert_snapshot("pipeline__bam__bam-to-bam__adna_shotgun__v1", &payload, temp.path())?;
 
     let temp = bijux_dna_infra::temp_dir("bam-adna-capture-plan")?;
     let bam = temp.path().join("sample.bam");
@@ -103,13 +96,8 @@ fn pipeline_plan_snapshots_are_stable() -> Result<()> {
         out_dir: temp.path().join("out"),
         allow_planned: false,
     };
-    let payload = serde_json::to_value(bijux_dna_planner_bam::plan_bam_to_bam__adna_capture__v1(
-        &inputs,
-    )?)?;
-    assert_snapshot(
-        "pipeline__bam__bam-to-bam__adna_capture__v1",
-        &payload,
-        temp.path(),
-    )?;
+    let payload =
+        serde_json::to_value(bijux_dna_planner_bam::plan_bam_to_bam__adna_capture__v1(&inputs)?)?;
+    assert_snapshot("pipeline__bam__bam-to-bam__adna_capture__v1", &payload, temp.path())?;
     Ok(())
 }

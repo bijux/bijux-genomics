@@ -66,10 +66,7 @@ pub(crate) fn image_for_tool(tool: &str) -> ContainerImageRefV1 {
         "ibdne" => "quay.io/biocontainers/ibdne:23.05.23.ae9f5b3--hdfd78af_0",
         _ => "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
     };
-    ContainerImageRefV1 {
-        image: image.to_string(),
-        digest: None,
-    }
+    ContainerImageRefV1 { image: image.to_string(), digest: None }
 }
 
 pub(crate) fn phasing_backend_supports_gl_only_input(tool: &str) -> bool {

@@ -57,15 +57,9 @@ fn parse_key(line: &str) -> Option<(String, u64)> {
 /// # Errors
 /// Returns an error if the file cannot be read or decoded via `bcftools view`.
 pub fn read_vcf_text(path: &Path) -> Result<String> {
-    let ext = path
-        .extension()
-        .and_then(|x| x.to_str())
-        .unwrap_or_default();
+    let ext = path.extension().and_then(|x| x.to_str()).unwrap_or_default();
     if ext == "gz" || ext == "bcf" {
-        return run_cmd(
-            "bcftools",
-            &["view".to_string(), path.display().to_string()],
-        );
+        return run_cmd("bcftools", &["view".to_string(), path.display().to_string()]);
     }
     std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))
 }
@@ -91,15 +85,9 @@ fn query_site_keys(path: &Path) -> Result<BTreeSet<String>> {
 /// # Errors
 /// Returns an error if the VCF input violates required contracts.
 pub fn vcf_validate_input(input: &Path, req: VcfFieldRequirement) -> Result<VcfValidationSummary> {
-    let bgzip = input
-        .extension()
-        .and_then(|x| x.to_str())
-        .is_some_and(|x| x == "gz" || x == "bcf");
+    let bgzip = input.extension().and_then(|x| x.to_str()).is_some_and(|x| x == "gz" || x == "bcf");
     if !bgzip {
-        bail!(
-            "vcf_validate_input: expected .vcf.gz or .bcf input: {}",
-            input.display()
-        );
+        bail!("vcf_validate_input: expected .vcf.gz or .bcf input: {}", input.display());
     }
     let tabix = if input.extension().and_then(|x| x.to_str()) == Some("bcf") {
         input.with_extension("bcf.csi").exists() || input.with_extension("csi").exists()
@@ -108,16 +96,10 @@ pub fn vcf_validate_input(input: &Path, req: VcfFieldRequirement) -> Result<VcfV
         tbi.exists()
     };
     if !tabix {
-        bail!(
-            "vcf_validate_input: missing tabix/csi index for {}",
-            input.display()
-        );
+        bail!("vcf_validate_input: missing tabix/csi index for {}", input.display());
     }
     let raw = read_vcf_text(input)?;
-    let headers = raw
-        .lines()
-        .filter(|line| line.starts_with("##"))
-        .collect::<Vec<_>>();
+    let headers = raw.lines().filter(|line| line.starts_with("##")).collect::<Vec<_>>();
     let sample_header = raw
         .lines()
         .find(|line| line.starts_with("#CHROM\t"))
@@ -243,10 +225,7 @@ pub fn vcf_index_bgzip_tabix(input_vcf: &Path, output_vcfgz: &Path) -> Result<Pa
         .output()
         .with_context(|| format!("run command bgzip -c {}", input_vcf.display()))?;
     if !bgzip_output.status.success() {
-        bail!(
-            "bgzip failed: {}",
-            String::from_utf8_lossy(&bgzip_output.stderr)
-        );
+        bail!("bgzip failed: {}", String::from_utf8_lossy(&bgzip_output.stderr));
     }
     bijux_dna_infra::atomic_write_bytes(&tmp_vcfgz, &bgzip_output.stdout)?;
     let tabix_args = vec![
@@ -258,10 +237,7 @@ pub fn vcf_index_bgzip_tabix(input_vcf: &Path, output_vcfgz: &Path) -> Result<Pa
     let _ = run_cmd("tabix", &tabix_args)?;
     let tmp_tbi = PathBuf::from(format!("{}.tbi", tmp_vcfgz.display()));
     if !tmp_tbi.exists() {
-        bail!(
-            "vcf_index_bgzip_tabix: tabix did not create {}",
-            tmp_tbi.display()
-        );
+        bail!("vcf_index_bgzip_tabix: tabix did not create {}", tmp_tbi.display());
     }
     std::fs::rename(&tmp_vcfgz, output_vcfgz)?;
     std::fs::rename(&tmp_tbi, &output_tbi)?;
@@ -281,11 +257,8 @@ pub fn vcf_split_by_chrom(input_vcfgz: &Path, out_dir: &Path) -> Result<Vec<Path
             input_vcfgz.display().to_string(),
         ],
     )?;
-    let uniq = chroms
-        .lines()
-        .map(str::to_string)
-        .filter(|x| !x.is_empty())
-        .collect::<BTreeSet<_>>();
+    let uniq =
+        chroms.lines().map(str::to_string).filter(|x| !x.is_empty()).collect::<BTreeSet<_>>();
     let mut outputs = Vec::new();
     for chr in uniq {
         let out = out_dir.join(format!("{chr}.vcf.gz"));
@@ -301,12 +274,7 @@ pub fn vcf_split_by_chrom(input_vcfgz: &Path, out_dir: &Path) -> Result<Vec<Path
         let _ = run_cmd("bcftools", &args)?;
         let _ = run_cmd(
             "tabix",
-            &[
-                "-f".to_string(),
-                "-p".to_string(),
-                "vcf".to_string(),
-                out.display().to_string(),
-            ],
+            &["-f".to_string(), "-p".to_string(), "vcf".to_string(), out.display().to_string()],
         )?;
         outputs.push(out);
     }
@@ -345,12 +313,7 @@ pub fn vcf_concat(inputs: &[PathBuf], output_vcfgz: &Path) -> Result<PathBuf> {
     let out_tmp_tbi = PathBuf::from(format!("{}.tbi", output_tmp.display()));
     let _ = run_cmd(
         "tabix",
-        &[
-            "-f".to_string(),
-            "-p".to_string(),
-            "vcf".to_string(),
-            output_tmp.display().to_string(),
-        ],
+        &["-f".to_string(), "-p".to_string(), "vcf".to_string(), output_tmp.display().to_string()],
     )?;
     if !out_tmp_tbi.exists() {
         bail!("vcf_concat: missing output index {}", out_tmp_tbi.display());
@@ -383,11 +346,7 @@ pub fn vcf_concat(inputs: &[PathBuf], output_vcfgz: &Path) -> Result<PathBuf> {
             ],
         )?;
         expected_contigs.extend(
-            contigs
-                .lines()
-                .map(str::trim)
-                .filter(|x| !x.is_empty())
-                .map(ToString::to_string),
+            contigs.lines().map(str::trim).filter(|x| !x.is_empty()).map(ToString::to_string),
         );
     }
     if output_contigs != expected_contigs {
@@ -454,10 +413,7 @@ pub fn vcf_region_extract(
 /// # Errors
 /// Returns an error if bcftools stats fails.
 pub fn vcf_stats_basic(input_vcfgz: &Path, out_stats_txt: &Path) -> Result<VcfStatsMetricsV1> {
-    let stats = run_cmd(
-        "bcftools",
-        &["stats".to_string(), input_vcfgz.display().to_string()],
-    )?;
+    let stats = run_cmd("bcftools", &["stats".to_string(), input_vcfgz.display().to_string()])?;
     bijux_dna_infra::atomic_write_bytes(out_stats_txt, stats.as_bytes())?;
     parse_vcf_stats(out_stats_txt)
 }
@@ -470,10 +426,7 @@ pub fn vcf_checksum_set(paths: &[PathBuf]) -> Result<BTreeMap<String, String>> {
         if !path.exists() {
             continue;
         }
-        out.insert(
-            path.display().to_string(),
-            bijux_dna_infra::hash_file_sha256(path)?,
-        );
+        out.insert(path.display().to_string(), bijux_dna_infra::hash_file_sha256(path)?);
     }
     Ok(out)
 }
@@ -501,11 +454,7 @@ pub fn vcf_ref_match_check(input_vcf: &Path, species: &SpeciesContext) -> Result
         .lines()
         .filter_map(|line| parse_fields(line).and_then(|f| f.first().map(|x| (*x).to_string())))
         .collect::<BTreeSet<_>>();
-    let species_contigs = species
-        .contigs
-        .iter()
-        .map(|c| c.name.clone())
-        .collect::<BTreeSet<_>>();
+    let species_contigs = species.contigs.iter().map(|c| c.name.clone()).collect::<BTreeSet<_>>();
     if !contigs.is_subset(&species_contigs) {
         bail!("vcf_ref_match_check: contig mismatch with SpeciesContext");
     }
@@ -515,10 +464,7 @@ pub fn vcf_ref_match_check(input_vcf: &Path, species: &SpeciesContext) -> Result
 /// # Errors
 /// Returns an error if overlap computation fails.
 pub fn vcf_panel_overlap(input_vcfgz: &Path, panel_vcfgz: &Path) -> Result<serde_json::Value> {
-    let stamp = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
+    let stamp = SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
     let isec_tmp = std::env::temp_dir().join(format!("bijux-vcf-isec-{stamp}.vcf.gz"));
     let _ = run_cmd(
         "bcftools",
@@ -569,13 +515,11 @@ pub fn vcf_panel_overlap(input_vcfgz: &Path, panel_vcfgz: &Path) -> Result<serde
         .map(ToString::to_string)
         .collect::<BTreeSet<_>>();
     let shared = shared_set.len() as u64;
-    let per_chr = shared_set
-        .iter()
-        .fold(BTreeMap::<String, u64>::new(), |mut acc, key| {
-            let chr = key.split(':').next().unwrap_or_default().to_string();
-            *acc.entry(chr).or_insert(0) += 1;
-            acc
-        });
+    let per_chr = shared_set.iter().fold(BTreeMap::<String, u64>::new(), |mut acc, key| {
+        let chr = key.split(':').next().unwrap_or_default().to_string();
+        *acc.entry(chr).or_insert(0) += 1;
+        acc
+    });
     let _ = std::fs::remove_file(&isec_tmp);
     let _ = std::fs::remove_file(PathBuf::from(format!("{}.tbi", isec_tmp.display())));
     Ok(serde_json::json!({

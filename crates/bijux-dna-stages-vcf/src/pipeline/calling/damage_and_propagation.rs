@@ -47,9 +47,8 @@ fn env_terminal_damage_threshold() -> f64 {
 }
 
 fn env_pmd_min_default(udg_regime: DamageUdgRegime) -> f64 {
-    if let Some(parsed) = std::env::var("BIJUX_VCF_DAMAGE_PMD_MIN")
-        .ok()
-        .and_then(|v| v.parse::<f64>().ok())
+    if let Some(parsed) =
+        std::env::var("BIJUX_VCF_DAMAGE_PMD_MIN").ok().and_then(|v| v.parse::<f64>().ok())
     {
         return parsed;
     }
@@ -78,11 +77,7 @@ pub struct GlPropagationStageParams {
 impl GlPropagationStageParams {
     #[must_use]
     pub fn recommended() -> Self {
-        Self {
-            require_gl_or_pl: true,
-            expected_ploidy: Some(2),
-            emit_bcf: true,
-        }
+        Self { require_gl_or_pl: true, expected_ploidy: Some(2), emit_bcf: true }
     }
 }
 
@@ -160,29 +155,18 @@ pub fn run_gl_propagation_stage(
         }
         output_lines.push(row.join("\t"));
     }
-    if let Some(chrom_idx) = output_lines
-        .iter()
-        .position(|line| line.starts_with("#CHROM\t"))
-    {
-        let has_gt = output_lines
-            .iter()
-            .any(|line| line.starts_with("##FORMAT=<ID=GT,"));
-        let has_gl = output_lines
-            .iter()
-            .any(|line| line.starts_with("##FORMAT=<ID=GL,"));
-        let has_pl = output_lines
-            .iter()
-            .any(|line| line.starts_with("##FORMAT=<ID=PL,"));
+    if let Some(chrom_idx) = output_lines.iter().position(|line| line.starts_with("#CHROM\t")) {
+        let has_gt = output_lines.iter().any(|line| line.starts_with("##FORMAT=<ID=GT,"));
+        let has_gl = output_lines.iter().any(|line| line.starts_with("##FORMAT=<ID=GL,"));
+        let has_pl = output_lines.iter().any(|line| line.starts_with("##FORMAT=<ID=PL,"));
         if !has_gt {
             output_lines.insert(
                 chrom_idx,
                 "##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">".to_string(),
             );
         }
-        let insert_at = output_lines
-            .iter()
-            .position(|line| line.starts_with("#CHROM\t"))
-            .unwrap_or(chrom_idx);
+        let insert_at =
+            output_lines.iter().position(|line| line.starts_with("#CHROM\t")).unwrap_or(chrom_idx);
         if !has_gl {
             output_lines.insert(
                 insert_at,
@@ -190,10 +174,8 @@ pub fn run_gl_propagation_stage(
                     .to_string(),
             );
         }
-        let insert_at = output_lines
-            .iter()
-            .position(|line| line.starts_with("#CHROM\t"))
-            .unwrap_or(chrom_idx);
+        let insert_at =
+            output_lines.iter().position(|line| line.starts_with("#CHROM\t")).unwrap_or(chrom_idx);
         if !has_pl {
             output_lines.insert(
                 insert_at,
@@ -217,19 +199,13 @@ pub fn run_gl_propagation_stage(
     let (normalized_bcf, normalized_bcf_csi) = if params.emit_bcf {
         let bcf = out_dir.join("gl_normalized.bcf");
         let csi = out_dir.join("gl_normalized.bcf.csi");
-        let normalized_vcf_s = normalized_vcf
-            .to_str()
-            .ok_or_else(|| anyhow!("non-utf8 gl normalized vcf path"))?;
-        let bcf_s = bcf
-            .to_str()
-            .ok_or_else(|| anyhow!("non-utf8 gl normalized bcf path"))?;
+        let normalized_vcf_s =
+            normalized_vcf.to_str().ok_or_else(|| anyhow!("non-utf8 gl normalized vcf path"))?;
+        let bcf_s = bcf.to_str().ok_or_else(|| anyhow!("non-utf8 gl normalized bcf path"))?;
         run_checked_command("bcftools", &["view", "-Ob", "-o", bcf_s, normalized_vcf_s])?;
         run_checked_command("bcftools", &["index", "-f", bcf_s])?;
         if !csi.exists() {
-            bail!(
-                "vcf.gl_propagation contract violation: missing BCF index {}",
-                csi.display()
-            );
+            bail!("vcf.gl_propagation contract violation: missing BCF index {}", csi.display());
         }
         (Some(bcf), Some(csi))
     } else {
@@ -385,17 +361,13 @@ pub fn run_damage_filter_stage(
                 filtered_other += 1;
             }
             if ratio > threshold {
-                *counts
-                    .entry("damage_ratio_exceeded".to_string())
-                    .or_insert(0) += 1;
+                *counts.entry("damage_ratio_exceeded".to_string()).or_insert(0) += 1;
             }
             if pmd_fail {
                 *counts.entry("pmd_below_threshold".to_string()).or_insert(0) += 1;
             }
             if terminal_damage {
-                *counts
-                    .entry("terminal_damage_filtered".to_string())
-                    .or_insert(0) += 1;
+                *counts.entry("terminal_damage_filtered".to_string()).or_insert(0) += 1;
             }
             if mask_mode == "mark" {
                 let mut row = fields.iter().map(|f| (*f).to_string()).collect::<Vec<_>>();

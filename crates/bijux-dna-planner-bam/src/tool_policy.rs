@@ -50,10 +50,7 @@ pub fn enforce(
                     ));
                 }
                 id_catalog::TOOL_VERIFYBAMID2 | id_catalog::TOOL_CONTAMMIX
-                    if !matches!(
-                        scope,
-                        ContaminationScope::Nuclear | ContaminationScope::Both
-                    ) =>
+                    if !matches!(scope, ContaminationScope::Nuclear | ContaminationScope::Both) =>
                 {
                     return Err(anyhow!(
                         "{} tool {tool_id} requires scope nuclear/both",

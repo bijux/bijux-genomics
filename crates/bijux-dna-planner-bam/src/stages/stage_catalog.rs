@@ -17,11 +17,7 @@ pub fn stage_registry(registry: &ToolRegistry) -> Result<Vec<StageSpec>> {
             let stage = BamStage::try_from(stage_id.as_str())?;
             let contract = contract_for_stage(stage_id.as_str())
                 .ok_or_else(|| anyhow!("missing BAM stage contract for {}", stage_id.as_str()))?;
-            Ok(StageSpec {
-                id: stage.id(),
-                stage,
-                contract,
-            })
+            Ok(StageSpec { id: stage.id(), stage, contract })
         })
         .collect()
 }

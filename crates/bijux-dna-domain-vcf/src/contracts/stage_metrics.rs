@@ -15,16 +15,10 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
     const CALL_METRICS: &[&str] = &["variants_called", "snps", "indels"];
     const CALL_DIPLOID_METRICS: &[&str] = &["diploid_called_variants", "het_rate"];
     const CALL_GL_METRICS: &[&str] = &["gl_sites_count", "mean_gl_depth", "gl_parameter_profile"];
-    const CALL_PSEUDOHAPLOID_METRICS: &[&str] = &[
-        "pseudo_called_sites",
-        "pseudo_missing_rate",
-        "pseudo_sampling_seed",
-    ];
-    const DAMAGE_FILTER_METRICS: &[&str] = &[
-        "ct_ga_masked_sites",
-        "pmd_filtered_reads",
-        "damage_strategy_applied",
-    ];
+    const CALL_PSEUDOHAPLOID_METRICS: &[&str] =
+        &["pseudo_called_sites", "pseudo_missing_rate", "pseudo_sampling_seed"];
+    const DAMAGE_FILTER_METRICS: &[&str] =
+        &["ct_ga_masked_sites", "pmd_filtered_reads", "damage_strategy_applied"];
     const PHASING_METRICS: &[&str] = &["switch_error_proxy", "phase_block_n50"];
     const IMPUTATION_METRICS: &[&str] = &[
         "imputed_variant_count",
@@ -37,11 +31,8 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         "readiness_for_ibd_roh",
     ];
     const POP_STRUCTURE_METRICS: &[&str] = &["pc1_variance", "pc2_variance", "cluster_count"];
-    const IBD_METRICS: &[&str] = &[
-        "ibd_segment_count",
-        "ibd_total_length_cM",
-        "pairwise_ibd_sharing_matrix",
-    ];
+    const IBD_METRICS: &[&str] =
+        &["ibd_segment_count", "ibd_total_length_cM", "pairwise_ibd_sharing_matrix"];
     const ROH_METRICS: &[&str] = &["roh_count", "roh_total_mb", "roh_mean_length_mb"];
     const DEMOGRAPHY_METRICS: &[&str] = &["ne_recent", "ne_time_series", "ne_confidence_interval"];
     const QC_METRICS: &[&str] = &[

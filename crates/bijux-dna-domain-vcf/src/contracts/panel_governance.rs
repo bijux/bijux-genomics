@@ -42,17 +42,11 @@ impl PanelSelectionPolicy for DefaultPanelSelectionPolicy {
             .filter(|panel| panel.reference_build == context.target_build)
             .filter(|panel| {
                 context.use_restricted_license
-                    || !panel
-                        .license_constraints
-                        .iter()
-                        .any(|entry| entry.contains("restricted"))
+                    || !panel.license_constraints.iter().any(|entry| entry.contains("restricted"))
             })
             .find(|panel| {
-                context.ancestry_hint.as_ref().map_or(true, |hint| {
-                    panel
-                        .ancestry_tags
-                        .iter()
-                        .any(|tag| tag.eq_ignore_ascii_case(hint))
+                context.ancestry_hint.as_ref().is_none_or(|hint| {
+                    panel.ancestry_tags.iter().any(|tag| tag.eq_ignore_ascii_case(hint))
                 })
             })
     }
@@ -62,9 +56,7 @@ impl PanelSelectionPolicy for DefaultPanelSelectionPolicy {
 /// Returns an error if governance records violate required lock metadata.
 pub fn validate_reference_panel_governance(panel: &ReferencePanelGovernance) -> Result<()> {
     if panel.panel_id.trim().is_empty() || panel.reference_build.trim().is_empty() {
-        return Err(anyhow!(
-            "panel governance requires non-empty panel_id/reference_build"
-        ));
+        return Err(anyhow!("panel governance requires non-empty panel_id/reference_build"));
     }
     if panel.panel_checksum_sha256.len() != 64 || panel.index_checksum_sha256.len() != 64 {
         bail!("panel governance requires 64-char sha256 locks for panel/index");

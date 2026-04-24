@@ -40,10 +40,7 @@ pub const VCF_STAGE_ID_CATALOG: &[&str] = &[
     "vcf.roh",
     "vcf.stats",
 ];
-pub const VCF_PARAMS_CATALOG: &[&str] = &[
-    "bijux.vcf.call.params",
-    "bijux.vcf.filter.params",
-    "bijux.vcf.stats.params",
-];
+pub const VCF_PARAMS_CATALOG: &[&str] =
+    &["bijux.vcf.call.params", "bijux.vcf.filter.params", "bijux.vcf.stats.params"];
 pub const VCF_METRICS_CATALOG: &[&str] = &["bijux.vcf.stats.v1"];
 pub const VCF_PRODUCTION_TOOLS: &[&str] = &["bcftools"];

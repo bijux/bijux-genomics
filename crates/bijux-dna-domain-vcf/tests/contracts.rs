@@ -16,19 +16,13 @@ mod contracts {
 
     #[test]
     fn vcf_stage_catalog_is_stable() {
-        let ids = VcfStage::all()
-            .iter()
-            .map(|s| s.as_str())
-            .collect::<Vec<_>>();
+        let ids = VcfStage::all().iter().map(|s| s.as_str()).collect::<Vec<_>>();
         assert_eq!(ids, vec!["vcf.call", "vcf.filter", "vcf.stats"]);
     }
 
     #[test]
     fn vcf_domain_stage_taxonomy_covers_domain_index_set() {
-        let ids = VcfDomainStage::all()
-            .iter()
-            .map(|stage| stage.as_str())
-            .collect::<Vec<_>>();
+        let ids = VcfDomainStage::all().iter().map(|stage| stage.as_str()).collect::<Vec<_>>();
         assert_eq!(
             ids,
             vec![
@@ -61,10 +55,8 @@ mod contracts {
         assert!(
             validate_downstream_transition(VcfDomainStage::Filter, VcfDomainStage::Stats).is_ok()
         );
-        assert!(
-            validate_downstream_transition(VcfDomainStage::Imputation, VcfDomainStage::Call)
-                .is_err()
-        );
+        assert!(validate_downstream_transition(VcfDomainStage::Imputation, VcfDomainStage::Call)
+            .is_err());
         assert_eq!(
             VCF_STAGE_ORDER_DOWNSTREAM.first().map(|s| s.as_str()),
             Some("vcf.prepare_reference_panel")
@@ -84,9 +76,7 @@ mod contracts {
         assert!(metrics.required_metrics.contains(&"rsq_mean"));
 
         let failure_modes = stage_failure_modes(VcfDomainStage::Phasing);
-        assert!(failure_modes
-            .iter()
-            .any(|m| m.code == "insufficient_markers"));
+        assert!(failure_modes.iter().any(|m| m.code == "insufficient_markers"));
     }
 
     #[test]
@@ -127,10 +117,7 @@ mod contracts {
             contig_set_consistent: true,
         };
         assert!(validate_vcf_invariants(VcfDomainStage::Stats, &ok).is_ok());
-        let bad = VcfInvariantState {
-            tabix_index_present: false,
-            ..ok
-        };
+        let bad = VcfInvariantState { tabix_index_present: false, ..ok };
         assert!(validate_vcf_invariants(VcfDomainStage::Stats, &bad).is_err());
     }
 
@@ -141,14 +128,8 @@ mod contracts {
             build_id: "GRCh37".to_string(),
             contig_set_digest: "contigs-sha256".to_string(),
             contigs: vec![
-                ContigSpec {
-                    name: "1".to_string(),
-                    length_bp: 249_250_621,
-                },
-                ContigSpec {
-                    name: "2".to_string(),
-                    length_bp: 243_199_373,
-                },
+                ContigSpec { name: "1".to_string(), length_bp: 249_250_621 },
+                ContigSpec { name: "2".to_string(), length_bp: 243_199_373 },
             ],
             sex_system: "xy".to_string(),
             par_policy: "grch37_par".to_string(),
@@ -187,8 +168,7 @@ mod contracts {
             Err(err) => err,
         };
         assert!(
-            err.to_string()
-                .contains("UnsupportedPseudohaploidToDiploid"),
+            err.to_string().contains("UnsupportedPseudohaploidToDiploid"),
             "unexpected refusal error: {err}"
         );
     }
@@ -196,9 +176,7 @@ mod contracts {
     #[test]
     fn imputation_stage_contracts_include_standard_artifacts_and_output_guarantee() {
         let artifact_contract = stage_artifact_contract(VcfDomainStage::Impute);
-        assert!(artifact_contract
-            .required_artifacts
-            .contains(&"imputation_accept_decision.json"));
+        assert!(artifact_contract.required_artifacts.contains(&"imputation_accept_decision.json"));
         assert_eq!(OUTPUT_GUARANTEE.final_primary_format, "vcf.gz");
         let requires_bgzip_tabix = OUTPUT_GUARANTEE.requires_bgzip_tabix;
         let deterministic_header_normalization =

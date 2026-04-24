@@ -13,9 +13,7 @@ pub fn plan(stage: BamStage, _request: &StagePlanRequest<'_>) -> Result<StagePla
             {
                 use bijux_dna_domain_bam::params::BamEffectiveParams;
 
-                let bam = _request
-                    .bam
-                    .ok_or_else(|| anyhow!("bias_mitigation requires bam"))?;
+                let bam = _request.bam.ok_or_else(|| anyhow!("bias_mitigation requires bam"))?;
                 let params = crate::params::effective_params_for_stage(stage, _request.params)?;
                 let BamEffectiveParams::BiasMitigation(params) = params else {
                     return Err(anyhow!("bias_mitigation params mismatch"));
@@ -37,9 +35,7 @@ pub fn plan(stage: BamStage, _request: &StagePlanRequest<'_>) -> Result<StagePla
             {
                 use bijux_dna_domain_bam::params::BamEffectiveParams;
 
-                let bam = _request
-                    .bam
-                    .ok_or_else(|| anyhow!("haplogroups requires bam"))?;
+                let bam = _request.bam.ok_or_else(|| anyhow!("haplogroups requires bam"))?;
                 let params = crate::params::effective_params_for_stage(stage, _request.params)?;
                 let BamEffectiveParams::Haplogroups(params) = params else {
                     return Err(anyhow!("haplogroups params mismatch"));
@@ -61,9 +57,7 @@ pub fn plan(stage: BamStage, _request: &StagePlanRequest<'_>) -> Result<StagePla
             {
                 use bijux_dna_domain_bam::params::BamEffectiveParams;
 
-                let bam = _request
-                    .bam
-                    .ok_or_else(|| anyhow!("genotyping requires bam"))?;
+                let bam = _request.bam.ok_or_else(|| anyhow!("genotyping requires bam"))?;
                 let params = crate::params::effective_params_for_stage(stage, _request.params)?;
                 let BamEffectiveParams::Genotyping(params) = params else {
                     return Err(anyhow!("genotyping params mismatch"));
@@ -85,9 +79,7 @@ pub fn plan(stage: BamStage, _request: &StagePlanRequest<'_>) -> Result<StagePla
             {
                 use bijux_dna_domain_bam::params::BamEffectiveParams;
 
-                let bam = _request
-                    .bam
-                    .ok_or_else(|| anyhow!("kinship requires bam"))?;
+                let bam = _request.bam.ok_or_else(|| anyhow!("kinship requires bam"))?;
                 let params = crate::params::effective_params_for_stage(stage, _request.params)?;
                 let BamEffectiveParams::Kinship(params) = params else {
                     return Err(anyhow!("kinship params mismatch"));
@@ -104,9 +96,6 @@ pub fn plan(stage: BamStage, _request: &StagePlanRequest<'_>) -> Result<StagePla
                 Err(anyhow!("kinship requires bam_downstream feature"))
             }
         }
-        _ => Err(anyhow!(
-            "stage {} is not handled by the downstream dispatcher",
-            stage.as_str()
-        )),
+        _ => Err(anyhow!("stage {} is not handled by the downstream dispatcher", stage.as_str())),
     }
 }

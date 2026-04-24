@@ -277,12 +277,7 @@ python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.du
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &[
-                "duplication_report",
-                "duplication_histogram",
-                "summary",
-                "stage_metrics",
-            ],
+            &["duplication_report", "duplication_histogram", "summary", "stage_metrics"],
         )
     }
 }
@@ -431,12 +426,7 @@ pub mod insert_size {
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
-            &[
-                "insert_size_report",
-                "insert_size_histogram",
-                "summary",
-                "stage_metrics",
-            ],
+            &["insert_size_report", "insert_size_histogram", "summary", "stage_metrics"],
         )
     }
 }

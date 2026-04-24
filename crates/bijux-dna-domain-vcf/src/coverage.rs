@@ -4,11 +4,8 @@ use serde::Serialize;
 
 use crate::taxonomy::VcfDomainStage;
 
-pub const VCF_EXECUTION_IMPLEMENTED_STAGES: &[VcfDomainStage] = &[
-    VcfDomainStage::Call,
-    VcfDomainStage::Filter,
-    VcfDomainStage::Stats,
-];
+pub const VCF_EXECUTION_IMPLEMENTED_STAGES: &[VcfDomainStage] =
+    &[VcfDomainStage::Call, VcfDomainStage::Filter, VcfDomainStage::Stats];
 
 pub const VCF_EXECUTION_IMPLEMENTED_TOOLS: &[&str] = &["bcftools"];
 pub const VCF_DOMAIN_TOOL_CATALOG: &[&str] = &[
@@ -77,18 +74,13 @@ pub fn domain_coverage_report() -> VcfDomainCoverageReport {
         .collect::<Vec<_>>();
     stages.sort_by(|a, b| a.stage_id.cmp(&b.stage_id));
 
-    let contract_tools = VCF_DOMAIN_TOOL_CATALOG
-        .iter()
-        .map(|tool| (*tool).to_string())
-        .collect::<BTreeSet<_>>();
+    let contract_tools =
+        VCF_DOMAIN_TOOL_CATALOG.iter().map(|tool| (*tool).to_string()).collect::<BTreeSet<_>>();
     let execution_tools = VCF_EXECUTION_IMPLEMENTED_TOOLS
         .iter()
         .map(|tool| (*tool).to_string())
         .collect::<BTreeSet<_>>();
-    let all_tools = contract_tools
-        .union(&execution_tools)
-        .cloned()
-        .collect::<BTreeSet<_>>();
+    let all_tools = contract_tools.union(&execution_tools).cloned().collect::<BTreeSet<_>>();
 
     let mut tools = all_tools
         .iter()

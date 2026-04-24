@@ -15,11 +15,7 @@ pub struct AuthenticityEvidenceV1 {
 impl AuthenticityEvidenceV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            damage_high: false,
-            fragments_short: false,
-            mapq_low_with_damage: false,
-        }
+        Self { damage_high: false, fragments_short: false, mapq_low_with_damage: false }
     }
 }
 
@@ -79,30 +75,13 @@ impl Default for AuthenticityScoreV1 {
 pub fn infer_library_type_from_damage(damage_5p: f64, damage_3p: f64) -> LibraryTypeInferenceV1 {
     let damage = damage_5p.max(damage_3p);
     let (inferred, confidence, rationale) = if damage >= 0.20 {
-        (
-            LibraryType::NonUdg,
-            0.85,
-            "high terminal damage signal".to_string(),
-        )
+        (LibraryType::NonUdg, 0.85, "high terminal damage signal".to_string())
     } else if damage >= 0.10 {
-        (
-            LibraryType::HalfUdg,
-            0.65,
-            "moderate terminal damage signal".to_string(),
-        )
+        (LibraryType::HalfUdg, 0.65, "moderate terminal damage signal".to_string())
     } else {
-        (
-            LibraryType::Udg,
-            0.55,
-            "low terminal damage signal".to_string(),
-        )
+        (LibraryType::Udg, 0.55, "low terminal damage signal".to_string())
     };
-    LibraryTypeInferenceV1 {
-        inferred,
-        confidence,
-        rationale,
-        declared: None,
-    }
+    LibraryTypeInferenceV1 { inferred, confidence, rationale, declared: None }
 }
 
 #[must_use]
@@ -140,10 +119,8 @@ pub fn authenticity_score(metrics: &BamMetricsV1) -> AuthenticityScoreV1 {
         mapq_low_with_damage: mapq_low && damage >= 0.10,
     };
 
-    let library_type_inference = Some(infer_library_type_from_damage(
-        metrics.damage.c_to_t_5p,
-        metrics.damage.g_to_a_3p,
-    ));
+    let library_type_inference =
+        Some(infer_library_type_from_damage(metrics.damage.c_to_t_5p, metrics.damage.g_to_a_3p));
     let trim_suggestion =
         suggest_trim_from_damage(metrics.damage.c_to_t_5p, metrics.damage.g_to_a_3p);
 

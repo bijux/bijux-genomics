@@ -90,30 +90,21 @@ fn canonical_contig_label(raw: &str) -> String {
 fn parse_variant_key(line: &str) -> Option<(String, u64, String, String)> {
     let fields = parse_record_fields(line)?;
     let pos = fields.get(1)?.parse::<u64>().ok()?;
-    Some((
-        fields.first()?.to_string(),
-        pos,
-        fields.get(3)?.to_string(),
-        fields.get(4)?.to_string(),
-    ))
+    Some((fields.first()?.to_string(), pos, fields.get(3)?.to_string(), fields.get(4)?.to_string()))
 }
 
 fn is_canonical_ref_allele(ref_allele: &str) -> bool {
     if ref_allele.is_empty() {
         return false;
     }
-    ref_allele
-        .bytes()
-        .all(|b| matches!(b, b'A' | b'C' | b'G' | b'T' | b'N'))
+    ref_allele.bytes().all(|b| matches!(b, b'A' | b'C' | b'G' | b'T' | b'N'))
 }
 
 fn infer_build_from_header(header_lines: &[String]) -> Option<String> {
     let tags = ["GRCh37", "GRCh38", "hg19", "hg38"];
-    header_lines.iter().find_map(|line| {
-        tags.iter()
-            .find(|tag| line.contains(**tag))
-            .map(|x| (*x).to_string())
-    })
+    header_lines
+        .iter()
+        .find_map(|line| tags.iter().find(|tag| line.contains(**tag)).map(|x| (*x).to_string()))
 }
 
 fn has_minimal_headers(header_lines: &[String]) -> bool {
@@ -136,9 +127,7 @@ fn detect_regime(records: &[String]) -> RegimeDetection {
         };
         let keys = fmt.split(':').collect::<Vec<_>>();
         let gt_idx = keys.iter().position(|k| *k == "GT");
-        let gl_idx = keys
-            .iter()
-            .position(|k| *k == "GL" || *k == "GP" || *k == "PL");
+        let gl_idx = keys.iter().position(|k| *k == "GL" || *k == "GP" || *k == "PL");
         if gt_idx.is_some() {
             has_gt = true;
         }
@@ -184,11 +173,7 @@ pub fn site_overlap_diagnostic(
         .filter_map(|l| parse_variant_key(l).map(|(c, p, r, a)| format!("{c}:{p}:{r}:{a}")))
         .collect::<BTreeSet<_>>();
     let overlap = target.intersection(&panel).count() as u64;
-    let frac = if panel.is_empty() {
-        0.0
-    } else {
-        overlap as f64 / panel.len() as f64
-    };
+    let frac = if panel.is_empty() { 0.0 } else { overlap as f64 / panel.len() as f64 };
     atomic_write_json(
         out_json,
         &serde_json::json!({
@@ -211,11 +196,7 @@ pub fn run_vcf_preflight(
     bijux_dna_infra::ensure_dir(artifact_dir)?;
     let raw = std::fs::read_to_string(input_vcf)?;
 
-    let mut summary = InvariantsSummary {
-        checked: vec![],
-        fixed: vec![],
-        refused: vec![],
-    };
+    let mut summary = InvariantsSummary { checked: vec![], fixed: vec![], refused: vec![] };
 
     let mut header_lines = Vec::<String>::new();
     let mut records = Vec::<String>::new();
@@ -237,11 +218,7 @@ pub fn run_vcf_preflight(
         .iter()
         .find(|l| l.starts_with("#CHROM\t"))
         .ok_or_else(|| anyhow!("missing #CHROM header"))?;
-    let mut sample_ids = sample_header
-        .split('\t')
-        .skip(9)
-        .map(str::to_string)
-        .collect::<Vec<_>>();
+    let mut sample_ids = sample_header.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>();
     summary.checked.push("sample_ids_valid".to_string());
     if sample_ids.iter().any(|s| s.trim().is_empty()) {
         summary.refused.push("sample_ids_valid".to_string());
@@ -254,18 +231,14 @@ pub fn run_vcf_preflight(
     }
 
     summary.checked.push("contig_set_present".to_string());
-    let record_contigs = records
-        .iter()
-        .filter_map(|l| parse_variant_key(l).map(|x| x.0))
-        .collect::<BTreeSet<_>>();
+    let record_contigs =
+        records.iter().filter_map(|l| parse_variant_key(l).map(|x| x.0)).collect::<BTreeSet<_>>();
     if record_contigs.is_empty() {
         summary.refused.push("contig_set_present".to_string());
         bail!("vcf.validate_inputs refusal: no records/contigs present");
     }
 
-    summary
-        .checked
-        .push("build_declared_vs_inferred".to_string());
+    summary.checked.push("build_declared_vs_inferred".to_string());
     let inferred = if let Some(v) = infer_build_from_header(&header_lines) {
         v
     } else {
@@ -281,21 +254,15 @@ pub fn run_vcf_preflight(
             .count();
         let frac = overlap as f64 / record_contigs.len() as f64;
         if frac >= config.min_overlap_threshold {
-            summary
-                .fixed
-                .push("build_inferred_from_species_context".to_string());
+            summary.fixed.push("build_inferred_from_species_context".to_string());
             species.build_id.clone()
         } else {
-            summary
-                .refused
-                .push("build_declared_vs_inferred".to_string());
+            summary.refused.push("build_declared_vs_inferred".to_string());
             bail!("vcf.validate_inputs refusal: build cannot be asserted (missing declaration and low contig overlap)");
         }
     };
     if !inferred.eq_ignore_ascii_case(&species.build_id) {
-        summary
-            .refused
-            .push("build_declared_vs_inferred".to_string());
+        summary.refused.push("build_declared_vs_inferred".to_string());
         bail!(
             "vcf.validate_inputs refusal: declared/inferred build {} does not match species build {}",
             inferred,
@@ -305,10 +272,7 @@ pub fn run_vcf_preflight(
     enforce_declared_build_and_contigs(
         &species.species_id,
         &species.build_id,
-        &record_contigs
-            .iter()
-            .map(|c| (*c).clone())
-            .collect::<Vec<_>>(),
+        &record_contigs.iter().map(|c| (*c).clone()).collect::<Vec<_>>(),
     )
     .map_err(|err| {
         anyhow!("vcf.validate_inputs refusal: declared build/contigs incompatible: {err}")
@@ -322,21 +286,13 @@ pub fn run_vcf_preflight(
         bail!("vcf.validate_inputs refusal: chr prefix mismatch between input and species context");
     }
 
-    summary
-        .checked
-        .push("allele_ref_validation_vs_reference_service".to_string());
+    summary.checked.push("allele_ref_validation_vs_reference_service".to_string());
     let reference_bundle = resolve_reference_bundle(&species.species_id, &species.build_id)
         .map_err(|err| anyhow!("reference bundle resolution failed: {err}"))?;
-    if !reference_bundle
-        .build_id
-        .eq_ignore_ascii_case(&species.build_id)
-        || !reference_bundle
-            .species_id
-            .eq_ignore_ascii_case(&species.species_id)
+    if !reference_bundle.build_id.eq_ignore_ascii_case(&species.build_id)
+        || !reference_bundle.species_id.eq_ignore_ascii_case(&species.species_id)
     {
-        summary
-            .refused
-            .push("allele_ref_validation_vs_reference_service".to_string());
+        summary.refused.push("allele_ref_validation_vs_reference_service".to_string());
         bail!(
             "vcf.validate_inputs refusal: resolved reference bundle species/build does not match SpeciesContext"
         );
@@ -351,9 +307,7 @@ pub fn run_vcf_preflight(
         })?;
         let ref_allele = fields[3].to_ascii_uppercase();
         if !is_canonical_ref_allele(&ref_allele) {
-            summary
-                .refused
-                .push("allele_ref_validation_vs_reference_service".to_string());
+            summary.refused.push("allele_ref_validation_vs_reference_service".to_string());
             bail!(
                 "vcf.validate_inputs refusal: REF allele contains non-canonical bases for record on {}:{}",
                 fields[0],
@@ -373,27 +327,16 @@ pub fn run_vcf_preflight(
     sorted.sort_by(|a, b| {
         let ka = parse_variant_key(a).unwrap_or_default();
         let kb = parse_variant_key(b).unwrap_or_default();
-        let ra = rank
-            .get(&canonical_contig_label(&ka.0))
-            .copied()
-            .unwrap_or(usize::MAX);
-        let rb = rank
-            .get(&canonical_contig_label(&kb.0))
-            .copied()
-            .unwrap_or(usize::MAX);
-        ra.cmp(&rb)
-            .then(ka.1.cmp(&kb.1))
-            .then(ka.2.cmp(&kb.2))
-            .then(ka.3.cmp(&kb.3))
+        let ra = rank.get(&canonical_contig_label(&ka.0)).copied().unwrap_or(usize::MAX);
+        let rb = rank.get(&canonical_contig_label(&kb.0)).copied().unwrap_or(usize::MAX);
+        ra.cmp(&rb).then(ka.1.cmp(&kb.1)).then(ka.2.cmp(&kb.2)).then(ka.3.cmp(&kb.3))
     });
     if sorted != records {
         summary.fixed.push("sorted_by_contig_and_pos".to_string());
         records = sorted;
     }
 
-    summary
-        .checked
-        .push("ploidy_declaration_consistent".to_string());
+    summary.checked.push("ploidy_declaration_consistent".to_string());
     let mut ploidy_counts = BTreeSet::<usize>::new();
     for line in &records {
         let Some(fields) = parse_record_fields(line) else {
@@ -413,16 +356,13 @@ pub fn run_vcf_preflight(
         }
     }
     if ploidy_counts.len() > 1 {
-        summary
-            .refused
-            .push("ploidy_declaration_consistent".to_string());
+        summary.refused.push("ploidy_declaration_consistent".to_string());
         bail!("vcf.validate_inputs refusal: inconsistent ploidy declaration");
     }
 
     summary.checked.push("sex_chr_rules".to_string());
-    let has_sex_chr = record_contigs
-        .iter()
-        .any(|c| matches!(c.as_str(), "X" | "Y" | "chrX" | "chrY"));
+    let has_sex_chr =
+        record_contigs.iter().any(|c| matches!(c.as_str(), "X" | "Y" | "chrX" | "chrY"));
     if has_sex_chr && species.par_policy.eq_ignore_ascii_case("unsupported") {
         summary.refused.push("sex_chr_rules".to_string());
         bail!("vcf.validate_inputs refusal: sex chromosome rules cannot be applied without PAR policy");
@@ -438,9 +378,7 @@ pub fn run_vcf_preflight(
     }
 
     sample_ids.sort();
-    summary
-        .fixed
-        .push("deterministic_header_normalization".to_string());
+    summary.fixed.push("deterministic_header_normalization".to_string());
     let mut fileformat = vec![];
     let mut contigs = vec![];
     let mut other_meta = vec![];
@@ -454,20 +392,12 @@ pub fn run_vcf_preflight(
         }
     }
     contigs.sort_by_key(|h| {
-        let id = h
-            .split("ID=")
-            .nth(1)
-            .and_then(|x| x.split([',', '>']).next())
-            .unwrap_or_default();
-        rank.get(&canonical_contig_label(id))
-            .copied()
-            .unwrap_or(usize::MAX)
+        let id = h.split("ID=").nth(1).and_then(|x| x.split([',', '>']).next()).unwrap_or_default();
+        rank.get(&canonical_contig_label(id)).copied().unwrap_or(usize::MAX)
     });
     other_meta.sort();
-    let chrom = format!(
-        "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t{}",
-        sample_ids.join("\t")
-    );
+    let chrom =
+        format!("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t{}", sample_ids.join("\t"));
     let mut normalized_header = vec![];
     normalized_header.extend(fileformat);
     normalized_header.extend(other_meta);
@@ -500,20 +430,14 @@ pub fn run_vcf_preflight(
         let Some(fields) = parse_record_fields(line) else {
             continue;
         };
-        let pos = fields
-            .get(1)
-            .and_then(|x| x.parse::<u64>().ok())
-            .unwrap_or(0);
+        let pos = fields.get(1).and_then(|x| x.parse::<u64>().ok()).unwrap_or(0);
         let entry = contig_max_bp.entry(fields[0].to_string()).or_insert(0);
         *entry = (*entry).max(pos);
     }
     let variant_count = records.len() as u64;
     let span_bp = contig_max_bp.values().copied().sum::<u64>();
-    let variant_density_per_mb = if span_bp > 0 {
-        variant_count as f64 / (span_bp as f64 / 1_000_000_f64)
-    } else {
-        0.0
-    };
+    let variant_density_per_mb =
+        if span_bp > 0 { variant_count as f64 / (span_bp as f64 / 1_000_000_f64) } else { 0.0 };
     let downstream_readiness = if variant_density_per_mb >= 1_000.0 {
         "dense"
     } else if variant_density_per_mb >= 100.0 {

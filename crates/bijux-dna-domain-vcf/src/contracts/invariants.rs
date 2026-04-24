@@ -75,16 +75,10 @@ pub fn validate_vcf_invariants(
         bail!("{} requires sorted VCF records", stage.as_str());
     }
     if !invariants.sample_set_consistent {
-        bail!(
-            "{} requires sample consistency across inputs",
-            stage.as_str()
-        );
+        bail!("{} requires sample consistency across inputs", stage.as_str());
     }
     if !invariants.contig_set_consistent {
-        bail!(
-            "{} requires contig consistency across inputs",
-            stage.as_str()
-        );
+        bail!("{} requires contig consistency across inputs", stage.as_str());
     }
 
     let requires_bgzip = matches!(

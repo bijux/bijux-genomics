@@ -102,11 +102,7 @@ fn bam_invariants_have_specs_and_fixtures() -> Result<()> {
     let thresholds = BamInvariantThresholds::default();
     let mut ids = std::collections::BTreeSet::new();
     for spec in &specs {
-        assert!(
-            ids.insert(spec.id.clone()),
-            "duplicate invariant {}",
-            spec.id
-        );
+        assert!(ids.insert(spec.id.clone()), "duplicate invariant {}", spec.id);
         assert!(!spec.definition.trim().is_empty());
         assert!(!spec.threshold_provenance.trim().is_empty());
         assert!(!spec.next_steps.trim().is_empty());
@@ -118,11 +114,7 @@ fn bam_invariants_have_specs_and_fixtures() -> Result<()> {
             .find(|entry| entry.id == spec.id)
             .map(|entry| entry.status.clone())
             .unwrap_or_else(|| panic!("missing invariant {} for {stage_id}", spec.id));
-        assert!(
-            status != InvariantStatusV1::Pass,
-            "fixture did not trigger {}",
-            spec.id
-        );
+        assert!(status != InvariantStatusV1::Pass, "fixture did not trigger {}", spec.id);
     }
     Ok(())
 }

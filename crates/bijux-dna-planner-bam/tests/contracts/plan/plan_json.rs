@@ -19,13 +19,8 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool),
         tool_version: "1.0.0".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: Vec::new(),
-        },
+        image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: Vec::new() },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -61,16 +56,10 @@ fn tool_id_from_snapshot(stage: BamStage) -> Option<ToolId> {
     let snapshot_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("snapshots")
-        .join(format!(
-            "{}.json",
-            snapshot_name("contracts", stage_snapshot_id(stage))
-        ));
+        .join(format!("{}.json", snapshot_name("contracts", stage_snapshot_id(stage))));
     let raw = fs::read_to_string(snapshot_path).ok()?;
     let parsed: Value = serde_json::from_str(&raw).ok()?;
-    parsed
-        .get("tool_id")
-        .and_then(Value::as_str)
-        .map(ToolId::new)
+    parsed.get("tool_id").and_then(Value::as_str).map(ToolId::new)
 }
 
 fn plan_for_stage(stage: BamStage) -> Result<StagePlanV1> {
@@ -136,10 +125,7 @@ fn assert_snapshot(name: &str, plan: &StagePlanV1) -> Result<()> {
     let expected_raw = fs::read_to_string(&snapshot_path)?;
     let expected_json: Value = serde_json::from_str(&expected_raw)?;
     let expected = serde_json::to_string_pretty(&sort_json(expected_json))?;
-    assert_eq!(
-        payload.trim_end_matches('\n'),
-        expected.trim_end_matches('\n')
-    );
+    assert_eq!(payload.trim_end_matches('\n'), expected.trim_end_matches('\n'));
     Ok(())
 }
 

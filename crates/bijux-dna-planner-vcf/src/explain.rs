@@ -38,9 +38,8 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
             },
         ));
     let selected_panel = resolve_panel_lock(inputs).ok().flatten();
-    let chunk_count = plan_region_chunks(&inputs.species_context, &inputs.chunking)
-        .map(|c| c.len())
-        .unwrap_or(0);
+    let chunk_count =
+        plan_region_chunks(&inputs.species_context, &inputs.chunking).map(|c| c.len()).unwrap_or(0);
     let stages = plans
         .iter()
         .map(|plan| PlannerExplainStage {

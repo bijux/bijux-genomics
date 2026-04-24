@@ -9,10 +9,7 @@ use crate::api::VcfPipelineInputs;
 /// Returns an error if the planner input domain or invariants are not valid for VCF planning.
 pub fn validate(inputs: &VcfPipelineInputs) -> Result<()> {
     if inputs.pipeline_domain != "vcf" {
-        bail!(
-            "vcf planner refusal: non-applicable domain `{}`",
-            inputs.pipeline_domain
-        );
+        bail!("vcf planner refusal: non-applicable domain `{}`", inputs.pipeline_domain);
     }
     let lowered = inputs.pipeline_domain.to_ascii_lowercase();
     if lowered.contains("edna") || lowered.contains("pollen") {

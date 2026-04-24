@@ -3,9 +3,7 @@ use std::path::PathBuf;
 
 #[test]
 fn graph_snapshots_are_documented() {
-    let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("docs")
-        .join("EXPLAIN_OUTPUT.md");
+    let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("EXPLAIN_OUTPUT.md");
     let content = fs::read_to_string(&doc).expect("read EXPLAIN_OUTPUT.md");
     assert!(
         content.contains("tests/contracts/graph/graph_snapshots.rs"),

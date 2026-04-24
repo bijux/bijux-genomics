@@ -192,12 +192,12 @@
             ..bijux_dna_domain_vcf::params::VcfCallParams::default()
         };
 
-        let dip = run_call_diploid_stage(input, &dir.path().join("diploid"), &params)
+        let diploid_outputs = run_call_diploid_stage(input, &dir.path().join("diploid"), &params)
             .unwrap_or_else(|err| panic!("diploid call stage: {err}"));
-        assert!(dip.called_vcf.exists());
-        assert!(dip.called_tbi.exists());
-        assert!(dip.call_metrics_json.exists());
-        assert!(dip.call_manifest_json.exists());
+        assert!(diploid_outputs.called_vcf.exists());
+        assert!(diploid_outputs.called_tbi.exists());
+        assert!(diploid_outputs.call_metrics_json.exists());
+        assert!(diploid_outputs.call_manifest_json.exists());
 
         let dip_gatk = run_call_diploid_stage(
             input,
@@ -227,9 +227,10 @@
     fn bam_to_gl_to_postprocess_integration_mini() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let bam = dir.path().join("mini.bam");
-        let bai = dir.path().join("mini.bam.bai");
+        let bam_index = dir.path().join("mini.bam.bai");
         std::fs::write(&bam, b"BAM_PLACEHOLDER\n").unwrap_or_else(|err| panic!("write bam: {err}"));
-        std::fs::write(&bai, b"BAI_PLACEHOLDER\n").unwrap_or_else(|err| panic!("write bai: {err}"));
+        std::fs::write(&bam_index, b"BAI_PLACEHOLDER\n")
+            .unwrap_or_else(|err| panic!("write bai: {err}"));
         let err = run_call_gl_from_bam_stage(
             &bam,
             &dir.path().join("call_gl"),

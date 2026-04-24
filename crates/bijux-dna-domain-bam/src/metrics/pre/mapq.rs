@@ -14,12 +14,6 @@ pub struct MapqSummaryV1 {
 impl MapqSummaryV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            mean: 0.0,
-            median: 0.0,
-            p10: 0.0,
-            p90: 0.0,
-            histogram: Vec::new(),
-        }
+        Self { mean: 0.0, median: 0.0, p10: 0.0, p90: 0.0, histogram: Vec::new() }
     }
 }

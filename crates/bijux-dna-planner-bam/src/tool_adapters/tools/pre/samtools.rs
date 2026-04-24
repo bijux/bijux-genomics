@@ -131,10 +131,7 @@ pub fn filter_args_with_audit_and_summary_name(
     view_args.push(bam.display().to_string());
     let bai_path = format!("{}.bai", out_bam.display());
     let length_filter = if params.min_length > 0 {
-        format!(
-            "awk 'BEGIN{{OFS=\"\\t\"}} /^@/{{print; next}} length($10)>={}'",
-            params.min_length
-        )
+        format!("awk 'BEGIN{{OFS=\"\\t\"}} /^@/{{print; next}} length($10)>={}'", params.min_length)
     } else {
         "cat".to_string()
     };
@@ -222,10 +219,8 @@ pub fn markdup_args_with_audit(
     summary: &Path,
     params: &bijux_dna_domain_bam::params::MarkDupEffectiveParams,
 ) -> Vec<String> {
-    let remove = matches!(
-        params.duplicate_action,
-        bijux_dna_domain_bam::params::DuplicateAction::Remove
-    );
+    let remove =
+        matches!(params.duplicate_action, bijux_dna_domain_bam::params::DuplicateAction::Remove);
     let mut args = vec!["samtools markdup".to_string()];
     if remove {
         args.push("-r".to_string());

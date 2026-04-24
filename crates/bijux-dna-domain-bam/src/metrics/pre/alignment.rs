@@ -17,13 +17,7 @@ pub struct AlignmentCountsV1 {
 impl AlignmentCountsV1 {
     #[must_use]
     pub fn empty() -> Self {
-        Self {
-            total: 0,
-            primary: 0,
-            mapped: 0,
-            proper_pair: 0,
-            duplicates: 0,
-        }
+        Self { total: 0, primary: 0, mapped: 0, proper_pair: 0, duplicates: 0 }
     }
 }
 
@@ -97,10 +91,7 @@ fn summarize_length_hist(hist: &[(u32, u64)]) -> FragmentLengthSummaryV1 {
         return FragmentLengthSummaryV1::empty();
     }
     let total: u64 = hist.iter().map(|(_, c)| *c).sum();
-    let mean = hist
-        .iter()
-        .map(|(len, c)| f64::from(*len) * u64_to_f64(*c))
-        .sum::<f64>()
+    let mean = hist.iter().map(|(len, c)| f64::from(*len) * u64_to_f64(*c)).sum::<f64>()
         / u64_to_f64(total);
     let mut ordered = hist.to_vec();
     ordered.sort_by_key(|(len, _)| *len);
@@ -122,19 +113,10 @@ fn summarize_length_hist(hist: &[(u32, u64)]) -> FragmentLengthSummaryV1 {
             break;
         }
     }
-    let short_fraction = hist
-        .iter()
-        .filter(|(len, _)| *len <= 35)
-        .map(|(_, c)| u64_to_f64(*c))
-        .sum::<f64>()
-        / u64_to_f64(total);
-    FragmentLengthSummaryV1 {
-        mean,
-        median,
-        p10,
-        p90,
-        short_fraction,
-    }
+    let short_fraction =
+        hist.iter().filter(|(len, _)| *len <= 35).map(|(_, c)| u64_to_f64(*c)).sum::<f64>()
+            / u64_to_f64(total);
+    FragmentLengthSummaryV1 { mean, median, p10, p90, short_fraction }
 }
 
 fn summarize_mapq_hist(hist: &[(u8, u64)]) -> MapqSummaryV1 {
@@ -142,11 +124,8 @@ fn summarize_mapq_hist(hist: &[(u8, u64)]) -> MapqSummaryV1 {
         return MapqSummaryV1::empty();
     }
     let total: u64 = hist.iter().map(|(_, c)| *c).sum();
-    let mean = hist
-        .iter()
-        .map(|(q, c)| f64::from(*q) * u64_to_f64(*c))
-        .sum::<f64>()
-        / u64_to_f64(total);
+    let mean =
+        hist.iter().map(|(q, c)| f64::from(*q) * u64_to_f64(*c)).sum::<f64>() / u64_to_f64(total);
     let mut ordered = hist.to_vec();
     ordered.sort_by_key(|(q, _)| *q);
     let mut cumulative = 0_u64;
@@ -167,11 +146,5 @@ fn summarize_mapq_hist(hist: &[(u8, u64)]) -> MapqSummaryV1 {
             break;
         }
     }
-    MapqSummaryV1 {
-        mean,
-        median,
-        p10,
-        p90,
-        histogram: hist.to_vec(),
-    }
+    MapqSummaryV1 { mean, median, p10, p90, histogram: hist.to_vec() }
 }
