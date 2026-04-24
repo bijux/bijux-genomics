@@ -133,6 +133,7 @@ fn dev_tree_matches_architecture_contract() {
         "boundaries.rs",
         "contracts/",
         "determinism/",
+        "guardrails.rs",
         "schemas/",
         "workspace_paths.rs",
     ]
