@@ -12,7 +12,7 @@ fn normalized_json(input: &str) -> String {
 fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
     std::env::var_os("CARGO_TARGET_DIR")
         .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| root.join("artifacts/target"))
+        .unwrap_or_else(|| root.join("artifacts/rust/target"))
 }
 
 #[test]

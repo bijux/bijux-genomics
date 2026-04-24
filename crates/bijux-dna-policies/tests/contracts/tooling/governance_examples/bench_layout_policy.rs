@@ -49,16 +49,22 @@ fn slow__policy__contracts__bench_layout_policy__bench_suites_live_only_under_be
 #[test]
 fn policy__contracts__bench_layout_policy__cli_and_bench_use_shared_bench_path_helper() {
     let root = workspace_root();
-    let cli =
-        std::fs::read_to_string(root.join(
-            "crates/bijux-dna/src/commands/bench_suite/suite_sections/analysis_and_status.rs",
-        ))
-        .expect("read cli bench suite module");
-    let bench_lib = std::fs::read_to_string(root.join("crates/bijux-dna-bench/src/lib.rs"))
-        .expect("read bench lib");
+    let cli_path_candidates = [
+        "crates/bijux-dna/src/commands/benchmark/suite/suite_sections/analysis_and_status.rs",
+        "crates/bijux-dna/src/commands/bench_suite/suite_sections/analysis_and_status.rs",
+    ];
+    let cli = cli_path_candidates
+        .iter()
+        .map(|rel| root.join(rel))
+        .find(|path| path.exists())
+        .map(|path| std::fs::read_to_string(path).expect("read cli bench suite module"))
+        .expect("resolve cli bench suite module path");
+    let bench_workspace_paths =
+        std::fs::read_to_string(root.join("crates/bijux-dna-bench/src/repo/workspace_paths.rs"))
+            .expect("read bench workspace path helper");
 
     let cli_uses_helper = cli.contains("bijux_dna_infra::bench_suites_dir");
-    let bench_uses_helper = bench_lib.contains("bijux_dna_infra::bench_suites_dir");
+    let bench_uses_helper = bench_workspace_paths.contains("bijux_dna_infra::bench_suites_dir");
 
     bijux_dna_policies::policy_assert!(
         cli_uses_helper && bench_uses_helper,

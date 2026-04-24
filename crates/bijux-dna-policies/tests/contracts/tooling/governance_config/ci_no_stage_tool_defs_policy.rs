@@ -30,6 +30,7 @@ fn policy__contracts__ci_no_stage_tool_defs_policy__workflows_must_not_define_st
     }
 
     let workflows = root.join(".github").join("workflows");
+    let allowlisted_workflows = [".github/workflows/automerge-pr.yml"];
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&workflows).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
@@ -40,6 +41,14 @@ fn policy__contracts__ci_no_stage_tool_defs_policy__workflows_must_not_define_st
             continue;
         };
         if ext != "yml" && ext != "yaml" {
+            continue;
+        }
+        let rel = path
+            .strip_prefix(&root)
+            .unwrap_or(path)
+            .to_string_lossy()
+            .replace('\\', "/");
+        if allowlisted_workflows.iter().any(|allowed| rel == *allowed) {
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read workflow");

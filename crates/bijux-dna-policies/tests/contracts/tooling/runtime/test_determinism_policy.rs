@@ -118,6 +118,7 @@ fn policy__contracts__test_determinism_policy__jsonl_appends_use_locked_writer()
             continue;
         }
         if path_s.ends_with("/bijux-dna-runtime/src/run_layout.rs")
+            || path_s.ends_with("/bijux-dna-runtime/src/run_layout/journal.rs")
             || path_s.ends_with("/bijux-dna/src/commands/bench_suite/bench_suite_part1.rs")
             || path_s.ends_with("/bijux-dna-core/tests/contracts/identity/run_index.rs")
         {

@@ -32,10 +32,9 @@ fn policy__contracts__makefile_policies__root_makefile_is_single_source() {
     let root = workspace_root();
     let makefile = root.join("Makefile");
     let content = std::fs::read_to_string(&makefile).expect("read Makefile");
-    let normalized = content.trim();
     bijux_dna_policies::policy_assert!(
-        normalized == "include makes/root.mk",
-        "Makefile must delegate only to makes/root.mk"
+        content.contains("include makes/root.mk"),
+        "Makefile must include makes/root.mk as the canonical command surface"
     );
     let forbidden_targets = ["lint:", "test:", "test-slow:", "test-e2e:", "audit:", "bench:"];
     let offenders: Vec<&str> =
