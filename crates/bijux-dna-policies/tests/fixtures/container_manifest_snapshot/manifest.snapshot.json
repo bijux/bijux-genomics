@@ -565,18 +565,6 @@
       "version": "2.7.0"
     },
     {
-      "apptainer_def": "containers/apptainer/shared/seqpurge.def",
-      "dockerfile": "containers/docker/arm64/Dockerfile.seqpurge",
-      "pinned_commit": "sha256:65c1249b64696ad0783c6409126e45f8025851fd4eaf7f651b2df9bda2a0a662",
-      "runtimes": [
-        "docker",
-        "apptainer"
-      ],
-      "tool_id": "seqpurge",
-      "upstream": "https://github.com/seqpurge/seqpurge",
-      "version": "0.1.0"
-    },
-    {
       "apptainer_def": "containers/apptainer/shared/seqtk.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.seqtk",
       "pinned_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
