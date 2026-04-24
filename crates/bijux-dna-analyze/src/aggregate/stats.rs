@@ -23,11 +23,7 @@ fn median(sorted: &[f64]) -> f64 {
     }
 }
 
-#[allow(
-    clippy::cast_possible_truncation,
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss
-)]
+#[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, clippy::cast_sign_loss)]
 fn percentile(sorted: &[f64], pct: f64) -> f64 {
     if sorted.is_empty() {
         return 0.0;
@@ -36,11 +32,7 @@ fn percentile(sorted: &[f64], pct: f64) -> f64 {
     sorted[idx]
 }
 
-#[allow(
-    clippy::cast_possible_truncation,
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss
-)]
+#[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, clippy::cast_sign_loss)]
 fn trimmed_mean(sorted: &[f64], trim_ratio: f64) -> f64 {
     if sorted.is_empty() {
         return 0.0;
@@ -83,10 +75,7 @@ pub fn robust_summary(values: &[f64]) -> RobustSummary {
     let trimmed = trimmed_mean(&sorted, 0.1);
     let upper = q3 + 1.5 * iqr;
     let lower = q1 - 1.5 * iqr;
-    let outlier_count = sorted
-        .iter()
-        .filter(|value| **value > upper || **value < lower)
-        .count();
+    let outlier_count = sorted.iter().filter(|value| **value > upper || **value < lower).count();
     let high_variance = iqr > median_value.abs().max(1e-6) * 0.5;
     RobustSummary {
         n: sorted.len(),

@@ -12,16 +12,16 @@ mod contracts;
 mod models;
 mod resilience;
 
-use contracts::{
-    enforce_large_file_guard, enforce_path_contracts, ensure_subpath, validate_required_outputs,
+pub(super) use contracts::{
+    enforce_large_file_guard, enforce_path_contracts, validate_required_outputs,
 };
 #[cfg(test)]
 use models::validate_runtime_execution_config;
-use models::{
-    effective_runtime_policy, stage_matches, DeterministicEnvKnobs, RuntimeExecutionConfig,
-    StageResourceKnobs,
-};
-use resilience::{
+#[cfg(test)]
+use models::StageResourceKnobs;
+pub(super) use models::{effective_runtime_policy, stage_matches};
+use models::{DeterministicEnvKnobs, RuntimeExecutionConfig};
+pub(super) use resilience::{
     acquire_slot_lock, can_resume, mark_partial_failure_invalid, update_resume_report,
     write_crash_bundle,
 };
@@ -35,10 +35,7 @@ pub(crate) enum ExitTaxonomy {
 
 pub(super) fn require_pinned_digest(step: &ExecutionStep) -> Result<()> {
     let digest = step.image.digest.as_deref().ok_or_else(|| {
-        anyhow!(
-            "tool resolution failed: missing image digest for {}",
-            step.image.image
-        )
+        anyhow!("tool resolution failed: missing image digest for {}", step.image.image)
     })?;
     if !digest.starts_with("sha256:") || digest.len() < 16 {
         bail!(
@@ -94,9 +91,8 @@ pub(super) fn enforce_seed_policy(req: &ToolInvocationRequest) -> Result<()> {
         || vec!["vcf.phasing".to_string(), "vcf.impute".to_string()],
         |_| vec!["vcf.phasing".to_string(), "vcf.impute".to_string()],
     );
-    let requires_seed = seed_required_patterns
-        .iter()
-        .any(|pattern| stage_matches(pattern, &req.context.stage_id));
+    let requires_seed =
+        seed_required_patterns.iter().any(|pattern| stage_matches(pattern, &req.context.stage_id));
     let random_allowed = std::env::var("BIJUX_RANDOM_ALLOWED")
         .ok()
         .is_some_and(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"));
@@ -128,16 +124,9 @@ pub(super) fn rewrite_long_region_args(
             && value.len() > threshold / 3
             && value.contains(',')
         {
-            let file = work_dir.join(if flag == "--regions" {
-                "regions.list"
-            } else {
-                "targets.list"
-            });
-            let body = value
-                .split(',')
-                .map(str::trim)
-                .collect::<Vec<_>>()
-                .join("\n");
+            let file =
+                work_dir.join(if flag == "--regions" { "regions.list" } else { "targets.list" });
+            let body = value.split(',').map(str::trim).collect::<Vec<_>>().join("\n");
             bijux_dna_infra::atomic_write_bytes(&file, format!("{body}\n").as_bytes())?;
             args[idx] = if flag == "--regions" {
                 "--regions-file".to_string()
@@ -222,6 +211,6 @@ mod tests {
         bijux_dna_infra::ensure_dir(&output_root)?;
         let tmp_root = output_root.join("stage").join("tmp");
 
-        ensure_subpath(&tmp_root, &output_root, "tmp_root")
+        contracts::ensure_subpath(&tmp_root, &output_root, "tmp_root")
     }
 }

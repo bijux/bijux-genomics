@@ -35,11 +35,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
 ) -> Result<()> {
     let bench_dir_name = bench_dir_name(&bijux_dna_planner_fastq::STAGE_PREPROCESS_SUMMARY)
         .ok_or_else(|| anyhow!("bench dir missing for fastq.preprocess"))?;
-    let out_dir = bench_base_dir(
-        &preprocess_args.out,
-        bench_dir_name,
-        &preprocess_args.sample_id,
-    );
+    let out_dir = bench_base_dir(&preprocess_args.out, bench_dir_name, &preprocess_args.sample_id);
     bijux_dna_infra::ensure_dir(&out_dir).context("create cross pipeline out dir")?;
     fastq_preprocess_run(catalog, platform, runner_override, preprocess_args)?;
     if preprocess_args.dry_run {
@@ -55,9 +51,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     let _defaults_ledger_path = write_defaults_ledger(&out_dir, profile)?;
 
     let pipeline = bijux_dna_planner_fastq::cross_fastq_to_bam_id_catalog(profile.id.as_str());
-    let has_align = pipeline
-        .iter()
-        .any(|stage| stage == BamStage::Align.as_str());
+    let has_align = pipeline.iter().any(|stage| stage == BamStage::Align.as_str());
     if has_align {
         let resolved_alignment_reference = resolve_alignment_reference(cross_args)?;
         let reference = resolved_alignment_reference.as_path();
@@ -89,10 +83,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
         let _ = render_bam_summary(&bam_out_dir, &bam_stage_runs, &failures)?;
         let report_step = report_stage_step(
             &bam_out_dir,
-            &bam_stage_runs
-                .iter()
-                .map(|r| r.plan.clone())
-                .collect::<Vec<_>>(),
+            &bam_stage_runs.iter().map(|r| r.plan.clone()).collect::<Vec<_>>(),
         );
         bam_stage_runs.push(StageExecutionSummary {
             plan: report_step,
@@ -148,10 +139,7 @@ pub fn run_fastq_to_bam_profile<S: std::hash::BuildHasher>(
     let _ = render_bam_summary(&bam_out_dir, &bam_stage_runs, &failures)?;
     let report_step = report_stage_step(
         &bam_out_dir,
-        &bam_stage_runs
-            .iter()
-            .map(|r| r.plan.clone())
-            .collect::<Vec<_>>(),
+        &bam_stage_runs.iter().map(|r| r.plan.clone()).collect::<Vec<_>>(),
     );
     bam_stage_runs.push(StageExecutionSummary {
         plan: report_step,
@@ -190,18 +178,8 @@ fn require_alignment_boundary_outputs(
         .find(|entry| entry.plan.step_id.as_str() == BamStage::Align.as_str())
         .ok_or_else(|| anyhow!("cross-domain alignment boundary requires bam.align outputs"))?;
     Ok((
-        align_run
-            .plan
-            .out_dir
-            .join("align.bam")
-            .display()
-            .to_string(),
-        align_run
-            .plan
-            .out_dir
-            .join("align.bam.bai")
-            .display()
-            .to_string(),
+        align_run.plan.out_dir.join("align.bam").display().to_string(),
+        align_run.plan.out_dir.join("align.bam.bai").display().to_string(),
     ))
 }
 
@@ -219,20 +197,10 @@ fn build_alignment_boundary(args: &FastqCrossArgs) -> Result<AlignmentBoundary> 
     }
     Ok(AlignmentBoundary {
         bam_path: bam_path.display().to_string(),
-        bai_path: args
-            .alignment_bai
-            .as_ref()
-            .map(|path| path.display().to_string()),
-        reference: args
-            .alignment_reference
-            .as_ref()
-            .map(|path| path.display().to_string()),
+        bai_path: args.alignment_bai.as_ref().map(|path| path.display().to_string()),
+        reference: args.alignment_reference.as_ref().map(|path| path.display().to_string()),
         rg_policy: args.alignment_rg_policy.clone(),
-        aligner_meta: if aligner_meta.is_empty() {
-            None
-        } else {
-            Some(aligner_meta)
-        },
+        aligner_meta: if aligner_meta.is_empty() { None } else { Some(aligner_meta) },
     })
 }
 

@@ -20,9 +20,7 @@ pub fn classify_operator_failure(err: &anyhow::Error) -> OperatorFailureV1 {
     } else {
         err.chain()
             .find_map(|cause| {
-                cause
-                    .downcast_ref::<CategorizedError>()
-                    .map(|categorized| categorized.category)
+                cause.downcast_ref::<CategorizedError>().map(|categorized| categorized.category)
             })
             .unwrap_or(ErrorCategory::InfraError)
     };

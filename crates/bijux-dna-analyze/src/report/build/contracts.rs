@@ -20,27 +20,23 @@ pub fn required_vcf_metric_keys(stage_id: &str) -> &'static [&'static str] {
 }
 
 pub fn analysis_selection_contract_section() -> serde_json::Value {
-    let objectives = [
-        Objective::Speed,
-        Objective::Memory,
-        Objective::Retention,
-        Objective::Balanced,
-    ]
-    .iter()
-    .map(|objective| {
-        let spec = objective_spec(*objective);
-        serde_json::json!({
-            "objective": objective.as_str(),
-            "weights": {
-                "runtime": spec.weights.runtime,
-                "memory": spec.weights.memory,
-                "retention": spec.weights.retention,
-            },
-            "scoring": "weighted_sum(runtime, memory, retention)",
-            "ranking": "lower score is better",
-        })
-    })
-    .collect::<Vec<_>>();
+    let objectives =
+        [Objective::Speed, Objective::Memory, Objective::Retention, Objective::Balanced]
+            .iter()
+            .map(|objective| {
+                let spec = objective_spec(*objective);
+                serde_json::json!({
+                    "objective": objective.as_str(),
+                    "weights": {
+                        "runtime": spec.weights.runtime,
+                        "memory": spec.weights.memory,
+                        "retention": spec.weights.retention,
+                    },
+                    "scoring": "weighted_sum(runtime, memory, retention)",
+                    "ranking": "lower score is better",
+                })
+            })
+            .collect::<Vec<_>>();
 
     serde_json::json!({
         "selection_strategy": "objective_weights",
@@ -73,12 +69,8 @@ pub fn enforce_report_completeness_contract(
     rows: &[FactsRowV1],
     sections: &BTreeMap<String, JsonBlob>,
 ) -> Result<()> {
-    let has_fastq = rows
-        .iter()
-        .any(|row| row.stage_id.starts_with(FASTQ_STAGE_PREFIX));
-    let has_bam = rows
-        .iter()
-        .any(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX));
+    let has_fastq = rows.iter().any(|row| row.stage_id.starts_with(FASTQ_STAGE_PREFIX));
+    let has_bam = rows.iter().any(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX));
     let has_vcf = rows.iter().any(|row| row.stage_id.starts_with("vcf."));
     if has_fastq && !sections.contains_key("fastq") {
         return Err(anyhow::anyhow!(
@@ -86,14 +78,10 @@ pub fn enforce_report_completeness_contract(
         ));
     }
     if has_bam && !sections.contains_key("bam") {
-        return Err(anyhow::anyhow!(
-            "report completeness contract violation: missing bam section"
-        ));
+        return Err(anyhow::anyhow!("report completeness contract violation: missing bam section"));
     }
     if has_vcf && !sections.contains_key("vcf") {
-        return Err(anyhow::anyhow!(
-            "report completeness contract violation: missing vcf section"
-        ));
+        return Err(anyhow::anyhow!("report completeness contract violation: missing vcf section"));
     }
     Ok(())
 }

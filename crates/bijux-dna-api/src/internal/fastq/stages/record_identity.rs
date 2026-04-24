@@ -1,4 +1,13 @@
 use sha2::{Digest, Sha256};
+use std::fmt::Write as _;
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut out, "{byte:02x}");
+    }
+    out
+}
 
 /// Derive a deterministic parameter fingerprint even when canonical hashing fails.
 ///
@@ -13,7 +22,7 @@ pub fn stable_params_hash(params: &serde_json::Value) -> String {
         });
         let mut hasher = Sha256::new();
         hasher.update(raw);
-        format!("fallback:{:x}", hasher.finalize())
+        format!("fallback:{}", sha256_hex(&hasher.finalize()))
     })
 }
 

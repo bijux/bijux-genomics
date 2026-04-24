@@ -3,14 +3,7 @@
 
 pub(super) type StageDatasetScope = (String, String, Option<String>, Option<String>);
 pub(super) type StageDatasetToolScope = (String, String, Option<String>, Option<String>, String);
-pub(super) type SummaryGroupKey = (
-    String,
-    String,
-    Option<String>,
-    Option<String>,
-    String,
-    String,
-);
+pub(super) type SummaryGroupKey = (String, String, Option<String>, Option<String>, String, String);
 pub(super) type SummaryStratumKey = (String, Option<String>, Option<String>, String);
 
 pub(super) fn stage_scope_label(

@@ -22,10 +22,7 @@ impl JsonBlob {
     pub fn from_pairs(pairs: &[(&str, &str)]) -> Self {
         let mut map = serde_json::Map::new();
         for (key, value) in pairs {
-            map.insert(
-                (*key).to_string(),
-                serde_json::Value::String((*value).to_string()),
-            );
+            map.insert((*key).to_string(), serde_json::Value::String((*value).to_string()));
         }
         Self(serde_json::Value::Object(map))
     }
@@ -55,10 +52,9 @@ impl JsonBlob {
             return Self(serde_json::Value::Object(out));
         };
         for (key, value) in metrics_map {
-            if let (Some(a), Some(b)) = (
-                value.as_f64(),
-                baseline_map.get(key).and_then(serde_json::Value::as_f64),
-            ) {
+            if let (Some(a), Some(b)) =
+                (value.as_f64(), baseline_map.get(key).and_then(serde_json::Value::as_f64))
+            {
                 out.insert(key.clone(), serde_json::Value::from(a - b));
             }
         }

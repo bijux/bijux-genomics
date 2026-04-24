@@ -19,13 +19,7 @@ fn gate_rejects_based_on_metric_semantics() {
         semantics_overrides: BTreeMap::new(),
         stage_overrides: BTreeMap::new(),
     };
-    let decision = policy.decide(
-        "dataset-1",
-        "fastq.trim_reads",
-        "tool-a",
-        "params-a",
-        &metrics,
-    );
+    let decision = policy.decide("dataset-1", "fastq.trim_reads", "tool-a", "params-a", &metrics);
     assert!(!decision.passes);
     assert_eq!(decision.violations.len(), 2);
 }

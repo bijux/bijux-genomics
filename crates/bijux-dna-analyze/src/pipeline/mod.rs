@@ -28,11 +28,7 @@ pub fn analyze_run_pipeline(input: &AnalyzeInput) -> Result<AnalyzeOutput> {
         decision_trace_json: None,
     };
 
-    if let AnalyzeMode::Compare {
-        ref run_a,
-        ref run_b,
-    } = input.options.mode
-    {
+    if let AnalyzeMode::Compare { ref run_a, ref run_b } = input.options.mode {
         let objective = objective_spec(Objective::Balanced);
         let comparison = compare_runs(Path::new(run_a), Path::new(run_b), &objective)?;
         let output_dir = input

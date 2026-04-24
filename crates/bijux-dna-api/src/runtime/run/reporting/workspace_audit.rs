@@ -1,4 +1,8 @@
-use super::{BTreeMap, BTreeSet, Context, HashSet, MetadataCommand, Path, PathBuf, Result};
+use super::Result;
+use anyhow::Context;
+use cargo_metadata::MetadataCommand;
+use std::collections::{BTreeMap, BTreeSet, HashSet};
+use std::path::{Path, PathBuf};
 
 /// # Errors
 /// Returns an error if policy checks fail or cannot be executed.
@@ -31,9 +35,7 @@ pub fn policy_audit() -> Result<serde_json::Value> {
 /// # Errors
 /// Returns an error if workspace dependency metadata cannot be loaded.
 pub fn workspace_edges() -> Result<BTreeSet<(String, String)>> {
-    let metadata = MetadataCommand::default()
-        .exec()
-        .context("exec cargo metadata")?;
+    let metadata = MetadataCommand::default().exec().context("exec cargo metadata")?;
     let workspace_members: HashSet<cargo_metadata::PackageId> =
         metadata.workspace_members.iter().cloned().collect();
     let mut id_to_name = BTreeMap::new();
@@ -52,14 +54,8 @@ pub fn workspace_edges() -> Result<BTreeSet<(String, String)>> {
                 if !workspace_members.contains(&dep_id) {
                     continue;
                 }
-                let from = id_to_name
-                    .get(&id)
-                    .cloned()
-                    .unwrap_or_else(|| id.to_string());
-                let to = id_to_name
-                    .get(&dep_id)
-                    .cloned()
-                    .unwrap_or_else(|| dep_id.to_string());
+                let from = id_to_name.get(&id).cloned().unwrap_or_else(|| id.to_string());
+                let to = id_to_name.get(&dep_id).cloned().unwrap_or_else(|| dep_id.to_string());
                 edges.insert((from, to));
             }
         }

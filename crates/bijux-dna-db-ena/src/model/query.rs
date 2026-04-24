@@ -49,9 +49,7 @@ impl EnaQuery {
         if normalized_samples.is_empty() {
             return true;
         }
-        normalized_samples
-            .iter()
-            .any(|sample| sample == sample_accession)
+        normalized_samples.iter().any(|sample| sample == sample_accession)
     }
 }
 
@@ -77,10 +75,7 @@ mod tests {
             result: EnaResultKind::ReadRun,
         };
 
-        assert_eq!(
-            query.normalized_accessions(),
-            vec!["PRJEB1".to_string(), "SAMEA1".to_string()]
-        );
+        assert_eq!(query.normalized_accessions(), vec!["PRJEB1".to_string(), "SAMEA1".to_string()]);
     }
 
     #[test]
@@ -92,9 +87,6 @@ mod tests {
             result: EnaResultKind::ReadRun,
         };
 
-        assert_eq!(
-            query.validate(),
-            Err(QueryValidationError::MissingSelectors)
-        );
+        assert_eq!(query.validate(), Err(QueryValidationError::MissingSelectors));
     }
 }

@@ -39,14 +39,8 @@ mod tests {
             adapter_overrides: None,
         };
         let summary = semantic_trim(&metrics);
-        assert!(matches!(
-            summary.integrity.reads_in.value,
-            MetricValue::U64(100)
-        ));
-        assert!(matches!(
-            summary.integrity.reads_out.value,
-            MetricValue::U64(80)
-        ));
+        assert!(matches!(summary.integrity.reads_in.value, MetricValue::U64(100)));
+        assert!(matches!(summary.integrity.reads_out.value, MetricValue::U64(80)));
         assert!(summary.quality_shift.is_some());
     }
 
@@ -72,14 +66,8 @@ mod tests {
             failure_class: Some("header_sync_mismatch".to_string()),
         };
         let summary = semantic_validate(&metrics);
-        assert!(matches!(
-            summary.integrity.reads_in.value,
-            MetricValue::U64(50)
-        ));
-        assert!(matches!(
-            summary.integrity.reads_out.value,
-            MetricValue::U64(45)
-        ));
+        assert!(matches!(summary.integrity.reads_in.value, MetricValue::U64(50)));
+        assert!(matches!(summary.integrity.reads_out.value, MetricValue::U64(45)));
         assert!(summary.quality_shift.is_none());
     }
 }

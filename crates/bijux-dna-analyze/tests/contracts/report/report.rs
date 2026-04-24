@@ -87,10 +87,7 @@ fn base_reports(root: &std::path::Path) -> Result<(PathBuf, PathBuf, PathBuf)> {
         subreports: vec![],
         log_paths: vec![],
     };
-    bijux_dna_infra::write_bytes(
-        &stage_report_path,
-        serde_json::to_vec_pretty(&stage_report)?,
-    )?;
+    bijux_dna_infra::write_bytes(&stage_report_path, serde_json::to_vec_pretty(&stage_report)?)?;
 
     let effective_config = EffectiveConfigV1 {
         schema_version: "bijux.effective_config.v1".to_string(),
@@ -328,20 +325,10 @@ fn report_includes_sections_block() -> Result<()> {
         artifacts: serde_json::json!({}),
     }];
     let report_value = write_report_fixture(root.path(), "sections", &rows)?;
-    let Some(sections) = report_value
-        .get("sections")
-        .and_then(|value| value.as_object())
-    else {
+    let Some(sections) = report_value.get("sections").and_then(|value| value.as_object()) else {
         panic!("sections block missing")
     };
-    for key in [
-        "qc",
-        "trimming",
-        "filtering",
-        "contamination",
-        "retention",
-        "failures",
-    ] {
+    for key in ["qc", "trimming", "filtering", "contamination", "retention", "failures"] {
         assert!(sections.contains_key(key), "missing section {key}");
     }
     Ok(())
@@ -465,15 +452,9 @@ fn report_provenance_is_complete() -> Result<()> {
         .ok_or_else(|| anyhow::anyhow!("missing provenance"))?
     {
         assert!(!entry["tool_id"].as_str().unwrap_or_default().is_empty());
-        assert!(!entry["tool_version"]
-            .as_str()
-            .unwrap_or_default()
-            .is_empty());
+        assert!(!entry["tool_version"].as_str().unwrap_or_default().is_empty());
         assert!(!entry["params_hash"].as_str().unwrap_or_default().is_empty());
-        assert!(!entry["image_digest"]
-            .as_str()
-            .unwrap_or_default()
-            .is_empty());
+        assert!(!entry["image_digest"].as_str().unwrap_or_default().is_empty());
         assert!(!entry["trace_id"].as_str().unwrap_or_default().is_empty());
         assert!(!entry["span_id"].as_str().unwrap_or_default().is_empty());
         assert!(!entry["bank_hashes"].is_null());

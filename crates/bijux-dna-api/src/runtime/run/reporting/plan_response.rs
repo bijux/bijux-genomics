@@ -1,4 +1,5 @@
-use super::{PlanRequest, PlanResponse, Result};
+use super::Result;
+use crate::request_args::{PlanRequest, PlanResponse};
 
 /// # Errors
 /// Returns an error if planning fails.
@@ -38,9 +39,5 @@ pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
         "stages": [],
         "failures": [],
     });
-    Ok(PlanResponse {
-        graph: request.graph,
-        graph_hash,
-        manifest,
-    })
+    Ok(PlanResponse { graph: request.graph, graph_hash, manifest })
 }

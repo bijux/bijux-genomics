@@ -10,9 +10,7 @@ use anyhow::Result;
 use crate::artifacts::read_observations_jsonl;
 use bijux_dna_bench_model::contract::{validate_decision, validate_summary};
 use bijux_dna_bench_model::policy::{GateDecision, GatePolicy};
-use bijux_dna_bench_model::{
-    BenchError, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary,
-};
+use bijux_dna_bench_model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
 
 use super::{gate, summarize, BenchRunOptions};
 
@@ -46,10 +44,8 @@ fn merge_observations(
         return Ok(merged);
     }
 
-    let out_dir = options
-        .output_dir
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("resume requires output_dir"))?;
+    let out_dir =
+        options.output_dir.as_ref().ok_or_else(|| anyhow::anyhow!("resume requires output_dir"))?;
     let path = out_dir.join("observations.jsonl");
     if !path.exists() {
         return Ok(merged);
@@ -71,15 +67,7 @@ fn merge_observations(
 
 fn observation_identity(
     obs: &BenchmarkObservation,
-) -> (
-    String,
-    String,
-    Option<String>,
-    Option<String>,
-    String,
-    String,
-    String,
-) {
+) -> (String, String, Option<String>, Option<String>, String, String, String) {
     (
         obs.dataset_id.clone(),
         obs.stage_id.clone(),

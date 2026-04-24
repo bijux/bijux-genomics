@@ -11,9 +11,6 @@ fn metrics_used_for_ranking_have_semantics() {
         "error_reduction_proxy",
     ];
     for metric_id in metric_ids {
-        assert!(
-            metric_semantics(metric_id).is_some(),
-            "missing semantics for {metric_id}"
-        );
+        assert!(metric_semantics(metric_id).is_some(), "missing semantics for {metric_id}");
     }
 }

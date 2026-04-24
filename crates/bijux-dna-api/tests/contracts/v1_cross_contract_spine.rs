@@ -59,15 +59,8 @@ fn build_plan(base_dir: &Path) -> Result<ExecutionGraph> {
             image: "example/tool:test".to_string(),
             digest: Some("sha256:deadbeef".to_string()),
         },
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), "hello".to_string()],
-        },
-        resources: ToolConstraints {
-            runtime: "1h".to_string(),
-            mem_gb: 1,
-            tmp_gb: 1,
-            threads: 1,
-        },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), "hello".to_string()] },
+        resources: ToolConstraints { runtime: "1h".to_string(), mem_gb: 1, tmp_gb: 1, threads: 1 },
         io: StageIO {
             inputs: vec![ArtifactRef::required(
                 ArtifactId::from_static("input"),
@@ -208,9 +201,8 @@ fn bam_smoke_runner_minimal_path_has_report_sections() -> Result<()> {
         serde_json::to_vec(&defaults)?,
     )?;
     let mut rows = Vec::new();
-    for (idx, stage_id) in ["bam.validate", "bam.mapping_summary", "bam.coverage"]
-        .into_iter()
-        .enumerate()
+    for (idx, stage_id) in
+        ["bam.validate", "bam.mapping_summary", "bam.coverage"].into_iter().enumerate()
     {
         rows.push(FactsRowV1 {
             schema_version: "bijux.facts.v1".to_string(),

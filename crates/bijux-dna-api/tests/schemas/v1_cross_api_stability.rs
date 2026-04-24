@@ -23,9 +23,7 @@ fn minimal_graph() -> ExecutionGraph {
             image: "example/tool:1.0".to_string(),
             digest: Some("sha256:deadbeef".to_string()),
         },
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), "hello".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), "hello".to_string()] },
         resources: ToolConstraints::default(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(
@@ -67,10 +65,7 @@ fn snapshot_settings() -> Settings {
 #[test]
 fn plan_response_schema_is_stable() -> anyhow::Result<()> {
     let graph = minimal_graph();
-    let request = PlanRequest {
-        graph,
-        profile_id: "default".to_string(),
-    };
+    let request = PlanRequest { graph, profile_id: "default".to_string() };
     let response = plan(request)?;
     let json = serde_json::to_value(&response)?;
     let name = snapshot_name("schemas", "plan_response_schema");

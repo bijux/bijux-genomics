@@ -81,11 +81,7 @@ pub fn enforce_declared_build_and_contigs(
     }
     let contig_map = resolve_contig_map(species, declared_build)?;
     for contig in observed_contigs {
-        let normalized = contig_map
-            .aliases
-            .get(contig)
-            .cloned()
-            .unwrap_or_else(|| contig.clone());
+        let normalized = contig_map.aliases.get(contig).cloned().unwrap_or_else(|| contig.clone());
         if normalized.trim().is_empty() {
             bail!("contig normalization produced empty value for {contig}");
         }
@@ -106,11 +102,8 @@ pub fn resolve_coverage_profile(species: &str, build: &str) -> Result<Option<Str
 /// Returns an error when the species/build bundle cannot be resolved.
 pub fn resolve_species_context(species: &str, build: &str) -> Result<ResolvedSpeciesContext> {
     let bundle = resolve_bundle_entry(species, build)?;
-    let default_coverage_regime = bundle
-        .default_coverage_regime
-        .as_deref()
-        .map(parse_coverage_regime)
-        .transpose()?;
+    let default_coverage_regime =
+        bundle.default_coverage_regime.as_deref().map(parse_coverage_regime).transpose()?;
     let context = SpeciesContext {
         species_id: bundle.species_id.clone(),
         build_id: bundle.build_id.clone(),
@@ -118,10 +111,7 @@ pub fn resolve_species_context(species: &str, build: &str) -> Result<ResolvedSpe
         contigs: bundle
             .contigs
             .iter()
-            .map(|c| ContigSpec {
-                name: c.name.clone(),
-                length_bp: c.length_bp,
-            })
+            .map(|c| ContigSpec { name: c.name.clone(), length_bp: c.length_bp })
             .collect(),
         sex_system: bundle.sex_system.clone(),
         par_policy: bundle.par_policy.clone(),

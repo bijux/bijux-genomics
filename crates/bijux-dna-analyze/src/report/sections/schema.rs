@@ -51,10 +51,7 @@ pub(crate) fn build_report_sections(
 ) -> BTreeMap<String, serde_json::Value> {
     let mut sections = BTreeMap::new();
     sections.insert("qc".to_string(), report.qc_improvement.clone());
-    sections.insert(
-        "final_qc_summary".to_string(),
-        report.final_qc_summary.clone(),
-    );
+    sections.insert("final_qc_summary".to_string(), report.final_qc_summary.clone());
     sections.insert(
         "trimming".to_string(),
         serde_json::json!({
@@ -62,10 +59,7 @@ pub(crate) fn build_report_sections(
             "retention_context": report.retention_context.clone(),
         }),
     );
-    sections.insert(
-        "filtering".to_string(),
-        report.filter_interpretation.clone(),
-    );
+    sections.insert("filtering".to_string(), report.filter_interpretation.clone());
     sections.insert(
         "contamination".to_string(),
         serde_json::json!({
@@ -85,15 +79,9 @@ pub(crate) fn build_report_sections(
             "completeness": report.completeness,
         }),
     );
-    sections.insert(
-        "method_assumptions".to_string(),
-        method_assumptions_section(report),
-    );
+    sections.insert("method_assumptions".to_string(), method_assumptions_section(report));
     sections.insert("decision_config".to_string(), decision_config_section());
-    sections.insert(
-        "analysis_selection_contract".to_string(),
-        serde_json::json!({}),
-    );
+    sections.insert("analysis_selection_contract".to_string(), serde_json::json!({}));
     sections.insert("stage_completeness".to_string(), serde_json::json!([]));
     sections.insert("stage_confidence".to_string(), serde_json::json!([]));
     sections.insert("decision_trace".to_string(), serde_json::json!([]));
@@ -110,10 +98,7 @@ pub(crate) fn build_report_sections(
     sections.insert("pipeline_verdict".to_string(), serde_json::json!({}));
     sections.insert("scientific_provenance".to_string(), serde_json::json!({}));
     sections.insert("run_provenance".to_string(), serde_json::json!({}));
-    sections.insert(
-        "data_contract_validation".to_string(),
-        serde_json::json!({}),
-    );
+    sections.insert("data_contract_validation".to_string(), serde_json::json!({}));
     sections.insert("qc_delta".to_string(), serde_json::json!({}));
     sections.insert("contaminant_summary".to_string(), serde_json::json!({}));
     sections.insert("adapter_config".to_string(), serde_json::json!({}));
@@ -227,8 +212,5 @@ pub(crate) fn report_metric_semantics() -> Vec<MetricSemanticsV1> {
         "merge_rate",
         "error_reduction_proxy",
     ];
-    metric_ids
-        .iter()
-        .filter_map(|metric_id| resolve_semantics(metric_id).ok())
-        .collect()
+    metric_ids.iter().filter_map(|metric_id| resolve_semantics(metric_id).ok()).collect()
 }

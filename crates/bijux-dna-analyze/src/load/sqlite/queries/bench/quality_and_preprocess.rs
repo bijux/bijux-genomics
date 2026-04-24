@@ -96,15 +96,7 @@ pub fn fetch_fastq_detect_adapters_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqDetectAdaptersMetrics>,
     );
     match row {
@@ -138,15 +130,7 @@ pub fn fetch_fastq_qc_post_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqQcPostMetrics>,
     );
     match row {
@@ -240,15 +224,7 @@ pub fn fetch_fastq_index_reference_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqIndexReferenceMetrics>,
     );
     match row {
@@ -343,15 +319,7 @@ pub fn fetch_fastq_umi_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqUmiMetrics>,
     );
     match row {

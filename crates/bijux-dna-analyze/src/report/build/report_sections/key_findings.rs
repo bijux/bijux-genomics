@@ -1,6 +1,6 @@
 use bijux_dna_runtime::FactsRowV1;
 
-pub(super) fn key_findings_section(
+pub(crate) fn key_findings_section(
     missing_metrics: &[String],
     missing_reports: &[String],
     rows: &[FactsRowV1],
@@ -33,18 +33,11 @@ pub(super) fn key_findings_section(
             "items": failed,
         }));
     }
-    if let Some(entries) = stage_confidence
-        .get("entries")
-        .and_then(serde_json::Value::as_array)
-    {
+    if let Some(entries) = stage_confidence.get("entries").and_then(serde_json::Value::as_array) {
         let fragile: Vec<serde_json::Value> = entries
             .iter()
             .filter(|entry| {
-                entry
-                    .get("score")
-                    .and_then(serde_json::Value::as_f64)
-                    .unwrap_or(1.0)
-                    < 0.6
+                entry.get("score").and_then(serde_json::Value::as_f64).unwrap_or(1.0) < 0.6
             })
             .cloned()
             .collect();

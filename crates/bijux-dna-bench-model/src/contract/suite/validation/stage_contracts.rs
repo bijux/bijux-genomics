@@ -13,10 +13,7 @@ pub(super) fn validate_schema_version(
     if suite.schema_version == schema_version {
         return Ok(());
     }
-    Err(BenchError::InvalidPolicy(format!(
-        "suite schema mismatch: {}",
-        suite.schema_version
-    )))
+    Err(BenchError::InvalidPolicy(format!("suite schema mismatch: {}", suite.schema_version)))
 }
 
 pub(super) fn validate_stage_definitions(
@@ -139,8 +136,5 @@ fn validate_stage_upstream_contracts(stage: &BenchmarkStageSpec) -> Result<(), B
 }
 
 fn stage_node_id(stage: &BenchmarkStageSpec) -> &str {
-    stage
-        .stage_instance_id
-        .as_deref()
-        .unwrap_or(stage.stage.as_str())
+    stage.stage_instance_id.as_deref().unwrap_or(stage.stage.as_str())
 }

@@ -3,9 +3,7 @@ use std::path::PathBuf;
 
 #[test]
 fn report_sections_are_documented() {
-    let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("docs")
-        .join("REPORT_CONTRACT.md");
+    let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("REPORT_CONTRACT.md");
     let content = fs::read_to_string(&doc)
         .unwrap_or_else(|err| panic!("read REPORT_CONTRACT.md at {}: {err}", doc.display()));
 
@@ -20,9 +18,6 @@ fn report_sections_are_documented() {
         "metric_semantics",
         "completeness",
     ] {
-        assert!(
-            content.contains(section),
-            "REPORT_CONTRACT.md missing report section {section}"
-        );
+        assert!(content.contains(section), "REPORT_CONTRACT.md missing report section {section}");
     }
 }

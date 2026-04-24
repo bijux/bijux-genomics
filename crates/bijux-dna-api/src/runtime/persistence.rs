@@ -41,9 +41,7 @@ impl ArtifactWriter {
         if let Some(obj) = stage_manifest.as_object_mut() {
             obj.insert("output_checksums".to_string(), checksums.clone());
         } else {
-            return Err(anyhow::anyhow!(
-                "stage manifest payload must be a JSON object"
-            ));
+            return Err(anyhow::anyhow!("stage manifest payload must be a JSON object"));
         }
         let manifest_path = Self::write_stage_manifest(stage_manifest_path, &stage_manifest)?;
         Ok((checksums, manifest_path))
@@ -56,14 +54,8 @@ pub(crate) struct MetricsWriter;
 impl MetricsWriter {
     #[must_use]
     pub fn required_keys_for_stage(stage_id: &str) -> Vec<&'static str> {
-        let mut keys = vec![
-            "schema_version",
-            "stage_id",
-            "tool_id",
-            "runtime_s",
-            "wall_time_ms",
-            "exit_code",
-        ];
+        let mut keys =
+            vec!["schema_version", "stage_id", "tool_id", "runtime_s", "wall_time_ms", "exit_code"];
         if stage_id.starts_with("bam.") {
             keys.push("memory_mb");
         } else if stage_id.starts_with("vcf.") {
@@ -85,11 +77,8 @@ impl MetricsWriter {
         let obj = metrics
             .as_object()
             .ok_or_else(|| anyhow::anyhow!("metrics payload must be a JSON object"))?;
-        let missing = required_keys
-            .iter()
-            .copied()
-            .filter(|key| !obj.contains_key(*key))
-            .collect::<Vec<_>>();
+        let missing =
+            required_keys.iter().copied().filter(|key| !obj.contains_key(*key)).collect::<Vec<_>>();
         if !missing.is_empty() {
             return Err(anyhow::anyhow!(
                 "metrics schema violation: missing required keys {}",

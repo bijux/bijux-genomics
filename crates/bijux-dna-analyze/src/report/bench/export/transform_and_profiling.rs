@@ -28,10 +28,7 @@ pub fn write_merge_report(
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
-    report.insert(
-        "sanity_flags",
-        serde_json::to_value(sanity_flags_merge(records))?,
-    );
+    report.insert("sanity_flags", serde_json::to_value(sanity_flags_merge(records))?);
     let derived: Vec<_> = records.iter().map(derived_merge_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
     let rankings = rank_merge_tools(records)?;
@@ -62,10 +59,7 @@ pub fn write_correct_report(
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
-    report.insert(
-        "sanity_flags",
-        serde_json::to_value(sanity_flags_correct(records))?,
-    );
+    report.insert("sanity_flags", serde_json::to_value(sanity_flags_correct(records))?);
     let derived: Vec<_> = records.iter().map(derived_correct_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
     let rankings = rank_correct_tools(records)?;
@@ -96,10 +90,7 @@ pub fn write_qc_post_report(
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
-    report.insert(
-        "sanity_flags",
-        serde_json::to_value(sanity_flags_qc_post(records))?,
-    );
+    report.insert("sanity_flags", serde_json::to_value(sanity_flags_qc_post(records))?);
     let json = serde_json::to_string_pretty(&report)?;
     atomic_write_bytes(&path, json.as_bytes())
         .map_err(anyhow::Error::from)
@@ -313,10 +304,7 @@ pub fn write_umi_report(
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
-    report.insert(
-        "sanity_flags",
-        serde_json::to_value(sanity_flags_umi(records))?,
-    );
+    report.insert("sanity_flags", serde_json::to_value(sanity_flags_umi(records))?);
     let derived: Vec<_> = records.iter().map(derived_umi_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
     let rankings = rank_umi_tools(records)?;
@@ -373,14 +361,9 @@ pub fn write_stats_report(
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
-    report.insert(
-        "sanity_flags",
-        serde_json::to_value(sanity_flags_stats(records))?,
-    );
-    let semantic: Vec<_> = records
-        .iter()
-        .map(|record| semantic_stats(&record.metrics.metrics))
-        .collect();
+    report.insert("sanity_flags", serde_json::to_value(sanity_flags_stats(records))?);
+    let semantic: Vec<_> =
+        records.iter().map(|record| semantic_stats(&record.metrics.metrics)).collect();
     report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
     let json = serde_json::to_string_pretty(&report)?;
     atomic_write_bytes(&path, json.as_bytes())

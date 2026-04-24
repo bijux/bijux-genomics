@@ -21,10 +21,7 @@ pub(crate) fn load_inputs(sources: &AnalyzeSources) -> Result<LoadedInputs> {
         AnalyzeSources::FactsParquet(path) => load_facts_parquet(path).map_err(map_load_error)?,
         AnalyzeSources::RunSummaryJson(path) => {
             let _summary = load_run_summary(path).map_err(map_load_error)?;
-            return Err(anyhow!(
-                "run summary input does not include facts: {}",
-                path.display()
-            ));
+            return Err(anyhow!("run summary input does not include facts: {}", path.display()));
         }
         AnalyzeSources::RunIndexSqlite(path) => {
             return Err(anyhow!(
@@ -34,10 +31,7 @@ pub(crate) fn load_inputs(sources: &AnalyzeSources) -> Result<LoadedInputs> {
         }
     };
 
-    Ok(LoadedInputs {
-        facts,
-        base_dir: base_dir_for_sources(sources),
-    })
+    Ok(LoadedInputs { facts, base_dir: base_dir_for_sources(sources) })
 }
 
 fn base_dir_for_sources(sources: &AnalyzeSources) -> PathBuf {
@@ -47,8 +41,7 @@ fn base_dir_for_sources(sources: &AnalyzeSources) -> PathBuf {
         | AnalyzeSources::RunSummaryJson(path)
         | AnalyzeSources::RunIndexSqlite(path) => path,
     };
-    path.parent()
-        .map_or_else(|| PathBuf::from("."), Path::to_path_buf)
+    path.parent().map_or_else(|| PathBuf::from("."), Path::to_path_buf)
 }
 
 fn map_load_error(err: AnalyzeError) -> anyhow::Error {

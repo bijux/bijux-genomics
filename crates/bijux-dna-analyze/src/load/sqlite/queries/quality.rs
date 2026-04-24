@@ -98,15 +98,7 @@ pub fn fetch_fastq_filter_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqFilterMetrics>,
     );
     match row {
@@ -141,15 +133,7 @@ pub fn fetch_fastq_filter_v2(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqFilterMetrics>,
     );
     match row {
@@ -243,15 +227,7 @@ pub fn fetch_fastq_filter_low_complexity_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqLowComplexityMetrics>,
     );
     match row {
@@ -346,15 +322,7 @@ pub fn fetch_fastq_merge_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqMergeMetrics>,
     );
     match row {
@@ -450,15 +418,7 @@ pub fn fetch_fastq_correct_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqCorrectMetrics>,
     );
     match row {

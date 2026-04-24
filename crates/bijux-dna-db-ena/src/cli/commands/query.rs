@@ -5,7 +5,7 @@ use bijux_dna_db_ena::{
     EnaSourcePreference,
 };
 
-use crate::cli::args::SharedArgs;
+use super::super::args::SharedArgs;
 
 pub(crate) fn execute_query(args: &SharedArgs) -> Result<(EnaRunManifest, DownloadConfig)> {
     let query = EnaQuery {
@@ -17,19 +17,12 @@ pub(crate) fn execute_query(args: &SharedArgs) -> Result<(EnaRunManifest, Downlo
     query.validate().context("validate ENA query selectors")?;
 
     let client = EnaClient::from_crate_identity().context("create ena client")?;
-    let records = client
-        .fetch_records(&query)
-        .context("fetch ENA metadata records")?;
+    let records = client.fetch_records(&query).context("fetch ENA metadata records")?;
 
     let source: EnaFileSource = args.source.into();
     let preference: EnaSourcePreference = args.prefer.into();
 
-    let manifest = EnaRunManifest {
-        query,
-        source,
-        preference,
-        records,
-    };
+    let manifest = EnaRunManifest { query, source, preference, records };
 
     let mut config = DownloadConfig::from_defaults(args.output_dir.clone());
     config.source = source;

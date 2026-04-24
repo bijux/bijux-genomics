@@ -84,8 +84,5 @@ pub(crate) fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(
 }
 
 pub(crate) fn planner_owned_graph_stage(stage_id: &str) -> bool {
-    matches!(
-        stage_id,
-        "benchmark.compare_stage_tools" | "benchmark.select_stage_tool"
-    )
+    matches!(stage_id, "benchmark.compare_stage_tools" | "benchmark.select_stage_tool")
 }

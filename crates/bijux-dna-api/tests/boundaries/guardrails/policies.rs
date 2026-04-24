@@ -12,12 +12,7 @@ fn guardrails() {
 fn api_has_no_planning_policy_keywords() {
     let src_dir = crate::support::crate_src("bijux-dna-api")
         .unwrap_or_else(|err| panic!("resolve crate src: {err}"));
-    let denylist = [
-        "smart_pipeline",
-        "tool_list",
-        "stage ordering",
-        "bijux_exec",
-    ];
+    let denylist = ["smart_pipeline", "tool_list", "stage ordering", "bijux_exec"];
     let allowlist_paths = [
         "/src/explain.rs",
         "/src/internal/fastq/stages/preprocess.rs",
@@ -40,10 +35,7 @@ fn api_has_no_planning_policy_keywords() {
         let content = std::fs::read_to_string(entry.path())
             .unwrap_or_else(|err| panic!("read {}: {err}", entry.path().display()));
         let path_str = entry.path().to_string_lossy();
-        if allowlist_paths
-            .iter()
-            .any(|suffix| path_str.ends_with(suffix))
-        {
+        if allowlist_paths.iter().any(|suffix| path_str.ends_with(suffix)) {
             continue;
         }
         for needle in &denylist {
@@ -52,8 +44,5 @@ fn api_has_no_planning_policy_keywords() {
             }
         }
     }
-    assert!(
-        offenders.is_empty(),
-        "API must not embed planning policy: {offenders:?}"
-    );
+    assert!(offenders.is_empty(), "API must not embed planning policy: {offenders:?}");
 }

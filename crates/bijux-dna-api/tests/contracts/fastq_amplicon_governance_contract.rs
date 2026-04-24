@@ -32,10 +32,7 @@ fn fastq_amplicon_governance_has_marker_ranges_and_primer_files() {
             .get("expected_amplicon_max_bp")
             .and_then(toml::Value::as_integer)
             .unwrap_or_else(|| panic!("marker {marker} missing expected_amplicon_max_bp"));
-        assert!(
-            min_bp < max_bp,
-            "marker {marker} must have min_bp < max_bp ({min_bp} < {max_bp})"
-        );
+        assert!(min_bp < max_bp, "marker {marker} must have min_bp < max_bp ({min_bp} < {max_bp})");
         let primer_path = root.join(primer_rel);
         assert!(
             primer_path.exists(),
@@ -44,10 +41,7 @@ fn fastq_amplicon_governance_has_marker_ranges_and_primer_files() {
         );
         let actual_sha = bijux_dna_infra::hash_file_sha256(&primer_path)
             .unwrap_or_else(|e| panic!("hash {}: {e}", primer_path.display()));
-        assert_eq!(
-            actual_sha, primer_sha256_locked,
-            "marker {marker} primer sha256 lock mismatch"
-        );
+        assert_eq!(actual_sha, primer_sha256_locked, "marker {marker} primer sha256 lock mismatch");
     }
 }
 
@@ -86,10 +80,7 @@ fn fastq_amplicon_governance_taxonomy_lock_fields_present() {
     );
     let actual_sha = bijux_dna_infra::hash_file_sha256(&root.join(db_path))
         .unwrap_or_else(|e| panic!("hash {}: {e}", root.join(db_path).display()));
-    assert_eq!(
-        actual_sha, db_sha256,
-        "taxonomy db_sha256 must lock current db_path content"
-    );
+    assert_eq!(actual_sha, db_sha256, "taxonomy db_sha256 must lock current db_path content");
 }
 
 #[test]

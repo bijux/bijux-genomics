@@ -103,9 +103,5 @@ pub(super) fn evaluate_summary_fairness(
         }
     }
 
-    Ok(SummaryFairnessOutcome {
-        scientifically_invalid,
-        invalid_reasons,
-        warnings,
-    })
+    Ok(SummaryFairnessOutcome { scientifically_invalid, invalid_reasons, warnings })
 }

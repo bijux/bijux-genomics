@@ -5,6 +5,7 @@ use anyhow::{Context, Result};
 
 use bijux_dna_bench_model::BenchError;
 
+#[allow(dead_code)]
 pub fn load_metrics(path: &PathBuf) -> Result<serde_json::Value> {
     if !path.exists() {
         return Err(BenchError::MissingMetrics(format!(
@@ -17,6 +18,7 @@ pub fn load_metrics(path: &PathBuf) -> Result<serde_json::Value> {
     Ok(serde_json::from_slice(&bytes)?)
 }
 
+#[allow(dead_code)]
 pub fn load_metrics_map(path: &PathBuf) -> Result<BTreeMap<String, f64>> {
     let value = load_metrics(path)?;
     let mut map = BTreeMap::new();

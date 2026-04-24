@@ -13,12 +13,9 @@ pub fn strip_timestamp_fields(value: &Value, fields: &[&str]) -> Value {
             }
             Value::Object(next)
         }
-        Value::Array(items) => Value::Array(
-            items
-                .iter()
-                .map(|item| strip_timestamp_fields(item, fields))
-                .collect(),
-        ),
+        Value::Array(items) => {
+            Value::Array(items.iter().map(|item| strip_timestamp_fields(item, fields)).collect())
+        }
         _ => value.clone(),
     }
 }

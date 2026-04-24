@@ -49,11 +49,8 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
 ) -> Result<BenchOutcome<FastqOverrepresentedMetrics>> {
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_ID, artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_ID, &header);
@@ -125,9 +122,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             runner,
             jobs,
         )?
@@ -216,12 +211,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
 }
 
 fn materialize_overrepresented_outputs(
@@ -251,8 +241,7 @@ fn materialize_overrepresented_outputs(
     let top_fraction = if total == 0 {
         0.0
     } else {
-        top.first()
-            .map_or(0.0, |(_, count)| u64_to_f64(*count) / u64_to_f64(total))
+        top.first().map_or(0.0, |(_, count)| u64_to_f64(*count) / u64_to_f64(total))
     };
     let flagged_sequences = top
         .iter()
@@ -262,11 +251,7 @@ fn materialize_overrepresented_outputs(
     let rows = top
         .iter()
         .map(|(sequence, count)| {
-            let fraction = if total == 0 {
-                0.0
-            } else {
-                u64_to_f64(*count) / u64_to_f64(total)
-            };
+            let fraction = if total == 0 { 0.0 } else { u64_to_f64(*count) / u64_to_f64(total) };
             OverrepresentedSequenceRowV1 {
                 sequence: sequence.clone(),
                 count: *count,
@@ -324,15 +309,9 @@ fn read_overrepresented_payload(path: &Path) -> Result<OverrepresentedPayload> {
         .flatten()
         .filter_map(|entry| {
             Some(OverrepresentedSequenceRowV1 {
-                sequence: entry
-                    .get("sequence")
-                    .and_then(serde_json::Value::as_str)?
-                    .to_string(),
+                sequence: entry.get("sequence").and_then(serde_json::Value::as_str)?.to_string(),
                 count: entry.get("count").and_then(serde_json::Value::as_u64)?,
-                fraction: entry
-                    .get("fraction")
-                    .and_then(serde_json::Value::as_f64)
-                    .unwrap_or(0.0),
+                fraction: entry.get("fraction").and_then(serde_json::Value::as_f64).unwrap_or(0.0),
                 flag: entry
                     .get("flag")
                     .and_then(serde_json::Value::as_str)

@@ -1,8 +1,4 @@
-#![allow(
-    clippy::items_after_test_module,
-    clippy::too_many_arguments,
-    clippy::too_many_lines
-)]
+#![allow(clippy::items_after_test_module, clippy::too_many_arguments, clippy::too_many_lines)]
 
 use super::runtime_tail::command_io::{
     command_exists, copy_if_missing, load_qc_thresholds_map, run_stage_command,
@@ -44,10 +40,7 @@ pub(super) fn materialize_amplicon_stage_outputs(
     let mut payload = serde_json::json!({});
     match stage_id {
         "fastq.trim_terminal_damage" => {
-            if std::env::var("BIJUX_ALIGNER_EXPECTS_UNTRIMMED")
-                .ok()
-                .is_some_and(|v| v == "1")
-            {
+            if std::env::var("BIJUX_ALIGNER_EXPECTS_UNTRIMMED").ok().is_some_and(|v| v == "1") {
                 return Err(anyhow!(
                     "fastq.trim_terminal_damage refusal: downstream aligner expects untrimmed reads; set BIJUX_ALIGNER_EXPECTS_UNTRIMMED=0 or disable stage"
                 ));
@@ -241,10 +234,7 @@ pub(super) fn materialize_amplicon_stage_outputs(
             let primary = outputs
                 .iter()
                 .find(|artifact| {
-                    matches!(
-                        artifact.name.as_str(),
-                        "normalized_reads" | "normalized_reads_r1"
-                    )
+                    matches!(artifact.name.as_str(), "normalized_reads" | "normalized_reads_r1")
                 })
                 .map(|artifact| artifact.path.clone())
                 .ok_or_else(|| anyhow!("missing primary output for {stage_id}"))?;
@@ -302,20 +292,15 @@ pub(super) fn materialize_amplicon_stage_outputs(
             let primer_fasta = planned_report
                 .as_ref()
                 .and_then(|report| report.primer_fasta.as_ref())
-                .map_or_else(
-                    || primer_governance.primer_fasta.clone(),
-                    std::path::PathBuf::from,
-                );
+                .map_or_else(|| primer_governance.primer_fasta.clone(), std::path::PathBuf::from);
             let orientation_policy = planned_report.as_ref().map_or_else(
                 || "normalize_to_forward_primer".to_string(),
                 |report| report.orientation_policy.clone(),
             );
-            let max_mismatch_rate = planned_report
-                .as_ref()
-                .map_or(0.10_f64, |report| report.max_mismatch_rate);
-            let min_overlap_bp = planned_report
-                .as_ref()
-                .map_or(10_u64, |report| u64::from(report.min_overlap_bp));
+            let max_mismatch_rate =
+                planned_report.as_ref().map_or(0.10_f64, |report| report.max_mismatch_rate);
+            let min_overlap_bp =
+                planned_report.as_ref().map_or(10_u64, |report| u64::from(report.min_overlap_bp));
             let stage_ok = match tool_id {
                 "cutadapt" => {
                     let mut args = vec![
@@ -483,17 +468,11 @@ pub(super) fn materialize_amplicon_stage_outputs(
             let chimera_fasta = outputs
                 .iter()
                 .find(|artifact| artifact.name.as_str() == "chimeras_fasta")
-                .map_or_else(
-                    || out_dir.join("chimeras.fasta"),
-                    |artifact| artifact.path.clone(),
-                );
+                .map_or_else(|| out_dir.join("chimeras.fasta"), |artifact| artifact.path.clone());
             let uchime_out = outputs
                 .iter()
                 .find(|artifact| artifact.name.as_str() == "uchime_report_tsv")
-                .map_or_else(
-                    || out_dir.join("uchime.tsv"),
-                    |artifact| artifact.path.clone(),
-                );
+                .map_or_else(|| out_dir.join("uchime.tsv"), |artifact| artifact.path.clone());
             let vsearch_ok = command_exists("vsearch")
                 && run_stage_command(
                     out_dir,
@@ -872,33 +851,18 @@ pub(super) fn enforce_amplicon_qc_thresholds(
     match stage_id {
         "fastq.normalize_primers" => {
             let value = read_metric("primer_trimmed_fraction").unwrap_or(1.0);
-            if value
-                < *thresholds
-                    .get("fastq_primer_trimmed_fraction_fail")
-                    .unwrap_or(&0.80)
-            {
+            if value < *thresholds.get("fastq_primer_trimmed_fraction_fail").unwrap_or(&0.80) {
                 failures.push("primer_trimmed_fraction_below_fail".to_string());
-            } else if value
-                < *thresholds
-                    .get("fastq_primer_trimmed_fraction_warn")
-                    .unwrap_or(&0.90)
+            } else if value < *thresholds.get("fastq_primer_trimmed_fraction_warn").unwrap_or(&0.90)
             {
                 warnings.push("primer_trimmed_fraction_below_warn".to_string());
             }
         }
         "fastq.remove_chimeras" => {
             let value = read_metric("chimera_fraction").unwrap_or(0.0);
-            if value
-                > *thresholds
-                    .get("fastq_chimera_fraction_fail")
-                    .unwrap_or(&0.30)
-            {
+            if value > *thresholds.get("fastq_chimera_fraction_fail").unwrap_or(&0.30) {
                 failures.push("chimera_fraction_above_fail".to_string());
-            } else if value
-                > *thresholds
-                    .get("fastq_chimera_fraction_warn")
-                    .unwrap_or(&0.20)
-            {
+            } else if value > *thresholds.get("fastq_chimera_fraction_warn").unwrap_or(&0.20) {
                 warnings.push("chimera_fraction_above_warn".to_string());
             }
         }
@@ -920,16 +884,9 @@ pub(super) fn enforce_amplicon_qc_thresholds(
         }
         "fastq.normalize_abundance" => {
             let value = read_metric("zero_fraction").unwrap_or(0.0);
-            if value
-                > *thresholds
-                    .get("fastq_abundance_zero_fraction_fail")
-                    .unwrap_or(&0.95)
-            {
+            if value > *thresholds.get("fastq_abundance_zero_fraction_fail").unwrap_or(&0.95) {
                 failures.push("abundance_zero_fraction_above_fail".to_string());
-            } else if value
-                > *thresholds
-                    .get("fastq_abundance_zero_fraction_warn")
-                    .unwrap_or(&0.80)
+            } else if value > *thresholds.get("fastq_abundance_zero_fraction_warn").unwrap_or(&0.80)
             {
                 warnings.push("abundance_zero_fraction_above_warn".to_string());
             }
@@ -944,11 +901,7 @@ pub(super) fn enforce_amplicon_qc_thresholds(
         "pass": failures.is_empty()
     });
     bijux_dna_infra::atomic_write_json(&stage_root.join("stage.qc_thresholds.json"), &payload)?;
-    if !payload
-        .get("pass")
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(true)
-    {
+    if !payload.get("pass").and_then(serde_json::Value::as_bool).unwrap_or(true) {
         return Err(anyhow!("stage {stage_id} failed QC thresholds"));
     }
     Ok(())
@@ -975,10 +928,7 @@ mod amplicon_runtime_tests {
             command: CommandSpecV1 {
                 template: vec!["bash".to_string(), "-lc".to_string(), script.to_string()],
             },
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -1034,9 +984,7 @@ mod amplicon_runtime_tests {
             std::path::Path::new("reads_R1.fastq.gz"),
             Some(std::path::Path::new("reads_R2.fastq.gz")),
             std::path::Path::new("out/R1.trim_terminal_damage.adapterremoval.fastq.gz"),
-            Some(std::path::Path::new(
-                "out/R2.trim_terminal_damage.adapterremoval.fastq.gz",
-            )),
+            Some(std::path::Path::new("out/R2.trim_terminal_damage.adapterremoval.fastq.gz")),
             None,
         )
         .expect("embedded governed report");

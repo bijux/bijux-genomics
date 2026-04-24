@@ -17,12 +17,12 @@ pub(super) struct StageResourceKnobs {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct DeterministicEnvKnobs {
-    pub(super) lc_all: Option<String>,
-    pub(super) lang: Option<String>,
-    pub(super) tz: Option<String>,
-    pub(super) umask: Option<String>,
-    pub(super) path: Option<String>,
+pub(crate) struct DeterministicEnvKnobs {
+    pub(crate) lc_all: Option<String>,
+    pub(crate) lang: Option<String>,
+    pub(crate) tz: Option<String>,
+    pub(crate) umask: Option<String>,
+    pub(crate) path: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -42,20 +42,20 @@ pub(super) struct RuntimeExecutionConfig {
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct EffectiveRuntimePolicy {
-    pub(super) threads: u32,
-    pub(super) memory_mb: Option<u64>,
-    pub(super) compression_threads: Option<u32>,
-    pub(super) timeout: Option<Duration>,
-    pub(super) temp_root: Option<PathBuf>,
-    pub(super) cache_root: Option<PathBuf>,
-    pub(super) heavy_patterns: Vec<String>,
-    pub(super) max_local_heavy_parallel: u32,
-    pub(super) bgzip_tabix_max_parallel: u32,
-    pub(super) deterministic_env: DeterministicEnvKnobs,
+pub(crate) struct EffectiveRuntimePolicy {
+    pub(crate) threads: u32,
+    pub(crate) memory_mb: Option<u64>,
+    pub(crate) compression_threads: Option<u32>,
+    pub(crate) timeout: Option<Duration>,
+    pub(crate) temp_root: Option<PathBuf>,
+    pub(crate) cache_root: Option<PathBuf>,
+    pub(crate) heavy_patterns: Vec<String>,
+    pub(crate) max_local_heavy_parallel: u32,
+    pub(crate) bgzip_tabix_max_parallel: u32,
+    pub(crate) deterministic_env: DeterministicEnvKnobs,
 }
 
-pub(super) fn stage_matches(pattern: &str, stage_id: &str) -> bool {
+pub(crate) fn stage_matches(pattern: &str, stage_id: &str) -> bool {
     if let Some(prefix) = pattern.strip_suffix('*') {
         stage_id.starts_with(prefix)
     } else {
@@ -68,7 +68,7 @@ pub(super) fn validate_runtime_execution_config(cfg: &RuntimeExecutionConfig) ->
     config::validate_runtime_execution_config(cfg)
 }
 
-pub(super) fn effective_runtime_policy(req: &ToolInvocationRequest) -> EffectiveRuntimePolicy {
+pub(crate) fn effective_runtime_policy(req: &ToolInvocationRequest) -> EffectiveRuntimePolicy {
     let cfg = config::runtime_execution_config();
     let root = crate::support::workspace::resolve_repo_root()
         .unwrap_or_else(|_| std::env::current_dir().unwrap_or_else(|err| panic!("{err}")));
@@ -86,37 +86,21 @@ pub(super) fn effective_runtime_policy(req: &ToolInvocationRequest) -> Effective
             }
         }
     }
-    let threads = stage_knobs
-        .threads
-        .or(cfg.default_threads)
-        .unwrap_or(req.context.threads)
-        .max(1);
-    let memory_mb = stage_knobs
-        .memory_mb
-        .or(cfg.default_memory_mb)
-        .or(req.context.memory_hint_mb);
+    let threads = stage_knobs.threads.or(cfg.default_threads).unwrap_or(req.context.threads).max(1);
+    let memory_mb = stage_knobs.memory_mb.or(cfg.default_memory_mb).or(req.context.memory_hint_mb);
     let compression_threads = stage_knobs
         .compression_threads
         .or(cfg.default_compression_threads)
         .or(req.context.compression_threads)
         .map(|value| value.max(1));
-    let timeout = req.timeout.or_else(|| {
-        stage_knobs
-            .timeout_s
-            .or(cfg.default_timeout_s)
-            .map(Duration::from_secs)
-    });
+    let timeout = req
+        .timeout
+        .or_else(|| stage_knobs.timeout_s.or(cfg.default_timeout_s).map(Duration::from_secs));
     let temp_root = stage_knobs
         .temp_root
         .or_else(|| cfg.default_temp_root.clone())
         .map(PathBuf::from)
-        .map(|path| {
-            if path.is_absolute() {
-                path
-            } else {
-                root.join(path)
-            }
-        });
+        .map(|path| if path.is_absolute() { path } else { root.join(path) });
     let cache_root = cfg.cache_root.clone().map(PathBuf::from).map(|path| {
         if path.is_absolute() {
             path
@@ -124,16 +108,13 @@ pub(super) fn effective_runtime_policy(req: &ToolInvocationRequest) -> Effective
             root.join(path)
         }
     });
-    let deterministic_env = cfg
-        .deterministic_env
-        .clone()
-        .unwrap_or(DeterministicEnvKnobs {
-            lc_all: Some("C".to_string()),
-            lang: Some("C".to_string()),
-            tz: Some("UTC".to_string()),
-            umask: Some("027".to_string()),
-            path: None,
-        });
+    let deterministic_env = cfg.deterministic_env.clone().unwrap_or(DeterministicEnvKnobs {
+        lc_all: Some("C".to_string()),
+        lang: Some("C".to_string()),
+        tz: Some("UTC".to_string()),
+        umask: Some("027".to_string()),
+        path: None,
+    });
     EffectiveRuntimePolicy {
         threads,
         memory_mb,

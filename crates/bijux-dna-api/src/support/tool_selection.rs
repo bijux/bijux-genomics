@@ -105,21 +105,15 @@ mod tests {
             Err(err) => err,
         };
 
-        assert!(error
-            .to_string()
-            .contains("no tools available after role filtering"));
+        assert!(error.to_string().contains("no tools available after role filtering"));
     }
 
     #[test]
     fn role_filtering_keeps_authoritative_tools_available() {
         let registry = test_registry(ToolRole::Authoritative);
-        let filtered = filter_tools_by_role(
-            "fastq.test_stage",
-            &["demo_tool".to_string()],
-            &registry,
-            false,
-        )
-        .unwrap_or_else(|err| panic!("authoritative tool should survive filtering: {err}"));
+        let filtered =
+            filter_tools_by_role("fastq.test_stage", &["demo_tool".to_string()], &registry, false)
+                .unwrap_or_else(|err| panic!("authoritative tool should survive filtering: {err}"));
 
         assert_eq!(filtered, vec!["demo_tool".to_string()]);
     }

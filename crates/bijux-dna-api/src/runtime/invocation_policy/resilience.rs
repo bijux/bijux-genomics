@@ -7,7 +7,7 @@ use bijux_dna_core::contract::ExecutionStep;
 use super::{Result, ToolInvocationRequest};
 use crate::runtime::persistence::ArtifactWriter;
 
-pub(super) fn acquire_slot_lock(
+pub(crate) fn acquire_slot_lock(
     base: &Path,
     prefix: &str,
     slots: u32,
@@ -38,31 +38,24 @@ pub(super) fn output_checksums(step: &ExecutionStep) -> Result<serde_json::Value
     ArtifactWriter::write_output_checksums(&step.out_dir, &step.io.outputs)
 }
 
-pub(super) fn can_resume(req: &ToolInvocationRequest) -> Result<bool> {
+pub(crate) fn can_resume(req: &ToolInvocationRequest) -> Result<bool> {
     let manifest_path = req.context.stage_root.join("stage_manifest.json");
     if !manifest_path.exists() {
         return Ok(false);
     }
-    let all_outputs_exist = req
-        .step
-        .io
-        .outputs
-        .iter()
-        .all(|artifact| artifact.optional || artifact.path.exists());
+    let all_outputs_exist =
+        req.step.io.outputs.iter().all(|artifact| artifact.optional || artifact.path.exists());
     if !all_outputs_exist {
         return Ok(false);
     }
     let raw = std::fs::read_to_string(&manifest_path)?;
     let manifest: serde_json::Value = serde_json::from_str(&raw)?;
-    let stored = manifest
-        .get("output_checksums")
-        .cloned()
-        .unwrap_or(serde_json::Value::Null);
+    let stored = manifest.get("output_checksums").cloned().unwrap_or(serde_json::Value::Null);
     let current = output_checksums(&req.step)?;
     Ok(stored == current && stored != serde_json::Value::Null)
 }
 
-pub(super) fn update_resume_report(
+pub(crate) fn update_resume_report(
     stage_root: &Path,
     stage_id: &str,
     status: &str,
@@ -108,7 +101,7 @@ pub(super) fn update_resume_report(
     Ok(())
 }
 
-pub(super) fn mark_partial_failure_invalid(
+pub(crate) fn mark_partial_failure_invalid(
     stage_root: &Path,
     outputs: &[bijux_dna_core::contract::ArtifactSpec],
 ) -> Result<()> {
@@ -139,7 +132,7 @@ pub(super) fn mark_partial_failure_invalid(
     Ok(())
 }
 
-pub(super) fn write_crash_bundle(
+pub(crate) fn write_crash_bundle(
     req: &ToolInvocationRequest,
     stderr_tail: Option<&str>,
     exit_code: i32,

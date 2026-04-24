@@ -46,20 +46,13 @@ impl EnaRecord {
             EnaFileSource::SraFtp => &self.sra_ftp,
             EnaFileSource::BamFtp => &self.bam_ftp,
         };
-        urls.iter()
-            .map(|u| normalize_url(u, preference))
-            .collect::<Vec<_>>()
+        urls.iter().map(|u| normalize_url(u, preference)).collect::<Vec<_>>()
     }
 }
 
 #[must_use]
 pub fn split_ena_field(value: &str) -> Vec<String> {
-    value
-        .split(';')
-        .map(str::trim)
-        .filter(|s| !s.is_empty())
-        .map(ToString::to_string)
-        .collect()
+    value.split(';').map(str::trim).filter(|s| !s.is_empty()).map(ToString::to_string).collect()
 }
 
 #[must_use]

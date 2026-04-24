@@ -3,7 +3,7 @@ fn base_bam_args(
     profile: &PipelineProfile,
     bam: PathBuf,
     out: PathBuf,
-    bai: Option<PathBuf>,
+    bam_index: Option<PathBuf>,
     reference: Option<PathBuf>,
 ) -> BamRunArgs {
     BamRunArgs {
@@ -17,7 +17,7 @@ fn base_bam_args(
         tool: None,
         dry_run: false,
         allow_planned: false,
-        bai,
+        bai: bam_index,
         reference,
         regions: None,
         udg_model: None,
@@ -106,4 +106,3 @@ fn infer_alignment_regime(profile: &PipelineProfile, args: &FastqCrossArgs) -> A
     }
     AlignmentRegime::Modern
 }
-

@@ -75,9 +75,7 @@ pub const COMPARE_METRIC_SEMANTICS: &[MetricSemantics] = &[
 
 #[must_use]
 pub fn metric_semantics(metric_id: &str) -> Option<&'static MetricSemantics> {
-    COMPARE_METRIC_SEMANTICS
-        .iter()
-        .find(|spec| spec.metric_id == metric_id)
+    COMPARE_METRIC_SEMANTICS.iter().find(|spec| spec.metric_id == metric_id)
 }
 
 #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize)]

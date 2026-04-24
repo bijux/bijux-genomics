@@ -2,8 +2,8 @@ use anyhow::Result;
 
 use bijux_dna_db_ena::{download::DownloadConfig, EnaRunManifest};
 
+use super::super::args::DownloadArgs;
 use super::query;
-use crate::cli::args::DownloadArgs;
 
 pub(crate) fn execute_download(args: &DownloadArgs) -> Result<(EnaRunManifest, DownloadConfig)> {
     let (manifest, mut config) = query::execute_query(&args.shared)?;

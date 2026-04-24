@@ -22,9 +22,8 @@ impl GatePolicy {
             .map_or(self.required_metrics.as_slice(), |override_policy| {
                 override_policy.required_metrics.as_slice()
             });
-        let thresholds = overrides.map_or(&self.thresholds, |override_policy| {
-            &override_policy.thresholds
-        });
+        let thresholds =
+            overrides.map_or(&self.thresholds, |override_policy| &override_policy.thresholds);
         let allowed_regressions = overrides.map_or(&self.allowed_regressions, |override_policy| {
             &override_policy.allowed_regressions
         });
@@ -121,9 +120,7 @@ fn evaluate_thresholds(
             MetricDirection::HigherBetter => *observed >= *threshold,
             MetricDirection::LowerBetter => *observed <= *threshold,
         };
-        rationale_trace.push(format!(
-            "metric:{metric_id}:{observed} threshold:{threshold}"
-        ));
+        rationale_trace.push(format!("metric:{metric_id}:{observed} threshold:{threshold}"));
         if !passes {
             violations.push(GateViolation {
                 metric_id: metric_id.clone(),

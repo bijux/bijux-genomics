@@ -10,13 +10,8 @@ fn explain_roundtrip_is_deterministic() -> anyhow::Result<()> {
     let stage = ExecutionStep {
         step_id: StepId::from_static("stage.a"),
         stage_id: StageId::from_static("stage.a"),
-        image: ContainerImageRefV1 {
-            image: "tool:1.0.0".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["tool".to_string()],
-        },
+        image: ContainerImageRefV1 { image: "tool:1.0.0".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["tool".to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,

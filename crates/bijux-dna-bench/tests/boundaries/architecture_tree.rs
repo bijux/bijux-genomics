@@ -65,12 +65,7 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/repo/run_artifacts")),
-        entries([
-            "manifest_loader.rs",
-            "metrics_loader.rs",
-            "mod.rs",
-            "observations_loader.rs",
-        ]),
+        entries(["manifest_loader.rs", "metrics_loader.rs", "mod.rs", "observations_loader.rs",]),
         "run artifact loaders must stay separated by persisted artifact kind"
     );
 

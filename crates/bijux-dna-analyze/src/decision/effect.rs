@@ -16,25 +16,14 @@ pub struct EffectSize {
 
 #[must_use]
 pub fn default_thresholds() -> EffectThresholds {
-    EffectThresholds {
-        absolute: 0.05,
-        relative: 0.05,
-    }
+    EffectThresholds { absolute: 0.05, relative: 0.05 }
 }
 
 #[must_use]
 pub fn effect_size(baseline: f64, candidate: f64, thresholds: EffectThresholds) -> EffectSize {
     let absolute = candidate - baseline;
-    let relative = if baseline.abs() > f64::EPSILON {
-        Some(absolute / baseline)
-    } else {
-        None
-    };
+    let relative = if baseline.abs() > f64::EPSILON { Some(absolute / baseline) } else { None };
     let practical = absolute.abs() >= thresholds.absolute
         || relative.is_some_and(|rel| rel.abs() >= thresholds.relative);
-    EffectSize {
-        absolute,
-        relative,
-        practical,
-    }
+    EffectSize { absolute, relative, practical }
 }

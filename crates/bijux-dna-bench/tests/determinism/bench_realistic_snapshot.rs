@@ -77,16 +77,8 @@ fn realistic_suite_snapshot() -> anyhow::Result<()> {
         &["fastq.trim_reads".to_string()],
         &["fastp".to_string(), "cutadapt".to_string()],
         &["params-a".to_string()],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 2,
-            min_classes: 2,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 2, min_classes: 2, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string(), "nextera".to_string()],

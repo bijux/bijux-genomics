@@ -13,12 +13,7 @@ pub(crate) struct RuntimeParityResult {
 }
 
 fn normalized_first_line(stdout: &str) -> Option<String> {
-    stdout
-        .lines()
-        .next()
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .map(ToOwned::to_owned)
+    stdout.lines().next().map(str::trim).filter(|value| !value.is_empty()).map(ToOwned::to_owned)
 }
 
 /// # Errors
@@ -30,10 +25,8 @@ pub fn check_invocation_parity(
     let primary = invoke_tool(request)?;
     let mut secondary_request = request.clone();
     secondary_request.runner = secondary_runtime;
-    secondary_request.context.stage_root = request
-        .context
-        .stage_root
-        .join(format!("parity_{secondary_runtime}"));
+    secondary_request.context.stage_root =
+        request.context.stage_root.join(format!("parity_{secondary_runtime}"));
     secondary_request.context.tmp_root = secondary_request.context.stage_root.join("tmp");
     let secondary = invoke_tool(&secondary_request)?;
     let primary_stdout = normalized_first_line(&primary.stage_result.stdout);

@@ -84,10 +84,7 @@ fn write_stage_report(
         log_paths: Vec::new(),
     };
     let stage_report_path = stage_dir.join("stage_report.json");
-    bijux_dna_infra::write_bytes(
-        &stage_report_path,
-        serde_json::to_vec_pretty(&stage_report)?,
-    )?;
+    bijux_dna_infra::write_bytes(&stage_report_path, serde_json::to_vec_pretty(&stage_report)?)?;
     Ok(stage_report_path)
 }
 
@@ -115,11 +112,7 @@ fn build_report(domain: Domain, pipeline_id: &str) -> Result<ReportSchemaV1> {
     let mut rows = Vec::new();
     for (idx, stage_id) in id_catalog.iter().enumerate() {
         let stage_key = bijux_dna_core::ids::StageId::new(stage_id.clone());
-        let tool = profile
-            .defaults
-            .tools
-            .get(&stage_key)
-            .map_or("unknown", |tool| tool.as_str());
+        let tool = profile.defaults.tools.get(&stage_key).map_or("unknown", |tool| tool.as_str());
         let stage_dir = base_dir.join(format!("stage_{idx}"));
         bijux_dna_infra::ensure_dir(&stage_dir)?;
         let stage_report_path = write_stage_report(&stage_dir, stage_id, tool)?;

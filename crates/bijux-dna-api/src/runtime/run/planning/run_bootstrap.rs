@@ -10,8 +10,5 @@ pub fn run_pipeline(request: RunRequest, _mode: RunMode) -> Result<RunResult> {
     let defaults = profile.defaults_ledger();
     defaults.validate_strict()?;
     bijux_dna_infra::atomic_write_json(&ledger_path, &defaults)?;
-    Ok(RunResult {
-        run_dir: request.run_dir,
-        profile_id: profile.id.to_string(),
-    })
+    Ok(RunResult { run_dir: request.run_dir, profile_id: profile.id.to_string() })
 }

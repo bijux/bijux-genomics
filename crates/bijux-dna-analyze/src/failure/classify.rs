@@ -115,9 +115,6 @@ mod tests {
             category: ErrorCategory::ContractError,
         };
         let failure = classify_raw_failure(&raw);
-        assert!(failure
-            .hints
-            .iter()
-            .any(|hint| hint.id.contains("adapter_preset")));
+        assert!(failure.hints.iter().any(|hint| hint.id.contains("adapter_preset")));
     }
 }

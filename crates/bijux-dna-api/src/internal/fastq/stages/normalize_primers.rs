@@ -52,11 +52,8 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
     let tools = bijux_dna_planner_fastq::select_normalize_primers_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_ID, artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_ID, &header);
@@ -171,12 +168,10 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         } else {
             None
         };
-        let primer_trimmed_fraction = payload
-            .get("primer_trimmed_fraction")
-            .and_then(serde_json::Value::as_f64);
-        let orientation_forward_fraction = payload
-            .get("orientation_forward_fraction")
-            .and_then(serde_json::Value::as_f64);
+        let primer_trimmed_fraction =
+            payload.get("primer_trimmed_fraction").and_then(serde_json::Value::as_f64);
+        let orientation_forward_fraction =
+            payload.get("orientation_forward_fraction").and_then(serde_json::Value::as_f64);
         let reads_in_total =
             input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
         let reads_out_total =
@@ -220,14 +215,10 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
                 output_stats_r1.bases + output_stats_r2.as_ref().map_or(0, |stats| stats.bases),
             ),
             pairs_in: args.r2.as_ref().map(|_| {
-                input_stats_r1
-                    .reads
-                    .min(input_stats_r2.as_ref().map_or(0, |stats| stats.reads))
+                input_stats_r1.reads.min(input_stats_r2.as_ref().map_or(0, |stats| stats.reads))
             }),
             pairs_out: output_r2.as_ref().map(|_| {
-                output_stats_r1
-                    .reads
-                    .min(output_stats_r2.as_ref().map_or(0, |stats| stats.reads))
+                output_stats_r1.reads.min(output_stats_r2.as_ref().map_or(0, |stats| stats.reads))
             }),
             primer_trimmed_reads: primer_trimmed_fraction
                 .and_then(|fraction| rounded_fraction_count(fraction, reads_in_total)),
@@ -284,12 +275,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
 }
 
 fn artifact_path(

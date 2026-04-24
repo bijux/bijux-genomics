@@ -17,13 +17,7 @@ pub(super) fn execution_step_batches(graph: &ExecutionGraph) -> Result<Vec<Vec<E
     }
     let mut ready = incoming
         .iter()
-        .filter_map(|(node_id, count)| {
-            if *count == 0 {
-                Some(node_id.clone())
-            } else {
-                None
-            }
-        })
+        .filter_map(|(node_id, count)| if *count == 0 { Some(node_id.clone()) } else { None })
         .collect::<Vec<_>>();
     ready.sort();
     let mut batches = Vec::new();

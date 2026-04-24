@@ -8,10 +8,7 @@ pub fn assert_json_schema_like(value: &Value, schema_like: &Value) {
     match (value, schema_like) {
         (Value::Object(actual), Value::Object(schema)) => {
             for key in schema.keys() {
-                assert!(
-                    actual.contains_key(key),
-                    "missing expected key '{key}' in json payload"
-                );
+                assert!(actual.contains_key(key), "missing expected key '{key}' in json payload");
             }
         }
         _ => panic!("schema_like must be a JSON object"),

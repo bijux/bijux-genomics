@@ -29,11 +29,8 @@ fn bench_schema_table_ordering_matches_registry() -> Result<()> {
         .collect();
     let kind = metric_kind_for_stage("fastq.trim_reads").ok_or_else(|| anyhow!("stage kind"))?;
     let spec = stage_metric_spec(kind);
-    let expected: Vec<_> = spec
-        .metrics
-        .iter()
-        .map(|metric_id| metric_spec(*metric_id).name.to_string())
-        .collect();
+    let expected: Vec<_> =
+        spec.metrics.iter().map(|metric_id| metric_spec(*metric_id).name.to_string()).collect();
     assert_eq!(observed, expected);
     Ok(())
 }
@@ -129,11 +126,7 @@ fn ranking_explanation_generation_has_modes() -> Result<()> {
             input_hash: "ih".to_string(),
             parameters: bijux_dna_analyze::model::JsonBlob::default(),
         },
-        execution: ExecutionMetrics {
-            runtime_s: 1.0,
-            memory_mb: 10.0,
-            exit_code: 0,
-        },
+        execution: ExecutionMetrics { runtime_s: 1.0, memory_mb: 10.0, exit_code: 0 },
         metrics: MetricSet {
             metrics_schema: "fastq_trim_reads_v2".to_string(),
             version: 2,

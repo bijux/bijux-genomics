@@ -28,16 +28,8 @@ fn bench_compare_snapshot() -> Result<()> {
         &["fastq.trim_reads".to_string()],
         &["fastp".to_string()],
         &["params-a".to_string()],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -61,16 +53,8 @@ fn bench_compare_snapshot() -> Result<()> {
         &["fastq.trim_reads".to_string()],
         &["fastp".to_string()],
         &["params-a".to_string()],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -116,29 +100,16 @@ fn bench_compare_snapshot() -> Result<()> {
         threads: 4,
         io_mode: "local".to_string(),
     };
-    let obs_b = BenchmarkObservation {
-        runtime_s: 2.0,
-        memory_mb: 120.0,
-        ..obs_a.clone()
-    };
+    let obs_b = BenchmarkObservation { runtime_s: 2.0, memory_mb: 120.0, ..obs_a.clone() };
 
-    let summary_a = summarize(
-        &suite_a,
-        &[obs_a.clone(), obs_a.clone(), obs_a],
-        &BenchRunOptions::default(),
-    )?;
-    let summary_b = summarize(
-        &suite_b,
-        &[obs_b.clone(), obs_b.clone(), obs_b],
-        &BenchRunOptions::default(),
-    )?;
+    let summary_a =
+        summarize(&suite_a, &[obs_a.clone(), obs_a.clone(), obs_a], &BenchRunOptions::default())?;
+    let summary_b =
+        summarize(&suite_b, &[obs_b.clone(), obs_b.clone(), obs_b], &BenchRunOptions::default())?;
     let comparison = compare(&summary_a, &summary_b)?;
     let rendered = serde_json::to_string_pretty(&comparison)?;
     let snapshot_file = format!("{}.json", snapshot_name("contracts", "bench_compare"));
-    let snapshot_path = manifest_dir
-        .join("tests")
-        .join("snapshots")
-        .join(snapshot_file);
+    let snapshot_path = manifest_dir.join("tests").join("snapshots").join(snapshot_file);
     let snapshot = fs::read_to_string(&snapshot_path)?;
     assert_eq!(rendered.trim(), snapshot.trim());
     Ok(())

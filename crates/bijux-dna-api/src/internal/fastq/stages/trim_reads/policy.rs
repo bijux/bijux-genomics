@@ -52,9 +52,9 @@ pub(super) fn normalized_contaminant_policy(
         None => Ok(None),
         Some("none") => Ok(Some("none".to_string())),
         Some("bank") => Ok(Some("bank".to_string())),
-        Some(other) => Err(anyhow!(
-            "contaminant_policy must be one of `none` or `bank`, received `{other}`"
-        )),
+        Some(other) => {
+            Err(anyhow!("contaminant_policy must be one of `none` or `bank`, received `{other}`"))
+        }
     }
 }
 

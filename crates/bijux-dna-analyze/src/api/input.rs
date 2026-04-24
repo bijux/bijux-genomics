@@ -29,14 +29,8 @@ pub struct AnalyzeOptions {
 #[derive(Debug, Clone)]
 pub enum AnalyzeMode {
     Summary,
-    Compare {
-        run_a: String,
-        run_b: String,
-    },
-    Rank {
-        stage_id: StageId,
-        metric_id: AnalyzeMetricId,
-    },
+    Compare { run_a: String, run_b: String },
+    Rank { stage_id: StageId, metric_id: AnalyzeMetricId },
     Report,
 }
 

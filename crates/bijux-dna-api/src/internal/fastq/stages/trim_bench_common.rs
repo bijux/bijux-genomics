@@ -46,14 +46,7 @@ pub(crate) fn prepare_trim_bench<S: ::std::hash::BuildHasher>(
     let input_hash = hash_file_sha256(&r1).context("hash trim input")?;
     let input_stats = observe_fastq_stats(catalog, platform, runner, &r1)?;
 
-    Ok(TrimBenchInputs {
-        runner,
-        r1,
-        input_hash,
-        input_stats,
-        bench_dir,
-        tools_root,
-    })
+    Ok(TrimBenchInputs { runner, r1, input_hash, input_stats, bench_dir, tools_root })
 }
 
 pub(crate) fn observe_fastq_stats<S: ::std::hash::BuildHasher>(
@@ -62,9 +55,8 @@ pub(crate) fn observe_fastq_stats<S: ::std::hash::BuildHasher>(
     runner: RuntimeKind,
     fastq: &Path,
 ) -> Result<SeqkitMetrics> {
-    let fastq_dir = fastq
-        .parent()
-        .ok_or_else(|| anyhow!("fastq has no parent: {}", fastq.display()))?;
+    let fastq_dir =
+        fastq.parent().ok_or_else(|| anyhow!("fastq has no parent: {}", fastq.display()))?;
     let seqkit_tool = catalog
         .get(bijux_dna_planner_fastq::stage_api::TOOL_SEQKIT)
         .ok_or_else(|| anyhow!("seqkit missing from images catalog"))?;
@@ -89,10 +81,7 @@ pub(crate) fn require_existing_benchmark_output<'a>(
     if path.exists() {
         Ok(path)
     } else {
-        Err(anyhow!(
-            "expected benchmark output `{artifact_label}` at {}",
-            path.display()
-        ))
+        Err(anyhow!("expected benchmark output `{artifact_label}` at {}", path.display()))
     }
 }
 
@@ -129,11 +118,7 @@ pub(crate) fn build_benchmark_context(
 }
 
 pub(crate) fn benchmark_image_identity(tool_spec: &ToolExecutionSpecV1) -> String {
-    tool_spec
-        .image
-        .digest
-        .clone()
-        .unwrap_or_else(|| tool_spec.image.image.clone())
+    tool_spec.image.digest.clone().unwrap_or_else(|| tool_spec.image.image.clone())
 }
 
 #[allow(dead_code)]
@@ -189,11 +174,8 @@ pub(crate) fn terminal_damage_profile(path: &Path) -> Result<Value> {
         }
     }
     let denom = u64_to_f64(ct_events + ga_events);
-    let asymmetry = if denom > 0.0 {
-        (u64_to_f64(ct_events) - u64_to_f64(ga_events)) / denom
-    } else {
-        0.0
-    };
+    let asymmetry =
+        if denom > 0.0 { (u64_to_f64(ct_events) - u64_to_f64(ga_events)) / denom } else { 0.0 };
     Ok(serde_json::json!({
         "reads_profiled": seen,
         "terminal_base_composition_5p": five_prime,
@@ -205,10 +187,7 @@ pub(crate) fn terminal_damage_profile(path: &Path) -> Result<Value> {
 }
 
 pub(crate) fn json_string(value: Option<&Value>, key: &str) -> Option<String> {
-    value
-        .and_then(|ctx| ctx.get(key))
-        .and_then(Value::as_str)
-        .map(str::to_string)
+    value.and_then(|ctx| ctx.get(key)).and_then(Value::as_str).map(str::to_string)
 }
 
 fn ratio_u64(num: u64, denom: u64) -> f64 {
@@ -267,8 +246,6 @@ mod tests {
         let error = require_existing_benchmark_output(&path, "dedup_reads_r1")
             .expect_err("missing output should be rejected");
 
-        assert!(error
-            .to_string()
-            .contains("expected benchmark output `dedup_reads_r1`"));
+        assert!(error.to_string().contains("expected benchmark output `dedup_reads_r1`"));
     }
 }

@@ -117,11 +117,7 @@ fn enforce_stage_refusal_rules(
     rg_policy_override: Option<&str>,
 ) -> Result<()> {
     if !bam_path.exists() {
-        return Err(anyhow!(
-            "bam input missing for {}: {}",
-            stage.as_str(),
-            bam_path.display()
-        ));
+        return Err(anyhow!("bam input missing for {}: {}", stage.as_str(), bam_path.display()));
     }
     if matches!(
         stage,
@@ -134,10 +130,7 @@ fn enforce_stage_refusal_rules(
             | bijux_dna_planner_bam::stage_api::BamStage::LengthFilter
     ) && bai_path.is_none()
     {
-        return Err(anyhow!(
-            "{} requires BAM index (.bai) but none was provided",
-            stage.as_str()
-        ));
+        return Err(anyhow!("{} requires BAM index (.bai) but none was provided", stage.as_str()));
     }
     if matches!(
         stage,
@@ -153,17 +146,12 @@ fn enforce_stage_refusal_rules(
         return Err(anyhow!(
             "{} requires existing BAM index (.bai): {}",
             stage.as_str(),
-            bai_path.map_or_else(
-                || "<missing>".to_string(),
-                |path| path.display().to_string()
-            )
+            bai_path.map_or_else(|| "<missing>".to_string(), |path| path.display().to_string())
         ));
     }
     let contract = bijux_dna_domain_bam::contract_for_stage(stage.as_str());
     let rg_required = contract.is_some_and(|spec| {
-        spec.read_group_policy
-            .to_ascii_lowercase()
-            .contains("requires_read_groups")
+        spec.read_group_policy.to_ascii_lowercase().contains("requires_read_groups")
     });
     let missing_rg_allowed = rg_policy_override.is_some_and(|policy| {
         matches!(
@@ -192,25 +180,16 @@ fn enforce_stage_refusal_rules(
     }
     if stage == bijux_dna_planner_bam::stage_api::BamStage::Sex {
         let Some(reference) = reference else {
-            return Err(anyhow!(
-                "bam.sex requires reference fasta to validate sex contigs"
-            ));
+            return Err(anyhow!("bam.sex requires reference fasta to validate sex contigs"));
         };
         let fai = PathBuf::from(format!("{}.fai", reference.display()));
         if !fai.exists() {
-            return Err(anyhow!(
-                "bam.sex requires reference index (.fai): {}",
-                fai.display()
-            ));
+            return Err(anyhow!("bam.sex requires reference index (.fai): {}", fai.display()));
         }
         let raw =
             std::fs::read_to_string(&fai).with_context(|| format!("read {}", fai.display()))?;
-        let has_x = raw
-            .lines()
-            .any(|line| line.starts_with("X\t") || line.starts_with("chrX\t"));
-        let has_y = raw
-            .lines()
-            .any(|line| line.starts_with("Y\t") || line.starts_with("chrY\t"));
+        let has_x = raw.lines().any(|line| line.starts_with("X\t") || line.starts_with("chrX\t"));
+        let has_y = raw.lines().any(|line| line.starts_with("Y\t") || line.starts_with("chrY\t"));
         if !(has_x && has_y) {
             return Err(anyhow!(
                 "bam.sex refusal: reference lacks required X/Y contigs in {}",
@@ -339,10 +318,7 @@ fn validate_stage_hard_failures(
                 ));
             }
         }
-        let reference = plan
-            .params
-            .get("reference")
-            .and_then(serde_json::Value::as_str);
+        let reference = plan.params.get("reference").and_then(serde_json::Value::as_str);
         if let Some(reference) = reference {
             let reference = PathBuf::from(reference);
             let ref_contigs = reference_contig_names(Some(&reference));
@@ -366,11 +342,8 @@ fn write_udg_metadata(
     stage_dir: &Path,
     plan: &bijux_dna_stage_contract::StagePlanV1,
 ) -> Result<()> {
-    let udg_model = plan
-        .params
-        .get("udg_model")
-        .and_then(serde_json::Value::as_str)
-        .map(str::to_string);
+    let udg_model =
+        plan.params.get("udg_model").and_then(serde_json::Value::as_str).map(str::to_string);
     let path = stage_dir.join("udg_regime.json");
     bijux_dna_infra::atomic_write_json(
         &path,
@@ -404,9 +377,7 @@ fn write_damage_unified(stage_dir: &Path) -> Result<()> {
     }
     let canonical = measurements
         .first()
-        .map_or_else(bam_metrics::DamageMetricsV1::empty, |(_, metric)| {
-            metric.clone()
-        });
+        .map_or_else(bam_metrics::DamageMetricsV1::empty, |(_, metric)| metric.clone());
     let comparison = if measurements.len() >= 2 {
         Some(bam_metrics::compare_damage_metrics(
             measurements[0].0,
@@ -432,10 +403,7 @@ fn write_damage_unified(stage_dir: &Path) -> Result<()> {
 
 fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
     let bam_root = stage_dir.parent().ok_or_else(|| {
-        anyhow!(
-            "authenticity stage path has no BAM root: {}",
-            stage_dir.display()
-        )
+        anyhow!("authenticity stage path has no BAM root: {}", stage_dir.display())
     })?;
     let damage_unified = bam_root.join("damage").join("damage.unified_metrics.json");
     let damage_value: serde_json::Value = if damage_unified.exists() {
@@ -446,21 +414,10 @@ fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
     } else {
         serde_json::json!({})
     };
-    let damage = damage_value
-        .get("canonical")
-        .cloned()
-        .unwrap_or_else(|| serde_json::json!({}));
-    let c_to_t = damage
-        .get("c_to_t_5p")
-        .and_then(serde_json::Value::as_f64)
-        .unwrap_or(0.0);
-    let g_to_a = damage
-        .get("g_to_a_3p")
-        .and_then(serde_json::Value::as_f64)
-        .unwrap_or(0.0);
-    let contamination_path = bam_root
-        .join("contamination")
-        .join("contamination.summary.json");
+    let damage = damage_value.get("canonical").cloned().unwrap_or_else(|| serde_json::json!({}));
+    let c_to_t = damage.get("c_to_t_5p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+    let g_to_a = damage.get("g_to_a_3p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+    let contamination_path = bam_root.join("contamination").join("contamination.summary.json");
     let contamination_estimate = if contamination_path.exists() {
         let contamination = bam_metrics::parse_contamination_json(&contamination_path)?;
         contamination.estimate
@@ -472,8 +429,7 @@ fn write_authenticity_composite(stage_dir: &Path) -> Result<()> {
     let pmdtools_signal = if pmdtools_path.exists() {
         let raw = std::fs::read_to_string(&pmdtools_path)
             .with_context(|| format!("read {}", pmdtools_path.display()))?;
-        raw.split_whitespace()
-            .find_map(|token| token.parse::<f64>().ok())
+        raw.split_whitespace().find_map(|token| token.parse::<f64>().ok())
     } else {
         None
     };

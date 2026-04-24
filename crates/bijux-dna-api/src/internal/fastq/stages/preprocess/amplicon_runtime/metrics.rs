@@ -13,11 +13,7 @@ pub(super) fn parse_primer_trimmed_fraction_from_stats(
     let trimmed = read_counts
         .get("read1_with_adapter")
         .and_then(serde_json::Value::as_f64)
-        .or_else(|| {
-            read_counts
-                .get("with_adapter")
-                .and_then(serde_json::Value::as_f64)
-        })?;
+        .or_else(|| read_counts.get("with_adapter").and_then(serde_json::Value::as_f64))?;
     Some(trimmed / reads_in)
 }
 
@@ -46,15 +42,11 @@ pub(super) fn parse_orientation_forward_fraction(
 }
 
 pub(super) fn terminal_damage_reads_profiled(profile: &serde_json::Value) -> Option<u64> {
-    profile
-        .get("reads_profiled")
-        .and_then(serde_json::Value::as_u64)
+    profile.get("reads_profiled").and_then(serde_json::Value::as_u64)
 }
 
 pub(super) fn terminal_damage_asymmetry(profile: &serde_json::Value) -> Option<f64> {
-    profile
-        .get("ct_ga_asymmetry")
-        .and_then(serde_json::Value::as_f64)
+    profile.get("ct_ga_asymmetry").and_then(serde_json::Value::as_f64)
 }
 
 pub(super) fn combined_terminal_damage_asymmetry(
@@ -63,9 +55,7 @@ pub(super) fn combined_terminal_damage_asymmetry(
 ) -> Option<f64> {
     let primary_reads = terminal_damage_reads_profiled(primary)?;
     let primary_asymmetry = terminal_damage_asymmetry(primary)?;
-    let secondary_reads = secondary
-        .and_then(terminal_damage_reads_profiled)
-        .unwrap_or(0);
+    let secondary_reads = secondary.and_then(terminal_damage_reads_profiled).unwrap_or(0);
     let secondary_asymmetry = secondary.and_then(terminal_damage_asymmetry).unwrap_or(0.0);
     let total_reads = primary_reads + secondary_reads;
     if total_reads == 0 {

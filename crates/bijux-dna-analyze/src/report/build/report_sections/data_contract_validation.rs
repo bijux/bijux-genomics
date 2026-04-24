@@ -1,4 +1,4 @@
-pub(super) fn data_contract_validation_section(
+pub(crate) fn data_contract_validation_section(
     completeness: &bijux_dna_runtime::ReportCompletenessV1,
 ) -> serde_json::Value {
     serde_json::json!({

@@ -100,10 +100,7 @@ fn validate_runtime_path(name: &str, value: Option<&str>) -> Result<()> {
 pub(super) fn validate_runtime_execution_config(cfg: &RuntimeExecutionConfig) -> Result<()> {
     validate_positive_u32("default_threads", cfg.default_threads)?;
     validate_positive_u64("default_memory_mb", cfg.default_memory_mb)?;
-    validate_positive_u32(
-        "default_compression_threads",
-        cfg.default_compression_threads,
-    )?;
+    validate_positive_u32("default_compression_threads", cfg.default_compression_threads)?;
     validate_positive_u64("default_timeout_s", cfg.default_timeout_s)?;
     validate_positive_u32("max_local_heavy_parallel", cfg.max_local_heavy_parallel)?;
     validate_positive_u32("bgzip_tabix_max_parallel", cfg.bgzip_tabix_max_parallel)?;

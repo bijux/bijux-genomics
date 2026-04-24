@@ -123,9 +123,9 @@ pub(super) fn plan_downstream_stage(
         #[cfg(not(feature = "bam_downstream"))]
         bijux_dna_planner_bam::stage_api::BamStage::Haplogroups
         | bijux_dna_planner_bam::stage_api::BamStage::Genotyping
-        | bijux_dna_planner_bam::stage_api::BamStage::Kinship => Err(anyhow!(
-            "downstream BAM stages are disabled (enable feature 'bam_downstream')"
-        )),
+        | bijux_dna_planner_bam::stage_api::BamStage::Kinship => {
+            Err(anyhow!("downstream BAM stages are disabled (enable feature 'bam_downstream')"))
+        }
         _ => return Ok(None),
     }?;
     Ok(Some(result))

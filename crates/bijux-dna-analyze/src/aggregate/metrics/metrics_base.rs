@@ -37,15 +37,10 @@ where
     let obj = value
         .as_object()
         .ok_or_else(|| BenchError::Validation("metrics must serialize to object".to_string()))?;
-    let observed: std::collections::BTreeSet<String> = obj
-        .keys()
-        .cloned()
-        .collect::<std::collections::BTreeSet<_>>();
-    let expected: std::collections::BTreeSet<String> = spec
-        .metrics
-        .iter()
-        .map(|metric_id| metric_spec(*metric_id).name.to_string())
-        .collect();
+    let observed: std::collections::BTreeSet<String> =
+        obj.keys().cloned().collect::<std::collections::BTreeSet<_>>();
+    let expected: std::collections::BTreeSet<String> =
+        spec.metrics.iter().map(|metric_id| metric_spec(*metric_id).name.to_string()).collect();
     if observed != expected {
         return Err(BenchError::Validation(format!(
             "metric schema mismatch for {stage}: observed={observed:?} expected={expected:?}",
@@ -58,11 +53,7 @@ pub fn metric_set<T>(metrics: T) -> MetricSet<T>
 where
     T: StageMetricSchema + Serialize,
 {
-    MetricSet::new(
-        metric_schema_name(T::STAGE, T::VERSION),
-        T::VERSION,
-        metrics,
-    )
+    MetricSet::new(metric_schema_name(T::STAGE, T::VERSION), T::VERSION, metrics)
 }
 
 /// Validate the metric set.

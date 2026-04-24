@@ -48,14 +48,8 @@ fn no_cross_layer_calls() {
             || path_str.ends_with("/load/sqlite/rows.rs");
 
         if path_str.contains("/decision/") {
-            assert!(
-                !depends_on("crate::load"),
-                "decision must not depend on load: {path_str}"
-            );
-            assert!(
-                !depends_on("crate::report"),
-                "decision must not depend on report: {path_str}"
-            );
+            assert!(!depends_on("crate::load"), "decision must not depend on load: {path_str}");
+            assert!(!depends_on("crate::report"), "decision must not depend on report: {path_str}");
             assert!(
                 !depends_on("crate::pipeline"),
                 "decision must not depend on pipeline: {path_str}"
@@ -63,10 +57,7 @@ fn no_cross_layer_calls() {
         }
 
         if path_str.contains("/report/") {
-            assert!(
-                !depends_on("crate::load"),
-                "report must not depend on load: {path_str}"
-            );
+            assert!(!depends_on("crate::load"), "report must not depend on load: {path_str}");
             assert!(
                 !depends_on("crate::pipeline"),
                 "report must not depend on pipeline: {path_str}"
@@ -74,18 +65,9 @@ fn no_cross_layer_calls() {
         }
 
         if path_str.contains("/load/") {
-            assert!(
-                !depends_on("crate::decision"),
-                "load must not depend on decision: {path_str}"
-            );
-            assert!(
-                !depends_on("crate::report"),
-                "load must not depend on report: {path_str}"
-            );
-            assert!(
-                !depends_on("crate::pipeline"),
-                "load must not depend on pipeline: {path_str}"
-            );
+            assert!(!depends_on("crate::decision"), "load must not depend on decision: {path_str}");
+            assert!(!depends_on("crate::report"), "load must not depend on report: {path_str}");
+            assert!(!depends_on("crate::pipeline"), "load must not depend on pipeline: {path_str}");
             if !allow_aggregate_for_load {
                 assert!(
                     !depends_on("crate::aggregate"),
@@ -166,10 +148,7 @@ fn public_api_is_small() -> anyhow::Result<()> {
             }
         }
     }
-    assert!(
-        offenders.is_empty(),
-        "unexpected public items in lib.rs: {offenders:?}"
-    );
+    assert!(offenders.is_empty(), "unexpected public items in lib.rs: {offenders:?}");
     Ok(())
 }
 
@@ -191,17 +170,11 @@ fn no_new_top_level_modules_without_owner() {
     let mut offenders = Vec::new();
     for module in modules {
         let owner = module.join("OWNER.toml");
-        let name = module
-            .file_name()
-            .and_then(|value| value.to_str())
-            .unwrap_or_default();
+        let name = module.file_name().and_then(|value| value.to_str()).unwrap_or_default();
         let docs_owner = owners_dir.join(format!("{name}.md"));
         if !owner.exists() && !docs_owner.exists() {
             offenders.push(module.display().to_string());
         }
     }
-    assert!(
-        offenders.is_empty(),
-        "top-level modules require OWNER.toml: {offenders:?}"
-    );
+    assert!(offenders.is_empty(), "top-level modules require OWNER.toml: {offenders:?}");
 }

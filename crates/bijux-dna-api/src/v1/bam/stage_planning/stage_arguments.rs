@@ -96,10 +96,6 @@ pub(super) fn parse_bqsr_mode(value: &str) -> Result<BqsrMode> {
 pub(super) fn parse_flag_list(values: &[String]) -> Result<Vec<u16>> {
     values
         .iter()
-        .map(|value| {
-            value
-                .parse::<u16>()
-                .map_err(|_| anyhow!("invalid flag value: {value}"))
-        })
+        .map(|value| value.parse::<u16>().map_err(|_| anyhow!("invalid flag value: {value}")))
         .collect()
 }

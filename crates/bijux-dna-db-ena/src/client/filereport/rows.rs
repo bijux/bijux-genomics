@@ -1,16 +1,15 @@
+use crate::client::EnaClientError;
 use crate::model::{split_ena_field, split_ena_u64_field, EnaQuery, EnaRecord};
 
-use super::{headers, EnaClientError};
+use super::headers;
 
-pub(super) fn parse_filereport_tsv(
+pub(crate) fn parse_filereport_tsv(
     tsv: &str,
     query: &EnaQuery,
 ) -> Result<Vec<EnaRecord>, EnaClientError> {
     let mut lines = tsv.lines();
     let Some(header_line) = lines.next() else {
-        return Err(EnaClientError::InvalidResponse(
-            "filereport response is empty".to_string(),
-        ));
+        return Err(EnaClientError::InvalidResponse("filereport response is empty".to_string()));
     };
     let headers: Vec<&str> = header_line.split('\t').collect();
     headers::validate_headers(&headers, query)?;

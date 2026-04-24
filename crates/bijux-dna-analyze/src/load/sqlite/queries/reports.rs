@@ -32,13 +32,7 @@ pub fn insert_image_qa_input_v1(
         "INSERT OR IGNORE INTO image_qa_inputs_v1 (\
          stage, input_hash, platform, runner, schema_version\
          ) VALUES (?1, ?2, ?3, ?4, ?5)",
-        (
-            stage,
-            input_hash,
-            platform,
-            runner,
-            IMAGE_QA_INPUTS_SCHEMA_VERSION,
-        ),
+        (stage, input_hash, platform, runner, IMAGE_QA_INPUTS_SCHEMA_VERSION),
     )?;
     Ok(())
 }
@@ -106,9 +100,7 @@ pub fn image_qa_passed(
          WHERE tool = ?1 AND stage = ?2 AND image_digest = ?3 \
          AND platform = ?4 AND runner = ?5 AND input_hash = ?6 AND status = 'pass'",
     )?;
-    let count: i64 = stmt.query_row(
-        (tool, stage, image_digest, platform, runner, input_hash),
-        |row| row.get(0),
-    )?;
+    let count: i64 = stmt
+        .query_row((tool, stage, image_digest, platform, runner, input_hash), |row| row.get(0))?;
     Ok(count > 0)
 }

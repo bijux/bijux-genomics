@@ -47,11 +47,8 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
     let tools = bijux_dna_planner_fastq::select_remove_chimeras_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_ID, artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_ID, &header);
@@ -123,9 +120,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             runner,
             jobs,
         )?
@@ -180,11 +175,8 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
         let reads_out = output_stats_r1.reads;
         let chimeras_removed = reads_in.saturating_sub(reads_out);
-        let chimera_fraction = if reads_in == 0 {
-            0.0
-        } else {
-            u64_to_f64(chimeras_removed) / u64_to_f64(reads_in)
-        };
+        let chimera_fraction =
+            if reads_in == 0 { 0.0 } else { u64_to_f64(chimeras_removed) / u64_to_f64(reads_in) };
         let effective_params: ChimeraDetectionEffectiveParams =
             serde_json::from_value(plan.effective_params.clone())
                 .map_err(|error| anyhow!("parse remove_chimeras effective params: {error}"))?;
@@ -211,12 +203,8 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             &metrics_output.path,
             &compatibility_metrics_from_report(&report),
         )?;
-        let metrics = FastqChimeraMetrics {
-            reads_in,
-            reads_out,
-            chimeras_removed,
-            chimera_fraction,
-        };
+        let metrics =
+            FastqChimeraMetrics { reads_in, reads_out, chimeras_removed, chimera_fraction };
         let metric_set = metric_set(metrics);
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
@@ -245,12 +233,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
 }
 
 fn parse_uchime_summary(path: Option<&std::path::Path>) -> Option<serde_json::Value> {
@@ -300,17 +283,13 @@ fn build_remove_chimeras_report(inputs: &RemoveChimerasReportInputs<'_>) -> Remo
         output_reads: inputs.output_reads.display().to_string(),
         chimera_metrics_json: inputs.chimera_metrics_json.display().to_string(),
         chimeras_fasta: inputs.chimeras_fasta.map(|path| path.display().to_string()),
-        uchime_report_tsv: inputs
-            .uchime_report_tsv
-            .map(|path| path.display().to_string()),
+        uchime_report_tsv: inputs.uchime_report_tsv.map(|path| path.display().to_string()),
         reads_in: Some(inputs.reads_in),
         reads_out: Some(inputs.reads_out),
         chimeras_removed: Some(inputs.chimeras_removed),
         chimera_fraction: Some(inputs.chimera_fraction),
         used_fallback: inputs.used_fallback,
-        raw_backend_report: inputs
-            .uchime_report_tsv
-            .map(|path| path.display().to_string()),
+        raw_backend_report: inputs.uchime_report_tsv.map(|path| path.display().to_string()),
         raw_backend_report_format: inputs
             .uchime_report_tsv
             .map(|_| inputs.effective_params.raw_backend_report_format.clone()),

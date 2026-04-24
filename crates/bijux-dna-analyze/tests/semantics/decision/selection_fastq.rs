@@ -113,20 +113,8 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
                 &sqlite_path,
                 table,
                 &[
-                    (
-                        "tool_fast".to_string(),
-                        dataset.sha256_r1.to_string(),
-                        1.0,
-                        100.0,
-                        0,
-                    ),
-                    (
-                        "tool_slow".to_string(),
-                        dataset.sha256_r1.to_string(),
-                        5.0,
-                        50.0,
-                        0,
-                    ),
+                    ("tool_fast".to_string(), dataset.sha256_r1.to_string(), 1.0, 100.0, 0),
+                    ("tool_slow".to_string(), dataset.sha256_r1.to_string(), 5.0, 50.0, 0),
                 ],
             )?;
         }
@@ -152,9 +140,7 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
         }
         if tool_records.iter().all(|(_, records): &(String, Vec<_>)| {
             records.is_empty()
-                || records
-                    .iter()
-                    .all(|record| matches!(record.status, BenchResultStatus::Missing))
+                || records.iter().all(|record| matches!(record.status, BenchResultStatus::Missing))
         }) {
             continue;
         }

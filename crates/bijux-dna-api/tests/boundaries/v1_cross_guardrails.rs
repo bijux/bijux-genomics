@@ -15,8 +15,5 @@ fn v1_api_has_no_stage_id_literals() {
             offenders.push(entry.path().display().to_string());
         }
     }
-    assert!(
-        offenders.is_empty(),
-        "v1 API must not embed stage id literals: {offenders:?}"
-    );
+    assert!(offenders.is_empty(), "v1 API must not embed stage id literals: {offenders:?}");
 }

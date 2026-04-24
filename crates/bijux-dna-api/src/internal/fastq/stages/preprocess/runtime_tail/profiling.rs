@@ -50,10 +50,7 @@ pub(crate) fn terminal_damage_profile(path: &std::path::Path) -> Result<serde_js
             break;
         }
     }
-    let denom = (ct_events + ga_events)
-        .to_string()
-        .parse::<f64>()
-        .unwrap_or(0.0);
+    let denom = (ct_events + ga_events).to_string().parse::<f64>().unwrap_or(0.0);
     let asymmetry = if denom > 0.0 {
         (ct_events.to_string().parse::<f64>().unwrap_or(0.0)
             - ga_events.to_string().parse::<f64>().unwrap_or(0.0))

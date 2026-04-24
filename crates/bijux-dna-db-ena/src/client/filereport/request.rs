@@ -3,7 +3,7 @@ use crate::model::EnaResultKind;
 const ENA_API_BASE: &str = "https://www.ebi.ac.uk/ena/portal/api/filereport";
 
 #[must_use]
-pub(super) fn build_filereport_url(accession: &str, result: EnaResultKind) -> String {
+pub(crate) fn build_filereport_url(accession: &str, result: EnaResultKind) -> String {
     let fields = filereport_fields(result).join(",");
 
     format!(
@@ -12,7 +12,7 @@ pub(super) fn build_filereport_url(accession: &str, result: EnaResultKind) -> St
     )
 }
 
-pub(super) fn filereport_fields(result: EnaResultKind) -> &'static [&'static str] {
+pub(crate) fn filereport_fields(result: EnaResultKind) -> &'static [&'static str] {
     match result {
         EnaResultKind::ReadRun => &[
             "study_accession",

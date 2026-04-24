@@ -54,9 +54,7 @@ fn histogram_bucket_for_read_length(len: usize) -> String {
 }
 
 fn fastq_is_gzip(path: &std::path::Path) -> bool {
-    path.extension()
-        .and_then(|x| x.to_str())
-        .is_some_and(|x| x.eq_ignore_ascii_case("gz"))
+    path.extension().and_then(|x| x.to_str()).is_some_and(|x| x.eq_ignore_ascii_case("gz"))
 }
 
 fn validate_gzip_path(path: &std::path::Path) -> Result<bool> {
@@ -84,20 +82,12 @@ fn quality_encoding_confidence(min_ascii: u8, max_ascii: u8) -> String {
 }
 
 pub(super) fn open_fastq_lines(path: &std::path::Path) -> Result<Box<dyn Iterator<Item = String>>> {
-    if path
-        .extension()
-        .and_then(|x| x.to_str())
-        .is_some_and(|x| x.eq_ignore_ascii_case("gz"))
-    {
+    if path.extension().and_then(|x| x.to_str()).is_some_and(|x| x.eq_ignore_ascii_case("gz")) {
         let args = vec!["-cd".to_string(), path.to_string_lossy().into_owned()];
         let output = bijux_dna_runner::command_runner::run_command("gzip", &args)
             .with_context(|| format!("gzip -cd {}", path.display()))?;
         if output.exit_code != 0 {
-            return Err(anyhow!(
-                "failed to decompress {}: {}",
-                path.display(),
-                output.stderr
-            ));
+            return Err(anyhow!("failed to decompress {}: {}", path.display(), output.stderr));
         }
         let text = output.stdout;
         let lines = text.lines().map(ToString::to_string).collect::<Vec<_>>();
@@ -142,18 +132,13 @@ fn scan_fastq_invariants(path: &std::path::Path) -> Result<FastqScanStats> {
             break;
         };
         if !h.starts_with('@') || !plus.starts_with('+') {
-            return Err(anyhow!(
-                "invalid FASTQ record framing in {}",
-                path.display()
-            ));
+            return Err(anyhow!("invalid FASTQ record framing in {}", path.display()));
         }
         let l = seq.len();
         len_min = len_min.min(l);
         len_max = len_max.max(l);
         len_total += l as u64;
-        *read_length_histogram
-            .entry(histogram_bucket_for_read_length(l))
-            .or_insert(0) += 1;
+        *read_length_histogram.entry(histogram_bucket_for_read_length(l)).or_insert(0) += 1;
         for c in qual.bytes() {
             q_min = q_min.min(c);
             q_max = q_max.max(c);
@@ -180,14 +165,8 @@ fn scan_fastq_invariants(path: &std::path::Path) -> Result<FastqScanStats> {
 }
 
 fn normalize_pair_header(header: &str) -> String {
-    let core = header
-        .trim_start_matches('@')
-        .split_whitespace()
-        .next()
-        .unwrap_or(header);
-    core.trim_end_matches("/1")
-        .trim_end_matches("/2")
-        .to_string()
+    let core = header.trim_start_matches('@').split_whitespace().next().unwrap_or(header);
+    core.trim_end_matches("/1").trim_end_matches("/2").to_string()
 }
 
 pub(super) fn write_fastq_entry_invariants(

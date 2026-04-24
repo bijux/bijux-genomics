@@ -103,21 +103,15 @@ fn regression_risk_for(deltas: &JsonBlob) -> RegressionRisk {
     let mut improved = Vec::new();
     let mut unchanged = Vec::new();
     let Some(map) = deltas.as_value().as_object() else {
-        return RegressionRisk {
-            worsened,
-            improved,
-            unchanged,
-        };
+        return RegressionRisk { worsened, improved, unchanged };
     };
     for (metric, value) in map {
         let Some(delta) = value.as_f64() else {
             continue;
         };
         let semantics = resolve_semantics(metric);
-        let direction = semantics
-            .as_ref()
-            .map(|spec| spec.direction.as_str())
-            .unwrap_or("HigherBetter");
+        let direction =
+            semantics.as_ref().map(|spec| spec.direction.as_str()).unwrap_or("HigherBetter");
         let epsilon = 1e-9_f64;
         if delta.abs() <= epsilon {
             unchanged.push(metric.clone());
@@ -136,11 +130,7 @@ fn regression_risk_for(deltas: &JsonBlob) -> RegressionRisk {
     worsened.sort();
     improved.sort();
     unchanged.sort();
-    RegressionRisk {
-        worsened,
-        improved,
-        unchanged,
-    }
+    RegressionRisk { worsened, improved, unchanged }
 }
 
 /// Compare two runs against a shared baseline.

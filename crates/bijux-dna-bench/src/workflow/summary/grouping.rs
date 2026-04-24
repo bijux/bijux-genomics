@@ -2,11 +2,11 @@ use std::collections::BTreeMap;
 
 use bijux_dna_bench_model::BenchmarkObservation;
 
-use super::SummaryGroupKey;
+use crate::workflow::summary_scope::SummaryGroupKey;
 
-pub(super) fn collect_summary_groups<'a>(
-    observations: &'a [BenchmarkObservation],
-) -> BTreeMap<SummaryGroupKey, Vec<&'a BenchmarkObservation>> {
+pub(super) fn collect_summary_groups(
+    observations: &[BenchmarkObservation],
+) -> BTreeMap<SummaryGroupKey, Vec<&BenchmarkObservation>> {
     let mut groups: BTreeMap<SummaryGroupKey, Vec<&BenchmarkObservation>> = BTreeMap::new();
     for obs in observations {
         groups

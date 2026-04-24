@@ -125,10 +125,8 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         );
     }
     bijux_dna_infra::ensure_dir(&req.context.stage_root)?;
-    let effective_tmp_root = policy
-        .temp_root
-        .clone()
-        .unwrap_or_else(|| req.context.tmp_root.clone());
+    let effective_tmp_root =
+        policy.temp_root.clone().unwrap_or_else(|| req.context.tmp_root.clone());
     bijux_dna_infra::ensure_dir(&effective_tmp_root)?;
     let work_dir = req
         .context
@@ -138,25 +136,14 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         .join(&req.context.stage_id)
         .join(req.step.step_id.as_str());
     bijux_dna_infra::ensure_dir(&work_dir)?;
-    let cache_root = policy
-        .cache_root
-        .clone()
-        .unwrap_or_else(|| req.context.output_root.join("cache"));
+    let cache_root =
+        policy.cache_root.clone().unwrap_or_else(|| req.context.output_root.join("cache"));
     bijux_dna_infra::ensure_dir(&cache_root)?;
     let home_dir = work_dir.join("home");
     bijux_dna_infra::ensure_dir(&home_dir)?;
-    std::env::set_var(
-        "LC_ALL",
-        policy.deterministic_env.lc_all.as_deref().unwrap_or("C"),
-    );
-    std::env::set_var(
-        "LANG",
-        policy.deterministic_env.lang.as_deref().unwrap_or("C"),
-    );
-    std::env::set_var(
-        "TZ",
-        policy.deterministic_env.tz.as_deref().unwrap_or("UTC"),
-    );
+    std::env::set_var("LC_ALL", policy.deterministic_env.lc_all.as_deref().unwrap_or("C"));
+    std::env::set_var("LANG", policy.deterministic_env.lang.as_deref().unwrap_or("C"));
+    std::env::set_var("TZ", policy.deterministic_env.tz.as_deref().unwrap_or("UTC"));
     if let Some(path) = policy.deterministic_env.path.as_deref() {
         std::env::set_var("PATH", path);
     }
@@ -182,20 +169,15 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         if let Ok(value) = std::env::var(var) {
             let path = PathBuf::from(value);
             if !path.starts_with(&cache_root) {
-                bail!(
-                    "cache policy violation: {var} must be under {}",
-                    cache_root.display()
-                );
+                bail!("cache policy violation: {var} must be under {}", cache_root.display());
             }
         }
     }
 
     let lock_root = req.context.output_root.join(".runtime_locks");
     bijux_dna_infra::ensure_dir(&lock_root)?;
-    let is_heavy = policy
-        .heavy_patterns
-        .iter()
-        .any(|pattern| stage_matches(pattern, &req.context.stage_id));
+    let is_heavy =
+        policy.heavy_patterns.iter().any(|pattern| stage_matches(pattern, &req.context.stage_id));
     let _heavy_lock = if is_heavy {
         acquire_slot_lock(&lock_root, "heavy", policy.max_local_heavy_parallel)?
     } else {
@@ -214,18 +196,8 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     {
         let dry_path = req.context.stage_root.join("print_commands.txt");
         let image = req.step.image.image.clone();
-        let digest = req
-            .step
-            .image
-            .digest
-            .clone()
-            .unwrap_or_else(|| image.clone());
-        let cmd = format!(
-            "{} run {} {}",
-            req.runner,
-            image,
-            req.step.command.template.join(" ")
-        );
+        let digest = req.step.image.digest.clone().unwrap_or_else(|| image.clone());
+        let cmd = format!("{} run {} {}", req.runner, image, req.step.command.template.join(" "));
         bijux_dna_infra::atomic_write_bytes(&dry_path, cmd.as_bytes())?;
         if req.mode == ToolExecMode::DryRun || req.mode == ToolExecMode::DryRunExplain {
             let summary_path = stage_summary_path(&req.context.stage_root);
@@ -436,10 +408,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     }
 
     let finished_at = chrono::Utc::now();
-    let duration_ms = finished_at
-        .signed_duration_since(started_at)
-        .num_milliseconds()
-        .max(0);
+    let duration_ms = finished_at.signed_duration_since(started_at).num_milliseconds().max(0);
     let inferred_tool_version = infer_tool_version_from_image(&req.step.image.image);
     let runtime_provenance_path = req.context.stage_root.join("runtime_provenance.json");
     let env_summary = serde_json::json!({
@@ -694,10 +663,7 @@ mod execution_kernel_tests {
                 ),
             },
             resources: ToolConstraints::default(),
-            io: StageIO {
-                inputs: vec![],
-                outputs: vec![],
-            },
+            io: StageIO { inputs: vec![], outputs: vec![] },
             out_dir: out_root.clone(),
             aux_images: std::collections::BTreeMap::new(),
             expected_artifact_ids: vec![],
@@ -731,9 +697,7 @@ mod execution_kernel_tests {
         let payload: serde_json::Value =
             serde_json::from_str(&std::fs::read_to_string(explain_path)?)?;
         assert_eq!(
-            payload
-                .get("schema_version")
-                .and_then(serde_json::Value::as_str),
+            payload.get("schema_version").and_then(serde_json::Value::as_str),
             Some("bijux.dry_run_explain.v1")
         );
         Ok(())

@@ -32,8 +32,5 @@ pub fn benchmark_tools_for_stage(stage_id: &str, scenario_id: Option<&str>) -> R
             ))
         };
     }
-    Ok(tool_ids
-        .into_iter()
-        .map(|tool_id| tool_id.to_string())
-        .collect())
+    Ok(tool_ids.into_iter().map(|tool_id| tool_id.to_string()).collect())
 }

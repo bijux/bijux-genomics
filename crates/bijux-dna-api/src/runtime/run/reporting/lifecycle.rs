@@ -1,5 +1,5 @@
-use super::{Path, PathBuf};
 use crate::request_args::RunStatus;
+use std::path::{Path, PathBuf};
 
 pub(super) fn status(run_dir: &Path) -> RunStatus {
     let manifest_path = run_dir.join("run_manifest.json");
@@ -10,10 +10,7 @@ pub(super) fn status(run_dir: &Path) -> RunStatus {
             .ok()
             .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok())
             .and_then(|value| {
-                value
-                    .get("manifest_json")
-                    .and_then(serde_json::Value::as_str)
-                    .map(PathBuf::from)
+                value.get("manifest_json").and_then(serde_json::Value::as_str).map(PathBuf::from)
             })
             .or_else(|| manifest_path.exists().then_some(manifest_path.clone()))
     } else if manifest_path.exists() {

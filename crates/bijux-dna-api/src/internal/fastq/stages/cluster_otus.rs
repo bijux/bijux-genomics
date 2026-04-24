@@ -69,18 +69,12 @@ pub(crate) fn read_cluster_otus_table_metrics(
             otus.insert(otu_id.to_string());
         }
     }
-    Ok(ClusterOtusTableMetrics {
-        otu_count: otus.len() as u64,
-        sample_count: samples.len() as u64,
-    })
+    Ok(ClusterOtusTableMetrics { otu_count: otus.len() as u64, sample_count: samples.len() as u64 })
 }
 
 pub(crate) fn count_cluster_otus_representatives(path: &std::path::Path) -> Result<u64> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    Ok(raw
-        .lines()
-        .filter(|line| line.trim_start().starts_with('>'))
-        .count() as u64)
+    Ok(raw.lines().filter(|line| line.trim_start().starts_with('>')).count() as u64)
 }
 
 pub(crate) struct ClusterOtusReportInputs<'a> {
@@ -126,9 +120,7 @@ pub(crate) fn canonical_cluster_otus_report(
         runtime_s: inputs.runtime_s,
         memory_mb: inputs.memory_mb,
         exit_code: inputs.exit_code,
-        raw_backend_report: inputs
-            .raw_backend_report
-            .map(|path| path.display().to_string()),
+        raw_backend_report: inputs.raw_backend_report.map(|path| path.display().to_string()),
         raw_backend_report_format: inputs.effective_params.raw_backend_report_format.clone(),
         backend_metrics: inputs.backend_metrics,
     }
@@ -151,11 +143,8 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
     let tools = bijux_dna_planner_fastq::select_cluster_otus_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_ID, artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_ID, &header);
@@ -274,9 +263,7 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
                 .get("used_fallback")
                 .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false),
-            raw_backend_report: raw_backend_report
-                .exists()
-                .then_some(raw_backend_report.as_path()),
+            raw_backend_report: raw_backend_report.exists().then_some(raw_backend_report.as_path()),
             backend_metrics: Some(serde_json::json!({
                 "tool_payload": payload,
             })),
@@ -309,12 +296,7 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
 }
 
 fn output_path(

@@ -12,9 +12,7 @@ fn assert_snapshot(name: &str, failure: &BenchmarkFailure) -> Result<()> {
     let name = snapshot_name("schemas", name);
     let mut settings = insta::Settings::new();
     settings.set_snapshot_path(
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests")
-            .join("snapshots"),
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("snapshots"),
     );
     settings.set_prepend_module_to_snapshot(false);
     settings.bind(|| {

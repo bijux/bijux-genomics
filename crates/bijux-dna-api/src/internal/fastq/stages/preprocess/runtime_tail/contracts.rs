@@ -8,10 +8,10 @@ pub(super) fn write_stage_resume_contract(
 ) -> Result<()> {
     let mut checksums = serde_json::Map::new();
     for path in &execution.outputs {
-        let key = path.file_name().and_then(|x| x.to_str()).map_or_else(
-            || path.display().to_string(),
-            std::string::ToString::to_string,
-        );
+        let key = path
+            .file_name()
+            .and_then(|x| x.to_str())
+            .map_or_else(|| path.display().to_string(), std::string::ToString::to_string);
         let value = if path.exists() {
             bijux_dna_infra::hash_file_sha256(path)
                 .ok()
@@ -38,23 +38,14 @@ pub(super) fn write_merge_join_contract(
     execution: &StageResultV1,
     paired_consistent: bool,
 ) -> Result<()> {
-    let expected_files = [
-        "merged.fastq.gz",
-        "unmerged_R1.fastq.gz",
-        "unmerged_R2.fastq.gz",
-    ];
+    let expected_files = ["merged.fastq.gz", "unmerged_R1.fastq.gz", "unmerged_R2.fastq.gz"];
     let emitted_names = execution
         .outputs
         .iter()
-        .filter_map(|x| {
-            x.file_name()
-                .and_then(|n| n.to_str())
-                .map(ToString::to_string)
-        })
+        .filter_map(|x| x.file_name().and_then(|n| n.to_str()).map(ToString::to_string))
         .collect::<std::collections::BTreeSet<_>>();
-    let required_artifacts_present = expected_files
-        .iter()
-        .all(|name| emitted_names.contains(*name));
+    let required_artifacts_present =
+        expected_files.iter().all(|name| emitted_names.contains(*name));
     let success = execution.exit_code == 0 && paired_consistent && required_artifacts_present;
     let failure_reason = if success {
         None

@@ -7,7 +7,6 @@ mod row_metrics;
 mod strata;
 
 use anyhow::Result;
-use std::collections::{BTreeMap, BTreeSet};
 
 use self::grouping::collect_summary_groups;
 use self::row_metrics::build_summary_row;
@@ -62,7 +61,8 @@ pub fn summarize(
 
 #[cfg(test)]
 mod tests {
-    use super::{run_suite, summarize, BenchRunOptions};
+    use super::{summarize, BenchRunOptions};
+    use crate::workflow::run_suite::run_suite;
     use std::collections::BTreeMap;
 
     use bijux_dna_bench_model::GatePolicy;
@@ -86,16 +86,8 @@ mod tests {
             &["fastq.trim_reads".to_string()],
             &["fastp".to_string()],
             &["params-a".to_string()],
-            ReplicatePolicy {
-                count: 3,
-                warmup: 0,
-                seeds: vec![1, 2, 3],
-            },
-            DiversityRequirements {
-                min_dataset_count: 1,
-                min_classes: 1,
-                min_read_layouts: 1,
-            },
+            ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+            DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
             vec![StratificationRequirement {
                 key: "dataset_class".to_string(),
                 required_values: vec!["trueseq".to_string()],
@@ -180,16 +172,8 @@ mod tests {
             &["fastq.trim_reads".to_string()],
             &["fastp".to_string()],
             &["params-a".to_string()],
-            ReplicatePolicy {
-                count: 1,
-                warmup: 0,
-                seeds: vec![1],
-            },
-            DiversityRequirements {
-                min_dataset_count: 1,
-                min_classes: 1,
-                min_read_layouts: 1,
-            },
+            ReplicatePolicy { count: 1, warmup: 0, seeds: vec![1] },
+            DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
             vec![StratificationRequirement {
                 key: "dataset_class".to_string(),
                 required_values: vec!["trueseq".to_string()],

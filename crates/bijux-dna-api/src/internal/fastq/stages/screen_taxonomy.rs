@@ -52,11 +52,8 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqScreenArgs,
 ) -> Result<BenchOutcome<FastqScreenMetrics>> {
     let tools = select_screen_tools(&args.tools)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_SCREEN_TAXONOMY.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_SCREEN_TAXONOMY.as_str(), &header);
@@ -67,15 +64,10 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     let bench_inputs = prepare_screen_bench(catalog, platform, runner_override, args)?;
 
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_SCREEN_TAXONOMY.as_str());
-    let all_tools: Vec<String> = registry
-        .tools_for_stage(&stage_id)
-        .iter()
-        .map(|tool| tool.tool_id.to_string())
-        .collect();
-    let excluded: Vec<String> = all_tools
-        .into_iter()
-        .filter(|tool| !tools.contains(tool))
-        .collect();
+    let all_tools: Vec<String> =
+        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
+    let excluded: Vec<String> =
+        all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
 
     if args.explain {
         write_explain_md(
@@ -119,10 +111,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
             &bench_inputs.r1,
             bench_inputs.r2.as_deref(),
             &out_dir,
-            &ScreenPlanOptions {
-                database_root: args.database_root.clone(),
-                threads: args.threads,
-            },
+            &ScreenPlanOptions { database_root: args.database_root.clone(), threads: args.threads },
         )?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = benchmark_image_identity(&tool_spec);
@@ -140,9 +129,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             bench_inputs.runner,
             jobs,
         )?
@@ -172,12 +159,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 #[derive(Debug, Clone)]
@@ -207,10 +189,7 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
-    let r1_dir = r1
-        .parent()
-        .ok_or_else(|| anyhow!("r1 has no parent"))?
-        .to_path_buf();
+    let r1_dir = r1.parent().ok_or_else(|| anyhow!("r1 has no parent"))?.to_path_buf();
 
     let seqkit_tool = catalog
         .get(bijux_dna_planner_fastq::stage_api::TOOL_SEQKIT)
@@ -224,18 +203,12 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
         runner,
     )?;
     if stats_output.exit_code != 0 {
-        return Err(anyhow!(
-            "seqkit screen observer failed: {}",
-            stats_output.stderr
-        ));
+        return Err(anyhow!("seqkit screen observer failed: {}", stats_output.stderr));
     }
 
     let (r2, input_stats_r2) = if let Some(r2) = args.r2.as_deref() {
         let r2 = r2.canonicalize().context("resolve r2 path")?;
-        let r2_dir = r2
-            .parent()
-            .ok_or_else(|| anyhow!("r2 has no parent"))?
-            .to_path_buf();
+        let r2_dir = r2.parent().ok_or_else(|| anyhow!("r2 has no parent"))?.to_path_buf();
         let stats_spec = input_fastq_stats(&r2_dir, &r2)?;
         let stats_output = execute_observer_command(
             &seqkit_image.full_name,
@@ -244,10 +217,7 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
             runner,
         )?;
         if stats_output.exit_code != 0 {
-            return Err(anyhow!(
-                "seqkit screen observer failed for r2: {}",
-                stats_output.stderr
-            ));
+            return Err(anyhow!("seqkit screen observer failed for r2: {}", stats_output.stderr));
         }
         (Some(r2), Some(parse_seqkit_stats(&stats_output.stdout)?))
     } else {
@@ -293,28 +263,16 @@ fn build_screen_record(
         .params
         .get("report")
         .and_then(serde_json::Value::as_str)
-        .map_or_else(
-            || out_dir.join("screen_report.tsv"),
-            std::path::PathBuf::from,
-        );
+        .map_or_else(|| out_dir.join("screen_report.tsv"), std::path::PathBuf::from);
     let classification_report_path = plan
         .params
         .get("assignments")
         .and_then(serde_json::Value::as_str)
-        .map_or_else(
-            || out_dir.join("classification_report.json"),
-            std::path::PathBuf::from,
-        );
+        .map_or_else(|| out_dir.join("classification_report.json"), std::path::PathBuf::from);
     let reads_in = bench_inputs.input_stats.reads
-        + bench_inputs
-            .input_stats_r2
-            .as_ref()
-            .map_or(0, |stats| stats.reads);
+        + bench_inputs.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
     let bases_in = bench_inputs.input_stats.bases
-        + bench_inputs
-            .input_stats_r2
-            .as_ref()
-            .map_or(0, |stats| stats.bases);
+        + bench_inputs.input_stats_r2.as_ref().map_or(0, |stats| stats.bases);
     let pairs = bench_inputs
         .input_stats_r2
         .as_ref()
@@ -343,10 +301,7 @@ fn build_screen_record(
         minimum_confidence: effective_params.minimum_confidence,
         emit_unclassified: effective_params.emit_unclassified,
         input_r1: bench_inputs.r1.display().to_string(),
-        input_r2: bench_inputs
-            .r2
-            .as_ref()
-            .map(|path| path.display().to_string()),
+        input_r2: bench_inputs.r2.as_ref().map(|path| path.display().to_string()),
         screen_report_tsv: report_path.display().to_string(),
         classification_report_json: classification_report_path.display().to_string(),
         reads_in: Some(reads_in),
@@ -384,9 +339,7 @@ fn build_screen_record(
         contamination_summary: serde_json::to_value(&summary_entries)
             .context("serialize taxonomy summary entries")?
             .into(),
-        top_taxa: serde_json::to_value(&top_taxa)
-            .context("serialize top taxonomy entries")?
-            .into(),
+        top_taxa: serde_json::to_value(&top_taxa).context("serialize top taxonomy entries")?.into(),
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -468,14 +421,8 @@ mod tests {
     #[test]
     fn unclassified_fraction_is_derived_from_summary_entries() {
         let entries = vec![
-            TaxonomyScreenSummaryEntryV1 {
-                label: "unclassified".to_string(),
-                percent: 17.5,
-            },
-            TaxonomyScreenSummaryEntryV1 {
-                label: "bacteria".to_string(),
-                percent: 82.5,
-            },
+            TaxonomyScreenSummaryEntryV1 { label: "unclassified".to_string(), percent: 17.5 },
+            TaxonomyScreenSummaryEntryV1 { label: "bacteria".to_string(), percent: 82.5 },
         ];
 
         assert_eq!(find_unclassified_fraction(&entries), Some(0.175));
@@ -484,18 +431,9 @@ mod tests {
     #[test]
     fn top_taxa_entries_exclude_unclassified_labels() {
         let entries = vec![
-            TaxonomyScreenSummaryEntryV1 {
-                label: "unclassified".to_string(),
-                percent: 40.0,
-            },
-            TaxonomyScreenSummaryEntryV1 {
-                label: "viruses".to_string(),
-                percent: 35.0,
-            },
-            TaxonomyScreenSummaryEntryV1 {
-                label: "bacteria".to_string(),
-                percent: 25.0,
-            },
+            TaxonomyScreenSummaryEntryV1 { label: "unclassified".to_string(), percent: 40.0 },
+            TaxonomyScreenSummaryEntryV1 { label: "viruses".to_string(), percent: 35.0 },
+            TaxonomyScreenSummaryEntryV1 { label: "bacteria".to_string(), percent: 25.0 },
         ];
 
         let top_taxa = top_taxa_entries(&entries, 2);

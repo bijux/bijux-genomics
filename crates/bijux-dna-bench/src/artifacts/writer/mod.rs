@@ -11,7 +11,7 @@ mod structured_writer;
 
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 
 use bijux_dna_bench_model::{BenchmarkObservation, BenchmarkSummary, GateDecision};
 

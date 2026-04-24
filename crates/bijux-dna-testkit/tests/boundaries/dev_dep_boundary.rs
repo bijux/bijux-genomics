@@ -11,9 +11,7 @@ fn testkit_is_only_dev_dependency() {
     for entry in
         fs::read_dir(&crates_dir).unwrap_or_else(|err| panic!("read crates dir failed: {err}"))
     {
-        let path = entry
-            .unwrap_or_else(|err| panic!("dir entry failed: {err}"))
-            .path();
+        let path = entry.unwrap_or_else(|err| panic!("dir entry failed: {err}")).path();
         if !path.is_dir() {
             continue;
         }
@@ -21,10 +19,7 @@ fn testkit_is_only_dev_dependency() {
         if !cargo_toml.exists() {
             continue;
         }
-        let crate_name = path
-            .file_name()
-            .and_then(|name| name.to_str())
-            .unwrap_or("<unknown>");
+        let crate_name = path.file_name().and_then(|name| name.to_str()).unwrap_or("<unknown>");
         if crate_name == "bijux-dna-testkit" {
             continue;
         }

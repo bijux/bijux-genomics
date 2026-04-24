@@ -5,9 +5,7 @@ use super::{BenchmarkStageSpec, BenchmarkSuiteSpec};
 impl BenchmarkStageSpec {
     #[must_use]
     pub fn stage_node_id(&self) -> &str {
-        self.stage_instance_id
-            .as_deref()
-            .unwrap_or(self.stage.as_str())
+        self.stage_instance_id.as_deref().unwrap_or(self.stage.as_str())
     }
 
     #[must_use]
@@ -17,10 +15,7 @@ impl BenchmarkStageSpec {
 
     #[must_use]
     pub fn tool_node_ids(&self) -> Vec<String> {
-        self.tools
-            .iter()
-            .map(|tool| self.tool_node_id(tool))
-            .collect()
+        self.tools.iter().map(|tool| self.tool_node_id(tool)).collect()
     }
 
     #[must_use]
@@ -56,26 +51,17 @@ impl BenchmarkStageSpec {
 impl BenchmarkSuiteSpec {
     #[must_use]
     pub fn stage_node_ids(&self) -> Vec<&str> {
-        self.stages
-            .iter()
-            .map(BenchmarkStageSpec::stage_node_id)
-            .collect()
+        self.stages.iter().map(BenchmarkStageSpec::stage_node_id).collect()
     }
 
     #[must_use]
     pub fn stage_tool_node_ids(&self) -> Vec<String> {
-        self.stages
-            .iter()
-            .flat_map(BenchmarkStageSpec::tool_node_ids)
-            .collect()
+        self.stages.iter().flat_map(BenchmarkStageSpec::tool_node_ids).collect()
     }
 
     #[must_use]
     pub fn graph_nodes(&self) -> Vec<BenchmarkGraphNode> {
-        self.stages
-            .iter()
-            .flat_map(BenchmarkStageSpec::graph_nodes)
-            .collect()
+        self.stages.iter().flat_map(BenchmarkStageSpec::graph_nodes).collect()
     }
 }
 
@@ -116,16 +102,8 @@ mod tests {
                 param_bindings: Vec::new(),
                 upstream_stage_instance_ids: Vec::new(),
             }],
-            ReplicatePolicy {
-                count: 3,
-                warmup: 0,
-                seeds: vec![1, 2, 3],
-            },
-            DiversityRequirements {
-                min_dataset_count: 1,
-                min_classes: 1,
-                min_read_layouts: 1,
-            },
+            ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+            DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
             vec![StratificationRequirement {
                 key: "dataset_class".to_string(),
                 required_values: vec!["trueseq".to_string()],
@@ -189,16 +167,8 @@ mod tests {
                     stage_instance(id_catalog::FASTQ_TRIM, "cutadapt"),
                 ],
             }],
-            ReplicatePolicy {
-                count: 3,
-                warmup: 0,
-                seeds: vec![1, 2, 3],
-            },
-            DiversityRequirements {
-                min_dataset_count: 1,
-                min_classes: 1,
-                min_read_layouts: 1,
-            },
+            ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+            DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
             vec![StratificationRequirement {
                 key: "dataset_class".to_string(),
                 required_values: vec!["trueseq".to_string()],
@@ -213,10 +183,7 @@ mod tests {
         let nodes = suite.graph_nodes();
         assert_eq!(nodes.len(), 1);
         assert_eq!(nodes[0].kind, BenchmarkGraphNodeKind::Stage);
-        assert_eq!(
-            nodes[0].node_id,
-            "benchmark.select_stage_tool.trim_reads".to_string()
-        );
+        assert_eq!(nodes[0].node_id, "benchmark.select_stage_tool.trim_reads".to_string());
         assert!(nodes[0].tool_id.is_none());
     }
 }

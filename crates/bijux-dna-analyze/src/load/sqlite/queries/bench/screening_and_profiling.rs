@@ -98,15 +98,7 @@ pub fn fetch_fastq_screen_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqScreenMetrics>,
     );
     match row {
@@ -201,15 +193,7 @@ pub fn fetch_fastq_stats_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqStatsMetrics>,
     );
     match row {
@@ -303,15 +287,7 @@ pub fn fetch_fastq_overrepresented_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqOverrepresentedMetrics>,
     );
     match row {
@@ -405,15 +381,7 @@ pub fn fetch_fastq_deplete_host_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqDepleteHostMetrics>,
     );
     match row {
@@ -507,15 +475,7 @@ pub fn fetch_fastq_deplete_reference_contaminants_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqDepleteReferenceContaminantsMetrics>,
     );
     match row {
@@ -609,15 +569,7 @@ pub fn fetch_fastq_deplete_rrna_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqDepleteRrnaMetrics>,
     );
     match row {

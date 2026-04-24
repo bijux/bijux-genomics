@@ -984,14 +984,10 @@ mod stage_artifact_tests {
             &host_execution(temp.path()),
         )?;
 
-        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
-            temp.path().join("stage.extra.json"),
-        )?)?;
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
         assert_eq!(extra["tool"], serde_json::json!("bowtie2"));
-        assert_eq!(
-            extra["reference_catalog_id"],
-            serde_json::json!("host_reference")
-        );
+        assert_eq!(extra["reference_catalog_id"], serde_json::json!("host_reference"));
         assert_eq!(extra["reads_removed"], serde_json::json!(30));
         assert_eq!(extra["host_fraction_removed"], serde_json::json!(0.30));
         Ok(())
@@ -1007,9 +1003,8 @@ mod stage_artifact_tests {
             &merge_execution(temp.path()),
         )?;
 
-        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
-            temp.path().join("stage.extra.json"),
-        )?)?;
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
         assert_eq!(extra["tool"], serde_json::json!("pear"));
         assert_eq!(extra["threads"], serde_json::json!(4));
         assert_eq!(extra["reads_r1"], serde_json::json!(100));
@@ -1018,10 +1013,7 @@ mod stage_artifact_tests {
         assert_eq!(extra["reads_unmerged"], serde_json::json!(12));
         assert_eq!(extra["merge_rate"], serde_json::json!(0.88));
         assert_eq!(extra["raw_backend_report"], serde_json::json!("pear.log"));
-        assert_eq!(
-            extra["raw_backend_report_format"],
-            serde_json::json!("pear_log")
-        );
+        assert_eq!(extra["raw_backend_report_format"], serde_json::json!("pear_log"));
         Ok(())
     }
 
@@ -1055,20 +1047,13 @@ mod stage_artifact_tests {
             &trim_terminal_damage_execution(temp.path()),
         )?;
 
-        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
-            temp.path().join("stage.extra.json"),
-        )?)?;
-        assert_eq!(
-            extra["tool"],
-            serde_json::json!(bijux_dna_core::id_catalog::TOOL_CUTADAPT)
-        );
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!(bijux_dna_core::id_catalog::TOOL_CUTADAPT));
         assert_eq!(extra["threads"], serde_json::json!(4));
         assert_eq!(extra["trim_5p_bases"], serde_json::json!(2));
         assert_eq!(extra["trim_3p_bases"], serde_json::json!(1));
-        assert_eq!(
-            extra["raw_backend_report"],
-            serde_json::json!("cutadapt.raw.json")
-        );
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("cutadapt.raw.json"));
         assert_eq!(extra["used_fallback"], serde_json::json!(false));
         Ok(())
     }
@@ -1083,20 +1068,13 @@ mod stage_artifact_tests {
             &trim_polyg_execution(temp.path()),
         )?;
 
-        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
-            temp.path().join("stage.extra.json"),
-        )?)?;
-        assert_eq!(
-            extra["tool"],
-            serde_json::json!(bijux_dna_core::id_catalog::TOOL_FASTP)
-        );
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["tool"], serde_json::json!(bijux_dna_core::id_catalog::TOOL_FASTP));
         assert_eq!(extra["threads"], serde_json::json!(6));
         assert_eq!(extra["trim_polyg"], serde_json::json!(true));
         assert_eq!(extra["polyx_bank_id"], serde_json::json!("polyx"));
-        assert_eq!(
-            extra["polyx_preset"],
-            serde_json::json!("illumina_twocolor")
-        );
+        assert_eq!(extra["polyx_preset"], serde_json::json!("illumina_twocolor"));
         assert_eq!(
             extra["raw_backend_report"],
             serde_json::json!("trim_polyg_tails_report.fastp.json")
@@ -1118,9 +1096,8 @@ mod stage_artifact_tests {
             &remove_duplicates_execution(temp.path()),
         )?;
 
-        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
-            temp.path().join("stage.extra.json"),
-        )?)?;
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
         assert_eq!(extra["tool"], serde_json::json!("clumpify"));
         assert_eq!(extra["threads"], serde_json::json!(6));
         assert_eq!(extra["dedup_mode"], serde_json::json!("optical_aware"));
@@ -1132,10 +1109,7 @@ mod stage_artifact_tests {
         assert_eq!(extra["duplicates_removed"], serde_json::json!(28));
         assert_eq!(extra["dedup_rate"], serde_json::json!(0.14));
         assert_eq!(extra["pair_count_match"], serde_json::json!(true));
-        assert_eq!(
-            extra["raw_backend_report"],
-            serde_json::json!("clumpify.log")
-        );
+        assert_eq!(extra["raw_backend_report"], serde_json::json!("clumpify.log"));
         Ok(())
     }
 
@@ -1223,19 +1197,12 @@ mod stage_artifact_tests {
             &report_qc_execution(temp.path()),
         )?;
 
-        let extra: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
-            temp.path().join("stage.extra.json"),
-        )?)?;
-        assert_eq!(
-            extra["aggregation_scope"],
-            serde_json::json!("governed_qc_artifacts")
-        );
+        let extra: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(temp.path().join("stage.extra.json"))?)?;
+        assert_eq!(extra["aggregation_scope"], serde_json::json!("governed_qc_artifacts"));
         assert_eq!(extra["contamination_rate"], serde_json::json!(0.23));
         assert_eq!(extra["adapter_content_max"], serde_json::json!(0.12));
-        assert_eq!(
-            extra["governed_qc_contributors"][0]["tool_id"],
-            serde_json::json!("fastqc")
-        );
+        assert_eq!(extra["governed_qc_contributors"][0]["tool_id"], serde_json::json!("fastqc"));
         assert_eq!(
             extra["governed_qc_inputs_manifest"],
             serde_json::json!("governed_qc_inputs_manifest.json")

@@ -20,11 +20,9 @@ pub fn load_run_index(path: &Path) -> std::result::Result<Vec<RunIndexLine>, Ana
         if line.trim().is_empty() {
             continue;
         }
-        let parsed_row: RunIndexLine =
-            serde_json::from_str(line).map_err(|err| AnalyzeError::InvalidJsonlRow {
-                line: idx + 1,
-                message: err.to_string(),
-            })?;
+        let parsed_row: RunIndexLine = serde_json::from_str(line).map_err(|err| {
+            AnalyzeError::InvalidJsonlRow { line: idx + 1, message: err.to_string() }
+        })?;
         if parsed_row.schema_version != 1 {
             return Err(AnalyzeError::InvalidSchemaVersion {
                 found: parsed_row.schema_version.to_string(),

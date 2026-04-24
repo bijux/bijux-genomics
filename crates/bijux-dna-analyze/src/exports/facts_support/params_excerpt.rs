@@ -1,4 +1,4 @@
-pub(super) fn params_excerpt(value: &serde_json::Value, limit: usize) -> serde_json::Value {
+pub(crate) fn params_excerpt(value: &serde_json::Value, limit: usize) -> serde_json::Value {
     let Some(obj) = value.as_object() else {
         return value.clone();
     };

@@ -41,6 +41,7 @@ impl EnaClient {
     }
 }
 
+#[must_use]
 pub fn build_filereport_url(accession: &str, result: EnaResultKind) -> String {
     filereport::build_filereport_url(accession, result)
 }
@@ -110,8 +111,6 @@ mod tests {
         let tsv = "study_accession\trun_accession\nPRJEBX\tERR1\n";
 
         let error = parse_filereport_tsv(tsv, &query).expect_err("missing columns must fail");
-        assert!(error
-            .to_string()
-            .contains("missing required columns: sample_accession"));
+        assert!(error.to_string().contains("missing required columns: sample_accession"));
     }
 }

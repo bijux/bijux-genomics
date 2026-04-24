@@ -53,11 +53,8 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqValidateMetrics>> {
     let tools = select_validate_tools(&args.tools)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_VALIDATE_READS.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_VALIDATE_READS.as_str(), &header);
@@ -68,15 +65,10 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
     let bench_inputs = prepare_validate_bench(catalog, platform, runner_override, args)?;
 
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_VALIDATE_READS.as_str());
-    let all_tools: Vec<String> = registry
-        .tools_for_stage(&stage_id)
-        .iter()
-        .map(|tool| tool.tool_id.to_string())
-        .collect();
-    let excluded: Vec<String> = all_tools
-        .into_iter()
-        .filter(|tool| !tools.contains(tool))
-        .collect();
+    let all_tools: Vec<String> =
+        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
+    let excluded: Vec<String> =
+        all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
 
     if args.explain {
         write_explain_md(
@@ -126,11 +118,8 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
         )?;
         let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
         let params_hash = stable_params_hash(&bench_params);
-        let image_digest = tool_spec
-            .image
-            .digest
-            .clone()
-            .unwrap_or_else(|| tool_spec.image.image.clone());
+        let image_digest =
+            tool_spec.image.digest.clone().unwrap_or_else(|| tool_spec.image.image.clone());
         if let Ok(Some(record)) = fetch_fastq_validate_v1(
             &conn,
             &tool,
@@ -146,9 +135,7 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             bench_inputs.runner,
             jobs,
         )?
@@ -182,12 +169,7 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 #[derive(Debug, Clone)]
@@ -216,10 +198,7 @@ fn prepare_validate_bench<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
-    let r1_dir = r1
-        .parent()
-        .ok_or_else(|| anyhow!("r1 has no parent"))?
-        .to_path_buf();
+    let r1_dir = r1.parent().ok_or_else(|| anyhow!("r1 has no parent"))?.to_path_buf();
 
     let seqkit_tool = catalog
         .get(bijux_dna_planner_fastq::stage_api::TOOL_SEQKIT)
@@ -233,10 +212,7 @@ fn prepare_validate_bench<S: ::std::hash::BuildHasher>(
         runner,
     )?;
     if stats_output.exit_code != 0 {
-        return Err(anyhow!(
-            "seqkit validation observer failed: {}",
-            stats_output.stderr
-        ));
+        return Err(anyhow!("seqkit validation observer failed: {}", stats_output.stderr));
     }
 
     let input_hash = if let Some(r2) = args.r2.as_deref() {
@@ -250,10 +226,7 @@ fn prepare_validate_bench<S: ::std::hash::BuildHasher>(
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
         let r2 = r2.canonicalize().context("resolve r2 path")?;
-        let r2_dir = r2
-            .parent()
-            .ok_or_else(|| anyhow!("r2 has no parent"))?
-            .to_path_buf();
+        let r2_dir = r2.parent().ok_or_else(|| anyhow!("r2 has no parent"))?.to_path_buf();
         let stats_spec = input_fastq_stats(&r2_dir, &r2)?;
         let stats_output = execute_observer_command(
             &seqkit_image.full_name,
@@ -356,13 +329,9 @@ fn derive_validate_metrics(
     let parsed_report = std::fs::read_to_string(report_path)
         .ok()
         .and_then(|raw| parse_validation_report(&raw).ok());
-    let reads_total = parsed_report
-        .as_ref()
-        .map_or(reads_in, validate_report_reads_total);
-    let reads_invalid = parsed_report
-        .as_ref()
-        .map_or(0, validate_report_reads_invalid)
-        .min(reads_total);
+    let reads_total = parsed_report.as_ref().map_or(reads_in, validate_report_reads_total);
+    let reads_invalid =
+        parsed_report.as_ref().map_or(0, validate_report_reads_invalid).min(reads_total);
     let reads_valid = reads_total.saturating_sub(reads_invalid);
     FastqValidateMetrics {
         reads_in,
@@ -376,18 +345,10 @@ fn derive_validate_metrics(
         reads_invalid,
         mean_q: input_stats.mean_q,
         validated_inputs: parsed_report.as_ref().map(|report| report.validated_inputs),
-        validated_pairs: parsed_report
-            .as_ref()
-            .and_then(|report| report.validated_pairs),
-        pair_sync_checked: parsed_report
-            .as_ref()
-            .map(|report| report.pair_sync_checked),
-        pair_sync_pass: parsed_report
-            .as_ref()
-            .and_then(|report| report.pair_sync_pass),
-        pair_count_match: parsed_report
-            .as_ref()
-            .and_then(|report| report.pair_count_match),
+        validated_pairs: parsed_report.as_ref().and_then(|report| report.validated_pairs),
+        pair_sync_checked: parsed_report.as_ref().map(|report| report.pair_sync_checked),
+        pair_sync_pass: parsed_report.as_ref().and_then(|report| report.pair_sync_pass),
+        pair_count_match: parsed_report.as_ref().and_then(|report| report.pair_count_match),
         strict_pass: parsed_report.as_ref().map(|report| report.strict_pass),
         failure_class: parsed_report
             .as_ref()
@@ -404,9 +365,9 @@ fn validate_report_reads_invalid(report: &bijux_dna_domain_fastq::ValidationRepo
     match report.failure_class {
         bijux_dna_domain_fastq::ValidateFailureClass::None
         | bijux_dna_domain_fastq::ValidateFailureClass::HeaderSyncMismatch => 0,
-        bijux_dna_domain_fastq::ValidateFailureClass::PairCountMismatch => report
-            .validated_reads_r1
-            .abs_diff(report.validated_reads_r2.unwrap_or(0)),
+        bijux_dna_domain_fastq::ValidateFailureClass::PairCountMismatch => {
+            report.validated_reads_r1.abs_diff(report.validated_reads_r2.unwrap_or(0))
+        }
         bijux_dna_domain_fastq::ValidateFailureClass::ValidatorError => {
             let mut invalid = 0;
             if report.status_r1 != 0 {
@@ -478,13 +439,8 @@ mod tests {
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("fastqvalidator"),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["fastqvalidator".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["fastqvalidator".to_string()] },
             resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
@@ -528,13 +484,8 @@ mod tests {
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("fastqvalidator"),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["fastqvalidator".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["fastqvalidator".to_string()] },
             resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
@@ -555,9 +506,7 @@ mod tests {
             Ok(path) => panic!("missing manifest must be rejected: {}", path.display()),
             Err(err) => err,
         };
-        assert!(error
-            .to_string()
-            .contains("missing governed output `validated_reads_manifest`"));
+        assert!(error.to_string().contains("missing governed output `validated_reads_manifest`"));
     }
 
     #[test]
@@ -672,18 +621,8 @@ mod tests {
         .unwrap_or_else(|err| panic!("write report: {err}"));
 
         let metrics = derive_validate_metrics(
-            &SeqkitMetrics {
-                reads: 101,
-                bases: 1000,
-                mean_q: 31.0,
-                gc_percent: 50.0,
-            },
-            Some(&SeqkitMetrics {
-                reads: 100,
-                bases: 990,
-                mean_q: 30.5,
-                gc_percent: 49.0,
-            }),
+            &SeqkitMetrics { reads: 101, bases: 1000, mean_q: 31.0, gc_percent: 50.0 },
+            Some(&SeqkitMetrics { reads: 100, bases: 990, mean_q: 30.5, gc_percent: 49.0 }),
             &report_path,
         );
 
@@ -696,9 +635,6 @@ mod tests {
         assert_eq!(metrics.pair_sync_pass, Some(false));
         assert_eq!(metrics.pair_count_match, Some(false));
         assert_eq!(metrics.strict_pass, Some(false));
-        assert_eq!(
-            metrics.failure_class.as_deref(),
-            Some("pair_count_mismatch")
-        );
+        assert_eq!(metrics.failure_class.as_deref(), Some("pair_count_mismatch"));
     }
 }

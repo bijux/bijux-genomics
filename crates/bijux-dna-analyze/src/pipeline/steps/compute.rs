@@ -23,26 +23,16 @@ pub(crate) fn compute_core(
     validated: ValidatedFacts,
     options: &AnalyzeOptions,
 ) -> Result<AnalysisCore> {
-    let facts_rows: Vec<FactsRowV1> = validated
-        .facts
-        .rows
-        .iter()
-        .map(FactRow::to_facts_row_v1)
-        .collect();
+    let facts_rows: Vec<FactsRowV1> =
+        validated.facts.rows.iter().map(FactRow::to_facts_row_v1).collect();
 
     let rankings = if matches!(options.mode, AnalyzeMode::Rank { .. }) {
-        Some(build_rankings(&rank_inputs_from_facts(
-            &validated.facts.rows,
-        ))?)
+        Some(build_rankings(&rank_inputs_from_facts(&validated.facts.rows))?)
     } else {
         None
     };
 
-    Ok(AnalysisCore {
-        facts_rows,
-        rankings,
-        base_dir: validated.base_dir,
-    })
+    Ok(AnalysisCore { facts_rows, rankings, base_dir: validated.base_dir })
 }
 
 #[allow(clippy::cast_precision_loss)]

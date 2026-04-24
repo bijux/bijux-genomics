@@ -87,10 +87,7 @@ pub(crate) fn read_infer_asvs_table_metrics(path: &Path) -> Result<InferAsvsTabl
 
 pub(crate) fn count_fasta_records(path: &Path) -> Result<u64> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    Ok(raw
-        .lines()
-        .filter(|line| line.trim_start().starts_with('>'))
-        .count() as u64)
+    Ok(raw.lines().filter(|line| line.trim_start().starts_with('>')).count() as u64)
 }
 
 pub(crate) struct InferAsvsReportInputs<'a> {
@@ -158,9 +155,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
     match execution_support_for_stage(&bijux_dna_domain_fastq::stages::ids::STAGE_INFER_ASVS) {
         Some(support) if support.execution_status == ExecutionStatus::Closed => {}
         _ => {
-            return Err(anyhow!(
-                "{STAGE_ID} has no admitted governed runtime backend"
-            ));
+            return Err(anyhow!("{STAGE_ID} has no admitted governed runtime backend"));
         }
     }
     let registry =
@@ -168,11 +163,8 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
     let tools = bijux_dna_planner_fastq::select_infer_asvs_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_ID, artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_ID, &header);
@@ -319,12 +311,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
 }
 
 fn output_path(

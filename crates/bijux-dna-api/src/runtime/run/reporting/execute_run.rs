@@ -1,8 +1,9 @@
-use super::{
-    anyhow, ensure_stage_supported_by_runner, summary_artifact, DockerRunner, ExecuteRequest,
-    ExecuteResponse, Result, RunnerContractKind,
-};
+use super::{summary_artifact, Result};
+use crate::request_args::{ExecuteRequest, ExecuteResponse};
+use anyhow::anyhow;
 use bijux_dna_engine::Engine;
+use bijux_dna_runner::DockerRunner;
+use bijux_dna_runtime::{ensure_stage_supported_by_runner, RunnerContractKind};
 
 /// # Errors
 /// Returns an error if execution fails.
@@ -29,9 +30,5 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
         request.graph.pipeline_id().as_str(),
         &layout.manifest_path,
     )?;
-    Ok(ExecuteResponse {
-        run_id,
-        manifest_path: layout.manifest_path,
-        report_path: None,
-    })
+    Ok(ExecuteResponse { run_id, manifest_path: layout.manifest_path, report_path: None })
 }

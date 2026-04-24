@@ -20,10 +20,7 @@ fn report_json_is_deterministic() -> Result<()> {
     let facts = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
     let temp = tempfile::tempdir()?;
     let root = temp.path();
-    std::fs::copy(
-        fixture_root.join("defaults_ledger.json"),
-        root.join("defaults_ledger.json"),
-    )?;
+    std::fs::copy(fixture_root.join("defaults_ledger.json"), root.join("defaults_ledger.json"))?;
 
     let report_a = write_run_report_from_facts(root, &facts)?;
     let report_b = write_run_report_from_facts(root, &facts)?;

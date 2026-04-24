@@ -50,11 +50,8 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqFilterMetrics>> {
     let tools = select_filter_tools(&args.tools)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_FILTER_READS.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_FILTER_READS.as_str(), &header);
@@ -72,33 +69,18 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         &STAGE_FILTER_READS,
     )?;
     let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!(
-            "{}+{}",
-            bench_inputs.input_hash,
-            bijux_dna_infra::hash_file_sha256(r2)?
-        )
+        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
     } else {
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(
-            catalog,
-            platform,
-            bench_inputs.runner,
-            r2,
-        )?)
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
     } else {
         None
     };
 
     if args.explain {
-        write_explain_md(
-            &bench_inputs.bench_dir,
-            STAGE_FILTER_READS.as_str(),
-            &tools,
-            &[],
-            None,
-        )?;
+        write_explain_md(&bench_inputs.bench_dir, STAGE_FILTER_READS.as_str(), &tools, &[], None)?;
         write_explain_plan_json(
             &bench_inputs.bench_dir,
             STAGE_FILTER_READS.as_str(),
@@ -140,13 +122,8 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         )?;
         let tool_spec = apply_thread_override(&tool_spec, args.threads);
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_filter(
-            &tool_spec,
-            &args.r1,
-            args.r2.as_deref(),
-            &out_dir,
-            &filter_options,
-        )?;
+        let plan =
+            plan_filter(&tool_spec, &args.r1, args.r2.as_deref(), &out_dir, &filter_options)?;
         let params_hash = stable_params_hash(&plan.params);
         let image_digest = tool_spec
             .image
@@ -168,9 +145,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             bench_inputs.runner,
             jobs,
         )?
@@ -187,10 +162,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             &input_hash,
             &plan.params,
             &plan.io.outputs[0].path,
-            plan.io
-                .outputs
-                .get(1)
-                .map(|artifact| artifact.path.as_path()),
+            plan.io.outputs.get(1).map(|artifact| artifact.path.as_path()),
             &execution,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -200,22 +172,14 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             failures.push(RawFailure {
                 stage: STAGE_FILTER_READS.as_str().to_string(),
                 tool: tool.clone(),
-                reason: format!(
-                    "tool {tool_name} failed with status {}",
-                    execution.exit_code
-                ),
+                reason: format!("tool {tool_name} failed with status {}", execution.exit_code),
                 category: ErrorCategory::ToolError,
             });
         }
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
@@ -239,12 +203,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     };
     let output_stats_r2 = if let Some(output_reads_r2) = output_reads_r2 {
         if execution.exit_code == 0 && output_reads_r2.exists() {
-            Some(observe_fastq_stats(
-                catalog,
-                platform,
-                bench_inputs.runner,
-                output_reads_r2,
-            )?)
+            Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, output_reads_r2)?)
         } else {
             input_stats_r2.copied()
         }
@@ -257,12 +216,8 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let bases_out = output_stats_r1.bases + output_stats_r2.as_ref().map_or(0, |stats| stats.bases);
     let reads_dropped = reads_in.saturating_sub(reads_out);
     let pairs_in = input_stats_r2.map(|stats| bench_inputs.input_stats.reads.min(stats.reads));
-    let pairs_out = output_stats_r2
-        .as_ref()
-        .map(|stats| output_stats_r1.reads.min(stats.reads));
-    let out_dir = output_reads
-        .parent()
-        .ok_or_else(|| anyhow!("filter output has no parent"))?;
+    let pairs_out = output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
+    let out_dir = output_reads.parent().ok_or_else(|| anyhow!("filter output has no parent"))?;
     let report_path = out_dir.join("filter_report.json");
     let raw_backend_report = params
         .get("raw_backend_report")
@@ -292,10 +247,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
         input_r1: params
             .get("input_r1")
             .and_then(serde_json::Value::as_str)
-            .map_or_else(
-                || bench_inputs.r1.display().to_string(),
-                ToString::to_string,
-            ),
+            .map_or_else(|| bench_inputs.r1.display().to_string(), ToString::to_string),
         input_r2: params
             .get("input_r2")
             .and_then(serde_json::Value::as_str)
@@ -307,9 +259,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
             .get("max_n")
             .and_then(serde_json::Value::as_u64)
             .and_then(|v| u32::try_from(v).ok()),
-        max_n_fraction: params
-            .get("max_n_fraction")
-            .and_then(serde_json::Value::as_f64),
+        max_n_fraction: params.get("max_n_fraction").and_then(serde_json::Value::as_f64),
         max_n_count: params
             .get("max_n_count")
             .and_then(serde_json::Value::as_u64)
@@ -317,9 +267,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
         low_complexity_threshold: params
             .get("low_complexity_threshold")
             .and_then(serde_json::Value::as_f64),
-        entropy_threshold: params
-            .get("entropy_threshold")
-            .and_then(serde_json::Value::as_f64),
+        entropy_threshold: params.get("entropy_threshold").and_then(serde_json::Value::as_f64),
         n_policy: Some("drop".to_string()),
         polyx_policy: params
             .get("polyx_policy")
@@ -447,19 +395,12 @@ fn derive_filter_removal_counts(
     let Some(metrics) = backend_metrics.and_then(serde_json::Value::as_object) else {
         return counts;
     };
-    counts.reads_removed_by_n = metrics
-        .get("too_many_n_reads")
-        .and_then(serde_json::Value::as_u64)
-        .unwrap_or(0);
-    counts.reads_removed_by_length = metrics
-        .get("too_short_reads")
-        .and_then(serde_json::Value::as_u64)
-        .unwrap_or(0);
+    counts.reads_removed_by_n =
+        metrics.get("too_many_n_reads").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    counts.reads_removed_by_length =
+        metrics.get("too_short_reads").and_then(serde_json::Value::as_u64).unwrap_or(0);
     if kmer_filter_requested {
-        let removed = metrics
-            .get("reads_removed")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0);
+        let removed = metrics.get("reads_removed").and_then(serde_json::Value::as_u64).unwrap_or(0);
         counts.reads_removed_by_kmer = removed;
         counts.reads_removed_contaminant_kmer = removed;
     }

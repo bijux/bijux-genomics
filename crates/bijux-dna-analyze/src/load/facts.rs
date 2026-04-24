@@ -21,17 +21,13 @@ pub fn load_facts(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeEr
     let reader = BufReader::new(file);
     let mut rows = Vec::new();
     for (idx, line) in reader.lines().enumerate() {
-        let line = line.map_err(|err| AnalyzeError::InvalidJson {
-            message: err.to_string(),
-        })?;
+        let line = line.map_err(|err| AnalyzeError::InvalidJson { message: err.to_string() })?;
         if line.trim().is_empty() {
             continue;
         }
-        let mut parsed_row: FactsRowV1 =
-            serde_json::from_str(&line).map_err(|err| AnalyzeError::InvalidJsonlRow {
-                line: idx + 1,
-                message: err.to_string(),
-            })?;
+        let mut parsed_row: FactsRowV1 = serde_json::from_str(&line).map_err(|err| {
+            AnalyzeError::InvalidJsonlRow { line: idx + 1, message: err.to_string() }
+        })?;
         if parsed_row.schema_version != "bijux.facts.v1" {
             return Err(AnalyzeError::InvalidSchemaVersion {
                 found: parsed_row.schema_version,
@@ -74,24 +70,18 @@ pub fn load_facts_parquet(_path: &Path) -> std::result::Result<Vec<FactsRowV1>, 
 pub fn load_facts_parquet(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeError> {
     use parquet::file::reader::{FileReader, SerializedFileReader};
     let file = open_required_file(path)?;
-    let reader = SerializedFileReader::new(file).map_err(|err| AnalyzeError::InvalidJson {
-        message: err.to_string(),
-    })?;
+    let reader = SerializedFileReader::new(file)
+        .map_err(|err| AnalyzeError::InvalidJson { message: err.to_string() })?;
     let mut rows = Vec::new();
     let iter = reader
         .get_row_iter(None)
-        .map_err(|err| AnalyzeError::InvalidJson {
-            message: err.to_string(),
-        })?;
+        .map_err(|err| AnalyzeError::InvalidJson { message: err.to_string() })?;
     for record in iter {
-        let record = record.map_err(|err| AnalyzeError::InvalidJson {
-            message: err.to_string(),
-        })?;
+        let record =
+            record.map_err(|err| AnalyzeError::InvalidJson { message: err.to_string() })?;
         let value = record.to_json_value();
-        let mut parsed: FactsRowV1 =
-            serde_json::from_value(value).map_err(|err| AnalyzeError::InvalidJson {
-                message: err.to_string(),
-            })?;
+        let mut parsed: FactsRowV1 = serde_json::from_value(value)
+            .map_err(|err| AnalyzeError::InvalidJson { message: err.to_string() })?;
         if parsed.schema_version != "bijux.facts.v1" {
             return Err(AnalyzeError::InvalidSchemaVersion {
                 found: parsed.schema_version,
@@ -151,7 +141,6 @@ pub fn load_facts_auto(path: &Path) -> std::result::Result<Vec<FactsRowV1>, Anal
 /// Returns an error if facts loading or validation fails.
 pub fn load_fact_table(path: &Path) -> std::result::Result<FactTable, AnalyzeError> {
     let rows = load_facts(path)?;
-    FactTable::from_facts(&rows).map_err(|err| AnalyzeError::InvalidJson {
-        message: err.to_string(),
-    })
+    FactTable::from_facts(&rows)
+        .map_err(|err| AnalyzeError::InvalidJson { message: err.to_string() })
 }

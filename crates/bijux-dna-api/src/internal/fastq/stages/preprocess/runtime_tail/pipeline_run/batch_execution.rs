@@ -17,12 +17,8 @@ pub(super) fn execute_preprocess_batch(
         let stage_id = planned.step_id.to_string();
         let stage_root = run_artifacts_dir_for_out(out_dir).join(planned.step_id.as_str());
         write_stage_path_contract(&stage_root, &stage_id, planned, args.r2.is_some())?;
-        let expected_outputs = planned
-            .io
-            .outputs
-            .iter()
-            .map(|artifact| artifact.path.clone())
-            .collect::<Vec<_>>();
+        let expected_outputs =
+            planned.io.outputs.iter().map(|artifact| artifact.path.clone()).collect::<Vec<_>>();
         let runtime_marker = stage_root.join("runtime_provenance.json");
         let resume_hit =
             runtime_marker.exists() && expected_outputs.iter().all(|path| path.exists());
@@ -86,9 +82,8 @@ pub(super) fn execute_preprocess_batch(
         let results: std::sync::Arc<std::sync::Mutex<Vec<Option<Result<StageResultV1>>>>> =
             std::sync::Arc::new(std::sync::Mutex::new(Vec::with_capacity(total)));
         {
-            let mut guard = results
-                .lock()
-                .map_err(|_| anyhow!("preprocess batch results lock poisoned"))?;
+            let mut guard =
+                results.lock().map_err(|_| anyhow!("preprocess batch results lock poisoned"))?;
             guard.resize_with(total, || None);
         }
         let job_count = jobs.min(total);
@@ -119,9 +114,8 @@ pub(super) fn execute_preprocess_batch(
             let _ = worker.join();
         }
         let results = {
-            let mut guard = results
-                .lock()
-                .map_err(|_| anyhow!("preprocess batch results lock poisoned"))?;
+            let mut guard =
+                results.lock().map_err(|_| anyhow!("preprocess batch results lock poisoned"))?;
             std::mem::take(&mut *guard)
         };
         let mut out = Vec::with_capacity(results.len());

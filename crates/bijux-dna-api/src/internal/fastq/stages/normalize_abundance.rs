@@ -61,21 +61,15 @@ pub(crate) fn normalize_abundance_effective_params(
     method: &str,
 ) -> Result<AbundanceNormalizationEffectiveParams> {
     let (normalized_value_column, compositional_rule, scale_factor) = match method {
-        "relative_abundance" => (
-            "normalized_abundance".to_string(),
-            "per_sample_sum_to_one".to_string(),
-            None,
-        ),
+        "relative_abundance" => {
+            ("normalized_abundance".to_string(), "per_sample_sum_to_one".to_string(), None)
+        }
         "counts_per_million" => (
             "counts_per_million".to_string(),
             "per_sample_sum_to_one_million".to_string(),
             Some(1_000_000.0),
         ),
-        _ => {
-            return Err(anyhow!(
-                "unsupported fastq.normalize_abundance method `{method}`"
-            ))
-        }
+        _ => return Err(anyhow!("unsupported fastq.normalize_abundance method `{method}`")),
     };
     Ok(AbundanceNormalizationEffectiveParams {
         schema_version: bijux_dna_domain_fastq::params::edna::EDNA_SCHEMA_VERSION.to_string(),
@@ -172,9 +166,7 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             runner,
             jobs,
         )?
@@ -253,12 +245,7 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
 }
 
 pub(crate) fn materialize_normalized_table(
@@ -287,15 +274,9 @@ pub(crate) fn materialize_normalized_table(
         let feature = cols[1].trim().to_string();
         let abundance = cols[2].trim().parse::<f64>().unwrap_or(0.0);
         feature_ids.insert(feature.clone());
-        by_sample
-            .entry(sample)
-            .or_default()
-            .push((feature, abundance));
+        by_sample.entry(sample).or_default().push((feature, abundance));
     }
-    let mut out = format!(
-        "sample_id\tfeature_id\t{}\n",
-        effective_params.normalized_value_column
-    );
+    let mut out = format!("sample_id\tfeature_id\t{}\n", effective_params.normalized_value_column);
     let scale_factor = effective_params.scale_factor.unwrap_or(1.0);
     let sample_count = by_sample.len() as u64;
     let mut table_rows = 0_u64;
@@ -305,11 +286,7 @@ pub(crate) fn materialize_normalized_table(
         let total = rows.iter().map(|(_, abundance)| *abundance).sum::<f64>();
         let mut sample_sum = 0.0_f64;
         for (feature, abundance) in rows {
-            let normalized = if total > 0.0 {
-                (abundance * scale_factor) / total
-            } else {
-                0.0
-            };
+            let normalized = if total > 0.0 { (abundance * scale_factor) / total } else { 0.0 };
             table_rows += 1;
             if normalized == 0.0 {
                 zeros += 1;
@@ -344,10 +321,8 @@ pub(crate) fn read_normalized_table_metrics(
     effective_params: &AbundanceNormalizationEffectiveParams,
 ) -> Result<NormalizedAbundanceTableMetrics> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let expected_header = format!(
-        "sample_id\tfeature_id\t{}",
-        effective_params.normalized_value_column
-    );
+    let expected_header =
+        format!("sample_id\tfeature_id\t{}", effective_params.normalized_value_column);
     if let Some(header) = raw.lines().next() {
         if header.trim() != expected_header {
             return Err(anyhow!(
@@ -376,11 +351,7 @@ pub(crate) fn read_normalized_table_metrics(
         table_rows: rows,
         sample_count: samples.len() as u64,
         feature_count: feature_ids.len() as u64,
-        zero_fraction: if rows == 0 {
-            0.0
-        } else {
-            u64_to_f64(zeros) / u64_to_f64(rows)
-        },
+        zero_fraction: if rows == 0 { 0.0 } else { u64_to_f64(zeros) / u64_to_f64(rows) },
         per_sample_sums: samples.into_iter().collect(),
     })
 }
@@ -450,11 +421,8 @@ mod tests {
     use std::path::PathBuf;
 
     fn temp_path(name: &str) -> PathBuf {
-        let unique = format!(
-            "bijux-normalize-abundance-{}-{}",
-            std::process::id(),
-            uuid::Uuid::new_v4()
-        );
+        let unique =
+            format!("bijux-normalize-abundance-{}-{}", std::process::id(), uuid::Uuid::new_v4());
         std::env::temp_dir().join(unique).join(name)
     }
 
@@ -552,10 +520,7 @@ mod tests {
         let raw = std::fs::read_to_string(&output)?;
         assert!(raw.contains("s1\tf1\t250000.000000"));
         assert!(raw.contains("s1\tf2\t750000.000000"));
-        assert_eq!(
-            metrics.per_sample_sums,
-            vec![("s1".to_string(), 1_000_000.0)]
-        );
+        assert_eq!(metrics.per_sample_sums, vec![("s1".to_string(), 1_000_000.0)]);
         Ok(())
     }
 }

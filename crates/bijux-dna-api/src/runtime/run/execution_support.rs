@@ -1,19 +1,14 @@
 use super::{anyhow, ExecuteRunRequest, Path, Result};
 
 fn relative_path_string(base: &Path, path: &Path) -> String {
-    path.strip_prefix(base)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .to_string()
+    path.strip_prefix(base).unwrap_or(path).to_string_lossy().to_string()
 }
 
 fn declared_string_array(value: Option<&serde_json::Value>, key: &str) -> Result<Vec<String>> {
     let Some(value) = value else {
         return Ok(Vec::new());
     };
-    let items = value
-        .as_array()
-        .ok_or_else(|| anyhow!("{key} must be an array when declared"))?;
+    let items = value.as_array().ok_or_else(|| anyhow!("{key} must be an array when declared"))?;
     items
         .iter()
         .map(|item| {
@@ -45,22 +40,12 @@ pub(super) fn maybe_emit_reference_manifest(
         .get("species_id")
         .and_then(serde_json::Value::as_str)
         .map(str::to_string);
-    let build = request
-        .plan
-        .params
-        .get("build_id")
-        .and_then(serde_json::Value::as_str)
-        .map(str::to_string);
-    let usecase = request
-        .plan
-        .params
-        .get("usecase")
-        .and_then(serde_json::Value::as_str)
-        .map(str::to_string);
-    let observed_contigs = declared_string_array(
-        request.plan.params.get("observed_contigs"),
-        "observed_contigs",
-    )?;
+    let build =
+        request.plan.params.get("build_id").and_then(serde_json::Value::as_str).map(str::to_string);
+    let usecase =
+        request.plan.params.get("usecase").and_then(serde_json::Value::as_str).map(str::to_string);
+    let observed_contigs =
+        declared_string_array(request.plan.params.get("observed_contigs"), "observed_contigs")?;
 
     let mut inputs = Vec::new();
     for artifact in reference_inputs {
@@ -86,11 +71,8 @@ pub(super) fn maybe_emit_reference_manifest(
     } else {
         None
     };
-    let lock_sig_sha256 = if lock_sig.exists() {
-        Some(bijux_dna_infra::hash_file_sha256(&lock_sig)?)
-    } else {
-        None
-    };
+    let lock_sig_sha256 =
+        if lock_sig.exists() { Some(bijux_dna_infra::hash_file_sha256(&lock_sig)?) } else { None };
     let authority = if species.is_none() && build.is_none() && reference_provenance.is_none() {
         None
     } else {
@@ -105,10 +87,7 @@ pub(super) fn maybe_emit_reference_manifest(
             authority.insert("usecase".to_string(), serde_json::json!(kind));
         }
         if !observed_contigs.is_empty() {
-            authority.insert(
-                "observed_contigs".to_string(),
-                serde_json::json!(observed_contigs),
-            );
+            authority.insert("observed_contigs".to_string(), serde_json::json!(observed_contigs));
         }
         if let Some(provenance) = reference_provenance {
             authority.insert("reference_provenance".to_string(), provenance);
@@ -163,18 +142,10 @@ fn resolve_regime_stamp(request: &ExecuteRunRequest) -> Result<serde_json::Value
         .unwrap_or("default");
     let thresholds = load_coverage_thresholds(profile)?;
 
-    let observed_bam_mean_depth = request
-        .plan
-        .params
-        .get("mean_depth_x")
-        .and_then(serde_json::Value::as_f64)
-        .or_else(|| {
-            let path = request
-                .plan
-                .out_dir
-                .join("bam")
-                .join("coverage")
-                .join("coverage.regime.json");
+    let observed_bam_mean_depth =
+        request.plan.params.get("mean_depth_x").and_then(serde_json::Value::as_f64).or_else(|| {
+            let path =
+                request.plan.out_dir.join("bam").join("coverage").join("coverage.regime.json");
             if !path.exists() {
                 return None;
             }
@@ -251,13 +222,7 @@ fn classify_depth_to_regime(
     thresholds: CoverageThresholds,
 ) -> (&'static str, String) {
     if mean_depth <= thresholds.gl_max {
-        (
-            "gl",
-            format!(
-                "mean_depth_x <= gl_max_depth ({mean_depth:.4} <= {})",
-                thresholds.gl_max
-            ),
-        )
+        ("gl", format!("mean_depth_x <= gl_max_depth ({mean_depth:.4} <= {})", thresholds.gl_max))
     } else if mean_depth <= thresholds.pseudohaploid_max {
         (
             "pseudohaploid",
@@ -300,10 +265,7 @@ fn load_coverage_thresholds(profile: &str) -> Result<CoverageThresholds> {
     let base = decision
         .get("thresholds")
         .ok_or_else(|| anyhow!("missing decision.coverage_regime.thresholds"))?;
-    let profile_thresholds = decision
-        .get("profiles")
-        .and_then(|v| v.get(profile))
-        .unwrap_or(base);
+    let profile_thresholds = decision.get("profiles").and_then(|v| v.get(profile)).unwrap_or(base);
     let read_f = |obj: &toml::Value, key: &str| -> Result<f64> {
         obj.get(key)
             .and_then(toml::Value::as_float)
@@ -339,12 +301,7 @@ fn classify_fastq_only_estimated_depth(request: &ExecuteRunRequest) -> Option<f6
         .params
         .get("expected_genome_size_bp")
         .and_then(serde_json::Value::as_u64)
-        .or_else(|| {
-            std::env::var("BIJUX_EXPECTED_GENOME_SIZE_BP")
-                .ok()?
-                .parse::<u64>()
-                .ok()
-        })?;
+        .or_else(|| std::env::var("BIJUX_EXPECTED_GENOME_SIZE_BP").ok()?.parse::<u64>().ok())?;
     if expected_genome_size_bp == 0 {
         return None;
     }
@@ -360,12 +317,10 @@ fn classify_fastq_only_estimated_depth(request: &ExecuteRunRequest) -> Option<f6
         if inv.exists() {
             if let Ok(raw) = std::fs::read_to_string(&inv) {
                 if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw) {
-                    let r1_count = json
-                        .pointer("/r1/read_count")
-                        .and_then(serde_json::Value::as_u64);
-                    let r1_len = json
-                        .pointer("/r1/read_length_mean")
-                        .and_then(serde_json::Value::as_f64);
+                    let r1_count =
+                        json.pointer("/r1/read_count").and_then(serde_json::Value::as_u64);
+                    let r1_len =
+                        json.pointer("/r1/read_length_mean").and_then(serde_json::Value::as_f64);
                     if let (Some(c), Some(l)) = (r1_count, r1_len) {
                         read_count = read_count.saturating_add(c);
                         mean_len_sum += l;
@@ -380,10 +335,7 @@ fn classify_fastq_only_estimated_depth(request: &ExecuteRunRequest) -> Option<f6
     }
     let files_f = files.to_string().parse::<f64>().unwrap_or(1.0);
     let read_count_f = read_count.to_string().parse::<f64>().unwrap_or(0.0);
-    let genome_bp_f = expected_genome_size_bp
-        .to_string()
-        .parse::<f64>()
-        .unwrap_or(1.0);
+    let genome_bp_f = expected_genome_size_bp.to_string().parse::<f64>().unwrap_or(1.0);
     let avg_len = mean_len_sum / files_f;
     Some((read_count_f * avg_len) / genome_bp_f)
 }
@@ -464,11 +416,7 @@ mod coverage_regime_tests {
 
     #[test]
     fn same_input_depth_yields_same_regime_deterministically() {
-        let t = CoverageThresholds {
-            gl_max: 1.5,
-            pseudohaploid_max: 6.0,
-            diploid_min: 8.0,
-        };
+        let t = CoverageThresholds { gl_max: 1.5, pseudohaploid_max: 6.0, diploid_min: 8.0 };
         let (a, _) = classify_depth_to_regime(1.2, t);
         let (b, _) = classify_depth_to_regime(1.2, t);
         let (c, _) = classify_depth_to_regime(1.2, t);
@@ -479,11 +427,7 @@ mod coverage_regime_tests {
 
     #[test]
     fn depth_boundaries_route_to_expected_regime() {
-        let t = CoverageThresholds {
-            gl_max: 1.5,
-            pseudohaploid_max: 6.0,
-            diploid_min: 8.0,
-        };
+        let t = CoverageThresholds { gl_max: 1.5, pseudohaploid_max: 6.0, diploid_min: 8.0 };
         assert_eq!(classify_depth_to_regime(1.5, t).0, "gl");
         assert_eq!(classify_depth_to_regime(1.5001, t).0, "pseudohaploid");
         assert_eq!(classify_depth_to_regime(6.0, t).0, "pseudohaploid");

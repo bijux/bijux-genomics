@@ -68,18 +68,9 @@ pub fn build_rankings(inputs: &[RankInput]) -> Result<BTreeMap<String, Vec<Ranki
         "merge_rate",
     ])?;
     let mut rankings = BTreeMap::new();
-    rankings.insert(
-        format!("{:?}", RankingMode::FastestAcceptable),
-        rank_fastest(inputs),
-    );
-    rankings.insert(
-        format!("{:?}", RankingMode::MostConservative),
-        rank_most_conservative(inputs),
-    );
-    rankings.insert(
-        format!("{:?}", RankingMode::BalancedPareto),
-        rank_balanced(inputs),
-    );
+    rankings.insert(format!("{:?}", RankingMode::FastestAcceptable), rank_fastest(inputs));
+    rankings.insert(format!("{:?}", RankingMode::MostConservative), rank_most_conservative(inputs));
+    rankings.insert(format!("{:?}", RankingMode::BalancedPareto), rank_balanced(inputs));
     Ok(rankings)
 }
 
@@ -139,11 +130,7 @@ fn rank_fastest(inputs: &[RankInput]) -> Vec<RankingEntry> {
         })
         .collect();
     entries.sort_by(|a, b| {
-        match a
-            .score
-            .partial_cmp(&b.score)
-            .unwrap_or(std::cmp::Ordering::Equal)
-        {
+        match a.score.partial_cmp(&b.score).unwrap_or(std::cmp::Ordering::Equal) {
             std::cmp::Ordering::Equal => a.tool.cmp(&b.tool),
             ordering => ordering,
         }
@@ -202,11 +189,7 @@ fn rank_most_conservative(inputs: &[RankInput]) -> Vec<RankingEntry> {
         })
         .collect();
     entries.sort_by(|a, b| {
-        match b
-            .score
-            .partial_cmp(&a.score)
-            .unwrap_or(std::cmp::Ordering::Equal)
-        {
+        match b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal) {
             std::cmp::Ordering::Equal => a.tool.cmp(&b.tool),
             ordering => ordering,
         }
@@ -259,11 +242,7 @@ fn rank_balanced(inputs: &[RankInput]) -> Vec<RankingEntry> {
         })
         .collect();
     entries.sort_by(|a, b| {
-        match b
-            .score
-            .partial_cmp(&a.score)
-            .unwrap_or(std::cmp::Ordering::Equal)
-        {
+        match b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal) {
             std::cmp::Ordering::Equal => a.tool.cmp(&b.tool),
             ordering => ordering,
         }

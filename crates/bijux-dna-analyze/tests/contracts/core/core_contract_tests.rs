@@ -6,10 +6,7 @@ use bijux_dna_core::prelude::{Cardinality, PortSpec};
 use bijux_dna_runtime::manifests::load_manifests;
 
 fn domain_root() -> std::path::PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .join("domain")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..").join("domain")
 }
 
 fn port_map(ports: &[PortSpec]) -> std::collections::BTreeMap<String, &PortSpec> {

@@ -20,17 +20,11 @@ mod tests {
     #[test]
     fn normalize_url_adds_expected_scheme() {
         assert_eq!(
-            normalize_url(
-                "ftp.sra.ebi.ac.uk/vol1/x.fastq.gz",
-                EnaSourcePreference::Ftp
-            ),
+            normalize_url("ftp.sra.ebi.ac.uk/vol1/x.fastq.gz", EnaSourcePreference::Ftp),
             "ftp://ftp.sra.ebi.ac.uk/vol1/x.fastq.gz"
         );
         assert_eq!(
-            normalize_url(
-                "ftp.sra.ebi.ac.uk/vol1/x.fastq.gz",
-                EnaSourcePreference::Https
-            ),
+            normalize_url("ftp.sra.ebi.ac.uk/vol1/x.fastq.gz", EnaSourcePreference::Https),
             "https://ftp.sra.ebi.ac.uk/vol1/x.fastq.gz"
         );
     }

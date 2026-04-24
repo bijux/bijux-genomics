@@ -36,13 +36,7 @@ fn bench_model_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/compare")),
-        entries([
-            "diff.rs",
-            "mod.rs",
-            "report.rs",
-            "stable_surface.rs",
-            "stratify.rs"
-        ]),
+        entries(["diff.rs", "mod.rs", "report.rs", "stable_surface.rs", "stratify.rs"]),
         "compare tree must separate diff execution from report contracts"
     );
 
