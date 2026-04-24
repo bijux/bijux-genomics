@@ -13,10 +13,10 @@ container:
 command_template:
   - "cutadapt"
   - "-o"
-  - "{{trimmed_reads}}"
+  - "{{trimmed_reads_r1}}"
   - "{{reads}}"
 outputs:
-  - name: "trimmed_reads"
+  - name: "trimmed_reads_r1"
     data_type: "fastq"
     cardinality: "Many"
 metrics_parser: "fastq_trim_v1"
