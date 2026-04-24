@@ -20,7 +20,7 @@ fn environment_qa_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src")),
-        btree_set(&["bin/", "image_qa/", "lib.rs", "public_api/"]),
+        btree_set(&["bin/", "image_qa/", "lib.rs", "public_api.rs"]),
         "src tree must match the documented environment qa layout"
     );
 
