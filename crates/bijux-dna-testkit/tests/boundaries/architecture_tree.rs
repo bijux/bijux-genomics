@@ -80,7 +80,7 @@ fn testkit_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/public_api")),
-        entries(["OWNER.toml", "mod.rs"]),
+        entries(["OWNER.toml", "mod.rs", "surface.rs"]),
         "public api tree must stay curated"
     );
 
