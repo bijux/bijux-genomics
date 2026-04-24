@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use super::identity::{
     execution_pipeline_identity, execution_sample_identity, hash_path, runtime_platform_identity,
 };
@@ -5,13 +7,16 @@ use super::inputs::container_input_mapping;
 use super::observer::build_observer_command_args;
 use super::{build_apptainer_exec_args, container_command_template, hash_inputs};
 use anyhow::anyhow;
-use bijux_dna_core::contract::{ExecutionStep, StageIO, ToolConstraints};
+use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId, StepId,
+    ArtifactId, ArtifactRole, StageId, StepId,
 };
 use bijux_dna_environment::api::RuntimeKind;
+use serde_json::json;
 use std::path::{Path, PathBuf};
 use tempfile::tempdir;
+
+type StepFixture = ExecutionStep;
 
 #[test]
 fn observer_args_use_docker_mounts_for_docker_runner() {
@@ -29,18 +34,15 @@ fn observer_args_use_docker_mounts_for_docker_runner() {
 
 #[test]
 fn execution_identity_defaults_to_stage_and_step_ids() {
-    let step = ExecutionStep {
-        step_id: StepId::from_static("sample-0001.reads.trim.fastp"),
-        stage_id: StageId::from_static("stage.trim"),
-        command: CommandSpecV1 { template: vec!["fastp".to_string()] },
-        image: ContainerImageRefV1 { image: "fastp:0.23.4".to_string(), digest: None },
-        resources: ToolConstraints::default(),
-        io: StageIO { inputs: Vec::new(), outputs: Vec::new() },
-        out_dir: PathBuf::from("/tmp/out"),
-        aux_images: std::collections::BTreeMap::default(),
-        expected_artifact_ids: Vec::new(),
-        metrics_schema_ids: Vec::new(),
-    };
+    let step = execution_step_fixture(
+        "sample-0001.reads.trim.fastp",
+        "stage.trim",
+        vec!["fastp".to_string()],
+        "fastp:0.23.4",
+        Vec::new(),
+        Vec::new(),
+        "/tmp/out",
+    );
 
     assert_eq!(execution_pipeline_identity(&step), "stage.trim");
     assert_eq!(execution_sample_identity(&step), "sample-0001.reads.trim.fastp");
@@ -76,29 +78,25 @@ fn observer_args_use_apptainer_exec_for_apptainer_runner() {
 
 #[test]
 fn apptainer_exec_defaults_workdir_to_output_mount() -> anyhow::Result<()> {
-    let step = ExecutionStep {
-        step_id: StepId::from_static("step.trim_reads.tool.seqkit"),
-        stage_id: StageId::from_static("stage.trim"),
-        command: CommandSpecV1 { template: vec!["seqkit".to_string(), "stats".to_string()] },
-        image: ContainerImageRefV1 { image: "/containers/seqkit.sif".to_string(), digest: None },
-        resources: ToolConstraints::default(),
-        io: StageIO {
-            inputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("reads"),
-                Path::new("/tmp/input/sample.fq.gz").to_path_buf(),
-                ArtifactRole::Reads,
-            )],
-            outputs: vec![ArtifactRef::required(
-                ArtifactId::from_static("report"),
-                Path::new("/tmp/out/report.json").to_path_buf(),
-                ArtifactRole::ReportJson,
-            )],
-        },
-        out_dir: Path::new("/tmp/out").to_path_buf(),
-        aux_images: std::collections::BTreeMap::default(),
-        expected_artifact_ids: Vec::new(),
-        metrics_schema_ids: Vec::new(),
-    };
+    let step = execution_step_fixture(
+        "step.trim_reads.tool.seqkit",
+        "stage.trim",
+        vec!["seqkit".to_string(), "stats".to_string()],
+        "/containers/seqkit.sif",
+        vec![json!({
+            "artifact_id": "reads",
+            "path": "/tmp/input/sample.fq.gz",
+            "role": "reads",
+            "required": true
+        })],
+        vec![json!({
+            "artifact_id": "report",
+            "path": "/tmp/out/report.json",
+            "role": "report_json",
+            "required": true
+        })],
+        "/tmp/out",
+    );
 
     let args = build_apptainer_exec_args(
         &step,
@@ -283,4 +281,31 @@ fn hash_inputs_ignores_missing_paths_and_hashes_directories() -> anyhow::Result<
     assert_eq!(hashes.len(), 1);
     assert_eq!(hashes[0].len(), 64);
     Ok(())
+}
+
+fn execution_step_fixture(
+    step_id: &str,
+    stage_id: &str,
+    command_template: Vec<String>,
+    image: &str,
+    inputs: Vec<serde_json::Value>,
+    outputs: Vec<serde_json::Value>,
+    out_dir: &str,
+) -> StepFixture {
+    serde_json::from_value(json!({
+        "step_id": step_id,
+        "stage_id": stage_id,
+        "command": { "template": command_template },
+        "image": { "image": image, "digest": null },
+        "resources": {},
+        "io": {
+            "inputs": inputs,
+            "outputs": outputs
+        },
+        "out_dir": out_dir,
+        "aux_images": {},
+        "expected_artifact_ids": [],
+        "metrics_schema_ids": []
+    }))
+    .expect("execution step fixture must deserialize")
 }
