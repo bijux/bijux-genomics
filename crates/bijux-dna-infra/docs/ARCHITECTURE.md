@@ -9,7 +9,7 @@
 - paths/
 - retry/
 - run_directories/
-- temp/
+- temp.rs
 
 ## Data flow
 - `lib.rs` stays explicit about the public surface while delegating export ownership to `stable_surface.rs`.
@@ -20,5 +20,5 @@
 - `io/` owns filesystem effects and the infra-local IO error taxonomy.
 - `retry/` owns retry policy, clock abstraction, backoff math, and retry execution.
 - `logging/` owns tracing bootstrap and subscriber wiring.
-- `temp/` owns temporary-directory entrypoints.
+- `temp.rs` owns temporary-directory entrypoints.
 - No module may introduce domain semantics or become a generic catch-all.
