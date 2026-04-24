@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
@@ -159,6 +160,15 @@ impl RunManifest {
         let bytes = to_canonical_json_bytes(self)?;
         let mut hasher = sha2::Sha256::new();
         hasher.update(bytes);
-        Ok(format!("{:x}", hasher.finalize()))
+        Ok(sha256_hex(hasher.finalize()))
     }
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

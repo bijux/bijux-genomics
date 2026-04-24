@@ -21,16 +21,10 @@ pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
         .with_context(|| format!("parse manifest {}", manifest_path.display()))?;
     let output_dir = Path::new(&manifest.output_dir);
     if !output_dir.exists() {
-        return Err(anyhow!(
-            "replay missing output_dir {}",
-            output_dir.display()
-        ));
+        return Err(anyhow!("replay missing output_dir {}", output_dir.display()));
     }
     if manifest.runner != "docker" {
-        return Err(anyhow!(
-            "replay only supports docker runner, got {}",
-            manifest.runner
-        ));
+        return Err(anyhow!("replay only supports docker runner, got {}", manifest.runner));
     }
     let status = Command::new("sh")
         .arg("-c")

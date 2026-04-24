@@ -10,10 +10,7 @@ pub(super) fn log_header(
     total: usize,
 ) {
     let platform = platform.unwrap_or("unknown");
-    logger.log(
-        LogLevel::Info,
-        &format!("Platform {platform} ({runner}) - {total} images"),
-    );
+    logger.log(LogLevel::Info, &format!("Platform {platform} ({runner}) - {total} images"));
 }
 
 pub(super) fn log_discovered_images(logger: &mut dyn Logger, plans: &[ImagePlan]) {
@@ -26,8 +23,5 @@ pub(super) fn log_discovered_images(logger: &mut dyn Logger, plans: &[ImagePlan]
 }
 
 pub(super) fn log_summary(logger: &mut dyn Logger, summary: &Summary) {
-    logger.log(
-        LogLevel::Info,
-        &format!("Summary: {} pass / {} fail", summary.pass, summary.fail),
-    );
+    logger.log(LogLevel::Info, &format!("Summary: {} pass / {} fail", summary.pass, summary.fail));
 }

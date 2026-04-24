@@ -12,11 +12,7 @@ pub(super) fn load_platform_spec(
 ) -> Result<PlatformSpec, Box<dyn std::error::Error>> {
     let platform_spec = load_platform(platform)?;
     if platform_spec.runner != RuntimeKind::Docker {
-        return Err(format!(
-            "platform runner must be docker, got {}",
-            platform_spec.runner
-        )
-        .into());
+        return Err(format!("platform runner must be docker, got {}", platform_spec.runner).into());
     }
     Ok(platform_spec)
 }

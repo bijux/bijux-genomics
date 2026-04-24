@@ -11,34 +11,22 @@ pub fn validate_execution_outputs(contract: &ExecutionContract, out_dir: &Path) 
 
     for forbidden in &contract.forbidden_outputs {
         if outputs.iter().any(|path| matches_pattern(path, forbidden)) {
-            return Err(BijuxError::contract(format!(
-                "forbidden output produced: {forbidden}"
-            )));
+            return Err(BijuxError::contract(format!("forbidden output produced: {forbidden}")));
         }
     }
 
     for expected in &contract.expected_outputs {
         if !outputs.iter().any(|path| matches_pattern(path, expected)) {
-            return Err(BijuxError::contract(format!(
-                "expected output missing: {expected}"
-            )));
+            return Err(BijuxError::contract(format!("expected output missing: {expected}")));
         }
     }
 
     if contract.forbid_unexpected_outputs {
         for output in &outputs {
-            if !contract
-                .expected_outputs
-                .iter()
-                .any(|pattern| matches_pattern(output, pattern))
-                && !contract
-                    .optional_outputs
-                    .iter()
-                    .any(|pattern| matches_pattern(output, pattern))
+            if !contract.expected_outputs.iter().any(|pattern| matches_pattern(output, pattern))
+                && !contract.optional_outputs.iter().any(|pattern| matches_pattern(output, pattern))
             {
-                return Err(BijuxError::contract(format!(
-                    "unexpected output produced: {output}"
-                )));
+                return Err(BijuxError::contract(format!("unexpected output produced: {output}")));
             }
         }
     }
@@ -58,11 +46,7 @@ fn walk_outputs(root: &Path, dir: &Path, out: &mut Vec<String>) -> Result<()> {
     {
         let entry = entry?;
         let path = entry.path();
-        let rel = path
-            .strip_prefix(root)
-            .unwrap_or(&path)
-            .to_string_lossy()
-            .replace('\\', "/");
+        let rel = path.strip_prefix(root).unwrap_or(&path).to_string_lossy().replace('\\', "/");
         if path.is_dir() {
             walk_outputs(root, &path, out)?;
         } else if path.is_file() {

@@ -14,10 +14,7 @@ pub(super) fn collect_all_run_artifacts(
     extra_artifacts: &[RunArtifactInput],
 ) -> Result<Vec<serde_json::Value>> {
     let mut out = Vec::new();
-    out.push(make_artifact_record(
-        "execution_manifest",
-        &run_dirs.manifest_path,
-    )?);
+    out.push(make_artifact_record("execution_manifest", &run_dirs.manifest_path)?);
     out.push(make_artifact_record("metrics", &run_dirs.metrics_path)?);
     for artifact in extra_artifacts {
         out.push(make_artifact_record(artifact.name, &artifact.path)?);
@@ -93,17 +90,11 @@ pub fn tool_run_artifacts_dir(
     tool: &str,
     run_id: &str,
 ) -> PathBuf {
-    bench_tools_dir(out, stage, sample_id)
-        .join(tool)
-        .join("run")
-        .join(run_id)
-        .join("artifacts")
+    bench_tools_dir(out, stage, sample_id).join(tool).join("run").join(run_id).join("artifacts")
 }
 
 pub(super) fn run_artifacts_dir(run_dirs: &RunDirs) -> Result<PathBuf> {
-    let run_dir = run_dirs
-        .manifest_path
-        .parent()
-        .ok_or_else(|| anyhow!("run dir missing for manifest"))?;
+    let run_dir =
+        run_dirs.manifest_path.parent().ok_or_else(|| anyhow!("run dir missing for manifest"))?;
     Ok(run_dir.join("run_artifacts"))
 }

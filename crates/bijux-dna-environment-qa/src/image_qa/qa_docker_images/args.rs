@@ -15,10 +15,7 @@ pub(super) fn parse_run_options(args: &[String]) -> RunOptions {
 }
 
 fn parse_arg_value(args: &[String], flag: &str) -> Option<String> {
-    args.iter()
-        .position(|arg| arg == flag)
-        .and_then(|idx| args.get(idx + 1))
-        .cloned()
+    args.iter().position(|arg| arg == flag).and_then(|idx| args.get(idx + 1)).cloned()
 }
 
 fn has_flag(args: &[String], flag: &str) -> bool {

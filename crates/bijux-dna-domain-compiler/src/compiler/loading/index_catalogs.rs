@@ -5,15 +5,11 @@ pub(super) fn validate_pipeline_compositions(index: &DomainIndex) -> Result<()> 
         return Err(anyhow!("index missing pipeline_compositions"));
     }
     if !index.pipeline_compositions.contains_key("pre_hpc_best") {
-        return Err(anyhow!(
-            "index pipeline_compositions must include pre_hpc_best"
-        ));
+        return Err(anyhow!("index pipeline_compositions must include pre_hpc_best"));
     }
     for (pipeline_name, stages) in &index.pipeline_compositions {
         if stages.is_empty() {
-            return Err(anyhow!(
-                "index pipeline {pipeline_name} has empty stage list"
-            ));
+            return Err(anyhow!("index pipeline {pipeline_name} has empty stage list"));
         }
         for stage_id in stages {
             if !index.stage_ids.contains(stage_id) {

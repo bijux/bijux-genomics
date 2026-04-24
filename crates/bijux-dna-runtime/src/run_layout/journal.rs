@@ -20,15 +20,9 @@ pub fn update_run_index(base_dir: &Path, entry: RunIndexEntry) -> Result<()> {
         Duration::from_secs(5),
     )
     .context("acquire run index lock")?;
-    let line = RunIndexLine {
-        schema_version: 1,
-        run: entry,
-    };
+    let line = RunIndexLine { schema_version: 1, run: entry };
     let payload = serde_json::to_string(&line)?;
-    let mut file = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(index_path)?;
+    let mut file = std::fs::OpenOptions::new().create(true).append(true).open(index_path)?;
     std::io::Write::write_all(&mut file, format!("{payload}\n").as_bytes())?;
     Ok(())
 }
@@ -44,10 +38,8 @@ pub fn append_event(layout: &RunLayout, event: &RunEvent) -> Result<()> {
     )
     .context("acquire events jsonl lock")?;
     let payload = serde_json::to_string(event)?;
-    let mut file = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(&layout.events_path)?;
+    let mut file =
+        std::fs::OpenOptions::new().create(true).append(true).open(&layout.events_path)?;
     std::io::Write::write_all(&mut file, format!("{payload}\n").as_bytes())?;
     Ok(())
 }

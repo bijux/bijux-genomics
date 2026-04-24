@@ -58,19 +58,11 @@ fn id_try_from_and_parse_validate_paths_cover_success_and_failures() {
     let pipeline = PipelineId::try_from("fastq-to-fastq__default__v1");
 
     assert!(stage.as_ref().is_ok_and(|id| validate_stage_id(id).is_ok()));
-    assert!(step
-        .as_ref()
-        .is_ok_and(|id| validate_stage_id_str(id.as_str()).is_ok()));
+    assert!(step.as_ref().is_ok_and(|id| validate_stage_id_str(id.as_str()).is_ok()));
     assert!(tool.as_ref().is_ok_and(|id| validate_tool_id(id).is_ok()));
-    assert!(artifact
-        .as_ref()
-        .is_ok_and(|id| validate_artifact_id_str(id.as_str()).is_ok()));
-    assert!(profile
-        .as_ref()
-        .is_ok_and(|id| validate_profile_id_str(id.as_str()).is_ok()));
-    assert!(pipeline
-        .as_ref()
-        .is_ok_and(|id| validate_pipeline_id(id).is_ok()));
+    assert!(artifact.as_ref().is_ok_and(|id| validate_artifact_id_str(id.as_str()).is_ok()));
+    assert!(profile.as_ref().is_ok_and(|id| validate_profile_id_str(id.as_str()).is_ok()));
+    assert!(pipeline.as_ref().is_ok_and(|id| validate_pipeline_id(id).is_ok()));
 
     assert!(parse_stage_id("fastq.trim_reads").is_ok());
     assert!(parse_tool_id("fastp").is_ok());

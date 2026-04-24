@@ -119,11 +119,7 @@ fn write_tool_invocation(
         tool_id: bijux_dna_core::ids::ToolId::new(step.image.image.clone()),
         tool_version: inferred_tool_version.clone(),
         resolved_tool_version: None,
-        image_digest: step
-            .image
-            .digest
-            .clone()
-            .unwrap_or_else(|| step.image.image.clone()),
+        image_digest: step.image.digest.clone().unwrap_or_else(|| step.image.image.clone()),
         runner_kind: format!("{runner:?}"),
         platform: runtime_platform_identity(runner),
         parameters_json: parameters_json.clone(),

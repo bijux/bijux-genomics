@@ -2,9 +2,8 @@
 fn stage_contract_types_are_ssot() {
     let root = crate::support::repo_root().unwrap_or_else(|err| panic!("resolve repo root: {err}"));
     let mut offenders = Vec::new();
-    for entry in walkdir::WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(std::result::Result::ok)
+    for entry in
+        walkdir::WalkDir::new(root.join("crates")).into_iter().filter_map(std::result::Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;

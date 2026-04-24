@@ -15,9 +15,7 @@ pub(crate) fn hydrate_datasets(
         let r1 = dataset.r1.canonicalize().context("resolve r1 path")?;
         let subset_dir = qa_root.join(&dataset.name);
         bijux_dna_infra::ensure_dir(&subset_dir).context("create dataset qa dir")?;
-        let subset_dir = subset_dir
-            .canonicalize()
-            .context("resolve dataset qa dir")?;
+        let subset_dir = subset_dir.canonicalize().context("resolve dataset qa dir")?;
         let r1_subset = subset_fastq(seqkit_image, &r1, &subset_dir, "R1")?;
         dataset.r1.clone_from(&r1_subset);
         dataset.r1_dir.clone_from(&subset_dir);
@@ -80,10 +78,7 @@ fn subset_fastq(
         return Err(anyhow!("seqkit head failed"));
     }
     if !output_path.exists() {
-        return Err(anyhow!(
-            "QA subset output missing: {}",
-            output_path.display()
-        ));
+        return Err(anyhow!("QA subset output missing: {}", output_path.display()));
     }
     Ok(output_path)
 }

@@ -73,23 +73,11 @@ pub(super) fn write_vcf_generated_views(
             let _ = writeln!(tools_vcf_toml, "id = \"{}\"", tool.tool_id);
             let _ = writeln!(tools_vcf_toml, "tool_id = \"{}\"", tool.tool_id);
             let _ = writeln!(tools_vcf_toml, "domain = \"vcf\"");
-            let vcf_status = if tool.status == "supported" {
-                "production"
-            } else {
-                "planned"
-            };
+            let vcf_status = if tool.status == "supported" { "production" } else { "planned" };
             let _ = writeln!(tools_vcf_toml, "status = \"{vcf_status}\"");
-            let _ = writeln!(
-                tools_vcf_toml,
-                "stage_ids = {}",
-                toml_array(&tool.stage_ids)
-            );
+            let _ = writeln!(tools_vcf_toml, "stage_ids = {}", toml_array(&tool.stage_ids));
             let _ = writeln!(tools_vcf_toml, "version = \"{}\"", tool.default_version);
-            let _ = writeln!(
-                tools_vcf_toml,
-                "default_version = \"{}\"",
-                tool.default_version
-            );
+            let _ = writeln!(tools_vcf_toml, "default_version = \"{}\"", tool.default_version);
             let _ = writeln!(tools_vcf_toml, "upstream = \"{}\"", tool.upstream);
             let _ = writeln!(tools_vcf_toml, "version_rule = \"pinned\"");
             let _ = writeln!(tools_vcf_toml, "license = \"{}\"", tool.license);
@@ -111,33 +99,20 @@ pub(super) fn write_vcf_generated_views(
             let _ = writeln!(tools_vcf_toml, "container = true");
             let _ = writeln!(tools_vcf_toml, "version_cmd = \"{}\"", tool.version_cmd);
             let _ = writeln!(tools_vcf_toml, "help_cmd = \"{}\"", tool.help_cmd);
-            let _ = writeln!(
-                tools_vcf_toml,
-                "smoke_version_cmd = \"{}\"",
-                tool.version_cmd
-            );
+            let _ = writeln!(tools_vcf_toml, "smoke_version_cmd = \"{}\"", tool.version_cmd);
             let _ = writeln!(tools_vcf_toml, "smoke_help_cmd = \"{}\"", tool.help_cmd);
-            let _ = writeln!(
-                tools_vcf_toml,
-                "expected_version_regex = \"bcftools [0-9]+[.][0-9]+\""
-            );
+            let _ =
+                writeln!(tools_vcf_toml, "expected_version_regex = \"bcftools [0-9]+[.][0-9]+\"");
             let _ = writeln!(tools_vcf_toml, "healthcheck_cmd = \"{}\"", tool.help_cmd);
-            let expected_bin = tool
-                .version_cmd
-                .split_whitespace()
-                .next()
-                .unwrap_or(tool.tool_id.as_str());
+            let expected_bin =
+                tool.version_cmd.split_whitespace().next().unwrap_or(tool.tool_id.as_str());
             let _ = writeln!(tools_vcf_toml, "expected_bin = \"{}\"", expected_bin);
             let _ = writeln!(
                 tools_vcf_toml,
                 "expected_artifacts = {}",
                 toml_array(&tool.expected_artifacts)
             );
-            let _ = writeln!(
-                tools_vcf_toml,
-                "metrics_schema = \"{}\"",
-                tool.metrics_schema_id
-            );
+            let _ = writeln!(tools_vcf_toml, "metrics_schema = \"{}\"", tool.metrics_schema_id);
             let _ = writeln!(
                 tools_vcf_toml,
                 "comparability_notes = \"{}\"",

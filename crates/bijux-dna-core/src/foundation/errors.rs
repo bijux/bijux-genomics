@@ -51,10 +51,7 @@ pub struct CategorizedError {
 impl CategorizedError {
     #[must_use]
     pub fn new(category: ErrorCategory, message: impl Into<String>) -> Self {
-        Self {
-            category,
-            message: message.into(),
-        }
+        Self { category, message: message.into() }
     }
 }
 

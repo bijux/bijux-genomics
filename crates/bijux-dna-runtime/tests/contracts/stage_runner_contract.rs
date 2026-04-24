@@ -22,8 +22,5 @@ fn docker_runner_contract_rejects_unknown_stage_prefixes() {
             Ok(()) => panic!("unknown stage prefix must fail fast"),
             Err(err) => err,
         };
-    assert!(
-        err.to_string().contains("no stage-runner contract"),
-        "unexpected error: {err}"
-    );
+    assert!(err.to_string().contains("no stage-runner contract"), "unexpected error: {err}");
 }

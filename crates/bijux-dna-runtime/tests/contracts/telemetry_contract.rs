@@ -19,10 +19,7 @@ fn telemetry_event_taxonomy_rejects_unknown_event_names() {
         "attrs": {}
     });
     let parsed = serde_json::from_value::<TelemetryEventV1>(raw);
-    assert!(
-        parsed.is_err(),
-        "unknown telemetry event_name must fail deserialization"
-    );
+    assert!(parsed.is_err(), "unknown telemetry event_name must fail deserialization");
 }
 
 #[test]
@@ -43,14 +40,8 @@ fn telemetry_event_serializes_typed_timestamp_and_event_name() -> anyhow::Result
         failure_code: None,
     };
     let value = serde_json::to_value(&event)?;
-    assert_eq!(
-        value.get("event_name").and_then(|v| v.as_str()),
-        Some("run_started")
-    );
-    assert_eq!(
-        value.get("timestamp").and_then(|v| v.as_str()),
-        Some("2026-01-01T00:00:00Z")
-    );
+    assert_eq!(value.get("event_name").and_then(|v| v.as_str()), Some("run_started"));
+    assert_eq!(value.get("timestamp").and_then(|v| v.as_str()), Some("2026-01-01T00:00:00Z"));
     Ok(())
 }
 
@@ -60,14 +51,8 @@ fn telemetry_attrs_redact_sensitive_keys() {
     attrs.insert("api_token".to_string(), AttrValue::Str("abc".to_string()));
     attrs.insert("safe".to_string(), AttrValue::Str("ok".to_string()));
     let redacted = redacted_attrs(&attrs);
-    assert_eq!(
-        redacted.get("api_token"),
-        Some(&AttrValue::Str("[REDACTED]".to_string()))
-    );
-    assert_eq!(
-        redacted.get("safe"),
-        Some(&AttrValue::Str("ok".to_string()))
-    );
+    assert_eq!(redacted.get("api_token"), Some(&AttrValue::Str("[REDACTED]".to_string())));
+    assert_eq!(redacted.get("safe"), Some(&AttrValue::Str("ok".to_string())));
 }
 
 #[test]
@@ -88,10 +73,7 @@ fn telemetry_failure_code_is_snake_case() -> anyhow::Result<()> {
         failure_code: Some(FailureCode::ToolFailed),
     };
     let value = serde_json::to_value(&event)?;
-    assert_eq!(
-        value.get("failure_code").and_then(|v| v.as_str()),
-        Some("tool_failed")
-    );
+    assert_eq!(value.get("failure_code").and_then(|v| v.as_str()), Some("tool_failed"));
     Ok(())
 }
 

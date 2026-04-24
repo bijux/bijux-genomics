@@ -8,10 +8,7 @@ use bijux_dna_core::contract::{
 use bijux_dna_core::ids::{PipelineId, RunId, StageId, ToolId};
 
 fn append_line(path: &std::path::Path, line: &str) -> anyhow::Result<()> {
-    let mut file = std::fs::OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(path)?;
+    let mut file = std::fs::OpenOptions::new().create(true).append(true).open(path)?;
     writeln!(file, "{line}")?;
     Ok(())
 }

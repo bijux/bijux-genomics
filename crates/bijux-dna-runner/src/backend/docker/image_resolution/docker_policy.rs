@@ -23,10 +23,7 @@ pub(super) fn resolve_docker_image_for_run(
             runner: platform.runner,
         };
         if docker_image_exists(&fallback) {
-            warn!(
-                "digest image missing locally; falling back to tag {}",
-                fallback.full_name
-            );
+            warn!("digest image missing locally; falling back to tag {}", fallback.full_name);
             return Ok(fallback);
         }
     }

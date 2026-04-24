@@ -117,16 +117,10 @@ pub(super) fn validate_stage_files(
                 }
             }
         }
-        let input_names = stage
-            .inputs
-            .iter()
-            .map(|port| port.name.clone())
-            .collect::<BTreeSet<_>>();
-        let output_names = stage
-            .outputs
-            .iter()
-            .map(|port| port.name.clone())
-            .collect::<BTreeSet<_>>();
+        let input_names =
+            stage.inputs.iter().map(|port| port.name.clone()).collect::<BTreeSet<_>>();
+        let output_names =
+            stage.outputs.iter().map(|port| port.name.clone()).collect::<BTreeSet<_>>();
         for port in &stage.inputs {
             if port.data_type.trim().is_empty() || port.cardinality.trim().is_empty() {
                 bail!("{} has input missing data_type/cardinality", path.display());
@@ -134,26 +128,17 @@ pub(super) fn validate_stage_files(
         }
         for port in &stage.outputs {
             if port.data_type.trim().is_empty() || port.cardinality.trim().is_empty() {
-                bail!(
-                    "{} has output missing data_type/cardinality",
-                    path.display()
-                );
+                bail!("{} has output missing data_type/cardinality", path.display());
             }
         }
         for required in &stage.required_inputs {
             if !input_names.contains(required) {
-                bail!(
-                    "{} required_inputs references missing input `{required}`",
-                    path.display()
-                );
+                bail!("{} required_inputs references missing input `{required}`", path.display());
             }
         }
         for required in &stage.required_outputs {
             if !output_names.contains(required) {
-                bail!(
-                    "{} required_outputs references missing output `{required}`",
-                    path.display()
-                );
+                bail!("{} required_outputs references missing output `{required}`", path.display());
             }
         }
         for metric in &stage.metrics {
@@ -192,12 +177,7 @@ pub(super) fn validate_stage_files(
         }
         if let Some(previous) = stage_ids.insert(stage.stage_id.clone(), path.display().to_string())
         {
-            bail!(
-                "duplicate stage_id {} in {} and {}",
-                stage.stage_id,
-                previous,
-                path.display()
-            );
+            bail!("duplicate stage_id {} in {} and {}", stage.stage_id, previous, path.display());
         }
     }
     Ok(())

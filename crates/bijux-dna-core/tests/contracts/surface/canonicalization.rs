@@ -14,10 +14,7 @@ fn canonicalize_json_value_sorts_keys() {
         Ok(value) => value,
         Err(err) => panic!("serialize failed: {err}"),
     };
-    assert!(
-        rendered.starts_with("{\"a\":"),
-        "expected canonical keys sorted: {rendered}"
-    );
+    assert!(rendered.starts_with("{\"a\":"), "expected canonical keys sorted: {rendered}");
 }
 
 #[test]

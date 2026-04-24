@@ -67,10 +67,7 @@ fn manifest_has_required_fields() {
     assert!(!invocations.is_empty(), "tool_invocations empty");
     let first = &invocations[0];
     assert!(
-        first
-            .get("input_hashes")
-            .and_then(|value| value.as_array())
-            .is_some(),
+        first.get("input_hashes").and_then(|value| value.as_array()).is_some(),
         "tool_invocation missing input_hashes"
     );
     assert!(
@@ -130,11 +127,7 @@ fn run_manifest_output_artifacts_include_hashes_for_runtime_files() {
             .get("sha256")
             .and_then(|v| v.as_str())
             .unwrap_or_else(|| panic!("artifact missing sha256 string: {item}"));
-        assert_eq!(
-            hash.len(),
-            64,
-            "artifact hash must be 64-char sha256 hex, got {hash:?}"
-        );
+        assert_eq!(hash.len(), 64, "artifact hash must be 64-char sha256 hex, got {hash:?}");
     }
 }
 
@@ -211,20 +204,11 @@ fn run_manifest_writes_profile_and_lock_manifests() {
     };
     write_run_manifest(&run_dirs, "fastq.trim_reads", "fastp", &rp, None, &[])
         .unwrap_or_else(|e| panic!("write run manifest: {e}"));
-    let run_dir = run_dirs
-        .run_manifest_path
-        .parent()
-        .unwrap_or_else(|| panic!("run dir missing"));
+    let run_dir = run_dirs.run_manifest_path.parent().unwrap_or_else(|| panic!("run dir missing"));
     let profile_manifest_path = run_dir.join("profile_manifest.json");
     let lock_manifest_path = run_dir.join("run_manifest.lock.json");
-    assert!(
-        profile_manifest_path.exists(),
-        "profile_manifest.json must exist"
-    );
-    assert!(
-        lock_manifest_path.exists(),
-        "run_manifest.lock.json must exist"
-    );
+    assert!(profile_manifest_path.exists(), "profile_manifest.json must exist");
+    assert!(lock_manifest_path.exists(), "run_manifest.lock.json must exist");
 }
 
 #[test]

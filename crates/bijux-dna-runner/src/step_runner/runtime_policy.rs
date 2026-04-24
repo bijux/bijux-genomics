@@ -9,10 +9,7 @@ pub(super) fn stage_workdir_in_container(out_dir: &Path, _runner: RuntimeKind) -
     if let Ok(workdir) = std::env::var("BIJUX_STAGE_WORKDIR") {
         let out_dir_prefix = format!("{}/", out_dir.display());
         if workdir.starts_with(&out_dir_prefix) {
-            format!(
-                "{output_root}/{}",
-                workdir.trim_start_matches(&out_dir_prefix)
-            )
+            format!("{output_root}/{}", workdir.trim_start_matches(&out_dir_prefix))
         } else {
             output_root.to_string()
         }

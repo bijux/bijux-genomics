@@ -16,13 +16,8 @@ pub(super) fn materialize_execution_records(
 ) -> Result<String> {
     let pipeline_id = execution_pipeline_identity(step);
     let sample_id = execution_sample_identity(step);
-    let run_id = run_id_from_hashes(
-        &pipeline_id,
-        &sample_id,
-        params_fingerprint,
-        input_hashes,
-        None,
-    );
+    let run_id =
+        run_id_from_hashes(&pipeline_id, &sample_id, params_fingerprint, input_hashes, None);
     write_minimum_run_artifacts(
         step,
         input_hashes,

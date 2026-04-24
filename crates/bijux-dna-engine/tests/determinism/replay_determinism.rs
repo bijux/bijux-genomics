@@ -25,9 +25,7 @@ fn replay_produces_same_run_record_and_tree() -> Result<()> {
             image: "tool".to_string(),
             digest: Some("sha256:img".to_string()),
         },
-        command: CommandSpecV1 {
-            template: vec!["tool".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["tool".to_string()] },
         resources: ToolConstraints {
             runtime: "short".to_string(),
             mem_gb: 1,
@@ -69,10 +67,7 @@ fn replay_produces_same_run_record_and_tree() -> Result<()> {
     let manifest_hash_second = write_manifest_hash(&layout, &graph, &output_path)?;
     let tree_second = layout_tree_text(&layout.run_dir)?;
 
-    assert_eq!(
-        serde_json::to_value(record_first)?,
-        serde_json::to_value(record_second)?
-    );
+    assert_eq!(serde_json::to_value(record_first)?, serde_json::to_value(record_second)?);
     assert_eq!(tree_first, tree_second);
     assert_eq!(manifest_hash_first, manifest_hash_second);
     Ok(())

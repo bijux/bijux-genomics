@@ -96,13 +96,8 @@ pub fn build_tool_execution_spec(
     Ok(ToolExecutionSpecV1 {
         tool_id: tool_id.clone(),
         tool_version: spec.version.clone(),
-        image: ContainerImageRefV1 {
-            image: image.full_name,
-            digest: image_digest,
-        },
-        command: CommandSpecV1 {
-            template: command_template,
-        },
+        image: ContainerImageRefV1 { image: image.full_name, digest: image_digest },
+        command: CommandSpecV1 { template: command_template },
         resources: constraints,
     })
 }
@@ -117,23 +112,8 @@ pub fn invocation_hash_for_spec(
     input_hashes: &[String],
 ) -> Result<String> {
     let mut identity_env = env.clone();
-    identity_env.insert(
-        "__BIJUX_CACHE_TOOL_ID".to_string(),
-        spec.tool_id.as_str().to_string(),
-    );
-    identity_env.insert(
-        "__BIJUX_CACHE_TOOL_VERSION".to_string(),
-        spec.tool_version.clone(),
-    );
-    let image_digest = spec
-        .image
-        .digest
-        .clone()
-        .unwrap_or_else(|| spec.image.image.clone());
-    invocation_hash(
-        &spec.command.template,
-        &identity_env,
-        &image_digest,
-        input_hashes,
-    )
+    identity_env.insert("__BIJUX_CACHE_TOOL_ID".to_string(), spec.tool_id.as_str().to_string());
+    identity_env.insert("__BIJUX_CACHE_TOOL_VERSION".to_string(), spec.tool_version.clone());
+    let image_digest = spec.image.digest.clone().unwrap_or_else(|| spec.image.image.clone());
+    invocation_hash(&spec.command.template, &identity_env, &image_digest, input_hashes)
 }

@@ -17,9 +17,8 @@ pub fn ensure_dir<P: AsRef<Path>>(path: P) -> Result<(), IoError> {
 /// # Errors
 /// Returns an IO error if the parent cannot be created or the file cannot be opened.
 pub fn create_file(path: &Path) -> Result<File, IoError> {
-    let parent = path
-        .parent()
-        .ok_or_else(|| IoError::new(IoErrorKind::Missing, "path has no parent"))?;
+    let parent =
+        path.parent().ok_or_else(|| IoError::new(IoErrorKind::Missing, "path has no parent"))?;
     ensure_dir(parent)?;
     File::create(path).map_err(IoError::from_io)
 }
@@ -66,9 +65,8 @@ pub fn atomic_write_with<F>(path: &Path, writer: F) -> Result<(), IoError>
 where
     F: FnOnce(&mut File) -> std::io::Result<()>,
 {
-    let parent = path
-        .parent()
-        .ok_or_else(|| IoError::new(IoErrorKind::Missing, "path has no parent"))?;
+    let parent =
+        path.parent().ok_or_else(|| IoError::new(IoErrorKind::Missing, "path has no parent"))?;
     ensure_dir(parent)?;
 
     let mut temp = tempfile::NamedTempFile::new_in(parent).map_err(IoError::from_io)?;
@@ -82,12 +80,9 @@ where
     #[cfg(not(unix))]
     let perm: Option<std::fs::Permissions> = None;
     if let Some(perm) = perm {
-        temp.as_file_mut()
-            .set_permissions(perm)
-            .map_err(IoError::from_io)?;
+        temp.as_file_mut().set_permissions(perm).map_err(IoError::from_io)?;
     }
-    temp.persist(path)
-        .map_err(|err| IoError::from_io(err.error))?;
+    temp.persist(path).map_err(|err| IoError::from_io(err.error))?;
     Ok(())
 }
 

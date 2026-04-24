@@ -22,9 +22,7 @@ fn base_cache_root() -> PathBuf {
         .filter(|value| !value.is_empty())
         .map(PathBuf::from)
         .or_else(|| {
-            std::env::var_os("XDG_CACHE_HOME")
-                .filter(|value| !value.is_empty())
-                .map(PathBuf::from)
+            std::env::var_os("XDG_CACHE_HOME").filter(|value| !value.is_empty()).map(PathBuf::from)
         })
         .unwrap_or_else(|| {
             std::env::var_os("HOME")

@@ -1,4 +1,5 @@
 use super::{Context, Digest, Path, PathBuf, Result, Sha256};
+use std::fmt::Write as _;
 
 pub(crate) fn find_git_dir(start: &Path) -> Option<PathBuf> {
     let mut current = Some(start);
@@ -31,9 +32,7 @@ pub(crate) fn git_head_commit(start: &Path) -> Option<String> {
     let head = head.trim();
     if let Some(reference) = head.strip_prefix("ref:") {
         let ref_path = git_dir.join(reference.trim());
-        return std::fs::read_to_string(ref_path)
-            .ok()
-            .map(|value| value.trim().to_string());
+        return std::fs::read_to_string(ref_path).ok().map(|value| value.trim().to_string());
     }
     Some(head.to_string())
 }
@@ -60,11 +59,7 @@ pub(crate) fn domain_content_hash(domain_dir: &Path) -> Result<String> {
 
     let mut hasher = Sha256::new();
     for file in files {
-        let rel = file
-            .strip_prefix(domain_dir)
-            .unwrap_or(&file)
-            .to_string_lossy()
-            .into_owned();
+        let rel = file.strip_prefix(domain_dir).unwrap_or(&file).to_string_lossy().into_owned();
         hasher.update(rel.as_bytes());
         hasher.update([0]);
         let file_hash = bijux_dna_infra::hash_file_sha256(&file)
@@ -72,10 +67,15 @@ pub(crate) fn domain_content_hash(domain_dir: &Path) -> Result<String> {
         hasher.update(file_hash.as_bytes());
         hasher.update([0]);
     }
-    let hex: String = hasher
-        .finalize()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect();
+    let hex = sha256_hex(hasher.finalize());
     Ok(hex.chars().take(40).collect())
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

@@ -30,10 +30,7 @@ fn test_docs_match_runtime_test_tree() {
         "tests/contracts/reference/docs_reference_example.rs",
         "tests/schemas/schema/runtime_schema_snapshots.rs",
     ] {
-        assert!(
-            docs.contains(expected),
-            "docs/TESTS.md must reference {expected}"
-        );
+        assert!(docs.contains(expected), "docs/TESTS.md must reference {expected}");
     }
 }
 

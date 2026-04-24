@@ -34,8 +34,5 @@ pub fn run_layout_paths(base_dir: &Path, run_id: &str) -> RunLayoutPaths {
 
 #[must_use]
 pub fn run_stage_dir(base_dir: &Path, run_id: &str, stage: &str, tool: &str) -> PathBuf {
-    run_layout_paths(base_dir, run_id)
-        .run_dir
-        .join(stage)
-        .join(tool)
+    run_layout_paths(base_dir, run_id).run_dir.join(stage).join(tool)
 }

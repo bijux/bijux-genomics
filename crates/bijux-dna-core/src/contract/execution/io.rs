@@ -60,22 +60,12 @@ pub struct ArtifactSpec {
 impl ArtifactSpec {
     #[must_use]
     pub fn required(name: ArtifactId, path: PathBuf, role: ArtifactRole) -> Self {
-        Self {
-            name,
-            path,
-            role,
-            optional: false,
-        }
+        Self { name, path, role, optional: false }
     }
 
     #[must_use]
     pub fn optional(name: ArtifactId, path: PathBuf, role: ArtifactRole) -> Self {
-        Self {
-            name,
-            path,
-            role,
-            optional: true,
-        }
+        Self { name, path, role, optional: true }
     }
 }
 

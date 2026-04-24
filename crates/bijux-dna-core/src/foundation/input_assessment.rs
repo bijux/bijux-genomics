@@ -86,9 +86,7 @@ pub fn is_fastq_path(path: &Path) -> bool {
 
 #[must_use]
 pub fn is_gzip_path(path: &Path) -> bool {
-    path.extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+    path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
 }
 
 fn file_assessment(path: &Path) -> Result<FastqFileAssessment> {
@@ -103,18 +101,11 @@ fn file_assessment(path: &Path) -> Result<FastqFileAssessment> {
 }
 
 fn infer_sample_key(re: &Regex, path: &Path) -> (String, Option<u8>) {
-    let filename = path
-        .file_name()
-        .and_then(|value| value.to_str())
-        .unwrap_or("")
-        .to_string();
+    let filename = path.file_name().and_then(|value| value.to_str()).unwrap_or("").to_string();
     if let Some(caps) = re.captures(&filename) {
-        let base = caps
-            .name("base")
-            .map_or_else(|| filename.clone(), |value| value.as_str().to_string());
-        let read = caps
-            .name("read")
-            .and_then(|value| value.as_str().parse::<u8>().ok());
+        let base =
+            caps.name("base").map_or_else(|| filename.clone(), |value| value.as_str().to_string());
+        let read = caps.name("read").and_then(|value| value.as_str().parse::<u8>().ok());
         return (base, read);
     }
     (filename, None)

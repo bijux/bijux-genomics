@@ -94,22 +94,13 @@ pub struct TelemetryEventV1 {
 }
 
 const REDACT_TOKEN: &str = "[REDACTED]";
-const SENSITIVE_KEY_PARTS: [&str; 7] = [
-    "secret",
-    "token",
-    "password",
-    "passwd",
-    "apikey",
-    "api_key",
-    "authorization",
-];
+const SENSITIVE_KEY_PARTS: [&str; 7] =
+    ["secret", "token", "password", "passwd", "apikey", "api_key", "authorization"];
 
 #[must_use]
 pub fn redact_key(key: &str) -> bool {
     let lower = key.to_ascii_lowercase();
-    SENSITIVE_KEY_PARTS
-        .iter()
-        .any(|needle| lower.contains(needle))
+    SENSITIVE_KEY_PARTS.iter().any(|needle| lower.contains(needle))
 }
 
 #[must_use]
@@ -130,12 +121,10 @@ pub fn redacted_attrs(attrs: &AttrMap) -> AttrMap {
 #[must_use]
 pub fn validate_stage_telemetry(events: &[TelemetryEventV1]) -> Vec<String> {
     let mut violations = Vec::new();
-    let has_start = events
-        .iter()
-        .any(|event| matches!(event.event_name, TelemetryEventName::StageStart));
-    let has_end = events
-        .iter()
-        .any(|event| matches!(event.event_name, TelemetryEventName::StageEnd));
+    let has_start =
+        events.iter().any(|event| matches!(event.event_name, TelemetryEventName::StageStart));
+    let has_end =
+        events.iter().any(|event| matches!(event.event_name, TelemetryEventName::StageEnd));
     if !has_start {
         violations.push("missing stage_start event".to_string());
     }

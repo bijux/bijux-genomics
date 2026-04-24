@@ -16,9 +16,7 @@ fn backend_invariants_are_documented() {
 
 #[test]
 fn command_spec_is_stable() {
-    let spec = CommandSpecV1 {
-        template: vec!["fastp".to_string(), "-h".to_string()],
-    };
+    let spec = CommandSpecV1 { template: vec!["fastp".to_string(), "-h".to_string()] };
     let json1 = serde_json::to_string(&spec).unwrap_or_else(|err| panic!("serialize: {err}"));
     let json2 = serde_json::to_string(&spec).unwrap_or_else(|err| panic!("serialize: {err}"));
     assert_eq!(json1, json2);

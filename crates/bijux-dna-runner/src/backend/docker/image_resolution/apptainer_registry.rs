@@ -26,11 +26,7 @@ pub(super) fn resolve_apptainer_image_for_run(
     Err(anyhow!(
         "apptainer image not found for tool {}. checked: {}",
         spec.tool,
-        candidates
-            .iter()
-            .map(|path| path.display().to_string())
-            .collect::<Vec<_>>()
-            .join(", ")
+        candidates.iter().map(|path| path.display().to_string()).collect::<Vec<_>>().join(", ")
     ))
 }
 
@@ -39,11 +35,7 @@ fn apptainer_image_candidates(spec: &ToolImageSpec, platform: &PlatformSpec) -> 
     let mut candidates = vec![platform.container_dir.join(format!("{}.sif", spec.tool))];
     if let Some(digest) = spec.digest.as_deref() {
         let normalized_digest = digest.strip_prefix("sha256:").unwrap_or(digest);
-        candidates.push(
-            registry_root
-                .join(&spec.tool)
-                .join(format!("{normalized_digest}.sif")),
-        );
+        candidates.push(registry_root.join(&spec.tool).join(format!("{normalized_digest}.sif")));
         candidates.push(registry_root.join(&spec.tool).join(format!("{digest}.sif")));
     } else if let Some(unique_sif) = unique_registry_sif(&registry_root, &spec.tool) {
         candidates.push(unique_sif);
@@ -70,14 +62,12 @@ fn unique_registry_sif(registry_root: &Path, tool: &str) -> Option<PathBuf> {
 pub(crate) fn apptainer_registry_root(container_dir: &Path) -> PathBuf {
     let parent = container_dir.parent();
     let grandparent = parent.and_then(Path::parent);
-    let is_flat_apptainer_sif_dir = container_dir
-        .file_name()
-        .and_then(|name| name.to_str())
-        .is_some_and(|name| name == "sif")
-        && parent
-            .and_then(Path::file_name)
-            .and_then(|name| name.to_str())
-            .is_some_and(|name| name == "apptainer");
+    let is_flat_apptainer_sif_dir =
+        container_dir.file_name().and_then(|name| name.to_str()).is_some_and(|name| name == "sif")
+            && parent
+                .and_then(Path::file_name)
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name == "apptainer");
     if is_flat_apptainer_sif_dir {
         return grandparent.unwrap_or(container_dir).to_path_buf();
     }

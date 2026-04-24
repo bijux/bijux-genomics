@@ -27,9 +27,7 @@ pub fn validate_stage_id_str(id: &str) -> Result<()> {
     let allowed =
         |c: char| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '.' || c == '-' || c == '_';
     if !id.chars().all(allowed) {
-        return Err(BijuxError::validation(
-            "stage id contains invalid characters",
-        ));
+        return Err(BijuxError::validation("stage id contains invalid characters"));
     }
     Ok(())
 }

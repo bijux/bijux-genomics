@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use serde_json::Value;
 use sha2::Digest;
+use std::fmt::Write as _;
 
 use bijux_dna_core::prelude::hashing::input_fingerprint;
 
@@ -8,7 +9,7 @@ pub(super) fn canonical_sha256(value: &Value) -> Result<String> {
     let bytes = bijux_dna_core::contract::canonical::to_canonical_json_bytes(value)?;
     let mut hasher = sha2::Sha256::new();
     hasher.update(bytes);
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(sha256_hex(hasher.finalize()))
 }
 
 pub(super) fn declared_json_array<'a>(value: &'a Value, key: &str) -> Result<&'a Vec<Value>> {
@@ -40,11 +41,7 @@ pub(super) fn detect_run_context() -> Result<crate::RunContextV1> {
             .filter(|value| !value.trim().is_empty())
             .ok_or_else(|| anyhow!("HPC run context requires TMPDIR"))?;
         let slurm = std::env::var("SLURM_JOB_ID").is_ok();
-        Ok(crate::RunContextV1::Hpc {
-            site,
-            scratch,
-            slurm,
-        })
+        Ok(crate::RunContextV1::Hpc { site, scratch, slurm })
     } else {
         Ok(crate::RunContextV1::Local)
     }
@@ -61,10 +58,19 @@ pub fn compute_run_id(
     let seed = format!("{stage}|{tool}|{image_digest}|{input_hash}|{params_hash}");
     let mut hasher = sha2::Sha256::new();
     hasher.update(seed.as_bytes());
-    format!("{:x}", hasher.finalize())
+    sha256_hex(hasher.finalize())
 }
 
 #[must_use]
 pub(super) fn input_hash_from_many(values: &[String]) -> String {
     input_fingerprint(values)
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

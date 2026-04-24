@@ -28,9 +28,7 @@ fn extract_version_from_dockerfile_ignores_unrelated_arg_names() -> Result<(), E
     let error = extract_version_from_dockerfile(&path, "fastqvalidator")
         .err()
         .ok_or_else(|| EnvError::Dockerfile("expected missing tool version".to_string()))?;
-    assert!(error
-        .to_string()
-        .contains("no version ARG found for tool fastqvalidator"));
+    assert!(error.to_string().contains("no version ARG found for tool fastqvalidator"));
     let _ = bijux_dna_infra::remove_file(&path);
     Ok(())
 }

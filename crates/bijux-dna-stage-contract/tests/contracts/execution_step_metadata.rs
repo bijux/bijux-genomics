@@ -15,13 +15,8 @@ fn trim_plan() -> StagePlanV1 {
         stage_version: StageVersion(1),
         tool_id: ToolId::from_static("fastp"),
         tool_version: "test".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["fastp".to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/test".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["fastp".to_string()] },
         resources: ToolConstraints::default(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(
@@ -63,8 +58,5 @@ fn execution_steps_inherit_expected_artifacts_and_metrics_schema() {
             .collect::<Vec<_>>(),
         vec!["trimmed_reads_r1", "trimmed_reads_r2"]
     );
-    assert_eq!(
-        step.metrics_schema_ids,
-        vec!["fastq_trim_reads_v2".to_string()]
-    );
+    assert_eq!(step.metrics_schema_ids, vec!["fastq_trim_reads_v2".to_string()]);
 }

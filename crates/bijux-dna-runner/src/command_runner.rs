@@ -37,9 +37,7 @@ pub fn run_command_with_context(
     if let Some(envs) = envs {
         child.envs(envs);
     }
-    let output = child
-        .output()
-        .with_context(|| format!("run command {command}"))?;
+    let output = child.output().with_context(|| format!("run command {command}"))?;
     let runtime_s = start.elapsed().as_secs_f64();
     let exit_code = output.status.code().unwrap_or(-1);
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();

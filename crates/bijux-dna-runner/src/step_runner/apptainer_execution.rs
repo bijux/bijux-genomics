@@ -19,11 +19,7 @@ pub(super) fn execute_apptainer_step(
     out_dir: &Path,
 ) -> Result<StepExecutionOutcome> {
     let args = build_apptainer_exec_args(step, inputs, input_root, out_dir, runner)?;
-    let bin = if runner == RuntimeKind::Apptainer {
-        "apptainer"
-    } else {
-        "singularity"
-    };
+    let bin = if runner == RuntimeKind::Apptainer { "apptainer" } else { "singularity" };
     let command_output = run_command(bin, &args)
         .map_err(|err| runner_failure(RunnerEffectKind::CommandSpawn, err.to_string()))?;
     let exit_code = command_output.exit_code;
@@ -32,12 +28,5 @@ pub(super) fn execute_apptainer_step(
     let runtime_s = command_output.runtime_s;
     let memory_mb = configured_memory_mb(step);
 
-    Ok(StepExecutionOutcome {
-        command_output,
-        exit_code,
-        stdout,
-        stderr,
-        runtime_s,
-        memory_mb,
-    })
+    Ok(StepExecutionOutcome { command_output, exit_code, stdout, stderr, runtime_s, memory_mb })
 }

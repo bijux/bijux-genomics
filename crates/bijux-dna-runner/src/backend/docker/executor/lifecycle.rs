@@ -7,11 +7,8 @@ use anyhow::{anyhow, Context, Result};
 /// # Errors
 /// Returns an error if docker wait fails or output cannot be parsed.
 pub fn docker_wait(container_id: &str) -> Result<i32> {
-    let output = Command::new("docker")
-        .arg("wait")
-        .arg(container_id)
-        .output()
-        .context("docker wait")?;
+    let output =
+        Command::new("docker").arg("wait").arg(container_id).output().context("docker wait")?;
     if !output.status.success() {
         return Err(anyhow!("docker wait failed for {container_id}"));
     }
@@ -54,11 +51,8 @@ pub fn docker_wait_timeout(container_id: &str, timeout: std::time::Duration) -> 
 /// # Errors
 /// Returns an error if docker logs command fails.
 pub fn docker_logs(container_id: &str) -> Result<String> {
-    let output = Command::new("docker")
-        .arg("logs")
-        .arg(container_id)
-        .output()
-        .context("docker logs")?;
+    let output =
+        Command::new("docker").arg("logs").arg(container_id).output().context("docker logs")?;
     if !output.status.success() {
         return Err(anyhow!("docker logs failed for {container_id}"));
     }
@@ -82,10 +76,7 @@ pub fn docker_stats_mb(container_id: &str) -> Result<f64> {
         return Err(anyhow!("docker stats failed for {container_id}"));
     }
     let stdout = String::from_utf8_lossy(&output.stdout);
-    let mem = stdout
-        .lines()
-        .next()
-        .ok_or_else(|| anyhow!("missing docker stats output"))?;
+    let mem = stdout.lines().next().ok_or_else(|| anyhow!("missing docker stats output"))?;
     parse_mem_to_mb(mem)
 }
 
@@ -95,10 +86,7 @@ pub fn docker_stats_mb(container_id: &str) -> Result<f64> {
 /// Returns an error if the input format or unit is unsupported.
 pub fn parse_mem_to_mb(value: &str) -> Result<f64> {
     let parts: Vec<&str> = value.split('/').collect();
-    let value = parts
-        .first()
-        .ok_or_else(|| anyhow!("invalid memory format"))?
-        .trim();
+    let value = parts.first().ok_or_else(|| anyhow!("invalid memory format"))?.trim();
     let mut number = String::new();
     let mut unit = String::new();
     for ch in value.chars() {

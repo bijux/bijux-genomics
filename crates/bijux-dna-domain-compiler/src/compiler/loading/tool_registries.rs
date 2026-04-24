@@ -27,11 +27,7 @@ pub(super) fn build_tool_registries_toml(
     for tool_id in ["seqkit", "vsearch"] {
         required_tool_set.insert(tool_id.to_string());
     }
-    let _ = writeln!(
-        required_tools_toml,
-        "required_tools = {}",
-        toml_array(&required_tools)
-    );
+    let _ = writeln!(required_tools_toml, "required_tools = {}", toml_array(&required_tools));
     required_tools_toml.push('\n');
     let mut production_tool_ids = BTreeSet::new();
     for tool in tools.values() {
@@ -121,32 +117,16 @@ pub(super) fn build_tool_registries_toml(
         let _ = writeln!(out, "pin_strategy = \"{}\"", tool.pin_strategy);
         let _ = writeln!(out, "container_ref = \"{}\"", container_ref);
         let _ = writeln!(out, "runtimes = {}", toml_array(&runtimes));
-        let _ = writeln!(
-            out,
-            "container = {}",
-            if is_planned { "false" } else { "true" }
-        );
+        let _ = writeln!(out, "container = {}", if is_planned { "false" } else { "true" });
         let _ = writeln!(out, "version_cmd = \"{}\"", tool.version_cmd);
         let _ = writeln!(out, "help_cmd = \"{}\"", tool.help_cmd);
         let _ = writeln!(out, "smoke_version_cmd = \"{}\"", tool.version_cmd);
         let _ = writeln!(out, "smoke_help_cmd = \"{}\"", tool.help_cmd);
-        let _ = writeln!(
-            out,
-            "expected_version_regex = \"{}\"",
-            tool.expected_version_regex
-        );
+        let _ = writeln!(out, "expected_version_regex = \"{}\"", tool.expected_version_regex);
         let _ = writeln!(out, "healthcheck_cmd = \"{}\"", tool.healthcheck_cmd);
-        let expected_bin = tool
-            .version_cmd
-            .split_whitespace()
-            .next()
-            .unwrap_or(tool.id.as_str());
+        let expected_bin = tool.version_cmd.split_whitespace().next().unwrap_or(tool.id.as_str());
         let _ = writeln!(out, "expected_bin = \"{}\"", expected_bin);
-        let _ = writeln!(
-            out,
-            "expected_artifacts = {}",
-            toml_array(&tool.expected_artifacts)
-        );
+        let _ = writeln!(out, "expected_artifacts = {}", toml_array(&tool.expected_artifacts));
         let _ = writeln!(out, "metrics_schema = \"{}\"", effective_metrics_schema);
         let _ = writeln!(
             out,
@@ -163,9 +143,7 @@ pub(super) fn build_tool_registries_toml(
         let mut all = tools_set.iter().cloned().collect::<Vec<_>>();
         all.retain(|tool_id| {
             production_tool_ids.contains(tool_id)
-                && tools
-                    .get(tool_id)
-                    .is_some_and(|tool| tool.domain == stage_domain)
+                && tools.get(tool_id).is_some_and(|tool| tool.domain == stage_domain)
         });
         all.sort();
         let mut primary = stage_defaults
@@ -173,9 +151,7 @@ pub(super) fn build_tool_registries_toml(
             .cloned()
             .filter(|tool_id| {
                 production_tool_ids.contains(tool_id)
-                    && tools
-                        .get(tool_id)
-                        .is_some_and(|tool| tool.domain == stage_domain)
+                    && tools.get(tool_id).is_some_and(|tool| tool.domain == stage_domain)
             })
             .into_iter()
             .collect::<Vec<_>>();
@@ -194,11 +170,8 @@ pub(super) fn build_tool_registries_toml(
             .filter(|tool_id| !primary.iter().any(|selected| selected == *tool_id))
             .cloned()
             .collect::<Vec<_>>();
-        let reporting = if stage_id.contains("qc") {
-            vec!["multiqc".to_string()]
-        } else {
-            Vec::new()
-        };
+        let reporting =
+            if stage_id.contains("qc") { vec!["multiqc".to_string()] } else { Vec::new() };
         let _ = writeln!(production_toml, "[[stages]]");
         let _ = writeln!(production_toml, "id = \"{stage_id}\"");
         let _ = writeln!(
@@ -207,17 +180,9 @@ pub(super) fn build_tool_registries_toml(
             toml_array(&required_tool_roles_for_stage(stage_id))
         );
         let _ = writeln!(production_toml, "primary_tools = {}", toml_array(&primary));
-        let _ = writeln!(
-            production_toml,
-            "optional_alternatives = {}",
-            toml_array(&optional)
-        );
+        let _ = writeln!(production_toml, "optional_alternatives = {}", toml_array(&optional));
         production_toml.push_str("validation_tools = []\n");
-        let _ = writeln!(
-            production_toml,
-            "reporting_tools = {}",
-            toml_array(&reporting)
-        );
+        let _ = writeln!(production_toml, "reporting_tools = {}", toml_array(&reporting));
         let _ = writeln!(
             production_toml,
             "planned_out_of_scope = {}",
@@ -232,11 +197,7 @@ pub(super) fn build_tool_registries_toml(
         let _ = writeln!(
             production_toml,
             "requires_reporting = {}",
-            if reporting.is_empty() {
-                "false"
-            } else {
-                "true"
-            }
+            if reporting.is_empty() { "false" } else { "true" }
         );
         production_toml.push('\n');
     }

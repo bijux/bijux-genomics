@@ -21,10 +21,7 @@ pub fn load_manifests(source_path: &Path) -> Result<ToolRegistry> {
         source_path.to_path_buf()
     };
     if !registry_path.exists() {
-        return Err(anyhow!(
-            "registry file {} does not exist",
-            registry_path.display()
-        ));
+        return Err(anyhow!("registry file {} does not exist", registry_path.display()));
     }
     read_generated_registry(&registry_path)
 }

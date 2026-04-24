@@ -2,15 +2,8 @@
 fn tree_contract_is_minimal() {
     let root = crate::support::crate_root("bijux-dna-stage-contract")
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
-    let expected = [
-        "BOUNDARY.md",
-        "Cargo.toml",
-        "PUBLIC_API.md",
-        "README.md",
-        "docs/",
-        "src/",
-        "tests/",
-    ];
+    let expected =
+        ["BOUNDARY.md", "Cargo.toml", "PUBLIC_API.md", "README.md", "docs/", "src/", "tests/"];
     let mut entries = Vec::new();
     for entry in std::fs::read_dir(&root).expect("read crate root") {
         let entry = entry.expect("read entry");

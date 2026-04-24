@@ -61,12 +61,7 @@ pub fn build_run_execution_plan(
         .tool_by_id(&run_spec.stage, &run_spec.tool)
         .ok_or_else(|| anyhow!("missing tool {} for {}", run_spec.tool.0, run_spec.stage.0))?;
 
-    let run_dir = run_dir(
-        &profile.run_base_dir,
-        &run_id,
-        &run_spec.stage,
-        &run_spec.tool,
-    );
+    let run_dir = run_dir(&profile.run_base_dir, &run_id, &run_spec.stage, &run_spec.tool);
     let logs_dir = run_dir.join("logs");
     let artifacts_dir = run_dir.join("artifacts");
     validate_stage_outputs(stage_spec, run_spec)?;
@@ -94,14 +89,8 @@ pub fn build_run_execution_plan(
         })
         .collect();
 
-    let stage = build_stage_plan(
-        run_spec,
-        tool_manifest,
-        stage_spec,
-        run_dir.clone(),
-        inputs,
-        outputs,
-    )?;
+    let stage =
+        build_stage_plan(run_spec, tool_manifest, stage_spec, run_dir.clone(), inputs, outputs)?;
 
     let planned_artifacts = stage
         .io
@@ -151,11 +140,7 @@ mod tests {
         let run_spec = RunSpec {
             stage: StageId::from_static(id_catalog::FASTQ_TRIM),
             tool: ToolId::from_static("fastp"),
-            paths: PathSpec {
-                input: Vec::new(),
-                output: Vec::new(),
-                work: PathBuf::from("work"),
-            },
+            paths: PathSpec { input: Vec::new(), output: Vec::new(), work: PathBuf::from("work") },
             params: BTreeMap::from([
                 ("quality".to_string(), "20".to_string()),
                 ("trim_poly_g".to_string(), "true".to_string()),
@@ -203,10 +188,7 @@ mod tests {
         )
         .expect("build stage plan");
 
-        assert_eq!(
-            plan.params,
-            serde_json::json!({"quality": "20", "trim_poly_g": "true"})
-        );
+        assert_eq!(plan.params, serde_json::json!({"quality": "20", "trim_poly_g": "true"}));
         assert_eq!(plan.effective_params, plan.params);
     }
 }

@@ -47,26 +47,16 @@ impl QaStage {
                 "trim_galore",
                 "atropos",
             ],
-            QaStage::Validate => &[
-                "seqtk",
-                "fastqc",
-                "fastqvalidator",
-                "fastqvalidator",
-                "fqtools",
-            ],
+            QaStage::Validate => {
+                &["seqtk", "fastqc", "fastqvalidator", "fastqvalidator", "fqtools"]
+            }
             QaStage::Filter => &["prinseq", "fastp", "seqkit"],
             QaStage::Merge => &["pear", "vsearch", "bbmerge", "flash2"],
             QaStage::Correct => &["rcorrector"],
             QaStage::ReportQc => &["fastqc", "multiqc"],
             QaStage::Umi => &["umi_tools"],
             QaStage::Stats => &["seqkit_stats"],
-            QaStage::Screen => &[
-                "kraken2",
-                "centrifuge",
-                "metaphlan",
-                "kaiju",
-                "fastq_screen",
-            ],
+            QaStage::Screen => &["kraken2", "centrifuge", "metaphlan", "kaiju", "fastq_screen"],
         }
     }
 }

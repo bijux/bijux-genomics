@@ -1,3 +1,4 @@
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -26,10 +27,7 @@ pub(super) fn hash_path(path: &Path) -> Result<String> {
     if path.is_dir() {
         return hash_directory(path);
     }
-    Err(anyhow!(
-        "unsupported hash input path type: {}",
-        path.display()
-    ))
+    Err(anyhow!("unsupported hash input path type: {}", path.display()))
 }
 
 fn hash_directory(root: &Path) -> Result<String> {
@@ -65,7 +63,7 @@ fn hash_directory(root: &Path) -> Result<String> {
         hasher.update(bijux_dna_infra::hash_file_sha256(path)?.as_bytes());
     }
 
-    Ok(format!("{:x}", hasher.finalize()))
+    Ok(sha256_hex(hasher.finalize()))
 }
 
 pub(super) fn execution_pipeline_identity(step: &ExecutionStep) -> String {
@@ -104,4 +102,13 @@ pub(super) fn infer_tool_version_from_image(image: &str) -> String {
         }
     }
     "unknown".to_string()
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

@@ -5,16 +5,7 @@
 pub(super) fn run_smoke_script(runtime: &str, tool: &str) -> anyhow::Result<()> {
     let command = smoke_command(runtime)?;
     let status = std::process::Command::new("cargo")
-        .args([
-            "run",
-            "-q",
-            "-p",
-            "bijux-dna-dev",
-            "--",
-            "containers",
-            "run",
-            command,
-        ])
+        .args(["run", "-q", "-p", "bijux-dna-dev", "--", "containers", "run", command])
         .env("TOOLS", tool)
         .status()?;
     if !status.success() {
@@ -35,16 +26,7 @@ pub(super) fn run_smoke_script_batch(
     let command = smoke_command(runtime)?;
     let tools_csv = tools.join(",");
     let status = std::process::Command::new("cargo")
-        .args([
-            "run",
-            "-q",
-            "-p",
-            "bijux-dna-dev",
-            "--",
-            "containers",
-            "run",
-            command,
-        ])
+        .args(["run", "-q", "-p", "bijux-dna-dev", "--", "containers", "run", command])
         .env("TOOLS", tools_csv)
         .env("SMOKE_LEVEL", smoke_level)
         .status()?;

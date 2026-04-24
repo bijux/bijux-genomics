@@ -54,9 +54,7 @@ fn minimal_contract_example_builds() {
     let step = ExecutionStep {
         step_id: StepId::from_static("step.a"),
         stage_id: StageId::from_static("stage.a"),
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), "ok".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), "ok".to_string()] },
         image: ContainerImageRefV1 {
             image: "example/image".to_string(),
             digest: Some("sha256:deadbeef".to_string()),

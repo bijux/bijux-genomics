@@ -15,9 +15,6 @@ pub struct RetryPolicy {
 
 impl Default for RetryPolicy {
     fn default() -> Self {
-        Self {
-            max_attempts: 1,
-            retry_on_exit_codes: Vec::new(),
-        }
+        Self { max_attempts: 1, retry_on_exit_codes: Vec::new() }
     }
 }

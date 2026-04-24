@@ -3,8 +3,8 @@ use bijux_dna_core::contract::{ExecutionGraph, RunRecordV1};
 use bijux_dna_runtime::run_layout::RunLayout;
 use bijux_dna_runtime::Runner;
 
-use crate::{executor, CancellationToken, EngineConfig, EngineHooks};
 use crate::engine_config::apply_engine_config;
+use crate::{executor, CancellationToken, EngineConfig, EngineHooks};
 
 pub struct Engine {
     config: EngineConfig,

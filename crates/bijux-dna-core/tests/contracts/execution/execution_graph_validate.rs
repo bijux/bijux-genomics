@@ -11,13 +11,8 @@ fn step(step_id: &str) -> ExecutionStep {
     ExecutionStep {
         step_id: StepId::new(step_id),
         stage_id: StageId::new("fastq.trim_reads"),
-        command: CommandSpecV1 {
-            template: vec!["fastp".to_string()],
-        },
-        image: ContainerImageRefV1 {
-            image: "fastp:latest".to_string(),
-            digest: None,
-        },
+        command: CommandSpecV1 { template: vec!["fastp".to_string()] },
+        image: ContainerImageRefV1 { image: "fastp:latest".to_string(), digest: None },
         resources: ToolConstraints::default(),
         io: StageIO {
             inputs: vec![bijux_dna_core::contract::ArtifactSpec::required(

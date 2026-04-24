@@ -64,9 +64,5 @@ pub struct RunProvenanceV1 {
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum RunContextV1 {
     Local,
-    Hpc {
-        site: String,
-        scratch: String,
-        slurm: bool,
-    },
+    Hpc { site: String, scratch: String, slurm: bool },
 }

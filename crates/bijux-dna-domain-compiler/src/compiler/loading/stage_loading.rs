@@ -17,10 +17,8 @@ pub(super) fn load_domain_stages(
 ) -> Result<()> {
     let stages_dir = domain_dir.join(domain).join("stages");
     for stage_id in &index.stage_ids {
-        let stage_suffix = stage_id
-            .as_str()
-            .split_once('.')
-            .map_or(stage_id.as_str(), |(_, suffix)| suffix);
+        let stage_suffix =
+            stage_id.as_str().split_once('.').map_or(stage_id.as_str(), |(_, suffix)| suffix);
         let stage_file = stage_suffix.replace('.', "_");
         let path = stages_dir.join(format!("{stage_file}.yaml"));
         if !path.exists() {
@@ -52,11 +50,7 @@ pub(super) fn load_domain_stages(
             continue;
         }
         stage_to_tools.entry(stage.stage_id.clone()).or_default();
-        let mut kinds = stage
-            .outputs
-            .iter()
-            .map(|port| port.data_type.clone())
-            .collect::<Vec<_>>();
+        let mut kinds = stage.outputs.iter().map(|port| port.data_type.clone()).collect::<Vec<_>>();
         kinds.sort();
         kinds.dedup();
         stage_output_kinds.insert(stage.stage_id.clone(), kinds);

@@ -7,13 +7,8 @@ fn execution_graph_serialization_is_stage_plan_free() {
     let step = ExecutionStep {
         step_id: StepId::new("fastq.validate_reads"),
         stage_id: StageId::new("fastq.validate_reads"),
-        command: CommandSpecV1 {
-            template: vec!["tool".to_string()],
-        },
-        image: ContainerImageRefV1 {
-            image: "tool".to_string(),
-            digest: None,
-        },
+        command: CommandSpecV1 { template: vec!["tool".to_string()] },
+        image: ContainerImageRefV1 { image: "tool".to_string(), digest: None },
         resources: ToolConstraints::default(),
         io: StageIO {
             inputs: vec![ArtifactRef::required(

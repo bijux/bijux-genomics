@@ -34,14 +34,10 @@ impl ExecutionMetrics {
     /// Returns an error if any metrics are invalid.
     pub fn validate(&self) -> Result<()> {
         if !(self.runtime_s.is_finite() && self.runtime_s > 0.0) {
-            return Err(MeasureError::Validation(
-                "runtime_s must be > 0".to_string(),
-            ));
+            return Err(MeasureError::Validation("runtime_s must be > 0".to_string()));
         }
         if !(self.memory_mb.is_finite() && self.memory_mb > 0.0) {
-            return Err(MeasureError::Validation(
-                "memory_mb must be > 0".to_string(),
-            ));
+            return Err(MeasureError::Validation("memory_mb must be > 0".to_string()));
         }
         Ok(())
     }

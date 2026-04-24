@@ -18,18 +18,9 @@ fn run_layout_is_stable() {
     let base = Path::new("/tmp/bijux");
     let layout = bijux_dna_infra::run_layout_paths(base, "run-123");
     assert_eq!(layout.run_dir, base.join("runs").join("run-123"));
-    assert_eq!(
-        layout.artifacts_dir,
-        base.join("runs").join("run-123").join("artifacts")
-    );
-    assert_eq!(
-        layout.logs_dir,
-        base.join("runs").join("run-123").join("logs")
-    );
-    assert_eq!(
-        layout.tmp_dir,
-        base.join("runs").join("run-123").join("tmp")
-    );
+    assert_eq!(layout.artifacts_dir, base.join("runs").join("run-123").join("artifacts"));
+    assert_eq!(layout.logs_dir, base.join("runs").join("run-123").join("logs"));
+    assert_eq!(layout.tmp_dir, base.join("runs").join("run-123").join("tmp"));
 }
 
 #[test]
@@ -58,8 +49,5 @@ fn pipeline_run_dir_contract_is_stable() {
             .join("sample-1")
             .join("run-abc")
     );
-    assert_eq!(
-        bijux_dna_infra::PIPELINE_RUN_DIR_TEMPLATE,
-        "{pipeline_id}/{sample_id}/{run_id}"
-    );
+    assert_eq!(bijux_dna_infra::PIPELINE_RUN_DIR_TEMPLATE, "{pipeline_id}/{sample_id}/{run_id}");
 }

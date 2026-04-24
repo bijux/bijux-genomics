@@ -50,31 +50,17 @@ pub fn execute_step(
     let out_dir = &step.out_dir;
     bijux_dna_infra::ensure_dir(out_dir)
         .map_err(|err| runner_failure(RunnerEffectKind::Filesystem, err.to_string()))?;
-    let inputs: Vec<PathBuf> = step
-        .io
-        .inputs
-        .iter()
-        .map(|input| input.path.clone())
-        .collect();
+    let inputs: Vec<PathBuf> = step.io.inputs.iter().map(|input| input.path.clone()).collect();
     let input_root = common_parent(&inputs).unwrap_or_else(|| out_dir.clone());
     let outcome = execute_step_outcome(step, runner, &inputs, &input_root, out_dir, timeout)?;
 
-    let outputs: Vec<PathBuf> = step
-        .io
-        .outputs
-        .iter()
-        .map(|output| output.path.clone())
-        .collect();
+    let outputs: Vec<PathBuf> = step.io.outputs.iter().map(|output| output.path.clone()).collect();
     let input_hashes = hash_inputs(&inputs)?;
     let output_hashes = hash_inputs(&outputs)?;
     let params_fingerprint =
         parameters_fingerprint(&serde_json::json!({ "command": step.command.template }))?;
     let input_fingerprint = input_fingerprint(&input_hashes);
-    let env_digest = step
-        .image
-        .digest
-        .clone()
-        .unwrap_or_else(|| step.image.image.clone());
+    let env_digest = step.image.digest.clone().unwrap_or_else(|| step.image.image.clone());
     let _cache_key = CacheKey::new(
         input_fingerprint,
         params_fingerprint.clone(),

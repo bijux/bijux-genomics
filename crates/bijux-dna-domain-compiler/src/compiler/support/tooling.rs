@@ -25,16 +25,10 @@ pub(crate) fn validate_tool_output_subset(
     if parsed_tool.outputs.is_empty() {
         return Ok(());
     }
-    let output_names = parsed_tool
-        .outputs
-        .iter()
-        .map(|entry| entry.name.as_str())
-        .collect::<BTreeSet<_>>();
+    let output_names =
+        parsed_tool.outputs.iter().map(|entry| entry.name.as_str()).collect::<BTreeSet<_>>();
     if output_names.is_empty() {
-        bail!(
-            "{} outputs section must include named outputs",
-            tool_path.display()
-        );
+        bail!("{} outputs section must include named outputs", tool_path.display());
     }
     let mut stage_outputs = BTreeSet::new();
     for (stage_id, stage_raw) in stage_specs {
@@ -71,10 +65,7 @@ fn parse_git_checkout_pin(recipe: &str) -> Option<String> {
         let Some((_, rhs)) = trimmed.split_once("git checkout ") else {
             continue;
         };
-        let commit = rhs
-            .chars()
-            .take_while(char::is_ascii_hexdigit)
-            .collect::<String>();
+        let commit = rhs.chars().take_while(char::is_ascii_hexdigit).collect::<String>();
         if commit.len() == 40 {
             return Some(format!("git:{commit}"));
         }

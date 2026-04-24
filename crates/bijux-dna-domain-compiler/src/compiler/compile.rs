@@ -28,10 +28,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         if tools.keys().any(|tool_id| tool_id.starts_with("vcf.")) {
             bail!("pre_hpc_pre_vcf scope must not include VCF tools in generated configs");
         }
-        if stage_to_tools
-            .keys()
-            .any(|stage_id| stage_id.starts_with("vcf."))
-        {
+        if stage_to_tools.keys().any(|stage_id| stage_id.starts_with("vcf.")) {
             bail!("pre_hpc_pre_vcf scope must not include VCF stages in generated configs");
         }
     }
@@ -74,11 +71,8 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
     ensure_no_placeholders_in_active_config("required_tools.toml", &registries.required_tools)?;
     write_string(&tool_registry_path, &registries.production_registry)
         .with_context(|| format!("write {}", tool_registry_path.display()))?;
-    write_string(
-        &experimental_registry_path,
-        &registries.experimental_registry,
-    )
-    .with_context(|| format!("write {}", experimental_registry_path.display()))?;
+    write_string(&experimental_registry_path, &registries.experimental_registry)
+        .with_context(|| format!("write {}", experimental_registry_path.display()))?;
     write_string(&required_tools_path, &registries.required_tools)
         .with_context(|| format!("write {}", required_tools_path.display()))?;
 

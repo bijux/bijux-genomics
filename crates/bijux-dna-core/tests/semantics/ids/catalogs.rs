@@ -44,11 +44,7 @@ fn stage_catalog_constants_keep_domain_prefixes() {
         id_catalog::BAM_MARKDUP,
         id_catalog::BAM_COVERAGE,
     ];
-    let vcf_stages = [
-        id_catalog::VCF_CALL,
-        id_catalog::VCF_FILTER,
-        id_catalog::VCF_STATS,
-    ];
+    let vcf_stages = [id_catalog::VCF_CALL, id_catalog::VCF_FILTER, id_catalog::VCF_STATS];
 
     for stage in fastq_stages {
         assert!(stage.starts_with(id_catalog::FASTQ_PREFIX));

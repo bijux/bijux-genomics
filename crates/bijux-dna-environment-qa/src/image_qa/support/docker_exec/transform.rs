@@ -35,11 +35,8 @@ pub fn run_tool_container_with_timeout(
     push_arg(&mut cmd, &mut args, output_mount);
     push_arg(&mut cmd, &mut args, image.full_name.clone());
 
-    let r1_name = r1
-        .file_name()
-        .ok_or_else(|| anyhow!("r1 filename missing"))?
-        .to_string_lossy()
-        .to_string();
+    let r1_name =
+        r1.file_name().ok_or_else(|| anyhow!("r1 filename missing"))?.to_string_lossy().to_string();
     let input_path = format!("/data/input/{r1_name}");
     let out_fastq = match tool {
         "fastp" => {
@@ -143,11 +140,7 @@ pub fn run_tool_container_with_timeout(
         "rcorrector" => {
             push_arg(&mut cmd, &mut args, "sh");
             push_arg(&mut cmd, &mut args, "-lc");
-            push_arg(
-                &mut cmd,
-                &mut args,
-                format!("rcorrector -s {input_path} -od /data/output"),
-            );
+            push_arg(&mut cmd, &mut args, format!("rcorrector -s {input_path} -od /data/output"));
             None
         }
         "umi_tools" => {
@@ -175,13 +168,7 @@ pub fn run_tool_container_with_timeout(
     let stdout = docker_logs(&id)?;
     let stderr = String::new();
     let command = command_string(&args);
-    Ok(ExecutionOutput {
-        exit_code,
-        stdout,
-        stderr,
-        output_fastq: out_fastq,
-        command,
-    })
+    Ok(ExecutionOutput { exit_code, stdout, stderr, output_fastq: out_fastq, command })
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
@@ -205,9 +192,8 @@ pub fn run_trim_container_with_timeout(
             container_name,
             timeout,
         )?;
-        let output_r1 = execution
-            .output_fastq
-            .ok_or_else(|| anyhow!("output FASTQ missing for {tool}"))?;
+        let output_r1 =
+            execution.output_fastq.ok_or_else(|| anyhow!("output FASTQ missing for {tool}"))?;
         return Ok(TrimExecutionOutput {
             exit_code: execution.exit_code,
             stdout: execution.stdout,
@@ -235,16 +221,10 @@ pub fn run_trim_container_with_timeout(
     push_arg(&mut cmd, &mut args, output_mount);
     push_arg(&mut cmd, &mut args, image.full_name.clone());
 
-    let r1_name = r1
-        .file_name()
-        .ok_or_else(|| anyhow!("r1 filename missing"))?
-        .to_string_lossy()
-        .to_string();
-    let r2_name = r2
-        .file_name()
-        .ok_or_else(|| anyhow!("r2 filename missing"))?
-        .to_string_lossy()
-        .to_string();
+    let r1_name =
+        r1.file_name().ok_or_else(|| anyhow!("r1 filename missing"))?.to_string_lossy().to_string();
+    let r2_name =
+        r2.file_name().ok_or_else(|| anyhow!("r2 filename missing"))?.to_string_lossy().to_string();
     let input_r1 = format!("/data/input/{r1_name}");
     let input_r2 = format!("/data/input/{r2_name}");
 

@@ -47,12 +47,7 @@ pub(crate) fn discover_qa_datasets() -> Result<Vec<QaDataset>> {
                 r1_dir: path.clone(),
                 input_hash_r1: String::new(),
                 input_hash_r2: None,
-                input_stats_r1: SeqkitMetrics {
-                    reads: 0,
-                    bases: 0,
-                    mean_q: 0.0,
-                    gc_percent: 0.0,
-                },
+                input_stats_r1: SeqkitMetrics { reads: 0, bases: 0, mean_q: 0.0, gc_percent: 0.0 },
                 input_stats_r2: None,
             });
         } else if path.is_file() && is_fastq_gz(&path) {
@@ -69,12 +64,7 @@ pub(crate) fn discover_qa_datasets() -> Result<Vec<QaDataset>> {
                 r1_dir: r1_dir.to_path_buf(),
                 input_hash_r1: String::new(),
                 input_hash_r2: None,
-                input_stats_r1: SeqkitMetrics {
-                    reads: 0,
-                    bases: 0,
-                    mean_q: 0.0,
-                    gc_percent: 0.0,
-                },
+                input_stats_r1: SeqkitMetrics { reads: 0, bases: 0, mean_q: 0.0, gc_percent: 0.0 },
                 input_stats_r2: None,
             });
         }
@@ -91,10 +81,7 @@ fn discover_canonical_datasets(root: &Path) -> Result<Vec<QaDataset>> {
     let pe_r1 = root.join("BIJUX_PE_R1.fastq.gz");
     let pe_r2 = root.join("BIJUX_PE_R2.fastq.gz");
     if !se.exists() || !pe_r1.exists() || !pe_r2.exists() {
-        return Err(anyhow!(
-            "canonical FASTQ dataset missing in {}",
-            root.display()
-        ));
+        return Err(anyhow!("canonical FASTQ dataset missing in {}", root.display()));
     }
     Ok(vec![
         QaDataset {
@@ -104,12 +91,7 @@ fn discover_canonical_datasets(root: &Path) -> Result<Vec<QaDataset>> {
             r1_dir: root.to_path_buf(),
             input_hash_r1: String::new(),
             input_hash_r2: None,
-            input_stats_r1: SeqkitMetrics {
-                reads: 0,
-                bases: 0,
-                mean_q: 0.0,
-                gc_percent: 0.0,
-            },
+            input_stats_r1: SeqkitMetrics { reads: 0, bases: 0, mean_q: 0.0, gc_percent: 0.0 },
             input_stats_r2: None,
         },
         QaDataset {
@@ -119,19 +101,12 @@ fn discover_canonical_datasets(root: &Path) -> Result<Vec<QaDataset>> {
             r1_dir: root.to_path_buf(),
             input_hash_r1: String::new(),
             input_hash_r2: None,
-            input_stats_r1: SeqkitMetrics {
-                reads: 0,
-                bases: 0,
-                mean_q: 0.0,
-                gc_percent: 0.0,
-            },
+            input_stats_r1: SeqkitMetrics { reads: 0, bases: 0, mean_q: 0.0, gc_percent: 0.0 },
             input_stats_r2: None,
         },
     ])
 }
 
 fn is_fastq_gz(path: &Path) -> bool {
-    path.extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
+    path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| ext.eq_ignore_ascii_case("gz"))
 }

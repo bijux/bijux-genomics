@@ -9,9 +9,7 @@ fn validate_symbolic_id_str(kind: &str, id: &str) -> Result<()> {
     let allowed =
         |c: char| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '.' || c == '-' || c == '_';
     if !id.chars().all(allowed) {
-        return Err(BijuxError::validation(format!(
-            "{kind} contains invalid characters"
-        )));
+        return Err(BijuxError::validation(format!("{kind} contains invalid characters")));
     }
     Ok(())
 }

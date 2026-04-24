@@ -33,10 +33,7 @@ pub(super) fn prepare_reference_indices(
     if request.build_bowtie2_index && !bowtie2_prefix.with_extension("1.bt2").exists() {
         commands::run_command(
             "bowtie2-build",
-            &[
-                fasta_target.to_str().unwrap_or(""),
-                bowtie2_prefix.to_str().unwrap_or(""),
-            ],
+            &[fasta_target.to_str().unwrap_or(""), bowtie2_prefix.to_str().unwrap_or("")],
         )?;
     }
     Ok(())

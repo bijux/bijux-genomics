@@ -92,20 +92,9 @@ fn cancellation_token_and_engine_event_shapes_are_stable() {
     assert!(token.is_cancelled());
     assert!(!CancellationToken::default().is_cancelled());
 
-    let start = EngineEvent::StepStart {
-        step_id: StepId::new("A"),
-        attempt: 0,
-    };
-    let end = EngineEvent::StepEnd {
-        step_id: StepId::new("A"),
-        attempt: 0,
-        success: true,
-    };
-    let retry = EngineEvent::Retry {
-        step_id: StepId::new("A"),
-        attempt: 1,
-        exit_code: 1,
-    };
+    let start = EngineEvent::StepStart { step_id: StepId::new("A"), attempt: 0 };
+    let end = EngineEvent::StepEnd { step_id: StepId::new("A"), attempt: 0, success: true };
+    let retry = EngineEvent::Retry { step_id: StepId::new("A"), attempt: 1, exit_code: 1 };
     let verified = EngineEvent::ArtifactVerified {
         step_id: StepId::new("A"),
         path: "out/file.json".to_string(),
@@ -128,13 +117,7 @@ fn execute_plan_handles_cancel_before_and_during_retry() {
     let cancelled = CancellationToken::new();
     cancelled.cancel();
     let before_err = engine
-        .execute(
-            &plan,
-            &ScenarioRunner::new(Mode::Success),
-            &layout,
-            None,
-            Some(&cancelled),
-        )
+        .execute(&plan, &ScenarioRunner::new(Mode::Success), &layout, None, Some(&cancelled))
         .err()
         .unwrap_or_else(|| panic!("expected cancellation before execution"));
     assert!(before_err.to_string().contains("cancelled before"));
@@ -142,10 +125,8 @@ fn execute_plan_handles_cancel_before_and_during_retry() {
     let during = CancellationToken::new();
     let mut runner = ScenarioRunner::new(Mode::FailOnceThenSuccess);
     runner.cancel_on_first_attempt = Some(during.clone());
-    let retry_plan = plan.with_retry_policy(RetryPolicy {
-        max_attempts: 2,
-        retry_on_exit_codes: vec![1],
-    });
+    let retry_plan =
+        plan.with_retry_policy(RetryPolicy { max_attempts: 2, retry_on_exit_codes: vec![1] });
     let during_err = engine
         .execute(&retry_plan, &runner, &layout, None, Some(&during))
         .err()
@@ -177,13 +158,7 @@ fn execute_plan_reports_timeout_and_contract_errors() {
         retry_policy: None,
         max_parallelism: None,
     })
-    .execute(
-        &graph,
-        &ScenarioRunner::new(Mode::Timeout),
-        &layout,
-        None,
-        None,
-    )
+    .execute(&graph, &ScenarioRunner::new(Mode::Timeout), &layout, None, None)
     .err()
     .unwrap_or_else(|| panic!("expected timeout error"));
     assert!(timeout_err.to_string().contains("exceeded timeout"));
@@ -204,22 +179,12 @@ fn execute_plan_reports_timeout_and_contract_errors() {
         .execute(&graph, &invalid_metrics_runner, &layout, None, None)
         .err()
         .unwrap_or_else(|| panic!("expected parse error for metrics output"));
-    assert!(invalid_metrics_err
-        .to_string()
-        .contains("metrics output not parseable"));
+    assert!(invalid_metrics_err.to_string().contains("metrics output not parseable"));
 
     let metrics_graph = make_graph(true);
     let missing_envelope_err = Engine::default()
-        .execute(
-            &metrics_graph,
-            &ScenarioRunner::new(Mode::Success),
-            &layout,
-            None,
-            None,
-        )
+        .execute(&metrics_graph, &ScenarioRunner::new(Mode::Success), &layout, None, None)
         .err()
         .unwrap_or_else(|| panic!("expected missing metrics_envelope contract error"));
-    assert!(missing_envelope_err
-        .to_string()
-        .contains("missing metrics_envelope.json"));
+    assert!(missing_envelope_err.to_string().contains("missing metrics_envelope.json"));
 }

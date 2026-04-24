@@ -81,11 +81,7 @@ pub(super) fn collect_domain_data(
     for tool in tools.values() {
         for stage in &tool.stage_ids {
             if !stage_to_tools.contains_key(stage) {
-                return Err(anyhow!(
-                    "tool {} references unknown stage {}",
-                    tool.id,
-                    stage
-                ));
+                return Err(anyhow!("tool {} references unknown stage {}", tool.id, stage));
             }
         }
     }

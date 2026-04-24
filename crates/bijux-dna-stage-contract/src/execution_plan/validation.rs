@@ -28,16 +28,10 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
             return Err(anyhow!("duplicate stage node id in plan: {node_id}"));
         }
         if stage.io.inputs.is_empty() {
-            return Err(anyhow!(
-                "stage {} missing declared inputs",
-                stage.stage_id.0
-            ));
+            return Err(anyhow!("stage {} missing declared inputs", stage.stage_id.0));
         }
         if stage.io.outputs.is_empty() {
-            return Err(anyhow!(
-                "stage {} missing declared outputs",
-                stage.stage_id.0
-            ));
+            return Err(anyhow!("stage {} missing declared outputs", stage.stage_id.0));
         }
         if stage.resources.mem_gb == 0 || stage.resources.threads == 0 {
             return Err(anyhow!("stage {} missing resource hints", stage.stage_id.0));
@@ -55,28 +49,26 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
                 edge.to()
             ));
         }
-        let from_stage = plan
-            .stages()
-            .iter()
-            .find(|stage| stage_node_id(stage) == edge.from())
-            .ok_or_else(|| {
-                anyhow!(
-                    "plan edge {} -> {} could not resolve source stage after validation",
-                    edge.from(),
-                    edge.to()
-                )
-            })?;
-        let to_stage = plan
-            .stages()
-            .iter()
-            .find(|stage| stage_node_id(stage) == edge.to())
-            .ok_or_else(|| {
-                anyhow!(
-                    "plan edge {} -> {} could not resolve target stage after validation",
-                    edge.from(),
-                    edge.to()
-                )
-            })?;
+        let from_stage =
+            plan.stages().iter().find(|stage| stage_node_id(stage) == edge.from()).ok_or_else(
+                || {
+                    anyhow!(
+                        "plan edge {} -> {} could not resolve source stage after validation",
+                        edge.from(),
+                        edge.to()
+                    )
+                },
+            )?;
+        let to_stage =
+            plan.stages().iter().find(|stage| stage_node_id(stage) == edge.to()).ok_or_else(
+                || {
+                    anyhow!(
+                        "plan edge {} -> {} could not resolve target stage after validation",
+                        edge.from(),
+                        edge.to()
+                    )
+                },
+            )?;
         match (edge.from_output_id(), edge.to_input_id()) {
             (Some(from_output_id), Some(to_input_id)) => {
                 if !from_stage
@@ -117,12 +109,7 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
 }
 
 fn stage_input_binding_exists(to_stage: &StagePlanV1, to_input_id: &str) -> bool {
-    if to_stage
-        .io
-        .inputs
-        .iter()
-        .any(|artifact| artifact.name.as_str() == to_input_id)
-    {
+    if to_stage.io.inputs.iter().any(|artifact| artifact.name.as_str() == to_input_id) {
         return true;
     }
     to_stage.stage_id.as_str() == id_catalog::FASTQ_QC_POST
@@ -133,10 +120,7 @@ fn stage_input_binding_exists(to_stage: &StagePlanV1, to_input_id: &str) -> bool
 fn ensure_plan_is_dag(id_catalog: &HashSet<String>, edges: &[(String, String)]) -> Result<()> {
     let mut adjacency: BTreeMap<&str, Vec<&str>> = BTreeMap::new();
     for (from, to) in edges {
-        adjacency
-            .entry(from.as_str())
-            .or_default()
-            .push(to.as_str());
+        adjacency.entry(from.as_str()).or_default().push(to.as_str());
     }
     let mut visiting = HashSet::new();
     let mut visited = HashSet::new();

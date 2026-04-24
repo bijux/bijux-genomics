@@ -1,19 +1,12 @@
 use super::{BTreeMap, ThresholdBand};
 
 pub(crate) fn toml_array(values: &[String]) -> String {
-    let joined = values
-        .iter()
-        .map(|value| format!("\"{value}\""))
-        .collect::<Vec<_>>()
-        .join(", ");
+    let joined = values.iter().map(|value| format!("\"{value}\"")).collect::<Vec<_>>().join(", ");
     format!("[{joined}]")
 }
 
 pub(crate) fn encode_f64_map(map: &BTreeMap<String, f64>) -> String {
-    let mut items = map
-        .iter()
-        .map(|(key, value)| format!("{key}:{value}"))
-        .collect::<Vec<_>>();
+    let mut items = map.iter().map(|(key, value)| format!("{key}:{value}")).collect::<Vec<_>>();
     items.sort();
     toml_array(&items)
 }

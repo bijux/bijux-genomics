@@ -15,18 +15,12 @@ fn engine_has_no_runner_dependency() {
         .iter()
         .find(|pkg| pkg.name == "bijux-dna-runner")
         .unwrap_or_else(|| panic!("bijux-dna-runner missing"));
-    let resolve = metadata
-        .resolve
-        .as_ref()
-        .unwrap_or_else(|| panic!("resolve graph missing"));
+    let resolve = metadata.resolve.as_ref().unwrap_or_else(|| panic!("resolve graph missing"));
     let node = resolve
         .nodes
         .iter()
         .find(|node| node.id == engine.id)
         .unwrap_or_else(|| panic!("engine node missing"));
     let has_edge = node.deps.iter().any(|dep| dep.pkg == runner.id);
-    assert!(
-        !has_edge,
-        "bijux-dna-engine must not depend on bijux-dna-runner"
-    );
+    assert!(!has_edge, "bijux-dna-engine must not depend on bijux-dna-runner");
 }

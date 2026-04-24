@@ -2,8 +2,8 @@ use std::collections::{BTreeMap, HashSet};
 use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
-use std::fmt::Write as _;
 use sha2::Digest;
+use std::fmt::Write as _;
 
 use crate::contract::{ContractVersion, StageIO, ToolConstraints};
 use crate::foundation::{BijuxError, CommandSpecV1, ContainerImageRefV1, Result};
@@ -44,12 +44,7 @@ pub struct ExecutionEdge {
 impl ExecutionEdge {
     #[must_use]
     pub fn new(from: StepId, to: StepId) -> Self {
-        Self {
-            from,
-            to,
-            from_output_id: None,
-            to_input_id: None,
-        }
+        Self { from, to, from_output_id: None, to_input_id: None }
     }
 
     #[must_use]
@@ -59,12 +54,7 @@ impl ExecutionEdge {
         from_output_id: ArtifactId,
         to_input_id: ArtifactId,
     ) -> Self {
-        Self {
-            from,
-            to,
-            from_output_id: Some(from_output_id),
-            to_input_id: Some(to_input_id),
-        }
+        Self { from, to, from_output_id: Some(from_output_id), to_input_id: Some(to_input_id) }
     }
 
     #[must_use]
@@ -159,9 +149,7 @@ impl ExecutionGraph {
 
     #[must_use]
     pub fn step_by_id(&self, step_id: &str) -> Option<&ExecutionStep> {
-        self.steps
-            .iter()
-            .find(|step| step.step_id.as_str() == step_id)
+        self.steps.iter().find(|step| step.step_id.as_str() == step_id)
     }
 
     /// # Errors
@@ -175,10 +163,7 @@ impl ExecutionGraph {
         }
         for edge in &self.edges {
             *incoming.entry(edge.to().as_str()).or_insert(0) += 1;
-            outgoing
-                .entry(edge.from().as_str())
-                .or_default()
-                .push(edge.to().as_str());
+            outgoing.entry(edge.from().as_str()).or_default().push(edge.to().as_str());
         }
         let mut ready = incoming
             .iter()
@@ -316,14 +301,10 @@ pub fn lint_execution_graph(graph: &ExecutionGraph) -> Result<()> {
 
 fn validate_graph_identity(graph: &ExecutionGraph) -> Result<()> {
     if graph.pipeline_id.as_str().trim().is_empty() {
-        return Err(BijuxError::validation(
-            "execution graph pipeline_id is empty",
-        ));
+        return Err(BijuxError::validation("execution graph pipeline_id is empty"));
     }
     if graph.planner_version.trim().is_empty() {
-        return Err(BijuxError::validation(
-            "execution graph planner_version is empty",
-        ));
+        return Err(BijuxError::validation("execution graph planner_version is empty"));
     }
     Ok(())
 }
@@ -340,34 +321,19 @@ fn validate_graph_steps(graph: &ExecutionGraph) -> Result<BTreeMap<&str, &Execut
 
 fn validate_graph_step(step: &ExecutionStep, step_ids: &mut HashSet<String>) -> Result<()> {
     if !step_ids.insert(step.step_id.to_string()) {
-        return Err(BijuxError::validation(format!(
-            "duplicate step id {}",
-            step.step_id.0
-        )));
+        return Err(BijuxError::validation(format!("duplicate step id {}", step.step_id.0)));
     }
     if step.stage_id.as_str().trim().is_empty() {
-        return Err(BijuxError::validation(format!(
-            "step {} missing stage_id",
-            step.step_id.0
-        )));
+        return Err(BijuxError::validation(format!("step {} missing stage_id", step.step_id.0)));
     }
     if step.command.template.is_empty() {
-        return Err(BijuxError::validation(format!(
-            "step {} missing command",
-            step.step_id.0
-        )));
+        return Err(BijuxError::validation(format!("step {} missing command", step.step_id.0)));
     }
     if step.image.image.trim().is_empty() {
-        return Err(BijuxError::validation(format!(
-            "step {} missing image",
-            step.step_id.0
-        )));
+        return Err(BijuxError::validation(format!("step {} missing image", step.step_id.0)));
     }
     if step.io.inputs.is_empty() || step.io.outputs.is_empty() {
-        return Err(BijuxError::validation(format!(
-            "step {} missing IO",
-            step.step_id.0
-        )));
+        return Err(BijuxError::validation(format!("step {} missing IO", step.step_id.0)));
     }
     let mut artifacts = HashSet::new();
     for artifact in step.io.inputs.iter().chain(step.io.outputs.iter()) {
@@ -422,12 +388,7 @@ fn validate_graph_edges(
         })?;
         match (edge.from_output_id(), edge.to_input_id()) {
             (Some(from_output_id), Some(to_input_id)) => {
-                if !from_step
-                    .io
-                    .outputs
-                    .iter()
-                    .any(|artifact| artifact.name == *from_output_id)
-                {
+                if !from_step.io.outputs.iter().any(|artifact| artifact.name == *from_output_id) {
                     return Err(BijuxError::validation(format!(
                         "edge {} -> {} references unknown output artifact {}",
                         edge.from().as_str(),
@@ -458,12 +419,7 @@ fn validate_graph_edges(
 }
 
 fn step_input_binding_exists(step: &ExecutionStep, input_id: &str) -> bool {
-    if step
-        .io
-        .inputs
-        .iter()
-        .any(|artifact| artifact.name.as_str() == input_id)
-    {
+    if step.io.inputs.iter().any(|artifact| artifact.name.as_str() == input_id) {
         return true;
     }
     step.stage_id.as_str() == id_catalog::FASTQ_QC_POST
@@ -521,9 +477,7 @@ mod tests {
         ExecutionStep {
             step_id: StepId::new(step_id.to_string()),
             stage_id: StageId::new(stage_id.to_string()),
-            command: CommandSpecV1 {
-                template: vec!["tool".to_string()],
-            },
+            command: CommandSpecV1 { template: vec!["tool".to_string()] },
             image: ContainerImageRefV1 {
                 image: "img".to_string(),
                 digest: Some("sha256:test".to_string()),
@@ -559,10 +513,7 @@ mod tests {
         )
         .unwrap_or_else(|err| panic!("graph should be valid: {err}"));
         assert_eq!(
-            graph
-                .step_by_id("a")
-                .unwrap_or_else(|| panic!("expected step a"))
-                .stage_id,
+            graph.step_by_id("a").unwrap_or_else(|| panic!("expected step a")).stage_id,
             StageId::from_static(id_catalog::FASTQ_VALIDATE_READS)
         );
         assert!(graph.step_by_id("missing").is_none());
@@ -622,8 +573,6 @@ mod tests {
             Ok(()) => panic!("unknown edges must fail validation"),
             Err(error) => error,
         };
-        assert!(error
-            .to_string()
-            .contains("edge references unknown step: trim -> report"));
+        assert!(error.to_string().contains("edge references unknown step: trim -> report"));
     }
 }

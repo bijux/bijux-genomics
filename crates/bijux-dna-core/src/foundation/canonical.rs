@@ -36,9 +36,7 @@ fn looks_like_uri(value: &str) -> bool {
         return false;
     };
     !scheme.is_empty()
-        && scheme
-            .chars()
-            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '-' | '.'))
+        && scheme.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '+' | '-' | '.'))
 }
 
 fn looks_like_hostname(value: &str) -> bool {
@@ -46,10 +44,8 @@ fn looks_like_hostname(value: &str) -> bool {
 }
 
 fn normalize_sensitive_string(value: &str) -> String {
-    let username = std::env::var("USER")
-        .ok()
-        .or_else(|| std::env::var("USERNAME").ok())
-        .unwrap_or_default();
+    let username =
+        std::env::var("USER").ok().or_else(|| std::env::var("USERNAME").ok()).unwrap_or_default();
     let hostname = std::env::var("HOSTNAME").unwrap_or_default();
     let mut normalized = value.to_string();
     if !username.is_empty() {
@@ -59,9 +55,7 @@ fn normalize_sensitive_string(value: &str) -> String {
         normalized = normalized.replace(&hostname, "<host>");
     }
     if looks_like_hostname(&normalized)
-        && Path::new(&normalized)
-            .extension()
-            .is_some_and(|ext| ext.eq_ignore_ascii_case("local"))
+        && Path::new(&normalized).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("local"))
     {
         return "<host>".to_string();
     }
@@ -84,9 +78,8 @@ fn normalize_path_string(value: &str) -> String {
             }
             Component::CurDir => {}
             Component::ParentDir => {
-                let can_pop = components
-                    .last()
-                    .is_some_and(|part| !part.is_empty() && part != "..");
+                let can_pop =
+                    components.last().is_some_and(|part| !part.is_empty() && part != "..");
                 if can_pop {
                     components.pop();
                 } else if prefix.is_none() && !path.is_absolute() {
@@ -106,10 +99,7 @@ fn normalize_path_string(value: &str) -> String {
         if let Some(stripped) = strip_to_stable_tail(&components) {
             return stripped;
         }
-        return components
-            .last()
-            .cloned()
-            .unwrap_or_else(|| normalized.clone());
+        return components.last().cloned().unwrap_or_else(|| normalized.clone());
     }
     normalized
 }

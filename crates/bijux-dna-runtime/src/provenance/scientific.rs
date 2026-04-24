@@ -44,9 +44,7 @@ pub fn build_scientific_provenance(
     input_hashes.sort();
     input_hashes.dedup();
     tools.sort_by(|left, right| {
-        left.stage_id
-            .cmp(&right.stage_id)
-            .then(left.tool_id.cmp(&right.tool_id))
+        left.stage_id.cmp(&right.stage_id).then(left.tool_id.cmp(&right.tool_id))
     });
     ScientificProvenanceV1 {
         schema_version: "bijux.scientific_provenance.v1".to_string(),

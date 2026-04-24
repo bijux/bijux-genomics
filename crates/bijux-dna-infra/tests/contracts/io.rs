@@ -45,9 +45,6 @@ fn remove_path_if_exists_removes_broken_symlink() -> anyhow::Result<()> {
 
     bijux_dna_infra::remove_path_if_exists(&link)?;
 
-    assert!(
-        std::fs::symlink_metadata(&link).is_err(),
-        "broken symlink should be removed"
-    );
+    assert!(std::fs::symlink_metadata(&link).is_err(), "broken symlink should be removed");
     Ok(())
 }

@@ -93,35 +93,19 @@ pub fn objective_spec(objective: Objective) -> ObjectiveSpec {
     match objective {
         Objective::Speed => ObjectiveSpec {
             name: objective.as_str().to_string(),
-            weights: ObjectiveWeights {
-                runtime: 1.0,
-                memory: 0.0,
-                retention: 0.0,
-            },
+            weights: ObjectiveWeights { runtime: 1.0, memory: 0.0, retention: 0.0 },
         },
         Objective::Memory => ObjectiveSpec {
             name: objective.as_str().to_string(),
-            weights: ObjectiveWeights {
-                runtime: 0.0,
-                memory: 1.0,
-                retention: 0.0,
-            },
+            weights: ObjectiveWeights { runtime: 0.0, memory: 1.0, retention: 0.0 },
         },
         Objective::Retention => ObjectiveSpec {
             name: objective.as_str().to_string(),
-            weights: ObjectiveWeights {
-                runtime: 0.0,
-                memory: 0.0,
-                retention: -1.0,
-            },
+            weights: ObjectiveWeights { runtime: 0.0, memory: 0.0, retention: -1.0 },
         },
         Objective::Balanced => ObjectiveSpec {
             name: objective.as_str().to_string(),
-            weights: ObjectiveWeights {
-                runtime: 1.0,
-                memory: 1.0,
-                retention: -100.0,
-            },
+            weights: ObjectiveWeights { runtime: 1.0, memory: 1.0, retention: -100.0 },
         },
     }
 }
@@ -194,12 +178,7 @@ pub fn select_stage(
     scores.sort_by(|a, b| compare_score(a.score, b.score));
     let selected = scores.first().map(|entry| entry.tool.clone());
 
-    StageSelection {
-        stage: stage.clone(),
-        selected,
-        scores,
-        disqualified,
-    }
+    StageSelection { stage: stage.clone(), selected, scores, disqualified }
 }
 
 fn score_for_objective(
@@ -237,8 +216,5 @@ fn median(values: &[f64]) -> Option<f64> {
 fn read_retention(record: &BenchResultRecord) -> Option<f64> {
     let metrics = record.metrics.as_ref()?;
     let retention = metrics.get("retention")?;
-    retention
-        .get("value")
-        .and_then(serde_json::Value::as_f64)
-        .or_else(|| retention.as_f64())
+    retention.get("value").and_then(serde_json::Value::as_f64).or_else(|| retention.as_f64())
 }

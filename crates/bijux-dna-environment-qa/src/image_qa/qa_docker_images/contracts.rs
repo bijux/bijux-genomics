@@ -24,11 +24,7 @@ struct BufferLogger {
 
 impl BufferLogger {
     fn new(level: LogLevel, quiet: bool) -> Self {
-        Self {
-            level,
-            quiet,
-            lines: Vec::new(),
-        }
+        Self { level, quiet, lines: Vec::new() }
     }
 }
 
@@ -57,11 +53,7 @@ impl CommandRunner for FakeRunner {
 #[test]
 fn image_exists_false_when_docker_fails() -> Result<(), Box<dyn std::error::Error>> {
     let runner = FakeRunner {
-        output: Output {
-            status: exit_status(1),
-            stdout: Vec::new(),
-            stderr: Vec::new(),
-        },
+        output: Output { status: exit_status(1), stdout: Vec::new(), stderr: Vec::new() },
     };
     assert!(!image_exists(&runner, "missing")?);
     Ok(())
@@ -85,11 +77,7 @@ fn run_container_command_captures_stdout() -> Result<(), Box<dyn std::error::Err
 #[test]
 fn run_image_test_reports_missing_image() -> Result<(), Box<dyn std::error::Error>> {
     let runner = FakeRunner {
-        output: Output {
-            status: exit_status(1),
-            stdout: Vec::new(),
-            stderr: Vec::new(),
-        },
+        output: Output { status: exit_status(1), stdout: Vec::new(), stderr: Vec::new() },
     };
     let mut logger = BufferLogger::new(LogLevel::Info, true);
     let plan = ImagePlan {
@@ -100,9 +88,6 @@ fn run_image_test_reports_missing_image() -> Result<(), Box<dyn std::error::Erro
         executable: None,
     };
     let outcome = run_image_test(&runner, &mut logger, &plan)?;
-    assert!(matches!(
-        outcome,
-        ImageTestOutcome::Fail(ImageFailureReason::ImageNotFound)
-    ));
+    assert!(matches!(outcome, ImageTestOutcome::Fail(ImageFailureReason::ImageNotFound)));
     Ok(())
 }

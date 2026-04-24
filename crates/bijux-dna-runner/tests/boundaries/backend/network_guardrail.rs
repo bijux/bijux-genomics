@@ -21,10 +21,7 @@ fn legacy_step_runner_path(root: &Path) -> PathBuf {
 
 fn docker_network_policy_sources(root: &Path) -> Vec<PathBuf> {
     if root.ends_with("step_runner") {
-        return vec![
-            root.join("docker_execution.rs"),
-            root.join("runtime_policy.rs"),
-        ];
+        return vec![root.join("docker_execution.rs"), root.join("runtime_policy.rs")];
     }
     vec![legacy_step_runner_path(root)]
 }
@@ -33,28 +30,16 @@ fn docker_network_policy_sources(root: &Path) -> Vec<PathBuf> {
 fn runner_defaults_to_offline_network_mode() {
     let src_root = step_runner_root();
     let sources = docker_network_policy_sources(&src_root);
-    let content = sources
-        .iter()
-        .map(|path| read(path))
-        .collect::<Vec<_>>()
-        .join("\n");
+    let content = sources.iter().map(|path| read(path)).collect::<Vec<_>>().join("\n");
 
     assert!(
         content.contains("--network") && content.contains("none"),
         "{} must enforce docker --network none by default",
-        sources
-            .iter()
-            .map(|path| path.display().to_string())
-            .collect::<Vec<_>>()
-            .join(", ")
+        sources.iter().map(|path| path.display().to_string()).collect::<Vec<_>>().join(", ")
     );
     assert!(
         content.contains("BIJUX_ALLOW_NETWORK"),
         "{} must support explicit BIJUX_ALLOW_NETWORK override",
-        sources
-            .iter()
-            .map(|path| path.display().to_string())
-            .collect::<Vec<_>>()
-            .join(", ")
+        sources.iter().map(|path| path.display().to_string()).collect::<Vec<_>>().join(", ")
     );
 }

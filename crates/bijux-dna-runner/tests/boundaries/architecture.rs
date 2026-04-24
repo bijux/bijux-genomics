@@ -16,20 +16,14 @@ fn runner_has_no_engine_dependency() {
         .iter()
         .find(|pkg| pkg.name == "bijux-dna-engine")
         .unwrap_or_else(|| panic!("bijux-dna-engine missing"));
-    let resolve = metadata
-        .resolve
-        .as_ref()
-        .unwrap_or_else(|| panic!("resolve graph missing"));
+    let resolve = metadata.resolve.as_ref().unwrap_or_else(|| panic!("resolve graph missing"));
     let node = resolve
         .nodes
         .iter()
         .find(|node| node.id == runner.id)
         .unwrap_or_else(|| panic!("runner node missing"));
     let has_edge = node.deps.iter().any(|dep| dep.pkg == engine.id);
-    assert!(
-        !has_edge,
-        "bijux-dna-runner must not depend on bijux-dna-engine"
-    );
+    assert!(!has_edge, "bijux-dna-runner must not depend on bijux-dna-engine");
 }
 
 #[test]
@@ -38,22 +32,12 @@ fn runner_tree_matches_architecture_contract() {
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
 
     let root_entries = dir_entries(&root);
-    let expected_root: BTreeSet<_> = [
-        "BOUNDARY.md",
-        "Cargo.toml",
-        "PUBLIC_API.md",
-        "README.md",
-        "docs/",
-        "src/",
-        "tests/",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
-    assert_eq!(
-        root_entries, expected_root,
-        "runner crate root must stay minimal and intentional"
-    );
+    let expected_root: BTreeSet<_> =
+        ["BOUNDARY.md", "Cargo.toml", "PUBLIC_API.md", "README.md", "docs/", "src/", "tests/"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(root_entries, expected_root, "runner crate root must stay minimal and intentional");
 
     let src_entries = dir_entries(&root.join("src"));
     let expected_src: BTreeSet<_> = [
@@ -69,50 +53,31 @@ fn runner_tree_matches_architecture_contract() {
     .into_iter()
     .map(str::to_string)
     .collect();
-    assert_eq!(
-        src_entries, expected_src,
-        "runner src tree must match the documented architecture"
-    );
+    assert_eq!(src_entries, expected_src, "runner src tree must match the documented architecture");
 
     let command_runner_entries = dir_entries(&root.join("src/command_runner"));
-    let expected_command_runner: BTreeSet<_> = [
-        "command_line.rs",
-        "command_output.rs",
-        "invocation_identity.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_command_runner: BTreeSet<_> =
+        ["command_line.rs", "command_output.rs", "invocation_identity.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(
         command_runner_entries, expected_command_runner,
         "runner command_runner support tree must stay minimal"
     );
 
     let public_api_entries = dir_entries(&root.join("src/public_api"));
-    let expected_public_api: BTreeSet<_> = ["mod.rs", "stable_surface.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
-    assert_eq!(
-        public_api_entries, expected_public_api,
-        "runner public api tree must stay curated"
-    );
+    let expected_public_api: BTreeSet<_> =
+        ["mod.rs", "stable_surface.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(public_api_entries, expected_public_api, "runner public api tree must stay curated");
 
     let backend_entries = dir_entries(&root.join("src/backend"));
-    let expected_backend: BTreeSet<_> = [
-        "docker/",
-        "facade.rs",
-        "kinds.rs",
-        "mod.rs",
-        "stable_surface.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
-    assert_eq!(
-        backend_entries, expected_backend,
-        "runner backend tree must stay focused"
-    );
+    let expected_backend: BTreeSet<_> =
+        ["docker/", "facade.rs", "kinds.rs", "mod.rs", "stable_surface.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(backend_entries, expected_backend, "runner backend tree must stay focused");
 
     let docker_entries = dir_entries(&root.join("src/backend/docker"));
     let expected_docker: BTreeSet<_> = [
@@ -156,10 +121,8 @@ fn runner_tree_matches_architecture_contract() {
     );
 
     let runner_driver_entries = dir_entries(&root.join("src/runner_driver"));
-    let expected_runner_driver: BTreeSet<_> = ["artifact_collection.rs", "mod.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_runner_driver: BTreeSet<_> =
+        ["artifact_collection.rs", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         runner_driver_entries, expected_runner_driver,
         "runner driver tree must keep artifact collection separate from driver orchestration"

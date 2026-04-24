@@ -56,11 +56,7 @@ pub(super) fn build_observer_command_args(
             ];
             command_args.push(image.to_string());
             command_args.extend(args.iter().cloned());
-            let bin = if runner == RuntimeKind::Apptainer {
-                "apptainer"
-            } else {
-                "singularity"
-            };
+            let bin = if runner == RuntimeKind::Apptainer { "apptainer" } else { "singularity" };
             (bin, command_args)
         }
     }

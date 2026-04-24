@@ -80,10 +80,7 @@ pub(super) fn load_domain_tools(
             .to_string();
         for stage in &tool.stage_ids {
             if stage.split('.').next() == Some(resolved_domain.as_str()) {
-                stage_to_tools
-                    .entry(stage.clone())
-                    .or_default()
-                    .insert(tool.tool_id.clone());
+                stage_to_tools.entry(stage.clone()).or_default().insert(tool.tool_id.clone());
             }
         }
         let tool_id = tool.tool_id.clone();

@@ -26,10 +26,7 @@ impl MetricProvenanceV1 {
             && !self.tool_version.trim().is_empty()
             && !self.params_hash.trim().is_empty()
             && !self.input_artifact_hashes.is_empty()
-            && self
-                .input_artifact_hashes
-                .iter()
-                .all(|hash| !hash.trim().is_empty())
+            && self.input_artifact_hashes.iter().all(|hash| !hash.trim().is_empty())
     }
 }
 
