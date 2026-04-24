@@ -30,7 +30,7 @@ invariants:
 allowed_missingness:
   - "none"
 compatible_tools:
-  - samtools
+  - gatk
 defaults_source: "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "default stage assumptions captured"

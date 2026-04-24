@@ -99,7 +99,7 @@ stage_tool_compatibility:
   bam.bias_mitigation:
   - samtools
   bam.complexity:
-  - samtools
+  - preseq
   bam.contamination:
   - schmutzi
   - verifybamid2
@@ -126,9 +126,9 @@ stage_tool_compatibility:
   bam.gc_bias:
   - picard
   bam.genotyping:
-  - samtools
+  - gatk
   bam.haplogroups:
-  - samtools
+  - yleaf
   bam.insert_size:
   - picard
   bam.kinship:
@@ -150,7 +150,7 @@ stage_tool_compatibility:
   bam.qc_pre:
   - samtools
   bam.recalibration:
-  - samtools
+  - gatk
   bam.sex:
   - rxy
   - yleaf
@@ -170,7 +170,7 @@ stage_tool_integration:
   bam.bias_mitigation:
     samtools: governed_contract
   bam.complexity:
-    samtools: governed_contract
+    preseq: governed_contract
   bam.contamination:
     contammix: governed_contract
     schmutzi: governed_contract
@@ -197,9 +197,9 @@ stage_tool_integration:
   bam.gc_bias:
     picard: governed_contract
   bam.genotyping:
-    samtools: governed_contract
+    gatk: governed_contract
   bam.haplogroups:
-    samtools: governed_contract
+    yleaf: governed_contract
   bam.insert_size:
     picard: governed_contract
   bam.kinship:
@@ -221,7 +221,7 @@ stage_tool_integration:
   bam.qc_pre:
     samtools: governed_contract
   bam.recalibration:
-    samtools: governed_contract
+    gatk: governed_contract
   bam.sex:
     angsd: governed_contract
     rxy: governed_contract
