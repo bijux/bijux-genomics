@@ -47,28 +47,16 @@ pub(super) fn capture_tool_version(
             let output = bijux_dna_runner::command_runner::run_command(tool_bin, &args);
             let (ok, raw) = match output {
                 Ok(out) => {
-                    let raw = if out.stdout.is_empty() {
-                        out.stderr
-                    } else {
-                        out.stdout
-                    };
+                    let raw = if out.stdout.is_empty() { out.stderr } else { out.stdout };
                     (out.exit_code == 0, raw)
                 }
                 Err(err) => (false, format!("failed to execute --version: {err}")),
             };
             (tool_bin, ok, raw)
         } else {
-            (
-                "",
-                false,
-                "tool command not declared in execution template".to_string(),
-            )
+            ("", false, "tool command not declared in execution template".to_string())
         };
-    let line = raw
-        .lines()
-        .find(|x| !x.trim().is_empty())
-        .unwrap_or("")
-        .trim();
+    let line = raw.lines().find(|x| !x.trim().is_empty()).unwrap_or("").trim();
     let tokenized = line
         .split(|c: char| c.is_whitespace() || c == ',' || c == ';' || c == '(' || c == ')')
         .filter(|x| !x.trim().is_empty())

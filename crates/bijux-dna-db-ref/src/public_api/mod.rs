@@ -1,5 +1,3 @@
-use crate::runtime_config::BundleEntry;
-
 pub use crate::catalog::{
     CatalogCompatibility, CatalogFileEntry, MapCatalogEntry, MapCompatibility, MapLockEntry,
     PanelCatalogEntry, PanelLockEntry,
@@ -20,5 +18,3 @@ pub use crate::resolution::{
     resolve_sex_chromosome_rule, resolve_species_alias, resolve_species_authority,
     resolve_species_context, validate_imputation_tool_compatibility,
 };
-
-pub(crate) use BundleEntry;

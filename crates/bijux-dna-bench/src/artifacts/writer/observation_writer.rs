@@ -32,14 +32,7 @@ pub(super) fn write_observations_jsonl(
 ) -> Result<()> {
     let mut ordered = observations.to_vec();
     ordered.sort_by(|a, b| {
-        (
-            &a.dataset_id,
-            &a.stage_id,
-            &a.tool_id,
-            &a.params_hash,
-            &a.replicate_id,
-            a.replicate_index,
-        )
+        (&a.dataset_id, &a.stage_id, &a.tool_id, &a.params_hash, &a.replicate_id, a.replicate_index)
             .cmp(&(
                 &b.dataset_id,
                 &b.stage_id,

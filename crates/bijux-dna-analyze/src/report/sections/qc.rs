@@ -29,11 +29,7 @@ fn top_findings_from_invariants(rows: &[FactsRowV1], limit: usize) -> Vec<serde_
         }
     }
     findings.sort_by(|a, b| b.0.cmp(&a.0));
-    findings
-        .into_iter()
-        .take(limit)
-        .map(|(_, value)| value)
-        .collect()
+    findings.into_iter().take(limit).map(|(_, value)| value).collect()
 }
 
 pub(crate) fn qc_improvement_section(rows: &[FactsRowV1]) -> serde_json::Value {

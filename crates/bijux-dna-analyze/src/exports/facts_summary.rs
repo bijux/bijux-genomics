@@ -18,10 +18,5 @@ pub fn summarize_facts(rows: &[FactsRowV1]) -> FactsSummary {
         let denom = f64::from(u32::try_from(stages).unwrap_or(u32::MAX));
         total_runtime_s / denom
     };
-    FactsSummary {
-        runs,
-        stages,
-        total_runtime_s,
-        avg_runtime_s,
-    }
+    FactsSummary { runs, stages, total_runtime_s, avg_runtime_s }
 }

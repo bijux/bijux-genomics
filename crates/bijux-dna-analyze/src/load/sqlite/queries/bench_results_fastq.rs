@@ -94,9 +94,7 @@ fn table_for_stage(stage: &StageId) -> Option<&'static str> {
 
 fn benchmark_input_hashes(dataset: &BenchDataset) -> [Option<String>; 2] {
     let primary = Some(dataset.sha256_r1.to_string());
-    let paired = dataset
-        .sha256_r2
-        .map(|sha256_r2| format!("{}+{sha256_r2}", dataset.sha256_r1));
+    let paired = dataset.sha256_r2.map(|sha256_r2| format!("{}+{sha256_r2}", dataset.sha256_r1));
     [primary, paired]
 }
 
@@ -147,13 +145,7 @@ fn load_bench_candidate(
             let exit_code: i64 = row.get(2)?;
             let metrics_json: String = row.get(3)?;
             let parameters_json: String = row.get(4)?;
-            Ok((
-                runtime_s,
-                memory_mb,
-                exit_code,
-                metrics_json,
-                parameters_json,
-            ))
+            Ok((runtime_s, memory_mb, exit_code, metrics_json, parameters_json))
         },
     )?;
     let mut legacy_candidate = None;
@@ -185,11 +177,8 @@ fn bench_record_from_candidate(
     let (runtime_s, memory_mb, exit_code, metrics_json) = candidate;
     let metrics: JsonValue = serde_json::from_str(&metrics_json)
         .with_context(|| format!("parse metrics for {}", dataset.id))?;
-    let status = if exit_code == 0 {
-        BenchResultStatus::Success
-    } else {
-        BenchResultStatus::Failure
-    };
+    let status =
+        if exit_code == 0 { BenchResultStatus::Success } else { BenchResultStatus::Failure };
     Ok(BenchResultRecord {
         dataset_id: dataset.id.to_string(),
         tool: tool.to_string(),
@@ -669,9 +658,8 @@ mod tests {
         let temp = bijux_dna_testkit::tempdir_for("bench-results-fastq-paired-input-hash");
         let root_dir = temp.path().to_path_buf();
         let corpus = bench_paired_corpus_fixture();
-        let paired_hash = corpus.datasets[0]
-            .sha256_r2
-            .ok_or("paired corpus fixture is missing read 2 hash")?;
+        let paired_hash =
+            corpus.datasets[0].sha256_r2.ok_or("paired corpus fixture is missing read 2 hash")?;
         let bench_dir = bijux_dna_infra::bench_base_dir(
             &root_dir,
             bench_dir_name(&STAGE_DETECT_ADAPTERS).unwrap_or("unknown"),

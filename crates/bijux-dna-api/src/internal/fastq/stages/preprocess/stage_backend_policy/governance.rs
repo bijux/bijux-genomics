@@ -24,12 +24,7 @@ pub(super) fn fastq_backend_allowlist(stage_id: &str) -> Option<Vec<String>> {
     let tools = bijux_dna_planner_fastq::stage_api::allowed_tools_for_stage(
         &bijux_dna_core::ids::StageId::new(stage_id.to_string()),
     );
-    Some(
-        tools
-            .into_iter()
-            .map(|tool| tool.to_string())
-            .collect::<Vec<_>>(),
-    )
+    Some(tools.into_iter().map(|tool| tool.to_string()).collect::<Vec<_>>())
 }
 
 pub(super) fn enforce_fastq_backend_allowlist(stage_id: &str, tool_id: &str) -> Result<()> {

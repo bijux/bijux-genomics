@@ -181,10 +181,8 @@ pub fn sanity_flags_correct(
     records: &[BenchmarkRecord<FastqCorrectMetrics>],
 ) -> Vec<serde_json::Value> {
     let mut flags = Vec::new();
-    let rates = records
-        .iter()
-        .map(|record| record.metrics.metrics.kmer_fix_rate)
-        .collect::<Vec<_>>();
+    let rates =
+        records.iter().map(|record| record.metrics.metrics.kmer_fix_rate).collect::<Vec<_>>();
     let median_rate = median(rates);
     if median_rate < 0.2 {
         flags.push(serde_json::json!({
@@ -201,12 +199,7 @@ pub fn sanity_flags_umi(records: &[BenchmarkRecord<FastqUmiMetrics>]) -> Vec<ser
     let mut flags = Vec::new();
     let retention = records
         .iter()
-        .map(|record| {
-            ratio_u64(
-                record.metrics.metrics.reads_out,
-                record.metrics.metrics.reads_in,
-            )
-        })
+        .map(|record| ratio_u64(record.metrics.metrics.reads_out, record.metrics.metrics.reads_in))
         .collect::<Vec<_>>();
     let median_retention = median(retention);
     if median_retention < 0.85 {
@@ -224,10 +217,8 @@ pub fn sanity_flags_merge(
     records: &[BenchmarkRecord<FastqMergeMetrics>],
 ) -> Vec<serde_json::Value> {
     let mut flags = Vec::new();
-    let merge_rates = records
-        .iter()
-        .map(|record| record.metrics.metrics.merge_rate)
-        .collect::<Vec<_>>();
+    let merge_rates =
+        records.iter().map(|record| record.metrics.metrics.merge_rate).collect::<Vec<_>>();
     let median_merge = median(merge_rates);
     if median_merge < 0.2 {
         flags.push(serde_json::json!({
@@ -244,10 +235,7 @@ pub fn sanity_flags_stats(
     records: &[BenchmarkRecord<FastqStatsMetrics>],
 ) -> Vec<serde_json::Value> {
     let mut flags = Vec::new();
-    let gc = records
-        .iter()
-        .map(|record| record.metrics.metrics.gc_percent)
-        .collect::<Vec<_>>();
+    let gc = records.iter().map(|record| record.metrics.metrics.gc_percent).collect::<Vec<_>>();
     let median_gc = median(gc);
     if !(20.0..=80.0).contains(&median_gc) {
         flags.push(serde_json::json!({
@@ -267,10 +255,7 @@ pub fn sanity_flags_validate(
     let retention = records
         .iter()
         .map(|record| {
-            ratio_u64(
-                record.metrics.metrics.reads_valid,
-                record.metrics.metrics.reads_total,
-            )
+            ratio_u64(record.metrics.metrics.reads_valid, record.metrics.metrics.reads_total)
         })
         .collect::<Vec<_>>();
     let median_retention = median(retention);
@@ -289,10 +274,8 @@ pub fn sanity_flags_qc_post(
     records: &[BenchmarkRecord<FastqQcPostMetrics>],
 ) -> Vec<serde_json::Value> {
     let mut flags = Vec::new();
-    let contamination = records
-        .iter()
-        .map(|record| record.metrics.metrics.contamination_rate)
-        .collect::<Vec<_>>();
+    let contamination =
+        records.iter().map(|record| record.metrics.metrics.contamination_rate).collect::<Vec<_>>();
     let median_contamination = median(contamination);
     if median_contamination > 0.05 {
         flags.push(serde_json::json!({
@@ -520,13 +503,7 @@ pub fn write_trim_polyg_report(
     failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
-    write_trim_like_report(
-        base_dir,
-        "fastq.trim_polyg_tails",
-        records,
-        failures,
-        explain,
-    )
+    write_trim_like_report(base_dir, "fastq.trim_polyg_tails", records, failures, explain)
 }
 
 /// Write the terminal-damage benchmark recommendation report.
@@ -539,13 +516,7 @@ pub fn write_trim_terminal_damage_report(
     failures: &[RawFailure],
     explain: bool,
 ) -> Result<()> {
-    write_trim_like_report(
-        base_dir,
-        "fastq.trim_terminal_damage",
-        records,
-        failures,
-        explain,
-    )
+    write_trim_like_report(base_dir, "fastq.trim_terminal_damage", records, failures, explain)
 }
 
 fn write_trim_like_report<
@@ -563,16 +534,11 @@ fn write_trim_like_report<
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
-    report.insert(
-        "sanity_flags",
-        serde_json::to_value(sanity_flags_trim_like(records))?,
-    );
+    report.insert("sanity_flags", serde_json::to_value(sanity_flags_trim_like(records))?);
     let derived: Vec<_> = records.iter().map(derived_trim_like_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
-    let semantic: Vec<_> = records
-        .iter()
-        .map(|record| semantic_trim_like(&record.metrics.metrics))
-        .collect();
+    let semantic: Vec<_> =
+        records.iter().map(|record| semantic_trim_like(&record.metrics.metrics)).collect();
     report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
     let rankings = rank_trim_like_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);

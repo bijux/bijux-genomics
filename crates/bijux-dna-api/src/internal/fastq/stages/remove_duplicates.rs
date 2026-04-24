@@ -65,25 +65,15 @@ fn resolve_remove_duplicates_tools(
     if compatible.is_empty() {
         return Err(anyhow!(
             "fastq.remove_duplicates has no governed tools for {} input layout",
-            if paired_mode {
-                "paired-end"
-            } else {
-                "single-end"
-            }
+            if paired_mode { "paired-end" } else { "single-end" }
         ));
     }
     if !tools_resolved_implicitly && compatible.len() != tools.len() {
-        let incompatible = tools
-            .into_iter()
-            .filter(|tool_id| !compatible.contains(tool_id))
-            .collect::<Vec<_>>();
+        let incompatible =
+            tools.into_iter().filter(|tool_id| !compatible.contains(tool_id)).collect::<Vec<_>>();
         return Err(anyhow!(
             "fastq.remove_duplicates does not support {} inputs for tool(s): {}",
-            if paired_mode {
-                "paired-end"
-            } else {
-                "single-end"
-            },
+            if paired_mode { "paired-end" } else { "single-end" },
             incompatible.join(", "),
         ));
     }
@@ -109,11 +99,8 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         args.r2.is_some(),
     )?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_ID, artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_ID, &header);
@@ -188,9 +175,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             runner,
             jobs,
         )?
@@ -260,12 +245,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
 }
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
@@ -286,11 +266,8 @@ fn deduplicate_report_counts(
     let reads_in = input_reads_r1 + input_reads_r2.unwrap_or(0);
     let reads_out = output_reads_r1 + output_reads_r2.unwrap_or(0);
     let duplicates_removed = reads_in.saturating_sub(reads_out);
-    let dedup_rate = if reads_in == 0 {
-        0.0
-    } else {
-        u64_to_f64(duplicates_removed) / u64_to_f64(reads_in)
-    };
+    let dedup_rate =
+        if reads_in == 0 { 0.0 } else { u64_to_f64(duplicates_removed) / u64_to_f64(reads_in) };
     DuplicateReportCounts {
         reads_in,
         reads_out,
@@ -310,17 +287,11 @@ fn deduplicate_report_counts(
 #[allow(clippy::too_many_lines)]
 fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<DuplicateReportCounts> {
     let raw = std::fs::read_to_string(report_path).map_err(|error| {
-        anyhow!(
-            "read governed remove-duplicates report {}: {error}",
-            report_path.display()
-        )
+        anyhow!("read governed remove-duplicates report {}: {error}", report_path.display())
     })?;
     let report = bijux_dna_domain_fastq::observer::parse_remove_duplicates_report(&raw).map_err(
         |error| {
-            anyhow!(
-                "parse governed remove-duplicates report {}: {error}",
-                report_path.display()
-            )
+            anyhow!("parse governed remove-duplicates report {}: {error}", report_path.display())
         },
     )?;
     let reads_in = report.reads_in;
@@ -335,11 +306,8 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
             derived_duplicate_reads = derived_duplicates_removed,
         ));
     }
-    let dedup_rate = if reads_in == 0 {
-        0.0
-    } else {
-        u64_to_f64(duplicates_removed) / u64_to_f64(reads_in)
-    };
+    let dedup_rate =
+        if reads_in == 0 { 0.0 } else { u64_to_f64(duplicates_removed) / u64_to_f64(reads_in) };
     if !report.dedup_rate.is_finite() || !(0.0..=1.0).contains(&report.dedup_rate) {
         return Err(anyhow!(
             "governed remove-duplicates report {} is inconsistent: dedup_rate={} must be within [0, 1]",
@@ -398,11 +366,8 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
                 report_path.display(),
             ));
     }
-    let classified_duplicates_removed: u64 = report
-        .duplicate_classes
-        .iter()
-        .map(|entry| entry.reads_removed)
-        .sum();
+    let classified_duplicates_removed: u64 =
+        report.duplicate_classes.iter().map(|entry| entry.reads_removed).sum();
     if !report.duplicate_classes.is_empty() && classified_duplicates_removed != duplicates_removed {
         return Err(anyhow!(
             "governed remove-duplicates report {} is inconsistent: duplicate_classes sum to {} but duplicates_removed={duplicate_reads}",
@@ -425,14 +390,8 @@ fn load_deduplicate_report_counts(report_path: &std::path::Path) -> Result<Dupli
         duplicates_removed,
         dedup_rate: report.dedup_rate,
         tool: Some(report.tool_id),
-        paired_mode: serde_json::to_value(report.paired_mode)?
-            .as_str()
-            .map(ToString::to_string),
-        dedup_mode: Some(
-            serde_json::to_string(&report.dedup_mode)?
-                .trim_matches('"')
-                .to_string(),
-        ),
+        paired_mode: serde_json::to_value(report.paired_mode)?.as_str().map(ToString::to_string),
+        dedup_mode: Some(serde_json::to_string(&report.dedup_mode)?.trim_matches('"').to_string()),
         keep_order: Some(report.keep_order),
         pair_count_match: report.pair_count_match,
         duplicate_class_count: Some(report.duplicate_classes.len() as u64),
@@ -501,14 +460,9 @@ mod tests {
                 "digest": null,
             }))
             .expect("image"),
-            command: CommandSpecV1 {
-                template: vec!["echo".to_string(), "ok".to_string()],
-            },
+            command: CommandSpecV1 { template: vec!["echo".to_string(), "ok".to_string()] },
             resources: ToolConstraints::default(),
-            io: StageIO {
-                inputs: vec![],
-                outputs,
-            },
+            io: StageIO { inputs: vec![], outputs },
             out_dir: PathBuf::from("out"),
             params: serde_json::json!({}),
             effective_params: serde_json::json!({}),

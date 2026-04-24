@@ -45,11 +45,8 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteReferenceContaminantsArgs,
 ) -> Result<BenchOutcome<FastqDepleteReferenceContaminantsMetrics>> {
     let tools = select_deplete_reference_contaminants_tools(&args.tools)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str(), &header);
@@ -72,21 +69,12 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         &STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
     )?;
     let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!(
-            "{}+{}",
-            bench_inputs.input_hash,
-            bijux_dna_infra::hash_file_sha256(r2)?
-        )
+        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
     } else {
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(
-            catalog,
-            platform,
-            bench_inputs.runner,
-            r2,
-        )?)
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
     } else {
         None
     };
@@ -175,9 +163,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             runner,
             jobs,
         )?
@@ -260,12 +246,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -300,14 +281,9 @@ fn build_deplete_reference_contaminants_report<S: ::std::hash::BuildHasher>(
     let reads_removed = reads_in.saturating_sub(reads_out);
     let bases_removed = bases_in.saturating_sub(bases_out);
     let pairs_in = input_stats_r2.map(|stats| input_stats_r1.reads.min(stats.reads));
-    let pairs_out = output_stats_r2
-        .as_ref()
-        .map(|stats| output_stats_r1.reads.min(stats.reads));
-    let contaminant_fraction_removed = if reads_in == 0 {
-        0.0
-    } else {
-        u64_to_f64(reads_removed) / u64_to_f64(reads_in)
-    };
+    let pairs_out = output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
+    let contaminant_fraction_removed =
+        if reads_in == 0 { 0.0 } else { u64_to_f64(reads_removed) / u64_to_f64(reads_in) };
 
     Ok(DepleteReferenceContaminantsReportV1 {
         schema_version: DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION.to_string(),

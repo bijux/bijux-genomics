@@ -3,9 +3,7 @@ use std::path::Path;
 
 #[test]
 fn public_api_snapshot() {
-    let lib_rs = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("src")
-        .join("lib.rs");
+    let lib_rs = Path::new(env!("CARGO_MANIFEST_DIR")).join("src").join("lib.rs");
     let content =
         fs::read_to_string(&lib_rs).unwrap_or_else(|err| panic!("read lib.rs failed: {err}"));
     let mut exports = collect_pub_uses(&content);
@@ -43,11 +41,7 @@ fn collect_pub_uses(content: &str) -> Vec<String> {
 }
 
 fn normalize_export(raw: &str) -> String {
-    let mut normalized = raw
-        .trim_end_matches(';')
-        .split_whitespace()
-        .collect::<Vec<_>>()
-        .join(" ");
+    let mut normalized = raw.trim_end_matches(';').split_whitespace().collect::<Vec<_>>().join(" ");
     normalized = normalized.replace("{ ", "{");
     normalized = normalized.replace(" }", "}");
     normalized = normalized.replace(", }", "}");

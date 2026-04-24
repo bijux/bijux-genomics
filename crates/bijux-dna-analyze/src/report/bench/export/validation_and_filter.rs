@@ -24,14 +24,9 @@ pub fn write_validate_report(
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
-    report.insert(
-        "sanity_flags",
-        serde_json::to_value(sanity_flags_validate(records))?,
-    );
-    let semantic: Vec<_> = records
-        .iter()
-        .map(|record| semantic_validate(&record.metrics.metrics))
-        .collect();
+    report.insert("sanity_flags", serde_json::to_value(sanity_flags_validate(records))?);
+    let semantic: Vec<_> =
+        records.iter().map(|record| semantic_validate(&record.metrics.metrics)).collect();
     report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
     if let Some(class) = qc_class {
         report.insert("qc_class", serde_json::to_value(class)?);
@@ -90,16 +85,11 @@ pub fn write_filter_report(
     let classified: Vec<BenchmarkFailure> = failures.iter().map(classify_raw_failure).collect();
     report.insert("failures", serde_json::to_value(&classified)?);
     report.insert("gate", gate_payload(&classified));
-    report.insert(
-        "sanity_flags",
-        serde_json::to_value(sanity_flags_filter(records))?,
-    );
+    report.insert("sanity_flags", serde_json::to_value(sanity_flags_filter(records))?);
     let derived: Vec<_> = records.iter().map(derived_filter_metrics).collect();
     report.insert("derived_metrics", serde_json::to_value(&derived)?);
-    let semantic: Vec<_> = records
-        .iter()
-        .map(|record| semantic_filter(&record.metrics.metrics))
-        .collect();
+    let semantic: Vec<_> =
+        records.iter().map(|record| semantic_filter(&record.metrics.metrics)).collect();
     report.insert("semantic_metrics", serde_json::to_value(&semantic)?);
     let rankings = rank_filter_tools(records)?;
     report.insert("rankings", serde_json::to_value(&rankings)?);

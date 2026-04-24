@@ -21,10 +21,7 @@ pub struct RunIndexRepository {
 impl RunIndexRepository {
     #[must_use]
     pub fn new(index_path: PathBuf, artifacts_root: PathBuf) -> Self {
-        Self {
-            index_path,
-            artifacts_root,
-        }
+        Self { index_path, artifacts_root }
     }
 
     fn resolve_run(&self, run: &RunIndexEntry) -> RunMetadata {
@@ -35,10 +32,7 @@ impl RunIndexRepository {
 impl RunRepository for RunIndexRepository {
     fn list_runs(&self) -> Result<Vec<String>> {
         let entries = list_runs(&self.index_path)?;
-        Ok(entries
-            .into_iter()
-            .map(|entry| entry.run_id.to_string())
-            .collect())
+        Ok(entries.into_iter().map(|entry| entry.run_id.to_string()).collect())
     }
 
     fn run_metadata(&self, run_id: &str) -> Result<RunMetadata> {

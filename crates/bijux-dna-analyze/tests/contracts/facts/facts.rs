@@ -63,10 +63,7 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
     assert_eq!(summary_json["stages"], 1);
     assert_eq!(summary_json["stage_rows"][0]["tool_version"], "0.23.4");
     assert_eq!(summary_json["stage_rows"][0]["image_digest"], "sha256:abc");
-    assert_eq!(
-        summary_json["stage_rows"][0]["bank_hashes"]["adapters"],
-        "hash"
-    );
+    assert_eq!(summary_json["stage_rows"][0]["bank_hashes"]["adapters"], "hash");
 
     Ok(())
 }

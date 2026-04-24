@@ -1,12 +1,7 @@
 use super::ExecutionStep;
 
 pub(super) fn normalize_primers_tool_id(planned: &ExecutionStep) -> &'static str {
-    if planned
-        .command
-        .template
-        .iter()
-        .any(|part| part.contains("seqkit"))
-    {
+    if planned.command.template.iter().any(|part| part.contains("seqkit")) {
         "seqkit"
     } else {
         "cutadapt"
@@ -14,26 +9,11 @@ pub(super) fn normalize_primers_tool_id(planned: &ExecutionStep) -> &'static str
 }
 
 pub(super) fn trim_terminal_damage_tool_id(planned: &ExecutionStep) -> &'static str {
-    if planned
-        .command
-        .template
-        .iter()
-        .any(|part| part.contains("seqkit"))
-    {
+    if planned.command.template.iter().any(|part| part.contains("seqkit")) {
         "seqkit"
-    } else if planned
-        .command
-        .template
-        .iter()
-        .any(|part| part.contains("cutadapt"))
-    {
+    } else if planned.command.template.iter().any(|part| part.contains("cutadapt")) {
         "cutadapt"
-    } else if planned
-        .command
-        .template
-        .iter()
-        .any(|part| part.contains("adapterremoval"))
-    {
+    } else if planned.command.template.iter().any(|part| part.contains("adapterremoval")) {
         "adapterremoval"
     } else {
         "not_declared"
@@ -97,12 +77,7 @@ pub(super) fn planned_terminal_damage_report(
 }
 
 pub(super) fn normalize_abundance_tool_id(planned: &ExecutionStep) -> &'static str {
-    if planned
-        .command
-        .template
-        .iter()
-        .any(|part| part.contains("seqfu"))
-    {
+    if planned.command.template.iter().any(|part| part.contains("seqfu")) {
         "seqfu"
     } else {
         "seqkit"
@@ -110,12 +85,7 @@ pub(super) fn normalize_abundance_tool_id(planned: &ExecutionStep) -> &'static s
 }
 
 pub(super) fn normalize_abundance_method(planned: &ExecutionStep) -> &'static str {
-    if planned
-        .command
-        .template
-        .iter()
-        .any(|part| part.contains("counts_per_million"))
-    {
+    if planned.command.template.iter().any(|part| part.contains("counts_per_million")) {
         "counts_per_million"
     } else {
         "relative_abundance"
@@ -123,12 +93,7 @@ pub(super) fn normalize_abundance_method(planned: &ExecutionStep) -> &'static st
 }
 
 pub(super) fn infer_asvs_tool_id(planned: &ExecutionStep) -> &'static str {
-    if planned
-        .command
-        .template
-        .iter()
-        .any(|part| part.contains("dada2"))
-    {
+    if planned.command.template.iter().any(|part| part.contains("dada2")) {
         "dada2"
     } else {
         "not_declared"
@@ -173,12 +138,9 @@ pub(super) fn infer_cluster_otus_effective_params(
             .windows(2)
             .find_map(|window| (window[0] == flag).then(|| window[1].clone()))
     };
-    let identity_threshold = flag_value("--id")
-        .and_then(|value| value.parse::<f64>().ok())
-        .unwrap_or(0.97);
-    let threads = flag_value("--threads")
-        .and_then(|value| value.parse::<u32>().ok())
-        .unwrap_or(4);
+    let identity_threshold =
+        flag_value("--id").and_then(|value| value.parse::<f64>().ok()).unwrap_or(0.97);
+    let threads = flag_value("--threads").and_then(|value| value.parse::<u32>().ok()).unwrap_or(4);
     bijux_dna_domain_fastq::params::edna::OtuClusteringEffectiveParams {
         schema_version: bijux_dna_domain_fastq::params::edna::EDNA_SCHEMA_VERSION.to_string(),
         identity_threshold,
@@ -219,9 +181,7 @@ pub(super) fn governed_remove_chimeras_report(
         input_reads: input_reads.display().to_string(),
         output_reads: output_reads.display().to_string(),
         chimera_metrics_json: chimera_metrics_json.display().to_string(),
-        chimeras_fasta: chimeras_fasta
-            .exists()
-            .then(|| chimeras_fasta.display().to_string()),
+        chimeras_fasta: chimeras_fasta.exists().then(|| chimeras_fasta.display().to_string()),
         uchime_report_tsv: uchime_report_tsv
             .exists()
             .then(|| uchime_report_tsv.display().to_string()),

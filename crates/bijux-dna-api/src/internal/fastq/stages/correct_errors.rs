@@ -63,11 +63,8 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqCorrectMetrics>> {
     let allow_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_ok();
     let tools = select_correct_tools(&args.tools, allow_experimental)?;
-    let artifact = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_CORRECT_ERRORS.as_str(), artifact)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_CORRECT_ERRORS.as_str(), &header);
@@ -77,15 +74,10 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     let tools = filter_tools_by_role(STAGE_CORRECT_ERRORS.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_correct_bench(catalog, platform, runner_override, args)?;
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_CORRECT_ERRORS.as_str());
-    let all_tools: Vec<String> = registry
-        .tools_for_stage(&stage_id)
-        .iter()
-        .map(|tool| tool.tool_id.to_string())
-        .collect();
-    let excluded: Vec<String> = all_tools
-        .into_iter()
-        .filter(|tool| !tools.contains(tool))
-        .collect();
+    let all_tools: Vec<String> =
+        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
+    let excluded: Vec<String> =
+        all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
 
     if args.explain {
         write_explain_md(
@@ -163,9 +155,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             bench_inputs.runner,
             jobs,
         )?
@@ -188,22 +178,14 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             failures.push(RawFailure {
                 stage: STAGE_CORRECT_ERRORS.as_str().to_string(),
                 tool: tool.clone(),
-                reason: format!(
-                    "tool {tool_name} failed with status {}",
-                    execution.exit_code
-                ),
+                reason: format!("tool {tool_name} failed with status {}", execution.exit_code),
                 category: ErrorCategory::ToolError,
             });
         }
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 #[derive(Debug, Clone)]
@@ -234,10 +216,7 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
-    let r1_dir = r1
-        .parent()
-        .ok_or_else(|| anyhow!("r1 has no parent"))?
-        .to_path_buf();
+    let r1_dir = r1.parent().ok_or_else(|| anyhow!("r1 has no parent"))?.to_path_buf();
 
     let seqkit_tool = catalog
         .get(bijux_dna_planner_fastq::stage_api::TOOL_SEQKIT)
@@ -251,19 +230,13 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
         runner,
     )?;
     if stats_output.exit_code != 0 {
-        return Err(anyhow!(
-            "seqkit correction observer failed: {}",
-            stats_output.stderr
-        ));
+        return Err(anyhow!("seqkit correction observer failed: {}", stats_output.stderr));
     }
     let input_stats_r1 = parse_seqkit_stats(&stats_output.stdout)?;
 
     let (r2, input_stats_r2, input_hash) = if let Some(r2) = args.r2.as_deref() {
         let r2 = r2.canonicalize().context("resolve r2 path")?;
-        let r2_dir = r2
-            .parent()
-            .ok_or_else(|| anyhow!("r2 has no parent"))?
-            .to_path_buf();
+        let r2_dir = r2.parent().ok_or_else(|| anyhow!("r2 has no parent"))?.to_path_buf();
         let stats_spec_r2 = input_fastq_stats(&r2_dir, &r2)?;
         let stats_output_r2 = execute_observer_command(
             &seqkit_image.full_name,
@@ -281,18 +254,10 @@ fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
         (
             Some(r2),
             Some(parse_seqkit_stats(&stats_output_r2.stdout)?),
-            format!(
-                "{}+{}",
-                hash_file_sha256(&r1).context("hash correction input r1")?,
-                r2_hash
-            ),
+            format!("{}+{}", hash_file_sha256(&r1).context("hash correction input r1")?, r2_hash),
         )
     } else {
-        (
-            None,
-            None,
-            hash_file_sha256(&r1).context("hash correction input")?,
-        )
+        (None, None, hash_file_sha256(&r1).context("hash correction input")?)
     };
 
     Ok(CorrectBenchInputs {
@@ -417,13 +382,8 @@ mod tests {
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("musket"),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["musket".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["musket".to_string()] },
             resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
@@ -465,13 +425,8 @@ mod tests {
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("musket"),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["musket".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["musket".to_string()] },
             resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
@@ -490,18 +445,11 @@ mod tests {
 
         let error = required_plan_output_path(&plan, "corrected_reads_r2")
             .expect_err("missing governed output must be rejected");
-        assert!(error
-            .to_string()
-            .contains("missing governed output `corrected_reads_r2`"));
+        assert!(error.to_string().contains("missing governed output `corrected_reads_r2`"));
     }
 
     fn seqkit_metrics(reads: u64, bases: u64, mean_q: f64) -> SeqkitMetrics {
-        SeqkitMetrics {
-            reads,
-            bases,
-            mean_q,
-            gc_percent: 0.0,
-        }
+        SeqkitMetrics { reads, bases, mean_q, gc_percent: 0.0 }
     }
 
     #[test]
@@ -559,13 +507,8 @@ mod tests {
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("rcorrector"),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["rcorrector".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["rcorrector".to_string()] },
             resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
@@ -590,13 +533,8 @@ mod tests {
         let spec = ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("musket"),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["musket".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["musket".to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 4,
@@ -680,10 +618,7 @@ mod tests {
             report.correction_engine,
             bijux_dna_domain_fastq::params::correct::CorrectionEngine::Lighter
         );
-        assert_eq!(
-            report.trusted_kmer_artifact,
-            Some(std::path::PathBuf::from("trusted.kmers"))
-        );
+        assert_eq!(report.trusted_kmer_artifact, Some(std::path::PathBuf::from("trusted.kmers")));
         assert_eq!(
             report
                 .correction_effect
@@ -693,11 +628,7 @@ mod tests {
             Some(serde_json::json!(true))
         );
         assert_eq!(
-            report
-                .correction_effect
-                .as_ref()
-                .and_then(|effect| effect.get("bases_delta"))
-                .cloned(),
+            report.correction_effect.as_ref().and_then(|effect| effect.get("bases_delta")).cloned(),
             Some(serde_json::json!(-300_i128))
         );
         assert_eq!(report.exit_code, Some(0));

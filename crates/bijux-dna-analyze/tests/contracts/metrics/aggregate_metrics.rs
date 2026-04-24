@@ -17,11 +17,7 @@ fn record_serializes() -> Result<()> {
             input_hash: "sha256:deadbeef".to_string(),
             parameters: JsonBlob::from_pairs(&[("adapter", "AGAT")]),
         },
-        execution: ExecutionMetrics {
-            runtime_s: 1.0,
-            memory_mb: 10.0,
-            exit_code: 0,
-        },
+        execution: ExecutionMetrics { runtime_s: 1.0, memory_mb: 10.0, exit_code: 0 },
         metrics: metric_set(FastqTrimMetrics {
             reads_in: 100,
             reads_out: 90,

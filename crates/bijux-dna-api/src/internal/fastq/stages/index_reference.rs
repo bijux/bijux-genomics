@@ -54,20 +54,11 @@ pub fn bench_fastq_index_reference<S: ::std::hash::BuildHasher>(
     let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_dna_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
     bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
-    let reference_fasta = args
-        .reference_fasta
-        .canonicalize()
-        .context("resolve reference fasta")?;
+    let reference_fasta = args.reference_fasta.canonicalize().context("resolve reference fasta")?;
     let input_hash = hash_file_sha256(&reference_fasta).context("hash reference fasta")?;
 
     if args.explain {
-        write_explain_md(
-            &bench_dir,
-            STAGE_INDEX_REFERENCE.as_str(),
-            &tools,
-            &[],
-            None,
-        )?;
+        write_explain_md(&bench_dir, STAGE_INDEX_REFERENCE.as_str(), &tools, &[], None)?;
         write_explain_plan_json(
             &bench_dir,
             STAGE_INDEX_REFERENCE.as_str(),
@@ -102,9 +93,7 @@ pub fn bench_fastq_index_reference<S: ::std::hash::BuildHasher>(
                 &tool_spec,
                 &reference_fasta,
                 &out_dir,
-                &bijux_dna_planner_fastq::IndexReferenceStageParams {
-                    threads: args.threads,
-                },
+                &bijux_dna_planner_fastq::IndexReferenceStageParams { threads: args.threads },
             )?;
         let params_hash = stable_params_hash(&plan.params);
         let image_digest = benchmark_image_identity(&tool_spec);
@@ -122,9 +111,7 @@ pub fn bench_fastq_index_reference<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             runner,
             jobs,
         )?
@@ -155,12 +142,7 @@ pub fn bench_fastq_index_reference<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -182,10 +164,7 @@ fn build_index_reference_record(
     let report_json = params
         .get("report_json")
         .and_then(serde_json::Value::as_str)
-        .map_or_else(
-            || out_dir.join("index_reference_report.json"),
-            std::path::PathBuf::from,
-        );
+        .map_or_else(|| out_dir.join("index_reference_report.json"), std::path::PathBuf::from);
     let index_root = out_dir.join("reference_index");
     let reference_bytes = std::fs::metadata(reference_fasta)
         .with_context(|| format!("stat {}", reference_fasta.display()))?
@@ -253,10 +232,7 @@ fn collect_index_reference_files(index_root: &std::path::Path) -> Vec<IndexRefer
             .to_string_lossy()
             .to_string();
         let bytes = entry.metadata().map(|meta| meta.len()).unwrap_or(0);
-        files.push(IndexReferenceFileEntryV1 {
-            relative_path,
-            bytes,
-        });
+        files.push(IndexReferenceFileEntryV1 { relative_path, bytes });
     }
     files.sort_by(|left, right| left.relative_path.cmp(&right.relative_path));
     files

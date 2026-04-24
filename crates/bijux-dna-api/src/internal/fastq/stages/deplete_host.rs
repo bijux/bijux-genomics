@@ -55,9 +55,7 @@ fn artifact_input_path(
 }
 
 fn artifact_input_path_string(plan: &bijux_dna_stage_contract::StagePlanV1, name: &str) -> String {
-    artifact_input_path(plan, name)
-        .map(|path| path.display().to_string())
-        .unwrap_or_default()
+    artifact_input_path(plan, name).map(|path| path.display().to_string()).unwrap_or_default()
 }
 
 /// # Errors
@@ -70,11 +68,8 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteHostArgs,
 ) -> Result<BenchOutcome<FastqDepleteHostMetrics>> {
     let tools = select_deplete_host_tools(&args.tools)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_DEPLETE_HOST.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_DEPLETE_HOST.as_str(), &header);
@@ -97,24 +92,13 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_ref() {
-        Some(observe_fastq_stats(
-            catalog,
-            platform,
-            bench_inputs.runner,
-            r2,
-        )?)
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
     } else {
         None
     };
 
     if args.explain {
-        write_explain_md(
-            &bench_inputs.bench_dir,
-            STAGE_DEPLETE_HOST.as_str(),
-            &tools,
-            &[],
-            None,
-        )?;
+        write_explain_md(&bench_inputs.bench_dir, STAGE_DEPLETE_HOST.as_str(), &tools, &[], None)?;
         write_explain_plan_json(
             &bench_inputs.bench_dir,
             STAGE_DEPLETE_HOST.as_str(),
@@ -179,9 +163,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             runner,
             jobs,
         )?
@@ -265,12 +247,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -308,14 +285,9 @@ fn build_deplete_host_report<S: ::std::hash::BuildHasher>(
     let reads_removed = reads_in.saturating_sub(reads_out);
     let bases_removed = bases_in.saturating_sub(bases_out);
     let pairs_in = input_stats_r2.map(|stats| input_stats_r1.reads.min(stats.reads));
-    let pairs_out = output_stats_r2
-        .as_ref()
-        .map(|stats| output_stats_r1.reads.min(stats.reads));
-    let host_fraction_removed = if reads_in == 0 {
-        0.0
-    } else {
-        u64_to_f64(reads_removed) / u64_to_f64(reads_in)
-    };
+    let pairs_out = output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
+    let host_fraction_removed =
+        if reads_in == 0 { 0.0 } else { u64_to_f64(reads_removed) / u64_to_f64(reads_in) };
 
     Ok(DepleteHostReportV1 {
         schema_version: DEPLETE_HOST_REPORT_SCHEMA_VERSION.to_string(),

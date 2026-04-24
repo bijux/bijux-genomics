@@ -66,11 +66,8 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqStatsArgs,
 ) -> Result<BenchOutcome<FastqStatsMetrics>> {
     let tools = select_stats_tools(&args.tools)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_PROFILE_READS.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_PROFILE_READS.as_str(), &header);
@@ -80,15 +77,10 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     let bench_inputs = prepare_stats_bench(catalog, platform, runner_override, args)?;
     let selected = tools.clone();
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_PROFILE_READS.as_str());
-    let all_tools: Vec<String> = registry
-        .tools_for_stage(&stage_id)
-        .iter()
-        .map(|tool| tool.tool_id.to_string())
-        .collect();
-    let excluded: Vec<String> = all_tools
-        .into_iter()
-        .filter(|tool| !selected.contains(tool))
-        .collect();
+    let all_tools: Vec<String> =
+        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
+    let excluded: Vec<String> =
+        all_tools.into_iter().filter(|tool| !selected.contains(tool)).collect();
     write_explain_md(
         &bench_inputs.bench_dir,
         STAGE_PROFILE_READS.as_str(),
@@ -168,12 +160,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
         insert_fastq_stats_v1(&conn, record).context("insert bench sqlite")?;
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 struct StatsBenchInputs {
@@ -204,21 +191,14 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
     bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
-    println!(
-        "planned tools: {}",
-        select_stats_tools(&args.tools)?.join(", ")
-    );
+    println!("planned tools: {}", select_stats_tools(&args.tools)?.join(", "));
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
-    let r1_dir = r1
-        .parent()
-        .ok_or_else(|| anyhow!("r1 has no parent"))?
-        .to_path_buf();
+    let r1_dir = r1.parent().ok_or_else(|| anyhow!("r1 has no parent"))?.to_path_buf();
 
     let tool_id = bijux_dna_planner_fastq::stage_api::TOOL_SEQKIT;
-    let tool_spec = catalog
-        .get(tool_id)
-        .ok_or_else(|| anyhow!("{tool_id} missing from images.toml"))?;
+    let tool_spec =
+        catalog.get(tool_id).ok_or_else(|| anyhow!("{tool_id} missing from images.toml"))?;
     let tool_image = resolve_image_for_run(tool_spec, platform)?;
 
     let input_hash = if let Some(r2) = args.r2.as_deref() {
@@ -239,10 +219,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     let input_stats = parse_seqkit_stats(&stats_output.stdout)?;
     let (r2, input_stats_r2, length_hist_r2) = if let Some(r2) = args.r2.as_deref() {
         let r2 = r2.canonicalize().context("resolve r2 path")?;
-        let r2_dir = r2
-            .parent()
-            .ok_or_else(|| anyhow!("r2 has no parent"))?
-            .to_path_buf();
+        let r2_dir = r2.parent().ok_or_else(|| anyhow!("r2 has no parent"))?.to_path_buf();
         let stats_spec = input_fastq_stats(&r2_dir, &r2)?;
         let stats_output = execute_observer_command(
             &tool_image.full_name,
@@ -251,10 +228,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
             runner,
         )?;
         if stats_output.exit_code != 0 {
-            return Err(anyhow!(
-                "seqkit stats failed for r2: {}",
-                stats_output.stderr
-            ));
+            return Err(anyhow!("seqkit stats failed for r2: {}", stats_output.stderr));
         }
         let hist_spec = length_histogram_command(&r2_dir, &r2)?;
         let hist_output = execute_observer_command(
@@ -264,10 +238,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
             runner,
         )?;
         if hist_output.exit_code != 0 {
-            return Err(anyhow!(
-                "seqkit length histogram failed for r2: {}",
-                hist_output.stderr
-            ));
+            return Err(anyhow!("seqkit length histogram failed for r2: {}", hist_output.stderr));
         }
         (
             Some(r2),
@@ -291,10 +262,7 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
         runner,
     )?;
     if hist_output.exit_code != 0 {
-        return Err(anyhow!(
-            "seqkit length histogram failed: {}",
-            hist_output.stderr
-        ));
+        return Err(anyhow!("seqkit length histogram failed: {}", hist_output.stderr));
     }
     let length_hist = parse_length_histogram(&hist_output.stdout)?
         .into_iter()
@@ -357,24 +325,18 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let out_dir = run_dirs.artifacts_dir.clone();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
-    let execution = execute_plans_with_jobs(
-        vec![step.clone()],
-        bench_inputs.runner,
-        bench_jobs(args.jobs),
-    )?
-    .into_iter()
-    .next()
-    .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+    let execution =
+        execute_plans_with_jobs(vec![step.clone()], bench_inputs.runner, bench_jobs(args.jobs))?
+            .into_iter()
+            .next()
+            .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
 
     let length_histogram = combine_length_histograms(
         &bench_inputs.length_hist,
         bench_inputs.length_hist_r2.as_deref(),
     );
     let backend_rows = parse_seqkit_stats_rows(&execution.stdout).unwrap_or_else(|_| {
-        fallback_seqkit_rows(
-            &bench_inputs.input_stats,
-            bench_inputs.input_stats_r2.as_ref(),
-        )
+        fallback_seqkit_rows(&bench_inputs.input_stats, bench_inputs.input_stats_r2.as_ref())
     });
     materialize_profile_reads_outputs(
         &plan,
@@ -394,10 +356,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         length_histogram: report
             .length_histogram
             .iter()
-            .map(|bin| LengthHistogramBin {
-                length: bin.length,
-                count: bin.count,
-            })
+            .map(|bin| LengthHistogramBin { length: bin.length, count: bin.count })
             .collect(),
     };
     let metric_set = metric_set(metrics);
@@ -489,10 +448,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
             .unwrap_or_else(|| "not_recorded".to_string()),
         plan_hash: std::env::var("BIJUX_PLAN_HASH").ok(),
     };
-    let extra_artifacts = [RunArtifactInput {
-        name: "adapter_bank",
-        path: adapter_bank_path,
-    }];
+    let extra_artifacts = [RunArtifactInput { name: "adapter_bank", path: adapter_bank_path }];
     let stage_contract_hash = None;
     write_run_manifest(
         &run_dirs,
@@ -502,11 +458,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         stage_contract_hash,
         &extra_artifacts,
     )?;
-    let record = BenchmarkRecord {
-        context,
-        execution: execution_metrics,
-        metrics: metric_set,
-    };
+    let record = BenchmarkRecord { context, execution: execution_metrics, metrics: metric_set };
     record.validate()?;
     Ok(record)
 }
@@ -533,9 +485,7 @@ fn execution_metrics_from_stage_result(execution: &StageResultV1) -> ExecutionMe
 
 fn parse_seqkit_stats_rows(stdout: &str) -> Result<Vec<ProfileReadsMateSummaryV1>> {
     let mut lines = stdout.lines();
-    let header = lines
-        .next()
-        .ok_or_else(|| anyhow!("empty seqkit stats stdout"))?;
+    let header = lines.next().ok_or_else(|| anyhow!("empty seqkit stats stdout"))?;
     let header_fields: Vec<&str> = header.split('\t').collect();
     let col_index = |name: &str| -> Result<usize> {
         header_fields
@@ -545,16 +495,11 @@ fn parse_seqkit_stats_rows(stdout: &str) -> Result<Vec<ProfileReadsMateSummaryV1
     };
     let reads_idx = col_index("num_seqs")?;
     let bases_idx = col_index("sum_len")?;
-    let mean_q_idx = header_fields
-        .iter()
-        .position(|field| field == &"avg_qual" || field == &"mean_qual");
-    let gc_idx = header_fields
-        .iter()
-        .position(|field| field.to_ascii_lowercase().starts_with("gc"));
-    let file_idx = header_fields
-        .iter()
-        .position(|field| field == &"file")
-        .unwrap_or(0);
+    let mean_q_idx =
+        header_fields.iter().position(|field| field == &"avg_qual" || field == &"mean_qual");
+    let gc_idx =
+        header_fields.iter().position(|field| field.to_ascii_lowercase().starts_with("gc"));
+    let file_idx = header_fields.iter().position(|field| field == &"file").unwrap_or(0);
 
     let mut rows = Vec::new();
     for line in lines {
@@ -624,14 +569,8 @@ fn materialize_profile_reads_outputs(
         .find(|artifact| artifact.name.as_str() == "qc_plots_dir")
         .map(|artifact| artifact.path.clone());
 
-    let reads_total = mate_summaries
-        .iter()
-        .map(|summary| summary.reads)
-        .sum::<u64>();
-    let bases_total = mate_summaries
-        .iter()
-        .map(|summary| summary.bases)
-        .sum::<u64>();
+    let reads_total = mate_summaries.iter().map(|summary| summary.reads).sum::<u64>();
+    let bases_total = mate_summaries.iter().map(|summary| summary.bases).sum::<u64>();
     let mean_q = weighted_optional_metric(mate_summaries, |summary| summary.mean_q);
     let gc_percent = weighted_optional_metric(mate_summaries, |summary| summary.gc_percent);
     let backend_metrics = mate_summaries
@@ -677,10 +616,7 @@ fn materialize_profile_reads_outputs(
         gc_percent,
         length_histogram: length_histogram
             .iter()
-            .map(|bin| ProfileReadsHistogramBinV1 {
-                length: bin.length,
-                count: bin.count,
-            })
+            .map(|bin| ProfileReadsHistogramBinV1 { length: bin.length, count: bin.count })
             .collect(),
         mate_summaries: mate_summaries.to_vec(),
         runtime_s: Some(execution_metrics.runtime_s),
@@ -739,17 +675,9 @@ fn profile_reads_tsv(mate_summaries: &[ProfileReadsMateSummaryV1]) -> String {
         out.push('\t');
         out.push_str(&summary.bases.to_string());
         out.push('\t');
-        out.push_str(
-            &summary
-                .mean_q
-                .map_or_else(String::new, |value| format!("{value:.3}")),
-        );
+        out.push_str(&summary.mean_q.map_or_else(String::new, |value| format!("{value:.3}")));
         out.push('\t');
-        out.push_str(
-            &summary
-                .gc_percent
-                .map_or_else(String::new, |value| format!("{value:.3}")),
-        );
+        out.push_str(&summary.gc_percent.map_or_else(String::new, |value| format!("{value:.3}")));
         out.push('\n');
     }
     out
@@ -779,9 +707,7 @@ fn combine_length_histograms(
             *bins.entry(bin.length).or_insert(0) += bin.count;
         }
     }
-    bins.into_iter()
-        .map(|(length, count)| LengthHistogramBin { length, count })
-        .collect()
+    bins.into_iter().map(|(length, count)| LengthHistogramBin { length, count }).collect()
 }
 
 fn u64_to_f64(value: u64) -> f64 {

@@ -11,9 +11,8 @@ pub(super) fn maybe_write_fastq_coverage_classifier(
     root: &std::path::Path,
     invariants: &FastqInvariantsReport,
 ) -> Result<()> {
-    let expected_genome_size_bp = std::env::var("BIJUX_EXPECTED_GENOME_SIZE_BP")
-        .ok()
-        .and_then(|v| v.parse::<u64>().ok());
+    let expected_genome_size_bp =
+        std::env::var("BIJUX_EXPECTED_GENOME_SIZE_BP").ok().and_then(|v| v.parse::<u64>().ok());
     let Some(genome_bp) = expected_genome_size_bp else {
         return Ok(());
     };
@@ -90,10 +89,7 @@ fn load_coverage_thresholds_for_fastq(profile: &str) -> Result<FastqCoverageThre
     let base = decision
         .get("thresholds")
         .ok_or_else(|| anyhow!("missing decision.coverage_regime.thresholds"))?;
-    let profile_thresholds = decision
-        .get("profiles")
-        .and_then(|v| v.get(profile))
-        .unwrap_or(base);
+    let profile_thresholds = decision.get("profiles").and_then(|v| v.get(profile)).unwrap_or(base);
     let read_f = |key: &str| -> Result<f64> {
         profile_thresholds
             .get(key)

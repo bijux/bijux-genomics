@@ -56,10 +56,7 @@ pub fn write_cross_run_manifest(
         .to_string();
 
     let mut stages = Vec::new();
-    if let Some(fastq_stages) = fastq_summary
-        .get("stages")
-        .and_then(serde_json::Value::as_array)
-    {
+    if let Some(fastq_stages) = fastq_summary.get("stages").and_then(serde_json::Value::as_array) {
         for stage in fastq_stages {
             let stage_id = declared_summary_field(stage, "stage_id")?;
             let tool_id = declared_summary_field(stage, "tool_id")?;
@@ -124,10 +121,7 @@ pub fn write_cross_run_manifest(
         "runner": std::env::var("BIJUX_RUNNER_VERSION").ok(),
     });
     let mut dataset_fingerprints = Vec::new();
-    if let Some(value) = run_provenance
-        .get("input_hashes")
-        .and_then(serde_json::Value::as_array)
-    {
+    if let Some(value) = run_provenance.get("input_hashes").and_then(serde_json::Value::as_array) {
         for item in value {
             if let Some(hash) = item.as_str() {
                 dataset_fingerprints.push(hash.to_string());
@@ -173,10 +167,7 @@ pub fn write_cross_run_manifest(
             bam_root.join("report.html"),
         ),
     ] {
-        let sha256 = path
-            .exists()
-            .then(|| bijux_dna_infra::hash_file_sha256(&path).ok())
-            .flatten();
+        let sha256 = path.exists().then(|| bijux_dna_infra::hash_file_sha256(&path).ok()).flatten();
         output_artifacts.push(serde_json::json!({
             "stage_id": "report.aggregate",
             "name": name,
@@ -277,9 +268,8 @@ fn backfill_metric_manifest_hash(path: &Path, manifest_hash: &str) -> Result<()>
     let mut value: serde_json::Value = serde_json::from_str(&raw)?;
     let mut changed = false;
     if let Some(obj) = value.as_object_mut() {
-        let metric_provenance = obj
-            .entry("metric_provenance")
-            .or_insert_with(|| serde_json::json!({}));
+        let metric_provenance =
+            obj.entry("metric_provenance").or_insert_with(|| serde_json::json!({}));
         if let Some(prov_obj) = metric_provenance.as_object_mut() {
             if !prov_obj.contains_key("manifest_hash") {
                 prov_obj.insert(
@@ -344,10 +334,7 @@ fn declared_provenance_cache_key(
 }
 
 fn relative_path_string(base: &Path, path: &Path) -> String {
-    path.strip_prefix(base)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .to_string()
+    path.strip_prefix(base).unwrap_or(path).to_string_lossy().to_string()
 }
 
 #[allow(clippy::too_many_lines)]
@@ -362,31 +349,22 @@ fn run_provenance_from_cross(
     let mut tool_versions = std::collections::BTreeSet::new();
     let mut image_digests = std::collections::BTreeSet::new();
     if let Some(fastq_prov) = fastq_summary.get("run_provenance") {
-        if let Some(hash) = fastq_prov
-            .get("parameters_fingerprint")
-            .and_then(serde_json::Value::as_str)
+        if let Some(hash) =
+            fastq_prov.get("parameters_fingerprint").and_then(serde_json::Value::as_str)
         {
             params_by_stage.insert("fastq".to_string(), hash.to_string());
         }
-        if let Some(inputs) = fastq_prov
-            .get("input_hashes")
-            .and_then(serde_json::Value::as_array)
-        {
+        if let Some(inputs) = fastq_prov.get("input_hashes").and_then(serde_json::Value::as_array) {
             for input in inputs {
                 if let Some(value) = input.as_str() {
                     input_hashes.push(value.to_string());
                 }
             }
         }
-        if let Some(value) = fastq_prov
-            .get("tool_version")
-            .and_then(serde_json::Value::as_str)
-        {
+        if let Some(value) = fastq_prov.get("tool_version").and_then(serde_json::Value::as_str) {
             tool_versions.insert(value.to_string());
         }
-        if let Some(value) = fastq_prov
-            .get("tool_image_digest")
-            .and_then(serde_json::Value::as_str)
+        if let Some(value) = fastq_prov.get("tool_image_digest").and_then(serde_json::Value::as_str)
         {
             image_digests.insert(value.to_string());
         }
@@ -399,10 +377,8 @@ fn run_provenance_from_cross(
             if let Ok(invocation) =
                 serde_json::from_str::<bijux_dna_core::metrics::ToolInvocationV1>(&raw)
             {
-                let tool_version = invocation
-                    .resolved_tool_version
-                    .clone()
-                    .unwrap_or(invocation.tool_version);
+                let tool_version =
+                    invocation.resolved_tool_version.clone().unwrap_or(invocation.tool_version);
                 tool_versions.insert(tool_version);
             }
         }
@@ -414,15 +390,13 @@ fn run_provenance_from_cross(
                 .join("metrics_envelope.json");
         if let Ok(raw) = std::fs::read_to_string(&envelope_path) {
             if let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) {
-                if let Some(hash) = value
-                    .get("input_fingerprint")
-                    .and_then(serde_json::Value::as_str)
+                if let Some(hash) =
+                    value.get("input_fingerprint").and_then(serde_json::Value::as_str)
                 {
                     input_hashes.push(hash.to_string());
                 }
-                if let Some(hash) = value
-                    .get("parameters_fingerprint")
-                    .and_then(serde_json::Value::as_str)
+                if let Some(hash) =
+                    value.get("parameters_fingerprint").and_then(serde_json::Value::as_str)
                 {
                     params_by_stage.insert(entry.plan.step_id.to_string(), hash.to_string());
                 }
@@ -439,11 +413,8 @@ fn run_provenance_from_cross(
     } else {
         Some("multiple".to_string())
     };
-    let tool_image_digest = if image_digests.len() == 1 {
-        image_digests.into_iter().next()
-    } else {
-        None
-    };
+    let tool_image_digest =
+        if image_digests.len() == 1 { image_digests.into_iter().next() } else { None };
     let git_commit = std::env::var("BIJUX_GIT_COMMIT").ok();
     let build_profile = std::env::var("BIJUX_BUILD_PROFILE").ok();
     let library_type = std::env::var("BIJUX_LIBRARY_TYPE")
@@ -453,28 +424,13 @@ fn run_provenance_from_cross(
     let reference_genome = std::env::var("BIJUX_REFERENCE_GENOME").ok();
     let plan_hash = std::env::var("BIJUX_PLAN_HASH").ok();
     let workspace_root = out_dir.parent().and_then(Path::parent).unwrap_or(out_dir);
-    let adapter_bank_hash = hash_optional(
-        &workspace_root
-            .join("assets")
-            .join("adapters")
-            .join("bank.v1.yaml"),
-    );
-    let reference_bank_hash = hash_optional(
-        &workspace_root
-            .join("assets")
-            .join("references")
-            .join("bank.v1.yaml"),
-    );
-    let contamination_db_bank_hash = hash_optional(
-        &workspace_root
-            .join("assets")
-            .join("contaminants")
-            .join("db_bank.v1.yaml"),
-    );
-    let coverage_regime_path = out_dir
-        .join("bam")
-        .join("coverage")
-        .join("coverage.regime.json");
+    let adapter_bank_hash =
+        hash_optional(&workspace_root.join("assets").join("adapters").join("bank.v1.yaml"));
+    let reference_bank_hash =
+        hash_optional(&workspace_root.join("assets").join("references").join("bank.v1.yaml"));
+    let contamination_db_bank_hash =
+        hash_optional(&workspace_root.join("assets").join("contaminants").join("db_bank.v1.yaml"));
+    let coverage_regime_path = out_dir.join("bam").join("coverage").join("coverage.regime.json");
     let coverage_regime = if coverage_regime_path.exists() {
         std::fs::read_to_string(&coverage_regime_path)
             .ok()
@@ -522,9 +478,7 @@ fn run_provenance_from_cross(
 }
 
 fn hash_optional(path: &Path) -> Option<String> {
-    bijux_dna_infra::hash_file_sha256(path)
-        .ok()
-        .map(|v| format!("sha256:{v}"))
+    bijux_dna_infra::hash_file_sha256(path).ok().map(|v| format!("sha256:{v}"))
 }
 
 #[cfg(test)]
@@ -544,10 +498,7 @@ mod tests {
         write_defaults_ledger(out_dir, &profile)?;
         bijux_dna_infra::ensure_dir(out_dir.join("bam").join("coverage"))?;
         bijux_dna_infra::atomic_write_json(
-            &out_dir
-                .join("bam")
-                .join("coverage")
-                .join("coverage.regime.json"),
+            &out_dir.join("bam").join("coverage").join("coverage.regime.json"),
             &serde_json::json!({
                 "coverage_regime": "1x_to_5x",
                 "mean_depth": 3.2
@@ -567,15 +518,11 @@ mod tests {
         assert!(manifest.get("defaults_ledger").is_some());
         assert!(manifest.get("defaults_ledger_sha256").is_some());
         assert_eq!(
-            manifest
-                .pointer("/run_provenance/coverage_regime")
-                .and_then(serde_json::Value::as_str),
+            manifest.pointer("/run_provenance/coverage_regime").and_then(serde_json::Value::as_str),
             Some("1x_to_5x")
         );
         assert_eq!(
-            manifest
-                .pointer("/run_provenance/library_type")
-                .and_then(serde_json::Value::as_str),
+            manifest.pointer("/run_provenance/library_type").and_then(serde_json::Value::as_str),
             Some("ssdna")
         );
         if let Some(v) = old_library_type {

@@ -40,18 +40,13 @@ fn read_f64_from_toml(value: Option<&toml::Value>, default: f64) -> f64 {
     value
         .and_then(toml::Value::as_float)
         .or_else(|| {
-            value
-                .and_then(toml::Value::as_integer)
-                .and_then(|v| v.to_string().parse::<f64>().ok())
+            value.and_then(toml::Value::as_integer).and_then(|v| v.to_string().parse::<f64>().ok())
         })
         .unwrap_or(default)
 }
 
 fn read_u64_from_toml(value: Option<&toml::Value>, default: u64) -> u64 {
-    value
-        .and_then(toml::Value::as_integer)
-        .and_then(|v| u64::try_from(v).ok())
-        .unwrap_or(default)
+    value.and_then(toml::Value::as_integer).and_then(|v| u64::try_from(v).ok()).unwrap_or(default)
 }
 
 fn load_amplicon_governance() -> Result<toml::Value> {
@@ -113,9 +108,8 @@ pub(crate) fn resolve_primer_set_governance(
     requested_primer_set_id: Option<&str>,
 ) -> Result<PrimerSetGovernance> {
     let governance = load_amplicon_governance()?;
-    if let Some(requested_primer_set_id) = requested_primer_set_id
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
+    if let Some(requested_primer_set_id) =
+        requested_primer_set_id.map(str::trim).filter(|value| !value.is_empty())
     {
         let markers = governance
             .get("markers")
@@ -173,14 +167,8 @@ pub(super) fn enforce_primer_governance(
     bijux_dna_infra::atomic_write_json(&lock_path, &lock_payload)?;
 
     let observed_mean = invariants.r1.read_length_mean;
-    let expected_min = expected_amplicon_min_bp
-        .to_string()
-        .parse::<f64>()
-        .unwrap_or(0.0);
-    let expected_max = expected_amplicon_max_bp
-        .to_string()
-        .parse::<f64>()
-        .unwrap_or(f64::MAX);
+    let expected_min = expected_amplicon_min_bp.to_string().parse::<f64>().unwrap_or(0.0);
+    let expected_max = expected_amplicon_max_bp.to_string().parse::<f64>().unwrap_or(f64::MAX);
     let observed_ok = observed_mean >= expected_min && observed_mean <= expected_max;
     let priors_payload = serde_json::json!({
         "schema_version": "bijux.fastq.amplicon_length_priors.v1",
@@ -225,25 +213,17 @@ pub(super) fn write_reference_db_validation_artifact(
         .and_then(toml::Value::as_str)
         .map(|rel| reference_assets_root().map(|root| root.join(rel)))
         .transpose()?;
-    let db_license = taxonomy_cfg
-        .get("license")
-        .and_then(toml::Value::as_str)
-        .unwrap_or("unspecified");
-    let db_sha256_locked = taxonomy_cfg
-        .get("db_sha256")
-        .and_then(toml::Value::as_str)
-        .unwrap_or_default();
+    let db_license =
+        taxonomy_cfg.get("license").and_then(toml::Value::as_str).unwrap_or("unspecified");
+    let db_sha256_locked =
+        taxonomy_cfg.get("db_sha256").and_then(toml::Value::as_str).unwrap_or_default();
     let db_exists = db_path.as_ref().is_some_and(|p| p.exists());
-    let db_sha256 = db_path
-        .as_ref()
-        .and_then(|p| bijux_dna_infra::hash_file_sha256(p).ok());
+    let db_sha256 = db_path.as_ref().and_then(|p| bijux_dna_infra::hash_file_sha256(p).ok());
     let db_hash_match = db_sha256
         .as_ref()
         .is_some_and(|computed| !db_sha256_locked.is_empty() && computed == db_sha256_locked);
-    let has_bank_meta = contaminant_bank
-        .and_then(|v| v.get("hash"))
-        .and_then(serde_json::Value::as_str)
-        .is_some();
+    let has_bank_meta =
+        contaminant_bank.and_then(|v| v.get("hash")).and_then(serde_json::Value::as_str).is_some();
     let pass = db_exists
         && db_sha256.is_some()
         && db_license != "unspecified"
@@ -328,21 +308,14 @@ pub(super) fn write_batch_effect_summary(
         a.get("sample_id")
             .and_then(serde_json::Value::as_str)
             .unwrap_or_default()
-            .cmp(
-                b.get("sample_id")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or_default(),
-            )
+            .cmp(b.get("sample_id").and_then(serde_json::Value::as_str).unwrap_or_default())
     });
     let mean_read_length = if samples.is_empty() {
         0.0
     } else {
         samples
             .iter()
-            .filter_map(|s| {
-                s.get("mean_read_length")
-                    .and_then(serde_json::Value::as_f64)
-            })
+            .filter_map(|s| s.get("mean_read_length").and_then(serde_json::Value::as_f64))
             .sum::<f64>()
             / samples.len().to_string().parse::<f64>().unwrap_or(1.0)
     };
@@ -425,9 +398,7 @@ pub(super) fn write_edna_report_summary(
             let path = stage_root.join("metrics.json");
             if let Ok(raw) = std::fs::read_to_string(path) {
                 if let Ok(json) = serde_json::from_str::<serde_json::Value>(&raw) {
-                    chimera_rate = json
-                        .get("chimera_fraction")
-                        .and_then(serde_json::Value::as_f64);
+                    chimera_rate = json.get("chimera_fraction").and_then(serde_json::Value::as_f64);
                 }
             }
         }

@@ -77,11 +77,8 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimArgs,
 ) -> Result<BenchOutcome<FastqTrimMetrics>> {
     let tools = select_trim_tools(&args.tools, false)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_TRIM_READS.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_TRIM_READS.as_str(), &header);
@@ -99,35 +96,21 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         &STAGE_TRIM_READS,
     )?;
     let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!(
-            "{}+{}",
-            bench_inputs.input_hash,
-            bijux_dna_infra::hash_file_sha256(r2)?
-        )
+        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
     } else {
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(
-            catalog,
-            platform,
-            bench_inputs.runner,
-            r2,
-        )?)
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
     } else {
         None
     };
 
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_TRIM_READS.as_str());
-    let all_tools: Vec<String> = registry
-        .tools_for_stage(&stage_id)
-        .iter()
-        .map(|tool| tool.tool_id.to_string())
-        .collect();
-    let excluded: Vec<String> = all_tools
-        .into_iter()
-        .filter(|tool| !tools.contains(tool))
-        .collect();
+    let all_tools: Vec<String> =
+        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
+    let excluded: Vec<String> =
+        all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
 
     if args.explain {
         write_explain_md(
@@ -241,9 +224,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             bench_inputs.runner,
             jobs,
         )?
@@ -283,12 +264,10 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         governed_report.reads_out = Some(after_stats.reads);
         governed_report.bases_in = Some(before_stats.bases);
         governed_report.bases_out = Some(after_stats.bases);
-        governed_report.pairs_in = input_stats_r2
-            .as_ref()
-            .map(|stats| bench_inputs.input_stats.reads.min(stats.reads));
-        governed_report.pairs_out = output_stats_r2
-            .as_ref()
-            .map(|stats| output_stats_r1.reads.min(stats.reads));
+        governed_report.pairs_in =
+            input_stats_r2.as_ref().map(|stats| bench_inputs.input_stats.reads.min(stats.reads));
+        governed_report.pairs_out =
+            output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
         governed_report.mean_q_before = Some(before_stats.mean_q);
         governed_report.mean_q_after = Some(after_stats.mean_q);
         governed_report.runtime_s = Some(execution.runtime_s);
@@ -302,9 +281,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             pairs_in: input_stats_r2
                 .as_ref()
                 .map(|stats| bench_inputs.input_stats.reads.min(stats.reads)),
-            pairs_out: output_stats_r2
-                .as_ref()
-                .map(|stats| output_stats_r1.reads.min(stats.reads)),
+            pairs_out: output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads)),
             mean_q_before: before_stats.mean_q,
             mean_q_after: after_stats.mean_q,
             delta_metrics: derive_trim_delta(&before_stats, &after_stats),
@@ -358,12 +335,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 fn combine_seqkit_metrics(
@@ -414,9 +386,7 @@ fn prune_trim_tool_payload(
         for entry in
             fs::read_dir(&dir).with_context(|| format!("read trim tool dir {}", dir.display()))?
         {
-            let path = entry
-                .with_context(|| format!("read entry in {}", dir.display()))?
-                .path();
+            let path = entry.with_context(|| format!("read entry in {}", dir.display()))?.path();
             if path == run_artifacts_dir || path.starts_with(&run_artifacts_dir) {
                 continue;
             }
@@ -458,13 +428,8 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::from_static(tool_id),
             tool_version: "1.0.0".to_string(),
-            image: ContainerImageRefV1 {
-                image: format!("{tool_id}:latest"),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec![tool_id.to_string()],
-            },
+            image: ContainerImageRefV1 { image: format!("{tool_id}:latest"), digest: None },
+            command: CommandSpecV1 { template: vec![tool_id.to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -492,15 +457,9 @@ mod tests {
             context.bank_hashes.get("adapter_bank").map(String::as_str),
             Some("adapter-hash")
         );
+        assert_eq!(context.bank_hashes.get("polyx_bank").map(String::as_str), Some("polyx-hash"));
         assert_eq!(
-            context.bank_hashes.get("polyx_bank").map(String::as_str),
-            Some("polyx-hash")
-        );
-        assert_eq!(
-            context
-                .bank_hashes
-                .get("contaminant_bank")
-                .map(String::as_str),
+            context.bank_hashes.get("contaminant_bank").map(String::as_str),
             Some("contaminant-hash")
         );
     }
@@ -527,15 +486,11 @@ mod tests {
     #[test]
     fn explicit_trim_bank_selection_promotes_missing_policy_to_bank() {
         assert_eq!(
-            normalized_adapter_policy(None, true)
-                .unwrap_or_else(|err| panic!("{err}"))
-                .as_deref(),
+            normalized_adapter_policy(None, true).unwrap_or_else(|err| panic!("{err}")).as_deref(),
             Some("bank")
         );
         assert_eq!(
-            normalized_polyx_policy(None, true)
-                .unwrap_or_else(|err| panic!("{err}"))
-                .as_deref(),
+            normalized_polyx_policy(None, true).unwrap_or_else(|err| panic!("{err}")).as_deref(),
             Some("bank")
         );
         assert_eq!(
@@ -644,10 +599,7 @@ mod tests {
             serde_json::from_str(&raw).unwrap_or_else(|err| panic!("parse report: {err}"));
         assert_eq!(decoded.tool_id, "fastp");
         assert_eq!(decoded.threads, 4);
-        assert_eq!(
-            decoded.raw_backend_report_format.as_deref(),
-            Some("fastp_json")
-        );
+        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastp_json"));
         assert_eq!(
             decoded.adapter_overrides,
             Some(serde_json::json!({

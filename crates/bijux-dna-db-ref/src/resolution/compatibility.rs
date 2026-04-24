@@ -9,12 +9,7 @@ pub fn validate_imputation_tool_compatibility(
     panel: &PanelCatalogEntry,
     map: &MapCatalogEntry,
 ) -> Result<()> {
-    if !panel
-        .compatibility
-        .tool_tags
-        .iter()
-        .any(|tag| tag == tool_id)
-    {
+    if !panel.compatibility.tool_tags.iter().any(|tag| tag == tool_id) {
         bail!("panel {} not compatible with tool {}", panel.id, tool_id);
     }
     if !map.compatibility.tool_tags.iter().any(|tag| tag == tool_id) {
@@ -26,13 +21,7 @@ pub fn validate_imputation_tool_compatibility(
     if tool_id == "minimac4" && !panel.files.iter().any(|file| file.name == "panel_m3vcf") {
         bail!("minimac4 requires `panel_m3vcf` in panel files");
     }
-    if tool_id == "glimpse"
-        && panel
-            .compatibility
-            .glimpse_reference_format
-            .trim()
-            .is_empty()
-    {
+    if tool_id == "glimpse" && panel.compatibility.glimpse_reference_format.trim().is_empty() {
         bail!("GLIMPSE requires declared reference format");
     }
     if tool_id == "glimpse"

@@ -13,9 +13,7 @@ pub(crate) fn annotate_why_not_first(entries: &mut [RankingEntry], mode: Ranking
         };
         entry.why_not_first.push(explain);
         if (entry.score - best_score).abs() <= f64::EPSILON {
-            entry
-                .why_not_first
-                .push("tie broken by tool_id".to_string());
+            entry.why_not_first.push("tie broken by tool_id".to_string());
         }
     }
 }

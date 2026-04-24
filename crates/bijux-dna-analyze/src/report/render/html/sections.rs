@@ -36,60 +36,23 @@ pub(super) fn build_section_blocks(
 
 fn render_bam_plots(value: &serde_json::Value) -> String {
     let mut html = String::new();
-    let entries = value
-        .get("entries")
-        .and_then(serde_json::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let entries =
+        value.get("entries").and_then(serde_json::Value::as_array).cloned().unwrap_or_default();
     for entry in entries {
-        let stage_id = entry
-            .get("stage_id")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or("bam");
-        let damage = entry
-            .get("damage")
-            .cloned()
-            .unwrap_or(serde_json::json!({}));
-        let frag = entry
-            .get("fragment_length")
-            .cloned()
-            .unwrap_or(serde_json::json!({}));
-        let coverage = entry
-            .get("coverage")
-            .cloned()
-            .unwrap_or(serde_json::json!({}));
-        let dup = entry
-            .get("dup_vs_complexity")
-            .cloned()
-            .unwrap_or(serde_json::json!({}));
-        let c_to_t = damage
-            .get("c_to_t_5p")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0);
-        let g_to_a = damage
-            .get("g_to_a_3p")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0);
-        let mean_len = frag
-            .get("mean")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0);
-        let short_frac = frag
-            .get("short_fraction")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0);
-        let cov_mean = coverage
-            .get("mean")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0);
-        let breadth = coverage
-            .get("breadth_1x")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0);
-        let dup_fraction = dup
-            .get("dup_fraction")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0);
+        let stage_id = entry.get("stage_id").and_then(serde_json::Value::as_str).unwrap_or("bam");
+        let damage = entry.get("damage").cloned().unwrap_or(serde_json::json!({}));
+        let frag = entry.get("fragment_length").cloned().unwrap_or(serde_json::json!({}));
+        let coverage = entry.get("coverage").cloned().unwrap_or(serde_json::json!({}));
+        let dup = entry.get("dup_vs_complexity").cloned().unwrap_or(serde_json::json!({}));
+        let c_to_t = damage.get("c_to_t_5p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+        let g_to_a = damage.get("g_to_a_3p").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+        let mean_len = frag.get("mean").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+        let short_frac =
+            frag.get("short_fraction").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+        let cov_mean = coverage.get("mean").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+        let breadth = coverage.get("breadth_1x").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+        let dup_fraction =
+            dup.get("dup_fraction").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
         let short_pct = short_frac * 100.0;
         let breadth_pct = breadth * 100.0;
         let dup_pct = dup_fraction * 100.0;

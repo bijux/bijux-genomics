@@ -19,16 +19,8 @@ fn bench_contract_snapshot() -> anyhow::Result<()> {
         &["fastq.trim_reads".to_string()],
         &["tool-a".to_string()],
         &["params-a".to_string()],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -127,16 +119,8 @@ fn suite_requires_stratification_metadata() {
         &["fastq.trim_reads".to_string()],
         &["tool-a".to_string()],
         &["params-a".to_string()],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["nextera".to_string()],
@@ -149,8 +133,5 @@ fn suite_requires_stratification_metadata() {
     );
     let result =
         bijux_dna_bench::summarize(&suite, &[], &bijux_dna_bench::BenchRunOptions::default());
-    assert!(
-        result.is_err(),
-        "suite validation should fail on missing strata"
-    );
+    assert!(result.is_err(), "suite validation should fail on missing strata");
 }

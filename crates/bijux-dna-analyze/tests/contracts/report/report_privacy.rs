@@ -81,10 +81,7 @@ fn write_stage_report(stage_dir: &Path, stage_id: &str, tool_id: &str) -> Result
         log_paths: Vec::new(),
     };
     let stage_report_path = stage_dir.join("stage_report.json");
-    bijux_dna_infra::write_bytes(
-        &stage_report_path,
-        serde_json::to_vec_pretty(&stage_report)?,
-    )?;
+    bijux_dna_infra::write_bytes(&stage_report_path, serde_json::to_vec_pretty(&stage_report)?)?;
     Ok(stage_report_path)
 }
 
@@ -111,11 +108,7 @@ fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json
     };
     for (idx, stage_id) in id_catalog.iter().enumerate() {
         let stage_key = bijux_dna_core::ids::StageId::new(stage_id.clone());
-        let tool = profile
-            .defaults
-            .tools
-            .get(&stage_key)
-            .map_or("unknown", |tool| tool.as_str());
+        let tool = profile.defaults.tools.get(&stage_key).map_or("unknown", |tool| tool.as_str());
         let stage_dir = base_dir.join(format!("stage_{idx}"));
         bijux_dna_infra::ensure_dir(&stage_dir)?;
         let stage_report_path = write_stage_report(&stage_dir, stage_id, tool)?;
@@ -146,10 +139,7 @@ fn write_pipeline_report(domain: Domain, pipeline_id: &str) -> Result<serde_json
 fn assert_no_absolute_paths(value: &serde_json::Value) {
     match value {
         serde_json::Value::String(s) => {
-            assert!(
-                !s.starts_with('/') || s.starts_with("//"),
-                "absolute path found: {s}"
-            );
+            assert!(!s.starts_with('/') || s.starts_with("//"), "absolute path found: {s}");
             assert!(!s.contains(":\\"), "windows absolute path found: {s}");
         }
         serde_json::Value::Array(items) => {

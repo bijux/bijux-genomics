@@ -194,11 +194,8 @@ pub const FASTQ_UMI_METRICS: [MetricId; 7] = [
     MetricId::ReadsWithUmi,
 ];
 
-pub const FASTQ_INDEX_REFERENCE_METRICS: [MetricId; 3] = [
-    MetricId::ReferenceBytes,
-    MetricId::IndexBytes,
-    MetricId::IndexFileCount,
-];
+pub const FASTQ_INDEX_REFERENCE_METRICS: [MetricId; 3] =
+    [MetricId::ReferenceBytes, MetricId::IndexBytes, MetricId::IndexFileCount];
 
 pub const FASTQ_DEPLETE_HOST_METRICS: [MetricId; 8] = [
     MetricId::ReadsIn,
@@ -275,11 +272,8 @@ pub const FASTQ_READ_LENGTH_METRICS: [MetricId; 4] = [
     MetricId::DistinctLengths,
 ];
 
-pub const FASTQ_OVERREPRESENTED_METRICS: [MetricId; 3] = [
-    MetricId::SequenceCount,
-    MetricId::FlaggedSequences,
-    MetricId::TopFraction,
-];
+pub const FASTQ_OVERREPRESENTED_METRICS: [MetricId; 3] =
+    [MetricId::SequenceCount, MetricId::FlaggedSequences, MetricId::TopFraction];
 
 pub const FASTQ_TRIM_INVARIANTS: [&str; 4] = [
     "reads_out <= reads_in",
@@ -288,11 +282,8 @@ pub const FASTQ_TRIM_INVARIANTS: [&str; 4] = [
     "counts are non-negative",
 ];
 
-pub const FASTQ_VALIDATE_INVARIANTS: [&str; 3] = [
-    "reads_valid + reads_invalid == reads_total",
-    "mean_q in [0, 45]",
-    "counts are non-negative",
-];
+pub const FASTQ_VALIDATE_INVARIANTS: [&str; 3] =
+    ["reads_valid + reads_invalid == reads_total", "mean_q in [0, 45]", "counts are non-negative"];
 
 pub const FASTQ_DETECT_ADAPTERS_INVARIANTS: [&str; 4] = [
     "reads_out == reads_in",
@@ -334,23 +325,14 @@ pub const FASTQ_CORRECT_INVARIANTS: [&str; 4] = [
     "counts are non-negative",
 ];
 
-pub const FASTQ_QC_POST_INVARIANTS: [&str; 3] = [
-    "mean_q in [0, 45]",
-    "contamination_rate in [0, 1]",
-    "counts are non-negative",
-];
+pub const FASTQ_QC_POST_INVARIANTS: [&str; 3] =
+    ["mean_q in [0, 45]", "contamination_rate in [0, 1]", "counts are non-negative"];
 
-pub const FASTQ_UMI_INVARIANTS: [&str; 3] = [
-    "reads_out <= reads_in",
-    "reads_with_umi <= reads_out",
-    "counts are non-negative",
-];
+pub const FASTQ_UMI_INVARIANTS: [&str; 3] =
+    ["reads_out <= reads_in", "reads_with_umi <= reads_out", "counts are non-negative"];
 
-pub const FASTQ_INDEX_REFERENCE_INVARIANTS: [&str; 3] = [
-    "reference_bytes > 0",
-    "index_file_count > 0",
-    "index_bytes >= index_file_count",
-];
+pub const FASTQ_INDEX_REFERENCE_INVARIANTS: [&str; 3] =
+    ["reference_bytes > 0", "index_file_count > 0", "index_bytes >= index_file_count"];
 
 pub const FASTQ_DEPLETE_HOST_INVARIANTS: [&str; 4] = [
     "reads_out <= reads_in",
@@ -395,10 +377,8 @@ pub const FASTQ_READ_LENGTH_INVARIANTS: [&str; 3] = [
     "distinct_lengths <= read_count",
 ];
 
-pub const FASTQ_OVERREPRESENTED_INVARIANTS: [&str; 2] = [
-    "flagged_sequences <= sequence_count",
-    "top_fraction in [0, 1]",
-];
+pub const FASTQ_OVERREPRESENTED_INVARIANTS: [&str; 2] =
+    ["flagged_sequences <= sequence_count", "top_fraction in [0, 1]"];
 
 #[must_use]
 pub fn metric_kind_for_stage(stage_id: &str) -> Option<StageMetricKind> {

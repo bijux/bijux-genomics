@@ -30,11 +30,7 @@ pub(crate) fn render_outputs(
     report_model: Option<ReportModel>,
     options: &AnalyzeOptions,
 ) -> Result<RenderedArtifacts> {
-    let mut rendered = RenderedArtifacts {
-        summary: None,
-        report: None,
-        ranking: None,
-    };
+    let mut rendered = RenderedArtifacts { summary: None, report: None, ranking: None };
 
     if matches!(options.mode, AnalyzeMode::Summary | AnalyzeMode::Report) {
         let summary_path = core.base_dir.join("run_summary.json");

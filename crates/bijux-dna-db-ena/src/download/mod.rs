@@ -64,10 +64,7 @@ mod tests {
         let tasks = build_download_tasks(&[record], &cfg);
         assert_eq!(tasks.len(), 1);
         assert_eq!(tasks[0].accession, "ERR1");
-        assert!(tasks[0]
-            .output
-            .to_string_lossy()
-            .contains("out/ERR1/ERR1_1.fastq.gz"));
+        assert!(tasks[0].output.to_string_lossy().contains("out/ERR1/ERR1_1.fastq.gz"));
         let _ = EnaResultKind::ReadRun;
     }
 }

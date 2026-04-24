@@ -195,9 +195,7 @@ pub(super) fn observe_fastq_stats(
     runner: RuntimeKind,
     reads: &std::path::Path,
 ) -> Result<SeqkitMetrics> {
-    let reads_dir = reads
-        .parent()
-        .ok_or_else(|| anyhow!("reads path has no parent"))?;
+    let reads_dir = reads.parent().ok_or_else(|| anyhow!("reads path has no parent"))?;
     let stats_spec = input_fastq_stats(reads_dir, reads)?;
     let stats_output = execute_observer_command(
         seqkit_image,

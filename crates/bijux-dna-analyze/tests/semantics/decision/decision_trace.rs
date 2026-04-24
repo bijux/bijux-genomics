@@ -11,10 +11,7 @@ fn snapshot_name(group: &str, name: &str) -> String {
 }
 
 fn snapshot_path(name: &str) -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("snapshots")
-        .join(name)
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("snapshots").join(name)
 }
 
 #[test]
@@ -69,11 +66,7 @@ fn decision_trace_outliers_snapshot() -> Result<()> {
     for _ in 0..5 {
         rows.push(base.clone());
     }
-    rows.push(FactsRowV1 {
-        runtime_s: 1000.0,
-        memory_mb: 2000.0,
-        ..base
-    });
+    rows.push(FactsRowV1 { runtime_s: 1000.0, memory_mb: 2000.0, ..base });
     let stats = compare_robust_stats(&rows)?;
     let trace = trace_for_robust_stats(&stats);
     let rendered = serde_json::to_string_pretty(&trace)?;

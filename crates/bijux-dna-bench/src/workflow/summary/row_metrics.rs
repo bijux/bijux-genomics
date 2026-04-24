@@ -83,10 +83,8 @@ pub(super) fn build_summary_row(
         metric_ids.extend(obs.metrics.values.keys().cloned());
     }
     for metric_id in metric_ids {
-        let values: Vec<f64> = group
-            .iter()
-            .filter_map(|obs| obs.metrics.values.get(&metric_id).copied())
-            .collect();
+        let values: Vec<f64> =
+            group.iter().filter_map(|obs| obs.metrics.values.get(&metric_id).copied()).collect();
         let stats = robust_stats(&values);
         let outliers = mad_outliers(&values, 3.5);
         let ci = bootstrap_if_enabled(
@@ -114,21 +112,13 @@ pub(super) fn build_summary_row(
     }
 
     let failures = group.iter().filter(|obs| obs.exit_code != 0).count();
-    let failure_rate = if group.is_empty() {
-        0.0
-    } else {
-        failures as f64 / group.len() as f64
-    };
+    let failure_rate = if group.is_empty() { 0.0 } else { failures as f64 / group.len() as f64 };
     let n_effective = group.len().saturating_sub(failures);
     let low_power = n_effective < 3;
     if low_power {
         warnings.push(format!("low_power:{stage_id}:{tool}:{dataset_id}"));
     }
-    let completeness = if group.is_empty() {
-        0.0
-    } else {
-        n_effective as f64 / group.len() as f64
-    };
+    let completeness = if group.is_empty() { 0.0 } else { n_effective as f64 / group.len() as f64 };
 
     let Some(first) = group.first().copied() else {
         return Ok(None);

@@ -5,10 +5,7 @@ use bijux_dna_core::prelude::{Cardinality, PortSpec, StageId};
 use bijux_dna_runtime::manifests::load_manifests;
 
 fn domain_root() -> std::path::PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .join("domain")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..").join("domain")
 }
 
 fn stage_port_has_type(ports: &[PortSpec], data_type: &str) -> bool {
@@ -33,10 +30,7 @@ fn stage_or<'a>(
     stage_id: &'static str,
 ) -> Result<&'a bijux_dna_core::contract::StageSpec, Box<dyn std::error::Error>> {
     let stage_id = StageId::from_static(stage_id);
-    registry
-        .stages()
-        .get(&stage_id)
-        .ok_or_else(|| format!("missing {}", stage_id.as_str()).into())
+    registry.stages().get(&stage_id).ok_or_else(|| format!("missing {}", stage_id.as_str()).into())
 }
 
 #[test]

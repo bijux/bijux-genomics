@@ -17,21 +17,15 @@ pub(crate) fn execute_plans_with_jobs(
     jobs: usize,
 ) -> Result<Vec<StageResultV1>> {
     if jobs <= 1 || plans.len() <= 1 {
-        return plans
-            .iter()
-            .map(|plan| execute_plan(plan, runner, None))
-            .collect();
+        return plans.iter().map(|plan| execute_plan(plan, runner, None)).collect();
     }
     let total = plans.len();
-    let queue = Arc::new(Mutex::new(VecDeque::from(
-        plans.into_iter().enumerate().collect::<Vec<_>>(),
-    )));
+    let queue =
+        Arc::new(Mutex::new(VecDeque::from(plans.into_iter().enumerate().collect::<Vec<_>>())));
     let results: Arc<Mutex<Vec<Option<Result<StageResultV1>>>>> =
         Arc::new(Mutex::new(Vec::with_capacity(total)));
     {
-        let mut guard = results
-            .lock()
-            .map_err(|_| anyhow!("results lock poisoned"))?;
+        let mut guard = results.lock().map_err(|_| anyhow!("results lock poisoned"))?;
         guard.resize_with(total, || None);
     }
     let mut workers = Vec::new();
@@ -61,9 +55,7 @@ pub(crate) fn execute_plans_with_jobs(
         let _ = worker.join();
     }
     let results = {
-        let mut guard = results
-            .lock()
-            .map_err(|_| anyhow!("results lock poisoned"))?;
+        let mut guard = results.lock().map_err(|_| anyhow!("results lock poisoned"))?;
         std::mem::take(&mut *guard)
     };
     let mut out = Vec::with_capacity(results.len());

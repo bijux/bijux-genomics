@@ -33,10 +33,7 @@ pub(super) fn plan_alignment_qc_stage(
                 }
                 _ => bijux_dna_planner_bam::stage_api::params::AlignEffectiveParams {
                     aligner: spec.tool_id.to_string(),
-                    preset: args
-                        .aligner_preset
-                        .clone()
-                        .unwrap_or_else(|| "default".to_string()),
+                    preset: args.aligner_preset.clone().unwrap_or_else(|| "default".to_string()),
                     threads: 1,
                     reference: reference.display().to_string(),
                     reference_digest: digest.clone(),
@@ -341,9 +338,7 @@ pub(super) fn plan_alignment_qc_stage(
                 params.min_reads = u64::from(value);
             }
             if !args.complexity_projection_points.is_empty() {
-                params
-                    .projection_points
-                    .clone_from(&args.complexity_projection_points);
+                params.projection_points.clone_from(&args.complexity_projection_points);
             }
             let params_json = serde_json::to_value(&params)?;
             plan(StagePlanRequest {

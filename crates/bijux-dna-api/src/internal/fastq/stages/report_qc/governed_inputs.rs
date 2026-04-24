@@ -15,9 +15,7 @@ pub(super) fn discover_qc_inputs_manifest_path(
 ) -> Option<PathBuf> {
     let mut candidates = vec![governed_qc_inputs_manifest_path(bench_dir)];
     candidates.extend(
-        tools
-            .iter()
-            .map(|tool_id| governed_qc_inputs_manifest_path(&tools_root.join(tool_id))),
+        tools.iter().map(|tool_id| governed_qc_inputs_manifest_path(&tools_root.join(tool_id))),
     );
     candidates.into_iter().find(|path| path.exists())
 }
@@ -67,11 +65,7 @@ pub(super) fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<Governe
                 .get(2..parts.len().saturating_sub(1))
                 .map(|segments| segments.join("."))
                 .filter(|tool_id| !tool_id.is_empty())
-                .or_else(|| {
-                    contributor_id
-                        .rsplit_once('.')
-                        .map(|(_, tool_id)| tool_id.to_string())
-                })
+                .or_else(|| contributor_id.rsplit_once('.').map(|(_, tool_id)| tool_id.to_string()))
                 .unwrap_or_else(|| contributor_id.clone());
             GovernedQcContributor {
                 contributor_id,
@@ -97,10 +91,7 @@ fn canonicalize_qc_inputs_from_contributors(
         .iter()
         .map(|contributor| {
             (
-                (
-                    contributor.path.clone(),
-                    contributor.artifact_role.as_str().to_string(),
-                ),
+                (contributor.path.clone(), contributor.artifact_role.as_str().to_string()),
                 canonical_qc_input_name(contributor),
             )
         })
@@ -122,10 +113,8 @@ fn canonicalize_qc_inputs_from_contributors(
 pub(super) fn governed_qc_contributor_stage_ids(
     contributors: &[GovernedQcContributor],
 ) -> Vec<String> {
-    let mut stage_ids = contributors
-        .iter()
-        .map(|contributor| contributor.stage_id.clone())
-        .collect::<Vec<_>>();
+    let mut stage_ids =
+        contributors.iter().map(|contributor| contributor.stage_id.clone()).collect::<Vec<_>>();
     stage_ids.sort();
     stage_ids.dedup();
     stage_ids
@@ -158,10 +147,7 @@ pub(super) fn resolve_qc_contributor_aux_images(
             .map_err(|error| anyhow!("resolve governed QC aux image for {tool_id}: {error}"))?;
         aux_images.insert(
             tool_id,
-            ContainerImageRefV1 {
-                image: image.full_name,
-                digest: spec.digest.clone(),
-            },
+            ContainerImageRefV1 { image: image.full_name, digest: spec.digest.clone() },
         );
     }
     Ok(aux_images)
@@ -257,11 +243,7 @@ pub(super) fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQc
         left.contributor_id
             .cmp(&right.contributor_id)
             .then_with(|| left.artifact_id.cmp(&right.artifact_id))
-            .then_with(|| {
-                left.artifact_role
-                    .as_str()
-                    .cmp(right.artifact_role.as_str())
-            })
+            .then_with(|| left.artifact_role.as_str().cmp(right.artifact_role.as_str()))
             .then_with(|| left.path.cmp(&right.path))
     });
     contributors.dedup_by(|left, right| {
@@ -273,10 +255,7 @@ pub(super) fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQc
     let mut qc_inputs =
         canonicalize_qc_inputs_from_contributors(&manifest.qc_inputs, &contributors);
     qc_inputs.sort_by(|left, right| {
-        left.name
-            .as_str()
-            .cmp(right.name.as_str())
-            .then_with(|| left.path.cmp(&right.path))
+        left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
     });
     qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
     validate_governed_qc_contributors(&contributors, &qc_inputs, path)?;

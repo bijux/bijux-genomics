@@ -15,7 +15,7 @@ fn tool_tier_for(stage_id: &str, tool_id: &str) -> (ToolTier, &'static str) {
     }
 }
 
-pub(super) fn pipeline_overview_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn pipeline_overview_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let stages: Vec<serde_json::Value> = rows
         .iter()
         .map(|row| {

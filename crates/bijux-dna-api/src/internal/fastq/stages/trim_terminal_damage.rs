@@ -69,23 +69,16 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimTerminalDamageArgs,
 ) -> Result<BenchOutcome<FastqTrimTerminalDamageMetrics>> {
     let requested = resolve_requested_tools(&args.tools);
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_TRIM_TERMINAL_DAMAGE.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_TRIM_TERMINAL_DAMAGE.as_str(), &header);
 
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(
-        STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
-        &requested,
-        &registry,
-        false,
-    )?;
+    let tools =
+        filter_tools_by_role(STAGE_TRIM_TERMINAL_DAMAGE.as_str(), &requested, &registry, false)?;
     let bench_inputs = prepare_trim_bench(
         catalog,
         platform,
@@ -96,35 +89,21 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         &STAGE_TRIM_TERMINAL_DAMAGE,
     )?;
     let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!(
-            "{}+{}",
-            bench_inputs.input_hash,
-            bijux_dna_infra::hash_file_sha256(r2)?
-        )
+        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
     } else {
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(
-            catalog,
-            platform,
-            bench_inputs.runner,
-            r2,
-        )?)
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
     } else {
         None
     };
 
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_TRIM_TERMINAL_DAMAGE.as_str());
-    let all_tools: Vec<String> = registry
-        .tools_for_stage(&stage_id)
-        .iter()
-        .map(|tool| tool.tool_id.to_string())
-        .collect();
-    let excluded: Vec<String> = all_tools
-        .into_iter()
-        .filter(|tool| !tools.contains(tool))
-        .collect();
+    let all_tools: Vec<String> =
+        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
+    let excluded: Vec<String> =
+        all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
 
     if args.explain {
         write_explain_md(
@@ -143,18 +122,8 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         )?;
     }
 
-    ensure_image_qa_passed(
-        STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
-        &tools,
-        platform,
-        catalog,
-    )?;
-    ensure_tool_qa_passed(
-        STAGE_TRIM_TERMINAL_DAMAGE.as_str(),
-        &tools,
-        platform,
-        catalog,
-    )?;
+    ensure_image_qa_passed(STAGE_TRIM_TERMINAL_DAMAGE.as_str(), &tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_TRIM_TERMINAL_DAMAGE.as_str(), &tools, platform, catalog)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -218,9 +187,7 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             bench_inputs.runner,
             jobs,
         )?
@@ -263,9 +230,7 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
             pairs_in: input_stats_r2
                 .as_ref()
                 .map(|stats| bench_inputs.input_stats.reads.min(stats.reads)),
-            pairs_out: output_stats_r2
-                .as_ref()
-                .map(|stats| output_stats_r1.reads.min(stats.reads)),
+            pairs_out: output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads)),
             mean_q_before: before_stats.mean_q,
             mean_q_after: after_stats.mean_q,
             damage_mode: Some(governed_report.damage_mode.as_str().to_string()),
@@ -335,12 +300,7 @@ pub fn bench_fastq_trim_terminal_damage<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 fn combine_seqkit_metrics(
@@ -391,9 +351,7 @@ fn prune_trim_terminal_damage_payload(
         for entry in fs::read_dir(&dir)
             .with_context(|| format!("read terminal damage tool dir {}", dir.display()))?
         {
-            let path = entry
-                .with_context(|| format!("read entry in {}", dir.display()))?
-                .path();
+            let path = entry.with_context(|| format!("read entry in {}", dir.display()))?.path();
             if path == run_artifacts_dir || path.starts_with(&run_artifacts_dir) {
                 continue;
             }
@@ -499,9 +457,7 @@ mod tests {
             Ok(value) => panic!("unknown policy must fail: {value:?}"),
             Err(err) => err,
         };
-        assert!(error
-            .to_string()
-            .contains("invalid fastq.trim_terminal_damage execution_policy"));
+        assert!(error.to_string().contains("invalid fastq.trim_terminal_damage execution_policy"));
     }
 
     #[test]
@@ -512,13 +468,8 @@ mod tests {
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("cutadapt"),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["cutadapt".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["cutadapt".to_string()] },
             resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
@@ -599,13 +550,8 @@ mod tests {
             stage_version: StageVersion(1),
             tool_id: ToolId::from_static("cutadapt"),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["cutadapt".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["cutadapt".to_string()] },
             resources: ToolConstraints::default(),
             io: StageIO {
                 inputs: Vec::new(),
@@ -625,10 +571,7 @@ mod tests {
         let report = read_governed_terminal_damage_report(&plan)
             .unwrap_or_else(|err| panic!("governed report: {err}"));
         assert_eq!(report.tool_id, "cutadapt");
-        assert_eq!(
-            report.raw_backend_report_format.as_deref(),
-            Some("cutadapt_json")
-        );
+        assert_eq!(report.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
     }
 
     #[test]

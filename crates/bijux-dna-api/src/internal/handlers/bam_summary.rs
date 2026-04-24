@@ -75,21 +75,13 @@ pub(crate) fn render_bam_summary(
     );
     bijux_dna_infra::atomic_write_bytes(&report_html_path, html.as_bytes())
         .context("write report.html")?;
-    Ok(ReportArtifacts {
-        summary_json_path,
-        summary_tsv_path,
-        report_html_path,
-    })
+    Ok(ReportArtifacts { summary_json_path, summary_tsv_path, report_html_path })
 }
 
 fn find_authenticity_composite(stage_runs: &[StageExecutionSummary]) -> Option<serde_json::Value> {
-    let authenticity = stage_runs
-        .iter()
-        .find(|entry| entry.plan.step_id.0 == "bam.authenticity")?;
-    let path = authenticity
-        .plan
-        .out_dir
-        .join("authenticity_composite.json");
+    let authenticity =
+        stage_runs.iter().find(|entry| entry.plan.step_id.0 == "bam.authenticity")?;
+    let path = authenticity.plan.out_dir.join("authenticity_composite.json");
     let raw = std::fs::read_to_string(path).ok()?;
     serde_json::from_str(&raw).ok()
 }
@@ -106,14 +98,7 @@ fn stage_dir_for(
     stage_runs: &[StageExecutionSummary],
     stage_id: &str,
 ) -> Option<std::path::PathBuf> {
-    Some(
-        stage_runs
-            .iter()
-            .find(|entry| entry.plan.step_id.0 == stage_id)?
-            .plan
-            .out_dir
-            .clone(),
-    )
+    Some(stage_runs.iter().find(|entry| entry.plan.step_id.0 == stage_id)?.plan.out_dir.clone())
 }
 
 fn build_bam_scientific_summary(stage_runs: &[StageExecutionSummary]) -> serde_json::Value {

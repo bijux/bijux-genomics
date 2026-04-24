@@ -26,8 +26,6 @@ impl std::str::FromStr for AnalyzeMetricId {
         if let Some(id) = parse_derived_metric_id(s) {
             return Ok(Self::Derived(id));
         }
-        Err(anyhow::anyhow!(
-            "unknown metric id `{s}`; register in core metric registry first"
-        ))
+        Err(anyhow::anyhow!("unknown metric id `{s}`; register in core metric registry first"))
     }
 }

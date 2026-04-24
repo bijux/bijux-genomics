@@ -3,10 +3,7 @@ use super::BenchmarkSuiteSpec;
 impl BenchmarkSuiteSpec {
     #[must_use]
     pub fn stage_ids(&self) -> Vec<&str> {
-        self.stages
-            .iter()
-            .map(|stage| stage.stage.as_str())
-            .collect()
+        self.stages.iter().map(|stage| stage.stage.as_str()).collect()
     }
 
     #[must_use]

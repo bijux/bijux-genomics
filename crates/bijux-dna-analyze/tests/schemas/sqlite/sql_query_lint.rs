@@ -35,9 +35,7 @@ fn is_deterministic_select(query: &str) -> bool {
     if upper.contains("ORDER BY") {
         return true;
     }
-    let aggregate = [
-        "COUNT(", "DISTINCT", "MAX(", "MIN(", "SUM(", "AVG(", "GROUP BY", "EXISTS",
-    ];
+    let aggregate = ["COUNT(", "DISTINCT", "MAX(", "MIN(", "SUM(", "AVG(", "GROUP BY", "EXISTS"];
     aggregate.iter().any(|needle| upper.contains(needle))
 }
 

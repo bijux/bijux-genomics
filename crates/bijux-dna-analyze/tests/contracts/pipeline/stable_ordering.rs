@@ -38,10 +38,7 @@ fn row(tool: &str, runtime: f64, reads_in: u64, reads_out: u64) -> FactsRowV1 {
 fn rank_inputs(rows: &[FactsRowV1]) -> Vec<RankInput> {
     let mut by_tool = std::collections::BTreeMap::new();
     for row in rows {
-        by_tool
-            .entry(row.tool_id.clone())
-            .or_insert_with(Vec::new)
-            .push(row);
+        by_tool.entry(row.tool_id.clone()).or_insert_with(Vec::new).push(row);
     }
     by_tool
         .into_iter()
@@ -49,12 +46,10 @@ fn rank_inputs(rows: &[FactsRowV1]) -> Vec<RankInput> {
             let n = rows.len() as f64;
             let runtime_s = rows.iter().map(|row| row.runtime_s).sum::<f64>() / n.max(1.0);
             let memory_mb = rows.iter().map(|row| row.memory_mb).sum::<f64>() / n.max(1.0);
-            let read_retention = rows
-                .iter()
-                .find_map(|row| match (row.reads_in, row.reads_out) {
-                    (Some(ri), Some(ro)) if ri > 0 => Some(ro as f64 / ri as f64),
-                    _ => None,
-                });
+            let read_retention = rows.iter().find_map(|row| match (row.reads_in, row.reads_out) {
+                (Some(ri), Some(ro)) if ri > 0 => Some(ro as f64 / ri as f64),
+                _ => None,
+            });
             RankInput {
                 tool,
                 runtime_s,

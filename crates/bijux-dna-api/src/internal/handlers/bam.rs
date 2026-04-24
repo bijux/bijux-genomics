@@ -266,12 +266,10 @@ fn parse_tool_matrix(
     let mut map = std::collections::BTreeMap::new();
     for entry in entries {
         let mut parts = entry.split('=');
-        let stage_raw = parts
-            .next()
-            .ok_or_else(|| anyhow!("invalid tool matrix entry: {entry}"))?;
-        let tools_raw = parts
-            .next()
-            .ok_or_else(|| anyhow!("invalid tool matrix entry: {entry}"))?;
+        let stage_raw =
+            parts.next().ok_or_else(|| anyhow!("invalid tool matrix entry: {entry}"))?;
+        let tools_raw =
+            parts.next().ok_or_else(|| anyhow!("invalid tool matrix entry: {entry}"))?;
         let stage_id = if stage_raw.contains('.') {
             stage_raw.to_string()
         } else {

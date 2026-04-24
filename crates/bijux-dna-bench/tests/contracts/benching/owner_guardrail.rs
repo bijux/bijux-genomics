@@ -44,8 +44,5 @@ fn top_level_modules_have_owner() {
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "missing module owner doc comments: {offenders:?}"
-    );
+    assert!(offenders.is_empty(), "missing module owner doc comments: {offenders:?}");
 }

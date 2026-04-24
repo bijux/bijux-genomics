@@ -80,14 +80,7 @@ fn analyze_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/pipeline/steps")),
-        entries([
-            "compute.rs",
-            "load.rs",
-            "mod.rs",
-            "render.rs",
-            "report.rs",
-            "validate.rs",
-        ]),
+        entries(["compute.rs", "load.rs", "mod.rs", "render.rs", "report.rs", "validate.rs",]),
         "pipeline steps must stay explicit and canonical"
     );
 

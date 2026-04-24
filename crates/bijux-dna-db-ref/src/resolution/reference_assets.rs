@@ -1,5 +1,6 @@
 use anyhow::{anyhow, bail, Result};
 
+use crate::resolution::validate_sha256;
 use crate::runtime_config::{
     load_toml, workspace_root, BundlesConfig, GeneticMapBankConfig, OrganellarPolicyConfig,
     ReferenceBankConfig, ReferenceSetConfig,

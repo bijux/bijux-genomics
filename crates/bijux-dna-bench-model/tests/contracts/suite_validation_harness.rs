@@ -1,7 +1,8 @@
 use bijux_dna_bench_model::{
-    validate_suite, AnalysisRequirements, BenchmarkStageSpec, BenchmarkSuiteSpec, DatasetSpec,
+    AnalysisRequirements, BenchmarkStageSpec, BenchmarkSuiteSpec, DatasetSpec,
     DiversityRequirements, ReplicatePolicy, StratificationRequirement,
 };
+use bijux_dna_bench_model::contract::validate_suite;
 use bijux_dna_core::id_catalog;
 
 pub(super) fn fastq_stage(name: &str) -> String {
@@ -20,6 +21,7 @@ pub(super) fn fastq_instance(name: &str, suffix: &str) -> String {
     stage_instance(&fastq_stage(name), suffix)
 }
 
+#[allow(dead_code)]
 pub(super) fn fastq_tool_instance(name: &str, suffix: &str, tool_id: &str) -> String {
     stage_tool_instance(&fastq_stage(name), suffix, tool_id)
 }

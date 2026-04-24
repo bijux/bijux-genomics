@@ -17,27 +17,15 @@ fn snapshot_name(group: &str, name: &str) -> String {
 }
 
 fn is_optional_bam_downstream(stage_id: &str) -> bool {
-    matches!(
-        stage_id,
-        "bam.genotyping" | "bam.haplogroups" | "bam.kinship"
-    )
+    matches!(stage_id, "bam.genotyping" | "bam.haplogroups" | "bam.kinship")
 }
 
 fn feature_stable_profile(
     mut profile: bijux_dna_pipelines::PipelineProfile,
 ) -> bijux_dna_pipelines::PipelineProfile {
-    profile
-        .capabilities
-        .required_stages
-        .retain(|stage_id| !is_optional_bam_downstream(stage_id));
-    profile
-        .defaults
-        .tools
-        .retain(|stage_id, _| !is_optional_bam_downstream(stage_id.as_str()));
-    profile
-        .defaults
-        .params
-        .retain(|stage_id, _| !is_optional_bam_downstream(stage_id.as_str()));
+    profile.capabilities.required_stages.retain(|stage_id| !is_optional_bam_downstream(stage_id));
+    profile.defaults.tools.retain(|stage_id, _| !is_optional_bam_downstream(stage_id.as_str()));
+    profile.defaults.params.retain(|stage_id, _| !is_optional_bam_downstream(stage_id.as_str()));
     profile
         .defaults
         .rationales
@@ -127,10 +115,7 @@ fn write_stage_artifacts(root: &Path, stage_id: &str) -> Result<()> {
     fs::write(stage_dir.join("effective_config.json"), "{}")?;
     fs::write(stage_dir.join("metrics_envelope.json"), "{}")?;
     let report = stage_report_for_stage(stage_id);
-    fs::write(
-        stage_dir.join("stage_report.json"),
-        serde_json::to_string_pretty(&report)?,
-    )?;
+    fs::write(stage_dir.join("stage_report.json"), serde_json::to_string_pretty(&report)?)?;
     Ok(())
 }
 
@@ -146,11 +131,7 @@ fn build_report(domain: Domain, pipeline_id: &str) -> Result<Value> {
     let mut facts = Vec::new();
     for stage in &stages {
         let stage_key = bijux_dna_core::ids::StageId::new(stage);
-        let tool_id = profile
-            .defaults
-            .tools
-            .get(&stage_key)
-            .map_or("tool", |tool| tool.as_str());
+        let tool_id = profile.defaults.tools.get(&stage_key).map_or("tool", |tool| tool.as_str());
         facts.push(fact_for_stage(stage, tool_id, pipeline_id));
         write_stage_artifacts(root, stage)?;
     }
@@ -250,10 +231,7 @@ fn pipeline_reports_are_stable_across_repeated_builds() -> Result<()> {
         let b = bijux_dna_testkit::snapshot_normalize_json(&canonicalize_truth_json(
             &build_report(domain, pipeline_id)?,
         ));
-        assert_eq!(
-            a, b,
-            "pipeline report must be deterministic for {pipeline_id}"
-        );
+        assert_eq!(a, b, "pipeline report must be deterministic for {pipeline_id}");
     }
     Ok(())
 }

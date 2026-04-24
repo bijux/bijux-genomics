@@ -11,20 +11,11 @@ pub struct BootstrapResult {
     pub samples: usize,
 }
 
-#[allow(
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss,
-    clippy::cast_possible_truncation
-)]
+#[allow(clippy::cast_precision_loss, clippy::cast_sign_loss, clippy::cast_possible_truncation)]
 #[must_use]
 pub fn bootstrap_ci(values: &[f64], samples: usize, seed: u64) -> BootstrapResult {
     if values.is_empty() || samples == 0 {
-        return BootstrapResult {
-            mean: 0.0,
-            ci_low: 0.0,
-            ci_high: 0.0,
-            samples: 0,
-        };
+        return BootstrapResult { mean: 0.0, ci_low: 0.0, ci_high: 0.0, samples: 0 };
     }
     let mut rng = fastrand::Rng::with_seed(seed);
     let mut means = Vec::with_capacity(samples);
@@ -40,12 +31,7 @@ pub fn bootstrap_ci(values: &[f64], samples: usize, seed: u64) -> BootstrapResul
     let mean = means.iter().sum::<f64>() / means.len() as f64;
     let low_idx = (means.len() as f64 * 0.025).floor() as usize;
     let high_idx = ((means.len() as f64 * 0.975).floor() as usize).min(means.len() - 1);
-    BootstrapResult {
-        mean,
-        ci_low: means[low_idx],
-        ci_high: means[high_idx],
-        samples,
-    }
+    BootstrapResult { mean, ci_low: means[low_idx], ci_high: means[high_idx], samples }
 }
 
 #[must_use]

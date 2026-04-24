@@ -61,10 +61,7 @@ mod tests {
 
     impl EnvGuard {
         fn capture(key: &'static str) -> Self {
-            Self {
-                key,
-                value: std::env::var(key).ok(),
-            }
+            Self { key, value: std::env::var(key).ok() }
         }
     }
 
@@ -225,14 +222,7 @@ mod tests {
     fn validate_reads_uses_governed_report_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.validate_reads"),
-            &[
-                "schema_version",
-                "stage",
-                "validator",
-                "failure_class",
-                "strict_pass",
-                "exit_code",
-            ]
+            &["schema_version", "stage", "validator", "failure_class", "strict_pass", "exit_code",]
         );
     }
 
@@ -270,14 +260,7 @@ mod tests {
     fn filter_reads_uses_governed_report_metrics_policy() {
         assert_eq!(
             required_metrics_keys("fastq.filter_reads"),
-            &[
-                "schema_version",
-                "stage",
-                "tool",
-                "reads_in",
-                "reads_out",
-                "reads_dropped",
-            ]
+            &["schema_version", "stage", "tool", "reads_in", "reads_out", "reads_dropped",]
         );
     }
 
@@ -376,10 +359,7 @@ mod tests {
         );
 
         assert_eq!(metrics["validator"], serde_json::json!("seqtk"));
-        assert_eq!(
-            metrics["failure_class"],
-            serde_json::json!("pair_count_mismatch")
-        );
+        assert_eq!(metrics["failure_class"], serde_json::json!("pair_count_mismatch"));
         assert_eq!(metrics["validated_reads_r1"], serde_json::json!(42));
         assert_eq!(metrics["validated_reads_r2"], serde_json::json!(41));
         assert_eq!(metrics["pair_sync_pass"], serde_json::json!(false));
@@ -444,10 +424,7 @@ mod tests {
 
         let metrics = parse_trim_terminal_damage_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("cutadapt"));
-        assert_eq!(
-            metrics["execution_policy"],
-            serde_json::json!("explicit_terminal_trim")
-        );
+        assert_eq!(metrics["execution_policy"], serde_json::json!("explicit_terminal_trim"));
         assert_eq!(metrics["threads"], serde_json::json!(4));
         assert_eq!(metrics["ct_ga_asymmetry_post"], serde_json::json!(0.11));
         assert_eq!(metrics["used_fallback"], serde_json::json!(false));
@@ -512,10 +489,7 @@ mod tests {
         assert_eq!(metrics["max_n_fraction"], serde_json::json!(0.05));
         assert_eq!(metrics["polyx_policy"], serde_json::json!("trim"));
         assert_eq!(metrics["reads_removed_by_n"], serde_json::json!(2));
-        assert_eq!(
-            metrics["raw_backend_report_format"],
-            serde_json::json!("fastp_json")
-        );
+        assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("fastp_json"));
     }
 
     #[test]
@@ -562,15 +536,9 @@ mod tests {
 
         let metrics = parse_filter_low_complexity_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("bbduk"));
-        assert_eq!(
-            metrics["reads_removed_low_complexity"],
-            serde_json::json!(8)
-        );
+        assert_eq!(metrics["reads_removed_low_complexity"], serde_json::json!(8));
         assert_eq!(metrics["polyx_threshold"], serde_json::json!(20));
-        assert_eq!(
-            metrics["raw_backend_report_format"],
-            serde_json::json!("bbduk_stats")
-        );
+        assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("bbduk_stats"));
     }
 
     #[test]
@@ -618,10 +586,7 @@ mod tests {
         assert_eq!(metrics["tool"], serde_json::json!("umi_tools"));
         assert_eq!(metrics["umi_pattern"], serde_json::json!("NNNNNNNN"));
         assert_eq!(metrics["reads_with_umi"], serde_json::json!(200));
-        assert_eq!(
-            metrics["raw_backend_report_format"],
-            serde_json::json!("umi_tools_log")
-        );
+        assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("umi_tools_log"));
     }
 
     #[test]
@@ -676,10 +641,7 @@ mod tests {
         assert_eq!(metrics["reads_total"], serde_json::json!(200));
         assert_eq!(metrics["length_histogram_bins"], serde_json::json!(2));
         assert_eq!(metrics["mate_summary_count"], serde_json::json!(2));
-        assert_eq!(
-            metrics["raw_backend_report_format"],
-            serde_json::json!("seqkit_stats_tsv")
-        );
+        assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("seqkit_stats_tsv"));
     }
 
     #[test]
@@ -725,10 +687,7 @@ mod tests {
         assert_eq!(metrics["histogram_bins"], serde_json::json!(64));
         assert_eq!(metrics["read_count"], serde_json::json!(200));
         assert_eq!(metrics["histogram_entry_count"], serde_json::json!(2));
-        assert_eq!(
-            metrics["raw_backend_report_format"],
-            serde_json::json!("seqkit_fx2tab_tsv")
-        );
+        assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("seqkit_fx2tab_tsv"));
     }
 
     #[test]
@@ -841,10 +800,7 @@ mod tests {
         );
         assert_eq!(metrics["reads_in"], serde_json::json!(100));
         assert_eq!(metrics["reads_out"], serde_json::json!(92));
-        assert_eq!(
-            metrics["raw_backend_report_format"],
-            serde_json::json!("fastp_json")
-        );
+        assert_eq!(metrics["raw_backend_report_format"], serde_json::json!("fastp_json"));
     }
 
     #[test]
@@ -890,19 +846,13 @@ mod tests {
         assert_eq!(metrics["threads"], serde_json::json!(4));
         assert_eq!(metrics["merge_overlap"], serde_json::json!(22));
         assert_eq!(metrics["min_length"], serde_json::json!(120));
-        assert_eq!(
-            metrics["unmerged_read_policy"],
-            serde_json::json!("omit_unmerged_pairs")
-        );
+        assert_eq!(metrics["unmerged_read_policy"], serde_json::json!("omit_unmerged_pairs"));
         assert_eq!(metrics["reads_r1"], serde_json::json!(100));
         assert_eq!(metrics["reads_r2"], serde_json::json!(100));
         assert_eq!(metrics["reads_merged"], serde_json::json!(88));
         assert_eq!(metrics["reads_unmerged"], serde_json::json!(12));
         assert_eq!(metrics["merge_rate"], serde_json::json!(0.88));
-        assert_eq!(
-            metrics["raw_backend_report_format"],
-            serde_json::Value::Null
-        );
+        assert_eq!(metrics["raw_backend_report_format"], serde_json::Value::Null);
     }
 
     #[test]
@@ -955,10 +905,7 @@ mod tests {
         assert_eq!(metrics["trim_polyg"], serde_json::json!(true));
         assert_eq!(metrics["reads_in"], serde_json::json!(100));
         assert_eq!(metrics["bases_trimmed_polyg"], serde_json::json!(90));
-        assert_eq!(
-            metrics["polyx_bank_hash"],
-            serde_json::json!("sha256:polyx")
-        );
+        assert_eq!(metrics["polyx_bank_hash"], serde_json::json!("sha256:polyx"));
     }
 
     #[test]
@@ -1007,15 +954,9 @@ mod tests {
 
         let metrics = parse_normalize_primers_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("cutadapt"));
-        assert_eq!(
-            metrics["primer_set_id"],
-            serde_json::json!("16S_universal_v1")
-        );
+        assert_eq!(metrics["primer_set_id"], serde_json::json!("16S_universal_v1"));
         assert_eq!(metrics["primer_trimmed_reads"], serde_json::json!(190));
-        assert_eq!(
-            metrics["orientation_forward_fraction"],
-            serde_json::json!(0.93)
-        );
+        assert_eq!(metrics["orientation_forward_fraction"], serde_json::json!(0.93));
     }
 
     #[test]
@@ -1116,14 +1057,8 @@ mod tests {
         assert_eq!(metrics["tool"], serde_json::json!("kraken2"));
         assert_eq!(metrics["classifier"], serde_json::json!("kraken2"));
         assert_eq!(metrics["contamination_rate"], serde_json::json!(0.23));
-        assert_eq!(
-            metrics["top_taxa"][0]["label"],
-            serde_json::json!("bacteria")
-        );
-        assert_eq!(
-            metrics["database_digest"],
-            serde_json::json!("sha256:taxonomy-db")
-        );
+        assert_eq!(metrics["top_taxa"][0]["label"], serde_json::json!("bacteria"));
+        assert_eq!(metrics["database_digest"], serde_json::json!("sha256:taxonomy-db"));
     }
 
     #[test]
@@ -1174,10 +1109,7 @@ mod tests {
 
         let metrics = parse_deplete_rrna_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("sortmerna"));
-        assert_eq!(
-            metrics["database_artifact_id"],
-            serde_json::json!("silva_nr99")
-        );
+        assert_eq!(metrics["database_artifact_id"], serde_json::json!("silva_nr99"));
         assert_eq!(metrics["reads_removed"], serde_json::json!(36));
         assert_eq!(metrics["rrna_fraction_removed"], serde_json::json!(0.36));
     }
@@ -1229,15 +1161,9 @@ mod tests {
 
         let metrics = parse_deplete_reference_contaminants_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
-        assert_eq!(
-            metrics["contaminant_reference"],
-            serde_json::json!("phix_and_spikeins")
-        );
+        assert_eq!(metrics["contaminant_reference"], serde_json::json!("phix_and_spikeins"));
         assert_eq!(metrics["reads_removed"], serde_json::json!(28));
-        assert_eq!(
-            metrics["contaminant_fraction_removed"],
-            serde_json::json!(0.28)
-        );
+        assert_eq!(metrics["contaminant_fraction_removed"], serde_json::json!(0.28));
     }
 
     #[test]
@@ -1295,10 +1221,7 @@ mod tests {
 
         let metrics = parse_deplete_host_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("bowtie2"));
-        assert_eq!(
-            metrics["reference_catalog_id"],
-            serde_json::json!("host_reference")
-        );
+        assert_eq!(metrics["reference_catalog_id"], serde_json::json!("host_reference"));
         assert_eq!(metrics["reads_removed"], serde_json::json!(30));
         assert_eq!(metrics["host_fraction_removed"], serde_json::json!(0.30));
     }
@@ -1346,10 +1269,7 @@ mod tests {
         let metrics = parse_report_qc_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("multiqc"));
         assert_eq!(metrics["aggregation_engine"], serde_json::json!("multiqc"));
-        assert_eq!(
-            metrics["aggregation_scope"],
-            serde_json::json!("governed_qc_artifacts")
-        );
+        assert_eq!(metrics["aggregation_scope"], serde_json::json!("governed_qc_artifacts"));
         assert_eq!(metrics["reads_in"], serde_json::json!(100));
         assert_eq!(metrics["mean_q"], serde_json::json!(31.0));
         assert_eq!(metrics["governed_qc_input_count"], serde_json::json!(3));
@@ -1409,10 +1329,7 @@ mod tests {
         assert_eq!(metrics["dedup_mode"], serde_json::json!("optical_aware"));
         assert_eq!(metrics["duplicates_removed"], serde_json::json!(16));
         assert_eq!(metrics["duplicate_class_count"], serde_json::json!(1));
-        assert_eq!(
-            metrics["raw_backend_report"],
-            serde_json::json!("clumpify.log")
-        );
+        assert_eq!(metrics["raw_backend_report"], serde_json::json!("clumpify.log"));
     }
 
     #[test]
@@ -1439,14 +1356,9 @@ mod tests {
 #[allow(clippy::too_many_lines)]
 pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
     match stage_id {
-        "fastq.validate_reads" => &[
-            "schema_version",
-            "stage",
-            "validator",
-            "failure_class",
-            "strict_pass",
-            "exit_code",
-        ],
+        "fastq.validate_reads" => {
+            &["schema_version", "stage", "validator", "failure_class", "strict_pass", "exit_code"]
+        }
         "fastq.index_reference" => &[
             "schema_version",
             "stage",
@@ -1455,13 +1367,9 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "index_bytes",
             "index_file_count",
         ],
-        "fastq.detect_adapters" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "candidate_adapter_count",
-            "adapter_inference",
-        ],
+        "fastq.detect_adapters" => {
+            &["schema_version", "stage", "tool", "candidate_adapter_count", "adapter_inference"]
+        }
         "fastq.trim_reads" => &[
             "schema_version",
             "stage",
@@ -1522,14 +1430,9 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "corrected_reads",
             "kmer_fix_rate",
         ],
-        "fastq.filter_reads" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "reads_in",
-            "reads_out",
-            "reads_dropped",
-        ],
+        "fastq.filter_reads" => {
+            &["schema_version", "stage", "tool", "reads_in", "reads_out", "reads_dropped"]
+        }
         "fastq.filter_low_complexity" => &[
             "schema_version",
             "stage",
@@ -1538,14 +1441,9 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "reads_out",
             "reads_removed_low_complexity",
         ],
-        "fastq.extract_umis" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "reads_in",
-            "reads_out",
-            "reads_with_umi",
-        ],
+        "fastq.extract_umis" => {
+            &["schema_version", "stage", "tool", "reads_in", "reads_out", "reads_with_umi"]
+        }
         "fastq.profile_reads" => &[
             "schema_version",
             "stage",
@@ -1570,22 +1468,12 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "flagged_sequences",
             "top_fraction",
         ],
-        "fastq.trim_polyg_tails" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "trim_polyg",
-            "reads_in",
-            "reads_out",
-        ],
-        "fastq.screen_taxonomy" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "classifier",
-            "contamination_rate",
-            "top_taxa",
-        ],
+        "fastq.trim_polyg_tails" => {
+            &["schema_version", "stage", "tool", "trim_polyg", "reads_in", "reads_out"]
+        }
+        "fastq.screen_taxonomy" => {
+            &["schema_version", "stage", "tool", "classifier", "contamination_rate", "top_taxa"]
+        }
         "fastq.deplete_rrna" => &[
             "schema_version",
             "stage",
@@ -1602,13 +1490,9 @@ pub(super) fn required_metrics_keys(stage_id: &str) -> &'static [&'static str] {
             "reads_removed",
             "contaminant_fraction_removed",
         ],
-        "fastq.deplete_host" => &[
-            "schema_version",
-            "stage",
-            "tool",
-            "host_fraction_removed",
-            "reads_removed",
-        ],
+        "fastq.deplete_host" => {
+            &["schema_version", "stage", "tool", "host_fraction_removed", "reads_removed"]
+        }
         "fastq.report_qc" => &[
             "schema_version",
             "stage",
@@ -1652,10 +1536,7 @@ pub(super) fn enforce_metrics_schema(stage_root: &std::path::Path, stage_id: &st
 }
 
 fn count_fastq_reads_if_plain(path: &std::path::Path) -> Option<u64> {
-    let ext = path
-        .extension()
-        .and_then(|x| x.to_str())
-        .unwrap_or_default();
+    let ext = path.extension().and_then(|x| x.to_str()).unwrap_or_default();
     if ext == "gz" {
         return None;
     }
@@ -1723,9 +1604,6 @@ pub(super) fn write_retry_policy(root: &std::path::Path) -> Result<()> {
         "max_retries": 0,
         "note": "fastq preprocessing stages are deterministic and should not auto-retry by default"
     });
-    std::fs::write(
-        root.join("retry_policy.json"),
-        serde_json::to_vec_pretty(&payload)?,
-    )?;
+    std::fs::write(root.join("retry_policy.json"), serde_json::to_vec_pretty(&payload)?)?;
     Ok(())
 }

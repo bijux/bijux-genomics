@@ -19,10 +19,7 @@ pub(crate) fn validate_inputs(loaded: LoadedInputs) -> Result<ValidatedFacts> {
     let normalized = normalize_facts(facts);
     let aggregated = aggregate_facts(normalized);
 
-    Ok(ValidatedFacts {
-        facts: aggregated,
-        base_dir: loaded.base_dir,
-    })
+    Ok(ValidatedFacts { facts: aggregated, base_dir: loaded.base_dir })
 }
 
 fn validate_facts(facts: &[FactsRowV1]) -> Result<FactTable> {

@@ -1,6 +1,7 @@
+use crate::client::EnaClientError;
 use crate::model::EnaQuery;
 
-use super::{filereport_fields, EnaClientError};
+use super::filereport_fields;
 
 pub(super) fn validate_headers(headers: &[&str], query: &EnaQuery) -> Result<(), EnaClientError> {
     let missing = filereport_fields(query.result)

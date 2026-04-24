@@ -112,10 +112,7 @@ impl FactTable {
                 return Err(anyhow::anyhow!("facts row missing stage/tool id"));
             }
             if metrics_schema_for_stage(&row.stage_id).is_none() {
-                return Err(anyhow::anyhow!(
-                    "facts row has unknown stage_id {}",
-                    row.stage_id
-                ));
+                return Err(anyhow::anyhow!("facts row has unknown stage_id {}", row.stage_id));
             }
             if row.reads_in.is_some() ^ row.reads_out.is_some() {
                 return Err(anyhow::anyhow!(
@@ -191,11 +188,7 @@ impl FactTable {
                 .push(idx);
             table.push(fact);
         }
-        Ok(Self {
-            rows: table,
-            by_identity,
-            known_stages,
-        })
+        Ok(Self { rows: table, by_identity, known_stages })
     }
 
     pub fn stable_sort(rows: &mut [FactRow]) {

@@ -4,10 +4,8 @@ pub fn cross_domain_handoff_section(base_dir: &Path) -> Option<serde_json::Value
     let manifest_path = base_dir.join("run_manifest.json");
     let raw = std::fs::read_to_string(&manifest_path).ok()?;
     let manifest: serde_json::Value = serde_json::from_str(&raw).ok()?;
-    let schema = manifest
-        .get("schema_version")
-        .and_then(serde_json::Value::as_str)
-        .unwrap_or_default();
+    let schema =
+        manifest.get("schema_version").and_then(serde_json::Value::as_str).unwrap_or_default();
     if schema != "bijux.run_manifest.v2" && schema != "bijux.run_manifest.v3" {
         return None;
     }
@@ -22,9 +20,8 @@ pub fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
     let manifest_path = base_dir.join("run_manifest.json");
     let manifest_signature = bijux_dna_infra::hash_file_sha256(&manifest_path).ok();
     let raw = std::fs::read_to_string(&manifest_path).ok();
-    let manifest: Option<serde_json::Value> = raw
-        .as_deref()
-        .and_then(|raw| serde_json::from_str(raw).ok());
+    let manifest: Option<serde_json::Value> =
+        raw.as_deref().and_then(|raw| serde_json::from_str(raw).ok());
     let mut base = manifest
         .as_ref()
         .and_then(|value| value.get("run_provenance").cloned())
@@ -38,12 +35,7 @@ pub fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
         .as_ref()
         .and_then(|value| value.get("dataset_fingerprints"))
         .cloned()
-        .or_else(|| {
-            manifest
-                .as_ref()
-                .and_then(|value| value.get("input_hashes"))
-                .cloned()
-        })
+        .or_else(|| manifest.as_ref().and_then(|value| value.get("input_hashes")).cloned())
         .unwrap_or_else(|| serde_json::json!([]));
     let stage_contracts = manifest
         .as_ref()
@@ -72,10 +64,7 @@ pub fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
             serde_json::Value::String(manifest_signature.unwrap_or_else(|| "unknown".to_string())),
         );
         if let Some(hash) = read_domain_snapshot_hash() {
-            obj.insert(
-                "domain_snapshot_hash".to_string(),
-                serde_json::Value::String(hash),
-            );
+            obj.insert("domain_snapshot_hash".to_string(), serde_json::Value::String(hash));
         }
     }
     base

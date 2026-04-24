@@ -58,11 +58,7 @@ fn sqlite_insert_fastq_trim_v2() -> Result<(), Box<dyn std::error::Error>> {
                 ("r1", "reads.fastq.gz"),
             ]),
         },
-        execution: ExecutionMetrics {
-            runtime_s: 1.2,
-            memory_mb: 42.0,
-            exit_code: 0,
-        },
+        execution: ExecutionMetrics { runtime_s: 1.2, memory_mb: 42.0, exit_code: 0 },
         metrics: metric_set(FastqTrimMetrics {
             reads_in: 100,
             reads_out: 90,
@@ -94,9 +90,8 @@ fn sqlite_insert_fastq_trim_v2() -> Result<(), Box<dyn std::error::Error>> {
     let conn = open_sqlite(std::path::Path::new(":memory:"))?;
     insert_fastq_trim_v2(&conn, &record)?;
 
-    let count: i64 = conn.query_row("SELECT COUNT(*) FROM bench_fastq_trim_v2", [], |row| {
-        row.get(0)
-    })?;
+    let count: i64 =
+        conn.query_row("SELECT COUNT(*) FROM bench_fastq_trim_v2", [], |row| row.get(0))?;
     assert_eq!(count, 1);
     Ok(())
 }

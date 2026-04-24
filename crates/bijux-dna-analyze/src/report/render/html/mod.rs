@@ -18,10 +18,8 @@ pub fn render_report_html(model: &ReportModel) -> Result<String> {
             "bundle_schema_version".to_string(),
             serde_json::Value::String("bijux.report_bundle.v1".to_string()),
         );
-        if let Some(sections) = root
-            .entry("sections")
-            .or_insert_with(|| serde_json::json!({}))
-            .as_object_mut()
+        if let Some(sections) =
+            root.entry("sections").or_insert_with(|| serde_json::json!({})).as_object_mut()
         {
             sections.entry("fastq".to_string()).or_insert_with(|| {
                 serde_json::json!({
@@ -55,20 +53,13 @@ pub fn render_report_html(model: &ReportModel) -> Result<String> {
     let stage_tabs = build_stage_tabs(&stages);
     let stage_panels = build_stage_panels(&stages);
 
-    let stage_plots = sections
-        .get("stage_plots")
-        .cloned()
-        .unwrap_or_else(|| serde_json::json!({}));
+    let stage_plots = sections.get("stage_plots").cloned().unwrap_or_else(|| serde_json::json!({}));
     let stage_plots_json = serde_json::to_string(&stage_plots)?;
-    let reproducibility = sections
-        .get("reproducibility")
-        .cloned()
-        .unwrap_or_else(|| serde_json::json!({}));
+    let reproducibility =
+        sections.get("reproducibility").cloned().unwrap_or_else(|| serde_json::json!({}));
     let repro_json = serde_json::to_string_pretty(&reproducibility)?;
-    let command = reproducibility
-        .get("command")
-        .and_then(serde_json::Value::as_str)
-        .unwrap_or("unknown");
+    let command =
+        reproducibility.get("command").and_then(serde_json::Value::as_str).unwrap_or("unknown");
 
     Ok(build_html_template(
         &report_json,

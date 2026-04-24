@@ -175,7 +175,7 @@ fn bam_read_group_missing_required_fields(bam_path: &Path) -> Vec<String> {
     let mut missing = std::collections::BTreeSet::new();
     for rg in rgs {
         for field in required {
-            if rg.get(field).map_or(true, |value| value.trim().is_empty()) {
+            if rg.get(field).is_none_or(|value| value.trim().is_empty()) {
                 missing.insert(field.to_string());
             }
         }

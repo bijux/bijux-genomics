@@ -19,9 +19,8 @@ pub(super) fn download_one(task: &DownloadTask, retries: usize, http: &Client) -
         match http.get(&task.url).send() {
             Ok(resp) => match resp.error_for_status() {
                 Ok(success) => {
-                    let bytes = success
-                        .bytes()
-                        .with_context(|| format!("read bytes for {}", task.url))?;
+                    let bytes =
+                        success.bytes().with_context(|| format!("read bytes for {}", task.url))?;
                     fs::write(&task.output, &bytes).with_context(|| {
                         format!("write {} from {}", task.output.display(), task.url)
                     })?;

@@ -1,4 +1,6 @@
-use super::{Domain, PipelineProfile, PipelineRegistry, Result};
+use super::{Domain, Result};
+use bijux_dna_pipelines::registry::PipelineRegistry;
+use bijux_dna_pipelines::PipelineProfile;
 
 /// # Errors
 /// Returns an error if the profile id is unknown.
@@ -13,16 +15,8 @@ pub fn select_pipelines(
 ) -> Vec<PipelineProfile> {
     let registry = PipelineRegistry::v1();
     if let Some(domain) = domain {
-        registry
-            .list_for_domain(domain, include_experimental)
-            .into_iter()
-            .cloned()
-            .collect()
+        registry.list_for_domain(domain, include_experimental).into_iter().cloned().collect()
     } else {
-        registry
-            .list(include_experimental)
-            .into_iter()
-            .cloned()
-            .collect()
+        registry.list(include_experimental).into_iter().cloned().collect()
     }
 }

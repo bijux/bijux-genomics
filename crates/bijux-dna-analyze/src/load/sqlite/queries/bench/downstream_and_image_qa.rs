@@ -334,15 +334,7 @@ pub fn fetch_fastq_cluster_otus_v1(
          ORDER BY record_id DESC, inserted_at DESC LIMIT 1",
     )?;
     let row = stmt.query_row(
-        params![
-            tool,
-            tool_version,
-            image_digest,
-            runner,
-            platform,
-            input_hash,
-            params_hash
-        ],
+        params![tool, tool_version, image_digest, runner, platform, input_hash, params_hash],
         benchmark_record_from_row::<FastqClusterOtusMetrics>,
     );
     match row {

@@ -94,11 +94,8 @@ pub fn bench_fastq_qc_post(
     let aggregation_engine = parse_qc_aggregation_engine(args.aggregation_engine.as_deref())?;
     let aggregation_scope = parse_qc_aggregation_scope(args.aggregation_scope.as_deref())?;
     let tools = select_qc_post_tools(&args.tools)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_REPORT_QC.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_REPORT_QC.as_str(), &header);
@@ -115,15 +112,10 @@ pub fn bench_fastq_qc_post(
         &tools,
     )?;
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_REPORT_QC.as_str());
-    let all_tools: Vec<String> = registry
-        .tools_for_stage(&stage_id)
-        .iter()
-        .map(|tool| tool.tool_id.to_string())
-        .collect();
-    let excluded: Vec<String> = all_tools
-        .into_iter()
-        .filter(|tool| !tools.contains(tool))
-        .collect();
+    let all_tools: Vec<String> =
+        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
+    let excluded: Vec<String> =
+        all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
 
     if args.explain {
         write_explain_md(
@@ -198,9 +190,7 @@ pub fn bench_fastq_qc_post(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             bench_inputs.runner,
             jobs,
         )?
@@ -230,12 +220,7 @@ pub fn bench_fastq_qc_post(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 #[derive(Debug, Clone)]
@@ -298,10 +283,7 @@ fn prepare_qc_post_bench(
     bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
 
     let r1 = args.r1.canonicalize().context("resolve r1 path")?;
-    let r1_dir = r1
-        .parent()
-        .ok_or_else(|| anyhow!("r1 has no parent"))?
-        .to_path_buf();
+    let r1_dir = r1.parent().ok_or_else(|| anyhow!("r1 has no parent"))?.to_path_buf();
 
     let seqkit_tool = catalog
         .get(bijux_dna_planner_fastq::stage_api::TOOL_SEQKIT)
@@ -315,18 +297,12 @@ fn prepare_qc_post_bench(
         runner,
     )?;
     if stats_output.exit_code != 0 {
-        return Err(anyhow!(
-            "seqkit qc observer failed: {}",
-            stats_output.stderr
-        ));
+        return Err(anyhow!("seqkit qc observer failed: {}", stats_output.stderr));
     }
 
     let (r2, input_stats_r2) = if let Some(r2) = args.r2.as_deref() {
         let r2 = r2.canonicalize().context("resolve r2 path")?;
-        let r2_dir = r2
-            .parent()
-            .ok_or_else(|| anyhow!("r2 has no parent"))?
-            .to_path_buf();
+        let r2_dir = r2.parent().ok_or_else(|| anyhow!("r2 has no parent"))?.to_path_buf();
         let stats_spec = input_fastq_stats(&r2_dir, &r2)?;
         let stats_output = execute_observer_command(
             &seqkit_image.full_name,
@@ -335,10 +311,7 @@ fn prepare_qc_post_bench(
             runner,
         )?;
         if stats_output.exit_code != 0 {
-            return Err(anyhow!(
-                "seqkit qc observer failed for r2: {}",
-                stats_output.stderr
-            ));
+            return Err(anyhow!("seqkit qc observer failed for r2: {}", stats_output.stderr));
         }
         (Some(r2), Some(parse_seqkit_stats(&stats_output.stdout)?))
     } else {
@@ -433,20 +406,13 @@ fn build_governed_qc_post_report(
     report_path: &Path,
     execution: &StageResultV1,
 ) -> Result<ReportQcReportV1> {
-    let paired_mode = if params.get("raw_r2").is_some() {
-        PairedMode::PairedEnd
-    } else {
-        PairedMode::SingleEnd
-    };
+    let paired_mode =
+        if params.get("raw_r2").is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
     let aggregation_engine = parse_qc_aggregation_engine(
-        params
-            .get("aggregation_engine")
-            .and_then(serde_json::Value::as_str),
+        params.get("aggregation_engine").and_then(serde_json::Value::as_str),
     )?;
     let aggregation_scope = parse_qc_aggregation_scope(
-        params
-            .get("aggregation_scope")
-            .and_then(serde_json::Value::as_str),
+        params.get("aggregation_scope").and_then(serde_json::Value::as_str),
     )?;
     let governed_summary = load_governed_qc_summary(governed_qc);
     let contributors = governed_qc
@@ -512,9 +478,7 @@ fn build_governed_qc_post_report(
 fn load_multiqc_general_stats(
     out_dir: &Path,
 ) -> Option<bijux_dna_domain_fastq::metrics::MultiqcToolMetricsV1> {
-    let path = out_dir
-        .join("multiqc_data")
-        .join("multiqc_general_stats.json");
+    let path = out_dir.join("multiqc_data").join("multiqc_general_stats.json");
     let raw = std::fs::read_to_string(path).ok()?;
     parse_multiqc_general_stats_metrics(&raw).ok()
 }
@@ -535,11 +499,7 @@ fn derive_qc_post_metrics(
     let bases_in = input_stats.bases + input_stats_r2.map_or(0, |stats| stats.bases);
     let weighted_q_sum = input_stats.mean_q * u64_to_f64(input_stats.bases)
         + input_stats_r2.map_or(0.0, |stats| stats.mean_q * u64_to_f64(stats.bases));
-    let mean_q = if bases_in == 0 {
-        0.0
-    } else {
-        weighted_q_sum / u64_to_f64(bases_in)
-    };
+    let mean_q = if bases_in == 0 { 0.0 } else { weighted_q_sum / u64_to_f64(bases_in) };
     FastqQcPostMetrics {
         reads_in,
         reads_out: reads_in,
@@ -704,9 +664,7 @@ mod tests {
             &["multiqc".to_string()],
         )
         .expect_err("manifest requirement must be enforced");
-        assert!(error
-            .to_string()
-            .contains("requires --governed-qc-manifest"));
+        assert!(error.to_string().contains("requires --governed-qc-manifest"));
     }
 
     #[test]
@@ -791,18 +749,11 @@ mod tests {
         bijux_dna_infra::ensure_dir(&multiqc_data).expect("multiqc data dir");
         bijux_dna_infra::write_bytes(temp.path().join("multiqc_report.html"), b"report")
             .expect("report");
-        let raw_fastqc_dir = temp
-            .path()
-            .join("governed_qc_inputs/detect_adapters/fastqc/fastqc");
+        let raw_fastqc_dir = temp.path().join("governed_qc_inputs/detect_adapters/fastqc/fastqc");
         bijux_dna_infra::ensure_dir(&raw_fastqc_dir).expect("fastqc dir");
 
         let metrics = derive_qc_post_metrics(
-            &SeqkitMetrics {
-                reads: 10,
-                bases: 100,
-                mean_q: 30.0,
-                gc_percent: 50.0,
-            },
+            &SeqkitMetrics { reads: 10, bases: 100, mean_q: 30.0, gc_percent: 50.0 },
             None,
             temp.path(),
             Some(raw_fastqc_dir.as_path()),
@@ -819,10 +770,7 @@ mod tests {
         );
 
         let expected_raw_fastqc_dir = raw_fastqc_dir.display().to_string();
-        assert_eq!(
-            metrics.raw_fastqc_dir.as_deref(),
-            Some(expected_raw_fastqc_dir.as_str())
-        );
+        assert_eq!(metrics.raw_fastqc_dir.as_deref(), Some(expected_raw_fastqc_dir.as_str()));
         assert!(metrics.multiqc_report.is_some());
         assert!(metrics.multiqc_data.is_some());
     }
@@ -856,10 +804,7 @@ mod tests {
         let loaded = load_governed_qc_inputs_manifest(&manifest_path).expect("load manifest");
         assert_eq!(loaded.qc_inputs.len(), 1);
         assert_eq!(loaded.contributors.len(), 1);
-        assert_eq!(
-            loaded.qc_inputs[0].name.as_str(),
-            "fastq.trim_reads.fastp_branch.report_json"
-        );
+        assert_eq!(loaded.qc_inputs[0].name.as_str(), "fastq.trim_reads.fastp_branch.report_json");
         assert_eq!(
             loaded.contributors[0],
             GovernedQcContributor {
@@ -912,10 +857,7 @@ mod tests {
 
         let loaded = load_governed_qc_inputs_manifest(&manifest_path).expect("load manifest");
         assert_eq!(loaded.qc_inputs.len(), 1);
-        assert_eq!(
-            loaded.qc_inputs[0].name.as_str(),
-            "fastq.trim_reads.fastp.report_json"
-        );
+        assert_eq!(loaded.qc_inputs[0].name.as_str(), "fastq.trim_reads.fastp.report_json");
     }
 
     #[test]
@@ -943,9 +885,7 @@ mod tests {
 
         let error = load_governed_qc_inputs_manifest(&manifest_path)
             .expect_err("unknown schema must be rejected");
-        assert!(error
-            .to_string()
-            .contains("unsupported governed QC input manifest schema"));
+        assert!(error.to_string().contains("unsupported governed QC input manifest schema"));
     }
 
     #[test]
@@ -1013,12 +953,7 @@ mod tests {
             r1: temp.path().join("reads_R1.fastq.gz"),
             r2: None,
             input_hash: "input-hash".to_string(),
-            input_stats: SeqkitMetrics {
-                reads: 10,
-                bases: 100,
-                mean_q: 30.0,
-                gc_percent: 50.0,
-            },
+            input_stats: SeqkitMetrics { reads: 10, bases: 100, mean_q: 30.0, gc_percent: 50.0 },
             input_stats_r2: None,
             bench_dir: temp.path().join("bench"),
             tools_root: temp.path().join("tools"),
@@ -1026,13 +961,8 @@ mod tests {
         let tool_spec = ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("multiqc"),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["multiqc".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["multiqc".to_string()] },
             resources: ToolConstraints::default(),
         };
         let execution = StageResultV1 {
@@ -1087,18 +1017,12 @@ mod tests {
             preserved_manifest["schema_version"],
             serde_json::json!(GOVERNED_QC_INPUTS_SCHEMA_VERSION)
         );
-        assert_eq!(
-            preserved_manifest["lineage_hash"],
-            serde_json::json!("fastq.trim_reads=fastp")
-        );
+        assert_eq!(preserved_manifest["lineage_hash"], serde_json::json!("fastq.trim_reads=fastp"));
         assert_eq!(
             preserved_manifest["contributors"][0]["stage_id"],
             serde_json::json!("fastq.trim_reads")
         );
-        assert_eq!(
-            preserved_manifest["qc_inputs"][0]["path"],
-            serde_json::json!(input_artifact)
-        );
+        assert_eq!(preserved_manifest["qc_inputs"][0]["path"], serde_json::json!(input_artifact));
     }
 
     #[test]
@@ -1236,12 +1160,7 @@ mod tests {
             r1: temp.path().join("reads_R1.fastq.gz"),
             r2: None,
             input_hash: "input-hash".to_string(),
-            input_stats: SeqkitMetrics {
-                reads: 10,
-                bases: 100,
-                mean_q: 30.0,
-                gc_percent: 50.0,
-            },
+            input_stats: SeqkitMetrics { reads: 10, bases: 100, mean_q: 30.0, gc_percent: 50.0 },
             input_stats_r2: None,
             bench_dir: temp.path().join("bench"),
             tools_root: temp.path().join("tools"),
@@ -1249,13 +1168,8 @@ mod tests {
         let tool_spec = ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("multiqc"),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["multiqc".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["multiqc".to_string()] },
             resources: ToolConstraints::default(),
         };
         let execution = StageResultV1 {
@@ -1305,9 +1219,7 @@ mod tests {
         assert!(governed_report
             .duplication_rate
             .is_some_and(|value| (value - 0.11).abs() < f64::EPSILON));
-        assert!(governed_report
-            .n_rate
-            .is_some_and(|value| (value - 0.002).abs() < f64::EPSILON));
+        assert!(governed_report.n_rate.is_some_and(|value| (value - 0.002).abs() < f64::EPSILON));
         assert_eq!(governed_report.kmer_warning_count, Some(3));
         assert_eq!(governed_report.overrepresented_sequence_count, Some(2));
     }
@@ -1321,10 +1233,7 @@ mod tests {
         )]);
         assert_eq!(contributors.len(), 1);
         assert_eq!(contributors[0].stage_id, "fastq.validate_reads");
-        assert_eq!(
-            contributors[0].contributor_id,
-            "fastq.validate_reads.fastqvalidator"
-        );
+        assert_eq!(contributors[0].contributor_id, "fastq.validate_reads.fastqvalidator");
         assert_eq!(contributors[0].artifact_id, "validation_report");
     }
 
@@ -1359,10 +1268,7 @@ mod tests {
 
         assert_eq!(
             governed_qc_contributor_stage_ids(&contributors),
-            vec![
-                "fastq.trim_reads".to_string(),
-                "fastq.validate_reads".to_string()
-            ]
+            vec!["fastq.trim_reads".to_string(), "fastq.validate_reads".to_string()]
         );
         assert_eq!(
             governed_qc_contributor_tool_ids(&contributors),
@@ -1458,9 +1364,7 @@ mod tests {
             temp.path().join("governed_qc_inputs.json").as_path(),
         )
         .expect_err("unmatched contributor artifact ids must fail");
-        assert!(error
-            .to_string()
-            .contains("does not match any qc_inputs entry"));
+        assert!(error.to_string().contains("does not match any qc_inputs entry"));
     }
 
     #[test]
@@ -1486,8 +1390,6 @@ mod tests {
             temp.path().join("governed_qc_inputs.json").as_path(),
         )
         .expect_err("mismatched contributor artifact roles must fail");
-        assert!(error
-            .to_string()
-            .contains("does not match any qc_inputs entry"));
+        assert!(error.to_string().contains("does not match any qc_inputs entry"));
     }
 }

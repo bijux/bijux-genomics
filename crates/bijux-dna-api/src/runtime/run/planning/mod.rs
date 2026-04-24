@@ -22,12 +22,8 @@ pub use self::profile_selection::{select_pipeline, select_pipelines};
 /// # Errors
 /// Returns an error if planning fails for the requested run.
 pub fn plan_run(request: PlanRunRequest, registry: &ToolRegistry) -> Result<PlanRunResult> {
-    let plan = build_run_execution_plan(
-        &request.run_spec,
-        registry,
-        &request.profile,
-        request.run_id,
-    )?;
+    let plan =
+        build_run_execution_plan(&request.run_spec, registry, &request.profile, request.run_id)?;
     Ok(PlanRunResult { plan })
 }
 

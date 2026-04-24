@@ -1,6 +1,9 @@
-use super::{anyhow, DockerRunner, Path, Result};
+use super::Result;
+use anyhow::anyhow;
 use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_engine::Engine;
+use bijux_dna_runner::DockerRunner;
+use std::path::Path;
 
 /// Replay or verify a run from a run manifest.
 ///
@@ -11,9 +14,8 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
         .map_err(|err| anyhow!("read run_manifest.json: {err}"))?;
     let manifest: serde_json::Value =
         serde_json::from_str(&raw).map_err(|err| anyhow!("parse run_manifest.json: {err}"))?;
-    let base_dir = manifest_path
-        .parent()
-        .ok_or_else(|| anyhow!("run_manifest.json missing parent"))?;
+    let base_dir =
+        manifest_path.parent().ok_or_else(|| anyhow!("run_manifest.json missing parent"))?;
     let artifacts = manifest
         .get("output_artifacts")
         .and_then(|v| v.as_array())

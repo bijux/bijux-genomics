@@ -47,9 +47,7 @@ pub(super) fn report_qc_aux_tool_ids(
                 &selection.stage_id,
                 selection.stage_instance_id.as_deref(),
             );
-            contributor_node_ids
-                .contains(node_id.as_str())
-                .then(|| selection.tool_id.clone())
+            contributor_node_ids.contains(node_id.as_str()).then(|| selection.tool_id.clone())
         })
         .collect::<Vec<_>>();
     tool_ids.sort();
@@ -74,14 +72,12 @@ pub(super) fn planner_selection_surfaces(
     selected_stage_tools
         .iter()
         .zip(tool_specs.iter())
-        .map(
-            |(selection, tool)| bijux_dna_planner_fastq::FastqStageToolsetBinding {
-                stage_id: selection.stage_id.clone(),
-                stage_instance_id: selection.stage_instance_id.clone(),
-                tools: vec![tool.clone()],
-                reason: Some(selection.reason.clone()),
-                params: None,
-            },
-        )
+        .map(|(selection, tool)| bijux_dna_planner_fastq::FastqStageToolsetBinding {
+            stage_id: selection.stage_id.clone(),
+            stage_instance_id: selection.stage_instance_id.clone(),
+            tools: vec![tool.clone()],
+            reason: Some(selection.reason.clone()),
+            params: None,
+        })
         .collect::<Vec<_>>()
 }

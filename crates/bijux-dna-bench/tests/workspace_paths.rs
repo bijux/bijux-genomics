@@ -16,10 +16,7 @@ pub fn repo_root() -> Result<PathBuf> {
             return Ok(candidate.to_path_buf());
         }
     }
-    Err(anyhow!(
-        "unable to resolve repository root from {}",
-        cwd.display()
-    ))
+    Err(anyhow!("unable to resolve repository root from {}", cwd.display()))
 }
 
 pub fn crate_root(crate_name: &str) -> Result<PathBuf> {

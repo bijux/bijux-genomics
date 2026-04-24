@@ -306,16 +306,8 @@ fn suite_validation_allows_repeated_stage_ids_with_distinct_stage_instance_ids()
                 upstream_stage_instance_ids: vec![stage_instance(id_catalog::FASTQ_TRIM, "fastp")],
             },
         ],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -396,16 +388,8 @@ fn suite_validation_rejects_duplicate_explicit_edges() {
                 upstream_stage_instance_ids: Vec::new(),
             },
         ],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -464,16 +448,8 @@ fn suite_validation_allows_parallel_artifact_edges_between_same_nodes() {
                 upstream_stage_instance_ids: Vec::new(),
             },
         ],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -537,16 +513,8 @@ fn suite_validation_rejects_cycles_across_explicit_and_upstream_edges() {
                 upstream_stage_instance_ids: Vec::new(),
             },
         ],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -600,16 +568,8 @@ fn suite_validation_accepts_artifact_aware_edges_with_stage_tool_nodes() {
                 upstream_stage_instance_ids: Vec::new(),
             },
         ],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -626,11 +586,7 @@ fn suite_validation_accepts_artifact_aware_edges_with_stage_tool_nodes() {
             "validator",
             id_catalog::TOOL_FASTQVALIDATOR_OFFICIAL,
         ),
-        to: stage_tool_instance(
-            id_catalog::FASTQ_QC_POST,
-            "aggregate",
-            id_catalog::TOOL_MULTIQC,
-        ),
+        to: stage_tool_instance(id_catalog::FASTQ_QC_POST, "aggregate", id_catalog::TOOL_MULTIQC),
         from_output_id: Some("validation_report".to_string()),
         to_input_id: Some("qc_artifacts".to_string()),
     }];
@@ -670,16 +626,8 @@ fn suite_validation_rejects_unknown_governed_output_ports() {
                 upstream_stage_instance_ids: Vec::new(),
             },
         ],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -733,16 +681,8 @@ fn suite_validation_rejects_blank_edge_ports() {
                 upstream_stage_instance_ids: Vec::new(),
             },
         ],
-        ReplicatePolicy {
-            count: 3,
-            warmup: 0,
-            seeds: vec![1, 2, 3],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 3, warmup: 0, seeds: vec![1, 2, 3] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],

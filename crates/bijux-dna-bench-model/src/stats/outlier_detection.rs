@@ -14,29 +14,19 @@ pub struct OutlierReport {
 #[must_use]
 pub fn mad_outliers(values: &[f64], threshold: f64) -> OutlierReport {
     if values.is_empty() {
-        return OutlierReport {
-            outlier_count: 0,
-            outlier_indices: Vec::new(),
-        };
+        return OutlierReport { outlier_count: 0, outlier_indices: Vec::new() };
     }
     let med = median(values.to_vec());
     let mad_value = mad(values);
     let mut outlier_indices = Vec::new();
-    let scale = if mad_value.abs() < f64::EPSILON {
-        1.0
-    } else {
-        mad_value
-    };
+    let scale = if mad_value.abs() < f64::EPSILON { 1.0 } else { mad_value };
     for (idx, value) in values.iter().enumerate() {
         let score = (value - med).abs() / scale;
         if score > threshold {
             outlier_indices.push(idx);
         }
     }
-    OutlierReport {
-        outlier_count: outlier_indices.len(),
-        outlier_indices,
-    }
+    OutlierReport { outlier_count: outlier_indices.len(), outlier_indices }
 }
 
 #[cfg(test)]

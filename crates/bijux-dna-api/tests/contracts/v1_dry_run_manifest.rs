@@ -60,13 +60,8 @@ fn execute_fails_fast_when_runner_contract_missing_for_stage() {
     let step = ExecutionStep {
         step_id: StepId::new("unknown.stage"),
         stage_id: StageId::new("unknown.stage"),
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), "hello".to_string()],
-        },
-        image: ContainerImageRefV1 {
-            image: "alpine:3.20".to_string(),
-            digest: None,
-        },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), "hello".to_string()] },
+        image: ContainerImageRefV1 { image: "alpine:3.20".to_string(), digest: None },
         resources: ToolConstraints::default(),
         io: StageIO {
             inputs: vec![ArtifactSpec::required(
@@ -100,8 +95,5 @@ fn execute_fails_fast_when_runner_contract_missing_for_stage() {
     }) else {
         panic!("unknown stage prefix must fail before execution");
     };
-    assert!(
-        err.to_string().contains("no stage-runner contract"),
-        "unexpected error: {err}"
-    );
+    assert!(err.to_string().contains("no stage-runner contract"), "unexpected error: {err}");
 }

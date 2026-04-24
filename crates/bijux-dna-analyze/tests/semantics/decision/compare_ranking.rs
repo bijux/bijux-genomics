@@ -14,11 +14,7 @@ fn snapshot_name(group: &str, name: &str) -> String {
 #[test]
 fn compare_and_ranking_snapshot() -> Result<()> {
     let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let root = manifest_dir
-        .join("tests")
-        .join("fixtures")
-        .join("compare_ranking")
-        .join("default");
+    let root = manifest_dir.join("tests").join("fixtures").join("compare_ranking").join("default");
     let run_a = root.join("run_a");
     let run_b = root.join("run_b");
     bijux_dna_infra::ensure_dir(run_a.join("summary"))?;

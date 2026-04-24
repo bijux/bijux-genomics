@@ -6,7 +6,7 @@ mod paths;
 mod references;
 
 pub(crate) use authority::{AliasesConfig, CoverageRegimesConfig, SpeciesAuthorityConfig};
-pub(crate) use bundles::{BundleEntry, BundlesConfig, ContigEntry, SupportedFeatureEntry};
+pub(crate) use bundles::{BundleEntry, BundlesConfig};
 pub(crate) use catalogs::{MapLocksConfig, MapsConfig, PanelLocksConfig, PanelsConfig};
 pub(crate) use load::load_toml;
 pub(crate) use paths::workspace_root;

@@ -192,9 +192,9 @@ mod tests {
     fn refusal_rules_enforce_mt_reference_for_mt_aware_stages() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let bam = temp.path().join("x.bam");
-        let bai = temp.path().join("x.bam.bai");
+        let bam_index = temp.path().join("x.bam.bai");
         std::fs::write(&bam, b"bam")?;
-        std::fs::write(&bai, b"bai")?;
+        std::fs::write(&bam_index, b"bai")?;
         let ref_fa = temp.path().join("ref.fa");
         let ref_fai = temp.path().join("ref.fa.fai");
         std::fs::write(&ref_fa, b">1\nACGT\n")?;
@@ -202,7 +202,7 @@ mod tests {
         let Err(err) = enforce_stage_refusal_rules(
             bijux_dna_planner_bam::stage_api::BamStage::Contamination,
             &bam,
-            Some(&bai),
+            Some(&bam_index),
             Some(&ref_fa),
             None,
         ) else {
@@ -216,18 +216,18 @@ mod tests {
     fn refusal_rules_allow_missing_read_groups_when_policy_override_set() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let bam = temp.path().join("x.bam");
-        let bai = temp.path().join("x.bam.bai");
+        let bam_index = temp.path().join("x.bam.bai");
         let ref_fa = temp.path().join("ref.fa");
         let ref_fai = temp.path().join("ref.fa.fai");
         std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n")?;
-        std::fs::write(&bai, b"bai")?;
+        std::fs::write(&bam_index, b"bai")?;
         std::fs::write(&ref_fa, b">chr1\nACGT\n>chrX\nACGT\n>chrY\nACGT\n>chrM\nACGT\n")?;
         std::fs::write(&ref_fai, b"chr1\t4\t0\t4\t5\nchrX\t4\t10\t4\t5\nchrY\t4\t20\t4\t5\nchrM\t4\t30\t4\t5\n")?;
 
         enforce_stage_refusal_rules(
             bijux_dna_planner_bam::stage_api::BamStage::Validate,
             &bam,
-            Some(&bai),
+            Some(&bam_index),
             Some(&ref_fa),
             Some("allow_missing"),
         )?;
@@ -238,13 +238,13 @@ mod tests {
     fn refusal_rules_reject_incomplete_read_group_fields() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let bam = temp.path().join("x.bam");
-        let bai = temp.path().join("x.bam.bai");
+        let bam_index = temp.path().join("x.bam.bai");
         std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n@RG\tID:rg-s1\tSM:s1\n")?;
-        std::fs::write(&bai, b"bai")?;
+        std::fs::write(&bam_index, b"bai")?;
         let Err(err) = enforce_stage_refusal_rules(
             bijux_dna_planner_bam::stage_api::BamStage::Validate,
             &bam,
-            Some(&bai),
+            Some(&bam_index),
             None,
             None,
         ) else {
@@ -280,14 +280,14 @@ mod tests {
         let stage_dir = temp.path().join("validate");
         bijux_dna_infra::ensure_dir(&stage_dir)?;
         let bam = temp.path().join("input.bam");
-        let bai = temp.path().join("input.bam.bai");
+        let bam_index = temp.path().join("input.bam.bai");
         std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n@RG\tID:rg1\tSM:s1\n")?;
-        std::fs::write(&bai, b"index")?;
+        std::fs::write(&bam_index, b"index")?;
 
         let stage = bijux_dna_planner_bam::stage_api::BamStage::Validate;
         let plan = mock_plan(stage);
         let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
-        write_bam_invariants(&stage_dir, stage, &bam, Some(&bai), None)?;
+        write_bam_invariants(&stage_dir, stage, &bam, Some(&bam_index), None)?;
         write_tool_wrapper_contract(&stage_dir, stage, &plan, &step)?;
         let invariants: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
             stage_dir.join("bam_invariants.json"),
@@ -320,16 +320,16 @@ mod tests {
         bijux_dna_infra::ensure_dir(&stage_dir)?;
         let stage = bijux_dna_planner_bam::stage_api::BamStage::Align;
         let bam = stage_dir.join("align.bam");
-        let bai = stage_dir.join("align.bam.bai");
+        let bam_index = stage_dir.join("align.bam.bai");
         std::fs::write(&bam, b"bam")?;
-        std::fs::write(&bai, b"bai")?;
+        std::fs::write(&bam_index, b"bai")?;
         let bam_hash = bijux_dna_infra::hash_file_sha256(&bam)?;
-        let index_hash = bijux_dna_infra::hash_file_sha256(&bai)?;
+        let index_hash = bijux_dna_infra::hash_file_sha256(&bam_index)?;
         let accounting = serde_json::json!({
             "stage_id": "bam.align",
             "output_checksums": [
                 {"path": bam, "sha256": bam_hash},
-                {"path": bai, "sha256": index_hash}
+                {"path": bam_index, "sha256": index_hash}
             ]
         });
         bijux_dna_infra::atomic_write_json(&stage_dir.join("stage_loss_accounting.json"), &accounting)?;

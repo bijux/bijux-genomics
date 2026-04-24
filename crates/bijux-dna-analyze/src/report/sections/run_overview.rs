@@ -7,17 +7,11 @@ use super::{
 };
 
 pub(crate) fn report_path_for(reports: &serde_json::Value, key: &str) -> Option<String> {
-    reports
-        .get(key)
-        .and_then(|value| value.as_str())
-        .map(str::to_string)
+    reports.get(key).and_then(|value| value.as_str()).map(str::to_string)
 }
 
 pub(crate) fn artifact_path_for(artifacts: &serde_json::Value, key: &str) -> Option<String> {
-    artifacts
-        .get(key)
-        .and_then(|value| value.as_str())
-        .map(str::to_string)
+    artifacts.get(key).and_then(|value| value.as_str()).map(str::to_string)
 }
 
 pub(crate) fn stage_completeness_table(
@@ -185,17 +179,9 @@ pub(crate) fn stage_confidence_section(rows: &[FactsRowV1]) -> serde_json::Value
         })
         .collect();
     entries.sort_by(|a, b| {
-        let a_score = a
-            .get("score")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0);
-        let b_score = b
-            .get("score")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0);
-        b_score
-            .partial_cmp(&a_score)
-            .unwrap_or(std::cmp::Ordering::Equal)
+        let a_score = a.get("score").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+        let b_score = b.get("score").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
+        b_score.partial_cmp(&a_score).unwrap_or(std::cmp::Ordering::Equal)
     });
     serde_json::json!({ "entries": entries })
 }
@@ -217,21 +203,15 @@ pub(crate) fn stage_plots_section(rows: &[FactsRowV1]) -> serde_json::Value {
             (Some(bi), Some(bo)) if bi > 0 => Some(u64_to_f64(bo) / u64_to_f64(bi)),
             _ => None,
         };
-        let mean_q_delta = row
-            .metrics
-            .get("mean_q_delta")
-            .and_then(serde_json::Value::as_f64)
-            .or_else(|| {
+        let mean_q_delta =
+            row.metrics.get("mean_q_delta").and_then(serde_json::Value::as_f64).or_else(|| {
                 row.metrics
                     .get("delta_metrics")
                     .and_then(|value| value.get("mean_q_delta"))
                     .and_then(serde_json::Value::as_f64)
             });
-        let gc_delta = row
-            .metrics
-            .get("gc_delta")
-            .and_then(serde_json::Value::as_f64)
-            .or_else(|| {
+        let gc_delta =
+            row.metrics.get("gc_delta").and_then(serde_json::Value::as_f64).or_else(|| {
                 row.metrics
                     .get("delta_metrics")
                     .and_then(|value| value.get("gc_delta"))
@@ -315,10 +295,10 @@ fn telemetry_bounds(paths: &[String]) -> (serde_json::Value, serde_json::Value) 
                 continue;
             };
             let ts = event.timestamp.to_rfc3339();
-            if earliest.as_ref().map_or(true, |curr| ts < *curr) {
+            if earliest.as_ref().is_none_or(|curr| ts < *curr) {
                 earliest = Some(ts.clone());
             }
-            if latest.as_ref().map_or(true, |curr| ts > *curr) {
+            if latest.as_ref().is_none_or(|curr| ts > *curr) {
                 latest = Some(ts);
             }
         }

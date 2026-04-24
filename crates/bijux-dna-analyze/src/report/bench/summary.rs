@@ -199,12 +199,7 @@ fn metric_u64(
     range: &'static str,
     notes: &'static str,
 ) -> MetricDescriptor {
-    MetricDescriptor {
-        value: MetricValue::U64(value),
-        meaning,
-        range,
-        notes,
-    }
+    MetricDescriptor { value: MetricValue::U64(value), meaning, range, notes }
 }
 
 fn metric_f64(
@@ -213,12 +208,7 @@ fn metric_f64(
     range: &'static str,
     notes: &'static str,
 ) -> MetricDescriptor {
-    MetricDescriptor {
-        value: MetricValue::F64(value),
-        meaning,
-        range,
-        notes,
-    }
+    MetricDescriptor { value: MetricValue::F64(value), meaning, range, notes }
 }
 
 pub(super) fn semantic_trim_like<T: TrimLikeMetricView>(metrics: &T) -> SemanticMetrics {
@@ -244,12 +234,7 @@ pub(super) fn semantic_trim_like<T: TrimLikeMetricView>(metrics: &T) -> Semantic
                 ">= 0",
                 "Reads after trimming.",
             ),
-            bases_in: metric_u64(
-                metrics.bases_in(),
-                "Input bases",
-                ">= 0",
-                "Raw input bases.",
-            ),
+            bases_in: metric_u64(metrics.bases_in(), "Input bases", ">= 0", "Raw input bases."),
             bases_out: metric_u64(
                 metrics.bases_out(),
                 "Output bases",
@@ -315,12 +300,7 @@ pub(super) fn semantic_filter(metrics: &FastqFilterMetrics) -> SemanticMetrics {
     };
     SemanticMetrics {
         integrity: IntegrityMetrics {
-            reads_in: metric_u64(
-                metrics.reads_in,
-                "Input reads",
-                ">= 0",
-                "Raw input read count.",
-            ),
+            reads_in: metric_u64(metrics.reads_in, "Input reads", ">= 0", "Raw input read count."),
             reads_out: metric_u64(
                 metrics.reads_out,
                 "Output reads",
@@ -382,20 +362,12 @@ pub(super) fn semantic_filter(metrics: &FastqFilterMetrics) -> SemanticMetrics {
 pub(super) fn semantic_validate(metrics: &FastqValidateMetrics) -> SemanticMetrics {
     let reads_total = metrics.reads_total;
     let reads_valid = metrics.reads_valid;
-    let read_retention = if reads_total == 0 {
-        0.0
-    } else {
-        u64_to_f64(reads_valid) / u64_to_f64(reads_total)
-    };
+    let read_retention =
+        if reads_total == 0 { 0.0 } else { u64_to_f64(reads_valid) / u64_to_f64(reads_total) };
     SemanticMetrics {
         integrity: IntegrityMetrics {
             reads_in: metric_u64(reads_total, "Input reads", ">= 0", "Raw input read count."),
-            reads_out: metric_u64(
-                reads_valid,
-                "Output reads",
-                ">= 0",
-                "Reads passing validation.",
-            ),
+            reads_out: metric_u64(reads_valid, "Output reads", ">= 0", "Reads passing validation."),
             bases_in: metric_u64(0, "Input bases", ">= 0", "Base counts not reported."),
             bases_out: metric_u64(0, "Output bases", ">= 0", "Base counts not reported."),
         },
@@ -533,10 +505,8 @@ pub fn rank_validate_tools(
     let inputs = records
         .iter()
         .map(|record| {
-            let retention = ratio_u64(
-                record.metrics.metrics.reads_valid,
-                record.metrics.metrics.reads_total,
-            );
+            let retention =
+                ratio_u64(record.metrics.metrics.reads_valid, record.metrics.metrics.reads_total);
             RankInput {
                 tool: record.context.tool.clone(),
                 runtime_s: record.execution.runtime_s,

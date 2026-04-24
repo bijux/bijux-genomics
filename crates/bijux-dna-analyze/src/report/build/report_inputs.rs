@@ -17,16 +17,10 @@ pub(super) fn qc_delta_section(rows: &[FactsRowV1]) -> serde_json::Value {
     let mut qc_post_mean_q = None;
     for row in rows {
         if row.stage_id == "fastq.validate_reads" {
-            validate_mean_q = row
-                .metrics
-                .get("mean_q")
-                .and_then(serde_json::Value::as_f64);
+            validate_mean_q = row.metrics.get("mean_q").and_then(serde_json::Value::as_f64);
         }
         if row.stage_id == "fastq.report_qc" {
-            qc_post_mean_q = row
-                .metrics
-                .get("mean_q")
-                .and_then(serde_json::Value::as_f64);
+            qc_post_mean_q = row.metrics.get("mean_q").and_then(serde_json::Value::as_f64);
         }
     }
     let delta = match (validate_mean_q, qc_post_mean_q) {
@@ -88,9 +82,7 @@ pub(super) fn contaminant_summary_section(rows: &[FactsRowV1]) -> serde_json::Va
 }
 
 pub(super) fn read_json_value(path: &Path) -> Option<serde_json::Value> {
-    std::fs::read_to_string(path)
-        .ok()
-        .and_then(|raw| serde_json::from_str(&raw).ok())
+    std::fs::read_to_string(path).ok().and_then(|raw| serde_json::from_str(&raw).ok())
 }
 
 pub(super) fn stage_report_fields(report: Option<&StageReportV1>) -> (String, String, String) {
@@ -153,11 +145,7 @@ pub(super) fn telemetry_path_from_stage_report(path: Option<&str>) -> Option<Str
             if v2.exists() {
                 v2.display().to_string()
             } else {
-                parent
-                    .join("telemetry")
-                    .join("events.jsonl")
-                    .display()
-                    .to_string()
+                parent.join("telemetry").join("events.jsonl").display().to_string()
             }
         })
     })
@@ -242,14 +230,11 @@ pub(super) fn telemetry_decisions_from_paths(
             ) {
                 continue;
             }
-            by_stage
-                .entry(event.stage_id.clone())
-                .or_default()
-                .push(serde_json::json!({
-                    "event": event.event_name,
-                    "status": event.status,
-                    "attrs": event.attrs,
-                }));
+            by_stage.entry(event.stage_id.clone()).or_default().push(serde_json::json!({
+                "event": event.event_name,
+                "status": event.status,
+                "attrs": event.attrs,
+            }));
         }
     }
     by_stage

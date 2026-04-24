@@ -142,9 +142,7 @@ pub fn explain_bundle(
         .collect::<serde_json::Map<_, _>>();
     ExplainResponse {
         selected_tools,
-        defaults_ledger_diff: defaults_ledger
-            .cloned()
-            .unwrap_or_else(|| serde_json::json!({})),
+        defaults_ledger_diff: defaults_ledger.cloned().unwrap_or_else(|| serde_json::json!({})),
         stage_contracts: serde_json::Value::Object(stage_contracts),
     }
 }

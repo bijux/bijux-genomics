@@ -67,10 +67,7 @@ pub fn write_explain_plan_json(
     for tool in registry.tools_for_stage(&stage_id) {
         let tool_id = tool.tool_id.to_string();
         if !selected.iter().any(|t| t == &tool_id) {
-            excluded.push(ExplainExclusion {
-                tool: tool_id,
-                reason: "not selected".to_string(),
-            });
+            excluded.push(ExplainExclusion { tool: tool_id, reason: "not selected".to_string() });
         }
     }
     let invariants = vec![

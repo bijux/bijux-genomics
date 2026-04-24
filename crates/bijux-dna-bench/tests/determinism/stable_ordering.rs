@@ -67,16 +67,8 @@ fn summary_is_deterministic_across_ordering() -> anyhow::Result<()> {
         &[stage_id.to_string()],
         &[tool_id.to_string()],
         &["params".to_string()],
-        ReplicatePolicy {
-            count: 1,
-            warmup: 0,
-            seeds: vec![1],
-        },
-        DiversityRequirements {
-            min_dataset_count: 1,
-            min_classes: 1,
-            min_read_layouts: 1,
-        },
+        ReplicatePolicy { count: 1, warmup: 0, seeds: vec![1] },
+        DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
         vec![StratificationRequirement {
             key: "dataset_class".to_string(),
             required_values: vec!["trueseq".to_string()],
@@ -97,9 +89,6 @@ fn summary_is_deterministic_across_ordering() -> anyhow::Result<()> {
 
     let summary_a = summarize(&suite, &a, &BenchRunOptions::default())?;
     let summary_b = summarize(&suite, &b, &BenchRunOptions::default())?;
-    assert_eq!(
-        serde_json::to_string(&summary_a)?,
-        serde_json::to_string(&summary_b)?
-    );
+    assert_eq!(serde_json::to_string(&summary_a)?, serde_json::to_string(&summary_b)?);
     Ok(())
 }

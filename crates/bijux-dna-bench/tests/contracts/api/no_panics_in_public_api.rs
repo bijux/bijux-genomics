@@ -37,8 +37,5 @@ fn no_panics_in_public_api() {
             }
         }
     }
-    assert!(
-        offenders.is_empty(),
-        "panic/unwrap/expect found in src: {offenders:?}"
-    );
+    assert!(offenders.is_empty(), "panic/unwrap/expect found in src: {offenders:?}");
 }

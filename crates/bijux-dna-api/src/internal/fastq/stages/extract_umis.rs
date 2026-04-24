@@ -78,13 +78,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
 
     if args.explain {
         write_explain_md(&bench_dir, STAGE_EXTRACT_UMIS.as_str(), &tools, &[], None)?;
-        write_explain_plan_json(
-            &bench_dir,
-            STAGE_EXTRACT_UMIS.as_str(),
-            &tools,
-            &registry,
-            None,
-        )?;
+        write_explain_plan_json(&bench_dir, STAGE_EXTRACT_UMIS.as_str(), &tools, &registry, None)?;
     }
 
     ensure_bench_runner(platform, runner_override)?;
@@ -139,9 +133,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             platform.runner,
             jobs,
         )?
@@ -169,22 +161,14 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             failures.push(RawFailure {
                 stage: STAGE_EXTRACT_UMIS.as_str().to_string(),
                 tool: tool.clone(),
-                reason: format!(
-                    "tool {tool_name} failed with status {}",
-                    execution.exit_code
-                ),
+                reason: format!("tool {tool_name} failed with status {}", execution.exit_code),
                 category: ErrorCategory::ToolError,
             });
         }
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
 }
 
 #[allow(clippy::too_many_arguments)]

@@ -10,14 +10,8 @@ pub(crate) fn validate_suite_diversity(suite: &BenchmarkSuiteSpec) -> Result<(),
             "suite must include datasets and stages".to_string(),
         ));
     }
-    if suite
-        .datasets
-        .iter()
-        .any(|dataset| dataset.hash.trim().is_empty())
-    {
-        return Err(BenchError::InvalidPolicy(
-            "suite datasets must include hash".to_string(),
-        ));
+    if suite.datasets.iter().any(|dataset| dataset.hash.trim().is_empty()) {
+        return Err(BenchError::InvalidPolicy("suite datasets must include hash".to_string()));
     }
     if suite.datasets.len() < suite.diversity.min_dataset_count {
         return Err(BenchError::InvalidPolicy(format!(
@@ -45,16 +39,12 @@ pub(crate) fn validate_suite_diversity(suite: &BenchmarkSuiteSpec) -> Result<(),
     }
     for requirement in &suite.stratifications {
         let values: std::collections::BTreeSet<&str> = match requirement.key.as_str() {
-            "dataset_class" => suite
-                .datasets
-                .iter()
-                .map(|dataset| dataset.class_label.as_str())
-                .collect(),
-            "read_layout" => suite
-                .datasets
-                .iter()
-                .map(|dataset| dataset.read_layout.as_str())
-                .collect(),
+            "dataset_class" => {
+                suite.datasets.iter().map(|dataset| dataset.class_label.as_str()).collect()
+            }
+            "read_layout" => {
+                suite.datasets.iter().map(|dataset| dataset.read_layout.as_str()).collect()
+            }
             _ => {
                 return Err(BenchError::InvalidPolicy(format!(
                     "unsupported stratification key {}",

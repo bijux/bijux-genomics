@@ -9,10 +9,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "bases_in",
         meaning: "Number of input bases",
         direction: MetricDirection::Neutral,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: f64::INFINITY,
-        }),
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
         stages: &[
             "fastq.trim_reads",
             "fastq.validate_reads",
@@ -33,10 +30,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "bases_out",
         meaning: "Number of output bases",
         direction: MetricDirection::Neutral,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: f64::INFINITY,
-        }),
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
         stages: &[
             "fastq.trim_reads",
             "fastq.validate_reads",
@@ -57,10 +51,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "bases_total",
         meaning: "Total bases for stats",
         direction: MetricDirection::Neutral,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: f64::INFINITY,
-        }),
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
         stages: &["fastq.profile_reads"],
         measured: true,
         derived: false,
@@ -70,10 +61,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "pairs_in",
         meaning: "Number of input read pairs",
         direction: MetricDirection::Neutral,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: f64::INFINITY,
-        }),
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
         stages: &[
             "fastq.trim_reads",
             "fastq.validate_reads",
@@ -93,10 +81,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "pairs_out",
         meaning: "Number of output read pairs",
         direction: MetricDirection::Neutral,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: f64::INFINITY,
-        }),
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
         stages: &[
             "fastq.trim_reads",
             "fastq.validate_reads",
@@ -116,10 +101,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "reads_r1",
         meaning: "Number of reads in R1",
         direction: MetricDirection::Neutral,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: f64::INFINITY,
-        }),
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
         stages: &["fastq.merge_pairs"],
         measured: true,
         derived: false,
@@ -129,10 +111,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "reads_r2",
         meaning: "Number of reads in R2",
         direction: MetricDirection::Neutral,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: f64::INFINITY,
-        }),
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
         stages: &["fastq.merge_pairs"],
         measured: true,
         derived: false,
@@ -142,10 +121,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "reads_merged",
         meaning: "Number of merged reads",
         direction: MetricDirection::HigherBetter,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: f64::INFINITY,
-        }),
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
         stages: &["fastq.merge_pairs"],
         measured: true,
         derived: false,
@@ -155,10 +131,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "reads_unmerged",
         meaning: "Number of unmerged reads",
         direction: MetricDirection::LowerBetter,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: f64::INFINITY,
-        }),
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
         stages: &["fastq.merge_pairs"],
         measured: true,
         derived: false,
@@ -168,15 +141,8 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "mean_q_before",
         meaning: "Mean quality before processing",
         direction: MetricDirection::HigherBetter,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: 45.0,
-        }),
-        stages: &[
-            "fastq.trim_reads",
-            "fastq.filter_reads",
-            "fastq.correct_errors",
-        ],
+        range: Some(MetricRange { min: 0.0, max: 45.0 }),
+        stages: &["fastq.trim_reads", "fastq.filter_reads", "fastq.correct_errors"],
         measured: true,
         derived: false,
     },
@@ -185,15 +151,8 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "mean_q_after",
         meaning: "Mean quality after processing",
         direction: MetricDirection::HigherBetter,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: 45.0,
-        }),
-        stages: &[
-            "fastq.trim_reads",
-            "fastq.filter_reads",
-            "fastq.correct_errors",
-        ],
+        range: Some(MetricRange { min: 0.0, max: 45.0 }),
+        stages: &["fastq.trim_reads", "fastq.filter_reads", "fastq.correct_errors"],
         measured: true,
         derived: false,
     },
@@ -202,10 +161,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "mean_q",
         meaning: "Mean quality score",
         direction: MetricDirection::HigherBetter,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: 45.0,
-        }),
+        range: Some(MetricRange { min: 0.0, max: 45.0 }),
         stages: &[
             "fastq.validate_reads",
             "fastq.detect_adapters",
@@ -230,10 +186,7 @@ pub const METRIC_REGISTRY_QUALITY: [MetricSpec; 15] = [
         name: "reads_with_umi",
         meaning: "Number of reads with extracted UMI annotations",
         direction: MetricDirection::HigherBetter,
-        range: Some(MetricRange {
-            min: 0.0,
-            max: f64::INFINITY,
-        }),
+        range: Some(MetricRange { min: 0.0, max: f64::INFINITY }),
         stages: &["fastq.extract_umis"],
         measured: true,
         derived: false,

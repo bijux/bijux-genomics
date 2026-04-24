@@ -44,11 +44,7 @@ pub fn iqr(values: &[f64]) -> f64 {
     q3 - q1
 }
 
-#[allow(
-    clippy::cast_possible_truncation,
-    clippy::cast_precision_loss,
-    clippy::cast_sign_loss
-)]
+#[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, clippy::cast_sign_loss)]
 #[must_use]
 pub fn trimmed_mean(values: &[f64], trim_ratio: f64) -> f64 {
     if values.is_empty() {
@@ -67,13 +63,7 @@ pub fn trimmed_mean(values: &[f64], trim_ratio: f64) -> f64 {
 #[must_use]
 pub fn robust_stats(values: &[f64]) -> RobustStats {
     if values.is_empty() {
-        return RobustStats {
-            n: 0,
-            median: 0.0,
-            mad: 0.0,
-            iqr: 0.0,
-            trimmed_mean: 0.0,
-        };
+        return RobustStats { n: 0, median: 0.0, mad: 0.0, iqr: 0.0, trimmed_mean: 0.0 };
     }
     RobustStats {
         n: values.len(),

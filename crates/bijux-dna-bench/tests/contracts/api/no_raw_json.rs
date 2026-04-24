@@ -35,8 +35,5 @@ fn serde_json_value_is_confined_to_repo_and_artifacts() {
             offenders.push(path_str.to_string());
         }
     }
-    assert!(
-        offenders.is_empty(),
-        "serde_json::Value outside repo/artifacts: {offenders:?}"
-    );
+    assert!(offenders.is_empty(), "serde_json::Value outside repo/artifacts: {offenders:?}");
 }

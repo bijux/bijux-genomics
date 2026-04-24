@@ -11,9 +11,7 @@ fn has_extension(path: &Path, ext: &str) -> bool {
 }
 
 fn file_name_ends_with(path: &Path, suffix: &str) -> bool {
-    path.file_name()
-        .and_then(std::ffi::OsStr::to_str)
-        .is_some_and(|name| name.ends_with(suffix))
+    path.file_name().and_then(std::ffi::OsStr::to_str).is_some_and(|name| name.ends_with(suffix))
 }
 
 /// # Errors
@@ -32,10 +30,7 @@ pub fn validate_bgzip_tabix(input: &Path) -> Result<()> {
     if has_extension(input, "bcf") {
         let csi = input.with_extension("bcf.csi");
         if !csi.exists() {
-            bail!(
-                "input contract violation: missing BCF index (.csi) for {}",
-                input.display()
-            );
+            bail!("input contract violation: missing BCF index (.csi) for {}", input.display());
         }
     }
     Ok(())
@@ -57,10 +52,7 @@ pub fn validate_bam_index(input: &Path) -> Result<()> {
     if has_extension(input, "cram") {
         let crai = input.with_extension("cram.crai");
         if !crai.exists() {
-            bail!(
-                "input contract violation: missing CRAM index (.crai) for {}",
-                input.display()
-            );
+            bail!("input contract violation: missing CRAM index (.crai) for {}", input.display());
         }
     }
     Ok(())
@@ -81,10 +73,7 @@ pub fn validate_fastq_format(input: &Path) -> Result<()> {
     let mut first = String::new();
     let _ = reader.read_line(&mut first)?;
     if !first.starts_with('@') {
-        bail!(
-            "input contract violation: FASTQ header must start with '@' ({})",
-            input.display()
-        );
+        bail!("input contract violation: FASTQ header must start with '@' ({})", input.display());
     }
     Ok(())
 }

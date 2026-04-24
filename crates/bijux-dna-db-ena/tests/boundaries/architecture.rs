@@ -94,10 +94,7 @@ fn db_ena_tree_matches_architecture_contract() {
 
 fn crate_root(crate_name: &str) -> std::path::PathBuf {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let actual = root
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or_default();
+    let actual = root.file_name().and_then(|name| name.to_str()).unwrap_or_default();
     assert_eq!(actual, crate_name, "unexpected integration-test crate root");
     root
 }

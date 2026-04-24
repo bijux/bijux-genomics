@@ -6,45 +6,24 @@ fn api_tree_matches_architecture_contract() {
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
 
     let root_entries = dir_entries(&root);
-    let expected_root: BTreeSet<_> = [
-        "BOUNDARY.md",
-        "Cargo.toml",
-        "PUBLIC_API.md",
-        "README.md",
-        "docs/",
-        "src/",
-        "tests/",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
-    assert_eq!(
-        root_entries, expected_root,
-        "api crate root must stay minimal and intentional"
-    );
+    let expected_root: BTreeSet<_> =
+        ["BOUNDARY.md", "Cargo.toml", "PUBLIC_API.md", "README.md", "docs/", "src/", "tests/"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(root_entries, expected_root, "api crate root must stay minimal and intentional");
 
     let src_entries = dir_entries(&root.join("src"));
-    let expected_src: BTreeSet<_> = [
-        "internal/",
-        "lib.rs",
-        "runtime/",
-        "support/",
-        "surface/",
-        "v1/",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
-    assert_eq!(
-        src_entries, expected_src,
-        "api src tree must match the documented architecture"
-    );
+    let expected_src: BTreeSet<_> =
+        ["internal/", "lib.rs", "runtime/", "support/", "surface/", "v1/"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(src_entries, expected_src, "api src tree must match the documented architecture");
 
     let surface_entries = dir_entries(&root.join("src/surface"));
-    let expected_surface: BTreeSet<_> = ["explain.rs", "mod.rs", "request_contracts.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_surface: BTreeSet<_> =
+        ["explain.rs", "mod.rs", "request_contracts.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         surface_entries, expected_surface,
         "api surface tree must stay focused on stable contracts"
@@ -98,10 +77,8 @@ fn api_tree_matches_architecture_contract() {
     );
 
     let workspace_support_entries = dir_entries(&root.join("src/support/workspace"));
-    let expected_workspace_support: BTreeSet<_> = ["mod.rs", "registry.rs", "repo_root.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_workspace_support: BTreeSet<_> =
+        ["mod.rs", "registry.rs", "repo_root.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         workspace_support_entries, expected_workspace_support,
         "api workspace support tree must isolate repository-scoped asset resolution"
@@ -127,31 +104,22 @@ fn api_tree_matches_architecture_contract() {
     assert_eq!(v1_entries, expected_v1, "api v1 tree must stay curated");
 
     let runtime_run_entries = dir_entries(&root.join("src/runtime/run"));
-    let expected_runtime_run: BTreeSet<_> = [
-        "execution/",
-        "execution_support.rs",
-        "mod.rs",
-        "planning/",
-        "reporting/",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_runtime_run: BTreeSet<_> =
+        ["execution/", "execution_support.rs", "mod.rs", "planning/", "reporting/"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(
         runtime_run_entries, expected_runtime_run,
         "api runtime run tree must separate execution, planning, and reporting"
     );
 
     let runtime_run_planning_entries = dir_entries(&root.join("src/runtime/run/planning"));
-    let expected_runtime_run_planning: BTreeSet<_> = [
-        "mod.rs",
-        "planning_support.rs",
-        "profile_selection.rs",
-        "run_bootstrap.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_runtime_run_planning: BTreeSet<_> =
+        ["mod.rs", "planning_support.rs", "profile_selection.rs", "run_bootstrap.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(
         runtime_run_planning_entries, expected_runtime_run_planning,
         "api runtime planning tree must separate selection, bootstrap, and planning support"
@@ -222,15 +190,11 @@ fn api_tree_matches_architecture_contract() {
     );
 
     let v1_report_entries = dir_entries(&root.join("src/v1/report"));
-    let expected_v1_report: BTreeSet<_> = [
-        "analysis_exports.rs",
-        "html_bundle.rs",
-        "mod.rs",
-        "request_contracts.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_v1_report: BTreeSet<_> =
+        ["analysis_exports.rs", "html_bundle.rs", "mod.rs", "request_contracts.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(
         v1_report_entries, expected_v1_report,
         "api v1 report tree must separate html rendering from report entrypoints"

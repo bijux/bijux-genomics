@@ -62,9 +62,8 @@ fn dashboard_contract_has_required_fields_and_sorting() -> anyhow::Result<()> {
     write_dashboard_facts_jsonl(&path, &rows)?;
     let raw = std::fs::read_to_string(&path)?;
     let mut lines = raw.lines();
-    let first_line = lines
-        .next()
-        .ok_or_else(|| anyhow::anyhow!("dashboard facts jsonl missing first row"))?;
+    let first_line =
+        lines.next().ok_or_else(|| anyhow::anyhow!("dashboard facts jsonl missing first row"))?;
     let first: serde_json::Value = serde_json::from_str(first_line)?;
     let required = [
         "schema_version",

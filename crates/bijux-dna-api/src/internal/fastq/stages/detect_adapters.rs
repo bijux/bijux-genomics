@@ -46,11 +46,8 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDetectAdaptersArgs,
 ) -> Result<BenchOutcome<FastqDetectAdaptersMetrics>> {
     let tools = select_detect_adapters_tools(&args.tools)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_DETECT_ADAPTERS.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_DETECT_ADAPTERS.as_str(), &header);
@@ -68,23 +65,17 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
         &STAGE_DETECT_ADAPTERS,
     )?;
     let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!(
-            "{}+{}",
-            bench_inputs.input_hash,
-            bijux_dna_infra::hash_file_sha256(r2)?
-        )
+        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
     } else {
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(
-            crate::internal::fastq::stages::trim_bench_common::observe_fastq_stats(
-                catalog,
-                platform,
-                bench_inputs.runner,
-                r2,
-            )?,
-        )
+        Some(crate::internal::fastq::stages::trim_bench_common::observe_fastq_stats(
+            catalog,
+            platform,
+            bench_inputs.runner,
+            r2,
+        )?)
     } else {
         None
     };
@@ -146,9 +137,7 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             bench_inputs.runner,
             jobs,
         )?
@@ -180,12 +169,7 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 #[allow(clippy::too_many_arguments)]

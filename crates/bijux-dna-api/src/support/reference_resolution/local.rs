@@ -14,11 +14,9 @@ impl ReferenceResolver for LocalReferenceResolver {
         let root = if let Some(root) = self.root.clone() {
             root
         } else {
-            std::env::var("BIJUX_REFERENCE_ROOT")
-                .map(PathBuf::from)
-                .map_err(|_| {
-                    anyhow!("BIJUX_REFERENCE_ROOT must be declared for local reference resolution")
-                })?
+            std::env::var("BIJUX_REFERENCE_ROOT").map(PathBuf::from).map_err(|_| {
+                anyhow!("BIJUX_REFERENCE_ROOT must be declared for local reference resolution")
+            })?
         };
         let fasta = root.join(species_id).join(build_id).join("reference.fa");
         if !fasta.exists() {
@@ -45,11 +43,9 @@ mod tests {
         std::fs::create_dir_all(reference.parent().expect("parent")).expect("create parent");
         bijux_dna_infra::write_bytes(&reference, b">chr1\nACGT\n").expect("write reference");
 
-        let resolved = LocalReferenceResolver {
-            root: Some(temp.path().to_path_buf()),
-        }
-        .resolve("human", "hg38")
-        .expect("resolve reference");
+        let resolved = LocalReferenceResolver { root: Some(temp.path().to_path_buf()) }
+            .resolve("human", "hg38")
+            .expect("resolve reference");
 
         assert_eq!(resolved.fasta, reference);
     }

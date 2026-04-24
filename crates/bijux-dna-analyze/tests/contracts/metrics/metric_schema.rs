@@ -18,11 +18,7 @@ fn base_record(metrics: MetricSet<FastqTrimMetrics>) -> BenchmarkRecord<FastqTri
             input_hash: "sha256:deadbeef".to_string(),
             parameters: bijux_dna_analyze::model::JsonBlob::from_pairs(&[("sample_id", "s1")]),
         },
-        execution: ExecutionMetrics {
-            runtime_s: 1.0,
-            memory_mb: 32.0,
-            exit_code: 0,
-        },
+        execution: ExecutionMetrics { runtime_s: 1.0, memory_mb: 32.0, exit_code: 0 },
         metrics,
     }
 }
@@ -265,10 +261,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
             gc_delta: 0.01,
         },
     });
-    assert_eq!(
-        low_complexity.metrics_schema,
-        "fastq_filter_low_complexity_v1"
-    );
+    assert_eq!(low_complexity.metrics_schema, "fastq_filter_low_complexity_v1");
 
     let deduplicate = metric_set(FastqDuplicateMetrics {
         reads_in: 100,
@@ -379,10 +372,7 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         bases_total: 1000,
         mean_q: 30.0,
         gc_percent: 50.0,
-        length_histogram: vec![LengthHistogramBin {
-            length: 100,
-            count: 100,
-        }],
+        length_histogram: vec![LengthHistogramBin { length: 100, count: 100 }],
     });
     assert_eq!(stats.metrics_schema, "fastq_profile_reads_v1");
 

@@ -9,9 +9,7 @@ pub(super) fn file_len_i64(len: u64) -> i64 {
 }
 
 pub(super) fn hpc_context_enabled() -> bool {
-    std::env::var("BIJUX_RUN_CONTEXT")
-        .map(|v| v.eq_ignore_ascii_case("hpc"))
-        .unwrap_or(false)
+    std::env::var("BIJUX_RUN_CONTEXT").map(|v| v.eq_ignore_ascii_case("hpc")).unwrap_or(false)
 }
 
 pub(super) fn enforce_hpc_results_layout(out_dir: &Path) -> Result<()> {
@@ -28,9 +26,7 @@ pub(super) fn enforce_hpc_results_layout(out_dir: &Path) -> Result<()> {
         ));
     }
     let ts = &comps[idx + 5];
-    let ts_ok = regex::Regex::new(r"^\d{8}T\d{6}Z$")
-        .map(|re| re.is_match(ts))
-        .unwrap_or(false);
+    let ts_ok = regex::Regex::new(r"^\d{8}T\d{6}Z$").map(|re| re.is_match(ts)).unwrap_or(false);
     if !ts_ok {
         return Err(anyhow!("HPC out_dir timestamp must match YYYYMMDDTHHMMSSZ"));
     }
@@ -62,14 +58,12 @@ pub(super) fn maybe_write_site_lock(out_dir: &Path) -> Result<()> {
         .ok()
         .map(|raw| raw.trim().to_string())
         .filter(|v| !v.is_empty());
-    let cpu_model = std::fs::read_to_string("/proc/cpuinfo")
-        .ok()
-        .and_then(|raw| {
-            raw.lines()
-                .find(|line| line.starts_with("model name"))
-                .and_then(|line| line.split(':').nth(1))
-                .map(|v| v.trim().to_string())
-        });
+    let cpu_model = std::fs::read_to_string("/proc/cpuinfo").ok().and_then(|raw| {
+        raw.lines()
+            .find(|line| line.starts_with("model name"))
+            .and_then(|line| line.split(':').nth(1))
+            .map(|v| v.trim().to_string())
+    });
     let payload = serde_json::json!({
         "schema_version": "bijux.site_lock.v1",
         "site": resolved_site_name()?,
@@ -94,9 +88,7 @@ fn resolved_site_name() -> Result<String> {
 }
 
 fn env_value(key: &str) -> Option<String> {
-    std::env::var(key)
-        .ok()
-        .filter(|value| !value.trim().is_empty())
+    std::env::var(key).ok().filter(|value| !value.trim().is_empty())
 }
 
 #[cfg(test)]
@@ -130,9 +122,7 @@ mod tests {
             Ok(value) => panic!("missing BIJUX_HPC_SITE must fail, got {value}"),
             Err(error) => error,
         };
-        assert!(error
-            .to_string()
-            .contains("BIJUX_HPC_SITE must be declared for HPC site locks"));
+        assert!(error.to_string().contains("BIJUX_HPC_SITE must be declared for HPC site locks"));
     }
 
     #[test]
@@ -144,8 +134,6 @@ mod tests {
             Ok(()) => panic!("legacy root must fail"),
             Err(error) => error,
         };
-        assert!(error
-            .to_string()
-            .contains("HPC run out_dir must be under results root"));
+        assert!(error.to_string().contains("HPC run out_dir must be under results root"));
     }
 }

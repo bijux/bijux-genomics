@@ -15,5 +15,3 @@ pub use evaluation::{compare, gate};
 pub use options::BenchRunOptions;
 pub use suite_load::load_suite;
 pub use summary::summarize;
-
-pub(crate) use run_suite::run_suite;

@@ -82,10 +82,7 @@ fn write_stage_report(stage_dir: &Path, stage_id: &str, tool_id: &str) -> Result
         log_paths: Vec::new(),
     };
     let stage_report_path = stage_dir.join("stage_report.json");
-    bijux_dna_infra::write_bytes(
-        &stage_report_path,
-        serde_json::to_vec_pretty(&stage_report)?,
-    )?;
+    bijux_dna_infra::write_bytes(&stage_report_path, serde_json::to_vec_pretty(&stage_report)?)?;
     Ok(stage_report_path)
 }
 
@@ -115,11 +112,7 @@ fn write_facts(base_dir: &Path, profile: &bijux_dna_pipelines::PipelineProfile) 
         .enumerate()
     {
         let stage_key = bijux_dna_core::ids::StageId::new(stage_id.clone());
-        let tool = profile
-            .defaults
-            .tools
-            .get(&stage_key)
-            .map_or("unknown", |tool| tool.as_str());
+        let tool = profile.defaults.tools.get(&stage_key).map_or("unknown", |tool| tool.as_str());
         let stage_dir = base_dir.join(format!("stage_{idx}"));
         bijux_dna_infra::ensure_dir(&stage_dir)?;
         let stage_report_path = write_stage_report(&stage_dir, stage_id, tool)?;
@@ -205,25 +198,13 @@ fn run_pipeline_case(domain: Domain, pipeline_id: &str) -> Result<(String, Strin
         options: AnalyzeOptions {
             mode: AnalyzeMode::Report,
             strict: true,
-            render: RenderOptions {
-                json: true,
-                html: true,
-                output_dir: None,
-            },
+            render: RenderOptions { json: true, html: true, output_dir: None },
         },
     };
     let output = bijux_dna_analyze::analyze_run(&input)?;
-    let report_path = output
-        .report_json
-        .ok_or_else(|| anyhow::anyhow!("missing report.json"))?;
-    let bundle_index = layout
-        .artifacts_dir
-        .join("report_bundle")
-        .join("index.html");
-    assert!(
-        bundle_index.exists(),
-        "missing report bundle index for {pipeline_id}"
-    );
+    let report_path = output.report_json.ok_or_else(|| anyhow::anyhow!("missing report.json"))?;
+    let bundle_index = layout.artifacts_dir.join("report_bundle").join("index.html");
+    assert!(bundle_index.exists(), "missing report bundle index for {pipeline_id}");
 
     Ok((hash_file(&report_path)?, hash_file(&bundle_index)?))
 }
@@ -239,14 +220,8 @@ fn golden_spine_blessed_pipelines() -> Result<()> {
     for (domain, pipeline_id) in cases {
         let (report_hash_a, bundle_hash_a) = run_pipeline_case(domain, pipeline_id)?;
         let (report_hash_b, bundle_hash_b) = run_pipeline_case(domain, pipeline_id)?;
-        assert_eq!(
-            report_hash_a, report_hash_b,
-            "report hash mismatch for {pipeline_id}"
-        );
-        assert_eq!(
-            bundle_hash_a, bundle_hash_b,
-            "bundle hash mismatch for {pipeline_id}"
-        );
+        assert_eq!(report_hash_a, report_hash_b, "report hash mismatch for {pipeline_id}");
+        assert_eq!(bundle_hash_a, bundle_hash_b, "bundle hash mismatch for {pipeline_id}");
     }
 
     Ok(())

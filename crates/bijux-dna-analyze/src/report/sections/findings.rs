@@ -39,9 +39,7 @@ pub(crate) fn bam_accounting_section(rows: &[FactsRowV1]) -> serde_json::Value {
         let coverage_mean = metrics.coverage.mean;
         let complexity_reads = metrics.complexity.observed_reads;
         let verdict = metrics.stage_verdict.clone().unwrap_or_else(|| {
-            evaluate_bam_invariants(&row.stage_id, &metrics, &thresholds)
-                .verdict
-                .into()
+            evaluate_bam_invariants(&row.stage_id, &metrics, &thresholds).verdict.into()
         });
         entries.push(serde_json::json!({
             "stage_id": row.stage_id,
@@ -182,9 +180,7 @@ pub(crate) fn bam_verdict_table(rows: &[FactsRowV1]) -> serde_json::Value {
         let metrics: BamMetricsV1 =
             serde_json::from_value(row.metrics.clone()).unwrap_or_else(|_| BamMetricsV1::empty());
         let verdict = metrics.stage_verdict.clone().unwrap_or_else(|| {
-            evaluate_bam_invariants(&row.stage_id, &metrics, &thresholds)
-                .verdict
-                .into()
+            evaluate_bam_invariants(&row.stage_id, &metrics, &thresholds).verdict.into()
         });
         let downstream_ok = metrics.coverage.mean >= 0.5 && metrics.coverage.breadth_1x >= 0.1;
         entries.push(serde_json::json!({
@@ -312,10 +308,8 @@ fn report_qc_claims(row: &FactsRowV1) -> Vec<serde_json::Value> {
         return Vec::new();
     }
     let mut claims = Vec::new();
-    let adapter_content = row
-        .metrics
-        .get("adapter_content_mean")
-        .and_then(serde_json::Value::as_f64);
+    let adapter_content =
+        row.metrics.get("adapter_content_mean").and_then(serde_json::Value::as_f64);
     if let Some(value) = adapter_content.filter(|v| *v > 0.1) {
         claims.push(serde_json::json!({
             "id": format!("fastq.adapter_contamination.{}", row.stage_id),
@@ -328,10 +322,7 @@ fn report_qc_claims(row: &FactsRowV1) -> Vec<serde_json::Value> {
             "next_steps": "Enable adapter trimming or adjust adapter preset.".to_string(),
         }));
     }
-    let duplication = row
-        .metrics
-        .get("duplication_rate")
-        .and_then(serde_json::Value::as_f64);
+    let duplication = row.metrics.get("duplication_rate").and_then(serde_json::Value::as_f64);
     if let Some(value) = duplication.filter(|v| *v > 0.5) {
         claims.push(serde_json::json!({
             "id": format!("fastq.duplication.{}", row.stage_id),
@@ -351,10 +342,7 @@ fn merge_pair_claims(row: &FactsRowV1) -> Vec<serde_json::Value> {
     if row.stage_id != "fastq.merge_pairs" {
         return Vec::new();
     }
-    let merge_rate = row
-        .metrics
-        .get("merge_rate")
-        .and_then(serde_json::Value::as_f64);
+    let merge_rate = row.metrics.get("merge_rate").and_then(serde_json::Value::as_f64);
     merge_rate
         .filter(|v| *v < 0.05)
         .map(|value| {

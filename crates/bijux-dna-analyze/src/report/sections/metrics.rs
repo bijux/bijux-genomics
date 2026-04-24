@@ -5,9 +5,7 @@ use super::{
 };
 
 pub(crate) fn read_json_value(path: &Path) -> Option<serde_json::Value> {
-    fs::read_to_string(path)
-        .ok()
-        .and_then(|raw| serde_json::from_str(&raw).ok())
+    fs::read_to_string(path).ok().and_then(|raw| serde_json::from_str(&raw).ok())
 }
 
 pub(crate) fn pipeline_verdict_from_rows(rows: &[FactsRowV1]) -> PipelineVerdictV1 {
@@ -28,10 +26,7 @@ pub(crate) fn pipeline_verdict_from_rows(rows: &[FactsRowV1]) -> PipelineVerdict
         };
         verdict = std::cmp::max(verdict, stage_verdict.verdict.clone());
         if stage_verdict.verdict != InvariantStatusV1::Pass {
-            reasons.push(format!(
-                "{}:{:?}",
-                stage_verdict.stage_id, stage_verdict.verdict
-            ));
+            reasons.push(format!("{}:{:?}", stage_verdict.stage_id, stage_verdict.verdict));
         }
     }
     PipelineVerdictV1 { verdict, reasons }
@@ -75,10 +70,8 @@ pub(crate) fn comparison_view_section(rows: &[FactsRowV1]) -> serde_json::Value 
                 (Some(bi), Some(bo)) if bi > 0 => Some(bo as f64 / bi as f64),
                 _ => None,
             };
-            let error_reduction_proxy = row
-                .metrics
-                .get("mean_q_delta")
-                .and_then(serde_json::Value::as_f64);
+            let error_reduction_proxy =
+                row.metrics.get("mean_q_delta").and_then(serde_json::Value::as_f64);
             rank_inputs.push(RankInput {
                 tool: row.tool_id.clone(),
                 runtime_s: row.runtime_s,
@@ -101,20 +94,17 @@ pub(crate) fn comparison_view_section(rows: &[FactsRowV1]) -> serde_json::Value 
                 notes.extend(report.warnings.clone());
                 notes.extend(report.errors.clone());
             }
-            let key_params = stage_report
-                .as_ref()
-                .and_then(tool_invocation_for_stage)
-                .map_or_else(
-                    || serde_json::json!({}),
-                    |invocation| {
-                        let params = if invocation.effective_params_json_normalized.is_null() {
-                            invocation.parameters_json_normalized
-                        } else {
-                            invocation.effective_params_json_normalized
-                        };
-                        params_excerpt(&params, 8)
-                    },
-                );
+            let key_params = stage_report.as_ref().and_then(tool_invocation_for_stage).map_or_else(
+                || serde_json::json!({}),
+                |invocation| {
+                    let params = if invocation.effective_params_json_normalized.is_null() {
+                        invocation.parameters_json_normalized
+                    } else {
+                        invocation.effective_params_json_normalized
+                    };
+                    params_excerpt(&params, 8)
+                },
+            );
 
             tools.push(serde_json::json!({
                 "tool_id": row.tool_id,
@@ -165,9 +155,7 @@ pub(crate) fn failure_hints_section(rows: &[FactsRowV1]) -> serde_json::Value {
 }
 
 pub(crate) fn read_tool_invocation(path: &Path) -> Option<ToolInvocationV1> {
-    fs::read_to_string(path)
-        .ok()
-        .and_then(|raw| serde_json::from_str(&raw).ok())
+    fs::read_to_string(path).ok().and_then(|raw| serde_json::from_str(&raw).ok())
 }
 
 pub(crate) fn params_excerpt(value: &serde_json::Value, limit: usize) -> serde_json::Value {

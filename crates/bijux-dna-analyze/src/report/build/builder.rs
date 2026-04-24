@@ -67,9 +67,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             row.input_hash.as_str(),
         )
     });
-    let run_id = ordered
-        .first()
-        .map_or_else(String::new, |row| row.run_id.clone());
+    let run_id = ordered.first().map_or_else(String::new, |row| row.run_id.clone());
     let mut stages = Vec::new();
     let mut provenance = Vec::new();
     let mut retention_context = Vec::new();
@@ -127,11 +125,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         }
         if row.metrics == serde_json::json!({}) {
             missing_metrics.push(format!("{}:metrics", row.stage_id));
-            missing_by_stage
-                .entry(row.stage_id.clone())
-                .or_default()
-                .0
-                .push("metrics".to_string());
+            missing_by_stage.entry(row.stage_id.clone()).or_default().0.push("metrics".to_string());
         }
         for key in required_vcf_metric_keys(&row.stage_id) {
             if row.metrics.get(*key).is_none() {
@@ -179,12 +173,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             .as_deref()
             .map(|path| normalize_report_path(base_dir, path))
             .unwrap_or_default();
-        let retention_report_path = retention_report_path
-            .as_deref()
-            .map(|path| normalize_report_path(base_dir, path));
-        let bank_report_path = bank_report_path
-            .as_deref()
-            .map(|path| normalize_report_path(base_dir, path));
+        let retention_report_path =
+            retention_report_path.as_deref().map(|path| normalize_report_path(base_dir, path));
+        let bank_report_path =
+            bank_report_path.as_deref().map(|path| normalize_report_path(base_dir, path));
         stages.push(ReportStageSummaryV1 {
             stage_id: row.stage_id.clone(),
             tool_id: row.tool_id.clone(),
@@ -206,10 +198,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             stage_id: row.stage_id.clone(),
             tool_id: row.tool_id.clone(),
             tool_version: row.tool_version.clone(),
-            image_digest: row
-                .image_digest
-                .clone()
-                .or_else(|| Some("unknown".to_string())),
+            image_digest: row.image_digest.clone().or_else(|| Some("unknown".to_string())),
             trace_id: row.trace_id.clone(),
             span_id: row.span_id.clone(),
             params_hash: row.params_hash.clone(),
@@ -296,42 +285,23 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
     let mut model = ReportModel::empty(report);
     let stage_completeness = stage_completeness_table(&ordered, &missing_by_stage);
     let stage_confidence = stage_confidence_section(&ordered);
-    sections.insert(
-        "stage_completeness".to_string(),
-        JsonBlob::new(stage_completeness.clone()),
-    );
-    sections.insert(
-        "stage_confidence".to_string(),
-        JsonBlob::new(stage_confidence.clone()),
-    );
-    sections.insert(
-        "assertions".to_string(),
-        JsonBlob::new(assertions_section(&ordered)),
-    );
+    sections.insert("stage_completeness".to_string(), JsonBlob::new(stage_completeness.clone()));
+    sections.insert("stage_confidence".to_string(), JsonBlob::new(stage_confidence.clone()));
+    sections.insert("assertions".to_string(), JsonBlob::new(assertions_section(&ordered)));
     sections.insert(
         "decision_trace".to_string(),
-        JsonBlob::new(decision_trace_section(
-            &ordered,
-            &missing_by_stage,
-            &telemetry_decisions,
-        )),
+        JsonBlob::new(decision_trace_section(&ordered, &missing_by_stage, &telemetry_decisions)),
     );
     sections.insert(
         "analysis_selection_contract".to_string(),
         JsonBlob::new(analysis_selection_contract_section()),
     );
-    sections.insert(
-        "failure_hints".to_string(),
-        JsonBlob::new(failure_hints_section(&ordered)),
-    );
+    sections.insert("failure_hints".to_string(), JsonBlob::new(failure_hints_section(&ordered)));
     sections.insert(
         "metric_provenance".to_string(),
         JsonBlob::new(serde_json::json!(metric_provenance)),
     );
-    sections.insert(
-        "bench_summary".to_string(),
-        JsonBlob::new(bench_summary_section(base_dir)),
-    );
+    sections.insert("bench_summary".to_string(), JsonBlob::new(bench_summary_section(base_dir)));
     sections.insert(
         "pipeline_overview".to_string(),
         JsonBlob::new(pipeline_overview_section(&ordered)),
@@ -349,18 +319,9 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             &stage_confidence,
         )),
     );
-    sections.insert(
-        "stage_plots".to_string(),
-        JsonBlob::new(stage_plots_section(&ordered)),
-    );
-    sections.insert(
-        "accounting".to_string(),
-        JsonBlob::new(accounting_section(&ordered)),
-    );
-    if ordered
-        .iter()
-        .any(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX))
-    {
+    sections.insert("stage_plots".to_string(), JsonBlob::new(stage_plots_section(&ordered)));
+    sections.insert("accounting".to_string(), JsonBlob::new(accounting_section(&ordered)));
+    if ordered.iter().any(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX)) {
         sections.insert(
             "bam".to_string(),
             JsonBlob::new(serde_json::json!({
@@ -368,28 +329,14 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
                 "stages": ordered.iter().filter(|row| row.stage_id.starts_with(BAM_STAGE_PREFIX)).count(),
             })),
         );
-        sections.insert(
-            "bam_accounting".to_string(),
-            JsonBlob::new(bam_accounting_section(&ordered)),
-        );
-        sections.insert(
-            "bam_findings".to_string(),
-            JsonBlob::new(bam_findings_section(&ordered)),
-        );
-        sections.insert(
-            "bam_verdicts".to_string(),
-            JsonBlob::new(bam_verdict_table(&ordered)),
-        );
-        sections.insert(
-            "bam_plots".to_string(),
-            JsonBlob::new(bam_plots_section(&ordered)),
-        );
+        sections
+            .insert("bam_accounting".to_string(), JsonBlob::new(bam_accounting_section(&ordered)));
+        sections.insert("bam_findings".to_string(), JsonBlob::new(bam_findings_section(&ordered)));
+        sections.insert("bam_verdicts".to_string(), JsonBlob::new(bam_verdict_table(&ordered)));
+        sections.insert("bam_plots".to_string(), JsonBlob::new(bam_plots_section(&ordered)));
     }
     if ordered.iter().any(|row| row.stage_id.starts_with("vcf.")) {
-        let vcf_rows = ordered
-            .iter()
-            .filter(|row| row.stage_id == "vcf.stats")
-            .collect::<Vec<_>>();
+        let vcf_rows = ordered.iter().filter(|row| row.stage_id == "vcf.stats").collect::<Vec<_>>();
         let mut variants_total = 0_u64;
         let mut snps = 0_u64;
         let mut indels = 0_u64;
@@ -400,30 +347,21 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         let mut call_summary = serde_json::json!({});
         let mut filter_summary = serde_json::json!({});
         for row in vcf_rows {
-            if let Some(value) = row
-                .metrics
-                .get("variants_total")
-                .and_then(serde_json::Value::as_u64)
+            if let Some(value) =
+                row.metrics.get("variants_total").and_then(serde_json::Value::as_u64)
             {
                 variants_total = value;
             }
             if let Some(value) = row.metrics.get("snps").and_then(serde_json::Value::as_u64) {
                 snps = value;
             }
-            if let Some(value) = row
-                .metrics
-                .get("indels")
-                .and_then(serde_json::Value::as_u64)
-            {
+            if let Some(value) = row.metrics.get("indels").and_then(serde_json::Value::as_u64) {
                 indels = value;
             }
             if let Some(value) = row.metrics.get("ti_tv").and_then(serde_json::Value::as_f64) {
                 ti_tv = Some(value);
             }
-            if let Some(value) = row
-                .metrics
-                .get("sample_name")
-                .and_then(serde_json::Value::as_str)
+            if let Some(value) = row.metrics.get("sample_name").and_then(serde_json::Value::as_str)
             {
                 sample_name = value.to_string();
             }
@@ -511,10 +449,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             })),
         );
     }
-    if ordered
-        .iter()
-        .any(|row| row.stage_id.starts_with(FASTQ_STAGE_PREFIX))
-    {
+    if ordered.iter().any(|row| row.stage_id.starts_with(FASTQ_STAGE_PREFIX)) {
         sections.insert(
             "fastq".to_string(),
             JsonBlob::new(serde_json::json!({
@@ -523,18 +458,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             })),
         );
     }
-    sections.insert(
-        "impact_metrics".to_string(),
-        JsonBlob::new(impact_metrics_section(&ordered)),
-    );
-    sections.insert(
-        "findings".to_string(),
-        JsonBlob::new(findings_section(&ordered)),
-    );
-    sections.insert(
-        "claims_registry".to_string(),
-        JsonBlob::new(claims_registry_section(&ordered)),
-    );
+    sections.insert("impact_metrics".to_string(), JsonBlob::new(impact_metrics_section(&ordered)));
+    sections.insert("findings".to_string(), JsonBlob::new(findings_section(&ordered)));
+    sections
+        .insert("claims_registry".to_string(), JsonBlob::new(claims_registry_section(&ordered)));
     if let Some(handoff) = cross_domain_handoff_section(base_dir) {
         sections.insert("handoff".to_string(), JsonBlob::new(handoff));
     }
@@ -542,10 +469,8 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         "reproducibility".to_string(),
         JsonBlob::new(reproducibility_section(&ordered, &telemetry_events)),
     );
-    sections.insert(
-        "pipeline_verdict".to_string(),
-        JsonBlob::new(pipeline_verdict_section(&ordered)),
-    );
+    sections
+        .insert("pipeline_verdict".to_string(), JsonBlob::new(pipeline_verdict_section(&ordered)));
     sections.insert(
         "scientific_provenance".to_string(),
         JsonBlob::new(scientific_provenance_section(&ordered)),
@@ -554,36 +479,19 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         "data_contract_validation".to_string(),
         JsonBlob::new(data_contract_validation_section(&completeness_clone)),
     );
-    sections.insert(
-        "qc_delta".to_string(),
-        JsonBlob::new(qc_delta_section(&ordered)),
-    );
-    sections.insert(
-        "qc_artifacts".to_string(),
-        JsonBlob::new(qc_artifacts_section(&ordered)),
-    );
+    sections.insert("qc_delta".to_string(), JsonBlob::new(qc_delta_section(&ordered)));
+    sections.insert("qc_artifacts".to_string(), JsonBlob::new(qc_artifacts_section(&ordered)));
     sections.insert(
         "contaminant_summary".to_string(),
         JsonBlob::new(contaminant_summary_section(&ordered)),
     );
-    sections.insert(
-        "comparison_view".to_string(),
-        JsonBlob::new(comparison_view_section(&ordered)),
-    );
-    sections.insert(
-        "adapter_config".to_string(),
-        JsonBlob::new(adapter_config_section(&ordered)),
-    );
-    sections.insert(
-        "run_provenance".to_string(),
-        JsonBlob::new(run_provenance_section(base_dir)),
-    );
+    sections
+        .insert("comparison_view".to_string(), JsonBlob::new(comparison_view_section(&ordered)));
+    sections.insert("adapter_config".to_string(), JsonBlob::new(adapter_config_section(&ordered)));
+    sections.insert("run_provenance".to_string(), JsonBlob::new(run_provenance_section(base_dir)));
     enforce_report_completeness_contract(&ordered, &sections)?;
     model.sections = sections;
-    model.tables.insert(
-        "stage_completeness".to_string(),
-        JsonBlob::new(stage_completeness),
-    );
+    model.tables.insert("stage_completeness".to_string(), JsonBlob::new(stage_completeness));
     Ok(model)
 }
 

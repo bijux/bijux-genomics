@@ -47,23 +47,16 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterLowComplexityArgs,
 ) -> Result<BenchOutcome<FastqLowComplexityMetrics>> {
     let tools = select_filter_low_complexity_tools(&args.tools)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_FILTER_LOW_COMPLEXITY.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &header);
 
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(
-        STAGE_FILTER_LOW_COMPLEXITY.as_str(),
-        &tools,
-        &registry,
-        false,
-    )?;
+    let tools =
+        filter_tools_by_role(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &tools, &registry, false)?;
     let bench_inputs = prepare_trim_bench(
         catalog,
         platform,
@@ -74,21 +67,12 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
         &STAGE_FILTER_LOW_COMPLEXITY,
     )?;
     let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!(
-            "{}+{}",
-            bench_inputs.input_hash,
-            bijux_dna_infra::hash_file_sha256(r2)?
-        )
+        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
     } else {
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(
-            catalog,
-            platform,
-            bench_inputs.runner,
-            r2,
-        )?)
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
     } else {
         None
     };
@@ -110,18 +94,8 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
         )?;
     }
 
-    ensure_image_qa_passed(
-        STAGE_FILTER_LOW_COMPLEXITY.as_str(),
-        &tools,
-        platform,
-        catalog,
-    )?;
-    ensure_tool_qa_passed(
-        STAGE_FILTER_LOW_COMPLEXITY.as_str(),
-        &tools,
-        platform,
-        catalog,
-    )?;
+    ensure_image_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &tools, platform, catalog)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -172,9 +146,7 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             bench_inputs.runner,
             jobs,
         )?
@@ -191,10 +163,7 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
             &input_hash,
             &plan.params,
             &plan.io.outputs[0].path,
-            plan.io
-                .outputs
-                .get(1)
-                .map(|artifact| artifact.path.as_path()),
+            plan.io.outputs.get(1).map(|artifact| artifact.path.as_path()),
             &execution,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -210,12 +179,7 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -239,12 +203,7 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     };
     let output_stats_r2 = if let Some(output_reads_r2) = output_reads_r2 {
         if execution.exit_code == 0 && output_reads_r2.exists() {
-            Some(observe_fastq_stats(
-                catalog,
-                platform,
-                bench_inputs.runner,
-                output_reads_r2,
-            )?)
+            Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, output_reads_r2)?)
         } else {
             input_stats_r2.copied()
         }
@@ -278,9 +237,8 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let out_dir = output_reads
-        .parent()
-        .ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
+    let out_dir =
+        output_reads.parent().ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("low_complexity_report.json"), &report)
         .context("write low-complexity report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
@@ -357,9 +315,7 @@ fn build_low_complexity_report(
             .and_then(serde_json::Value::as_str)
             .unwrap_or("low_complexity_report.json")
             .to_string(),
-        entropy_threshold: params
-            .get("entropy_threshold")
-            .and_then(serde_json::Value::as_f64),
+        entropy_threshold: params.get("entropy_threshold").and_then(serde_json::Value::as_f64),
         polyx_threshold: params
             .get("polyx_threshold")
             .and_then(serde_json::Value::as_u64)

@@ -1,9 +1,8 @@
 use super::{open_fastq_lines, Context, Result};
 
 pub(crate) fn load_qc_thresholds_map() -> std::collections::BTreeMap<String, f64> {
-    let Some(path) = std::env::var_os("BIJUX_QC_THRESHOLDS_PATH")
-        .map(std::path::PathBuf::from)
-        .or_else(|| {
+    let Some(path) =
+        std::env::var_os("BIJUX_QC_THRESHOLDS_PATH").map(std::path::PathBuf::from).or_else(|| {
             std::env::var_os("BIJUX_REFERENCE_ROOT")
                 .map(std::path::PathBuf::from)
                 .map(|root| root.join("qc_thresholds.yaml"))
@@ -79,9 +78,7 @@ pub(crate) fn write_fastq_to_fasta_if_missing(
     }
     if command_exists("seqkit") {
         let ok = run_stage_command(
-            out_fasta
-                .parent()
-                .unwrap_or_else(|| std::path::Path::new(".")),
+            out_fasta.parent().unwrap_or_else(|| std::path::Path::new(".")),
             "seqkit_fq2fa",
             "seqkit",
             &[

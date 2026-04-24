@@ -132,9 +132,7 @@ pub(super) fn plan_damage_recalibration_stage(
                 },
             };
             if !args.contamination_panel.is_empty() {
-                params
-                    .reference_panels
-                    .clone_from(&args.contamination_panel);
+                params.reference_panels.clone_from(&args.contamination_panel);
             }
             if let Some(value) = args.contamination_scope.as_deref() {
                 params.scope = parse_contamination_scope(value)?;

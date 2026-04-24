@@ -23,24 +23,16 @@ impl FastqDeltaMetrics {
     /// Returns an error if delta values are invalid.
     pub fn validate(&self) -> Result<()> {
         if !self.mean_q_delta.is_finite() {
-            return Err(BenchError::Validation(
-                "mean_q_delta must be finite".to_string(),
-            ));
+            return Err(BenchError::Validation("mean_q_delta must be finite".to_string()));
         }
         if !self.gc_delta.is_finite() {
-            return Err(BenchError::Validation(
-                "gc_delta must be finite".to_string(),
-            ));
+            return Err(BenchError::Validation("gc_delta must be finite".to_string()));
         }
         if !(0.0..=1.0).contains(&self.read_retention) {
-            return Err(BenchError::Validation(
-                "read_retention must be within [0, 1]".to_string(),
-            ));
+            return Err(BenchError::Validation("read_retention must be within [0, 1]".to_string()));
         }
         if !(0.0..=1.0).contains(&self.base_retention) {
-            return Err(BenchError::Validation(
-                "base_retention must be within [0, 1]".to_string(),
-            ));
+            return Err(BenchError::Validation("base_retention must be within [0, 1]".to_string()));
         }
         Ok(())
     }
@@ -48,12 +40,7 @@ impl FastqDeltaMetrics {
 
 impl Default for FastqDeltaMetrics {
     fn default() -> Self {
-        Self {
-            read_retention: 0.0,
-            base_retention: 0.0,
-            mean_q_delta: 0.0,
-            gc_delta: 0.0,
-        }
+        Self { read_retention: 0.0, base_retention: 0.0, mean_q_delta: 0.0, gc_delta: 0.0 }
     }
 }
 
@@ -100,14 +87,10 @@ impl StageMetricSchema for FastqTrimMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         if self.bases_out > self.bases_in {
-            return Err(BenchError::Validation(
-                "bases_out must be <= bases_in".to_string(),
-            ));
+            return Err(BenchError::Validation("bases_out must be <= bases_in".to_string()));
         }
         if self.mean_q_after < self.mean_q_before {
             warn!(
@@ -162,14 +145,10 @@ impl StageMetricSchema for FastqTrimPolygMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         if self.bases_out > self.bases_in {
-            return Err(BenchError::Validation(
-                "bases_out must be <= bases_in".to_string(),
-            ));
+            return Err(BenchError::Validation("bases_out must be <= bases_in".to_string()));
         }
         if self.mean_q_after < self.mean_q_before {
             warn!(
@@ -220,14 +199,10 @@ impl StageMetricSchema for FastqTrimTerminalDamageMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         if self.bases_out > self.bases_in {
-            return Err(BenchError::Validation(
-                "bases_out must be <= bases_in".to_string(),
-            ));
+            return Err(BenchError::Validation("bases_out must be <= bases_in".to_string()));
         }
         if let Some(value) = self.ct_ga_asymmetry_pre {
             if !value.is_finite() || !(-1.0..=1.0).contains(&value) {
@@ -291,9 +266,7 @@ impl StageMetricSchema for FastqValidateMetrics {
             ));
         }
         if !self.mean_q.is_finite() || !(0.0..=45.0).contains(&self.mean_q) {
-            return Err(BenchError::Validation(
-                "mean_q must be within [0, 45]".to_string(),
-            ));
+            return Err(BenchError::Validation("mean_q must be within [0, 45]".to_string()));
         }
         if matches!(self.pair_sync_checked, Some(true)) && self.pair_sync_pass.is_none() {
             return Err(BenchError::Validation(
@@ -328,19 +301,13 @@ impl StageMetricSchema for FastqDetectAdaptersMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out != self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must equal reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must equal reads_in".to_string()));
         }
         if self.bases_out != self.bases_in {
-            return Err(BenchError::Validation(
-                "bases_out must equal bases_in".to_string(),
-            ));
+            return Err(BenchError::Validation("bases_out must equal bases_in".to_string()));
         }
         if !self.mean_q.is_finite() || !(0.0..=45.0).contains(&self.mean_q) {
-            return Err(BenchError::Validation(
-                "mean_q must be within [0, 45]".to_string(),
-            ));
+            return Err(BenchError::Validation("mean_q must be within [0, 45]".to_string()));
         }
         if let Some(fraction) = self.adapter_trimmed_fraction {
             if !fraction.is_finite() || !(0.0..=1.0).contains(&fraction) {
@@ -441,9 +408,7 @@ impl StageMetricSchema for FastqLowComplexityMetrics {
             ));
         }
         if self.bases_out > self.bases_in {
-            return Err(BenchError::Validation(
-                "bases_out must be <= bases_in".to_string(),
-            ));
+            return Err(BenchError::Validation("bases_out must be <= bases_in".to_string()));
         }
         self.delta_metrics.validate()?;
         Ok(())
@@ -483,9 +448,7 @@ impl StageMetricSchema for FastqMergeMetrics {
             ));
         }
         if !self.merge_rate.is_finite() || !(0.0..=1.0).contains(&self.merge_rate) {
-            return Err(BenchError::Validation(
-                "merge_rate must be within [0, 1]".to_string(),
-            ));
+            return Err(BenchError::Validation("merge_rate must be within [0, 1]".to_string()));
         }
         Ok(())
     }
@@ -513,14 +476,10 @@ impl StageMetricSchema for FastqCorrectMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out != self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must equal reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must equal reads_in".to_string()));
         }
         if self.bases_out > self.bases_in {
-            return Err(BenchError::Validation(
-                "bases_out must be <= bases_in".to_string(),
-            ));
+            return Err(BenchError::Validation("bases_out must be <= bases_in".to_string()));
         }
         if self.mean_q_after < self.mean_q_before {
             warn!(
@@ -530,9 +489,7 @@ impl StageMetricSchema for FastqCorrectMetrics {
             );
         }
         if !self.kmer_fix_rate.is_finite() || !(0.0..=1.0).contains(&self.kmer_fix_rate) {
-            return Err(BenchError::Validation(
-                "kmer_fix_rate must be within [0, 1]".to_string(),
-            ));
+            return Err(BenchError::Validation("kmer_fix_rate must be within [0, 1]".to_string()));
         }
         Ok(())
     }
@@ -583,19 +540,13 @@ impl StageMetricSchema for FastqQcPostMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         if self.bases_out > self.bases_in {
-            return Err(BenchError::Validation(
-                "bases_out must be <= bases_in".to_string(),
-            ));
+            return Err(BenchError::Validation("bases_out must be <= bases_in".to_string()));
         }
         if !self.mean_q.is_finite() || !(0.0..=45.0).contains(&self.mean_q) {
-            return Err(BenchError::Validation(
-                "mean_q must be within [0, 45]".to_string(),
-            ));
+            return Err(BenchError::Validation("mean_q must be within [0, 45]".to_string()));
         }
         if !self.contamination_rate.is_finite() || !(0.0..=1.0).contains(&self.contamination_rate) {
             return Err(BenchError::Validation(
@@ -628,14 +579,10 @@ impl StageMetricSchema for FastqUmiMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         if self.reads_with_umi > self.reads_out {
-            return Err(BenchError::Validation(
-                "reads_with_umi must be <= reads_out".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_with_umi must be <= reads_out".to_string()));
         }
         Ok(())
     }
@@ -679,14 +626,10 @@ impl StageMetricSchema for FastqScreenMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         if self.bases_out > self.bases_in {
-            return Err(BenchError::Validation(
-                "bases_out must be <= bases_in".to_string(),
-            ));
+            return Err(BenchError::Validation("bases_out must be <= bases_in".to_string()));
         }
         if !self.contamination_rate.is_finite() || !(0.0..=1.0).contains(&self.contamination_rate) {
             return Err(BenchError::Validation(
@@ -700,9 +643,7 @@ impl StageMetricSchema for FastqScreenMetrics {
         ] {
             if let Some(value) = value {
                 if !value.is_finite() || !(0.0..=1.0).contains(&value) {
-                    return Err(BenchError::Validation(format!(
-                        "{name} must be within [0, 1]"
-                    )));
+                    return Err(BenchError::Validation(format!("{name} must be within [0, 1]")));
                 }
             }
         }
@@ -730,14 +671,10 @@ impl StageMetricSchema for FastqDepleteHostMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         if self.bases_out > self.bases_in {
-            return Err(BenchError::Validation(
-                "bases_out must be <= bases_in".to_string(),
-            ));
+            return Err(BenchError::Validation("bases_out must be <= bases_in".to_string()));
         }
         if !self.host_fraction_removed.is_finite()
             || !(0.0..=1.0).contains(&self.host_fraction_removed)
@@ -770,14 +707,10 @@ impl StageMetricSchema for FastqDepleteReferenceContaminantsMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         if self.bases_out > self.bases_in {
-            return Err(BenchError::Validation(
-                "bases_out must be <= bases_in".to_string(),
-            ));
+            return Err(BenchError::Validation("bases_out must be <= bases_in".to_string()));
         }
         if !self.contaminant_fraction_removed.is_finite()
             || !(0.0..=1.0).contains(&self.contaminant_fraction_removed)
@@ -810,14 +743,10 @@ impl StageMetricSchema for FastqDepleteRrnaMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         if self.bases_out > self.bases_in {
-            return Err(BenchError::Validation(
-                "bases_out must be <= bases_in".to_string(),
-            ));
+            return Err(BenchError::Validation("bases_out must be <= bases_in".to_string()));
         }
         if !self.rrna_fraction_removed.is_finite()
             || !(0.0..=1.0).contains(&self.rrna_fraction_removed)
@@ -874,14 +803,10 @@ impl StageMetricSchema for FastqStatsMetrics {
 
     fn validate(&self) -> Result<()> {
         if !self.mean_q.is_finite() || !(0.0..=45.0).contains(&self.mean_q) {
-            return Err(BenchError::Validation(
-                "mean_q must be within [0, 45]".to_string(),
-            ));
+            return Err(BenchError::Validation("mean_q must be within [0, 45]".to_string()));
         }
         if !self.gc_percent.is_finite() || !(0.0..=100.0).contains(&self.gc_percent) {
-            return Err(BenchError::Validation(
-                "gc_percent must be within [0, 100]".to_string(),
-            ));
+            return Err(BenchError::Validation("gc_percent must be within [0, 100]".to_string()));
         }
         Ok(())
     }
@@ -934,9 +859,7 @@ impl StageMetricSchema for FastqOverrepresentedMetrics {
             ));
         }
         if !self.top_fraction.is_finite() || !(0.0..=1.0).contains(&self.top_fraction) {
-            return Err(BenchError::Validation(
-                "top_fraction must be within [0, 1]".to_string(),
-            ));
+            return Err(BenchError::Validation("top_fraction must be within [0, 1]".to_string()));
         }
         Ok(())
     }
@@ -974,9 +897,7 @@ impl StageMetricSchema for FastqDuplicateMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         if self.duplicates_removed != self.reads_in.saturating_sub(self.reads_out) {
             return Err(BenchError::Validation(
@@ -984,9 +905,7 @@ impl StageMetricSchema for FastqDuplicateMetrics {
             ));
         }
         if !self.dedup_rate.is_finite() || !(0.0..=1.0).contains(&self.dedup_rate) {
-            return Err(BenchError::Validation(
-                "dedup_rate must be within [0, 1]".to_string(),
-            ));
+            return Err(BenchError::Validation("dedup_rate must be within [0, 1]".to_string()));
         }
         Ok(())
     }
@@ -1007,9 +926,7 @@ impl StageMetricSchema for FastqChimeraMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         if self.chimeras_removed != self.reads_in.saturating_sub(self.reads_out) {
             return Err(BenchError::Validation(
@@ -1040,21 +957,14 @@ impl StageMetricSchema for FastqNormalizePrimersMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reads_out > self.reads_in {
-            return Err(BenchError::Validation(
-                "reads_out must be <= reads_in".to_string(),
-            ));
+            return Err(BenchError::Validation("reads_out must be <= reads_in".to_string()));
         }
         for (name, value) in [
             ("primer_trimmed_fraction", self.primer_trimmed_fraction),
-            (
-                "orientation_forward_fraction",
-                self.orientation_forward_fraction,
-            ),
+            ("orientation_forward_fraction", self.orientation_forward_fraction),
         ] {
             if !value.is_finite() || !(0.0..=1.0).contains(&value) {
-                return Err(BenchError::Validation(format!(
-                    "{name} must be within [0, 1]"
-                )));
+                return Err(BenchError::Validation(format!("{name} must be within [0, 1]")));
             }
         }
         Ok(())
@@ -1092,9 +1002,7 @@ impl StageMetricSchema for FastqNormalizeAbundanceMetrics {
 
     fn validate(&self) -> Result<()> {
         if !self.zero_fraction.is_finite() || !(0.0..=1.0).contains(&self.zero_fraction) {
-            return Err(BenchError::Validation(
-                "zero_fraction must be within [0, 1]".to_string(),
-            ));
+            return Err(BenchError::Validation("zero_fraction must be within [0, 1]".to_string()));
         }
         if self.normalization_method.trim().is_empty() {
             return Err(BenchError::Validation(
@@ -1119,14 +1027,10 @@ impl StageMetricSchema for FastqIndexReferenceMetrics {
 
     fn validate(&self) -> Result<()> {
         if self.reference_bytes == 0 {
-            return Err(BenchError::Validation(
-                "reference_bytes must be > 0".to_string(),
-            ));
+            return Err(BenchError::Validation("reference_bytes must be > 0".to_string()));
         }
         if self.index_file_count == 0 {
-            return Err(BenchError::Validation(
-                "index_file_count must be > 0".to_string(),
-            ));
+            return Err(BenchError::Validation("index_file_count must be > 0".to_string()));
         }
         Ok(())
     }

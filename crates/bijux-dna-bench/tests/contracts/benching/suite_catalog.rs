@@ -109,15 +109,9 @@ fn checked_in_fastq_suite_catalog_covers_governed_benchmark_stages() -> Result<(
 #[test]
 fn checked_in_suite_catalog_exercises_structured_param_bindings() -> Result<()> {
     let has_param_bindings = checked_in_suites()?.into_iter().any(|(_path, suite)| {
-        suite
-            .stages
-            .into_iter()
-            .any(|stage| !stage.param_bindings.is_empty())
+        suite.stages.into_iter().any(|stage| !stage.param_bindings.is_empty())
     });
-    assert!(
-        has_param_bindings,
-        "checked-in bench suites must exercise structured param_bindings"
-    );
+    assert!(has_param_bindings, "checked-in bench suites must exercise structured param_bindings");
     Ok(())
 }
 
@@ -137,14 +131,8 @@ fn checked_in_suite_catalog_exercises_stage_and_tool_param_bindings() -> Result<
             }
         }
     }
-    assert!(
-        has_stage_scoped,
-        "checked-in suites must exercise stage-scoped param_bindings"
-    );
-    assert!(
-        has_tool_scoped,
-        "checked-in suites must exercise tool-scoped param_bindings"
-    );
+    assert!(has_stage_scoped, "checked-in suites must exercise stage-scoped param_bindings");
+    assert!(has_tool_scoped, "checked-in suites must exercise tool-scoped param_bindings");
     Ok(())
 }
 
@@ -152,10 +140,8 @@ fn checked_in_suite_catalog_exercises_stage_and_tool_param_bindings() -> Result<
 fn checked_in_suites_only_bind_manifest_declared_stage_parameters() -> Result<()> {
     for (path, suite) in checked_in_suites()? {
         for stage in suite.stages {
-            let has_stage_bindings = stage
-                .param_bindings
-                .iter()
-                .any(|binding| binding.tool.is_none());
+            let has_stage_bindings =
+                stage.param_bindings.iter().any(|binding| binding.tool.is_none());
             if !stage.stage.starts_with("fastq.") || !has_stage_bindings {
                 continue;
             }
@@ -205,10 +191,7 @@ fn checked_in_fastq_suite_catalog_uses_multiple_remove_duplicates_suites() -> Re
     let suite_count = checked_in_suites()?
         .into_iter()
         .filter(|(_path, suite)| {
-            suite
-                .stages
-                .iter()
-                .any(|stage| stage.stage == "fastq.remove_duplicates")
+            suite.stages.iter().any(|stage| stage.stage == "fastq.remove_duplicates")
         })
         .count();
     assert!(

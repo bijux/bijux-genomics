@@ -23,9 +23,7 @@ pub fn parse_rfc3339_timestamp_to_unix_seconds(raw: &str) -> Option<i64> {
     if normalized.is_empty() {
         return None;
     }
-    chrono::DateTime::parse_from_rfc3339(&normalized)
-        .ok()
-        .map(|value| value.timestamp())
+    chrono::DateTime::parse_from_rfc3339(&normalized).ok().map(|value| value.timestamp())
 }
 
 #[cfg(test)]

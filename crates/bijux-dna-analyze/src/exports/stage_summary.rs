@@ -34,14 +34,14 @@ pub fn write_stage_summary_csv(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
             _ => None,
         };
         let stage_report = stage_report_for_row(&row);
-        let verdict = stage_report
-            .as_ref()
-            .and_then(|report| report.verdict.as_ref())
-            .map_or("", |verdict| match verdict.verdict {
+        let verdict = stage_report.as_ref().and_then(|report| report.verdict.as_ref()).map_or(
+            "",
+            |verdict| match verdict.verdict {
                 InvariantStatusV1::Pass => "pass",
                 InvariantStatusV1::Warn => "warn",
                 InvariantStatusV1::Fail => "fail",
-            });
+            },
+        );
         let mut notes = Vec::new();
         if let Some(report) = stage_report.as_ref() {
             if let Some(verdict) = report.verdict.as_ref() {
@@ -50,20 +50,17 @@ pub fn write_stage_summary_csv(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
             notes.extend(report.warnings.clone());
             notes.extend(report.errors.clone());
         }
-        let key_params = stage_report
-            .as_ref()
-            .and_then(tool_invocation_for_stage)
-            .map_or_else(
-                || serde_json::json!({}),
-                |invocation| {
-                    let params = if invocation.effective_params_json_normalized.is_null() {
-                        invocation.parameters_json_normalized
-                    } else {
-                        invocation.effective_params_json_normalized
-                    };
-                    params_excerpt(&params, 8)
-                },
-            );
+        let key_params = stage_report.as_ref().and_then(tool_invocation_for_stage).map_or_else(
+            || serde_json::json!({}),
+            |invocation| {
+                let params = if invocation.effective_params_json_normalized.is_null() {
+                    invocation.parameters_json_normalized
+                } else {
+                    invocation.effective_params_json_normalized
+                };
+                params_excerpt(&params, 8)
+            },
+        );
         let key_params = serde_json::to_string(&key_params).unwrap_or_else(|_| "{}".to_string());
         let notes = notes.join(" | ");
         let reads_in = row.reads_in.map(|v| v.to_string()).unwrap_or_default();

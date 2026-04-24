@@ -7,9 +7,7 @@ pub(crate) fn enforce_stage_applicability(
 ) -> Result<()> {
     let stage = planned.step_id.as_str();
     if stage == "fastq.merge_pairs" && args.r2.is_none() {
-        return Err(anyhow!(
-            "stage fastq.merge_pairs requires paired-end input (missing R2)"
-        ));
+        return Err(anyhow!("stage fastq.merge_pairs requires paired-end input (missing R2)"));
     }
     if matches!(
         stage,
@@ -23,9 +21,7 @@ pub(crate) fn enforce_stage_applicability(
         bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
             | bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::PollenAmplicon
     ) {
-        return Err(anyhow!(
-            "stage {stage} is only applicable in eDNA/pollen amplicon modes"
-        ));
+        return Err(anyhow!("stage {stage} is only applicable in eDNA/pollen amplicon modes"));
     }
     if stage == "fastq.deplete_reference_contaminants" {
         let template = planned.command.template.join(" ");
@@ -80,17 +76,10 @@ pub(crate) fn write_stage_governance_artifacts(
     }
     let template = planned.command.template.join(" ");
     let lower = template.to_ascii_lowercase();
-    let db_flags_present = [
-        " --db ",
-        "--database",
-        "--index",
-        "kraken_db",
-        "db_path",
-        "--ref",
-        "--reference",
-    ]
-    .iter()
-    .any(|needle| lower.contains(needle));
+    let db_flags_present =
+        [" --db ", "--database", "--index", "kraken_db", "db_path", "--ref", "--reference"]
+            .iter()
+            .any(|needle| lower.contains(needle));
     let payload = serde_json::json!({
         "schema_version": "bijux.fastq.governance.v1",
         "stage_id": stage,
@@ -140,9 +129,7 @@ pub(crate) fn write_fastq_output_contract(
         .outputs
         .iter()
         .filter(|artifact| {
-            expected_ecological_outputs
-                .iter()
-                .any(|name| *name == artifact.name.as_str())
+            expected_ecological_outputs.iter().any(|name| *name == artifact.name.as_str())
         })
         .map(|artifact| {
             let sha256 = if artifact.path.exists() {
@@ -175,9 +162,7 @@ pub(crate) fn write_taxonomy_db_drift_report(
     contaminant_bank: Option<&serde_json::Value>,
 ) -> Result<()> {
     let report_path = run_root.join("taxonomy_db_drift.json");
-    let current = contaminant_bank
-        .cloned()
-        .unwrap_or_else(|| serde_json::json!({}));
+    let current = contaminant_bank.cloned().unwrap_or_else(|| serde_json::json!({}));
     let lock_path = run_root.join("taxonomy_db.lock.json");
     let previous = if lock_path.exists() {
         let raw = std::fs::read_to_string(&lock_path)
@@ -196,9 +181,7 @@ pub(crate) fn write_taxonomy_db_drift_report(
         .filter(|value| !value.is_empty())
         .map(ToOwned::to_owned);
     let drift_detected = lock_path.exists()
-        && previous_hash
-            .as_deref()
-            .is_some_and(|previous_hash| current_hash != previous_hash);
+        && previous_hash.as_deref().is_some_and(|previous_hash| current_hash != previous_hash);
     let report = serde_json::json!({
         "schema_version": "bijux.taxonomy_db_drift.v1",
         "drift_detected": drift_detected,

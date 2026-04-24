@@ -10,10 +10,7 @@ use crate::report::render_model::ReportModel;
 pub fn render_report_json(model: &ReportModel) -> Result<JsonBlob> {
     let mut value = serde_json::to_value(&model.report)?;
     if let serde_json::Value::Object(ref mut obj) = value {
-        obj.insert(
-            "sections".to_string(),
-            serde_json::to_value(&model.sections)?,
-        );
+        obj.insert("sections".to_string(), serde_json::to_value(&model.sections)?);
     }
     Ok(JsonBlob::new(value))
 }

@@ -44,9 +44,7 @@ fn parse_unmerged_read_policy(raw: Option<&str>) -> Result<UnmergedReadPolicy> {
     match raw.unwrap_or("emit_unmerged_pairs") {
         "emit_unmerged_pairs" => Ok(UnmergedReadPolicy::EmitUnmergedPairs),
         "omit_unmerged_pairs" => Ok(UnmergedReadPolicy::OmitUnmergedPairs),
-        other => Err(anyhow!(
-            "unsupported fastq.merge_pairs unmerged_read_policy `{other}`"
-        )),
+        other => Err(anyhow!("unsupported fastq.merge_pairs unmerged_read_policy `{other}`")),
     }
 }
 
@@ -115,13 +113,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
 
     if args.explain {
         write_explain_md(&bench_dir, STAGE_MERGE_PAIRS.as_str(), &tools, &[], None)?;
-        write_explain_plan_json(
-            &bench_dir,
-            STAGE_MERGE_PAIRS.as_str(),
-            &tools,
-            &registry,
-            None,
-        )?;
+        write_explain_plan_json(&bench_dir, STAGE_MERGE_PAIRS.as_str(), &tools, &registry, None)?;
     }
 
     ensure_image_qa_passed(STAGE_MERGE_PAIRS.as_str(), &tools, platform, catalog)?;
@@ -172,9 +164,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             runner,
             jobs,
         )?
@@ -210,12 +200,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -240,9 +225,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
 
     let pairs_in = report.reads_r1.min(report.reads_r2);
     let reads_merged = report.reads_merged.min(pairs_in);
-    let reads_unmerged = report
-        .reads_unmerged
-        .min(pairs_in.saturating_sub(reads_merged));
+    let reads_unmerged = report.reads_unmerged.min(pairs_in.saturating_sub(reads_merged));
     let metrics = FastqMergeMetrics {
         reads_in: report.reads_r1 + report.reads_r2,
         reads_out: reads_merged,
@@ -258,9 +241,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
-    let out_dir = report_path
-        .parent()
-        .ok_or_else(|| anyhow!("merge report has no parent"))?;
+    let out_dir = report_path.parent().ok_or_else(|| anyhow!("merge report has no parent"))?;
     let metrics_path = out_dir.join("metrics.json");
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&metrics_path, &metrics_json)
@@ -308,9 +289,7 @@ fn prune_merge_tool_payload(
         for entry in
             fs::read_dir(&dir).with_context(|| format!("read merge tool dir {}", dir.display()))?
         {
-            let path = entry
-                .with_context(|| format!("read entry in {}", dir.display()))?
-                .path();
+            let path = entry.with_context(|| format!("read entry in {}", dir.display()))?.path();
             if path == run_artifacts_dir || path.starts_with(&run_artifacts_dir) {
                 continue;
             }

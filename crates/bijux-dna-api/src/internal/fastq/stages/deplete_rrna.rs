@@ -41,11 +41,8 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteRrnaArgs,
 ) -> Result<BenchOutcome<FastqDepleteRrnaMetrics>> {
     let tools = select_deplete_rrna_tools(&args.tools)?;
-    let artifact_kind = if args.r2.is_some() {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_DEPLETE_RRNA.as_str(), artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_DEPLETE_RRNA.as_str(), &header);
@@ -63,33 +60,18 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         &STAGE_DEPLETE_RRNA,
     )?;
     let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!(
-            "{}+{}",
-            bench_inputs.input_hash,
-            bijux_dna_infra::hash_file_sha256(r2)?
-        )
+        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
     } else {
         bench_inputs.input_hash.clone()
     };
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(
-            catalog,
-            platform,
-            bench_inputs.runner,
-            r2,
-        )?)
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
     } else {
         None
     };
 
     if args.explain {
-        write_explain_md(
-            &bench_inputs.bench_dir,
-            STAGE_DEPLETE_RRNA.as_str(),
-            &tools,
-            &[],
-            None,
-        )?;
+        write_explain_md(&bench_inputs.bench_dir, STAGE_DEPLETE_RRNA.as_str(), &tools, &[], None)?;
         write_explain_plan_json(
             &bench_inputs.bench_dir,
             STAGE_DEPLETE_RRNA.as_str(),
@@ -130,10 +112,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             args.r2.as_deref(),
             &out_dir,
             &bijux_dna_planner_fastq::DepleteRrnaStageParams {
-                rrna_db: args
-                    .rrna_db
-                    .clone()
-                    .unwrap_or_else(|| "rrna_reference".to_string()),
+                rrna_db: args.rrna_db.clone().unwrap_or_else(|| "rrna_reference".to_string()),
                 min_identity: args.min_identity.unwrap_or(0.95),
                 threads: args.threads,
             },
@@ -161,9 +140,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(
-                &plan,
-            )],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
             runner,
             jobs,
         )?
@@ -244,12 +221,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome {
-        records,
-        failures,
-        bench_dir: bench_inputs.bench_dir,
-        explain: args.explain,
-    })
+    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -286,14 +258,9 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
     let reads_removed = reads_in.saturating_sub(reads_out);
     let bases_removed = bases_in.saturating_sub(bases_out);
     let pairs_in = input_stats_r2.map(|stats| input_stats_r1.reads.min(stats.reads));
-    let pairs_out = output_stats_r2
-        .as_ref()
-        .map(|stats| output_stats_r1.reads.min(stats.reads));
-    let rrna_fraction_removed = if reads_in == 0 {
-        0.0
-    } else {
-        u64_to_f64(reads_removed) / u64_to_f64(reads_in)
-    };
+    let pairs_out = output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
+    let rrna_fraction_removed =
+        if reads_in == 0 { 0.0 } else { u64_to_f64(reads_removed) / u64_to_f64(reads_in) };
 
     Ok(DepleteRrnaReportV1 {
         schema_version: DEPLETE_RRNA_REPORT_SCHEMA_VERSION.to_string(),
@@ -308,10 +275,7 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
         screening_engine: effective_params.screening_engine,
         report_format: effective_params.report_format,
         emit_removed_reads: effective_params.emit_removed_reads,
-        min_identity: plan
-            .params
-            .get("min_identity")
-            .and_then(serde_json::Value::as_f64),
+        min_identity: plan.params.get("min_identity").and_then(serde_json::Value::as_f64),
         input_r1: artifact_input_path_string(plan, "reads_r1"),
         input_r2: artifact_input_path(plan, "reads_r2").map(|path| path.display().to_string()),
         output_r1: output_r1.display().to_string(),

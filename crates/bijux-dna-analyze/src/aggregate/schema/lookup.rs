@@ -12,12 +12,7 @@ fn stage_metric_spec_entry(
     metrics: &'static [defs::MetricId],
     invariants: &'static [&'static str],
 ) -> defs::StageMetricSpec {
-    defs::StageMetricSpec {
-        stage,
-        version,
-        metrics,
-        invariants,
-    }
+    defs::StageMetricSpec { stage, version, metrics, invariants }
 }
 
 fn stage_metric_spec_transform(kind: defs::StageMetricKind) -> Option<defs::StageMetricSpec> {

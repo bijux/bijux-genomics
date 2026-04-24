@@ -10,14 +10,7 @@ use crate::compare::report::{CompareReport, MetricDiff};
 use crate::compare::stratify::CompareStratum;
 use crate::model::{BenchmarkSummary, MetricSummary, SummaryRow};
 
-type SummaryRowKey = (
-    String,
-    String,
-    Option<String>,
-    Option<String>,
-    String,
-    String,
-);
+type SummaryRowKey = (String, String, Option<String>, Option<String>, String, String);
 
 /// # Errors
 /// Returns an error if inputs cannot be compared or required metrics are missing.
@@ -92,17 +85,8 @@ fn metric_diffs(a: &MetricSummary, b: &MetricSummary, practical_threshold: f64) 
     let a_val = a.stats.median;
     let b_val = b.stats.median;
     let absolute = b_val - a_val;
-    let relative = if a_val.abs() > f64::EPSILON {
-        Some(absolute / a_val)
-    } else {
-        None
-    };
+    let relative = if a_val.abs() > f64::EPSILON { Some(absolute / a_val) } else { None };
     let practical = absolute.abs() >= practical_threshold;
-    diffs.push(MetricDiff {
-        metric_id: a.metric_id.clone(),
-        absolute,
-        relative,
-        practical,
-    });
+    diffs.push(MetricDiff { metric_id: a.metric_id.clone(), absolute, relative, practical });
     diffs
 }

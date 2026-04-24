@@ -23,8 +23,5 @@ pub(super) fn write_run_summary_artifact(
 }
 
 pub(super) fn relative_path_string(base: &Path, path: &Path) -> String {
-    path.strip_prefix(base)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .to_string()
+    path.strip_prefix(base).unwrap_or(path).to_string_lossy().to_string()
 }

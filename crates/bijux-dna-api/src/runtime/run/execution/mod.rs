@@ -6,6 +6,15 @@ use super::{
     hpc_context_enabled, info_span, maybe_write_site_lock, millis_u64, warn, Context,
     ExecuteRunRequest, ExecuteRunResult, Instant, Path, PathBuf, Result, RunnerContractKind,
 };
+use std::fmt::Write as _;
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut out, "{byte:02x}");
+    }
+    out
+}
 
 fn common_input_root(paths: &[PathBuf]) -> Option<PathBuf> {
     let mut iter = paths.iter();
@@ -29,9 +38,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         bijux_dna_environment::api::RuntimeKind::Docker => RunnerContractKind::Docker,
         bijux_dna_environment::api::RuntimeKind::Apptainer => RunnerContractKind::Apptainer,
         other @ bijux_dna_environment::api::RuntimeKind::Singularity => {
-            return Err(anyhow!(
-                "runner {other} not supported for execute_run stage coverage"
-            ));
+            return Err(anyhow!("runner {other} not supported for execute_run stage coverage"));
         }
     };
     ensure_stage_supported_by_runner(runner_contract, request.plan.stage_id.as_str())?;
@@ -79,7 +86,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         use sha2::Digest;
         let mut hasher = sha2::Sha256::new();
         hasher.update(bytes);
-        format!("{:x}", hasher.finalize())
+        sha256_hex(&hasher.finalize())
     })?;
     let params_hash = bijux_dna_core::prelude::hashing::params_hash(&request.plan.params)?;
     let idempotent = request
@@ -89,11 +96,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         .get("idempotent")
         .and_then(serde_json::Value::as_bool)
         .unwrap_or(true);
-    let resume_meta_path = request
-        .plan
-        .out_dir
-        .join("run_artifacts")
-        .join("stage_resume.json");
+    let resume_meta_path = request.plan.out_dir.join("run_artifacts").join("stage_resume.json");
     let output_checksums = || -> std::collections::BTreeMap<String, String> {
         let mut checksums = std::collections::BTreeMap::new();
         for artifact in &request.plan.io.outputs {
@@ -116,9 +119,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
                 .with_context(|| format!("read {}", resume_meta_path.display()))?;
             let meta: serde_json::Value = serde_json::from_str(&meta_raw)
                 .with_context(|| format!("parse {}", resume_meta_path.display()))?;
-            let same_manifest = meta
-                .get("manifest_hash")
-                .and_then(serde_json::Value::as_str)
+            let same_manifest = meta.get("manifest_hash").and_then(serde_json::Value::as_str)
                 == Some(manifest_hash.as_str());
             let same_checksums = meta
                 .get("output_checksums")
@@ -170,32 +171,17 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         trace_id: format!("trace-{}", request.plan.stage_id),
         span_id: format!("span-{}", request.plan.tool_id),
         attrs: bijux_dna_runtime::redacted_attrs(&std::collections::BTreeMap::from([
-            (
-                "runner".to_string(),
-                bijux_dna_runtime::AttrValue::Str(request.runner.to_string()),
-            ),
+            ("runner".to_string(), bijux_dna_runtime::AttrValue::Str(request.runner.to_string())),
             (
                 "stdout_path".to_string(),
                 bijux_dna_runtime::AttrValue::Str(
-                    request
-                        .plan
-                        .out_dir
-                        .join("logs")
-                        .join("stdout.log")
-                        .display()
-                        .to_string(),
+                    request.plan.out_dir.join("logs").join("stdout.log").display().to_string(),
                 ),
             ),
             (
                 "stderr_path".to_string(),
                 bijux_dna_runtime::AttrValue::Str(
-                    request
-                        .plan
-                        .out_dir
-                        .join("logs")
-                        .join("stderr.log")
-                        .display()
-                        .to_string(),
+                    request.plan.out_dir.join("logs").join("stderr.log").display().to_string(),
                 ),
             ),
         ])),
@@ -220,8 +206,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
             if path.is_dir() {
                 path
             } else {
-                path.parent()
-                    .map_or_else(|| path.clone(), Path::to_path_buf)
+                path.parent().map_or_else(|| path.clone(), Path::to_path_buf)
             }
         })
         .collect::<Vec<_>>();
@@ -256,12 +241,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         threads: request.plan.resources.threads.max(1),
         memory_hint_mb: Some(u64::from(request.plan.resources.mem_gb).saturating_mul(1024)),
         compression_threads: Some(1),
-        seed: request
-            .plan
-            .reason
-            .details
-            .get("seed")
-            .and_then(serde_json::Value::as_u64),
+        seed: request.plan.reason.details.get("seed").and_then(serde_json::Value::as_u64),
         network_policy,
     };
     let invocation_request = crate::execution_kernel::ToolInvocationRequest {
@@ -433,12 +413,7 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
         attrs: std::collections::BTreeMap::from([(
             "metrics_path".to_string(),
             bijux_dna_runtime::AttrValue::Str(
-                request
-                    .plan
-                    .out_dir
-                    .join("metrics.json")
-                    .display()
-                    .to_string(),
+                request.plan.out_dir.join("metrics.json").display().to_string(),
             ),
         )]),
         failure_code: None,
@@ -492,25 +467,13 @@ pub fn execute_run(request: &ExecuteRunRequest) -> Result<ExecuteRunResult> {
             (
                 "stdout_path".to_string(),
                 bijux_dna_runtime::AttrValue::Str(
-                    request
-                        .plan
-                        .out_dir
-                        .join("logs")
-                        .join("stdout.log")
-                        .display()
-                        .to_string(),
+                    request.plan.out_dir.join("logs").join("stdout.log").display().to_string(),
                 ),
             ),
             (
                 "stderr_path".to_string(),
                 bijux_dna_runtime::AttrValue::Str(
-                    request
-                        .plan
-                        .out_dir
-                        .join("logs")
-                        .join("stderr.log")
-                        .display()
-                        .to_string(),
+                    request.plan.out_dir.join("logs").join("stderr.log").display().to_string(),
                 ),
             ),
         ]),

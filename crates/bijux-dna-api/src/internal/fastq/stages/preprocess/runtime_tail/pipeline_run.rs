@@ -47,12 +47,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqPreprocessArgs,
 ) -> Result<()> {
     let normalized_sample_id = canonical_sample_identity(&args.sample_id);
-    let bench_dir_name = bench_dir_name(&STAGE_PREPROCESS_SUMMARY).ok_or_else(|| {
-        anyhow!(
-            "bench dir missing for {}",
-            STAGE_PREPROCESS_SUMMARY.as_str()
-        )
-    })?;
+    let bench_dir_name = bench_dir_name(&STAGE_PREPROCESS_SUMMARY)
+        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_PREPROCESS_SUMMARY.as_str()))?;
     let out_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_dna_infra::ensure_dir(&out_dir).context("create preprocess output dir")?;
     let run_root = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
@@ -86,21 +82,16 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             "fastq.cluster_otus",
             "fastq.normalize_abundance",
         ];
-        if let Some(stage) = pipeline
-            .stage_catalog()
-            .iter()
-            .find(|stage| amplicon_only.contains(&stage.as_str()))
+        if let Some(stage) =
+            pipeline.stage_catalog().iter().find(|stage| amplicon_only.contains(&stage.as_str()))
         {
             return Err(anyhow!(
                 "stage {stage} is not applicable in shotgun mode; use --mode edna_amplicon or --mode pollen_amplicon"
             ));
         }
     }
-    let bench_repo = if args.auto {
-        Some(SqliteBenchResultsRepository::new(args.out.clone()))
-    } else {
-        None
-    };
+    let bench_repo =
+        if args.auto { Some(SqliteBenchResultsRepository::new(args.out.clone())) } else { None };
     let jobs = bench_jobs(args.jobs);
     let runtime_pipeline = pipeline.clone();
     let paired_end = args.r2.is_some();
@@ -124,10 +115,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     let filtered =
                         bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
                             &bijux_dna_core::ids::StageId::new(toolset.stage_id.clone()),
-                            filtered
-                                .into_iter()
-                                .map(bijux_dna_core::ids::ToolId::new)
-                                .collect(),
+                            filtered.into_iter().map(bijux_dna_core::ids::ToolId::new).collect(),
                             paired_end,
                         )
                         .into_iter()
@@ -192,10 +180,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     let filtered =
                         bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(
                             &bijux_dna_core::ids::StageId::new(toolset.stage_id.clone()),
-                            filtered
-                                .into_iter()
-                                .map(bijux_dna_core::ids::ToolId::new)
-                                .collect(),
+                            filtered.into_iter().map(bijux_dna_core::ids::ToolId::new).collect(),
                             paired_end,
                         )
                         .into_iter()
@@ -280,10 +265,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         }
     }
     selected_stage_tools = filtered_stage_tools;
-    let tool_ids: Vec<String> = selected_stage_tools
-        .iter()
-        .map(|selection| selection.tool_id.clone())
-        .collect();
+    let tool_ids: Vec<String> =
+        selected_stage_tools.iter().map(|selection| selection.tool_id.clone()).collect();
 
     write_explain_plan_json(
         &out_dir,
@@ -293,18 +276,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         None,
     )?;
 
-    ensure_image_qa_passed(
-        STAGE_PREPROCESS_SUMMARY.as_str(),
-        &tool_ids,
-        platform,
-        catalog,
-    )?;
-    ensure_tool_qa_passed(
-        STAGE_PREPROCESS_SUMMARY.as_str(),
-        &tool_ids,
-        platform,
-        catalog,
-    )?;
+    ensure_image_qa_passed(STAGE_PREPROCESS_SUMMARY.as_str(), &tool_ids, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_PREPROCESS_SUMMARY.as_str(), &tool_ids, platform, catalog)?;
     let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
     bijux_dna_infra::ensure_dir(&tools_root).context("create preprocess tools dir")?;
 
@@ -320,10 +293,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     );
 
     let adapter_bank = adapter_bank_context(
-        policy
-            .adapter_bank_preset_override
-            .as_deref()
-            .or(args.adapter_bank_preset.as_deref()),
+        policy.adapter_bank_preset_override.as_deref().or(args.adapter_bank_preset.as_deref()),
         args.adapter_bank.as_deref(),
         args.adapter_bank_file.as_deref(),
         &args.enable_adapters,
@@ -352,11 +322,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         tool_specs.push(spec);
     }
     let mut aux_tools = std::collections::BTreeMap::new();
-    if policy
-        .pipeline_stages
-        .iter()
-        .any(|stage| stage == &STAGE_REPORT_QC)
-    {
+    if policy.pipeline_stages.iter().any(|stage| stage == &STAGE_REPORT_QC) {
         for aux_tool in report_qc_aux_tool_ids(&runtime_pipeline, &selected_stage_tools) {
             let spec = catalog
                 .get(aux_tool.as_str())
@@ -364,18 +330,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
             let image = resolve_image_for_run(spec, platform)?;
             aux_tools.insert(
                 aux_tool,
-                ContainerImageRefV1 {
-                    image: image.full_name,
-                    digest: spec.digest.clone(),
-                },
+                ContainerImageRefV1 { image: image.full_name, digest: spec.digest.clone() },
             );
         }
     }
-    let pipeline_id = args
-        .profile
-        .as_deref()
-        .unwrap_or("fastq-to-fastq__default__v1")
-        .to_string();
+    let pipeline_id = args.profile.as_deref().unwrap_or("fastq-to-fastq__default__v1").to_string();
     let planner_stage_toolsets =
         planner_selection_surfaces(&selected_stage_tools, &tool_specs, planner_stage_toolsets);
     let planner_config = FastqPlanConfig {
@@ -398,10 +357,8 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     };
     let pipeline_plan = FastqPlanner::plan(&planner_config)?;
     let planned_stage_batches = execution_step_batches(&pipeline_plan)?;
-    let planned_stages = planned_stage_batches
-        .iter()
-        .flat_map(|batch| batch.iter().cloned())
-        .collect::<Vec<_>>();
+    let planned_stages =
+        planned_stage_batches.iter().flat_map(|batch| batch.iter().cloned()).collect::<Vec<_>>();
     if matches!(
         args.mode,
         bijux_dna_planner_fastq::stage_api::args::FastqPlannerMode::EdnaAmplicon
@@ -434,10 +391,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         }
         enforce_screen_db_governance(planned)?;
     }
-    std::env::set_var(
-        "BIJUX_PLANNER_VERSION",
-        bijux_dna_planner_fastq::PLANNER_VERSION,
-    );
+    std::env::set_var("BIJUX_PLANNER_VERSION", bijux_dna_planner_fastq::PLANNER_VERSION);
 
     if args.dry_run {
         let root = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
@@ -451,12 +405,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                     exit_code: 0,
                     runtime_s: 0.0,
                     memory_mb: 0.0,
-                    outputs: plan
-                        .io
-                        .outputs
-                        .iter()
-                        .map(|artifact| artifact.path.clone())
-                        .collect(),
+                    outputs: plan.io.outputs.iter().map(|artifact| artifact.path.clone()).collect(),
                     metrics_path: None,
                     stdout: String::new(),
                     stderr: String::new(),
@@ -547,10 +496,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     let telemetry = build_telemetry_adapter();
     let mut pipeline_attrs = std::collections::BTreeMap::new();
     pipeline_attrs.insert("sample_id".to_string(), normalized_sample_id.clone());
-    pipeline_attrs.insert(
-        "pipeline".to_string(),
-        STAGE_PREPROCESS_SUMMARY.as_str().to_string(),
-    );
+    pipeline_attrs.insert("pipeline".to_string(), STAGE_PREPROCESS_SUMMARY.as_str().to_string());
     let pipeline_span =
         telemetry.start_pipeline(STAGE_PREPROCESS_SUMMARY.as_str(), &pipeline_attrs);
 
@@ -643,10 +589,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
                 fail_fast_triggered = true;
             }
             stage_span.end();
-            stage_runs.push(StageExecutionSummary {
-                plan: planned,
-                result: batch_result,
-            });
+            stage_runs.push(StageExecutionSummary { plan: planned, result: batch_result });
         }
     }
     pipeline_span.end();
@@ -662,16 +605,11 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     )?;
     let executed_steps: Vec<_> = stage_runs.iter().map(|entry| entry.plan.clone()).collect();
     let report_plan = report_stage_step(&args.out, &executed_steps);
-    let report_outputs = report_plan
-        .io
-        .outputs
-        .iter()
-        .map(|artifact| artifact.path.clone())
-        .collect::<Vec<_>>();
-    let report_run_id = stage_runs.first().map_or_else(
-        || "report.aggregate".to_string(),
-        |entry| entry.result.run_id.clone(),
-    );
+    let report_outputs =
+        report_plan.io.outputs.iter().map(|artifact| artifact.path.clone()).collect::<Vec<_>>();
+    let report_run_id = stage_runs
+        .first()
+        .map_or_else(|| "report.aggregate".to_string(), |entry| entry.result.run_id.clone());
     let report_result = StageResultV1 {
         run_id: report_run_id,
         exit_code: 0,
@@ -683,10 +621,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         stderr: String::new(),
         command: "report-aggregate".to_string(),
     };
-    stage_runs.push(StageExecutionSummary {
-        plan: report_plan,
-        result: report_result,
-    });
+    stage_runs.push(StageExecutionSummary { plan: report_plan, result: report_result });
     let root = bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir);
     bijux_dna_infra::ensure_dir(&root).context("create run artifacts dir")?;
     write_retry_policy(&root)?;
@@ -737,15 +672,12 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
     write_scientific_provenance(&args.out, &stage_runs)?;
     write_edna_report_summary(&root, &stage_runs)?;
     if let Some(decision) = decisions.merge_decision.as_ref() {
-        let run_id = stage_runs
-            .first()
-            .map(|entry| entry.result.run_id.clone())
-            .ok_or_else(|| {
+        let run_id =
+            stage_runs.first().map(|entry| entry.result.run_id.clone()).ok_or_else(|| {
                 anyhow!("preprocess telemetry requires at least one recorded stage run")
             })?;
-        let telemetry_path = run_artifacts_dir_for_out(&out_dir)
-            .join("telemetry")
-            .join("events.jsonl");
+        let telemetry_path =
+            run_artifacts_dir_for_out(&out_dir).join("telemetry").join("events.jsonl");
         let event = TelemetryEventV1 {
             schema_version: "bijux.telemetry.v1".to_string(),
             run_id,
@@ -765,10 +697,7 @@ pub fn fastq_preprocess_run<S: ::std::hash::BuildHasher>(
         let _ = write_telemetry_event(&telemetry_path, &event);
     }
     if !failures.is_empty() {
-        return Err(anyhow!(
-            "preprocess pipeline failed: {} failures",
-            failures.len()
-        ));
+        return Err(anyhow!("preprocess pipeline failed: {} failures", failures.len()));
     }
 
     Ok(())
@@ -799,13 +728,8 @@ mod pipeline_run_tests {
         bijux_dna_core::contract::ExecutionStep {
             step_id: StepId::new(id.to_string()),
             stage_id: StageId::from_static(bijux_dna_core::id_catalog::FASTQ_TRIM),
-            command: CommandSpecV1 {
-                template: vec!["echo".to_string(), id.to_string()],
-            },
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
+            command: CommandSpecV1 { template: vec!["echo".to_string(), id.to_string()] },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -835,13 +759,8 @@ mod pipeline_run_tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::new(tool_id),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: format!("bijux/{tool_id}:latest"),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec![tool_id.to_string()],
-            },
+            image: ContainerImageRefV1 { image: format!("bijux/{tool_id}:latest"), digest: None },
+            command: CommandSpecV1 { template: vec![tool_id.to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -901,17 +820,11 @@ mod pipeline_run_tests {
         let batches = execution_step_batches(&graph)?;
         assert_eq!(batches.len(), 2);
         assert_eq!(
-            batches[0]
-                .iter()
-                .map(|step| step.step_id.as_str())
-                .collect::<Vec<_>>(),
+            batches[0].iter().map(|step| step.step_id.as_str()).collect::<Vec<_>>(),
             vec!["a", "b"]
         );
         assert_eq!(
-            batches[1]
-                .iter()
-                .map(|step| step.step_id.as_str())
-                .collect::<Vec<_>>(),
+            batches[1].iter().map(|step| step.step_id.as_str()).collect::<Vec<_>>(),
             vec!["c"]
         );
         Ok(())
@@ -923,11 +836,7 @@ mod pipeline_run_tests {
             "fastq-to-fastq__terminal_steps__v1",
             "planner.test",
             PlanPolicy::default(),
-            vec![
-                step("trim.fastp"),
-                step("trim.cutadapt"),
-                step("trim.compare"),
-            ],
+            vec![step("trim.fastp"), step("trim.cutadapt"), step("trim.compare")],
             vec![
                 ExecutionEdge::new(
                     StepId::new("trim.fastp".to_string()),
@@ -976,24 +885,15 @@ mod pipeline_run_tests {
         let batches = execution_step_batches(&graph)?;
         assert_eq!(batches.len(), 3);
         assert_eq!(
-            batches[0]
-                .iter()
-                .map(|step| step.step_id.as_str())
-                .collect::<Vec<_>>(),
+            batches[0].iter().map(|step| step.step_id.as_str()).collect::<Vec<_>>(),
             vec!["trim.cutadapt", "trim.fastp"]
         );
         assert_eq!(
-            batches[1]
-                .iter()
-                .map(|step| step.step_id.as_str())
-                .collect::<Vec<_>>(),
+            batches[1].iter().map(|step| step.step_id.as_str()).collect::<Vec<_>>(),
             vec!["trim.select"]
         );
         assert_eq!(
-            batches[2]
-                .iter()
-                .map(|step| step.step_id.as_str())
-                .collect::<Vec<_>>(),
+            batches[2].iter().map(|step| step.step_id.as_str()).collect::<Vec<_>>(),
             vec!["filter.selected"]
         );
         Ok(())
@@ -1051,10 +951,7 @@ mod pipeline_run_tests {
         args.auto = true;
         args.run_all_governed_tools = true;
 
-        assert_eq!(
-            preprocess_selection_mode(&args),
-            PreprocessSelectionMode::RunAllGovernedTools
-        );
+        assert_eq!(preprocess_selection_mode(&args), PreprocessSelectionMode::RunAllGovernedTools);
     }
 
     #[test]
@@ -1062,10 +959,7 @@ mod pipeline_run_tests {
         let mut args = preprocess_args();
         args.auto = true;
 
-        assert_eq!(
-            preprocess_selection_mode(&args),
-            PreprocessSelectionMode::AutoSelect
-        );
+        assert_eq!(preprocess_selection_mode(&args), PreprocessSelectionMode::AutoSelect);
     }
 
     #[test]
@@ -1124,10 +1018,7 @@ mod pipeline_run_tests {
             ],
         );
 
-        assert_eq!(
-            tool_ids,
-            vec!["fastp".to_string(), "fastqvalidator".to_string()]
-        );
+        assert_eq!(tool_ids, vec!["fastp".to_string(), "fastqvalidator".to_string()]);
     }
 
     #[test]
