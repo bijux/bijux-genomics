@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 0a4314ededd7b40bd3bb9fe2680f6216f49ed2bb
+# source_commit: 0d02c648f64d6eaea0b19722a19e65e8bfb1a7c4
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -545,8 +545,8 @@ tools = ["cutadapt"]
 id = "fastq.profile_overrepresented_sequences"
 status = "supported"
 output_kinds = ["json", "tsv"]
-ordering_after = ["fastq.report_qc"]
-prerequisites = ["fastq.report_qc"]
+ordering_after = ["fastq.profile_reads"]
+prerequisites = ["fastq.profile_reads"]
 resource_memory_gb = 4
 resource_time_minutes = 15
 resource_threads = 2
@@ -640,8 +640,8 @@ tools = ["clumpify", "fastuniq"]
 id = "fastq.report_qc"
 status = "supported"
 output_kinds = ["dir", "html", "json"]
-ordering_after = ["fastq.profile_reads"]
-prerequisites = ["fastq.profile_reads"]
+ordering_after = ["fastq.profile_reads", "fastq.profile_overrepresented_sequences"]
+prerequisites = ["fastq.profile_reads", "fastq.profile_overrepresented_sequences"]
 resource_memory_gb = 4
 resource_time_minutes = 15
 resource_threads = 2
@@ -659,8 +659,8 @@ tools = ["multiqc"]
 id = "fastq.screen_taxonomy"
 status = "supported"
 output_kinds = ["json", "tsv"]
-ordering_after = ["fastq.report_qc"]
-prerequisites = ["fastq.report_qc"]
+ordering_after = ["fastq.profile_overrepresented_sequences"]
+prerequisites = ["fastq.profile_overrepresented_sequences"]
 resource_memory_gb = 16
 resource_time_minutes = 60
 resource_threads = 8
@@ -913,3 +913,4 @@ id = "fastq.validation_fairness"
 stage_id = "fastq.validate_reads"
 description = "Compare FASTQ validators on identical raw reads and governed validation semantics."
 fairness_rules = ["same_input_hash", "same_dataset_class", "same_validation_contract"]
+

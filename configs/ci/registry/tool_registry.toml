@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 0a4314ededd7b40bd3bb9fe2680f6216f49ed2bb
+# source_commit: 0d02c648f64d6eaea0b19722a19e65e8bfb1a7c4
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -58,7 +58,7 @@ upstream = "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer"
 version_rule = "pinned"
 license = "GPL-3.0"
 citation = "upstream:https://gitlab.pasteur.fr/GIPhy/AlienTrimmer"
-pinned_commit = "git:6ec40283b87f845dbb833342633258c8e7c18333"
+pinned_commit = "release:3.2"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/alientrimmer:3.2"
 runtimes = ["docker", "apptainer"]
@@ -1532,9 +1532,9 @@ smoke_help_cmd = "seqkit --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "seqkit --help"
 expected_bin = "seqkit"
-expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "filtered_reads_r1", "filtered_reads_r2", "normalized_abundance_tsv", "report_json", "normalized_reads_r1", "normalized_reads_r2", "report_json", "primer_orientation_report", "primer_stats_json", "overrepresented_sequences_tsv", "overrepresented_sequences_json", "report_json"]
+expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "filtered_reads_r1", "filtered_reads_r2", "normalized_abundance_tsv", "report_json", "overrepresented_sequences_tsv", "overrepresented_sequences_json", "report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
-comparability_notes = "Comparable with governed read filtering, primer normalization, and abundance normalization backends only inside the same stage contract and lineage."
+comparability_notes = "Comparable with governed read filtering, trimming, and abundance-normalization backends only inside the same stage contract and lineage."
 dockerfile = "containers/docker/arm64/Dockerfile.seqkit"
 apptainer_def = "containers/apptainer/shared/seqkit.def"
 require_labels = true
@@ -1656,9 +1656,9 @@ upstream = "https://github.com/biocore/sortmerna"
 version_rule = "pinned"
 license = "GPL-3.0"
 citation = "upstream:https://github.com/biocore/sortmerna"
-pinned_commit = "release:4.3.7"
+pinned_commit = "sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c"
 pin_strategy = "pinned"
-container_ref = "bijuxdna/sortmerna:4.3.7"
+container_ref = "bijuxdna/sortmerna@sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "sortmerna --version"
@@ -1983,7 +1983,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Default ASV inference uses DADA2 for deterministic denoising with established amplicon error modeling."
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
@@ -2043,7 +2043,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Default ASV inference uses DADA2 for deterministic denoising with established amplicon error modeling."
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
@@ -2211,7 +2211,7 @@ optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Default ASV inference uses DADA2 for deterministic denoising with established amplicon error modeling."
+default_rationale = "Governed ASV inference now uses the admitted containerized dada2 backend and publishes the canonical infer-asvs report plus taxonomy-ready representative sequences."
 requires_validation = false
 requires_reporting = false
 
@@ -2354,7 +2354,7 @@ primary_tools = ["fastp"]
 optional_alternatives = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
 validation_tools = []
 reporting_tools = []
-planned_out_of_scope = []
+planned_out_of_scope = ["seqpurge"]
 default_rationale = "Baseline trimmer for deterministic quality/throughput tradeoff."
 requires_validation = false
 requires_reporting = false
@@ -2382,3 +2382,4 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
+
