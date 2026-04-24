@@ -10,6 +10,7 @@ children = [
   "docs/30-operations/index.md",
   "docs/40-policies/index.md",
   "docs/50-reference/index.md",
+  "docs/badges.md",
   "docs/cli/index.md",
   "docs/containers/index.md",
   "docs/decisions/index.md",
@@ -24,6 +25,7 @@ children = [
   "docs/30-operations/index.md",
   "docs/40-policies/index.md",
   "docs/50-reference/index.md",
+  "docs/badges.md",
   "docs/cli/index.md",
   "docs/containers/index.md",
   "docs/decisions/index.md",
@@ -165,6 +167,7 @@ children = [
   "docs/30-operations/TRACEABILITY_PROOF_FRONTEND.md",
   "docs/30-operations/VCF_DOWNSTREAM_READINESS_CHECKLIST.md",
   "docs/30-operations/VCF_REFERENCE_CACHE_POLICY.md",
+  "docs/30-operations/corpus-01.md",
   "docs/30-operations/vcf-downstream-triage.md",
 ]
 
@@ -219,6 +222,7 @@ children = [
 [[edge]]
 from = "docs/containers/index.md"
 children = [
+  "docs/containers/publish-ready-metadata.md",
 ]
 
 [[edge]]
