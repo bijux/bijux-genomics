@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+# purpose = Approved cargo-deny deviations with bounded expiry and review links
+# authority = bijux-dna-infra
+# stability = stable
+# last_updated = 2026-04-24
+
 [[deviation]]
 id = "advisories.unmaintained"
 owner = "bijux-dna-infra"
