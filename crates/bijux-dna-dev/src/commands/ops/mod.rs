@@ -252,10 +252,27 @@ fn glob_to_regex(pattern: &str) -> Result<Regex> {
 }
 
 fn rg_lines(workspace: &Workspace, path: &str, pattern: &str) -> Result<Vec<String>> {
+    if command_exists(workspace, "rg")? {
+        let outcome = run_program(
+            workspace,
+            "rg",
+            &["-n".to_string(), pattern.to_string(), workspace.path(path).display().to_string()],
+        )?;
+        if !outcome.is_success() {
+            return Ok(Vec::new());
+        }
+        return Ok(outcome.stdout.lines().map(ToOwned::to_owned).collect());
+    }
     let outcome = run_program(
         workspace,
-        "rg",
-        &["-n".to_string(), pattern.to_string(), workspace.path(path).display().to_string()],
+        "grep",
+        &[
+            "-R".to_string(),
+            "-n".to_string(),
+            "--".to_string(),
+            pattern.to_string(),
+            workspace.path(path).display().to_string(),
+        ],
     )?;
     if !outcome.is_success() {
         return Ok(Vec::new());
