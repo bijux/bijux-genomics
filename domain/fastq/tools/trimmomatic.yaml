@@ -14,9 +14,9 @@ command_template:
   - "SE"
   - "-phred33"
   - "{{reads}}"
-  - "{{trimmed_reads}}"
+  - "{{trimmed_reads_r1}}"
 outputs:
-  - name: "trimmed_reads"
+  - name: "trimmed_reads_r1"
     data_type: "fastq"
     cardinality: "Many"
 metrics_parser: "fastq_trim_v1"

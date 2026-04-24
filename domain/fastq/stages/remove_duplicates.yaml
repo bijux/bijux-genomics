@@ -38,8 +38,6 @@ parameters:
     param_type: "bool"
     default: "true"
 metrics:
-  - name: "tool"
-    meaning: "Governed backend selected for duplicate removal."
   - name: "threads"
     meaning: "Resolved worker threads executed by the selected duplicate-removal backend."
   - name: "dedup_mode"

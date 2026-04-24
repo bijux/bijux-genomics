@@ -354,6 +354,7 @@ active_defaults:
   fastq.normalize_primers: cutadapt
   fastq.profile_overrepresented_sequences: fastqc
   fastq.remove_chimeras: vsearch
+  fastq.infer_asvs: dada2
 active_default_rationale:
   fastq.cluster_otus: Stable OTU cluster policy with reproducible identifiers.
   fastq.index_reference: Default FASTQ reference preparation must emit the mapper
@@ -988,8 +989,9 @@ stage_ordering_constraints:
   - fastq.deplete_reference_contaminants
   fastq.report_qc:
   - fastq.profile_reads
+  - fastq.profile_overrepresented_sequences
   fastq.screen_taxonomy:
-  - fastq.report_qc
+  - fastq.profile_overrepresented_sequences
   fastq.deplete_rrna:
   - fastq.filter_reads
   fastq.correct_errors:
@@ -1006,7 +1008,7 @@ stage_ordering_constraints:
   fastq.trim_terminal_damage:
   - fastq.validate_reads
   fastq.profile_overrepresented_sequences:
-  - fastq.report_qc
+  - fastq.profile_reads
 stage_prerequisites:
   fastq.cluster_otus: []
   fastq.infer_asvs:
@@ -1037,8 +1039,9 @@ stage_prerequisites:
   - fastq.deplete_reference_contaminants
   fastq.report_qc:
   - fastq.profile_reads
+  - fastq.profile_overrepresented_sequences
   fastq.screen_taxonomy:
-  - fastq.report_qc
+  - fastq.profile_overrepresented_sequences
   fastq.deplete_rrna:
   - fastq.filter_reads
   fastq.correct_errors:
@@ -1055,7 +1058,7 @@ stage_prerequisites:
   fastq.trim_terminal_damage:
   - fastq.validate_reads
   fastq.profile_overrepresented_sequences:
-  - fastq.report_qc
+  - fastq.profile_reads
 stage_resource_hints:
   fastq.cluster_otus:
     memory_gb: 8.0

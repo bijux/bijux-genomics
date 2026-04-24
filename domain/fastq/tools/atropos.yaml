@@ -14,10 +14,10 @@ command_template:
   - "-a"
   - "ADAPTER"
   - "-o"
-  - "{{trimmed_reads}}"
+  - "{{trimmed_reads_r1}}"
   - "{{reads}}"
 outputs:
-  - name: "trimmed_reads"
+  - name: "trimmed_reads_r1"
     data_type: "fastq"
     cardinality: "Many"
 metrics_parser: "atropos_v1"
