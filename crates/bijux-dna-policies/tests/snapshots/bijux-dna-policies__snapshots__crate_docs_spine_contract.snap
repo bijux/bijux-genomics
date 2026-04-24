@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-policies/tests/boundaries/surface/docs/docs_spine_contract.rs
-assertion_line: 33
 expression: "bijux_dna_testkit::snapshot_normalize_text(&lines.join(\"\\n\"))"
 ---
 [bijux-dna]
@@ -138,7 +137,7 @@ See `TESTS.md` for test mapping and fixtures.
 This is the canonical entry point for bijux-dna-core documentation.
 
 ## Public surface
-Public modules are `contract`, `id_catalog`, `ids`, `metrics`, and `prelude`.
+Public modules are `contract`, `id_catalog`, `ids`, `metrics`, `public_api`, and `prelude`.
 
 ## Start here
 - `CONTRACT_MAP.md` for what contracts exist and where they live.
@@ -420,6 +419,9 @@ See `TESTS.md` for test mapping and fixtures.
 [bijux-dna-pipelines]
 # bijux-dna-pipelines Docs Index
 
+## Public surface
+Public modules are `bam`, `contract`, `cross`, `defaults`, `fastq`, `public_api`, `registry`, and `vcf`.
+
 ## Scope
 See `SCOPE.md` for what belongs here.
 
@@ -654,6 +656,7 @@ See `TESTS.md` for test mapping and fixtures.
 # bijux-dna-testkit Docs Index
 
 This crate exists for shared fixtures and lightweight test helpers.
+Its source tree is partitioned into deterministic support, fixtures, snapshots, temp paths, and workspace support.
 
 ## Scope
 See `SCOPE.md` for what belongs here.
