@@ -20,5 +20,8 @@ pub(super) fn for_crate(name: &str) -> GuardrailConfig {
             "/src/public_api".to_string(),
         ];
     }
+    if name == "bijux-dna-api" {
+        config.allow_mod_only_dirs = vec!["/src/internal/fastq".to_string()];
+    }
     config
 }
