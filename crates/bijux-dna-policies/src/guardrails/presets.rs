@@ -12,5 +12,13 @@ pub(super) fn for_crate(name: &str) -> GuardrailConfig {
     if name == "bijux-dna-pipelines" {
         config.allow_mod_only_dirs = vec!["/src/vcf".to_string()];
     }
+    if name == "bijux-dna" {
+        config.allow_mod_only_dirs = vec![
+            "/src/commands/corpus".to_string(),
+            "/src/commands/planning".to_string(),
+            "/src/commands/status".to_string(),
+            "/src/public_api".to_string(),
+        ];
+    }
     config
 }
