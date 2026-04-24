@@ -1,5 +1,3 @@
-#![cfg(test)]
-
 use super::identity::{
     execution_pipeline_identity, execution_sample_identity, hash_path, runtime_platform_identity,
 };
@@ -34,7 +32,7 @@ fn execution_identity_defaults_to_stage_and_step_ids() {
     let step = execution_step_fixture(
         "sample-0001.reads.trim.fastp",
         "stage.trim",
-        vec!["fastp".to_string()],
+        &["fastp".to_string()],
         "fastp:0.23.4",
         Vec::new(),
         Vec::new(),
@@ -78,7 +76,7 @@ fn apptainer_exec_defaults_workdir_to_output_mount() -> anyhow::Result<()> {
     let step = execution_step_fixture(
         "step.trim_reads.tool.seqkit",
         "stage.trim",
-        vec!["seqkit".to_string(), "stats".to_string()],
+        &["seqkit".to_string(), "stats".to_string()],
         "/containers/seqkit.sif",
         vec![json!({
             "artifact_id": "reads",
@@ -283,7 +281,7 @@ fn hash_inputs_ignores_missing_paths_and_hashes_directories() -> anyhow::Result<
 fn execution_step_fixture(
     step_id: &str,
     stage_id: &str,
-    command_template: Vec<String>,
+    command_template: &[String],
     image: &str,
     inputs: Vec<serde_json::Value>,
     outputs: Vec<serde_json::Value>,
