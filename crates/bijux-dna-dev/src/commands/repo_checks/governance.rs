@@ -179,7 +179,8 @@ pub(crate) fn check_benchmark_integrity_policy(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let native_ops = read(&workspace.path("crates/bijux-dna-dev/src/commands/ops.rs"))?;
+    let native_ops =
+        read(&workspace.path("crates/bijux-dna-dev/src/commands/ops/tooling/acquisition.rs"))?;
     let mut errors = Vec::new();
     if !native_ops.contains("tooling_benchmark_integrity_mini") {
         errors.push("benchmark integrity mini workflow must exist".to_string());
