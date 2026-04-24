@@ -5,12 +5,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 #[test]
@@ -18,10 +13,7 @@ fn policy__contracts__ci_tools_policy__workflows_use_make_only() {
     let root = workspace_root();
     let workflows_dir = root.join(".github").join("workflows");
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(workflows_dir)
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(workflows_dir).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -55,10 +47,7 @@ fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
     let root = workspace_root();
     let allowed = ["bijux-dna-infra", "bijux-dna-policies"];
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if entry.file_name() != "Cargo.toml" {
             continue;
         }
@@ -168,21 +157,14 @@ fn policy__contracts__ci_tools_policy__test_and_coverage_dirs_are_isolated() {
 #[test]
 fn policy__contracts__ci_tools_policy__no_bijux_namespace_in_docs_or_scripts() {
     let root = workspace_root();
-    let scan_roots = [
-        root.join("docs"),
-        root.join("scripts"),
-        root.join(".github"),
-    ];
+    let scan_roots = [root.join("docs"), root.join("scripts"), root.join(".github")];
     let mut offenders = Vec::new();
 
     for scan_root in scan_roots {
         if !scan_root.exists() {
             continue;
         }
-        for entry in WalkDir::new(scan_root)
-            .into_iter()
-            .filter_map(|entry| entry.ok())
-        {
+        for entry in WalkDir::new(scan_root).into_iter().filter_map(|entry| entry.ok()) {
             if !entry.file_type().is_file() {
                 continue;
             }

@@ -16,11 +16,7 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
         .get(key)
         .and_then(toml::Value::as_array)
         .map(|values| {
-            values
-                .iter()
-                .filter_map(toml::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
+            values.iter().filter_map(toml::Value::as_str).map(str::to_string).collect::<Vec<_>>()
         })
         .unwrap_or_default()
 }
@@ -43,10 +39,7 @@ fn policy__contracts__stage_catalog_registry_parity_policy__supported_stage_tool
             continue;
         };
         for stage_id in list(tool, "stage_ids") {
-            registry_stage_tools
-                .entry(stage_id)
-                .or_default()
-                .insert(tool_id.to_string());
+            registry_stage_tools.entry(stage_id).or_default().insert(tool_id.to_string());
         }
     }
 
@@ -55,18 +48,12 @@ fn policy__contracts__stage_catalog_registry_parity_policy__supported_stage_tool
         let Some(stage_id) = stage.get("id").and_then(toml::Value::as_str) else {
             continue;
         };
-        let status = stage
-            .get("status")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("supported");
+        let status = stage.get("status").and_then(toml::Value::as_str).unwrap_or("supported");
         if status != "supported" {
             continue;
         }
         let stage_tools = list(stage, "tools").into_iter().collect::<BTreeSet<_>>();
-        let registry_tools = registry_stage_tools
-            .get(stage_id)
-            .cloned()
-            .unwrap_or_default();
+        let registry_tools = registry_stage_tools.get(stage_id).cloned().unwrap_or_default();
         if stage_tools != registry_tools {
             offenders.push(format!(
                 "stage {stage_id} tools drifted: stages.toml={:?} tool_registry.toml={:?}",

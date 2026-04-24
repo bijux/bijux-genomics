@@ -35,11 +35,7 @@ fn policy__contracts__examples_golden_hygiene_policy__goldens_are_redacted_and_s
 
         let stamp_path = golden_dir.join("provenance_stamp.json");
         if !stamp_path.exists() {
-            offenders.push(format!(
-                "{}: missing {}",
-                path.display(),
-                stamp_path.display()
-            ));
+            offenders.push(format!("{}: missing {}", path.display(), stamp_path.display()));
         } else if let Ok(raw) = std::fs::read_to_string(&stamp_path) {
             let parsed: serde_json::Value = serde_json::from_str(&raw).unwrap_or_default();
             let has_commit = parsed
@@ -59,27 +55,17 @@ fn policy__contracts__examples_golden_hygiene_policy__goldens_are_redacted_and_s
             }
         }
 
-        for golden in std::fs::read_dir(&golden_dir)
-            .into_iter()
-            .flatten()
-            .flatten()
-        {
+        for golden in std::fs::read_dir(&golden_dir).into_iter().flatten().flatten() {
             let p = golden.path();
             if p.extension().and_then(|s| s.to_str()) != Some("json") {
                 continue;
             }
             let raw = std::fs::read_to_string(&p).unwrap_or_default();
             if raw.contains("/home/") || raw.contains("/Users/") {
-                offenders.push(format!(
-                    "{}: contains absolute host path literal",
-                    p.display()
-                ));
+                offenders.push(format!("{}: contains absolute host path literal", p.display()));
             }
             if raw.contains("http://") || raw.contains("https://") {
-                offenders.push(format!(
-                    "{}: contains absolute URL/hostname literal",
-                    p.display()
-                ));
+                offenders.push(format!("{}: contains absolute URL/hostname literal", p.display()));
             }
         }
     }

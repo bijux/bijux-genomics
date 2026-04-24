@@ -66,10 +66,7 @@ fn policy__boundaries__id_literal_policy__raw_id_catalog_are_confined_to_registr
     let root = repo_root();
     let mut offenders = Vec::new();
     let patterns = ["\"fastq.", "\"bam.", "\"cross.", "\"core."];
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(|entry| entry.ok())
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -82,10 +79,8 @@ fn policy__boundaries__id_literal_policy__raw_id_catalog_are_confined_to_registr
         let content = std::fs::read_to_string(entry.path()).expect("read source");
         for pattern in patterns {
             if content.contains(pattern) {
-                offenders.push(format!(
-                    "{} contains raw id literal {pattern}",
-                    entry.path().display()
-                ));
+                offenders
+                    .push(format!("{} contains raw id literal {pattern}", entry.path().display()));
             }
         }
     }

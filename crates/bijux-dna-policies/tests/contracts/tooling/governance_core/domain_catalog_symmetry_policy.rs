@@ -45,9 +45,5 @@ fn policy__contracts__domain_catalog_symmetry_policy__all_domains_export_catalog
             }
         }
     }
-    assert!(
-        missing.is_empty(),
-        "domain catalog symmetry violations:\n{}",
-        missing.join("\n")
-    );
+    assert!(missing.is_empty(), "domain catalog symmetry violations:\n{}", missing.join("\n"));
 }

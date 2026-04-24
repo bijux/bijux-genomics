@@ -7,9 +7,7 @@ use walkdir::WalkDir;
 #[test]
 fn policy__contracts__apptainer_runtime_entrypoint_policy__python_java_defs_have_deterministic_exec_entrypoint(
 ) {
-    let root = support::workspace_root()
-        .join("containers")
-        .join("apptainer");
+    let root = support::workspace_root().join("containers").join("apptainer");
     let mut offenders = Vec::new();
 
     for entry in WalkDir::new(&root) {

@@ -24,11 +24,8 @@ fn policy__contracts__apptainer_cpu_flag_policy__no_arch_flag_injection_without_
         if path.extension().and_then(|ext| ext.to_str()) != Some("def") {
             continue;
         }
-        let tool_id = path
-            .file_stem()
-            .and_then(|stem| stem.to_str())
-            .unwrap_or_default()
-            .to_string();
+        let tool_id =
+            path.file_stem().and_then(|stem| stem.to_str()).unwrap_or_default().to_string();
         let content = match std::fs::read_to_string(path) {
             Ok(content) => content,
             Err(_) => continue,

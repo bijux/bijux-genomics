@@ -16,10 +16,8 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
     for line in content.lines() {
         let line = line.trim();
         if line.starts_with('[') {
-            in_deps = matches!(
-                line,
-                "[dependencies]" | "[dev-dependencies]" | "[build-dependencies]"
-            );
+            in_deps =
+                matches!(line, "[dependencies]" | "[dev-dependencies]" | "[build-dependencies]");
             continue;
         }
         if !in_deps || line.is_empty() || line.starts_with('#') {
@@ -46,10 +44,7 @@ fn policy__boundaries__dependency_boundaries__stages_do_not_depend_on_environmen
     for manifest in manifests {
         let deps = parse_dependency_names(&manifest);
         if deps.iter().any(|dep| dep == "bijux-dna-environment") {
-            offenders.push(format!(
-                "{} depends on bijux-dna-environment",
-                manifest.display()
-            ));
+            offenders.push(format!("{} depends on bijux-dna-environment", manifest.display()));
         }
     }
     bijux_dna_policies::policy_assert!(
@@ -98,10 +93,7 @@ fn policy__boundaries__dependency_boundaries__analyze_and_benchmark_do_not_depen
     for manifest in manifests {
         let deps = parse_dependency_names(&manifest);
         if deps.iter().any(|dep| dep == "bijux-dna-engine") {
-            offenders.push(format!(
-                "{} depends on bijux-dna-engine",
-                manifest.display()
-            ));
+            offenders.push(format!("{} depends on bijux-dna-engine", manifest.display()));
         }
     }
     bijux_dna_policies::policy_assert!(
@@ -257,10 +249,7 @@ fn policy__boundaries__dependency_boundaries__production_crates_do_not_depend_on
         }
         let deps = parse_dependency_names(&path);
         if deps.iter().any(|dep| dep == "bijux-dna-environment-qa") {
-            offenders.push(format!(
-                "{} depends on bijux-dna-environment-qa",
-                path.display()
-            ));
+            offenders.push(format!("{} depends on bijux-dna-environment-qa", path.display()));
         }
     }
     bijux_dna_policies::policy_assert!(

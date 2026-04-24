@@ -2,12 +2,7 @@
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 fn crate_dirs() -> Vec<PathBuf> {
@@ -27,9 +22,7 @@ fn crate_dirs() -> Vec<PathBuf> {
 }
 
 fn has_feature_line(content: &str, feature: &str, dep: &str) -> bool {
-    content
-        .lines()
-        .any(|line| line.contains(feature) && line.contains(dep))
+    content.lines().any(|line| line.contains(feature) && line.contains(dep))
 }
 
 fn crate_name(manifest: &Path) -> Option<String> {

@@ -16,11 +16,8 @@ fn policy__boundaries__qa_dependency_policy__production_crates_do_not_depend_on_
             continue;
         }
         if node.deps.iter().any(|dep| dep.pkg == qa.id) {
-            let pkg = metadata
-                .packages
-                .iter()
-                .find(|pkg| pkg.id == node.id)
-                .expect("package missing");
+            let pkg =
+                metadata.packages.iter().find(|pkg| pkg.id == node.id).expect("package missing");
             offenders.push(pkg.name.clone());
         }
     }

@@ -11,20 +11,10 @@ fn policy__contracts__stage_registry_fixture_completeness__each_stage_has_tool_m
     let registry_path = workspace_root().join("configs/ci/registry/tool_registry.toml");
     let raw = std::fs::read_to_string(&registry_path)
         .expect("read configs/ci/registry/tool_registry.toml");
-    let parsed: toml::Value = raw
-        .parse()
-        .expect("parse configs/ci/registry/tool_registry.toml");
+    let parsed: toml::Value = raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
 
-    let tools = parsed
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
-    let stages = parsed
-        .get("stages")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let tools = parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
+    let stages = parsed.get("stages").and_then(toml::Value::as_array).cloned().unwrap_or_default();
 
     let mut by_tool_id: BTreeMap<String, toml::Value> = BTreeMap::new();
     for tool in tools {
@@ -45,10 +35,8 @@ fn policy__contracts__stage_registry_fixture_completeness__each_stage_has_tool_m
             offenders.push(format!("stage={stage_id}: no tools mapped in stage matrix"));
             continue;
         }
-        let stage_tools = stage_tool_ids
-            .iter()
-            .filter_map(|id| by_tool_id.get(id))
-            .collect::<Vec<_>>();
+        let stage_tools =
+            stage_tool_ids.iter().filter_map(|id| by_tool_id.get(id)).collect::<Vec<_>>();
         if stage_tools.len() != stage_tool_ids.len() {
             offenders.push(format!(
                 "stage={stage_id}: one or more stage matrix tools are missing from [[tools]]"
@@ -61,28 +49,18 @@ fn policy__contracts__stage_registry_fixture_completeness__each_stage_has_tool_m
                 .is_some_and(|v| !v.trim().is_empty())
         });
         if !has_metrics_schema {
-            offenders.push(format!(
-                "stage={stage_id}: missing metrics_schema across mapped tools"
-            ));
+            offenders.push(format!("stage={stage_id}: missing metrics_schema across mapped tools"));
         }
 
         let has_smoke = stage_tools.iter().any(|tool| {
-            let version = tool
-                .get("smoke_version_cmd")
-                .and_then(toml::Value::as_str)
-                .unwrap_or("")
-                .trim();
-            let help = tool
-                .get("smoke_help_cmd")
-                .and_then(toml::Value::as_str)
-                .unwrap_or("")
-                .trim();
+            let version =
+                tool.get("smoke_version_cmd").and_then(toml::Value::as_str).unwrap_or("").trim();
+            let help =
+                tool.get("smoke_help_cmd").and_then(toml::Value::as_str).unwrap_or("").trim();
             !version.is_empty() && !help.is_empty()
         });
         if !has_smoke {
-            offenders.push(format!(
-                "stage={stage_id}: missing smoke commands across mapped tools"
-            ));
+            offenders.push(format!("stage={stage_id}: missing smoke commands across mapped tools"));
         }
     }
 
@@ -98,23 +76,14 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
         .get(key)
         .and_then(toml::Value::as_array)
         .map(|values| {
-            values
-                .iter()
-                .filter_map(toml::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
+            values.iter().filter_map(toml::Value::as_str).map(str::to_string).collect::<Vec<_>>()
         })
         .unwrap_or_default()
 }
 
 fn stage_tools_from_matrix(stage: &toml::Value) -> Vec<String> {
     let mut out = Vec::new();
-    for key in [
-        "primary_tools",
-        "optional_alternatives",
-        "validation_tools",
-        "reporting_tools",
-    ] {
+    for key in ["primary_tools", "optional_alternatives", "validation_tools", "reporting_tools"] {
         out.extend(list(stage, key));
     }
     out.sort();

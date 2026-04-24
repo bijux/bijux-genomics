@@ -45,8 +45,5 @@ fn is_src_path(path: &Path) -> bool {
 }
 
 fn rel_path(root: &Path, path: &Path) -> String {
-    path.strip_prefix(root)
-        .unwrap_or(path)
-        .to_string_lossy()
-        .to_string()
+    path.strip_prefix(root).unwrap_or(path).to_string_lossy().to_string()
 }

@@ -3,16 +3,11 @@
 mod support;
 
 fn configured_domains(root: &std::path::Path) -> Vec<String> {
-    let path = root
-        .join("configs")
-        .join("ci")
-        .join("registry")
-        .join("domains.toml");
+    let path = root.join("configs").join("ci").join("registry").join("domains.toml");
     let raw = std::fs::read_to_string(&path)
         .unwrap_or_else(|_| panic!("read domains config {}", path.display()));
-    let parsed: toml::Value = raw
-        .parse()
-        .unwrap_or_else(|_| panic!("parse domains config {}", path.display()));
+    let parsed: toml::Value =
+        raw.parse().unwrap_or_else(|_| panic!("parse domains config {}", path.display()));
     parsed
         .get("domains")
         .and_then(toml::Value::as_array)
@@ -71,11 +66,8 @@ fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_ha
                 .map(|v| v.trim_matches('"').trim_matches('\''))
                 .filter(|v| !v.is_empty())
             {
-                let tool_file = root
-                    .join("domain")
-                    .join(&domain)
-                    .join("tools")
-                    .join(format!("{tool}.yaml"));
+                let tool_file =
+                    root.join("domain").join(&domain).join("tools").join(format!("{tool}.yaml"));
                 let tool_raw = match std::fs::read_to_string(&tool_file) {
                     Ok(raw) => raw,
                     Err(_) => {

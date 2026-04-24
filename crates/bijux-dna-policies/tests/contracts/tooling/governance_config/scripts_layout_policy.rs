@@ -4,12 +4,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 #[test]
@@ -68,10 +63,7 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_legacy_scri
 fn policy__contracts__scripts_layout_policy__ci_does_not_call_lab_workflows() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(root.join(".github/workflows"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join(".github/workflows")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }

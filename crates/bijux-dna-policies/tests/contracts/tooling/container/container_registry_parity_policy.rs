@@ -16,43 +16,30 @@ fn load_registry_tool_ids_for_runtime(runtime: &str) -> BTreeSet<String> {
         let path = root.join(file);
         let raw = std::fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
-        let parsed: toml::Value = raw
-            .parse()
-            .unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
+        let parsed: toml::Value =
+            raw.parse().unwrap_or_else(|err| panic!("parse {}: {err}", path.display()));
         let Some(rows) = parsed.get("tools").and_then(toml::Value::as_array) else {
             continue;
         };
         for row in rows {
-            let id = row
-                .get("id")
-                .and_then(toml::Value::as_str)
-                .unwrap_or_default()
-                .trim();
+            let id = row.get("id").and_then(toml::Value::as_str).unwrap_or_default().trim();
             if id.is_empty() {
                 continue;
             }
-            let container_enabled = row
-                .get("container")
-                .and_then(toml::Value::as_bool)
-                .unwrap_or(true);
+            let container_enabled =
+                row.get("container").and_then(toml::Value::as_bool).unwrap_or(true);
             if !container_enabled {
                 continue;
             }
-            let is_planned = row
-                .get("version")
-                .and_then(toml::Value::as_str)
-                .is_some_and(|v| v == "planned");
+            let is_planned =
+                row.get("version").and_then(toml::Value::as_str).is_some_and(|v| v == "planned");
             if is_planned {
                 continue;
             }
             let runtimes = row
                 .get("runtimes")
                 .and_then(toml::Value::as_array)
-                .map(|arr| {
-                    arr.iter()
-                        .filter_map(toml::Value::as_str)
-                        .collect::<Vec<_>>()
-                })
+                .map(|arr| arr.iter().filter_map(toml::Value::as_str).collect::<Vec<_>>())
                 .unwrap_or_default();
             if runtimes.contains(&runtime) {
                 ids.insert(id.to_string());
@@ -65,9 +52,8 @@ fn load_registry_tool_ids_for_runtime(runtime: &str) -> BTreeSet<String> {
 fn docker_defs() -> BTreeSet<String> {
     let root = support::workspace_root();
     let mut defs = BTreeSet::new();
-    for entry in WalkDir::new(root.join("containers/docker/arm64"))
-        .into_iter()
-        .filter_map(Result::ok)
+    for entry in
+        WalkDir::new(root.join("containers/docker/arm64")).into_iter().filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -83,9 +69,8 @@ fn docker_defs() -> BTreeSet<String> {
 fn apptainer_defs() -> BTreeSet<String> {
     let root = support::workspace_root();
     let mut defs = BTreeSet::new();
-    for entry in WalkDir::new(root.join("containers/apptainer/shared"))
-        .into_iter()
-        .filter_map(Result::ok)
+    for entry in
+        WalkDir::new(root.join("containers/apptainer/shared")).into_iter().filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;
@@ -112,14 +97,10 @@ fn policy__contracts__container_registry_parity_policy__registry_runtime_tools_h
 
     let mut missing = Vec::new();
     for tool in registry_docker.difference(&defs_docker) {
-        missing.push(format!(
-            "missing docker container def for registry tool: {tool}"
-        ));
+        missing.push(format!("missing docker container def for registry tool: {tool}"));
     }
     for tool in registry_apptainer.difference(&defs_apptainer) {
-        missing.push(format!(
-            "missing apptainer container def for registry tool: {tool}"
-        ));
+        missing.push(format!("missing apptainer container def for registry tool: {tool}"));
     }
 
     if !missing.is_empty() {
@@ -140,14 +121,10 @@ fn policy__contracts__container_registry_parity_policy__container_defs_are_regis
 
     let mut orphan = Vec::new();
     for tool in defs_docker.difference(&registry_docker) {
-        orphan.push(format!(
-            "orphan docker container def not in registry: {tool}"
-        ));
+        orphan.push(format!("orphan docker container def not in registry: {tool}"));
     }
     for tool in defs_apptainer.difference(&registry_apptainer) {
-        orphan.push(format!(
-            "orphan apptainer container def not in registry: {tool}"
-        ));
+        orphan.push(format!("orphan apptainer container def not in registry: {tool}"));
     }
 
     if !orphan.is_empty() {

@@ -20,10 +20,7 @@ pub(crate) fn check_empty_modules(files: &[PathBuf]) -> Result<()> {
             meaningful += 1;
         }
         if meaningful == 0 {
-            anyhow::bail!(
-                "empty module file (only mod re-exports): {}",
-                path.display()
-            );
+            anyhow::bail!("empty module file (only mod re-exports): {}", path.display());
         }
     }
     Ok(())

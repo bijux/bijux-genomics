@@ -4,12 +4,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 #[test]
@@ -40,12 +35,7 @@ fn slow__policy__contracts__bench_layout_policy__bench_suites_live_only_under_be
             continue;
         }
         if !path.starts_with(&canonical) {
-            offenders.push(
-                path.strip_prefix(&root)
-                    .unwrap_or(path)
-                    .display()
-                    .to_string(),
-            );
+            offenders.push(path.strip_prefix(&root).unwrap_or(path).display().to_string());
         }
     }
 
@@ -81,30 +71,19 @@ fn policy__contracts__bench_layout_policy__legacy_root_bench_paths_not_hardcoded
     let root = workspace_root();
     let mut offenders = Vec::new();
     for dir in ["crates", "scripts", "makes", "docs"] {
-        for entry in WalkDir::new(root.join(dir))
-            .into_iter()
-            .filter_map(Result::ok)
-        {
+        for entry in WalkDir::new(root.join(dir)).into_iter().filter_map(Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
             let path = entry.path();
-            let ext = path
-                .extension()
-                .and_then(|v| v.to_str())
-                .unwrap_or_default();
+            let ext = path.extension().and_then(|v| v.to_str()).unwrap_or_default();
             if !matches!(ext, "rs" | "sh" | "mk" | "md" | "toml") {
                 continue;
             }
             let raw = std::fs::read_to_string(path).unwrap_or_default();
             if raw.contains("bench/suites") && !raw.contains("crates/bijux-dna-bench/bench/suites")
             {
-                offenders.push(
-                    path.strip_prefix(&root)
-                        .unwrap_or(path)
-                        .display()
-                        .to_string(),
-                );
+                offenders.push(path.strip_prefix(&root).unwrap_or(path).display().to_string());
             }
         }
     }

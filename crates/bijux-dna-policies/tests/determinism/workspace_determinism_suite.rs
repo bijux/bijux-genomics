@@ -58,12 +58,7 @@ fn policy__determinism__workspace_determinism_suite__policy_tests_use_repo_relat
         }
         let raw = std::fs::read_to_string(path).unwrap_or_default();
         if raw.contains(&isolate_path_marker) || raw.contains(&iso_tag_marker) {
-            offenders.push(
-                path.strip_prefix(&root)
-                    .unwrap_or(path)
-                    .display()
-                    .to_string(),
-            );
+            offenders.push(path.strip_prefix(&root).unwrap_or(path).display().to_string());
         }
     }
     bijux_dna_policies::policy_assert!(

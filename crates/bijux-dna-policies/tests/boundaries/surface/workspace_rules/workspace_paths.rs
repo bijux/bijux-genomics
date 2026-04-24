@@ -171,8 +171,8 @@ fn contains_term(text: &str, term: &str) -> bool {
     while let Some(idx) = rest.find(term) {
         let before = rest[..idx].chars().last();
         let after = rest[idx + term.len()..].chars().next();
-        let before_ok = before.map_or(true, |ch| !ch.is_ascii_alphanumeric());
-        let after_ok = after.map_or(true, |ch| !ch.is_ascii_alphanumeric());
+        let before_ok = before.is_none_or(|ch| !ch.is_ascii_alphanumeric());
+        let after_ok = after.is_none_or(|ch| !ch.is_ascii_alphanumeric());
         if before_ok && after_ok {
             return true;
         }
@@ -198,4 +198,3 @@ fn assert_no_domain_terms(crate_root: &Path, denylist: &[&str]) {
         }
     }
 }
-

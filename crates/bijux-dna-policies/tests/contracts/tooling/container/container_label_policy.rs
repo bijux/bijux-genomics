@@ -12,10 +12,7 @@ fn policy__contracts__container_label_policy__container_labels_include_tool_vers
 
     let docker_root = root.join("containers").join("docker");
     if docker_root.exists() {
-        for entry in WalkDir::new(&docker_root)
-            .into_iter()
-            .filter_map(Result::ok)
-        {
+        for entry in WalkDir::new(&docker_root).into_iter().filter_map(Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -35,10 +32,7 @@ fn policy__contracts__container_label_policy__container_labels_include_tool_vers
                 "org.opencontainers.image.base.digest=",
             ] {
                 if !content.contains(marker) {
-                    offenders.push(format!(
-                        "{} missing label marker `{marker}`",
-                        path.display()
-                    ));
+                    offenders.push(format!("{} missing label marker `{marker}`", path.display()));
                 }
             }
             if !content.contains("org.opencontainers.image.license=")
@@ -54,10 +48,7 @@ fn policy__contracts__container_label_policy__container_labels_include_tool_vers
 
     let apptainer_root = root.join("containers").join("apptainer");
     if apptainer_root.exists() {
-        for entry in WalkDir::new(&apptainer_root)
-            .into_iter()
-            .filter_map(Result::ok)
-        {
+        for entry in WalkDir::new(&apptainer_root).into_iter().filter_map(Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -77,10 +68,7 @@ fn policy__contracts__container_label_policy__container_labels_include_tool_vers
                 "org.opencontainers.image.revision ",
             ] {
                 if !content.contains(marker) {
-                    offenders.push(format!(
-                        "{} missing label marker `{marker}`",
-                        path.display()
-                    ));
+                    offenders.push(format!("{} missing label marker `{marker}`", path.display()));
                 }
             }
             if !content.contains("org.opencontainers.image.license ")

@@ -19,11 +19,7 @@ fn policy__boundaries__tool_id_uniqueness__tool_ids_are_unique_across_planners()
     let path = registry_path();
     let content = std::fs::read_to_string(&path).expect("read tool registry");
     let parsed: toml::Value = content.parse().expect("parse tool registry");
-    let tools = parsed
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let tools = parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let mut seen = BTreeSet::new();
     let mut offenders = Vec::new();
     for entry in tools {

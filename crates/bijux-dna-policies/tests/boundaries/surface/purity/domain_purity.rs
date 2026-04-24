@@ -58,13 +58,7 @@ fn policy__boundaries__domain_purity__domains_have_no_execution_details() {
         root.join("crates/bijux-dna-domain-fastq/src"),
         root.join("crates/bijux-dna-domain-bam/src"),
     ];
-    let tokens = [
-        "CommandSpec",
-        "ContainerImage",
-        "command_template",
-        "argv",
-        "docker",
-    ];
+    let tokens = ["CommandSpec", "ContainerImage", "command_template", "argv", "docker"];
     let mut offenders = Vec::new();
     for domain in domains {
         offenders.extend(scan_dir_for_tokens(&domain, &tokens));

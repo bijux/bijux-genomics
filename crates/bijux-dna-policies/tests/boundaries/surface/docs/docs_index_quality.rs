@@ -8,13 +8,8 @@ use support::{crate_roots, read_to_string};
 
 #[test]
 fn policy__boundaries__docs_index_quality__docs_index_has_required_sections() {
-    let required = [
-        "## Scope",
-        "## Effects",
-        "## Boundaries",
-        "## Extension Points",
-        "## How to Test",
-    ];
+    let required =
+        ["## Scope", "## Effects", "## Boundaries", "## Extension Points", "## How to Test"];
 
     for crate_root in crate_roots() {
         let index = crate_root.join("docs").join("INDEX.md");

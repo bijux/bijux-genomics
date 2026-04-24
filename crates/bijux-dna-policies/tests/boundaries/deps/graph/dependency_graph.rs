@@ -5,20 +5,12 @@ use std::path::{Path, PathBuf};
 use cargo_metadata::{DependencyKind, MetadataCommand};
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
     let root = workspace_root();
-    let path = root
-        .join("docs")
-        .join("10-architecture")
-        .join("BOUNDARY_MAP.md");
+    let path = root.join("docs").join("10-architecture").join("BOUNDARY_MAP.md");
     let content = std::fs::read_to_string(&path).expect("read BOUNDARY_MAP.md");
     let mut lines = Vec::new();
     let mut in_block = false;
@@ -123,23 +115,13 @@ fn policy__boundaries__dependency_graph__runner_has_no_engine_edge() {
     let runner_id = runner_id.expect("bijux-dna-runner missing");
     let engine_id = engine_id.expect("bijux-dna-engine missing");
     let resolve = metadata.resolve.as_ref().expect("resolve graph missing");
-    let node = resolve
-        .nodes
-        .iter()
-        .find(|node| node.id == runner_id)
-        .expect("runner node missing");
+    let node = resolve.nodes.iter().find(|node| node.id == runner_id).expect("runner node missing");
     let has_edge = node.deps.iter().any(|dep| dep.pkg == engine_id);
     bijux_dna_policies::policy_assert!(
         !has_edge,
         "{} must not depend on {}",
-        id_to_name
-            .get(&runner_id)
-            .map(String::as_str)
-            .unwrap_or("bijux-dna-runner"),
-        id_to_name
-            .get(&engine_id)
-            .map(String::as_str)
-            .unwrap_or("bijux-dna-engine")
+        id_to_name.get(&runner_id).map(String::as_str).unwrap_or("bijux-dna-runner"),
+        id_to_name.get(&engine_id).map(String::as_str).unwrap_or("bijux-dna-engine")
     );
 }
 
@@ -159,11 +141,7 @@ fn policy__boundaries__dependency_graph__engine_has_no_domain_or_planner_edges()
     }
     let engine_id = engine_id.expect("bijux-dna-engine missing");
     let resolve = metadata.resolve.as_ref().expect("resolve graph missing");
-    let node = resolve
-        .nodes
-        .iter()
-        .find(|node| node.id == engine_id)
-        .expect("engine node missing");
+    let node = resolve.nodes.iter().find(|node| node.id == engine_id).expect("engine node missing");
     let denylist = [
         "bijux-dna-domain-fastq",
         "bijux-dna-domain-bam",
@@ -199,11 +177,8 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_api() {
         .filter_map(|id| metadata.packages.iter().find(|pkg| &pkg.id == id))
         .map(|pkg| pkg.name.clone())
         .collect();
-    let cli = metadata
-        .packages
-        .iter()
-        .find(|pkg| pkg.name == "bijux-dna")
-        .expect("bijux-dna missing");
+    let cli =
+        metadata.packages.iter().find(|pkg| pkg.name == "bijux-dna").expect("bijux-dna missing");
     let allowed = BTreeSet::from([
         "bijux-dna-api".to_string(),
         "bijux-dna-domain-compiler".to_string(),

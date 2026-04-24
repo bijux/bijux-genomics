@@ -9,11 +9,7 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
         .get(key)
         .and_then(toml::Value::as_array)
         .map(|values| {
-            values
-                .iter()
-                .filter_map(toml::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
+            values.iter().filter_map(toml::Value::as_str).map(str::to_string).collect::<Vec<_>>()
         })
         .unwrap_or_default()
 }
@@ -24,9 +20,8 @@ fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_
     let root = support::workspace_root();
     let registry_raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
         .expect("read configs/ci/registry/tool_registry.toml");
-    let registry: toml::Value = registry_raw
-        .parse()
-        .expect("parse configs/ci/registry/tool_registry.toml");
+    let registry: toml::Value =
+        registry_raw.parse().expect("parse configs/ci/registry/tool_registry.toml");
 
     let suite_files = std::fs::read_dir(root.join("crates/bijux-dna-bench/bench/suites"))
         .expect("read bench suite directory")
@@ -42,9 +37,8 @@ fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_
     for file in suite_files {
         let raw =
             std::fs::read_to_string(&file).unwrap_or_else(|_| panic!("read {}", file.display()));
-        let parsed: toml::Value = raw
-            .parse()
-            .unwrap_or_else(|_| panic!("parse {}", file.display()));
+        let parsed: toml::Value =
+            raw.parse().unwrap_or_else(|_| panic!("parse {}", file.display()));
         if let Some(stages) = parsed.get("stages").and_then(toml::Value::as_array) {
             for stage in stages {
                 for tool in list(stage, "tools") {
@@ -54,11 +48,7 @@ fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_
         }
     }
 
-    let tools = registry
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let tools = registry.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let tool_by_id = tools
         .iter()
         .filter_map(|tool| {
@@ -77,11 +67,8 @@ fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_
     .into_iter()
     .collect::<BTreeSet<_>>();
 
-    let stage_rows = registry
-        .get("stages")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let stage_rows =
+        registry.get("stages").and_then(toml::Value::as_array).cloned().unwrap_or_default();
 
     let mut required_tools = BTreeSet::new();
     for stage in stage_rows {
@@ -101,10 +88,8 @@ fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_
             let Some(tool_row) = tool_by_id.get(&tool_id) else {
                 continue;
             };
-            let status = tool_row
-                .get("status")
-                .and_then(toml::Value::as_str)
-                .unwrap_or("supported");
+            let status =
+                tool_row.get("status").and_then(toml::Value::as_str).unwrap_or("supported");
             if status == "supported" {
                 required_tools.insert(tool_id);
             }
@@ -125,16 +110,9 @@ fn policy__contracts__benchmark_suite_support_policy__supported_benchmark_tools_
         let Some(tool_row) = tool_by_id.get(tool_id) else {
             continue;
         };
-        let version_cmd = tool_row
-            .get("version_cmd")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("")
-            .trim();
-        let help_cmd = tool_row
-            .get("help_cmd")
-            .and_then(toml::Value::as_str)
-            .unwrap_or("")
-            .trim();
+        let version_cmd =
+            tool_row.get("version_cmd").and_then(toml::Value::as_str).unwrap_or("").trim();
+        let help_cmd = tool_row.get("help_cmd").and_then(toml::Value::as_str).unwrap_or("").trim();
         if version_cmd.is_empty() || help_cmd.is_empty() {
             offenders.push(format!(
                 "supported benchmark tool {} has smoke warning: missing version/help command",

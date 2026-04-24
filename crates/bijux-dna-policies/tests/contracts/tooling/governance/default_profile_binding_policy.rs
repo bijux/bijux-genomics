@@ -9,11 +9,7 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
         .get(key)
         .and_then(toml::Value::as_array)
         .map(|values| {
-            values
-                .iter()
-                .filter_map(toml::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
+            values.iter().filter_map(toml::Value::as_str).map(str::to_string).collect::<Vec<_>>()
         })
         .unwrap_or_default()
 }
@@ -31,11 +27,7 @@ fn policy__contracts__default_profile_binding_policy__default_profiles_use_regis
         let raw = std::fs::read_to_string(root.join(rel)).expect("read registry");
         let parsed: toml::Value = raw.parse().expect("parse registry");
         tools.extend(
-            parsed
-                .get("tools")
-                .and_then(toml::Value::as_array)
-                .cloned()
-                .unwrap_or_default(),
+            parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default(),
         );
     }
     let tool_bindings = tools
@@ -46,10 +38,7 @@ fn policy__contracts__default_profile_binding_policy__default_profiles_use_regis
             if bindings.is_empty() {
                 bindings = list(tool, "stage_ids");
             }
-            Some((
-                id.to_string(),
-                bindings.into_iter().collect::<BTreeSet<_>>(),
-            ))
+            Some((id.to_string(), bindings.into_iter().collect::<BTreeSet<_>>()))
         })
         .collect::<BTreeMap<_, _>>();
 

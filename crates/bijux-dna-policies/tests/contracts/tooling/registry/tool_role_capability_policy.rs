@@ -9,11 +9,7 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
         .get(key)
         .and_then(toml::Value::as_array)
         .map(|values| {
-            values
-                .iter()
-                .filter_map(toml::Value::as_str)
-                .map(str::to_string)
-                .collect::<Vec<_>>()
+            values.iter().filter_map(toml::Value::as_str).map(str::to_string).collect::<Vec<_>>()
         })
         .unwrap_or_default()
 }
@@ -26,16 +22,8 @@ fn policy__contracts__tool_role_capability_policy__stage_tools_match_required_ro
         .expect("read registry");
     let parsed: toml::Value = raw.parse().expect("parse registry");
 
-    let tools = parsed
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
-    let stages = parsed
-        .get("stages")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let tools = parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
+    let stages = parsed.get("stages").and_then(toml::Value::as_array).cloned().unwrap_or_default();
 
     let tool_roles = tools
         .iter()
@@ -51,20 +39,14 @@ fn policy__contracts__tool_role_capability_policy__stage_tools_match_required_ro
         let Some(stage_id) = stage.get("id").and_then(toml::Value::as_str) else {
             continue;
         };
-        let required = list(stage, "required_tool_roles")
-            .into_iter()
-            .collect::<BTreeSet<_>>();
+        let required = list(stage, "required_tool_roles").into_iter().collect::<BTreeSet<_>>();
         if required.is_empty() {
             offenders.push(format!("stage={stage_id}: missing required_tool_roles"));
             continue;
         }
         let mut stage_tools = BTreeSet::new();
-        for key in [
-            "primary_tools",
-            "optional_alternatives",
-            "validation_tools",
-            "reporting_tools",
-        ] {
+        for key in ["primary_tools", "optional_alternatives", "validation_tools", "reporting_tools"]
+        {
             stage_tools.extend(list(stage, key));
         }
         for tool in stage_tools {
@@ -143,10 +125,8 @@ fn policy__contracts__tool_role_capability_policy__fastq_benchmark_stages_capabi
     let mut required_by_stage = BTreeMap::<String, BTreeSet<String>>::new();
     for stage_id in &benchmark_stages {
         let stage_suffix = stage_id.split_once('.').map_or(*stage_id, |(_, rhs)| rhs);
-        let stage_path = root.join(format!(
-            "domain/fastq/stages/{}.yaml",
-            stage_suffix.replace('.', "_")
-        ));
+        let stage_path =
+            root.join(format!("domain/fastq/stages/{}.yaml", stage_suffix.replace('.', "_")));
         let stage_raw = std::fs::read_to_string(&stage_path)
             .unwrap_or_else(|_| panic!("read {}", stage_path.display()));
         let mut req = BTreeSet::new();
@@ -181,13 +161,7 @@ fn policy__contracts__tool_role_capability_policy__fastq_benchmark_stages_capabi
             if !trimmed.starts_with("tool_id:") {
                 return None;
             }
-            Some(
-                trimmed
-                    .trim_start_matches("tool_id:")
-                    .trim()
-                    .trim_matches('"')
-                    .to_string(),
-            )
+            Some(trimmed.trim_start_matches("tool_id:").trim().trim_matches('"').to_string())
         });
         let Some(tool_id) = tool_id else {
             continue;
@@ -214,10 +188,7 @@ fn policy__contracts__tool_role_capability_policy__fastq_benchmark_stages_capabi
 
     let mut offenders = Vec::new();
     for stage_id in &benchmark_stages {
-        let required = required_by_stage
-            .get(*stage_id)
-            .cloned()
-            .unwrap_or_default();
+        let required = required_by_stage.get(*stage_id).cloned().unwrap_or_default();
         for tool in matrix.get(*stage_id).cloned().unwrap_or_default() {
             let caps = capability_by_tool.get(&tool).cloned().unwrap_or_default();
             for req in &required {

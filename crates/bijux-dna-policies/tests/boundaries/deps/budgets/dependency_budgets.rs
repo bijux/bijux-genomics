@@ -12,10 +12,7 @@ const BUDGETS: &[(&str, usize)] = &[
 
 #[test]
 fn policy__boundaries__dependency_budgets__dependency_budgets() {
-    let metadata = MetadataCommand::new()
-        .no_deps()
-        .exec()
-        .expect("cargo metadata");
+    let metadata = MetadataCommand::new().no_deps().exec().expect("cargo metadata");
     let mut offenders = Vec::new();
     for (crate_name, limit) in BUDGETS {
         if let Some(pkg) = metadata.packages.iter().find(|pkg| pkg.name == *crate_name) {

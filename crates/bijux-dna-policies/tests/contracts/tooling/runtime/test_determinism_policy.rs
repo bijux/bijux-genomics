@@ -5,20 +5,12 @@ use regex::Regex;
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 fn rs_test_files(root: &Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -113,10 +105,7 @@ fn policy__contracts__test_determinism_policy__jsonl_appends_use_locked_writer()
     let root = workspace_root();
     let mut offenders = Vec::new();
 
-    for entry in WalkDir::new(root.join("crates"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }

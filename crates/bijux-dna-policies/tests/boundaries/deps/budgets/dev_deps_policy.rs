@@ -3,12 +3,7 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 fn crate_dirs() -> Vec<PathBuf> {
@@ -95,11 +90,7 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         let deps = parse_dev_dependencies(&manifest);
         for dep in deps {
             if !allowlist.contains(dep.as_str()) {
-                offenders.push(format!(
-                    "{} dev-dep not allowlisted: {}",
-                    manifest.display(),
-                    dep
-                ));
+                offenders.push(format!("{} dev-dep not allowlisted: {}", manifest.display(), dep));
             }
         }
     }

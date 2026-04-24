@@ -9,10 +9,7 @@ fn policy__contracts__apptainer_def_location_policy__defs_only_exist_in_bijux_or
     let root = support::workspace_root();
     let mut offenders = Vec::new();
 
-    for entry in WalkDir::new(root.join("containers"))
-        .into_iter()
-        .filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join("containers")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }

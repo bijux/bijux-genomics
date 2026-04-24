@@ -63,9 +63,8 @@ fn policy__contracts__assets_governance_policy__publication_dirs_require_manifes
         let parsed: toml::Value = match toml::from_str(&raw) {
             Ok(v) => v,
             Err(err) => {
-                offenders.push(format!(
-                    "assets/publications/{id}/MANIFEST.toml invalid TOML: {err}"
-                ));
+                offenders
+                    .push(format!("assets/publications/{id}/MANIFEST.toml invalid TOML: {err}"));
                 continue;
             }
         };
@@ -90,16 +89,11 @@ fn policy__contracts__assets_governance_policy__golden_files_require_generate_me
     let root = repo_root();
     let golden = root.join("assets/golden");
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(&golden)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_file())
+    for entry in
+        WalkDir::new(&golden).into_iter().filter_map(Result::ok).filter(|e| e.file_type().is_file())
     {
         let path = entry.path();
-        let name = path
-            .file_name()
-            .and_then(|s| s.to_str())
-            .unwrap_or_default();
+        let name = path.file_name().and_then(|s| s.to_str()).unwrap_or_default();
         if name == "GENERATE.md" || name.ends_with(".md") {
             continue;
         }
@@ -107,12 +101,7 @@ fn policy__contracts__assets_governance_policy__golden_files_require_generate_me
             continue;
         };
         if !dir.join("GENERATE.md").is_file() {
-            offenders.push(
-                path.strip_prefix(&root)
-                    .unwrap_or(path)
-                    .display()
-                    .to_string(),
-            );
+            offenders.push(path.strip_prefix(&root).unwrap_or(path).display().to_string());
         }
     }
     bijux_dna_policies::policy_assert!(
@@ -151,10 +140,8 @@ fn policy__contracts__assets_governance_policy__assets_forbid_local_machine_path
     let assets = root.join("assets");
     let mut offenders = Vec::new();
     let banned = ["/Users/", "/home/", "C:\\\\Users\\\\", "\\\\Users\\\\"];
-    for entry in WalkDir::new(&assets)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_file())
+    for entry in
+        WalkDir::new(&assets).into_iter().filter_map(Result::ok).filter(|e| e.file_type().is_file())
     {
         let path = entry.path();
         let Some(ext) = path.extension().and_then(|e| e.to_str()) else {
@@ -168,12 +155,7 @@ fn policy__contracts__assets_governance_policy__assets_forbid_local_machine_path
         }
         let raw = std::fs::read_to_string(path).unwrap_or_default();
         if banned.iter().any(|needle| raw.contains(needle)) {
-            offenders.push(
-                path.strip_prefix(&root)
-                    .unwrap_or(path)
-                    .display()
-                    .to_string(),
-            );
+            offenders.push(path.strip_prefix(&root).unwrap_or(path).display().to_string());
         }
     }
     bijux_dna_policies::policy_assert!(
@@ -199,10 +181,7 @@ fn policy__contracts__assets_governance_policy__tests_must_not_write_into_assets
         "copy(",
     ];
     for dir in ["crates", "scripts", "makes"] {
-        for entry in WalkDir::new(root.join(dir))
-            .into_iter()
-            .filter_map(Result::ok)
-        {
+        for entry in WalkDir::new(root.join(dir)).into_iter().filter_map(Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -236,10 +215,8 @@ fn policy__contracts__assets_governance_policy__docs_publication_refs_use_public
     let root = repo_root();
     let docs = root.join("docs");
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(&docs)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|e| e.file_type().is_file())
+    for entry in
+        WalkDir::new(&docs).into_iter().filter_map(Result::ok).filter(|e| e.file_type().is_file())
     {
         let path = entry.path();
         if path.extension().and_then(|e| e.to_str()) != Some("md") {

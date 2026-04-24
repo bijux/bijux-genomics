@@ -5,12 +5,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
 }
 
 #[test]
@@ -27,21 +22,13 @@ fn policy__boundaries__docs_placement_policy__docs_live_in_crate_docs_only() {
         if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
             continue;
         }
-        let file_name = path
-            .file_name()
-            .and_then(|f| f.to_str())
-            .unwrap_or_default();
+        let file_name = path.file_name().and_then(|f| f.to_str()).unwrap_or_default();
         let is_readme = file_name == "README.md";
-        let is_docs_path = path
-            .components()
-            .any(|component| component.as_os_str() == "docs");
+        let is_docs_path = path.components().any(|component| component.as_os_str() == "docs");
         if path.to_string_lossy().contains("/tests/fixtures/") {
             continue;
         }
-        if path
-            .to_string_lossy()
-            .contains("/crates/bijux-dna-bench/bench/")
-        {
+        if path.to_string_lossy().contains("/crates/bijux-dna-bench/bench/") {
             continue;
         }
         if path.to_string_lossy().contains("/tests/support/README.md") {

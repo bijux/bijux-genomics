@@ -3,6 +3,7 @@
 mod support;
 
 use std::collections::HashMap;
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use sha2::{Digest, Sha256};
@@ -120,7 +121,7 @@ fn policy__boundaries__readme_policy__readme_has_required_sections_and_links() {
             }
             normalized.push_str(line.trim());
         }
-        let hash = format!("{:x}", Sha256::digest(normalized.as_bytes()));
+        let hash = sha256_hex(Sha256::digest(normalized.as_bytes()));
         if let Some(existing) = fingerprints.get(&hash) {
             bijux_dna_policies::policy_panic!(
                 "Duplicate README bodies detected: {} and {}",
@@ -130,4 +131,13 @@ fn policy__boundaries__readme_policy__readme_has_required_sections_and_links() {
         }
         fingerprints.insert(hash, readme);
     }
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

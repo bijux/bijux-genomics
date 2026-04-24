@@ -4,6 +4,7 @@ mod support;
 
 use sha2::Digest;
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write as _;
 
 use bijux_dna_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles};
 use bijux_dna_pipelines::StabilityTier;
@@ -12,8 +13,7 @@ use support::workspace_root;
 fn parse_registry(path: &std::path::Path) -> toml::Value {
     let raw = std::fs::read_to_string(path)
         .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
-    raw.parse::<toml::Value>()
-        .unwrap_or_else(|err| panic!("parse {}: {err}", path.display()))
+    raw.parse::<toml::Value>().unwrap_or_else(|err| panic!("parse {}: {err}", path.display()))
 }
 
 fn tools_by_id(parsed: &toml::Value) -> BTreeMap<String, toml::Value> {
@@ -57,14 +57,10 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registry_
         let dockerfile = str_field(&tool, "dockerfile");
 
         if upstream.eq_ignore_ascii_case("unknown") {
-            offenders.push(format!(
-                "tool={id}: upstream cannot be unknown in production registry"
-            ));
+            offenders.push(format!("tool={id}: upstream cannot be unknown in production registry"));
         }
         if version == "latest-pinned" {
-            offenders.push(format!(
-                "tool={id}: latest-pinned is forbidden in production registry"
-            ));
+            offenders.push(format!("tool={id}: latest-pinned is forbidden in production registry"));
         }
         if pin.is_empty() || pin == "domain-managed" || pin == "unresolved" {
             offenders.push(format!("tool={id}: immutable pin is required"));
@@ -84,9 +80,8 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registry_
             offenders.push(format!("tool={id}: version_rule is required"));
         }
         if container_ref.contains(":latest") {
-            offenders.push(format!(
-                "tool={id}: floating container tag is forbidden ({container_ref})"
-            ));
+            offenders
+                .push(format!("tool={id}: floating container tag is forbidden ({container_ref})"));
         }
         if expected_bin.is_empty() {
             offenders.push(format!("tool={id}: expected_bin is required"));
@@ -129,10 +124,7 @@ fn policy__contracts__tool_registry_reproducibility_policy__required_tools_are_p
 ) {
     let root = workspace_root();
     let registry = parse_registry(&root.join("configs/ci/registry/tool_registry.toml"));
-    let tool_ids = tools_by_id(&registry)
-        .keys()
-        .cloned()
-        .collect::<BTreeSet<_>>();
+    let tool_ids = tools_by_id(&registry).keys().cloned().collect::<BTreeSet<_>>();
     let required = parse_registry(&root.join("configs/ci/tools/required_tools.toml"));
     let required_tools = required
         .get("required_tools")
@@ -159,9 +151,8 @@ fn policy__contracts__tool_registry_reproducibility_policy__required_tools_are_p
 fn policy__contracts__tool_registry_reproducibility_policy__profiles_only_use_valid_production_tools(
 ) {
     let root = workspace_root();
-    let production = tools_by_id(&parse_registry(
-        &root.join("configs/ci/registry/tool_registry.toml"),
-    ));
+    let production =
+        tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
     let experimental = tools_by_id(&parse_registry(
         &root.join("configs/ci/registry/tool_registry_experimental.toml"),
     ));
@@ -213,9 +204,8 @@ fn policy__contracts__tool_registry_reproducibility_policy__profiles_only_use_va
 #[test]
 fn policy__contracts__tool_registry_reproducibility_policy__profiles_release_readiness_gate() {
     let root = workspace_root();
-    let production = tools_by_id(&parse_registry(
-        &root.join("configs/ci/registry/tool_registry.toml"),
-    ));
+    let production =
+        tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
     let experimental = tools_by_id(&parse_registry(
         &root.join("configs/ci/registry/tool_registry_experimental.toml"),
     ));
@@ -285,9 +275,8 @@ fn policy__contracts__tool_registry_reproducibility_policy__profiles_release_rea
 fn policy__contracts__tool_registry_reproducibility_policy__reference_adna_profile_uses_production_tools_only(
 ) {
     let root = workspace_root();
-    let production = tools_by_id(&parse_registry(
-        &root.join("configs/ci/registry/tool_registry.toml"),
-    ));
+    let production =
+        tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
     let experimental = tools_by_id(&parse_registry(
         &root.join("configs/ci/registry/tool_registry_experimental.toml"),
     ));
@@ -344,12 +333,12 @@ fn policy__contracts__tool_registry_reproducibility_policy__tool_digest_contract
         file_hasher.update(raw);
         payload.push_str(rel);
         payload.push(' ');
-        payload.push_str(&format!("{:x}", file_hasher.finalize()));
+        payload.push_str(&sha256_hex(file_hasher.finalize()));
         payload.push('\n');
     }
     let mut hasher = sha2::Sha256::new();
     hasher.update(payload.as_bytes());
-    let expected_hash = format!("{:x}", hasher.finalize());
+    let expected_hash = sha256_hex(hasher.finalize());
     let lock_path = root.join("configs/ci/registry/tool_registry_lock.sha256");
     let actual_hash = std::fs::read_to_string(&lock_path)
         .unwrap_or_else(|err| panic!("read lockfile: {err}"))
@@ -361,23 +350,30 @@ fn policy__contracts__tool_registry_reproducibility_policy__tool_digest_contract
     );
 }
 
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
+}
+
 #[test]
 fn policy__contracts__tool_registry_reproducibility_policy__production_registries_forbid_latest_pinned(
 ) {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    for rel in [
-        "configs/ci/registry/tool_registry.toml",
-        "configs/ci/registry/tool_registry_vcf.toml",
-    ] {
+    for rel in
+        ["configs/ci/registry/tool_registry.toml", "configs/ci/registry/tool_registry_vcf.toml"]
+    {
         let registry = parse_registry(&root.join(rel));
         for (id, tool) in tools_by_id(&registry) {
             let version = str_field(&tool, "version");
             let default_version = str_field(&tool, "default_version");
             if version == "latest-pinned" || default_version == "latest-pinned" {
-                offenders.push(format!(
-                    "{rel}: tool={id} uses forbidden latest-pinned version marker"
-                ));
+                offenders
+                    .push(format!("{rel}: tool={id} uses forbidden latest-pinned version marker"));
             }
         }
     }
@@ -393,10 +389,9 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registrie
 ) {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    for rel in [
-        "configs/ci/registry/tool_registry.toml",
-        "configs/ci/registry/tool_registry_vcf.toml",
-    ] {
+    for rel in
+        ["configs/ci/registry/tool_registry.toml", "configs/ci/registry/tool_registry_vcf.toml"]
+    {
         let registry = parse_registry(&root.join(rel));
         for (id, tool) in tools_by_id(&registry) {
             let upstream = str_field(&tool, "upstream");
@@ -420,12 +415,11 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registrie
 fn policy__contracts__tool_registry_reproducibility_policy__stable_profiles_must_not_use_unknown_declared_versions(
 ) {
     let root = workspace_root();
-    let mut tools = tools_by_id(&parse_registry(
-        &root.join("configs/ci/registry/tool_registry.toml"),
-    ));
-    for (id, value) in tools_by_id(&parse_registry(
-        &root.join("configs/ci/registry/tool_registry_vcf.toml"),
-    )) {
+    let mut tools =
+        tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry.toml")));
+    for (id, value) in
+        tools_by_id(&parse_registry(&root.join("configs/ci/registry/tool_registry_vcf.toml")))
+    {
         tools.entry(id).or_insert(value);
     }
 
