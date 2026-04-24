@@ -8,7 +8,6 @@ use super::observer::build_observer_command_args;
 use super::{build_apptainer_exec_args, container_command_template, hash_inputs};
 use anyhow::anyhow;
 use bijux_dna_core::contract::ExecutionStep;
-use bijux_dna_core::prelude::{ArtifactId, ArtifactRole, StageId, StepId};
 use bijux_dna_environment::api::RuntimeKind;
 use serde_json::json;
 use std::path::{Path, PathBuf};
@@ -290,15 +289,56 @@ fn execution_step_fixture(
     outputs: Vec<serde_json::Value>,
     out_dir: &str,
 ) -> StepFixture {
+    let normalize_io = |items: Vec<serde_json::Value>| {
+        items
+            .into_iter()
+            .map(|item| {
+                let name = item
+                    .get("name")
+                    .or_else(|| item.get("artifact_id"))
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("artifact")
+                    .to_string();
+                let path = item
+                    .get("path")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or_default()
+                    .to_string();
+                let role = item
+                    .get("role")
+                    .and_then(serde_json::Value::as_str)
+                    .unwrap_or("unknown")
+                    .to_string();
+                let optional = item
+                    .get("optional")
+                    .and_then(serde_json::Value::as_bool)
+                    .unwrap_or_else(|| {
+                        !item.get("required").and_then(serde_json::Value::as_bool).unwrap_or(true)
+                    });
+                json!({
+                    "name": name,
+                    "path": path,
+                    "role": role,
+                    "optional": optional,
+                })
+            })
+            .collect::<Vec<_>>()
+    };
+
     serde_json::from_value(json!({
         "step_id": step_id,
         "stage_id": stage_id,
         "command": { "template": command_template },
         "image": { "image": image, "digest": null },
-        "resources": {},
+        "resources": {
+            "runtime": "local",
+            "mem_gb": 1,
+            "tmp_gb": 1,
+            "threads": 1
+        },
         "io": {
-            "inputs": inputs,
-            "outputs": outputs
+            "inputs": normalize_io(inputs),
+            "outputs": normalize_io(outputs)
         },
         "out_dir": out_dir,
         "aux_images": {},
