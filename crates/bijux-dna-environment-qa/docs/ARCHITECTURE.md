@@ -4,7 +4,7 @@
 QA is heavy and effectful (docker runs, large IO, optional network). Keeping it separate prevents production crates from inheriting those dependencies and side effects.
 
 ## Modules
-- `public_api/`
+- `public_api.rs`
 - `image_qa/`
 - `bin/*` wrappers
 

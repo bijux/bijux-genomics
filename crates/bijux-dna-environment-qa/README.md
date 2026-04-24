@@ -17,7 +17,7 @@ See `crates/bijux-dna-environment-qa/docs/INDEX.md`, `crates/bijux-dna-environme
 ## Internal module layout
 The image QA surface is organized by responsibility:
 - `src/image_qa/contracts.rs` owns the shared QA stage and dataset contracts.
-- `src/public_api/` exposes the stable environment facade consumed by QA workflows.
+- `src/public_api.rs` exposes the stable environment facade consumed by QA workflows.
 - `src/image_qa/datasets/`, `src/image_qa/records/`, and `src/image_qa/validation/` own discovery, persistence, and pass requirements.
 - `src/image_qa/behavioral/` splits preprocessing stage checks from postprocessing/reporting checks.
 - `src/image_qa/support/` owns diagnostics, output contracts, image resolution, Docker runtime helpers, and seqkit metrics.
