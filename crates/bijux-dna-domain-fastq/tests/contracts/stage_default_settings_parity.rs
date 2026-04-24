@@ -36,9 +36,8 @@ fn stage_manifest_tools() -> Result<BTreeMap<String, BTreeSet<String>>> {
             .find_map(|line| line.strip_prefix("stage_id: "))
             .map(|value| value.trim().trim_matches('"').to_string())
             .with_context(|| format!("stage_id missing in {}", path.display()))?;
-        let compatible_tools = block_list(&raw, "compatible_tools")
-            .into_iter()
-            .collect::<BTreeSet<_>>();
+        let compatible_tools =
+            block_list(&raw, "compatible_tools").into_iter().collect::<BTreeSet<_>>();
         out.insert(stage_id, compatible_tools);
     }
     Ok(out)
@@ -62,9 +61,8 @@ fn indexed_stage_tool_compatibility() -> Result<BTreeMap<String, BTreeSet<String
             break;
         }
         if line.starts_with("  ") && !line.starts_with("  - ") {
-            let Some((stage, inline_value)) = line
-                .strip_prefix("  ")
-                .and_then(|rest| rest.split_once(':'))
+            let Some((stage, inline_value)) =
+                line.strip_prefix("  ").and_then(|rest| rest.split_once(':'))
             else {
                 continue;
             };
@@ -75,9 +73,7 @@ fn indexed_stage_tool_compatibility() -> Result<BTreeMap<String, BTreeSet<String
         }
         if let Some(tool) = line.strip_prefix("  - ") {
             if let Some(stage) = &current_stage {
-                out.entry(stage.clone())
-                    .or_default()
-                    .insert(tool.to_string());
+                out.entry(stage.clone()).or_default().insert(tool.to_string());
             }
         }
     }
@@ -102,22 +98,14 @@ fn indexed_stage_default_settings() -> Result<BTreeMap<String, BTreeSet<String>>
             break;
         }
         if line.starts_with("    ") {
-            if let Some(tool) = line
-                .strip_prefix("    ")
-                .and_then(|rest| rest.strip_suffix(':'))
-            {
+            if let Some(tool) = line.strip_prefix("    ").and_then(|rest| rest.strip_suffix(':')) {
                 if let Some(stage) = &current_stage {
-                    out.entry(stage.clone())
-                        .or_default()
-                        .insert(tool.to_string());
+                    out.entry(stage.clone()).or_default().insert(tool.to_string());
                 }
             }
             continue;
         }
-        if let Some(stage) = line
-            .strip_prefix("  ")
-            .and_then(|rest| rest.strip_suffix(':'))
-        {
+        if let Some(stage) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':')) {
             if stage.starts_with("fastq.") {
                 let stage = stage.to_string();
                 current_stage = Some(stage.clone());

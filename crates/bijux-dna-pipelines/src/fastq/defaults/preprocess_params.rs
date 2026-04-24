@@ -18,18 +18,12 @@ pub(super) fn fastq_preprocess_params(paired: bool) -> BTreeMap<StageId, Default
             StageId::from_static("fastq.correct_errors"),
             DefaultParams::FastqCorrect(correct_defaults(paired)),
         ),
-        (
-            StageId::from_static("fastq.extract_umis"),
-            DefaultParams::FastqUmi(umi_defaults(paired)),
-        ),
+        (StageId::from_static("fastq.extract_umis"), DefaultParams::FastqUmi(umi_defaults(paired))),
         (
             StageId::from_static("fastq.detect_adapters"),
             DefaultParams::FastqDetectAdapters(detect_adapters_defaults(paired)),
         ),
-        (
-            StageId::from_static("fastq.trim_reads"),
-            DefaultParams::FastqTrim(trim_defaults(paired)),
-        ),
+        (StageId::from_static("fastq.trim_reads"), DefaultParams::FastqTrim(trim_defaults(paired))),
         (
             StageId::from_static("fastq.trim_polyg_tails"),
             DefaultParams::FastqTrimPolygTails(trim_polyg_tails_defaults(paired)),

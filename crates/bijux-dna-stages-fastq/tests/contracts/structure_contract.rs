@@ -28,9 +28,6 @@ fn stages_fastq_rs_file_counts_are_bounded() -> anyhow::Result<()> {
             offenders.push((entry.path().display().to_string(), count));
         }
     }
-    assert!(
-        offenders.is_empty(),
-        "rs file count exceeded in dirs: {offenders:?}"
-    );
+    assert!(offenders.is_empty(), "rs file count exceeded in dirs: {offenders:?}");
     Ok(())
 }

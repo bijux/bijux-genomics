@@ -20,22 +20,12 @@ pub(super) fn filter_removals_from_fastp(path: &Path) -> Option<FilterRemovalCou
     let raw = std::fs::read_to_string(path).ok()?;
     let parsed: serde_json::Value = serde_json::from_str(&raw).ok()?;
     let filtering = parsed.get("filtering_result")?;
-    let by_n = filtering
-        .get("too_many_N_reads")
-        .and_then(serde_json::Value::as_u64)
-        .unwrap_or(0);
-    let by_entropy = filtering
-        .get("low_complexity_reads")
-        .and_then(serde_json::Value::as_u64)
-        .unwrap_or(0);
-    let by_length = filtering
-        .get("too_short_reads")
-        .and_then(serde_json::Value::as_u64)
-        .unwrap_or(0)
-        + filtering
-            .get("too_long_reads")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0);
+    let by_n = filtering.get("too_many_N_reads").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let by_entropy =
+        filtering.get("low_complexity_reads").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let by_length =
+        filtering.get("too_short_reads").and_then(serde_json::Value::as_u64).unwrap_or(0)
+            + filtering.get("too_long_reads").and_then(serde_json::Value::as_u64).unwrap_or(0);
     Some(FilterRemovalCounts {
         by_n,
         by_entropy,
@@ -92,14 +82,8 @@ pub(super) fn filter_metrics_with_removals(
         inputs.first().map(PathBuf::as_path),
         outputs.first().map(PathBuf::as_path),
     ])?;
-    let input = stats
-        .first()
-        .copied()
-        .unwrap_or_else(super::zero_seqkit_metrics);
-    let output = stats
-        .get(1)
-        .copied()
-        .unwrap_or_else(super::zero_seqkit_metrics);
+    let input = stats.first().copied().unwrap_or_else(super::zero_seqkit_metrics);
+    let output = stats.get(1).copied().unwrap_or_else(super::zero_seqkit_metrics);
     let (pairs_in, pairs_out) = super::pair_counts_from_paths(inputs, outputs)?;
     let read_retention = if input.reads > 0 {
         super::f64_from_u64(output.reads) / super::f64_from_u64(input.reads)

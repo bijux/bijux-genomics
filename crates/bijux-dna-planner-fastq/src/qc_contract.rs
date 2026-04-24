@@ -46,13 +46,7 @@ mod tests {
         assert!(tool_ids.contains(&"fastqvalidator".to_string()));
         assert!(tool_ids.contains(&"fastqc".to_string()));
         assert!(!tool_ids.contains(&"multiqc".to_string()));
-        assert_eq!(
-            tool_ids
-                .iter()
-                .filter(|tool_id| tool_id.as_str() == "fastqc")
-                .count(),
-            1
-        );
+        assert_eq!(tool_ids.iter().filter(|tool_id| tool_id.as_str() == "fastqc").count(), 1);
     }
 
     #[test]
@@ -72,9 +66,7 @@ mod tests {
         assert!(single_end.contains(&StageId::from_static("fastq.deplete_rrna")));
         assert!(single_end.contains(&StageId::from_static("fastq.correct_errors")));
         assert!(!single_end.contains(&StageId::from_static("fastq.deplete_host")));
-        assert!(!single_end.contains(&StageId::from_static(
-            "fastq.deplete_reference_contaminants"
-        )));
+        assert!(!single_end.contains(&StageId::from_static("fastq.deplete_reference_contaminants")));
         assert!(!single_end.contains(&StageId::from_static("fastq.normalize_abundance")));
         assert!(!single_end.contains(&StageId::from_static("fastq.merge_pairs")));
 

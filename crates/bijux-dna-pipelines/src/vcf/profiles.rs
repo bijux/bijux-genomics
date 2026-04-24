@@ -43,15 +43,8 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
         DefaultParams::Vcf(VcfEffectiveParams::Stats(VcfStatsParams::default())),
     );
 
-    for stage in [
-        id_catalog::VCF_CALL,
-        id_catalog::VCF_FILTER,
-        id_catalog::VCF_STATS,
-    ] {
-        defaults.rationales.insert(
-            StageId::from_static(stage),
-            "vcf minimal default".to_string(),
-        );
+    for stage in [id_catalog::VCF_CALL, id_catalog::VCF_FILTER, id_catalog::VCF_STATS] {
+        defaults.rationales.insert(StageId::from_static(stage), "vcf minimal default".to_string());
     }
 
     PipelineProfile {
@@ -103,18 +96,14 @@ pub fn vcf_reference_basic_profile() -> PipelineProfile {
     profile.id = PipelineId::from_static(id_catalog::PIPELINE_VCF_REFERENCE_BASIC);
     profile.description = "Reference-grade VCF baseline profile";
     profile.stability = StabilityTier::Stable;
-    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Call(call))) = profile
-        .defaults
-        .params
-        .get_mut(&StageId::from_static(id_catalog::VCF_CALL))
+    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Call(call))) =
+        profile.defaults.params.get_mut(&StageId::from_static(id_catalog::VCF_CALL))
     {
         call.reference_fasta = Some("reference.fa".to_string());
         call.sample_name = "reference_sample".to_string();
     }
-    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Filter(filter))) = profile
-        .defaults
-        .params
-        .get_mut(&StageId::from_static(id_catalog::VCF_FILTER))
+    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Filter(filter))) =
+        profile.defaults.params.get_mut(&StageId::from_static(id_catalog::VCF_FILTER))
     {
         filter.production_profile = true;
         filter.require_pass = true;

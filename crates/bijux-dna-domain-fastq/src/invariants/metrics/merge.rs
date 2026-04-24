@@ -9,10 +9,9 @@ pub(super) fn evaluate(
     thresholds: &InvariantThresholds,
 ) {
     if let Ok(metrics) = serde_json::from_value::<FastqMergeMetricsV1>(metrics_json.clone()) {
-        state.key_metrics.insert(
-            "merge_rate".to_string(),
-            serde_json::Value::from(metrics.merge_rate),
-        );
+        state
+            .key_metrics
+            .insert("merge_rate".to_string(), serde_json::Value::from(metrics.merge_rate));
         let rate = metrics.merge_rate;
         if rate < thresholds.merge_rate_fail_low || rate > thresholds.merge_rate_fail_high {
             state.results.push(result(

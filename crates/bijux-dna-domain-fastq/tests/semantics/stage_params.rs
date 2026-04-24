@@ -120,10 +120,7 @@ fn screen_defaults_roundtrip_with_declared_thread_count() {
     assert_eq!(decoded.threads, 4);
     assert_eq!(decoded.classifier, TaxonomyClassifier::Kraken2);
     assert_eq!(decoded.report_format, TaxonomyReportFormat::KrakenReport);
-    assert_eq!(
-        decoded.assignment_format,
-        TaxonomyAssignmentFormat::KrakenAssignments
-    );
+    assert_eq!(decoded.assignment_format, TaxonomyAssignmentFormat::KrakenAssignments);
     assert!(decoded.missing_required_fields().is_empty());
 }
 
@@ -133,10 +130,7 @@ fn trim_terminal_damage_params_roundtrip_with_stage_specific_schema() {
     let decoded: TrimTerminalDamageParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION);
     assert_eq!(decoded.damage_mode, DamageMode::Ancient);
-    assert_eq!(
-        decoded.execution_policy,
-        default_terminal_damage_execution_policy()
-    );
+    assert_eq!(decoded.execution_policy, default_terminal_damage_execution_policy());
     assert_eq!(decoded.trim_5p_bases, 2);
     assert_eq!(decoded.trim_3p_bases, 2);
     assert_eq!(decoded.requested_trim_5p_bases, None);
@@ -158,20 +152,14 @@ fn merge_defaults_roundtrip_with_declared_thread_count() {
     assert_eq!(decoded.schema_version, MERGE_SCHEMA_VERSION);
     assert_eq!(decoded.threads, 6);
     assert_eq!(decoded.merge_engine, MergeEngine::Pear);
-    assert_eq!(
-        decoded.unmerged_read_policy,
-        UnmergedReadPolicy::EmitUnmergedPairs
-    );
+    assert_eq!(decoded.unmerged_read_policy, UnmergedReadPolicy::EmitUnmergedPairs);
     assert!(decoded.missing_required_fields().is_empty());
 }
 
 #[test]
 fn udg_trimmed_default_policy_preserves_terminal_ends() {
     let policy = resolve_terminal_damage_policy(DamageMode::UdgTrimmed, 2, 2);
-    assert_eq!(
-        policy.execution_policy,
-        TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds
-    );
+    assert_eq!(policy.execution_policy, TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds);
     assert_eq!(policy.effective_trim_5p_bases, 0);
     assert_eq!(policy.effective_trim_3p_bases, 0);
     assert_eq!(policy.requested_trim_5p_bases, 2);
@@ -187,10 +175,7 @@ fn explicit_terminal_damage_policy_override_forces_trim_execution() {
         Some(TerminalDamageExecutionPolicy::ExplicitTerminalTrim),
     )
     .unwrap_or_else(|err| panic!("explicit override must resolve: {err}"));
-    assert_eq!(
-        policy.execution_policy,
-        TerminalDamageExecutionPolicy::ExplicitTerminalTrim
-    );
+    assert_eq!(policy.execution_policy, TerminalDamageExecutionPolicy::ExplicitTerminalTrim);
     assert_eq!(policy.effective_trim_5p_bases, 2);
     assert_eq!(policy.effective_trim_3p_bases, 2);
 }
@@ -212,10 +197,7 @@ fn preserve_udg_policy_rejects_non_udg_damage_mode() {
 
 #[test]
 fn trim_terminal_damage_policy_parser_accepts_policy_derived() {
-    assert_eq!(
-        parse_terminal_damage_execution_policy("policy_derived"),
-        Some(None)
-    );
+    assert_eq!(parse_terminal_damage_execution_policy("policy_derived"), Some(None));
     assert_eq!(parse_terminal_damage_execution_policy("auto"), Some(None));
 }
 
@@ -263,10 +245,7 @@ fn remove_duplicates_parser_matches_public_stage_descriptor() {
 fn governed_stage_descriptors_cover_manifest_declared_fastq_knobs() {
     for (stage, expected_param_type_id) in [
         ("fastq.profile_read_lengths", "fastq.profile_read_lengths"),
-        (
-            "fastq.profile_overrepresented_sequences",
-            "fastq.profile_overrepresented_sequences",
-        ),
+        ("fastq.profile_overrepresented_sequences", "fastq.profile_overrepresented_sequences"),
         ("fastq.profile_reads", "fastq.profile_reads"),
         ("fastq.validate_reads", "fastq.validate_reads"),
         ("fastq.remove_chimeras", "fastq.remove_chimeras"),
@@ -295,10 +274,7 @@ fn merge_params_roundtrip_with_engine_specific_output_policy() {
     let decoded: MergeEffectiveParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, MERGE_SCHEMA_VERSION);
     assert_eq!(decoded.merge_engine, MergeEngine::Pear);
-    assert_eq!(
-        decoded.unmerged_read_policy,
-        UnmergedReadPolicy::EmitUnmergedPairs,
-    );
+    assert_eq!(decoded.unmerged_read_policy, UnmergedReadPolicy::EmitUnmergedPairs,);
     assert!(decoded.missing_required_fields().is_empty());
 }
 
@@ -317,10 +293,7 @@ fn merge_params_roundtrip_with_adapterremoval_engine() {
     assert_eq!(decoded.merge_engine, MergeEngine::AdapterRemoval);
     assert_eq!(decoded.merge_overlap, Some(17));
     assert_eq!(decoded.min_len, Some(45));
-    assert_eq!(
-        decoded.unmerged_read_policy,
-        UnmergedReadPolicy::OmitUnmergedPairs,
-    );
+    assert_eq!(decoded.unmerged_read_policy, UnmergedReadPolicy::OmitUnmergedPairs,);
     assert!(decoded.missing_required_fields().is_empty());
 }
 
@@ -351,10 +324,7 @@ fn chimera_params_roundtrip_with_sequence_artifact_contract() {
     assert_eq!(decoded.chimera_sequence_artifact, "chimeras_fasta");
     assert_eq!(decoded.raw_backend_report_artifact, "uchime_report_tsv");
     assert_eq!(decoded.raw_backend_report_format, "vsearch_uchime_tsv");
-    assert_eq!(
-        decoded.fallback_behavior,
-        "copy_input_reads_and_mark_report"
-    );
+    assert_eq!(decoded.fallback_behavior, "copy_input_reads_and_mark_report");
 }
 
 #[test]
@@ -374,14 +344,8 @@ fn otu_clustering_params_roundtrip_with_domain_default_threshold() {
     assert_eq!(decoded.threads, 4);
     assert_eq!(decoded.output_table_kind, "otu_abundance_table");
     assert_eq!(decoded.report_artifact, "report_json");
-    assert_eq!(
-        decoded.raw_backend_report_artifact.as_deref(),
-        Some("otu_clusters_uc")
-    );
-    assert_eq!(
-        decoded.raw_backend_report_format.as_deref(),
-        Some("vsearch_uc")
-    );
+    assert_eq!(decoded.raw_backend_report_artifact.as_deref(), Some("otu_clusters_uc"));
+    assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("vsearch_uc"));
 }
 
 #[test]
@@ -444,15 +408,9 @@ fn host_depletion_params_roundtrip_with_reference_provenance_fields() {
     assert_eq!(decoded.decoy_policy, ReferenceDecoyPolicy::Included);
     assert_eq!(decoded.decoy_catalog_id.as_deref(), Some("host_decoys"));
     assert!((decoded.identity_threshold - 0.95).abs() < f64::EPSILON);
-    assert_eq!(
-        decoded.retained_read_policy,
-        ReadRetentionPolicy::KeepNonHostReads,
-    );
+    assert_eq!(decoded.retained_read_policy, ReadRetentionPolicy::KeepNonHostReads,);
     assert!(decoded.emit_removed_reads);
-    assert_eq!(
-        decoded.report_format,
-        MappingReportFormat::Bowtie2MetricsFile,
-    );
+    assert_eq!(decoded.report_format, MappingReportFormat::Bowtie2MetricsFile,);
     assert!(decoded.missing_required_fields().is_empty());
 }
 
@@ -479,25 +437,13 @@ fn screen_taxonomy_params_roundtrip_with_classifier_contract() {
     assert_eq!(decoded.schema_version, SCREEN_TAXONOMY_SCHEMA_VERSION);
     assert_eq!(decoded.database_catalog_id, "taxonomy_reference");
     assert_eq!(decoded.database_artifact_id, "taxonomy_db");
-    assert_eq!(
-        decoded.database_build_id.as_deref(),
-        Some("kraken2-standard-2025-01"),
-    );
-    assert_eq!(
-        decoded.database_digest.as_deref(),
-        Some("sha256:taxonomy-db")
-    );
-    assert_eq!(
-        decoded.database_namespace.as_deref(),
-        Some("read_screening")
-    );
+    assert_eq!(decoded.database_build_id.as_deref(), Some("kraken2-standard-2025-01"),);
+    assert_eq!(decoded.database_digest.as_deref(), Some("sha256:taxonomy-db"));
+    assert_eq!(decoded.database_namespace.as_deref(), Some("read_screening"));
     assert_eq!(decoded.database_scope, TaxonomyDatabaseScope::ReadScreening);
     assert_eq!(decoded.classifier, TaxonomyClassifier::Kraken2);
     assert_eq!(decoded.report_format, TaxonomyReportFormat::KrakenReport);
-    assert_eq!(
-        decoded.assignment_format,
-        TaxonomyAssignmentFormat::KrakenAssignments,
-    );
+    assert_eq!(decoded.assignment_format, TaxonomyAssignmentFormat::KrakenAssignments,);
     assert_eq!(decoded.minimum_confidence, Some(0.2));
     assert!(decoded.emit_unclassified);
     assert!(decoded.missing_required_fields().is_empty());
@@ -532,9 +478,6 @@ fn report_qc_params_roundtrip_with_multiqc_contract() {
     let decoded: QcPostEffectiveParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, REPORT_QC_SCHEMA_VERSION);
     assert_eq!(decoded.aggregation_engine, QcAggregationEngine::Multiqc);
-    assert_eq!(
-        decoded.aggregation_scope,
-        QcAggregationScope::GovernedQcArtifacts
-    );
+    assert_eq!(decoded.aggregation_scope, QcAggregationScope::GovernedQcArtifacts);
     assert!(decoded.missing_required_fields().is_empty());
 }

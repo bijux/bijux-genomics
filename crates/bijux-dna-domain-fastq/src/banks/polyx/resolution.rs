@@ -1,4 +1,5 @@
 use std::collections::BTreeSet;
+use std::fmt::Write as _;
 
 use anyhow::{anyhow, Result};
 use sha2::Digest;
@@ -79,5 +80,14 @@ fn hash_preset_sequences(sequences: &[String]) -> String {
         hasher.update(seq.as_bytes());
         hasher.update(b"|");
     }
-    hasher.finalize().iter().map(|byte| format!("{byte:02x}")).collect()
+    sha256_hex(hasher.finalize())
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

@@ -85,9 +85,6 @@ mod tests {
             .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "bbduk");
         assert_eq!(decoded.reads_removed_low_complexity, 8);
-        assert_eq!(
-            decoded.raw_backend_report_format.as_deref(),
-            Some("bbduk_stats")
-        );
+        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("bbduk_stats"));
     }
 }

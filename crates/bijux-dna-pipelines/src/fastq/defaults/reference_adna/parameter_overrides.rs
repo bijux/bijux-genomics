@@ -11,10 +11,8 @@ pub(super) fn apply(defaults: &mut EffectiveDefaults) {
         DefaultParams::FastqFilter(filter_defaults(true)),
     );
 
-    if let Some(DefaultParams::FastqScreen(mut params)) = defaults
-        .params
-        .get(&StageId::from_static(id_catalog::FASTQ_SCREEN))
-        .cloned()
+    if let Some(DefaultParams::FastqScreen(mut params)) =
+        defaults.params.get(&StageId::from_static(id_catalog::FASTQ_SCREEN)).cloned()
     {
         params.paired_mode = PairedMode::PairedEnd;
         params.contaminant_db = Some("host_depletion_db".to_string());

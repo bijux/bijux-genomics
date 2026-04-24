@@ -51,16 +51,8 @@ fn record_to_support(record: &ExecutionSupportRecord) -> StageExecutionSupport {
         runtime_support: record.runtime_support,
         normalization_support: record.normalization_support,
         benchmark_support: record.benchmark_support,
-        default_tool: record
-            .default_tool
-            .as_ref()
-            .map(|tool| ToolId::new(tool.clone())),
-        admitted_tools: record
-            .admitted_tools
-            .iter()
-            .cloned()
-            .map(ToolId::new)
-            .collect(),
+        default_tool: record.default_tool.as_ref().map(|tool| ToolId::new(tool.clone())),
+        admitted_tools: record.admitted_tools.iter().cloned().map(ToolId::new).collect(),
     }
 }
 
@@ -75,9 +67,7 @@ pub fn execution_support_for_stage(stage_id: &StageId) -> Option<StageExecutionS
 
 #[must_use]
 pub fn admitted_tools_for_stage(stage_id: &StageId) -> Vec<ToolId> {
-    execution_support_for_stage(stage_id)
-        .map(|support| support.admitted_tools)
-        .unwrap_or_default()
+    execution_support_for_stage(stage_id).map(|support| support.admitted_tools).unwrap_or_default()
 }
 
 #[must_use]

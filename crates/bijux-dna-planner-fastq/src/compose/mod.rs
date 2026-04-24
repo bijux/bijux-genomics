@@ -140,12 +140,7 @@ where
                     &out_dir,
                     &detect_adapters_params(binding),
                 )?;
-                (
-                    plan,
-                    stage_r1.clone(),
-                    stage_r2.clone(),
-                    inherited.feature_table.clone(),
-                )
+                (plan, stage_r1.clone(), stage_r2.clone(), inherited.feature_table.clone())
             }
             stage if stage == STAGE_PROFILE_READ_LENGTHS.as_str() => {
                 let plan = if let Some(params) = profile_read_lengths_params(binding) {
@@ -165,12 +160,7 @@ where
                         &out_dir,
                     )?
                 };
-                (
-                    plan,
-                    stage_r1.clone(),
-                    stage_r2.clone(),
-                    inherited.feature_table.clone(),
-                )
+                (plan, stage_r1.clone(), stage_r2.clone(), inherited.feature_table.clone())
             }
             stage if stage == STAGE_PROFILE_OVERREPRESENTED_SEQUENCES.as_str() => {
                 let plan = if let Some(params) = profile_overrepresented_params(binding) {
@@ -190,12 +180,7 @@ where
                         &out_dir,
                     )?
                 };
-                (
-                    plan,
-                    stage_r1.clone(),
-                    stage_r2.clone(),
-                    inherited.feature_table.clone(),
-                )
+                (plan, stage_r1.clone(), stage_r2.clone(), inherited.feature_table.clone())
             }
             stage if stage == STAGE_INDEX_REFERENCE.as_str() => {
                 let reference_fasta = reference_fasta
@@ -237,11 +222,8 @@ where
                     )?
                 };
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if stage_r2.is_some() {
-                    Some(plan.io.outputs[1].path.clone())
-                } else {
-                    None
-                };
+                let next_r2 =
+                    if stage_r2.is_some() { Some(plan.io.outputs[1].path.clone()) } else { None };
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_TRIM_TERMINAL_DAMAGE.as_str() => {
@@ -254,28 +236,19 @@ where
                     &params,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if stage_r2.is_some() {
-                    Some(plan.io.outputs[1].path.clone())
-                } else {
-                    None
-                };
+                let next_r2 =
+                    if stage_r2.is_some() { Some(plan.io.outputs[1].path.clone()) } else { None };
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_FILTER_READS.as_str() => {
                 let mut filter_options = filter_reads_plan_options(binding);
                 if adapter_bank.is_some()
-                    && !filter_options
-                        .redundant_filters
-                        .iter()
-                        .any(|filter| filter == "adapter")
+                    && !filter_options.redundant_filters.iter().any(|filter| filter == "adapter")
                 {
                     filter_options.redundant_filters.push("adapter".to_string());
                 }
                 if polyx_bank.is_some()
-                    && !filter_options
-                        .redundant_filters
-                        .iter()
-                        .any(|filter| filter == "polyx")
+                    && !filter_options.redundant_filters.iter().any(|filter| filter == "polyx")
                 {
                     filter_options.redundant_filters.push("polyx".to_string());
                 }
@@ -294,11 +267,8 @@ where
                     &filter_options,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if stage_r2.is_some() {
-                    Some(plan.io.outputs[1].path.clone())
-                } else {
-                    None
-                };
+                let next_r2 =
+                    if stage_r2.is_some() { Some(plan.io.outputs[1].path.clone()) } else { None };
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_REMOVE_DUPLICATES.as_str() => {
@@ -323,11 +293,8 @@ where
                     )?
                 };
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if stage_r2.is_some() {
-                    Some(plan.io.outputs[1].path.clone())
-                } else {
-                    None
-                };
+                let next_r2 =
+                    if stage_r2.is_some() { Some(plan.io.outputs[1].path.clone()) } else { None };
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_DEPLETE_HOST.as_str() => {
@@ -356,11 +323,8 @@ where
                         &reference_index.tool_id,
                     )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if stage_r2.is_some() {
-                    Some(plan.io.outputs[1].path.clone())
-                } else {
-                    None
-                };
+                let next_r2 =
+                    if stage_r2.is_some() { Some(plan.io.outputs[1].path.clone()) } else { None };
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str() => {
@@ -390,11 +354,8 @@ where
                     &reference_index.tool_id,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if stage_r2.is_some() {
-                    Some(plan.io.outputs[1].path.clone())
-                } else {
-                    None
-                };
+                let next_r2 =
+                    if stage_r2.is_some() { Some(plan.io.outputs[1].path.clone()) } else { None };
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_FILTER_LOW_COMPLEXITY.as_str() => {
@@ -407,11 +368,8 @@ where
                     &low_complexity_options,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if stage_r2.is_some() {
-                    Some(plan.io.outputs[1].path.clone())
-                } else {
-                    None
-                };
+                let next_r2 =
+                    if stage_r2.is_some() { Some(plan.io.outputs[1].path.clone()) } else { None };
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_TRIM_POLYG_TAILS.as_str() => {
@@ -432,11 +390,8 @@ where
                     )?
                 };
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if stage_r2.is_some() {
-                    Some(plan.io.outputs[1].path.clone())
-                } else {
-                    None
-                };
+                let next_r2 =
+                    if stage_r2.is_some() { Some(plan.io.outputs[1].path.clone()) } else { None };
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_VALIDATE_READS.as_str() => {
@@ -463,17 +418,10 @@ where
                         pair_sync_policy: params.pair_sync_policy.clone(),
                     },
                 )?;
-                (
-                    plan,
-                    stage_r1.clone(),
-                    stage_r2.clone(),
-                    inherited.feature_table.clone(),
-                )
+                (plan, stage_r1.clone(), stage_r2.clone(), inherited.feature_table.clone())
             }
             stage if stage == STAGE_MERGE_PAIRS.as_str() => {
-                let r2 = stage_r2
-                    .as_ref()
-                    .ok_or_else(|| anyhow!("merge requires r2"))?;
+                let r2 = stage_r2.as_ref().ok_or_else(|| anyhow!("merge requires r2"))?;
                 let plan = crate::tool_adapters::fastq::merge_pairs::plan_merge_with_options(
                     tool,
                     &stage_r1,
@@ -500,9 +448,7 @@ where
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_EXTRACT_UMIS.as_str() => {
-                let r2 = stage_r2
-                    .as_ref()
-                    .ok_or_else(|| anyhow!("umi requires r2"))?;
+                let r2 = stage_r2.as_ref().ok_or_else(|| anyhow!("umi requires r2"))?;
                 let plan = crate::tool_adapters::fastq::extract_umis::plan_umi_with_options(
                     tool,
                     &stage_r1,
@@ -512,12 +458,7 @@ where
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
                 let next_r2 = plan.io.outputs[1].path.clone();
-                (
-                    plan,
-                    next_r1,
-                    Some(next_r2),
-                    inherited.feature_table.clone(),
-                )
+                (plan, next_r1, Some(next_r2), inherited.feature_table.clone())
             }
             stage if stage == STAGE_REPORT_QC.as_str() => {
                 let report_qc_inputs = explicit_report_qc_inputs(&resolved_inputs)
@@ -534,11 +475,8 @@ where
                         }
                     }
                 }
-                let paired_mode = if stage_r2.is_some() {
-                    PairedMode::PairedEnd
-                } else {
-                    PairedMode::SingleEnd
-                };
+                let paired_mode =
+                    if stage_r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
                 let qc_post_params = report_qc_params(binding, paired_mode);
                 if report_qc_inputs.is_empty() {
                     return Err(anyhow!(
@@ -556,12 +494,7 @@ where
                     Some(raw_r1.as_path()),
                     raw_r2.as_deref(),
                 )?;
-                (
-                    plan,
-                    stage_r1.clone(),
-                    stage_r2.clone(),
-                    inherited.feature_table.clone(),
-                )
+                (plan, stage_r1.clone(), stage_r2.clone(), inherited.feature_table.clone())
             }
             stage if stage == STAGE_DEPLETE_RRNA.as_str() => {
                 let params = deplete_rrna_params(binding);
@@ -573,11 +506,8 @@ where
                     &params,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if stage_r2.is_some() {
-                    Some(plan.io.outputs[1].path.clone())
-                } else {
-                    None
-                };
+                let next_r2 =
+                    if stage_r2.is_some() { Some(plan.io.outputs[1].path.clone()) } else { None };
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_SCREEN_TAXONOMY.as_str() => {
@@ -589,12 +519,7 @@ where
                     &out_dir,
                     &params,
                 )?;
-                (
-                    plan,
-                    stage_r1.clone(),
-                    stage_r2.clone(),
-                    inherited.feature_table.clone(),
-                )
+                (plan, stage_r1.clone(), stage_r2.clone(), inherited.feature_table.clone())
             }
             stage if stage == STAGE_PROFILE_READS.as_str() => {
                 let plan = if let Some(params) = profile_reads_params(binding) {
@@ -613,12 +538,7 @@ where
                         &out_dir,
                     )?
                 };
-                (
-                    plan,
-                    stage_r1.clone(),
-                    stage_r2.clone(),
-                    inherited.feature_table.clone(),
-                )
+                (plan, stage_r1.clone(), stage_r2.clone(), inherited.feature_table.clone())
             }
             stage if stage == STAGE_NORMALIZE_PRIMERS.as_str() => {
                 if !matches!(tool.tool_id.as_str(), "cutadapt" | "seqkit") {
@@ -636,11 +556,8 @@ where
                     &normalize_primers_plan_options(binding),
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = if stage_r2.is_some() {
-                    Some(plan.io.outputs[1].path.clone())
-                } else {
-                    None
-                };
+                let next_r2 =
+                    if stage_r2.is_some() { Some(plan.io.outputs[1].path.clone()) } else { None };
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_REMOVE_CHIMERAS.as_str() => {
@@ -725,10 +642,7 @@ where
                 (plan, stage_r1.clone(), stage_r2.clone(), next_feature_table)
             }
             _ => {
-                return Err(anyhow!(
-                    "unsupported stage in fastq pipeline: {}",
-                    binding.stage_id
-                ));
+                return Err(anyhow!("unsupported stage in fastq pipeline: {}", binding.stage_id));
             }
         };
         let mut plan = plan;
@@ -747,19 +661,13 @@ where
         let mut next_qc_inputs = inherited.qc_inputs.clone();
         next_qc_inputs.extend(qc_input_artifacts_for_stage(stage_id, &plan));
         next_qc_inputs.sort_by(|left, right| {
-            left.name
-                .as_str()
-                .cmp(right.name.as_str())
-                .then_with(|| left.path.cmp(&right.path))
+            left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
         });
         next_qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
         let mut next_lineage_inputs = inherited.lineage_inputs.clone();
         next_lineage_inputs.extend(lineage_input_artifacts_for_stage(&plan));
         next_lineage_inputs.sort_by(|left, right| {
-            left.name
-                .as_str()
-                .cmp(right.name.as_str())
-                .then_with(|| left.path.cmp(&right.path))
+            left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
         });
         next_lineage_inputs
             .dedup_by(|left, right| left.name == right.name && left.path == right.path);
@@ -809,12 +717,8 @@ fn inherited_lineage(
     raw_r1: &Path,
     raw_r2: Option<&Path>,
 ) -> Result<PlannedStageLineage> {
-    let upstream_lineages = upstream_lineages(
-        binding,
-        stage_dependencies,
-        lineage_by_node_id,
-        latest_lineage_node_id,
-    );
+    let upstream_lineages =
+        upstream_lineages(binding, stage_dependencies, lineage_by_node_id, latest_lineage_node_id);
     if upstream_lineages.is_empty() {
         return Ok(PlannedStageLineage {
             reads_r1: raw_r1.to_path_buf(),
@@ -832,10 +736,7 @@ fn inherited_lineage(
             .flat_map(|lineage| lineage.qc_inputs.clone())
             .collect::<Vec<_>>();
         qc_inputs.sort_by(|left, right| {
-            left.name
-                .as_str()
-                .cmp(right.name.as_str())
-                .then_with(|| left.path.cmp(&right.path))
+            left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
         });
         qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
         return Ok(PlannedStageLineage {
@@ -851,43 +752,26 @@ fn inherited_lineage(
     let reads_r1 = unique_required_path_for_binding(
         binding,
         "reads_r1",
-        upstream_lineages
-            .iter()
-            .map(|lineage| lineage.reads_r1.clone())
-            .collect(),
+        upstream_lineages.iter().map(|lineage| lineage.reads_r1.clone()).collect(),
     )?;
     let reads_r2 = unique_optional_path_for_binding(
         binding,
         "reads_r2",
-        upstream_lineages
-            .iter()
-            .map(|lineage| lineage.reads_r2.clone())
-            .collect(),
+        upstream_lineages.iter().map(|lineage| lineage.reads_r2.clone()).collect(),
     )?;
     let feature_table = unique_optional_path_for_binding(
         binding,
         "abundance_table",
-        upstream_lineages
-            .iter()
-            .map(|lineage| lineage.feature_table.clone())
-            .collect(),
+        upstream_lineages.iter().map(|lineage| lineage.feature_table.clone()).collect(),
     )?;
     let reference_index = unique_reference_index_for_binding(
         binding,
-        upstream_lineages
-            .iter()
-            .map(|lineage| lineage.reference_index.clone())
-            .collect(),
+        upstream_lineages.iter().map(|lineage| lineage.reference_index.clone()).collect(),
     )?;
-    let mut qc_inputs = upstream_lineages
-        .iter()
-        .flat_map(|lineage| lineage.qc_inputs.clone())
-        .collect::<Vec<_>>();
+    let mut qc_inputs =
+        upstream_lineages.iter().flat_map(|lineage| lineage.qc_inputs.clone()).collect::<Vec<_>>();
     qc_inputs.sort_by(|left, right| {
-        left.name
-            .as_str()
-            .cmp(right.name.as_str())
-            .then_with(|| left.path.cmp(&right.path))
+        left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
     });
     qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
     Ok(PlannedStageLineage {
@@ -906,10 +790,7 @@ fn combine_lineage_inputs(upstream_lineages: &[&PlannedStageLineage]) -> Vec<Art
         .flat_map(|lineage| lineage.lineage_inputs.clone())
         .collect::<Vec<_>>();
     lineage_inputs.sort_by(|left, right| {
-        left.name
-            .as_str()
-            .cmp(right.name.as_str())
-            .then_with(|| left.path.cmp(&right.path))
+        left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
     });
     lineage_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
     lineage_inputs
@@ -928,10 +809,7 @@ fn merge_lineage_input_artifacts(plan: &mut StagePlanV1, lineage_inputs: &[Artif
         plan.io.inputs.push(artifact.clone());
     }
     plan.io.inputs.sort_by(|left, right| {
-        left.name
-            .as_str()
-            .cmp(right.name.as_str())
-            .then_with(|| left.path.cmp(&right.path))
+        left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
     });
 }
 
@@ -959,10 +837,7 @@ fn upstream_lineages<'a>(
             .filter_map(|upstream_node| lineage_by_node_id.get(upstream_node))
             .collect();
     }
-    latest_lineage_node_id
-        .and_then(|node_id| lineage_by_node_id.get(node_id))
-        .into_iter()
-        .collect()
+    latest_lineage_node_id.and_then(|node_id| lineage_by_node_id.get(node_id)).into_iter().collect()
 }
 
 fn unique_required_path_for_binding(
@@ -975,10 +850,7 @@ fn unique_required_path_for_binding(
     unique_paths.dedup();
     match unique_paths.len() {
         1 => Ok(unique_paths.remove(0)),
-        0 => Err(anyhow!(
-            "{} is missing upstream {input_id} lineage",
-            binding.stage_id
-        )),
+        0 => Err(anyhow!("{} is missing upstream {input_id} lineage", binding.stage_id)),
         _ => Err(anyhow!(
             "{} has multiple upstream candidates for {input_id}; add an explicit artifact binding",
             binding.stage_id
@@ -1010,9 +882,7 @@ fn unique_reference_index_for_binding(
 ) -> Result<Option<ReferenceIndexState>> {
     let mut unique_indices = indices.into_iter().flatten().collect::<Vec<_>>();
     unique_indices.sort_by(|left, right| {
-        left.path
-            .cmp(&right.path)
-            .then_with(|| left.tool_id.cmp(&right.tool_id))
+        left.path.cmp(&right.path).then_with(|| left.tool_id.cmp(&right.tool_id))
     });
     unique_indices.dedup_by(|left, right| left.path == right.path && left.tool_id == right.tool_id);
     match unique_indices.len() {
@@ -1037,9 +907,7 @@ fn qc_input_artifacts_for_stage(stage_id: &str, plan: &StagePlanV1) -> Vec<Artif
         .outputs
         .iter()
         .filter(|artifact| {
-            governed_output_ids
-                .iter()
-                .any(|artifact_id| artifact.name.as_str() == artifact_id)
+            governed_output_ids.iter().any(|artifact_id| artifact.name.as_str() == artifact_id)
         })
         .map(|artifact| report_qc_input_artifact(stage_node_id_for_plan(plan), artifact, None))
         .collect()
@@ -1101,11 +969,7 @@ pub(crate) fn ensure_normalize_abundance_tool(tool_id: &str) -> Result<()> {
     if tool_id == "seqkit" {
         return Ok(());
     }
-    Err(anyhow!(
-        "{} requires seqkit; got {}",
-        STAGE_NORMALIZE_ABUNDANCE.as_str(),
-        tool_id
-    ))
+    Err(anyhow!("{} requires seqkit; got {}", STAGE_NORMALIZE_ABUNDANCE.as_str(), tool_id))
 }
 
 #[allow(dead_code)]

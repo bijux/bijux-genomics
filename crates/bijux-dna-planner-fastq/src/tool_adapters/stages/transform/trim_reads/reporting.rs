@@ -179,14 +179,8 @@ pub(super) fn wrap_trim_shell_script_with_report(
     raw_backend_report: Option<&Path>,
 ) -> Vec<String> {
     let mut dir_paths = BTreeSet::<PathBuf>::new();
-    for path in [
-        Some(output_r1),
-        output_r2,
-        Some(report_json),
-        raw_backend_report,
-    ]
-    .into_iter()
-    .flatten()
+    for path in
+        [Some(output_r1), output_r2, Some(report_json), raw_backend_report].into_iter().flatten()
     {
         if let Some(parent) = path.parent() {
             dir_paths.insert(parent.to_path_buf());

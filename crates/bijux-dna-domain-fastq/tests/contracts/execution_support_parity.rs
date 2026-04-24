@@ -32,9 +32,8 @@ fn stage_manifest_tools() -> Result<BTreeMap<String, BTreeSet<String>>> {
             .find_map(|line| line.strip_prefix("stage_id: "))
             .map(|value| value.trim().trim_matches('"').to_string())
             .with_context(|| format!("stage_id missing in {}", path.display()))?;
-        let compatible_tools = block_list(&raw, "compatible_tools")
-            .into_iter()
-            .collect::<BTreeSet<_>>();
+        let compatible_tools =
+            block_list(&raw, "compatible_tools").into_iter().collect::<BTreeSet<_>>();
         out.insert(stage_id, compatible_tools);
     }
     Ok(out)
@@ -58,9 +57,8 @@ fn stage_manifest_planned_tools() -> Result<BTreeMap<String, BTreeSet<String>>> 
             .find_map(|line| line.strip_prefix("stage_id: "))
             .map(|value| value.trim().trim_matches('"').to_string())
             .with_context(|| format!("stage_id missing in {}", path.display()))?;
-        let planned_tools = block_list(&raw, "planned_out_of_scope")
-            .into_iter()
-            .collect::<BTreeSet<_>>();
+        let planned_tools =
+            block_list(&raw, "planned_out_of_scope").into_iter().collect::<BTreeSet<_>>();
         out.insert(stage_id, planned_tools);
     }
     Ok(out)
@@ -72,10 +70,8 @@ fn execution_support_manifest() -> Result<Vec<ExecutionSupportManifestRow>> {
             .context("read domain/fastq/execution_support.yaml")?;
     let yaml: Value = bijux_dna_infra::formats::parse_yaml(&raw)
         .context("parse domain/fastq/execution_support.yaml")?;
-    let stages = yaml
-        .get("stages")
-        .and_then(Value::as_array)
-        .context("execution_support stages")?;
+    let stages =
+        yaml.get("stages").and_then(Value::as_array).context("execution_support stages")?;
     let mut out = Vec::new();
     for stage in stages {
         let stage_id = stage
@@ -83,10 +79,7 @@ fn execution_support_manifest() -> Result<Vec<ExecutionSupportManifestRow>> {
             .and_then(Value::as_str)
             .map(str::to_string)
             .context("execution_support stage_id")?;
-        let default_tool = stage
-            .get("default_tool")
-            .and_then(Value::as_str)
-            .map(str::to_string);
+        let default_tool = stage.get("default_tool").and_then(Value::as_str).map(str::to_string);
         let execution_status = stage
             .get("execution_status")
             .and_then(Value::as_str)
@@ -119,11 +112,7 @@ fn block_list(raw: &str, key: &str) -> Vec<String> {
         if !line.starts_with("  - ") {
             break;
         }
-        out.push(
-            line.trim_start_matches("  - ")
-                .trim_matches('"')
-                .to_string(),
-        );
+        out.push(line.trim_start_matches("  - ").trim_matches('"').to_string());
     }
     out
 }

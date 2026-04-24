@@ -25,11 +25,7 @@ pub(crate) fn build_metrics_envelope(
     let input_fingerprint = input_fingerprint(&input_hashes);
     let parameters_fingerprint = parameters_fingerprint(&plan.params)?;
     let parameters_json_normalized = parameters_json_canonicalization(&plan.params);
-    let image_digest = plan
-        .image
-        .digest
-        .clone()
-        .unwrap_or_else(|| plan.image.image.clone());
+    let image_digest = plan.image.digest.clone().unwrap_or_else(|| plan.image.image.clone());
     Ok(MetricsEnvelope {
         schema_version: "bijux.metrics_envelope.v2".to_string(),
         contract_version: ContractVersion::v1(),
@@ -69,17 +65,11 @@ pub(crate) fn retention_conditions_from_effective(
             }
         }
         out.insert("parameters".to_string(), effective_params.clone());
-        out.insert(
-            "condition".to_string(),
-            serde_json::Value::String("effective".to_string()),
-        );
+        out.insert("condition".to_string(), serde_json::Value::String("effective".to_string()));
     } else {
         warning = Some("effective_params_missing");
         out.insert("parameters".to_string(), raw_params.clone());
-        out.insert(
-            "condition".to_string(),
-            serde_json::Value::String("unknown".to_string()),
-        );
+        out.insert("condition".to_string(), serde_json::Value::String("unknown".to_string()));
     }
     out.insert("banks".to_string(), bank_refs_from_params(raw_params));
     for key in [
@@ -93,25 +83,19 @@ pub(crate) fn retention_conditions_from_effective(
         "polyx_policy",
         "contaminant_policy",
     ] {
-        out.entry(key.to_string())
-            .or_insert(serde_json::Value::Null);
+        out.entry(key.to_string()).or_insert(serde_json::Value::Null);
     }
     if let Some(flag) = warning {
-        out.insert(
-            "warning".to_string(),
-            serde_json::Value::String(flag.to_string()),
-        );
+        out.insert("warning".to_string(), serde_json::Value::String(flag.to_string()));
     }
     serde_json::Value::Object(out)
 }
 
 pub(super) fn bank_refs_from_params(params: &serde_json::Value) -> serde_json::Value {
     let mut banks = serde_json::Map::new();
-    for (key, field) in [
-        ("adapter", "adapter_bank"),
-        ("polyx", "polyx_bank"),
-        ("contaminant", "contaminant_bank"),
-    ] {
+    for (key, field) in
+        [("adapter", "adapter_bank"), ("polyx", "polyx_bank"), ("contaminant", "contaminant_bank")]
+    {
         if let Some(bank) = params.get(field) {
             let entry = serde_json::json!({
                 "bank_id": bank.get("bank_id"),
@@ -176,16 +160,10 @@ pub(super) fn stats_or_zero(
 pub(crate) fn stats_for_paths(
     paths: &[Option<&Path>],
 ) -> Result<Vec<bijux_dna_core::prelude::measure::SeqkitMetrics>> {
-    let tasks: Vec<(usize, Option<PathBuf>)> = paths
-        .iter()
-        .enumerate()
-        .map(|(idx, path)| (idx, path.map(Path::to_path_buf)))
-        .collect();
+    let tasks: Vec<(usize, Option<PathBuf>)> =
+        paths.iter().enumerate().map(|(idx, path)| (idx, path.map(Path::to_path_buf))).collect();
     if tasks.len() <= 1 || observer_jobs() == 1 {
-        return tasks
-            .into_iter()
-            .map(|(_, path)| stats_or_zero(path.as_deref()))
-            .collect();
+        return tasks.into_iter().map(|(_, path)| stats_or_zero(path.as_deref())).collect();
     }
     let queue = Arc::new(Mutex::new(VecDeque::from(tasks)));
     let mut initial = Vec::with_capacity(paths.len());
@@ -261,32 +239,17 @@ pub(super) fn distributions_for_path(path: Option<&Path>) -> Result<LengthGcDist
         if header.is_empty() {
             continue;
         }
-        let seq = lines
-            .next()
-            .ok_or_else(|| anyhow!("fastq missing sequence line"))??;
-        let _plus = lines
-            .next()
-            .ok_or_else(|| anyhow!("fastq missing plus line"))??;
-        let _qual = lines
-            .next()
-            .ok_or_else(|| anyhow!("fastq missing quality line"))??;
+        let seq = lines.next().ok_or_else(|| anyhow!("fastq missing sequence line"))??;
+        let _plus = lines.next().ok_or_else(|| anyhow!("fastq missing plus line"))??;
+        let _qual = lines.next().ok_or_else(|| anyhow!("fastq missing quality line"))??;
         let len = seq.len() as u64;
         *length_hist.entry(len).or_insert(0) += 1;
-        let gc = seq
-            .bytes()
-            .filter(|base| matches!(base, b'G' | b'g' | b'C' | b'c'))
-            .count() as f64;
-        let gc_pct = if len > 0 {
-            ((gc / len as f64) * 100.0).round() as u8
-        } else {
-            0
-        };
+        let gc =
+            seq.bytes().filter(|base| matches!(base, b'G' | b'g' | b'C' | b'c')).count() as f64;
+        let gc_pct = if len > 0 { ((gc / len as f64) * 100.0).round() as u8 } else { 0 };
         *gc_hist.entry(gc_pct).or_insert(0) += 1;
     }
-    Ok((
-        length_hist.into_iter().collect(),
-        gc_hist.into_iter().collect(),
-    ))
+    Ok((length_hist.into_iter().collect(), gc_hist.into_iter().collect()))
 }
 
 pub(crate) fn pair_counts_from_paths(
@@ -351,15 +314,9 @@ fn fastq_stats(path: &Path) -> Result<bijux_dna_core::prelude::measure::SeqkitMe
         if header.is_empty() {
             continue;
         }
-        let seq = lines
-            .next()
-            .ok_or_else(|| anyhow!("fastq missing sequence line"))??;
-        let _plus = lines
-            .next()
-            .ok_or_else(|| anyhow!("fastq missing plus line"))??;
-        let qual = lines
-            .next()
-            .ok_or_else(|| anyhow!("fastq missing quality line"))??;
+        let seq = lines.next().ok_or_else(|| anyhow!("fastq missing sequence line"))??;
+        let _plus = lines.next().ok_or_else(|| anyhow!("fastq missing plus line"))??;
+        let qual = lines.next().ok_or_else(|| anyhow!("fastq missing quality line"))??;
         reads += 1;
         let seq_bytes = seq.as_bytes();
         bases += seq_bytes.len() as u64;
@@ -375,29 +332,13 @@ fn fastq_stats(path: &Path) -> Result<bijux_dna_core::prelude::measure::SeqkitMe
             }
         }
     }
-    let mean_q = if reads > 0 {
-        q_sum as f64 / reads as f64
-    } else {
-        0.0
-    };
-    let gc_percent = if bases > 0 {
-        (gc as f64 / bases as f64) * 100.0
-    } else {
-        0.0
-    };
-    Ok(bijux_dna_core::prelude::measure::SeqkitMetrics {
-        reads,
-        bases,
-        mean_q,
-        gc_percent,
-    })
+    let mean_q = if reads > 0 { q_sum as f64 / reads as f64 } else { 0.0 };
+    let gc_percent = if bases > 0 { (gc as f64 / bases as f64) * 100.0 } else { 0.0 };
+    Ok(bijux_dna_core::prelude::measure::SeqkitMetrics { reads, bases, mean_q, gc_percent })
 }
 
 pub(super) fn path_from_params(params: &serde_json::Value, name: &str) -> Option<PathBuf> {
-    params
-        .get(name)
-        .and_then(|value| value.as_str())
-        .map(PathBuf::from)
+    params.get(name).and_then(|value| value.as_str()).map(PathBuf::from)
 }
 
 #[cfg(test)]
@@ -410,9 +351,8 @@ mod tests {
         let results = Arc::new(Mutex::new(Vec::new()));
         let poisoned = Arc::clone(&results);
         let _ = std::thread::spawn(move || {
-            let _guard = poisoned
-                .lock()
-                .unwrap_or_else(|err| panic!("lock poisoned unexpectedly: {err}"));
+            let _guard =
+                poisoned.lock().unwrap_or_else(|err| panic!("lock poisoned unexpectedly: {err}"));
             panic!("poison observer results");
         })
         .join();

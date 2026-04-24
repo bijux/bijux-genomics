@@ -42,19 +42,13 @@ fn parse_legacy_correct_errors_report(report_json: &str) -> Result<CorrectErrors
     let legacy: LegacyCorrectErrorsReportV1 =
         serde_json::from_str(report_json).context("parse legacy correct errors report")?;
     if legacy.schema_version != "bijux.fastq.correct_errors.report.v1" {
-        return Err(anyhow!(
-            "unsupported correct errors report schema {}",
-            legacy.schema_version
-        ));
+        return Err(anyhow!("unsupported correct errors report schema {}", legacy.schema_version));
     }
     Ok(CorrectErrorsReportV1 {
         schema_version: crate::CORRECT_ERRORS_REPORT_SCHEMA_VERSION.to_string(),
         stage: legacy.stage_id.clone(),
         stage_id: legacy.stage_id,
-        tool_id: legacy
-            .tool_id
-            .or(legacy.tool)
-            .unwrap_or_else(|| "unknown".to_string()),
+        tool_id: legacy.tool_id.or(legacy.tool).unwrap_or_else(|| "unknown".to_string()),
         paired_mode: PairedMode::from_has_r2(legacy.input_r2.is_some()),
         threads: 1,
         correction_engine: legacy.correction_engine,

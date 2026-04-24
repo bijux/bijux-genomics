@@ -52,10 +52,5 @@ pub const NORMALIZE_ABUNDANCE: StageDefinition = stage_definition(
     &[MetricClass::Composition],
 );
 
-pub const STAGES: [StageDefinition; 5] = [
-    NORMALIZE_PRIMERS,
-    REMOVE_CHIMERAS,
-    INFER_ASVS,
-    CLUSTER_OTUS,
-    NORMALIZE_ABUNDANCE,
-];
+pub const STAGES: [StageDefinition; 5] =
+    [NORMALIZE_PRIMERS, REMOVE_CHIMERAS, INFER_ASVS, CLUSTER_OTUS, NORMALIZE_ABUNDANCE];

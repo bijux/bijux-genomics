@@ -66,13 +66,7 @@ pub fn resolve_adapter_selection(
     let presets = crate::load_adapter_presets(&presets_path, &bank)?;
     let bank_checksum = bijux_dna_infra::hash_file_sha256(&bank_path)?;
     let presets_checksum = bijux_dna_infra::hash_file_sha256(&presets_path)?;
-    Ok(AdapterSelection {
-        bank,
-        presets,
-        preset_name,
-        bank_checksum,
-        presets_checksum,
-    })
+    Ok(AdapterSelection { bank, presets, preset_name, bank_checksum, presets_checksum })
 }
 
 /// Resolve the effective adapter set from a selection and overrides.
@@ -149,7 +143,5 @@ pub fn adapter_bank_context(
     let selection =
         resolve_adapter_selection(adapter_bank_preset, legacy_adapter_bank, adapter_bank_file)?;
     let effective = resolve_effective_adapters(&selection, enable, disable)?;
-    Ok(Some(adapter_bank_provenance_json(
-        &selection, &effective, enable, disable,
-    )))
+    Ok(Some(adapter_bank_provenance_json(&selection, &effective, enable, disable)))
 }

@@ -71,9 +71,6 @@ mod tests {
             .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "vsearch");
         assert_eq!(decoded.otu_count, 18);
-        assert_eq!(
-            decoded.raw_backend_report_format.as_deref(),
-            Some("vsearch_uc")
-        );
+        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("vsearch_uc"));
     }
 }

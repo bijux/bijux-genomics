@@ -12,27 +12,19 @@ pub fn runtime_interpretation_for_stage_tool(
     stage_id: &StageId,
     tool_id: &ToolId,
 ) -> Option<RuntimeInterpretationLevel> {
-    if !stage_id
-        .as_str()
-        .starts_with(bijux_dna_core::id_catalog::FASTQ_PREFIX)
-    {
+    if !stage_id.as_str().starts_with(bijux_dna_core::id_catalog::FASTQ_PREFIX) {
         return None;
     }
-    Some(
-        if crate::observer::is_observer_specialized_stage_tool(stage_id, tool_id) {
-            RuntimeInterpretationLevel::ObserverSpecialized
-        } else {
-            RuntimeInterpretationLevel::GenericEnvelope
-        },
-    )
+    Some(if crate::observer::is_observer_specialized_stage_tool(stage_id, tool_id) {
+        RuntimeInterpretationLevel::ObserverSpecialized
+    } else {
+        RuntimeInterpretationLevel::GenericEnvelope
+    })
 }
 
 #[must_use]
 pub fn runtime_interpretation_for_stage(stage_id: &StageId) -> Option<RuntimeInterpretationLevel> {
-    if !stage_id
-        .as_str()
-        .starts_with(bijux_dna_core::id_catalog::FASTQ_PREFIX)
-    {
+    if !stage_id.as_str().starts_with(bijux_dna_core::id_catalog::FASTQ_PREFIX) {
         return None;
     }
     if stage_uses_only_observer_specialized_runtime(stage_id) == Some(true) {

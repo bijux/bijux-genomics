@@ -47,9 +47,8 @@ pub fn select_preprocess_stage_tools(
         .collect::<Result<_>>()?;
 
     if args.auto {
-        let corpus_id = args
-            .bench_corpus
-            .ok_or_else(|| anyhow!("--bench-corpus is required with --auto"))?;
+        let corpus_id =
+            args.bench_corpus.ok_or_else(|| anyhow!("--bench-corpus is required with --auto"))?;
         let corpus = bijux_dna_domain_fastq::bench_corpus(corpus_id);
         let objective = bijux_dna_core::contract::objective_spec(args.objective);
         let repo = bench_repo.ok_or_else(|| {
@@ -110,12 +109,8 @@ pub fn select_preprocess_stage_tools(
 pub(crate) fn bench_query_context_for_stage(
     stage_id: &bijux_dna_core::ids::StageId,
 ) -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
-    bijux_dna_domain_fastq::governed_stage_bench_query_context(stage_id.as_str()).map_err(|err| {
-        anyhow!(
-            "compute benchmark query context for {}: {err}",
-            stage_id.as_str()
-        )
-    })
+    bijux_dna_domain_fastq::governed_stage_bench_query_context(stage_id.as_str())
+        .map_err(|err| anyhow!("compute benchmark query context for {}: {err}", stage_id.as_str()))
 }
 
 pub(crate) fn bench_query_context_for_preprocess_stage(

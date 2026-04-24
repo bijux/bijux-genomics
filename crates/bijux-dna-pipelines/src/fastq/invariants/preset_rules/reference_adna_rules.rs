@@ -20,11 +20,9 @@ pub(super) fn push_reference_adna_rule_violations(
         ));
     }
 
-    for stage in [
-        id_catalog::FASTQ_LOW_COMPLEXITY,
-        id_catalog::FASTQ_STATS_NEUTRAL,
-        id_catalog::FASTQ_MERGE,
-    ] {
+    for stage in
+        [id_catalog::FASTQ_LOW_COMPLEXITY, id_catalog::FASTQ_STATS_NEUTRAL, id_catalog::FASTQ_MERGE]
+    {
         if !required_stages.contains(stage) {
             violations.push(super::super::violation(
                 "reference_required_stage_missing",
@@ -38,7 +36,7 @@ pub(super) fn push_reference_adna_rule_violations(
     if required_stages.contains(id_catalog::FASTQ_SCREEN) {
         let missing_db = screen_params(profile)
             .and_then(|params| params.contaminant_db.as_ref())
-            .map_or(true, |value| value.trim().is_empty());
+            .is_none_or(|value| value.trim().is_empty());
         if missing_db {
             violations.push(super::super::violation(
                 "screen_reference_db_missing",

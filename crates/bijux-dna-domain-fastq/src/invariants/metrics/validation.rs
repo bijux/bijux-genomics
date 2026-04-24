@@ -5,10 +5,9 @@ use crate::invariants::evaluation::result;
 
 pub(super) fn evaluate(state: &mut EvaluationState, metrics_json: &serde_json::Value) {
     if let Ok(metrics) = serde_json::from_value::<FastqValidateMetricsV1>(metrics_json.clone()) {
-        state.key_metrics.insert(
-            "reads_invalid".to_string(),
-            serde_json::Value::from(metrics.reads_invalid),
-        );
+        state
+            .key_metrics
+            .insert("reads_invalid".to_string(), serde_json::Value::from(metrics.reads_invalid));
         state.key_metrics.insert(
             "strict_pass".to_string(),
             serde_json::to_value(metrics.strict_pass).unwrap_or(serde_json::Value::Null),
@@ -50,10 +49,7 @@ pub(super) fn evaluate(state: &mut EvaluationState, metrics_json: &serde_json::V
                     bijux_dna_core::prelude::invariants::InvariantStatusV1::Fail,
                     format!(
                         "pair validation failed with failure_class={}",
-                        metrics
-                            .failure_class
-                            .clone()
-                            .unwrap_or_else(|| "unknown".to_string())
+                        metrics.failure_class.clone().unwrap_or_else(|| "unknown".to_string())
                     ),
                     Some(
                         "inspect mate counts, header synchronization, and pair sync policy"
@@ -69,10 +65,7 @@ pub(super) fn evaluate(state: &mut EvaluationState, metrics_json: &serde_json::V
                 bijux_dna_core::prelude::invariants::InvariantStatusV1::Fail,
                 format!(
                     "strict validation failed with failure_class={}",
-                    metrics
-                        .failure_class
-                        .clone()
-                        .unwrap_or_else(|| "unknown".to_string())
+                    metrics.failure_class.clone().unwrap_or_else(|| "unknown".to_string())
                 ),
                 Some("inspect governed validation report and input integrity".to_string()),
             ));

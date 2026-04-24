@@ -18,10 +18,8 @@ fn stage_support(stage_id: &str) -> bijux_dna_domain_fastq::StageExecutionSuppor
 
 #[test]
 fn execution_support_manifest_covers_every_fastq_stage() {
-    let domain_stage_ids = FASTQ_STAGE_ID_CATALOG
-        .iter()
-        .map(|stage| (*stage).to_string())
-        .collect::<BTreeSet<_>>();
+    let domain_stage_ids =
+        FASTQ_STAGE_ID_CATALOG.iter().map(|stage| (*stage).to_string()).collect::<BTreeSet<_>>();
     let execution_stage_ids = all_stage_execution_support()
         .into_iter()
         .map(|stage| stage.stage_id.to_string())
@@ -132,21 +130,15 @@ fn execution_support_distinguishes_generic_mixed_and_comparable_normalization() 
         .collect::<std::collections::BTreeMap<_, _>>();
 
     assert_eq!(
-        by_stage
-            .remove("fastq.detect_adapters")
-            .map(|support| support.normalization_support),
+        by_stage.remove("fastq.detect_adapters").map(|support| support.normalization_support),
         Some(NormalizationSupport::ObserverSpecialized),
     );
     assert_eq!(
-        by_stage
-            .remove("fastq.deplete_host")
-            .map(|support| support.normalization_support),
+        by_stage.remove("fastq.deplete_host").map(|support| support.normalization_support),
         Some(NormalizationSupport::ObserverSpecialized),
     );
     assert_eq!(
-        by_stage
-            .remove("fastq.deplete_rrna")
-            .map(|support| support.normalization_support),
+        by_stage.remove("fastq.deplete_rrna").map(|support| support.normalization_support),
         Some(NormalizationSupport::ObserverSpecialized),
     );
     assert_eq!(
@@ -156,33 +148,23 @@ fn execution_support_distinguishes_generic_mixed_and_comparable_normalization() 
         Some(NormalizationSupport::ObserverSpecialized),
     );
     assert_eq!(
-        by_stage
-            .remove("fastq.validate_reads")
-            .map(|support| support.normalization_support),
+        by_stage.remove("fastq.validate_reads").map(|support| support.normalization_support),
         Some(NormalizationSupport::ObserverSpecialized),
     );
     assert_eq!(
-        by_stage
-            .remove("fastq.trim_reads")
-            .map(|support| support.normalization_support),
+        by_stage.remove("fastq.trim_reads").map(|support| support.normalization_support),
         Some(NormalizationSupport::ObserverSpecialized),
     );
     assert_eq!(
-        by_stage
-            .remove("fastq.screen_taxonomy")
-            .map(|support| support.normalization_support),
+        by_stage.remove("fastq.screen_taxonomy").map(|support| support.normalization_support),
         Some(NormalizationSupport::ObserverSpecialized),
     );
     assert_eq!(
-        by_stage
-            .remove("fastq.remove_duplicates")
-            .map(|support| support.normalization_support),
+        by_stage.remove("fastq.remove_duplicates").map(|support| support.normalization_support),
         Some(NormalizationSupport::ObserverSpecialized),
     );
     assert_eq!(
-        by_stage
-            .remove("fastq.infer_asvs")
-            .map(|support| support.normalization_support),
+        by_stage.remove("fastq.infer_asvs").map(|support| support.normalization_support),
         Some(NormalizationSupport::ObserverSpecialized),
     );
 }
@@ -197,14 +179,10 @@ fn execution_support_reports_benchmark_stage_sets_from_manifest_truth() {
         .into_iter()
         .map(|stage| stage.to_string())
         .collect::<BTreeSet<_>>();
-    let plannable = plannable_stage_ids()
-        .into_iter()
-        .map(|stage| stage.to_string())
-        .collect::<BTreeSet<_>>();
-    let runnable = runnable_stage_ids()
-        .into_iter()
-        .map(|stage| stage.to_string())
-        .collect::<BTreeSet<_>>();
+    let plannable =
+        plannable_stage_ids().into_iter().map(|stage| stage.to_string()).collect::<BTreeSet<_>>();
+    let runnable =
+        runnable_stage_ids().into_iter().map(|stage| stage.to_string()).collect::<BTreeSet<_>>();
 
     assert!(plannable.contains("fastq.trim_reads"));
     assert!(runnable.contains("fastq.trim_reads"));

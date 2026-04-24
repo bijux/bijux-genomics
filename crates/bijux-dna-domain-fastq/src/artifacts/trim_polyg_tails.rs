@@ -89,9 +89,6 @@ mod tests {
         assert_eq!(decoded.paired_mode, PairedMode::PairedEnd);
         assert_eq!(decoded.threads, 4);
         assert_eq!(decoded.bases_trimmed_polyg, Some(180));
-        assert_eq!(
-            decoded.raw_backend_report_format.as_deref(),
-            Some("fastp_json")
-        );
+        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastp_json"));
     }
 }

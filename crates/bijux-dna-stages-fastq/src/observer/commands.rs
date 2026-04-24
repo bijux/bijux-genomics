@@ -30,9 +30,7 @@ pub fn output_fastq_stats(mount_dir: &Path, fastq: &Path) -> Result<ObserverComm
 }
 
 fn seqkit_stats_command(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
-    let mount_dir = mount_dir
-        .canonicalize()
-        .context("resolve mount directory")?;
+    let mount_dir = mount_dir.canonicalize().context("resolve mount directory")?;
     let fastq = fastq.canonicalize().context("resolve fastq path")?;
     let fastq_name = fastq
         .file_name()
@@ -54,9 +52,7 @@ fn seqkit_stats_command(mount_dir: &Path, fastq: &Path) -> Result<ObserverComman
 }
 
 pub fn length_histogram_command(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
-    let mount_dir = mount_dir
-        .canonicalize()
-        .context("resolve mount directory")?;
+    let mount_dir = mount_dir.canonicalize().context("resolve mount directory")?;
     let fastq = fastq.canonicalize().context("resolve fastq path")?;
     let fastq_name = fastq
         .file_name()

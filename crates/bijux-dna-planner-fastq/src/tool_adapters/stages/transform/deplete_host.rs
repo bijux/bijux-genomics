@@ -105,11 +105,7 @@ pub fn plan_host_depletion_with_index_backend(
     }
     let report = out_dir.join("host_depletion_report.json");
     let raw_backend_report = out_dir.join("bowtie2.host.metrics.txt");
-    let paired_mode = if r2.is_some() {
-        PairedMode::PairedEnd
-    } else {
-        PairedMode::SingleEnd
-    };
+    let paired_mode = if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = HostDepletionEffectiveParams {
         schema_version: HOST_DEPLETION_SCHEMA_VERSION.to_string(),
@@ -268,15 +264,9 @@ fn host_depletion_command(
                     "-2".to_string(),
                     r2.display().to_string(),
                     "--un-conc-gz".to_string(),
-                    out_dir
-                        .join("host_depleted_R%.fastq.gz")
-                        .display()
-                        .to_string(),
+                    out_dir.join("host_depleted_R%.fastq.gz").display().to_string(),
                     "--al-conc-gz".to_string(),
-                    out_dir
-                        .join("removed_host_R%.fastq.gz")
-                        .display()
-                        .to_string(),
+                    out_dir.join("removed_host_R%.fastq.gz").display().to_string(),
                 ]);
             } else {
                 command.extend([
@@ -288,15 +278,10 @@ fn host_depletion_command(
                     out_dir.join("removed_host.fastq.gz").display().to_string(),
                 ]);
             }
-            command.extend([
-                "--met-file".to_string(),
-                raw_backend_report.display().to_string(),
-            ]);
+            command.extend(["--met-file".to_string(), raw_backend_report.display().to_string()]);
             Ok(command)
         }
-        _ => Err(anyhow!(
-            "unsupported host depletion tool for stage planning: {tool_id}"
-        )),
+        _ => Err(anyhow!("unsupported host depletion tool for stage planning: {tool_id}")),
     }
 }
 
@@ -309,13 +294,8 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::new(tool_id.to_string()),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/dummy:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["echo".to_string(), tool_id.to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["echo".to_string(), tool_id.to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -369,19 +349,13 @@ mod tests {
             Some(Path::new("reads_R2.fastq.gz")),
             Path::new("reference.index"),
             Path::new("out"),
-            &DepleteHostPlanOptions {
-                threads: Some(8),
-                ..DepleteHostPlanOptions::baseline()
-            },
+            &DepleteHostPlanOptions { threads: Some(8), ..DepleteHostPlanOptions::baseline() },
             "bowtie2_build",
         )?;
 
         assert_eq!(plan.params["threads"], 8);
         assert_eq!(plan.params["report_json"], "out/host_depletion_report.json");
-        assert_eq!(
-            plan.params["raw_backend_report"],
-            "out/bowtie2.host.metrics.txt"
-        );
+        assert_eq!(plan.params["raw_backend_report"], "out/bowtie2.host.metrics.txt");
         assert_eq!(plan.params["raw_backend_report_format"], "bowtie2_met_file");
         assert_eq!(plan.effective_params["threads"], 8);
         assert!(plan

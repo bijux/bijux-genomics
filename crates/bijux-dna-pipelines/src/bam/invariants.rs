@@ -20,18 +20,9 @@ pub struct DamageExpectationModel {
 impl Default for DamageExpectationModel {
     fn default() -> Self {
         Self {
-            non_udg: DamageExpectation {
-                min_terminal_damage: 0.08,
-                max_terminal_damage: 0.35,
-            },
-            half_udg: DamageExpectation {
-                min_terminal_damage: 0.04,
-                max_terminal_damage: 0.20,
-            },
-            udg: DamageExpectation {
-                min_terminal_damage: 0.00,
-                max_terminal_damage: 0.08,
-            },
+            non_udg: DamageExpectation { min_terminal_damage: 0.08, max_terminal_damage: 0.35 },
+            half_udg: DamageExpectation { min_terminal_damage: 0.04, max_terminal_damage: 0.20 },
+            udg: DamageExpectation { min_terminal_damage: 0.00, max_terminal_damage: 0.08 },
         }
     }
 }

@@ -40,10 +40,7 @@ fn expected_registry(stage_id: &str) -> (String, String) {
             } else {
                 descriptor.schema_version
             };
-            return (
-                descriptor.param_type_id.to_string(),
-                schema_version.to_string(),
-            );
+            return (descriptor.param_type_id.to_string(), schema_version.to_string());
         }
         if matches!(
             stage_id,
@@ -137,10 +134,7 @@ fn param_registry_matches_domain_mappings() {
     let entries = registry_entries();
     for (stage_id, (param_type_id, schema_version)) in entries {
         let (expected_type, expected_schema) = expected_registry(&stage_id);
-        assert_eq!(
-            param_type_id, expected_type,
-            "registry param type mismatch for {stage_id}",
-        );
+        assert_eq!(param_type_id, expected_type, "registry param type mismatch for {stage_id}",);
         assert_eq!(
             schema_version, expected_schema,
             "registry schema version mismatch for {stage_id}",

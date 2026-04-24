@@ -2,10 +2,7 @@ use std::fs;
 use std::path::Path;
 
 fn cargo_lock_dependencies(package: &str) -> Vec<String> {
-    let lock_path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..")
-        .join("Cargo.lock");
+    let lock_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..").join("Cargo.lock");
     let contents =
         fs::read_to_string(&lock_path).unwrap_or_else(|err| panic!("read Cargo.lock: {err}"));
     let mut deps = Vec::new();

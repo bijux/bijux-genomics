@@ -19,15 +19,15 @@ pub(super) fn stage_metrics_for_stage(
         "fastq.cluster_otus" => Some(analysis_feature_tables::cluster_otus_metrics(plan)),
         "fastq.index_reference" => Some(analysis_feature_tables::index_reference_metrics(plan)),
         id_catalog::FASTQ_SCREEN => Some(analysis_screening::screen_metrics(plan, inputs, outputs)),
-        "fastq.deplete_rrna" => Some(analysis_screening::deplete_rrna_metrics(
-            plan, inputs, outputs,
-        )),
-        "fastq.deplete_reference_contaminants" => Some(
-            analysis_screening::deplete_reference_contaminants_metrics(plan, inputs, outputs),
-        ),
-        "fastq.deplete_host" => Some(analysis_screening::deplete_host_metrics(
-            plan, inputs, outputs,
-        )),
+        "fastq.deplete_rrna" => {
+            Some(analysis_screening::deplete_rrna_metrics(plan, inputs, outputs))
+        }
+        "fastq.deplete_reference_contaminants" => {
+            Some(analysis_screening::deplete_reference_contaminants_metrics(plan, inputs, outputs))
+        }
+        "fastq.deplete_host" => {
+            Some(analysis_screening::deplete_host_metrics(plan, inputs, outputs))
+        }
         _ => None,
     }
 }

@@ -29,18 +29,11 @@ fn parse_legacy_detect_adapters_report(report_json: &str) -> Result<DetectAdapte
     let legacy: LegacyDetectAdaptersReportV1 =
         serde_json::from_str(report_json).context("parse legacy detect adapters report")?;
     if legacy.schema_version != "bijux.fastq.detect_adapters.report.v1" {
-        return Err(anyhow!(
-            "unsupported detect adapters report schema {}",
-            legacy.schema_version
-        ));
+        return Err(anyhow!("unsupported detect adapters report schema {}", legacy.schema_version));
     }
     let inspection_mode = match legacy.inspection_mode.as_str() {
         "evidence_only" => AdapterInspectionMode::EvidenceOnly,
-        other => {
-            return Err(anyhow!(
-                "unsupported detect adapters inspection mode {other}"
-            ))
-        }
+        other => return Err(anyhow!("unsupported detect adapters inspection mode {other}")),
     };
     Ok(DetectAdaptersReportV1 {
         schema_version: "bijux.fastq.detect_adapters.report.v2".to_string(),
@@ -105,11 +98,7 @@ pub fn parse_screen_summary_tsv(summary_tsv: &str) -> Result<Vec<TaxonomyScreenS
         }
         let parts: Vec<&str> = line.split('\t').collect();
         if parts.len() < 3 {
-            return Err(anyhow!(
-                "screen report line {} has {} columns",
-                idx + 1,
-                parts.len()
-            ));
+            return Err(anyhow!("screen report line {} has {} columns", idx + 1, parts.len()));
         }
         let label = parts[0].trim().to_string();
         let percent = parts

@@ -11,7 +11,7 @@ impl PipelineProfile {
             let provenance = DefaultProvenanceV1 {
                 rationale: rationale.clone(),
                 assumptions: vec![
-                    "defaults chosen for pre-HPC deterministic baseline comparisons".to_string(),
+                    "defaults chosen for pre-HPC deterministic baseline comparisons".to_string()
                 ],
                 comparability_implications: vec![
                     "changing this default can shift cross-run comparability baselines".to_string(),

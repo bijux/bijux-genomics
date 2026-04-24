@@ -7,9 +7,7 @@ use bijux_dna_domain_fastq::metrics::{
 };
 
 fn fixture(name: &str) -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/tool_metrics/default")
-        .join(name)
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/tool_metrics/default").join(name)
 }
 
 fn load_json(name: &str) -> anyhow::Result<serde_json::Value> {

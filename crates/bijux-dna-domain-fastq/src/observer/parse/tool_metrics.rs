@@ -11,9 +11,8 @@ use super::{
 pub fn parse_fastp_metrics(report_json: &str) -> Result<FastpToolMetricsV1> {
     let parsed: serde_json::Value =
         serde_json::from_str(report_json).context("parse fastp json")?;
-    let filtering = parsed
-        .get("filtering_result")
-        .ok_or_else(|| anyhow!("fastp filtering_result missing"))?;
+    let filtering =
+        parsed.get("filtering_result").ok_or_else(|| anyhow!("fastp filtering_result missing"))?;
     Ok(FastpToolMetricsV1 {
         schema_version: "bijux.fastp.metrics.v1".to_string(),
         passed_filter_reads: filtering
@@ -72,11 +71,8 @@ pub fn parse_seqkit_tool_metrics(output: &str) -> Result<SeqkitToolMetricsV1> {
 pub fn parse_samtools_flagstat_metrics(stdout: &str) -> SamtoolsFlagstatMetricsV1 {
     let total_reads = parse_prefix_u64(stdout, "in total");
     let mapped_reads = parse_prefix_u64(stdout, "mapped (");
-    let mapped_rate = if total_reads > 0 {
-        u64_to_f64(mapped_reads) / u64_to_f64(total_reads)
-    } else {
-        0.0
-    };
+    let mapped_rate =
+        if total_reads > 0 { u64_to_f64(mapped_reads) / u64_to_f64(total_reads) } else { 0.0 };
     SamtoolsFlagstatMetricsV1 {
         schema_version: "bijux.samtools.flagstat.v1".to_string(),
         total_reads,
@@ -133,30 +129,25 @@ pub(super) fn parse_report_u64_field(raw: &str, field: &str) -> Option<u64> {
     serde_json::from_str::<serde_json::Value>(raw)
         .ok()
         .and_then(|value| {
-            value
-                .get(field)
-                .and_then(serde_json::Value::as_u64)
-                .or_else(|| {
-                    value
-                        .as_object()
-                        .and_then(|obj| obj.get(field))
-                        .and_then(serde_json::Value::as_str)
-                        .and_then(|s| s.parse::<u64>().ok())
-                })
+            value.get(field).and_then(serde_json::Value::as_u64).or_else(|| {
+                value
+                    .as_object()
+                    .and_then(|obj| obj.get(field))
+                    .and_then(serde_json::Value::as_str)
+                    .and_then(|s| s.parse::<u64>().ok())
+            })
         })
         .or_else(|| parse_kv_u64_field(raw, field))
 }
 
 pub(super) fn parse_kv_u64_field(raw: &str, field: &str) -> Option<u64> {
-    raw.lines()
-        .filter_map(|line| line.split_once('='))
-        .find_map(|(k, v)| {
-            if k.trim() == field {
-                v.trim().parse::<u64>().ok()
-            } else {
-                None
-            }
-        })
+    raw.lines().filter_map(|line| line.split_once('=')).find_map(|(k, v)| {
+        if k.trim() == field {
+            v.trim().parse::<u64>().ok()
+        } else {
+            None
+        }
+    })
 }
 
 #[allow(dead_code)]
@@ -164,10 +155,8 @@ pub(super) fn parse_prefix_u64(raw: &str, marker: &str) -> u64 {
     raw.lines()
         .find_map(|line| {
             if line.contains(marker) || line.starts_with(marker) {
-                if let Some(value) = line
-                    .split_whitespace()
-                    .next()
-                    .and_then(|value| value.parse::<u64>().ok())
+                if let Some(value) =
+                    line.split_whitespace().next().and_then(|value| value.parse::<u64>().ok())
                 {
                     return Some(value);
                 }

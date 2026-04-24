@@ -116,10 +116,7 @@ fn parse_deplete_reference_contaminants_report_round_trips_governed_payload() ->
     )?;
     assert_eq!(parsed.tool_id, "bowtie2");
     assert_eq!(parsed.reads_removed, 40);
-    assert_eq!(
-        parsed.raw_backend_report_format.as_deref(),
-        Some("bowtie2_met_file")
-    );
+    assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("bowtie2_met_file"));
     Ok(())
 }
 
@@ -198,10 +195,7 @@ fn parse_deplete_host_report_round_trips_governed_payload() -> Result<()> {
     )?;
     assert_eq!(parsed.tool_id, "bowtie2");
     assert_eq!(parsed.reads_removed, 50);
-    assert_eq!(
-        parsed.raw_backend_report_format.as_deref(),
-        Some("bowtie2_met_file")
-    );
+    assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("bowtie2_met_file"));
     Ok(())
 }
 

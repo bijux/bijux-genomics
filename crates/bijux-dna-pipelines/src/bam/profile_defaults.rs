@@ -23,14 +23,9 @@ pub(super) fn defaults_for(
         .iter()
         .map(|stage| BamStageDefault {
             stage: *stage,
-            params: stage
-                .parse_effective_params(&params_for_stage(*stage))
-                .unwrap_or_else(|err| {
-                    panic!(
-                        "failed to parse typed BAM defaults for stage {}: {err}",
-                        stage.as_str()
-                    )
-                }),
+            params: stage.parse_effective_params(&params_for_stage(*stage)).unwrap_or_else(|err| {
+                panic!("failed to parse typed BAM defaults for stage {}: {err}", stage.as_str())
+            }),
         })
         .collect()
 }
@@ -66,24 +61,15 @@ pub(super) fn to_effective_defaults(defaults: &[BamStageDefault]) -> EffectiveDe
             BamStage::Genotyping => id_catalog::TOOL_ANGSD,
             BamStage::Kinship => id_catalog::TOOL_KING,
         };
-        tools.insert(
-            StageId::from_static(entry.stage.as_str()),
-            ToolId::from_static(default_tool),
-        );
+        tools.insert(StageId::from_static(entry.stage.as_str()), ToolId::from_static(default_tool));
         params.insert(
             StageId::from_static(entry.stage.as_str()),
             DefaultParams::Bam(entry.params.clone()),
         );
-        rationales.insert(
-            StageId::from_static(entry.stage.as_str()),
-            "pipeline default".to_string(),
-        );
+        rationales
+            .insert(StageId::from_static(entry.stage.as_str()), "pipeline default".to_string());
     }
-    EffectiveDefaults {
-        tools,
-        params,
-        rationales,
-    }
+    EffectiveDefaults { tools, params, rationales }
 }
 
 pub(super) fn filter_downstream(stages: &mut Vec<BamStage>) {
@@ -91,10 +77,7 @@ pub(super) fn filter_downstream(stages: &mut Vec<BamStage>) {
         return;
     }
     stages.retain(|stage| {
-        !matches!(
-            stage,
-            BamStage::Haplogroups | BamStage::Genotyping | BamStage::Kinship
-        )
+        !matches!(stage, BamStage::Haplogroups | BamStage::Genotyping | BamStage::Kinship)
     });
 }
 
@@ -149,16 +132,13 @@ pub(super) fn catalog_bam_stages() -> Vec<BamStage> {
         .unwrap_or_default()
         .into_iter()
         .filter_map(|entry| {
-            entry
-                .get("id")
-                .and_then(toml::Value::as_str)
-                .and_then(|id| {
-                    if id.starts_with("bam.") {
-                        BamStage::try_from(id).ok()
-                    } else {
-                        None
-                    }
-                })
+            entry.get("id").and_then(toml::Value::as_str).and_then(|id| {
+                if id.starts_with("bam.") {
+                    BamStage::try_from(id).ok()
+                } else {
+                    None
+                }
+            })
         })
         .collect::<Vec<_>>();
     stages.sort_by_key(bam_stage_order);

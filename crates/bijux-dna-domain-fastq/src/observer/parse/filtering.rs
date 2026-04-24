@@ -30,10 +30,7 @@ fn parse_legacy_filter_low_complexity_report(
     let legacy: LegacyFilterLowComplexityReportV1 =
         serde_json::from_str(report_json).context("parse legacy low complexity report")?;
     if legacy.schema_version != "bijux.fastq.filter_low_complexity.report.v1" {
-        return Err(anyhow!(
-            "unsupported low-complexity report schema {}",
-            legacy.schema_version
-        ));
+        return Err(anyhow!("unsupported low-complexity report schema {}", legacy.schema_version));
     }
     let paired_mode = if legacy.output_fastq_r2.is_some() {
         crate::PairedMode::PairedEnd
@@ -100,10 +97,7 @@ fn parse_legacy_extract_umis_report(report_json: &str) -> Result<ExtractUmisRepo
     let legacy: LegacyExtractUmisReportV1 =
         serde_json::from_str(report_json).context("parse legacy extract umis report")?;
     if legacy.schema_version != "bijux.fastq.extract_umis.report.v1" {
-        return Err(anyhow!(
-            "unsupported extract-umis report schema {}",
-            legacy.schema_version
-        ));
+        return Err(anyhow!("unsupported extract-umis report schema {}", legacy.schema_version));
     }
     Ok(ExtractUmisReportV1 {
         schema_version: crate::EXTRACT_UMIS_REPORT_SCHEMA_VERSION.to_string(),

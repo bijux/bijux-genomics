@@ -42,11 +42,7 @@ pub fn plan_stats_with_threads(
     resources.threads = threads;
     let effective_params = FastqStatsParams {
         schema_version: STATS_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads,
     };
     let command_template = profile_reads_command(tool, r1, r2, threads)?;
@@ -72,9 +68,7 @@ pub fn plan_stats_with_threads(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: CommandSpecV1 {
-            template: command_template,
-        },
+        command: CommandSpecV1 { template: command_template },
         resources,
         io: StageIO {
             inputs,
@@ -119,32 +113,19 @@ fn profile_reads_command(
 ) -> Result<Vec<String>> {
     let tool_id = tool.tool_id.as_str();
     if tool_id != "seqkit_stats" {
-        return Err(anyhow!(
-            "unsupported read-profiling tool for stage planning: {tool_id}"
-        ));
+        return Err(anyhow!("unsupported read-profiling tool for stage planning: {tool_id}"));
     }
     let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
             ("threads", Some(threads.to_string())),
             ("reads_r1", Some(r1.display().to_string())),
-            (
-                "reads_r2",
-                Some(
-                    r2.map(|path| path.display().to_string())
-                        .unwrap_or_default(),
-                ),
-            ),
+            ("reads_r2", Some(r2.map(|path| path.display().to_string()).unwrap_or_default())),
         ],
     )?;
-    let command = rendered
-        .into_iter()
-        .filter(|token| !token.is_empty())
-        .collect::<Vec<_>>();
+    let command = rendered.into_iter().filter(|token| !token.is_empty()).collect::<Vec<_>>();
     if command.is_empty() {
-        return Err(anyhow!(
-            "profile reads command template resolved to an empty command"
-        ));
+        return Err(anyhow!("profile reads command template resolved to an empty command"));
     }
     Ok(command)
 }
@@ -162,10 +143,7 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("seqkit_stats"),
             tool_version: ToolVersion::from("2.8.0"),
-            image: ContainerImageRefV1 {
-                image: "bijuxdna/seqkit".to_string(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: "bijuxdna/seqkit".to_string(), digest: None },
             command: CommandSpecV1 {
                 template: vec![
                     "seqkit_stats".to_string(),
@@ -200,15 +178,7 @@ mod tests {
         assert_eq!(plan.resources.threads, 8);
         assert_eq!(
             plan.command.template,
-            vec![
-                "seqkit_stats",
-                "-a",
-                "-T",
-                "-j",
-                "8",
-                "reads_R1.fastq.gz",
-                "reads_R2.fastq.gz",
-            ]
+            vec!["seqkit_stats", "-a", "-T", "-j", "8", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
         );
     }
 }

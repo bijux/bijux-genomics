@@ -52,9 +52,8 @@ fn indexed_stage_tools() -> Result<BTreeMap<String, Vec<String>>> {
         if !line.starts_with(' ') && line.contains(':') {
             break;
         }
-        if let Some((stage, inline_value)) = line
-            .strip_prefix("  ")
-            .and_then(|rest| rest.split_once(':'))
+        if let Some((stage, inline_value)) =
+            line.strip_prefix("  ").and_then(|rest| rest.split_once(':'))
         {
             let stage = stage.to_string();
             out.entry(stage.clone()).or_default();
@@ -90,18 +89,14 @@ fn indexed_stage_tool_integration() -> Result<BTreeMap<String, BTreeMap<String, 
         if !line.starts_with(' ') && line.contains(':') {
             break;
         }
-        if let Some(stage) = line
-            .strip_prefix("  ")
-            .and_then(|rest| rest.strip_suffix(':'))
-        {
+        if let Some(stage) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':')) {
             let stage = stage.to_string();
             out.entry(stage.clone()).or_default();
             current_stage = Some(stage);
             continue;
         }
-        if let Some((tool_id, level)) = line
-            .strip_prefix("    ")
-            .and_then(|rest| rest.split_once(':'))
+        if let Some((tool_id, level)) =
+            line.strip_prefix("    ").and_then(|rest| rest.split_once(':'))
         {
             if let Some(stage) = &current_stage {
                 out.entry(stage.clone())
@@ -130,10 +125,7 @@ fn indexed_reference_index_compatibility() -> Result<BTreeMap<String, BTreeSet<S
         if !line.starts_with(' ') && line.contains(':') {
             break;
         }
-        if let Some(tool_id) = line
-            .strip_prefix("  ")
-            .and_then(|rest| rest.strip_suffix(':'))
-        {
+        if let Some(tool_id) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':')) {
             let tool_id = tool_id.to_string();
             out.entry(tool_id.clone()).or_default();
             current_tool = Some(tool_id);
@@ -141,9 +133,7 @@ fn indexed_reference_index_compatibility() -> Result<BTreeMap<String, BTreeSet<S
         }
         if let Some(backend) = line.strip_prefix("  - ") {
             if let Some(tool_id) = &current_tool {
-                out.entry(tool_id.clone())
-                    .or_default()
-                    .insert(backend.to_string());
+                out.entry(tool_id.clone()).or_default().insert(backend.to_string());
             }
         }
     }

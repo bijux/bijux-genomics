@@ -48,33 +48,15 @@ fn parse_legacy_profile_reads_report(report_json: &str) -> Result<ProfileReadsRe
         qc_tsv: String::new(),
         qc_plots_dir: None,
         length_histogram_source: "legacy_qc_json".to_string(),
-        reads_total: json
-            .get("reads_total")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0),
-        bases_total: json
-            .get("bases_total")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0),
-        mean_q: json
-            .get("mean_q")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0),
-        gc_percent: json
-            .get("gc_percent")
-            .and_then(serde_json::Value::as_f64)
-            .unwrap_or(0.0),
+        reads_total: json.get("reads_total").and_then(serde_json::Value::as_u64).unwrap_or(0),
+        bases_total: json.get("bases_total").and_then(serde_json::Value::as_u64).unwrap_or(0),
+        mean_q: json.get("mean_q").and_then(serde_json::Value::as_f64).unwrap_or(0.0),
+        gc_percent: json.get("gc_percent").and_then(serde_json::Value::as_f64).unwrap_or(0.0),
         length_histogram,
         mate_summaries: vec![ProfileReadsMateSummaryV1 {
             label: "reads_r1".to_string(),
-            reads: json
-                .get("reads_total")
-                .and_then(serde_json::Value::as_u64)
-                .unwrap_or(0),
-            bases: json
-                .get("bases_total")
-                .and_then(serde_json::Value::as_u64)
-                .unwrap_or(0),
+            reads: json.get("reads_total").and_then(serde_json::Value::as_u64).unwrap_or(0),
+            bases: json.get("bases_total").and_then(serde_json::Value::as_u64).unwrap_or(0),
             mean_q: json.get("mean_q").and_then(serde_json::Value::as_f64),
             gc_percent: json.get("gc_percent").and_then(serde_json::Value::as_f64),
         }],

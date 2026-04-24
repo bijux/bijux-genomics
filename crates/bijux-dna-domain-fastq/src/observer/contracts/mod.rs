@@ -61,14 +61,10 @@ mod tests {
             StageId::from_static("fastq.trim_reads"),
             ToolId::from_static("fastx_clipper")
         )));
-        assert!(bindings.contains(&(
-            StageId::from_static("fastq.trim_reads"),
-            ToolId::from_static("leehom")
-        )));
-        assert!(bindings.contains(&(
-            StageId::from_static("fastq.trim_reads"),
-            ToolId::from_static("skewer")
-        )));
+        assert!(bindings
+            .contains(&(StageId::from_static("fastq.trim_reads"), ToolId::from_static("leehom"))));
+        assert!(bindings
+            .contains(&(StageId::from_static("fastq.trim_reads"), ToolId::from_static("skewer"))));
     }
 
     #[test]

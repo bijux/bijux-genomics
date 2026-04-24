@@ -103,14 +103,8 @@ mod tests {
             classified_fraction: Some(0.18),
             unclassified_fraction: Some(0.82),
             summary_entries: vec![
-                TaxonomyScreenSummaryEntryV1 {
-                    label: "Homo sapiens".to_string(),
-                    percent: 12.5,
-                },
-                TaxonomyScreenSummaryEntryV1 {
-                    label: "unclassified".to_string(),
-                    percent: 82.0,
-                },
+                TaxonomyScreenSummaryEntryV1 { label: "Homo sapiens".to_string(), percent: 12.5 },
+                TaxonomyScreenSummaryEntryV1 { label: "unclassified".to_string(), percent: 82.0 },
             ],
             top_taxa: vec![TaxonomyScreenSummaryEntryV1 {
                 label: "Homo sapiens".to_string(),

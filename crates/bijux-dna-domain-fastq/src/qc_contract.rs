@@ -47,24 +47,15 @@ fn stage_supports_governed_qc_bench_inputs(stage_id: &StageId, paired_end: bool)
     let Some(contract) = crate::contract_for_stage(stage_id.as_str()) else {
         return false;
     };
-    let required_kind = if paired_end {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
-    if !contract
-        .accepted_input_kinds
-        .iter()
-        .any(|kind| kind == &required_kind)
-    {
+    let required_kind =
+        if paired_end { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
+    if !contract.accepted_input_kinds.iter().any(|kind| kind == &required_kind) {
         return false;
     }
     let Some(input_ids) = crate::stage_input_ids(stage_id.as_str()) else {
         return false;
     };
-    input_ids
-        .into_iter()
-        .all(|input_id| matches!(input_id.as_str(), "reads_r1" | "reads_r2"))
+    input_ids.into_iter().all(|input_id| matches!(input_id.as_str(), "reads_r1" | "reads_r2"))
 }
 
 fn is_governed_qc_output_id(output_id: &str) -> bool {
@@ -113,13 +104,7 @@ mod tests {
         assert!(tool_ids.contains(&"fastqvalidator".to_string()));
         assert!(tool_ids.contains(&"fastqc".to_string()));
         assert!(!tool_ids.contains(&"multiqc".to_string()));
-        assert_eq!(
-            tool_ids
-                .iter()
-                .filter(|tool_id| tool_id.as_str() == "fastqc")
-                .count(),
-            1
-        );
+        assert_eq!(tool_ids.iter().filter(|tool_id| tool_id.as_str() == "fastqc").count(), 1);
     }
 
     #[test]
@@ -141,9 +126,7 @@ mod tests {
         assert!(single_end.contains(&StageId::from_static("fastq.deplete_rrna")));
         assert!(single_end.contains(&StageId::from_static("fastq.correct_errors")));
         assert!(!single_end.contains(&StageId::from_static("fastq.deplete_host")));
-        assert!(!single_end.contains(&StageId::from_static(
-            "fastq.deplete_reference_contaminants"
-        )));
+        assert!(!single_end.contains(&StageId::from_static("fastq.deplete_reference_contaminants")));
         assert!(!single_end.contains(&StageId::from_static("fastq.normalize_abundance")));
         assert!(!single_end.contains(&StageId::from_static("fastq.merge_pairs")));
 

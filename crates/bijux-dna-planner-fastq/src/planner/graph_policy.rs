@@ -24,11 +24,8 @@ pub(super) fn validate_select_stage_nodes(
                 node.stage_id
             ));
         }
-        let incoming = pipeline_spec
-            .edges
-            .iter()
-            .filter(|edge| edge.to == node_id)
-            .collect::<Vec<_>>();
+        let incoming =
+            pipeline_spec.edges.iter().filter(|edge| edge.to == node_id).collect::<Vec<_>>();
         if incoming.len() < 2 {
             return Err(anyhow!(
                 "selection node {} requires at least two incoming candidate edges",
@@ -70,11 +67,7 @@ pub(super) fn validate_select_stage_nodes(
                 source_stage_id = Some(source_binding.stage_id.clone());
             }
         }
-        for edge in pipeline_spec
-            .edges
-            .iter()
-            .filter(|edge| edge.from == node_id)
-        {
+        for edge in pipeline_spec.edges.iter().filter(|edge| edge.from == node_id) {
             let (Some(_from_output_id), Some(_to_input_id)) =
                 (&edge.from_output_id, &edge.to_input_id)
             else {
@@ -113,9 +106,8 @@ pub(super) fn synthetic_stage_artifact_policy(
             .filter(|edge| edge.from == node_id)
             .filter_map(|edge| edge.from_output_id.clone())
             .collect::<std::collections::BTreeSet<_>>();
-        let select_out_dir = root_out_dir
-            .join(node_id.trim_start_matches(STAGE_PREFIX))
-            .join("selected");
+        let select_out_dir =
+            root_out_dir.join(node_id.trim_start_matches(STAGE_PREFIX)).join("selected");
         artifacts.insert(
             node_id,
             artifact_ids
@@ -165,9 +157,8 @@ pub(super) fn validate_reference_index_bindings(
                     &binding_by_node_id,
                 )?
                 .map(|binding| binding.tool.tool_id.as_str());
-                let Some(index_backend) = explicit_backend
-                    .or(dependency_backend)
-                    .or(current_index_backend)
+                let Some(index_backend) =
+                    explicit_backend.or(dependency_backend).or(current_index_backend)
                 else {
                     continue;
                 };
@@ -200,10 +191,7 @@ pub(super) fn validate_reference_index_bindings(
 }
 
 pub(super) fn binding_node_id(binding: &FastqStageBinding) -> String {
-    binding
-        .stage_instance_id
-        .clone()
-        .unwrap_or_else(|| binding.stage_id.clone())
+    binding.stage_instance_id.clone().unwrap_or_else(|| binding.stage_id.clone())
 }
 
 pub(super) fn stage_dependency_policy(
@@ -219,10 +207,7 @@ pub(super) fn stage_dependency_policy(
         dependencies.entry(node_id).or_default();
     }
     for edge in &pipeline_spec.edges {
-        dependencies
-            .entry(edge.to.clone())
-            .or_default()
-            .push(edge.from.clone());
+        dependencies.entry(edge.to.clone()).or_default().push(edge.from.clone());
     }
     dependencies
 }
@@ -234,11 +219,7 @@ fn explicit_reference_index_binding<'a>(
 ) -> Result<Option<&'a FastqStageBinding>> {
     Ok(explicit_stage_inputs
         .get(&binding_node_id(binding))
-        .and_then(|inputs| {
-            inputs
-                .iter()
-                .find(|input| input.to_input_id == "reference_index")
-        })
+        .and_then(|inputs| inputs.iter().find(|input| input.to_input_id == "reference_index"))
         .and_then(|input| binding_by_node_id.get(&input.from_stage_node_id).copied()))
 }
 
@@ -276,9 +257,7 @@ pub(super) fn execution_edges_for_stage_plans(
     let mut plan_nodes = std::collections::BTreeMap::new();
     let mut stage_counts = std::collections::BTreeMap::new();
     for plan in plans {
-        *stage_counts
-            .entry(plan.stage_id.as_str().to_string())
-            .or_insert(0usize) += 1;
+        *stage_counts.entry(plan.stage_id.as_str().to_string()).or_insert(0usize) += 1;
     }
     for plan in plans {
         let node_id = plan
@@ -292,9 +271,7 @@ pub(super) fn execution_edges_for_stage_plans(
         }
     }
     plan_nodes.extend(
-        synthetic_step_nodes
-            .iter()
-            .map(|(node_id, step_id)| (node_id.clone(), step_id.clone())),
+        synthetic_step_nodes.iter().map(|(node_id, step_id)| (node_id.clone(), step_id.clone())),
     );
     for node in pipeline_spec.ordered_nodes() {
         let node_id =
@@ -324,19 +301,12 @@ pub(super) fn execution_edges_for_stage_plans(
     let artifact_bound_pairs = edges
         .iter()
         .filter(|edge| edge.from_output_id().is_some() && edge.to_input_id().is_some())
-        .map(|edge| {
-            (
-                edge.from().as_str().to_string(),
-                edge.to().as_str().to_string(),
-            )
-        })
+        .map(|edge| (edge.from().as_str().to_string(), edge.to().as_str().to_string()))
         .collect::<std::collections::BTreeSet<_>>();
     edges.retain(|edge| {
         edge.from_output_id().is_some()
-            || !artifact_bound_pairs.contains(&(
-                edge.from().as_str().to_string(),
-                edge.to().as_str().to_string(),
-            ))
+            || !artifact_bound_pairs
+                .contains(&(edge.from().as_str().to_string(), edge.to().as_str().to_string()))
     });
     edges.dedup_by(|left, right| {
         left.from() == right.from()
@@ -419,16 +389,10 @@ fn execution_edge_from_pipeline_edge(
     plan_nodes: &std::collections::BTreeMap<String, StepId>,
 ) -> Result<ExecutionEdge> {
     let from = plan_nodes.get(&edge.from).cloned().ok_or_else(|| {
-        anyhow!(
-            "pipeline graph edge source {} does not resolve to a planned step",
-            edge.from
-        )
+        anyhow!("pipeline graph edge source {} does not resolve to a planned step", edge.from)
     })?;
     let to = plan_nodes.get(&edge.to).cloned().ok_or_else(|| {
-        anyhow!(
-            "pipeline graph edge target {} does not resolve to a planned step",
-            edge.to
-        )
+        anyhow!("pipeline graph edge target {} does not resolve to a planned step", edge.to)
     })?;
     match (&edge.from_output_id, &edge.to_input_id) {
         (Some(from_output_id), Some(to_input_id)) => Ok(ExecutionEdge::with_artifact_binding(
@@ -449,16 +413,9 @@ fn execution_edge_from_pipeline_edge(
 pub(super) fn ensure_unique_stage_binding_nodes(bindings: &[FastqStageBinding]) -> Result<()> {
     let mut seen_nodes = std::collections::BTreeSet::new();
     for binding in bindings {
-        let node_id = binding
-            .stage_instance_id
-            .as_deref()
-            .map(str::to_string)
-            .unwrap_or_else(|| {
-                format!(
-                    "{}.tool.{}",
-                    binding.stage_id,
-                    binding.tool.tool_id.as_str()
-                )
+        let node_id =
+            binding.stage_instance_id.as_deref().map(str::to_string).unwrap_or_else(|| {
+                format!("{}.tool.{}", binding.stage_id, binding.tool.tool_id.as_str())
             });
         if !seen_nodes.insert(node_id.clone()) {
             return Err(anyhow!(

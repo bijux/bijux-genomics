@@ -195,11 +195,9 @@ fn fixture_for_invariant(id: &str) -> (String, serde_json::Value, serde_json::Va
             serde_json::to_value(trim_metrics(0.9, 1.0)).unwrap(),
             serde_json::json!({}),
         ),
-        "metrics_parse" => (
-            "fastq.trim_reads".to_string(),
-            serde_json::json!({}),
-            effective_params_trim(),
-        ),
+        "metrics_parse" => {
+            ("fastq.trim_reads".to_string(), serde_json::json!({}), effective_params_trim())
+        }
         "retention_sanity" => (
             "fastq.trim_reads".to_string(),
             serde_json::to_value(trim_metrics(0.1, 1.0)).unwrap(),
@@ -280,11 +278,7 @@ fn fastq_invariants_have_specs_and_fixtures() -> Result<()> {
     let specs = fastq_invariant_specs();
     let mut ids = std::collections::BTreeSet::new();
     for spec in &specs {
-        assert!(
-            ids.insert(spec.id.clone()),
-            "duplicate invariant {}",
-            spec.id
-        );
+        assert!(ids.insert(spec.id.clone()), "duplicate invariant {}", spec.id);
         assert!(!spec.definition.trim().is_empty());
         assert!(!spec.threshold_provenance.trim().is_empty());
         assert!(!spec.next_steps.trim().is_empty());
@@ -297,11 +291,7 @@ fn fastq_invariants_have_specs_and_fixtures() -> Result<()> {
             .find(|entry| entry.id == spec.id)
             .map(|entry| entry.status.clone())
             .unwrap_or_else(|| panic!("missing invariant {} for {stage_id}", spec.id));
-        assert!(
-            status != InvariantStatusV1::Pass,
-            "fixture did not trigger {}",
-            spec.id
-        );
+        assert!(status != InvariantStatusV1::Pass, "fixture did not trigger {}", spec.id);
     }
     Ok(())
 }

@@ -80,10 +80,7 @@ mod tests {
             bases_total: 20_000,
             mean_q: 31.2,
             gc_percent: 42.0,
-            length_histogram: vec![ProfileReadsHistogramBinV1 {
-                length: 100,
-                count: 200,
-            }],
+            length_histogram: vec![ProfileReadsHistogramBinV1 { length: 100, count: 200 }],
             mate_summaries: vec![
                 ProfileReadsMateSummaryV1 {
                     label: "reads_r1".to_string(),

@@ -22,16 +22,10 @@ pub(super) fn trim_metrics(
     let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
     let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
     let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
-    let read_retention = if input.reads > 0 {
-        f64_from_u64(output.reads) / f64_from_u64(input.reads)
-    } else {
-        0.0
-    };
-    let base_retention = if input.bases > 0 {
-        f64_from_u64(output.bases) / f64_from_u64(input.bases)
-    } else {
-        0.0
-    };
+    let read_retention =
+        if input.reads > 0 { f64_from_u64(output.reads) / f64_from_u64(input.reads) } else { 0.0 };
+    let base_retention =
+        if input.bases > 0 { f64_from_u64(output.bases) / f64_from_u64(input.bases) } else { 0.0 };
     let delta = FastqDeltaMetricsV1 {
         read_retention,
         base_retention,

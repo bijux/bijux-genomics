@@ -82,9 +82,6 @@ mod tests {
             .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "dada2");
         assert_eq!(decoded.asv_count, 18);
-        assert_eq!(
-            decoded.raw_backend_report_format.as_deref(),
-            Some("dada2_run_summary_json")
-        );
+        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("dada2_run_summary_json"));
     }
 }

@@ -44,10 +44,7 @@ fn parse_validation_report_parses_governed_validate_json() -> Result<()> {
         })
         .to_string(),
     )?;
-    assert_eq!(
-        parsed.failure_class,
-        ValidateFailureClass::PairCountMismatch
-    );
+    assert_eq!(parsed.failure_class, ValidateFailureClass::PairCountMismatch);
     assert_eq!(parsed.validated_reads_r2, Some(100));
     Ok(())
 }
@@ -125,14 +122,8 @@ fn parse_terminal_damage_report_parses_governed_json() -> Result<()> {
     )?;
     assert_eq!(parsed.damage_mode, DamageMode::Ancient);
     assert_eq!(parsed.threads, 4);
-    assert_eq!(
-        parsed.execution_policy,
-        TerminalDamageExecutionPolicy::ExplicitTerminalTrim
-    );
-    assert_eq!(
-        parsed.raw_backend_report_format.as_deref(),
-        Some("cutadapt_json")
-    );
+    assert_eq!(parsed.execution_policy, TerminalDamageExecutionPolicy::ExplicitTerminalTrim);
+    assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
     assert_eq!(parsed.reads_in, Some(200));
     assert!(!parsed.used_fallback);
     Ok(())
@@ -198,10 +189,7 @@ fn parse_trim_reads_report_parses_governed_json() -> Result<()> {
             "disable": ["polyA"]
         }))
     );
-    assert_eq!(
-        parsed.raw_backend_report_format.as_deref(),
-        Some("fastp_json")
-    );
+    assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("fastp_json"));
     Ok(())
 }
 

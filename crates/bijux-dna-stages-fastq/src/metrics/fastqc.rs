@@ -81,27 +81,18 @@ pub(super) fn fastqc_metrics_v2_from_dir(dir: &Path) -> Option<FastqcMetricsV2> 
     let raw = std::fs::read_to_string(path).ok()?;
     let modules = parse_fastqc_modules(&raw);
 
-    let per_base_quality = modules
-        .get("Per base sequence quality")
-        .and_then(|lines| parse_per_base_quality(lines));
-    let gc_distribution = modules
-        .get("Per sequence GC content")
-        .and_then(|lines| parse_gc_distribution(lines));
-    let adapter_content = modules
-        .get("Adapter Content")
-        .and_then(|lines| parse_adapter_content(lines));
-    let duplication = modules
-        .get("Sequence Duplication Levels")
-        .map(|lines| parse_duplication(lines));
-    let n_content = modules
-        .get("Per base N content")
-        .and_then(|lines| parse_n_content(lines));
-    let kmer_content = modules
-        .get("Kmer Content")
-        .map(|lines| parse_kmer_content(lines));
-    let overrepresented_sequences = modules
-        .get("Overrepresented sequences")
-        .map(|lines| parse_overrepresented(lines));
+    let per_base_quality =
+        modules.get("Per base sequence quality").and_then(|lines| parse_per_base_quality(lines));
+    let gc_distribution =
+        modules.get("Per sequence GC content").and_then(|lines| parse_gc_distribution(lines));
+    let adapter_content =
+        modules.get("Adapter Content").and_then(|lines| parse_adapter_content(lines));
+    let duplication =
+        modules.get("Sequence Duplication Levels").map(|lines| parse_duplication(lines));
+    let n_content = modules.get("Per base N content").and_then(|lines| parse_n_content(lines));
+    let kmer_content = modules.get("Kmer Content").map(|lines| parse_kmer_content(lines));
+    let overrepresented_sequences =
+        modules.get("Overrepresented sequences").map(|lines| parse_overrepresented(lines));
 
     Some(FastqcMetricsV2 {
         schema_version: "bijux.fastqc_metrics.v2".to_string(),
@@ -117,11 +108,8 @@ pub(super) fn fastqc_metrics_v2_from_dir(dir: &Path) -> Option<FastqcMetricsV2> 
 }
 
 fn find_fastqc_data(dir: &Path) -> Option<std::path::PathBuf> {
-    let candidates = [
-        dir.join("fastqc_data.txt"),
-        dir.join("fastqc_data"),
-        dir.join("fastqc_data.txt.gz"),
-    ];
+    let candidates =
+        [dir.join("fastqc_data.txt"), dir.join("fastqc_data"), dir.join("fastqc_data.txt.gz")];
     candidates.into_iter().find(|candidate| candidate.exists())
 }
 
@@ -133,11 +121,7 @@ fn parse_fastqc_modules(raw: &str) -> BTreeMap<String, Vec<String>> {
             if line.starts_with(">>END_MODULE") {
                 current = None;
             } else {
-                let name = line
-                    .trim_start_matches(">>")
-                    .split('\t')
-                    .next()
-                    .unwrap_or("");
+                let name = line.trim_start_matches(">>").split('\t').next().unwrap_or("");
                 if !name.is_empty() {
                     modules.insert(name.to_string(), Vec::new());
                     current = Some(name.to_string());
@@ -146,10 +130,7 @@ fn parse_fastqc_modules(raw: &str) -> BTreeMap<String, Vec<String>> {
             continue;
         }
         if let Some(name) = &current {
-            modules
-                .entry(name.clone())
-                .or_default()
-                .push(line.to_string());
+            modules.entry(name.clone()).or_default().push(line.to_string());
         }
     }
     modules
@@ -176,13 +157,7 @@ fn parse_per_base_quality(lines: &[String]) -> Option<PerBaseQualitySummary> {
     let mean_mean = means.iter().sum::<f64>() / means.len() as f64;
     let bases_below_q20 = means.iter().filter(|v| **v < 20.0).count() as u64;
     let bases_below_q30 = means.iter().filter(|v| **v < 30.0).count() as u64;
-    Some(PerBaseQualitySummary {
-        mean_min,
-        mean_max,
-        mean_mean,
-        bases_below_q20,
-        bases_below_q30,
-    })
+    Some(PerBaseQualitySummary { mean_min, mean_max, mean_mean, bases_below_q20, bases_below_q30 })
 }
 
 fn parse_gc_distribution(lines: &[String]) -> Option<GcDistributionSummary> {
@@ -227,14 +202,8 @@ fn parse_gc_distribution(lines: &[String]) -> Option<GcDistributionSummary> {
     }
     #[allow(clippy::cast_precision_loss)]
     let count_std = (count_var / counts.len() as f64).sqrt();
-    let outlier = counts
-        .iter()
-        .any(|count| *count > mean_count + (3.0 * count_std));
-    Some(GcDistributionSummary {
-        mean_gc,
-        std_gc,
-        outlier,
-    })
+    let outlier = counts.iter().any(|count| *count > mean_count + (3.0 * count_std));
+    Some(GcDistributionSummary { mean_gc, std_gc, outlier })
 }
 
 fn parse_adapter_content(lines: &[String]) -> Option<AdapterContentSummary> {
@@ -256,10 +225,7 @@ fn parse_adapter_content(lines: &[String]) -> Option<AdapterContentSummary> {
             continue;
         }
         for (idx, name) in header.iter().enumerate().skip(1) {
-            let value = parts
-                .get(idx)
-                .and_then(|v| v.parse::<f64>().ok())
-                .unwrap_or(0.0);
+            let value = parts.get(idx).and_then(|v| v.parse::<f64>().ok()).unwrap_or(0.0);
             per_adapter.entry(name.clone()).or_default().push(value);
         }
     }
@@ -290,11 +256,7 @@ fn parse_adapter_content(lines: &[String]) -> Option<AdapterContentSummary> {
         });
     }
     let mean_percent = if count > 0.0 { sum / count } else { 0.0 };
-    Some(AdapterContentSummary {
-        max_percent,
-        mean_percent,
-        adapters,
-    })
+    Some(AdapterContentSummary { max_percent, mean_percent, adapters })
 }
 
 fn parse_duplication(lines: &[String]) -> DuplicationSummary {
@@ -312,10 +274,7 @@ fn parse_duplication(lines: &[String]) -> DuplicationSummary {
         }
     }
     let unique_fraction = unique_fraction.unwrap_or(0.0);
-    DuplicationSummary {
-        unique_fraction,
-        duplication_rate: (1.0 - unique_fraction).max(0.0),
-    }
+    DuplicationSummary { unique_fraction, duplication_rate: (1.0 - unique_fraction).max(0.0) }
 }
 
 fn parse_n_content(lines: &[String]) -> Option<NContentSummary> {
@@ -335,10 +294,7 @@ fn parse_n_content(lines: &[String]) -> Option<NContentSummary> {
     #[allow(clippy::cast_precision_loss)]
     let mean_percent = values.iter().sum::<f64>() / values.len() as f64;
     let max_percent = values.iter().copied().fold(0.0, f64::max);
-    Some(NContentSummary {
-        mean_percent,
-        max_percent,
-    })
+    Some(NContentSummary { mean_percent, max_percent })
 }
 
 fn parse_kmer_content(lines: &[String]) -> KmerContentSummary {
@@ -355,16 +311,9 @@ fn parse_kmer_content(lines: &[String]) -> KmerContentSummary {
         if percent > 0.0 {
             warning_count += 1;
         }
-        kmers.push(KmerSignal {
-            kmer,
-            count,
-            percent,
-        });
+        kmers.push(KmerSignal { kmer, count, percent });
     }
-    KmerContentSummary {
-        warning_count,
-        kmers,
-    }
+    KmerContentSummary { warning_count, kmers }
 }
 
 fn parse_overrepresented(lines: &[String]) -> OverrepresentedSummary {

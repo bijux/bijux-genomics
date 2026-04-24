@@ -43,13 +43,8 @@ fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool_id.to_string()),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/dummy:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), tool_id.to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), tool_id.to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -69,10 +64,7 @@ fn seqkit_stats_tool() -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new("seqkit_stats".to_string()),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/dummy:latest".to_string(),
-            digest: None,
-        },
+        image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
         command: CommandSpecV1 {
             template: vec![
                 "seqkit".to_string(),
@@ -98,10 +90,7 @@ fn umi_tools_tool(threads: u32) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new("umi_tools".to_string()),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/dummy:latest".to_string(),
-            digest: None,
-        },
+        image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
         command: CommandSpecV1 {
             template: vec![
                 "umi_tools".to_string(),
@@ -120,12 +109,7 @@ fn umi_tools_tool(threads: u32) -> ToolExecutionSpecV1 {
                 "{{raw_backend_report}}".to_string(),
             ],
         },
-        resources: ToolConstraints {
-            runtime: "docker".to_string(),
-            mem_gb: 1,
-            tmp_gb: 1,
-            threads,
-        },
+        resources: ToolConstraints { runtime: "docker".to_string(), mem_gb: 1, tmp_gb: 1, threads },
     }
 }
 
@@ -157,13 +141,8 @@ fn vsearch_tool() -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new("vsearch".to_string()),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/dummy:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["vsearch".to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["vsearch".to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -246,17 +225,11 @@ fn planner_accepts_explicit_stage_bindings_with_repeated_stage_ids() -> anyhow::
         .expect("cutadapt branch");
     assert_ne!(fastp_step.out_dir, cutadapt_step.out_dir);
     assert!(
-        fastp_step
-            .out_dir
-            .to_string_lossy()
-            .contains("trim_reads.fastp_branch"),
+        fastp_step.out_dir.to_string_lossy().contains("trim_reads.fastp_branch"),
         "fastp branch out_dir must include stage instance identity"
     );
     assert!(
-        cutadapt_step
-            .out_dir
-            .to_string_lossy()
-            .contains("trim_reads.cutadapt_branch"),
+        cutadapt_step.out_dir.to_string_lossy().contains("trim_reads.cutadapt_branch"),
         "cutadapt branch out_dir must include stage instance identity"
     );
     Ok(())
@@ -324,14 +297,10 @@ fn planner_expands_stage_toolsets_into_route_specific_graph_nodes() -> anyhow::R
     assert_eq!(plan.steps().len(), 4);
     assert_eq!(plan.edges().len(), 4);
     assert!(plan.steps().iter().any(|step| {
-        step.step_id
-            .as_str()
-            .contains("fastq.validate_reads.entry=fastqvalidator")
+        step.step_id.as_str().contains("fastq.validate_reads.entry=fastqvalidator")
     }));
     assert!(plan.steps().iter().any(|step| {
-        step.step_id
-            .as_str()
-            .contains("fastq.trim_reads.cleanup=fastp")
+        step.step_id.as_str().contains("fastq.trim_reads.cleanup=fastp")
             && step.step_id.as_str().contains(".tool.fastp")
     }));
     Ok(())
@@ -399,31 +368,20 @@ fn planner_injects_compare_step_for_multi_tool_stage_routes() -> anyhow::Result<
     let compare_step = plan
         .steps()
         .iter()
-        .find(|step| {
-            step.step_id
-                .as_str()
-                .starts_with("fastq.trim_reads.cleanup.compare.route.")
-        })
+        .find(|step| step.step_id.as_str().starts_with("fastq.trim_reads.cleanup.compare.route."))
         .expect("trim toolset compare step");
-    assert_eq!(
-        compare_step.stage_id.as_str(),
-        "benchmark.compare_stage_tools"
-    );
+    assert_eq!(compare_step.stage_id.as_str(), "benchmark.compare_stage_tools");
     assert_eq!(compare_step.io.inputs.len(), 4);
     assert!(compare_step.io.inputs.iter().all(|artifact| {
         let name = artifact.name.as_str();
         name.ends_with("__trimmed_reads_r1") || name.ends_with("__report_json")
     }));
     assert!(plan.edges().iter().any(|edge| {
-        edge.to()
-            .as_str()
-            .starts_with("fastq.trim_reads.cleanup.compare.route.")
+        edge.to().as_str().starts_with("fastq.trim_reads.cleanup.compare.route.")
             && edge.from().as_str().contains(".tool.fastp")
     }));
     assert!(plan.edges().iter().any(|edge| {
-        edge.to()
-            .as_str()
-            .starts_with("fastq.trim_reads.cleanup.compare.route.")
+        edge.to().as_str().starts_with("fastq.trim_reads.cleanup.compare.route.")
             && edge.from().as_str().contains(".tool.cutadapt")
     }));
     Ok(())
@@ -512,16 +470,10 @@ fn planner_scopes_compare_steps_by_remaining_route_context() -> anyhow::Result<(
     let trim_compare_steps = plan
         .steps()
         .iter()
-        .filter(|step| {
-            step.step_id
-                .as_str()
-                .starts_with("fastq.trim_reads.cleanup.compare.route.")
-        })
+        .filter(|step| step.step_id.as_str().starts_with("fastq.trim_reads.cleanup.compare.route."))
         .collect::<Vec<_>>();
     assert_eq!(trim_compare_steps.len(), 1);
-    assert!(trim_compare_steps
-        .iter()
-        .all(|step| step.io.inputs.len() == 6));
+    assert!(trim_compare_steps.iter().all(|step| step.io.inputs.len() == 6));
     Ok(())
 }
 
@@ -635,9 +587,7 @@ fn planner_rejects_duplicate_stage_nodes_without_distinct_instance_ids() -> anyh
     })
     .expect_err("duplicate stage bindings without instance ids must fail");
 
-    assert!(error
-        .to_string()
-        .contains("must set distinct stage_instance_id values"));
+    assert!(error.to_string().contains("must set distinct stage_instance_id values"));
     Ok(())
 }
 
@@ -657,15 +607,13 @@ fn planner_uses_typed_trim_terminal_damage_params_from_stage_binding() -> anyhow
             stage_instance_id: Some("fastq.trim_terminal_damage.custom".to_string()),
             tool: tool("cutadapt"),
             reason: None,
-            params: Some(FastqStageParameters::TrimTerminalDamage(
-                TrimTerminalDamageStageParams {
-                    threads: None,
-                    damage_mode: DamageMode::UdgTrimmed,
-                    execution_policy: None,
-                    trim_5p_bases: 5,
-                    trim_3p_bases: 3,
-                },
-            )),
+            params: Some(FastqStageParameters::TrimTerminalDamage(TrimTerminalDamageStageParams {
+                threads: None,
+                damage_mode: DamageMode::UdgTrimmed,
+                execution_policy: None,
+                trim_5p_bases: 5,
+                trim_3p_bases: 3,
+            })),
         }],
         stage_toolsets: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -787,16 +735,8 @@ fn planner_uses_typed_merge_pairs_params_from_stage_binding() -> anyhow::Result<
         "min length flag missing from {:?}",
         step.command.template
     );
-    assert!(!step
-        .io
-        .outputs
-        .iter()
-        .any(|artifact| artifact.name.as_str() == "unmerged_reads_r1"));
-    assert!(!step
-        .io
-        .outputs
-        .iter()
-        .any(|artifact| artifact.name.as_str() == "unmerged_reads_r2"));
+    assert!(!step.io.outputs.iter().any(|artifact| artifact.name.as_str() == "unmerged_reads_r1"));
+    assert!(!step.io.outputs.iter().any(|artifact| artifact.name.as_str() == "unmerged_reads_r2"));
     Ok(())
 }
 
@@ -858,18 +798,16 @@ fn planner_uses_typed_normalize_primers_params_from_stage_binding() -> anyhow::R
             stage_instance_id: Some("fastq.normalize_primers.custom".to_string()),
             tool: tool("cutadapt"),
             reason: None,
-            params: Some(FastqStageParameters::NormalizePrimers(
-                NormalizePrimersStageParams {
-                    primer_set_id: "16s_v4".to_string(),
-                    marker_id: Some("16s".to_string()),
-                    primer_fasta: Some(primer_fasta.clone()),
-                    orientation_policy: "normalize_to_reverse_complement".to_string(),
-                    max_mismatch_rate: 0.05,
-                    min_overlap_bp: 14,
-                    strict_5p_anchor: false,
-                    allow_iupac_codes: false,
-                },
-            )),
+            params: Some(FastqStageParameters::NormalizePrimers(NormalizePrimersStageParams {
+                primer_set_id: "16s_v4".to_string(),
+                marker_id: Some("16s".to_string()),
+                primer_fasta: Some(primer_fasta.clone()),
+                orientation_policy: "normalize_to_reverse_complement".to_string(),
+                max_mismatch_rate: 0.05,
+                min_overlap_bp: 14,
+                strict_5p_anchor: false,
+                allow_iupac_codes: false,
+            })),
         }],
         stage_toolsets: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -912,9 +850,9 @@ fn planner_uses_typed_index_reference_params_from_stage_binding() -> anyhow::Res
             stage_instance_id: Some("fastq.index_reference.custom".to_string()),
             tool: tool("bowtie2_build"),
             reason: None,
-            params: Some(FastqStageParameters::IndexReference(
-                IndexReferenceStageParams { threads: Some(7) },
-            )),
+            params: Some(FastqStageParameters::IndexReference(IndexReferenceStageParams {
+                threads: Some(7),
+            })),
         }],
         stage_toolsets: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -1019,16 +957,8 @@ fn planner_uses_typed_infer_asvs_params_from_stage_binding() -> anyhow::Result<(
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.infer_asvs.custom");
     assert_eq!(step.resources.threads, 8);
-    assert!(step
-        .command
-        .template
-        .windows(2)
-        .any(|pair| pair == ["--threads", "8"]));
-    assert!(step
-        .command
-        .template
-        .windows(2)
-        .any(|pair| pair == ["--pooling-mode", "pooled"]));
+    assert!(step.command.template.windows(2).any(|pair| pair == ["--threads", "8"]));
+    assert!(step.command.template.windows(2).any(|pair| pair == ["--pooling-mode", "pooled"]));
     assert!(step
         .command
         .template
@@ -1071,11 +1001,7 @@ fn planner_uses_manifest_default_infer_asvs_threads_without_binding_override() -
 
     let step = &plan.steps()[0];
     assert_eq!(step.resources.threads, 1);
-    assert!(step
-        .command
-        .template
-        .windows(2)
-        .any(|pair| pair == ["--threads", "1"]));
+    assert!(step.command.template.windows(2).any(|pair| pair == ["--threads", "1"]));
     Ok(())
 }
 
@@ -1097,14 +1023,12 @@ fn planner_uses_typed_profile_read_lengths_params_from_stage_binding() -> anyhow
             stage_instance_id: Some("fastq.profile_read_lengths.custom".to_string()),
             tool: seqkit_stats_tool(),
             reason: None,
-            params: Some(FastqStageParameters::ProfileReadLengths(
-                FastqReadLengthProfileParams {
-                    schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
-                    paired_mode: bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
-                    threads: 6,
-                    histogram_bins: 64,
-                },
-            )),
+            params: Some(FastqStageParameters::ProfileReadLengths(FastqReadLengthProfileParams {
+                schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
+                paired_mode: bijux_dna_domain_fastq::params::PairedMode::PairedEnd,
+                threads: 6,
+                histogram_bins: 64,
+            })),
         }],
         stage_toolsets: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -1123,11 +1047,7 @@ fn planner_uses_typed_profile_read_lengths_params_from_stage_binding() -> anyhow
     assert_eq!(step.step_id.as_str(), "fastq.profile_read_lengths.custom");
     assert_eq!(step.resources.threads, 6);
     assert_eq!(step.command.template[5], "6");
-    assert!(step
-        .io
-        .outputs
-        .iter()
-        .any(|artifact| artifact.name.as_str() == "report_json"));
+    assert!(step.io.outputs.iter().any(|artifact| artifact.name.as_str() == "report_json"));
     Ok(())
 }
 
@@ -1229,10 +1149,7 @@ fn planner_uses_typed_profile_overrepresented_params_from_stage_binding() -> any
     })?;
 
     let step = &plan.steps()[0];
-    assert_eq!(
-        step.step_id.as_str(),
-        "fastq.profile_overrepresented_sequences.custom"
-    );
+    assert_eq!(step.step_id.as_str(), "fastq.profile_overrepresented_sequences.custom");
     assert_eq!(step.resources.threads, 6);
     assert_eq!(step.command.template[0], "sh");
     assert_eq!(step.command.template[1], "-lc");
@@ -1386,11 +1303,7 @@ fn planner_uses_typed_remove_chimeras_params_from_stage_binding() -> anyhow::Res
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.remove_chimeras.custom");
     assert_eq!(step.resources.threads, 6);
-    assert!(step
-        .command
-        .template
-        .windows(2)
-        .any(|pair| pair == ["--threads", "6"]));
+    assert!(step.command.template.windows(2).any(|pair| pair == ["--threads", "6"]));
     Ok(())
 }
 
@@ -1576,18 +1489,16 @@ fn planner_uses_typed_correct_params_from_stage_binding() -> anyhow::Result<()> 
             stage_instance_id: Some("fastq.correct_errors.custom".to_string()),
             tool: tool("lighter"),
             reason: None,
-            params: Some(FastqStageParameters::CorrectErrors(
-                CorrectErrorsStageParams {
-                    threads: Some(6),
-                    quality_encoding: QualityEncoding::Phred33,
-                    kmer_size: Some(31),
-                    musket_kmer_budget: None,
-                    genome_size: Some(2_500_000),
-                    max_memory_gb: None,
-                    trusted_kmer_artifact: Some(trusted.clone()),
-                    conservative_mode: false,
-                },
-            )),
+            params: Some(FastqStageParameters::CorrectErrors(CorrectErrorsStageParams {
+                threads: Some(6),
+                quality_encoding: QualityEncoding::Phred33,
+                kmer_size: Some(31),
+                musket_kmer_budget: None,
+                genome_size: Some(2_500_000),
+                max_memory_gb: None,
+                trusted_kmer_artifact: Some(trusted.clone()),
+                conservative_mode: false,
+            })),
         }],
         stage_toolsets: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -1690,26 +1601,10 @@ fn planner_uses_typed_rrna_params_from_stage_binding() -> anyhow::Result<()> {
     assert_eq!(step.step_id.as_str(), "fastq.deplete_rrna.sortmerna.custom");
     assert_eq!(step.command.template[0], "bash");
     assert!(step.command.template[2].contains("--ref"));
-    assert!(step
-        .command
-        .template
-        .get(2)
-        .is_some_and(|part| part.contains("silva_nr99")));
-    assert!(step
-        .command
-        .template
-        .get(2)
-        .is_some_and(|part| part.contains("--workdir")));
-    assert!(step
-        .command
-        .template
-        .get(2)
-        .is_some_and(|part| part.contains("'6'")));
-    assert!(step
-        .command
-        .template
-        .get(2)
-        .is_some_and(|part| !part.contains("--report")));
+    assert!(step.command.template.get(2).is_some_and(|part| part.contains("silva_nr99")));
+    assert!(step.command.template.get(2).is_some_and(|part| part.contains("--workdir")));
+    assert!(step.command.template.get(2).is_some_and(|part| part.contains("'6'")));
+    assert!(step.command.template.get(2).is_some_and(|part| !part.contains("--report")));
     Ok(())
 }
 
@@ -1749,9 +1644,7 @@ fn planner_rejects_unsupported_rrna_identity_override_from_stage_binding() -> an
     })
     .expect_err("unsupported rrna min_identity override must fail");
 
-    assert!(error
-        .to_string()
-        .contains("does not support governed min_identity overrides"));
+    assert!(error.to_string().contains("does not support governed min_identity overrides"));
     Ok(())
 }
 
@@ -1939,20 +1832,15 @@ fn planner_preserves_explicit_pipeline_graph_edges() -> anyhow::Result<()> {
     })?;
 
     assert_eq!(plan.edges().len(), 3);
-    assert!(plan
-        .edges()
-        .iter()
-        .all(|edge| edge.to().as_str() == "fastq.report_qc.aggregate"));
+    assert!(plan.edges().iter().all(|edge| edge.to().as_str() == "fastq.report_qc.aggregate"));
     let edge_bindings = plan
         .edges()
         .iter()
         .map(|edge| {
             (
                 edge.from().as_str().to_string(),
-                edge.from_output_id()
-                    .map(|artifact| artifact.as_str().to_string()),
-                edge.to_input_id()
-                    .map(|artifact| artifact.as_str().to_string()),
+                edge.from_output_id().map(|artifact| artifact.as_str().to_string()),
+                edge.to_input_id().map(|artifact| artifact.as_str().to_string()),
             )
         })
         .collect::<std::collections::BTreeSet<_>>();
@@ -2179,10 +2067,7 @@ fn planner_injects_select_step_and_rejoins_downstream_reads() -> anyhow::Result<
     assert_eq!(select_step.stage_id.as_str(), "benchmark.select_stage_tool");
     assert_eq!(select_step.io.inputs.len(), 2);
     assert_eq!(select_step.io.outputs.len(), 1);
-    assert_eq!(
-        filter_step.io.inputs[0].path,
-        select_step.io.outputs[0].path
-    );
+    assert_eq!(filter_step.io.inputs[0].path, select_step.io.outputs[0].path);
     assert!(plan.edges().iter().any(|edge| {
         edge.from().as_str() == "benchmark.select_stage_tool.trim_reads"
             && edge.to().as_str() == "fastq.filter_reads.selected"
@@ -2279,9 +2164,7 @@ fn planner_rejects_selection_rejoin_without_artifact_bindings() -> anyhow::Resul
     })
     .expect_err("selection rejoin should require artifact-bound edges");
 
-    assert!(error
-        .to_string()
-        .contains("requires artifact-bound outgoing rejoin edges"));
+    assert!(error.to_string().contains("requires artifact-bound outgoing rejoin edges"));
     Ok(())
 }
 
@@ -2328,16 +2211,8 @@ fn planner_uses_typed_filter_reads_params_from_stage_binding() -> anyhow::Result
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.filter_reads.custom");
     assert_eq!(step.resources.threads, 7);
-    assert!(step
-        .command
-        .template
-        .windows(2)
-        .any(|window| window == ["--thread", "7"]));
-    assert!(step
-        .command
-        .template
-        .windows(2)
-        .any(|window| window == ["--n_base_limit", "2"]));
+    assert!(step.command.template.windows(2).any(|window| window == ["--thread", "7"]));
+    assert!(step.command.template.windows(2).any(|window| window == ["--n_base_limit", "2"]));
     assert!(step
         .command
         .template
@@ -2384,16 +2259,8 @@ fn planner_uses_typed_filter_low_complexity_params_from_stage_binding() -> anyho
 
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.filter_low_complexity.custom");
-    assert!(step
-        .command
-        .template
-        .iter()
-        .any(|token| token == "entropy=0.82"));
-    assert!(step
-        .command
-        .template
-        .iter()
-        .any(|token| token == "maxpoly=24"));
+    assert!(step.command.template.iter().any(|token| token == "entropy=0.82"));
+    assert!(step.command.template.iter().any(|token| token == "maxpoly=24"));
     Ok(())
 }
 
@@ -2436,11 +2303,7 @@ fn planner_uses_typed_extract_umis_params_from_stage_binding() -> anyhow::Result
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.extract_umis.custom");
     assert_eq!(step.resources.threads, 5);
-    assert!(step
-        .command
-        .template
-        .iter()
-        .any(|token| token == "NNNNCCCC"));
+    assert!(step.command.template.iter().any(|token| token == "NNNNCCCC"));
     Ok(())
 }
 
@@ -2460,9 +2323,9 @@ fn planner_uses_typed_detect_adapters_params_from_stage_binding() -> anyhow::Res
             stage_instance_id: Some("fastq.detect_adapters.custom".to_string()),
             tool: tool_with_threads("fastqc", 1),
             reason: None,
-            params: Some(FastqStageParameters::DetectAdapters(
-                DetectAdaptersStageParams { threads: Some(3) },
-            )),
+            params: Some(FastqStageParameters::DetectAdapters(DetectAdaptersStageParams {
+                threads: Some(3),
+            })),
         }],
         stage_toolsets: Vec::new(),
         aux_images: BTreeMap::new(),
@@ -2523,11 +2386,7 @@ fn planner_uses_typed_cluster_otus_params_from_stage_binding() -> anyhow::Result
     let step = &plan.steps()[0];
     assert_eq!(step.step_id.as_str(), "fastq.cluster_otus.custom");
     assert_eq!(step.resources.threads, 6);
-    assert!(step
-        .command
-        .template
-        .windows(2)
-        .any(|window| window == ["--threads", "6"]));
+    assert!(step.command.template.windows(2).any(|window| window == ["--threads", "6"]));
     Ok(())
 }
 
@@ -2565,11 +2424,7 @@ fn planner_uses_manifest_default_cluster_otus_threads_without_binding_override(
 
     let step = &plan.steps()[0];
     assert_eq!(step.resources.threads, 4);
-    assert!(step
-        .command
-        .template
-        .windows(2)
-        .any(|window| window == ["--threads", "4"]));
+    assert!(step.command.template.windows(2).any(|window| window == ["--threads", "4"]));
     Ok(())
 }
 
@@ -2665,10 +2520,7 @@ fn planner_supports_stage_toolsets_with_select_nodes() -> anyhow::Result<()> {
             .any(|window| window == ["--objective", "retention"]),
         "select command must carry the configured ranking objective"
     );
-    assert_eq!(
-        filter_step.io.inputs[0].path,
-        select_step.io.outputs[0].path
-    );
+    assert_eq!(filter_step.io.inputs[0].path, select_step.io.outputs[0].path);
     assert!(plan.edges().iter().any(|edge| {
         edge.from().as_str() == "benchmark.select_stage_tool.trim_reads"
             && edge.to().as_str() == filter_step.step_id.as_str()
@@ -2754,11 +2606,7 @@ fn planner_uses_explicit_reference_index_bindings_for_reference_aware_stages() -
         .iter()
         .find(|step| step.step_id.as_str() == "fastq.deplete_host.host")
         .expect("host depletion stage");
-    assert!(host_step
-        .command
-        .template
-        .iter()
-        .any(|part| part.contains("index_reference.host")));
+    assert!(host_step.command.template.iter().any(|part| part.contains("index_reference.host")));
     Ok(())
 }
 
@@ -2827,11 +2675,7 @@ fn planner_resolves_unique_reference_index_dependency_without_artifact_binding(
         .iter()
         .find(|step| step.step_id.as_str() == "fastq.deplete_host.host")
         .expect("host depletion stage");
-    assert!(host_step
-        .command
-        .template
-        .iter()
-        .any(|part| part.contains("index_reference.host")));
+    assert!(host_step.command.template.iter().any(|part| part.contains("index_reference.host")));
     Ok(())
 }
 
@@ -2915,9 +2759,7 @@ fn planner_rejects_ambiguous_reference_index_dependencies_without_explicit_bindi
     })
     .expect_err("ambiguous dependency should fail");
 
-    assert!(error
-        .to_string()
-        .contains("multiple fastq.index_reference nodes"));
+    assert!(error.to_string().contains("multiple fastq.index_reference nodes"));
     Ok(())
 }
 
@@ -2999,10 +2841,7 @@ fn planner_uses_explicit_abundance_table_bindings() -> anyhow::Result<()> {
         .iter()
         .find(|step| step.step_id.as_str() == "fastq.normalize_abundance.selected")
         .expect("abundance stage");
-    assert_eq!(
-        abundance_step.io.inputs[0].path,
-        cluster_step.io.outputs[0].path
-    );
+    assert_eq!(abundance_step.io.inputs[0].path, cluster_step.io.outputs[0].path);
     Ok(())
 }
 
@@ -3048,9 +2887,7 @@ fn planner_uses_typed_normalize_abundance_params_from_stage_binding() -> anyhow:
                 tool: tool("seqkit"),
                 reason: None,
                 params: Some(FastqStageParameters::NormalizeAbundance(
-                    NormalizeAbundanceStageParams {
-                        method: "counts_per_million".to_string(),
-                    },
+                    NormalizeAbundanceStageParams { method: "counts_per_million".to_string() },
                 )),
             },
         ],
@@ -3135,13 +2972,7 @@ fn planner_resolves_graph_stage_aliases_for_unique_stages() -> anyhow::Result<()
     })?;
 
     assert_eq!(plan.edges().len(), 1);
-    assert_eq!(
-        plan.edges()[0].from().as_str(),
-        "fastq.validate_reads.tool.fastqvalidator"
-    );
-    assert_eq!(
-        plan.edges()[0].to().as_str(),
-        "fastq.detect_adapters.tool.fastqc"
-    );
+    assert_eq!(plan.edges()[0].from().as_str(), "fastq.validate_reads.tool.fastqvalidator");
+    assert_eq!(plan.edges()[0].to().as_str(), "fastq.detect_adapters.tool.fastqc");
     Ok(())
 }

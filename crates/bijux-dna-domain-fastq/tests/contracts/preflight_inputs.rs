@@ -25,11 +25,7 @@ fn preflight_accepts_paired_input_for_pair_preserving_transforms() -> Result<()>
 
 #[test]
 fn preflight_rejects_single_end_input_for_paired_only_stages() {
-    for stage_id in [
-        "fastq.merge_pairs",
-        "fastq.correct_errors",
-        "fastq.extract_umis",
-    ] {
+    for stage_id in ["fastq.merge_pairs", "fastq.correct_errors", "fastq.extract_umis"] {
         let Err(err) = preflight_stage(stage_id, FastqArtifactKind::SingleEnd) else {
             panic!("single-end inputs must be rejected for {stage_id}");
         };

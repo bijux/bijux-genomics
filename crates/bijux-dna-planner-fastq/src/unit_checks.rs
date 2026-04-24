@@ -11,11 +11,7 @@ use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1, ToolExecutionS
 
 #[test]
 fn select_trim_tools_dedup_and_sort() {
-    let tools = vec![
-        "fastp".to_string(),
-        "FASTP".to_string(),
-        "bbduk".to_string(),
-    ];
+    let tools = vec!["fastp".to_string(), "FASTP".to_string(), "bbduk".to_string()];
     match select_trim_tools(&tools, false) {
         Ok(normalized) => {
             assert_eq!(normalized, vec!["bbduk".to_string(), "fastp".to_string()]);
@@ -57,10 +53,7 @@ fn select_trim_tools_accepts_newly_governed_adapter_backends() {
 fn select_trim_tools_accepts_newly_governed_streaming_backends() {
     let tools = vec!["seqkit".to_string(), "prinseq".to_string()];
     match select_trim_tools(&tools, false) {
-        Ok(normalized) => assert_eq!(
-            normalized,
-            vec!["prinseq".to_string(), "seqkit".to_string()]
-        ),
+        Ok(normalized) => assert_eq!(normalized, vec!["prinseq".to_string(), "seqkit".to_string()]),
         Err(err) => panic!("expected governed trim tools to normalize: {err}"),
     }
 }
@@ -75,14 +68,8 @@ fn select_tools_rejects_empty() {
 
 #[test]
 fn stage_status_comes_from_domain_execution_support() {
-    assert_eq!(
-        stage_status("fastq.validate_reads").as_deref(),
-        Some("supported")
-    );
-    assert_eq!(
-        stage_status("fastq.infer_asvs").as_deref(),
-        Some("supported")
-    );
+    assert_eq!(stage_status("fastq.validate_reads").as_deref(), Some("supported"));
+    assert_eq!(stage_status("fastq.infer_asvs").as_deref(), Some("supported"));
     assert!(stage_status("fastq.unknown_stage").is_none());
 }
 
@@ -155,10 +142,7 @@ fn preprocess_benchmark_query_context_tracks_lineage_hash() {
     )
     .expect("preprocess query context should serialize prior lineage");
 
-    assert_eq!(
-        context.lineage_hash.as_deref(),
-        Some("fastq.validate_reads=fastqvalidator")
-    );
+    assert_eq!(context.lineage_hash.as_deref(), Some("fastq.validate_reads=fastqvalidator"));
 }
 
 #[test]
@@ -170,10 +154,7 @@ fn validate_manifest_lineage_becomes_artifact_bound_execution_edge() {
             tool: ToolExecutionSpecV1 {
                 tool_id: ToolId::from_static(id_catalog::TOOL_FASTQVALIDATOR_OFFICIAL),
                 tool_version: "fixture".to_string(),
-                image: ContainerImageRefV1 {
-                    image: "bijux/test:latest".to_string(),
-                    digest: None,
-                },
+                image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
                 command: CommandSpecV1 {
                     template: vec![
                         "fastqvalidator".to_string(),
@@ -192,13 +173,8 @@ fn validate_manifest_lineage_becomes_artifact_bound_execution_edge() {
             tool: ToolExecutionSpecV1 {
                 tool_id: ToolId::from_static(id_catalog::TOOL_FASTP),
                 tool_version: "fixture".to_string(),
-                image: ContainerImageRefV1 {
-                    image: "bijux/test:latest".to_string(),
-                    digest: None,
-                },
-                command: CommandSpecV1 {
-                    template: vec!["fastp".to_string()],
-                },
+                image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+                command: CommandSpecV1 { template: vec!["fastp".to_string()] },
                 resources: bijux_dna_core::contract::ToolConstraints::default(),
             },
             reason: None,
@@ -271,13 +247,8 @@ fn report_qc_preserves_multiple_explicit_qc_artifact_bindings() {
             tool: ToolExecutionSpecV1 {
                 tool_id: ToolId::from_static(id_catalog::TOOL_FASTQC),
                 tool_version: "fixture".to_string(),
-                image: ContainerImageRefV1 {
-                    image: "bijux/test:latest".to_string(),
-                    digest: None,
-                },
-                command: CommandSpecV1 {
-                    template: vec!["fastqc".to_string()],
-                },
+                image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+                command: CommandSpecV1 { template: vec!["fastqc".to_string()] },
                 resources: bijux_dna_core::contract::ToolConstraints::default(),
             },
             reason: None,
@@ -289,10 +260,7 @@ fn report_qc_preserves_multiple_explicit_qc_artifact_bindings() {
             tool: ToolExecutionSpecV1 {
                 tool_id: ToolId::from_static(id_catalog::TOOL_SEQKIT_STATS),
                 tool_version: "fixture".to_string(),
-                image: ContainerImageRefV1 {
-                    image: "bijux/test:latest".to_string(),
-                    digest: None,
-                },
+                image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
                 command: CommandSpecV1 {
                     template: vec!["seqkit".to_string(), "stats".to_string()],
                 },
@@ -307,13 +275,8 @@ fn report_qc_preserves_multiple_explicit_qc_artifact_bindings() {
             tool: ToolExecutionSpecV1 {
                 tool_id: ToolId::from_static(id_catalog::TOOL_MULTIQC),
                 tool_version: "fixture".to_string(),
-                image: ContainerImageRefV1 {
-                    image: "bijux/test:latest".to_string(),
-                    digest: None,
-                },
-                command: CommandSpecV1 {
-                    template: vec!["multiqc".to_string()],
-                },
+                image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+                command: CommandSpecV1 { template: vec!["multiqc".to_string()] },
                 resources: bijux_dna_core::contract::ToolConstraints::default(),
             },
             reason: None,
@@ -464,10 +427,7 @@ fn detect_adapters_surfaces_observer_specialized_benchmark_profile() {
         profile.readiness,
         crate::stage_api::BenchmarkReadinessLevel::ObserverSpecializedBenchmark
     );
-    assert_eq!(
-        profile.benchmark_scenarios,
-        vec!["detect_adapters_fairness"]
-    );
+    assert_eq!(profile.benchmark_scenarios, vec!["detect_adapters_fairness"]);
 }
 
 #[test]
@@ -554,11 +514,8 @@ fn expand_pipeline_stage_tool_routes_materializes_graph_bound_stage_bindings() {
                 .is_some_and(|id| id.contains("fastq.validate_reads.entry=fastqvalidator"))
     }));
     assert!(expanded_pipeline.edges.iter().all(|edge| {
-        edge.from
-            .contains("fastq.validate_reads.entry=fastqvalidator")
-            && edge
-                .to
-                .contains("fastq.validate_reads.entry=fastqvalidator")
+        edge.from.contains("fastq.validate_reads.entry=fastqvalidator")
+            && edge.to.contains("fastq.validate_reads.entry=fastqvalidator")
     }));
 }
 
@@ -655,9 +612,7 @@ fn expand_pipeline_stage_tool_routes_rejects_excessive_route_counts() {
 
     let error = expand_pipeline_stage_tool_routes(&pipeline, &toolsets)
         .expect_err("route expansion should reject unbounded graph fanout");
-    assert!(error
-        .to_string()
-        .contains("preprocess tool route expansion would create"));
+    assert!(error.to_string().contains("preprocess tool route expansion would create"));
 }
 
 #[test]
@@ -821,9 +776,7 @@ fn reference_aware_depletion_rejects_incompatible_index_bindings_early() {
     })
     .expect_err("incompatible reference backends should fail before stage composition");
 
-    assert!(error
-        .to_string()
-        .contains("requires one of [bowtie2_build]"));
+    assert!(error.to_string().contains("requires one of [bowtie2_build]"));
 }
 
 #[test]

@@ -10,9 +10,5 @@ pub(super) fn ensure_stage_known(
     if profile.tools.contains_key(stage) || profile.params.contains_key(stage) {
         return Ok(());
     }
-    Err(anyhow::anyhow!(
-        "{} references unknown stage {}",
-        context,
-        stage.as_str()
-    ))
+    Err(anyhow::anyhow!("{} references unknown stage {}", context, stage.as_str()))
 }

@@ -61,9 +61,7 @@ fn plan(stage_id: &'static str) -> bijux_dna_stage_contract::StagePlanV1 {
 fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.detect_adapters");
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
     assert_eq!(output.artifacts.len(), 1);
     assert_eq!(output.report_parts.len(), 2);
     assert_eq!(output.event_hints.len(), 1);
@@ -78,10 +76,7 @@ fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
         serde_json::json!("detect_adapters_fairness")
     );
     assert_eq!(
-        output
-            .verdict
-            .as_ref()
-            .map(|verdict| verdict.verdict.clone()),
+        output.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
         Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Pass)
     );
 }
@@ -90,9 +85,7 @@ fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
 fn parse_outputs_warns_when_no_observer_parser_exists() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.trim_reads");
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
     assert_eq!(output.artifacts.len(), 1);
     assert_eq!(output.report_parts.len(), 2);
     assert_eq!(output.warnings.len(), 2);
@@ -120,10 +113,7 @@ fn parse_outputs_warns_when_no_observer_parser_exists() {
     assert!(output.warnings[1].contains("semantic loss tags"));
     assert_eq!(output.invariants.len(), 3);
     assert_eq!(
-        output
-            .verdict
-            .as_ref()
-            .map(|verdict| verdict.verdict.clone()),
+        output.verdict.as_ref().map(|verdict| verdict.verdict.clone()),
         Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Warn)
     );
 }
@@ -191,9 +181,7 @@ fn parse_outputs_surfaces_detect_adapter_semantics() {
             ArtifactRole::StageReport,
         ),
     ];
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
             ["candidate_adapter_count"],
@@ -260,10 +248,7 @@ fn parse_outputs_surfaces_observed_deduplicate_semantics() {
         output.report_parts[0].payload["semantic_metrics"]["duplicates_removed"],
         serde_json::json!(3_u64)
     );
-    assert!(output
-        .report_parts
-        .iter()
-        .any(|part| part.name == "observed_semantic_metrics"));
+    assert!(output.report_parts.iter().any(|part| part.name == "observed_semantic_metrics"));
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["dedup_rate"],
         serde_json::json!(0.25)
@@ -358,9 +343,7 @@ fn parse_outputs_surfaces_observed_merge_semantics() {
         ..plan("fastq.merge_pairs")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert_eq!(
         output.report_parts[0].payload["semantic_metrics"]["merge_engine"],
@@ -446,20 +429,11 @@ fn validate_semantic_metrics_surface_pair_lineage_contract() {
 
     assert_eq!(semantics["validated_pairs"], serde_json::json!(1_u64));
     assert_eq!(semantics["validation_mode"], serde_json::json!("strict"));
-    assert_eq!(
-        semantics["failure_class"],
-        serde_json::json!("header_sync_mismatch")
-    );
+    assert_eq!(semantics["failure_class"], serde_json::json!("header_sync_mismatch"));
     assert_eq!(semantics["pair_sync_pass"], serde_json::json!(false));
-    assert_eq!(
-        semantics["pair_sync_policy"],
-        serde_json::json!("require_header_sync")
-    );
+    assert_eq!(semantics["pair_sync_policy"], serde_json::json!("require_header_sync"));
     assert_eq!(semantics["paired_mode"], serde_json::json!("paired_end"));
-    assert_eq!(
-        semantics["validated_stream_ids"],
-        serde_json::json!(["reads_r1", "reads_r2"])
-    );
+    assert_eq!(semantics["validated_stream_ids"], serde_json::json!(["reads_r1", "reads_r2"]));
     assert_eq!(semantics["validated_reads_r1"], serde_json::json!(1_u64));
 }
 
@@ -940,9 +914,7 @@ fn parse_outputs_surfaces_low_complexity_semantics() {
     };
     let outputs = plan.io.outputs.clone();
 
-    let output = plugin
-        .parse_outputs(&plan, &outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &outputs).expect("parse outputs");
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]
             ["reads_removed_low_complexity"],
@@ -1066,9 +1038,7 @@ fn parse_outputs_surfaces_extract_umis_semantics() {
     };
     let outputs = plan.io.outputs.clone();
 
-    let output = plugin
-        .parse_outputs(&plan, &outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &outputs).expect("parse outputs");
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["umi_pattern"],
         serde_json::json!("NNNNNNNN")
@@ -1309,11 +1279,8 @@ fn parse_outputs_surfaces_screen_taxonomy_semantics() {
     let summary_path = temp.path().join("kraken2.report.tsv");
     let report_path = temp.path().join("kraken2.classifications.json");
     bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
-    bijux_dna_infra::write_bytes(
-        &summary_path,
-        b"unclassified\t23\t23.0%\nbacteria\t77\t77.0%\n",
-    )
-    .expect("write summary");
+    bijux_dna_infra::write_bytes(&summary_path, b"unclassified\t23\t23.0%\nbacteria\t77\t77.0%\n")
+        .expect("write summary");
     bijux_dna_infra::write_bytes(
         &report_path,
         serde_json::json!({
@@ -1385,9 +1352,7 @@ fn parse_outputs_surfaces_screen_taxonomy_semantics() {
         ..plan("fastq.screen_taxonomy")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert!(output.warnings.is_empty());
     assert_eq!(
@@ -1492,9 +1457,7 @@ fn parse_outputs_surfaces_deplete_rrna_semantics() {
         ..plan("fastq.deplete_rrna")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert!(output.warnings.is_empty());
     assert_eq!(
@@ -1586,9 +1549,7 @@ fn parse_outputs_surfaces_deplete_reference_contaminants_semantics() {
         ..plan("fastq.deplete_reference_contaminants")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert!(output.warnings.is_empty());
     assert_eq!(
@@ -1688,9 +1649,7 @@ fn parse_outputs_surfaces_deplete_host_semantics() {
         ..plan("fastq.deplete_host")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert!(output.warnings.is_empty());
     assert_eq!(
@@ -1981,9 +1940,7 @@ fn parse_outputs_surfaces_qc_contributor_lineage_semantics() {
         ..plan("fastq.report_qc")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert!(output.warnings.is_empty());
     assert_eq!(
@@ -2123,9 +2080,7 @@ fn parse_outputs_surfaces_remove_duplicates_semantics() {
         ..plan("fastq.remove_duplicates")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["dedup_mode"],
@@ -2208,9 +2163,7 @@ fn parse_outputs_surfaces_profile_read_semantics() {
         ..plan("fastq.profile_reads")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["paired_mode"],
@@ -2307,9 +2260,7 @@ fn parse_outputs_surfaces_normalize_primer_semantics() {
         ..plan("fastq.normalize_primers")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["primer_set_id"],
@@ -2376,9 +2327,7 @@ fn parse_outputs_surfaces_normalize_abundance_semantics() {
         ..plan("fastq.normalize_abundance")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["method"],
@@ -2452,9 +2401,7 @@ fn parse_outputs_surfaces_infer_asvs_semantics() {
         ..plan("fastq.infer_asvs")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["pooling_mode"],
@@ -2520,9 +2467,7 @@ fn parse_outputs_surfaces_cluster_otus_semantics() {
         ..plan("fastq.cluster_otus")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["otu_identity"],
@@ -2586,9 +2531,7 @@ fn parse_outputs_surfaces_index_reference_semantics() {
         ..plan("fastq.index_reference")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["index_format"],
@@ -2659,9 +2602,7 @@ fn parse_outputs_surfaces_profile_read_length_semantics() {
         ..plan("fastq.profile_read_lengths")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["histogram_bins"],
@@ -2737,9 +2678,7 @@ fn parse_outputs_surfaces_overrepresented_semantics() {
         ..plan("fastq.profile_overrepresented_sequences")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["top_k"],
@@ -2815,9 +2754,7 @@ fn parse_outputs_surfaces_remove_chimeras_semantics() {
         ..plan("fastq.remove_chimeras")
     };
 
-    let output = plugin
-        .parse_outputs(&plan, &plan.io.outputs)
-        .expect("parse outputs");
+    let output = plugin.parse_outputs(&plan, &plan.io.outputs).expect("parse outputs");
 
     assert_eq!(
         output.verdict.as_ref().expect("verdict").key_metrics["semantic_metrics"]["method"],

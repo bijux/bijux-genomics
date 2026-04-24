@@ -40,10 +40,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                     );
                 }
                 let Some(params) = profile.defaults.params.get(&stage_key) else {
-                    panic!(
-                        "missing FASTQ params for {stage_id} in profile {}",
-                        profile.id
-                    );
+                    panic!("missing FASTQ params for {stage_id} in profile {}", profile.id);
                 };
                 let parsed = parse_effective_params(&stage, &params.to_json())
                     .unwrap_or_else(|| panic!("failed to parse FASTQ params for {stage_id}"));
@@ -69,10 +66,7 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
                 }
                 let stage_key = StageId::new(stage_id.clone());
                 let Some(params) = profile.defaults.params.get(&stage_key) else {
-                    panic!(
-                        "missing BAM params for {stage_id} in profile {}",
-                        profile.id
-                    );
+                    panic!("missing BAM params for {stage_id} in profile {}", profile.id);
                 };
                 stage
                     .parse_effective_params(&params.to_json())
@@ -86,10 +80,6 @@ fn pipeline_profiles_reference_known_stages_and_defaults() {
             }
         }
 
-        let _ = (
-            canonical_stage_order(),
-            optional_branches(),
-            forbidden_transitions(),
-        );
+        let _ = (canonical_stage_order(), optional_branches(), forbidden_transitions());
     }
 }

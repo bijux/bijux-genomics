@@ -3,10 +3,7 @@ use bijux_dna_domain_fastq::params::parse_effective_params;
 use bijux_dna_pipelines::registry::PipelineRegistry;
 
 fn bam_stage_from_id(stage_id: &str) -> Option<BamStage> {
-    BamStage::all()
-        .iter()
-        .copied()
-        .find(|stage| stage.as_str() == stage_id)
+    BamStage::all().iter().copied().find(|stage| stage.as_str() == stage_id)
 }
 
 #[test]
@@ -33,11 +30,9 @@ fn defaults_compile_against_domain_params() {
             if stage_id_str.starts_with("bam.") {
                 let stage = bam_stage_from_id(stage_id_str)
                     .unwrap_or_else(|| panic!("unknown bam stage in defaults: {stage_id_str}"));
-                stage
-                    .parse_effective_params(&params_json)
-                    .unwrap_or_else(|err| {
-                        panic!("bam defaults failed to parse for {stage_id_str}: {err}")
-                    });
+                stage.parse_effective_params(&params_json).unwrap_or_else(|err| {
+                    panic!("bam defaults failed to parse for {stage_id_str}: {err}")
+                });
                 continue;
             }
             if stage_id_str.starts_with("core.") {

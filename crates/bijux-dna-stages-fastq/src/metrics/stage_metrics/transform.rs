@@ -16,12 +16,12 @@ pub(super) fn stage_metrics_for_stage(
         id_catalog::FASTQ_FILTER => {
             Some(transform_filtering::filter_metrics(plan, inputs, outputs))
         }
-        id_catalog::FASTQ_DEDUPLICATE => Some(transform_pairing::deduplicate_metrics(
-            plan, inputs, outputs,
-        )),
-        id_catalog::FASTQ_LOW_COMPLEXITY => Some(transform_filtering::low_complexity_metrics(
-            plan, inputs, outputs,
-        )),
+        id_catalog::FASTQ_DEDUPLICATE => {
+            Some(transform_pairing::deduplicate_metrics(plan, inputs, outputs))
+        }
+        id_catalog::FASTQ_LOW_COMPLEXITY => {
+            Some(transform_filtering::low_complexity_metrics(plan, inputs, outputs))
+        }
         id_catalog::FASTQ_MERGE => Some(transform_pairing::merge_metrics(plan, inputs, outputs)),
         id_catalog::FASTQ_VALIDATE_PRE => Some(transform_pairing::validate_metrics(plan, inputs)),
         _ => None,

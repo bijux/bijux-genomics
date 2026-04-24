@@ -152,26 +152,10 @@ fn normalize_effective_params(
     };
     let expected = default_effective_params(normalized.threads);
     for (field, actual, supported) in [
-        (
-            "method",
-            normalized.method.as_str(),
-            expected.method.as_str(),
-        ),
-        (
-            "detection_scope",
-            normalized.detection_scope.as_str(),
-            expected.detection_scope.as_str(),
-        ),
-        (
-            "input_layout",
-            normalized.input_layout.as_str(),
-            expected.input_layout.as_str(),
-        ),
-        (
-            "report_artifact",
-            normalized.report_artifact.as_str(),
-            expected.report_artifact.as_str(),
-        ),
+        ("method", normalized.method.as_str(), expected.method.as_str()),
+        ("detection_scope", normalized.detection_scope.as_str(), expected.detection_scope.as_str()),
+        ("input_layout", normalized.input_layout.as_str(), expected.input_layout.as_str()),
+        ("report_artifact", normalized.report_artifact.as_str(), expected.report_artifact.as_str()),
         (
             "metrics_artifact",
             normalized.metrics_artifact.as_str(),
@@ -226,13 +210,8 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("vsearch"),
             tool_version: ToolVersion::from("2.29.0"),
-            image: ContainerImageRefV1 {
-                image: "bijuxdna/vsearch".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["vsearch".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijuxdna/vsearch".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["vsearch".to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -269,10 +248,7 @@ mod tests {
 
         assert_eq!(plan.resources.threads, 7);
         assert!(
-            plan.command
-                .template
-                .windows(2)
-                .any(|pair| pair == ["--threads", "7"]),
+            plan.command.template.windows(2).any(|pair| pair == ["--threads", "7"]),
             "vsearch command must render the governed thread override",
         );
     }

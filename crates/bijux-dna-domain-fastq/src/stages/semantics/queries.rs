@@ -14,10 +14,7 @@ pub fn stage_semantics(stage_id: &StageId) -> Option<StageSemantics> {
 
 #[must_use]
 pub fn stage_kind(stage_id: &StageId) -> Option<FastqStageKind> {
-    STAGES
-        .iter()
-        .find(|stage| stage.stage_id.as_str() == stage_id.as_str())
-        .map(|stage| stage.kind)
+    STAGES.iter().find(|stage| stage.stage_id.as_str() == stage_id.as_str()).map(|stage| stage.kind)
 }
 
 #[must_use]
@@ -30,10 +27,7 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
 
 #[must_use]
 pub fn fastq_stage_is_stable(stage_id: &StageId) -> bool {
-    !matches!(
-        stage_criticality(stage_id),
-        Some(StageCriticality::Experimental)
-    )
+    !matches!(stage_criticality(stage_id), Some(StageCriticality::Experimental))
 }
 
 #[must_use]

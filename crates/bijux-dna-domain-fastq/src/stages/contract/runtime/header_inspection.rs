@@ -54,9 +54,7 @@ pub fn ensure_umi_headers(r1: &Path, r2: Option<&Path>) -> Result<()> {
         names.extend(read_header_names(r2, 32)?);
     }
     let markers = ["UMI", "RX:", "BX:", "UB:"];
-    let has_marker = names
-        .iter()
-        .any(|name| markers.iter().any(|marker| name.contains(marker)));
+    let has_marker = names.iter().any(|name| markers.iter().any(|marker| name.contains(marker)));
     if has_marker {
         return Ok(());
     }
@@ -64,9 +62,7 @@ pub fn ensure_umi_headers(r1: &Path, r2: Option<&Path>) -> Result<()> {
         warn!("UMI headers not detected; proceeding due to BIJUX_ALLOW_NO_UMI");
         return Ok(());
     }
-    Err(anyhow!(
-        "UMI headers not detected; set BIJUX_ALLOW_NO_UMI=1 to bypass"
-    ))
+    Err(anyhow!("UMI headers not detected; set BIJUX_ALLOW_NO_UMI=1 to bypass"))
 }
 
 fn read_header_names(path: &Path, max_records: usize) -> Result<Vec<String>> {
@@ -87,9 +83,7 @@ fn read_header_names(path: &Path, max_records: usize) -> Result<Vec<String>> {
 
 fn normalize_header(name: &str) -> String {
     let name = name.split_whitespace().next().unwrap_or(name);
-    name.trim_end_matches("/1")
-        .trim_end_matches("/2")
-        .to_string()
+    name.trim_end_matches("/1").trim_end_matches("/2").to_string()
 }
 
 fn has_style_drift(names: &[String]) -> bool {

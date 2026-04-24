@@ -3,10 +3,7 @@ use bijux_dna_domain_fastq::STAGES;
 
 fn sort_stages(mut stages: Vec<StageId>) -> Vec<String> {
     stages.sort_by_key(|stage| stage.as_str().to_string());
-    stages
-        .into_iter()
-        .map(|stage| stage.as_str().to_string())
-        .collect()
+    stages.into_iter().map(|stage| stage.as_str().to_string()).collect()
 }
 
 #[test]
@@ -40,9 +37,7 @@ fn observer_specialized_stage_set_stays_within_closed_execution() {
         "observer_stage_ids must remain an alias for observer_specialized_stage_ids"
     );
     assert!(
-        observer_specialized
-            .iter()
-            .all(|stage_id| closed_execution.contains(stage_id)),
+        observer_specialized.iter().all(|stage_id| closed_execution.contains(stage_id)),
         "observer-specialized coverage must stay within the full closed execution surface"
     );
 }

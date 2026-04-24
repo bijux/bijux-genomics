@@ -24,15 +24,9 @@ fn parse_legacy_profile_overrepresented_report(
         .flatten()
         .filter_map(|entry| {
             Some(OverrepresentedSequenceRowV1 {
-                sequence: entry
-                    .get("sequence")
-                    .and_then(serde_json::Value::as_str)?
-                    .to_string(),
+                sequence: entry.get("sequence").and_then(serde_json::Value::as_str)?.to_string(),
                 count: entry.get("count").and_then(serde_json::Value::as_u64)?,
-                fraction: entry
-                    .get("fraction")
-                    .and_then(serde_json::Value::as_f64)
-                    .unwrap_or(0.0),
+                fraction: entry.get("fraction").and_then(serde_json::Value::as_f64).unwrap_or(0.0),
                 flag: entry
                     .get("flag")
                     .and_then(serde_json::Value::as_str)
@@ -78,9 +72,7 @@ fn parse_legacy_profile_overrepresented_report(
             .get("flagged_sequences")
             .and_then(serde_json::Value::as_u64)
             .unwrap_or_else(|| {
-                rows.iter()
-                    .filter(|row| row.flag == "overrepresented")
-                    .count() as u64
+                rows.iter().filter(|row| row.flag == "overrepresented").count() as u64
             }),
         top_fraction: json
             .get("top_fraction")

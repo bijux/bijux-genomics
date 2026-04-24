@@ -13,9 +13,6 @@ fn newly_benchmarked_fastq_stage_families_publish_scenarios() {
     ] {
         let stage = StageId::new(stage_id.to_string());
         let scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&stage);
-        assert!(
-            !scenarios.is_empty(),
-            "{stage_id} must publish at least one benchmark scenario"
-        );
+        assert!(!scenarios.is_empty(), "{stage_id} must publish at least one benchmark scenario");
     }
 }

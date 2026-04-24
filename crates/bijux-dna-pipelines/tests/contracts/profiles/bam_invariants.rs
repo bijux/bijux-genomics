@@ -20,19 +20,10 @@ fn bam_default_and_adna_profiles_satisfy_invariants() {
 #[test]
 fn bam_adna_requires_damage_stage() {
     let mut profile = bam_adna_shotgun_profile();
-    profile
-        .capabilities
-        .required_stages
-        .retain(|stage| *stage != id_catalog::BAM_DAMAGE);
-    profile
-        .defaults
-        .params
-        .remove(&StageId::from_static(id_catalog::BAM_DAMAGE));
+    profile.capabilities.required_stages.retain(|stage| *stage != id_catalog::BAM_DAMAGE);
+    profile.defaults.params.remove(&StageId::from_static(id_catalog::BAM_DAMAGE));
 
     let report = validate_bam_profile(&profile);
     assert!(!report.valid);
-    assert!(report
-        .violations
-        .iter()
-        .any(|v| v.code == "adna_damage_stage_missing"));
+    assert!(report.violations.iter().any(|v| v.code == "adna_damage_stage_missing"));
 }

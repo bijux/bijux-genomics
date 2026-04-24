@@ -30,11 +30,7 @@ pub struct RemoveDuplicatesPlanOptions {
 
 impl Default for RemoveDuplicatesPlanOptions {
     fn default() -> Self {
-        Self {
-            dedup_mode: DedupMode::Exact,
-            keep_order: true,
-            threads_override: None,
-        }
+        Self { dedup_mode: DedupMode::Exact, keep_order: true, threads_override: None }
     }
 }
 
@@ -78,13 +74,7 @@ pub fn plan_deduplicate(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_deduplicate_with_options(
-        tool,
-        r1,
-        r2,
-        out_dir,
-        &RemoveDuplicatesPlanOptions::default(),
-    )
+    plan_deduplicate_with_options(tool, r1, r2, out_dir, &RemoveDuplicatesPlanOptions::default())
 }
 
 /// Build a deduplicate plan with governed stage options.
@@ -101,10 +91,7 @@ pub fn plan_deduplicate_with_options(
 ) -> Result<StagePlanV1> {
     let paired_mode = r2.is_some();
     validate_deduplicate_options(&tool.tool_id.0, paired_mode, options)?;
-    let threads = options
-        .threads_override
-        .unwrap_or(tool.resources.threads)
-        .max(1);
+    let threads = options.threads_override.unwrap_or(tool.resources.threads).max(1);
     let output_r1 = if paired_mode {
         out_dir.join(format!("{}.dedup.R1.fastq.gz", tool.tool_id))
     } else {
@@ -238,11 +225,7 @@ fn deduplicate_command(
             format!("in2='{}' out2='{}'", r2.display(), output_r2.display())
         }
         (None, None) => String::new(),
-        _ => {
-            return Err(anyhow!(
-                "paired remove-duplicates IO bindings are incomplete"
-            ))
-        }
+        _ => return Err(anyhow!("paired remove-duplicates IO bindings are incomplete")),
     };
     let keep_order_args = if tool_id == "clumpify" {
         if options.keep_order {
@@ -258,15 +241,9 @@ fn deduplicate_command(
         ("clumpify", DedupMode::OpticalAware) => "dedupe=t optical dupedist=40".to_string(),
         _ => String::new(),
     };
-    let threads = options
-        .threads_override
-        .unwrap_or(tool.resources.threads)
-        .max(1);
-    let threads_args = if tool_id == "clumpify" {
-        format!("threads={threads}")
-    } else {
-        String::new()
-    };
+    let threads = options.threads_override.unwrap_or(tool.resources.threads).max(1);
+    let threads_args =
+        if tool_id == "clumpify" { format!("threads={threads}") } else { String::new() };
     let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
@@ -274,10 +251,7 @@ fn deduplicate_command(
             ("reads_r1", Some(r1.display().to_string())),
             ("reads_r2", r2.map(|path| path.display().to_string())),
             ("dedup_reads_r1", Some(output_r1.display().to_string())),
-            (
-                "dedup_reads_r2",
-                output_r2.map(|path| path.display().to_string()),
-            ),
+            ("dedup_reads_r2", output_r2.map(|path| path.display().to_string())),
             ("report_json", Some(report.display().to_string())),
             ("out_dir", Some(out_dir.display().to_string())),
             ("paired_io_args", Some(paired_io_args)),
@@ -388,11 +362,7 @@ fn validate_deduplicate_options(
     {
         return Err(anyhow!(
             "{tool_id} remove-duplicates adapter currently supports dedup_mode=exact{}",
-            if tool_id == "clumpify" {
-                " or dedup_mode=optical_aware"
-            } else {
-                ""
-            }
+            if tool_id == "clumpify" { " or dedup_mode=optical_aware" } else { "" }
         ));
     }
     if !options.keep_order && tool_id != "clumpify" {
@@ -441,11 +411,7 @@ fn shell_quote_str(value: &str) -> String {
 }
 
 fn shell_join(command: &[String]) -> String {
-    command
-        .iter()
-        .map(|part| shell_quote_str(part))
-        .collect::<Vec<_>>()
-        .join(" ")
+    command.iter().map(|part| shell_quote_str(part)).collect::<Vec<_>>().join(" ")
 }
 
 #[cfg(test)]
@@ -522,18 +488,12 @@ mod tests {
         assert!(!script.contains("bijux.fastq.remove_duplicates.report.v1"));
         assert!(script.contains("count_fastq_reads"));
         assert!(script.contains("\"reads_in\":%s"));
-        assert_eq!(
-            plan.params["report_json"],
-            serde_json::json!("out/deduplicate_report.json")
-        );
+        assert_eq!(plan.params["report_json"], serde_json::json!("out/deduplicate_report.json"));
         assert_eq!(
             plan.effective_params["schema_version"],
             serde_json::json!(REMOVE_DUPLICATES_SCHEMA_VERSION)
         );
-        assert_eq!(
-            plan.effective_params["dedup_mode"],
-            serde_json::json!("exact")
-        );
+        assert_eq!(plan.effective_params["dedup_mode"], serde_json::json!("exact"));
         assert_eq!(plan.effective_params["keep_order"], serde_json::json!(true));
         assert!(script.contains("reads_R1.fastq.gz"));
         assert!(script.contains("reads_R2.fastq.gz"));
@@ -609,10 +569,7 @@ mod tests {
         .expect("clumpify should map keep_order into execution");
 
         assert!(plan.command.template[2].contains("reorder=f"));
-        assert_eq!(
-            plan.effective_params["keep_order"],
-            serde_json::json!(false)
-        );
+        assert_eq!(plan.effective_params["keep_order"], serde_json::json!(false));
     }
 
     #[test]
@@ -632,10 +589,7 @@ mod tests {
 
         assert!(plan.command.template[2].contains("optical"));
         assert!(plan.command.template[2].contains("dupedist=40"));
-        assert_eq!(
-            plan.effective_params["dedup_mode"],
-            serde_json::json!("optical_aware")
-        );
+        assert_eq!(plan.effective_params["dedup_mode"], serde_json::json!("optical_aware"));
     }
 
     #[test]
@@ -694,8 +648,6 @@ mod tests {
         )
         .expect_err("fastuniq should reject explicit thread overrides");
 
-        assert!(error
-            .to_string()
-            .contains("supports explicit thread overrides only for clumpify"));
+        assert!(error.to_string().contains("supports explicit thread overrides only for clumpify"));
     }
 }

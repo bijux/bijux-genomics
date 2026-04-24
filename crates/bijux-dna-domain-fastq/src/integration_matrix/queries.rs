@@ -9,23 +9,18 @@ pub fn stage_tool_bindings() -> Vec<StageToolBinding> {
         .stage_tool_integration
         .iter()
         .flat_map(|(stage_id, bindings)| {
-            bindings
-                .iter()
-                .map(move |(tool_id, integration_level)| StageToolBinding {
-                    stage_id: StageId::new(stage_id.clone()),
-                    tool_id: ToolId::new(tool_id.clone()),
-                    integration_level: *integration_level,
-                })
+            bindings.iter().map(move |(tool_id, integration_level)| StageToolBinding {
+                stage_id: StageId::new(stage_id.clone()),
+                tool_id: ToolId::new(tool_id.clone()),
+                integration_level: *integration_level,
+            })
         })
         .collect()
 }
 
 #[must_use]
 pub fn stage_tool_bindings_for_stage(stage_id: &StageId) -> Vec<StageToolBinding> {
-    stage_tool_bindings()
-        .into_iter()
-        .filter(|binding| binding.stage_id == *stage_id)
-        .collect()
+    stage_tool_bindings().into_iter().filter(|binding| binding.stage_id == *stage_id).collect()
 }
 
 #[must_use]
@@ -54,10 +49,7 @@ pub fn benchmark_scenarios() -> Vec<BenchmarkScenario> {
 
 #[must_use]
 pub fn benchmark_scenarios_for_stage(stage_id: &StageId) -> Vec<BenchmarkScenario> {
-    benchmark_scenarios()
-        .into_iter()
-        .filter(|scenario| scenario.stage_id == *stage_id)
-        .collect()
+    benchmark_scenarios().into_iter().filter(|scenario| scenario.stage_id == *stage_id).collect()
 }
 
 #[must_use]
@@ -74,7 +66,5 @@ pub fn reference_index_backends_for_tool(tool_id: &ToolId) -> Vec<ToolId> {
 
 #[must_use]
 pub fn is_reference_index_backend_compatible(tool_id: &ToolId, index_tool_id: &ToolId) -> bool {
-    reference_index_backends_for_tool(tool_id)
-        .into_iter()
-        .any(|backend| backend == *index_tool_id)
+    reference_index_backends_for_tool(tool_id).into_iter().any(|backend| backend == *index_tool_id)
 }

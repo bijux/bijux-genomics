@@ -55,16 +55,9 @@ pub fn plan_filter(
     let report_json = out_dir.join("filter_report.json");
     let (raw_backend_report, raw_backend_report_format) =
         raw_backend_report_contract(&tool.tool_id.0, out_dir);
-    let kmer_ref = options
-        .kmer_ref
-        .clone()
-        .map(|path| path.display().to_string());
+    let kmer_ref = options.kmer_ref.clone().map(|path| path.display().to_string());
     let effective_params = FilterEffectiveParams {
-        paired_mode: if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: effective_threads,
         max_n: options.max_n,
         max_n_fraction: options.max_n_fraction,
@@ -128,9 +121,7 @@ pub fn plan_filter(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: command_template,
-        },
+        command: bijux_dna_core::prelude::CommandSpecV1 { template: command_template },
         resources,
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
@@ -182,18 +173,12 @@ fn filter_command_template(
             effective_threads.to_string(),
         ];
         if let Some(raw_backend_report) = raw_backend_report {
-            command.extend([
-                "--json".to_string(),
-                raw_backend_report.display().to_string(),
-            ]);
+            command.extend(["--json".to_string(), raw_backend_report.display().to_string()]);
         }
         if let Some(limit) = options.max_n_count.or(options.max_n) {
             command.extend(["--n_base_limit".to_string(), limit.to_string()]);
         }
-        if let Some(threshold) = options
-            .low_complexity_threshold
-            .or(options.entropy_threshold)
-        {
+        if let Some(threshold) = options.low_complexity_threshold.or(options.entropy_threshold) {
             command.push("--low_complexity_filter".to_string());
             command.extend(["--complexity_threshold".to_string(), threshold.to_string()]);
         }
@@ -215,25 +200,13 @@ fn filter_command_template(
             ("reads_r2", r2.map(|path| path.display().to_string())),
             ("filtered_reads", Some(output_r1.display().to_string())),
             ("filtered_reads_r1", Some(output_r1.display().to_string())),
-            (
-                "filtered_reads_r2",
-                output_r2.map(|path| path.display().to_string()),
-            ),
+            ("filtered_reads_r2", output_r2.map(|path| path.display().to_string())),
             ("report_json", Some(report_json.display().to_string())),
-            (
-                "filter_report_json",
-                Some(report_json.display().to_string()),
-            ),
-            (
-                "raw_backend_report",
-                raw_backend_report.map(|path| path.display().to_string()),
-            ),
+            ("filter_report_json", Some(report_json.display().to_string())),
+            ("raw_backend_report", raw_backend_report.map(|path| path.display().to_string())),
             ("trimmed_reads", Some(output_r1.display().to_string())),
             ("trimmed_reads_r1", Some(output_r1.display().to_string())),
-            (
-                "trimmed_reads_r2",
-                output_r2.map(|path| path.display().to_string()),
-            ),
+            ("trimmed_reads_r2", output_r2.map(|path| path.display().to_string())),
         ],
     )
 }
@@ -254,10 +227,7 @@ fn raw_backend_report_contract(
 ) -> (Option<PathBuf>, Option<&'static str>) {
     match tool {
         "fastp" => (Some(out_dir.join("fastp.filter.json")), Some("fastp_json")),
-        "bbduk" => (
-            Some(out_dir.join("bbduk.filter.stats")),
-            Some("bbduk_stats"),
-        ),
+        "bbduk" => (Some(out_dir.join("bbduk.filter.stats")), Some("bbduk_stats")),
         _ => (None, None),
     }
 }

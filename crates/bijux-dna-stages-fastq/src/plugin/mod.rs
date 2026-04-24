@@ -45,18 +45,10 @@ impl StagePlugin for FastqStagePlugin {
         plan: &StagePlanV1,
         outputs: &[ArtifactRef],
     ) -> Result<StagePluginOutputV1> {
-        let input_paths: Vec<std::path::PathBuf> = plan
-            .io
-            .inputs
-            .iter()
-            .map(|input| input.path.clone())
-            .collect();
-        let output_paths: Vec<std::path::PathBuf> = plan
-            .io
-            .outputs
-            .iter()
-            .map(|output| output.path.clone())
-            .collect();
+        let input_paths: Vec<std::path::PathBuf> =
+            plan.io.inputs.iter().map(|input| input.path.clone()).collect();
+        let output_paths: Vec<std::path::PathBuf> =
+            plan.io.outputs.iter().map(|output| output.path.clone()).collect();
         let envelope = metrics::build_metrics_envelope(plan, &input_paths, &output_paths)?;
         let context = observation_context::observation_context(plan, outputs);
         let expected_artifact_names = plan
@@ -70,10 +62,8 @@ impl StagePlugin for FastqStagePlugin {
             .iter()
             .map(|artifact| artifact.name.as_str().to_string())
             .collect::<std::collections::BTreeSet<_>>();
-        let missing_expected = expected_artifact_names
-            .difference(&actual_artifact_names)
-            .cloned()
-            .collect::<Vec<_>>();
+        let missing_expected =
+            expected_artifact_names.difference(&actual_artifact_names).cloned().collect::<Vec<_>>();
         let outputs_used = !outputs.is_empty();
         let invariants = output_contract::output_invariants(&missing_expected, &context);
         let verdict = output_contract::output_verdict(plan, outputs_used, &invariants, &context);

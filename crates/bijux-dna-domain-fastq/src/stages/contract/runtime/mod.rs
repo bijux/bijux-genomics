@@ -29,13 +29,8 @@ pub fn preflight_stage(stage_id: &str, input_kind: FastqArtifactKind) -> Result<
     if canonical.io.inputs.contains(&input_kind) {
         return Ok(());
     }
-    let accepted = canonical
-        .io
-        .inputs
-        .iter()
-        .map(|kind| format!("{kind:?}"))
-        .collect::<Vec<_>>()
-        .join(", ");
+    let accepted =
+        canonical.io.inputs.iter().map(|kind| format!("{kind:?}")).collect::<Vec<_>>().join(", ");
     Err(anyhow!(
         "stage {stage_id} does not accept {input_kind:?} input; accepted kinds: {accepted}"
     ))

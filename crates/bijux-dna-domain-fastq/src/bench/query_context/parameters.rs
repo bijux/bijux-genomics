@@ -50,10 +50,7 @@ mod tests {
             "min_length": 30
         }));
 
-        assert_eq!(
-            BenchQueryContext::from_parameters(&parameters),
-            Some(context)
-        );
+        assert_eq!(BenchQueryContext::from_parameters(&parameters), Some(context));
     }
 
     #[test]
@@ -75,9 +72,6 @@ mod tests {
             .with_stage_contract_hash("contract-b")
             .with_bank_hash("adapter_bank", "bank-b");
 
-        assert_eq!(
-            requested.match_against_stored(&stored),
-            BenchQueryContextMatch::NoMatch
-        );
+        assert_eq!(requested.match_against_stored(&stored), BenchQueryContextMatch::NoMatch);
     }
 }

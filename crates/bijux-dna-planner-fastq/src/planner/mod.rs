@@ -155,10 +155,7 @@ impl FastqPlanner {
         let mut steps = Vec::new();
         let mut comparison_inputs = Vec::new();
         for tool in &config.tools {
-            if !declared_bindings
-                .iter()
-                .any(|declared| declared == &tool.tool_id)
-            {
+            if !declared_bindings.iter().any(|declared| declared == &tool.tool_id) {
                 return Err(anyhow!(
                     "{} is not a declared binding for {}",
                     tool.tool_id.as_str(),
@@ -206,10 +203,7 @@ impl FastqPlanner {
                 None,
                 |binding, _r1, _r2| {
                     let stage_dir = binding.stage_id.trim_start_matches(STAGE_PREFIX);
-                    Ok(config
-                        .out_dir
-                        .join(stage_dir)
-                        .join(binding.tool.tool_id.as_str()))
+                    Ok(config.out_dir.join(stage_dir).join(binding.tool.tool_id.as_str()))
                 },
             )?;
             let Some(plan) = stage_plans.into_iter().next() else {
@@ -228,25 +222,15 @@ impl FastqPlanner {
                     continue;
                 }
                 comparison_inputs.push(ArtifactRef::required(
-                    ArtifactId::new(format!(
-                        "{}__{}",
-                        tool.tool_id.as_str(),
-                        output.name.as_str()
-                    )),
+                    ArtifactId::new(format!("{}__{}", tool.tool_id.as_str(), output.name.as_str())),
                     output.path.clone(),
                     output.role,
                 ));
             }
-            steps.push(
-                bijux_dna_stage_contract::execution_step_from_stage_plan_with_step_id(
-                    &plan,
-                    StepId::new(format!(
-                        "{}.tool.{}",
-                        stage_id.as_str(),
-                        tool.tool_id.as_str()
-                    )),
-                ),
-            );
+            steps.push(bijux_dna_stage_contract::execution_step_from_stage_plan_with_step_id(
+                &plan,
+                StepId::new(format!("{}.tool.{}", stage_id.as_str(), tool.tool_id.as_str())),
+            ));
         }
 
         let comparison_artifact_ids =
@@ -272,18 +256,10 @@ impl FastqPlanner {
             steps.push(ExecutionStep {
                 step_id: compare_step_id,
                 stage_id: crate::STAGE_COMPARE_STAGE_TOOLS,
-                command: CommandSpecV1 {
-                    template: comparison_command,
-                },
-                image: ContainerImageRefV1 {
-                    image: "bijux-dna-compare".to_string(),
-                    digest: None,
-                },
+                command: CommandSpecV1 { template: comparison_command },
+                image: ContainerImageRefV1 { image: "bijux-dna-compare".to_string(), digest: None },
                 resources: ToolConstraints::default(),
-                io: StageIO {
-                    inputs: comparison_inputs,
-                    outputs: comparison_outputs,
-                },
+                io: StageIO { inputs: comparison_inputs, outputs: comparison_outputs },
                 out_dir: compare_out_dir,
                 aux_images: BTreeMap::new(),
                 expected_artifact_ids: comparison_artifact_ids
@@ -357,20 +333,12 @@ fn normalize_stage_bindings(
                 Ok(ToolsetSelection {
                     stage_id: binding.stage_id.clone(),
                     stage_instance_id: binding.stage_instance_id.clone(),
-                    tool_ids: binding
-                        .tools
-                        .iter()
-                        .map(|tool| tool.tool_id.to_string())
-                        .collect(),
+                    tool_ids: binding.tools.iter().map(|tool| tool.tool_id.to_string()).collect(),
                     reason: binding.reason.clone().unwrap_or_default(),
                 })
             })
             .collect::<Result<Vec<_>>>()?;
-        if config
-            .stage_toolsets
-            .iter()
-            .all(|binding| binding.tools.len() == 1)
-        {
+        if config.stage_toolsets.iter().all(|binding| binding.tools.len() == 1) {
             let stage_bindings = config
                 .stage_toolsets
                 .iter()
@@ -470,10 +438,7 @@ fn implicit_pipeline_spec_from_nodes(
     for node in &nodes {
         let stage_node_id =
             PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
-        if node_id_by_stage_id
-            .insert(node.stage_id.clone(), stage_node_id)
-            .is_some()
-        {
+        if node_id_by_stage_id.insert(node.stage_id.clone(), stage_node_id).is_some() {
             return Err(anyhow!(
                 "{surface_name} with repeated stage_id {} requires an explicit pipeline_spec",
                 node.stage_id
@@ -482,23 +447,14 @@ fn implicit_pipeline_spec_from_nodes(
     }
 
     let stage_graph = preprocess_pipeline_graph_for_stage_order(
-        &nodes
-            .iter()
-            .map(|node| StageId::new(node.stage_id.clone()))
-            .collect::<Vec<_>>(),
+        &nodes.iter().map(|node| StageId::new(node.stage_id.clone())).collect::<Vec<_>>(),
     );
     let edges = stage_graph
         .edges
         .into_iter()
         .map(|edge| PipelineEdgeSpec {
-            from: node_id_by_stage_id
-                .get(&edge.from)
-                .cloned()
-                .unwrap_or(edge.from),
-            to: node_id_by_stage_id
-                .get(&edge.to)
-                .cloned()
-                .unwrap_or(edge.to),
+            from: node_id_by_stage_id.get(&edge.from).cloned().unwrap_or(edge.from),
+            to: node_id_by_stage_id.get(&edge.to).cloned().unwrap_or(edge.to),
             from_output_id: edge.from_output_id,
             to_input_id: edge.to_input_id,
         })
@@ -507,9 +463,7 @@ fn implicit_pipeline_spec_from_nodes(
 }
 
 fn base_stage_instance_id(stage_instance_id: &Option<String>) -> Option<&str> {
-    stage_instance_id
-        .as_deref()
-        .and_then(|value| value.split(".route.").next())
+    stage_instance_id.as_deref().and_then(|value| value.split(".route.").next())
 }
 
 fn source_toolset_for_expanded_selection<'a>(
@@ -626,13 +580,8 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::new(tool_id),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["echo".to_string(), tool_id.to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["echo".to_string(), tool_id.to_string()] },
             resources: ToolConstraints::default(),
         }
     }
@@ -677,14 +626,8 @@ mod tests {
         let toolsets = stage_toolsets_for_pipeline_nodes(&pipeline, &toolsets)?;
 
         assert_eq!(toolsets.len(), 2);
-        assert_eq!(
-            toolsets[0].stage_instance_id.as_deref(),
-            Some("fastq.validate_reads.first")
-        );
-        assert_eq!(
-            toolsets[1].stage_instance_id.as_deref(),
-            Some("fastq.trim_reads.fastp_branch")
-        );
+        assert_eq!(toolsets[0].stage_instance_id.as_deref(), Some("fastq.validate_reads.first"));
+        assert_eq!(toolsets[1].stage_instance_id.as_deref(), Some("fastq.trim_reads.fastp_branch"));
         assert_eq!(toolsets[1].tools[0].tool_id.as_str(), "fastp");
         Ok(())
     }
@@ -717,9 +660,7 @@ mod tests {
         )
         .expect_err("node/tool mismatch must fail");
 
-        assert!(error
-            .to_string()
-            .contains("pipeline nodes/toolset length mismatch"));
+        assert!(error.to_string().contains("pipeline nodes/toolset length mismatch"));
     }
 
     #[test]
@@ -793,9 +734,7 @@ mod tests {
         ])
         .expect_err("repeated stage ids must require an explicit graph");
 
-        assert!(error
-            .to_string()
-            .contains("requires an explicit pipeline_spec"));
+        assert!(error.to_string().contains("requires an explicit pipeline_spec"));
     }
 }
 
@@ -811,10 +750,7 @@ pub fn plan_fastq_to_bam__default__v1(
         "fastq-to-bam__default__v1",
         PLANNER_VERSION,
         policy,
-        stages
-            .iter()
-            .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
-            .collect(),
+        stages.iter().map(bijux_dna_stage_contract::execution_step_from_stage_plan).collect(),
         edges
             .into_iter()
             .map(|edge| {

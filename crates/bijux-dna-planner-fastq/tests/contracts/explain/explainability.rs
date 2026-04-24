@@ -18,13 +18,8 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
     let tool = ToolExecutionSpecV1 {
         tool_id: ToolId::new("fastqvalidator"),
         tool_version: "1.0".to_string(),
-        image: ContainerImageRefV1 {
-            image: "fastqvalidator".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["fastqvalidator".to_string()],
-        },
+        image: ContainerImageRefV1 { image: "fastqvalidator".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["fastqvalidator".to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -33,9 +28,7 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
         },
     };
 
-    let stage = bijux_dna_domain_fastq::STAGE_VALIDATE_READS
-        .as_str()
-        .to_string();
+    let stage = bijux_dna_domain_fastq::STAGE_VALIDATE_READS.as_str().to_string();
     let contract_hash = bijux_dna_domain_fastq::stage_contract_hash(&stage)
         .and_then(|hash| hash.ok())
         .unwrap_or_else(|| "missing".to_string());
@@ -67,24 +60,15 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
         None,
         None,
         |binding, _r1, _r2| {
-            Ok(temp
-                .path()
-                .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str()))
+            Ok(temp.path().join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
         },
     )?;
 
     let plan_reason = &plans[0].reason;
     assert_eq!(plan_reason.kind, reason.kind);
     assert_eq!(plan_reason.summary, reason.summary);
-    assert!(plan_reason
-        .details
-        .get("defaults_diff")
-        .is_some_and(|value| value.is_object()));
-    assert!(plan_reason
-        .details
-        .get("contract_hash")
-        .is_some_and(|value| value.as_str().is_some()));
+    assert!(plan_reason.details.get("defaults_diff").is_some_and(|value| value.is_object()));
+    assert!(plan_reason.details.get("contract_hash").is_some_and(|value| value.as_str().is_some()));
     Ok(())
 }
 
@@ -98,13 +82,8 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
     let tool_for = |tool: &str| ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool),
         tool_version: "1.0".to_string(),
-        image: ContainerImageRefV1 {
-            image: tool.to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec![tool.to_string()],
-        },
+        image: ContainerImageRefV1 { image: tool.to_string(), digest: None },
+        command: CommandSpecV1 { template: vec![tool.to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -114,24 +93,12 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
     };
 
     let stages = [
+        (bijux_dna_domain_fastq::STAGE_TRIM_READS.as_str().to_string(), tool_for("fastp")),
         (
-            bijux_dna_domain_fastq::STAGE_TRIM_READS
-                .as_str()
-                .to_string(),
-            tool_for("fastp"),
-        ),
-        (
-            bijux_dna_domain_fastq::STAGE_PROFILE_READS
-                .as_str()
-                .to_string(),
+            bijux_dna_domain_fastq::STAGE_PROFILE_READS.as_str().to_string(),
             tool_for("seqkit_stats"),
         ),
-        (
-            bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY
-                .as_str()
-                .to_string(),
-            tool_for("kraken2"),
-        ),
+        (bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY.as_str().to_string(), tool_for("kraken2")),
     ];
     let bindings: Vec<FastqStageBinding> = stages
         .iter()
@@ -184,10 +151,7 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
         assert!(a.reason.details.get("contract_hash").is_some());
         let reason_json =
             bijux_dna_testkit::snapshot_normalize_json(&serde_json::to_value(&a.reason)?);
-        let snapshot_name = format!(
-            "bijux-dna-planner-fastq__contracts__explain__{}",
-            a.stage_id
-        );
+        let snapshot_name = format!("bijux-dna-planner-fastq__contracts__explain__{}", a.stage_id);
         insta::with_settings!({snapshot_path => "../../snapshots", prepend_module_to_snapshot => false}, {
             insta::assert_json_snapshot!(snapshot_name, reason_json);
         });

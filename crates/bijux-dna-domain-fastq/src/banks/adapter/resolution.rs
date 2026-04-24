@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::fmt::Write as _;
 
 use anyhow::{anyhow, Result};
 use sha2::Digest;
@@ -57,11 +58,7 @@ pub(super) fn resolve_adapter_ids_and_sequences(
 ) -> Result<(Vec<String>, Vec<AdapterEntryV1>, Vec<String>)> {
     let mut selected: BTreeSet<String> = BTreeSet::new();
     for adapter in &bank.adapters {
-        if adapter
-            .tags
-            .iter()
-            .any(|tag| preset.tags.iter().any(|preset_tag| preset_tag == tag))
-        {
+        if adapter.tags.iter().any(|tag| preset.tags.iter().any(|preset_tag| preset_tag == tag)) {
             selected.insert(adapter.id.clone());
         }
     }
@@ -73,11 +70,7 @@ pub(super) fn resolve_adapter_ids_and_sequences(
         selected.remove(adapter_id);
     }
     for adapter_id in enable {
-        if !bank
-            .adapters
-            .iter()
-            .any(|adapter| adapter.id == *adapter_id)
-        {
+        if !bank.adapters.iter().any(|adapter| adapter.id == *adapter_id) {
             return Err(anyhow!("unknown adapter id {adapter_id}"));
         }
         selected.insert(adapter_id.clone());
@@ -94,10 +87,7 @@ pub(super) fn resolve_adapter_ids_and_sequences(
             .ok_or_else(|| anyhow!("missing adapter id {adapter_id}"))?;
         adapters.push(adapter.clone());
     }
-    let sequences: Vec<String> = adapters
-        .iter()
-        .map(|adapter| adapter.sequence.clone())
-        .collect();
+    let sequences: Vec<String> = adapters.iter().map(|adapter| adapter.sequence.clone()).collect();
     Ok((enabled_ids, adapters, sequences))
 }
 
@@ -106,15 +96,12 @@ pub(super) fn hash_preset_sequences(sequences: &[String]) -> String {
     ordered.sort();
     let joined = ordered.join("|");
     let digest = sha2::Sha256::digest(joined.as_bytes());
-    digest.iter().map(|byte| format!("{byte:02x}")).collect()
+    sha256_hex(digest)
 }
 
 #[must_use]
 pub fn adapter_categories() -> BTreeSet<String> {
-    super::ADAPTER_TAGS
-        .iter()
-        .map(|tag| (*tag).to_string())
-        .collect()
+    super::ADAPTER_TAGS.iter().map(|tag| (*tag).to_string()).collect()
 }
 
 #[must_use]
@@ -129,4 +116,13 @@ pub fn adapters_by_category(bank: &AdapterBankV1) -> BTreeMap<String, Vec<String
         ids.sort();
     }
     map
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }

@@ -63,13 +63,7 @@ fn trim_polyg_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
 
 #[test]
 fn paired_trim_tool_manifests_publish_optional_mate_inputs() -> Result<()> {
-    for tool_id in [
-        "atropos",
-        "adapterremoval",
-        "trimmomatic",
-        "trim_galore",
-        "prinseq",
-    ] {
+    for tool_id in ["atropos", "adapterremoval", "trimmomatic", "trim_galore", "prinseq"] {
         let manifest = tool_manifest(tool_id)?;
         let required_inputs = manifest
             .get("execution_contract")
@@ -177,10 +171,9 @@ fn trim_reads_stage_manifest_lists_all_supported_backends() -> Result<()> {
 
 #[test]
 fn trim_polyg_tool_contracts_preserve_native_backend_reports() -> Result<()> {
-    for (tool_id, raw_artifact) in [
-        ("fastp", "raw_backend_report_json"),
-        ("bbduk", "raw_backend_report_txt"),
-    ] {
+    for (tool_id, raw_artifact) in
+        [("fastp", "raw_backend_report_json"), ("bbduk", "raw_backend_report_txt")]
+    {
         let manifest = tool_manifest(tool_id)?;
         let expected_artifacts = manifest
             .get("stage_contracts")
@@ -281,11 +274,7 @@ fn trim_terminal_damage_fixtures_cover_supported_backends() -> Result<()> {
 
     assert_eq!(
         fixture_tools,
-        vec![
-            "adapterremoval".to_string(),
-            "cutadapt".to_string(),
-            "seqkit".to_string(),
-        ],
+        vec!["adapterremoval".to_string(), "cutadapt".to_string(), "seqkit".to_string(),],
         "trim_terminal_damage fixtures should stay aligned with the governed backend set"
     );
     Ok(())

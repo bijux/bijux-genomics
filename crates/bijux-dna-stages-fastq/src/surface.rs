@@ -156,10 +156,7 @@ mod tests {
 
     #[test]
     fn implemented_stages_cover_closed_execution_surface() {
-        assert_eq!(
-            implemented_stages(),
-            bijux_dna_domain_fastq::execution_closed_stage_ids()
-        );
+        assert_eq!(implemented_stages(), bijux_dna_domain_fastq::execution_closed_stage_ids());
     }
 
     #[test]
@@ -174,9 +171,8 @@ mod tests {
         assert!(observer_specialized.contains(&StageId::from_static("fastq.trim_reads")));
         assert!(observer_specialized.contains(&StageId::from_static("fastq.screen_taxonomy")));
         assert!(observer_specialized.contains(&StageId::from_static("fastq.correct_errors")));
-        assert!(observer_specialized.contains(&StageId::from_static(
-            "fastq.profile_overrepresented_sequences"
-        )));
+        assert!(observer_specialized
+            .contains(&StageId::from_static("fastq.profile_overrepresented_sequences")));
     }
 
     #[test]

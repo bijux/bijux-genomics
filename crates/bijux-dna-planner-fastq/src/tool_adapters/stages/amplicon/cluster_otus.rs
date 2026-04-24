@@ -48,10 +48,7 @@ pub fn plan_with_options(
     let taxonomy_ready_fastq = out_dir.join("taxonomy_ready.fastq");
     let report_json = out_dir.join("cluster_otus_report.json");
     let otu_clusters_uc = out_dir.join("otu_clusters.uc");
-    let threads = options
-        .threads
-        .unwrap_or(DEFAULT_CLUSTER_OTUS_THREADS)
-        .max(1);
+    let threads = options.threads.unwrap_or(DEFAULT_CLUSTER_OTUS_THREADS).max(1);
     let effective_params = OtuClusteringEffectiveParams {
         schema_version: EDNA_SCHEMA_VERSION.to_string(),
         identity_threshold: options.otu_identity,
@@ -129,9 +126,7 @@ pub fn plan_with_options(
 
 fn validate_cluster_otus_options(tool_id: &str, options: &ClusterOtusPlanOptions) -> Result<()> {
     if tool_id != "vsearch" {
-        return Err(anyhow!(
-            "unsupported OTU clustering tool for stage planning: {tool_id}"
-        ));
+        return Err(anyhow!("unsupported OTU clustering tool for stage planning: {tool_id}"));
     }
     if !(0.0 < options.otu_identity && options.otu_identity <= 1.0) {
         return Err(anyhow!(
@@ -170,8 +165,6 @@ fn cluster_otus_command(
             "--otutabout".to_string(),
             otu_table.display().to_string(),
         ]),
-        _ => Err(anyhow!(
-            "unsupported OTU clustering tool for stage planning: {tool_id}"
-        )),
+        _ => Err(anyhow!("unsupported OTU clustering tool for stage planning: {tool_id}")),
     }
 }

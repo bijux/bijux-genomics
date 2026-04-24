@@ -8,10 +8,7 @@ use super::models::{ReferenceIndexState, ResolvedStageInputArtifact};
 use super::{FastqStageBinding, StageArtifactInputPolicy, SyntheticStageArtifactPolicy};
 
 pub(super) fn stage_node_id_for_binding(binding: &FastqStageBinding) -> String {
-    binding
-        .stage_instance_id
-        .clone()
-        .unwrap_or_else(|| binding.stage_id.clone())
+    binding.stage_instance_id.clone().unwrap_or_else(|| binding.stage_id.clone())
 }
 
 pub(super) fn stage_node_id_for_plan(plan: &StagePlanV1) -> &str {
@@ -94,12 +91,7 @@ pub(super) fn resolved_stage_input_artifacts(
         left.to_input_id
             .cmp(&right.to_input_id)
             .then_with(|| left.source_stage_node_id.cmp(&right.source_stage_node_id))
-            .then_with(|| {
-                left.artifact
-                    .name
-                    .as_str()
-                    .cmp(right.artifact.name.as_str())
-            })
+            .then_with(|| left.artifact.name.as_str().cmp(right.artifact.name.as_str()))
             .then_with(|| left.artifact.path.cmp(&right.artifact.path))
     });
     Ok(inputs)
@@ -131,12 +123,10 @@ pub(super) fn explicit_reference_index_state(
     inputs: &[ResolvedStageInputArtifact],
     input_id: &str,
 ) -> Result<Option<ReferenceIndexState>> {
-    Ok(
-        unique_resolved_input_artifact(inputs, input_id)?.map(|input| ReferenceIndexState {
-            path: input.artifact.path.clone(),
-            tool_id: input.source_tool_id.clone(),
-        }),
-    )
+    Ok(unique_resolved_input_artifact(inputs, input_id)?.map(|input| ReferenceIndexState {
+        path: input.artifact.path.clone(),
+        tool_id: input.source_tool_id.clone(),
+    }))
 }
 
 pub(super) fn explicit_reads_input_path(
@@ -170,10 +160,7 @@ pub(super) fn explicit_report_qc_inputs(
         return None;
     }
     qc_inputs.sort_by(|left, right| {
-        left.name
-            .as_str()
-            .cmp(right.name.as_str())
-            .then_with(|| left.path.cmp(&right.path))
+        left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
     });
     qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
     Some(qc_inputs)

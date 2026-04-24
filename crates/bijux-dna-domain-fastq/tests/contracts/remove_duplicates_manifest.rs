@@ -38,11 +38,7 @@ fn remove_duplicates_fixture_tool_ids() -> Result<Vec<String>> {
     let mut tool_ids = std::fs::read_dir(&dir)?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
-            entry
-                .path()
-                .file_stem()
-                .and_then(|stem| stem.to_str())
-                .map(str::to_string)
+            entry.path().file_stem().and_then(|stem| stem.to_str()).map(str::to_string)
         })
         .collect::<Vec<_>>();
     tool_ids.sort();
@@ -119,12 +115,7 @@ fn clumpify_manifest_advertises_paired_remove_duplicates_outputs() -> Result<()>
         .collect::<Vec<_>>();
     assert_eq!(
         expected_outputs,
-        vec![
-            "dedup_reads_r1",
-            "duplicate_classes_tsv",
-            "duplicate_provenance_json",
-            "report_json"
-        ]
+        vec!["dedup_reads_r1", "duplicate_classes_tsv", "duplicate_provenance_json", "report_json"]
     );
     assert_eq!(optional_outputs, vec!["dedup_reads_r2"]);
 

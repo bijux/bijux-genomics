@@ -119,10 +119,7 @@ mod tests {
         assert_eq!(decoded.tool_id, "cutadapt");
         assert_eq!(decoded.paired_mode, PairedMode::PairedEnd);
         assert_eq!(decoded.threads, 4);
-        assert_eq!(
-            decoded.raw_backend_report_format.as_deref(),
-            Some("cutadapt_json")
-        );
+        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
         assert!(!decoded.used_fallback);
     }
 }

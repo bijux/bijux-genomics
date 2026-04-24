@@ -156,17 +156,9 @@ fn seqkit_stats_and_vsearch_execution_contracts_cover_supported_artifacts() -> R
     for (tool_name, required_artifacts) in [
         (
             "seqkit_stats",
-            [
-                "report_json",
-                "length_distribution_tsv",
-                "length_distribution_json",
-            ]
-            .as_slice(),
+            ["report_json", "length_distribution_tsv", "length_distribution_json"].as_slice(),
         ),
-        (
-            "vsearch",
-            ["uchime_report_tsv", "chimera_filtered_reads", "otu_table"].as_slice(),
-        ),
+        ("vsearch", ["uchime_report_tsv", "chimera_filtered_reads", "otu_table"].as_slice()),
     ] {
         let tool_path = workspace_root()?.join(format!("domain/fastq/tools/{tool_name}.yaml"));
         let yaml = parse_yaml(&tool_path)?;
@@ -197,14 +189,7 @@ fn seqkit_stats_and_vsearch_execution_contracts_cover_supported_artifacts() -> R
 
 #[test]
 fn merge_tool_contracts_preserve_governed_reports_and_native_logs() -> Result<()> {
-    for tool_name in [
-        "adapterremoval",
-        "pear",
-        "vsearch",
-        "bbmerge",
-        "flash2",
-        "leehom",
-    ] {
+    for tool_name in ["adapterremoval", "pear", "vsearch", "bbmerge", "flash2", "leehom"] {
         let tool_path = workspace_root()?.join(format!("domain/fastq/tools/{tool_name}.yaml"));
         let yaml = parse_yaml(&tool_path)?;
         let outputs = yaml_output_name_set(yaml.get("outputs"));
@@ -283,20 +268,14 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
                 .with_context(|| format!("{tool_name} missing stage_contract for {stage_id}"))?;
             let contract_inputs = yaml_string_set(stage_contract.get("required_inputs"));
             let contract_outputs = yaml_string_set(stage_contract.get("expected_artifacts"));
-            let notes = stage_contract
-                .get("notes")
-                .and_then(Value::as_str)
-                .unwrap_or_default();
+            let notes = stage_contract.get("notes").and_then(Value::as_str).unwrap_or_default();
             let stage_required_inputs = required_inputs
                 .get(stage_id)
                 .with_context(|| format!("missing required_inputs for {stage_id}"))?;
-            let stage_inputs = inputs
-                .get(stage_id)
-                .with_context(|| format!("missing inputs for {stage_id}"))?;
+            let stage_inputs =
+                inputs.get(stage_id).with_context(|| format!("missing inputs for {stage_id}"))?;
             assert!(
-                stage_required_inputs
-                    .iter()
-                    .all(|artifact| contract_inputs.contains(artifact)),
+                stage_required_inputs.iter().all(|artifact| contract_inputs.contains(artifact)),
                 "{tool_name} stage_contract must cover every required input for {stage_id}"
             );
             assert!(
@@ -308,13 +287,10 @@ fn supported_multi_stage_tools_publish_stage_contracts() -> Result<()> {
             let stage_required_outputs = required_outputs
                 .get(stage_id)
                 .with_context(|| format!("missing required_outputs for {stage_id}"))?;
-            let stage_outputs = outputs
-                .get(stage_id)
-                .with_context(|| format!("missing outputs for {stage_id}"))?;
+            let stage_outputs =
+                outputs.get(stage_id).with_context(|| format!("missing outputs for {stage_id}"))?;
             assert!(
-                stage_required_outputs
-                    .iter()
-                    .all(|artifact| contract_outputs.contains(artifact)),
+                stage_required_outputs.iter().all(|artifact| contract_outputs.contains(artifact)),
                 "{tool_name} stage_contract must cover every required output for {stage_id}"
             );
             assert!(
@@ -377,20 +353,14 @@ fn declared_stage_contracts_match_stage_manifests() -> Result<()> {
                 .with_context(|| format!("{tool_id} missing stage_contract for {stage_id}"))?;
             let contract_inputs = yaml_string_set(stage_contract.get("required_inputs"));
             let contract_outputs = yaml_string_set(stage_contract.get("expected_artifacts"));
-            let notes = stage_contract
-                .get("notes")
-                .and_then(Value::as_str)
-                .unwrap_or_default();
+            let notes = stage_contract.get("notes").and_then(Value::as_str).unwrap_or_default();
             let stage_required_inputs = required_inputs
                 .get(stage_id)
                 .with_context(|| format!("missing required_inputs for {stage_id}"))?;
-            let stage_inputs = inputs
-                .get(stage_id)
-                .with_context(|| format!("missing inputs for {stage_id}"))?;
+            let stage_inputs =
+                inputs.get(stage_id).with_context(|| format!("missing inputs for {stage_id}"))?;
             assert!(
-                stage_required_inputs
-                    .iter()
-                    .all(|artifact| contract_inputs.contains(artifact)),
+                stage_required_inputs.iter().all(|artifact| contract_inputs.contains(artifact)),
                 "{tool_id} stage_contract must cover every required input for {stage_id}"
             );
             assert!(
@@ -402,13 +372,10 @@ fn declared_stage_contracts_match_stage_manifests() -> Result<()> {
             let stage_required_outputs = required_outputs
                 .get(stage_id)
                 .with_context(|| format!("missing required_outputs for {stage_id}"))?;
-            let stage_outputs = outputs
-                .get(stage_id)
-                .with_context(|| format!("missing outputs for {stage_id}"))?;
+            let stage_outputs =
+                outputs.get(stage_id).with_context(|| format!("missing outputs for {stage_id}"))?;
             assert!(
-                stage_required_outputs
-                    .iter()
-                    .all(|artifact| contract_outputs.contains(artifact)),
+                stage_required_outputs.iter().all(|artifact| contract_outputs.contains(artifact)),
                 "{tool_id} stage_contract must cover every required output for {stage_id}"
             );
             assert!(

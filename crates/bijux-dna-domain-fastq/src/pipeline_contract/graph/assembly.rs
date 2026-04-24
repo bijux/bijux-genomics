@@ -28,15 +28,9 @@ pub fn preprocess_pipeline_for_mode(mode: FastqPipelineMode) -> PipelineSpec {
 pub fn preprocess_pipeline_graph_for_stage_order(stages: &[StageId]) -> PipelineSpec {
     let nodes = stages
         .iter()
-        .map(|stage| PipelineNodeSpec {
-            stage_id: stage.to_string(),
-            stage_instance_id: None,
-        })
+        .map(|stage| PipelineNodeSpec { stage_id: stage.to_string(), stage_instance_id: None })
         .collect::<Vec<_>>();
-    let present = stages
-        .iter()
-        .map(|stage| stage.as_str().to_string())
-        .collect::<BTreeSet<_>>();
+    let present = stages.iter().map(|stage| stage.as_str().to_string()).collect::<BTreeSet<_>>();
     let mut edges = Vec::new();
 
     for stage in stages {
@@ -90,11 +84,7 @@ pub fn preprocess_pipeline_graph_for_stage_order(stages: &[StageId]) -> Pipeline
         }
     }
 
-    edges.sort_by(|left, right| {
-        left.from
-            .cmp(&right.from)
-            .then_with(|| left.to.cmp(&right.to))
-    });
+    edges.sort_by(|left, right| left.from.cmp(&right.from).then_with(|| left.to.cmp(&right.to)));
     edges.dedup_by(|left, right| {
         left.from == right.from
             && left.to == right.to

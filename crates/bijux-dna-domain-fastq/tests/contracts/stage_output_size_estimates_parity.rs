@@ -29,9 +29,8 @@ fn stage_manifest_required_outputs() -> Result<BTreeMap<String, BTreeSet<String>
             .find_map(|line| line.strip_prefix("stage_id: "))
             .map(|value| value.trim().trim_matches('"').to_string())
             .with_context(|| format!("stage_id missing in {}", path.display()))?;
-        let required_outputs = block_list(&raw, "required_outputs")
-            .into_iter()
-            .collect::<BTreeSet<_>>();
+        let required_outputs =
+            block_list(&raw, "required_outputs").into_iter().collect::<BTreeSet<_>>();
         out.insert(stage_id, required_outputs);
     }
     Ok(out)
@@ -55,9 +54,7 @@ fn indexed_stage_output_size_estimates() -> Result<BTreeMap<String, BTreeSet<Str
             break;
         }
         if line.starts_with("  ") && !line.starts_with("    ") {
-            let Some(stage) = line
-                .strip_prefix("  ")
-                .and_then(|rest| rest.strip_suffix(':'))
+            let Some(stage) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':'))
             else {
                 continue;
             };
@@ -66,14 +63,9 @@ fn indexed_stage_output_size_estimates() -> Result<BTreeMap<String, BTreeSet<Str
             out.entry(stage).or_default();
             continue;
         }
-        if let Some(artifact) = line
-            .strip_prefix("    ")
-            .and_then(|rest| rest.split(':').next())
-        {
+        if let Some(artifact) = line.strip_prefix("    ").and_then(|rest| rest.split(':').next()) {
             if let Some(stage) = &current_stage {
-                out.entry(stage.clone())
-                    .or_default()
-                    .insert(artifact.to_string());
+                out.entry(stage.clone()).or_default().insert(artifact.to_string());
             }
         }
     }
@@ -94,11 +86,7 @@ fn block_list(raw: &str, key: &str) -> Vec<String> {
         if !line.starts_with("  - ") {
             break;
         }
-        out.push(
-            line.trim_start_matches("  - ")
-                .trim_matches('"')
-                .to_string(),
-        );
+        out.push(line.trim_start_matches("  - ").trim_matches('"').to_string());
     }
     out
 }

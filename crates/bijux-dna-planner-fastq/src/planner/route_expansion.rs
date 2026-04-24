@@ -174,11 +174,7 @@ pub fn expand_pipeline_stage_tool_routes(
                 expanded_nodes_by_original
                     .entry(node_id.clone())
                     .or_default()
-                    .push(ExpandedRouteNode {
-                        expanded_node_id,
-                        input_context,
-                        output_context,
-                    });
+                    .push(ExpandedRouteNode { expanded_node_id, input_context, output_context });
             }
             continue;
         }
@@ -207,14 +203,13 @@ pub fn expand_pipeline_stage_tool_routes(
                     tool_id: tool_id.clone(),
                     reason: toolset.reason.clone(),
                 });
-                expanded_nodes_by_original
-                    .entry(node_id.clone())
-                    .or_default()
-                    .push(ExpandedRouteNode {
+                expanded_nodes_by_original.entry(node_id.clone()).or_default().push(
+                    ExpandedRouteNode {
                         expanded_node_id: stage_instance_id,
                         input_context: input_context.clone(),
                         output_context,
-                    });
+                    },
+                );
             }
         }
     }
@@ -228,10 +223,7 @@ pub fn expand_pipeline_stage_tool_routes(
             .ok_or_else(|| anyhow!("expanded route missing target node {}", edge.to))?;
         for from_node in from_nodes {
             for to_node in to_nodes {
-                if !from_node
-                    .output_context
-                    .is_subset_of(&to_node.input_context)
-                {
+                if !from_node.output_context.is_subset_of(&to_node.input_context) {
                     continue;
                 }
                 edges.push(PipelineEdgeSpec {
@@ -245,9 +237,8 @@ pub fn expand_pipeline_stage_tool_routes(
     }
 
     nodes.sort_by(|left, right| {
-        PipelineSpec::stage_node_id(&left.stage_id, left.stage_instance_id.as_deref()).cmp(
-            &PipelineSpec::stage_node_id(&right.stage_id, right.stage_instance_id.as_deref()),
-        )
+        PipelineSpec::stage_node_id(&left.stage_id, left.stage_instance_id.as_deref())
+            .cmp(&PipelineSpec::stage_node_id(&right.stage_id, right.stage_instance_id.as_deref()))
     });
     nodes.dedup_by(|left, right| {
         left.stage_id == right.stage_id && left.stage_instance_id == right.stage_instance_id
@@ -285,9 +276,7 @@ fn max_route_specific_pipelines() -> Result<usize> {
         anyhow!("BIJUX_FASTQ_MAX_ROUTE_PIPELINES must be a positive integer: {error}")
     })?;
     if parsed == 0 {
-        return Err(anyhow!(
-            "BIJUX_FASTQ_MAX_ROUTE_PIPELINES must be greater than zero"
-        ));
+        return Err(anyhow!("BIJUX_FASTQ_MAX_ROUTE_PIPELINES must be greater than zero"));
     }
     Ok(parsed)
 }
@@ -297,10 +286,7 @@ fn predecessor_context_sets(
 ) -> std::collections::BTreeMap<String, Vec<String>> {
     let mut predecessors = std::collections::BTreeMap::<String, Vec<String>>::new();
     for edge in edges {
-        predecessors
-            .entry(edge.to.clone())
-            .or_default()
-            .push(edge.from.clone());
+        predecessors.entry(edge.to.clone()).or_default().push(edge.from.clone());
     }
     for upstream_nodes in predecessors.values_mut() {
         upstream_nodes.sort();
@@ -324,10 +310,7 @@ fn incoming_route_contexts(
                 .get(predecessor)
                 .ok_or_else(|| anyhow!("expanded route missing predecessor node {}", predecessor))
                 .map(|nodes| {
-                    nodes
-                        .iter()
-                        .map(|node| node.output_context.clone())
-                        .collect::<Vec<_>>()
+                    nodes.iter().map(|node| node.output_context.clone()).collect::<Vec<_>>()
                 })
         })
         .collect::<Result<Vec<_>>>()?;
@@ -367,10 +350,7 @@ fn collapsed_source_nodes_for_select(
         .map(|edge| edge.from.clone())
         .collect::<std::collections::BTreeSet<_>>();
     if incoming_sources.is_empty() {
-        return Err(anyhow!(
-            "selection node {} requires incoming candidate edges",
-            select_node_id
-        ));
+        return Err(anyhow!("selection node {} requires incoming candidate edges", select_node_id));
     }
     if incoming_sources.len() > 1 {
         return Err(anyhow!(
@@ -456,8 +436,6 @@ impl RouteContext {
     }
 
     fn is_subset_of(&self, other: &Self) -> bool {
-        self.0
-            .iter()
-            .all(|(node_id, tool_id)| other.0.get(node_id) == Some(tool_id))
+        self.0.iter().all(|(node_id, tool_id)| other.0.get(node_id) == Some(tool_id))
     }
 }

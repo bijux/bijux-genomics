@@ -36,11 +36,9 @@ fn current_fastq_benchmark_bindings_do_not_overclaim_full_comparability() {
         &StageId::from_static("fastq.trim_reads"),
     )
     .into_iter()
-    .chain(
-        bijux_dna_planner_fastq::stage_api::benchmark_profiles_for_stage(&StageId::from_static(
-            "fastq.screen_taxonomy",
-        )),
-    )
+    .chain(bijux_dna_planner_fastq::stage_api::benchmark_profiles_for_stage(&StageId::from_static(
+        "fastq.screen_taxonomy",
+    )))
     .filter_map(|profile| {
         bijux_dna_planner_fastq::stage_api::stage_tool_maturity(&profile.stage_id, &profile.tool_id)
     })

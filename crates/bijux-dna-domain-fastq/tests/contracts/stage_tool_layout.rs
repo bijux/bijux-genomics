@@ -9,10 +9,7 @@ fn default_execution_tool(stage_id: &'static str) -> ToolId {
 fn domain_layout_filter_excludes_paired_only_dedup_backend_for_single_end_inputs() {
     let filtered = bijux_dna_domain_fastq::filter_tools_for_input_layout(
         &StageId::from_static("fastq.remove_duplicates"),
-        vec![
-            ToolId::from_static("fastuniq"),
-            ToolId::from_static("clumpify"),
-        ],
+        vec![ToolId::from_static("fastuniq"), ToolId::from_static("clumpify")],
         false,
     );
     assert_eq!(filtered, vec![ToolId::from_static("clumpify")]);
@@ -22,19 +19,10 @@ fn domain_layout_filter_excludes_paired_only_dedup_backend_for_single_end_inputs
 fn domain_layout_filter_keeps_paired_dedup_backends_for_paired_inputs() {
     let filtered = bijux_dna_domain_fastq::filter_tools_for_input_layout(
         &StageId::from_static("fastq.remove_duplicates"),
-        vec![
-            ToolId::from_static("fastuniq"),
-            ToolId::from_static("clumpify"),
-        ],
+        vec![ToolId::from_static("fastuniq"), ToolId::from_static("clumpify")],
         true,
     );
-    assert_eq!(
-        filtered,
-        vec![
-            ToolId::from_static("fastuniq"),
-            ToolId::from_static("clumpify"),
-        ]
-    );
+    assert_eq!(filtered, vec![ToolId::from_static("fastuniq"), ToolId::from_static("clumpify"),]);
 }
 
 #[test]
@@ -51,10 +39,7 @@ fn remove_duplicates_default_tool_survives_single_end_layout_filter() {
 fn domain_layout_filter_excludes_paired_only_correction_backends_for_single_end_inputs() {
     let filtered = bijux_dna_domain_fastq::filter_tools_for_input_layout(
         &StageId::from_static("fastq.correct_errors"),
-        vec![
-            ToolId::from_static("rcorrector"),
-            ToolId::from_static("musket"),
-        ],
+        vec![ToolId::from_static("rcorrector"), ToolId::from_static("musket")],
         false,
     );
     assert_eq!(filtered.len(), 2);
@@ -64,10 +49,7 @@ fn domain_layout_filter_excludes_paired_only_correction_backends_for_single_end_
 fn domain_layout_filter_excludes_seqpurge_for_single_end_trim_inputs() {
     let filtered = bijux_dna_domain_fastq::filter_tools_for_input_layout(
         &StageId::from_static("fastq.trim_reads"),
-        vec![
-            ToolId::from_static("fastp"),
-            ToolId::from_static("seqpurge"),
-        ],
+        vec![ToolId::from_static("fastp"), ToolId::from_static("seqpurge")],
         false,
     );
     assert_eq!(filtered, vec![ToolId::from_static("fastp")]);

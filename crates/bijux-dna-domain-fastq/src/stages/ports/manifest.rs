@@ -24,11 +24,7 @@ pub(super) struct StageManifestShape {
 
 macro_rules! stage_manifest {
     ($path:literal) => {
-        include_str!(concat!(
-            env!("CARGO_MANIFEST_DIR"),
-            "/../../domain/fastq/stages/",
-            $path
-        ))
+        include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../domain/fastq/stages/", $path))
     };
 }
 

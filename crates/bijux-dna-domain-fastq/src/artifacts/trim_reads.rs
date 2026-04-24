@@ -106,10 +106,7 @@ mod tests {
         assert_eq!(decoded.tool_id, "fastp");
         assert_eq!(decoded.paired_mode, PairedMode::PairedEnd);
         assert_eq!(decoded.threads, 4);
-        assert_eq!(
-            decoded.raw_backend_report_format.as_deref(),
-            Some("fastp_json")
-        );
+        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastp_json"));
         assert_eq!(
             decoded.adapter_overrides,
             Some(serde_json::json!({

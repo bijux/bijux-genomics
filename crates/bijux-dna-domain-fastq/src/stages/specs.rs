@@ -75,11 +75,7 @@ fn paired_fastq_stage_io(stage: FastqStage) -> StageContract {
 }
 
 fn broad_fastq_inputs() -> Vec<FastqArtifactKind> {
-    vec![
-        FastqArtifactKind::SingleEnd,
-        FastqArtifactKind::PairedEnd,
-        FastqArtifactKind::Merged,
-    ]
+    vec![FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd, FastqArtifactKind::Merged]
 }
 
 #[must_use]

@@ -92,11 +92,7 @@ fn fastq_retention_truth_table() {
             (case.pairs_in, case.pairs_out, case.expected_pairs)
         {
             let pairs = ratio(pairs_out, pairs_in);
-            assert!(
-                (pairs - expected).abs() < 1e-6,
-                "{} pairs retention mismatch",
-                case.stage_id
-            );
+            assert!((pairs - expected).abs() < 1e-6, "{} pairs retention mismatch", case.stage_id);
         }
     }
 }
