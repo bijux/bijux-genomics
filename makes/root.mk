@@ -22,6 +22,7 @@ include $(ROOT_MK_DIR)/policies.mk
 ##@ General
 
 help: ## Show this help message
+	@mkdir -p artifacts/tmp artifacts/target artifacts/cargo/home
 	@if [ "$${SHOW_INTERNAL:-0}" = "1" ]; then \
 		cargo run -q -p bijux-dna-dev -- tooling run make-help --internal; \
 	else \

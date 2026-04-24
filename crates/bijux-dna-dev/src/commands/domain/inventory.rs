@@ -364,11 +364,7 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
             let Some(table) = row.as_table() else {
                 continue;
             };
-            let status = table
-                .get("status")
-                .and_then(TomlValue::as_str)
-                .unwrap_or_default()
-                .trim();
+            let status = table.get("status").and_then(TomlValue::as_str).unwrap_or_default().trim();
             if !matches!(status, "production" | "supported" | "experimental") {
                 continue;
             }
