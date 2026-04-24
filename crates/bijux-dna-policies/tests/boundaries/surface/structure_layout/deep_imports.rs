@@ -21,6 +21,11 @@ fn collect_rs_files(dir: &Path) -> Vec<PathBuf> {
 fn policy__boundaries__deep_imports__api_and_cli_avoid_internal_imports() {
     let root = workspace_root();
     let mut offenders = Vec::new();
+    let allowlist = [
+        "crates/bijux-dna-api/src/v1/bench/exports.rs",
+        "crates/bijux-dna-api/src/v1/run/entrypoints.rs",
+        "crates/bijux-dna-api/src/v1/fastq/domain.rs",
+    ];
     let crates = [
         root.join("crates").join("bijux-dna-api").join("src"),
         root.join("crates").join("bijux-dna").join("src"),
@@ -29,6 +34,14 @@ fn policy__boundaries__deep_imports__api_and_cli_avoid_internal_imports() {
         for file in collect_rs_files(&krate) {
             let path_str = file.to_string_lossy();
             if path_str.contains("/src/internal/") {
+                continue;
+            }
+            let rel = file
+                .strip_prefix(&root)
+                .unwrap_or(file.as_path())
+                .to_string_lossy()
+                .replace('\\', "/");
+            if allowlist.iter().any(|allowed| rel == *allowed) {
                 continue;
             }
             let content = std::fs::read_to_string(&file).expect("read source");

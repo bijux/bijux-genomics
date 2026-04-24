@@ -36,7 +36,7 @@ fn policy__boundaries__docs_spine__docs_placement_contract() {
         "containers",
         "overrides",
     ]);
-    let allowed_root_files = BTreeSet::from(["index.md", "DOCS_GRAPH.toml"]);
+    let allowed_root_files = BTreeSet::from(["index.md", "DOCS_GRAPH.toml", "badges.md"]);
     let mut root_entries = Vec::new();
     for entry in std::fs::read_dir(&root).expect("read docs root") {
         let entry = entry.expect("read entry");

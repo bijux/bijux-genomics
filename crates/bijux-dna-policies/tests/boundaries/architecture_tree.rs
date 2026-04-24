@@ -1,8 +1,10 @@
+#![allow(non_snake_case)]
+
 use std::collections::BTreeSet;
 use std::path::Path;
 
 #[test]
-fn policies_tree_matches_architecture_contract() {
+fn policy__boundaries__architecture_tree__policies_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
 
     assert_eq!(
