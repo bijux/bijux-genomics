@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 0a4314ededd7b40bd3bb9fe2680f6216f49ed2bb
+# source_commit: 0d02c648f64d6eaea0b19722a19e65e8bfb1a7c4
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -23,7 +23,7 @@ license = "GPL-3.0"
 citation = "planned"
 pinned_commit = "planned"
 pin_strategy = "container_digest"
-container_ref = "containers/apptainer/shared/ibdne.def@planned"
+container_ref = "containers/apptainer/lunarc/ibdne.def@planned"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "ibdne --version"
@@ -54,7 +54,7 @@ license = "GPL-2.0"
 citation = "planned"
 pinned_commit = "planned"
 pin_strategy = "container_digest"
-container_ref = "containers/apptainer/shared/eigensoft.def@planned"
+container_ref = "containers/apptainer/lunarc/eigensoft.def@planned"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "smartpca --version"
@@ -85,7 +85,7 @@ license = "unknown"
 citation = "planned"
 pinned_commit = "planned"
 pin_strategy = "container_digest"
-container_ref = "containers/apptainer/shared/ibdhap.def@planned"
+container_ref = "containers/apptainer/lunarc/ibdhap.def@planned"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "ibdhap --version"
@@ -240,7 +240,7 @@ license = "GPL-3.0"
 citation = "planned"
 pinned_commit = "planned"
 pin_strategy = "container_digest"
-container_ref = "containers/apptainer/shared/beagle.def@planned"
+container_ref = "containers/apptainer/lunarc/beagle.def@planned"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "beagle --version"
@@ -395,7 +395,7 @@ license = "GPL-3.0"
 citation = "planned"
 pinned_commit = "planned"
 pin_strategy = "container_digest"
-container_ref = "containers/apptainer/shared/germline.def@planned"
+container_ref = "containers/apptainer/lunarc/germline.def@planned"
 runtimes = ["docker", "apptainer"]
 container = true
 version_cmd = "germline --version"

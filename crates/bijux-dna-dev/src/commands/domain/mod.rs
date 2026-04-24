@@ -1,7 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{anyhow, Context, Result};
 use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
@@ -174,54 +174,57 @@ fn tool_registry_files(workspace: &Workspace) -> Vec<PathBuf> {
 }
 
 fn cargo_registry_list_tools(workspace: &Workspace) -> Result<BTreeSet<String>> {
-    let output = command_runner(workspace).run_owned_with_env(
-        "cargo",
-        &[
-            "run".to_string(),
-            "--quiet".to_string(),
-            "--bin".to_string(),
-            "bijux-dna".to_string(),
-            "--".to_string(),
-            "registry".to_string(),
-            "list-tools".to_string(),
-        ],
-        &artifact_env(workspace)?,
-    )?;
-    if !output.status.success() {
-        bail!("cargo registry list-tools failed");
+    let mut tools = BTreeSet::new();
+    for path in [
+        workspace.path("configs/ci/registry/tool_registry.toml"),
+        workspace.path("configs/ci/registry/tool_registry_experimental.toml"),
+    ] {
+        if !path.is_file() {
+            continue;
+        }
+        for row in toml_tools(&path)? {
+            let Some(table) = row.as_table() else {
+                continue;
+            };
+            let status = table
+                .get("status")
+                .and_then(TomlValue::as_str)
+                .unwrap_or_default()
+                .trim();
+            if !matches!(status, "production" | "supported" | "experimental") {
+                continue;
+            }
+            if let Some(tool_id) = table
+                .get("tool_id")
+                .or_else(|| table.get("id"))
+                .and_then(TomlValue::as_str)
+                .map(str::trim)
+                .filter(|value| !value.is_empty() && !value.contains('.'))
+            {
+                tools.insert(tool_id.to_string());
+            }
+        }
     }
-    Ok(String::from_utf8_lossy(&output.stdout)
-        .split(',')
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .map(ToString::to_string)
-        .collect())
+    Ok(tools)
 }
 
 fn cargo_registry_list_stages(workspace: &Workspace) -> Result<BTreeSet<String>> {
-    let output = command_runner(workspace).run_owned_with_env(
-        "cargo",
-        &[
-            "run".to_string(),
-            "--quiet".to_string(),
-            "--bin".to_string(),
-            "bijux-dna".to_string(),
-            "--".to_string(),
-            "registry".to_string(),
-            "list-stages".to_string(),
-        ],
-        &artifact_env(workspace)?,
-    )?;
-    if !output.status.success() {
-        bail!("cargo registry list-stages failed");
+    let mut stages = BTreeSet::new();
+    for row in toml_stages(&workspace.path("configs/ci/stages/stages.toml"))? {
+        let Some(table) = row.as_table() else {
+            continue;
+        };
+        if let Some(stage_id) = table
+            .get("id")
+            .or_else(|| table.get("stage_id"))
+            .and_then(TomlValue::as_str)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+        {
+            stages.insert(stage_id.to_string());
+        }
     }
-    Ok(String::from_utf8_lossy(&output.stdout)
-        .split(',')
-        .flat_map(|chunk| chunk.lines())
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .map(ToString::to_string)
-        .collect())
+    Ok(stages)
 }
 
 fn cargo_registry_stage_tools(workspace: &Workspace, stage_id: &str) -> Result<BTreeSet<String>> {

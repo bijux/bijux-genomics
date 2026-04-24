@@ -318,6 +318,7 @@ pub(super) fn generate_inventory(
 }
 
 pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutcome> {
+    let external = external_tools(workspace)?;
     let mut domain_tools = BTreeSet::new();
     for domain in ["fastq", "bam"] {
         for tool_file in yaml_files(&workspace.path(&format!("domain/{domain}/tools")))? {
@@ -351,6 +352,37 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
     }
 
     let registry_tools = cargo_registry_list_tools(workspace)?;
+    let mut code_registry_tools = registry_tools.clone();
+    for path in [
+        workspace.path("configs/ci/registry/tool_registry_vcf.toml"),
+        workspace.path("configs/ci/registry/tool_registry_vcf_downstream.toml"),
+    ] {
+        if !path.is_file() {
+            continue;
+        }
+        for row in toml_tools(&path)? {
+            let Some(table) = row.as_table() else {
+                continue;
+            };
+            let status = table
+                .get("status")
+                .and_then(TomlValue::as_str)
+                .unwrap_or_default()
+                .trim();
+            if !matches!(status, "production" | "supported" | "experimental") {
+                continue;
+            }
+            if let Some(tool_id) = table
+                .get("tool_id")
+                .or_else(|| table.get("id"))
+                .and_then(TomlValue::as_str)
+                .map(str::trim)
+                .filter(|value| !value.is_empty() && !value.contains('.'))
+            {
+                code_registry_tools.insert(tool_id.to_string());
+            }
+        }
+    }
     let registry_stages = cargo_registry_list_stages(workspace)?;
 
     let tool_ref_re = regex(r#"ToolId::from_static\("([a-z0-9_\-]+)"\)"#)?;
@@ -367,7 +399,9 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
         for captures in tool_ref_re.captures_iter(&text) {
             if let Some(value) = captures.get(1).map(|capture| capture.as_str()) {
                 if !matches!(value, "tool" | "planner" | "unknown") {
-                    code_tools.insert(value.to_string());
+                    if value != "demo_tool" && !external.contains(value) {
+                        code_tools.insert(value.to_string());
+                    }
                 }
             }
         }
@@ -419,7 +453,7 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
     push_diff(
         &mut diffs,
         &code_tools,
-        &registry_tools,
+        &code_registry_tools,
         "code-referenced tools missing from registry",
     );
     push_diff(
