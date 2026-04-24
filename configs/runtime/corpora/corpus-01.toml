@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-infra
+# purpose = Corpus definition for human FASTQ benchmark fixture selection
+# authority = bijux-dna-infra
+# stability = stable
+# last_updated = 2026-04-24
+
 schema_version = "bijux.corpus_spec.v1"
 corpus_id = "corpus-01"
 species = "Homo sapiens"
