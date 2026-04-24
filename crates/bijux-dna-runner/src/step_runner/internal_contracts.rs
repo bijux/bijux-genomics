@@ -8,9 +8,7 @@ use super::observer::build_observer_command_args;
 use super::{build_apptainer_exec_args, container_command_template, hash_inputs};
 use anyhow::anyhow;
 use bijux_dna_core::contract::ExecutionStep;
-use bijux_dna_core::prelude::{
-    ArtifactId, ArtifactRole, StageId, StepId,
-};
+use bijux_dna_core::prelude::{ArtifactId, ArtifactRole, StageId, StepId};
 use bijux_dna_environment::api::RuntimeKind;
 use serde_json::json;
 use std::path::{Path, PathBuf};
