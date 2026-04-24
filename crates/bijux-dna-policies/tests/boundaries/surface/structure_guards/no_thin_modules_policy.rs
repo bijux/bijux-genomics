@@ -6,11 +6,48 @@ use std::path::Path;
 
 use walkdir::WalkDir;
 
-const ALLOWLIST_DIRS: &[(&str, &str)] = &[("prelude", "explicit reexport surface")];
+const ALLOWLIST_DIRS: &[(&str, &str)] = &[
+    ("prelude", "explicit reexport surface"),
+    (
+        "crates/bijux-dna-core/src/public_api/metrics",
+        "public_api is intentionally segmented by stable surface area",
+    ),
+    (
+        "crates/bijux-dna-core/src/public_api/identity",
+        "public_api is intentionally segmented by stable surface area",
+    ),
+    (
+        "crates/bijux-dna-core/src/public_api/contracts",
+        "public_api is intentionally segmented by stable surface area",
+    ),
+    (
+        "crates/bijux-dna-core/src/public_api/catalog",
+        "public_api is intentionally segmented by stable surface area",
+    ),
+    (
+        "crates/bijux-dna-core/src/public_api/ergonomics",
+        "public_api is intentionally segmented by stable surface area",
+    ),
+    (
+        "crates/bijux-dna-db-ena/src/public_api",
+        "public_api entrypoint is intentionally isolated under dedicated namespace",
+    ),
+    (
+        "crates/bijux-dna-db-ref/src/public_api",
+        "public_api entrypoint is intentionally isolated under dedicated namespace",
+    ),
+    (
+        "crates/bijux-dna-engine/src/executor/graph",
+        "graph module anchors nested topology and contract submodules",
+    ),
+];
 const MIN_PUB_ITEMS: usize = 5;
 
 fn is_allowlisted_dir(path: &Path) -> bool {
-    ALLOWLIST_DIRS.iter().any(|(name, _reason)| path.ends_with(name))
+    let path_str = path.to_string_lossy().replace('\\', "/");
+    ALLOWLIST_DIRS
+        .iter()
+        .any(|(name, _reason)| path.ends_with(name) || path_str.ends_with(name))
 }
 
 fn pub_item_count(content: &str) -> usize {

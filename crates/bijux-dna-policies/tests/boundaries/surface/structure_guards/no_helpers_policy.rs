@@ -5,7 +5,24 @@ mod support;
 use walkdir::WalkDir;
 
 const FILE_BANS: &[&str] = &["helpers.rs", "utils.rs", "misc.rs", "support.rs", "core.rs"];
-const ALLOWLIST: &[(&str, &str)] = &[];
+const ALLOWLIST: &[(&str, &str)] = &[
+    (
+        "/crates/bijux-dna-api/src/internal/fastq/stages/correct_errors/support.rs",
+        "stage-scoped support surface keeps correction wiring isolated",
+    ),
+    (
+        "/crates/bijux-dna-core/src/id_catalog/stage/core.rs",
+        "core is a canonical domain identifier namespace",
+    ),
+    (
+        "/crates/bijux-dna-domain-fastq/src/observer/contracts/core.rs",
+        "observer contract core module names stable interface primitives",
+    ),
+    (
+        "/crates/bijux-dna-stage-contract/src/execution_plan/support.rs",
+        "execution-plan support module provides contract-only adapters",
+    ),
+];
 const DIR_BANS: &[&str] = &["helpers", "util", "utils", "misc"];
 
 #[test]

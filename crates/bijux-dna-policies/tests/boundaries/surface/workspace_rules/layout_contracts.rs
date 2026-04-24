@@ -242,8 +242,14 @@ fn policy__boundaries__workspace__engine_src_layout_contract() {
         bijux_dna_policies::policy_panic!("missing crate bijux-dna-engine");
     };
     let src = engine.join("src");
-    let allowed_files = BTreeSet::from(["errors.rs", "executor.rs", "lib.rs"]);
-    let allowed_dirs = BTreeSet::from(["executor"]);
+    let allowed_files = BTreeSet::from(["errors.rs", "engine_driver.rs", "lib.rs"]);
+    let allowed_dirs = BTreeSet::from([
+        "control",
+        "engine_config",
+        "executor",
+        "observability",
+        "public_api",
+    ]);
     let mut offenders = Vec::new();
     for entry in std::fs::read_dir(&src).expect("read bijux-dna-engine/src") {
         let entry = entry.expect("engine src entry");
@@ -257,13 +263,14 @@ fn policy__boundaries__workspace__engine_src_layout_contract() {
     }
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "bijux-dna-engine/src must stay small; unexpected entries: {offenders:?}"
+        "bijux-dna-engine/src contains unexpected entries: {offenders:?}"
     );
-    for helper in ["contract_enforcer.rs", "recording.rs", "topology.rs"] {
-        let helper_path = src.join("executor").join(helper);
+    let required_executor_entries = ["contracts", "graph", "mod.rs", "recording", "step_execution"];
+    for entry in required_executor_entries {
+        let helper_path = src.join("executor").join(entry);
         bijux_dna_policies::policy_assert!(
             helper_path.exists(),
-            "bijux-dna-engine/src/executor missing {helper}"
+            "bijux-dna-engine/src/executor missing {entry}"
         );
     }
 }
@@ -281,18 +288,21 @@ fn policy__boundaries__workspace__workspace_domain_layout_contract() {
             "bijux-dna-domain-fastq missing src/{dir}"
         );
     }
-    for file in [
-        "stage_contract.rs",
-        "id_catalog.rs",
-        "stage_semantics.rs",
-        "stage_specs.rs",
-    ] {
+    for file in ["id_catalog.rs", "qc_contract.rs", "domain_adapter.rs"] {
         let path = fastq.join("src").join(file);
         bijux_dna_policies::policy_assert!(
             path.exists(),
             "bijux-dna-domain-fastq missing src/{file}"
         );
     }
+    bijux_dna_policies::policy_assert!(
+        fastq.join("src").join("stages").exists(),
+        "bijux-dna-domain-fastq missing src/stages"
+    );
+    bijux_dna_policies::policy_assert!(
+        fastq.join("src").join("pipeline_contract").exists(),
+        "bijux-dna-domain-fastq missing src/pipeline_contract"
+    );
     let lib = fastq.join("src").join("lib.rs");
     bijux_dna_policies::policy_assert!(lib.exists(), "bijux-dna-domain-fastq missing src/lib.rs");
 

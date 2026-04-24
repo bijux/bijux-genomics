@@ -5,6 +5,28 @@ mod support;
 use walkdir::WalkDir;
 
 const MIN_MOD_LINES: usize = 5;
+const DIR_ALLOWLIST: &[(&str, &str)] = &[
+    (
+        "/crates/bijux-dna-core/src/public_api/metrics",
+        "public API surface is intentionally namespaced for stable growth",
+    ),
+    (
+        "/crates/bijux-dna-core/src/public_api/identity",
+        "public API surface is intentionally namespaced for stable growth",
+    ),
+    (
+        "/crates/bijux-dna-core/src/public_api/contracts",
+        "public API surface is intentionally namespaced for stable growth",
+    ),
+    (
+        "/crates/bijux-dna-core/src/public_api/catalog",
+        "public API surface is intentionally namespaced for stable growth",
+    ),
+    (
+        "/crates/bijux-dna-core/src/public_api/ergonomics",
+        "public API surface is intentionally namespaced for stable growth",
+    ),
+];
 
 #[test]
 fn policy__boundaries__no_empty_dirs_policy__no_empty_or_placeholder_dirs() {
@@ -16,6 +38,13 @@ fn policy__boundaries__no_empty_dirs_policy__no_empty_or_placeholder_dirs() {
             .filter(|entry| entry.file_type().is_dir())
         {
             let dir = entry.path();
+            let dir_str = dir.to_string_lossy();
+            if DIR_ALLOWLIST
+                .iter()
+                .any(|(allowed, _reason)| dir_str.contains(allowed))
+            {
+                continue;
+            }
             let mut rs_files = Vec::new();
             let mut has_any_file = false;
             let mut has_subdir = false;

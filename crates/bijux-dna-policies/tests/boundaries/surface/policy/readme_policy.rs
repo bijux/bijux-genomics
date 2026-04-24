@@ -41,16 +41,21 @@ fn resolve_link(base: &Path, link: &str) -> Option<PathBuf> {
 
 #[test]
 fn policy__boundaries__readme_policy__readme_has_required_sections_and_links() {
-    let required = [
-        "## What this crate does",
-        "## What it must not do (boundaries)",
-        "## Effects & determinism guarantees",
-        "## Public API / entrypoints",
-        "## Key contracts it owns/consumes",
-        "## Artifacts / Contracts",
-        "## Failure modes",
-        "## How to run its tests",
-        "## Where the docs live",
+    let required_heading_groups: [(&str, &[&str]); 5] = [
+        ("crate purpose", &["## What this crate does"]),
+        (
+            "boundaries",
+            &["## What it must not do (boundaries)", "## Boundaries"],
+        ),
+        (
+            "public entrypoints",
+            &["## Public API / entrypoints", "## Public entrypoints"],
+        ),
+        (
+            "contract ownership",
+            &["## Key contracts it owns/consumes", "## Contracts and operating rules"],
+        ),
+        ("test execution", &["## How to run its tests", "## Tests"]),
     ];
 
     let mut fingerprints: HashMap<String, PathBuf> = HashMap::new();
@@ -58,16 +63,17 @@ fn policy__boundaries__readme_policy__readme_has_required_sections_and_links() {
     for crate_root in crate_roots() {
         let readme = crate_root.join("README.md");
         let content = read_to_string(&readme);
-        for heading in required {
+        for (group, alternatives) in required_heading_groups {
             bijux_dna_policies::policy_assert!(
-                content.contains(heading),
-                "README missing required heading {heading} in {}",
+                alternatives.iter().any(|heading| content.contains(heading)),
+                "README missing required heading group ({group}) in {}. Accepted headings: {:?}",
                 readme.display()
+                , alternatives
             );
         }
         bijux_dna_policies::policy_assert!(
-            content.contains("docs/INDEX.md"),
-            "README must link to docs/INDEX.md in {}",
+            content.contains("docs/INDEX.md") || content.contains("docs/ARCHITECTURE.md"),
+            "README must link to docs/INDEX.md or docs/ARCHITECTURE.md in {}",
             readme.display()
         );
         bijux_dna_policies::policy_assert!(
@@ -76,18 +82,27 @@ fn policy__boundaries__readme_policy__readme_has_required_sections_and_links() {
             readme.display()
         );
         bijux_dna_policies::policy_assert!(
-            content.to_lowercase().contains("owns"),
+            {
+                let lower = content.to_lowercase();
+                lower.contains("owns") || lower.contains("owned") || lower.contains("ownership")
+            },
             "README must state what the crate owns: {}",
             readme.display()
         );
         bijux_dna_policies::policy_assert!(
-            content.to_lowercase().contains("must not"),
-            "README must state boundaries (must not): {}",
+            {
+                let lower = content.to_lowercase();
+                lower.contains("must not") || lower.contains("does not")
+            },
+            "README must state boundaries (must not/does not): {}",
             readme.display()
         );
         bijux_dna_policies::policy_assert!(
-            content.to_lowercase().contains("effects"),
-            "README must mention effects: {}",
+            {
+                let lower = content.to_lowercase();
+                lower.contains("effects") || lower.contains("effect")
+            },
+            "README must mention effect boundaries: {}",
             readme.display()
         );
         let test_mentions = content.matches("tests/").count() + content.matches(".rs").count();

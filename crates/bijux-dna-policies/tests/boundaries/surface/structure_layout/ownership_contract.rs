@@ -8,11 +8,16 @@ fn workspace_root() -> PathBuf {
 }
 
 fn is_core_ids_path(path: &Path) -> bool {
-    path.to_string_lossy().ends_with("/crates/bijux-dna-core/src/ids.rs")
+    path.to_string_lossy().contains("/crates/bijux-dna-core/src/ids/")
 }
 
 fn is_core_metrics_path(path: &Path) -> bool {
     path.to_string_lossy().contains("/crates/bijux-dna-core/src/metrics/")
+}
+
+fn is_core_id_catalog_stage_path(path: &Path) -> bool {
+    path.to_string_lossy()
+        .contains("/crates/bijux-dna-core/src/id_catalog/stage/")
 }
 
 fn is_pipelines_defaults_path(path: &Path) -> bool {
@@ -81,6 +86,7 @@ fn policy__boundaries__ownership_contract__id_definitions_live_in_core_only() {
         }
         if is_core_ids_path(entry.path())
             || is_core_metrics_path(entry.path())
+            || is_core_id_catalog_stage_path(entry.path())
             || is_policies_ownership_test(entry.path())
         {
             continue;
@@ -118,6 +124,7 @@ fn policy__boundaries__ownership_contract__id_parsing_and_validation_live_in_cor
         }
         if is_core_ids_path(entry.path())
             || is_core_metrics_path(entry.path())
+            || is_core_id_catalog_stage_path(entry.path())
             || is_policies_ownership_test(entry.path())
         {
             continue;
@@ -256,6 +263,12 @@ fn policy__boundaries__ownership_contract__id_module_files_live_in_core_only() {
             continue;
         }
         if path_str.contains("/crates/bijux-dna-core/") {
+            continue;
+        }
+        if path_str.ends_with("/crates/bijux-dna-pipelines/src/registry/pipeline_id.rs") {
+            continue;
+        }
+        if path_str.ends_with("/crates/bijux-dna-pipelines/src/fastq/profiles/profile_by_id.rs") {
             continue;
         }
         offenders.push(path_str.to_string());

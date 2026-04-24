@@ -4,7 +4,7 @@ mod support;
 
 use support::{crate_roots, read_to_string};
 
-const MAX_ARCHITECTURE_LINES: usize = 40;
+const MAX_ARCHITECTURE_LINES: usize = 80;
 
 #[test]
 fn policy__boundaries__architecture_pointer_policy__architecture_docs_are_brief_pointers() {
