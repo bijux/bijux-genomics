@@ -124,9 +124,6 @@ mod tests {
             .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "bowtie2");
         assert_eq!(decoded.reads_removed, 50);
-        assert_eq!(
-            decoded.raw_backend_report_format.as_deref(),
-            Some("bowtie2_met_file")
-        );
+        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("bowtie2_met_file"));
     }
 }

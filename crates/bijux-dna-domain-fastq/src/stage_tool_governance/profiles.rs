@@ -134,24 +134,15 @@ pub fn stage_tool_governance_profile(
         runtime_support: support.as_ref().map(|record| record.runtime_support),
         normalization_support: support.as_ref().map(|record| record.normalization_support),
         benchmark_support: support.as_ref().map(|record| record.benchmark_support),
-        default_tool: support
-            .as_ref()
-            .and_then(|record| record.default_tool.as_ref())
+        default_tool: support.as_ref().and_then(|record| record.default_tool.as_ref())
             == Some(tool_id),
         admitted_runtime_tool: support.as_ref().is_some_and(|record| {
-            record
-                .admitted_tools
-                .iter()
-                .any(|candidate| candidate == tool_id)
+            record.admitted_tools.iter().any(|candidate| candidate == tool_id)
         }),
         benchmark_scenario_ids: benchmark_governance
             .as_ref()
             .map(|governance| {
-                governance
-                    .scenarios
-                    .iter()
-                    .map(|scenario| scenario.scenario_id.clone())
-                    .collect()
+                governance.scenarios.iter().map(|scenario| scenario.scenario_id.clone()).collect()
             })
             .unwrap_or_default(),
         comparison_input_artifact_ids: benchmark_governance

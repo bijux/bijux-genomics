@@ -47,11 +47,7 @@ pub fn plan_with_options(
     let histogram_bins = histogram_bins_override.unwrap_or(100).max(1);
     let effective_params = FastqReadLengthProfileParams {
         schema_version: READ_LENGTH_PROFILE_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads,
         histogram_bins,
     };
@@ -79,9 +75,7 @@ pub fn plan_with_options(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: CommandSpecV1 {
-            template: command_template,
-        },
+        command: CommandSpecV1 { template: command_template },
         resources,
         io: StageIO {
             inputs,
@@ -134,23 +128,12 @@ fn profile_lengths_command(
         &[
             ("threads", Some(threads.to_string())),
             ("reads_r1", Some(r1.display().to_string())),
-            (
-                "reads_r2",
-                Some(
-                    r2.map(|path| path.display().to_string())
-                        .unwrap_or_default(),
-                ),
-            ),
+            ("reads_r2", Some(r2.map(|path| path.display().to_string()).unwrap_or_default())),
         ],
     )?;
-    let command = rendered
-        .into_iter()
-        .filter(|token| !token.is_empty())
-        .collect::<Vec<_>>();
+    let command = rendered.into_iter().filter(|token| !token.is_empty()).collect::<Vec<_>>();
     if command.is_empty() {
-        return Err(anyhow!(
-            "profile read lengths command template resolved to an empty command"
-        ));
+        return Err(anyhow!("profile read lengths command template resolved to an empty command"));
     }
     Ok(command)
 }
@@ -167,10 +150,7 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("seqkit_stats"),
             tool_version: ToolVersion::from("2.8.0"),
-            image: ContainerImageRefV1 {
-                image: "bijuxdna/seqkit".to_string(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: "bijuxdna/seqkit".to_string(), digest: None },
             command: bijux_dna_core::prelude::CommandSpecV1 {
                 template: vec![
                     "seqkit_stats".to_string(),
@@ -206,15 +186,7 @@ mod tests {
         assert_eq!(plan.resources.threads, 6);
         assert_eq!(
             plan.command.template,
-            vec![
-                "seqkit_stats",
-                "-a",
-                "-T",
-                "-j",
-                "6",
-                "reads_R1.fastq.gz",
-                "reads_R2.fastq.gz",
-            ]
+            vec!["seqkit_stats", "-a", "-T", "-j", "6", "reads_R1.fastq.gz", "reads_R2.fastq.gz",]
         );
     }
 }

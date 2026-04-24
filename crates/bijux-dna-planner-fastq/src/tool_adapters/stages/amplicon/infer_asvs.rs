@@ -128,27 +128,17 @@ pub fn plan_with_options(
 
 fn validate_infer_asvs_options(tool_id: &str, options: &InferAsvsPlanOptions) -> Result<()> {
     if tool_id != "dada2" {
-        return Err(anyhow!(
-            "unsupported ASV inference tool for stage planning: {tool_id}"
-        ));
+        return Err(anyhow!("unsupported ASV inference tool for stage planning: {tool_id}"));
     }
     if options.denoising_method != "dada2" {
-        return Err(anyhow!(
-            "dada2 infer-asvs planning supports only denoising_method=dada2"
-        ));
+        return Err(anyhow!("dada2 infer-asvs planning supports only denoising_method=dada2"));
     }
-    if !matches!(
-        options.pooling_mode.as_str(),
-        "independent" | "pseudo_pool" | "pooled"
-    ) {
+    if !matches!(options.pooling_mode.as_str(), "independent" | "pseudo_pool" | "pooled") {
         return Err(anyhow!(
             "infer-asvs planning requires pooling_mode to be one of: independent, pseudo_pool, pooled"
         ));
     }
-    if !matches!(
-        options.chimera_policy.as_str(),
-        "remove_bimera_denovo" | "keep_candidates"
-    ) {
+    if !matches!(options.chimera_policy.as_str(), "remove_bimera_denovo" | "keep_candidates") {
         return Err(anyhow!(
             "infer-asvs planning requires chimera_policy to be one of: remove_bimera_denovo, keep_candidates"
         ));
@@ -238,9 +228,7 @@ fn infer_asvs_command(
             ]);
             Ok(command)
         }
-        _ => Err(anyhow!(
-            "unsupported ASV inference tool for stage planning: {tool_id}"
-        )),
+        _ => Err(anyhow!("unsupported ASV inference tool for stage planning: {tool_id}")),
     }
 }
 
@@ -274,13 +262,8 @@ mod tests {
         let tool = ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("dada2"),
             tool_version: "1.0.0".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijuxdna/dada2".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["dada2".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijuxdna/dada2".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["dada2".to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 16,
@@ -304,11 +287,7 @@ mod tests {
         assert_eq!(plan.io.outputs.len(), 5);
         assert_eq!(plan.io.outputs[4].name.as_str(), "report_json");
         assert_eq!(plan.command.template[0], "dada2");
-        assert!(plan
-            .command
-            .template
-            .iter()
-            .any(|part| part == "--pooling-mode"));
+        assert!(plan.command.template.iter().any(|part| part == "--pooling-mode"));
         assert_eq!(plan.effective_params["pooling_mode"], "pseudo_pool");
         assert_eq!(plan.effective_params["threads"], 6);
     }

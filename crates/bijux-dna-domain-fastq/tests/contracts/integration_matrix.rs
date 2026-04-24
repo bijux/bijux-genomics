@@ -75,21 +75,12 @@ fn assert_benchmark_scenario(
     let scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&stage_id);
     assert_eq!(scenarios.len(), 1);
     assert_eq!(scenarios[0].scenario_id, scenario_id);
-    assert!(scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == fairness_rule));
+    assert!(scenarios[0].fairness_rules.iter().any(|rule| rule == fairness_rule));
     if let Some(expected_comparison_artifact_id) = comparison_artifact_id {
-        assert_eq!(
-            scenarios[0].comparison_artifact_id,
-            expected_comparison_artifact_id
-        );
+        assert_eq!(scenarios[0].comparison_artifact_id, expected_comparison_artifact_id);
     }
     if let Some(expected_normalization_artifact_id) = normalization_artifact_id {
-        assert_eq!(
-            scenarios[0].normalization_artifact_id,
-            expected_normalization_artifact_id
-        );
+        assert_eq!(scenarios[0].normalization_artifact_id, expected_normalization_artifact_id);
     }
     if let Some(expected_cohort_artifact_id) = cohort_artifact_id {
         assert_eq!(scenarios[0].cohort_artifact_id, expected_cohort_artifact_id);
@@ -210,14 +201,8 @@ fn specialized_benchmark_scenarios_attach_to_governed_stages() {
     let dedup_scenarios = bijux_dna_domain_fastq::benchmark_scenarios_for_stage(&dedup_stage);
     assert_eq!(dedup_scenarios.len(), 1);
     assert_eq!(dedup_scenarios[0].scenario_id, "dedup_fairness");
-    assert!(dedup_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_dedup_policy"));
-    assert!(dedup_scenarios[0]
-        .fairness_rules
-        .iter()
-        .any(|rule| rule == "same_keep_order_policy"));
+    assert!(dedup_scenarios[0].fairness_rules.iter().any(|rule| rule == "same_dedup_policy"));
+    assert!(dedup_scenarios[0].fairness_rules.iter().any(|rule| rule == "same_keep_order_policy"));
 }
 
 #[test]
@@ -249,10 +234,7 @@ fn stage_tool_governance_profile_centralizes_benchmark_contract_truth() {
     assert!(validation_profile.admitted_runtime_tool);
     assert!(validation_profile.is_plannable());
     assert!(validation_profile.is_runnable());
-    assert_eq!(
-        validation_profile.benchmark_scenario_ids,
-        vec!["validation_fairness"]
-    );
+    assert_eq!(validation_profile.benchmark_scenario_ids, vec!["validation_fairness"]);
     assert_eq!(
         validation_profile.comparison_input_artifact_ids,
         vec!["validation_report", "validated_reads_manifest"]
@@ -306,10 +288,7 @@ fn governed_qc_contract_is_owned_by_domain() {
         bijux_dna_domain_fastq::governed_qc_output_ids_for_stage(&validation_stage);
     assert_eq!(
         validation_artifacts,
-        vec![
-            "validation_report".to_string(),
-            "validated_reads_manifest".to_string()
-        ]
+        vec!["validation_report".to_string(), "validated_reads_manifest".to_string()]
     );
 
     let report_qc_stage = StageId::from_static("fastq.report_qc");
@@ -433,18 +412,10 @@ fn stage_benchmark_governance_centralizes_stage_fairness_contracts() {
     let report_qc = benchmark_governance(&StageId::from_static("fastq.report_qc"));
     assert!(report_qc.has_governed_benchmark_contract());
     assert_eq!(report_qc.scenarios.len(), 1);
-    assert_eq!(
-        report_qc.scenarios[0].scenario_id,
-        "qc_aggregation_fairness"
-    );
+    assert_eq!(report_qc.scenarios[0].scenario_id, "qc_aggregation_fairness");
     assert_eq!(
         report_qc.comparison_input_artifact_ids,
-        vec![
-            "report_json",
-            "governed_qc_inputs_manifest",
-            "multiqc_report",
-            "multiqc_data"
-        ]
+        vec!["report_json", "governed_qc_inputs_manifest", "multiqc_report", "multiqc_data"]
     );
 
     let polyg = benchmark_governance(&StageId::from_static("fastq.trim_polyg_tails"));
@@ -457,16 +428,12 @@ fn reference_index_compatibility_is_queryable_from_domain_api() {
     let bowtie2 = ToolId::from_static("bowtie2");
     let backends = bijux_dna_domain_fastq::reference_index_backends_for_tool(&bowtie2);
     assert_eq!(backends, vec![ToolId::from_static("bowtie2_build")]);
-    assert!(
-        bijux_dna_domain_fastq::is_reference_index_backend_compatible(
-            &bowtie2,
-            &ToolId::from_static("bowtie2_build"),
-        )
-    );
-    assert!(
-        !bijux_dna_domain_fastq::is_reference_index_backend_compatible(
-            &bowtie2,
-            &ToolId::from_static("star"),
-        )
-    );
+    assert!(bijux_dna_domain_fastq::is_reference_index_backend_compatible(
+        &bowtie2,
+        &ToolId::from_static("bowtie2_build"),
+    ));
+    assert!(!bijux_dna_domain_fastq::is_reference_index_backend_compatible(
+        &bowtie2,
+        &ToolId::from_static("star"),
+    ));
 }

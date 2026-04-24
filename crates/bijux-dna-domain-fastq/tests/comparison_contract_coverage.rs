@@ -9,36 +9,18 @@ fn comparison_contract(stage_id: &'static str) -> bijux_dna_domain_fastq::StageC
 fn detect_adapters_exposes_stage_family_comparison_contract() {
     let contract = comparison_contract("fastq.detect_adapters");
 
-    assert_eq!(
-        contract.cohort_artifact_id,
-        "adapter_inspection_tool_benchmark_cohort_json"
-    );
-    assert_eq!(
-        contract.comparison_artifact_id,
-        "adapter_inspection_tool_comparison_json"
-    );
-    assert_eq!(
-        contract.normalization_artifact_id,
-        "adapter_inspection_tool_normalization_json"
-    );
+    assert_eq!(contract.cohort_artifact_id, "adapter_inspection_tool_benchmark_cohort_json");
+    assert_eq!(contract.comparison_artifact_id, "adapter_inspection_tool_comparison_json");
+    assert_eq!(contract.normalization_artifact_id, "adapter_inspection_tool_normalization_json");
 }
 
 #[test]
 fn deplete_rrna_exposes_stage_family_comparison_contract() {
     let contract = comparison_contract("fastq.deplete_rrna");
 
-    assert_eq!(
-        contract.cohort_artifact_id,
-        "rrna_depletion_tool_benchmark_cohort_json"
-    );
-    assert_eq!(
-        contract.comparison_artifact_id,
-        "rrna_depletion_tool_comparison_json"
-    );
-    assert_eq!(
-        contract.normalization_artifact_id,
-        "rrna_depletion_tool_normalization_json"
-    );
+    assert_eq!(contract.cohort_artifact_id, "rrna_depletion_tool_benchmark_cohort_json");
+    assert_eq!(contract.comparison_artifact_id, "rrna_depletion_tool_comparison_json");
+    assert_eq!(contract.normalization_artifact_id, "rrna_depletion_tool_normalization_json");
     assert_eq!(
         contract.comparison_input_artifact_ids,
         &[
@@ -54,18 +36,9 @@ fn deplete_rrna_exposes_stage_family_comparison_contract() {
 fn deplete_host_exposes_stage_family_comparison_contract() {
     let contract = comparison_contract("fastq.deplete_host");
 
-    assert_eq!(
-        contract.cohort_artifact_id,
-        "host_depletion_tool_benchmark_cohort_json"
-    );
-    assert_eq!(
-        contract.comparison_artifact_id,
-        "host_depletion_tool_comparison_json"
-    );
-    assert_eq!(
-        contract.normalization_artifact_id,
-        "host_depletion_tool_normalization_json"
-    );
+    assert_eq!(contract.cohort_artifact_id, "host_depletion_tool_benchmark_cohort_json");
+    assert_eq!(contract.comparison_artifact_id, "host_depletion_tool_comparison_json");
+    assert_eq!(contract.normalization_artifact_id, "host_depletion_tool_normalization_json");
     assert_eq!(
         contract.comparison_input_artifact_ids,
         &[
@@ -82,18 +55,9 @@ fn deplete_host_exposes_stage_family_comparison_contract() {
 fn deplete_reference_contaminants_exposes_stage_family_comparison_contract() {
     let contract = comparison_contract("fastq.deplete_reference_contaminants");
 
-    assert_eq!(
-        contract.cohort_artifact_id,
-        "contaminant_depletion_tool_benchmark_cohort_json"
-    );
-    assert_eq!(
-        contract.comparison_artifact_id,
-        "contaminant_depletion_tool_comparison_json"
-    );
-    assert_eq!(
-        contract.normalization_artifact_id,
-        "contaminant_depletion_tool_normalization_json"
-    );
+    assert_eq!(contract.cohort_artifact_id, "contaminant_depletion_tool_benchmark_cohort_json");
+    assert_eq!(contract.comparison_artifact_id, "contaminant_depletion_tool_comparison_json");
+    assert_eq!(contract.normalization_artifact_id, "contaminant_depletion_tool_normalization_json");
     assert_eq!(
         contract.comparison_input_artifact_ids,
         &[
@@ -108,44 +72,21 @@ fn deplete_reference_contaminants_exposes_stage_family_comparison_contract() {
 fn extract_umis_exposes_stage_family_comparison_contract() {
     let contract = comparison_contract("fastq.extract_umis");
 
-    assert_eq!(
-        contract.cohort_artifact_id,
-        "umi_extraction_tool_benchmark_cohort_json"
-    );
-    assert_eq!(
-        contract.comparison_artifact_id,
-        "umi_extraction_tool_comparison_json"
-    );
-    assert_eq!(
-        contract.normalization_artifact_id,
-        "umi_extraction_tool_normalization_json"
-    );
+    assert_eq!(contract.cohort_artifact_id, "umi_extraction_tool_benchmark_cohort_json");
+    assert_eq!(contract.comparison_artifact_id, "umi_extraction_tool_comparison_json");
+    assert_eq!(contract.normalization_artifact_id, "umi_extraction_tool_normalization_json");
 }
 
 #[test]
 fn report_qc_exposes_stage_family_comparison_contract() {
     let contract = comparison_contract("fastq.report_qc");
 
-    assert_eq!(
-        contract.cohort_artifact_id,
-        "qc_aggregation_tool_benchmark_cohort_json"
-    );
-    assert_eq!(
-        contract.comparison_artifact_id,
-        "qc_aggregation_tool_comparison_json"
-    );
-    assert_eq!(
-        contract.normalization_artifact_id,
-        "qc_aggregation_tool_normalization_json"
-    );
+    assert_eq!(contract.cohort_artifact_id, "qc_aggregation_tool_benchmark_cohort_json");
+    assert_eq!(contract.comparison_artifact_id, "qc_aggregation_tool_comparison_json");
+    assert_eq!(contract.normalization_artifact_id, "qc_aggregation_tool_normalization_json");
     assert_eq!(
         contract.comparison_input_artifact_ids,
-        &[
-            "report_json",
-            "governed_qc_inputs_manifest",
-            "multiqc_report",
-            "multiqc_data",
-        ]
+        &["report_json", "governed_qc_inputs_manifest", "multiqc_report", "multiqc_data",]
     );
 }
 
@@ -163,18 +104,9 @@ fn validate_reads_exposes_lineage_aware_comparison_contract() {
 fn trim_polyg_tails_exposes_stage_family_comparison_contract() {
     let contract = comparison_contract("fastq.trim_polyg_tails");
 
-    assert_eq!(
-        contract.cohort_artifact_id,
-        "polyg_trim_tool_benchmark_cohort_json"
-    );
-    assert_eq!(
-        contract.comparison_artifact_id,
-        "polyg_trim_tool_comparison_json"
-    );
-    assert_eq!(
-        contract.normalization_artifact_id,
-        "polyg_trim_tool_normalization_json"
-    );
+    assert_eq!(contract.cohort_artifact_id, "polyg_trim_tool_benchmark_cohort_json");
+    assert_eq!(contract.comparison_artifact_id, "polyg_trim_tool_comparison_json");
+    assert_eq!(contract.normalization_artifact_id, "polyg_trim_tool_normalization_json");
     assert_eq!(
         contract.comparison_input_artifact_ids,
         &["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]

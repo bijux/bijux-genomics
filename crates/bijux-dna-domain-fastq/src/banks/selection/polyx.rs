@@ -26,13 +26,7 @@ pub fn resolve_polyx_selection(polyx_preset: Option<&str>) -> Result<PolyxSelect
     let presets = crate::load_polyx_presets(&presets_path, &bank)?;
     let bank_checksum = bijux_dna_infra::hash_file_sha256(&bank_path)?;
     let presets_checksum = bijux_dna_infra::hash_file_sha256(&presets_path)?;
-    Ok(PolyxSelection {
-        bank,
-        presets,
-        preset_name,
-        bank_checksum,
-        presets_checksum,
-    })
+    Ok(PolyxSelection { bank, presets, preset_name, bank_checksum, presets_checksum })
 }
 
 /// Resolve the effective polyX set from a selection.

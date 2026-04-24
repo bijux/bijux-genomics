@@ -99,9 +99,7 @@ pub fn resolve_terminal_damage_policy_with_override(
         }
         Some(TerminalDamageExecutionPolicy::PreserveUdgTrimmedEnds) => {
             if damage_mode != DamageMode::UdgTrimmed {
-                return Err(anyhow!(
-                    "preserve_udg_trimmed_ends requires damage_mode=udg_trimmed"
-                ));
+                return Err(anyhow!("preserve_udg_trimmed_ends requires damage_mode=udg_trimmed"));
             }
             if trim_5p_bases != DEFAULT_TERMINAL_DAMAGE_TRIM_5P_BASES
                 || trim_3p_bases != DEFAULT_TERMINAL_DAMAGE_TRIM_3P_BASES

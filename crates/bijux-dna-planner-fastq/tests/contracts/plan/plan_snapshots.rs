@@ -35,9 +35,7 @@ fn default_stage_tool(stage: &str) -> ToolExecutionSpecV1 {
             image: "bijux/test".to_string(),
             digest: Some("sha256:plan".to_string()),
         },
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["echo".to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -57,9 +55,7 @@ fn fastq_plan_snapshot() {
             image: "bijux/fastp".to_string(),
             digest: Some("sha256:fastp".to_string()),
         },
-        command: CommandSpecV1 {
-            template: vec!["fastp".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["fastp".to_string()] },
         resources: ToolConstraints {
             runtime: "short".to_string(),
             mem_gb: 2,
@@ -74,9 +70,7 @@ fn fastq_plan_snapshot() {
             image: "bijux/fastqvalidator".to_string(),
             digest: Some("sha256:fastqvalidator".to_string()),
         },
-        command: CommandSpecV1 {
-            template: vec!["fastqvalidator".to_string()],
-        },
+        command: CommandSpecV1 { template: vec!["fastqvalidator".to_string()] },
         resources: ToolConstraints {
             runtime: "short".to_string(),
             mem_gb: 1,
@@ -151,10 +145,7 @@ fn tool_override_precedence_is_stable() {
     let mut forced = BTreeMap::new();
     forced.insert("fastq.trim_reads".to_string(), "trimmomatic".to_string());
     let merged = apply_tool_overrides(base, profile, cli, forced);
-    assert_eq!(
-        merged.get("fastq.trim_reads").map(String::as_str),
-        Some("trimmomatic")
-    );
+    assert_eq!(merged.get("fastq.trim_reads").map(String::as_str), Some("trimmomatic"));
 }
 
 #[test]

@@ -113,10 +113,7 @@ mod tests {
         let decoded: ValidationReportV1 = serde_json::from_str(&encoded)
             .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert!(decoded.is_pair_failure());
-        assert_eq!(
-            decoded.failure_class,
-            ValidateFailureClass::PairCountMismatch
-        );
+        assert_eq!(decoded.failure_class, ValidateFailureClass::PairCountMismatch);
     }
 
     #[test]

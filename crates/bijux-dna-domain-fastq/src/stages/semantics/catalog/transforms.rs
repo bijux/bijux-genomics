@@ -20,11 +20,7 @@ pub const REMOVE_DUPLICATES: StageDefinition = stage_definition(
     true,
     true,
     false,
-    &[
-        MetricClass::Integrity,
-        MetricClass::Retention,
-        MetricClass::QualityShift,
-    ],
+    &[MetricClass::Integrity, MetricClass::Retention, MetricClass::QualityShift],
 );
 
 pub const FILTER_LOW_COMPLEXITY: StageDefinition = stage_definition(
@@ -34,11 +30,7 @@ pub const FILTER_LOW_COMPLEXITY: StageDefinition = stage_definition(
     true,
     true,
     false,
-    &[
-        MetricClass::Integrity,
-        MetricClass::Retention,
-        MetricClass::QualityShift,
-    ],
+    &[MetricClass::Integrity, MetricClass::Retention, MetricClass::QualityShift],
 );
 
 pub const CORRECT_ERRORS: StageDefinition = stage_definition(
@@ -61,10 +53,5 @@ pub const EXTRACT_UMIS: StageDefinition = stage_definition(
     &[MetricClass::Integrity, MetricClass::Retention],
 );
 
-pub const STAGES: [StageDefinition; 5] = [
-    MERGE_PAIRS,
-    REMOVE_DUPLICATES,
-    FILTER_LOW_COMPLEXITY,
-    CORRECT_ERRORS,
-    EXTRACT_UMIS,
-];
+pub const STAGES: [StageDefinition; 5] =
+    [MERGE_PAIRS, REMOVE_DUPLICATES, FILTER_LOW_COMPLEXITY, CORRECT_ERRORS, EXTRACT_UMIS];

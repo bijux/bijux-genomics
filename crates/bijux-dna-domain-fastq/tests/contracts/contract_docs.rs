@@ -11,14 +11,8 @@ fn fastq_contracts_document_retention_and_preservation() {
             !contract.retention_definition.is_empty(),
             "{stage_str} missing retention definition"
         );
-        assert!(
-            !contract.retention_units.is_empty(),
-            "{stage_str} missing retention units"
-        );
-        assert!(
-            !contract.preserves.is_empty(),
-            "{stage_str} missing preservation list"
-        );
+        assert!(!contract.retention_units.is_empty(), "{stage_str} missing retention units");
+        assert!(!contract.preserves.is_empty(), "{stage_str} missing preservation list");
         if contract.may_drop_reads {
             assert!(
                 !contract.may_drop.is_empty(),

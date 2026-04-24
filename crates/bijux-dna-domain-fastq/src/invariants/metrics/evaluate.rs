@@ -44,8 +44,5 @@ pub fn evaluate_invariants(
         key_metrics: serde_json::Value::Object(state.key_metrics),
     };
 
-    InvariantEvaluation {
-        results: state.results,
-        verdict: stage_verdict,
-    }
+    InvariantEvaluation { results: state.results, verdict: stage_verdict }
 }

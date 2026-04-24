@@ -90,10 +90,7 @@ fn parse_legacy_remove_duplicates_report(report_json: &str) -> Result<RemoveDupl
         tool_id: serde_json::from_str::<serde_json::Value>(report_json)
             .ok()
             .and_then(|value| {
-                value
-                    .get("tool_id")
-                    .and_then(serde_json::Value::as_str)
-                    .map(ToString::to_string)
+                value.get("tool_id").and_then(serde_json::Value::as_str).map(ToString::to_string)
             })
             .unwrap_or_else(|| "unknown".to_string()),
         paired_mode: match parse_report_u64_field(report_json, "pairs_in") {
@@ -119,11 +116,7 @@ fn parse_legacy_remove_duplicates_report(report_json: &str) -> Result<RemoveDupl
         pairs_out: parse_report_u64_field(report_json, "pairs_out"),
         pair_count_match: serde_json::from_str::<serde_json::Value>(report_json)
             .ok()
-            .and_then(|value| {
-                value
-                    .get("pair_count_match")
-                    .and_then(serde_json::Value::as_bool)
-            }),
+            .and_then(|value| value.get("pair_count_match").and_then(serde_json::Value::as_bool)),
         duplicates_removed,
         dedup_rate: serde_json::from_str::<serde_json::Value>(report_json)
             .ok()
@@ -193,15 +186,9 @@ fn parse_legacy_remove_chimeras_report(report_json: &str) -> Result<RemoveChimer
         chimeras_fasta: None,
         uchime_report_tsv: None,
         reads_in: None,
-        reads_out: json
-            .get("non_chimera_reads")
-            .and_then(serde_json::Value::as_u64),
-        chimeras_removed: json
-            .get("chimeras_removed")
-            .and_then(serde_json::Value::as_u64),
-        chimera_fraction: json
-            .get("chimera_fraction")
-            .and_then(serde_json::Value::as_f64),
+        reads_out: json.get("non_chimera_reads").and_then(serde_json::Value::as_u64),
+        chimeras_removed: json.get("chimeras_removed").and_then(serde_json::Value::as_u64),
+        chimera_fraction: json.get("chimera_fraction").and_then(serde_json::Value::as_f64),
         used_fallback: json
             .get("used_fallback")
             .and_then(serde_json::Value::as_bool)

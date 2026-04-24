@@ -23,27 +23,19 @@ impl TrimPlanOptions {
     }
 
     pub(super) fn resolved_adapter_policy(&self) -> String {
-        self.adapter_policy
-            .clone()
-            .unwrap_or_else(|| "none".to_string())
+        self.adapter_policy.clone().unwrap_or_else(|| "none".to_string())
     }
 
     pub(super) fn resolved_polyx_policy(&self) -> String {
-        self.polyx_policy
-            .clone()
-            .unwrap_or_else(|| "none".to_string())
+        self.polyx_policy.clone().unwrap_or_else(|| "none".to_string())
     }
 
     pub(super) fn resolved_n_policy(&self) -> String {
-        self.n_policy
-            .clone()
-            .unwrap_or_else(|| "retain".to_string())
+        self.n_policy.clone().unwrap_or_else(|| "retain".to_string())
     }
 
     pub(super) fn resolved_contaminant_policy(&self) -> String {
-        self.contaminant_policy
-            .clone()
-            .unwrap_or_else(|| "none".to_string())
+        self.contaminant_policy.clone().unwrap_or_else(|| "none".to_string())
     }
 }
 
@@ -178,10 +170,7 @@ pub(super) fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOption
             ));
         }
     }
-    if matches!(
-        options.adapter_policy.as_deref(),
-        Some("bank" | "ancient_strict")
-    ) {
+    if matches!(options.adapter_policy.as_deref(), Some("bank" | "ancient_strict")) {
         match tool_id {
             "fastp" | "cutadapt" | "atropos" | "adapterremoval" | "alientrimmer"
             | "trim_galore" | "fastx_clipper" | "skewer" | "leehom" => {}
@@ -202,8 +191,6 @@ pub(super) fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOption
         "prinseq" => Ok(()),
         "seqkit" if options.quality_cutoff.is_none() => Ok(()),
         "seqpurge" if options.quality_cutoff.is_none() => Ok(()),
-        _ => Err(anyhow!(
-            "trim planning does not yet map min_length/quality_cutoff for {tool_id}"
-        )),
+        _ => Err(anyhow!("trim planning does not yet map min_length/quality_cutoff for {tool_id}")),
     }
 }

@@ -58,32 +58,18 @@ fn normalize_primers_metrics(
     let governed_report = report_path
         .and_then(|path| std::fs::read_to_string(&path).ok())
         .and_then(|raw| crate::observer::parse_normalize_primers_report(&raw).ok());
-    let reads_in = governed_report
-        .as_ref()
-        .and_then(|report| report.reads_in)
-        .unwrap_or(input.reads);
-    let reads_out = governed_report
-        .as_ref()
-        .and_then(|report| report.reads_out)
-        .unwrap_or(output.reads);
-    let bases_in = governed_report
-        .as_ref()
-        .and_then(|report| report.bases_in)
-        .unwrap_or(input.bases);
-    let bases_out = governed_report
-        .as_ref()
-        .and_then(|report| report.bases_out)
-        .unwrap_or(output.bases);
-    let read_retention = if reads_in > 0 {
-        f64_from_u64(reads_out) / f64_from_u64(reads_in)
-    } else {
-        0.0
-    };
-    let base_retention = if bases_in > 0 {
-        f64_from_u64(bases_out) / f64_from_u64(bases_in)
-    } else {
-        0.0
-    };
+    let reads_in =
+        governed_report.as_ref().and_then(|report| report.reads_in).unwrap_or(input.reads);
+    let reads_out =
+        governed_report.as_ref().and_then(|report| report.reads_out).unwrap_or(output.reads);
+    let bases_in =
+        governed_report.as_ref().and_then(|report| report.bases_in).unwrap_or(input.bases);
+    let bases_out =
+        governed_report.as_ref().and_then(|report| report.bases_out).unwrap_or(output.bases);
+    let read_retention =
+        if reads_in > 0 { f64_from_u64(reads_out) / f64_from_u64(reads_in) } else { 0.0 };
+    let base_retention =
+        if bases_in > 0 { f64_from_u64(bases_out) / f64_from_u64(bases_in) } else { 0.0 };
     let retention = RetentionReportMetricV1 {
         value: read_retention,
         numerator_reads: reads_out,
@@ -245,24 +231,18 @@ fn detect_adapters_metrics(
             let subdir = out_dir.join("fastqc");
             fastqc_metrics_v2_from_dir(&subdir)
         });
-        let adapter_content_max = metrics
-            .as_ref()
-            .and_then(|m| m.adapter_content.as_ref().map(|a| a.max_percent));
-        let adapter_content_mean = metrics
-            .as_ref()
-            .and_then(|m| m.adapter_content.as_ref().map(|a| a.mean_percent));
-        let duplication_rate = metrics
-            .as_ref()
-            .and_then(|m| m.duplication.as_ref().map(|d| d.duplication_rate));
-        let n_rate = metrics
-            .as_ref()
-            .and_then(|m| m.n_content.as_ref().map(|n| n.mean_percent / 100.0));
-        let kmer_warning_count = metrics
-            .as_ref()
-            .and_then(|m| m.kmer_content.as_ref().map(|k| k.warning_count));
-        let overrepresented_sequence_count = metrics
-            .as_ref()
-            .and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count));
+        let adapter_content_max =
+            metrics.as_ref().and_then(|m| m.adapter_content.as_ref().map(|a| a.max_percent));
+        let adapter_content_mean =
+            metrics.as_ref().and_then(|m| m.adapter_content.as_ref().map(|a| a.mean_percent));
+        let duplication_rate =
+            metrics.as_ref().and_then(|m| m.duplication.as_ref().map(|d| d.duplication_rate));
+        let n_rate =
+            metrics.as_ref().and_then(|m| m.n_content.as_ref().map(|n| n.mean_percent / 100.0));
+        let kmer_warning_count =
+            metrics.as_ref().and_then(|m| m.kmer_content.as_ref().map(|k| k.warning_count));
+        let overrepresented_sequence_count =
+            metrics.as_ref().and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count));
         Ok(serde_json::to_value(FastqDetectAdaptersMetricsV1 {
             reads_in: input.reads,
             reads_out: input.reads,
@@ -465,16 +445,10 @@ fn preprocess_metrics(
         stats.first().copied().unwrap_or_else(zero_seqkit_metrics)
     };
     let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
-    let read_retention = if input.reads > 0 {
-        f64_from_u64(output.reads) / f64_from_u64(input.reads)
-    } else {
-        0.0
-    };
-    let base_retention = if input.bases > 0 {
-        f64_from_u64(output.bases) / f64_from_u64(input.bases)
-    } else {
-        0.0
-    };
+    let read_retention =
+        if input.reads > 0 { f64_from_u64(output.reads) / f64_from_u64(input.reads) } else { 0.0 };
+    let base_retention =
+        if input.bases > 0 { f64_from_u64(output.bases) / f64_from_u64(input.bases) } else { 0.0 };
     let delta = FastqDeltaMetricsV1 {
         read_retention,
         base_retention,
@@ -545,65 +519,36 @@ fn qc_post_metrics(
         .as_ref()
         .and_then(|report| report.adapter_content_max)
         .or_else(|| metrics_source.and_then(|m| m.adapter_content.as_ref().map(|a| a.max_percent)));
-    let adapter_content_mean = governed_report
-        .as_ref()
-        .and_then(|report| report.adapter_content_mean)
-        .or_else(|| {
+    let adapter_content_mean =
+        governed_report.as_ref().and_then(|report| report.adapter_content_mean).or_else(|| {
             metrics_source.and_then(|m| m.adapter_content.as_ref().map(|a| a.mean_percent))
         });
-    let duplication_rate = governed_report
-        .as_ref()
-        .and_then(|report| report.duplication_rate)
-        .or_else(|| {
+    let duplication_rate =
+        governed_report.as_ref().and_then(|report| report.duplication_rate).or_else(|| {
             metrics_source.and_then(|m| m.duplication.as_ref().map(|d| d.duplication_rate))
         });
-    let n_rate = governed_report
-        .as_ref()
-        .and_then(|report| report.n_rate)
-        .or_else(|| {
-            metrics_source.and_then(|m| m.n_content.as_ref().map(|n| n.mean_percent / 100.0))
-        });
+    let n_rate = governed_report.as_ref().and_then(|report| report.n_rate).or_else(|| {
+        metrics_source.and_then(|m| m.n_content.as_ref().map(|n| n.mean_percent / 100.0))
+    });
     let kmer_warning_count = governed_report
         .as_ref()
         .and_then(|report| report.kmer_warning_count)
         .or_else(|| metrics_source.and_then(|m| m.kmer_content.as_ref().map(|k| k.warning_count)));
-    let overrepresented_sequence_count = governed_report
-        .as_ref()
-        .and_then(|report| report.overrepresented_sequence_count)
-        .or_else(|| {
-            metrics_source.and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count))
-        });
-    let reads_in = governed_report
-        .as_ref()
-        .map(|report| report.reads_in)
-        .unwrap_or(input.reads);
-    let reads_out = governed_report
-        .as_ref()
-        .map(|report| report.reads_out)
-        .unwrap_or(output.reads);
-    let bases_in = governed_report
-        .as_ref()
-        .map(|report| report.bases_in)
-        .unwrap_or(input.bases);
-    let bases_out = governed_report
-        .as_ref()
-        .map(|report| report.bases_out)
-        .unwrap_or(output.bases);
+    let overrepresented_sequence_count =
+        governed_report.as_ref().and_then(|report| report.overrepresented_sequence_count).or_else(
+            || metrics_source.and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count)),
+        );
+    let reads_in = governed_report.as_ref().map(|report| report.reads_in).unwrap_or(input.reads);
+    let reads_out = governed_report.as_ref().map(|report| report.reads_out).unwrap_or(output.reads);
+    let bases_in = governed_report.as_ref().map(|report| report.bases_in).unwrap_or(input.bases);
+    let bases_out = governed_report.as_ref().map(|report| report.bases_out).unwrap_or(output.bases);
     let mean_q_before = input.mean_q;
-    let mean_q_after = governed_report
-        .as_ref()
-        .map(|report| report.mean_q)
-        .unwrap_or(output.mean_q);
-    let read_retention = if reads_in > 0 {
-        f64_from_u64(reads_out) / f64_from_u64(reads_in)
-    } else {
-        0.0
-    };
-    let base_retention = if bases_in > 0 {
-        f64_from_u64(bases_out) / f64_from_u64(bases_in)
-    } else {
-        0.0
-    };
+    let mean_q_after =
+        governed_report.as_ref().map(|report| report.mean_q).unwrap_or(output.mean_q);
+    let read_retention =
+        if reads_in > 0 { f64_from_u64(reads_out) / f64_from_u64(reads_in) } else { 0.0 };
+    let base_retention =
+        if bases_in > 0 { f64_from_u64(bases_out) / f64_from_u64(bases_in) } else { 0.0 };
     let delta = FastqDeltaMetricsV1 {
         read_retention,
         base_retention,
@@ -689,27 +634,15 @@ fn qc_post_metrics(
         trimmed_fastqc_dir: governed_report
             .as_ref()
             .and_then(|report| report.trimmed_fastqc_dir.clone())
-            .or_else(|| {
-                trimmed_dir
-                    .exists()
-                    .then_some(trimmed_dir.display().to_string())
-            }),
+            .or_else(|| trimmed_dir.exists().then_some(trimmed_dir.display().to_string())),
         multiqc_report: governed_report
             .as_ref()
             .and_then(|report| report.multiqc_report.clone())
-            .or_else(|| {
-                multiqc_report
-                    .exists()
-                    .then_some(multiqc_report.display().to_string())
-            }),
+            .or_else(|| multiqc_report.exists().then_some(multiqc_report.display().to_string())),
         multiqc_data: governed_report
             .as_ref()
             .and_then(|report| report.multiqc_data.clone())
-            .or_else(|| {
-                multiqc_data
-                    .exists()
-                    .then_some(multiqc_data.display().to_string())
-            }),
+            .or_else(|| multiqc_data.exists().then_some(multiqc_data.display().to_string())),
         governed_qc_input_count: governed_report
             .as_ref()
             .map(|report| report.governed_qc_input_count),
@@ -758,12 +691,7 @@ fn stats_neutral_metrics(
     let (pairs_in, pairs_out) = if let Some(report) = governed_report.as_ref() {
         match report.paired_mode {
             bijux_dna_domain_fastq::params::PairedMode::PairedEnd => {
-                let pairs = report
-                    .mate_summaries
-                    .iter()
-                    .map(|mate| mate.reads)
-                    .min()
-                    .unwrap_or(0);
+                let pairs = report.mate_summaries.iter().map(|mate| mate.reads).min().unwrap_or(0);
                 (Some(pairs), Some(pairs))
             }
             bijux_dna_domain_fastq::params::PairedMode::SingleEnd
@@ -775,29 +703,19 @@ fn stats_neutral_metrics(
     let (read_length_distribution, gc_distribution) = if let Some(report) = governed_report.as_ref()
     {
         (
-            report
-                .length_histogram
-                .iter()
-                .map(|bin| (bin.length, bin.count))
-                .collect::<Vec<_>>(),
+            report.length_histogram.iter().map(|bin| (bin.length, bin.count)).collect::<Vec<_>>(),
             distributions_for_path(inputs.first().map(PathBuf::as_path))?.1,
         )
     } else {
         distributions_for_path(inputs.first().map(PathBuf::as_path))?
     };
     Ok(serde_json::to_value(FastqStatsNeutralMetricsV1 {
-        reads_in: governed_report
-            .as_ref()
-            .map(|report| report.reads_total)
-            .unwrap_or(input.reads),
+        reads_in: governed_report.as_ref().map(|report| report.reads_total).unwrap_or(input.reads),
         reads_out: governed_report
             .as_ref()
             .map(|report| report.reads_total)
             .unwrap_or(output.reads),
-        bases_in: governed_report
-            .as_ref()
-            .map(|report| report.bases_total)
-            .unwrap_or(input.bases),
+        bases_in: governed_report.as_ref().map(|report| report.bases_total).unwrap_or(input.bases),
         bases_out: governed_report
             .as_ref()
             .map(|report| report.bases_total)
@@ -850,24 +768,15 @@ fn profile_read_lengths_metrics(
     } else {
         let (read_length_distribution, _gc_distribution) =
             distributions_for_path(inputs.first().map(PathBuf::as_path))?;
-        let read_count = read_length_distribution
-            .iter()
-            .map(|(_, count)| *count)
-            .sum::<u64>();
+        let read_count = read_length_distribution.iter().map(|(_, count)| *count).sum::<u64>();
         let weighted_total = read_length_distribution
             .iter()
             .map(|(length, count)| length.saturating_mul(*count))
             .sum::<u64>();
-        let mean_read_length = if read_count == 0 {
-            0.0
-        } else {
-            weighted_total as f64 / read_count as f64
-        };
-        let max_read_length = read_length_distribution
-            .iter()
-            .map(|(length, _count)| *length)
-            .max()
-            .unwrap_or(0);
+        let mean_read_length =
+            if read_count == 0 { 0.0 } else { weighted_total as f64 / read_count as f64 };
+        let max_read_length =
+            read_length_distribution.iter().map(|(length, _count)| *length).max().unwrap_or(0);
         Ok(serde_json::json!({
             "read_count": read_count,
             "mean_read_length": mean_read_length,

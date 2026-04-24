@@ -151,12 +151,7 @@ pub fn preprocess_decisions(args: &BenchFastqPreprocessArgs) -> PreprocessDecisi
             mean_q_estimate: None,
         });
     }
-    PreprocessDecisions {
-        enable_merge,
-        enable_correct,
-        merge_decision,
-        correct_decision,
-    }
+    PreprocessDecisions { enable_merge, enable_correct, merge_decision, correct_decision }
 }
 
 #[must_use]
@@ -294,9 +289,6 @@ fn filter_preprocess_pipeline(
         allowed_stages.retain(|stage| !amplicon_only.contains(&stage.as_str()));
     }
     preprocess_pipeline_graph_for_stage_order(
-        &allowed_stages
-            .into_iter()
-            .map(StageId::new)
-            .collect::<Vec<_>>(),
+        &allowed_stages.into_iter().map(StageId::new).collect::<Vec<_>>(),
     )
 }

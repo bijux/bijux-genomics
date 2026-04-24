@@ -60,11 +60,7 @@ pub const TRIM_READS: StageDefinition = stage_definition(
     true,
     true,
     false,
-    &[
-        MetricClass::Integrity,
-        MetricClass::Retention,
-        MetricClass::QualityShift,
-    ],
+    &[MetricClass::Integrity, MetricClass::Retention, MetricClass::QualityShift],
 );
 
 pub const FILTER_READS: StageDefinition = stage_definition(
@@ -74,11 +70,7 @@ pub const FILTER_READS: StageDefinition = stage_definition(
     true,
     true,
     false,
-    &[
-        MetricClass::Integrity,
-        MetricClass::Retention,
-        MetricClass::QualityShift,
-    ],
+    &[MetricClass::Integrity, MetricClass::Retention, MetricClass::QualityShift],
 );
 
 pub const PROFILE_READS: StageDefinition = stage_definition(

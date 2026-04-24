@@ -170,14 +170,9 @@ pub fn plan_qc_post_with_qc_inputs(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: CommandSpecV1 {
-            template: command_template,
-        },
+        command: CommandSpecV1 { template: command_template },
         resources: tool.resources.clone(),
-        io: StageIO {
-            inputs: qc_inputs.to_vec(),
-            outputs,
-        },
+        io: StageIO { inputs: qc_inputs.to_vec(), outputs },
         out_dir: out_dir.to_path_buf(),
         params,
         effective_params: serde_json::to_value(&effective_params)
@@ -197,10 +192,8 @@ fn qc_post_command(
 ) -> Result<Vec<String>> {
     match tool_id {
         "multiqc" => {
-            let mut multiqc_inputs = qc_inputs
-                .iter()
-                .map(|artifact| artifact.path.clone())
-                .collect::<Vec<_>>();
+            let mut multiqc_inputs =
+                qc_inputs.iter().map(|artifact| artifact.path.clone()).collect::<Vec<_>>();
             multiqc_inputs.sort();
             multiqc_inputs.dedup();
             let manifest = serde_json::to_string(&governed_qc_inputs_manifest_payload(qc_inputs)?)
@@ -286,19 +279,12 @@ fn governed_qc_inputs_manifest_payload(
 }
 
 fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContributor> {
-    let mut contributors = qc_inputs
-        .iter()
-        .filter_map(governed_qc_contributor)
-        .collect::<Vec<_>>();
+    let mut contributors = qc_inputs.iter().filter_map(governed_qc_contributor).collect::<Vec<_>>();
     contributors.sort_by(|left, right| {
         left.contributor_id
             .cmp(&right.contributor_id)
             .then_with(|| left.artifact_id.cmp(&right.artifact_id))
-            .then_with(|| {
-                left.artifact_role
-                    .as_str()
-                    .cmp(right.artifact_role.as_str())
-            })
+            .then_with(|| left.artifact_role.as_str().cmp(right.artifact_role.as_str()))
             .then_with(|| left.path.cmp(&right.path))
     });
     contributors.dedup_by(|left, right| {
@@ -521,10 +507,7 @@ mod tests {
             ),
         ]);
 
-        assert_eq!(
-            tool_ids,
-            vec!["fastqc".to_string(), "fastqvalidator".to_string()]
-        );
+        assert_eq!(tool_ids, vec!["fastqc".to_string(), "fastqvalidator".to_string()]);
     }
 
     #[test]
@@ -548,11 +531,9 @@ mod tests {
         assert_eq!(manifest.contributors.len(), 2);
         assert_eq!(manifest.contributors[0].stage_id, "fastq.trim_reads");
         assert_eq!(manifest.contributors[0].artifact_id, "report_json");
-        assert!(manifest
-            .lineage_hash
-            .is_some_and(|lineage| lineage.contains(
-                "fastq.validate_reads.fastqvalidator:validated_reads_manifest:stage_report"
-            )));
+        assert!(manifest.lineage_hash.is_some_and(|lineage| lineage.contains(
+            "fastq.validate_reads.fastqvalidator:validated_reads_manifest:stage_report"
+        )));
     }
 
     #[test]
@@ -560,13 +541,8 @@ mod tests {
         let tool = ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("multiqc"),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["multiqc".to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["multiqc".to_string()] },
             resources: ToolConstraints::default(),
         };
         let plan = plan_qc_post_with_qc_inputs(
@@ -603,26 +579,11 @@ mod tests {
             plan.params["qc_contributor_tool_ids"],
             serde_json::json!(["fastp", "fastqvalidator"])
         );
+        assert_eq!(plan.params["aggregation_engine"], serde_json::json!("multiqc"));
+        assert_eq!(plan.params["aggregation_scope"], serde_json::json!("governed_qc_artifacts"));
         assert_eq!(
-            plan.params["aggregation_engine"],
-            serde_json::json!("multiqc")
-        );
-        assert_eq!(
-            plan.params["aggregation_scope"],
-            serde_json::json!("governed_qc_artifacts")
-        );
-        assert_eq!(
-            plan.io
-                .outputs
-                .iter()
-                .map(|artifact| artifact.name.as_str())
-                .collect::<Vec<_>>(),
-            vec![
-                "multiqc_report",
-                "multiqc_data",
-                "governed_qc_inputs_manifest",
-                "report_json"
-            ]
+            plan.io.outputs.iter().map(|artifact| artifact.name.as_str()).collect::<Vec<_>>(),
+            vec!["multiqc_report", "multiqc_data", "governed_qc_inputs_manifest", "report_json"]
         );
     }
 }

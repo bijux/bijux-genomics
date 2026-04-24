@@ -24,10 +24,7 @@ fn parse_legacy_deplete_rrna_report(report_json: &str) -> Result<DepleteRrnaRepo
     let legacy: LegacyDepleteRrnaReportV1 =
         serde_json::from_str(report_json).context("parse legacy deplete rrna report")?;
     if legacy.schema_version != "bijux.fastq.deplete_rrna.report.v1" {
-        return Err(anyhow!(
-            "unsupported deplete rrna report schema {}",
-            legacy.schema_version
-        ));
+        return Err(anyhow!("unsupported deplete rrna report schema {}", legacy.schema_version));
     }
     Ok(DepleteRrnaReportV1 {
         schema_version: crate::DEPLETE_RRNA_REPORT_SCHEMA_VERSION.to_string(),

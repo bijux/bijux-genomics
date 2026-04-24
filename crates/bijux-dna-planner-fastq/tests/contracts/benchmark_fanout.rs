@@ -11,13 +11,8 @@ fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool_id.to_string()),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/dummy:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), tool_id.to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), tool_id.to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -70,10 +65,7 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
         .iter()
         .find(|step| step.step_id.as_str() == "fastq.trim_reads.compare")
         .expect("benchmark fanout graph must include a comparison fan-in step");
-    assert_eq!(
-        compare_step.stage_id.as_str(),
-        "benchmark.compare_stage_tools"
-    );
+    assert_eq!(compare_step.stage_id.as_str(), "benchmark.compare_stage_tools");
     assert!(compare_step
         .command
         .template
@@ -111,9 +103,7 @@ fn benchmark_fanout_plans_parallel_tool_steps_for_one_stage() -> anyhow::Result<
     }
     assert!(compare_step.io.outputs.iter().any(|artifact| {
         artifact.name.as_str() == "trim_tool_comparison_json"
-            && artifact
-                .path
-                .ends_with(std::path::Path::new("compare/trim_tool_comparison.json"))
+            && artifact.path.ends_with(std::path::Path::new("compare/trim_tool_comparison.json"))
     }));
     assert!(graph.edges().iter().any(|edge| {
         edge.from().as_str() == "fastq.trim_reads.tool.fastp"
@@ -228,18 +218,16 @@ fn benchmark_fanout_propagates_typed_correct_error_params() -> anyhow::Result<()
             policy: PlanPolicy::PreferAccuracy,
             stage_id: "fastq.correct_errors".to_string(),
             tools: vec![tool("lighter"), tool("musket")],
-            params: Some(FastqStageParameters::CorrectErrors(
-                CorrectErrorsStageParams {
-                    threads: Some(6),
-                    quality_encoding: QualityEncoding::Phred33,
-                    kmer_size: Some(31),
-                    musket_kmer_budget: Some(536_870_912),
-                    genome_size: Some(2_500_000),
-                    max_memory_gb: None,
-                    trusted_kmer_artifact: Some(trusted.clone()),
-                    conservative_mode: false,
-                },
-            )),
+            params: Some(FastqStageParameters::CorrectErrors(CorrectErrorsStageParams {
+                threads: Some(6),
+                quality_encoding: QualityEncoding::Phred33,
+                kmer_size: Some(31),
+                musket_kmer_budget: Some(536_870_912),
+                genome_size: Some(2_500_000),
+                max_memory_gb: None,
+                trusted_kmer_artifact: Some(trusted.clone()),
+                conservative_mode: false,
+            })),
             aux_images: BTreeMap::new(),
             adapter_bank: None,
             polyx_bank: None,

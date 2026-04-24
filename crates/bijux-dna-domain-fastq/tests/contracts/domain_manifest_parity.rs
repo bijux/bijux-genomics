@@ -16,11 +16,7 @@ struct ToolManifestMeta {
 
 impl ToolManifestMeta {
     fn declared_stage_ids(&self) -> BTreeSet<String> {
-        self.stage_ids
-            .iter()
-            .chain(self.planned_stage_ids.iter())
-            .cloned()
-            .collect()
+        self.stage_ids.iter().chain(self.planned_stage_ids.iter()).cloned().collect()
     }
 }
 
@@ -58,10 +54,9 @@ fn yaml_output_name_set(value: Option<&Value>) -> BTreeSet<String> {
         .flatten()
         .filter_map(|item| match item {
             Value::String(value) => Some(value.clone()),
-            Value::Object(mapping) => mapping
-                .get("name")
-                .and_then(Value::as_str)
-                .map(str::to_string),
+            Value::Object(mapping) => {
+                mapping.get("name").and_then(Value::as_str).map(str::to_string)
+            }
             _ => None,
         })
         .collect()
@@ -123,16 +118,8 @@ fn tool_manifest_meta() -> Result<BTreeMap<String, ToolManifestMeta>> {
             continue;
         }
         let yaml = parse_yaml(&path)?;
-        assert!(
-            yaml.get("stage_id").is_none(),
-            "{} must not use legacy stage_id",
-            path.display()
-        );
-        assert!(
-            yaml.get("role").is_none(),
-            "{} must not use legacy role metadata",
-            path.display()
-        );
+        assert!(yaml.get("stage_id").is_none(), "{} must not use legacy stage_id", path.display());
+        assert!(yaml.get("role").is_none(), "{} must not use legacy role metadata", path.display());
         assert!(
             yaml.get("authoritative").is_none(),
             "{} must not use legacy authoritative metadata",
@@ -171,10 +158,7 @@ fn tool_manifest_meta() -> Result<BTreeMap<String, ToolManifestMeta>> {
                 ["comparable_with", "non_comparable_with"]
                     .into_iter()
                     .flat_map(|key| {
-                        mapping
-                            .get(key)
-                            .into_iter()
-                            .flat_map(|value| yaml_string_set(Some(value)))
+                        mapping.get(key).into_iter().flat_map(|value| yaml_string_set(Some(value)))
                     })
                     .collect::<BTreeSet<_>>()
             })
@@ -248,10 +232,8 @@ fn fastq_artifact_vocabulary_covers_stage_outputs_and_supported_tool_artifacts()
 #[test]
 fn root_stage_manifests_match_rust_fastq_catalog() -> Result<()> {
     let manifest_ids = stage_manifest_tools()?.into_keys().collect::<BTreeSet<_>>();
-    let rust_ids = FASTQ_STAGE_ID_CATALOG
-        .iter()
-        .map(|stage| (*stage).to_string())
-        .collect::<BTreeSet<_>>();
+    let rust_ids =
+        FASTQ_STAGE_ID_CATALOG.iter().map(|stage| (*stage).to_string()).collect::<BTreeSet<_>>();
     assert_eq!(
         manifest_ids, rust_ids,
         "root fastq stage manifests drifted from Rust stage catalog"
@@ -261,10 +243,8 @@ fn root_stage_manifests_match_rust_fastq_catalog() -> Result<()> {
 
 #[test]
 fn tool_stage_ids_reference_known_fastq_stages() -> Result<()> {
-    let known_stages = FASTQ_STAGE_ID_CATALOG
-        .iter()
-        .map(|stage| (*stage).to_string())
-        .collect::<BTreeSet<_>>();
+    let known_stages =
+        FASTQ_STAGE_ID_CATALOG.iter().map(|stage| (*stage).to_string()).collect::<BTreeSet<_>>();
     for (tool_id, meta) in tool_manifest_meta()? {
         for stage_id in meta.declared_stage_ids() {
             assert!(

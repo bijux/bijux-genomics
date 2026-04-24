@@ -34,9 +34,7 @@ pub fn comparison_contract_for_stage(stage_id: &StageId) -> Option<StageComparis
     if stage_scenarios.len() > 1 {
         return None;
     }
-    stage_comparison_contracts()
-        .into_iter()
-        .find(|contract| contract.stage_id == *stage_id)
+    stage_comparison_contracts().into_iter().find(|contract| contract.stage_id == *stage_id)
 }
 
 #[must_use]

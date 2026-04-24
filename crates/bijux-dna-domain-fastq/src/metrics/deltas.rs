@@ -47,16 +47,8 @@ pub fn compute_delta(
     before: bijux_dna_core::prelude::measure::SeqkitMetrics,
     after: bijux_dna_core::prelude::measure::SeqkitMetrics,
 ) -> FastqDelta {
-    let read_retention = if before.reads > 0 {
-        ratio_u64(after.reads, before.reads)
-    } else {
-        0.0
-    };
-    let base_retention = if before.bases > 0 {
-        ratio_u64(after.bases, before.bases)
-    } else {
-        0.0
-    };
+    let read_retention = if before.reads > 0 { ratio_u64(after.reads, before.reads) } else { 0.0 };
+    let base_retention = if before.bases > 0 { ratio_u64(after.bases, before.bases) } else { 0.0 };
     FastqDelta {
         delta_mean_q: after.mean_q - before.mean_q,
         delta_gc: after.gc_percent - before.gc_percent,
@@ -77,16 +69,8 @@ pub fn delta_from_counts(
     gc_before: f64,
     gc_after: f64,
 ) -> FastqDelta {
-    let read_retention = if reads_in > 0 {
-        ratio_u64(reads_out, reads_in)
-    } else {
-        0.0
-    };
-    let base_retention = if bases_in > 0 {
-        ratio_u64(bases_out, bases_in)
-    } else {
-        0.0
-    };
+    let read_retention = if reads_in > 0 { ratio_u64(reads_out, reads_in) } else { 0.0 };
+    let base_retention = if bases_in > 0 { ratio_u64(bases_out, bases_in) } else { 0.0 };
     FastqDelta {
         delta_mean_q: mean_q_after - mean_q_before,
         delta_gc: gc_after - gc_before,

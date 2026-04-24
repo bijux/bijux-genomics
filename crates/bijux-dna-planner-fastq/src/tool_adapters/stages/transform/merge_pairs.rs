@@ -260,14 +260,10 @@ fn validate_merge_options(tool: &str, options: &MergePlanOptions) -> Result<()> 
     if options.min_length.is_some()
         && !matches!(tool, "adapterremoval" | "pear" | "vsearch" | "bbmerge")
     {
-        return Err(anyhow!(
-            "merge planning does not yet map min_length for {tool}"
-        ));
+        return Err(anyhow!("merge planning does not yet map min_length for {tool}"));
     }
     if options.merge_overlap.is_some() && matches!(tool, "leehom") {
-        return Err(anyhow!(
-            "merge planning does not yet map merge_overlap for {tool}"
-        ));
+        return Err(anyhow!("merge planning does not yet map merge_overlap for {tool}"));
     }
     Ok(())
 }
@@ -415,10 +411,7 @@ fn base_merge_command(
                 "/dev/null".to_string(),
             ];
             if let Some(merge_overlap) = effective_params.merge_overlap {
-                command.extend([
-                    "--minalignmentlength".to_string(),
-                    merge_overlap.to_string(),
-                ]);
+                command.extend(["--minalignmentlength".to_string(), merge_overlap.to_string()]);
             }
             if let Some(min_len) = effective_params.min_len {
                 command.extend(["--minlength".to_string(), min_len.to_string()]);
@@ -548,26 +541,19 @@ fn base_merge_command(
         ],
         _ => return Err(anyhow!("unsupported merge tool")),
     };
-    let command = command
-        .into_iter()
-        .map(|part| shell_quote_str(&part))
-        .collect::<Vec<_>>()
-        .join(" ");
+    let command =
+        command.into_iter().map(|part| shell_quote_str(&part)).collect::<Vec<_>>().join(" ");
     if tool == "adapterremoval" {
         return Ok(command);
     }
     Ok(outputs
         .raw_backend_report_txt
         .as_ref()
-        .map_or(command.clone(), |path| {
-            format!("{command} > {} 2>&1", shell_quote_path(path))
-        }))
+        .map_or(command.clone(), |path| format!("{command} > {} 2>&1", shell_quote_path(path))))
 }
 
 fn option_json_u32(value: Option<u32>) -> String {
-    value
-        .map(|value| value.to_string())
-        .unwrap_or_else(|| "null".to_string())
+    value.map(|value| value.to_string()).unwrap_or_else(|| "null".to_string())
 }
 
 fn option_json_string(value: Option<&str>) -> String {
@@ -642,9 +628,7 @@ mod tests {
                 image: "docker.io/bijuxdna/adapterremoval:latest".to_string(),
                 digest: None,
             },
-            command: CommandSpecV1 {
-                template: Vec::new(),
-            },
+            command: CommandSpecV1 { template: Vec::new() },
             resources: ToolConstraints::default(),
         };
         let params = MergeEffectiveParams {

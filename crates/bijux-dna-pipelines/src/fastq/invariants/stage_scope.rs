@@ -12,10 +12,5 @@ pub(super) const CORE_FASTQ_STAGES: [&str; 5] = [
 ];
 
 pub(super) fn stage_set(profile: &PipelineProfile) -> BTreeSet<&str> {
-    profile
-        .capabilities
-        .required_stages
-        .iter()
-        .map(String::as_str)
-        .collect()
+    profile.capabilities.required_stages.iter().map(String::as_str).collect()
 }

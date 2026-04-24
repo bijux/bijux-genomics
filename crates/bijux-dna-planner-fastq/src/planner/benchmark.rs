@@ -7,9 +7,10 @@ pub(super) fn project_benchmark_stage_params_for_tool(
 ) -> Option<FastqStageParameters> {
     match (stage_id.as_str(), params) {
         ("fastq.correct_errors", Some(FastqStageParameters::CorrectErrors(params))) => {
-            Some(FastqStageParameters::CorrectErrors(
-                project_correct_errors_params_for_tool(tool_id.as_str(), params),
-            ))
+            Some(FastqStageParameters::CorrectErrors(project_correct_errors_params_for_tool(
+                tool_id.as_str(),
+                params,
+            )))
         }
         (_, Some(params)) => Some(params.clone()),
         (_, None) => None,
@@ -147,11 +148,7 @@ pub(super) fn benchmark_compare_steps_for_toolsets(
 
     let mut steps = Vec::new();
     let mut edges = Vec::new();
-    for toolset in config
-        .stage_toolsets
-        .iter()
-        .filter(|binding| binding.tools.len() > 1)
-    {
+    for toolset in config.stage_toolsets.iter().filter(|binding| binding.tools.len() > 1) {
         let stage_id = StageId::new(toolset.stage_id.clone());
         let comparison_artifact_ids =
             bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&stage_id);
@@ -163,10 +160,7 @@ pub(super) fn benchmark_compare_steps_for_toolsets(
         let stage_node_id =
             PipelineSpec::stage_node_id(&toolset.stage_id, toolset.stage_instance_id.as_deref());
         let mut plans_by_context = std::collections::BTreeMap::<String, Vec<&StagePlanV1>>::new();
-        for plan in plans
-            .iter()
-            .filter(|plan| plan_originates_from_toolset(plan, toolset))
-        {
+        for plan in plans.iter().filter(|plan| plan_originates_from_toolset(plan, toolset)) {
             let context_key = compare_context_key_for_plan(plan, &stage_node_id);
             plans_by_context.entry(context_key).or_default().push(plan);
         }
@@ -214,32 +208,18 @@ pub(super) fn benchmark_compare_steps_for_toolsets(
                         output.role,
                     ));
                 }
-                edges.push(ExecutionEdge::new(
-                    step_id_for_plan(plan),
-                    compare_step_id.clone(),
-                ));
+                edges.push(ExecutionEdge::new(step_id_for_plan(plan), compare_step_id.clone()));
             }
             comparison_inputs.sort_by(|left, right| {
-                left.name
-                    .as_str()
-                    .cmp(right.name.as_str())
-                    .then_with(|| left.path.cmp(&right.path))
+                left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
             });
             steps.push(ExecutionStep {
                 step_id: compare_step_id,
                 stage_id: crate::STAGE_COMPARE_STAGE_TOOLS,
-                command: CommandSpecV1 {
-                    template: comparison_command,
-                },
-                image: ContainerImageRefV1 {
-                    image: "bijux-dna-compare".to_string(),
-                    digest: None,
-                },
+                command: CommandSpecV1 { template: comparison_command },
+                image: ContainerImageRefV1 { image: "bijux-dna-compare".to_string(), digest: None },
                 resources: ToolConstraints::default(),
-                io: StageIO {
-                    inputs: comparison_inputs,
-                    outputs: comparison_outputs,
-                },
+                io: StageIO { inputs: comparison_inputs, outputs: comparison_outputs },
                 out_dir: compare_out_dir,
                 aux_images: BTreeMap::new(),
                 expected_artifact_ids: comparison_artifact_ids
@@ -254,11 +234,8 @@ pub(super) fn benchmark_compare_steps_for_toolsets(
     Ok((steps, edges))
 }
 
-type SelectStepPlan = (
-    Vec<ExecutionStep>,
-    Vec<ExecutionEdge>,
-    std::collections::BTreeMap<String, StepId>,
-);
+type SelectStepPlan =
+    (Vec<ExecutionStep>, Vec<ExecutionEdge>, std::collections::BTreeMap<String, StepId>);
 
 pub(super) fn benchmark_select_steps_for_pipeline(
     config: &FastqPlanConfig,
@@ -283,11 +260,8 @@ pub(super) fn benchmark_select_steps_for_pipeline(
     {
         let node_id =
             PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
-        let incoming_edges = pipeline_spec
-            .edges
-            .iter()
-            .filter(|edge| edge.to == node_id)
-            .collect::<Vec<_>>();
+        let incoming_edges =
+            pipeline_spec.edges.iter().filter(|edge| edge.to == node_id).collect::<Vec<_>>();
         if incoming_edges.is_empty() {
             continue;
         }
@@ -304,19 +278,14 @@ pub(super) fn benchmark_select_steps_for_pipeline(
             })
             .collect::<Result<Vec<_>>>()?;
         let source_stage_id = StageId::new(source_plans[0].stage_id.as_str().to_string());
-        if source_plans
-            .iter()
-            .any(|plan| plan.stage_id.as_str() != source_stage_id.as_str())
-        {
+        if source_plans.iter().any(|plan| plan.stage_id.as_str() != source_stage_id.as_str()) {
             return Err(anyhow!(
                 "selection node {} must join candidates from one stage family",
                 node_id
             ));
         }
-        let select_out_dir = config
-            .out_dir
-            .join(node_id.trim_start_matches(STAGE_PREFIX))
-            .join("selected");
+        let select_out_dir =
+            config.out_dir.join(node_id.trim_start_matches(STAGE_PREFIX)).join("selected");
         let output_artifact_ids = pipeline_spec
             .edges
             .iter()
@@ -375,10 +344,7 @@ pub(super) fn benchmark_select_steps_for_pipeline(
             ));
         }
         inputs.sort_by(|left, right| {
-            left.name
-                .as_str()
-                .cmp(right.name.as_str())
-                .then_with(|| left.path.cmp(&right.path))
+            left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
         });
         inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
         let step_id = StepId::new(node_id.clone());
@@ -392,10 +358,7 @@ pub(super) fn benchmark_select_steps_for_pipeline(
                     config.selection_objective,
                 ),
             },
-            image: ContainerImageRefV1 {
-                image: "bijux-dna-select".to_string(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: "bijux-dna-select".to_string(), digest: None },
             resources: ToolConstraints::default(),
             io: StageIO { inputs, outputs },
             out_dir: select_out_dir,
@@ -427,11 +390,9 @@ fn plan_originates_from_toolset(plan: &StagePlanV1, toolset: &FastqStageToolsetB
 }
 
 fn compare_context_key_for_plan(plan: &StagePlanV1, stage_node_id: &str) -> String {
-    let Some(assignments) = expanded_route_assignments(
-        plan.stage_instance_id
-            .as_ref()
-            .map(|step_id| step_id.as_str()),
-    ) else {
+    let Some(assignments) =
+        expanded_route_assignments(plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()))
+    else {
         return String::new();
     };
     assignments
@@ -468,9 +429,8 @@ fn compare_out_dir_for_context(
     stage_node_id: &str,
     context_key: &str,
 ) -> std::path::PathBuf {
-    let compare_dir = root_out_dir
-        .join(stage_node_id.trim_start_matches(STAGE_PREFIX))
-        .join("compare");
+    let compare_dir =
+        root_out_dir.join(stage_node_id.trim_start_matches(STAGE_PREFIX)).join("compare");
     if context_key.is_empty() {
         compare_dir
     } else {

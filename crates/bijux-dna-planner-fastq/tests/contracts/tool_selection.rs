@@ -42,13 +42,8 @@ fn correct_errors_planning_accepts_closed_backends() {
     let tool = ToolExecutionSpecV1 {
         tool_id: ToolId::new("musket"),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["musket".to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["musket".to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -85,13 +80,8 @@ fn correct_errors_planning_accepts_single_end_inputs() {
     let tool = ToolExecutionSpecV1 {
         tool_id: ToolId::new("rcorrector"),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["musket".to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["musket".to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -117,13 +107,8 @@ fn correct_errors_planning_rejects_tools_outside_execution_support() {
     let tool = ToolExecutionSpecV1 {
         tool_id: ToolId::new("seqpurge"),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["seqpurge".to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["seqpurge".to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,

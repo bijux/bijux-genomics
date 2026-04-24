@@ -38,10 +38,7 @@ impl VcfProfileValidationReport {
             profile_id: self.profile_id.clone(),
             invariants_version: self.invariants_version.to_string(),
             valid: self.valid,
-            blocking: self
-                .violations
-                .iter()
-                .any(|v| v.severity == InvariantSeverity::Hard),
+            blocking: self.violations.iter().any(|v| v.severity == InvariantSeverity::Hard),
             violations: self
                 .violations
                 .iter()
@@ -71,12 +68,7 @@ fn violation(
 }
 
 fn stage_set(profile: &PipelineProfile) -> BTreeSet<&str> {
-    profile
-        .capabilities
-        .required_stages
-        .iter()
-        .map(String::as_str)
-        .collect()
+    profile.capabilities.required_stages.iter().map(String::as_str).collect()
 }
 
 #[must_use]
@@ -84,11 +76,7 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
     let mut violations = Vec::new();
     let stages = stage_set(profile);
 
-    for stage in [
-        id_catalog::VCF_CALL,
-        id_catalog::VCF_FILTER,
-        id_catalog::VCF_STATS,
-    ] {
+    for stage in [id_catalog::VCF_CALL, id_catalog::VCF_FILTER, id_catalog::VCF_STATS] {
         let stage_id = StageId::from_static(stage);
         if !stages.contains(stage) {
             violations.push(violation(
@@ -116,11 +104,7 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
         ));
     }
 
-    if !profile
-        .capabilities
-        .required_metrics
-        .contains(&"vcf.metrics")
-    {
+    if !profile.capabilities.required_metrics.contains(&"vcf.metrics") {
         violations.push(violation(
             "required_metrics_missing",
             None,
@@ -129,12 +113,9 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
         ));
     }
 
-    for artifact in [
-        "report.json",
-        "run_manifest.json",
-        "tool_provenance.json",
-        "invariants_report.json",
-    ] {
+    for artifact in
+        ["report.json", "run_manifest.json", "tool_provenance.json", "invariants_report.json"]
+    {
         if !profile.capabilities.required_artifacts.contains(&artifact) {
             violations.push(violation(
                 "required_artifact_missing",
@@ -145,18 +126,9 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
         }
     }
 
-    for stage in [
-        id_catalog::VCF_CALL,
-        id_catalog::VCF_FILTER,
-        id_catalog::VCF_STATS,
-    ] {
+    for stage in [id_catalog::VCF_CALL, id_catalog::VCF_FILTER, id_catalog::VCF_STATS] {
         let stage_id = StageId::from_static(stage);
-        let tool_id = profile
-            .defaults
-            .tools
-            .get(&stage_id)
-            .map(|t| t.as_str())
-            .unwrap_or_default();
+        let tool_id = profile.defaults.tools.get(&stage_id).map(|t| t.as_str()).unwrap_or_default();
         if tool_id.is_empty() {
             violations.push(violation(
                 "tool_pin_missing",
@@ -167,10 +139,8 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
         }
     }
 
-    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Call(call))) = profile
-        .defaults
-        .params
-        .get(&StageId::from_static(id_catalog::VCF_CALL))
+    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Call(call))) =
+        profile.defaults.params.get(&StageId::from_static(id_catalog::VCF_CALL))
     {
         if call.sample_name.trim().is_empty() {
             violations.push(violation(
@@ -189,10 +159,8 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
             ));
         }
     }
-    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Filter(filter))) = profile
-        .defaults
-        .params
-        .get(&StageId::from_static(id_catalog::VCF_FILTER))
+    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Filter(filter))) =
+        profile.defaults.params.get(&StageId::from_static(id_catalog::VCF_FILTER))
     {
         if filter.sample_name.trim().is_empty() {
             violations.push(violation(
@@ -221,10 +189,8 @@ pub fn validate_vcf_profile(profile: &PipelineProfile) -> VcfProfileValidationRe
             ));
         }
     }
-    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Stats(stats))) = profile
-        .defaults
-        .params
-        .get(&StageId::from_static(id_catalog::VCF_STATS))
+    if let Some(DefaultParams::Vcf(VcfEffectiveParams::Stats(stats))) =
+        profile.defaults.params.get(&StageId::from_static(id_catalog::VCF_STATS))
     {
         if stats.sample_name.trim().is_empty() {
             violations.push(violation(

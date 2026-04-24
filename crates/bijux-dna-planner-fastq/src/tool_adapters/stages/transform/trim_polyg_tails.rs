@@ -27,11 +27,7 @@ pub struct TrimPolygPlanOptions {
 
 impl Default for TrimPolygPlanOptions {
     fn default() -> Self {
-        Self {
-            threads: None,
-            trim_polyg: true,
-            min_polyg_run: 10,
-        }
+        Self { threads: None, trim_polyg: true, min_polyg_run: 10 }
     }
 }
 
@@ -78,11 +74,8 @@ pub fn plan_trim_polyg_tails_with_options(
 ) -> Result<StagePlanV1> {
     let out_name = output_name(tool.tool_id.as_str())
         .ok_or_else(|| anyhow!("unsupported trim_polyg_tails tool {}", tool.tool_id))?;
-    let output_r1 = if r2.is_some() {
-        out_dir.join(format!("R1.{out_name}"))
-    } else {
-        out_dir.join(out_name)
-    };
+    let output_r1 =
+        if r2.is_some() { out_dir.join(format!("R1.{out_name}")) } else { out_dir.join(out_name) };
     let output_r2 = r2.map(|_| out_dir.join(format!("R2.{out_name}")));
     let report = out_dir.join("trim_polyg_tails_report.json");
     let (raw_backend_report, raw_backend_report_format) =
@@ -153,9 +146,7 @@ pub fn plan_trim_polyg_tails_with_options(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: CommandSpecV1 {
-            template: command_template,
-        },
+        command: CommandSpecV1 { template: command_template },
         resources: {
             let mut resources = tool.resources.clone();
             resources.threads = effective_threads;
@@ -264,9 +255,7 @@ fn trim_polyg_command(
                 min_polyg_run,
             ))
         }
-        _ => Err(anyhow!(
-            "unsupported trim_polyg_tails tool for stage planning: {tool_id}"
-        )),
+        _ => Err(anyhow!("unsupported trim_polyg_tails tool for stage planning: {tool_id}")),
     }
 }
 
@@ -341,11 +330,7 @@ fn wrap_polyg_command_with_report(
 }
 
 fn shell_join(command: &[String]) -> String {
-    command
-        .iter()
-        .map(|part| shell_quote_arg(part))
-        .collect::<Vec<_>>()
-        .join(" ")
+    command.iter().map(|part| shell_quote_arg(part)).collect::<Vec<_>>().join(" ")
 }
 
 fn shell_quote_arg(value: &str) -> String {
@@ -374,13 +359,8 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::from_static(tool_id),
             tool_version: "1.0.0".into(),
-            image: ContainerImageRefV1 {
-                image: format!("{tool_id}:latest"),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec![tool_id.to_string()],
-            },
+            image: ContainerImageRefV1 { image: format!("{tool_id}:latest"), digest: None },
+            command: CommandSpecV1 { template: vec![tool_id.to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -395,18 +375,12 @@ mod tests {
         let report = Path::new("out/trim_polyg_tails_report.json");
         let (fastp_path, fastp_format) =
             raw_backend_report_artifact(report, "fastp").expect("fastp artifact");
-        assert_eq!(
-            fastp_path,
-            Path::new("out/trim_polyg_tails_report.fastp.json")
-        );
+        assert_eq!(fastp_path, Path::new("out/trim_polyg_tails_report.fastp.json"));
         assert_eq!(fastp_format, "fastp_json");
 
         let (bbduk_path, bbduk_format) =
             raw_backend_report_artifact(report, "bbduk").expect("bbduk artifact");
-        assert_eq!(
-            bbduk_path,
-            Path::new("out/trim_polyg_tails_report.stats.txt")
-        );
+        assert_eq!(bbduk_path, Path::new("out/trim_polyg_tails_report.stats.txt"));
         assert_eq!(bbduk_format, "bbduk_stats");
     }
 
@@ -417,20 +391,14 @@ mod tests {
             Path::new("reads_R1.fastq.gz"),
             Some(Path::new("reads_R2.fastq.gz")),
             Path::new("out"),
-            &TrimPolygPlanOptions {
-                threads: None,
-                trim_polyg: true,
-                min_polyg_run: 12,
-            },
+            &TrimPolygPlanOptions { threads: None, trim_polyg: true, min_polyg_run: 12 },
         )
         .expect("plan");
 
         let params = plan.params.as_object().expect("params object");
         let script = &plan.command.template[2];
         assert_eq!(
-            params
-                .get("raw_backend_report_format")
-                .and_then(serde_json::Value::as_str),
+            params.get("raw_backend_report_format").and_then(serde_json::Value::as_str),
             Some("fastp_json")
         );
         assert!(script.contains("trim_polyg_tails_report.fastp.json"));
@@ -446,11 +414,7 @@ mod tests {
             Path::new("reads.fastq.gz"),
             None,
             Path::new("out"),
-            &TrimPolygPlanOptions {
-                threads: Some(7),
-                trim_polyg: true,
-                min_polyg_run: 10,
-            },
+            &TrimPolygPlanOptions { threads: Some(7), trim_polyg: true, min_polyg_run: 10 },
         )
         .expect("plan");
 

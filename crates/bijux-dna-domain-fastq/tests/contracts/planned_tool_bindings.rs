@@ -25,11 +25,7 @@ fn block_list(raw: &str, key: &str) -> Vec<String> {
         if !line.starts_with("  - ") {
             break;
         }
-        out.push(
-            line.trim_start_matches("  - ")
-                .trim_matches('"')
-                .to_string(),
-        );
+        out.push(line.trim_start_matches("  - ").trim_matches('"').to_string());
     }
     out
 }
@@ -79,9 +75,7 @@ fn stage_tool_expectations() -> Result<BTreeMap<String, BTreeSet<String>>> {
             std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
         let stage_id = quoted_scalar(&raw, "stage_id")
             .with_context(|| format!("stage_id missing in {}", path.display()))?;
-        let mut tools = yaml_list(&raw, "compatible_tools")
-            .into_iter()
-            .collect::<BTreeSet<_>>();
+        let mut tools = yaml_list(&raw, "compatible_tools").into_iter().collect::<BTreeSet<_>>();
         tools.extend(yaml_list(&raw, "planned_out_of_scope"));
         out.insert(stage_id, tools);
     }

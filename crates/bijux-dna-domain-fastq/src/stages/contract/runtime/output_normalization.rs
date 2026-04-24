@@ -23,11 +23,7 @@ pub fn normalize_outputs(
 ) -> Result<NormalizedOutputs> {
     if let Some(contract) = contract_for_stage(stage_id) {
         if !contract.emits_fastq {
-            return Ok(NormalizedOutputs {
-                r1: None,
-                r2: None,
-                merged: None,
-            });
+            return Ok(NormalizedOutputs { r1: None, r2: None, merged: None });
         }
     }
     match output_kind {
@@ -35,11 +31,7 @@ pub fn normalize_outputs(
             let src = find_first_fastq(out_dir)?;
             let dst = out_dir.join("reads.fastq.gz");
             let final_path = rename_if_needed(&src, &dst)?;
-            Ok(NormalizedOutputs {
-                r1: Some(final_path),
-                r2: None,
-                merged: None,
-            })
+            Ok(NormalizedOutputs { r1: Some(final_path), r2: None, merged: None })
         }
         FastqArtifactKind::PairedEnd => {
             let (r1, r2) = find_fastq_pair(out_dir)?;
@@ -47,32 +39,22 @@ pub fn normalize_outputs(
             let r2_dst = out_dir.join("reads_r2.fastq.gz");
             let r1_final = rename_if_needed(&r1, &r1_dst)?;
             let r2_final = rename_if_needed(&r2, &r2_dst)?;
-            Ok(NormalizedOutputs {
-                r1: Some(r1_final),
-                r2: Some(r2_final),
-                merged: None,
-            })
+            Ok(NormalizedOutputs { r1: Some(r1_final), r2: Some(r2_final), merged: None })
         }
         FastqArtifactKind::Merged => {
             let src = find_first_fastq(out_dir)?;
             let dst = out_dir.join("merged.fastq.gz");
             let final_path = rename_if_needed(&src, &dst)?;
-            Ok(NormalizedOutputs {
-                r1: None,
-                r2: None,
-                merged: Some(final_path),
-            })
+            Ok(NormalizedOutputs { r1: None, r2: None, merged: Some(final_path) })
         }
         FastqArtifactKind::StatsOnly
         | FastqArtifactKind::ReferenceFasta
         | FastqArtifactKind::ReferenceIndex
         | FastqArtifactKind::AmpliconTable
         | FastqArtifactKind::RepresentativeFasta
-        | FastqArtifactKind::TaxonomyMapping => Ok(NormalizedOutputs {
-            r1: None,
-            r2: None,
-            merged: None,
-        }),
+        | FastqArtifactKind::TaxonomyMapping => {
+            Ok(NormalizedOutputs { r1: None, r2: None, merged: None })
+        }
     }
 }
 
@@ -105,13 +87,8 @@ fn rename_if_needed(src: &Path, dst: &Path) -> Result<PathBuf> {
     if dst.exists() {
         return Ok(dst.to_path_buf());
     }
-    bijux_dna_infra::rename(src, dst).map_err(|err| {
-        anyhow!(
-            "rename {} -> {} failed: {err}",
-            src.display(),
-            dst.display()
-        )
-    })?;
+    bijux_dna_infra::rename(src, dst)
+        .map_err(|err| anyhow!("rename {} -> {} failed: {err}", src.display(), dst.display()))?;
     Ok(dst.to_path_buf())
 }
 
@@ -120,21 +97,16 @@ fn find_fastq_pair(dir: &Path) -> Result<(PathBuf, PathBuf)> {
         .filter_map(Result::ok)
         .map(|entry| entry.path())
         .filter(|path| {
-            path.extension()
-                .and_then(|ext| ext.to_str())
-                .is_some_and(|ext| {
-                    ext.eq_ignore_ascii_case("gz") || ext.eq_ignore_ascii_case("fastq")
-                })
+            path.extension().and_then(|ext| ext.to_str()).is_some_and(|ext| {
+                ext.eq_ignore_ascii_case("gz") || ext.eq_ignore_ascii_case("fastq")
+            })
         })
         .collect();
     candidates.sort();
     let mut r1 = None;
     let mut r2 = None;
     for path in &candidates {
-        let name = path
-            .file_name()
-            .and_then(|name| name.to_str())
-            .unwrap_or("");
+        let name = path.file_name().and_then(|name| name.to_str()).unwrap_or("");
         if name.contains("R1") || name.contains("_1") || name.contains("r1") {
             r1 = Some(path.clone());
         } else if name.contains("R2") || name.contains("_2") || name.contains("r2") {

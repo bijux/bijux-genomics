@@ -27,13 +27,7 @@ pub fn resolve_contaminant_selection(preset: Option<&str>) -> Result<Contaminant
     let presets = crate::load_contaminant_presets(&presets_path, &motifs, &references_dir)?;
     let motifs_checksum = bijux_dna_infra::hash_file_sha256(&motifs_path)?;
     let presets_checksum = bijux_dna_infra::hash_file_sha256(&presets_path)?;
-    Ok(ContaminantSelection {
-        motifs,
-        presets,
-        preset_name,
-        motifs_checksum,
-        presets_checksum,
-    })
+    Ok(ContaminantSelection { motifs, presets, preset_name, motifs_checksum, presets_checksum })
 }
 
 /// Resolve the effective contaminant set from a selection.
@@ -109,7 +103,5 @@ pub fn contaminant_bank_context(
 ) -> Result<Option<serde_json::Value>> {
     let selection = resolve_contaminant_selection(contaminant_preset)?;
     let effective = resolve_effective_contaminants(&selection)?;
-    Ok(Some(contaminant_bank_provenance_json(
-        &selection, &effective,
-    )))
+    Ok(Some(contaminant_bank_provenance_json(&selection, &effective)))
 }

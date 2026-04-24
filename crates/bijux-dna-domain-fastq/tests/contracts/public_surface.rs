@@ -3,9 +3,7 @@ use std::path::PathBuf;
 
 #[test]
 fn public_surface_is_constrained() -> anyhow::Result<()> {
-    let lib_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("src")
-        .join("lib.rs");
+    let lib_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src").join("lib.rs");
     let source = fs::read_to_string(lib_path)?;
     let mut pub_mods = Vec::new();
     let mut pub_use_lines = Vec::new();
@@ -40,10 +38,7 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         "types",
     ];
     for name in &pub_mods {
-        assert!(
-            allowed_mods.contains(&name.as_str()),
-            "unexpected public module: {name}"
-        );
+        assert!(allowed_mods.contains(&name.as_str()), "unexpected public module: {name}");
     }
     let allowed_substrings = [
         "adapter_bank",

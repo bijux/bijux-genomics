@@ -23,28 +23,16 @@ pub(super) fn deduplicate_metrics(
     let parsed_report = std::fs::read_to_string(plan.out_dir.join("deduplicate_report.json"))
         .ok()
         .and_then(|raw| crate::observer::parse_remove_duplicates_report(&raw).ok());
-    let reads_in = parsed_report
-        .as_ref()
-        .map(|report| report.reads_in)
-        .unwrap_or(input.reads);
-    let reads_out = parsed_report
-        .as_ref()
-        .map(|report| report.reads_out)
-        .unwrap_or(output.reads);
+    let reads_in = parsed_report.as_ref().map(|report| report.reads_in).unwrap_or(input.reads);
+    let reads_out = parsed_report.as_ref().map(|report| report.reads_out).unwrap_or(output.reads);
     let (pairs_in, pairs_out) = (
         parsed_report.as_ref().and_then(|report| report.pairs_in),
         parsed_report.as_ref().and_then(|report| report.pairs_out),
     );
-    let read_retention = if reads_in > 0 {
-        f64_from_u64(reads_out) / f64_from_u64(reads_in)
-    } else {
-        0.0
-    };
-    let base_retention = if input.bases > 0 {
-        f64_from_u64(output.bases) / f64_from_u64(input.bases)
-    } else {
-        0.0
-    };
+    let read_retention =
+        if reads_in > 0 { f64_from_u64(reads_out) / f64_from_u64(reads_in) } else { 0.0 };
+    let base_retention =
+        if input.bases > 0 { f64_from_u64(output.bases) / f64_from_u64(input.bases) } else { 0.0 };
     let delta = FastqDeltaMetricsV1 {
         read_retention,
         base_retention,
@@ -79,23 +67,19 @@ pub(super) fn deduplicate_metrics(
             .as_ref()
             .and_then(|report| serde_json::to_value(report.paired_mode).ok())
             .and_then(|value| value.as_str().map(ToString::to_string)),
-        dedup_mode: parsed_report
-            .as_ref()
-            .map(|report| match &report.dedup_mode {
-                bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::Exact => {
-                    "exact".to_string()
-                }
-                bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::SequenceIdentity => {
-                    "sequence_identity".to_string()
-                }
-                bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::OpticalAware => {
-                    "optical_aware".to_string()
-                }
-            }),
+        dedup_mode: parsed_report.as_ref().map(|report| match &report.dedup_mode {
+            bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::Exact => {
+                "exact".to_string()
+            }
+            bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::SequenceIdentity => {
+                "sequence_identity".to_string()
+            }
+            bijux_dna_domain_fastq::params::remove_duplicates::DedupMode::OpticalAware => {
+                "optical_aware".to_string()
+            }
+        }),
         keep_order: parsed_report.as_ref().map(|report| report.keep_order),
-        pair_count_match: parsed_report
-            .as_ref()
-            .and_then(|report| report.pair_count_match),
+        pair_count_match: parsed_report.as_ref().and_then(|report| report.pair_count_match),
         duplicate_class_count: parsed_report
             .as_ref()
             .map(|report| report.duplicate_classes.len() as u64),
@@ -130,33 +114,22 @@ pub(super) fn merge_metrics(
     let parsed_report = std::fs::read_to_string(plan.out_dir.join("merge_report.json"))
         .ok()
         .and_then(|raw| crate::observer::parse_merge_pairs_report(&raw).ok());
-    let reads_r1 = parsed_report
-        .as_ref()
-        .map(|report| report.reads_r1)
-        .unwrap_or(r1.reads);
-    let reads_r2 = parsed_report
-        .as_ref()
-        .map(|report| report.reads_r2)
-        .unwrap_or(r2.reads);
-    let reads_merged = parsed_report
-        .as_ref()
-        .map(|report| report.reads_merged)
-        .unwrap_or(merged.reads);
+    let reads_r1 = parsed_report.as_ref().map(|report| report.reads_r1).unwrap_or(r1.reads);
+    let reads_r2 = parsed_report.as_ref().map(|report| report.reads_r2).unwrap_or(r2.reads);
+    let reads_merged =
+        parsed_report.as_ref().map(|report| report.reads_merged).unwrap_or(merged.reads);
     let reads_unmerged = parsed_report
         .as_ref()
         .map(|report| report.reads_unmerged)
         .unwrap_or_else(|| unmerged_r1.reads.min(unmerged_r2.reads));
     let min_reads = reads_r1.min(reads_r2);
-    let merge_rate = parsed_report
-        .as_ref()
-        .map(|report| report.merge_rate)
-        .unwrap_or_else(|| {
-            if min_reads > 0 {
-                f64_from_u64(reads_merged) / f64_from_u64(min_reads)
-            } else {
-                0.0
-            }
-        });
+    let merge_rate = parsed_report.as_ref().map(|report| report.merge_rate).unwrap_or_else(|| {
+        if min_reads > 0 {
+            f64_from_u64(reads_merged) / f64_from_u64(min_reads)
+        } else {
+            0.0
+        }
+    });
     let bases_in = r1.bases.min(r2.bases);
     let mean_q_in = (r1.mean_q + r2.mean_q) / 2.0;
     let merge_q_delta = merged.mean_q - mean_q_in;
@@ -203,9 +176,9 @@ pub(super) fn validate_metrics(
             let reads_total = report.validated_reads_r1 + report.validated_reads_r2.unwrap_or(0);
             let reads_invalid = match report.failure_class {
                 bijux_dna_domain_fastq::ValidateFailureClass::None => 0,
-                bijux_dna_domain_fastq::ValidateFailureClass::PairCountMismatch => report
-                    .validated_reads_r1
-                    .abs_diff(report.validated_reads_r2.unwrap_or(0)),
+                bijux_dna_domain_fastq::ValidateFailureClass::PairCountMismatch => {
+                    report.validated_reads_r1.abs_diff(report.validated_reads_r2.unwrap_or(0))
+                }
                 bijux_dna_domain_fastq::ValidateFailureClass::ValidatorError => {
                     let mut invalid = 0;
                     if report.status_r1 != 0 {
@@ -241,25 +214,23 @@ pub(super) fn validate_metrics(
                     .and_then(|value| value.as_str().map(ToOwned::to_owned)),
             }
         });
-    Ok(serde_json::to_value(report_metrics.unwrap_or(
-        FastqValidateMetricsV1 {
-            reads_in,
-            reads_out: reads_in,
-            bases_in,
-            bases_out: bases_in,
-            pairs_in,
-            pairs_out,
-            reads_total: reads_in,
-            reads_valid: reads_in,
-            reads_invalid: 0,
-            mean_q,
-            validated_inputs: None,
-            validated_pairs: None,
-            pair_sync_checked: None,
-            pair_sync_pass: None,
-            pair_count_match: None,
-            strict_pass: None,
-            failure_class: None,
-        },
-    ))?)
+    Ok(serde_json::to_value(report_metrics.unwrap_or(FastqValidateMetricsV1 {
+        reads_in,
+        reads_out: reads_in,
+        bases_in,
+        bases_out: bases_in,
+        pairs_in,
+        pairs_out,
+        reads_total: reads_in,
+        reads_valid: reads_in,
+        reads_invalid: 0,
+        mean_q,
+        validated_inputs: None,
+        validated_pairs: None,
+        pair_sync_checked: None,
+        pair_sync_pass: None,
+        pair_count_match: None,
+        strict_pass: None,
+        failure_class: None,
+    }))?)
 }

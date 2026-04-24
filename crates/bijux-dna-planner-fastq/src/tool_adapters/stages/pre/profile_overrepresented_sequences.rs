@@ -49,11 +49,7 @@ pub fn plan_with_options(
         profile_overrepresented_command(&tool.tool_id.0, r1, r2, &fastqc_dir, threads)?;
     let effective_params = FastqOverrepresentedProfileParams {
         schema_version: OVERREPRESENTED_PROFILE_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads,
         top_k,
     };
@@ -81,9 +77,7 @@ pub fn plan_with_options(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: CommandSpecV1 {
-            template: command_template,
-        },
+        command: CommandSpecV1 { template: command_template },
         resources,
         io: StageIO {
             inputs,
@@ -173,9 +167,9 @@ fn profile_overrepresented_command(
             }
             Ok(command)
         }
-        _ => Err(anyhow!(
-            "unsupported overrepresented-sequence tool for stage planning: {tool_id}"
-        )),
+        _ => {
+            Err(anyhow!("unsupported overrepresented-sequence tool for stage planning: {tool_id}"))
+        }
     }
 }
 
@@ -183,20 +177,12 @@ fn wrap_fastqc_command(command: &[String], output_dir: &Path) -> Vec<String> {
     vec![
         "sh".to_string(),
         "-lc".to_string(),
-        format!(
-            "mkdir -p {}\n{}",
-            shell_quote(output_dir),
-            shell_join(command)
-        ),
+        format!("mkdir -p {}\n{}", shell_quote(output_dir), shell_join(command)),
     ]
 }
 
 fn shell_join(command: &[String]) -> String {
-    command
-        .iter()
-        .map(|part| shell_quote_str(part))
-        .collect::<Vec<_>>()
-        .join(" ")
+    command.iter().map(|part| shell_quote_str(part)).collect::<Vec<_>>().join(" ")
 }
 
 fn shell_quote(path: &Path) -> String {
@@ -220,10 +206,7 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("fastqc"),
             tool_version: ToolVersion::from("0.12.1"),
-            image: ContainerImageRefV1 {
-                image: "bijuxdna/fastqc".to_string(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: "bijuxdna/fastqc".to_string(), digest: None },
             command: CommandSpecV1 {
                 template: vec!["fastqc".to_string(), "{{reads_r1}}".to_string()],
             },
@@ -249,10 +232,7 @@ mod tests {
         .expect("plan");
 
         assert_eq!(plan.resources.threads, 6);
-        assert_eq!(
-            &plan.command.template[..2],
-            ["sh".to_string(), "-lc".to_string()]
-        );
+        assert_eq!(&plan.command.template[..2], ["sh".to_string(), "-lc".to_string()]);
         assert!(plan.command.template[2].contains("mkdir -p 'out/fastqc_overrepresented'"));
         assert!(plan.command.template[2].contains("fastqc"));
         assert_eq!(plan.params["threads"], serde_json::json!(6));
@@ -263,10 +243,7 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::from_static("seqkit"),
             tool_version: ToolVersion::from("2.9.0"),
-            image: ContainerImageRefV1 {
-                image: "bijuxdna/seqkit".to_string(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: "bijuxdna/seqkit".to_string(), digest: None },
             command: CommandSpecV1 {
                 template: vec!["seqkit".to_string(), "{{reads_r1}}".to_string()],
             },
@@ -291,10 +268,7 @@ mod tests {
         )
         .expect("plan");
 
-        assert_eq!(
-            &plan.command.template[..2],
-            ["sh".to_string(), "-lc".to_string()]
-        );
+        assert_eq!(&plan.command.template[..2], ["sh".to_string(), "-lc".to_string()]);
         assert!(plan.command.template[2].contains("seqkit"));
         assert!(plan.command.template[2].contains("fx2tab"));
         assert!(plan.command.template[2].contains("'-j' '4'"));

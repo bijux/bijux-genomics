@@ -70,11 +70,7 @@ pub fn plan_with_options(
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = ValidateEffectiveParams {
         schema_version: VALIDATE_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: effective_threads,
         validation_mode: effective_validation_mode.clone(),
         pair_sync_policy: effective_pair_sync_policy.clone(),
@@ -112,9 +108,7 @@ pub fn plan_with_options(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: command_template,
-        },
+        command: bijux_dna_core::prelude::CommandSpecV1 { template: command_template },
         resources,
         io: StageIO {
             inputs,
@@ -264,17 +258,13 @@ fn validation_command(
     };
 
     let r1_log = out_dir.join("validation_r1.log");
-    let mut commands = vec![
-        "set +e".to_string(),
-        single_command(r1, &r1_log, "status_r1", "reads_r1")?,
-    ];
+    let mut commands =
+        vec!["set +e".to_string(), single_command(r1, &r1_log, "status_r1", "reads_r1")?];
     let r2_log = r2.map(|_| out_dir.join("validation_r2.log"));
     if let Some(r2) = r2 {
         commands.push(single_command(
             r2,
-            r2_log
-                .as_deref()
-                .ok_or_else(|| anyhow!("paired validation log path missing"))?,
+            r2_log.as_deref().ok_or_else(|| anyhow!("paired validation log path missing"))?,
             "status_r2",
             "reads_r2",
         )?);
@@ -294,10 +284,7 @@ fn validation_command(
     commands.push("pair_count_match=null".to_string());
     commands.push("failure_class=none".to_string());
     commands.push("validated_pairs=null".to_string());
-    commands.push(format!(
-        "validated_reads_r1=$(count_fastq_reads {})",
-        shell_quote(r1),
-    ));
+    commands.push(format!("validated_reads_r1=$(count_fastq_reads {})", shell_quote(r1),));
     commands.push("validated_reads_r2=null".to_string());
     commands.push(
         "if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi".to_string(),
@@ -307,10 +294,7 @@ fn validation_command(
             .to_string(),
     );
     if let Some(r2) = r2 {
-        commands.push(format!(
-            "validated_reads_r2=$(count_fastq_reads {})",
-            shell_quote(r2),
-        ));
+        commands.push(format!("validated_reads_r2=$(count_fastq_reads {})", shell_quote(r2),));
         commands.push("validated_pairs=$validated_reads_r1".to_string());
         if effective_params.pair_sync_policy == PairSyncPolicy::RequireHeaderSync {
             let pair_sync_r1 = out_dir.join("validation_r1.headers.txt");
@@ -407,11 +391,7 @@ fn validation_command(
         shell_quote(report_path),
     ));
     commands.push("exit \"$exit_code\"".to_string());
-    Ok(vec![
-        "sh".to_string(),
-        "-lc".to_string(),
-        commands.join(" && "),
-    ])
+    Ok(vec!["sh".to_string(), "-lc".to_string(), commands.join(" && ")])
 }
 
 fn rendered_validation_backend_command(
@@ -512,11 +492,7 @@ fn normalize_tools_with_allowlist(
 }
 
 fn shell_join(command: &[String]) -> String {
-    command
-        .iter()
-        .map(|part| shell_quote_str(part))
-        .collect::<Vec<_>>()
-        .join(" ")
+    command.iter().map(|part| shell_quote_str(part)).collect::<Vec<_>>().join(" ")
 }
 
 #[cfg(test)]
@@ -528,10 +504,7 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::new(tool_id.to_string()),
             tool_version: "1.0.0".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
             command: CommandSpecV1 {
                 template: match tool_id {
                     "fastqvalidator" => vec![
@@ -539,16 +512,12 @@ mod tests {
                         "--file".to_string(),
                         "{{reads_r1}}".to_string(),
                     ],
-                    "seqtk" => vec![
-                        "seqtk".to_string(),
-                        "seq".to_string(),
-                        "{{reads_r1}}".to_string(),
-                    ],
-                    "fqtools" => vec![
-                        "fqtools".to_string(),
-                        "validate".to_string(),
-                        "{{reads}}".to_string(),
-                    ],
+                    "seqtk" => {
+                        vec!["seqtk".to_string(), "seq".to_string(), "{{reads_r1}}".to_string()]
+                    }
+                    "fqtools" => {
+                        vec!["fqtools".to_string(), "validate".to_string(), "{{reads}}".to_string()]
+                    }
                     "fastq_scan" => vec!["fastq_scan".to_string(), "{{reads}}".to_string()],
                     "fastqc" => vec!["fastqc".to_string(), "{{reads_r1}}".to_string()],
                     "mate_placeholder" => vec![
@@ -577,10 +546,7 @@ mod tests {
             out_dir: "out".into(),
         });
 
-        assert_eq!(
-            config.r2.as_deref(),
-            Some(std::path::Path::new("reads_R2.fastq.gz"))
-        );
+        assert_eq!(config.r2.as_deref(), Some(std::path::Path::new("reads_R2.fastq.gz")));
     }
 
     #[test]
@@ -610,10 +576,7 @@ mod tests {
         assert!(plan.command.template[2].contains("cmp -s"));
         assert!(plan.command.template[2]
             .contains("\"schema_version\":\"bijux.fastq.validate.lineage.v1\""));
-        assert_eq!(
-            plan.params["report_json"],
-            serde_json::json!("out/validation.json")
-        );
+        assert_eq!(plan.params["report_json"], serde_json::json!("out/validation.json"));
         assert_eq!(
             plan.params["validated_reads_manifest"],
             serde_json::json!("out/validated_reads_manifest.json")
@@ -804,10 +767,7 @@ mod tests {
         let script = &plan.command.template[2];
         assert_eq!(plan.resources.threads, 7);
         assert_eq!(plan.params["threads"], serde_json::json!(7));
-        assert_eq!(
-            plan.effective_params["validation_mode"],
-            serde_json::json!("report_only")
-        );
+        assert_eq!(plan.effective_params["validation_mode"], serde_json::json!("report_only"));
         assert_eq!(
             plan.effective_params["pair_sync_policy"],
             serde_json::json!("skip_header_sync")
@@ -857,14 +817,8 @@ mod tests {
 
     #[test]
     fn validation_policy_literals_accept_governed_surface() -> Result<()> {
-        assert_eq!(
-            validation_mode_from_literal("strict")?,
-            ValidationMode::Strict
-        );
-        assert_eq!(
-            validation_mode_from_literal("report_only")?,
-            ValidationMode::ReportOnly
-        );
+        assert_eq!(validation_mode_from_literal("strict")?, ValidationMode::Strict);
+        assert_eq!(validation_mode_from_literal("report_only")?, ValidationMode::ReportOnly);
         assert_eq!(
             pair_sync_policy_from_literal("require_header_sync")?,
             PairSyncPolicy::RequireHeaderSync

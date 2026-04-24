@@ -202,10 +202,8 @@ pub fn apply_toolset_overrides(
     forced_overrides: BTreeMap<String, Vec<String>>,
 ) -> BTreeMap<String, Vec<String>> {
     fn normalize_toolset(tool_ids: Vec<String>) -> Vec<String> {
-        let mut normalized = tool_ids
-            .into_iter()
-            .map(|tool_id| tool_id.to_ascii_lowercase())
-            .collect::<Vec<_>>();
+        let mut normalized =
+            tool_ids.into_iter().map(|tool_id| tool_id.to_ascii_lowercase()).collect::<Vec<_>>();
         normalized.sort();
         normalized.dedup();
         normalized

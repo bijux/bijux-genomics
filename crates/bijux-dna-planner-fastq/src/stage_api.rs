@@ -95,10 +95,7 @@ pub enum StageToolMaturityLevel {
 fn runtime_contract_levels(
     stage_id: &StageId,
     tool_id: &ToolId,
-) -> (
-    RuntimeInterpretationLevel,
-    bijux_dna_domain_fastq::RuntimeNormalizationLevel,
-) {
+) -> (RuntimeInterpretationLevel, bijux_dna_domain_fastq::RuntimeNormalizationLevel) {
     let runtime_interpretation = runtime_interpretation_for_stage_tool(stage_id, tool_id)
         .unwrap_or(RuntimeInterpretationLevel::GenericEnvelope);
     let runtime_normalization =
@@ -245,10 +242,7 @@ pub fn benchmark_cohorts_for_stage(stage_id: &StageId) -> Vec<BenchmarkCohort> {
                 stage_id: scenario.stage_id,
                 description: scenario.description,
                 fairness_rules: scenario.fairness_rules,
-                tool_ids: cohort_profiles
-                    .iter()
-                    .map(|profile| profile.tool_id.clone())
-                    .collect(),
+                tool_ids: cohort_profiles.iter().map(|profile| profile.tool_id.clone()).collect(),
                 observer_specialized_tools,
             }
         })

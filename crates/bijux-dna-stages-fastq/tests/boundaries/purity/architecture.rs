@@ -44,10 +44,7 @@ fn stages_fastq_has_no_execution_calls() -> Result<(), Box<dyn std::error::Error
             }
         }
     }
-    assert!(
-        offenders.is_empty(),
-        "stages-fastq must not execute tools directly: {offenders:?}"
-    );
+    assert!(offenders.is_empty(), "stages-fastq must not execute tools directly: {offenders:?}");
     Ok(())
 }
 

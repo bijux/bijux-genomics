@@ -93,11 +93,7 @@ pub fn plan_rrna_with_options(
     let database_artifact_id = rrna_database_artifact_id(&options.rrna_db);
     let effective_params = RrnaEffectiveParams {
         schema_version: RRNA_DEPLETION_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: effective_threads,
         contaminant_db: Some(options.rrna_db.clone()),
         database_artifact_id: database_artifact_id.clone(),
@@ -323,11 +319,7 @@ fn rrna_command(
 }
 
 fn shell_join(command: &[String]) -> String {
-    command
-        .iter()
-        .map(|part| shell_quote_str(part))
-        .collect::<Vec<_>>()
-        .join(" ")
+    command.iter().map(|part| shell_quote_str(part)).collect::<Vec<_>>().join(" ")
 }
 
 fn shell_quote_path(path: &Path) -> String {

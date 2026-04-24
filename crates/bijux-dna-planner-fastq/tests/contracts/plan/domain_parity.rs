@@ -27,9 +27,7 @@ fn domain_fastq_stage_ids() -> Result<BTreeSet<String>> {
         }
     }
     if out.is_empty() {
-        return Err(anyhow::anyhow!(
-            "domain/fastq/index.yaml missing or empty stage_ids"
-        ));
+        return Err(anyhow::anyhow!("domain/fastq/index.yaml missing or empty stage_ids"));
     }
     Ok(out)
 }
@@ -37,14 +35,8 @@ fn domain_fastq_stage_ids() -> Result<BTreeSet<String>> {
 #[test]
 fn fastq_domain_yaml_matches_rust_stage_catalog() -> Result<()> {
     let yaml = domain_fastq_stage_ids()?;
-    let rust = FASTQ_STAGE_ID_CATALOG
-        .iter()
-        .map(|s| s.to_string())
-        .collect::<BTreeSet<_>>();
-    assert_eq!(
-        yaml, rust,
-        "domain fastq stage IDs drifted from Rust catalog"
-    );
+    let rust = FASTQ_STAGE_ID_CATALOG.iter().map(|s| s.to_string()).collect::<BTreeSet<_>>();
+    assert_eq!(yaml, rust, "domain fastq stage IDs drifted from Rust catalog");
     Ok(())
 }
 
@@ -66,10 +58,7 @@ fn fastq_planner_registry_covers_new_amplicon_stages() {
         "fastq.cluster_otus",
         "fastq.normalize_abundance",
     ] {
-        assert!(
-            stages.contains(required),
-            "planner registry missing stage {required}"
-        );
+        assert!(stages.contains(required), "planner registry missing stage {required}");
     }
 }
 
@@ -91,17 +80,12 @@ fn amplicon_mode_pipeline_emits_amplicon_stages() {
         "fastq.normalize_abundance",
     ] {
         assert!(
-            spec.ordered_stage_ids()
-                .iter()
-                .any(|stage| stage == required),
+            spec.ordered_stage_ids().iter().any(|stage| stage == required),
             "amplicon mode missing stage {required}"
         );
     }
     assert!(
-        !spec
-            .ordered_stage_ids()
-            .iter()
-            .any(|stage| stage == "fastq.infer_asvs"),
+        !spec.ordered_stage_ids().iter().any(|stage| stage == "fastq.infer_asvs"),
         "default amplicon mode must not schedule optional infer_asvs branches by default"
     );
 

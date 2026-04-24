@@ -212,12 +212,7 @@ fn amplicon_stage_manifests_expose_governed_ecology_controls() -> Result<()> {
     );
     assert_eq!(
         stage_parameter_names("infer_asvs")?,
-        vec![
-            "denoising_method",
-            "pooling_mode",
-            "chimera_policy",
-            "threads",
-        ],
+        vec!["denoising_method", "pooling_mode", "chimera_policy", "threads",],
         "fastq.infer_asvs must keep its denoising policy surface explicit in the stage manifest"
     );
     assert_eq!(

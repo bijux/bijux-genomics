@@ -14,10 +14,8 @@ use crate::{
 pub fn bam_default_profile() -> PipelineProfile {
     let stages = stable_bam_stages();
     let defaults = defaults_for(&stages, default_params_json);
-    let required_stages: Vec<String> = stages
-        .iter()
-        .map(|stage| stage.as_str().to_string())
-        .collect();
+    let required_stages: Vec<String> =
+        stages.iter().map(|stage| stage.as_str().to_string()).collect();
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_BAM_DEFAULT),
         description: "Default BAM pipeline",

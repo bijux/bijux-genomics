@@ -24,29 +24,17 @@ pub struct FastqArtifact {
 
 impl FastqArtifact {
     pub fn single_end(path: impl Into<PathBuf>) -> Self {
-        Self {
-            path: path.into(),
-            kind: FastqArtifactKind::SingleEnd,
-        }
+        Self { path: path.into(), kind: FastqArtifactKind::SingleEnd }
     }
 
     pub fn merged(path: impl Into<PathBuf>) -> Self {
-        Self {
-            path: path.into(),
-            kind: FastqArtifactKind::Merged,
-        }
+        Self { path: path.into(), kind: FastqArtifactKind::Merged }
     }
 
     pub fn paired_end(r1: impl Into<PathBuf>, r2: impl Into<PathBuf>) -> (Self, Self) {
         (
-            Self {
-                path: r1.into(),
-                kind: FastqArtifactKind::PairedEnd,
-            },
-            Self {
-                path: r2.into(),
-                kind: FastqArtifactKind::PairedEnd,
-            },
+            Self { path: r1.into(), kind: FastqArtifactKind::PairedEnd },
+            Self { path: r2.into(), kind: FastqArtifactKind::PairedEnd },
         )
     }
 }

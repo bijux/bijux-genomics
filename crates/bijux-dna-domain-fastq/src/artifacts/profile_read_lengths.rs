@@ -67,10 +67,7 @@ mod tests {
             mean_read_length: 101.2,
             max_read_length: 150,
             distinct_lengths: 12,
-            histogram: vec![ProfileReadLengthBinV1 {
-                read_length: 100,
-                count: 180,
-            }],
+            histogram: vec![ProfileReadLengthBinV1 { read_length: 100, count: 180 }],
             runtime_s: Some(1.1),
             memory_mb: Some(16.0),
             exit_code: Some(0),

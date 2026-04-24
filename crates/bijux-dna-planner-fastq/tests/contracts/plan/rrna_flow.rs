@@ -37,13 +37,8 @@ fn domain_tool(stage: &str, tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id,
         tool_version: "domain-manifest".to_string(),
-        image: ContainerImageRefV1 {
-            image: format!("bijuxdna/{tool}"),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: manifest.command_template.clone(),
-        },
+        image: ContainerImageRefV1 { image: format!("bijuxdna/{tool}"), digest: None },
+        command: CommandSpecV1 { template: manifest.command_template.clone() },
         resources: manifest.constraints.clone(),
     }
 }

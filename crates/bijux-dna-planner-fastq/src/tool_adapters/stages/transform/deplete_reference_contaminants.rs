@@ -100,11 +100,7 @@ pub fn plan_contaminant_screen_with_index_backend(
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = ReferenceContaminantEffectiveParams {
         schema_version: REFERENCE_DEPLETION_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: effective_threads,
         reference_catalog_id: "contaminant_reference".to_string(),
         contaminant_reference: options.decoy_mode.clone(),
@@ -220,31 +216,20 @@ fn contaminant_screen_command(
                     "-2".to_string(),
                     r2.display().to_string(),
                     "--un-conc-gz".to_string(),
-                    out_dir
-                        .join("contaminant_screened_R%.fastq.gz")
-                        .display()
-                        .to_string(),
+                    out_dir.join("contaminant_screened_R%.fastq.gz").display().to_string(),
                 ]);
             } else {
                 command.extend([
                     "-U".to_string(),
                     r1.display().to_string(),
                     "--un-gz".to_string(),
-                    out_dir
-                        .join("contaminant_screened.fastq.gz")
-                        .display()
-                        .to_string(),
+                    out_dir.join("contaminant_screened.fastq.gz").display().to_string(),
                 ]);
             }
-            command.extend([
-                "--met-file".to_string(),
-                raw_backend_report.display().to_string(),
-            ]);
+            command.extend(["--met-file".to_string(), raw_backend_report.display().to_string()]);
             Ok(command)
         }
-        _ => Err(anyhow!(
-            "unsupported contaminant depletion tool for stage planning: {tool_id}"
-        )),
+        _ => Err(anyhow!("unsupported contaminant depletion tool for stage planning: {tool_id}")),
     }
 }
 
@@ -257,13 +242,8 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::new(tool_id.to_string()),
             tool_version: "99.99.99+fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/dummy:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["echo".to_string(), tool_id.to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["echo".to_string(), tool_id.to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -304,14 +284,8 @@ mod tests {
             },
         )?;
 
-        assert_eq!(
-            plan.params["report_json"],
-            "out/contaminant_screen_report.json"
-        );
-        assert_eq!(
-            plan.params["raw_backend_report"],
-            "out/bowtie2.contaminant.metrics.txt"
-        );
+        assert_eq!(plan.params["report_json"], "out/contaminant_screen_report.json");
+        assert_eq!(plan.params["raw_backend_report"], "out/bowtie2.contaminant.metrics.txt");
         assert_eq!(plan.effective_params["threads"], 6);
         assert!(plan
             .command

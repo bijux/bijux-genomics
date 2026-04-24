@@ -19,17 +19,13 @@ fn read_doc(path: &Path) -> String {
 
 fn parse_toml(path: &Path) -> Value {
     let raw = read_doc(path);
-    raw.parse::<Value>()
-        .unwrap_or_else(|error| panic!("parse {}: {error}", path.display()))
+    raw.parse::<Value>().unwrap_or_else(|error| panic!("parse {}: {error}", path.display()))
 }
 
 #[test]
 fn stage_mapping_points_to_manifest_authorities() {
-    let doc = read_doc(
-        &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("docs")
-            .join("STAGE_MAPPING.md"),
-    );
+    let doc =
+        read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("STAGE_MAPPING.md"));
     assert!(
         doc.contains("intentionally not a manual stage-to-tool matrix"),
         "STAGE_MAPPING.md must refuse manual stage/tool tables",
@@ -50,11 +46,8 @@ fn stage_mapping_points_to_manifest_authorities() {
 
 #[test]
 fn tool_selection_doc_describes_closed_runtime_boundary() {
-    let doc = read_doc(
-        &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("docs")
-            .join("TOOL_SELECTION.md"),
-    );
+    let doc =
+        read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("TOOL_SELECTION.md"));
     assert!(
         doc.contains("publish only the\nclosed FASTQ execution surface")
             || doc.contains("publish only the closed FASTQ execution surface"),
@@ -108,11 +101,8 @@ fn ci_tool_registry_excludes_unpublished_fastq_tools() {
 
 #[test]
 fn stage_mapping_documents_declared_only_infer_asvs() {
-    let doc = read_doc(
-        &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("docs")
-            .join("STAGE_MAPPING.md"),
-    );
+    let doc =
+        read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("STAGE_MAPPING.md"));
     assert!(
         doc.contains("`fastq.infer_asvs`") && doc.contains("governed `dada2` runtime contract"),
         "STAGE_MAPPING.md must explain the admitted infer_asvs runtime boundary",
@@ -121,11 +111,7 @@ fn stage_mapping_documents_declared_only_infer_asvs() {
 
 #[test]
 fn add_tool_doc_refuses_manual_mapping_updates() {
-    let doc = read_doc(
-        &PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("docs")
-            .join("ADD_TOOL.md"),
-    );
+    let doc = read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("ADD_TOOL.md"));
     assert!(
         doc.contains("Do not maintain manual stage-to-tool tables in docs"),
         "ADD_TOOL.md must route contributors to manifest SSOT instead of manual mapping docs",

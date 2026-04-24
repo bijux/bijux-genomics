@@ -23,16 +23,10 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
     });
     let input_kind = format!("{:?}", contract.input_kind);
     let output_kind = format!("{:?}", contract.output_kind);
-    let accepted_input_kinds = contract
-        .accepted_input_kinds
-        .iter()
-        .map(|kind| format!("{kind:?}"))
-        .collect::<Vec<_>>();
-    let possible_output_kinds = contract
-        .possible_output_kinds
-        .iter()
-        .map(|kind| format!("{kind:?}"))
-        .collect::<Vec<_>>();
+    let accepted_input_kinds =
+        contract.accepted_input_kinds.iter().map(|kind| format!("{kind:?}")).collect::<Vec<_>>();
+    let possible_output_kinds =
+        contract.possible_output_kinds.iter().map(|kind| format!("{kind:?}")).collect::<Vec<_>>();
     let mut payload = serde_json::json!({
         "schema_version": "bijux.stage_contract.v1",
         "stage_id": stage_id,

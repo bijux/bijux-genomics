@@ -94,9 +94,6 @@ mod tests {
         assert_eq!(decoded.tool_id, "cutadapt");
         assert_eq!(decoded.primer_set_id, "16S_universal_v1");
         assert_eq!(decoded.primer_trimmed_reads, Some(190));
-        assert_eq!(
-            decoded.raw_backend_report_format.as_deref(),
-            Some("cutadapt_json")
-        );
+        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
     }
 }

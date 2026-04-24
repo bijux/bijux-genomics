@@ -7,13 +7,8 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool),
         tool_version: "1.0.0".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: Vec::new(),
-        },
+        image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: Vec::new() },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -38,11 +33,7 @@ fn fastp_filter_plan_preserves_paired_io() -> Result<()> {
     assert!(plan.command.template.iter().any(|part| part == "--in2"));
     assert!(plan.command.template.iter().any(|part| part == "--out2"));
     assert!(plan.command.template.iter().any(|part| part == "--json"));
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "reads_R2.fastq.gz"));
+    assert!(plan.command.template.iter().any(|part| part == "reads_R2.fastq.gz"));
     assert_eq!(
         plan.io
             .outputs
@@ -69,9 +60,7 @@ fn fastp_filter_plan_rejects_kmer_reference_mode() {
 
     match result {
         Ok(_) => panic!("expected fastp k-mer filter planning to be rejected"),
-        Err(error) => assert!(error
-            .to_string()
-            .contains("contaminant k-mer reference filtering")),
+        Err(error) => assert!(error.to_string().contains("contaminant k-mer reference filtering")),
     }
 }
 
@@ -85,17 +74,8 @@ fn filter_plan_records_backend_report_contract_for_fastp() -> Result<()> {
         &bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads::FilterPlanOptions::default(),
     )?;
 
-    assert_eq!(
-        plan.params["report_json"],
-        serde_json::json!("out/filter_report.json")
-    );
-    assert_eq!(
-        plan.params["raw_backend_report"],
-        serde_json::json!("out/fastp.filter.json")
-    );
-    assert_eq!(
-        plan.params["raw_backend_report_format"],
-        serde_json::json!("fastp_json")
-    );
+    assert_eq!(plan.params["report_json"], serde_json::json!("out/filter_report.json"));
+    assert_eq!(plan.params["raw_backend_report"], serde_json::json!("out/fastp.filter.json"));
+    assert_eq!(plan.params["raw_backend_report_format"], serde_json::json!("fastp_json"));
     Ok(())
 }

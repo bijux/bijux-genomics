@@ -17,10 +17,7 @@ pub(super) fn fastq_analysis_tools() -> BTreeMap<StageId, ToolId> {
             StageId::from_static("fastq.profile_overrepresented_sequences"),
             ToolId::from_static(id_catalog::TOOL_FASTQC),
         ),
-        (
-            StageId::from_static("fastq.report_qc"),
-            ToolId::from_static(id_catalog::TOOL_MULTIQC),
-        ),
+        (StageId::from_static("fastq.report_qc"), ToolId::from_static(id_catalog::TOOL_MULTIQC)),
         (
             StageId::from_static("fastq.screen_taxonomy"),
             ToolId::from_static(id_catalog::TOOL_KRAKEN2),

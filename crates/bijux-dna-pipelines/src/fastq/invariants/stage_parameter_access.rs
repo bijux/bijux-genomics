@@ -32,10 +32,7 @@ pub(super) fn filter_params(profile: &PipelineProfile) -> Option<&FilterEffectiv
 pub(super) fn detect_adapters_params(
     profile: &PipelineProfile,
 ) -> Option<&DetectAdaptersEffectiveParams> {
-    match default_params_for(
-        profile,
-        bijux_dna_core::prelude::id_catalog::FASTQ_DETECT_ADAPTERS,
-    ) {
+    match default_params_for(profile, bijux_dna_core::prelude::id_catalog::FASTQ_DETECT_ADAPTERS) {
         Some(DefaultParams::FastqDetectAdapters(params)) => Some(params),
         _ => None,
     }

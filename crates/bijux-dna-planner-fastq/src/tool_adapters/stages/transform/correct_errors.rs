@@ -87,10 +87,7 @@ pub fn plan_correct_with_options(
     let tool_id = tool.tool_id.to_string();
     normalize_correct_tool_list(std::slice::from_ref(&tool_id))?;
     validate_correct_options(&tool_id, options)?;
-    let effective_threads = options
-        .threads
-        .unwrap_or(DEFAULT_CORRECT_ERRORS_THREADS)
-        .max(1);
+    let effective_threads = options.threads.unwrap_or(DEFAULT_CORRECT_ERRORS_THREADS).max(1);
     let output_r1 = out_dir.join("reads_r1.fastq.gz");
     let output_r2 = r2.map(|_| out_dir.join("reads_r2.fastq.gz"));
     let report_json = out_dir.join("correct_report.json");
@@ -269,10 +266,7 @@ fn correct_command_template(
     match tool_id {
         "rcorrector" => {
             script.push_str("run_rcorrector.pl");
-            script.push_str(&format!(
-                " -t {threads} -od {}",
-                shell_quote_path(&work_dir)
-            ));
+            script.push_str(&format!(" -t {threads} -od {}", shell_quote_path(&work_dir)));
             if let Some(input_r2) = input_r2 {
                 script.push_str(&format!(
                     " -1 {} -2 {}",
@@ -283,9 +277,7 @@ fn correct_command_template(
                 script.push_str(&format!(" -s {}", shell_quote_path(input_r1)));
             }
             script.push('\n');
-            script.push_str(&move_corrected_outputs_script(
-                &work_dir, output_r1, output_r2, true,
-            ));
+            script.push_str(&move_corrected_outputs_script(&work_dir, output_r1, output_r2, true));
         }
         "musket" => {
             let kmer_size = options.kmer_size.unwrap_or(21);
@@ -293,9 +285,7 @@ fn correct_command_template(
                 .musket_kmer_budget
                 .ok_or_else(|| anyhow!("musket requires musket_kmer_budget"))?;
             let prefix = work_dir.join("corrected");
-            script.push_str(&format!(
-                "musket -p {threads} -k {kmer_size} {musket_kmer_budget}"
-            ));
+            script.push_str(&format!("musket -p {threads} -k {kmer_size} {musket_kmer_budget}"));
             if let Some(input_r2) = input_r2 {
                 script.push_str(&format!(
                     " -omulti {} -inorder {} {}",
@@ -329,9 +319,8 @@ fn correct_command_template(
         }
         "lighter" => {
             let kmer_size = options.kmer_size.unwrap_or(21);
-            let genome_size = options
-                .genome_size
-                .ok_or_else(|| anyhow!("lighter requires genome_size"))?;
+            let genome_size =
+                options.genome_size.ok_or_else(|| anyhow!("lighter requires genome_size"))?;
             script.push_str(&format!(
                 "lighter -K {kmer_size} {genome_size} -t {threads} -od {} -r {}",
                 shell_quote_path(&work_dir),
@@ -347,9 +336,7 @@ fn correct_command_template(
                 ));
             }
             script.push('\n');
-            script.push_str(&move_corrected_outputs_script(
-                &work_dir, output_r1, output_r2, false,
-            ));
+            script.push_str(&move_corrected_outputs_script(&work_dir, output_r1, output_r2, false));
         }
         "bayeshammer" => {
             script.push_str("bayeshammer");
@@ -689,10 +676,7 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::new(tool_id.to_string()),
             tool_version: "fixture".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
             command: CommandSpecV1 {
                 template: vec![tool_id.to_string(), "{{reads_r1}}".to_string()],
             },
@@ -715,14 +699,8 @@ mod tests {
         )
         .expect("default correct plan should build");
 
-        assert_eq!(
-            plan.effective_params["correction_engine"],
-            serde_json::json!("rcorrector")
-        );
-        assert_eq!(
-            plan.effective_params["quality_encoding"],
-            serde_json::json!("phred33")
-        );
+        assert_eq!(plan.effective_params["correction_engine"], serde_json::json!("rcorrector"));
+        assert_eq!(plan.effective_params["quality_encoding"], serde_json::json!("phred33"));
         assert!(plan.command.template[2].contains(CORRECT_ERRORS_REPORT_SCHEMA_VERSION));
     }
 
@@ -759,23 +737,16 @@ mod tests {
         .expect("bayeshammer should accept explicit phred64 encoding");
 
         assert_eq!(plan.effective_params["threads"], serde_json::json!(7));
-        assert_eq!(
-            plan.effective_params["quality_encoding"],
-            serde_json::json!("phred64")
-        );
+        assert_eq!(plan.effective_params["quality_encoding"], serde_json::json!("phred64"));
         assert!(plan.command.template[2].contains("--threads 7"));
         assert!(plan.command.template[2].contains("--phred-offset 64"));
     }
 
     #[test]
     fn plan_correct_supports_single_end_rcorrector() {
-        let plan = plan_correct(
-            &tool("rcorrector"),
-            Path::new("reads.fastq.gz"),
-            None,
-            Path::new("out"),
-        )
-        .expect("single-end correction plan should build");
+        let plan =
+            plan_correct(&tool("rcorrector"), Path::new("reads.fastq.gz"), None, Path::new("out"))
+                .expect("single-end correction plan should build");
 
         assert_eq!(plan.io.inputs.len(), 1);
         assert_eq!(plan.io.outputs.len(), 2);
@@ -815,10 +786,7 @@ mod tests {
         .expect("musket plan should accept explicit kmer size");
 
         assert_eq!(plan.effective_params["kmer_size"], serde_json::json!(31));
-        assert_eq!(
-            plan.effective_params["musket_kmer_budget"],
-            serde_json::json!(536_870_912_u64)
-        );
+        assert_eq!(plan.effective_params["musket_kmer_budget"], serde_json::json!(536_870_912_u64));
         assert!(plan.command.template[2].contains("musket -p 1 -k 31 536870912"));
     }
 
@@ -859,10 +827,7 @@ mod tests {
         assert_eq!(projected.kmer_size, Some(31));
         assert_eq!(projected.musket_kmer_budget, None);
         assert_eq!(projected.genome_size, Some(3_200_000));
-        assert_eq!(
-            projected.trusted_kmer_artifact,
-            Some(Path::new("trusted.kmers").to_path_buf())
-        );
+        assert_eq!(projected.trusted_kmer_artifact, Some(Path::new("trusted.kmers").to_path_buf()));
     }
 
     #[test]
@@ -872,17 +837,11 @@ mod tests {
             Path::new("reads.fastq.gz"),
             None,
             Path::new("out"),
-            &CorrectPlanOptions {
-                max_memory_gb: Some(24),
-                ..CorrectPlanOptions::baseline()
-            },
+            &CorrectPlanOptions { max_memory_gb: Some(24), ..CorrectPlanOptions::baseline() },
         )
         .expect("bayeshammer plan should accept explicit memory limit");
 
-        assert_eq!(
-            plan.effective_params["max_memory_gb"],
-            serde_json::json!(24)
-        );
+        assert_eq!(plan.effective_params["max_memory_gb"], serde_json::json!(24));
         assert!(plan.command.template[2].contains("bayeshammer"));
         assert!(plan.command.template[2].contains(" -m 24"));
     }
@@ -1005,10 +964,7 @@ mod tests {
             Path::new("reads.fastq.gz"),
             None,
             Path::new("out"),
-            &CorrectPlanOptions {
-                kmer_size: Some(31),
-                ..CorrectPlanOptions::baseline()
-            },
+            &CorrectPlanOptions { kmer_size: Some(31), ..CorrectPlanOptions::baseline() },
         )
         .expect_err("musket must require an explicit k-mer budget");
 

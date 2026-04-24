@@ -82,9 +82,6 @@ mod tests {
         assert_eq!(decoded.tool_id, "vsearch");
         assert_eq!(decoded.threads, 2);
         assert_eq!(decoded.chimera_fraction, Some(0.08));
-        assert_eq!(
-            decoded.raw_backend_report_format.as_deref(),
-            Some("vsearch_uchime_tsv")
-        );
+        assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("vsearch_uchime_tsv"));
     }
 }

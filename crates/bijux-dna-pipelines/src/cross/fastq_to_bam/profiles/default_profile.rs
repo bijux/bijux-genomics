@@ -62,10 +62,9 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
                 }),
         ),
     );
-    defaults.tools.insert(
-        StageId::from_static("bam.qc_pre"),
-        ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
-    );
+    defaults
+        .tools
+        .insert(StageId::from_static("bam.qc_pre"), ToolId::from_static(id_catalog::TOOL_SAMTOOLS));
     defaults.rationales.insert(
         StageId::from_static("bam.qc_pre"),
         "cross-domain compatibility bridge for BAM pre-QC defaults".to_string(),

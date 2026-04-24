@@ -19,10 +19,7 @@ pub fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
             .iter()
             .position(|field| field == &name)
             .ok_or_else(|| anyhow!("seqkit column missing: {name}"))?;
-        data_fields
-            .get(idx)
-            .copied()
-            .ok_or_else(|| anyhow!("seqkit data missing for {name}"))
+        data_fields.get(idx).copied().ok_or_else(|| anyhow!("seqkit data missing for {name}"))
     };
     let reads: u64 = col("num_seqs")?.parse().context("parse reads")?;
     let bases: u64 = col("sum_len")?.parse().context("parse bases")?;
@@ -34,10 +31,8 @@ pub fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
         warn!("seqkit avg_qual/mean_qual missing; defaulting mean_q to 0.0");
         0.0
     };
-    let gc_percent = if let Some((idx, _)) = header_fields
-        .iter()
-        .enumerate()
-        .find(|(_, field)| field.to_lowercase().starts_with("gc"))
+    let gc_percent = if let Some((idx, _)) =
+        header_fields.iter().enumerate().find(|(_, field)| field.to_lowercase().starts_with("gc"))
     {
         data_fields
             .get(idx)
@@ -48,12 +43,7 @@ pub fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
         warn!("seqkit gc column missing; defaulting gc_percent to 0.0");
         0.0
     };
-    Ok(SeqkitMetrics {
-        reads,
-        bases,
-        mean_q,
-        gc_percent,
-    })
+    Ok(SeqkitMetrics { reads, bases, mean_q, gc_percent })
 }
 
 /// # Errors
@@ -61,10 +51,8 @@ pub fn parse_seqkit_stats(output: &str) -> Result<SeqkitMetrics> {
 pub fn parse_length_histogram(output: &str) -> Result<Vec<(u64, u64)>> {
     let mut counts: std::collections::BTreeMap<u64, u64> = std::collections::BTreeMap::new();
     for line in output.lines() {
-        let len = line
-            .rsplit('\t')
-            .next()
-            .ok_or_else(|| anyhow!("seqkit fx2tab length missing"))?;
+        let len =
+            line.rsplit('\t').next().ok_or_else(|| anyhow!("seqkit fx2tab length missing"))?;
         let cleaned: String = len.chars().filter(char::is_ascii_digit).collect();
         if cleaned.is_empty() {
             continue;

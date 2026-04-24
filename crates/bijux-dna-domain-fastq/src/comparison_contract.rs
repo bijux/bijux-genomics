@@ -18,10 +18,7 @@ mod tests {
             comparison_input_artifact_ids_for_stage(&StageId::from_static("fastq.validate_reads"));
         assert_eq!(
             artifact_ids,
-            vec![
-                "validation_report".to_string(),
-                "validated_reads_manifest".to_string(),
-            ]
+            vec!["validation_report".to_string(), "validated_reads_manifest".to_string(),]
         );
     }
 
@@ -31,10 +28,7 @@ mod tests {
             comparison_input_artifact_ids_for_stage(&StageId::from_static("fastq.screen_taxonomy"));
         assert_eq!(
             artifact_ids,
-            vec![
-                "classification_report_json".to_string(),
-                "screen_report_tsv".to_string(),
-            ]
+            vec!["classification_report_json".to_string(), "screen_report_tsv".to_string(),]
         );
     }
 

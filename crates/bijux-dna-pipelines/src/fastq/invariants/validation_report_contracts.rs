@@ -30,9 +30,7 @@ impl FastqProfileValidationReport {
         Self {
             profile_id: profile.id.as_str().to_string(),
             invariants_version: FASTQ_INVARIANTS,
-            invariants_preset: profile
-                .invariants_preset
-                .map(|preset| preset.as_str().to_string()),
+            invariants_preset: profile.invariants_preset.map(|preset| preset.as_str().to_string()),
             valid: violations.is_empty(),
             violations,
         }
@@ -45,10 +43,7 @@ impl FastqProfileValidationReport {
             profile_id: self.profile_id.clone(),
             invariants_version: self.invariants_version.to_string(),
             valid: self.valid,
-            blocking: self
-                .violations
-                .iter()
-                .any(|v| v.severity == InvariantSeverity::Hard),
+            blocking: self.violations.iter().any(|v| v.severity == InvariantSeverity::Hard),
             violations: self
                 .violations
                 .iter()

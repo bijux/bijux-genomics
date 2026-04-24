@@ -14,28 +14,16 @@ fn override_precedence_is_stable() {
     let _guard = settings.bind_to_scope();
 
     let mut base_tools = BTreeMap::new();
-    base_tools.insert(
-        StageId::from_static("fastq.trim_reads"),
-        ToolId::from_static("fastp"),
-    );
+    base_tools.insert(StageId::from_static("fastq.trim_reads"), ToolId::from_static("fastp"));
 
     let mut profile_tools = BTreeMap::new();
-    profile_tools.insert(
-        StageId::from_static("fastq.trim_reads"),
-        ToolId::from_static("cutadapt"),
-    );
+    profile_tools.insert(StageId::from_static("fastq.trim_reads"), ToolId::from_static("cutadapt"));
 
     let mut cli_tools = BTreeMap::new();
-    cli_tools.insert(
-        StageId::from_static("fastq.trim_reads"),
-        ToolId::from_static("bbduk"),
-    );
+    cli_tools.insert(StageId::from_static("fastq.trim_reads"), ToolId::from_static("bbduk"));
 
     let mut api_tools = BTreeMap::new();
-    api_tools.insert(
-        StageId::from_static("fastq.trim_reads"),
-        ToolId::from_static("trimmomatic"),
-    );
+    api_tools.insert(StageId::from_static("fastq.trim_reads"), ToolId::from_static("trimmomatic"));
 
     let base = EffectiveDefaults {
         tools: base_tools,

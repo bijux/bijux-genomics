@@ -16,11 +16,13 @@ pub fn stage_param_descriptor(stage_id: &StageId) -> Option<StageParamDescriptor
         .iter()
         .chain(processing::STAGE_PARAM_DESCRIPTORS.iter())
         .chain(edna::STAGE_PARAM_DESCRIPTORS.iter())
-        .find_map(|(candidate_stage_id, descriptor)| {
-            if stage_id == *candidate_stage_id {
-                Some(*descriptor)
-            } else {
-                None
-            }
-        })
+        .find_map(
+            |(candidate_stage_id, descriptor)| {
+                if stage_id == *candidate_stage_id {
+                    Some(*descriptor)
+                } else {
+                    None
+                }
+            },
+        )
 }

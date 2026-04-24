@@ -12,9 +12,8 @@ pub use models::{
 };
 pub use resolution::{adapter_categories, adapters_by_category, resolve_adapter_preset};
 
-const ADAPTER_TAGS: [&str; 9] = [
-    "truseq", "nextera", "ssdna", "umi", "pcr", "custom", "nebnext", "capture", "partial",
-];
+const ADAPTER_TAGS: [&str; 9] =
+    ["truseq", "nextera", "ssdna", "umi", "pcr", "custom", "nebnext", "capture", "partial"];
 
 /// Load the adapter bank YAML and validate its contents.
 ///

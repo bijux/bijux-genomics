@@ -7,12 +7,9 @@ pub fn observer_specialization_contract_for_stage_tool(
     stage_id: &StageId,
     tool_id: &ToolId,
 ) -> Option<ObserverSpecializationContract> {
-    observer_specialization_contracts()
-        .iter()
-        .copied()
-        .find(|binding| {
-            binding.stage_id == stage_id.as_str() && binding.tool_id == tool_id.as_str()
-        })
+    observer_specialization_contracts().iter().copied().find(|binding| {
+        binding.stage_id == stage_id.as_str() && binding.tool_id == tool_id.as_str()
+    })
 }
 
 #[must_use]
@@ -20,10 +17,7 @@ pub fn observer_specialized_stage_tool_bindings() -> Vec<(StageId, ToolId)> {
     observer_specialization_contracts()
         .iter()
         .map(|binding| {
-            (
-                StageId::from_static(binding.stage_id),
-                ToolId::from_static(binding.tool_id),
-            )
+            (StageId::from_static(binding.stage_id), ToolId::from_static(binding.tool_id))
         })
         .collect()
 }

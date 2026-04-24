@@ -78,11 +78,8 @@ pub fn plan_trim_terminal_damage_with_options(
     let out_name = output_name(tool.tool_id.as_str())
         .ok_or_else(|| anyhow!("unsupported trim_terminal_damage tool {}", tool.tool_id))?;
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
-    let output_r1 = if r2.is_some() {
-        out_dir.join(format!("R1.{out_name}"))
-    } else {
-        out_dir.join(out_name)
-    };
+    let output_r1 =
+        if r2.is_some() { out_dir.join(format!("R1.{out_name}")) } else { out_dir.join(out_name) };
     let output_r2 = r2.map(|_| out_dir.join(format!("R2.{out_name}")));
     let report = out_dir.join("trim_terminal_damage_report.json");
     let raw_backend_report = match tool.tool_id.as_str() {
@@ -162,9 +159,7 @@ pub fn plan_trim_terminal_damage_with_options(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: CommandSpecV1 {
-            template: command_template,
-        },
+        command: CommandSpecV1 { template: command_template },
         resources: {
             let mut resources = tool.resources.clone();
             resources.threads = effective_threads;
@@ -299,9 +294,7 @@ fn trim_terminal_damage_command(
             ));
             Ok(vec!["sh".to_string(), "-lc".to_string(), script])
         }
-        _ => Err(anyhow!(
-            "unsupported trim_terminal_damage tool for stage planning: {tool_id}"
-        )),
+        _ => Err(anyhow!("unsupported trim_terminal_damage tool for stage planning: {tool_id}")),
     }
 }
 
@@ -409,13 +402,8 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::new(tool_id.to_string()),
             tool_version: "1.0.0".to_string(),
-            image: ContainerImageRefV1 {
-                image: "bijux/test:latest".to_string(),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec![tool_id.to_string()],
-            },
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec![tool_id.to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -526,14 +514,8 @@ mod tests {
 
     #[test]
     fn ancient_damage_mode_defaults_to_non_udg_classification() {
-        assert_eq!(
-            damage_mode_default_udg_classification(DamageMode::Ancient),
-            "non_udg"
-        );
-        assert_eq!(
-            damage_mode_default_udg_classification(DamageMode::UdgTrimmed),
-            "udg"
-        );
+        assert_eq!(damage_mode_default_udg_classification(DamageMode::Ancient), "non_udg");
+        assert_eq!(damage_mode_default_udg_classification(DamageMode::UdgTrimmed), "udg");
     }
 
     #[test]

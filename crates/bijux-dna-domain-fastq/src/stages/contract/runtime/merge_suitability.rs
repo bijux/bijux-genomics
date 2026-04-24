@@ -84,14 +84,10 @@ fn read_sequence_length_means(
     r2: &Path,
     max_records: usize,
 ) -> Result<(Option<usize>, Option<usize>)> {
-    let r1_lengths = read_sequences(r1, max_records)?
-        .into_iter()
-        .map(|seq| seq.len())
-        .collect::<Vec<_>>();
-    let r2_lengths = read_sequences(r2, max_records)?
-        .into_iter()
-        .map(|seq| seq.len())
-        .collect::<Vec<_>>();
+    let r1_lengths =
+        read_sequences(r1, max_records)?.into_iter().map(|seq| seq.len()).collect::<Vec<_>>();
+    let r2_lengths =
+        read_sequences(r2, max_records)?.into_iter().map(|seq| seq.len()).collect::<Vec<_>>();
     Ok((mean_length(&r1_lengths), mean_length(&r2_lengths)))
 }
 

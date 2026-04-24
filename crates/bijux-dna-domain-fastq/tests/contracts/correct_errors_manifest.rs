@@ -106,12 +106,8 @@ fn correction_tool_command_templates_follow_tool_native_workdirs() -> Result<()>
         .iter()
         .filter_map(serde_json::Value::as_str)
         .collect::<Vec<_>>();
-    assert!(rcorrector_template
-        .iter()
-        .any(|part| part == &"run_rcorrector.pl"));
-    assert!(rcorrector_template
-        .iter()
-        .any(|part| part == &"{{corrected_reads_dir}}"));
+    assert!(rcorrector_template.iter().any(|part| part == &"run_rcorrector.pl"));
+    assert!(rcorrector_template.iter().any(|part| part == &"{{corrected_reads_dir}}"));
 
     let musket = tool_manifest("musket")?;
     let musket_template = musket
@@ -122,9 +118,7 @@ fn correction_tool_command_templates_follow_tool_native_workdirs() -> Result<()>
         .filter_map(serde_json::Value::as_str)
         .collect::<Vec<_>>();
     assert!(musket_template.iter().any(|part| part == &"-omulti"));
-    assert!(musket_template
-        .iter()
-        .any(|part| part.contains("{{corrected_reads_dir}}")));
+    assert!(musket_template.iter().any(|part| part.contains("{{corrected_reads_dir}}")));
 
     for tool_id in ["lighter", "bayeshammer"] {
         let manifest = tool_manifest(tool_id)?;
@@ -136,9 +130,7 @@ fn correction_tool_command_templates_follow_tool_native_workdirs() -> Result<()>
             .filter_map(serde_json::Value::as_str)
             .collect::<Vec<_>>();
         assert!(
-            template
-                .iter()
-                .any(|part| part == &"{{corrected_reads_dir}}"),
+            template.iter().any(|part| part == &"{{corrected_reads_dir}}"),
             "{tool_id} must target a governed correction work directory"
         );
         assert!(

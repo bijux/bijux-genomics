@@ -12,11 +12,7 @@ pub(crate) const fn contract(
     tool_id: &'static str,
     semantic_surface: &'static str,
 ) -> ObserverSpecializationContract {
-    ObserverSpecializationContract {
-        stage_id,
-        tool_id,
-        semantic_surface,
-    }
+    ObserverSpecializationContract { stage_id, tool_id, semantic_surface }
 }
 
 #[must_use]
@@ -28,11 +24,9 @@ fn specialization_contracts() -> &'static Vec<ObserverSpecializationContract> {
     static CONTRACTS: OnceLock<Vec<ObserverSpecializationContract>> = OnceLock::new();
     CONTRACTS.get_or_init(|| {
         let mut all = Vec::new();
-        for group in [
-            super::core::CONTRACTS,
-            super::transform::CONTRACTS,
-            super::amplicon::CONTRACTS,
-        ] {
+        for group in
+            [super::core::CONTRACTS, super::transform::CONTRACTS, super::amplicon::CONTRACTS]
+        {
             all.extend_from_slice(group);
         }
         all

@@ -17,13 +17,8 @@ fn tool_for_stage(stage: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool_id),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/dummy:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), stage.to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), stage.to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -47,10 +42,7 @@ fn binding_for_stage(stage: &str) -> FastqStageBinding {
 fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
     let pipeline = default_pipeline_spec(DefaultPipelineOptions::default());
     let stages = pipeline.ordered_stage_ids();
-    let bindings = stages
-        .iter()
-        .map(|stage| binding_for_stage(stage))
-        .collect::<Vec<_>>();
+    let bindings = stages.iter().map(|stage| binding_for_stage(stage)).collect::<Vec<_>>();
     let temp = bijux_dna_infra::temp_dir("fastq-plan-handshake")?;
     let r1 = temp.path().join("reads_R1.fastq");
     std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
@@ -67,10 +59,7 @@ fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
         None,
         None,
         |binding, _r1, _r2| {
-            Ok(temp
-                .path()
-                .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str()))
+            Ok(temp.path().join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
         },
     )?;
     let edges = default_edges_for_stages(&plans);
@@ -96,14 +85,8 @@ fn fastq_plan_validates_against_contracts() -> anyhow::Result<()> {
 
 #[test]
 fn reference_guided_plan_validates_index_to_depletion_flow() -> anyhow::Result<()> {
-    let stages = [
-        "fastq.index_reference".to_string(),
-        "fastq.deplete_host".to_string(),
-    ];
-    let bindings = stages
-        .iter()
-        .map(|stage| binding_for_stage(stage))
-        .collect::<Vec<_>>();
+    let stages = ["fastq.index_reference".to_string(), "fastq.deplete_host".to_string()];
+    let bindings = stages.iter().map(|stage| binding_for_stage(stage)).collect::<Vec<_>>();
     let temp = bijux_dna_infra::temp_dir("fastq-plan-reference-handshake")?;
     let r1 = temp.path().join("reads_R1.fastq");
     let reference = temp.path().join("reference.fa");
@@ -122,10 +105,7 @@ fn reference_guided_plan_validates_index_to_depletion_flow() -> anyhow::Result<(
         Some(&reference),
         None,
         |binding, _r1, _r2| {
-            Ok(temp
-                .path()
-                .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str()))
+            Ok(temp.path().join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
         },
     )?;
 
@@ -187,10 +167,7 @@ fn reference_guided_plan_rejects_incompatible_index_backend() -> anyhow::Result<
         Some(&reference),
         None,
         |binding, _r1, _r2| {
-            Ok(temp
-                .path()
-                .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str()))
+            Ok(temp.path().join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
         },
     )
     .expect_err("STAR index must not satisfy bowtie2 depletion");

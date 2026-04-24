@@ -12,13 +12,8 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool),
         tool_version: "1.0.0".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: Vec::new(),
-        },
+        image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: Vec::new() },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -32,10 +27,7 @@ fn templated_tool(tool: &str, template: &[&str]) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool),
         tool_version: "1.0.0".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
-            digest: None,
-        },
+        image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
         command: CommandSpecV1 {
             template: template.iter().map(|part| (*part).to_string()).collect(),
         },
@@ -79,19 +71,13 @@ fn plan_trim_builds_expected_paths() -> Result<()> {
         None,
         None,
     )?;
-    assert_eq!(
-        plan.io.outputs[0].path.to_string_lossy(),
-        "out/fastp.fastq.gz"
-    );
+    assert_eq!(plan.io.outputs[0].path.to_string_lossy(), "out/fastp.fastq.gz");
     assert_eq!(plan.io.outputs[0].name.as_str(), "trimmed_reads_r1");
     assert_eq!(plan.io.outputs[1].name.as_str(), "report_json");
     assert_eq!(plan.params["min_length"], serde_json::json!(30));
     assert_eq!(plan.params["n_policy"], serde_json::json!("retain"));
     assert_eq!(plan.effective_params["min_len"], serde_json::json!(30));
-    assert_eq!(
-        plan.effective_params["n_policy"],
-        serde_json::json!("retain")
-    );
+    assert_eq!(plan.effective_params["n_policy"], serde_json::json!("retain"));
     Ok(())
 }
 
@@ -116,13 +102,7 @@ fn plan_trim_supports_filter_style_manifest_placeholders_for_governed_tools() ->
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
         &templated_tool(
             "seqkit",
-            &[
-                "seqkit",
-                "seq",
-                "-o",
-                "{{filtered_reads_r1}}",
-                "{{reads_r1}}",
-            ],
+            &["seqkit", "seq", "-o", "{{filtered_reads_r1}}", "{{reads_r1}}"],
         ),
         std::path::Path::new("reads.fastq.gz"),
         None,
@@ -175,14 +155,8 @@ fn plan_trim_prinseq_preserves_paired_outputs() -> Result<()> {
         None,
     )?;
 
-    assert_eq!(
-        plan.io.outputs[0].path.to_string_lossy(),
-        "out/R1.prinseq_good.fastq"
-    );
-    assert_eq!(
-        plan.io.outputs[1].path.to_string_lossy(),
-        "out/R2.prinseq_good.fastq"
-    );
+    assert_eq!(plan.io.outputs[0].path.to_string_lossy(), "out/R1.prinseq_good.fastq");
+    assert_eq!(plan.io.outputs[1].path.to_string_lossy(), "out/R2.prinseq_good.fastq");
     let script = &plan.command.template[2];
     assert!(script.contains("-fastq2"));
     assert!(script.contains("-out_good2"));
@@ -328,10 +302,7 @@ fn plan_trim_polyg_preserves_paired_output_names() -> Result<()> {
     let script = &plan.command.template[2];
     assert!(script.contains("--in2"));
     assert!(script.contains("--out2"));
-    assert_eq!(
-        plan.effective_params["schema_version"],
-        TRIM_POLYG_TAILS_SCHEMA_VERSION
-    );
+    assert_eq!(plan.effective_params["schema_version"], TRIM_POLYG_TAILS_SCHEMA_VERSION);
     assert_eq!(plan.effective_params["trim_polyg"], true);
     assert_eq!(plan.effective_params["min_polyg_run"], 10);
     Ok(())
@@ -362,10 +333,7 @@ fn plan_trim_with_options_maps_length_and_quality_for_fastp() -> Result<()> {
     assert_eq!(plan.params["quality_cutoff"], serde_json::json!(18));
     assert_eq!(plan.effective_params["min_len"], serde_json::json!(42));
     assert_eq!(plan.effective_params["q_cutoff"], serde_json::json!(18));
-    assert_eq!(
-        plan.effective_params["n_policy"],
-        serde_json::json!("retain")
-    );
+    assert_eq!(plan.effective_params["n_policy"], serde_json::json!("retain"));
     let script = &plan.command.template[2];
     assert!(script.contains("'--length_required' '42'"));
     assert!(script.contains("'--qualified_quality_phred' '18'"));
@@ -384,20 +352,19 @@ fn plan_trim_fastp_preserves_native_json_beside_governed_report() -> Result<()> 
         None,
     )?;
 
-    assert!(plan
-        .command
-        .template
-        .iter()
-        .any(|part| part.contains("trim_report.fastp.json")));
+    assert!(plan.command.template.iter().any(|part| part.contains("trim_report.fastp.json")));
     assert!(plan.command.template[2]
         .contains("\"schema_version\":\"bijux.fastq.trim_reads.report.v2\""));
     assert!(plan.command.template[2].contains("\"raw_backend_report_format\":\"fastp_json\""));
     assert!(
         plan.command.template[2].contains("\"raw_backend_report\":\"out/trim_report.fastp.json\"")
     );
-    assert!(plan.io.outputs.iter().any(|artifact| artifact.name.as_str()
-        == "raw_backend_report_json"
-        && artifact.path == std::path::Path::new("out/trim_report.fastp.json")));
+    assert!(plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"
+            && artifact.path == std::path::Path::new("out/trim_report.fastp.json")));
     assert!(plan.command.template[2].contains("\"polyx_policy\":\"none\""));
     assert!(plan.command.template[2].contains("\"n_policy\":\"retain\""));
     assert!(plan.command.template[2].contains("\"contaminant_policy\":\"none\""));
@@ -536,11 +503,7 @@ fn plan_trim_with_drop_n_policy_maps_backend_specific_n_filters() -> Result<()> 
 fn validate_trim_toolset_support_reports_all_incompatible_tools() {
     let error =
         bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::validate_trim_toolset_support(
-            &[
-                "seqpurge".to_string(),
-                "seqkit".to_string(),
-                "trimmomatic".to_string(),
-            ],
+            &["seqpurge".to_string(), "seqkit".to_string(), "trimmomatic".to_string()],
             false,
             &bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::TrimPlanOptions {
                 threads: None,
@@ -715,9 +678,7 @@ fn plan_trim_rejects_nondefault_quality_controls_for_unmapped_backends() {
     )
     .expect_err("seqkit trim planning should reject unmapped non-default stage controls");
 
-    assert!(error
-        .to_string()
-        .contains("does not yet map min_length/quality_cutoff"));
+    assert!(error.to_string().contains("does not yet map min_length/quality_cutoff"));
 }
 
 #[test]
@@ -742,9 +703,7 @@ fn plan_trim_with_options_rejects_contaminant_handoffs_without_execution_support
     )
     .expect_err("trim_reads should reject contaminant handoffs that do not drive execution");
 
-    assert!(error
-        .to_string()
-        .contains("use fastq.deplete_reference_contaminants"));
+    assert!(error.to_string().contains("use fastq.deplete_reference_contaminants"));
 }
 
 #[test]
@@ -787,9 +746,12 @@ fn plan_trim_with_bank_contaminant_policy_maps_bbduk_reference_filter() -> Resul
     assert!(script.contains("maxns=0"));
     assert!(script.contains("k=31"));
     assert!(script.contains("\"raw_backend_report_format\":\"bbduk_stats\""));
-    assert!(plan.io.outputs.iter().any(|artifact| artifact.name.as_str()
-        == "raw_backend_report_txt"
-        && artifact.path == std::path::Path::new("out/trim_report.bbduk.stats.txt")));
+    assert!(plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "raw_backend_report_txt"
+            && artifact.path == std::path::Path::new("out/trim_report.bbduk.stats.txt")));
     Ok(())
 }
 
@@ -810,9 +772,12 @@ fn plan_trim_cutadapt_preserves_native_json_beside_governed_report() -> Result<(
     assert!(script.contains("'--json' 'out/trim_report.cutadapt.json'"));
     assert!(script.contains("\"raw_backend_report_format\":\"cutadapt_json\""));
     assert!(script.contains("\"raw_backend_report\":\"out/trim_report.cutadapt.json\""));
-    assert!(plan.io.outputs.iter().any(|artifact| artifact.name.as_str()
-        == "raw_backend_report_json"
-        && artifact.path == std::path::Path::new("out/trim_report.cutadapt.json")));
+    assert!(plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"
+            && artifact.path == std::path::Path::new("out/trim_report.cutadapt.json")));
     Ok(())
 }
 
@@ -847,10 +812,7 @@ fn plan_trim_with_bank_policy_maps_explicit_adapters_for_fastp() -> Result<()> {
     )?;
 
     assert_eq!(plan.params["adapter_policy"], serde_json::json!("bank"));
-    assert_eq!(
-        plan.params["adapter_bank"]["enabled_entries"][0]["sequence"],
-        "ACGTACGT"
-    );
+    assert_eq!(plan.params["adapter_bank"]["enabled_entries"][0]["sequence"], "ACGTACGT");
     let script = &plan.command.template[2];
     assert!(script.contains("'--adapter_sequence' 'ACGTACGT'"));
     assert!(script.contains("'--adapter_sequence_r2' 'TGCATGCA'"));
@@ -940,9 +902,7 @@ fn plan_trim_rejects_contaminant_policy_without_a_contaminant_stage() {
         "trim_reads should refuse contaminant_policy handoffs that do not change execution",
     );
 
-    assert!(error
-        .to_string()
-        .contains("use fastq.deplete_reference_contaminants"));
+    assert!(error.to_string().contains("use fastq.deplete_reference_contaminants"));
 }
 
 #[test]
@@ -970,10 +930,8 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
         .io
         .outputs
         .iter()
-        .any(
-            |artifact| artifact.name.as_str() == "raw_backend_report_json"
-                && artifact.path == std::path::Path::new("out/trim_polyg_tails_report.fastp.json")
-        ));
+        .any(|artifact| artifact.name.as_str() == "raw_backend_report_json"
+            && artifact.path == std::path::Path::new("out/trim_polyg_tails_report.fastp.json")));
 
     let bbduk_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails_with_options(
         &dummy_tool("bbduk"),
@@ -986,11 +944,7 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
             min_polyg_run: 14,
         },
     )?;
-    assert!(bbduk_plan
-        .command
-        .template
-        .iter()
-        .any(|part| part.contains("trimpolygright=14")));
+    assert!(bbduk_plan.command.template.iter().any(|part| part.contains("trimpolygright=14")));
     assert_eq!(bbduk_plan.command.template[0], "sh");
     assert_eq!(bbduk_plan.command.template[1], "-lc");
     let script = &bbduk_plan.command.template[2];
@@ -1003,10 +957,8 @@ fn plan_trim_polyg_uses_configured_min_run_for_backends() -> Result<()> {
         .io
         .outputs
         .iter()
-        .any(
-            |artifact| artifact.name.as_str() == "raw_backend_report_txt"
-                && artifact.path == std::path::Path::new("out/trim_polyg_tails_report.stats.txt")
-        ));
+        .any(|artifact| artifact.name.as_str() == "raw_backend_report_txt"
+            && artifact.path == std::path::Path::new("out/trim_polyg_tails_report.stats.txt")));
     Ok(())
 }
 
@@ -1025,11 +977,7 @@ fn plan_trim_polyg_can_disable_polyg_flag_for_bench_comparisons() -> Result<()> 
     )?;
     assert_eq!(fastp_plan.params["trim_polyg"], false);
     assert_eq!(fastp_plan.effective_params["trim_polyg"], false);
-    assert!(!fastp_plan
-        .command
-        .template
-        .iter()
-        .any(|part| part == "--trim_poly_g"));
+    assert!(!fastp_plan.command.template.iter().any(|part| part == "--trim_poly_g"));
 
     let bbduk_plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_polyg_tails::plan_trim_polyg_tails_with_options(
         &dummy_tool("bbduk"),
@@ -1067,10 +1015,7 @@ fn plan_trim_terminal_damage_preserves_paired_output_names() -> Result<()> {
     assert!(script.contains(
         "-p 'out/R2.trim_terminal_damage.cutadapt.fastq.gz' 'reads_R1.fastq.gz' 'reads_R2.fastq.gz'"
     ));
-    assert_eq!(
-        plan.effective_params["schema_version"],
-        TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION
-    );
+    assert_eq!(plan.effective_params["schema_version"], TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION);
     assert_eq!(
         serde_json::from_value::<DamageMode>(plan.effective_params["damage_mode"].clone())?,
         DamageMode::Ancient
@@ -1191,17 +1136,13 @@ fn plan_trim_terminal_damage_rejects_unknown_damage_mode() {
     )
     .expect_err("unknown damage_mode must fail fast");
 
-    assert!(error
-        .to_string()
-        .contains("invalid fastq.trim_terminal_damage damage_mode"));
+    assert!(error.to_string().contains("invalid fastq.trim_terminal_damage damage_mode"));
 }
 
 #[test]
 fn plan_trim_wraps_generic_backends_with_normalized_report_json() -> Result<()> {
-    let tool = templated_tool(
-        "cutadapt",
-        &["cutadapt", "-o", "{{trimmed_reads_r1}}", "{{reads_r1}}"],
-    );
+    let tool =
+        templated_tool("cutadapt", &["cutadapt", "-o", "{{trimmed_reads_r1}}", "{{reads_r1}}"]);
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::trim_reads::plan(
         &tool,
         std::path::Path::new("reads.fastq.gz"),

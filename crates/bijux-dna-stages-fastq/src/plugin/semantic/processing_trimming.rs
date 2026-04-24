@@ -13,44 +13,23 @@ pub(super) fn observed_trimming_metrics(
             if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_trim_reads_report(&raw_report) {
                     let mut semantics = serde_json::Map::from_iter([
-                        (
-                            "paired_mode".to_string(),
-                            serde_json::json!(report.paired_mode),
-                        ),
+                        ("paired_mode".to_string(), serde_json::json!(report.paired_mode)),
                         ("threads".to_string(), serde_json::json!(report.threads)),
-                        (
-                            "min_length".to_string(),
-                            serde_json::json!(report.min_length),
-                        ),
-                        (
-                            "quality_cutoff".to_string(),
-                            serde_json::json!(report.quality_cutoff),
-                        ),
-                        (
-                            "adapter_policy".to_string(),
-                            serde_json::json!(report.adapter_policy),
-                        ),
+                        ("min_length".to_string(), serde_json::json!(report.min_length)),
+                        ("quality_cutoff".to_string(), serde_json::json!(report.quality_cutoff)),
+                        ("adapter_policy".to_string(), serde_json::json!(report.adapter_policy)),
                         (
                             "adapter_overrides".to_string(),
                             serde_json::json!(report.adapter_overrides),
                         ),
-                        (
-                            "polyx_policy".to_string(),
-                            serde_json::json!(report.polyx_policy),
-                        ),
+                        ("polyx_policy".to_string(), serde_json::json!(report.polyx_policy)),
                         ("n_policy".to_string(), serde_json::json!(report.n_policy)),
                         (
                             "contaminant_policy".to_string(),
                             serde_json::json!(report.contaminant_policy),
                         ),
-                        (
-                            "adapter_bank_id".to_string(),
-                            serde_json::json!(report.adapter_bank_id),
-                        ),
-                        (
-                            "polyx_bank_id".to_string(),
-                            serde_json::json!(report.polyx_bank_id),
-                        ),
+                        ("adapter_bank_id".to_string(), serde_json::json!(report.adapter_bank_id)),
+                        ("polyx_bank_id".to_string(), serde_json::json!(report.polyx_bank_id)),
                         (
                             "contaminant_bank_id".to_string(),
                             serde_json::json!(report.contaminant_bank_id),
@@ -61,14 +40,8 @@ pub(super) fn observed_trimming_metrics(
                         ("bases_out".to_string(), serde_json::json!(report.bases_out)),
                         ("pairs_in".to_string(), serde_json::json!(report.pairs_in)),
                         ("pairs_out".to_string(), serde_json::json!(report.pairs_out)),
-                        (
-                            "mean_q_before".to_string(),
-                            serde_json::json!(report.mean_q_before),
-                        ),
-                        (
-                            "mean_q_after".to_string(),
-                            serde_json::json!(report.mean_q_after),
-                        ),
+                        ("mean_q_before".to_string(), serde_json::json!(report.mean_q_before)),
+                        ("mean_q_after".to_string(), serde_json::json!(report.mean_q_after)),
                         (
                             "raw_backend_report_format".to_string(),
                             serde_json::json!(report.raw_backend_report_format),
@@ -128,19 +101,13 @@ pub(super) fn observed_trimming_metrics(
             if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_filter_low_complexity_report(&raw_report) {
                     let mut semantics = serde_json::Map::from_iter([
-                        (
-                            "paired_mode".to_string(),
-                            serde_json::json!(report.paired_mode),
-                        ),
+                        ("paired_mode".to_string(), serde_json::json!(report.paired_mode)),
                         ("threads".to_string(), serde_json::json!(report.threads)),
                         (
                             "entropy_threshold".to_string(),
                             serde_json::json!(report.entropy_threshold),
                         ),
-                        (
-                            "polyx_threshold".to_string(),
-                            serde_json::json!(report.polyx_threshold),
-                        ),
+                        ("polyx_threshold".to_string(), serde_json::json!(report.polyx_threshold)),
                         ("reads_in".to_string(), serde_json::json!(report.reads_in)),
                         ("reads_out".to_string(), serde_json::json!(report.reads_out)),
                         (
@@ -149,23 +116,15 @@ pub(super) fn observed_trimming_metrics(
                         ),
                         ("bases_in".to_string(), serde_json::json!(report.bases_in)),
                         ("bases_out".to_string(), serde_json::json!(report.bases_out)),
-                        (
-                            "mean_q_before".to_string(),
-                            serde_json::json!(report.mean_q_before),
-                        ),
-                        (
-                            "mean_q_after".to_string(),
-                            serde_json::json!(report.mean_q_after),
-                        ),
+                        ("mean_q_before".to_string(), serde_json::json!(report.mean_q_before)),
+                        ("mean_q_after".to_string(), serde_json::json!(report.mean_q_after)),
                         (
                             "raw_backend_report_format".to_string(),
                             serde_json::json!(report.raw_backend_report_format),
                         ),
                     ]);
-                    if let Some(backend_metrics) = report
-                        .backend_metrics
-                        .as_ref()
-                        .and_then(serde_json::Value::as_object)
+                    if let Some(backend_metrics) =
+                        report.backend_metrics.as_ref().and_then(serde_json::Value::as_object)
                     {
                         for (metric_name, metric_value) in backend_metrics {
                             semantics.insert(metric_name.clone(), metric_value.clone());
@@ -185,20 +144,11 @@ pub(super) fn observed_trimming_metrics(
             if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_filter_reads_report(&raw_report) {
                     let mut semantics = serde_json::Map::from_iter([
-                        (
-                            "paired_mode".to_string(),
-                            serde_json::json!(report.paired_mode),
-                        ),
+                        ("paired_mode".to_string(), serde_json::json!(report.paired_mode)),
                         ("threads".to_string(), serde_json::json!(report.threads)),
                         ("max_n".to_string(), serde_json::json!(report.max_n)),
-                        (
-                            "max_n_fraction".to_string(),
-                            serde_json::json!(report.max_n_fraction),
-                        ),
-                        (
-                            "max_n_count".to_string(),
-                            serde_json::json!(report.max_n_count),
-                        ),
+                        ("max_n_fraction".to_string(), serde_json::json!(report.max_n_fraction)),
+                        ("max_n_count".to_string(), serde_json::json!(report.max_n_count)),
                         (
                             "low_complexity_threshold".to_string(),
                             serde_json::json!(report.low_complexity_threshold),
@@ -208,20 +158,11 @@ pub(super) fn observed_trimming_metrics(
                             serde_json::json!(report.entropy_threshold),
                         ),
                         ("n_policy".to_string(), serde_json::json!(report.n_policy)),
-                        (
-                            "polyx_policy".to_string(),
-                            serde_json::json!(report.polyx_policy),
-                        ),
-                        (
-                            "contaminant_db".to_string(),
-                            serde_json::json!(report.contaminant_db),
-                        ),
+                        ("polyx_policy".to_string(), serde_json::json!(report.polyx_policy)),
+                        ("contaminant_db".to_string(), serde_json::json!(report.contaminant_db)),
                         ("reads_in".to_string(), serde_json::json!(report.reads_in)),
                         ("reads_out".to_string(), serde_json::json!(report.reads_out)),
-                        (
-                            "reads_dropped".to_string(),
-                            serde_json::json!(report.reads_dropped),
-                        ),
+                        ("reads_dropped".to_string(), serde_json::json!(report.reads_dropped)),
                         (
                             "reads_removed_by_n".to_string(),
                             serde_json::json!(report.reads_removed_by_n),
@@ -250,23 +191,15 @@ pub(super) fn observed_trimming_metrics(
                         ("bases_out".to_string(), serde_json::json!(report.bases_out)),
                         ("pairs_in".to_string(), serde_json::json!(report.pairs_in)),
                         ("pairs_out".to_string(), serde_json::json!(report.pairs_out)),
-                        (
-                            "mean_q_before".to_string(),
-                            serde_json::json!(report.mean_q_before),
-                        ),
-                        (
-                            "mean_q_after".to_string(),
-                            serde_json::json!(report.mean_q_after),
-                        ),
+                        ("mean_q_before".to_string(), serde_json::json!(report.mean_q_before)),
+                        ("mean_q_after".to_string(), serde_json::json!(report.mean_q_after)),
                         (
                             "raw_backend_report_format".to_string(),
                             serde_json::json!(report.raw_backend_report_format),
                         ),
                     ]);
-                    if let Some(backend_metrics) = report
-                        .backend_metrics
-                        .as_ref()
-                        .and_then(serde_json::Value::as_object)
+                    if let Some(backend_metrics) =
+                        report.backend_metrics.as_ref().and_then(serde_json::Value::as_object)
                     {
                         for (metric_name, metric_value) in backend_metrics {
                             if metric_name == "schema_version" {
@@ -358,35 +291,17 @@ pub(super) fn observed_trimming_metrics(
             if let Ok(raw_report) = fs::read_to_string(report_path) {
                 if let Ok(report) = parse_trim_polyg_report(&raw_report) {
                     let mut semantics = serde_json::Map::from_iter([
-                        (
-                            "paired_mode".to_string(),
-                            serde_json::json!(report.paired_mode),
-                        ),
+                        ("paired_mode".to_string(), serde_json::json!(report.paired_mode)),
                         ("threads".to_string(), serde_json::json!(report.threads)),
-                        (
-                            "trim_polyg".to_string(),
-                            serde_json::json!(report.trim_polyg),
-                        ),
-                        (
-                            "min_polyg_run".to_string(),
-                            serde_json::json!(report.min_polyg_run),
-                        ),
+                        ("trim_polyg".to_string(), serde_json::json!(report.trim_polyg)),
+                        ("min_polyg_run".to_string(), serde_json::json!(report.min_polyg_run)),
                         (
                             "bases_trimmed_polyg".to_string(),
                             serde_json::json!(report.bases_trimmed_polyg),
                         ),
-                        (
-                            "polyx_bank_id".to_string(),
-                            serde_json::json!(report.polyx_bank_id),
-                        ),
-                        (
-                            "polyx_bank_hash".to_string(),
-                            serde_json::json!(report.polyx_bank_hash),
-                        ),
-                        (
-                            "polyx_preset".to_string(),
-                            serde_json::json!(report.polyx_preset),
-                        ),
+                        ("polyx_bank_id".to_string(), serde_json::json!(report.polyx_bank_id)),
+                        ("polyx_bank_hash".to_string(), serde_json::json!(report.polyx_bank_hash)),
+                        ("polyx_preset".to_string(), serde_json::json!(report.polyx_preset)),
                         (
                             "raw_backend_report".to_string(),
                             serde_json::json!(report.raw_backend_report),
@@ -396,10 +311,8 @@ pub(super) fn observed_trimming_metrics(
                             serde_json::json!(report.raw_backend_report_format),
                         ),
                     ]);
-                    if let Some(backend_metrics) = report
-                        .backend_metrics
-                        .as_ref()
-                        .and_then(serde_json::Value::as_object)
+                    if let Some(backend_metrics) =
+                        report.backend_metrics.as_ref().and_then(serde_json::Value::as_object)
                     {
                         for (metric_name, metric_value) in backend_metrics {
                             if metric_name == "schema_version" {

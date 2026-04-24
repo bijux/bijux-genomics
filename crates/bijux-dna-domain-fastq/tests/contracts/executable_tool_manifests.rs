@@ -21,9 +21,7 @@ fn governed_execution_tools_publish_complete_execution_contracts() -> Result<()>
     for tool_id in ["fastuniq", "clumpify", "trim_galore"] {
         let manifest = tool_manifest(tool_id)?;
         assert_eq!(
-            manifest
-                .get("schema_version")
-                .and_then(serde_json::Value::as_str),
+            manifest.get("schema_version").and_then(serde_json::Value::as_str),
             Some("bijux.tool.v1"),
             "{tool_id} must publish the governed execution manifest schema",
         );
@@ -51,10 +49,7 @@ fn governed_execution_tools_publish_complete_execution_contracts() -> Result<()>
             "{tool_id} must declare governed outputs",
         );
         assert!(
-            manifest
-                .get("constraints")
-                .and_then(serde_json::Value::as_object)
-                .is_some(),
+            manifest.get("constraints").and_then(serde_json::Value::as_object).is_some(),
             "{tool_id} must declare execution constraints",
         );
         let execution_contract = manifest

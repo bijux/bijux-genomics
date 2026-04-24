@@ -9,13 +9,8 @@ fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool_id.to_string()),
         tool_version: "fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/test:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec![tool_id.to_string(), "{{reads_r1}}".to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec![tool_id.to_string(), "{{reads_r1}}".to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -137,12 +132,8 @@ fn read_key(record: &FastqRecord) -> String {
 
 fn sequence_distance(lhs: &str, rhs: &str) -> usize {
     let overlap = lhs.len().min(rhs.len());
-    let mismatches = lhs
-        .chars()
-        .zip(rhs.chars())
-        .take(overlap)
-        .filter(|(left, right)| left != right)
-        .count();
+    let mismatches =
+        lhs.chars().zip(rhs.chars()).take(overlap).filter(|(left, right)| left != right).count();
     mismatches + lhs.len().max(rhs.len()) - overlap
 }
 
@@ -163,10 +154,7 @@ fn reconstruct_bayeshammer_pairs(
         .collect::<std::collections::BTreeMap<_, _>>();
     let mut unpaired_by_key = std::collections::BTreeMap::<String, Vec<FastqRecord>>::new();
     for record in unpaired {
-        unpaired_by_key
-            .entry(read_key(&record))
-            .or_default()
-            .push(record);
+        unpaired_by_key.entry(read_key(&record)).or_default().push(record);
     }
 
     let mut reconstructed_r1 = Vec::new();

@@ -213,24 +213,12 @@ fn low_complexity_command_template(
             ("reads_r2", r2.map(|path| path.display().to_string())),
             ("filtered_reads", Some(output_r1.display().to_string())),
             ("filtered_reads_r1", Some(output_r1.display().to_string())),
-            (
-                "filtered_reads_r2",
-                output_r2.map(|path| path.display().to_string()),
-            ),
+            ("filtered_reads_r2", output_r2.map(|path| path.display().to_string())),
             ("filtered_fastq", Some(output_r1.display().to_string())),
             ("filtered_fastq_r1", Some(output_r1.display().to_string())),
-            (
-                "filtered_fastq_r2",
-                output_r2.map(|path| path.display().to_string()),
-            ),
-            (
-                "filter_report_json",
-                Some(report_json.display().to_string()),
-            ),
-            (
-                "raw_backend_report",
-                raw_backend_report.map(|path| path.display().to_string()),
-            ),
+            ("filtered_fastq_r2", output_r2.map(|path| path.display().to_string())),
+            ("filter_report_json", Some(report_json.display().to_string())),
+            ("raw_backend_report", raw_backend_report.map(|path| path.display().to_string())),
         ],
     )
 }
@@ -240,10 +228,7 @@ fn raw_backend_report_contract(
     out_dir: &Path,
 ) -> (Option<PathBuf>, Option<&'static str>) {
     match tool {
-        "bbduk" => (
-            Some(out_dir.join("bbduk.low_complexity.stats")),
-            Some("bbduk_stats"),
-        ),
+        "bbduk" => (Some(out_dir.join("bbduk.low_complexity.stats")), Some("bbduk_stats")),
         _ => (None, None),
     }
 }
@@ -272,13 +257,8 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::new(tool_id.to_string()),
             tool_version: "test".to_string(),
-            image: ContainerImageRefV1 {
-                image: format!("example/{tool_id}"),
-                digest: None,
-            },
-            command: CommandSpecV1 {
-                template: vec!["placeholder".to_string()],
-            },
+            image: ContainerImageRefV1 { image: format!("example/{tool_id}"), digest: None },
+            command: CommandSpecV1 { template: vec!["placeholder".to_string()] },
             resources: ToolConstraints {
                 runtime: "docker".to_string(),
                 mem_gb: 1,
@@ -301,22 +281,11 @@ mod tests {
             Path::new("reads.fastq.gz"),
             None,
             Path::new("out"),
-            &LowComplexityPlanOptions {
-                entropy_threshold: Some(0.8),
-                polyx_threshold: Some(24),
-            },
+            &LowComplexityPlanOptions { entropy_threshold: Some(0.8), polyx_threshold: Some(24) },
         )
         .expect("plan");
-        assert!(plan
-            .command
-            .template
-            .iter()
-            .any(|token| token == "entropy=0.8"));
-        assert!(plan
-            .command
-            .template
-            .iter()
-            .any(|token| token == "maxpoly=24"));
+        assert!(plan.command.template.iter().any(|token| token == "entropy=0.8"));
+        assert!(plan.command.template.iter().any(|token| token == "maxpoly=24"));
     }
 
     #[test]
@@ -326,15 +295,10 @@ mod tests {
             Path::new("reads.fastq.gz"),
             None,
             Path::new("out"),
-            &LowComplexityPlanOptions {
-                entropy_threshold: Some(0.5),
-                polyx_threshold: Some(20),
-            },
+            &LowComplexityPlanOptions { entropy_threshold: Some(0.5), polyx_threshold: Some(20) },
         )
         .expect_err("explicit polyx threshold should fail");
-        assert!(error
-            .to_string()
-            .contains("does not support explicit polyx_threshold"));
+        assert!(error.to_string().contains("does not support explicit polyx_threshold"));
     }
 
     #[test]
@@ -347,10 +311,6 @@ mod tests {
             &LowComplexityPlanOptions::default(),
         )
         .expect("plan");
-        assert!(plan
-            .command
-            .template
-            .windows(2)
-            .any(|window| window == ["-lc_entropy", "0.5"]));
+        assert!(plan.command.template.windows(2).any(|window| window == ["-lc_entropy", "0.5"]));
     }
 }

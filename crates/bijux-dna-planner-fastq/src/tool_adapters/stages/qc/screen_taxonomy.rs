@@ -89,11 +89,7 @@ pub fn plan_screen_with_effective_params(
     normalize_screen_tool_list(std::slice::from_ref(&tool_id))?;
     let outputs = taxonomy_outputs(&tool.tool_id.0, out_dir)?;
     let (classifier, report_format, assignment_format) = classifier_contract(&tool.tool_id.0)?;
-    let paired_mode = if r2.is_some() {
-        PairedMode::PairedEnd
-    } else {
-        PairedMode::SingleEnd
-    };
+    let paired_mode = if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
     let mut effective_params = effective_params.clone();
     if effective_params.schema_version.trim().is_empty() {
         effective_params.schema_version = SCREEN_TAXONOMY_SCHEMA_VERSION.to_string();
@@ -288,14 +284,9 @@ fn screen_command_template(
                 ("threads", Some(effective_params.threads.to_string())),
             ],
         )?;
-        let command = rendered
-            .into_iter()
-            .filter(|token| !token.is_empty())
-            .collect::<Vec<_>>();
+        let command = rendered.into_iter().filter(|token| !token.is_empty()).collect::<Vec<_>>();
         if command.is_empty() {
-            return Err(anyhow!(
-                "screen taxonomy command template resolved to an empty command"
-            ));
+            return Err(anyhow!("screen taxonomy command template resolved to an empty command"));
         }
         shell_join(&command)
     };
@@ -458,19 +449,12 @@ fn centrifuge_screen_script(
     };
     let reads_clause = if r2.is_some() {
         let r2_input = r2_input.expect("paired centrifuge input must be present");
-        format!(
-            "-1 {} -2 {}",
-            shell_quote_path(&r1_input),
-            shell_quote_path(&r2_input),
-        )
+        format!("-1 {} -2 {}", shell_quote_path(&r1_input), shell_quote_path(&r2_input),)
     } else {
         format!("-U {}", shell_quote_path(&r1_input))
     };
-    let cleanup_clause = if cleanup.is_empty() {
-        String::new()
-    } else {
-        format!("rm -f {}\n", cleanup.join(" "))
-    };
+    let cleanup_clause =
+        if cleanup.is_empty() { String::new() } else { format!("rm -f {}\n", cleanup.join(" ")) };
     format!(
         "mkdir -p {db_root}\n\
          {prelude}\
@@ -570,11 +554,7 @@ fn taxonomy_outputs(tool_id: &str, out_dir: &Path) -> Result<TaxonomyOutputs> {
 
 fn classifier_contract(
     tool_id: &str,
-) -> Result<(
-    TaxonomyClassifier,
-    TaxonomyReportFormat,
-    TaxonomyAssignmentFormat,
-)> {
+) -> Result<(TaxonomyClassifier, TaxonomyReportFormat, TaxonomyAssignmentFormat)> {
     let contract = match tool_id {
         "kraken2" => (
             TaxonomyClassifier::Kraken2,
@@ -602,11 +582,7 @@ fn classifier_contract(
 }
 
 fn shell_join(command: &[String]) -> String {
-    command
-        .iter()
-        .map(|part| shell_quote_str(part))
-        .collect::<Vec<_>>()
-        .join(" ")
+    command.iter().map(|part| shell_quote_str(part)).collect::<Vec<_>>().join(" ")
 }
 
 fn shell_quote_path(path: &Path) -> String {
@@ -618,9 +594,7 @@ fn shell_quote_str(value: &str) -> String {
 }
 
 fn is_gzip_input(path: &Path) -> bool {
-    path.file_name()
-        .and_then(|name| name.to_str())
-        .is_some_and(|name| name.ends_with(".gz"))
+    path.file_name().and_then(|name| name.to_str()).is_some_and(|name| name.ends_with(".gz"))
 }
 
 #[cfg(test)]
@@ -644,9 +618,7 @@ mod tests {
                 image: format!("ghcr.io/bijux/{tool_id}:latest"),
                 digest: Some("sha256:test".to_string()),
             },
-            command: CommandSpecV1 {
-                template: vec![tool_id.to_string()],
-            },
+            command: CommandSpecV1 { template: vec![tool_id.to_string()] },
             resources: ToolConstraints {
                 runtime: "local".to_string(),
                 mem_gb: 4,

@@ -21,23 +21,16 @@ fn parse_legacy_profile_read_lengths_report(
         .into_iter()
         .flatten()
         .filter_map(|entry| {
-            let read_length = entry
-                .get("read_length")
-                .and_then(serde_json::Value::as_u64)?;
+            let read_length = entry.get("read_length").and_then(serde_json::Value::as_u64)?;
             let count = entry.get("count").and_then(serde_json::Value::as_u64)?;
             Some(ProfileReadLengthBinV1 { read_length, count })
         })
         .collect::<Vec<_>>();
     let read_count = histogram.iter().map(|bin| bin.count).sum::<u64>();
-    let total_length = histogram
-        .iter()
-        .map(|bin| bin.read_length.saturating_mul(bin.count))
-        .sum::<u64>();
-    let mean_read_length = if read_count == 0 {
-        0.0
-    } else {
-        u64_to_f64(total_length) / u64_to_f64(read_count)
-    };
+    let total_length =
+        histogram.iter().map(|bin| bin.read_length.saturating_mul(bin.count)).sum::<u64>();
+    let mean_read_length =
+        if read_count == 0 { 0.0 } else { u64_to_f64(total_length) / u64_to_f64(read_count) };
     Ok(ProfileReadLengthsReportV1 {
         schema_version: "bijux.fastq.profile_read_lengths.report.v1_legacy".to_string(),
         stage: "fastq.profile_read_lengths".to_string(),
@@ -64,11 +57,7 @@ fn parse_legacy_profile_read_lengths_report(
         report_json: String::new(),
         read_count,
         mean_read_length,
-        max_read_length: histogram
-            .iter()
-            .map(|bin| bin.read_length)
-            .max()
-            .unwrap_or(0),
+        max_read_length: histogram.iter().map(|bin| bin.read_length).max().unwrap_or(0),
         distinct_lengths: histogram.len() as u64,
         histogram,
         runtime_s: json.get("runtime_s").and_then(serde_json::Value::as_f64),

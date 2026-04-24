@@ -89,9 +89,6 @@ impl StageExecutionSupport {
 
     #[must_use]
     pub fn supports_comparable_benchmarks(&self) -> bool {
-        matches!(
-            self.benchmark_support,
-            BenchmarkSupport::Comparable | BenchmarkSupport::Mixed
-        )
+        matches!(self.benchmark_support, BenchmarkSupport::Comparable | BenchmarkSupport::Mixed)
     }
 }

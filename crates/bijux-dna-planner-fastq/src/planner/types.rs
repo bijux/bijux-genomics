@@ -133,9 +133,7 @@ pub struct NormalizeAbundanceStageParams {
 impl NormalizeAbundanceStageParams {
     #[must_use]
     pub fn baseline() -> Self {
-        Self {
-            method: "relative_abundance".to_string(),
-        }
+        Self { method: "relative_abundance".to_string() }
     }
 }
 
@@ -269,11 +267,7 @@ pub struct DepleteRrnaStageParams {
 impl DepleteRrnaStageParams {
     #[must_use]
     pub fn baseline() -> Self {
-        Self {
-            rrna_db: "rrna_reference".to_string(),
-            min_identity: 0.95,
-            threads: None,
-        }
+        Self { rrna_db: "rrna_reference".to_string(), min_identity: 0.95, threads: None }
     }
 }
 
@@ -287,11 +281,7 @@ pub struct DepleteHostStageParams {
 impl DepleteHostStageParams {
     #[must_use]
     pub fn baseline() -> Self {
-        Self {
-            host_identity_threshold: 0.95,
-            retain_unmapped_only: true,
-            threads: None,
-        }
+        Self { host_identity_threshold: 0.95, retain_unmapped_only: true, threads: None }
     }
 }
 
@@ -304,10 +294,7 @@ pub struct DepleteReferenceContaminantsStageParams {
 impl DepleteReferenceContaminantsStageParams {
     #[must_use]
     pub fn baseline() -> Self {
-        Self {
-            decoy_mode: "phix_and_spikeins".to_string(),
-            threads: None,
-        }
+        Self { decoy_mode: "phix_and_spikeins".to_string(), threads: None }
     }
 }
 

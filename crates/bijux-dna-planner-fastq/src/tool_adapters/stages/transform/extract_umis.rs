@@ -29,10 +29,8 @@ pub fn plan_umi(
     out_dir: &Path,
     umi_pattern: Option<&str>,
 ) -> Result<StagePlanV1> {
-    let options = ExtractUmisPlanOptions {
-        threads: None,
-        umi_pattern: umi_pattern.map(ToOwned::to_owned),
-    };
+    let options =
+        ExtractUmisPlanOptions { threads: None, umi_pattern: umi_pattern.map(ToOwned::to_owned) };
     plan_umi_with_options(tool, r1, r2, out_dir, &options)
 }
 
@@ -49,10 +47,7 @@ pub fn plan_umi_with_options(
     let output_r2 = out_dir.join("umi_tools.r2.fastq.gz");
     let report_json = out_dir.join("umi_report.json");
     let raw_backend_report = out_dir.join("umi_tools.extract.log");
-    let umi_pattern = options
-        .umi_pattern
-        .as_deref()
-        .unwrap_or(DEFAULT_UMI_PATTERN);
+    let umi_pattern = options.umi_pattern.as_deref().unwrap_or(DEFAULT_UMI_PATTERN);
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = FastqUmiParams {
         schema_version: UMI_SCHEMA_VERSION.to_string(),
@@ -81,10 +76,7 @@ pub fn plan_umi_with_options(
                     ("umi_reads_r1", Some(output_r1.display().to_string())),
                     ("umi_reads_r2", Some(output_r2.display().to_string())),
                     ("report_json", Some(report_json.display().to_string())),
-                    (
-                        "raw_backend_report",
-                        Some(raw_backend_report.display().to_string()),
-                    ),
+                    ("raw_backend_report", Some(raw_backend_report.display().to_string())),
                     ("umi_pattern", Some(umi_pattern.to_string())),
                 ],
             )?,
@@ -173,10 +165,7 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: ToolId::from_static(id_catalog::TOOL_UMI_TOOLS),
             tool_version: "test".to_string(),
-            image: ContainerImageRefV1 {
-                image: "example/umi_tools".to_string(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: "example/umi_tools".to_string(), digest: None },
             command: CommandSpecV1 {
                 template: vec![
                     "umi_tools".to_string(),
@@ -214,20 +203,8 @@ mod tests {
             Some("NNNNCCCC"),
         )
         .expect("plan");
-        assert!(plan
-            .command
-            .template
-            .iter()
-            .any(|token| token == "reads_R1.fastq.gz"));
-        assert!(plan
-            .command
-            .template
-            .iter()
-            .any(|token| token == "out/umi_tools.extract.log"));
-        assert!(plan
-            .command
-            .template
-            .iter()
-            .any(|token| token == "NNNNCCCC"));
+        assert!(plan.command.template.iter().any(|token| token == "reads_R1.fastq.gz"));
+        assert!(plan.command.template.iter().any(|token| token == "out/umi_tools.extract.log"));
+        assert!(plan.command.template.iter().any(|token| token == "NNNNCCCC"));
     }
 }

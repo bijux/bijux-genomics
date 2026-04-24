@@ -36,12 +36,7 @@ pub fn plan(
     reference_fasta: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_with_options(
-        tool,
-        reference_fasta,
-        out_dir,
-        &IndexReferencePlanOptions::default(),
-    )
+    plan_with_options(tool, reference_fasta, out_dir, &IndexReferencePlanOptions::default())
 }
 
 pub fn plan_with_options(
@@ -52,10 +47,7 @@ pub fn plan_with_options(
 ) -> Result<StagePlanV1> {
     let output = reference_index_output(&tool.tool_id.0, out_dir)?;
     let report_json = out_dir.join("index_reference_report.json");
-    let threads = options
-        .threads
-        .unwrap_or(DEFAULT_INDEX_REFERENCE_THREADS)
-        .max(1);
+    let threads = options.threads.unwrap_or(DEFAULT_INDEX_REFERENCE_THREADS).max(1);
     let mut resources = tool.resources.clone();
     resources.threads = threads;
     let effective_params = ReferenceIndexEffectiveParams {
@@ -125,14 +117,9 @@ fn reference_index_prefix(tool_id: &str) -> Option<&'static str> {
 
 fn reference_index_output(tool_id: &str, out_dir: &Path) -> Result<std::path::PathBuf> {
     match tool_id {
-        "bowtie2_build" => Ok(out_dir
-            .join("reference_index")
-            .join("bowtie2")
-            .join("reference")),
+        "bowtie2_build" => Ok(out_dir.join("reference_index").join("bowtie2").join("reference")),
         "star" => Ok(out_dir.join("reference_index").join("star")),
-        _ => Err(anyhow!(
-            "unsupported reference indexing tool for stage planning: {tool_id}"
-        )),
+        _ => Err(anyhow!("unsupported reference indexing tool for stage planning: {tool_id}")),
     }
 }
 
@@ -194,10 +181,7 @@ mod tests {
         ToolExecutionSpecV1 {
             tool_id: tool_id.try_into().expect("tool id"),
             tool_version: "test".to_string(),
-            image: ContainerImageRefV1 {
-                image: "tool".to_string(),
-                digest: None,
-            },
+            image: ContainerImageRefV1 { image: "tool".to_string(), digest: None },
             command: CommandSpecV1 { template: vec![] },
             resources: ToolConstraints {
                 runtime: "local".to_string(),

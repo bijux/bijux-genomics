@@ -11,10 +11,7 @@ fn pipeline_id_validator_rejects_invalid_names() {
         "fastq-to-bam__adna shot__v1",
     ];
     for id in invalid {
-        assert!(
-            validate_pipeline_id_str(id).is_err(),
-            "expected invalid pipeline id: {id}"
-        );
+        assert!(validate_pipeline_id_str(id).is_err(), "expected invalid pipeline id: {id}");
     }
 }
 

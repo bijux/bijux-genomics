@@ -136,11 +136,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(trim_cohorts.len(), 1);
     assert_eq!(trim_cohorts[0].scenario_id, "trim_fairness");
     assert_eq!(
-        trim_cohorts[0]
-            .tool_ids
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
+        trim_cohorts[0].tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
         vec![
             "adapterremoval",
             "alientrimmer",
@@ -186,11 +182,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(polyg_cohorts.len(), 1);
     assert_eq!(polyg_cohorts[0].scenario_id, "polyg_trim_fairness");
     assert_eq!(
-        polyg_cohorts[0]
-            .tool_ids
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
+        polyg_cohorts[0].tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
         vec!["bbduk", "fastp"]
     );
     assert_eq!(
@@ -209,11 +201,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(screen_cohorts[0].scenario_id, "screen_fairness");
     assert!(!screen_cohorts[0].tool_ids.is_empty());
     assert_eq!(
-        screen_cohorts[0]
-            .tool_ids
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
+        screen_cohorts[0].tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
         screen_cohorts[0]
             .observer_specialized_tools
             .iter()
@@ -228,11 +216,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(filter_cohorts[0].scenario_id, "filter_fairness");
     assert!(!filter_cohorts[0].tool_ids.is_empty());
     assert_eq!(
-        filter_cohorts[0]
-            .tool_ids
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
+        filter_cohorts[0].tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
         filter_cohorts[0]
             .observer_specialized_tools
             .iter()
@@ -246,19 +230,8 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(merge_cohorts.len(), 1);
     assert_eq!(merge_cohorts[0].scenario_id, "merge_fairness");
     assert_eq!(
-        merge_cohorts[0]
-            .tool_ids
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
-        vec![
-            "adapterremoval",
-            "bbmerge",
-            "flash2",
-            "leehom",
-            "pear",
-            "vsearch",
-        ]
+        merge_cohorts[0].tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
+        vec!["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch",]
     );
     assert_eq!(
         merge_cohorts[0]
@@ -266,24 +239,14 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
             .iter()
             .map(|tool_id| tool_id.as_str())
             .collect::<Vec<_>>(),
-        vec![
-            "adapterremoval",
-            "bbmerge",
-            "flash2",
-            "leehom",
-            "pear",
-            "vsearch",
-        ]
+        vec!["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "vsearch",]
     );
 
     let low_complexity_stage = StageId::from_static("fastq.filter_low_complexity");
     let low_complexity_cohorts =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&low_complexity_stage);
     assert_eq!(low_complexity_cohorts.len(), 1);
-    assert_eq!(
-        low_complexity_cohorts[0].scenario_id,
-        "low_complexity_fairness"
-    );
+    assert_eq!(low_complexity_cohorts[0].scenario_id, "low_complexity_fairness");
     assert!(!low_complexity_cohorts[0].tool_ids.is_empty());
     assert_eq!(
         low_complexity_cohorts[0]
@@ -304,11 +267,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(dedup_cohorts.len(), 1);
     assert_eq!(dedup_cohorts[0].scenario_id, "dedup_fairness");
     assert_eq!(
-        dedup_cohorts[0]
-            .tool_ids
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
+        dedup_cohorts[0].tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
         vec!["clumpify", "fastuniq"]
     );
     assert_eq!(
@@ -326,11 +285,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(read_length_cohorts.len(), 1);
     assert_eq!(read_length_cohorts[0].scenario_id, "read_length_fairness");
     assert_eq!(
-        read_length_cohorts[0]
-            .tool_ids
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
+        read_length_cohorts[0].tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
         vec!["seqkit_stats"]
     );
     assert_eq!(
@@ -348,11 +303,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(correction_cohorts.len(), 1);
     assert_eq!(correction_cohorts[0].scenario_id, "correction_fairness");
     assert_eq!(
-        correction_cohorts[0]
-            .tool_ids
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
+        correction_cohorts[0].tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
         vec!["bayeshammer", "lighter", "musket", "rcorrector"]
     );
     assert_eq!(
@@ -369,11 +320,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(otu_cohorts.len(), 1);
     assert_eq!(otu_cohorts[0].scenario_id, "otu_clustering_fairness");
     assert_eq!(
-        otu_cohorts[0]
-            .tool_ids
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
+        otu_cohorts[0].tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
         vec!["vsearch"]
     );
     assert_eq!(
@@ -389,17 +336,10 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     let primer_cohorts =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&normalize_primers_stage);
     assert_eq!(primer_cohorts.len(), 1);
-    assert_eq!(
-        primer_cohorts[0].scenario_id,
-        "primer_normalization_fairness"
-    );
+    assert_eq!(primer_cohorts[0].scenario_id, "primer_normalization_fairness");
     assert!(!primer_cohorts[0].tool_ids.is_empty());
     assert_eq!(
-        primer_cohorts[0]
-            .tool_ids
-            .iter()
-            .map(|tool_id| tool_id.as_str())
-            .collect::<Vec<_>>(),
+        primer_cohorts[0].tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
         primer_cohorts[0]
             .observer_specialized_tools
             .iter()
@@ -411,10 +351,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     let terminal_damage_cohorts =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&terminal_damage_stage);
     assert_eq!(terminal_damage_cohorts.len(), 1);
-    assert_eq!(
-        terminal_damage_cohorts[0].scenario_id,
-        "terminal_damage_fairness"
-    );
+    assert_eq!(terminal_damage_cohorts[0].scenario_id, "terminal_damage_fairness");
     assert_eq!(
         terminal_damage_cohorts[0]
             .tool_ids
@@ -436,10 +373,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     let overrepresented_cohorts =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage(&overrepresented_stage);
     assert_eq!(overrepresented_cohorts.len(), 1);
-    assert_eq!(
-        overrepresented_cohorts[0].scenario_id,
-        "overrepresented_sequence_fairness"
-    );
+    assert_eq!(overrepresented_cohorts[0].scenario_id, "overrepresented_sequence_fairness");
     assert!(!overrepresented_cohorts[0].tool_ids.is_empty());
     assert_eq!(
         overrepresented_cohorts[0]
@@ -465,10 +399,7 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         .any(|tool_id| tool_id.as_str() == "fastqvalidator"));
     for tool_id in ["fastq_scan", "fastqc", "fastqvalidator", "fqtools", "seqtk"] {
         assert!(
-            validation_cohorts[0]
-                .tool_ids
-                .iter()
-                .any(|candidate| candidate.as_str() == tool_id),
+            validation_cohorts[0].tool_ids.iter().any(|candidate| candidate.as_str() == tool_id),
             "validation cohort must include {tool_id}"
         );
         assert!(

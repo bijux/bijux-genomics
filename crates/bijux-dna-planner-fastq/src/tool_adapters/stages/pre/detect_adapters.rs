@@ -39,11 +39,7 @@ pub fn plan_with_options(
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = DetectAdaptersEffectiveParams {
         schema_version: DETECT_ADAPTERS_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: effective_threads,
         sample_reads: None,
         inspection_mode: AdapterInspectionMode::EvidenceOnly,
@@ -53,13 +49,8 @@ pub fn plan_with_options(
         evidence_format: AdapterEvidenceFormat::FastqcSummary,
         evidence_artifact_id: "report_json".to_string(),
     };
-    let command_template = detect_adapters_command(
-        &tool.tool_id.0,
-        r1,
-        r2,
-        &adapter_evidence_dir,
-        effective_threads,
-    )?;
+    let command_template =
+        detect_adapters_command(&tool.tool_id.0, r1, r2, &adapter_evidence_dir, effective_threads)?;
     let mut resources = tool.resources.clone();
     resources.threads = effective_threads;
     let mut inputs = vec![ArtifactRef::required(
@@ -84,9 +75,7 @@ pub fn plan_with_options(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: CommandSpecV1 {
-            template: command_template,
-        },
+        command: CommandSpecV1 { template: command_template },
         resources,
         io: StageIO {
             inputs,
@@ -148,9 +137,7 @@ fn detect_adapters_command(
             }
             Ok(wrap_fastqc_command(&command, adapter_evidence_dir))
         }
-        _ => Err(anyhow!(
-            "unsupported adapter detection tool for stage planning: {tool_id}"
-        )),
+        _ => Err(anyhow!("unsupported adapter detection tool for stage planning: {tool_id}")),
     }
 }
 
@@ -158,20 +145,12 @@ fn wrap_fastqc_command(command: &[String], output_dir: &Path) -> Vec<String> {
     vec![
         "sh".to_string(),
         "-lc".to_string(),
-        format!(
-            "mkdir -p {}\n{}",
-            shell_quote(output_dir),
-            shell_join(command)
-        ),
+        format!("mkdir -p {}\n{}", shell_quote(output_dir), shell_join(command)),
     ]
 }
 
 fn shell_join(command: &[String]) -> String {
-    command
-        .iter()
-        .map(|part| shell_quote_str(part))
-        .collect::<Vec<_>>()
-        .join(" ")
+    command.iter().map(|part| shell_quote_str(part)).collect::<Vec<_>>().join(" ")
 }
 
 fn shell_quote(path: &Path) -> String {
@@ -216,16 +195,9 @@ mod tests {
         let out_dir = temp.join("out");
         let plan = plan(&tool, &r1, Some(&r2), &out_dir)?;
 
-        assert!(plan
-            .io
-            .outputs
-            .iter()
-            .any(|artifact| artifact.name.as_str() == "report_json"));
+        assert!(plan.io.outputs.iter().any(|artifact| artifact.name.as_str() == "report_json"));
         assert_eq!(plan.effective_params["evidence_scope"], "full_input");
-        assert_eq!(
-            plan.effective_params["sample_reads"],
-            serde_json::Value::Null
-        );
+        assert_eq!(plan.effective_params["sample_reads"], serde_json::Value::Null);
         assert_eq!(plan.effective_params["evidence_artifact_id"], "report_json");
         assert_eq!(plan.command.template[0], "sh");
         assert_eq!(plan.command.template[1], "-lc");

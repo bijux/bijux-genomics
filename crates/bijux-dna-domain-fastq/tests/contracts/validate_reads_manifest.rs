@@ -157,10 +157,8 @@ fn validate_stage_manifest_lists_all_supported_backends() -> Result<()> {
 #[test]
 fn validate_stage_manifest_uses_single_stream_ports() -> Result<()> {
     let manifest = stage_manifest("validate_reads")?;
-    let inputs = manifest
-        .get("inputs")
-        .and_then(serde_json::Value::as_array)
-        .context("inputs missing")?;
+    let inputs =
+        manifest.get("inputs").and_then(serde_json::Value::as_array).context("inputs missing")?;
     for input_name in ["reads_r1", "reads_r2"] {
         let input = inputs
             .iter()
@@ -189,9 +187,7 @@ fn validate_stage_manifest_documents_layout_derived_pair_sync_default() -> Resul
         })
         .context("pair_sync_policy parameter missing")?;
     assert_eq!(
-        pair_sync_policy
-            .get("default")
-            .and_then(serde_json::Value::as_str),
+        pair_sync_policy.get("default").and_then(serde_json::Value::as_str),
         Some("layout_derived"),
         "validate stage contract must document layout-derived pair sync defaults"
     );
@@ -200,13 +196,10 @@ fn validate_stage_manifest_documents_layout_derived_pair_sync_default() -> Resul
         .and_then(serde_json::Value::as_array)
         .context("assumptions missing")?;
     assert!(
-        assumptions
-            .iter()
-            .filter_map(serde_json::Value::as_str)
-            .any(|entry| {
-                entry.contains("pair_sync_policy defaults to require_header_sync")
-                    && entry.contains("not_applicable")
-            }),
+        assumptions.iter().filter_map(serde_json::Value::as_str).any(|entry| {
+            entry.contains("pair_sync_policy defaults to require_header_sync")
+                && entry.contains("not_applicable")
+        }),
         "validate stage assumptions must describe paired and single-end default resolution"
     );
     Ok(())

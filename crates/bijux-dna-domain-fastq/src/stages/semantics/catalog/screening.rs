@@ -53,10 +53,5 @@ pub const INDEX_REFERENCE: StageDefinition = stage_definition(
     &[],
 );
 
-pub const STAGES: [StageDefinition; 5] = [
-    DEPLETE_RRNA,
-    DEPLETE_HOST,
-    DEPLETE_REFERENCE_CONTAMINANTS,
-    SCREEN_TAXONOMY,
-    INDEX_REFERENCE,
-];
+pub const STAGES: [StageDefinition; 5] =
+    [DEPLETE_RRNA, DEPLETE_HOST, DEPLETE_REFERENCE_CONTAMINANTS, SCREEN_TAXONOMY, INDEX_REFERENCE];

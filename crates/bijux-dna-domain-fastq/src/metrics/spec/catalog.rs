@@ -12,26 +12,14 @@ pub const FASTQ_VALIDATE_CLASSES: [MetricClass; 1] = [MetricClass::Integrity];
 pub const FASTQ_DETECT_CLASSES: [MetricClass; 1] = [MetricClass::Composition];
 pub const FASTQ_DAMAGE_AWARE_PRETRIM_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::Retention];
-pub const FASTQ_POLYG_TRIM_CLASSES: [MetricClass; 3] = [
-    MetricClass::Integrity,
-    MetricClass::Retention,
-    MetricClass::QualityShift,
-];
-pub const FASTQ_TRIM_CLASSES: [MetricClass; 3] = [
-    MetricClass::Integrity,
-    MetricClass::Retention,
-    MetricClass::QualityShift,
-];
-pub const FASTQ_FILTER_CLASSES: [MetricClass; 3] = [
-    MetricClass::Integrity,
-    MetricClass::Retention,
-    MetricClass::QualityShift,
-];
-pub const FASTQ_DEDUPLICATE_CLASSES: [MetricClass; 3] = [
-    MetricClass::Integrity,
-    MetricClass::Retention,
-    MetricClass::QualityShift,
-];
+pub const FASTQ_POLYG_TRIM_CLASSES: [MetricClass; 3] =
+    [MetricClass::Integrity, MetricClass::Retention, MetricClass::QualityShift];
+pub const FASTQ_TRIM_CLASSES: [MetricClass; 3] =
+    [MetricClass::Integrity, MetricClass::Retention, MetricClass::QualityShift];
+pub const FASTQ_FILTER_CLASSES: [MetricClass; 3] =
+    [MetricClass::Integrity, MetricClass::Retention, MetricClass::QualityShift];
+pub const FASTQ_DEDUPLICATE_CLASSES: [MetricClass; 3] =
+    [MetricClass::Integrity, MetricClass::Retention, MetricClass::QualityShift];
 pub const FASTQ_MERGE_CLASSES: [MetricClass; 2] = [MetricClass::Integrity, MetricClass::Retention];
 pub const FASTQ_CORRECT_CLASSES: [MetricClass; 2] =
     [MetricClass::Integrity, MetricClass::QualityShift];
@@ -63,18 +51,12 @@ pub const FASTQ_TRIM_INVARIANTS: [&str; 4] = [
     "counts are non-negative",
 ];
 
-pub const FASTQ_VALIDATE_INVARIANTS: [&str; 3] = [
-    "reads_valid + reads_invalid == reads_total",
-    "mean_q in [0, 45]",
-    "counts are non-negative",
-];
+pub const FASTQ_VALIDATE_INVARIANTS: [&str; 3] =
+    ["reads_valid + reads_invalid == reads_total", "mean_q in [0, 45]", "counts are non-negative"];
 pub const FASTQ_DETECT_INVARIANTS: [&str; 2] =
     ["counts are non-negative", "adapter_content in [0, 100]"];
-pub const FASTQ_DAMAGE_AWARE_PRETRIM_INVARIANTS: [&str; 3] = [
-    "reads_out <= reads_in",
-    "bases_out <= bases_in",
-    "counts are non-negative",
-];
+pub const FASTQ_DAMAGE_AWARE_PRETRIM_INVARIANTS: [&str; 3] =
+    ["reads_out <= reads_in", "bases_out <= bases_in", "counts are non-negative"];
 pub const FASTQ_POLYG_TRIM_INVARIANTS: [&str; 4] = [
     "reads_out <= reads_in",
     "bases_out <= bases_in",
@@ -116,19 +98,13 @@ pub const FASTQ_QC_POST_INVARIANTS: [&str; 5] = [
     "counts are non-negative",
 ];
 
-pub const FASTQ_UMI_INVARIANTS: [&str; 3] = [
-    "reads_out <= reads_in",
-    "dedup_rate in [0, 1]",
-    "counts are non-negative",
-];
+pub const FASTQ_UMI_INVARIANTS: [&str; 3] =
+    ["reads_out <= reads_in", "dedup_rate in [0, 1]", "counts are non-negative"];
 
 pub const FASTQ_SCREEN_INVARIANTS: [&str; 2] =
     ["contamination_rate in [0, 1]", "counts are non-negative"];
-pub const FASTQ_RRNA_INVARIANTS: [&str; 3] = [
-    "reads_out <= reads_in",
-    "reads_rrna <= reads_in",
-    "counts are non-negative",
-];
+pub const FASTQ_RRNA_INVARIANTS: [&str; 3] =
+    ["reads_out <= reads_in", "reads_rrna <= reads_in", "counts are non-negative"];
 
 pub const FASTQ_STATS_INVARIANTS: [&str; 2] = ["mean_q in [0, 45]", "gc_percent in [0, 100]"];
 pub const FASTQ_READ_LENGTH_INVARIANTS: [&str; 4] = [
@@ -143,31 +119,19 @@ pub const FASTQ_CHIMERA_INVARIANTS: [&str; 4] = [
     "chimera_fraction in [0, 1]",
     "counts are non-negative",
 ];
-pub const FASTQ_CLUSTER_OTUS_INVARIANTS: [&str; 3] = [
-    "reads_in >= 0",
-    "otu_count >= 0",
-    "representative_count >= 0",
-];
+pub const FASTQ_CLUSTER_OTUS_INVARIANTS: [&str; 3] =
+    ["reads_in >= 0", "otu_count >= 0", "representative_count >= 0"];
 pub const FASTQ_NORMALIZE_PRIMERS_INVARIANTS: [&str; 3] = [
     "reads_out <= reads_in",
     "primer_trimmed_fraction in [0, 1]",
     "orientation_forward_fraction in [0, 1]",
 ];
-pub const FASTQ_INFER_ASVS_INVARIANTS: [&str; 3] = [
-    "asv_count >= 0",
-    "sample_count >= 0",
-    "counts are non-negative",
-];
-pub const FASTQ_NORMALIZE_ABUNDANCE_INVARIANTS: [&str; 3] = [
-    "table_rows >= 0",
-    "sample_count >= 0",
-    "zero_fraction in [0, 1]",
-];
-pub const FASTQ_OVERREPRESENTED_INVARIANTS: [&str; 3] = [
-    "sequence_count >= 0",
-    "top_fraction in [0, 1]",
-    "counts are non-negative",
-];
+pub const FASTQ_INFER_ASVS_INVARIANTS: [&str; 3] =
+    ["asv_count >= 0", "sample_count >= 0", "counts are non-negative"];
+pub const FASTQ_NORMALIZE_ABUNDANCE_INVARIANTS: [&str; 3] =
+    ["table_rows >= 0", "sample_count >= 0", "zero_fraction in [0, 1]"];
+pub const FASTQ_OVERREPRESENTED_INVARIANTS: [&str; 3] =
+    ["sequence_count >= 0", "top_fraction in [0, 1]", "counts are non-negative"];
 
 pub const FASTQ_STAGE_METRIC_SPECS: [StageMetricSpec; 22] = [
     StageMetricSpec {
@@ -306,8 +270,5 @@ pub const FASTQ_STAGE_METRIC_SPECS: [StageMetricSpec; 22] = [
 
 #[must_use]
 pub fn metric_spec_for_stage(stage_id: &str) -> Option<StageMetricSpec> {
-    FASTQ_STAGE_METRIC_SPECS
-        .iter()
-        .find(|spec| spec.stage == stage_id)
-        .copied()
+    FASTQ_STAGE_METRIC_SPECS.iter().find(|spec| spec.stage == stage_id).copied()
 }

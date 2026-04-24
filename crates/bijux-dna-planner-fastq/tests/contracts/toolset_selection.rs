@@ -51,14 +51,8 @@ fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> 
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
         false,
     )?;
-    assert!(governed[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id == "fastp"));
-    assert!(!governed[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id == "seqpurge"));
+    assert!(governed[0].tool_ids.iter().any(|tool_id| tool_id == "fastp"));
+    assert!(!governed[0].tool_ids.iter().any(|tool_id| tool_id == "seqpurge"));
 
     let benchmark = bijux_dna_planner_fastq::select_preprocess_toolsets(
         &pipeline,
@@ -66,10 +60,7 @@ fn toolset_selection_uses_execution_modes_for_governed_and_benchmark_paths() -> 
         false,
     )?;
     assert!(!benchmark[0].tool_ids.is_empty());
-    assert!(benchmark[0]
-        .tool_ids
-        .iter()
-        .all(|tool_id| governed[0].tool_ids.contains(tool_id)));
+    assert!(benchmark[0].tool_ids.iter().all(|tool_id| governed[0].tool_ids.contains(tool_id)));
 
     Ok(())
 }
@@ -83,10 +74,7 @@ fn toolset_selection_keeps_declared_bindings_and_governed_infer_asvs_explicit() 
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::AllBindings,
         false,
     )?;
-    assert!(all_bindings[0]
-        .tool_ids
-        .iter()
-        .any(|tool_id| tool_id == "seqpurge"));
+    assert!(all_bindings[0].tool_ids.iter().any(|tool_id| tool_id == "seqpurge"));
 
     let infer_pipeline = single_stage_graph("fastq.infer_asvs");
     let governed = bijux_dna_planner_fastq::select_preprocess_toolsets(
@@ -286,20 +274,14 @@ fn layout_filter_keeps_fastuniq_only_for_paired_remove_duplicates() {
         false,
     );
     assert_eq!(
-        single_end
-            .into_iter()
-            .map(|tool| tool.to_string())
-            .collect::<Vec<_>>(),
+        single_end.into_iter().map(|tool| tool.to_string()).collect::<Vec<_>>(),
         vec!["clumpify".to_string()]
     );
 
     let paired_end =
         bijux_dna_planner_fastq::stage_api::filter_tools_for_input_layout(&stage_id, tools, true);
     assert_eq!(
-        paired_end
-            .into_iter()
-            .map(|tool| tool.to_string())
-            .collect::<Vec<_>>(),
+        paired_end.into_iter().map(|tool| tool.to_string()).collect::<Vec<_>>(),
         vec!["fastuniq".to_string(), "clumpify".to_string()]
     );
 }

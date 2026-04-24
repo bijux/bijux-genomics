@@ -21,10 +21,7 @@ pub(super) fn fastq_preprocess_tools() -> BTreeMap<StageId, ToolId> {
             StageId::from_static("fastq.detect_adapters"),
             ToolId::from_static(id_catalog::TOOL_FASTQC),
         ),
-        (
-            StageId::from_static("fastq.trim_reads"),
-            ToolId::from_static(id_catalog::TOOL_FASTP),
-        ),
+        (StageId::from_static("fastq.trim_reads"), ToolId::from_static(id_catalog::TOOL_FASTP)),
         (
             StageId::from_static("fastq.trim_polyg_tails"),
             ToolId::from_static(id_catalog::TOOL_FASTP),
@@ -33,13 +30,7 @@ pub(super) fn fastq_preprocess_tools() -> BTreeMap<StageId, ToolId> {
             StageId::from_static("fastq.trim_terminal_damage"),
             ToolId::from_static(id_catalog::TOOL_CUTADAPT),
         ),
-        (
-            StageId::from_static("fastq.filter_reads"),
-            ToolId::from_static(id_catalog::TOOL_FASTP),
-        ),
-        (
-            StageId::from_static("fastq.merge_pairs"),
-            ToolId::from_static(id_catalog::TOOL_PEAR),
-        ),
+        (StageId::from_static("fastq.filter_reads"), ToolId::from_static(id_catalog::TOOL_FASTP)),
+        (StageId::from_static("fastq.merge_pairs"), ToolId::from_static(id_catalog::TOOL_PEAR)),
     ])
 }

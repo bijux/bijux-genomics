@@ -9,16 +9,9 @@ pub fn tool_supports_input_layout(stage_id: &StageId, tool_id: &ToolId, paired_e
     let Some(contract) = crate::contract_for_stage(stage_id.as_str()) else {
         return false;
     };
-    let required_kind = if paired_end {
-        FastqArtifactKind::PairedEnd
-    } else {
-        FastqArtifactKind::SingleEnd
-    };
-    if !contract
-        .accepted_input_kinds
-        .iter()
-        .any(|kind| kind == &required_kind)
-    {
+    let required_kind =
+        if paired_end { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
+    if !contract.accepted_input_kinds.iter().any(|kind| kind == &required_kind) {
         return false;
     }
     match stage_tool_input_layout_contract(stage_id, tool_id) {

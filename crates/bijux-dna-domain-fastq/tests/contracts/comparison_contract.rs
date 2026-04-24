@@ -74,12 +74,7 @@ fn preprocess_stages_publish_comparison_artifact_contracts() {
             "merge_tool_normalization_json",
         ],
         None,
-        Some(&[
-            "report_json",
-            "merged_reads",
-            "unmerged_reads_r1",
-            "unmerged_reads_r2",
-        ]),
+        Some(&["report_json", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2"]),
     );
     assert_comparison_stage_contract(
         "fastq.filter_low_complexity",
@@ -149,11 +144,7 @@ fn profiling_stages_publish_comparison_artifact_contracts() {
             "read_length_tool_normalization_json",
         ],
         None,
-        Some(&[
-            "report_json",
-            "length_distribution_tsv",
-            "length_distribution_json",
-        ]),
+        Some(&["report_json", "length_distribution_tsv", "length_distribution_json"]),
     );
     assert_comparison_stage_contract(
         "fastq.profile_reads",
@@ -173,11 +164,7 @@ fn profiling_stages_publish_comparison_artifact_contracts() {
             "overrepresented_sequence_tool_normalization_json",
         ],
         None,
-        Some(&[
-            "report_json",
-            "overrepresented_sequences_tsv",
-            "overrepresented_sequences_json",
-        ]),
+        Some(&["report_json", "overrepresented_sequences_tsv", "overrepresented_sequences_json"]),
     );
     assert_comparison_stage_contract(
         "fastq.validate_reads",
@@ -197,12 +184,7 @@ fn profiling_stages_publish_comparison_artifact_contracts() {
             "qc_aggregation_tool_normalization_json",
         ],
         Some("qc_aggregation_tool_comparison_json"),
-        Some(&[
-            "report_json",
-            "governed_qc_inputs_manifest",
-            "multiqc_report",
-            "multiqc_data",
-        ]),
+        Some(&["report_json", "governed_qc_inputs_manifest", "multiqc_report", "multiqc_data"]),
     );
 }
 

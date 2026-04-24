@@ -144,24 +144,13 @@ fn pipelines_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/registry/catalog/queries")),
-        entries([
-            "mod.rs",
-            "profiles_by_domain.rs",
-            "profiles_by_stability.rs"
-        ]),
+        entries(["mod.rs", "profiles_by_domain.rs", "profiles_by_stability.rs"]),
         "registry catalog query namespace must separate stability and domain filters"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/registry/families")),
-        entries([
-            "OWNER.toml",
-            "bam.rs",
-            "cross.rs",
-            "fastq.rs",
-            "mod.rs",
-            "vcf.rs"
-        ]),
+        entries(["OWNER.toml", "bam.rs", "cross.rs", "fastq.rs", "mod.rs", "vcf.rs"]),
         "registry family namespace must stay partitioned by domain"
     );
 

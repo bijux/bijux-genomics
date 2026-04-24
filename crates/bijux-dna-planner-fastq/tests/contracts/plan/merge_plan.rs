@@ -13,13 +13,8 @@ fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool_id.to_string()),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: format!("bijuxdna/{tool_id}"),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), tool_id.to_string()],
-        },
+        image: ContainerImageRefV1 { image: format!("bijuxdna/{tool_id}"), digest: None },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), tool_id.to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -135,10 +130,7 @@ fn pear_merge_plan_maps_overlap_and_min_length() -> Result<()> {
     assert_eq!(plan.params["merge_overlap"], serde_json::json!(24));
     assert_eq!(plan.params["min_length"], serde_json::json!(120));
     assert_eq!(plan.params["threads"], serde_json::json!(9));
-    assert_eq!(
-        plan.params["raw_backend_report_txt"],
-        serde_json::json!("out/pear.log")
-    );
+    assert_eq!(plan.params["raw_backend_report_txt"], serde_json::json!("out/pear.log"));
     assert!(script.contains("> 'out/pear.log' 2>&1"));
     assert!(script.contains("\"raw_backend_report_format\": \"pear_log\""));
     Ok(())
@@ -160,9 +152,7 @@ fn flash2_merge_plan_rejects_min_length_policy() {
     )
     .expect_err("flash2 should reject unsupported min_length");
 
-    assert!(err
-        .to_string()
-        .contains("merge planning does not yet map min_length for flash2"));
+    assert!(err.to_string().contains("merge planning does not yet map min_length for flash2"));
 }
 
 #[test]
@@ -247,25 +237,13 @@ fn leehom_merge_plan_emits_unmerged_pair_outputs() -> Result<()> {
             "raw_backend_report_txt".to_string(),
         ]
     );
-    assert_eq!(
-        plan.params["merged_reads"],
-        serde_json::json!("out/leehom.fq.gz")
-    );
-    assert_eq!(
-        plan.params["unmerged_reads_r1"],
-        serde_json::json!("out/leehom_r1.fq.gz")
-    );
-    assert_eq!(
-        plan.params["unmerged_reads_r2"],
-        serde_json::json!("out/leehom_r2.fq.gz")
-    );
+    assert_eq!(plan.params["merged_reads"], serde_json::json!("out/leehom.fq.gz"));
+    assert_eq!(plan.params["unmerged_reads_r1"], serde_json::json!("out/leehom_r1.fq.gz"));
+    assert_eq!(plan.params["unmerged_reads_r2"], serde_json::json!("out/leehom_r2.fq.gz"));
     let script = &plan.command.template[2];
     assert!(script.contains("'leehom' '-fq1' 'reads_R1.fastq.gz' '-fq2' 'reads_R2.fastq.gz' '-fqo' 'out/leehom' '-t' '5'"));
     assert!(script.contains("\"threads\": 5"));
-    assert_eq!(
-        plan.params["raw_backend_report_txt"],
-        serde_json::json!("out/leehom.log")
-    );
+    assert_eq!(plan.params["raw_backend_report_txt"], serde_json::json!("out/leehom.log"));
     assert!(script.contains("> 'out/leehom.log' 2>&1"));
     assert!(script.contains("\"raw_backend_report_format\": \"leehom_log\""));
     assert_eq!(plan.resources.threads, 5);
@@ -293,10 +271,7 @@ fn vsearch_merge_plan_omits_unmerged_outputs_when_requested() -> Result<()> {
         .iter()
         .map(|artifact| artifact.name.as_str().to_string())
         .collect::<Vec<_>>();
-    assert_eq!(
-        output_names,
-        vec!["merged_reads", "report_json", "raw_backend_report_txt"]
-    );
+    assert_eq!(output_names, vec!["merged_reads", "report_json", "raw_backend_report_txt"]);
     assert_eq!(plan.params["unmerged_reads_r1"], serde_json::Value::Null);
     assert_eq!(plan.params["unmerged_reads_r2"], serde_json::Value::Null);
 

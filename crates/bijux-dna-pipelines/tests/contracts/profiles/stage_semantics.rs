@@ -28,9 +28,7 @@ fn inferred_stage_kind(stage_id: &str) -> bijux_dna_core::contract::ArtifactKind
 
 #[test]
 fn stage_registry_declares_semantic_io_and_versioning_metadata() {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
     let registry =
         load_manifests(&root.join("configs").join("tool_registry.toml")).expect("load manifests");
 
@@ -65,9 +63,7 @@ fn stage_registry_declares_semantic_io_and_versioning_metadata() {
 
 #[test]
 fn pipeline_stage_sequences_are_type_correct_across_domains() {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("..");
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
     let registry =
         load_manifests(&root.join("configs").join("tool_registry.toml")).expect("load manifests");
 

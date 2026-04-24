@@ -115,7 +115,5 @@ pub(super) fn stage_tool_input_layout_contract(
     stage_id: &StageId,
     tool_id: &ToolId,
 ) -> Option<StageToolInputLayoutContract> {
-    tool_layout_manifests()
-        .get(&(stage_id.to_string(), tool_id.to_string()))
-        .copied()
+    tool_layout_manifests().get(&(stage_id.to_string(), tool_id.to_string())).copied()
 }

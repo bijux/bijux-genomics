@@ -23,9 +23,7 @@ pub struct NormalizeAbundancePlanOptions {
 
 impl Default for NormalizeAbundancePlanOptions {
     fn default() -> Self {
-        Self {
-            method: "relative_abundance".to_string(),
-        }
+        Self { method: "relative_abundance".to_string() }
     }
 }
 
@@ -34,12 +32,7 @@ pub fn plan(
     abundance_table: &Path,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_with_options(
-        tool,
-        abundance_table,
-        out_dir,
-        &NormalizeAbundancePlanOptions::default(),
-    )
+    plan_with_options(tool, abundance_table, out_dir, &NormalizeAbundancePlanOptions::default())
 }
 
 pub fn plan_with_options(
@@ -109,21 +102,15 @@ pub fn plan_with_options(
 
 fn effective_params_for_method(method: &str) -> Result<AbundanceNormalizationEffectiveParams> {
     let (normalized_value_column, compositional_rule, scale_factor) = match method {
-        "relative_abundance" => (
-            "normalized_abundance".to_string(),
-            "per_sample_sum_to_one".to_string(),
-            None,
-        ),
+        "relative_abundance" => {
+            ("normalized_abundance".to_string(), "per_sample_sum_to_one".to_string(), None)
+        }
         "counts_per_million" => (
             "counts_per_million".to_string(),
             "per_sample_sum_to_one_million".to_string(),
             Some(1_000_000.0),
         ),
-        _ => {
-            return Err(anyhow!(
-                "unsupported fastq.normalize_abundance method `{method}`"
-            ))
-        }
+        _ => return Err(anyhow!("unsupported fastq.normalize_abundance method `{method}`")),
     };
     Ok(AbundanceNormalizationEffectiveParams {
         schema_version: bijux_dna_domain_fastq::params::edna::EDNA_SCHEMA_VERSION.to_string(),

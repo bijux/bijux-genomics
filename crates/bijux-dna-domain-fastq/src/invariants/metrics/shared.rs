@@ -45,9 +45,5 @@ pub(super) fn initialize(
         ));
     }
 
-    EvaluationState {
-        results,
-        key_metrics: serde_json::Map::new(),
-        parsed_params,
-    }
+    EvaluationState { results, key_metrics: serde_json::Map::new(), parsed_params }
 }

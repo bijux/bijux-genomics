@@ -18,13 +18,8 @@ fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
         tool_id: ToolId::new(tool_id.to_string()),
         tool_version: "99.99.99+fixture".to_string(),
-        image: ContainerImageRefV1 {
-            image: "bijux/dummy:latest".to_string(),
-            digest: None,
-        },
-        command: CommandSpecV1 {
-            template: vec!["echo".to_string(), tool_id.to_string()],
-        },
+        image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), tool_id.to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -78,10 +73,7 @@ fn report_qc_can_plan_from_governed_qc_artifacts() -> anyhow::Result<()> {
     assert_eq!(plan.params["qc_input_count"], serde_json::json!(2));
     assert_eq!(
         plan.params["qc_input_paths"],
-        serde_json::json!([
-            "profile_reads/qc.json",
-            "detect_adapters/adapter_report.json"
-        ])
+        serde_json::json!(["profile_reads/qc.json", "detect_adapters/adapter_report.json"])
     );
     assert_eq!(
         plan.effective_params["aggregation_scope"],
@@ -112,9 +104,7 @@ fn compose_routes_governed_qc_artifacts_into_report_qc() -> anyhow::Result<()> {
         None,
         None,
         |binding, _r1, _r2| {
-            Ok(Path::new("out")
-                .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str()))
+            Ok(Path::new("out").join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
         },
     )?;
 
@@ -156,16 +146,12 @@ fn compose_rejects_report_qc_without_governed_upstream_artifacts() {
         None,
         None,
         |binding, _r1, _r2| {
-            Ok(Path::new("out")
-                .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str()))
+            Ok(Path::new("out").join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
         },
     )
     .expect_err("report_qc should require governed QC artifacts");
 
-    assert!(error
-        .to_string()
-        .contains("requires governed upstream QC artifacts"));
+    assert!(error.to_string().contains("requires governed upstream QC artifacts"));
 }
 
 #[test]
@@ -186,9 +172,7 @@ fn compose_routes_reference_screen_reports_into_report_qc() -> anyhow::Result<()
         Some(Path::new("reference.fa")),
         None,
         |binding, _r1, _r2| {
-            Ok(Path::new("out")
-                .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str()))
+            Ok(Path::new("out").join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
         },
     )?;
 
@@ -220,9 +204,7 @@ fn compose_routes_cleanup_and_length_reports_into_report_qc() -> anyhow::Result<
         None,
         None,
         |binding, _r1, _r2| {
-            Ok(Path::new("out")
-                .join(binding.stage_id.as_str())
-                .join(binding.tool.tool_id.as_str()))
+            Ok(Path::new("out").join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
         },
     )?;
 

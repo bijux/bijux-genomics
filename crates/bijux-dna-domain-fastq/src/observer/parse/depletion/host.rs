@@ -22,10 +22,7 @@ fn parse_legacy_deplete_host_report(report_json: &str) -> Result<DepleteHostRepo
     let legacy: LegacyDepleteHostReportV1 =
         serde_json::from_str(report_json).context("parse legacy deplete host report")?;
     if legacy.schema_version != "bijux.fastq.deplete_host.report.v1" {
-        return Err(anyhow!(
-            "unsupported deplete host report schema {}",
-            legacy.schema_version
-        ));
+        return Err(anyhow!("unsupported deplete host report schema {}", legacy.schema_version));
     }
     Ok(DepleteHostReportV1 {
         schema_version: "bijux.fastq.deplete_host.report.v2".to_string(),

@@ -10,11 +10,7 @@ fn assert_report_sections(profile: &PipelineProfile) {
         .chain(profile.capabilities.output_domains.iter())
         .any(|domain| matches!(domain, Domain::Fastq))
     {
-        assert!(
-            sections.contains(&"fastq"),
-            "missing fastq report section for {}",
-            profile.id
-        );
+        assert!(sections.contains(&"fastq"), "missing fastq report section for {}", profile.id);
     }
     if profile
         .capabilities
@@ -23,11 +19,7 @@ fn assert_report_sections(profile: &PipelineProfile) {
         .chain(profile.capabilities.output_domains.iter())
         .any(|domain| matches!(domain, Domain::Vcf))
     {
-        assert!(
-            sections.contains(&"vcf"),
-            "missing vcf report section for {}",
-            profile.id
-        );
+        assert!(sections.contains(&"vcf"), "missing vcf report section for {}", profile.id);
     }
     if profile
         .capabilities
@@ -36,11 +28,7 @@ fn assert_report_sections(profile: &PipelineProfile) {
         .chain(profile.capabilities.output_domains.iter())
         .any(|domain| matches!(domain, Domain::Bam))
     {
-        assert!(
-            sections.contains(&"bam"),
-            "missing bam report section for {}",
-            profile.id
-        );
+        assert!(sections.contains(&"bam"), "missing bam report section for {}", profile.id);
     }
     if profile
         .capabilities
@@ -179,10 +167,7 @@ fn default_fastq_pipeline_declares_required_metrics_objects() {
         );
     }
     assert!(
-        profile
-            .capabilities
-            .required_metrics
-            .contains(&"fastq.metrics"),
+        profile.capabilities.required_metrics.contains(&"fastq.metrics"),
         "default FASTQ profile must require fastq.metrics bundle"
     );
 }

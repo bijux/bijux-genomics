@@ -52,13 +52,7 @@ pub fn plan(
     r2: Option<&Path>,
     out_dir: &Path,
 ) -> Result<StagePlanV1> {
-    plan_with_options(
-        tool,
-        r1,
-        r2,
-        out_dir,
-        &NormalizePrimersPlanOptions::default(),
-    )
+    plan_with_options(tool, r1, r2, out_dir, &NormalizePrimersPlanOptions::default())
 }
 
 pub fn plan_with_options(
@@ -180,10 +174,7 @@ pub fn plan_with_options(
             orientation_policy: options.orientation_policy.clone(),
             primer_set_id: options.primer_set_id.clone(),
             marker_id: options.marker_id.clone(),
-            primer_fasta: options
-                .primer_fasta
-                .as_ref()
-                .map(|path| path.display().to_string()),
+            primer_fasta: options.primer_fasta.as_ref().map(|path| path.display().to_string()),
             max_mismatch_rate: options.max_mismatch_rate,
             min_overlap_bp: options.min_overlap_bp,
             strict_5p_anchor: options.strict_5p_anchor,
@@ -245,9 +236,7 @@ fn normalize_primers_command(
             ));
             Ok(vec!["bash".to_string(), "-lc".to_string(), script])
         }
-        _ => Err(anyhow!(
-            "unsupported primer normalization tool for stage planning: {tool_id}"
-        )),
+        _ => Err(anyhow!("unsupported primer normalization tool for stage planning: {tool_id}")),
     }
 }
 
@@ -269,10 +258,7 @@ fn build_governed_normalize_primers_report(
         paired_mode: PairedMode::from_has_r2(r2.is_some()),
         primer_set_id: options.primer_set_id.clone(),
         marker_id: options.marker_id.clone(),
-        primer_fasta: options
-            .primer_fasta
-            .as_ref()
-            .map(|path| path.display().to_string()),
+        primer_fasta: options.primer_fasta.as_ref().map(|path| path.display().to_string()),
         orientation_policy: options.orientation_policy.clone(),
         max_mismatch_rate: options.max_mismatch_rate,
         min_overlap_bp: options.min_overlap_bp,

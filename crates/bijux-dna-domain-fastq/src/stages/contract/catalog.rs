@@ -4,11 +4,8 @@ use crate::types::FastqArtifactKind;
 const PE: &[FastqArtifactKind] = &[FastqArtifactKind::PairedEnd];
 const SE_OR_PE: &[FastqArtifactKind] =
     &[FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd];
-const SE_PE_OR_MERGED: &[FastqArtifactKind] = &[
-    FastqArtifactKind::SingleEnd,
-    FastqArtifactKind::PairedEnd,
-    FastqArtifactKind::Merged,
-];
+const SE_PE_OR_MERGED: &[FastqArtifactKind] =
+    &[FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd, FastqArtifactKind::Merged];
 const STATS_ONLY: &[FastqArtifactKind] = &[FastqArtifactKind::StatsOnly];
 const SE_OR_PE_OUT: &[FastqArtifactKind] =
     &[FastqArtifactKind::SingleEnd, FastqArtifactKind::PairedEnd];
@@ -17,14 +14,10 @@ const MERGED_OR_PE_OUT: &[FastqArtifactKind] =
 const REF_FASTA: &[FastqArtifactKind] = &[FastqArtifactKind::ReferenceFasta];
 const REF_INDEX: &[FastqArtifactKind] = &[FastqArtifactKind::ReferenceIndex];
 const AMPLICON_TABLE: &[FastqArtifactKind] = &[FastqArtifactKind::AmpliconTable];
-const STATS_OR_TAXONOMY: &[FastqArtifactKind] = &[
-    FastqArtifactKind::StatsOnly,
-    FastqArtifactKind::TaxonomyMapping,
-];
-const AMPLICON_TABLE_OR_REPRESENTATIVES: &[FastqArtifactKind] = &[
-    FastqArtifactKind::AmpliconTable,
-    FastqArtifactKind::RepresentativeFasta,
-];
+const STATS_OR_TAXONOMY: &[FastqArtifactKind] =
+    &[FastqArtifactKind::StatsOnly, FastqArtifactKind::TaxonomyMapping];
+const AMPLICON_TABLE_OR_REPRESENTATIVES: &[FastqArtifactKind] =
+    &[FastqArtifactKind::AmpliconTable, FastqArtifactKind::RepresentativeFasta];
 
 fn single_end_transform_contract() -> FastqStageContract {
     FastqStageContract {
@@ -59,10 +52,7 @@ fn stats_stage_contract() -> FastqStageContract {
 }
 
 fn taxonomy_stage_contract() -> FastqStageContract {
-    FastqStageContract {
-        possible_output_kinds: STATS_OR_TAXONOMY,
-        ..stats_stage_contract()
-    }
+    FastqStageContract { possible_output_kinds: STATS_OR_TAXONOMY, ..stats_stage_contract() }
 }
 
 fn amplicon_stage_contract(stage_id: &str) -> FastqStageContract {

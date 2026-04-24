@@ -25,11 +25,7 @@ pub fn plan_preprocess_stage(
     plan: &PreprocessPlan,
     tool: &ToolExecutionSpecV1,
 ) -> Result<StagePlanV1> {
-    let paired_mode = if plan.r2.is_some() {
-        PairedMode::PairedEnd
-    } else {
-        PairedMode::SingleEnd
-    };
+    let paired_mode = if plan.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
     let effective_params = PreprocessEffectiveParams {
         pipeline_mode: plan.pipeline_mode,
         enable_contaminant_removal: plan.enable_contaminant_removal,
@@ -39,11 +35,7 @@ pub fn plan_preprocess_stage(
         stages: plan.stages.clone(),
         threads: tool.resources.threads,
     };
-    let out_dir = plan
-        .r1
-        .parent()
-        .unwrap_or_else(|| std::path::Path::new("."))
-        .join("out");
+    let out_dir = plan.r1.parent().unwrap_or_else(|| std::path::Path::new(".")).join("out");
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(

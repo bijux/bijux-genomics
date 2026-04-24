@@ -115,11 +115,7 @@ pub fn plan_with_options(
         }
     }
     let effective_params = TrimEffectiveParams {
-        paired_mode: if r2.is_some() {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: effective_threads,
         min_len: options.resolved_min_length(),
         q_cutoff: options.quality_cutoff,
@@ -184,9 +180,7 @@ pub fn plan_with_options(
         tool_id: tool.tool_id.clone(),
         tool_version: tool.tool_version.clone(),
         image: tool.image.clone(),
-        command: CommandSpecV1 {
-            template: command_template,
-        },
+        command: CommandSpecV1 { template: command_template },
         resources: {
             let mut resources = tool.resources.clone();
             resources.threads = effective_threads;
@@ -257,10 +251,7 @@ fn trim_command_template(
             command.extend(["--length_required".to_string(), min_length.to_string()]);
         }
         if let Some(quality_cutoff) = options.quality_cutoff {
-            command.extend([
-                "--qualified_quality_phred".to_string(),
-                quality_cutoff.to_string(),
-            ]);
+            command.extend(["--qualified_quality_phred".to_string(), quality_cutoff.to_string()]);
         }
         if options.resolved_n_policy() == "drop" {
             command.extend(["--n_base_limit".to_string(), "0".to_string()]);
@@ -470,20 +461,11 @@ fn trim_command_template(
             ("reads_r2", r2.map(|path| path.display().to_string())),
             ("trimmed_reads", Some(output_r1.display().to_string())),
             ("filtered_reads", Some(output_r1.display().to_string())),
-            (
-                "trimmed_reads_dir",
-                output_r1.parent().map(|path| path.display().to_string()),
-            ),
+            ("trimmed_reads_dir", output_r1.parent().map(|path| path.display().to_string())),
             ("trimmed_reads_r1", Some(output_r1.display().to_string())),
             ("filtered_reads_r1", Some(output_r1.display().to_string())),
-            (
-                "trimmed_reads_r2",
-                output_r2.map(|path| path.display().to_string()),
-            ),
-            (
-                "filtered_reads_r2",
-                output_r2.map(|path| path.display().to_string()),
-            ),
+            ("trimmed_reads_r2", output_r2.map(|path| path.display().to_string())),
+            ("filtered_reads_r2", output_r2.map(|path| path.display().to_string())),
             ("report_json", Some(report_json.display().to_string())),
             ("threads", Some(effective_threads.to_string())),
         ],
@@ -669,16 +651,10 @@ fn cutadapt_command_template(
     adapter_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
-    let mut command = vec![
-        "cutadapt".to_string(),
-        "--cores".to_string(),
-        threads.max(1).to_string(),
-    ];
+    let mut command =
+        vec!["cutadapt".to_string(), "--cores".to_string(), threads.max(1).to_string()];
     let raw_backend_report = raw_backend_report_path(report_json, "cutadapt", "json");
-    if matches!(
-        options.resolved_adapter_policy().as_str(),
-        "bank" | "ancient_strict"
-    ) {
+    if matches!(options.resolved_adapter_policy().as_str(), "bank" | "ancient_strict") {
         for adapter in enabled_adapter_sequences(adapter_bank) {
             command.extend(["-a".to_string(), adapter.clone()]);
             if r2.is_some() {
@@ -695,10 +671,7 @@ fn cutadapt_command_template(
     if options.resolved_n_policy() == "drop" {
         command.extend(["--max-n".to_string(), "0".to_string()]);
     }
-    command.extend([
-        "--json".to_string(),
-        raw_backend_report.display().to_string(),
-    ]);
+    command.extend(["--json".to_string(), raw_backend_report.display().to_string()]);
     command.extend(["-o".to_string(), output_r1.display().to_string()]);
     if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
         command.extend([
@@ -802,9 +775,8 @@ fn contaminant_bank_fasta(contaminant_bank: Option<&serde_json::Value>) -> Resul
     let contaminant_bank = contaminant_bank
         .ok_or_else(|| anyhow!("trim contaminant_policy=bank requires a contaminant bank"))?;
     let mut entries = Vec::new();
-    if let Some(enabled_entries) = contaminant_bank
-        .get("enabled_entries")
-        .and_then(serde_json::Value::as_array)
+    if let Some(enabled_entries) =
+        contaminant_bank.get("enabled_entries").and_then(serde_json::Value::as_array)
     {
         for entry in enabled_entries {
             let Some(id) = entry.get("id").and_then(serde_json::Value::as_str) else {
@@ -816,9 +788,8 @@ fn contaminant_bank_fasta(contaminant_bank: Option<&serde_json::Value>) -> Resul
             entries.push(format!(">{id}\n{sequence}"));
         }
     }
-    if let Some(references) = contaminant_bank
-        .get("references")
-        .and_then(serde_json::Value::as_array)
+    if let Some(references) =
+        contaminant_bank.get("references").and_then(serde_json::Value::as_array)
     {
         for reference in references {
             let Some(id) = reference.get("id").and_then(serde_json::Value::as_str) else {
@@ -857,16 +828,9 @@ fn atropos_command_template(
     options: &TrimPlanOptions,
 ) -> Result<Vec<String>> {
     let (adapter_r1, adapter_r2) = resolved_adapter_pair(adapter_bank);
-    let mut command = vec![
-        "atropos".to_string(),
-        "trim".to_string(),
-        "-T".to_string(),
-        threads.to_string(),
-    ];
-    if matches!(
-        options.resolved_adapter_policy().as_str(),
-        "bank" | "ancient_strict"
-    ) {
+    let mut command =
+        vec!["atropos".to_string(), "trim".to_string(), "-T".to_string(), threads.to_string()];
+    if matches!(options.resolved_adapter_policy().as_str(), "bank" | "ancient_strict") {
         for adapter in enabled_adapter_sequences(adapter_bank) {
             command.extend(["-a".to_string(), adapter.clone()]);
             if r2.is_some() {
@@ -964,13 +928,7 @@ fn fastx_clipper_command_template(
         None,
         None,
     ));
-    Ok(wrap_trim_shell_script_with_report(
-        script,
-        output_r1,
-        output_r2,
-        report_json,
-        None,
-    ))
+    Ok(wrap_trim_shell_script_with_report(script, output_r1, output_r2, report_json, None))
 }
 
 fn fastx_clipper_single_command(
@@ -1130,10 +1088,7 @@ fn leehom_trim_command_template(
             shell_quote_str(&adapter_r2),
         ));
     }
-    script.push_str(&format!(
-        " -fqo leehom --log {}",
-        shell_quote_path(&log_path),
-    ));
+    script.push_str(&format!(" -fqo leehom --log {}", shell_quote_path(&log_path),));
     script.push('\n');
     if let Some(output_r2) = output_r2 {
         script.push_str(&format!(
@@ -1220,19 +1175,13 @@ fn adapterremoval_command_template(
         ]);
     }
     command.extend(["--discarded".to_string(), "/dev/null".to_string()]);
-    if matches!(
-        options.resolved_adapter_policy().as_str(),
-        "bank" | "ancient_strict"
-    ) {
+    if matches!(options.resolved_adapter_policy().as_str(), "bank" | "ancient_strict") {
         let adapters = enabled_adapter_sequences(adapter_bank);
         if let Some(adapter_1) = adapters.first() {
             command.extend(["--adapter1".to_string(), adapter_1.clone()]);
             command.extend([
                 "--adapter2".to_string(),
-                adapters
-                    .get(1)
-                    .cloned()
-                    .unwrap_or_else(|| adapter_1.clone()),
+                adapters.get(1).cloned().unwrap_or_else(|| adapter_1.clone()),
             ]);
         }
     }
@@ -1495,53 +1444,35 @@ fn trim_galore_output_paths(
     paired_end: bool,
     mate_index: u8,
 ) -> Vec<PathBuf> {
-    let file_name = reads
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap_or("reads.fastq.gz");
+    let file_name = reads.file_name().and_then(|name| name.to_str()).unwrap_or("reads.fastq.gz");
     let candidate_names = if let Some(stripped) = file_name.strip_suffix(".fastq.gz") {
         if paired_end {
-            vec![
-                format!("{stripped}_val_{mate_index}.fq.gz"),
-                format!("{stripped}_trimmed.fq.gz"),
-            ]
+            vec![format!("{stripped}_val_{mate_index}.fq.gz"), format!("{stripped}_trimmed.fq.gz")]
         } else {
             vec![format!("{stripped}_trimmed.fq.gz")]
         }
     } else if let Some(stripped) = file_name.strip_suffix(".fq.gz") {
         if paired_end {
-            vec![
-                format!("{stripped}_val_{mate_index}.fq.gz"),
-                format!("{stripped}_trimmed.fq.gz"),
-            ]
+            vec![format!("{stripped}_val_{mate_index}.fq.gz"), format!("{stripped}_trimmed.fq.gz")]
         } else {
             vec![format!("{stripped}_trimmed.fq.gz")]
         }
     } else if let Some(stripped) = file_name.strip_suffix(".fastq") {
         if paired_end {
-            vec![
-                format!("{stripped}_val_{mate_index}.fq"),
-                format!("{stripped}_trimmed.fq"),
-            ]
+            vec![format!("{stripped}_val_{mate_index}.fq"), format!("{stripped}_trimmed.fq")]
         } else {
             vec![format!("{stripped}_trimmed.fq")]
         }
     } else if let Some(stripped) = file_name.strip_suffix(".fq") {
         if paired_end {
-            vec![
-                format!("{stripped}_val_{mate_index}.fq"),
-                format!("{stripped}_trimmed.fq"),
-            ]
+            vec![format!("{stripped}_val_{mate_index}.fq"), format!("{stripped}_trimmed.fq")]
         } else {
             vec![format!("{stripped}_trimmed.fq")]
         }
     } else {
         vec![format!("{file_name}_trimmed.fq.gz")]
     };
-    candidate_names
-        .into_iter()
-        .map(|name| output_dir.join(name))
-        .collect()
+    candidate_names.into_iter().map(|name| output_dir.join(name)).collect()
 }
 
 fn enabled_adapter_sequences(adapter_bank: Option<&serde_json::Value>) -> Vec<String> {
@@ -1551,10 +1482,7 @@ fn enabled_adapter_sequences(adapter_bank: Option<&serde_json::Value>) -> Vec<St
         .into_iter()
         .flatten()
         .filter_map(|entry| {
-            entry
-                .get("sequence")
-                .and_then(serde_json::Value::as_str)
-                .map(str::to_string)
+            entry.get("sequence").and_then(serde_json::Value::as_str).map(str::to_string)
         })
         .collect()
 }
@@ -1581,11 +1509,7 @@ fn resolved_adapter_pair(adapter_bank: Option<&serde_json::Value>) -> (String, S
 }
 
 fn shell_join(command: &[String]) -> String {
-    command
-        .iter()
-        .map(|part| shell_quote_str(part))
-        .collect::<Vec<_>>()
-        .join(" ")
+    command.iter().map(|part| shell_quote_str(part)).collect::<Vec<_>>().join(" ")
 }
 
 fn shell_quote_path(path: &Path) -> String {
@@ -1616,10 +1540,7 @@ mod tests {
             Path::new("out/trim_report.json"),
             1,
             None,
-            &TrimPlanOptions {
-                min_length: Some(30),
-                ..TrimPlanOptions::default()
-            },
+            &TrimPlanOptions { min_length: Some(30), ..TrimPlanOptions::default() },
         )
         .expect("adapterremoval command");
 
@@ -1638,10 +1559,7 @@ mod tests {
             Path::new("out/trim_report.json"),
             1,
             None,
-            &TrimPlanOptions {
-                min_length: Some(30),
-                ..TrimPlanOptions::default()
-            },
+            &TrimPlanOptions { min_length: Some(30), ..TrimPlanOptions::default() },
         )
         .expect("atropos command");
 
@@ -1662,10 +1580,7 @@ mod tests {
             Path::new("out/trim_report.json"),
             1,
             None,
-            &TrimPlanOptions {
-                min_length: Some(30),
-                ..TrimPlanOptions::default()
-            },
+            &TrimPlanOptions { min_length: Some(30), ..TrimPlanOptions::default() },
         )
         .expect("trim_galore command");
 
@@ -1696,10 +1611,7 @@ mod tests {
 
         let script = command.get(2).expect("shell script");
         assert!(script.contains("alientrimmer_adapters.txt"));
-        assert!(script.contains(&format!(
-            "\n{}\nEOF\nalientrimmer",
-            FALLBACK_TRIM_ADAPTER_R1
-        )));
+        assert!(script.contains(&format!("\n{}\nEOF\nalientrimmer", FALLBACK_TRIM_ADAPTER_R1)));
         assert!(script.contains(" -if 'reads_R1.fastq.gz'"));
         assert!(script.contains(" -ir 'reads_R2.fastq.gz'"));
         assert!(script.contains(" -of 'out/R1.alientrimmer.fastq.gz'"));

@@ -20,10 +20,7 @@ fn parse_yaml(path: &Path) -> Result<Value> {
 fn detect_adapters_manifest_accepts_optional_read_two() -> Result<()> {
     let path = workspace_root()?.join("domain/fastq/stages/detect_adapters.yaml");
     let yaml = parse_yaml(&path)?;
-    let inputs = yaml
-        .get("inputs")
-        .and_then(Value::as_array)
-        .context("inputs")?;
+    let inputs = yaml.get("inputs").and_then(Value::as_array).context("inputs")?;
     let input_names = inputs
         .iter()
         .filter_map(|input| input.get("name").and_then(Value::as_str))

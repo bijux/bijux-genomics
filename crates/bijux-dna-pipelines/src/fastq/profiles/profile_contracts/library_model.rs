@@ -5,10 +5,5 @@ pub(crate) fn fastq_library_model(
     udg_treatment: UdgTreatment,
     assay_kind: AssayKind,
 ) -> LibraryModel {
-    LibraryModel {
-        layout,
-        udg_treatment,
-        platform_hint: PlatformHint::Illumina,
-        assay_kind,
-    }
+    LibraryModel { layout, udg_treatment, platform_hint: PlatformHint::Illumina, assay_kind }
 }

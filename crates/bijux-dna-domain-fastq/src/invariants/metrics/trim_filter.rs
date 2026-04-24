@@ -85,9 +85,7 @@ pub(super) fn evaluate_filter(
         if metrics.reads_in > 0 {
             #[allow(clippy::cast_precision_loss)]
             let n_rate = metrics.reads_removed_by_n as f64 / metrics.reads_in as f64;
-            state
-                .key_metrics
-                .insert("n_rate".to_string(), serde_json::Value::from(n_rate));
+            state.key_metrics.insert("n_rate".to_string(), serde_json::Value::from(n_rate));
             if n_rate > thresholds.n_rate_fail {
                 state.results.push(result(
                     "n_rate_sanity",

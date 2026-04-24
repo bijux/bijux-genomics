@@ -30,11 +30,7 @@ pub(super) fn observation_context(
             vec!["observer_specialized_parser_missing"]
         }
     };
-    let artifacts = if outputs.is_empty() {
-        plan.io.outputs.clone()
-    } else {
-        outputs.to_vec()
-    };
+    let artifacts = if outputs.is_empty() { plan.io.outputs.clone() } else { outputs.to_vec() };
     let semantic_metrics = super::semantic::observed_semantic_metrics(plan, &artifacts);
     let declared_metric_invariants =
         bijux_dna_domain_fastq::stage_metric_invariants(&plan.stage_id).unwrap_or(&[]);

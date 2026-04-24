@@ -39,10 +39,7 @@ impl Default for InvariantThresholds {
 #[must_use]
 pub fn thresholds_from_env() -> InvariantThresholds {
     fn parse_f64(key: &str, default: f64) -> f64 {
-        std::env::var(key)
-            .ok()
-            .and_then(|v| v.parse::<f64>().ok())
-            .unwrap_or(default)
+        std::env::var(key).ok().and_then(|v| v.parse::<f64>().ok()).unwrap_or(default)
     }
     let defaults = InvariantThresholds::default();
     InvariantThresholds {
@@ -79,12 +76,7 @@ pub(crate) fn result(
     message: String,
     remediation: Option<String>,
 ) -> InvariantResultV1 {
-    InvariantResultV1 {
-        id: id.to_string(),
-        status,
-        message,
-        remediation,
-    }
+    InvariantResultV1 { id: id.to_string(), status, message, remediation }
 }
 
 pub(crate) fn worst_status(

@@ -4,12 +4,7 @@ use bijux_dna_stage_contract::{StageEventHintV1, StagePlanV1, StageReportPartV1}
 use super::observation_context::ObservationContext;
 
 fn invariant(id: &str, status: InvariantStatusV1, message: String) -> InvariantResultV1 {
-    InvariantResultV1 {
-        id: id.to_string(),
-        status,
-        message,
-        remediation: None,
-    }
+    InvariantResultV1 { id: id.to_string(), status, message, remediation: None }
 }
 
 pub(super) fn output_invariants(
@@ -26,10 +21,7 @@ pub(super) fn output_invariants(
         invariant(
             "stage_output_contract_complete",
             InvariantStatusV1::Warn,
-            format!(
-                "missing declared output artifacts: {}",
-                missing_expected.join(", ")
-            ),
+            format!("missing declared output artifacts: {}", missing_expected.join(", ")),
         )
     }];
     invariants.push(if context.observer_covered {
@@ -192,11 +184,7 @@ pub(super) fn output_event_hints(
 ) -> Vec<StageEventHintV1> {
     vec![StageEventHintV1 {
         event_name: "stage_outputs_parsed".to_string(),
-        status: if outputs_used {
-            "observed".to_string()
-        } else {
-            "expected_only".to_string()
-        },
+        status: if outputs_used { "observed".to_string() } else { "expected_only".to_string() },
         attrs: serde_json::json!({
             "stage_id": plan.stage_id,
             "observer_coverage": context.observer_covered,

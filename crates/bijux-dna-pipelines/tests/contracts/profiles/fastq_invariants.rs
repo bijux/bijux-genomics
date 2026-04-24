@@ -29,11 +29,7 @@ fn fastq_profiles_validate_in_tests() {
 fn reference_adna_profile_stage_contract_and_pairing_invariants() {
     let profile = fastq_reference_adna_profile();
     let report = validate_fastq_profile(&profile);
-    assert!(
-        report.valid,
-        "reference profile invalid: {:?}",
-        report.violations
-    );
+    assert!(report.valid, "reference profile invalid: {:?}", report.violations);
     for stage in [
         id_catalog::FASTQ_VALIDATE_PRE,
         id_catalog::FASTQ_DETECT_ADAPTERS,
@@ -44,11 +40,7 @@ fn reference_adna_profile_stage_contract_and_pairing_invariants() {
         id_catalog::FASTQ_QC_POST,
     ] {
         assert!(
-            profile
-                .capabilities
-                .required_stages
-                .iter()
-                .any(|required| required == stage),
+            profile.capabilities.required_stages.iter().any(|required| required == stage),
             "reference profile must include required stage {stage}"
         );
     }
@@ -69,11 +61,7 @@ fn reference_adna_profile_stage_contract_and_pairing_invariants() {
 fn adna_profiles_obey_core_stage_and_param_properties() {
     let profile = fastq_adna_profile();
     let report = validate_fastq_profile(&profile);
-    assert!(
-        report.valid,
-        "adna profile invalid: {:?}",
-        report.violations
-    );
+    assert!(report.valid, "adna profile invalid: {:?}", report.violations);
 
     let required = &profile.capabilities.required_stages;
     for stage in [
@@ -84,9 +72,7 @@ fn adna_profiles_obey_core_stage_and_param_properties() {
         id_catalog::FASTQ_QC_POST,
     ] {
         assert!(
-            required
-                .iter()
-                .any(|required_stage| required_stage == stage),
+            required.iter().any(|required_stage| required_stage == stage),
             "aDNA profile must include required stage {stage}"
         );
     }
@@ -131,33 +117,21 @@ fn adna_invariants_reject_scientifically_invalid_defaults() {
     };
     trim.min_len = 0;
     trim.adapter_policy = "none".to_string();
-    profile
-        .defaults
-        .params
-        .insert(trim_stage, DefaultParams::FastqTrim(trim));
+    profile.defaults.params.insert(trim_stage, DefaultParams::FastqTrim(trim));
 
     let report = validate_fastq_profile(&profile);
     assert!(!report.valid, "invalid aDNA profile should be rejected");
     assert!(
-        report
-            .violations
-            .iter()
-            .any(|violation| violation.code == "trim_min_len_invalid"),
+        report.violations.iter().any(|violation| violation.code == "trim_min_len_invalid"),
         "expected trim_min_len_invalid violation"
     );
     assert!(
-        report
-            .violations
-            .iter()
-            .any(|violation| violation.code == "adna_adapter_policy_invalid"),
+        report.violations.iter().any(|violation| violation.code == "adna_adapter_policy_invalid"),
         "expected adna_adapter_policy_invalid violation"
     );
 
     let invariants_report = report.as_invariants_report();
-    assert_eq!(
-        invariants_report.schema_version,
-        "bijux.invariants_report.v1"
-    );
+    assert_eq!(invariants_report.schema_version, "bijux.invariants_report.v1");
     assert!(invariants_report.blocking);
 }
 
@@ -174,11 +148,7 @@ fn single_end_fastq_profiles_cover_domain_essential_shotgun_stages() {
     for profile in [fastq_default_profile(), fastq_minimal_profile()] {
         for stage in &essential {
             assert!(
-                profile
-                    .capabilities
-                    .required_stages
-                    .iter()
-                    .any(|required| required == stage),
+                profile.capabilities.required_stages.iter().any(|required| required == stage),
                 "profile {} must include domain essential stage {}",
                 profile.id,
                 stage
