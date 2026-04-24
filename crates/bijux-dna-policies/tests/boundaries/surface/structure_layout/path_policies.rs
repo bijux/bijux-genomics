@@ -80,11 +80,7 @@ fn policy__boundaries__path_policies__src_does_not_contain_test_paths() {
             continue;
         }
         let name = path.file_name().and_then(|name| name.to_str()).unwrap_or("");
-        let rel = path
-            .strip_prefix(&root)
-            .unwrap_or(path)
-            .to_string_lossy()
-            .replace('\\', "/");
+        let rel = path.strip_prefix(&root).unwrap_or(path).to_string_lossy().replace('\\', "/");
         if rel == "crates/bijux-dna-testkit/src/temp/test_paths.rs" {
             continue;
         }

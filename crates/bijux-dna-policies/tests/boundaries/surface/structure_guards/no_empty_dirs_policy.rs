@@ -39,10 +39,7 @@ fn policy__boundaries__no_empty_dirs_policy__no_empty_or_placeholder_dirs() {
         {
             let dir = entry.path();
             let dir_str = dir.to_string_lossy();
-            if DIR_ALLOWLIST
-                .iter()
-                .any(|(allowed, _reason)| dir_str.contains(allowed))
-            {
+            if DIR_ALLOWLIST.iter().any(|(allowed, _reason)| dir_str.contains(allowed)) {
                 continue;
             }
             let mut rs_files = Vec::new();

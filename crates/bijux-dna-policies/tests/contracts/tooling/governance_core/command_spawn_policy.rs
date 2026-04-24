@@ -88,8 +88,7 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
             || path_str.contains("/crates/bijux-dna-runner/tests/boundaries/architecture.rs")
             || path_str
                 .contains("/crates/bijux-dna-environment-qa/tests/boundaries/architecture.rs")
-            || path_str
-                .contains("/crates/bijux-dna-environment/tests/contracts/resolve_runtime.rs")
+            || path_str.contains("/crates/bijux-dna-environment/tests/contracts/resolve_runtime.rs")
         {
             continue;
         }

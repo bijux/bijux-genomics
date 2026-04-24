@@ -43,11 +43,7 @@ fn policy__contracts__ci_no_stage_tool_defs_policy__workflows_must_not_define_st
         if ext != "yml" && ext != "yaml" {
             continue;
         }
-        let rel = path
-            .strip_prefix(&root)
-            .unwrap_or(path)
-            .to_string_lossy()
-            .replace('\\', "/");
+        let rel = path.strip_prefix(&root).unwrap_or(path).to_string_lossy().replace('\\', "/");
         if allowlisted_workflows.iter().any(|allowed| rel == *allowed) {
             continue;
         }
