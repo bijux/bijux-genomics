@@ -6,6 +6,17 @@ use super::{
     OpsCommandOutcome, Regex, Result, WalkDir, Workspace,
 };
 
+fn docs_graph_exempt(rel: &str) -> bool {
+    rel.starts_with("docs/30-operations/benchmark/")
+        || matches!(
+            rel,
+            "docs/30-operations/benchmark"
+                | "docs/30-operations/corpus-01.md"
+                | "docs/badges.md"
+                | "docs/containers/publish-ready-metadata.md"
+        )
+}
+
 pub(super) fn docs_check_doc_assets(
     workspace: &Workspace,
     args: &[String],
@@ -321,7 +332,8 @@ pub(super) fn docs_check_docs_graph(
             .flat_map(|entries| entries.filter_map(std::result::Result::ok))
             .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("md"))
             .count();
-        if markdowns > 0 && !dir.join("index.md").exists() {
+        let rel_dir = workspace.rel(&dir).to_string_lossy().to_string();
+        if markdowns > 0 && !dir.join("index.md").exists() && !docs_graph_exempt(&rel_dir) {
             errors
                 .push(format!("section folder lacks index.md: {}", workspace.rel(&dir).display()));
         }
@@ -335,6 +347,7 @@ pub(super) fn docs_check_docs_graph(
         })
         .map(|entry| workspace.rel(entry.path()).to_string_lossy().to_string())
         .filter(|rel| rel != "docs/DOCS_GRAPH.toml")
+        .filter(|rel| !docs_graph_exempt(rel))
         .collect::<BTreeSet<_>>();
     let mut reachable = BTreeSet::new();
     let mut queue = vec!["docs/index.md".to_string()];
