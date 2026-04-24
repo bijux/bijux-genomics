@@ -12,8 +12,6 @@ use bijux_dna_db_ena::model::{
 use flate2::read::MultiGzDecoder;
 use serde::{Deserialize, Serialize};
 
-mod schema;
-
 #[derive(Debug, Deserialize, Serialize)]
 struct CorpusManifest {
     #[serde(default = "default_manifest_schema")]
@@ -184,7 +182,7 @@ struct SampleFiles {
 }
 
 fn default_manifest_schema() -> String {
-    schema::CORPUS_MANIFEST_V1.to_string()
+    "bijux.corpus_manifest.v1".to_string()
 }
 
 /// # Errors
