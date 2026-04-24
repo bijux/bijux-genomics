@@ -24,8 +24,10 @@ fn pipelines_tree_matches_architecture_contract() {
         entries([
             "bam/",
             "contract/",
+            "cross.rs",
             "cross/",
             "defaults/",
+            "fastq.rs",
             "fastq/",
             "lib.rs",
             "public_api/",
@@ -138,14 +140,14 @@ fn pipelines_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/registry/catalog")),
-        entries(["OWNER.toml", "mod.rs", "pipeline_registry.rs", "queries/"]),
+        entries([
+            "OWNER.toml",
+            "mod.rs",
+            "pipeline_registry.rs",
+            "profiles_by_domain.rs",
+            "profiles_by_stability.rs",
+        ]),
         "registry catalog namespace must keep assembly and query behavior separated"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/registry/catalog/queries")),
-        entries(["mod.rs", "profiles_by_domain.rs", "profiles_by_stability.rs"]),
-        "registry catalog query namespace must separate stability and domain filters"
     );
 
     assert_eq!(
@@ -156,7 +158,7 @@ fn pipelines_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/fastq")),
-        entries(["defaults/", "invariants/", "mod.rs", "profiles/"]),
+        entries(["defaults/", "invariants/", "profiles/"]),
         "fastq namespace must stay partitioned by defaults, profiles, and invariants"
     );
 
