@@ -5,12 +5,18 @@ mod support;
 use support::workspace_root;
 
 #[test]
-#[ignore = "TODO: align vm output policy markers with current hpc builder contract"]
 fn policy__contracts__apptainer_vm_output_policy__builder_enforces_vm_local_writable_and_copy_back()
 {
     let root = workspace_root();
-    let path = root.join("crates/bijux-dna-dev/src/commands/containers.rs");
-    let content = std::fs::read_to_string(&path).expect("read native container workflows");
+    let candidate_paths = [
+        root.join("crates/bijux-dna-dev/src/commands/containers.rs"),
+        root.join("crates/bijux-dna-dev/src/catalog/containers.rs"),
+    ];
+    let path = candidate_paths
+        .iter()
+        .find(|candidate| candidate.exists())
+        .expect("find container workflow source file");
+    let content = std::fs::read_to_string(path).expect("read native container workflows");
 
     let required = [
         "build-apptainer-all",
