@@ -55,7 +55,8 @@ pub(crate) fn check_docs_build_contract(
         ));
     }
 
-    let native_ops = read(&workspace.path("crates/bijux-dna-dev/src/commands/ops.rs"))?;
+    let native_ops =
+        read(&workspace.path("crates/bijux-dna-dev/src/commands/ops/tooling/diagnostics.rs"))?;
     if !native_ops.contains("XDG_CACHE_HOME") {
         violations.push(
             "docs-build-contract: native docs workflow must set XDG_CACHE_HOME to artifacts/docs/.cache".to_string(),
@@ -731,7 +732,7 @@ pub(crate) fn check_rustflags_consistency(
                 continue;
             }
             let raw = read(entry.path())?;
-            if raw.contains("RUSTFLAGS=") && rel != "crates/bijux-dna-dev/src/commands/ops.rs" {
+            if raw.contains("RUSTFLAGS=") && rel != "crates/bijux-dna-dev/src/commands/ops/mod.rs" {
                 violations.push(rel);
             }
         }
