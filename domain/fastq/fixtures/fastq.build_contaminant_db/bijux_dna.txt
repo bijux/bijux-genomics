@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.build_contaminant_db
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq assets build-contaminant-db --manifest contaminant_sources.json --out contaminant_database
+expected_outputs=contaminant_database,asset_lock
+expected_stdout_patterns=contract_ok,contaminant_database_lock

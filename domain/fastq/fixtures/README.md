@@ -12,6 +12,9 @@ Each fixture file under domain/fastq/fixtures/STAGE_ID/*.txt must define:
 - `expected_stdout_patterns=<token list or placeholder>`
 
 ## Fixture Directories
+- `fastq.build_contaminant_db`: intent = stage-specific command contract coverage for `fastq.build_contaminant_db`.
+- `fastq.build_rrna_db`: intent = stage-specific command contract coverage for `fastq.build_rrna_db`.
+- `fastq.build_taxonomy_db`: intent = stage-specific command contract coverage for `fastq.build_taxonomy_db`.
 - `fastq.normalize_abundance`: intent = stage-specific command contract coverage for `fastq.normalize_abundance`.
 - `fastq.infer_asvs`: intent = stage-specific command contract coverage for `fastq.infer_asvs`.
 - `fastq.remove_chimeras`: intent = stage-specific command contract coverage for `fastq.remove_chimeras`.
@@ -29,6 +32,9 @@ Each fixture file under domain/fastq/fixtures/STAGE_ID/*.txt must define:
 - `fastq.trim_polyg_tails`: intent = stage-specific command contract coverage for `fastq.trim_polyg_tails`.
 - `fastq.index_reference`: intent = stage-specific command contract coverage for `fastq.index_reference`.
 - `fastq.normalize_primers`: intent = stage-specific command contract coverage for `fastq.normalize_primers`.
+- `fastq.prepare_adapter_bank`: intent = stage-specific command contract coverage for `fastq.prepare_adapter_bank`.
+- `fastq.prepare_host_reference_bundle`: intent = stage-specific command contract coverage for `fastq.prepare_host_reference_bundle`.
+- `fastq.prepare_primer_bank`: intent = stage-specific command contract coverage for `fastq.prepare_primer_bank`.
 - `fastq.report_qc`: intent = stage-specific command contract coverage for `fastq.report_qc`.
 - `fastq.deplete_rrna`: intent = stage-specific command contract coverage for `fastq.deplete_rrna`.
 - `fastq.screen_taxonomy`: intent = stage-specific command contract coverage for `fastq.screen_taxonomy`.
@@ -36,5 +42,6 @@ Each fixture file under domain/fastq/fixtures/STAGE_ID/*.txt must define:
 - `fastq.trim_reads`: intent = stage-specific command contract coverage for `fastq.trim_reads`.
 - `fastq.extract_umis`: intent = stage-specific command contract coverage for `fastq.extract_umis`.
 - `fastq.validate_reads`: intent = stage-specific command contract coverage for `fastq.validate_reads`.
+- `fastq.verify_assets`: intent = stage-specific command contract coverage for `fastq.verify_assets`.
 
 - `fastq.trim_terminal_damage`: intent = stage-specific command contract coverage for `fastq.trim_terminal_damage`.

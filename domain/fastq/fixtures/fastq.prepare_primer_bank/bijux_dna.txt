@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.prepare_primer_bank
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq assets prepare-primer-bank --manifest primer_sources.json --out primer_bank.fa
+expected_outputs=primer_bank,asset_lock
+expected_stdout_patterns=contract_ok,primer_bank

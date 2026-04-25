@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.verify_assets
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq assets verify --locks asset_locks.json --out asset_verification_report.json
+expected_outputs=asset_verification_report
+expected_stdout_patterns=contract_ok,asset_lock_registry
