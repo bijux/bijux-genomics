@@ -37,9 +37,9 @@ That manifest is the durable target list for local repository mirrors under
 | `source.fastq.tool.bowtie2.upstream` | `bowtie2` | `fastq.deplete_host,fastq.deplete_reference_contaminants` | `science-docs/upstream/fastq/tools/bowtie2/repo` | https://github.com/BenLangmead/bowtie2 |
 | `source.fastq.tool.bowtie2_build.upstream` | `bowtie2_build` | `fastq.index_reference` | `science-docs/upstream/fastq/tools/bowtie2_build/repo` | https://github.com/BenLangmead/bowtie2 |
 | `source.fastq.tool.centrifuge.upstream` | `centrifuge` | `fastq.screen_taxonomy` | `science-docs/upstream/fastq/tools/centrifuge/repo` | https://github.com/DaehwanKimLab/centrifuge |
-| `source.fastq.tool.cutadapt.upstream` | `cutadapt` | `fastq.normalize_primers,fastq.trim_reads,fastq.trim_terminal_damage` | `science-docs/upstream/fastq/tools/cutadapt/repo` | https://github.com/cutadapt/cutadapt |
-| `source.fastq.tool.fastq_scan.upstream` | `fastq_scan` | `fastq.profile_overrepresented_sequences,fastq.validate_reads` | `science-docs/upstream/fastq/tools/fastq_scan/repo` | https://github.com/indraniel/fastq_scan |
-| `source.fastq.tool.fastqvalidator.upstream` | `fastqvalidator` | `fastq.validate_reads` | `science-docs/upstream/fastq/tools/fastqvalidator/repo` | https://github.com/fastqvalidator/fastqvalidator |
+| `source.fastq.tool.cutadapt.upstream` | `cutadapt` | `fastq.normalize_primers,fastq.trim_reads,fastq.trim_terminal_damage` | `science-docs/upstream/fastq/tools/cutadapt/repo` | https://github.com/marcelm/cutadapt |
+| `source.fastq.tool.fastq_scan.upstream` | `fastq_scan` | `fastq.profile_overrepresented_sequences,fastq.validate_reads` | `science-docs/upstream/fastq/tools/fastq_scan/repo` | https://github.com/rpetit3/fastq-scan |
+| `source.fastq.tool.fastqvalidator.upstream` | `fastqvalidator` | `fastq.validate_reads` | `science-docs/upstream/fastq/tools/fastqvalidator/repo` | https://github.com/statgen/fastQValidator |
 | `source.fastq.tool.fastx_clipper.upstream` | `fastx_clipper` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/fastx_clipper/repo` | https://github.com/agordon/fastx_toolkit |
 | `source.fastq.tool.flash2.upstream` | `flash2` | `fastq.merge_pairs` | `science-docs/upstream/fastq/tools/flash2/repo` | https://github.com/dstreett/FLASH2 |
 | `source.fastq.tool.fqtools.upstream` | `fqtools` | `fastq.validate_reads` | `science-docs/upstream/fastq/tools/fqtools/repo` | https://github.com/alastair-droop/fqtools |
@@ -49,17 +49,17 @@ That manifest is the durable target list for local repository mirrors under
 | `source.fastq.tool.leehom.upstream` | `leehom` | `fastq.merge_pairs,fastq.trim_reads` | `science-docs/upstream/fastq/tools/leehom/repo` | https://github.com/grenaud/leeHom |
 | `source.fastq.tool.lighter.upstream` | `lighter` | `fastq.correct_errors` | `science-docs/upstream/fastq/tools/lighter/repo` | https://github.com/mourisl/Lighter |
 | `source.fastq.tool.multiqc.upstream` | `multiqc` | `fastq.report_qc` | `science-docs/upstream/fastq/tools/multiqc/repo` | https://github.com/multiqc/multiqc |
-| `source.fastq.tool.pear.upstream` | `pear` | `fastq.merge_pairs` | `science-docs/upstream/fastq/tools/pear/repo` | https://github.com/xflouris/PEAR |
+| `source.fastq.tool.pear.upstream` | `pear` | `fastq.merge_pairs` | `science-docs/upstream/fastq/tools/pear/download` | https://cme.h-its.org/exelixis/web/software/pear/ |
 | `source.fastq.tool.prinseq.upstream` | `prinseq` | `fastq.filter_low_complexity,fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_reads` | `science-docs/upstream/fastq/tools/prinseq/repo` | https://github.com/Adrian-Cantu/PRINSEQ-plus-plus |
 | `source.fastq.tool.rcorrector.upstream` | `rcorrector` | `fastq.correct_errors` | `science-docs/upstream/fastq/tools/rcorrector/repo` | https://github.com/mourisl/Rcorrector |
-| `source.fastq.tool.seqkit_stats.upstream` | `seqkit_stats` | `fastq.profile_read_lengths,fastq.profile_reads` | `science-docs/upstream/fastq/tools/seqkit_stats/repo` | https://github.com/seqkit_stats/seqkit_stats |
+| `source.fastq.tool.seqkit_stats.upstream` | `seqkit_stats` | `fastq.profile_read_lengths,fastq.profile_reads` | `science-docs/upstream/fastq/tools/seqkit_stats/repo` | https://github.com/shenwei356/seqkit |
 | `source.fastq.tool.seqtk.upstream` | `seqtk` | `fastq.validate_reads` | `science-docs/upstream/fastq/tools/seqtk/repo` | https://github.com/lh3/seqtk.git |
 | `source.fastq.tool.skewer.upstream` | `skewer` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/skewer/repo` | https://github.com/relipmoc/skewer |
 | `source.fastq.tool.sortmerna.upstream` | `sortmerna` | `fastq.deplete_rrna` | `science-docs/upstream/fastq/tools/sortmerna/repo` | https://github.com/biocore/sortmerna |
 | `source.fastq.tool.star.upstream` | `star` | `fastq.index_reference` | `science-docs/upstream/fastq/tools/star/repo` | https://github.com/alexdobin/STAR |
 | `source.fastq.tool.trim_galore.upstream` | `trim_galore` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/trim_galore/repo` | https://github.com/FelixKrueger/TrimGalore |
-| `source.fastq.tool.umi_tools.upstream` | `umi_tools` | `fastq.extract_umis` | `science-docs/upstream/fastq/tools/umi_tools/repo` | https://github.com/umi_tools/umi_tools |
-| `source.fastq.tool.vsearch.upstream` | `vsearch` | `fastq.cluster_otus,fastq.merge_pairs,fastq.remove_chimeras` | `science-docs/upstream/fastq/tools/vsearch/repo` | https://github.com/vsearch/vsearch |
+| `source.fastq.tool.umi_tools.upstream` | `umi_tools` | `fastq.extract_umis` | `science-docs/upstream/fastq/tools/umi_tools/repo` | https://github.com/CGATOxford/UMI-tools |
+| `source.fastq.tool.vsearch.upstream` | `vsearch` | `fastq.cluster_otus,fastq.merge_pairs,fastq.remove_chimeras` | `science-docs/upstream/fastq/tools/vsearch/repo` | https://github.com/torognes/vsearch |
 
 ## Ready for Manual Download
 
