@@ -1,0 +1,8 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.science-docs-archive-governance"
+statement: "FASTQ manual evidence acquisition is planned through the local science-docs archive contract and the tracked download backlog."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.science-docs-contract"
+  - "source.fastq.science-docs-backlog"

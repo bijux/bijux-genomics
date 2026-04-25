@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.container-build-surface-authority"
+statement: "FASTQ container reference data must be traced to the governed tool registry and checked against the referenced dockerfile and apptainer surfaces."
+scope: "fastq container evidence slice"
+subject: "fastq_container_reference_surface"
+predicate: "is_governed_by"
+object: "configs/ci/registry/tool_registry.toml plus referenced container build directories"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.container-build-surface-governance"
