@@ -11,7 +11,10 @@ pub fn first_present_stage<'a>(
 #[must_use]
 pub fn primary_upstream_candidates(stage_id: &str) -> &'static [&'static str] {
     match stage_id {
-        "fastq.profile_read_lengths" | "fastq.detect_adapters" => &["fastq.validate_reads"],
+        "fastq.extract_umis" => &["fastq.validate_reads"],
+        "fastq.profile_read_lengths" | "fastq.detect_adapters" => {
+            &["fastq.extract_umis", "fastq.validate_reads"]
+        }
         "fastq.trim_polyg_tails" => &["fastq.detect_adapters", "fastq.validate_reads"],
         "fastq.trim_terminal_damage" => {
             &["fastq.trim_polyg_tails", "fastq.detect_adapters", "fastq.validate_reads"]
@@ -32,7 +35,7 @@ pub fn primary_upstream_candidates(stage_id: &str) -> &'static [&'static str] {
             "fastq.trim_terminal_damage",
             "fastq.validate_reads",
         ],
-        "fastq.correct_errors" | "fastq.extract_umis" | "fastq.deplete_rrna" => {
+        "fastq.correct_errors" | "fastq.deplete_rrna" => {
             &["fastq.filter_reads", "fastq.trim_reads", "fastq.validate_reads"]
         }
         "fastq.profile_reads"

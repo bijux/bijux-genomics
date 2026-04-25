@@ -145,16 +145,48 @@ fn essential_shotgun_stages() -> Vec<String> {
 #[test]
 fn single_end_fastq_profiles_cover_domain_essential_shotgun_stages() {
     let essential = essential_shotgun_stages();
-    for profile in [fastq_default_profile(), fastq_minimal_profile()] {
-        for stage in &essential {
-            assert!(
-                profile.capabilities.required_stages.iter().any(|required| required == stage),
-                "profile {} must include domain essential stage {}",
-                profile.id,
-                stage
-            );
-        }
+    let default_profile = fastq_default_profile();
+    for stage in &essential {
+        assert!(
+            default_profile.capabilities.required_stages.iter().any(|required| required == stage),
+            "profile {} must include domain essential stage {}",
+            default_profile.id,
+            stage
+        );
     }
+}
+
+#[test]
+fn generic_fastq_profiles_do_not_force_terminal_damage_defaults() {
+    for profile in [fastq_default_profile(), fastq_minimal_profile()] {
+        let damage_stage = "fastq.trim_terminal_damage";
+        assert!(
+            !profile.capabilities.required_stages.iter().any(|stage| stage == damage_stage),
+            "profile {} must not require terminal-damage trimming",
+            profile.id
+        );
+        assert!(
+            !profile.defaults.params.contains_key(&StageId::from_static(damage_stage)),
+            "profile {} must not carry terminal-damage params",
+            profile.id
+        );
+        assert!(
+            !profile.defaults.tools.contains_key(&StageId::from_static(damage_stage)),
+            "profile {} must not carry terminal-damage tool defaults",
+            profile.id
+        );
+    }
+}
+
+#[test]
+fn minimal_fastq_profile_is_smaller_than_default_profile() {
+    let default_profile = fastq_default_profile();
+    let minimal_profile = fastq_minimal_profile();
+    assert!(
+        minimal_profile.capabilities.required_stages.len()
+            < default_profile.capabilities.required_stages.len(),
+        "minimal FASTQ profile must stay smaller than the default profile"
+    );
 }
 
 #[test]
@@ -191,7 +223,6 @@ fn essential_shotgun_stage_roster_stays_in_sync_with_domain_contract() {
         "fastq.profile_read_lengths".to_string(),
         id_catalog::FASTQ_DETECT_ADAPTERS.to_string(),
         "fastq.trim_polyg_tails".to_string(),
-        "fastq.trim_terminal_damage".to_string(),
         id_catalog::FASTQ_TRIM.to_string(),
         id_catalog::FASTQ_FILTER.to_string(),
         id_catalog::FASTQ_STATS_NEUTRAL.to_string(),

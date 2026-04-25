@@ -14,7 +14,6 @@ pub(crate) fn default_shotgun_required_stages() -> Vec<String> {
             "fastq.profile_read_lengths" => "fastq.profile_read_lengths".to_string(),
             "fastq.detect_adapters" => id_catalog::FASTQ_DETECT_ADAPTERS.to_string(),
             "fastq.trim_polyg_tails" => "fastq.trim_polyg_tails".to_string(),
-            "fastq.trim_terminal_damage" => "fastq.trim_terminal_damage".to_string(),
             "fastq.trim_reads" => id_catalog::FASTQ_TRIM.to_string(),
             "fastq.filter_reads" => id_catalog::FASTQ_FILTER.to_string(),
             "fastq.profile_reads" => id_catalog::FASTQ_STATS_NEUTRAL.to_string(),
@@ -25,4 +24,14 @@ pub(crate) fn default_shotgun_required_stages() -> Vec<String> {
             other => other.to_string(),
         })
         .collect()
+}
+
+pub(crate) fn minimal_shotgun_required_stages() -> Vec<String> {
+    vec![
+        id_catalog::FASTQ_VALIDATE_PRE.to_string(),
+        id_catalog::FASTQ_DETECT_ADAPTERS.to_string(),
+        id_catalog::FASTQ_TRIM.to_string(),
+        id_catalog::FASTQ_FILTER.to_string(),
+        id_catalog::FASTQ_QC_POST.to_string(),
+    ]
 }

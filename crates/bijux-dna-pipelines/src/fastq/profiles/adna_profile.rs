@@ -11,6 +11,7 @@ use crate::{InvariantsPreset, PipelineId, PipelineProfile, StabilityTier};
 pub fn fastq_adna_profile() -> PipelineProfile {
     let defaults = adna_fastq_defaults();
     let mut required_stages = default_shotgun_required_stages();
+    append_stage_once(&mut required_stages, id_catalog::FASTQ_TRIM_TERMINAL_DAMAGE);
     append_stage_once(&mut required_stages, id_catalog::FASTQ_MERGE);
     PipelineProfile {
         id: PipelineId::from_static(id_catalog::PIPELINE_FASTQ_ADNA),
