@@ -1,9 +1,9 @@
 {
-  "sources": 9,
-  "source_inventory_rows": 9,
+  "sources": 11,
+  "source_inventory_rows": 11,
   "source_archive_gap_rows": 0,
-  "evidences": 7,
-  "claims": 7,
+  "evidences": 8,
+  "claims": 8,
   "assumptions": 1,
   "reasonings": 2,
   "decisions": 2,

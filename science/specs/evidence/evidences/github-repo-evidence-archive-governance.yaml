@@ -1,0 +1,8 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.science-docs.github-repo-archive-governance"
+statement: "GitHub repository evidence is governed by the tracked upstream manifest and the local archive instructions for repository mirrors."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.science-docs.github-repo-manifest"
+  - "source.science-docs.github-repo-archive-readme"

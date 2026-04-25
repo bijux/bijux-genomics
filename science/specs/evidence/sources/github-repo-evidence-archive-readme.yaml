@@ -1,0 +1,9 @@
+schema_version: "bijux.science.source.v1"
+source_id: "source.science-docs.github-repo-archive-readme"
+kind: "document"
+access: "repo_path"
+title: "Science docs GitHub repository archive instructions"
+locator: "science-docs/upstream/github-repos/README.md"
+authority: "science_docs.github_repo_archive_instructions"
+notes:
+  - "This source defines the canonical mirror-first layout for local GitHub repository evidence."
