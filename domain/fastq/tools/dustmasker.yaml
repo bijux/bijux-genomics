@@ -1,12 +1,12 @@
 schema_version: "bijux.tool.v2"
 tool_id: "dustmasker"
-upstream: "https://www.ncbi.nlm.nih.gov/books/NBK279690/"
+upstream: "https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/src/app/dustmasker/"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "2.15.0"
 install_kind: "container"
 license: "Public-Domain"
-citation: "pending:tool-publication"
+citation: "upstream:https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/src/app/dustmasker/"
 planned_stage_ids: ["fastq.filter_low_complexity"]
 stage_ids: ["fastq.filter_low_complexity"]
 stage_contracts:

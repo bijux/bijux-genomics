@@ -39,6 +39,16 @@ fn fastq_environment_slice_matches_committed_outputs() {
     assert!(compiled.fastq_download_backlog_rows.iter().any(|row| {
         row.tool_id == "fastp" && row.source_id == "source.fastq.tool.fastp.upstream"
     }));
+    assert!(compiled.fastq_download_backlog_rows.iter().any(|row| {
+        row.tool_id == "diamond"
+            && row.backlog_status == "ready"
+            && row.locator == "https://github.com/bbuchfink/diamond"
+    }));
+    assert!(compiled.fastq_download_backlog_rows.iter().any(|row| {
+        row.tool_id == "dustmasker"
+            && row.backlog_status == "ready"
+            && row.locator == "https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/src/app/dustmasker/"
+    }));
 
     assert_eq!(
         std::fs::read_to_string(
