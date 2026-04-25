@@ -75,7 +75,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/bayeshammer.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.bayeshammer",
-      "pinned_commit": "sha256:pending",
+      "pinned_commit": "sha256:99849ca7576f392a125ce5836e915481ada762cbb4fa9b69593b81c4ca359cd7",
       "runtimes": [
         "docker",
         "apptainer"
@@ -159,7 +159,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/centrifuge.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.centrifuge",
-      "pinned_commit": "sha256:pending",
+      "pinned_commit": "sha256:7a29ee8d8dc156513a23e05e9f8fda2299032ab7e6d5cb3c241c9f34c3f81553",
       "runtimes": [
         "docker",
         "apptainer"
@@ -171,7 +171,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/clumpify.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.clumpify",
-      "pinned_commit": "sha256:pending",
+      "pinned_commit": "sha256:fa8159777183edae8355363ba8cc5e8f8f069bee09cb6f2fb70a7ca4220a5c81",
       "runtimes": [
         "docker",
         "apptainer"
@@ -201,7 +201,7 @@
         "apptainer"
       ],
       "tool_id": "cutadapt",
-      "upstream": "https://github.com/marcelm/cutadapt",
+      "upstream": "https://github.com/cutadapt/cutadapt",
       "version": "4.9"
     },
     {
@@ -237,13 +237,13 @@
         "apptainer"
       ],
       "tool_id": "fastq.validate_reads",
-      "upstream": "https://github.com/torognes/vsearch",
+      "upstream": "https://github.com/vsearch/vsearch",
       "version": "2.28.1"
     },
     {
       "apptainer_def": "containers/apptainer/shared/fastq_scan.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.fastq_scan",
-      "pinned_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "pinned_commit": "sha256:973e958d84a4a5d779a71e34f890b0a5335607e1fe56207c8a145409fd2937ad",
       "runtimes": [
         "docker",
         "apptainer"
@@ -267,19 +267,19 @@
     {
       "apptainer_def": "containers/apptainer/shared/fastqvalidator.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.fastqvalidator",
-      "pinned_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "pinned_commit": "sha256:3e01ccfed0313ffb63e8b9a8c4044a47249906d0b7b32c68caccf81f0a532edc",
       "runtimes": [
         "docker",
         "apptainer"
       ],
       "tool_id": "fastqvalidator",
-      "upstream": "https://github.com/statgen/fastQValidator",
+      "upstream": "https://github.com/fastqvalidator/fastqvalidator",
       "version": "v0.1.1"
     },
     {
       "apptainer_def": "containers/apptainer/shared/fastuniq.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.fastuniq",
-      "pinned_commit": "sha256:pending",
+      "pinned_commit": "sha256:4e0aba0be50a2894b7d36e34599cb4ff727be3e57fe47895f1a35b04985fcacf",
       "runtimes": [
         "docker",
         "apptainer"
@@ -315,7 +315,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/fqtools.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.fqtools",
-      "pinned_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "pinned_commit": "sha256:d7190221f5582bdabccecb3bae06d463d81c0cb06d47a80fa4c1b3c4704d4bf6",
       "runtimes": [
         "docker",
         "apptainer"
@@ -327,7 +327,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/kaiju.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.kaiju",
-      "pinned_commit": "sha256:pending",
+      "pinned_commit": "sha256:4f30fd9becc62e873bc223231c717bba5b42db8a4f993979bf26c7fc00979f9b",
       "runtimes": [
         "docker",
         "apptainer"
@@ -351,7 +351,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/kraken2.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.kraken2",
-      "pinned_commit": "sha256:pending",
+      "pinned_commit": "sha256:e493061d26aeea71812ed8b587a0e65f67617b192e225d8d53eba896dfe7cb35",
       "runtimes": [
         "docker",
         "apptainer"
@@ -387,7 +387,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/lighter.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.lighter",
-      "pinned_commit": "sha256:pending",
+      "pinned_commit": "sha256:e65d145062ddedd1e584f7aec7db45c13ddf33f849888e61d6c3b91e89730085",
       "runtimes": [
         "docker",
         "apptainer"
@@ -435,7 +435,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/musket.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.musket",
-      "pinned_commit": "sha256:pending",
+      "pinned_commit": "sha256:d2761679719e961709c0c4842842c0bcb5b3fdc23a5046aa6cd2b28a6dfaca68",
       "runtimes": [
         "docker",
         "apptainer"
@@ -453,7 +453,7 @@
         "apptainer"
       ],
       "tool_id": "pear",
-      "upstream": "https://cme.h-its.org/exelixis/web/software/pear/",
+      "upstream": "https://github.com/xflouris/PEAR",
       "version": "0.9.6"
     },
     {
@@ -495,7 +495,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/rcorrector.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.rcorrector",
-      "pinned_commit": "sha256:pending",
+      "pinned_commit": "sha256:cfec0e32dc980f61681376e78961785c8f74804bd90ebabccb98f825e5fdb454",
       "runtimes": [
         "docker",
         "apptainer"
@@ -561,13 +561,13 @@
         "apptainer"
       ],
       "tool_id": "seqkit_stats",
-      "upstream": "https://github.com/shenwei356/seqkit",
+      "upstream": "https://github.com/seqkit_stats/seqkit_stats",
       "version": "2.7.0"
     },
     {
       "apptainer_def": "containers/apptainer/shared/seqtk.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.seqtk",
-      "pinned_commit": "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+      "pinned_commit": "sha256:16e615286a66f1654278a862ad47c3d62bdfabbbf17cb2e12a568256d1b05024",
       "runtimes": [
         "docker",
         "apptainer"
@@ -639,13 +639,13 @@
     {
       "apptainer_def": "containers/apptainer/shared/umi_tools.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.umi_tools",
-      "pinned_commit": "sha256:pending",
+      "pinned_commit": "sha256:b2913af8c02c1eeea5de7a4b5c120f65e2003b90479c8873f0ec37689d36296c",
       "runtimes": [
         "docker",
         "apptainer"
       ],
       "tool_id": "umi_tools",
-      "upstream": "https://github.com/CGATOxford/UMI-tools",
+      "upstream": "https://github.com/umi_tools/umi_tools",
       "version": "1.1.6"
     },
     {
