@@ -101,10 +101,18 @@ pub(super) fn validate_stage_files(
             }
             let allowed_bank_hooks = BTreeSet::from([
                 "adapter_bank",
+                "asset_lock_registry",
+                "barcode_kit_bank",
                 "polyx_bank",
+                "primer_bank",
                 "contaminant_db_bank",
+                "contaminant_database_lock",
                 "reference_bank",
                 "contamination_db_bank",
+                "provenance_registry",
+                "rrna_database_lock",
+                "taxonomy_database_lock",
+                "instrument_artifact_bank",
                 "none",
             ]);
             for hook in &stage.bank_hooks {

@@ -34,7 +34,8 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "none"
-compatible_tools: []
+compatible_tools:
+  - bijux_dna
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "read-name normalization is unsafe for provenance-sensitive workflows unless original headers are recoverable."
