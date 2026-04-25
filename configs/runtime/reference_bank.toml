@@ -8,7 +8,7 @@
 [[reference]]
 species_id = "Homo sapiens"
 build_id = "GRCh38"
-fasta_url = "https://example.org/ref/human/GRCh38.primary_assembly.genome.fa.gz"
+fasta_url = "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GCF_000001405.40_GRCh38.p14_genomic.fna.gz"
 fasta_sha256 = "1bf72215ccb7db7c6b67f1485fed289890c09a810cbb8822a0d098c22b5b6976"
 license_id = "GRCh38"
 license_url = "https://www.ncbi.nlm.nih.gov/grc/human"
@@ -17,7 +17,7 @@ required_indexes = ["samtools_faidx", "bwa_index", "bowtie2_index"]
 [[reference]]
 species_id = "Canis lupus"
 build_id = "CanFam4"
-fasta_url = "https://example.org/ref/canis/CanFam4.fa.gz"
+fasta_url = "https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/011/100/685/GCF_011100685.1_UU_Cfam_GSD_1.0/GCF_011100685.1_UU_Cfam_GSD_1.0_genomic.fna.gz"
 fasta_sha256 = "7e7de52c4354606d6edd2890321f8604899feb1003f91c90f05afa5a985a9623"
 license_id = "CanFam4"
 license_url = "https://www.ncbi.nlm.nih.gov/assembly/GCF_011100685.1"
