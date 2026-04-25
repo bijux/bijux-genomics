@@ -6,6 +6,7 @@ source.fastq.environment-reference	document	repo_path	bijux_dna_environment.env_
 source.fastq.execution-support	repo_file	repo_path	domain.fastq.execution_support	domain/fastq/execution_support.yaml		not_applicable
 source.fastq.paper-archive-contract	document	repo_path	science_docs.fastq.paper_archive_contract	science-docs/upstream/papers/README.md		not_applicable
 source.fastq.paper-map	document	repo_path	science_docs.fastq.tool_paper_map	science-docs/upstream/papers/TOOL_PAPER_MAP.tsv		not_applicable
+source.fastq.pipeline-contract	repo_directory	repo_path	domain.fastq.pipeline_contract	crates/bijux-dna-domain-fastq/src/pipeline_contract/		not_applicable
 source.fastq.reference-assets	document	repo_path	assets.reference.evidence	assets/reference/EVIDENCE.md		not_applicable
 source.fastq.reference-lock	document	repo_path	assets.reference.lock	assets/reference/LOCK.md		not_applicable
 source.fastq.science-docs-backlog	document	repo_path	science_docs.fastq_download_backlog	science-docs/TODO_DOWNLOAD.md		not_applicable
