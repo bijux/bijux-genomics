@@ -95,7 +95,8 @@ exec /usr/local/bin/umi_tools-bin "$@"
 EOF
     chmod 0755 /usr/local/bin/umi_tools
 
-    rm -rf /tmp/umi-tools-src /var/lib/apt/lists/*
+    rm -rf /tmp/umi-tools-src
+    rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then
         exec umi_tools --help
