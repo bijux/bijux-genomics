@@ -784,8 +784,19 @@ pub(in super::super) fn check_docker_context(
         );
     }
     for path in dockerfile_paths(workspace)? {
-        for (index, line) in read_utf8(&path)?.lines().enumerate() {
+        let text = read_utf8(&path)?;
+        let lines = text.lines().collect::<Vec<_>>();
+        for (index, line) in lines.iter().enumerate() {
             let trimmed = line.trim();
+            if trimmed.ends_with('\\')
+                && lines.get(index + 1).map(|next| next.trim().is_empty()).unwrap_or(true)
+            {
+                errors.push(format!(
+                    "{}:{}: dangling Dockerfile line continuation before blank line or EOF",
+                    workspace.rel(&path).display(),
+                    index + 1
+                ));
+            }
             if Regex::new(r"^(COPY|ADD)\s+\.\s").expect("regex").is_match(trimmed) {
                 errors.push(format!(
                     "{}:{}: forbidden broad context copy ('COPY . ...' or 'ADD . ...')",
