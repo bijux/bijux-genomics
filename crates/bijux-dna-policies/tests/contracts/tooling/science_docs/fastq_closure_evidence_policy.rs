@@ -40,6 +40,46 @@ fn placeholder_digest_tools() -> BTreeSet<String> {
     tools
 }
 
+fn production_fastq_tag_only_container_tools() -> BTreeSet<String> {
+    let root = support::workspace_root();
+    let raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
+        .expect("read production tool registry");
+    let parsed: toml::Value = raw.parse().expect("parse production tool registry");
+    parsed
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|tool| {
+            let id = tool.get("id").and_then(toml::Value::as_str)?;
+            let domain = tool.get("domain").and_then(toml::Value::as_str).unwrap_or_default();
+            let stage_is_fastq = tool
+                .get("stage_ids")
+                .and_then(toml::Value::as_array)
+                .into_iter()
+                .flatten()
+                .filter_map(toml::Value::as_str)
+                .any(|stage_id| stage_id.starts_with("fastq."));
+            if domain != "fastq" && !stage_is_fastq {
+                return None;
+            }
+
+            let container_ref =
+                tool.get("container_ref").and_then(toml::Value::as_str).unwrap_or_default();
+            let is_containerized =
+                tool.get("container").and_then(toml::Value::as_bool).unwrap_or(true);
+            if is_containerized
+                && !container_ref.trim().is_empty()
+                && !container_ref.contains("@sha256:")
+            {
+                return Some(id.to_string());
+            }
+            None
+        })
+        .collect()
+}
+
 #[test]
 fn policy__contracts__fastq_closure_evidence_policy__default_risks_have_prerequisite_rows() {
     let risk_rows =
@@ -106,6 +146,19 @@ fn policy__contracts__fastq_closure_evidence_policy__pending_digests_match_block
     assert_eq!(
         pending, blockers,
         "FASTQ pending container digests must match the tracked digest blocker registry"
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_closure_evidence_policy__tag_only_containers_match_blocker_registry() {
+    let tag_only = production_fastq_tag_only_container_tools();
+    let blockers = tsv_rows("science-docs/upstream/fastq/TAG_ONLY_CONTAINER_BLOCKERS.tsv")
+        .into_iter()
+        .map(|row| row[0].clone())
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        tag_only, blockers,
+        "FASTQ tag-only production container refs must match the tracked tag-only blocker registry"
     );
 }
 
