@@ -79,7 +79,31 @@ pub(crate) struct QaDataset {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeSet;
+    use std::path::{Path, PathBuf};
+
+    use bijux_dna_domain_fastq::all_stage_execution_support;
+
     use super::QaStage;
+
+    fn workspace_root() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .expect("workspace root")
+            .to_path_buf()
+    }
+
+    fn qa_coverage_blocker_stage_ids() -> BTreeSet<String> {
+        let path = workspace_root().join("science-docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv");
+        let raw = std::fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+        raw.lines()
+            .enumerate()
+            .filter(|(index, line)| *index > 0 && !line.trim().is_empty())
+            .map(|(_index, line)| line.split('\t').next().expect("stage_id column").to_string())
+            .collect()
+    }
 
     #[test]
     fn qa_tool_rosters_come_from_fastq_execution_support() {
@@ -114,5 +138,24 @@ mod tests {
         let with_screen = QaStage::enabled_stages(true);
         assert_eq!(with_screen.last(), Some(&QaStage::Screen));
         assert_eq!(with_screen.len(), QaStage::enabled_stages(false).len() + 1);
+    }
+
+    #[test]
+    fn qa_coverage_blockers_match_uncovered_execution_support_stages() {
+        let admitted = all_stage_execution_support()
+            .into_iter()
+            .map(|support| support.stage_id.as_str().to_string())
+            .collect::<BTreeSet<_>>();
+        let covered = QaStage::enabled_stages(true)
+            .into_iter()
+            .map(|stage| stage.stage_id().as_str().to_string())
+            .collect::<BTreeSet<_>>();
+        let missing = admitted.difference(&covered).cloned().collect::<BTreeSet<_>>();
+
+        assert_eq!(
+            qa_coverage_blocker_stage_ids(),
+            missing,
+            "science-docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv must match admitted execution-support stages without environment-QA coverage"
+        );
     }
 }
