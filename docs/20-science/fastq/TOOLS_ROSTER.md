@@ -32,7 +32,7 @@ Makes the supported roster explicit so review decisions do not have to be revers
 | fastq.deplete_rrna | sortmerna | Read-level rRNA depletion |
 | fastq.correct_errors | rcorrector, musket, lighter, bayeshammer | Intentionally supported error-correction backends after roster cleanup |
 | fastq.extract_umis | umi_tools | UMI extraction with barcode-pattern-aware header propagation |
-| fastq.screen_taxonomy | kraken2, krakenuniq, centrifuge, metaphlan, kaiju, fastq_screen | Read-level screening and profiling backends only |
+| fastq.screen_taxonomy | kraken2, krakenuniq, centrifuge, kaiju | Read-level screening and profiling backends only |
 | fastq.report_qc | multiqc | Aggregated QC reporting |
 | fastq.trim_terminal_damage | cutadapt, seqkit | Terminal-damage-aware trimming/masking |
 | fastq.normalize_primers | cutadapt, seqkit | Primer normalization with explicit sequence handling |
