@@ -463,7 +463,7 @@ fn check_domain_layout(workspace: &Workspace) -> Result<DomainCommandOutcome> {
 
     let allowed = [
         regex(
-            r"^domain/[^/]+/(index\.yaml|artifacts\.yaml|metrics\.yaml|execution_support\.yaml)$",
+            r"^domain/[^/]+/(index\.yaml|artifacts\.yaml|metrics\.yaml|execution_support\.yaml|route_policies\.toml)$",
         )?,
         regex(r"^domain/[^/]+/(stages|tools)/[^/]+\.yaml$")?,
         regex(r"^domain/[^/]+/(metrics|artifacts)/_schema\.yaml$")?,
