@@ -4,6 +4,12 @@ mod support;
 
 use std::collections::BTreeSet;
 
+fn yaml_scalar(raw: &str, key: &str) -> Option<String> {
+    raw.lines()
+        .find_map(|line| line.strip_prefix(&format!("{key}: ")))
+        .map(|value| value.trim().trim_matches('"').to_string())
+}
+
 fn tsv_rows(path: &str) -> Vec<Vec<String>> {
     let root = support::workspace_root();
     let raw =
@@ -13,6 +19,26 @@ fn tsv_rows(path: &str) -> Vec<Vec<String>> {
         .filter(|(index, line)| *index > 0 && !line.trim().is_empty())
         .map(|(_index, line)| line.split('\t').map(str::to_string).collect::<Vec<_>>())
         .collect()
+}
+
+fn fastq_manifest_ids(dir: &str, key: &str) -> BTreeSet<String> {
+    let root = support::workspace_root();
+    let mut ids = BTreeSet::new();
+    for entry in std::fs::read_dir(root.join(dir)).unwrap_or_else(|err| panic!("read {dir}: {err}"))
+    {
+        let path = entry.expect("manifest entry").path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml")
+            || path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml")
+        {
+            continue;
+        }
+        let raw = std::fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read manifest {}: {err}", path.display()));
+        ids.insert(
+            yaml_scalar(&raw, key).unwrap_or_else(|| panic!("{key} missing in {}", path.display())),
+        );
+    }
+    ids
 }
 
 fn placeholder_digest_tools() -> BTreeSet<String> {
@@ -110,6 +136,46 @@ fn policy__contracts__fastq_closure_evidence_policy__default_risks_have_prerequi
         offenders.is_empty(),
         "FASTQ closure evidence policy violations:\n{}",
         offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_closure_evidence_policy__stage_library_support_covers_all_fastq_stages()
+{
+    let manifest_stage_ids = fastq_manifest_ids("domain/fastq/stages", "stage_id");
+    let support_stage_ids = tsv_rows("science-docs/upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv")
+        .into_iter()
+        .map(|row| row[0].clone())
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        support_stage_ids, manifest_stage_ids,
+        "FASTQ stage library support table must cover every stage manifest exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_closure_evidence_policy__stage_claims_cover_all_fastq_stages() {
+    let manifest_stage_ids = fastq_manifest_ids("domain/fastq/stages", "stage_id");
+    let claim_stage_ids = tsv_rows("science-docs/upstream/fastq/STAGE_CLAIMS.tsv")
+        .into_iter()
+        .map(|row| row[1].clone())
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        claim_stage_ids, manifest_stage_ids,
+        "FASTQ stage claim registry must cover every stage manifest exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_closure_evidence_policy__tool_risk_registry_covers_all_fastq_tools() {
+    let manifest_tool_ids = fastq_manifest_ids("domain/fastq/tools", "tool_id");
+    let risk_tool_ids = tsv_rows("science-docs/upstream/fastq/TOOL_RISK_REGISTRY.tsv")
+        .into_iter()
+        .map(|row| row[0].clone())
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        risk_tool_ids, manifest_tool_ids,
+        "FASTQ tool risk registry must cover every tool manifest exactly"
     );
 }
 
