@@ -90,19 +90,19 @@ fn run_image_qa_with(
             log_dataset(logger, &dataset);
             let input_hash = dataset_input_hash(stage, &dataset);
             store.insert_input(stage_id.as_str(), &input_hash)?;
-            for &tool in stage.tools() {
+            for tool in stage.tools() {
                 if stage != QaStage::Trim
-                    && qa_already_passed(store.conn(), stage, tool, platform, catalog, &input_hash)
+                    && qa_already_passed(store.conn(), stage, &tool, platform, catalog, &input_hash)
                         .unwrap_or(false)
                 {
-                    log_tool_skip(logger, stage, tool, &dataset);
+                    log_tool_skip(logger, stage, &tool, &dataset);
                     continue;
                 }
-                log_tool(logger, stage, tool);
-                let mut outcome = match run_static_qa(tool, platform, catalog) {
+                log_tool(logger, stage, &tool);
+                let mut outcome = match run_static_qa(&tool, platform, catalog) {
                     Ok(()) => run_behavioral_qa(
                         stage,
-                        tool,
+                        &tool,
                         platform,
                         catalog,
                         &registry,
@@ -113,7 +113,7 @@ fn run_image_qa_with(
                 };
                 let record = match build_qa_record(
                     stage,
-                    tool,
+                    &tool,
                     platform,
                     catalog,
                     &input_hash,
@@ -123,7 +123,7 @@ fn run_image_qa_with(
                     Err(err) => {
                         outcome = ImageQaOutcome::Fail(err.to_string());
                         ImageQaRecord {
-                            tool: tool.to_string(),
+                            tool: tool.clone(),
                             stage: stage_id.as_str().to_string(),
                             tool_version: "unknown".to_string(),
                             image_digest: "unknown".to_string(),
@@ -134,7 +134,7 @@ fn run_image_qa_with(
                         }
                     }
                 };
-                log_tool_result(logger, stage, tool, &dataset, &outcome);
+                log_tool_result(logger, stage, &tool, &dataset, &outcome);
                 if matches!(outcome, ImageQaOutcome::Pass) {
                     pass += 1;
                 } else {
