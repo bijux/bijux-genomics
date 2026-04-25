@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-04-25T19:35:16+02:00",
+  "build_date_utc": "2026-04-25T20:11:51+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -726,17 +726,17 @@
       "version": "1.10.0"
     },
     {
-      "entry_sha256": "3db2fc4019d917dff555ae2ae481e3dba656986bf550e1a466f511d8e6cafc4a",
+      "entry_sha256": "57e9c68089b414cabc82265b6cb0662b774dc93fb32a89764cbeb8b412aada25",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
       "image_size_bytes": 0,
-      "pinned_commit": "release:2.3.0",
+      "pinned_commit": "",
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://www.kingrelatedness.com/executables/Linux-king230.tar.gz",
-      "source_sha256": "",
+      "source_sha256": "5a00cb504b56e3a05c8aa2b4531b1f85c9947e7c9aa89bfec7afd72b28663b39",
       "status": "production",
       "tool": "king",
       "version": "2.3.0"
@@ -1416,6 +1416,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "2aaf34cdb5c7938337f4b2ecb2dbd7e9defc9d51a4355ac3fd7b39d93ac3c0f9",
+  "source_sha256": "209939f09883a29475253f70ff129f9e2183c0f57a3bd051fce6507d2cd92110",
   "version_map_source": "artifacts/containers/version_map.json"
 }
