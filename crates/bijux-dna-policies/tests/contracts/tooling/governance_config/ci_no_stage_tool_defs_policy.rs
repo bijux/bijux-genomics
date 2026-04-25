@@ -5,6 +5,13 @@ mod support;
 use std::collections::BTreeSet;
 use walkdir::WalkDir;
 
+fn is_bijux_std_managed_workflow(content: &str) -> bool {
+    content
+        .lines()
+        .take(5)
+        .any(|line| line.contains("SSOT NOTICE: Synced consumer copies are generated from bijux-std/"))
+}
+
 #[test]
 fn policy__contracts__ci_no_stage_tool_defs_policy__workflows_must_not_define_stage_or_tool_ids() {
     let root = support::workspace_root();
@@ -48,6 +55,9 @@ fn policy__contracts__ci_no_stage_tool_defs_policy__workflows_must_not_define_st
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read workflow");
+        if is_bijux_std_managed_workflow(&content) {
+            continue;
+        }
         for id in &ids {
             if content.contains(id) {
                 offenders.push(format!("{} contains SSOT id literal `{id}`", path.display()));
