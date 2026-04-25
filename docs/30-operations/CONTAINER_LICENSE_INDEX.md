@@ -63,7 +63,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `ibdseq` | `bijux` | `GPL-3.0` | `https://faculty.washington.edu/browning/ibdseq.shtml` | `3.0` | `sha256:64459e82afddffc02a8dc092862c200568b2971b7b9b3fb401468e0d898a4aff` |
 | `impute5` | `non-bijux` | `research-only` | `https://jmarchini.org/software/#impute-5` | `1.2.0` | `sha256:3333333333333333333333333333333333333333333333333333333333333333` |
 | `kaiju` | `bijux` | `NOASSERTION` | `https://github.com/bioinformatics-centre/kaiju` | `1.10.0` | `sha256:a8cc1e366558427bb3a111498565dc5c63d12ef0ef41870a41f2dcd8df318a59` |
-| `king` | `bijux` | `NOASSERTION` | `https://www.kingrelatedness.com/executables/Linux-king230.tar.gz` | `2.3.0` | `sha256:86889f70cdf85c5bb8ac74561d30987cc892f9f5b1f05d95111dbaabdec4e4a3` |
+| `king` | `bijux` | `NOASSERTION` | `https://www.kingrelatedness.com/executables/Linux-king230.tar.gz` | `2.3.0` | `sha256:5a00cb504b56e3a05c8aa2b4531b1f85c9947e7c9aa89bfec7afd72b28663b39` |
 | `kraken2` | `bijux` | `NOASSERTION` | `https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz` | `2.1.3` | `sha256:5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69` |
 | `krakenuniq` | `bijux` | `NOASSERTION` | `https://github.com/fbreitwieser/krakenuniq` | `1.0.4` | `sha256:d4cdfedb97cb74d26f21c2de00fccde980c33c6e79436ac05f7318aedc85112f` |
 | `leehom` | `bijux` | `NOASSERTION` | `https://github.com/grenaud/leeHom` | `1.0.17` | `sha256:146f111ee336a7d01cba5861a9672d75a7739ad7ece923925bbd90c2550341b1` |
