@@ -1,7 +1,7 @@
 # Containers Docs Index
 
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: cargo run -p bijux-dev-dna -- containers run generate-index -->
+<!-- source: cargo run -p bijux-dna-dev -- containers run generate-index -->
 
 Purpose: Authoritative tool/container index for container governance and CI checks.
 
@@ -19,8 +19,9 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Network disclosure: `containers/docs/NETWORK_USAGE.md`
 - Security boundary: `containers/docs/SECURITY_BOUNDARY.md`
 - Multiarch policy: `containers/docs/MULTIARCH_POLICY.md`
+- GHCR publication: `containers/docs/GHCR_PUBLISH.md`
 - Licenses: `containers/licenses/`
-- SBOM + vulnerability hooks: `cargo run -p bijux-dev-dna -- containers run check-sbom-artifacts`, `cargo run -p bijux-dev-dna -- containers run check-vuln-hook`
+- SBOM + vulnerability hooks: `cargo run -p bijux-dna-dev -- containers run check-sbom-artifacts`, `cargo run -p bijux-dna-dev -- containers run check-vuln-hook`
 - Exceptions: `containers/docker/NONROOT_EXCEPTIONS.md`, `containers/docker/ENTRYPOINT_EXCEPTIONS.md`, `containers/docs/PLANNED.md`
 - Tool ID contract: `containers/docs/TOOL_IDS_CONTRACT.md`
 
@@ -28,6 +29,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Tool IDs + lifecycle status: `containers/TOOL_IDS.txt` (generated from registry).
 - Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.
 - Container version metadata: `containers/versions/versions.toml` + `containers/versions/lock.json`.
+- GHCR publish matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/publish-matrix.json`.
 - Non-bijux provenance: `containers/apptainer/shared/NON_BIJUX_SOURCES.md`.
 - Ownership map: `containers/OWNERS.toml`.
 
