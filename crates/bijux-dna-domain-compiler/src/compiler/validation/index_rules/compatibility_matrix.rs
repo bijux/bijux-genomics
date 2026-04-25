@@ -75,6 +75,10 @@ pub(super) fn validate_index_matrix_and_pipelines(
         if tools.is_empty() {
             bail!("{} stage {} has empty compatibility list", index_path.display(), stage_id);
         }
+        let stage_status = stage_status_by_id.get(stage_id).map_or("", String::as_str);
+        if stage_status != "supported" {
+            continue;
+        }
         let checklist = index.stage_completeness_checklist.get(stage_id).ok_or_else(|| {
             anyhow!(
                 "{} stage {} missing stage_completeness_checklist entry",
