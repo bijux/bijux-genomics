@@ -29,5 +29,8 @@ repositories, supplementary documents, and local notes tied to licensed access.
 
 - keep actual evidence payloads untracked
 - keep durable identifiers and download instructions in `TODO_DOWNLOAD.md`
+- treat `science/generated/current/evidence/fastq_download_backlog.tsv` as the
+  machine-readable source for FASTQ archive planning and keep
+  `TODO_DOWNLOAD.md` aligned with it
 - place each acquired item under a stable path that matches the planned archive
   path recorded in the TODO list or a future science source record

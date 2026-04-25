@@ -15,5 +15,66 @@ ones when the evidence set evolves.
 
 ## Status
 
-The initial FASTQ container and environment backlog will be added in later
-commits in this change sequence.
+The canonical machine-readable backlog is:
+`science/generated/current/evidence/fastq_download_backlog.tsv`
+
+This markdown file is the operator-facing view of that FASTQ backlog.
+
+## Ready for Manual Clone
+
+| Source ID | Tool | FASTQ Stages | Archive Path | Upstream |
+| --- | --- | --- | --- | --- |
+| `source.fastq.tool.adapterremoval.upstream` | `adapterremoval` | `fastq.merge_pairs,fastq.trim_reads,fastq.trim_terminal_damage` | `science-docs/upstream/fastq/tools/adapterremoval/repo` | https://github.com/MikkelSchubert/adapterremoval |
+| `source.fastq.tool.alientrimmer.upstream` | `alientrimmer` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/alientrimmer/repo` | https://gitlab.pasteur.fr/GIPhy/AlienTrimmer |
+| `source.fastq.tool.atropos.upstream` | `atropos` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/atropos/repo` | https://github.com/jdidion/atropos |
+| `source.fastq.tool.bayeshammer.upstream` | `bayeshammer` | `fastq.correct_errors` | `science-docs/upstream/fastq/tools/bayeshammer/repo` | https://github.com/ablab/spades |
+| `source.fastq.tool.bowtie2.upstream` | `bowtie2` | `fastq.deplete_host,fastq.deplete_reference_contaminants` | `science-docs/upstream/fastq/tools/bowtie2/repo` | https://github.com/BenLangmead/bowtie2 |
+| `source.fastq.tool.bowtie2_build.upstream` | `bowtie2_build` | `fastq.index_reference` | `science-docs/upstream/fastq/tools/bowtie2_build/repo` | https://github.com/BenLangmead/bowtie2 |
+| `source.fastq.tool.centrifuge.upstream` | `centrifuge` | `fastq.screen_taxonomy` | `science-docs/upstream/fastq/tools/centrifuge/repo` | https://github.com/DaehwanKimLab/centrifuge |
+| `source.fastq.tool.cutadapt.upstream` | `cutadapt` | `fastq.normalize_primers,fastq.trim_reads,fastq.trim_terminal_damage` | `science-docs/upstream/fastq/tools/cutadapt/repo` | https://github.com/cutadapt/cutadapt |
+| `source.fastq.tool.fastq_scan.upstream` | `fastq_scan` | `fastq.profile_overrepresented_sequences,fastq.validate_reads` | `science-docs/upstream/fastq/tools/fastq_scan/repo` | https://github.com/indraniel/fastq_scan |
+| `source.fastq.tool.fastqvalidator.upstream` | `fastqvalidator` | `fastq.validate_reads` | `science-docs/upstream/fastq/tools/fastqvalidator/repo` | https://github.com/fastqvalidator/fastqvalidator |
+| `source.fastq.tool.fastx_clipper.upstream` | `fastx_clipper` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/fastx_clipper/repo` | https://github.com/agordon/fastx_toolkit |
+| `source.fastq.tool.flash2.upstream` | `flash2` | `fastq.merge_pairs` | `science-docs/upstream/fastq/tools/flash2/repo` | https://github.com/dstreett/FLASH2 |
+| `source.fastq.tool.fqtools.upstream` | `fqtools` | `fastq.validate_reads` | `science-docs/upstream/fastq/tools/fqtools/repo` | https://github.com/alastair-droop/fqtools |
+| `source.fastq.tool.kaiju.upstream` | `kaiju` | `fastq.screen_taxonomy` | `science-docs/upstream/fastq/tools/kaiju/repo` | https://github.com/bioinformatics-centre/kaiju |
+| `source.fastq.tool.kraken2.upstream` | `kraken2` | `fastq.screen_taxonomy` | `science-docs/upstream/fastq/tools/kraken2/repo` | https://github.com/DerrickWood/kraken2 |
+| `source.fastq.tool.krakenuniq.upstream` | `krakenuniq` | `fastq.screen_taxonomy` | `science-docs/upstream/fastq/tools/krakenuniq/repo` | https://github.com/fbreitwieser/krakenuniq |
+| `source.fastq.tool.leehom.upstream` | `leehom` | `fastq.merge_pairs,fastq.trim_reads` | `science-docs/upstream/fastq/tools/leehom/repo` | https://github.com/grenaud/leeHom |
+| `source.fastq.tool.lighter.upstream` | `lighter` | `fastq.correct_errors` | `science-docs/upstream/fastq/tools/lighter/repo` | https://github.com/mourisl/Lighter |
+| `source.fastq.tool.multiqc.upstream` | `multiqc` | `fastq.report_qc` | `science-docs/upstream/fastq/tools/multiqc/repo` | https://github.com/multiqc/multiqc |
+| `source.fastq.tool.pear.upstream` | `pear` | `fastq.merge_pairs` | `science-docs/upstream/fastq/tools/pear/repo` | https://github.com/xflouris/PEAR |
+| `source.fastq.tool.prinseq.upstream` | `prinseq` | `fastq.filter_low_complexity,fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_reads` | `science-docs/upstream/fastq/tools/prinseq/repo` | https://github.com/Adrian-Cantu/PRINSEQ-plus-plus |
+| `source.fastq.tool.rcorrector.upstream` | `rcorrector` | `fastq.correct_errors` | `science-docs/upstream/fastq/tools/rcorrector/repo` | https://github.com/mourisl/Rcorrector |
+| `source.fastq.tool.seqkit_stats.upstream` | `seqkit_stats` | `fastq.profile_read_lengths,fastq.profile_reads` | `science-docs/upstream/fastq/tools/seqkit_stats/repo` | https://github.com/seqkit_stats/seqkit_stats |
+| `source.fastq.tool.seqtk.upstream` | `seqtk` | `fastq.validate_reads` | `science-docs/upstream/fastq/tools/seqtk/repo` | https://github.com/lh3/seqtk.git |
+| `source.fastq.tool.skewer.upstream` | `skewer` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/skewer/repo` | https://github.com/relipmoc/skewer |
+| `source.fastq.tool.sortmerna.upstream` | `sortmerna` | `fastq.deplete_rrna` | `science-docs/upstream/fastq/tools/sortmerna/repo` | https://github.com/biocore/sortmerna |
+| `source.fastq.tool.star.upstream` | `star` | `fastq.index_reference` | `science-docs/upstream/fastq/tools/star/repo` | https://github.com/alexdobin/STAR |
+| `source.fastq.tool.trim_galore.upstream` | `trim_galore` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/trim_galore/repo` | https://github.com/FelixKrueger/TrimGalore |
+| `source.fastq.tool.umi_tools.upstream` | `umi_tools` | `fastq.extract_umis` | `science-docs/upstream/fastq/tools/umi_tools/repo` | https://github.com/umi_tools/umi_tools |
+| `source.fastq.tool.vsearch.upstream` | `vsearch` | `fastq.cluster_otus,fastq.merge_pairs,fastq.remove_chimeras` | `science-docs/upstream/fastq/tools/vsearch/repo` | https://github.com/vsearch/vsearch |
+
+## Ready for Manual Download
+
+| Source ID | Tool | FASTQ Stages | Archive Path | Upstream |
+| --- | --- | --- | --- | --- |
+| `source.fastq.tool.bbduk.upstream` | `bbduk` | `fastq.filter_low_complexity,fastq.filter_reads,fastq.trim_polyg_tails,fastq.trim_reads` | `science-docs/upstream/fastq/tools/bbduk/download` | https://sourceforge.net/projects/bbmap/ |
+| `source.fastq.tool.bbmerge.upstream` | `bbmerge` | `fastq.merge_pairs` | `science-docs/upstream/fastq/tools/bbmerge/download` | https://sourceforge.net/projects/bbmap/ |
+| `source.fastq.tool.clumpify.upstream` | `clumpify` | `fastq.remove_duplicates` | `science-docs/upstream/fastq/tools/clumpify/download` | https://jgi.doe.gov/data-and-tools/software-tools/bbtools/ |
+| `source.fastq.tool.dada2.upstream` | `dada2` | `fastq.infer_asvs` | `science-docs/upstream/fastq/tools/dada2/download` | https://benjjneb.github.io/dada2/ |
+| `source.fastq.tool.fastuniq.upstream` | `fastuniq` | `fastq.remove_duplicates` | `science-docs/upstream/fastq/tools/fastuniq/download` | https://sourceforge.net/projects/fastuniq/ |
+| `source.fastq.tool.musket.upstream` | `musket` | `fastq.correct_errors` | `science-docs/upstream/fastq/tools/musket/download` | https://sourceforge.net/projects/musket/ |
+| `source.fastq.tool.trimmomatic.upstream` | `trimmomatic` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/trimmomatic/download` | http://www.usadellab.org/cms/?page=trimmomatic |
+
+## Needs Registry Repair or Manual Resolution
+
+| Source ID | Tool | Backlog Status | Archive Path | Mode | Note |
+| --- | --- | --- | --- | --- | --- |
+| `source.fastq.tool.diamond.upstream` | `diamond` | `missing_registry_source` | `` | `` | tool is on the FASTQ surface but lacks governed registry source metadata |
+| `source.fastq.tool.dustmasker.upstream` | `dustmasker` | `missing_registry_source` | `` | `` | tool is on the FASTQ surface but lacks governed registry source metadata |
+| `source.fastq.tool.fastp.upstream` | `fastp` | `templated_locator` | `science-docs/upstream/fastq/tools/fastp/download` | `manual_download` | registry locator contains unresolved template variables; archive the resolved release page or source bundle |
+| `source.fastq.tool.fastqc.upstream` | `fastqc` | `templated_locator` | `science-docs/upstream/fastq/tools/fastqc/download` | `manual_download` | registry locator contains unresolved template variables; archive the resolved release page or source bundle |
+| `source.fastq.tool.seqfu.upstream` | `seqfu` | `missing_registry_source` | `` | `` | tool is on the FASTQ surface but lacks governed registry source metadata |
+| `source.fastq.tool.seqkit.upstream` | `seqkit` | `templated_locator` | `science-docs/upstream/fastq/tools/seqkit/download` | `manual_download` | registry locator contains unresolved template variables; archive the resolved release page or source bundle |
+| `source.fastq.tool.seqpurge.upstream` | `seqpurge` | `missing_registry_source` | `` | `` | tool is on the FASTQ surface but lacks governed registry source metadata |
