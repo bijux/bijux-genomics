@@ -11,26 +11,26 @@ Purpose: enforce HPC frontend nodes as the only authority for Apptainer SIF buil
 
 ## Enforcement
 - Runtime guard scripts:
-  - `cargo run -p bijux-dev-dna -- containers run build-apptainer-hpc-frontend`
-  - `cargo run -p bijux-dev-dna -- containers run build-apptainer-all`
-  - `cargo run -p bijux-dev-dna -- containers run smoke-apptainer`
+  - `cargo run -p bijux-dna-dev -- containers run build-apptainer-hpc-frontend`
+  - `cargo run -p bijux-dna-dev -- containers run build-apptainer-all`
+  - `cargo run -p bijux-dna-dev -- containers run smoke-apptainer`
 - CI policy checks:
-  - `cargo run -p bijux-dev-dna -- containers run check-apptainer-post-pins`
-  - `cargo run -p bijux-dev-dna -- containers run check-hpc-frontend-policy-enforcement`
+  - `cargo run -p bijux-dna-dev -- containers run check-apptainer-post-pins`
+  - `cargo run -p bijux-dna-dev -- containers run check-hpc-frontend-policy-enforcement`
 - Cache policy checks:
-  - `cargo run -p bijux-dev-dna -- containers run check-apptainer-cache-policy`
+  - `cargo run -p bijux-dna-dev -- containers run check-apptainer-cache-policy`
   - `configs/ci/tools/apptainer_cache_policy.toml`
 
 ## Comparison Workflow
-1. Build on frontend with `cargo run -p bijux-dev-dna -- containers run build-apptainer-hpc-frontend`.
-2. Generate local digests with `cargo run -p bijux-dev-dna -- containers run generate-local-apptainer-digests`.
-3. Compare with `cargo run -p bijux-dev-dna -- containers run compare-frontend-local-sif-hash`.
+1. Build on frontend with `cargo run -p bijux-dna-dev -- containers run build-apptainer-hpc-frontend`.
+2. Generate local digests with `cargo run -p bijux-dna-dev -- containers run generate-local-apptainer-digests`.
+3. Compare with `cargo run -p bijux-dna-dev -- containers run compare-frontend-local-sif-hash`.
 4. If mismatch exists, capture deterministic cause (base digest drift, embedded timestamp, host/runtime variation, or source artifact change).
 
 ## Full Frontend Smoke Workflow
-1. Run `cargo run -p bijux-dev-dna -- containers run run-apptainer-frontend-smoke`.
+1. Run `cargo run -p bijux-dna-dev -- containers run run-apptainer-frontend-smoke`.
 2. Smoke executes `--version` and `--help` plus contract probes for every Apptainer tool SIF.
 3. Logs and manifests are stored under `artifacts/containers/hpc/frontend-smoke/`.
 4. Proof gate is enforced by:
-   - `cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-smoke-proof`
-   - `cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-version-output-lock`
+   - `cargo run -p bijux-dna-dev -- containers run check-apptainer-frontend-smoke-proof`
+   - `cargo run -p bijux-dna-dev -- containers run check-apptainer-frontend-version-output-lock`

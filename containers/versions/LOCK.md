@@ -5,7 +5,7 @@ Purpose: Define lock semantics for `containers/versions/versions.toml` and `cont
 ## Authority
 - Canonical version source: `containers/versions/versions.toml`.
 - Canonical lock artifact: `containers/versions/lock.json`.
-- Lock generator: `cargo run -p bijux-dev-dna -- containers run generate-version-lock`.
+- Lock generator: `cargo run -p bijux-dna-dev -- containers run generate-version-lock`.
 
 ## What `lock.json` Pins
 - `schema_version`: lock schema contract version (`bijux.container.version_lock.v3`).
@@ -26,16 +26,16 @@ Purpose: Define lock semantics for `containers/versions/versions.toml` and `cont
 ## Update Workflow
 1. Update container definition(s) and registry records.
 2. Update `containers/versions/versions.toml`.
-3. Regenerate lock: `cargo run -p bijux-dev-dna -- containers run generate-version-lock`.
+3. Regenerate lock: `cargo run -p bijux-dna-dev -- containers run generate-version-lock`.
 4. Validate authority and drift:
-   - `cargo run -p bijux-dev-dna -- containers run check-version-authority`
-   - `cargo run -p bijux-dev-dna -- containers run check-version-lock`
+   - `cargo run -p bijux-dna-dev -- containers run check-version-authority`
+   - `cargo run -p bijux-dna-dev -- containers run check-version-lock`
 5. Commit changes together with rationale.
 
 ## Deprecation Workflow
 - Version deprecations are tracked in `containers/versions/deprecations.toml`.
 - Add a deprecation entry via:
-  - `cargo run -p bijux-dev-dna -- containers run deprecate-version -- --tool <id> --version <v> --rationale <text> --sunset-date YYYY-MM-DD --replacement-tool <id> --replacement-version <v>`
+  - `cargo run -p bijux-dna-dev -- containers run deprecate-version -- --tool <id> --version <v> --rationale <text> --sunset-date YYYY-MM-DD --replacement-tool <id> --replacement-version <v>`
 - Validation gate:
-  - `cargo run -p bijux-dev-dna -- containers run check-version-deprecations`
+  - `cargo run -p bijux-dna-dev -- containers run check-version-deprecations`
 - Reproducibility rule: deprecated versions must remain represented in lock metadata until compatibility window closes.

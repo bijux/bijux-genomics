@@ -4,9 +4,9 @@ Purpose: enforce frontend-only SBOM, vulnerability, licensing, pinning, secret, 
 
 ## Workflow
 - Run:
-  - `cargo run -p bijux-dev-dna -- containers run run-apptainer-frontend-security`
+  - `cargo run -p bijux-dna-dev -- containers run run-apptainer-frontend-security`
 - Validate gate:
-  - `cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-security`
+  - `cargo run -p bijux-dna-dev -- containers run check-apptainer-frontend-security`
 
 ## Controls
 - SBOM generation for every Apptainer runtime tool SIF.
@@ -17,12 +17,12 @@ Purpose: enforce frontend-only SBOM, vulnerability, licensing, pinning, secret, 
 - License metadata contract:
   - `containers/licenses/<tool>.license.toml` must exist with non-empty SPDX.
 - Base image and pinning checks:
-  - `cargo run -p bijux-dev-dna -- containers run check-version-hash-pin`
-  - `cargo run -p bijux-dev-dna -- containers run check-apptainer-hardening`
+  - `cargo run -p bijux-dna-dev -- containers run check-version-hash-pin`
+  - `cargo run -p bijux-dna-dev -- containers run check-apptainer-hardening`
 - Secret scanning:
-  - `cargo run -p bijux-dev-dna -- containers run check-no-secrets`
+  - `cargo run -p bijux-dna-dev -- containers run check-no-secrets`
 - Network disclosure enforcement:
-  - `cargo run -p bijux-dev-dna -- containers run check-network-disclosure`
+  - `cargo run -p bijux-dna-dev -- containers run check-network-disclosure`
 
 ## Outputs
 - `artifacts/containers/hpc/frontend-security/<run_id>/security_summary.json`

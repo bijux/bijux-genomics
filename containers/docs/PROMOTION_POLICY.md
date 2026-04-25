@@ -21,9 +21,9 @@ Purpose: Define required gates for status transitions (`planned` -> `experimenta
    - Minimal invocation smoke is green where defined.
 
 ## Status Transitions
-- `planned -> experimental`: use `cargo run -p bijux-dev-dna -- containers run tool-lifecycle -- --tool <id> --to experimental`.
-- `experimental -> stable`: use `cargo run -p bijux-dev-dna -- containers run tool-lifecycle -- --tool <id> --to stable` only after all gates pass.
-- `stable -> experimental`: use `cargo run -p bijux-dev-dna -- containers run demote -- --tool <id> --stage <domain.stage> --reason <text> --removal-after <YYYY-MM-DD>`.
+- `planned -> experimental`: use `cargo run -p bijux-dna-dev -- containers run tool-lifecycle -- --tool <id> --to experimental`.
+- `experimental -> stable`: use `cargo run -p bijux-dna-dev -- containers run tool-lifecycle -- --tool <id> --to stable` only after all gates pass.
+- `stable -> experimental`: use `cargo run -p bijux-dna-dev -- containers run demote -- --tool <id> --stage <domain.stage> --reason <text> --removal-after <YYYY-MM-DD>`.
 
 Implementation note:
 - Registry status value remains `production` for stable tools; `stable` is the lifecycle command alias.

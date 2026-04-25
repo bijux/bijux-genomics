@@ -107,4 +107,4 @@ Allowed base repositories (must still be digest pinned):
 - `python` for Python-first toolchains.
 - `quay.io/biocontainers/bcftools` for the bcftools compatibility path.
 
-Any other Docker base requires policy update in this file and matching lint update in `cargo run -p bijux-dev-dna -- containers run lint`.
+Any other Docker base requires policy update in this file and matching lint update in `cargo run -p bijux-dna-dev -- containers run lint`.
