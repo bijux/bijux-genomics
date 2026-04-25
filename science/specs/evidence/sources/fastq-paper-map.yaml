@@ -1,0 +1,9 @@
+schema_version: "bijux.science.source.v1"
+source_id: "source.fastq.paper-map"
+kind: "document"
+access: "repo_path"
+title: "FASTQ tool paper map"
+locator: "science-docs/upstream/papers/TOOL_PAPER_MAP.tsv"
+authority: "science_docs.fastq.tool_paper_map"
+notes:
+  - "Maps FASTQ tools to durable paper roots so tool claims can be traced to local publication archive paths."

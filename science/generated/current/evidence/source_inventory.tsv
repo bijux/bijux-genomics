@@ -4,6 +4,8 @@ source.fastq.container-dockerfiles	repo_directory	repo_path	containers.docker.ar
 source.fastq.default-settings	document	repo_path	domain.fastq.default_settings	domain/fastq/docs/DEFAULT_SETTINGS.md		not_applicable		
 source.fastq.environment-reference	document	repo_path	bijux_dna_environment.env_reference	crates/bijux-dna-environment/docs/ENV_REFERENCE.md		not_applicable		
 source.fastq.execution-support	repo_file	repo_path	domain.fastq.execution_support	domain/fastq/execution_support.yaml		not_applicable		
+source.fastq.paper-archive-contract	document	repo_path	science_docs.fastq.paper_archive_contract	science-docs/upstream/papers/README.md		not_applicable		
+source.fastq.paper-map	document	repo_path	science_docs.fastq.tool_paper_map	science-docs/upstream/papers/TOOL_PAPER_MAP.tsv		not_applicable		
 source.fastq.science-docs-backlog	document	repo_path	science_docs.fastq_download_backlog	science-docs/TODO_DOWNLOAD.md		not_applicable		
 source.fastq.science-docs-contract	document	repo_path	science_docs.archive_contract	science-docs/README.md		not_applicable		
 source.fastq.stage-contracts	repo_directory	repo_path	domain.fastq.stage_contracts	domain/fastq/stages		not_applicable		
