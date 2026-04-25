@@ -53,7 +53,7 @@ pin_strategy: "pinned"
 default_version: "0.0.1"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "software:https://github.com/rpetit3/fastq-scan"
 stage_ids:
   - "fastq.validate_reads"
   - "fastq.profile_overrepresented_sequences"

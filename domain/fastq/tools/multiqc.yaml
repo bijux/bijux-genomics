@@ -50,7 +50,7 @@ pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5039924/"
 stage_ids: ["fastq.report_qc"]
 stage_contracts:
   fastq.report_qc:
