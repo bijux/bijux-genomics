@@ -14,6 +14,13 @@ use super::DOMAIN_INDEX_REGENERATE_PREFIX;
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
 
+#[derive(Debug, Clone)]
+struct ExecutionSupportEntry {
+    stage_id: String,
+    default_tool: Option<String>,
+    admitted_tools: Vec<String>,
+}
+
 pub(super) fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<String> {
     let dom_dir = workspace.path(&format!("domain/{dom}"));
     let index_path = dom_dir.join("index.yaml");
@@ -103,6 +110,26 @@ pub(super) fn render_domain_index(workspace: &Workspace, dom: &str) -> Result<St
         render_reference_index_compatibility_block(&dom_dir)?,
         Some("stage_tool_integration"),
     )?;
+    if dom == "fastq" {
+        replace_or_insert_block(
+            &mut body_lines,
+            "active_defaults",
+            render_active_defaults_block(&dom_dir)?,
+            Some("reference_index_compatibility"),
+        )?;
+        replace_or_insert_block(
+            &mut body_lines,
+            "pipeline_compositions",
+            render_pipeline_compositions_block(dom),
+            Some("stage_failure_diagnosis_hints"),
+        )?;
+        replace_or_insert_block(
+            &mut body_lines,
+            "stage_output_size_estimates_mb",
+            render_stage_output_size_estimates_block(&dom_dir, &existing)?,
+            Some("stage_resource_hints"),
+        )?;
+    }
 
     if !body_lines.iter().any(|line| line.starts_with("domain_version:")) {
         let Some(domain_line_index) =
@@ -152,6 +179,21 @@ fn render_stage_tool_compatibility_block(dom_dir: &Path) -> Result<Vec<String>> 
 }
 
 fn render_stage_tool_integration_block(dom_dir: &Path) -> Result<Vec<String>> {
+    if dom_dir.file_name().and_then(|name| name.to_str()) == Some("fastq") {
+        let entries = execution_support_entries(dom_dir)?;
+        let mut rendered = Vec::new();
+        for entry in entries {
+            if entry.admitted_tools.is_empty() {
+                continue;
+            }
+            rendered.push(format!("  {}:", entry.stage_id));
+            for tool_id in entry.admitted_tools {
+                rendered.push(format!("    {tool_id}: governed_contract"));
+            }
+        }
+        return Ok(rendered);
+    }
+
     let mut rendered = Vec::new();
     let mut stage_map = BTreeMap::<String, BTreeMap<String, String>>::new();
     for stage_file in yaml_files(&dom_dir.join("stages"))? {
@@ -186,6 +228,76 @@ fn render_stage_tool_integration_block(dom_dir: &Path) -> Result<Vec<String>> {
     Ok(rendered)
 }
 
+fn render_active_defaults_block(dom_dir: &Path) -> Result<Vec<String>> {
+    if dom_dir.file_name().and_then(|name| name.to_str()) == Some("fastq") {
+        return Ok(execution_support_entries(dom_dir)?
+            .into_iter()
+            .filter_map(|entry| entry.default_tool.map(|tool_id| (entry.stage_id, tool_id)))
+            .map(|(stage_id, tool_id)| format!("  {stage_id}: {tool_id}"))
+            .collect());
+    }
+    Ok(Vec::new())
+}
+
+fn render_pipeline_compositions_block(dom: &str) -> Vec<String> {
+    if dom != "fastq" {
+        return Vec::new();
+    }
+    let mut rendered = vec!["  pre_hpc_best:".to_string()];
+    rendered.extend(
+        [
+            "fastq.validate_reads",
+            "fastq.extract_umis",
+            "fastq.profile_read_lengths",
+            "fastq.detect_adapters",
+            "fastq.trim_polyg_tails",
+            "fastq.trim_terminal_damage",
+            "fastq.trim_reads",
+            "fastq.filter_reads",
+            "fastq.correct_errors",
+            "fastq.index_reference",
+            "fastq.deplete_host",
+            "fastq.deplete_reference_contaminants",
+            "fastq.deplete_rrna",
+            "fastq.merge_pairs",
+            "fastq.remove_duplicates",
+            "fastq.filter_low_complexity",
+            "fastq.profile_reads",
+            "fastq.profile_overrepresented_sequences",
+            "fastq.screen_taxonomy",
+            "fastq.report_qc",
+        ]
+        .into_iter()
+        .map(|stage_id| format!("  - {stage_id}")),
+    );
+    rendered
+}
+
+fn render_stage_output_size_estimates_block(dom_dir: &Path, existing: &str) -> Result<Vec<String>> {
+    let existing_estimates = parse_existing_stage_output_estimates(existing);
+    let mut rendered = Vec::new();
+    for stage_file in yaml_files(&dom_dir.join("stages"))? {
+        if stage_file.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let text = read_utf8(&stage_file)?;
+        let Some(stage_id) = scalar_from_text(&text, "stage_id")? else {
+            continue;
+        };
+        let required_outputs = list_block(&text, "required_outputs")?;
+        rendered.push(format!("  {stage_id}:"));
+        for artifact_id in required_outputs {
+            let estimate = existing_estimates
+                .get(&stage_id)
+                .and_then(|stage| stage.get(&artifact_id))
+                .copied()
+                .unwrap_or_else(|| fallback_artifact_size_estimate_mb(&artifact_id));
+            rendered.push(format!("    {artifact_id}: {estimate:.1}"));
+        }
+    }
+    Ok(rendered)
+}
+
 fn render_reference_index_compatibility_block(dom_dir: &Path) -> Result<Vec<String>> {
     let mut rendered = Vec::new();
     let mut tool_map = BTreeMap::<String, Vec<String>>::new();
@@ -215,6 +327,134 @@ fn render_reference_index_compatibility_block(dom_dir: &Path) -> Result<Vec<Stri
         rendered.extend(backends.into_iter().map(|backend| format!("  - {backend}")));
     }
     Ok(rendered)
+}
+
+fn execution_support_entries(dom_dir: &Path) -> Result<Vec<ExecutionSupportEntry>> {
+    let path = dom_dir.join("execution_support.yaml");
+    let text = read_utf8(&path)?;
+    let mut entries = Vec::new();
+    let mut current = None::<ExecutionSupportEntry>;
+    let mut in_admitted_tools = false;
+
+    for raw in text.lines() {
+        let trimmed = raw.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        if let Some(stage_id) = yaml_list_scalar(trimmed, "stage_id") {
+            if let Some(entry) = current.take() {
+                entries.push(entry);
+            }
+            current = Some(ExecutionSupportEntry {
+                stage_id,
+                default_tool: None,
+                admitted_tools: Vec::new(),
+            });
+            in_admitted_tools = false;
+            continue;
+        }
+        let Some(entry) = current.as_mut() else {
+            continue;
+        };
+        if let Some(default_tool) = yaml_scalar(trimmed, "default_tool") {
+            entry.default_tool = Some(default_tool);
+            in_admitted_tools = false;
+            continue;
+        }
+        if trimmed == "admitted_tools:" {
+            in_admitted_tools = true;
+            continue;
+        }
+        if in_admitted_tools {
+            if let Some(tool_id) = trimmed.strip_prefix("- ").map(unquote_yaml_scalar) {
+                entry.admitted_tools.push(tool_id);
+                continue;
+            }
+            in_admitted_tools = false;
+        }
+    }
+    if let Some(entry) = current {
+        entries.push(entry);
+    }
+    Ok(entries)
+}
+
+fn yaml_list_scalar(line: &str, key: &str) -> Option<String> {
+    line.strip_prefix(&format!("- {key}:")).map(|value| unquote_yaml_scalar(value.trim()))
+}
+
+fn yaml_scalar(line: &str, key: &str) -> Option<String> {
+    line.strip_prefix(&format!("{key}:")).map(|value| unquote_yaml_scalar(value.trim()))
+}
+
+fn unquote_yaml_scalar(value: &str) -> String {
+    value.trim().trim_matches('"').to_string()
+}
+
+fn parse_existing_stage_output_estimates(
+    existing: &str,
+) -> BTreeMap<String, BTreeMap<String, f64>> {
+    let mut estimates = BTreeMap::<String, BTreeMap<String, f64>>::new();
+    let mut current_stage = None::<String>;
+    let mut in_block = false;
+    for line in existing.lines() {
+        if line == "stage_output_size_estimates_mb:" {
+            in_block = true;
+            continue;
+        }
+        if !in_block {
+            continue;
+        }
+        if !line.starts_with(' ') && line.contains(':') {
+            break;
+        }
+        if line.starts_with("  ") && !line.starts_with("    ") {
+            if let Some(stage_id) = line.strip_prefix("  ").and_then(|rest| rest.strip_suffix(':'))
+            {
+                current_stage = Some(stage_id.to_string());
+                estimates.entry(stage_id.to_string()).or_default();
+            }
+            continue;
+        }
+        if let Some((artifact_id, value)) =
+            line.strip_prefix("    ").and_then(|rest| rest.split_once(':'))
+        {
+            if let (Some(stage_id), Ok(estimate)) = (&current_stage, value.trim().parse::<f64>()) {
+                estimates
+                    .entry(stage_id.clone())
+                    .or_default()
+                    .insert(artifact_id.to_string(), estimate);
+            }
+        }
+    }
+    estimates
+}
+
+fn fallback_artifact_size_estimate_mb(artifact_id: &str) -> f64 {
+    if artifact_id.ends_with("_reads")
+        || artifact_id.contains("_reads_")
+        || artifact_id.ends_with("_fastq")
+        || artifact_id.ends_with("_fastq_r1")
+        || artifact_id.ends_with("_fastq_r2")
+    {
+        1000.0
+    } else if artifact_id.ends_with("_database")
+        || artifact_id.ends_with("_bundle")
+        || artifact_id.ends_with("_index")
+    {
+        5000.0
+    } else if artifact_id.ends_with("_bank") || artifact_id.ends_with("_fasta") {
+        10.0
+    } else if artifact_id.ends_with("_report")
+        || artifact_id.ends_with("_manifest")
+        || artifact_id.ends_with("_lock")
+        || artifact_id.ends_with("_json")
+        || artifact_id.ends_with("_tsv")
+    {
+        1.0
+    } else {
+        4.0
+    }
 }
 
 fn replace_block(lines: &mut Vec<String>, key: &str, items: Vec<String>) -> Result<()> {
