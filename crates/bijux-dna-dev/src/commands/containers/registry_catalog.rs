@@ -61,6 +61,7 @@ pub(super) fn registry_tool_rows(
     for rel in [
         "configs/ci/registry/tool_registry.toml",
         "configs/ci/registry/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry_container_experimental.toml",
         "configs/ci/registry/tool_registry_experimental.toml",
         "configs/ci/registry/tool_registry_vcf_downstream.toml",
     ] {
