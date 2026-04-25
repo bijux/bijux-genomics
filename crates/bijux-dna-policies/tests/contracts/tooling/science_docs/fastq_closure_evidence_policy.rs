@@ -15,9 +15,10 @@ fn tsv_rows(path: &str) -> Vec<Vec<String>> {
         .collect()
 }
 
-fn pending_digest_tools() -> BTreeSet<String> {
+fn placeholder_digest_tools() -> BTreeSet<String> {
     let root = support::workspace_root();
     let mut tools = BTreeSet::new();
+    let zero = "sha256:0000000000000000000000000000000000000000000000000000000000000000";
     for entry in std::fs::read_dir(root.join("domain/fastq/tools")).expect("read fastq tools") {
         let path = entry.expect("tool entry").path();
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
@@ -25,7 +26,7 @@ fn pending_digest_tools() -> BTreeSet<String> {
         }
         let raw = std::fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read fastq tool {}: {err}", path.display()));
-        if raw.contains("sha256:pending") {
+        if raw.contains("sha256:pending") || raw.contains(zero) {
             tools.insert(
                 path.file_stem()
                     .and_then(|name| name.to_str())
@@ -97,7 +98,7 @@ fn policy__contracts__fastq_closure_evidence_policy__fastq_tool_publication_plac
 
 #[test]
 fn policy__contracts__fastq_closure_evidence_policy__pending_digests_match_blocker_registry() {
-    let pending = pending_digest_tools();
+    let pending = placeholder_digest_tools();
     let blockers = tsv_rows("science-docs/upstream/fastq/CONTAINER_DIGEST_BLOCKERS.tsv")
         .into_iter()
         .map(|row| row[0].clone())
@@ -105,5 +106,16 @@ fn policy__contracts__fastq_closure_evidence_policy__pending_digests_match_block
     assert_eq!(
         pending, blockers,
         "FASTQ pending container digests must match the tracked digest blocker registry"
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_closure_evidence_policy__fastq_tool_container_placeholders_do_not_return(
+) {
+    let placeholders = placeholder_digest_tools();
+    assert!(
+        placeholders.is_empty(),
+        "FASTQ tool container digests must not be pending or all-zero placeholders:\n{}",
+        placeholders.into_iter().collect::<Vec<_>>().join("\n")
     );
 }
