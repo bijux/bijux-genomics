@@ -8,6 +8,11 @@ upstream/*
 !upstream/fastq/
 upstream/fastq/*
 !upstream/fastq/README.md
+!upstream/fastq/CONTAINER_DIGEST_BLOCKERS.tsv
+!upstream/fastq/STAGE_CLAIMS.tsv
+!upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv
+!upstream/fastq/TAG_ONLY_CONTAINER_BLOCKERS.tsv
+!upstream/fastq/TOOL_RISK_REGISTRY.tsv
 !upstream/fastq/tools/
 upstream/fastq/tools/*
 !upstream/fastq/tools/README.md

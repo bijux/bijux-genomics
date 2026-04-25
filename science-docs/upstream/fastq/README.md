@@ -29,6 +29,9 @@ upstream evidence packets.
   tracked blocker registry for FASTQ tools whose container references still need
   immutable release digests before world-class closure; header-only means no
   current FASTQ tool manifest contains a pending SHA placeholder
+- `TAG_ONLY_CONTAINER_BLOCKERS.tsv`
+  tracked blocker registry for admitted FASTQ production-registry entries whose
+  `container_ref` still uses a tag rather than an immutable `@sha256:` digest
 - `tools/<tool-id>/**`
   untracked local payloads placed at the archive paths recorded in the science
   backlog and evidence map
