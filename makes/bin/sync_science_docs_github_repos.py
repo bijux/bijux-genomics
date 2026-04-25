@@ -30,6 +30,15 @@ TRAILING_URL_JUNK = "`),.;:"
 IGNORED_SCAN_PATHS = {
     "science-docs/upstream/github-repos/MANIFEST.tsv",
 }
+IGNORED_SCAN_PREFIXES = (
+    "science-docs/upstream/github-repos/archives/",
+    "science-docs/upstream/github-repos/mirrors/",
+    "science-docs/upstream/papers/",
+)
+IGNORED_SCAN_SUBSTRINGS = (
+    "/repo/source.git/",
+    "/repo/source/",
+)
 
 
 @dataclass(frozen=True)
@@ -116,6 +125,10 @@ def discover_repo_records(repo_root: Path) -> list[RepoRecord]:
                 continue
             relpath = str(path.relative_to(repo_root))
             if relpath in IGNORED_SCAN_PATHS:
+                continue
+            if relpath.startswith(IGNORED_SCAN_PREFIXES):
+                continue
+            if any(marker in relpath for marker in IGNORED_SCAN_SUBSTRINGS):
                 continue
             text = path.read_text(encoding="utf-8", errors="ignore")
             for raw_url in GITHUB_URL_PATTERN.findall(text):
