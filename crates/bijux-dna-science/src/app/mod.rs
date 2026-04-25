@@ -8,8 +8,8 @@ use crate::io::write_utf8;
 use crate::release::cut_release;
 use crate::render::{
     binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv,
-    fastq_container_reference_tsv, fastq_environment_tsv, index_json, source_archive_gaps_tsv,
-    source_inventory_tsv, to_pretty_json,
+    fastq_container_reference_tsv, fastq_download_backlog_tsv, fastq_environment_tsv, index_json,
+    source_archive_gaps_tsv, source_inventory_tsv, to_pretty_json,
 };
 
 pub fn run(cli: ScienceCli) -> Result<()> {
@@ -64,6 +64,10 @@ pub fn build_workspace(root: &PathBuf) -> Result<crate::domain::CompiledScience>
     write_utf8(
         &root.join("science/generated/current/evidence/fastq_container_reference_matrix.tsv"),
         &fastq_container_reference_tsv(&compiled.fastq_container_reference_rows),
+    )?;
+    write_utf8(
+        &root.join("science/generated/current/evidence/fastq_download_backlog.tsv"),
+        &fastq_download_backlog_tsv(&compiled.fastq_download_backlog_rows),
     )?;
     write_utf8(
         &root.join("science/generated/current/evidence/claim_evidence_map.tsv"),

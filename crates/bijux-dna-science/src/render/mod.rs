@@ -2,7 +2,8 @@ use serde::Serialize;
 
 use crate::domain::{
     BindingResolutionRow, ClaimEvidenceRow, DecisionReasoningRow, FastqContainerReferenceRow,
-    FastqEnvironmentRow, ScienceIndex, SourceArchiveGapRow, SourceInventoryRow,
+    FastqDownloadBacklogRow, FastqEnvironmentRow, ScienceIndex, SourceArchiveGapRow,
+    SourceInventoryRow,
 };
 
 pub fn source_inventory_tsv(rows: &[SourceInventoryRow]) -> String {
@@ -69,6 +70,28 @@ pub fn fastq_container_reference_tsv(rows: &[FastqContainerReferenceRow]) -> Str
             row.container_ref,
             row.dockerfile,
             row.apptainer_def
+        ));
+    }
+    out
+}
+
+pub fn fastq_download_backlog_tsv(rows: &[FastqDownloadBacklogRow]) -> String {
+    let mut out = String::from(
+        "source_id\ttool_id\tstage_ids\tacquisition_mode\tbacklog_status\tlocator\tcitation\tarchive_path\tarchive_status\tnotes\n",
+    );
+    for row in rows {
+        out.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            row.source_id,
+            row.tool_id,
+            row.stage_ids,
+            row.acquisition_mode,
+            row.backlog_status,
+            row.locator,
+            row.citation,
+            row.archive_path,
+            row.archive_status,
+            row.notes
         ));
     }
     out
