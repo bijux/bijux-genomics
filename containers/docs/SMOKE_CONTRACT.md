@@ -18,6 +18,13 @@ Isolation contract:
 - Smoke scripts must run under the shared artifacts contract.
 - Smoke writes are allowed only under isolate/artifact roots.
 
+Apptainer artifact identity:
+- SIF artifact names under `artifacts/containers/hpc/<tool>/` must use a concrete
+  digest key, never a pending or all-zero placeholder.
+- The smoke manifest must record both `registry_digest` and the observed
+  `sif_sha256` so release gates can distinguish registry identity from the
+  actual built SIF payload hash.
+
 Cross-runtime parity:
 - For tools available in both Docker and Apptainer, compare:
   - `version_output`
