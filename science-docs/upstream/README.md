@@ -18,6 +18,10 @@ material used to support science, container, and provenance review in
   per-tool archive rules for FASTQ source material
 - `fastq/tools/EVIDENCE_MAP.tsv`
   tracked locator map for tool-specific manual archive packets
+- `papers/README.md`
+  contract for local paper archive roots
+- `papers/TOOL_PAPER_MAP.tsv`
+  tracked tool-to-paper root map
 - `github-repos/README.md`
   contract for GitHub repository evidence mirrors
 - `github-repos/MANIFEST.tsv`

@@ -14,6 +14,8 @@ packets.
 - `EVIDENCE_MAP.tsv`
   tracked map of primary upstreams, supporting locators, and expected archive
   packet shape for focused FASTQ tools
+- `../papers/TOOL_PAPER_MAP.tsv`
+  tracked map from FASTQ tools to durable paper archive roots
 
 ## Local Payloads
 
@@ -24,5 +26,5 @@ science backlog, for example:
 - `science-docs/upstream/fastq/tools/<tool-id>/download/`
 
 When a tool needs both a source repository and a paper or release page, keep
-them under the same tool directory in separate subpaths rather than inventing a
-new root-level location.
+the tool packet and the linked paper root aligned through `EVIDENCE_MAP.tsv` and
+`../papers/TOOL_PAPER_MAP.tsv` rather than inventing a new root-level location.

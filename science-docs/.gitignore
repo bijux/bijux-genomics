@@ -12,6 +12,10 @@ upstream/fastq/*
 upstream/fastq/tools/*
 !upstream/fastq/tools/README.md
 !upstream/fastq/tools/EVIDENCE_MAP.tsv
+!upstream/papers/
+upstream/papers/*
+!upstream/papers/README.md
+!upstream/papers/TOOL_PAPER_MAP.tsv
 !upstream/github-repos/
 upstream/github-repos/*
 !upstream/github-repos/README.md
