@@ -35,7 +35,7 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/*
+    apt-get update -qq && apt-get install -y --no-install-recommends ca-certificates curl libgomp1 libquadmath0 && rm -rf /var/lib/apt/lists/*
     mkdir -p /usr/local/libexec/king
     curl -L --retry 5 --retry-delay 3 --connect-timeout 20 --max-time 300 \
         -o /tmp/Linux-king230.tar.gz \
@@ -47,16 +47,20 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
 #!/usr/bin/env sh
 set -eu
 bin="/usr/local/libexec/king/king-bin"
-show_and_succeed() {
+show_help() {
   tmp="$(mktemp)"
-  "$@" >"$tmp" 2>&1 || true
+  "$@" >"$tmp" 2>&1 || rc="$?"
   cat "$tmp"
+  if grep -q "error while loading shared libraries" "$tmp"; then
+    rm -f "$tmp"
+    exit "${rc:-1}"
+  fi
   rm -f "$tmp"
   exit 0
 }
 case "${1:-}" in
   --version) echo "KING 2.3.0"; exit 0 ;;
-  --help|-h|"") show_and_succeed "$bin" --help ;;
+  --help|-h|"") show_help "$bin" --help ;;
 esac
 exec "$bin" "$@"
 EOS
