@@ -19,6 +19,7 @@ fn policy__contracts__root_layout_policy__top_level_directories_are_allowlisted(
         "domain",
         "assets",
         "makes",
+        "science",
     ]
     .into_iter()
     .collect();
