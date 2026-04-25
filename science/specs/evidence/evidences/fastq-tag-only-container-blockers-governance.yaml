@@ -1,0 +1,8 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.tag-only-container-blockers-governance"
+statement: "FASTQ tag-only production container references are tracked as explicit release blockers."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.tag-only-container-blockers"
+  - "source.fastq.tool-registry"
