@@ -1,0 +1,45 @@
+extends: "_schema.yaml"
+stage_id: "fastq.build_contaminant_db"
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "contaminant_sources"
+    data_type: "manifest"
+    cardinality: "One"
+outputs:
+  - name: "contaminant_database"
+    data_type: "directory"
+    cardinality: "One"
+  - name: "asset_lock"
+    data_type: "json"
+    cardinality: "One"
+parameters:
+  - name: "database_family"
+    param_type: "string"
+    default: "bowtie2"
+metrics:
+  - name: "source_sequence_count"
+    meaning: "Number of contaminant source sequences admitted to the governed database build."
+description: "Prepare immutable contaminant depletion databases for FASTQ reference-screening stages."
+required_inputs:
+  - contaminant_sources
+required_outputs:
+  - contaminant_database
+  - asset_lock
+tool_capability_requirements:
+  - contaminant_database_build
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+allowed_missingness:
+  - "none"
+compatible_tools:
+  - bowtie2_build
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "contaminant database comparability requires source bundle identity, build backend, and index checksum provenance."
+bank_hooks:
+  - "contaminant_database_lock"
+metrics_schema: "bijux.stage.metrics.v1"
+planned_out_of_scope: []
