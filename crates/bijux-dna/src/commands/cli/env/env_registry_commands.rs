@@ -168,17 +168,7 @@ pub fn ensure_apptainer_images(
         }
     }
 
-    if !auto_demoted.is_empty() {
-        let payload = serde_json::json!({
-            "schema_version": "bijux.apptainer_auto_demote.v1",
-            "tools": auto_demoted,
-            "updated_at_unix_s": now_unix_s(),
-            "reason": "help/version smoke failure",
-        });
-        let path = containers_root.join("auto_demoted_tools.json");
-        bijux_dna_infra::atomic_write_json(&path, &payload)
-            .with_context(|| format!("write {}", path.display()))?;
-    }
+    write_auto_demote_state(&containers_root, &auto_demoted)?;
 
     Ok(EnsureImagesReport {
         schema_version: "bijux.apptainer.ensure_images.v1",
@@ -300,19 +290,29 @@ pub fn ensure_apptainer_tools(
             .with_context(|| format!("write {}", compat_smoke_manifest_path.display()))?;
     }
 
-    if !auto_demoted.is_empty() {
-        let payload = serde_json::json!({
-            "schema_version": "bijux.apptainer_auto_demote.v1",
-            "tools": auto_demoted,
-            "updated_at_unix_s": now_unix_s(),
-            "reason": "help/version smoke failure",
-        });
-        let path = containers_root.join("auto_demoted_tools.json");
-        bijux_dna_infra::atomic_write_json(&path, &payload)
-            .with_context(|| format!("write {}", path.display()))?;
-    }
+    write_auto_demote_state(&containers_root, &auto_demoted)?;
 
     Ok(())
+}
+
+fn write_auto_demote_state(containers_root: &Path, auto_demoted: &[String]) -> Result<()> {
+    let path = containers_root.join("auto_demoted_tools.json");
+    if auto_demoted.is_empty() {
+        if path.exists() {
+            std::fs::remove_file(&path)
+                .with_context(|| format!("remove stale {}", path.display()))?;
+        }
+        return Ok(());
+    }
+
+    let payload = serde_json::json!({
+        "schema_version": "bijux.apptainer_auto_demote.v1",
+        "tools": auto_demoted,
+        "updated_at_unix_s": now_unix_s(),
+        "reason": "help/version smoke failure",
+    });
+    bijux_dna_infra::atomic_write_json(&path, &payload)
+        .with_context(|| format!("write {}", path.display()))
 }
 
 fn quarantine_unexpected_sifs(
