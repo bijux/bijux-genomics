@@ -20,12 +20,13 @@ LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c422
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    git python3 ca-certificates && \
+    git python3 python3-lib2to3 ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
 RUN git clone --depth 1 https://github.com/pontussk/PMDtools.git /opt/pmdtools && \
     cd /opt/pmdtools && \
-    git checkout cc91fb8d870eadc4566d0bb3fbbc92fa96cd1363
+    git checkout cc91fb8d870eadc4566d0bb3fbbc92fa96cd1363 && \
+    python3 -m lib2to3 -w /opt/pmdtools/pmdtools.0.60.py
 
 RUN cat > /usr/local/bin/pmdtools <<'SH' && chmod +x /usr/local/bin/pmdtools
 #!/bin/sh
