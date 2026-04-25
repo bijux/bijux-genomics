@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: da1d5efcb1c13d1c8b8aca7b9c41fd162aa8af2d
+# source_commit: 2db01690dac7c2920f805d62c26f7e6f453c6014
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -756,7 +756,7 @@ stages = ["bam.align", "bam.validate", "bam.mapping_summary", "bam.filter", "bam
 
 [[pipelines]]
 id = "fastq.pre_hpc_best"
-stages = ["fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.trim_polyg_tails", "fastq.trim_terminal_damage", "fastq.trim_reads", "fastq.filter_reads", "fastq.correct_errors", "fastq.extract_umis", "fastq.index_reference", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.deplete_rrna", "fastq.merge_pairs", "fastq.remove_duplicates", "fastq.filter_low_complexity", "fastq.profile_reads", "fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy", "fastq.report_qc"]
+stages = ["fastq.validate_reads", "fastq.extract_umis", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.trim_polyg_tails", "fastq.trim_terminal_damage", "fastq.trim_reads", "fastq.filter_reads", "fastq.correct_errors", "fastq.index_reference", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.deplete_rrna", "fastq.merge_pairs", "fastq.remove_duplicates", "fastq.filter_low_complexity", "fastq.profile_reads", "fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy", "fastq.report_qc"]
 
 [[benchmark_scenarios]]
 id = "bam.contamination_fairness"
