@@ -6,7 +6,7 @@ pin_strategy: pinned
 default_version: 978e8e46cba4
 install_kind: container
 license: GPL-3.0
-citation: pending:tool-publication
+citation: paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-182
 stage_ids:
 - fastq.trim_reads
 stage_contracts:

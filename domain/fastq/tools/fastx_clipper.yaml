@@ -6,7 +6,7 @@ pin_strategy: pinned
 default_version: 0.0.14
 install_kind: container
 license: GPL-3.0
-citation: pending:tool-publication
+citation: software:http://hannonlab.cshl.edu/fastx_toolkit/
 stage_ids:
 - fastq.trim_reads
 stage_contracts:
