@@ -23,8 +23,10 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     git build-essential cmake zlib1g-dev libbz2-dev liblzma-dev libcurl4-gnutls-dev libhts-dev \
     ca-certificates && rm -rf /var/lib/apt/lists/*
 
-RUN git clone --depth 1 https://github.com/Griffan/VerifyBamID.git /opt/VerifyBamID && \
-    cd /opt/VerifyBamID && git checkout 4b362f5191b8385d038350acc03800890dd66524 && \
+RUN git clone --no-checkout https://github.com/Griffan/VerifyBamID.git /opt/VerifyBamID && \
+    cd /opt/VerifyBamID && \
+    git fetch --depth 1 origin 83a1c936ef2e1a8c9e78ed2d2e2d328adf0c6447 && \
+    git checkout 83a1c936ef2e1a8c9e78ed2d2e2d328adf0c6447 && \
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && \
     cmake --build build -j"$(nproc)" && \
     BIN_PATH="$(find /opt/VerifyBamID/build -maxdepth 2 -type f -perm -111 | head -n 1)" && \
