@@ -1,7 +1,7 @@
 # Style
 
 ## What
-Documentation and code style rules for Bijux DNA.
+Documentation and code style rules for Bijux Genomics.
 
 ## Why
 Consistency reduces review time and errors.

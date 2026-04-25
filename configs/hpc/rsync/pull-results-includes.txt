@@ -1,9 +1,9 @@
 + /results/***
 + /bijux-dna-results/***
-+ /bijux-dna/logs/***
-+ /bijux-dna/**/run_manifest.json
-+ /bijux-dna/**/telemetry.jsonl
-+ /bijux-dna/**/analysis_report.json
-+ /bijux-dna/**/analysis_report.html
-+ /bijux-dna/**/stderr.log
++ /bijux-genomics/logs/***
++ /bijux-genomics/**/run_manifest.json
++ /bijux-genomics/**/telemetry.jsonl
++ /bijux-genomics/**/analysis_report.json
++ /bijux-genomics/**/analysis_report.html
++ /bijux-genomics/**/stderr.log
 - *

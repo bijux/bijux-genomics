@@ -1,6 +1,6 @@
 schema_version: "bijux.tool.v2"
 tool_id: "rxy"
-upstream: "https://github.com/bijux/bijux-dna"
+upstream: "https://github.com/bijux/bijux-genomics"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "latest-pinned"

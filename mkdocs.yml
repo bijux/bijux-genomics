@@ -1,9 +1,9 @@
-site_name: Bijux DNA
+site_name: Bijux Genomics
 site_description: "Contract-first genomics pipelines for FASTQ/BAM with reproducible runs and deterministic reporting."
-site_url: !ENV [SITE_URL, https://bijux.github.io/bijux-dna/]
+site_url: !ENV [SITE_URL, https://bijux.github.io/bijux-genomics/]
 site_author: Bijan Mousavi
-repo_url: https://github.com/bijux/bijux-dna
-repo_name: bijux/bijux-dna
+repo_url: https://github.com/bijux/bijux-genomics
+repo_name: bijux/bijux-genomics
 edit_uri: ""
 
 strict: true
@@ -103,7 +103,7 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/bijux/bijux-dna
+      link: https://github.com/bijux/bijux-genomics
   # Analytics disabled for local builds (requires external template)
   copyright:
     text: "© 2025 Bijan Mousavi"
@@ -127,7 +127,7 @@ watch:
 nav:
   - Home: index.md
   - Intro:
-      - What Is Bijux DNA: 00-intro/WHAT_IS_BIJUX.md
+      - What Is Bijux Genomics: 00-intro/WHAT_IS_BIJUX.md
       - Start Here: 00-intro/QUICKSTART.md
       - Docs Map: 00-intro/DOCS_MAP.md
       - Glossary: 00-intro/GLOSSARY.md

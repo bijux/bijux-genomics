@@ -17,7 +17,7 @@ From: quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:badc3a0c7af72a83e57
 
 %labels
     VERSION unknown
-    org.opencontainers.image.source https://github.com/bijux/bijux-dna
+    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
     org.opencontainers.image.revision unknown
     org.opencontainers.image.created unknown
     org.opencontainers.image.licenses MIT
