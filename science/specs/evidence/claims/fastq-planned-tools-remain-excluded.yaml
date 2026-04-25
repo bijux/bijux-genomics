@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.planned-tools-remain-excluded"
+statement: "Planned FASTQ tools stay out of the closed runtime matrix until execution support and runtime support are both actually closed."
+scope: "fastq pre-hpc environment slice"
+subject: "fastq_planned_stage_tools"
+predicate: "remain_outside"
+object: "closed_runtime_surface"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.planned-exclusion-governance"

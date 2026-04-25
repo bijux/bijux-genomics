@@ -1,0 +1,18 @@
+schema_version: "bijux.science.reasoning.v1"
+reasoning_id: "reasoning.fastq.environment-tool-surface"
+claim_ids:
+  - "claim.fastq.execution-surface-authority"
+  - "claim.fastq.default-settings-authority"
+  - "claim.fastq.tool-registry-authority"
+  - "claim.fastq.environment-resolution-authority"
+  - "claim.fastq.planned-tools-remain-excluded"
+evidence_ids:
+  - "evidence.fastq.execution-support-governance"
+  - "evidence.fastq.default-settings-governance"
+  - "evidence.fastq.tool-registry-governance"
+  - "evidence.fastq.environment-resolution-governance"
+  - "evidence.fastq.planned-exclusion-governance"
+assumption_ids:
+  - "assumption.fastq.governance-authority-window"
+residual_risk: "This slice traces current governance surfaces, so stale authored defaults or incomplete registry metadata will still compile if the underlying authority files drift together."
+conclusion: "Compile the FASTQ environment matrix from execution support, stage contracts, and tool registry, while tracing deterministic environment semantics from bijux-dna-environment docs."

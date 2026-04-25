@@ -34,7 +34,7 @@ struct ExecutionSupportStage {
 
 #[derive(Deserialize)]
 struct StageContractDoc {
-    stage_id: String,
+    stage_id: Option<String>,
     #[serde(default)]
     planned_out_of_scope: Vec<String>,
 }
@@ -523,8 +523,11 @@ fn load_planned_out_of_scope(stage_dir: &Path) -> Result<BTreeMap<String, BTreeS
         let raw = read_utf8(&path)?;
         let stage: StageContractDoc = bijux_dna_infra::formats::yaml::parse_yaml(&raw)
             .map_err(|err| anyhow!("parse {}: {err}", path.display()))?;
+        let Some(stage_id) = stage.stage_id else {
+            continue;
+        };
         if !stage.planned_out_of_scope.is_empty() {
-            map.insert(stage.stage_id, stage.planned_out_of_scope.into_iter().collect());
+            map.insert(stage_id, stage.planned_out_of_scope.into_iter().collect());
         }
     }
     Ok(map)

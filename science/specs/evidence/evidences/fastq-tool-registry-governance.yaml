@@ -1,0 +1,7 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.tool-registry-governance"
+statement: "Container refs, runtime support, and container build surfaces are governed by tool_registry.toml."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.tool-registry"

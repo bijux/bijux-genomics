@@ -1,0 +1,14 @@
+schema_version: "bijux.science.release.v1"
+release_id: "release.fastq-environment-baseline"
+title: "FASTQ environment baseline"
+status: "candidate"
+binding_ids:
+  - "binding.fastq.environment-tool-surface"
+claim_ids:
+  - "claim.fastq.execution-surface-authority"
+  - "claim.fastq.default-settings-authority"
+  - "claim.fastq.tool-registry-authority"
+  - "claim.fastq.environment-resolution-authority"
+  - "claim.fastq.planned-tools-remain-excluded"
+notes:
+  - "First controlled science release manifest for FASTQ environment governance."

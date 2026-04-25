@@ -1,0 +1,6 @@
+schema_version: "bijux.science.assumption.v1"
+assumption_id: "assumption.fastq.governance-authority-window"
+statement: "The current repo governance files are the intended authority window for this FASTQ environment slice."
+status: "accepted"
+notes:
+  - "This slice does not attempt to resolve external paper-level scientific validity yet."

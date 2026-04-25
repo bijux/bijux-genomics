@@ -1,0 +1,7 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.planned-exclusion-governance"
+statement: "Planned out-of-scope stage tools remain outside the closed FASTQ runtime surface until support is actually closed."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.stage-contracts"

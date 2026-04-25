@@ -1,0 +1,8 @@
+schema_version: "bijux.science.source.v1"
+source_id: "source.fastq.execution-support"
+kind: "repo_file"
+title: "FASTQ execution support authority"
+locator: "domain/fastq/execution_support.yaml"
+authority: "domain.fastq.execution_support"
+notes:
+  - "This file is the closed FASTQ execution surface for admitted tools and stage defaults."

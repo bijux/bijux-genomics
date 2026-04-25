@@ -1,0 +1,11 @@
+{
+  "sources": 5,
+  "evidences": 5,
+  "claims": 5,
+  "assumptions": 1,
+  "reasonings": 1,
+  "decisions": 1,
+  "bindings": 1,
+  "releases": 1,
+  "fastq_environment_rows": 70
+}
