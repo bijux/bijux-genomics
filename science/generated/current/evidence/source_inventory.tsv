@@ -1,0 +1,6 @@
+source_id	kind	access	authority	locator	archive_path	archive_status	citation	tool_ids
+source.fastq.default-settings	document	repo_path	domain.fastq.default_settings	domain/fastq/docs/DEFAULT_SETTINGS.md		not_applicable		
+source.fastq.environment-reference	document	repo_path	bijux_dna_environment.env_reference	crates/bijux-dna-environment/docs/ENV_REFERENCE.md		not_applicable		
+source.fastq.execution-support	repo_file	repo_path	domain.fastq.execution_support	domain/fastq/execution_support.yaml		not_applicable		
+source.fastq.stage-contracts	repo_directory	repo_path	domain.fastq.stage_contracts	domain/fastq/stages		not_applicable		
+source.fastq.tool-registry	repo_file	repo_path	configs.ci.registry.tool_registry	configs/ci/registry/tool_registry.toml		not_applicable		

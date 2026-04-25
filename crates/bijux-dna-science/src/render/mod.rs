@@ -1,8 +1,50 @@
 use serde::Serialize;
 
 use crate::domain::{
-    BindingResolutionRow, ClaimEvidenceRow, DecisionReasoningRow, FastqEnvironmentRow, ScienceIndex,
+    BindingResolutionRow, ClaimEvidenceRow, DecisionReasoningRow, FastqEnvironmentRow,
+    ScienceIndex, SourceArchiveGapRow, SourceInventoryRow,
 };
+
+pub fn source_inventory_tsv(rows: &[SourceInventoryRow]) -> String {
+    let mut out = String::from(
+        "source_id\tkind\taccess\tauthority\tlocator\tarchive_path\tarchive_status\tcitation\ttool_ids\n",
+    );
+    for row in rows {
+        out.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            row.source_id,
+            row.kind,
+            row.access,
+            row.authority,
+            row.locator,
+            row.archive_path,
+            row.archive_status,
+            row.citation,
+            row.tool_ids
+        ));
+    }
+    out
+}
+
+pub fn source_archive_gaps_tsv(rows: &[SourceArchiveGapRow]) -> String {
+    let mut out = String::from(
+        "source_id\tkind\taccess\tlocator\tarchive_path\tcitation\ttool_ids\treason\n",
+    );
+    for row in rows {
+        out.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            row.source_id,
+            row.kind,
+            row.access,
+            row.locator,
+            row.archive_path,
+            row.citation,
+            row.tool_ids,
+            row.reason
+        ));
+    }
+    out
+}
 
 pub fn claim_evidence_tsv(rows: &[ClaimEvidenceRow]) -> String {
     let mut out = String::from("claim_id\tevidence_id\n");
@@ -21,8 +63,9 @@ pub fn decision_reasoning_tsv(rows: &[DecisionReasoningRow]) -> String {
 }
 
 pub fn binding_resolution_tsv(rows: &[BindingResolutionRow]) -> String {
-    let mut out =
-        String::from("binding_id\tdecision_id\ttarget_type\ttarget_ref\tenforcement_level\tstatus\n");
+    let mut out = String::from(
+        "binding_id\tdecision_id\ttarget_type\ttarget_ref\tenforcement_level\tstatus\n",
+    );
     for row in rows {
         out.push_str(&format!(
             "{}\t{}\t{}\t{}\t{}\t{}\n",

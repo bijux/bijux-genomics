@@ -8,7 +8,7 @@ use crate::io::write_utf8;
 use crate::release::cut_release;
 use crate::render::{
     binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv, fastq_environment_tsv,
-    index_json, to_pretty_json,
+    index_json, source_archive_gaps_tsv, source_inventory_tsv, to_pretty_json,
 };
 
 pub fn run(cli: ScienceCli) -> Result<()> {
@@ -29,7 +29,12 @@ pub fn run(cli: ScienceCli) -> Result<()> {
             for row in rows {
                 println!(
                     "{} {} {} default={} runtimes={} decision={}",
-                    row.stage_id, row.tool_id, row.tool_status, row.is_default, row.runtimes, row.decision_id
+                    row.stage_id,
+                    row.tool_id,
+                    row.tool_status,
+                    row.is_default,
+                    row.runtimes,
+                    row.decision_id
                 );
             }
         }
@@ -47,6 +52,14 @@ pub fn validate_workspace(root: &PathBuf) -> Result<()> {
 
 pub fn build_workspace(root: &PathBuf) -> Result<crate::domain::CompiledScience> {
     let compiled = compile_workspace(root)?;
+    write_utf8(
+        &root.join("science/generated/current/evidence/source_inventory.tsv"),
+        &source_inventory_tsv(&compiled.source_inventory),
+    )?;
+    write_utf8(
+        &root.join("science/generated/current/evidence/source_archive_gaps.tsv"),
+        &source_archive_gaps_tsv(&compiled.source_archive_gaps),
+    )?;
     write_utf8(
         &root.join("science/generated/current/evidence/claim_evidence_map.tsv"),
         &claim_evidence_tsv(&compiled.claim_evidence_map),
@@ -86,7 +99,13 @@ pub fn trace_workspace(
         .filter(|row| stage.is_none_or(|value| row.stage_id == value))
         .filter(|row| tool.is_none_or(|value| row.tool_id == value))
         .collect::<Vec<_>>();
-    rows.sort_by(|left, right| (&left.stage_id, !left.is_default, &left.tool_id).cmp(&(&right.stage_id, !right.is_default, &right.tool_id)));
+    rows.sort_by(|left, right| {
+        (&left.stage_id, !left.is_default, &left.tool_id).cmp(&(
+            &right.stage_id,
+            !right.is_default,
+            &right.tool_id,
+        ))
+    });
     Ok(rows)
 }
 

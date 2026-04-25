@@ -4,7 +4,10 @@ use anyhow::{anyhow, Result};
 
 use crate::compile::{compile_workspace, load_specs};
 use crate::io::write_utf8;
-use crate::render::{binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv, fastq_environment_tsv, index_json, to_pretty_json};
+use crate::render::{
+    binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv, fastq_environment_tsv,
+    index_json, source_archive_gaps_tsv, source_inventory_tsv, to_pretty_json,
+};
 
 pub fn cut_release(root: &Path, release_id: &str) -> Result<()> {
     let loaded = load_specs(root)?;
@@ -17,6 +20,14 @@ pub fn cut_release(root: &Path, release_id: &str) -> Result<()> {
     if release_root.exists() {
         return Err(anyhow!("release already exists at {}", release_root.display()));
     }
+    write_utf8(
+        &release_root.join("evidence/source_inventory.tsv"),
+        &source_inventory_tsv(&compiled.source_inventory),
+    )?;
+    write_utf8(
+        &release_root.join("evidence/source_archive_gaps.tsv"),
+        &source_archive_gaps_tsv(&compiled.source_archive_gaps),
+    )?;
     write_utf8(
         &release_root.join("evidence/claim_evidence_map.tsv"),
         &claim_evidence_tsv(&compiled.claim_evidence_map),
@@ -33,10 +44,7 @@ pub fn cut_release(root: &Path, release_id: &str) -> Result<()> {
         &release_root.join("evidence/fastq_stage_tool_environment_matrix.tsv"),
         &fastq_environment_tsv(&compiled.fastq_environment_rows),
     )?;
-    write_utf8(
-        &release_root.join("indexes/science_index.json"),
-        &index_json(&compiled.index)?,
-    )?;
+    write_utf8(&release_root.join("indexes/science_index.json"), &index_json(&compiled.index)?)?;
     write_utf8(
         &release_root.join("indexes/release.json"),
         &to_pretty_json(&serde_json::json!({

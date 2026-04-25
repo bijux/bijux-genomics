@@ -7,8 +7,8 @@ use toml::Value as TomlValue;
 
 use crate::domain::{
     BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience,
-    DecisionReasoningRow, FastqEnvironmentRow, LoadedSpecs, ScienceIndex, SourceAccess, SourceId,
-    SourceKind, SourceSpec,
+    DecisionReasoningRow, FastqEnvironmentRow, LoadedSpecs, ScienceIndex, SourceAccess,
+    SourceArchiveGapRow, SourceId, SourceInventoryRow, SourceKind, SourceSpec,
 };
 use crate::errors::validation_error;
 use crate::io::{list_yaml_files, read_utf8};
@@ -140,6 +140,8 @@ pub fn compile_workspace(root: &Path) -> Result<CompiledScience> {
 }
 
 pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScience> {
+    let source_inventory = build_source_inventory(root, &loaded);
+    let source_archive_gaps = build_source_archive_gaps(&source_inventory);
     let claim_evidence_map = build_claim_evidence_map(&loaded);
     let decision_reasoning_map = build_decision_reasoning_map(&loaded);
     let binding_resolution = build_binding_resolution(&loaded);
@@ -150,6 +152,8 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
     }
     let index = ScienceIndex {
         sources: loaded.sources.len(),
+        source_inventory_rows: source_inventory.len(),
+        source_archive_gap_rows: source_archive_gaps.len(),
         evidences: loaded.evidences.len(),
         claims: loaded.claims.len(),
         assumptions: loaded.assumptions.len(),
@@ -160,6 +164,8 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         fastq_environment_rows: fastq_environment_rows.len(),
     };
     Ok(CompiledScience {
+        source_inventory,
+        source_archive_gaps,
         claim_evidence_map,
         decision_reasoning_map,
         binding_resolution,
@@ -167,6 +173,77 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         fastq_environment_rows,
         index,
     })
+}
+
+fn build_source_inventory(root: &Path, loaded: &LoadedSpecs) -> Vec<SourceInventoryRow> {
+    let mut rows = loaded
+        .sources
+        .values()
+        .map(|source| {
+            let archive_path = source.archive_path.clone().unwrap_or_default();
+            let archive_status = match source.access {
+                SourceAccess::RepoPath => "not_applicable".to_string(),
+                SourceAccess::ManualDownload | SourceAccess::ManualClone => {
+                    if root.join(&archive_path).exists() {
+                        "present".to_string()
+                    } else {
+                        "missing".to_string()
+                    }
+                }
+            };
+            SourceInventoryRow {
+                source_id: source.source_id.to_string(),
+                kind: source_kind_label(&source.kind).to_string(),
+                access: source_access_label(&source.access).to_string(),
+                authority: source.authority.clone(),
+                locator: source.locator.clone(),
+                archive_path,
+                archive_status,
+                citation: source.citation.clone().unwrap_or_default(),
+                tool_ids: source.tool_ids.join(","),
+            }
+        })
+        .collect::<Vec<_>>();
+    rows.sort_by(|left, right| left.source_id.cmp(&right.source_id));
+    rows
+}
+
+fn source_kind_label(kind: &SourceKind) -> &'static str {
+    match kind {
+        SourceKind::RepoFile => "repo_file",
+        SourceKind::RepoDirectory => "repo_directory",
+        SourceKind::Document => "document",
+        SourceKind::ExternalDocument => "external_document",
+        SourceKind::ExternalRepository => "external_repository",
+        SourceKind::Paper => "paper",
+    }
+}
+
+fn source_access_label(access: &SourceAccess) -> &'static str {
+    match access {
+        SourceAccess::RepoPath => "repo_path",
+        SourceAccess::ManualDownload => "manual_download",
+        SourceAccess::ManualClone => "manual_clone",
+    }
+}
+
+fn build_source_archive_gaps(rows: &[SourceInventoryRow]) -> Vec<SourceArchiveGapRow> {
+    let mut gaps = rows
+        .iter()
+        .filter(|row| row.archive_status == "missing")
+        .map(|row| SourceArchiveGapRow {
+            source_id: row.source_id.clone(),
+            kind: row.kind.clone(),
+            access: row.access.clone(),
+            locator: row.locator.clone(),
+            archive_path: row.archive_path.clone(),
+            citation: row.citation.clone(),
+            tool_ids: row.tool_ids.clone(),
+            reason: "expected archive payload is not present under science-docs".to_string(),
+        })
+        .collect::<Vec<_>>();
+    gaps.sort_by(|left, right| left.source_id.cmp(&right.source_id));
+    gaps
 }
 
 fn load_dir<T, FKey, FValidate>(

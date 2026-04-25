@@ -1,4 +1,6 @@
-use bijux_dna_science::domain::{BindingId, ClaimId, DecisionId, EvidenceId, ScienceReleaseId, SourceId};
+use bijux_dna_science::domain::{
+    BindingId, ClaimId, DecisionId, EvidenceId, ScienceReleaseId, SourceId,
+};
 
 #[test]
 fn typed_ids_require_durable_prefixed_values() {
