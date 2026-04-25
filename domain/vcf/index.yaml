@@ -111,7 +111,6 @@ stage_tool_compatibility:
   - bcftools
 stage_tool_integration:
   vcf.admixture:
-    full scientific validation pending downstream admission: planned_contract
     plink: governed_contract
     plink2: governed_contract
   vcf.call:
@@ -128,7 +127,6 @@ stage_tool_integration:
     angsd: governed_contract
     bcftools: governed_contract
   vcf.demography:
-    full scientific validation pending downstream admission: planned_contract
     ibdne: governed_contract
   vcf.filter:
     bcftools: governed_contract
@@ -136,47 +134,37 @@ stage_tool_integration:
     angsd: governed_contract
     bcftools: governed_contract
   vcf.ibd:
-    full scientific validation pending downstream admission: planned_contract
     germline: governed_contract
     ibdhap: governed_contract
   vcf.imputation:
     beagle: governed_contract
-    full scientific validation pending downstream admission: planned_contract
     glimpse: governed_contract
     impute5: governed_contract
     minimac4: governed_contract
   vcf.impute:
     beagle: governed_contract
-    full scientific validation pending downstream admission: planned_contract
     glimpse: governed_contract
     impute5: governed_contract
     minimac4: governed_contract
   vcf.pca:
     eigensoft: governed_contract
-    full scientific validation pending downstream admission: planned_contract
     plink2: governed_contract
   vcf.phasing:
     beagle: governed_contract
     eagle: governed_contract
-    full scientific validation pending downstream admission: planned_contract
     shapeit5: governed_contract
   vcf.population_structure:
     eigensoft: governed_contract
-    full scientific validation pending downstream admission: planned_contract
     plink: governed_contract
     plink2: governed_contract
   vcf.postprocess:
     bcftools: governed_contract
-    full scientific validation pending downstream admission: planned_contract
   vcf.prepare_reference_panel:
     bcftools: governed_contract
-    full scientific validation pending downstream admission: planned_contract
   vcf.qc:
-    full scientific validation pending downstream admission: planned_contract
     plink: governed_contract
     plink2: governed_contract
   vcf.roh:
-    full scientific validation pending downstream admission: planned_contract
     plink2: governed_contract
   vcf.stats:
     bcftools: governed_contract
