@@ -23,18 +23,30 @@ fn declared_value(label: Option<&str>) -> Option<String> {
         .map(ToOwned::to_owned)
 }
 
+fn concrete_sha256_digest(value: &str) -> Option<String> {
+    let digest = value.strip_prefix("sha256:").unwrap_or(value).trim();
+    let is_hex = digest.chars().all(|char| char.is_ascii_hexdigit());
+    if digest.is_empty()
+        || !is_hex
+        || digest.eq_ignore_ascii_case("pending")
+        || digest.chars().all(|char| char == '0')
+    {
+        return None;
+    }
+    Some(digest.to_ascii_lowercase())
+}
+
 fn expected_registry_digest(tool: &RegistryRow) -> Option<String> {
     let pin = declared_value(tool.pinned_commit.as_deref());
-    if let Some(digest) = pin.as_deref().and_then(|value| value.strip_prefix("sha256:")) {
-        return Some(digest.to_string());
+    if let Some(digest) = pin.as_deref().and_then(concrete_sha256_digest) {
+        return Some(digest);
     }
     let container_ref = declared_value(tool.container_ref.as_deref());
-    if let Some(digest) = container_ref.as_deref().and_then(|value| {
-        value
-            .split("@sha256:")
-            .nth(1)
-            .map(std::string::ToString::to_string)
-    }) {
+    if let Some(digest) = container_ref
+        .as_deref()
+        .and_then(|value| value.split("@sha256:").nth(1))
+        .and_then(concrete_sha256_digest)
+    {
         return Some(digest);
     }
 
@@ -513,6 +525,43 @@ mod env_runtime_support_tests {
         };
 
         let digest = expected_registry_digest(&row).expect("fallback digest");
+        assert_eq!(digest.len(), 64);
+        assert!(digest.chars().all(|char| char.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn expected_registry_digest_ignores_pending_sha_placeholder() {
+        let row = RegistryRow {
+            id: "kraken2".to_string(),
+            version: Some("2.1.3".to_string()),
+            pinned_commit: Some("sha256:pending".to_string()),
+            container_ref: Some("bijuxdna/kraken2@sha256:pending".to_string()),
+            apptainer_def: Some("containers/apptainer/shared/kraken2.def".to_string()),
+            ..RegistryRow::default()
+        };
+
+        let digest = expected_registry_digest(&row).expect("stable fallback digest");
+
+        assert_ne!(digest, "pending");
+        assert_eq!(digest.len(), 64);
+        assert!(digest.chars().all(|char| char.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn expected_registry_digest_ignores_zero_sha_placeholder() {
+        let zero = "0000000000000000000000000000000000000000000000000000000000000000";
+        let row = RegistryRow {
+            id: "seqtk".to_string(),
+            version: Some("1.5-r133".to_string()),
+            pinned_commit: Some(format!("sha256:{zero}")),
+            container_ref: Some(format!("bijuxdna/seqtk@sha256:{zero}")),
+            apptainer_def: Some("containers/apptainer/shared/seqtk.def".to_string()),
+            ..RegistryRow::default()
+        };
+
+        let digest = expected_registry_digest(&row).expect("stable fallback digest");
+
+        assert_ne!(digest, zero);
         assert_eq!(digest.len(), 64);
         assert!(digest.chars().all(|char| char.is_ascii_hexdigit()));
     }
