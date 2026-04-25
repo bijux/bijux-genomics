@@ -6,10 +6,9 @@ use std::collections::BTreeSet;
 use walkdir::WalkDir;
 
 fn is_bijux_std_managed_workflow(content: &str) -> bool {
-    content
-        .lines()
-        .take(5)
-        .any(|line| line.contains("SSOT NOTICE: Synced consumer copies are generated from bijux-std/"))
+    content.lines().take(5).any(|line| {
+        line.contains("SSOT NOTICE: Synced consumer copies are generated from bijux-std/")
+    })
 }
 
 #[test]
