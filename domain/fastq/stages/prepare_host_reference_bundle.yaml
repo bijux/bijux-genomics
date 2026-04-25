@@ -1,0 +1,46 @@
+extends: "_schema.yaml"
+stage_id: "fastq.prepare_host_reference_bundle"
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "host_reference_sources"
+    data_type: "manifest"
+    cardinality: "One"
+outputs:
+  - name: "host_reference_bundle"
+    data_type: "directory"
+    cardinality: "One"
+  - name: "asset_lock"
+    data_type: "json"
+    cardinality: "One"
+parameters:
+  - name: "reference_build"
+    param_type: "string"
+    default: "governed"
+metrics:
+  - name: "bundle_file_count"
+    meaning: "Number of governed files emitted for the host reference bundle."
+description: "Prepare immutable host reference bundles for host-associated FASTQ depletion routes."
+required_inputs:
+  - host_reference_sources
+required_outputs:
+  - host_reference_bundle
+  - asset_lock
+tool_capability_requirements:
+  - reference_bundle_prepare
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+allowed_missingness:
+  - "none"
+compatible_tools:
+  - bowtie2_build
+  - star
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "host depletion comparability requires a fixed host build, alias set, and index-producing backend."
+bank_hooks:
+  - "reference_bank"
+metrics_schema: "bijux.stage.metrics.v1"
+planned_out_of_scope: []

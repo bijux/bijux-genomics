@@ -1,0 +1,45 @@
+extends: "_schema.yaml"
+stage_id: "fastq.build_rrna_db"
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "rrna_sources"
+    data_type: "manifest"
+    cardinality: "One"
+outputs:
+  - name: "rrna_database"
+    data_type: "directory"
+    cardinality: "One"
+  - name: "asset_lock"
+    data_type: "json"
+    cardinality: "One"
+parameters:
+  - name: "database_family"
+    param_type: "string"
+    default: "sortmerna"
+metrics:
+  - name: "source_sequence_count"
+    meaning: "Number of rRNA source sequences admitted to the governed database build."
+description: "Prepare immutable rRNA screening databases for FASTQ depletion and QC stages."
+required_inputs:
+  - rrna_sources
+required_outputs:
+  - rrna_database
+  - asset_lock
+tool_capability_requirements:
+  - rrna_database_build
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+allowed_missingness:
+  - "none"
+compatible_tools:
+  - sortmerna
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "rRNA database comparability requires source collection, build command, index digest, and taxonomy scope provenance."
+bank_hooks:
+  - "rrna_database_lock"
+metrics_schema: "bijux.stage.metrics.v1"
+planned_out_of_scope: []

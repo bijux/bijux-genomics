@@ -4,6 +4,9 @@
 domain: fastq
 domain_version: v1
 stage_ids:
+  - fastq.build_contaminant_db
+  - fastq.build_rrna_db
+  - fastq.build_taxonomy_db
   - fastq.cluster_otus
   - fastq.correct_errors
   - fastq.deplete_host
@@ -18,6 +21,9 @@ stage_ids:
   - fastq.merge_pairs
   - fastq.normalize_abundance
   - fastq.normalize_primers
+  - fastq.prepare_adapter_bank
+  - fastq.prepare_host_reference_bundle
+  - fastq.prepare_primer_bank
   - fastq.profile_overrepresented_sequences
   - fastq.profile_read_lengths
   - fastq.profile_reads
@@ -142,6 +148,16 @@ governed_tool_ids:
   - umi_tools
   - vsearch
 stage_tool_compatibility:
+  fastq.build_contaminant_db:
+  - bowtie2_build
+  fastq.build_rrna_db:
+  - sortmerna
+  fastq.build_taxonomy_db:
+  - kraken2
+  - krakenuniq
+  - centrifuge
+  - kaiju
+  - diamond
   fastq.cluster_otus:
   - vsearch
   fastq.correct_errors:
@@ -183,6 +199,16 @@ stage_tool_compatibility:
   - seqkit
   fastq.normalize_primers:
   - cutadapt
+  fastq.prepare_adapter_bank:
+  - cutadapt
+  - fastp
+  - trim_galore
+  fastq.prepare_host_reference_bundle:
+  - bowtie2_build
+  - star
+  fastq.prepare_primer_bank:
+  - cutadapt
+  - vsearch
   fastq.profile_overrepresented_sequences:
   - fastqc
   - fastq_scan
@@ -231,6 +257,16 @@ stage_tool_compatibility:
   - seqtk
   - fqtools
 stage_tool_integration:
+  fastq.build_contaminant_db:
+    bowtie2_build: governed_contract
+  fastq.build_rrna_db:
+    sortmerna: governed_contract
+  fastq.build_taxonomy_db:
+    centrifuge: governed_contract
+    diamond: governed_contract
+    kaiju: governed_contract
+    kraken2: governed_contract
+    krakenuniq: governed_contract
   fastq.cluster_otus:
     vsearch: governed_contract
   fastq.correct_errors:
@@ -274,6 +310,16 @@ stage_tool_integration:
     seqkit: governed_contract
   fastq.normalize_primers:
     cutadapt: governed_contract
+  fastq.prepare_adapter_bank:
+    cutadapt: governed_contract
+    fastp: governed_contract
+    trim_galore: governed_contract
+  fastq.prepare_host_reference_bundle:
+    bowtie2_build: governed_contract
+    star: governed_contract
+  fastq.prepare_primer_bank:
+    cutadapt: governed_contract
+    vsearch: governed_contract
   fastq.profile_overrepresented_sequences:
     fastq_scan: governed_contract
     fastqc: governed_contract

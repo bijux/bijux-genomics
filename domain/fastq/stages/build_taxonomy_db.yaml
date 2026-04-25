@@ -1,0 +1,49 @@
+extends: "_schema.yaml"
+stage_id: "fastq.build_taxonomy_db"
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "taxonomy_sources"
+    data_type: "manifest"
+    cardinality: "One"
+outputs:
+  - name: "taxonomy_database"
+    data_type: "directory"
+    cardinality: "One"
+  - name: "asset_lock"
+    data_type: "json"
+    cardinality: "One"
+parameters:
+  - name: "database_family"
+    param_type: "string"
+    default: "kraken2"
+metrics:
+  - name: "source_record_count"
+    meaning: "Number of source taxonomy records admitted to the governed database build."
+description: "Prepare immutable taxonomy classifier databases for FASTQ screening stages."
+required_inputs:
+  - taxonomy_sources
+required_outputs:
+  - taxonomy_database
+  - asset_lock
+tool_capability_requirements:
+  - taxonomy_database_build
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+allowed_missingness:
+  - "none"
+compatible_tools:
+  - kraken2
+  - krakenuniq
+  - centrifuge
+  - kaiju
+  - diamond
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "taxonomy database comparability requires source accession, taxonomy dump, build command, and checksum provenance."
+bank_hooks:
+  - "taxonomy_database_lock"
+metrics_schema: "bijux.stage.metrics.v1"
+planned_out_of_scope: []

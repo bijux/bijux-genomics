@@ -1,0 +1,47 @@
+extends: "_schema.yaml"
+stage_id: "fastq.prepare_adapter_bank"
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "adapter_sources"
+    data_type: "manifest"
+    cardinality: "One"
+outputs:
+  - name: "adapter_bank"
+    data_type: "fasta"
+    cardinality: "One"
+  - name: "asset_lock"
+    data_type: "json"
+    cardinality: "One"
+parameters:
+  - name: "adapter_family"
+    param_type: "string"
+    default: "illumina"
+metrics:
+  - name: "adapter_count"
+    meaning: "Number of adapter records admitted to the governed bank."
+description: "Prepare immutable adapter banks for adapter detection and trimming stages."
+required_inputs:
+  - adapter_sources
+required_outputs:
+  - adapter_bank
+  - asset_lock
+tool_capability_requirements:
+  - adapter_bank_prepare
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+allowed_missingness:
+  - "none"
+compatible_tools:
+  - cutadapt
+  - fastp
+  - trim_galore
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "adapter-bank comparability requires fixed sequence records, orientation policy, and checksum provenance."
+bank_hooks:
+  - "adapter_bank"
+metrics_schema: "bijux.stage.metrics.v1"
+planned_out_of_scope: []
