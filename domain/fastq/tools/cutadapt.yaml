@@ -41,7 +41,7 @@ pin_strategy: "pinned"
 default_version: "4.9"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "paper:https://journal.embnet.org/index.php/embnetjournal/article/view/200"
 stage_ids:
   - "fastq.trim_reads"
   - "fastq.normalize_primers"
