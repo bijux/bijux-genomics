@@ -1,0 +1,40 @@
+extends: "_schema.yaml"
+stage_id: "fastq.estimate_library_complexity_prealign"
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "reads"
+    data_type: "fastq"
+    cardinality: "Many"
+outputs:
+  - name: "library_complexity_report"
+    data_type: "json"
+    cardinality: "One"
+parameters:
+  - name: "complexity_policy"
+    param_type: "string"
+    default: "prealign_kmer"
+metrics:
+  - name: "estimated_duplicate_fraction"
+    meaning: "Prealignment estimate of library duplication or redundancy."
+description: "Estimate FASTQ library complexity before alignment-dependent duplicate marking is available."
+required_inputs:
+  - reads
+required_outputs:
+  - library_complexity_report
+tool_capability_requirements:
+  - prealign_complexity_estimation
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+allowed_missingness:
+  - "none"
+compatible_tools: []
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "prealignment complexity estimates are exploratory unless benchmarked against aligned duplicate metrics."
+bank_hooks:
+  - "none"
+metrics_schema: "bijux.stage.metrics.v1"
+planned_out_of_scope: []

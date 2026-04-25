@@ -34,12 +34,7 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "none"
-compatible_tools:
-  - kraken2
-  - krakenuniq
-  - centrifuge
-  - kaiju
-  - diamond
+compatible_tools: []
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "taxonomy database comparability requires source accession, taxonomy dump, build command, and checksum provenance."

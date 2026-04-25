@@ -143,3 +143,32 @@ artifact_ids:
   - validation_tool_normalization_json
   - validated_reads_manifest
   - validation_report
+  - adapter_bank
+  - asset_lock
+  - asset_verification_report
+  - concatenated_reads
+  - contaminant_database
+  - duplicate_signal_report
+  - demultiplex_report
+  - host_reference_bundle
+  - instrument_artifact_report
+  - interleaved_reads
+  - lane_manifest_out
+  - layout_classification
+  - layout_report
+  - library_complexity_report
+  - normalized_reads
+  - name_normalization_report
+  - primer_bank
+  - provenance_snapshot
+  - qc_manifest
+  - reads_r1
+  - reads_r2
+  - repaired_reads_r1
+  - repaired_reads_r2
+  - repair_report
+  - rrna_database
+  - sample_reads
+  - subsampled_reads
+  - subsample_report
+  - taxonomy_database

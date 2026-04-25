@@ -34,9 +34,7 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "none"
-compatible_tools:
-  - bowtie2_build
-  - star
+compatible_tools: []
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "host depletion comparability requires a fixed host build, alias set, and index-producing backend."

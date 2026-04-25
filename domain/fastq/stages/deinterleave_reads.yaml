@@ -1,0 +1,48 @@
+extends: "_schema.yaml"
+stage_id: "fastq.deinterleave_reads"
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "interleaved_reads"
+    data_type: "fastq"
+    cardinality: "One"
+outputs:
+  - name: "reads_r1"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "reads_r2"
+    data_type: "fastq"
+    cardinality: "One"
+  - name: "layout_report"
+    data_type: "json"
+    cardinality: "One"
+parameters:
+  - name: "pair_sync_policy"
+    param_type: "string"
+    default: "strict"
+metrics:
+  - name: "pairs_deinterleaved"
+    meaning: "Number of paired reads recovered from interleaved FASTQ layout."
+description: "Convert governed interleaved FASTQ inputs back to paired mate files."
+required_inputs:
+  - interleaved_reads
+required_outputs:
+  - reads_r1
+  - reads_r2
+  - layout_report
+tool_capability_requirements:
+  - deinterleave_reads
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+allowed_missingness:
+  - "none"
+compatible_tools: []
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "deinterleaving is layout-only and must preserve pair identity and order."
+bank_hooks:
+  - "none"
+metrics_schema: "bijux.stage.metrics.v1"
+planned_out_of_scope: []
