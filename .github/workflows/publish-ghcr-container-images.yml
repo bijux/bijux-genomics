@@ -1,0 +1,274 @@
+name: publish-ghcr-container-images
+
+on:
+  workflow_dispatch:
+    inputs:
+      enabled:
+        description: "Enable GHCR publication for this run"
+        required: true
+        type: boolean
+        default: false
+      tool_ids:
+        description: "Optional comma or space separated tool ids"
+        required: false
+        type: string
+        default: ""
+      status_filter:
+        description: "Optional comma or space separated statuses"
+        required: false
+        type: string
+        default: ""
+      package_prefix:
+        description: "GHCR package prefix"
+        required: false
+        type: string
+        default: "ghcr.io/bijux"
+      push_latest:
+        description: "Add latest tag for production tools"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: publish-ghcr-container-images-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    name: resolve-ghcr-container-plan
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      matrix_json: ${{ steps.plan.outputs.matrix_json }}
+      package_prefix: ${{ steps.plan.outputs.package_prefix }}
+    steps:
+      - name: Checkout release configuration
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.0.0
+        with:
+          fetch-depth: 1
+
+      - name: Ensure Rust toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rustup toolchain install 1.86.0 --profile minimal
+          rustup default 1.86.0
+
+      - name: Generate GHCR publish matrix
+        id: plan
+        shell: bash
+        env:
+          INPUT_ENABLED: ${{ inputs.enabled }}
+          INPUT_TOOL_IDS: ${{ inputs.tool_ids }}
+          INPUT_STATUS_FILTER: ${{ inputs.status_filter }}
+          INPUT_PACKAGE_PREFIX: ${{ inputs.package_prefix }}
+        run: |
+          set -euo pipefail
+
+          enabled="${INPUT_ENABLED,,}"
+          case "${enabled}" in
+            true|1|yes|on) ;;
+            *)
+              echo "Manual GHCR publication is disabled for this run." >&2
+              echo "Set enabled=true to publish governed container images." >&2
+              exit 1
+              ;;
+          esac
+
+          mkdir -p artifacts/containers/ghcr
+          args=("artifacts/containers/ghcr/publish-matrix.json")
+
+          if [[ -n "${INPUT_PACKAGE_PREFIX// }" ]]; then
+            args+=(--package-prefix "${INPUT_PACKAGE_PREFIX}")
+          fi
+
+          python3 - <<'PY' "${INPUT_TOOL_IDS}" "${INPUT_STATUS_FILTER}" > "${RUNNER_TEMP}/publish-filters.json"
+          import json
+          import re
+          import sys
+
+          def split_values(raw: str) -> list[str]:
+              return [part for part in re.split(r"[\s,;]+", raw.strip()) if part]
+
+          payload = {
+              "tool_ids": split_values(sys.argv[1]),
+              "statuses": split_values(sys.argv[2]),
+          }
+          print(json.dumps(payload))
+          PY
+
+          while IFS= read -r tool_id; do
+            [[ -n "${tool_id}" ]] || continue
+            args+=(--tool "${tool_id}")
+          done < <(python3 - <<'PY' "${RUNNER_TEMP}/publish-filters.json"
+          import json
+          import pathlib
+
+          payload = json.loads(pathlib.Path(__import__("sys").argv[1]).read_text())
+          for item in payload["tool_ids"]:
+              print(item)
+          PY
+          )
+
+          while IFS= read -r status; do
+            [[ -n "${status}" ]] || continue
+            args+=(--status "${status}")
+          done < <(python3 - <<'PY' "${RUNNER_TEMP}/publish-filters.json"
+          import json
+          import pathlib
+
+          payload = json.loads(pathlib.Path(__import__("sys").argv[1]).read_text())
+          for item in payload["statuses"]:
+              print(item)
+          PY
+          )
+
+          cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- "${args[@]}"
+
+          matrix_json="$(python3 - <<'PY'
+          import json
+          import pathlib
+
+          payload = json.loads(pathlib.Path("artifacts/containers/ghcr/publish-matrix.json").read_text())
+          print(json.dumps(payload["items"], separators=(",", ":")))
+          PY
+          )"
+
+          if [[ "${matrix_json}" == "[]" ]]; then
+            echo "No governed Docker images matched this GHCR publication request." >&2
+            exit 1
+          fi
+
+          package_prefix="$(python3 - <<'PY'
+          import json
+          import pathlib
+
+          payload = json.loads(pathlib.Path("artifacts/containers/ghcr/publish-matrix.json").read_text())
+          print(payload["package_prefix"])
+          PY
+          )"
+
+          {
+            echo "package_prefix=${package_prefix}"
+            echo "matrix_json<<EOF"
+            printf '%s\n' "${matrix_json}"
+            echo "EOF"
+          } >> "${GITHUB_OUTPUT}"
+
+      - name: Upload GHCR publish plan
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ghcr-publish-plan
+          path: artifacts/containers/ghcr/publish-matrix.json
+          if-no-files-found: error
+
+  publish:
+    name: publish-${{ matrix.tool_id }}
+    needs: resolve
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        include: ${{ fromJSON(needs.resolve.outputs.matrix_json) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v5.0.0
+        with:
+          fetch-depth: 1
+
+      - name: Log in to GHCR
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Ensure Docker buildx is ready
+        shell: bash
+        run: |
+          set -euo pipefail
+          docker buildx version
+          docker buildx inspect default >/dev/null 2>&1 || docker buildx create --name default --driver docker-container --use
+
+      - name: Build and publish image
+        shell: bash
+        env:
+          IMAGE_REF: ${{ matrix.image_ref }}
+          TOOL_ID: ${{ matrix.tool_id }}
+          TOOL_VERSION: ${{ matrix.tool_version }}
+          DOCKERFILE_PATH: ${{ matrix.dockerfile }}
+          BUILD_CONTEXT: ${{ matrix.build_context }}
+          BUILD_PLATFORM: ${{ matrix.platform }}
+          MATRIX_PUSH_LATEST: ${{ matrix.push_latest }}
+          INPUT_PUSH_LATEST: ${{ inputs.push_latest }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p artifacts/containers/ghcr/workflow
+          created="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          sha_tag="sha-${GITHUB_SHA::12}"
+          metadata_path="artifacts/containers/ghcr/workflow/${TOOL_ID}.metadata.json"
+          result_path="artifacts/containers/ghcr/workflow/${TOOL_ID}.json"
+
+          tags=(
+            --tag "${IMAGE_REF}:${TOOL_VERSION}"
+            --tag "${IMAGE_REF}:${sha_tag}"
+          )
+
+          if [[ "${INPUT_PUSH_LATEST}" == "true" && "${MATRIX_PUSH_LATEST}" == "true" ]]; then
+            tags+=(--tag "${IMAGE_REF}:latest")
+          fi
+
+          docker buildx build \
+            --file "${DOCKERFILE_PATH}" \
+            --platform "${BUILD_PLATFORM}" \
+            --build-arg "OCI_REVISION=${GITHUB_SHA}" \
+            --build-arg "OCI_CREATED=${created}" \
+            --build-arg "TOOL_VERSION=${TOOL_VERSION}" \
+            --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+            --label "org.opencontainers.image.created=${created}" \
+            --label "org.opencontainers.image.tool=${TOOL_ID}" \
+            --label "org.opencontainers.image.title=${TOOL_ID}" \
+            --metadata-file "${metadata_path}" \
+            "${tags[@]}" \
+            --push \
+            "${BUILD_CONTEXT}"
+
+          python3 - <<'PY' "${metadata_path}" "${result_path}" "${IMAGE_REF}" "${TOOL_ID}" "${TOOL_VERSION}" "${sha_tag}" "${INPUT_PUSH_LATEST}" "${MATRIX_PUSH_LATEST}"
+          import json
+          import pathlib
+          import sys
+
+          metadata_path = pathlib.Path(sys.argv[1])
+          result_path = pathlib.Path(sys.argv[2])
+          payload = json.loads(metadata_path.read_text())
+          digest = payload.get("containerimage.digest", "")
+          result = {
+              "tool_id": sys.argv[4],
+              "image_ref": sys.argv[3],
+              "tool_version": sys.argv[5],
+              "sha_tag": sys.argv[6],
+              "push_latest_requested": sys.argv[7] == "true",
+              "push_latest_applied": sys.argv[7] == "true" and sys.argv[8] == "true",
+              "digest": digest,
+          }
+          result_path.write_text(json.dumps(result, indent=2) + "\n")
+          print(json.dumps(result, indent=2))
+          PY
+
+      - name: Upload GHCR publish result
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ghcr-publish-${{ matrix.tool_id }}
+          path: |
+            artifacts/containers/ghcr/workflow/${{ matrix.tool_id }}.json
+            artifacts/containers/ghcr/workflow/${{ matrix.tool_id }}.metadata.json
+          if-no-files-found: error
