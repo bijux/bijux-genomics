@@ -92,6 +92,9 @@ fn policy__boundaries__workspace__crate_root_contents_allowlist() {
         for entry in entries.filter_map(Result::ok) {
             let entry_name = entry.file_name();
             let entry_name = entry_name.to_string_lossy();
+            if entry_name.as_ref() == ".DS_Store" {
+                continue;
+            }
             if allowed.contains(entry_name.as_ref()) {
                 continue;
             }

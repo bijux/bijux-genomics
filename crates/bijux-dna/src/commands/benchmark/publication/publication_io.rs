@@ -198,23 +198,6 @@ pub(super) fn run_root_observed_timestamp(run_root: &Path) -> Option<i64> {
     })
 }
 
-pub(super) fn find_polluting_ds_store_files(root: &Path) -> Vec<PathBuf> {
-    let mut polluting_files = Vec::new();
-    let Ok(entries) = fs::read_dir(root) else {
-        return polluting_files;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.is_dir() {
-            polluting_files.extend(find_polluting_ds_store_files(&path));
-        } else if path.file_name().and_then(|value| value.to_str()) == Some(".DS_Store") {
-            polluting_files.push(path);
-        }
-    }
-    polluting_files.sort();
-    polluting_files
-}
-
 pub(super) fn observed_tools_from_report(path: &Path) -> Result<Vec<String>> {
     let text = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     let pattern = Regex::new(r#""tool"\s*:\s*"([^"]+)""#)
