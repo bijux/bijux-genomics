@@ -30,7 +30,7 @@ RUN curl -fsSL -o /opt/beagle.jar https://faculty.washington.edu/browning/beagle
     '  exit 0' \
     'fi' \
     'exec java -jar /opt/beagle.jar "$@"' > /usr/local/bin/beagle && \
-    chmod 0755 /usr/local/bin/beagle && \
+    chmod 0755 /usr/local/bin/beagle
 
 ENTRYPOINT ["/usr/local/bin/beagle"]
 CMD ["--help"]
