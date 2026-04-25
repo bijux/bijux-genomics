@@ -19,6 +19,13 @@ expiry = "2026-09-30"
 owner = "platform/infra"
 link = "https://rustsec.org/advisories/RUSTSEC-2026-0009"
 
+[[advisory]]
+id = "RUSTSEC-2026-0097"
+why = "This advisory is currently transitive through opentelemetry_sdk and reqwest/quinn in workspace-critical runtime crates. Keep this temporary allowlist until upstream dependency releases provide a non-advisory path that can be adopted without destabilizing runtime telemetry and HTTP client stacks."
+expiry = "2026-09-30"
+owner = "platform/infra"
+link = "https://rustsec.org/advisories/RUSTSEC-2026-0097"
+
 # For each ignored advisory use:
 # [[advisory]]
 # id = "RUSTSEC-YYYY-NNNN"
