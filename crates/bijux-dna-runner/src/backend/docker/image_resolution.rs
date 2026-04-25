@@ -123,7 +123,7 @@ mod tests {
         let registry_dir = temp.path().join("seqkit");
         bijux_dna_infra::ensure_dir(&flat_dir)?;
         bijux_dna_infra::ensure_dir(&registry_dir)?;
-        let sif_path = registry_dir.join("pending.sif");
+        let sif_path = registry_dir.join("16e615286a66.sif");
         bijux_dna_infra::atomic_write_bytes(&sif_path, b"sif")?;
         let platform = PlatformSpec {
             name: "cluster-apptainer".to_string(),
@@ -144,6 +144,37 @@ mod tests {
 
         assert_eq!(image.full_name, sif_path.display().to_string());
         assert_eq!(image.runner, RuntimeKind::Apptainer);
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_image_for_run_rejects_placeholder_only_registry_sif() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-runner-apptainer-placeholder-registry")?;
+        let flat_dir = temp.path().join("apptainer").join("sif");
+        let registry_dir = temp.path().join("seqkit");
+        bijux_dna_infra::ensure_dir(&flat_dir)?;
+        bijux_dna_infra::ensure_dir(&registry_dir)?;
+        bijux_dna_infra::atomic_write_bytes(&registry_dir.join("pending.sif"), b"sif")?;
+        let platform = PlatformSpec {
+            name: "cluster-apptainer".to_string(),
+            runner: RuntimeKind::Apptainer,
+            container_dir: flat_dir,
+            image_prefix: "bijuxdna".to_string(),
+            arch: "amd64".to_string(),
+        };
+        let spec = ToolImageSpec {
+            tool: "seqkit".to_string(),
+            version: "latest-pinned".to_string(),
+            digest: None,
+            enabled: None,
+            shipping_policy: None,
+        };
+
+        let error = match resolve_image_for_run(&spec, &platform) {
+            Ok(image) => panic!("expected placeholder sif rejection, got {}", image.full_name),
+            Err(error) => error,
+        };
+        assert!(error.to_string().contains("apptainer image not found"));
         Ok(())
     }
 
