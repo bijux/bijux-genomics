@@ -33,7 +33,7 @@ pub(super) fn resolve_apptainer_image_for_run(
 fn apptainer_image_candidates(spec: &ToolImageSpec, platform: &PlatformSpec) -> Vec<PathBuf> {
     let registry_root = apptainer_registry_root(&platform.container_dir);
     let mut candidates = vec![platform.container_dir.join(format!("{}.sif", spec.tool))];
-    if let Some(digest) = spec.digest.as_deref() {
+    if let Some(digest) = spec.digest.as_deref().filter(|digest| !is_placeholder_digest(digest)) {
         let normalized_digest = digest.strip_prefix("sha256:").unwrap_or(digest);
         candidates.push(registry_root.join(&spec.tool).join(format!("{normalized_digest}.sif")));
         candidates.push(registry_root.join(&spec.tool).join(format!("{digest}.sif")));
@@ -42,6 +42,12 @@ fn apptainer_image_candidates(spec: &ToolImageSpec, platform: &PlatformSpec) -> 
     }
     candidates.dedup();
     candidates
+}
+
+fn is_placeholder_digest(digest: &str) -> bool {
+    let normalized = digest.strip_prefix("sha256:").unwrap_or(digest).trim();
+    normalized.eq_ignore_ascii_case("pending")
+        || (!normalized.is_empty() && normalized.chars().all(|char| char == '0'))
 }
 
 fn unique_registry_sif(registry_root: &Path, tool: &str) -> Option<PathBuf> {
@@ -72,4 +78,52 @@ pub(crate) fn apptainer_registry_root(container_dir: &Path) -> PathBuf {
         return grandparent.unwrap_or(container_dir).to_path_buf();
     }
     container_dir.to_path_buf()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bijux_dna_environment::api::RuntimeKind;
+
+    fn apptainer_platform(container_dir: PathBuf) -> PlatformSpec {
+        PlatformSpec {
+            name: "apptainer-amd64".to_string(),
+            runner: RuntimeKind::Apptainer,
+            container_dir,
+            image_prefix: "bijuxdna".to_string(),
+            arch: "amd64".to_string(),
+        }
+    }
+
+    #[test]
+    fn placeholder_digest_uses_unique_registry_sif() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let container_dir = temp.path().join("containers").join("apptainer").join("sif");
+        let registry_dir = temp.path().join("containers").join("seqtk");
+        fs::create_dir_all(&container_dir)?;
+        fs::create_dir_all(&registry_dir)?;
+        let verified_sif = registry_dir.join("16e615286a66.sif");
+        fs::write(&verified_sif, b"sif")?;
+        let spec = ToolImageSpec {
+            tool: "seqtk".to_string(),
+            version: "1.5-r133".to_string(),
+            digest: Some(
+                "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+                    .to_string(),
+            ),
+            enabled: None,
+            shipping_policy: None,
+        };
+        let image = ResolvedImage {
+            full_name: "seqtk".to_string(),
+            arch: "amd64".to_string(),
+            runner: RuntimeKind::Apptainer,
+        };
+
+        let resolved =
+            resolve_apptainer_image_for_run(&spec, &apptainer_platform(container_dir), image)?;
+
+        assert_eq!(resolved.full_name, verified_sif.display().to_string());
+        Ok(())
+    }
 }
