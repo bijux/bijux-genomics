@@ -36,6 +36,7 @@ pub enum NativeContainerCommandKey {
     GenerateContainerIndex,
     CheckContainerIndex,
     GenerateGhcrPublishMatrix,
+    GenerateGhcrApptainerPublishMatrix,
     GenerateLicenseMetadata,
     CheckLicenseMetadata,
     CheckLicenseIndexGenerated,
