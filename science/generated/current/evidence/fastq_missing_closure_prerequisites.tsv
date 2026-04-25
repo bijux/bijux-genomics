@@ -1,7 +1,6 @@
 stage_id	tool_id	prerequisite	severity	detail
 fastq.filter_low_complexity	dustmasker	missing_container_ref	advisory	dustmasker cannot be treated as world-class closed for fastq.filter_low_complexity until missing_container_ref is resolved
 fastq.filter_low_complexity	dustmasker	missing_runtime_surface	advisory	dustmasker cannot be treated as world-class closed for fastq.filter_low_complexity until missing_runtime_surface is resolved
-fastq.filter_low_complexity	dustmasker	missing_upstream_archive	advisory	dustmasker cannot be treated as world-class closed for fastq.filter_low_complexity until missing_upstream_archive is resolved
 fastq.filter_low_complexity	dustmasker	registry_not_production	advisory	dustmasker cannot be treated as world-class closed for fastq.filter_low_complexity until registry_not_production is resolved
 fastq.index_reference	star	missing_paper_archive	advisory	star cannot be treated as world-class closed for fastq.index_reference until missing_paper_archive is resolved
 fastq.normalize_abundance	seqfu	missing_container_ref	advisory	seqfu cannot be treated as world-class closed for fastq.normalize_abundance until missing_container_ref is resolved

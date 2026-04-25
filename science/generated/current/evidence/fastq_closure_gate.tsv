@@ -10,7 +10,7 @@ fastq.deplete_rrna	sortmerna	true	closed	world_class_closed	true
 fastq.detect_adapters	fastqc	true	closed	world_class_closed	true
 fastq.extract_umis	umi_tools	true	closed	world_class_closed	true
 fastq.filter_low_complexity	bbduk	true	closed	world_class_closed	true
-fastq.filter_low_complexity	dustmasker	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface;missing_upstream_archive	planned_binding_not_admitted;non_default_binding
+fastq.filter_low_complexity	dustmasker	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface	planned_binding_not_admitted;non_default_binding
 fastq.filter_low_complexity	prinseq	false	closed	world_class_closed	true		non_default_binding
 fastq.filter_reads	fastp	true	closed	world_class_closed	true
 fastq.filter_reads	bbduk	false	closed	world_class_closed	true		non_default_binding
