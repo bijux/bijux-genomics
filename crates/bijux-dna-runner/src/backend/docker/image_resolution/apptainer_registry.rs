@@ -57,6 +57,11 @@ fn unique_registry_sif(registry_root: &Path, tool: &str) -> Option<PathBuf> {
         .filter_map(Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.extension().is_some_and(|ext| ext == "sif"))
+        .filter(|path| {
+            path.file_stem()
+                .and_then(|stem| stem.to_str())
+                .is_some_and(|stem| !is_placeholder_digest(stem))
+        })
         .collect::<Vec<_>>();
     sifs.sort();
     if sifs.len() == 1 {
