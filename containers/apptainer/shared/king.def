@@ -35,16 +35,30 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends ca-certificates king && rm -rf /var/lib/apt/lists/*
-    mv /usr/bin/king /usr/local/bin/king-bin
+    apt-get update -qq && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/*
+    mkdir -p /usr/local/libexec/king
+    curl -L --retry 5 --retry-delay 3 --connect-timeout 20 --max-time 300 \
+        -o /tmp/Linux-king230.tar.gz \
+        "https://www.kingrelatedness.com/executables/Linux-king230.tar.gz"
+    tar -xzf /tmp/Linux-king230.tar.gz -C /usr/local/libexec/king
+    install -m 0755 /usr/local/libexec/king/king /usr/local/libexec/king/king-bin
+    rm -f /tmp/Linux-king230.tar.gz
     cat > /usr/local/bin/king <<'EOS'
 #!/usr/bin/env sh
 set -eu
+bin="/usr/local/libexec/king/king-bin"
+show_and_succeed() {
+  tmp="$(mktemp)"
+  "$@" >"$tmp" 2>&1 || true
+  cat "$tmp"
+  rm -f "$tmp"
+  exit 0
+}
 case "${1:-}" in
   --version) echo "KING 2.3.0"; exit 0 ;;
-  --help|-h|"") exec /usr/local/bin/king-bin --help ;;
+  --help|-h|"") show_and_succeed "$bin" --help ;;
 esac
-exec /usr/local/bin/king-bin "$@"
+exec "$bin" "$@"
 EOS
     chmod +x /usr/local/bin/king
 %runscript

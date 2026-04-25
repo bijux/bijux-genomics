@@ -61,9 +61,17 @@ RUN set -eux; \
 RUN printf '%s\n' \
   '#!/usr/bin/env bash' \
   'set -e' \
+  'show_and_succeed() {' \
+  '  local tmp' \
+  '  tmp=$(mktemp)' \
+  '  "$@" >"$tmp" 2>&1 || true' \
+  '  cat "$tmp"' \
+  '  rm -f "$tmp"' \
+  '  exit 0' \
+  '}' \
   'case "$1" in' \
   '  --version) echo "$VERSION_LIGHTER"; exit 0 ;;' \
-  '  --help|-h) exec /usr/local/bin/lighter-bin --help ;;' \
+  '  --help|-h|"") show_and_succeed /usr/local/bin/lighter-bin ;;' \
   'esac' \
   'exec /usr/local/bin/lighter-bin "$@"' \
   > /usr/local/bin/lighter && chmod +x /usr/local/bin/lighter

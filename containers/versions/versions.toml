@@ -242,9 +242,9 @@ pinned_commit = "0000000000000000000000000000000000000000"
 
 [king]
 version = "2.3.0"
-source = "https://www.kingrelatedness.com/"
+source = "https://www.kingrelatedness.com/executables/Linux-king230.tar.gz"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "release:2.3.0"
 
 [kraken2]
 version = "2.1.3"
