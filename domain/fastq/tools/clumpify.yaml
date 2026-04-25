@@ -54,7 +54,7 @@ pin_strategy: "pinned"
 default_version: "39.08"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "software:https://bbmap.org/tools/clumpify"
 stage_ids: ["fastq.remove_duplicates"]
 stage_contracts:
   fastq.remove_duplicates:
