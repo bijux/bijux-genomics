@@ -1,0 +1,48 @@
+extends: "_schema.yaml"
+stage_id: "fastq.demultiplex_reads"
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+domain: "fastq"
+inputs:
+  - name: "reads"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "barcode_manifest"
+    data_type: "json"
+    cardinality: "One"
+outputs:
+  - name: "sample_reads"
+    data_type: "fastq"
+    cardinality: "Many"
+  - name: "demultiplex_report"
+    data_type: "json"
+    cardinality: "One"
+parameters:
+  - name: "barcode_mismatch_policy"
+    param_type: "string"
+    default: "strict"
+metrics:
+  - name: "assigned_reads"
+    meaning: "Number of reads assigned to governed sample barcodes."
+description: "Split multiplexed FASTQ inputs into sample FASTQs using governed barcode manifests."
+required_inputs:
+  - reads
+  - barcode_manifest
+required_outputs:
+  - sample_reads
+  - demultiplex_report
+tool_capability_requirements:
+  - demultiplexing
+invariants:
+  - "stable_artifact_contract"
+  - "deterministic_output_order"
+allowed_missingness:
+  - "none"
+compatible_tools: []
+defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
+assumptions:
+  - "demultiplexed scientific outputs require fixed barcode kit identity and mismatch policy."
+bank_hooks:
+  - "barcode_kit_bank"
+metrics_schema: "bijux.stage.metrics.v1"
+planned_out_of_scope: []

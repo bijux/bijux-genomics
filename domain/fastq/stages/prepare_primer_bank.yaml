@@ -34,9 +34,7 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "none"
-compatible_tools:
-  - cutadapt
-  - vsearch
+compatible_tools: []
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "primer-bank comparability requires marker regime, orientation policy, mismatch policy, and checksum provenance."

@@ -34,8 +34,7 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "none"
-compatible_tools:
-  - sortmerna
+compatible_tools: []
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "rRNA database comparability requires source collection, build command, index digest, and taxonomy scope provenance."
