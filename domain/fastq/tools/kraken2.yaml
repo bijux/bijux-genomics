@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/kraken2"
-  digest: "sha256:pending"
+  digest: "sha256:e493061d26aeea71812ed8b587a0e65f67617b192e225d8d53eba896dfe7cb35"
 command_template:
   - "kraken2"
   - "--report"
