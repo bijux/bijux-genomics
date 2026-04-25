@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: cargo run -p bijux-dev-dna -- containers run generate-tool-docs -->
+<!-- source: cargo run -p bijux-dna-dev -- containers run generate-tool-docs -->
 # Tool Docs Index
 
 - `adapterremoval`: `containers/docs/tools/adapterremoval.md`
@@ -17,6 +17,7 @@
 - `beagle`: `containers/docs/tools/beagle.md`
 - `bedtools`: `containers/docs/tools/bedtools.md`
 - `bowtie2`: `containers/docs/tools/bowtie2.md`
+- `bowtie2_build`: `containers/docs/tools/bowtie2_build.md`
 - `bracken`: `containers/docs/tools/bracken.md`
 - `bwa`: `containers/docs/tools/bwa.md`
 - `centrifuge`: `containers/docs/tools/centrifuge.md`
