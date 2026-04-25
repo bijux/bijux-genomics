@@ -1,11 +1,11 @@
 use super::{
     anyhow, apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
-    command_hostname, docker_tool_ids, failure_lines, fs, iso_root_path, iso_run_id,
-    json_string_pretty, load_toml, lock_items_by_tool, lock_json_path, out_path_arg, path_from_arg,
-    policy_path, read_json, read_utf8, registry_tool_rows, sha256_hex, success_line, table_bool,
-    table_string, tool_status_manifest, tool_versions, validation, write_utf8, BTreeMap, BTreeSet,
-    ContainerCommandOutcome, Context, Path, PathBuf, ProcessRunner, Regex, Result, WalkDir,
-    Workspace,
+    command_hostname, docker_tool_ids, failure_lines, fs, is_non_bijux_apptainer_source,
+    iso_root_path, iso_run_id, json_string_pretty, load_toml, lock_items_by_tool, lock_json_path,
+    out_path_arg, path_from_arg, policy_path, read_json, read_utf8, registry_tool_rows, sha256_hex,
+    success_line, table_bool, table_string, tool_status_manifest, tool_versions, validation,
+    write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Path, PathBuf, ProcessRunner,
+    Regex, Result, WalkDir, Workspace,
 };
 
 mod frontend_proofs;
@@ -424,7 +424,10 @@ pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<Container
             sources_doc.display()
         )));
     }
-    let defs = apptainer_tool_ids(workspace);
+    let defs = apptainer_tool_ids(workspace)
+        .into_iter()
+        .filter(|tool_id| is_non_bijux_apptainer_source(workspace, tool_id))
+        .collect::<BTreeSet<_>>();
     let text = read_utf8(&sources_doc)?;
     let row_re = Regex::new(
         r"\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|\s*(\S+)\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|",
