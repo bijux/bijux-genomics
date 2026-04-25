@@ -118,6 +118,8 @@ mod mod_contracts_tooling_no_runtime_escape_hatch_policy_rs;
 mod mod_contracts_tooling_opentelemetry_version_policy_rs;
 #[path = "contracts/tooling/governance_quality/planner_data_driven_catalog_policy.rs"]
 mod mod_contracts_tooling_planner_data_driven_catalog_policy_rs;
+#[path = "contracts/tooling/planner/fastq_route_policy.rs"]
+mod mod_contracts_tooling_planner_fastq_route_policy_rs;
 #[path = "contracts/tooling/governance_quality/planner_tool_id_policy.rs"]
 mod mod_contracts_tooling_planner_tool_id_policy_rs;
 #[path = "contracts/tooling/governance/policies.rs"]
