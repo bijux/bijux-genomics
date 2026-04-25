@@ -1,7 +1,7 @@
 # Scope
 
 ## What
-This documentation covers architecture, science, policies, and developer workflows for Bijux DNA.
+This documentation covers architecture, science, policies, and developer workflows for Bijux Genomics.
 
 ## Why
 Clear scope prevents doc sprawl and keeps contracts stable.

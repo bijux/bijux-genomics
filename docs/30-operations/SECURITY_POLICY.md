@@ -1,7 +1,7 @@
 # Security Policy
 
 ## What
-Reporting and handling security issues in Bijux DNA.
+Reporting and handling security issues in Bijux Genomics.
 
 ## Why
 Provides a clear disclosure process.

@@ -362,7 +362,7 @@ pinned_commit = "0000000000000000000000000000000000000000"
 
 [rxy]
 version = "1.0.0"
-source = "https://github.com/bijux/bijux-dna"
+source = "https://github.com/bijux/bijux-genomics"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
 
@@ -504,7 +504,7 @@ pinned_commit = "0000000000000000000000000000000000000000"
 
 [fastq_scan]
 version = "0.0.1"
-source = "https://github.com/bijux/bijux-dna"
+source = "https://github.com/bijux/bijux-genomics"
 date_pinned = "2026-02-16"
 pinned_commit = "0000000000000000000000000000000000000000"
 
@@ -552,6 +552,6 @@ pinned_commit = "0000000000000000000000000000000000000000"
 
 [seqpurge]
 version = "0.1.0"
-source = "https://github.com/bijux/bijux-dna"
+source = "https://github.com/bijux/bijux-genomics"
 date_pinned = "2026-02-16"
 pinned_commit = "0000000000000000000000000000000000000000"

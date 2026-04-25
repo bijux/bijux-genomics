@@ -1,6 +1,6 @@
-# Bijux DNA Docs
+# Bijux Genomics Docs
 
-Welcome to the Bijux DNA documentation. Start with the overview and then dive into architecture, science, operations, policies, and reference material.
+Welcome to the Bijux Genomics documentation. Start with the overview and then dive into architecture, science, operations, policies, and reference material.
 
 <!-- bijux-genomics-badges:generated:start -->
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-0F766E)](https://github.com/bijux/bijux-genomics/blob/main/LICENSE)
@@ -18,7 +18,7 @@ Welcome to the Bijux DNA documentation. Start with the overview and then dive in
 <!-- bijux-genomics-badges:generated:end -->
 
 ## Getting started
-- [What is Bijux DNA](00-intro/WHAT_IS_BIJUX.md)
+- [What is Bijux Genomics](00-intro/WHAT_IS_BIJUX.md)
 - [Scope](00-intro/SCOPE.md)
 - [Quickstart](00-intro/QUICKSTART.md)
 

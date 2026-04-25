@@ -8,7 +8,7 @@ FROM python:3.10-slim@sha256:e508a34e5491225a76fbb9e0f43ebde1f691c6a689d096d7510
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-dna" \
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0" \

@@ -1,7 +1,7 @@
 # Refusals
 
 ## What
-Explicit statements of what Bijux DNA does not support.
+Explicit statements of what Bijux Genomics does not support.
 
 ## Why
 Refusals prevent accidental scope creep and keep policies enforceable.

@@ -12,5 +12,5 @@ isolate_cache_subdir = "cache/apptainer"
 isolate_tmp_subdir = "tmp/apptainer"
 
 # Outside isolate, cache and temp roots must stay outside the repo tree.
-non_isolate_cache_root = "~/.cache/bijux-dna/apptainer"
-non_isolate_tmp_root = "~/.cache/bijux-dna/apptainer/tmp"
+non_isolate_cache_root = "~/.cache/bijux-genomics/apptainer"
+non_isolate_tmp_root = "~/.cache/bijux-genomics/apptainer/tmp"
