@@ -228,8 +228,12 @@ fn container_command_template_preserves_absolute_inputs_for_mixed_roots() {
         "/artifacts/runtime/out/bowtie2.metrics.txt".to_string(),
     ];
 
-    let rewritten =
-        container_command_template(&template, Path::new("/"), Path::new("/artifacts/runtime/out"), true);
+    let rewritten = container_command_template(
+        &template,
+        Path::new("/"),
+        Path::new("/artifacts/runtime/out"),
+        true,
+    );
 
     assert_eq!(rewritten[2], template[2]);
     assert_eq!(rewritten[4], "/dev/null");

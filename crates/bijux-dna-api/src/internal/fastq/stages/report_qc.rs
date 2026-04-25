@@ -911,8 +911,9 @@ mod tests {
             Some(raw_fastqc_dir.as_path()),
         )
         .expect("derived lineage");
-        assert!(lineage
-            .contains("fastq.trim_reads.fastp:report_json:report_json=/artifacts/runtime/fastp/report.json"));
+        assert!(lineage.contains(
+            "fastq.trim_reads.fastp:report_json:report_json=/artifacts/runtime/fastp/report.json"
+        ));
         assert!(lineage.contains(
             "fastq.validate_reads.fastqvalidator:validated_reads_manifest:stage_report=/artifacts/runtime/validate/lineage.json"
         ));

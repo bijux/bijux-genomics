@@ -57,8 +57,10 @@ pub(crate) fn check_automation_entrypoints(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let offenders =
-        repo_legacy_automation_references(workspace, &[workspace.path("Makefile"), workspace.path("makes")])?;
+    let offenders = repo_legacy_automation_references(
+        workspace,
+        &[workspace.path("Makefile"), workspace.path("makes")],
+    )?;
     if offenders.is_empty() {
         return pass(check, "make and workflow entrypoints do not reference legacy automation");
     }
@@ -95,7 +97,8 @@ pub(crate) fn check_no_raw_cargo_in_makes(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let raw_cargo_re = Regex::new(r"^\t@?.*(?:^|[[:space:]])cargo(?:[[:space:]]|$)").expect("regex");
+    let raw_cargo_re =
+        Regex::new(r"^\t@?.*(?:^|[[:space:]])cargo(?:[[:space:]]|$)").expect("regex");
     let allowed_re = Regex::new(r"cargo\s+run\s+(-q\s+)?-p\s+bijux-dna-dev\s+--").expect("regex");
     let install_note_re = Regex::new(r"cargo install").expect("regex");
     let mut violations = Vec::new();
