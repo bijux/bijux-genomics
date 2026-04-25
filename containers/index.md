@@ -9,6 +9,7 @@ Purpose: single entrypoint for container contracts, lifecycle, and operations.
 - Lock lifecycle: `containers/docs/LOCK_LIFECYCLE.md`
 - Smoke contract: `containers/docs/SMOKE_CONTRACT.md`
 - Promotion policy: `containers/docs/PROMOTION_POLICY.md`
+- Science evidence boundary: `containers/docs/SCIENCE_EVIDENCE_BOUNDARY.md`
 - Security boundary: `containers/docs/SECURITY_BOUNDARY.md`
 - Multiarch policy (arm64-first): `containers/docs/MULTIARCH_POLICY.md`
 
