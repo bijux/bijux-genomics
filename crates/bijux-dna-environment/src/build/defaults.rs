@@ -18,7 +18,7 @@ pub fn default_docker_tools() -> Vec<DockerToolSpec> {
             version_cmd: "atropos --version".to_string(),
             probe_cmd: Some("atropos --version".to_string()),
             probe_expected_exit: vec![0],
-            help_cmd: Some("atropos --help".to_string()),
+            help_cmd: Some("atropos trim --help".to_string()),
         },
         DockerToolSpec {
             name: "bbduk".to_string(),
