@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.reference-asset-authority"
+statement: "FASTQ adapter, primer, contaminant, polyX, and QC-threshold assets must be interpreted through the governed reference evidence and source-lock documents before being treated as production scientific inputs."
+scope: "fastq reference assets"
+subject: "assets/reference"
+predicate: "is_governed_by"
+object: "assets/reference/EVIDENCE.md and assets/reference/LOCK.md"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.reference-asset-governance"

@@ -1,0 +1,14 @@
+schema_version: "bijux.science.binding.v1"
+binding_id: "binding.fastq.reference-asset-evidence"
+decision_id: "decision.fastq.reference-asset-evidence-surface"
+target_type: "reference_asset_evidence"
+target_ref: "assets/reference/EVIDENCE.md"
+enforcement_level: "blocking"
+target_domain: "fastq"
+claim_ids:
+  - "claim.fastq.reference-asset-authority"
+source_ids:
+  - "source.fastq.reference-assets"
+  - "source.fastq.reference-lock"
+notes:
+  - "Reference payload upgrades must update both evidence notes and source-lock workflow context."

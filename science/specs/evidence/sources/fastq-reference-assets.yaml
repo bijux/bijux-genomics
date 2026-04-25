@@ -1,0 +1,10 @@
+schema_version: "bijux.science.source.v1"
+source_id: "source.fastq.reference-assets"
+kind: "document"
+access: "repo_path"
+title: "FASTQ reference asset evidence notes"
+locator: "assets/reference/EVIDENCE.md"
+authority: "assets.reference.evidence"
+notes:
+  - "Documents adapter, primer, contaminant, polyX, and QC-threshold asset evidence boundaries."
+  - "Identifies current PhiX174 and UniVec FASTA payloads as sentinel records rather than complete production references."

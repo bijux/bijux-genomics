@@ -1,0 +1,10 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.reference-asset-governance"
+statement: "FASTQ reference assets have explicit provenance notes, source-lock workflow, and sentinel-vs-production status for contaminant reference payloads."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.reference-assets"
+  - "source.fastq.reference-lock"
+  - "source.fastq.stage-contracts"
+  - "source.fastq.default-settings"

@@ -1,0 +1,12 @@
+schema_version: "bijux.science.decision.v1"
+decision_id: "decision.fastq.reference-asset-evidence-surface"
+statement: "FASTQ science evidence must expose reference asset provenance and must not treat sentinel contaminant FASTA payloads as complete production reference databases."
+decision_type: "governance_surface"
+status: "accepted"
+derived_from:
+  - "claim.fastq.reference-asset-authority"
+  - "claim.fastq.default-settings-authority"
+reasoning: "reasoning.fastq.reference-asset-evidence-surface"
+owner: "bijux-genomics"
+effective_from: "2026-04-25"
+confidence: "high"

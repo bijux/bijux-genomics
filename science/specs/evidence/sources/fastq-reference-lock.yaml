@@ -1,0 +1,9 @@
+schema_version: "bijux.science.source.v1"
+source_id: "source.fastq.reference-lock"
+kind: "document"
+access: "repo_path"
+title: "FASTQ reference asset source lock"
+locator: "assets/reference/LOCK.md"
+authority: "assets.reference.lock"
+notes:
+  - "Defines update workflow and pinned-source expectations for governed reference assets."
