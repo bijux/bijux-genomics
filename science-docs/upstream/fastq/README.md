@@ -32,6 +32,10 @@ upstream evidence packets.
 - `TAG_ONLY_CONTAINER_BLOCKERS.tsv`
   tracked blocker registry for admitted FASTQ production-registry entries whose
   `container_ref` still uses a tag rather than an immutable `@sha256:` digest
+- `PLANNED_RUNTIME_BLOCKERS.tsv`
+  tracked blocker registry for planned FASTQ stage-tool bindings that still
+  lack production registry admission, a container reference, or a runtime smoke
+  surface
 - `QA_COVERAGE_BLOCKERS.tsv`
   tracked blocker registry for admitted FASTQ execution-support stages that do
   not yet have behavioral environment-QA coverage
