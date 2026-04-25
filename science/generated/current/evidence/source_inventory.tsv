@@ -12,6 +12,7 @@ source.fastq.reference-lock	document	repo_path	assets.reference.lock	assets/refe
 source.fastq.science-docs-backlog	document	repo_path	science_docs.fastq_download_backlog	science-docs/TODO_DOWNLOAD.md		not_applicable
 source.fastq.science-docs-contract	document	repo_path	science_docs.archive_contract	science-docs/README.md		not_applicable
 source.fastq.stage-contracts	repo_directory	repo_path	domain.fastq.stage_contracts	domain/fastq/stages		not_applicable
+source.fastq.tag-only-container-blockers	document	repo_path	science_docs.fastq_container_blockers	science-docs/upstream/fastq/TAG_ONLY_CONTAINER_BLOCKERS.tsv		not_applicable
 source.fastq.tool-evidence-map	document	repo_path	science_docs.fastq.tool_evidence_map	science-docs/upstream/fastq/tools/EVIDENCE_MAP.tsv		not_applicable
 source.fastq.tool-registry	repo_file	repo_path	configs.ci.registry.tool_registry	configs/ci/registry/tool_registry.toml		not_applicable
 source.science-docs.github-repo-archive-readme	document	repo_path	science_docs.github_repo_archive_instructions	science-docs/upstream/github-repos/README.md		not_applicable
