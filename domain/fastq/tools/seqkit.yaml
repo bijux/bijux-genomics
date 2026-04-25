@@ -52,7 +52,7 @@ pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "upstream:https://github.com/shenwei356/seqkit"
+citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/"
 stage_ids:
   - "fastq.trim_reads"
   - "fastq.filter_reads"
