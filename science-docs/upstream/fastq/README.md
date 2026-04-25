@@ -27,7 +27,8 @@ upstream evidence packets.
   FASTQ tools
 - `CONTAINER_DIGEST_BLOCKERS.tsv`
   tracked blocker registry for FASTQ tools whose container references still need
-  immutable release digests before world-class closure
+  immutable release digests before world-class closure; header-only means no
+  current FASTQ tool manifest contains a pending SHA placeholder
 - `tools/<tool-id>/**`
   untracked local payloads placed at the archive paths recorded in the science
   backlog and evidence map
