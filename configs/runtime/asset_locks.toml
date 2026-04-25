@@ -1,0 +1,186 @@
+schema_version = "bijux.runtime.asset_locks.v1"
+authority = "configs/runtime/asset_locks.toml"
+
+[[lock_family]]
+id = "host_depletion_index"
+stage_ids = ["fastq.prepare_host_reference_bundle", "fastq.deplete_host"]
+asset_kind = "reference_index"
+required_fields = [
+  "source_reference_id",
+  "source_reference_digest",
+  "index_backend",
+  "index_backend_version",
+  "index_digest",
+  "build_command_digest",
+]
+comparability_boundary = "Changing source reference, backend, backend version, or index digest changes host-depletion comparability."
+
+[[lock_family]]
+id = "contaminant_depletion_index"
+stage_ids = ["fastq.build_contaminant_db", "fastq.deplete_reference_contaminants"]
+asset_kind = "reference_index"
+required_fields = [
+  "source_bundle_id",
+  "source_bundle_digest",
+  "index_backend",
+  "index_backend_version",
+  "index_digest",
+  "build_command_digest",
+]
+comparability_boundary = "Changing contaminant bundle, backend, backend version, or index digest changes contaminant-depletion comparability."
+
+[[lock_family]]
+id = "kraken2_database"
+stage_ids = ["fastq.build_taxonomy_db", "fastq.screen_taxonomy"]
+tool_ids = ["kraken2"]
+asset_kind = "taxonomy_database"
+required_fields = [
+  "library_sources",
+  "taxonomy_dump_digest",
+  "database_digest",
+  "build_command_digest",
+  "kmer_policy",
+]
+comparability_boundary = "Kraken2 reports are comparable only within the same library sources, taxonomy dump, and database digest."
+
+[[lock_family]]
+id = "krakenuniq_database"
+stage_ids = ["fastq.build_taxonomy_db", "fastq.screen_taxonomy"]
+tool_ids = ["krakenuniq"]
+asset_kind = "taxonomy_database"
+required_fields = [
+  "library_sources",
+  "taxonomy_dump_digest",
+  "database_digest",
+  "build_command_digest",
+  "kmer_policy",
+]
+comparability_boundary = "KrakenUniq reports are comparable only within the same library sources, taxonomy dump, and database digest."
+
+[[lock_family]]
+id = "centrifuge_database"
+stage_ids = ["fastq.build_taxonomy_db", "fastq.screen_taxonomy"]
+tool_ids = ["centrifuge"]
+asset_kind = "taxonomy_database"
+required_fields = [
+  "library_sources",
+  "taxonomy_dump_digest",
+  "database_digest",
+  "build_command_digest",
+  "index_policy",
+]
+comparability_boundary = "Centrifuge reports are comparable only within the same source set, taxonomy dump, and index digest."
+
+[[lock_family]]
+id = "kaiju_database"
+stage_ids = ["fastq.build_taxonomy_db", "fastq.screen_taxonomy"]
+tool_ids = ["kaiju"]
+asset_kind = "taxonomy_database"
+required_fields = [
+  "protein_sources",
+  "taxonomy_nodes_digest",
+  "database_digest",
+  "build_command_digest",
+  "translation_policy",
+]
+comparability_boundary = "Kaiju reports are comparable only within the same protein sources, taxonomy nodes, and database digest."
+
+[[lock_family]]
+id = "diamond_taxonomy_database"
+stage_ids = ["fastq.build_taxonomy_db", "fastq.screen_taxonomy"]
+tool_ids = ["diamond"]
+asset_kind = "taxonomy_database"
+required_fields = [
+  "protein_sources",
+  "taxonomy_map_digest",
+  "database_digest",
+  "build_command_digest",
+  "sensitivity_policy",
+]
+comparability_boundary = "DIAMOND taxonomy screening is comparable only within the same protein database, taxonomy map, and search policy."
+
+[[lock_family]]
+id = "sortmerna_rrna_database"
+stage_ids = ["fastq.build_rrna_db", "fastq.deplete_rrna"]
+tool_ids = ["sortmerna"]
+asset_kind = "rrna_database"
+required_fields = [
+  "rrna_sources",
+  "source_digest",
+  "index_digest",
+  "build_command_digest",
+]
+comparability_boundary = "SortMeRNA depletion is comparable only within the same rRNA source set and index digest."
+
+[[lock_family]]
+id = "adapter_bank"
+stage_ids = ["fastq.prepare_adapter_bank", "fastq.detect_adapters", "fastq.trim_reads"]
+asset_kind = "sequence_bank"
+required_fields = [
+  "bank_id",
+  "record_digest",
+  "orientation_policy",
+  "source_authority",
+]
+comparability_boundary = "Adapter detection and trimming are comparable only when the same bank records and orientation policy are used."
+
+[[lock_family]]
+id = "primer_bank"
+stage_ids = ["fastq.prepare_primer_bank", "fastq.normalize_primers"]
+asset_kind = "sequence_bank"
+required_fields = [
+  "bank_id",
+  "record_digest",
+  "assay_family",
+  "orientation_policy",
+  "mismatch_policy",
+]
+comparability_boundary = "Primer normalization is comparable only within the same assay family, primer records, and mismatch policy."
+
+[[lock_family]]
+id = "umi_pattern_pack"
+stage_ids = ["fastq.extract_umis"]
+asset_kind = "pattern_pack"
+required_fields = [
+  "pattern_pack_id",
+  "pattern_digest",
+  "barcode_position_policy",
+  "error_policy",
+]
+comparability_boundary = "UMI extraction is comparable only within the same UMI pattern grammar and error policy."
+
+[[lock_family]]
+id = "polyx_bank"
+stage_ids = ["fastq.trim_polyg_tails", "fastq.trim_reads"]
+asset_kind = "motif_bank"
+required_fields = [
+  "bank_id",
+  "motif_digest",
+  "run_length_policy",
+  "platform_scope",
+]
+comparability_boundary = "PolyX trimming is comparable only within the same motif definitions, run-length policy, and platform scope."
+
+[[lock_family]]
+id = "low_complexity_motif_bank"
+stage_ids = ["fastq.filter_low_complexity"]
+asset_kind = "motif_bank"
+required_fields = [
+  "bank_id",
+  "motif_digest",
+  "entropy_policy",
+  "kmer_policy",
+]
+comparability_boundary = "Low-complexity filtering is comparable only within the same motif bank and entropy/k-mer policy."
+
+[[lock_family]]
+id = "contaminant_motif_bank"
+stage_ids = ["fastq.trim_reads", "fastq.deplete_reference_contaminants"]
+asset_kind = "motif_bank"
+required_fields = [
+  "bank_id",
+  "motif_digest",
+  "screening_policy",
+  "source_authority",
+]
+comparability_boundary = "Contaminant motif decisions are comparable only within the same motif bank and screening policy."
