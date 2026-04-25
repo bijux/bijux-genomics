@@ -14,7 +14,7 @@
   "fastq_paper_archive_rows": 46,
   "fastq_environment_rows": 70,
   "fastq_closure_gate_rows": 70,
-  "fastq_truth_delta_rows": 18,
-  "fastq_missing_closure_prerequisite_rows": 34,
+  "fastq_truth_delta_rows": 6,
+  "fastq_missing_closure_prerequisite_rows": 17,
   "fastq_default_binding_risk_rows": 25
 }

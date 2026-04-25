@@ -4,11 +4,11 @@ fastq.correct_errors	rcorrector	true	closed	world_class_closed	true
 fastq.correct_errors	bayeshammer	false	closed	world_class_closed	true		non_default_binding
 fastq.correct_errors	lighter	false	closed	world_class_closed	true		non_default_binding
 fastq.correct_errors	musket	false	closed	world_class_closed	true		non_default_binding
-fastq.deplete_host	bowtie2	true	closed	declared_closed_with_gaps	false	missing_upstream_archive
-fastq.deplete_reference_contaminants	bowtie2	true	closed	declared_closed_with_gaps	false	missing_upstream_archive
-fastq.deplete_rrna	sortmerna	true	closed	declared_closed_with_gaps	false	missing_upstream_archive
+fastq.deplete_host	bowtie2	true	closed	world_class_closed	true
+fastq.deplete_reference_contaminants	bowtie2	true	closed	world_class_closed	true
+fastq.deplete_rrna	sortmerna	true	closed	world_class_closed	true
 fastq.detect_adapters	fastqc	true	closed	world_class_closed	true
-fastq.extract_umis	umi_tools	true	closed	declared_closed_with_gaps	false	missing_upstream_archive
+fastq.extract_umis	umi_tools	true	closed	world_class_closed	true
 fastq.filter_low_complexity	bbduk	true	closed	world_class_closed	true
 fastq.filter_low_complexity	dustmasker	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface;missing_upstream_archive	planned_binding_not_admitted;non_default_binding
 fastq.filter_low_complexity	prinseq	false	closed	world_class_closed	true		non_default_binding
@@ -16,9 +16,9 @@ fastq.filter_reads	fastp	true	closed	world_class_closed	true
 fastq.filter_reads	bbduk	false	closed	world_class_closed	true		non_default_binding
 fastq.filter_reads	prinseq	false	closed	world_class_closed	true		non_default_binding
 fastq.filter_reads	seqkit	false	closed	world_class_closed	true		non_default_binding
-fastq.index_reference	bowtie2_build	true	closed	declared_closed_with_gaps	false	missing_upstream_archive
-fastq.index_reference	star	false	closed	declared_closed_with_gaps	false	missing_upstream_archive;missing_paper_archive	non_default_binding
-fastq.infer_asvs	dada2	true	closed	declared_closed_with_gaps	false	missing_upstream_archive
+fastq.index_reference	bowtie2_build	true	closed	world_class_closed	true
+fastq.index_reference	star	false	closed	declared_closed_with_gaps	false	missing_paper_archive	non_default_binding
+fastq.infer_asvs	dada2	true	closed	world_class_closed	true
 fastq.merge_pairs	pear	true	closed	world_class_closed	true
 fastq.merge_pairs	adapterremoval	false	closed	world_class_closed	true		non_default_binding
 fastq.merge_pairs	bbmerge	false	closed	world_class_closed	true		non_default_binding
@@ -26,25 +26,25 @@ fastq.merge_pairs	flash2	false	closed	world_class_closed	true		non_default_bindi
 fastq.merge_pairs	leehom	false	closed	world_class_closed	true		non_default_binding
 fastq.merge_pairs	vsearch	false	closed	world_class_closed	true		non_default_binding
 fastq.normalize_abundance	seqkit	true	closed	world_class_closed	true
-fastq.normalize_abundance	seqfu	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface;missing_upstream_archive	planned_binding_not_admitted;non_default_binding
+fastq.normalize_abundance	seqfu	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface	planned_binding_not_admitted;non_default_binding
 fastq.normalize_primers	cutadapt	true	closed	world_class_closed	true
 fastq.profile_overrepresented_sequences	fastqc	true	closed	world_class_closed	true
 fastq.profile_overrepresented_sequences	fastq_scan	false	closed	world_class_closed	true		non_default_binding
 fastq.profile_overrepresented_sequences	seqkit	false	closed	world_class_closed	true		non_default_binding
-fastq.profile_read_lengths	seqkit_stats	true	closed	declared_closed_with_gaps	false	missing_upstream_archive
+fastq.profile_read_lengths	seqkit_stats	true	closed	world_class_closed	true
 fastq.profile_read_lengths	fastp	false	closed	world_class_closed	true		planned_binding_not_admitted;non_default_binding
 fastq.profile_read_lengths	prinseq	false	closed	world_class_closed	true		planned_binding_not_admitted;non_default_binding
-fastq.profile_read_lengths	seqfu	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface;missing_upstream_archive	planned_binding_not_admitted;non_default_binding
-fastq.profile_reads	seqkit_stats	true	closed	declared_closed_with_gaps	false	missing_upstream_archive
+fastq.profile_read_lengths	seqfu	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface	planned_binding_not_admitted;non_default_binding
+fastq.profile_reads	seqkit_stats	true	closed	world_class_closed	true
 fastq.remove_chimeras	vsearch	true	closed	world_class_closed	true
 fastq.remove_duplicates	clumpify	true	closed	world_class_closed	true
 fastq.remove_duplicates	fastuniq	false	closed	world_class_closed	true		non_default_binding
 fastq.report_qc	multiqc	true	closed	world_class_closed	true
-fastq.screen_taxonomy	kraken2	true	closed	declared_closed_with_gaps	false	missing_upstream_archive
-fastq.screen_taxonomy	centrifuge	false	closed	declared_closed_with_gaps	false	missing_upstream_archive	non_default_binding
-fastq.screen_taxonomy	diamond	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface;missing_upstream_archive	planned_binding_not_admitted;non_default_binding
-fastq.screen_taxonomy	kaiju	false	closed	declared_closed_with_gaps	false	missing_upstream_archive	non_default_binding
-fastq.screen_taxonomy	krakenuniq	false	closed	declared_closed_with_gaps	false	missing_upstream_archive	non_default_binding
+fastq.screen_taxonomy	kraken2	true	closed	world_class_closed	true
+fastq.screen_taxonomy	centrifuge	false	closed	world_class_closed	true		non_default_binding
+fastq.screen_taxonomy	diamond	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface	planned_binding_not_admitted;non_default_binding
+fastq.screen_taxonomy	kaiju	false	closed	world_class_closed	true		non_default_binding
+fastq.screen_taxonomy	krakenuniq	false	closed	world_class_closed	true		non_default_binding
 fastq.trim_polyg_tails	fastp	true	closed	world_class_closed	true
 fastq.trim_polyg_tails	bbduk	false	closed	world_class_closed	true		non_default_binding
 fastq.trim_reads	fastp	true	closed	world_class_closed	true
@@ -57,7 +57,7 @@ fastq.trim_reads	fastx_clipper	false	closed	world_class_closed	true		non_default
 fastq.trim_reads	leehom	false	closed	world_class_closed	true		non_default_binding
 fastq.trim_reads	prinseq	false	closed	world_class_closed	true		non_default_binding
 fastq.trim_reads	seqkit	false	closed	world_class_closed	true		non_default_binding
-fastq.trim_reads	seqpurge	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface;missing_upstream_archive	planned_binding_not_admitted;non_default_binding
+fastq.trim_reads	seqpurge	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface	planned_binding_not_admitted;non_default_binding
 fastq.trim_reads	skewer	false	closed	world_class_closed	true		non_default_binding
 fastq.trim_reads	trim_galore	false	closed	world_class_closed	true		non_default_binding
 fastq.trim_reads	trimmomatic	false	closed	world_class_closed	true		non_default_binding
