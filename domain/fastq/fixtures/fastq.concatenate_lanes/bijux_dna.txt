@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.concatenate_lanes
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq layout concatenate-lanes --manifest lane_manifest.json --out concatenated_reads
+expected_outputs=concatenated_reads,lane_manifest_out
+expected_stdout_patterns=contract_ok,lane_count
