@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.science-docs-stage-governance"
+statement: "Every FASTQ stage and tool manifest must remain represented in the science-docs evidence tables before the FASTQ evidence layer can be considered complete."
+scope: "fastq science evidence closure"
+subject: "science-docs/upstream/fastq"
+predicate: "must_cover"
+object: "domain/fastq stage and tool manifests"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.science-docs-stage-governance"

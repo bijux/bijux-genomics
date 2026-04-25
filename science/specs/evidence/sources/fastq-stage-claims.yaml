@@ -1,0 +1,9 @@
+schema_version: "bijux.science.source.v1"
+source_id: "source.fastq.stage-claims"
+kind: "document"
+access: "repo_path"
+title: "FASTQ stage scientific claim registry"
+locator: "science-docs/upstream/fastq/STAGE_CLAIMS.tsv"
+authority: "science_docs.fastq.stage_claims"
+notes:
+  - "Maps each FASTQ stage to its governed scientific, workflow, database, ordering, or comparability claim."
