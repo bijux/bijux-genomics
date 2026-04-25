@@ -4,6 +4,8 @@ use super::{
     OpsCommandOutcome, Regex, Result, WalkDir, Workspace,
 };
 
+use super::set_assets_readonly;
+
 pub(super) fn assets_refresh_golden(
     workspace: &Workspace,
     args: &[String],
@@ -86,6 +88,24 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-golden`.
     )?;
     replace_dir(&out_dir, &target_dir)?;
     success_line(format!("golden refresh: wrote {}", target_dir.display()))
+}
+
+pub(super) fn assets_refresh_reference(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("refresh-reference", args)?;
+    set_assets_readonly(workspace, false)?;
+    let result = write_reference_asset_docs(workspace);
+    let restore = set_assets_readonly(workspace, true);
+    match (result, restore) {
+        (Ok(()), Ok(())) => success_line("reference refresh: wrote assets/reference docs"),
+        (Err(error), Ok(())) => Err(error),
+        (Ok(()), Err(error)) => Err(error),
+        (Err(error), Err(restore_error)) => Err(error.context(format!(
+            "also failed to restore assets read-only permissions: {restore_error}"
+        ))),
+    }
 }
 
 pub(super) fn assets_refresh_toy(
@@ -172,6 +192,99 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
     success_line(format!("toy refresh: wrote {}", target_dir.display()))
 }
 
+fn write_reference_asset_docs(workspace: &Workspace) -> Result<()> {
+    let ref_root = workspace.path("assets/reference");
+    write_utf8(&ref_root.join("EVIDENCE.md"), REFERENCE_EVIDENCE_MD)?;
+    write_utf8(&ref_root.join("LOCK.md"), REFERENCE_LOCK_MD)?;
+    write_utf8(&ref_root.join("index.md"), REFERENCE_INDEX_MD)?;
+    Ok(())
+}
+
+const REFERENCE_EVIDENCE_MD: &str = r"# Reference Asset Evidence
+
+## What
+Evidence and provenance notes for governed FASTQ reference assets under `assets/reference/`.
+
+## Why
+Reference assets affect scientific interpretation as much as tool choice. Adapter banks, primer banks, contaminant references, and QC thresholds must be explicit about whether they are production references, sentinel records, or synthetic test motifs.
+
+## Asset Status
+| Asset group | Current files | Evidence status | Review rule |
+| --- | --- | --- | --- |
+| Adapter bank | `adapters/bank.v1.yaml`, `adapters/presets.v1.yaml` | Mixed vendor-derived motifs and synthetic fallback motifs | Treat vendor-derived motifs as supported only when a matching source note is present; treat synthetic motifs as test coverage, not kit truth. |
+| Primer bank | `primers/*.fasta` | Literature-derived marker primers | Keep marker, sequence, and citation together when adding or changing primers. |
+| Contaminant motifs | `contaminants/contaminant_motifs.v1.yaml` | Small deterministic motif set | Use for deterministic detection tests and policy wiring, not as a complete contamination database. |
+| Contaminant references | `contaminants/references/phix174.fasta`, `contaminants/references/univec.fasta` | Sentinel FASTA records in the current repository | Do not describe these as complete PhiX174 or UniVec references until replaced by pinned upstream snapshots. |
+| PolyX bank | `polyx/bank.v1.yaml`, `polyx/presets.v1.yaml` | Deterministic sequence-tail policy assets | Use as policy inputs for trimming behavior, not as external biological references. |
+| QC thresholds | `qc_thresholds.yaml` | Governed thresholds | Interpret only with the matching FASTQ stage assumptions and profile defaults. |
+
+## Primer References
+| Primer set | Marker | Current sequences | Primary evidence |
+| --- | --- | --- | --- |
+| `COI_folmer_v1` | mitochondrial COI barcode | LCO1490, HCO2198 | Folmer et al. 1994, published COI primer pair for invertebrate mitochondrial cytochrome c oxidase I. |
+| `16S_universal_v1` | bacterial 16S rRNA | 27F, 1492R | Weisburg et al. 1991, broad bacterial 16S amplification primers. |
+| `ITS2_plant_v1` | plant ITS2 | S2F, S3R | Chen et al. 2010, ITS2 plant DNA barcode primer set. |
+
+## Sentinel Contaminant References
+The current PhiX174 and UniVec FASTA payloads are deliberately tiny records:
+
+- `phix174.fasta` is 48 bytes in the current checkout.
+- `univec.fasta` is 43 bytes in the current checkout.
+
+Those sizes are incompatible with complete upstream PhiX174 or UniVec reference payloads. They are suitable for path, checksum, parser, and policy tests only. Production contaminant depletion or screening requires pinned upstream replacement payloads, checksum review, and an updated lock note.
+
+## Update Requirements
+- Stage candidate updates under `artifacts/assets-refresh/reference/`.
+- Record upstream URL, retrieval date, checksum, sequence count, and total bases.
+- Diff sequence headers and lengths before replacing a tracked reference.
+- Recompute affected `CHECKSUMS.sha256` files in the same change.
+- Add uncertain source or missing production payload questions to `/Users/bijan/bijux/NEEDED.md`.
+";
+
+const REFERENCE_LOCK_MD: &str = r"# Reference Source Lock
+
+## Purpose
+Define pinned upstream sources for reference assets and a safe update workflow.
+
+## Pinned Sources
+- `assets/reference/contaminants/references/univec.fasta`
+  - upstream: NCBI UniVec snapshot
+  - current tracked payload: sentinel record, not a complete UniVec snapshot
+  - update method: explicit download to staging + checksum review
+- `assets/reference/contaminants/references/phix174.fasta`
+  - upstream: PhiX174 reference sequence snapshot
+  - current tracked payload: sentinel record, not a complete PhiX174 snapshot
+  - update method: explicit download to staging + checksum review
+
+## Update Workflow
+1. Stage candidate updates under `artifacts/assets-refresh/reference/`.
+2. Diff old/new sequence headers and lengths.
+3. Recompute package checksums.
+4. Update provenance notes and commit with rationale.
+
+## Safety Diff Rules
+- Always diff by checksums and sequence statistics.
+- Do not replace references silently.
+- Any sequence-content change requires review notes in commit message.
+";
+
+const REFERENCE_INDEX_MD: &str = r"# Reference Assets
+
+## What
+Production reference data, banks, and presets that are not toy or golden fixtures.
+
+## Rules
+- Keep only deterministic data artifacts.
+- Domain crates should reference these paths via stable relative paths.
+- Source update and pin policy is defined in `assets/reference/LOCK.md`.
+- Evidence and sentinel-vs-production status are defined in `assets/reference/EVIDENCE.md`.
+
+---
+Asset Provenance Footer
+Last regenerated: 2026-02-13
+Regenerate command: `cargo run -p bijux-dna-dev -- assets run refresh-reference`
+";
+
 pub(super) fn assets_validate_reference(
     workspace: &Workspace,
     args: &[String],
@@ -189,6 +302,17 @@ pub(super) fn assets_validate_reference(
         errors.push(
             "assets/reference/SCHEMAS.md missing (reference schema authority doc)".to_string(),
         );
+    }
+    if !ref_root.join("EVIDENCE.md").is_file() {
+        errors.push(
+            "assets/reference/EVIDENCE.md missing (reference evidence authority doc)".to_string(),
+        );
+    }
+    if !ref_root.join("LOCK.md").is_file() {
+        errors.push("assets/reference/LOCK.md missing (reference source lock doc)".to_string());
+    }
+    if !ref_root.join("index.md").is_file() {
+        errors.push("assets/reference/index.md missing (reference assets index doc)".to_string());
     }
 
     let schema_re = Regex::new(r"(?m)^schema_version:\s*\S+")?;

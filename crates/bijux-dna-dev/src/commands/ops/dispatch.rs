@@ -10,6 +10,9 @@ pub(super) fn run_native_ops_command(
 ) -> Result<OpsCommandOutcome> {
     match &key {
         NativeOpsCommandKey::AssetsRefreshGolden => assets::assets_refresh_golden(workspace, args),
+        NativeOpsCommandKey::AssetsRefreshReference => {
+            assets::assets_refresh_reference(workspace, args)
+        }
         NativeOpsCommandKey::AssetsRefreshToy => assets::assets_refresh_toy(workspace, args),
         NativeOpsCommandKey::AssetsValidateReference => {
             assets::assets_validate_reference(workspace, args)

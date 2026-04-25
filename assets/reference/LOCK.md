@@ -6,9 +6,11 @@ Define pinned upstream sources for reference assets and a safe update workflow.
 ## Pinned Sources
 - `assets/reference/contaminants/references/univec.fasta`
   - upstream: NCBI UniVec snapshot
+  - current tracked payload: sentinel record, not a complete UniVec snapshot
   - update method: explicit download to staging + checksum review
 - `assets/reference/contaminants/references/phix174.fasta`
   - upstream: PhiX174 reference sequence snapshot
+  - current tracked payload: sentinel record, not a complete PhiX174 snapshot
   - update method: explicit download to staging + checksum review
 
 ## Update Workflow
