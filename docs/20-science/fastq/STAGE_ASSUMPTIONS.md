@@ -20,7 +20,8 @@ Source of truth remains `domain/fastq/stages/*.yaml` (`assumptions` field).
 - `fastq.screen_taxonomy`: taxonomy/classification metrics depend on database coverage/composition.
 - `fastq.deplete_rrna`: rRNA database is appropriate for the studied material.
 - `fastq.correct_errors`: error correction model assumptions match observed read error profile.
-- `fastq.extract_umis`: UMI schema/pattern reflects library design and extraction should preserve read pairing.
+- `fastq.extract_umis`: UMI schema/pattern reflects library design; inline extraction must preserve read pairing and run before trimming or filtering can remove barcode-bearing sequence.
+- `fastq.trim_terminal_damage`: terminal damage trimming is specific to aDNA-like libraries and must be profile- or user-selected, not a generic unknown-assay requirement.
 
 ## Contract note
 Assumptions are validated for presence by domain validation; semantic interpretation remains operator responsibility.
