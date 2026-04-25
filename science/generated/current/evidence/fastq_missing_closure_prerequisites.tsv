@@ -29,7 +29,6 @@ fastq.index_reference	star	missing_paper_archive	advisory	star cannot be treated
 fastq.index_reference	star	missing_paper_root	advisory	star cannot be treated as world-class closed for fastq.index_reference until missing_paper_root is resolved
 fastq.index_reference	star	missing_upstream_archive	advisory	star cannot be treated as world-class closed for fastq.index_reference until missing_upstream_archive is resolved
 fastq.index_reference	star	source_backlog_missing_evidence_map	advisory	star cannot be treated as world-class closed for fastq.index_reference until source_backlog_missing_evidence_map is resolved
-fastq.infer_asvs	dada2	missing_benchmark_support	blocking	dada2 cannot be treated as world-class closed for fastq.infer_asvs until missing_benchmark_support is resolved
 fastq.infer_asvs	dada2	missing_upstream_archive	blocking	dada2 cannot be treated as world-class closed for fastq.infer_asvs until missing_upstream_archive is resolved
 fastq.normalize_abundance	seqfu	missing_container_ref	advisory	seqfu cannot be treated as world-class closed for fastq.normalize_abundance until missing_container_ref is resolved
 fastq.normalize_abundance	seqfu	missing_runtime_surface	advisory	seqfu cannot be treated as world-class closed for fastq.normalize_abundance until missing_runtime_surface is resolved
@@ -42,7 +41,6 @@ fastq.profile_read_lengths	seqfu	missing_upstream_archive	advisory	seqfu cannot 
 fastq.profile_read_lengths	seqfu	registry_not_production	advisory	seqfu cannot be treated as world-class closed for fastq.profile_read_lengths until registry_not_production is resolved
 fastq.profile_read_lengths	seqkit_stats	missing_upstream_archive	blocking	seqkit_stats cannot be treated as world-class closed for fastq.profile_read_lengths until missing_upstream_archive is resolved
 fastq.profile_reads	seqkit_stats	missing_upstream_archive	blocking	seqkit_stats cannot be treated as world-class closed for fastq.profile_reads until missing_upstream_archive is resolved
-fastq.remove_chimeras	vsearch	missing_benchmark_support	blocking	vsearch cannot be treated as world-class closed for fastq.remove_chimeras until missing_benchmark_support is resolved
 fastq.remove_duplicates	clumpify	pending_container_digest	blocking	clumpify cannot be treated as world-class closed for fastq.remove_duplicates until pending_container_digest is resolved
 fastq.remove_duplicates	fastuniq	pending_container_digest	advisory	fastuniq cannot be treated as world-class closed for fastq.remove_duplicates until pending_container_digest is resolved
 fastq.screen_taxonomy	centrifuge	missing_paper_archive	advisory	centrifuge cannot be treated as world-class closed for fastq.screen_taxonomy until missing_paper_archive is resolved

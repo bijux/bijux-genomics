@@ -18,7 +18,7 @@ fastq.filter_reads	prinseq	false	closed	world_class_closed	true		non_default_bin
 fastq.filter_reads	seqkit	false	closed	world_class_closed	true		non_default_binding
 fastq.index_reference	bowtie2_build	true	closed	declared_closed_with_gaps	false	source_backlog_missing_evidence_map;missing_upstream_archive;missing_paper_root;missing_paper_archive
 fastq.index_reference	star	false	closed	declared_closed_with_gaps	false	source_backlog_missing_evidence_map;missing_upstream_archive;missing_paper_root;missing_paper_archive	non_default_binding
-fastq.infer_asvs	dada2	true	closed	declared_closed_with_gaps	false	missing_upstream_archive;missing_benchmark_support
+fastq.infer_asvs	dada2	true	closed	declared_closed_with_gaps	false	missing_upstream_archive
 fastq.merge_pairs	pear	true	closed	world_class_closed	true
 fastq.merge_pairs	adapterremoval	false	closed	world_class_closed	true		non_default_binding
 fastq.merge_pairs	bbmerge	false	closed	world_class_closed	true		non_default_binding
@@ -36,7 +36,7 @@ fastq.profile_read_lengths	fastp	false	closed	world_class_closed	true		planned_b
 fastq.profile_read_lengths	prinseq	false	closed	world_class_closed	true		planned_binding_not_admitted;non_default_binding
 fastq.profile_read_lengths	seqfu	false	closed	declared_closed_with_gaps	false	registry_not_production;missing_container_ref;missing_runtime_surface;missing_upstream_archive	planned_binding_not_admitted;non_default_binding
 fastq.profile_reads	seqkit_stats	true	closed	declared_closed_with_gaps	false	missing_upstream_archive
-fastq.remove_chimeras	vsearch	true	closed	declared_closed_with_gaps	false	missing_benchmark_support
+fastq.remove_chimeras	vsearch	true	closed	world_class_closed	true
 fastq.remove_duplicates	clumpify	true	closed	declared_closed_with_gaps	false	pending_container_digest
 fastq.remove_duplicates	fastuniq	false	closed	declared_closed_with_gaps	false	pending_container_digest	non_default_binding
 fastq.report_qc	multiqc	true	closed	world_class_closed	true

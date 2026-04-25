@@ -406,6 +406,17 @@ pub struct FastqMissingClosurePrerequisiteRow {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct FastqDefaultBindingRiskRow {
+    pub stage_id: String,
+    pub default_tool_id: String,
+    pub requested_execution_status: String,
+    pub effective_closure_status: String,
+    pub risk_class: String,
+    pub blocking_reasons: String,
+    pub warning_reasons: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct ScienceIndex {
     pub sources: usize,
     pub source_inventory_rows: usize,
@@ -424,6 +435,7 @@ pub struct ScienceIndex {
     pub fastq_closure_gate_rows: usize,
     pub fastq_truth_delta_rows: usize,
     pub fastq_missing_closure_prerequisite_rows: usize,
+    pub fastq_default_binding_risk_rows: usize,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -441,5 +453,6 @@ pub struct CompiledScience {
     pub fastq_closure_gate_rows: Vec<FastqClosureGateRow>,
     pub fastq_truth_delta_rows: Vec<FastqTruthDeltaRow>,
     pub fastq_missing_closure_prerequisite_rows: Vec<FastqMissingClosurePrerequisiteRow>,
+    pub fastq_default_binding_risk_rows: Vec<FastqDefaultBindingRiskRow>,
     pub index: ScienceIndex,
 }

@@ -2,9 +2,9 @@ use serde::Serialize;
 
 use crate::domain::{
     BindingResolutionRow, ClaimEvidenceRow, DecisionReasoningRow, FastqClosureGateRow,
-    FastqContainerReferenceRow, FastqDownloadBacklogRow, FastqEnvironmentRow,
-    FastqMissingClosurePrerequisiteRow, FastqPaperArchiveRow, FastqTruthDeltaRow, ScienceIndex,
-    SourceArchiveGapRow, SourceInventoryRow,
+    FastqContainerReferenceRow, FastqDefaultBindingRiskRow, FastqDownloadBacklogRow,
+    FastqEnvironmentRow, FastqMissingClosurePrerequisiteRow, FastqPaperArchiveRow,
+    FastqTruthDeltaRow, ScienceIndex, SourceArchiveGapRow, SourceInventoryRow,
 };
 
 pub fn source_inventory_tsv(rows: &[SourceInventoryRow]) -> String {
@@ -172,6 +172,27 @@ pub fn fastq_missing_closure_prerequisites_tsv(
             "{}\t{}\t{}\t{}\t{}\n",
             row.stage_id, row.tool_id, row.prerequisite, row.severity, row.detail
         ));
+    }
+    out
+}
+
+pub fn fastq_default_binding_risk_tsv(rows: &[FastqDefaultBindingRiskRow]) -> String {
+    let mut out = String::from(
+        "stage_id\tdefault_tool_id\trequested_execution_status\teffective_closure_status\trisk_class\tblocking_reasons\twarning_reasons\n",
+    );
+    for row in rows {
+        let line = [
+            row.stage_id.as_str(),
+            row.default_tool_id.as_str(),
+            row.requested_execution_status.as_str(),
+            row.effective_closure_status.as_str(),
+            row.risk_class.as_str(),
+            row.blocking_reasons.as_str(),
+            row.warning_reasons.as_str(),
+        ]
+        .join("\t");
+        out.push_str(line.trim_end_matches('\t'));
+        out.push('\n');
     }
     out
 }

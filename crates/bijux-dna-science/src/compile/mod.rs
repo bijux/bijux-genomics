@@ -7,7 +7,7 @@ use toml::Value as TomlValue;
 
 use crate::domain::{
     BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience,
-    DecisionReasoningRow, FastqClosureGateRow, FastqEnvironmentRow,
+    DecisionReasoningRow, FastqClosureGateRow, FastqDefaultBindingRiskRow, FastqEnvironmentRow,
     FastqMissingClosurePrerequisiteRow, FastqTruthDeltaRow, LoadedSpecs, ScienceIndex,
     SourceAccess, SourceArchiveGapRow, SourceId, SourceInventoryRow, SourceKind, SourceSpec,
 };
@@ -217,6 +217,8 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
     let fastq_truth_delta_rows = build_fastq_truth_delta_rows(&fastq_closure_gate_rows);
     let fastq_missing_closure_prerequisite_rows =
         build_fastq_missing_closure_prerequisite_rows(&fastq_closure_gate_rows);
+    let fastq_default_binding_risk_rows =
+        build_fastq_default_binding_risk_rows(&fastq_closure_gate_rows);
     let unresolved_refs = validate_cross_references(&loaded);
     if !unresolved_refs.is_empty() {
         return Err(validation_error(unresolved_refs));
@@ -239,6 +241,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         fastq_closure_gate_rows: fastq_closure_gate_rows.len(),
         fastq_truth_delta_rows: fastq_truth_delta_rows.len(),
         fastq_missing_closure_prerequisite_rows: fastq_missing_closure_prerequisite_rows.len(),
+        fastq_default_binding_risk_rows: fastq_default_binding_risk_rows.len(),
     };
     Ok(CompiledScience {
         source_inventory,
@@ -254,6 +257,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         fastq_closure_gate_rows,
         fastq_truth_delta_rows,
         fastq_missing_closure_prerequisite_rows,
+        fastq_default_binding_risk_rows,
         index,
     })
 }
@@ -998,6 +1002,33 @@ fn build_fastq_missing_closure_prerequisite_rows(
         ))
     });
     missing
+}
+
+fn build_fastq_default_binding_risk_rows(
+    rows: &[FastqClosureGateRow],
+) -> Vec<FastqDefaultBindingRiskRow> {
+    rows.iter()
+        .filter(|row| row.is_default)
+        .map(|row| FastqDefaultBindingRiskRow {
+            stage_id: row.stage_id.clone(),
+            default_tool_id: row.tool_id.clone(),
+            requested_execution_status: row.requested_execution_status.clone(),
+            effective_closure_status: row.effective_closure_status.clone(),
+            risk_class: if row.world_class_closed {
+                "world_class_closed".to_string()
+            } else if row.blocking_reasons.contains("pending_container_digest") {
+                "immutable_container_blocked".to_string()
+            } else if row.blocking_reasons.contains("missing_upstream_archive")
+                || row.blocking_reasons.contains("missing_paper_archive")
+            {
+                "archive_evidence_blocked".to_string()
+            } else {
+                "closure_prerequisite_blocked".to_string()
+            },
+            blocking_reasons: row.blocking_reasons.clone(),
+            warning_reasons: row.warning_reasons.clone(),
+        })
+        .collect()
 }
 
 fn merged_tool_metadata(
