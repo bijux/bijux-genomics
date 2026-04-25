@@ -893,18 +893,18 @@ mod tests {
         let inputs = vec![
             ArtifactRef::required(
                 ArtifactId::from_static("fastq.trim_reads.fastp.report_json"),
-                PathBuf::from("/tmp/fastp/report.json"),
+                PathBuf::from("/artifacts/runtime/fastp/report.json"),
                 ArtifactRole::ReportJson,
             ),
             ArtifactRef::required(
                 ArtifactId::from_static(
                     "fastq.validate_reads.fastqvalidator.validated_reads_manifest",
                 ),
-                PathBuf::from("/tmp/validate/lineage.json"),
+                PathBuf::from("/artifacts/runtime/validate/lineage.json"),
                 ArtifactRole::StageReport,
             ),
         ];
-        let raw_fastqc_dir = PathBuf::from("/tmp/raw_fastqc");
+        let raw_fastqc_dir = PathBuf::from("/artifacts/runtime/raw_fastqc");
 
         let lineage = derived_governed_qc_lineage_hash(
             &governed_qc_contributors(&inputs),
@@ -912,11 +912,11 @@ mod tests {
         )
         .expect("derived lineage");
         assert!(lineage
-            .contains("fastq.trim_reads.fastp:report_json:report_json=/tmp/fastp/report.json"));
+            .contains("fastq.trim_reads.fastp:report_json:report_json=/artifacts/runtime/fastp/report.json"));
         assert!(lineage.contains(
-            "fastq.validate_reads.fastqvalidator:validated_reads_manifest:stage_report=/tmp/validate/lineage.json"
+            "fastq.validate_reads.fastqvalidator:validated_reads_manifest:stage_report=/artifacts/runtime/validate/lineage.json"
         ));
-        assert!(lineage.contains("raw_fastqc_dir=/tmp/raw_fastqc"));
+        assert!(lineage.contains("raw_fastqc_dir=/artifacts/runtime/raw_fastqc"));
     }
 
     #[test]
@@ -1228,7 +1228,7 @@ mod tests {
     fn governed_qc_contributors_capture_stage_and_artifact_ids() {
         let contributors = governed_qc_contributors(&[ArtifactRef::required(
             ArtifactId::from_static("fastq.validate_reads.fastqvalidator.validation_report"),
-            PathBuf::from("/tmp/validation.json"),
+            PathBuf::from("/artifacts/runtime/validation.json"),
             ArtifactRole::ReportJson,
         )]);
         assert_eq!(contributors.len(), 1);
@@ -1246,7 +1246,7 @@ mod tests {
                 tool_id: "fastp".to_string(),
                 artifact_id: "report_json".to_string(),
                 artifact_role: ArtifactRole::ReportJson,
-                path: PathBuf::from("/tmp/trim/report.json"),
+                path: PathBuf::from("/artifacts/runtime/trim/report.json"),
             },
             GovernedQcContributor {
                 contributor_id: "fastq.validate_reads.fastqvalidator".to_string(),
@@ -1254,7 +1254,7 @@ mod tests {
                 tool_id: "fastqvalidator".to_string(),
                 artifact_id: "validation_report".to_string(),
                 artifact_role: ArtifactRole::ReportJson,
-                path: PathBuf::from("/tmp/validate/report.json"),
+                path: PathBuf::from("/artifacts/runtime/validate/report.json"),
             },
             GovernedQcContributor {
                 contributor_id: "fastq.trim_reads.fastp".to_string(),
@@ -1262,7 +1262,7 @@ mod tests {
                 tool_id: "fastp".to_string(),
                 artifact_id: "adapter_report".to_string(),
                 artifact_role: ArtifactRole::ReportJson,
-                path: PathBuf::from("/tmp/trim/adapter.json"),
+                path: PathBuf::from("/artifacts/runtime/trim/adapter.json"),
             },
         ];
 
@@ -1287,7 +1287,7 @@ mod tests {
                     tool_id: "fastp".to_string(),
                     artifact_id: "report_json".to_string(),
                     artifact_role: ArtifactRole::ReportJson,
-                    path: PathBuf::from("/tmp/trim/report.json"),
+                    path: PathBuf::from("/artifacts/runtime/trim/report.json"),
                 },
                 GovernedQcContributor {
                     contributor_id: "fastq.validate_reads.fastqvalidator".to_string(),
@@ -1295,7 +1295,7 @@ mod tests {
                     tool_id: "fastqvalidator".to_string(),
                     artifact_id: "validation_report".to_string(),
                     artifact_role: ArtifactRole::ReportJson,
-                    path: PathBuf::from("/tmp/validate/report.json"),
+                    path: PathBuf::from("/artifacts/runtime/validate/report.json"),
                 },
             ],
             raw_fastqc_dir: None,

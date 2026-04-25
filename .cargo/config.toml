@@ -1,19 +1,5 @@
 [build]
 target-dir = "artifacts/rust/target"
-rustflags = ["-Dwarnings"]
-
-[target.'cfg(target_os = "linux")']
-rustflags = [
-  "-C", "debuginfo=1",
-  "-C", "link-arg=-Wl,-z,relro",
-  "-C", "link-arg=-Wl,-z,now",
-]
-
-[target.'cfg(target_os = "macos")']
-rustflags = [
-  "-C", "debuginfo=1",
-  "-C", "link-arg=-Wl,-dead_strip",
-]
 
 [term]
 verbose = false

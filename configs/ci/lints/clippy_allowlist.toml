@@ -6,7 +6,7 @@
 # last_updated = 2026-02-15
 
 [[allow]]
-path = "crates/bijux-dna-runner/src/execute.rs"
+path = "crates/bijux-dna-runner/src/step_runner/mod.rs"
 lint = "too_many_lines"
 expires_on = "2026-06-30"
 reason = "Split execute workflow into smaller modules while keeping runtime behavior stable."

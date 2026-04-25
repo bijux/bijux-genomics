@@ -423,7 +423,7 @@ mod tests {
     fn temp_path(name: &str) -> PathBuf {
         let unique =
             format!("bijux-normalize-abundance-{}-{}", std::process::id(), uuid::Uuid::new_v4());
-        std::env::temp_dir().join(unique).join(name)
+        PathBuf::from("artifacts").join("tmp").join(unique).join(name)
     }
 
     #[test]

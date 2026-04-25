@@ -13,7 +13,7 @@ fn assess_execution_success() -> anyhow::Result<()> {
 
 #[test]
 fn assess_execution_missing_outputs() {
-    let missing = PathBuf::from("/tmp/missing.data");
+    let missing = PathBuf::from("/artifacts/runtime/missing.data");
     let assessment = assess_execution(0, &[missing]);
     assert!(!assessment.success);
     assert_eq!(assessment.reason.as_deref(), Some("missing_outputs"));

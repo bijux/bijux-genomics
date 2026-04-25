@@ -64,7 +64,7 @@ mod tests {
         let platform = PlatformSpec {
             name: "cluster-apptainer".to_string(),
             runner: RuntimeKind::Apptainer,
-            container_dir: PathBuf::from("/tmp/does-not-exist-bijux"),
+            container_dir: PathBuf::from("/artifacts/runtime/does-not-exist-bijux"),
             image_prefix: "bijuxdna".to_string(),
             arch: "amd64".to_string(),
         };

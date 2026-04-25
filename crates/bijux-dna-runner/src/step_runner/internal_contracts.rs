@@ -17,14 +17,14 @@ type StepFixture = ExecutionStep;
 fn observer_args_use_docker_mounts_for_docker_runner() {
     let (bin, args) = build_observer_command_args(
         "bijuxdna/seqkit:latest-pinned-amd64",
-        Path::new("/tmp/input"),
+        Path::new("/artifacts/runtime/input"),
         &["stats".to_string(), "/data/reads.fq.gz".to_string()],
         RuntimeKind::Docker,
     );
 
     assert_eq!(bin, "docker");
     assert!(args.starts_with(&["run".to_string(), "--rm".to_string()]));
-    assert!(args.contains(&"/tmp/input:/data:ro".to_string()));
+    assert!(args.contains(&"/artifacts/runtime/input:/data:ro".to_string()));
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn execution_identity_defaults_to_stage_and_step_ids() {
         "fastp:0.23.4",
         Vec::new(),
         Vec::new(),
-        "/tmp/out",
+        "/artifacts/runtime/out",
     );
 
     assert_eq!(execution_pipeline_identity(&step), "stage.trim");
@@ -54,7 +54,7 @@ fn runtime_platform_identity_defaults_to_runner_name() {
 fn observer_args_use_apptainer_exec_for_apptainer_runner() {
     let (bin, args) = build_observer_command_args(
         "/containers/seqkit.sif",
-        Path::new("/tmp/input"),
+        Path::new("/artifacts/runtime/input"),
         &["stats".to_string(), "/data/reads.fq.gz".to_string()],
         RuntimeKind::Apptainer,
     );
@@ -67,7 +67,7 @@ fn observer_args_use_apptainer_exec_for_apptainer_runner() {
         "--containall".to_string()
     ]));
     assert!(args.contains(&"--bind".to_string()));
-    assert!(args.contains(&"/tmp/input:/data:ro".to_string()));
+    assert!(args.contains(&"/artifacts/runtime/input:/data:ro".to_string()));
     assert!(args.contains(&"/containers/seqkit.sif".to_string()));
 }
 
@@ -80,24 +80,24 @@ fn apptainer_exec_defaults_workdir_to_output_mount() -> anyhow::Result<()> {
         "/containers/seqkit.sif",
         vec![json!({
             "artifact_id": "reads",
-            "path": "/tmp/input/sample.fq.gz",
+            "path": "/artifacts/runtime/input/sample.fq.gz",
             "role": "reads",
             "required": true
         })],
         vec![json!({
             "artifact_id": "report",
-            "path": "/tmp/out/report.json",
+            "path": "/artifacts/runtime/out/report.json",
             "role": "report_json",
             "required": true
         })],
-        "/tmp/out",
+        "/artifacts/runtime/out",
     );
 
     let args = build_apptainer_exec_args(
         &step,
-        &[PathBuf::from("/tmp/input/sample.fq.gz")],
-        Path::new("/tmp/input"),
-        Path::new("/tmp/out"),
+        &[PathBuf::from("/artifacts/runtime/input/sample.fq.gz")],
+        Path::new("/artifacts/runtime/input"),
+        Path::new("/artifacts/runtime/out"),
         RuntimeKind::Apptainer,
     )?;
 
@@ -114,14 +114,14 @@ fn container_command_template_rewrites_mounted_input_and_output_paths() {
     let template = vec![
         "sh".to_string(),
         "-lc".to_string(),
-        "validator /tmp/corpus/sample_0004_R1.fq.gz > /tmp/out/validation_r1.log && printf '%s' /tmp/out/validation.json"
+        "validator /artifacts/runtime/corpus/sample_0004_R1.fq.gz > /artifacts/runtime/out/validation_r1.log && printf '%s' /artifacts/runtime/out/validation.json"
             .to_string(),
     ];
 
     let rewritten = container_command_template(
         &template,
-        Path::new("/tmp/corpus"),
-        Path::new("/tmp/out"),
+        Path::new("/artifacts/runtime/corpus"),
+        Path::new("/artifacts/runtime/out"),
         false,
     );
 
@@ -162,14 +162,14 @@ fn container_command_template_rewrites_exact_output_root_inside_shell_scripts() 
     let template = vec![
         "sh".to_string(),
         "-lc".to_string(),
-        "flash2 -o flash2 -d /tmp/out -t 1 /tmp/corpus/sample_0004_R1.fq.gz /tmp/corpus/sample_0004_R2.fq.gz"
+        "flash2 -o flash2 -d /artifacts/runtime/out -t 1 /artifacts/runtime/corpus/sample_0004_R1.fq.gz /artifacts/runtime/corpus/sample_0004_R2.fq.gz"
             .to_string(),
     ];
 
     let rewritten = container_command_template(
         &template,
-        Path::new("/tmp/corpus"),
-        Path::new("/tmp/out"),
+        Path::new("/artifacts/runtime/corpus"),
+        Path::new("/artifacts/runtime/out"),
         false,
     );
 
@@ -184,14 +184,14 @@ fn container_command_template_keeps_output_paths_writable_when_out_dir_is_under_
     let template = vec![
         "sh".to_string(),
         "-lc".to_string(),
-        "printf '%s' /tmp/results/benchmark_corpus/reads.report_summary/cluster/bench/report_summary/sample_0001/tools/multiqc/report_summary.json > /tmp/results/benchmark_corpus/reads.report_summary/cluster/bench/report_summary/sample_0001/tools/multiqc/report_summary.json".to_string(),
+        "printf '%s' /artifacts/runtime/results/benchmark_corpus/reads.report_summary/cluster/bench/report_summary/sample_0001/tools/multiqc/report_summary.json > /artifacts/runtime/results/benchmark_corpus/reads.report_summary/cluster/bench/report_summary/sample_0001/tools/multiqc/report_summary.json".to_string(),
     ];
 
     let rewritten = container_command_template(
         &template,
-        Path::new("/tmp/results/benchmark_corpus"),
+        Path::new("/artifacts/runtime/results/benchmark_corpus"),
         Path::new(
-            "/tmp/results/benchmark_corpus/reads.report_summary/cluster/bench/report_summary/sample_0001/tools/multiqc",
+            "/artifacts/runtime/results/benchmark_corpus/reads.report_summary/cluster/bench/report_summary/sample_0001/tools/multiqc",
         ),
         false,
     );
@@ -225,11 +225,11 @@ fn container_command_template_preserves_absolute_inputs_for_mixed_roots() {
         "-1".to_string(),
         "/data/benchmark_corpus/normalized/sample_0001_R1.fq.gz".to_string(),
         "--met-file".to_string(),
-        "/tmp/out/bowtie2.metrics.txt".to_string(),
+        "/artifacts/runtime/out/bowtie2.metrics.txt".to_string(),
     ];
 
     let rewritten =
-        container_command_template(&template, Path::new("/"), Path::new("/tmp/out"), true);
+        container_command_template(&template, Path::new("/"), Path::new("/artifacts/runtime/out"), true);
 
     assert_eq!(rewritten[2], template[2]);
     assert_eq!(rewritten[4], "/dev/null");
