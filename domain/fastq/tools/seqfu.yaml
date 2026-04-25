@@ -6,7 +6,7 @@ pin_strategy: pinned
 default_version: planned
 install_kind: container
 license: GPL-3.0
-citation: pending:tool-publication
+citation: upstream:https://github.com/telatin/seqfu2
 planned_stage_ids:
 - fastq.profile_read_lengths
 - fastq.normalize_abundance

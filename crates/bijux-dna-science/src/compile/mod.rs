@@ -58,6 +58,26 @@ struct ToolRegistryEntry {
     apptainer_def: String,
 }
 
+#[derive(Clone, Debug, Default, Deserialize)]
+struct FastqToolContractEntry {
+    #[serde(default)]
+    tool_id: String,
+    #[serde(default)]
+    status: String,
+    #[serde(default)]
+    default_version: String,
+    #[serde(default)]
+    versioning_strategy: String,
+    #[serde(default)]
+    pin_strategy: String,
+    #[serde(default)]
+    upstream: String,
+    #[serde(default)]
+    citation: String,
+    #[serde(default)]
+    license: String,
+}
+
 pub fn load_specs(root: &Path) -> Result<LoadedSpecs> {
     let mut loaded = LoadedSpecs::default();
     let mut errors = Vec::new();
@@ -563,6 +583,7 @@ fn build_fastq_container_reference_rows(
         .get(registry_source.as_str())
         .ok_or_else(|| anyhow!("missing source record {}", registry_source))?;
     let registry = load_tool_registry(&validate_source_path(root, registry_path)?)?;
+    let tool_contracts = load_fastq_tool_contracts(&root.join("domain/fastq/tools"))?;
 
     let mut stage_map = BTreeMap::<String, BTreeSet<String>>::new();
     for row in fastq_environment_rows {
@@ -572,14 +593,21 @@ fn build_fastq_container_reference_rows(
     let mut rows = stage_map
         .into_iter()
         .map(|(tool_id, stage_ids)| {
-            let entry = registry.get(&tool_id).cloned().unwrap_or_default();
-            let reference_status = if entry.container_ref.is_empty()
+            let entry = merged_tool_metadata(
+                registry.get(&tool_id).cloned().unwrap_or_default(),
+                tool_contracts.get(&tool_id),
+            );
+            let has_container_metadata = !(entry.container_ref.is_empty()
                 && entry.dockerfile.is_empty()
-                && entry.apptainer_def.is_empty()
-            {
-                "missing_registry_metadata".to_string()
-            } else {
+                && entry.apptainer_def.is_empty());
+            let has_source_metadata =
+                !(entry.upstream.trim().is_empty() && entry.citation.trim().is_empty());
+            let reference_status = if has_container_metadata {
                 "governed".to_string()
+            } else if has_source_metadata {
+                "tool_contract_metadata".to_string()
+            } else {
+                "missing_source_metadata".to_string()
             };
             crate::domain::FastqContainerReferenceRow {
                 tool_id,
@@ -628,7 +656,9 @@ fn build_fastq_download_backlog_rows(
             } else {
                 "missing".to_string()
             };
-            let backlog_status = if row.reference_status != "governed" {
+            let has_source_metadata =
+                !(row.upstream.trim().is_empty() && row.citation.trim().is_empty());
+            let backlog_status = if !has_source_metadata {
                 "missing_registry_source".to_string()
             } else if row.upstream.trim().is_empty() {
                 "missing_upstream_locator".to_string()
@@ -685,6 +715,41 @@ fn infer_acquisition_mode(locator: &str) -> String {
     } else {
         "manual_download".to_string()
     }
+}
+
+fn merged_tool_metadata(
+    mut registry: ToolRegistryEntry,
+    contract: Option<&FastqToolContractEntry>,
+) -> ToolRegistryEntry {
+    let Some(contract) = contract else {
+        return registry;
+    };
+    if registry.status.is_empty() {
+        registry.status = contract.status.clone();
+    }
+    if registry.default_version.is_empty() {
+        registry.default_version = contract.default_version.clone();
+    }
+    if registry.version_rule.is_empty() {
+        registry.version_rule = if !contract.versioning_strategy.is_empty() {
+            contract.versioning_strategy.clone()
+        } else {
+            contract.pin_strategy.clone()
+        };
+    }
+    if registry.upstream.is_empty() {
+        registry.upstream = contract.upstream.clone();
+    }
+    if registry.citation.is_empty() || registry.citation == "pending:tool-publication" {
+        registry.citation = contract.citation.clone();
+    }
+    if registry.license.is_empty() {
+        registry.license = contract.license.clone();
+    }
+    if registry.pin_strategy.is_empty() {
+        registry.pin_strategy = contract.pin_strategy.clone();
+    }
+    registry
 }
 
 fn build_fastq_environment_rows(
@@ -923,6 +988,19 @@ fn load_tool_registry(path: &Path) -> Result<BTreeMap<String, ToolRegistryEntry>
                     .to_string(),
             },
         );
+    }
+    Ok(out)
+}
+
+fn load_fastq_tool_contracts(path: &Path) -> Result<BTreeMap<String, FastqToolContractEntry>> {
+    let mut out = BTreeMap::new();
+    for tool_path in list_yaml_files(path)? {
+        let raw = read_utf8(&tool_path)?;
+        let entry: FastqToolContractEntry = bijux_dna_infra::formats::yaml::parse_yaml(&raw)
+            .map_err(|err| anyhow!("parse {}: {err}", tool_path.display()))?;
+        if !entry.tool_id.trim().is_empty() {
+            out.insert(entry.tool_id.clone(), entry);
+        }
     }
     Ok(out)
 }
