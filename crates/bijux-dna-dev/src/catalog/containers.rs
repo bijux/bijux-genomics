@@ -138,8 +138,13 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
         ),
         native(
             "generate-ghcr-publish-matrix",
-            "Generate the GHCR publication matrix for governed Docker container images.",
+            "Generate the GHCR publication matrix for governed Docker arm64 container images.",
             NativeContainerCommandKey::GenerateGhcrPublishMatrix,
+        ),
+        native(
+            "generate-ghcr-apptainer-publish-matrix",
+            "Generate the GHCR publication matrix for governed Apptainer SIF packages.",
+            NativeContainerCommandKey::GenerateGhcrApptainerPublishMatrix,
         ),
         native(
             "generate-license-metadata",

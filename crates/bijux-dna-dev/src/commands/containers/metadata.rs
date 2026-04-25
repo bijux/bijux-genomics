@@ -181,6 +181,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "- Security boundary: `containers/docs/SECURITY_BOUNDARY.md`".to_string(),
         "- Multiarch policy: `containers/docs/MULTIARCH_POLICY.md`".to_string(),
         "- GHCR publication: `containers/docs/GHCR_PUBLISH.md`".to_string(),
+        "- GHCR packages view: `https://github.com/bijux?tab=packages&repo_name=bijux-genomics`".to_string(),
         "- Licenses: `containers/licenses/`".to_string(),
         "- SBOM + vulnerability hooks: `cargo run -p bijux-dna-dev -- containers run check-sbom-artifacts`, `cargo run -p bijux-dna-dev -- containers run check-vuln-hook`".to_string(),
         "- Exceptions: `containers/docker/NONROOT_EXCEPTIONS.md`, `containers/docker/ENTRYPOINT_EXCEPTIONS.md`, `containers/docs/PLANNED.md`".to_string(),
@@ -190,7 +191,8 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "- Tool IDs + lifecycle status: `containers/TOOL_IDS.txt` (generated from registry).".to_string(),
         "- Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.".to_string(),
         "- Container version metadata: `containers/versions/versions.toml` + `containers/versions/lock.json`.".to_string(),
-        "- GHCR publish matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/publish-matrix.json`.".to_string(),
+        "- GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.".to_string(),
+        "- GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.".to_string(),
         "- Non-bijux provenance: `containers/apptainer/shared/NON_BIJUX_SOURCES.md`.".to_string(),
         "- Ownership map: `containers/OWNERS.toml`.".to_string(),
         String::new(),
@@ -228,25 +230,78 @@ pub(super) fn check_container_index(workspace: &Workspace) -> Result<ContainerCo
     success_line("containers index: OK")
 }
 
+#[derive(Debug, Clone, Copy)]
+enum GhcrRuntimeKind {
+    DockerArm64,
+    Apptainer,
+}
+
+impl GhcrRuntimeKind {
+    fn command_id(self) -> &'static str {
+        match self {
+            Self::DockerArm64 => "generate-ghcr-publish-matrix",
+            Self::Apptainer => "generate-ghcr-apptainer-publish-matrix",
+        }
+    }
+
+    fn id(self) -> &'static str {
+        match self {
+            Self::DockerArm64 => "docker-arm64",
+            Self::Apptainer => "apptainer",
+        }
+    }
+
+    fn default_output_path(self) -> &'static str {
+        match self {
+            Self::DockerArm64 => "artifacts/containers/ghcr/docker-arm64-publish-matrix.json",
+            Self::Apptainer => "artifacts/containers/ghcr/apptainer-publish-matrix.json",
+        }
+    }
+
+    fn package_slug(self, tool_id: &str) -> String {
+        match self {
+            Self::DockerArm64 => format!("docker-arm64-{tool_id}"),
+            Self::Apptainer => format!("apptainer-{tool_id}"),
+        }
+    }
+
+    fn usage(self) -> String {
+        format!(
+            "Usage: cargo run -p bijux-dna-dev -- containers run {} -- [<output-path>] [--tool <tool-id>]... [--status <status>]... [--package-prefix <prefix>]",
+            self.command_id()
+        )
+    }
+}
+
+fn workspace_repo_name(workspace: &Workspace) -> Result<String> {
+    workspace.root.file_name().and_then(|name| name.to_str()).map(ToOwned::to_owned).ok_or_else(
+        || anyhow!("unable to resolve repository name from {}", workspace.root.display()),
+    )
+}
+
+fn ghcr_packages_view_url(repo_name: &str) -> String {
+    format!("https://github.com/bijux?tab=packages&repo_name={repo_name}")
+}
+
+fn ghcr_package_page_url(repo_name: &str, package_slug: &str) -> String {
+    format!("https://github.com/bijux/{repo_name}/pkgs/container/{repo_name}%2F{package_slug}")
+}
+
 fn ghcr_package_prefix(workspace: &Workspace) -> Result<String> {
-    let _repo_name = workspace
-        .root
-        .file_name()
-        .and_then(|name| name.to_str())
-        .ok_or_else(|| anyhow!("unable to resolve repository name from {}", workspace.root.display()))?;
-    Ok("ghcr.io/bijux".to_string())
+    Ok(format!("ghcr.io/bijux/{}", workspace_repo_name(workspace)?))
 }
 
 fn parse_ghcr_publish_matrix_args(
     workspace: &Workspace,
+    runtime: GhcrRuntimeKind,
     args: &[String],
 ) -> Result<(PathBuf, String, BTreeSet<String>, BTreeSet<String>)> {
-    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- [<output-path>] [--tool <tool-id>]... [--status <status>]... [--package-prefix <prefix>]";
+    let usage = runtime.usage();
     if matches!(args, [single] if single == "--help" || single == "-h") {
-        return Err(anyhow!(usage.to_string()));
+        return Err(anyhow!(usage));
     }
 
-    let mut output = workspace.path("artifacts/containers/ghcr/publish-matrix.json");
+    let mut output = workspace.path(runtime.default_output_path());
     let mut package_prefix = ghcr_package_prefix(workspace)?;
     let mut tools = BTreeSet::new();
     let mut statuses = BTreeSet::new();
@@ -263,26 +318,26 @@ fn parse_ghcr_publish_matrix_args(
         match args[index].as_str() {
             "--tool" => {
                 let Some(tool) = args.get(index + 1) else {
-                    return Err(anyhow!(usage.to_string()));
+                    return Err(anyhow!(usage.clone()));
                 };
                 tools.insert(tool.trim().to_string());
                 index += 2;
             }
             "--status" => {
                 let Some(status) = args.get(index + 1) else {
-                    return Err(anyhow!(usage.to_string()));
+                    return Err(anyhow!(usage.clone()));
                 };
                 statuses.insert(status.trim().to_string());
                 index += 2;
             }
             "--package-prefix" => {
                 let Some(prefix) = args.get(index + 1) else {
-                    return Err(anyhow!(usage.to_string()));
+                    return Err(anyhow!(usage.clone()));
                 };
                 package_prefix = prefix.trim().trim_end_matches('/').to_string();
                 index += 2;
             }
-            _ => return Err(anyhow!(usage.to_string())),
+            _ => return Err(anyhow!(usage.clone())),
         }
     }
 
@@ -291,33 +346,33 @@ fn parse_ghcr_publish_matrix_args(
 
 fn ghcr_publish_matrix_value(
     workspace: &Workspace,
+    runtime: GhcrRuntimeKind,
     package_prefix: &str,
     tools_filter: &BTreeSet<String>,
     status_filter: &BTreeSet<String>,
 ) -> Result<serde_json::Value> {
+    let repository = workspace_repo_name(workspace)?;
     let registry = registry_tool_map(workspace)?;
     let versions = tool_versions(workspace)?;
     let statuses = governed_container_statuses(workspace)?;
-    let docker_tools = docker_tool_ids(workspace)?;
+    let runtime_tools = match runtime {
+        GhcrRuntimeKind::DockerArm64 => docker_tool_ids(workspace)?,
+        GhcrRuntimeKind::Apptainer => apptainer_tool_ids(workspace),
+    };
 
     let mut items = Vec::new();
-    for tool_id in docker_tools {
+    for tool_id in runtime_tools {
         if !tools_filter.is_empty() && !tools_filter.contains(&tool_id) {
             continue;
         }
-        let status = statuses
-            .get(&tool_id)
-            .cloned()
-            .unwrap_or_else(|| "experimental".to_string());
+        let status = statuses.get(&tool_id).cloned().unwrap_or_else(|| "experimental".to_string());
         if !status_filter.is_empty() && !status_filter.contains(&status) {
             continue;
         }
 
         let version_row = versions.get(&tool_id).cloned().unwrap_or_default();
         let registry_row = registry.get(&tool_id).cloned().unwrap_or_default();
-        let tool_version = table_string(&version_row, "version")
-            .trim()
-            .to_string();
+        let tool_version = table_string(&version_row, "version").trim().to_string();
         let resolved_version = if tool_version.is_empty() {
             let registry_version = table_string(&registry_row, "version");
             if registry_version.trim().is_empty() {
@@ -328,22 +383,65 @@ fn ghcr_publish_matrix_value(
         } else {
             tool_version
         };
+        let package_slug = runtime.package_slug(&tool_id);
+        let package_ref = format!("{package_prefix}/{package_slug}");
         let registry_status = table_string(&registry_row, "status");
-        let image_ref = format!("{package_prefix}/{tool_id}");
-        items.push(serde_json::json!({
-            "tool_id": tool_id,
+        let push_latest = if registry_status.is_empty() {
+            statuses.get(&tool_id).is_some_and(|value| value == "production")
+        } else {
+            registry_status == "production"
+        };
+        let mut item = serde_json::json!({
+            "tool_id": tool_id.clone(),
+            "runtime": runtime.id(),
             "status": status,
-            "dockerfile": format!("containers/docker/arm64/Dockerfile.{tool_id}"),
-            "build_context": ".",
-            "platform": "linux/arm64",
             "tool_version": resolved_version,
-            "image_ref": image_ref,
-            "push_latest": if registry_status.is_empty() {
-                statuses.get(&tool_id).is_some_and(|value| value == "production")
-            } else {
-                registry_status == "production"
-            },
-        }));
+            "package_slug": package_slug,
+            "package_ref": package_ref,
+            "package_url": ghcr_package_page_url(&repository, &runtime.package_slug(&tool_id)),
+            "push_latest": push_latest,
+        });
+        if let Some(map) = item.as_object_mut() {
+            match runtime {
+                GhcrRuntimeKind::DockerArm64 => {
+                    map.insert(
+                        "dockerfile".to_string(),
+                        serde_json::Value::String(format!(
+                            "containers/docker/arm64/Dockerfile.{tool_id}"
+                        )),
+                    );
+                    map.insert(
+                        "build_context".to_string(),
+                        serde_json::Value::String(".".to_string()),
+                    );
+                    map.insert(
+                        "platform".to_string(),
+                        serde_json::Value::String("linux/arm64".to_string()),
+                    );
+                    map.insert(
+                        "image_ref".to_string(),
+                        serde_json::Value::String(package_ref.clone()),
+                    );
+                }
+                GhcrRuntimeKind::Apptainer => {
+                    map.insert(
+                        "artifact_path".to_string(),
+                        serde_json::Value::String(format!(
+                            "artifacts/containers/apptainer/sif/{tool_id}.sif"
+                        )),
+                    );
+                    map.insert(
+                        "artifact_uri".to_string(),
+                        serde_json::Value::String(format!("oras://{package_ref}")),
+                    );
+                    map.insert(
+                        "platform".to_string(),
+                        serde_json::Value::String("linux/amd64".to_string()),
+                    );
+                }
+            }
+        }
+        items.push(item);
     }
 
     if !tools_filter.is_empty() {
@@ -354,14 +452,19 @@ fn ghcr_publish_matrix_value(
             .collect::<BTreeSet<_>>();
         let missing = tools_filter.difference(&resolved_tools).cloned().collect::<Vec<_>>();
         if !missing.is_empty() {
-            return Err(anyhow!("unknown or non-docker tool ids in GHCR publish matrix request: {}", missing.join(", ")));
+            return Err(anyhow!(
+                "unknown or non-docker tool ids in GHCR publish matrix request: {}",
+                missing.join(", ")
+            ));
         }
     }
 
     Ok(serde_json::json!({
-        "schema_version": "bijux.container.ghcr_publish_matrix.v1",
+        "schema_version": "bijux.container.ghcr_publish_matrix.v2",
+        "runtime": runtime.id(),
         "package_prefix": package_prefix,
-        "repository": workspace.root.file_name().and_then(|name| name.to_str()).unwrap_or_default(),
+        "packages_view_url": ghcr_packages_view_url(&repository),
+        "repository": repository,
         "generated_at_utc": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
         "items": items,
     }))
@@ -371,14 +474,42 @@ pub(super) fn generate_ghcr_publish_matrix(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- [<output-path>] [--tool <tool-id>]... [--status <status>]... [--package-prefix <prefix>]";
+    let usage = GhcrRuntimeKind::DockerArm64.usage();
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return success_line(usage);
     }
 
     let (output, package_prefix, tools, statuses) =
-        parse_ghcr_publish_matrix_args(workspace, args)?;
-    let payload = ghcr_publish_matrix_value(workspace, &package_prefix, &tools, &statuses)?;
+        parse_ghcr_publish_matrix_args(workspace, GhcrRuntimeKind::DockerArm64, args)?;
+    let payload = ghcr_publish_matrix_value(
+        workspace,
+        GhcrRuntimeKind::DockerArm64,
+        &package_prefix,
+        &tools,
+        &statuses,
+    )?;
+    write_utf8(&output, &json_string_pretty(&payload)?)?;
+    success_line(format!("generated {}", output.display()))
+}
+
+pub(super) fn generate_ghcr_apptainer_publish_matrix(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage = GhcrRuntimeKind::Apptainer.usage();
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+
+    let (output, package_prefix, tools, statuses) =
+        parse_ghcr_publish_matrix_args(workspace, GhcrRuntimeKind::Apptainer, args)?;
+    let payload = ghcr_publish_matrix_value(
+        workspace,
+        GhcrRuntimeKind::Apptainer,
+        &package_prefix,
+        &tools,
+        &statuses,
+    )?;
     write_utf8(&output, &json_string_pretty(&payload)?)?;
     success_line(format!("generated {}", output.display()))
 }
@@ -1309,12 +1440,15 @@ mod tests {
             "production".to_string(),
         ];
         let (output, prefix, tools, statuses) =
-            parse_ghcr_publish_matrix_args(&workspace, &args).expect("parse args");
+            parse_ghcr_publish_matrix_args(&workspace, GhcrRuntimeKind::DockerArm64, &args)
+                .expect("parse args");
         assert_eq!(
             output,
-            PathBuf::from("/tmp/bijux-genomics/artifacts/containers/ghcr/publish-matrix.json")
+            PathBuf::from(
+                "/tmp/bijux-genomics/artifacts/containers/ghcr/docker-arm64-publish-matrix.json"
+            )
         );
-        assert_eq!(prefix, "ghcr.io/bijux");
+        assert_eq!(prefix, "ghcr.io/bijux/bijux-genomics");
         assert_eq!(tools, BTreeSet::from([String::from("fastp")]));
         assert_eq!(statuses, BTreeSet::from([String::from("production")]));
     }
@@ -1328,10 +1462,34 @@ mod tests {
             "ghcr.io/example/private".to_string(),
         ];
         let (output, prefix, tools, statuses) =
-            parse_ghcr_publish_matrix_args(&workspace, &args).expect("parse args");
+            parse_ghcr_publish_matrix_args(&workspace, GhcrRuntimeKind::DockerArm64, &args)
+                .expect("parse args");
         assert_eq!(output, PathBuf::from("/tmp/bijux-genomics/reports/publish.json"));
         assert_eq!(prefix, "ghcr.io/example/private");
         assert!(tools.is_empty());
         assert!(statuses.is_empty());
+    }
+
+    #[test]
+    fn parse_ghcr_apptainer_publish_matrix_args_keeps_runtime_specific_default_output() {
+        let workspace = Workspace { root: PathBuf::from("/tmp/bijux-genomics") };
+        let (output, prefix, tools, statuses) =
+            parse_ghcr_publish_matrix_args(&workspace, GhcrRuntimeKind::Apptainer, &[])
+                .expect("parse args");
+        assert_eq!(
+            output,
+            PathBuf::from(
+                "/tmp/bijux-genomics/artifacts/containers/ghcr/apptainer-publish-matrix.json"
+            )
+        );
+        assert_eq!(prefix, "ghcr.io/bijux/bijux-genomics");
+        assert!(tools.is_empty());
+        assert!(statuses.is_empty());
+    }
+
+    #[test]
+    fn ghcr_runtime_package_slugs_are_runtime_scoped() {
+        assert_eq!(GhcrRuntimeKind::DockerArm64.package_slug("fastp"), "docker-arm64-fastp");
+        assert_eq!(GhcrRuntimeKind::Apptainer.package_slug("fastp"), "apptainer-fastp");
     }
 }
