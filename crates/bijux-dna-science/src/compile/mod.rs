@@ -6,14 +6,16 @@ use serde::Deserialize;
 use toml::Value as TomlValue;
 
 use crate::domain::{
-    BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience, DecisionReasoningRow,
-    FastqEnvironmentRow, LoadedSpecs, ScienceIndex, SourceId, SourceKind, SourceSpec,
+    BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience,
+    DecisionReasoningRow, FastqEnvironmentRow, LoadedSpecs, ScienceIndex, SourceAccess, SourceId,
+    SourceKind, SourceSpec,
 };
 use crate::errors::validation_error;
 use crate::io::{list_yaml_files, read_utf8};
 use crate::schema::{
-    ASSUMPTION_SCHEMA_VERSION, BINDING_SCHEMA_VERSION, CLAIM_SCHEMA_VERSION, DECISION_SCHEMA_VERSION,
-    EVIDENCE_SCHEMA_VERSION, REASONING_SCHEMA_VERSION, RELEASE_SCHEMA_VERSION, SOURCE_SCHEMA_VERSION,
+    ASSUMPTION_SCHEMA_VERSION, BINDING_SCHEMA_VERSION, CLAIM_SCHEMA_VERSION,
+    DECISION_SCHEMA_VERSION, EVIDENCE_SCHEMA_VERSION, REASONING_SCHEMA_VERSION,
+    RELEASE_SCHEMA_VERSION, SOURCE_SCHEMA_VERSION,
 };
 
 #[derive(Deserialize)]
@@ -213,6 +215,56 @@ fn validate_source(row: &SourceSpec) -> Result<()> {
     if row.locator.trim().is_empty() {
         return Err(anyhow!("source locator must not be empty"));
     }
+    if row.authority.trim().is_empty() {
+        return Err(anyhow!("source authority must not be empty"));
+    }
+    match row.access {
+        SourceAccess::RepoPath => {
+            if row.locator.contains("://") {
+                return Err(anyhow!("repo_path sources must use repository-relative locators"));
+            }
+            if row.archive_path.is_some() {
+                return Err(anyhow!("repo_path sources must not declare archive_path"));
+            }
+            if matches!(
+                row.kind,
+                SourceKind::ExternalDocument | SourceKind::ExternalRepository | SourceKind::Paper
+            ) {
+                return Err(anyhow!(
+                    "repo_path sources must use repo-local kinds, not external source kinds"
+                ));
+            }
+        }
+        SourceAccess::ManualDownload | SourceAccess::ManualClone => {
+            if !row.locator.contains("://") {
+                return Err(anyhow!(
+                    "manual acquisition sources must use an external locator such as https://..."
+                ));
+            }
+            let archive_path =
+                row.archive_path.as_deref().filter(|value| !value.trim().is_empty()).ok_or_else(
+                    || anyhow!("manual acquisition sources must declare archive_path"),
+                )?;
+            if !archive_path.starts_with("science-docs/") {
+                return Err(anyhow!(
+                    "archive_path must live under science-docs/ for manual acquisition sources"
+                ));
+            }
+            if matches!(row.access, SourceAccess::ManualClone)
+                && !matches!(row.kind, SourceKind::ExternalRepository)
+            {
+                return Err(anyhow!("manual_clone sources must use kind external_repository"));
+            }
+            if matches!(
+                row.kind,
+                SourceKind::RepoFile | SourceKind::RepoDirectory | SourceKind::Document
+            ) {
+                return Err(anyhow!(
+                    "manual acquisition sources must use external_document, external_repository, or paper kinds"
+                ));
+            }
+        }
+    }
     Ok(())
 }
 
@@ -313,10 +365,8 @@ fn validate_cross_references(loaded: &LoadedSpecs) -> Vec<String> {
         }
         for claim_id in &binding.claim_ids {
             if !loaded.claims.contains_key(claim_id.as_str()) {
-                errors.push(format!(
-                    "{} references missing claim {}",
-                    binding.binding_id, claim_id
-                ));
+                errors
+                    .push(format!("{} references missing claim {}", binding.binding_id, claim_id));
             }
         }
         for source_id in &binding.source_ids {
@@ -339,10 +389,8 @@ fn validate_cross_references(loaded: &LoadedSpecs) -> Vec<String> {
         }
         for claim_id in &release.claim_ids {
             if !loaded.claims.contains_key(claim_id.as_str()) {
-                errors.push(format!(
-                    "{} references missing claim {}",
-                    release.release_id, claim_id
-                ));
+                errors
+                    .push(format!("{} references missing claim {}", release.release_id, claim_id));
             }
         }
     }
@@ -363,7 +411,9 @@ fn build_claim_evidence_map(loaded: &LoadedSpecs) -> Vec<ClaimEvidenceRow> {
             })
         })
         .collect::<Vec<_>>();
-    rows.sort_by(|left, right| (&left.claim_id, &left.evidence_id).cmp(&(&right.claim_id, &right.evidence_id)));
+    rows.sort_by(|left, right| {
+        (&left.claim_id, &left.evidence_id).cmp(&(&right.claim_id, &right.evidence_id))
+    });
     rows
 }
 
@@ -397,7 +447,10 @@ fn build_binding_resolution(loaded: &LoadedSpecs) -> Vec<BindingResolutionRow> {
     rows
 }
 
-fn build_fastq_environment_rows(root: &Path, loaded: &LoadedSpecs) -> Result<Vec<FastqEnvironmentRow>> {
+fn build_fastq_environment_rows(
+    root: &Path,
+    loaded: &LoadedSpecs,
+) -> Result<Vec<FastqEnvironmentRow>> {
     let mut rows = Vec::new();
     for binding in loaded
         .bindings
@@ -407,12 +460,11 @@ fn build_fastq_environment_rows(root: &Path, loaded: &LoadedSpecs) -> Result<Vec
         rows.extend(build_fastq_binding_rows(root, loaded, binding)?);
     }
     rows.sort_by(|left, right| {
-        (
-            &left.stage_id,
-            !left.is_default,
-            &left.tool_id,
-        )
-            .cmp(&(&right.stage_id, !right.is_default, &right.tool_id))
+        (&left.stage_id, !left.is_default, &left.tool_id).cmp(&(
+            &right.stage_id,
+            !right.is_default,
+            &right.tool_id,
+        ))
     });
     Ok(rows)
 }
@@ -422,23 +474,24 @@ fn build_fastq_binding_rows(
     loaded: &LoadedSpecs,
     binding: &BindingSpec,
 ) -> Result<Vec<FastqEnvironmentRow>> {
-    let execution_support = resolve_binding_source(root, loaded, &binding.source_ids, "source.fastq.execution-support")?;
-    let stage_contracts = resolve_binding_source(root, loaded, &binding.source_ids, "source.fastq.stage-contracts")?;
-    let tool_registry = resolve_binding_source(root, loaded, &binding.source_ids, "source.fastq.tool-registry")?;
+    let execution_support = resolve_binding_source(
+        root,
+        loaded,
+        &binding.source_ids,
+        "source.fastq.execution-support",
+    )?;
+    let stage_contracts =
+        resolve_binding_source(root, loaded, &binding.source_ids, "source.fastq.stage-contracts")?;
+    let tool_registry =
+        resolve_binding_source(root, loaded, &binding.source_ids, "source.fastq.tool-registry")?;
 
-    let execution_support_doc: ExecutionSupportDoc = bijux_dna_infra::formats::yaml::parse_yaml(
-        &read_utf8(&execution_support)?,
-    )
-    .map_err(|err| anyhow!("parse {}: {err}", execution_support.display()))?;
+    let execution_support_doc: ExecutionSupportDoc =
+        bijux_dna_infra::formats::yaml::parse_yaml(&read_utf8(&execution_support)?)
+            .map_err(|err| anyhow!("parse {}: {err}", execution_support.display()))?;
     let planned_tools = load_planned_out_of_scope(&stage_contracts)?;
     let registry = load_tool_registry(&tool_registry)?;
     let evidence_count = binding_claim_evidence_count(loaded, binding);
-    let claim_ids = binding
-        .claim_ids
-        .iter()
-        .map(ToString::to_string)
-        .collect::<Vec<_>>()
-        .join(",");
+    let claim_ids = binding.claim_ids.iter().map(ToString::to_string).collect::<Vec<_>>().join(",");
 
     let mut rows = Vec::new();
     for stage in execution_support_doc.stages {
@@ -513,6 +566,12 @@ fn validate_source_path(root: &Path, source: &SourceSpec) -> Result<PathBuf> {
                 return Err(anyhow!("required source path is not a directory: {}", path.display()));
             }
         }
+        SourceKind::ExternalDocument | SourceKind::ExternalRepository | SourceKind::Paper => {
+            return Err(anyhow!(
+                "external source {} cannot be resolved as a repository path",
+                source.source_id
+            ));
+        }
     }
     Ok(path)
 }
@@ -537,12 +596,7 @@ fn load_tool_registry(path: &Path) -> Result<BTreeMap<String, ToolRegistryEntry>
     let raw = read_utf8(path)?;
     let root: TomlValue = raw.parse().with_context(|| format!("parse TOML {}", path.display()))?;
     let mut out = BTreeMap::new();
-    for row in root
-        .get("tools")
-        .and_then(TomlValue::as_array)
-        .cloned()
-        .unwrap_or_default()
-    {
+    for row in root.get("tools").and_then(TomlValue::as_array).cloned().unwrap_or_default() {
         let Some(table) = row.as_table() else {
             continue;
         };

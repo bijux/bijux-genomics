@@ -1,6 +1,7 @@
 schema_version: "bijux.science.source.v1"
 source_id: "source.fastq.environment-reference"
 kind: "document"
+access: "repo_path"
 title: "Environment resolution reference"
 locator: "crates/bijux-dna-environment/docs/ENV_REFERENCE.md"
 authority: "bijux_dna_environment.env_reference"

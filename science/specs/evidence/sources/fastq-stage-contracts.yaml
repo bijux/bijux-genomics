@@ -1,6 +1,7 @@
 schema_version: "bijux.science.source.v1"
 source_id: "source.fastq.stage-contracts"
 kind: "repo_directory"
+access: "repo_path"
 title: "FASTQ stage contracts"
 locator: "domain/fastq/stages"
 authority: "domain.fastq.stage_contracts"

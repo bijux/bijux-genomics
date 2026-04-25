@@ -13,10 +13,9 @@ fn validate_typed_id(prefix: &str, value: &str) -> Result<(), String> {
     if value.contains("..") {
         return Err(format!("{value} must not contain empty path segments"));
     }
-    if !value
-        .bytes()
-        .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'.' | b'-'))
-    {
+    if !value.bytes().all(|byte| {
+        byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'.' | b'-')
+    }) {
         return Err(format!(
             "{value} must contain only lowercase ascii letters, digits, '.' and '-'"
         ));
@@ -103,6 +102,18 @@ pub enum SourceKind {
     RepoFile,
     RepoDirectory,
     Document,
+    ExternalDocument,
+    ExternalRepository,
+    Paper,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SourceAccess {
+    #[default]
+    RepoPath,
+    ManualDownload,
+    ManualClone,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -118,9 +129,17 @@ pub struct SourceSpec {
     pub schema_version: String,
     pub source_id: SourceId,
     pub kind: SourceKind,
+    #[serde(default)]
+    pub access: SourceAccess,
     pub title: String,
     pub locator: String,
     pub authority: String,
+    #[serde(default)]
+    pub archive_path: Option<String>,
+    #[serde(default)]
+    pub citation: Option<String>,
+    #[serde(default)]
+    pub tool_ids: Vec<String>,
     #[serde(default)]
     pub notes: Vec<String>,
 }

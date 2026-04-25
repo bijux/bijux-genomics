@@ -1,6 +1,7 @@
 schema_version: "bijux.science.source.v1"
 source_id: "source.fastq.execution-support"
 kind: "repo_file"
+access: "repo_path"
 title: "FASTQ execution support authority"
 locator: "domain/fastq/execution_support.yaml"
 authority: "domain.fastq.execution_support"
