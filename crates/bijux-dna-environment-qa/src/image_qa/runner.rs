@@ -68,19 +68,7 @@ fn run_image_qa_with(
     let mut fail = 0;
     let mut summary_records: Vec<ImageQaRecord> = Vec::new();
 
-    let mut stages = vec![
-        QaStage::Trim,
-        QaStage::Validate,
-        QaStage::Filter,
-        QaStage::Merge,
-        QaStage::Correct,
-        QaStage::ReportQc,
-        QaStage::Umi,
-        QaStage::Stats,
-    ];
-    if std::env::var("BIJUX_SCREEN_DB").is_ok() {
-        stages.push(QaStage::Screen);
-    }
+    let stages = QaStage::enabled_stages(std::env::var("BIJUX_SCREEN_DB").is_ok());
 
     for stage in stages {
         let stage_id = stage.stage_id();

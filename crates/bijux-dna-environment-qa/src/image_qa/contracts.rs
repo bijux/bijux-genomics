@@ -22,6 +22,27 @@ pub(crate) enum QaStage {
 }
 
 impl QaStage {
+    pub(crate) fn core_stages() -> Vec<Self> {
+        vec![
+            QaStage::Trim,
+            QaStage::Validate,
+            QaStage::Filter,
+            QaStage::Merge,
+            QaStage::Correct,
+            QaStage::ReportQc,
+            QaStage::Umi,
+            QaStage::Stats,
+        ]
+    }
+
+    pub(crate) fn enabled_stages(screen_db_available: bool) -> Vec<Self> {
+        let mut stages = Self::core_stages();
+        if screen_db_available {
+            stages.push(QaStage::Screen);
+        }
+        stages
+    }
+
     pub(crate) fn stage_id(self) -> bijux_dna_core::ids::StageId {
         match self {
             QaStage::Trim => STAGE_TRIM_READS.clone(),
@@ -72,5 +93,26 @@ mod tests {
         let screen_tools = QaStage::Screen.tools();
         assert_eq!(screen_tools, vec!["kraken2", "krakenuniq", "centrifuge", "kaiju"]);
         assert!(!screen_tools.iter().any(|tool| tool == "metaphlan" || tool == "fastq_screen"));
+    }
+
+    #[test]
+    fn qa_stage_selection_is_centralized_and_keeps_screen_database_gated() {
+        assert_eq!(
+            QaStage::enabled_stages(false),
+            vec![
+                QaStage::Trim,
+                QaStage::Validate,
+                QaStage::Filter,
+                QaStage::Merge,
+                QaStage::Correct,
+                QaStage::ReportQc,
+                QaStage::Umi,
+                QaStage::Stats,
+            ]
+        );
+
+        let with_screen = QaStage::enabled_stages(true);
+        assert_eq!(with_screen.last(), Some(&QaStage::Screen));
+        assert_eq!(with_screen.len(), QaStage::enabled_stages(false).len() + 1);
     }
 }
