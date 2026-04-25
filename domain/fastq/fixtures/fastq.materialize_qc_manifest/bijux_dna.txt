@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.materialize_qc_manifest
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq qc materialize-manifest --reports qc_reports.json --out qc_manifest.json
+expected_outputs=qc_manifest
+expected_stdout_patterns=contract_ok,report_count

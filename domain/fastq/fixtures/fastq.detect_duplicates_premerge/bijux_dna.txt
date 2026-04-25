@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.detect_duplicates_premerge
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq observe detect-duplicates-premerge --reads reads.fq --out duplicate_signal_report.json
+expected_outputs=duplicate_signal_report
+expected_stdout_patterns=contract_ok,duplicate_signal_fraction

@@ -15,6 +15,7 @@ Each fixture file under domain/fastq/fixtures/STAGE_ID/*.txt must define:
 - `fastq.build_contaminant_db`: intent = stage-specific command contract coverage for `fastq.build_contaminant_db`.
 - `fastq.build_rrna_db`: intent = stage-specific command contract coverage for `fastq.build_rrna_db`.
 - `fastq.build_taxonomy_db`: intent = stage-specific command contract coverage for `fastq.build_taxonomy_db`.
+- `fastq.capture_provenance_snapshot`: intent = stage-specific command contract coverage for `fastq.capture_provenance_snapshot`.
 - `fastq.classify_layout`: intent = stage-specific command contract coverage for `fastq.classify_layout`.
 - `fastq.concatenate_lanes`: intent = stage-specific command contract coverage for `fastq.concatenate_lanes`.
 - `fastq.deinterleave_reads`: intent = stage-specific command contract coverage for `fastq.deinterleave_reads`.
@@ -26,6 +27,9 @@ Each fixture file under domain/fastq/fixtures/STAGE_ID/*.txt must define:
 - `fastq.correct_errors`: intent = stage-specific command contract coverage for `fastq.correct_errors`.
 - `fastq.remove_duplicates`: intent = stage-specific command contract coverage for `fastq.remove_duplicates`.
 - `fastq.detect_adapters`: intent = stage-specific command contract coverage for `fastq.detect_adapters`.
+- `fastq.detect_duplicates_premerge`: intent = stage-specific command contract coverage for `fastq.detect_duplicates_premerge`.
+- `fastq.detect_instrument_artifacts`: intent = stage-specific command contract coverage for `fastq.detect_instrument_artifacts`.
+- `fastq.estimate_library_complexity_prealign`: intent = stage-specific command contract coverage for `fastq.estimate_library_complexity_prealign`.
 - `fastq.filter_reads`: intent = stage-specific command contract coverage for `fastq.filter_reads`.
 - `fastq.deplete_host`: intent = stage-specific command contract coverage for `fastq.deplete_host`.
 - `fastq.profile_read_lengths`: intent = stage-specific command contract coverage for `fastq.profile_read_lengths`.
@@ -36,6 +40,7 @@ Each fixture file under domain/fastq/fixtures/STAGE_ID/*.txt must define:
 - `fastq.trim_polyg_tails`: intent = stage-specific command contract coverage for `fastq.trim_polyg_tails`.
 - `fastq.index_reference`: intent = stage-specific command contract coverage for `fastq.index_reference`.
 - `fastq.interleave_reads`: intent = stage-specific command contract coverage for `fastq.interleave_reads`.
+- `fastq.materialize_qc_manifest`: intent = stage-specific command contract coverage for `fastq.materialize_qc_manifest`.
 - `fastq.normalize_primers`: intent = stage-specific command contract coverage for `fastq.normalize_primers`.
 - `fastq.normalize_read_names`: intent = stage-specific command contract coverage for `fastq.normalize_read_names`.
 - `fastq.prepare_adapter_bank`: intent = stage-specific command contract coverage for `fastq.prepare_adapter_bank`.
