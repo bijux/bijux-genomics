@@ -32,6 +32,8 @@ mod mod_contracts_tooling_apptainer_vm_output_policy_rs;
 mod mod_contracts_tooling_architecture_invariants_suite_rs;
 #[path = "contracts/tooling/assets/artifacts_policy.rs"]
 mod mod_contracts_tooling_artifacts_policy_rs;
+#[path = "contracts/tooling/assets/fastq_asset_hydration_policy.rs"]
+mod mod_contracts_tooling_assets_fastq_asset_hydration_policy_rs;
 #[path = "contracts/tooling/assets/assets_governance_policy.rs"]
 mod mod_contracts_tooling_assets_governance_policy_rs;
 #[path = "contracts/tooling/assets/assets_scope_policy.rs"]

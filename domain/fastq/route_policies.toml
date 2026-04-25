@@ -47,7 +47,7 @@ pipeline_mode = "shotgun"
 plan_certification = "governed"
 supports_layouts = ["single_end", "paired_end"]
 forbidden_stages = ["fastq.trim_terminal_damage", "fastq.normalize_primers", "fastq.remove_chimeras", "fastq.infer_asvs", "fastq.cluster_otus", "fastq.normalize_abundance"]
-required_assets = ["adapter_bank", "host_depletion_index", "taxonomy_database"]
+required_assets = ["adapter_bank", "host_depletion_index", "kraken2_database"]
 comparability_boundaries = ["host_reference_bundle", "taxonomy_database", "classifier_policy", "depletion_order"]
 invalidation_reasons = ["host signal is declared primary target", "taxonomy screen requested without locked database"]
 
@@ -79,7 +79,7 @@ plan_certification = "governed"
 id = "depletion_first"
 stage_order = ["fastq.validate_reads", "fastq.trim_reads", "fastq.filter_reads", "fastq.index_reference", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.deplete_rrna", "fastq.screen_taxonomy", "fastq.report_qc"]
 classification_intent = "scientific_output"
-required_assets = ["adapter_bank", "host_depletion_index", "contaminant_depletion_index", "sortmerna_rrna_database", "taxonomy_database"]
+required_assets = ["adapter_bank", "host_depletion_index", "contaminant_depletion_index", "sortmerna_rrna_database", "kraken2_database"]
 plan_certification = "governed"
 
 [[route_graph]]
