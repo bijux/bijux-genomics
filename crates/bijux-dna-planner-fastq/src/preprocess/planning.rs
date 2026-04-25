@@ -190,7 +190,13 @@ pub fn resolve_preprocess_pipeline(
         ) {
             Ok(profile) => filter_preprocess_pipeline(
                 pipeline_spec_from_stage_catalog(
-                    crate::fastq_pipeline_id_catalog(profile.id.as_str()),
+                    profile
+                        .capabilities
+                        .required_stages
+                        .iter()
+                        .filter(|stage| stage.starts_with(bijux_dna_domain_fastq::STAGE_PREFIX))
+                        .map(|stage| (*stage).to_string())
+                        .collect(),
                     args.mode.pipeline_mode(),
                 ),
                 args.r2.is_some(),
@@ -198,7 +204,12 @@ pub fn resolve_preprocess_pipeline(
                 enable_merge,
                 enable_correct,
                 enable_qc_post,
-                enable_screen,
+                enable_screen
+                    || profile
+                        .capabilities
+                        .required_stages
+                        .iter()
+                        .any(|stage| stage == STAGE_SCREEN_TAXONOMY.as_str()),
                 enable_terminal_damage_trim,
                 &amplicon_only,
             ),
