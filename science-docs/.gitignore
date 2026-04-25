@@ -2,3 +2,10 @@
 !.gitignore
 !README.md
 !TODO_DOWNLOAD.md
+!upstream/
+upstream/*
+!upstream/README.md
+!upstream/github-repos/
+upstream/github-repos/*
+!upstream/github-repos/README.md
+!upstream/github-repos/MANIFEST.tsv

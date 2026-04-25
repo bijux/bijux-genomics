@@ -20,6 +20,12 @@ The canonical machine-readable backlog is:
 
 This markdown file is the operator-facing view of that FASTQ backlog.
 
+GitHub repository evidence is governed separately through:
+`science-docs/upstream/github-repos/MANIFEST.tsv`
+
+That manifest is the durable target list for local repository mirrors under
+`science-docs/upstream/github-repos/mirrors/`.
+
 ## Ready for Manual Clone
 
 | Source ID | Tool | FASTQ Stages | Archive Path | Upstream |
