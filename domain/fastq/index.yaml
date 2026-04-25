@@ -292,163 +292,123 @@ stage_tool_compatibility:
   fastq.verify_assets:
   - bijux_dna
 stage_tool_integration:
-  fastq.build_contaminant_db:
-    bijux_dna: governed_contract
-  fastq.build_rrna_db:
-    bijux_dna: governed_contract
-  fastq.build_taxonomy_db:
-    bijux_dna: governed_contract
-  fastq.capture_provenance_snapshot:
-    bijux_dna: governed_contract
-  fastq.classify_layout:
-    bijux_dna: governed_contract
-  fastq.cluster_otus:
-    vsearch: governed_contract
-  fastq.concatenate_lanes:
-    bijux_dna: governed_contract
-  fastq.correct_errors:
-    bayeshammer: governed_contract
-    lighter: governed_contract
-    musket: governed_contract
-    rcorrector: governed_contract
-  fastq.deinterleave_reads:
-    bijux_dna: governed_contract
-  fastq.demultiplex_reads:
-    bijux_dna: governed_contract
-  fastq.deplete_host:
-    bowtie2: governed_contract
-  fastq.deplete_reference_contaminants:
-    bowtie2: governed_contract
-  fastq.deplete_rrna:
-    sortmerna: governed_contract
-  fastq.detect_adapters:
-    fastqc: governed_contract
-  fastq.detect_duplicates_premerge:
-    bijux_dna: governed_contract
-  fastq.detect_instrument_artifacts:
-    bijux_dna: governed_contract
-  fastq.estimate_library_complexity_prealign:
-    bijux_dna: governed_contract
-  fastq.extract_umis:
-    umi_tools: governed_contract
-  fastq.filter_low_complexity:
-    bbduk: governed_contract
-    prinseq: governed_contract
-  fastq.filter_reads:
-    bbduk: governed_contract
-    fastp: governed_contract
-    prinseq: governed_contract
-    seqkit: governed_contract
   fastq.index_reference:
     bowtie2_build: governed_contract
     star: governed_contract
-  fastq.infer_asvs:
-    dada2: governed_contract
-  fastq.interleave_reads:
-    bijux_dna: governed_contract
-  fastq.materialize_qc_manifest:
-    bijux_dna: governed_contract
-  fastq.merge_pairs:
-    adapterremoval: governed_contract
-    bbmerge: governed_contract
-    flash2: governed_contract
-    leehom: governed_contract
-    pear: governed_contract
-    vsearch: governed_contract
-  fastq.normalize_abundance:
-    seqkit: governed_contract
-  fastq.normalize_primers:
-    cutadapt: governed_contract
-  fastq.normalize_read_names:
-    bijux_dna: governed_contract
-  fastq.prepare_adapter_bank:
-    bijux_dna: governed_contract
-  fastq.prepare_host_reference_bundle:
-    bijux_dna: governed_contract
-  fastq.prepare_primer_bank:
-    bijux_dna: governed_contract
-  fastq.profile_overrepresented_sequences:
-    fastq_scan: governed_contract
+  fastq.validate_reads:
+    fastqvalidator: governed_contract
     fastqc: governed_contract
-    seqkit: governed_contract
+    fastq_scan: governed_contract
+    seqtk: governed_contract
+    fqtools: governed_contract
   fastq.profile_read_lengths:
     seqkit_stats: governed_contract
-  fastq.profile_reads:
-    seqkit_stats: governed_contract
-  fastq.remove_chimeras:
-    vsearch: governed_contract
-  fastq.remove_duplicates:
-    clumpify: governed_contract
-    fastuniq: governed_contract
-  fastq.repair_pairs:
-    bijux_dna: governed_contract
-  fastq.report_qc:
-    multiqc: governed_contract
-  fastq.screen_taxonomy:
-    centrifuge: governed_contract
-    kaiju: governed_contract
-    kraken2: governed_contract
-    krakenuniq: governed_contract
-  fastq.subsample_reads:
-    bijux_dna: governed_contract
-  fastq.trim_polyg_tails:
-    bbduk: governed_contract
-    fastp: governed_contract
-  fastq.trim_reads:
-    adapterremoval: governed_contract
-    alientrimmer: governed_contract
-    atropos: governed_contract
-    bbduk: governed_contract
-    cutadapt: governed_contract
-    fastp: governed_contract
-    fastx_clipper: governed_contract
-    leehom: governed_contract
-    prinseq: governed_contract
-    seqkit: governed_contract
-    skewer: governed_contract
-    trim_galore: governed_contract
-    trimmomatic: governed_contract
+  fastq.detect_adapters:
+    fastqc: governed_contract
   fastq.trim_terminal_damage:
     adapterremoval: governed_contract
     cutadapt: governed_contract
     seqkit: governed_contract
-  fastq.validate_reads:
-    fastq_scan: governed_contract
+  fastq.normalize_primers:
+    cutadapt: governed_contract
+  fastq.trim_polyg_tails:
+    fastp: governed_contract
+    bbduk: governed_contract
+  fastq.trim_reads:
+    fastp: governed_contract
+    cutadapt: governed_contract
+    atropos: governed_contract
+    bbduk: governed_contract
+    adapterremoval: governed_contract
+    alientrimmer: governed_contract
+    fastx_clipper: governed_contract
+    leehom: governed_contract
+    trimmomatic: governed_contract
+    trim_galore: governed_contract
+    prinseq: governed_contract
+    seqkit: governed_contract
+    skewer: governed_contract
+  fastq.filter_reads:
+    fastp: governed_contract
+    seqkit: governed_contract
+    prinseq: governed_contract
+    bbduk: governed_contract
+  fastq.profile_reads:
+    seqkit_stats: governed_contract
+  fastq.deplete_rrna:
+    sortmerna: governed_contract
+  fastq.merge_pairs:
+    adapterremoval: governed_contract
+    pear: governed_contract
+    vsearch: governed_contract
+    bbmerge: governed_contract
+    flash2: governed_contract
+    leehom: governed_contract
+  fastq.remove_duplicates:
+    fastuniq: governed_contract
+    clumpify: governed_contract
+  fastq.filter_low_complexity:
+    prinseq: governed_contract
+    bbduk: governed_contract
+  fastq.deplete_host:
+    bowtie2: governed_contract
+  fastq.deplete_reference_contaminants:
+    bowtie2: governed_contract
+  fastq.correct_errors:
+    rcorrector: governed_contract
+    musket: governed_contract
+    lighter: governed_contract
+    bayeshammer: governed_contract
+  fastq.extract_umis:
+    umi_tools: governed_contract
+  fastq.profile_overrepresented_sequences:
     fastqc: governed_contract
-    fastqvalidator: governed_contract
-    fqtools: governed_contract
-    seqtk: governed_contract
-  fastq.verify_assets:
-    bijux_dna: governed_contract
+    fastq_scan: governed_contract
+    seqkit: governed_contract
+  fastq.remove_chimeras:
+    vsearch: governed_contract
+  fastq.infer_asvs:
+    dada2: governed_contract
+  fastq.cluster_otus:
+    vsearch: governed_contract
+  fastq.normalize_abundance:
+    seqkit: governed_contract
+  fastq.screen_taxonomy:
+    kraken2: governed_contract
+    krakenuniq: governed_contract
+    centrifuge: governed_contract
+    kaiju: governed_contract
+  fastq.report_qc:
+    multiqc: governed_contract
 reference_index_compatibility:
   bowtie2:
   - bowtie2_build
 active_defaults:
-  fastq.cluster_otus: vsearch
   fastq.index_reference: bowtie2_build
+  fastq.validate_reads: fastqvalidator
+  fastq.profile_read_lengths: seqkit_stats
   fastq.detect_adapters: fastqc
+  fastq.trim_terminal_damage: cutadapt
+  fastq.normalize_primers: cutadapt
+  fastq.trim_polyg_tails: fastp
   fastq.trim_reads: fastp
   fastq.filter_reads: fastp
-  fastq.validate_reads: fastqvalidator
   fastq.profile_reads: seqkit_stats
   fastq.deplete_rrna: sortmerna
-  fastq.report_qc: multiqc
-  fastq.screen_taxonomy: kraken2
   fastq.merge_pairs: pear
   fastq.remove_duplicates: clumpify
   fastq.filter_low_complexity: bbduk
   fastq.deplete_host: bowtie2
+  fastq.deplete_reference_contaminants: bowtie2
   fastq.correct_errors: rcorrector
   fastq.extract_umis: umi_tools
-  fastq.profile_read_lengths: seqkit_stats
-  fastq.trim_polyg_tails: fastp
-  fastq.deplete_reference_contaminants: bowtie2
-  fastq.trim_terminal_damage: cutadapt
-  fastq.normalize_abundance: seqkit
-  fastq.normalize_primers: cutadapt
   fastq.profile_overrepresented_sequences: fastqc
   fastq.remove_chimeras: vsearch
   fastq.infer_asvs: dada2
+  fastq.cluster_otus: vsearch
+  fastq.normalize_abundance: seqkit
+  fastq.screen_taxonomy: kraken2
+  fastq.report_qc: multiqc
 active_default_rationale:
   fastq.cluster_otus: Stable OTU cluster policy with reproducible identifiers.
   fastq.index_reference: Default FASTQ reference preparation must emit the mapper
@@ -1034,6 +994,7 @@ stage_failure_diagnosis_hints:
 pipeline_compositions:
   pre_hpc_best:
   - fastq.validate_reads
+  - fastq.extract_umis
   - fastq.profile_read_lengths
   - fastq.detect_adapters
   - fastq.trim_polyg_tails
@@ -1041,7 +1002,6 @@ pipeline_compositions:
   - fastq.trim_reads
   - fastq.filter_reads
   - fastq.correct_errors
-  - fastq.extract_umis
   - fastq.index_reference
   - fastq.deplete_host
   - fastq.deplete_reference_contaminants
@@ -1255,15 +1215,38 @@ stage_resource_hints:
     time_minutes: 25
     threads: 4
 stage_output_size_estimates_mb:
+  fastq.build_contaminant_db:
+    contaminant_database: 5000.0
+    asset_lock: 1.0
+  fastq.build_rrna_db:
+    rrna_database: 5000.0
+    asset_lock: 1.0
+  fastq.build_taxonomy_db:
+    taxonomy_database: 5000.0
+    asset_lock: 1.0
+  fastq.capture_provenance_snapshot:
+    provenance_snapshot: 4.0
+  fastq.classify_layout:
+    layout_classification: 4.0
   fastq.cluster_otus:
     report_json: 8.0
     otu_table: 8.0
     otu_representatives: 3.0
     taxonomy_ready_fasta: 3.0
     taxonomy_ready_fastq: 6.0
+  fastq.concatenate_lanes:
+    concatenated_reads: 1000.0
+    lane_manifest_out: 4.0
   fastq.correct_errors:
     corrected_reads_r1: 900.0
     report_json: 8.0
+  fastq.deinterleave_reads:
+    reads_r1: 4.0
+    reads_r2: 4.0
+    layout_report: 1.0
+  fastq.demultiplex_reads:
+    sample_reads: 1000.0
+    demultiplex_report: 1.0
   fastq.deplete_host:
     host_depleted_reads_r1: 950.0
     host_depletion_report_json: 12.0
@@ -1277,6 +1260,12 @@ stage_output_size_estimates_mb:
   fastq.detect_adapters:
     report_json: 5.0
     adapter_report: 5.0
+  fastq.detect_duplicates_premerge:
+    duplicate_signal_report: 1.0
+  fastq.detect_instrument_artifacts:
+    instrument_artifact_report: 1.0
+  fastq.estimate_library_complexity_prealign:
+    library_complexity_report: 1.0
   fastq.extract_umis:
     umi_reads_r1: 700.0
     umi_reads_r2: 700.0
@@ -1295,6 +1284,11 @@ stage_output_size_estimates_mb:
     taxonomy_ready_fasta: 3.0
     taxonomy_ready_fastq: 6.0
     report_json: 8.0
+  fastq.interleave_reads:
+    interleaved_reads: 1000.0
+    layout_report: 1.0
+  fastq.materialize_qc_manifest:
+    qc_manifest: 1.0
   fastq.merge_pairs:
     merged_reads: 1400.0
     report_json: 8.0
@@ -1306,6 +1300,18 @@ stage_output_size_estimates_mb:
     report_json: 8.0
     primer_orientation_report: 3.0
     primer_stats_json: 2.0
+  fastq.normalize_read_names:
+    normalized_reads: 1000.0
+    name_normalization_report: 1.0
+  fastq.prepare_adapter_bank:
+    adapter_bank: 10.0
+    asset_lock: 1.0
+  fastq.prepare_host_reference_bundle:
+    host_reference_bundle: 5000.0
+    asset_lock: 1.0
+  fastq.prepare_primer_bank:
+    primer_bank: 10.0
+    asset_lock: 1.0
   fastq.profile_overrepresented_sequences:
     overrepresented_sequences_tsv: 4.0
     overrepresented_sequences_json: 2.0
@@ -1326,6 +1332,10 @@ stage_output_size_estimates_mb:
     duplicate_classes_tsv: 1.0
     duplicate_provenance_json: 1.0
     report_json: 6.0
+  fastq.repair_pairs:
+    repaired_reads_r1: 1000.0
+    repaired_reads_r2: 1000.0
+    repair_report: 1.0
   fastq.report_qc:
     report_json: 8.0
     multiqc_report: 30.0
@@ -1334,6 +1344,9 @@ stage_output_size_estimates_mb:
   fastq.screen_taxonomy:
     screen_report_tsv: 25.0
     classification_report_json: 5.0
+  fastq.subsample_reads:
+    subsampled_reads: 1000.0
+    subsample_report: 1.0
   fastq.trim_polyg_tails:
     trimmed_reads_r1: 1900.0
     report_json: 6.0
@@ -1344,8 +1357,10 @@ stage_output_size_estimates_mb:
     trimmed_reads_r1: 1800.0
     report_json: 4.0
   fastq.validate_reads:
-    validated_reads_manifest: 1.0
     validation_report: 5.0
+    validated_reads_manifest: 1.0
+  fastq.verify_assets:
+    asset_verification_report: 1.0
 stage_sanity_metrics:
   fastq.cluster_otus:
   - otu_count
