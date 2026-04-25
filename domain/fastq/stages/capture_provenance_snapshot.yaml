@@ -30,7 +30,8 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "none"
-compatible_tools: []
+compatible_tools:
+  - bijux_dna
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "plan certification requires a provenance snapshot that binds stage graph, tools, containers, runtime assets, and input checksums."

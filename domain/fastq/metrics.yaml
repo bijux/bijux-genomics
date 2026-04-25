@@ -3,6 +3,7 @@ domain: "fastq"
 metric_ids:
   - adapter_bank_hash
   - adapter_bank_id
+  - adapter_count
   - adapter_overrides
   - adapter_preset
   - asv_count
@@ -77,8 +78,11 @@ metric_ids:
   - adapter_content_mean
   - adapter_policy
   - adapter_trimmed_fraction
+  - artifact_signal_count
   - aggregation_engine
   - aggregation_scope
+  - assigned_reads
+  - bundle_file_count
   - classified_fraction
   - classifier
   - contaminant_policy
@@ -90,6 +94,7 @@ metric_ids:
   - distinct_lengths
   - duplicate_class_count
   - duplicate_provenance_json
+  - duplicate_signal_fraction
   - duplicates_removed
   - duplication_rate
   - emit_unclassified
@@ -102,6 +107,8 @@ metric_ids:
   - governed_qc_lineage_hash
   - keep_order
   - kmer_warning_count
+  - lane_count
+  - layout_confidence
   - max_read_length
   - min_polyg_run
   - minimum_confidence
@@ -110,6 +117,7 @@ metric_ids:
   - n_policy
   - n_rate
   - overrepresented_sequence_count
+  - orphan_reads
   - pair_count_match
   - pair_sync_checked
   - pair_sync_pass
@@ -119,10 +127,14 @@ metric_ids:
   - polyx_policy
   - polyx_preset
   - raw_backend_report_format
+  - renamed_reads
   - reference_bytes
   - report_format
+  - report_count
   - requested_trim_3p_bases
   - requested_trim_5p_bases
+  - source_record_count
+  - source_sequence_count
   - strict_pass
   - threads
   - tool
@@ -131,3 +143,10 @@ metric_ids:
   - unclassified_fraction
   - validated_inputs
   - validated_pairs
+  - verified_asset_count
+  - provenance_entry_count
+  - pairs_deinterleaved
+  - pairs_interleaved
+  - primer_count
+  - reads_sampled
+  - estimated_duplicate_fraction

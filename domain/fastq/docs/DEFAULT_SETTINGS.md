@@ -23,7 +23,27 @@ Purpose: define deterministic defaults for every FASTQ stage contract.
 - stage/tool combinations must remain in index compatibility map
 
 ## Stage Coverage
+- `fastq.build_contaminant_db`: default `bijux_dna`. rationale: planned internal contract harness records contaminant database build inputs, outputs, and asset-lock expectations until a production backend is admitted.
+- `fastq.build_rrna_db`: default `bijux_dna`. rationale: planned internal contract harness records rRNA database build inputs, outputs, and asset-lock expectations until a production backend is admitted.
+- `fastq.build_taxonomy_db`: default `bijux_dna`. rationale: planned internal contract harness records taxonomy database build inputs, outputs, and asset-lock expectations until production classifier database builders are admitted.
+- `fastq.capture_provenance_snapshot`: default `bijux_dna`. rationale: planned internal contract harness records pre-execution provenance snapshot expectations for governed route and benchmark plans.
+- `fastq.classify_layout`: default `bijux_dna`. rationale: planned internal contract harness records read-layout classification inputs and report outputs before production layout classifiers are admitted.
+- `fastq.concatenate_lanes`: default `bijux_dna`. rationale: planned internal contract harness records lane-manifest consolidation semantics and output lineage expectations.
+- `fastq.deinterleave_reads`: default `bijux_dna`. rationale: planned internal contract harness records interleaved input splitting semantics and paired-output expectations.
+- `fastq.demultiplex_reads`: default `bijux_dna`. rationale: planned internal contract harness records barcode-manifest inputs and per-sample output/report expectations.
+- `fastq.detect_duplicates_premerge`: default `bijux_dna`. rationale: planned internal contract harness records report-only duplicate-signal expectations without treating the result as scientific duplicate removal.
+- `fastq.detect_instrument_artifacts`: default `bijux_dna`. rationale: planned internal contract harness records report-only instrument-artifact expectations before backend-specific detector admission.
+- `fastq.estimate_library_complexity_prealign`: default `bijux_dna`. rationale: planned internal contract harness records prealignment library-complexity report expectations without substituting for alignment-derived metrics.
 - `fastq.index_reference`: default `bowtie2_build`. rationale: default FASTQ reference preparation must emit the mapper index consumed by governed host and reference-contaminant depletion.
+- `fastq.interleave_reads`: default `bijux_dna`. rationale: planned internal contract harness records mate synchronization inputs and interleaved-output expectations.
+- `fastq.materialize_qc_manifest`: default `bijux_dna`. rationale: planned internal contract harness records QC report aggregation manifest expectations before production manifest materialization is admitted.
+- `fastq.normalize_read_names`: default `bijux_dna`. rationale: planned internal contract harness records read-name rewrite outputs and sidecar mapping expectations.
+- `fastq.prepare_adapter_bank`: default `bijux_dna`. rationale: planned internal contract harness records adapter-source hydration and asset-lock expectations for governed trimming plans.
+- `fastq.prepare_host_reference_bundle`: default `bijux_dna`. rationale: planned internal contract harness records host-reference source hydration and asset-lock expectations for depletion plans.
+- `fastq.prepare_primer_bank`: default `bijux_dna`. rationale: planned internal contract harness records primer-source hydration and asset-lock expectations for amplicon primer-normalization plans.
+- `fastq.repair_pairs`: default `bijux_dna`. rationale: planned internal contract harness records mate reconciliation inputs, repaired outputs, and repair-report expectations.
+- `fastq.subsample_reads`: default `bijux_dna`. rationale: planned internal contract harness records deterministic subsampling inputs and report expectations for benchmark-comparable plans.
+- `fastq.verify_assets`: default `bijux_dna`. rationale: planned internal contract harness records asset-lock verification report expectations before backend-native asset inspectors are admitted.
 - `fastq.validate_reads`: default `fastqvalidator`.
 - `fastq.profile_read_lengths`: default `seqkit_stats`.
 - `fastq.detect_adapters`: default `fastqc`.

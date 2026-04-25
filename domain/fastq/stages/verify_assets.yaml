@@ -30,7 +30,8 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "none"
-compatible_tools: []
+compatible_tools:
+  - bijux_dna
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "asset verification must fail closed for world-class-closed plans when any declared asset lock is missing or mismatched."

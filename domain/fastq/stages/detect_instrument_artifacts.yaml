@@ -30,7 +30,8 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "none"
-compatible_tools: []
+compatible_tools:
+  - bijux_dna
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "instrument-artifact detection is report-only until a governed route explicitly consumes the artifact class."
