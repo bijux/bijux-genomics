@@ -15,7 +15,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/alientrimmer.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.alientrimmer",
-      "pinned_commit": "git:6ec40283b87f845dbb833342633258c8e7c18333",
+      "pinned_commit": "release:3.2",
       "runtimes": [
         "docker",
         "apptainer"
@@ -591,7 +591,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/sortmerna.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.sortmerna",
-      "pinned_commit": "release:4.3.7",
+      "pinned_commit": "sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c",
       "runtimes": [
         "docker",
         "apptainer"
