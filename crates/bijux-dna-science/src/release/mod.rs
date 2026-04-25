@@ -2,11 +2,16 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
-use crate::compile::compile_workspace;
+use crate::compile::{compile_workspace, load_specs};
 use crate::io::write_utf8;
 use crate::render::{binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv, fastq_environment_tsv, index_json, to_pretty_json};
 
 pub fn cut_release(root: &Path, release_id: &str) -> Result<()> {
+    let loaded = load_specs(root)?;
+    let manifest = loaded
+        .releases
+        .get(release_id)
+        .ok_or_else(|| anyhow!("release manifest not found for {release_id}"))?;
     let compiled = compile_workspace(root)?;
     let release_root = root.join("artifacts/science-releases").join(release_id);
     if release_root.exists() {
@@ -36,6 +41,10 @@ pub fn cut_release(root: &Path, release_id: &str) -> Result<()> {
         &release_root.join("indexes/release.json"),
         &to_pretty_json(&serde_json::json!({
             "release_id": release_id,
+            "title": manifest.title,
+            "status": manifest.status,
+            "binding_ids": manifest.binding_ids,
+            "claim_ids": manifest.claim_ids,
             "fastq_environment_rows": compiled.fastq_environment_rows.len(),
         }))?,
     )?;

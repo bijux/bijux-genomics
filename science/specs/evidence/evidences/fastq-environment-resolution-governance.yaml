@@ -1,0 +1,7 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.environment-resolution-governance"
+statement: "Environment resolution for this slice is deterministic and digest-oriented rather than runtime-discovered."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.environment-reference"

@@ -1,0 +1,7 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.default-settings-governance"
+statement: "FASTQ default tool choices are documented explicitly in DEFAULT_SETTINGS.md."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.default-settings"

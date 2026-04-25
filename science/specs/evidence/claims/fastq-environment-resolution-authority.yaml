@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.environment-resolution-authority"
+statement: "FASTQ environment traceability in this slice is about deterministic environment resolution, not runtime side effects."
+scope: "fastq pre-hpc environment slice"
+subject: "fastq_environment_resolution"
+predicate: "is_bounded_by"
+object: "crates/bijux-dna-environment/docs/ENV_REFERENCE.md"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.environment-resolution-governance"

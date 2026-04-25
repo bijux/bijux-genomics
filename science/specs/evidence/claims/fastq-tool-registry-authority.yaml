@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.tool-registry-authority"
+statement: "FASTQ container refs, runtime labels, and build surfaces must be traced to the governed tool registry rather than generated container indexes."
+scope: "fastq pre-hpc environment slice"
+subject: "fastq_runtime_container_surface"
+predicate: "is_authored_by"
+object: "configs/ci/registry/tool_registry.toml"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.tool-registry-governance"

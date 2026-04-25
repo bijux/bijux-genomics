@@ -1,0 +1,8 @@
+schema_version: "bijux.science.source.v1"
+source_id: "source.fastq.tool-registry"
+kind: "repo_file"
+title: "FASTQ tool registry"
+locator: "configs/ci/registry/tool_registry.toml"
+authority: "configs.ci.registry.tool_registry"
+notes:
+  - "The generated containers/TOOL_IDS.txt file is downstream and intentionally not used as source authority here."

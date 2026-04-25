@@ -1,0 +1,8 @@
+schema_version: "bijux.science.source.v1"
+source_id: "source.fastq.environment-reference"
+kind: "document"
+title: "Environment resolution reference"
+locator: "crates/bijux-dna-environment/docs/ENV_REFERENCE.md"
+authority: "bijux_dna_environment.env_reference"
+notes:
+  - "Environment claims in this slice stay at the deterministic resolution layer, not runtime execution."

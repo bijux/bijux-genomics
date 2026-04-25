@@ -1,0 +1,21 @@
+schema_version: "bijux.science.binding.v1"
+binding_id: "binding.fastq.environment-tool-surface"
+decision_id: "decision.fastq.environment-tool-surface"
+target_type: "fastq_stage_tool_environment_matrix"
+target_ref: "fastq.pre_hpc_pre_vcf.environment_surface"
+enforcement_level: "blocking"
+target_domain: "fastq"
+claim_ids:
+  - "claim.fastq.execution-surface-authority"
+  - "claim.fastq.default-settings-authority"
+  - "claim.fastq.tool-registry-authority"
+  - "claim.fastq.environment-resolution-authority"
+  - "claim.fastq.planned-tools-remain-excluded"
+source_ids:
+  - "source.fastq.execution-support"
+  - "source.fastq.stage-contracts"
+  - "source.fastq.tool-registry"
+  - "source.fastq.default-settings"
+  - "source.fastq.environment-reference"
+notes:
+  - "This matrix is the first compiled evidence-plane output for bijux-dna-science."

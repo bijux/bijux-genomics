@@ -1,0 +1,7 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.execution-support-governance"
+statement: "FASTQ admitted tool surfaces and closed-stage defaults are published from execution_support.yaml."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.execution-support"

@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.default-settings-authority"
+statement: "FASTQ stage default tools must come from the documented default-settings authority."
+scope: "fastq pre-hpc environment slice"
+subject: "fastq_stage_default_tools"
+predicate: "is_authored_by"
+object: "domain/fastq/docs/DEFAULT_SETTINGS.md"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.default-settings-governance"

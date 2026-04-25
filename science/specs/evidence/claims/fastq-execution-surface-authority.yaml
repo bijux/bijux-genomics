@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.execution-surface-authority"
+statement: "The closed FASTQ stage-tool surface is authored in domain/fastq/execution_support.yaml."
+scope: "fastq pre-hpc environment slice"
+subject: "fastq_stage_tool_surface"
+predicate: "is_authored_by"
+object: "domain/fastq/execution_support.yaml"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.execution-support-governance"

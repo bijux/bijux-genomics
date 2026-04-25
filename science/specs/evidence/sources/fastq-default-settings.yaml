@@ -1,0 +1,8 @@
+schema_version: "bijux.science.source.v1"
+source_id: "source.fastq.default-settings"
+kind: "document"
+title: "FASTQ default settings authority"
+locator: "domain/fastq/docs/DEFAULT_SETTINGS.md"
+authority: "domain.fastq.default_settings"
+notes:
+  - "Default tool claims must cite the explicit default-settings document rather than inferred planner behavior."
