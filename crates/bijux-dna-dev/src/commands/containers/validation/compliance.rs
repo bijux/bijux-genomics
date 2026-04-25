@@ -5,7 +5,7 @@ use super::{
     registry_tool_rows, success_line, table_array_strings, table_bool, table_string,
     tool_status_manifest, tool_versions, toolkit_bundles, write_ensure_images_plan_report,
     write_vuln_hook_report, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex,
-    Result, Utc, Workspace,
+    Result, Utc, WalkDir, Workspace,
 };
 
 pub(in super::super) fn check_tool_name_collision(
@@ -13,7 +13,8 @@ pub(in super::super) fn check_tool_name_collision(
 ) -> Result<ContainerCommandOutcome> {
     let images = images_metadata(workspace)?;
     let versions = tool_versions(workspace)?;
-    let tool_ids = tool_status_manifest(workspace)?.into_keys().collect::<BTreeSet<_>>();
+    let catalog_statuses = tool_status_manifest(workspace)?;
+    let tool_ids = catalog_statuses.keys().cloned().collect::<BTreeSet<_>>();
     let docker_ids = docker_tool_ids(workspace)?;
     let apptainer_ids = apptainer_tool_ids(workspace);
     let domain_ids = walkdir::WalkDir::new(workspace.path("domain"))
@@ -30,20 +31,26 @@ pub(in super::super) fn check_tool_name_collision(
             (stem != "_schema").then(|| stem.to_string())
         })
         .collect::<BTreeSet<_>>();
+    let registry_rows = registry_tool_rows(workspace)?
+        .into_iter()
+        .filter_map(|row| {
+            let tool_id = table_string(&row, "id");
+            let tool_id = if tool_id.is_empty() { table_string(&row, "tool_id") } else { tool_id };
+            (!tool_id.is_empty()).then_some((tool_id, row))
+        })
+        .collect::<BTreeMap<_, _>>();
     let mut tools = BTreeMap::new();
     let mut bin_to_tool = BTreeMap::new();
     let mut errors = Vec::new();
-    for row in registry_tool_rows(workspace)? {
-        let tool_id = table_string(&row, "id");
-        let tool_id = if tool_id.is_empty() { table_string(&row, "tool_id") } else { tool_id };
-        if tool_id.is_empty() {
-            continue;
-        }
-        let expected_bin = table_string(&row, "expected_bin");
-        tools.insert(tool_id.clone(), (expected_bin.clone(), table_string(&row, "status")));
+    for (tool_id, status) in &catalog_statuses {
+        let expected_bin = registry_rows
+            .get(tool_id)
+            .map(|row| table_string(row, "expected_bin"))
+            .unwrap_or_default();
+        tools.insert(tool_id.clone(), (expected_bin.clone(), status.clone()));
         if !expected_bin.is_empty() {
             if let Some(previous) = bin_to_tool.insert(expected_bin.clone(), tool_id.clone()) {
-                if previous != tool_id {
+                if previous != *tool_id {
                     errors.push(format!(
                         "expected_bin collision: '{expected_bin}' used by both '{previous}' and '{tool_id}'"
                     ));
@@ -77,7 +84,7 @@ pub(in super::super) fn check_tool_name_collision(
         }
     }
     let surfaces = [
-        ("registry", tools.keys().cloned().collect::<BTreeSet<_>>()),
+        ("catalog", tools.keys().cloned().collect::<BTreeSet<_>>()),
         (
             "images",
             images
@@ -104,13 +111,13 @@ pub(in super::super) fn check_tool_name_collision(
             .iter()
             .filter_map(|(name, ids)| ids.contains(tool_id).then_some(*name))
             .collect::<Vec<_>>();
-        if !present.contains(&"registry")
+        if !present.contains(&"catalog")
             && present.iter().any(|name| {
                 matches!(*name, "images" | "versions" | "tool_ids" | "docker" | "apptainer")
             })
         {
             errors.push(format!(
-                "id parity: '{tool_id}' present in {present:?} but missing from registry"
+                "id parity: '{tool_id}' present in {present:?} but missing from governed container catalog"
             ));
         }
     }
@@ -407,6 +414,27 @@ pub(in super::super) fn check_hpc_image_naming(
             errors.push(format!(
                 "{tool}: hpc_image_ref mismatch, expected {expected_ref}, got {image_ref}"
             ));
+        }
+    }
+    let hpc_root = workspace.path("artifacts/containers/hpc");
+    if hpc_root.exists() {
+        for entry in WalkDir::new(&hpc_root).into_iter().filter_map(std::result::Result::ok) {
+            let path = entry.path();
+            if !entry.file_type().is_file()
+                || path.extension().and_then(|ext| ext.to_str()) != Some("sif")
+            {
+                continue;
+            }
+            let stem = path.file_stem().and_then(|stem| stem.to_str()).unwrap_or_default();
+            let normalized = stem.strip_prefix("sha256:").unwrap_or(stem).trim();
+            if normalized.eq_ignore_ascii_case("pending")
+                || (!normalized.is_empty() && normalized.chars().all(|char| char == '0'))
+            {
+                errors.push(format!(
+                    "placeholder SIF artifact is forbidden: {}",
+                    workspace.rel(path).display()
+                ));
+            }
         }
     }
     if errors.is_empty() {
