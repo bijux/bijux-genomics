@@ -52,7 +52,7 @@ pin_strategy: "pinned"
 default_version: "4.2.0"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "paper:https://link.springer.com/article/10.1186/1471-2164-14-S1-S7"
 stage_ids: ["fastq.correct_errors"]
 stage_contracts:
   fastq.correct_errors:
