@@ -213,7 +213,7 @@
         "apptainer"
       ],
       "tool_id": "dada2",
-      "upstream": "https://benjjneb.github.io/dada2/",
+      "upstream": "https://github.com/benjjneb/dada2",
       "version": "1.30.0"
     },
     {
@@ -225,7 +225,7 @@
         "apptainer"
       ],
       "tool_id": "fastp",
-      "upstream": "https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz",
+      "upstream": "https://github.com/OpenGene/fastp",
       "version": "0.23.4"
     },
     {
@@ -261,7 +261,7 @@
         "apptainer"
       ],
       "tool_id": "fastqc",
-      "upstream": "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip",
+      "upstream": "https://github.com/s-andrews/FastQC",
       "version": "0.12.1"
     },
     {
@@ -513,7 +513,7 @@
         "apptainer"
       ],
       "tool_id": "rxy",
-      "upstream": "https://github.com/bijux/bijux-dna",
+      "upstream": "https://github.com/bijux/bijux-genomics",
       "version": "1.0.0"
     },
     {
@@ -549,7 +549,7 @@
         "apptainer"
       ],
       "tool_id": "seqkit",
-      "upstream": "https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz",
+      "upstream": "https://github.com/shenwei356/seqkit",
       "version": "2.8.2"
     },
     {
