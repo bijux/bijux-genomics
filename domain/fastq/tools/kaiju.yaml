@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/kaiju"
-  digest: "sha256:pending"
+  digest: "sha256:4f30fd9becc62e873bc223231c717bba5b42db8a4f993979bf26c7fc00979f9b"
 command_template:
   - "kaiju"
   - "-i"

@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/centrifuge"
-  digest: "sha256:pending"
+  digest: "sha256:7a29ee8d8dc156513a23e05e9f8fda2299032ab7e6d5cb3c241c9f34c3f81553"
 command_template:
   - "centrifuge"
   - "-S"
