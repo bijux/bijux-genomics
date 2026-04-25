@@ -15,6 +15,30 @@ fn tsv_rows(path: &str) -> Vec<Vec<String>> {
         .collect()
 }
 
+fn pending_digest_tools() -> BTreeSet<String> {
+    let root = support::workspace_root();
+    let mut tools = BTreeSet::new();
+    for entry in std::fs::read_dir(root.join("domain/fastq/tools")).expect("read fastq tools") {
+        let path = entry.expect("tool entry").path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        let raw = std::fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read fastq tool {}: {err}", path.display()));
+        if raw.contains("sha256:pending") {
+            tools.insert(
+                path.file_stem()
+                    .and_then(|name| name.to_str())
+                    .unwrap_or_else(|| {
+                        panic!("tool file name is not valid UTF-8: {}", path.display())
+                    })
+                    .to_string(),
+            );
+        }
+    }
+    tools
+}
+
 #[test]
 fn policy__contracts__fastq_closure_evidence_policy__default_risks_have_prerequisite_rows() {
     let risk_rows =
@@ -68,5 +92,18 @@ fn policy__contracts__fastq_closure_evidence_policy__fastq_tool_publication_plac
         offenders.is_empty(),
         "FASTQ tool publication placeholders must not return:\n{}",
         offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_closure_evidence_policy__pending_digests_match_blocker_registry() {
+    let pending = pending_digest_tools();
+    let blockers = tsv_rows("science-docs/upstream/fastq/CONTAINER_DIGEST_BLOCKERS.tsv")
+        .into_iter()
+        .map(|row| row[0].clone())
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        pending, blockers,
+        "FASTQ pending container digests must match the tracked digest blocker registry"
     );
 }
