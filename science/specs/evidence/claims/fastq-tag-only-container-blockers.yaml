@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.tag-only-container-blockers"
+statement: "Admitted FASTQ tools with tag-only production container references must remain unresolved release blockers until replaced with immutable sha256 references."
+scope: "fastq container release readiness"
+subject: "fastq_admitted_container_refs"
+predicate: "must_be_immutable_or_blocked"
+object: "configs/ci/registry/tool_registry.toml"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.tag-only-container-blockers-governance"
