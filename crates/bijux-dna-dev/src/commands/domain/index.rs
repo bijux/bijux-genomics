@@ -287,11 +287,13 @@ fn render_stage_output_size_estimates_block(dom_dir: &Path, existing: &str) -> R
         let required_outputs = list_block(&text, "required_outputs")?;
         rendered.push(format!("  {stage_id}:"));
         for artifact_id in required_outputs {
+            let fallback = fallback_artifact_size_estimate_mb(&artifact_id);
             let estimate = existing_estimates
                 .get(&stage_id)
                 .and_then(|stage| stage.get(&artifact_id))
+                .filter(|estimate| !is_legacy_generic_read_estimate(&artifact_id, **estimate))
                 .copied()
-                .unwrap_or_else(|| fallback_artifact_size_estimate_mb(&artifact_id));
+                .unwrap_or(fallback);
             rendered.push(format!("    {artifact_id}: {estimate:.1}"));
         }
     }
@@ -430,13 +432,25 @@ fn parse_existing_stage_output_estimates(
     estimates
 }
 
-fn fallback_artifact_size_estimate_mb(artifact_id: &str) -> f64 {
-    if artifact_id.ends_with("_reads")
-        || artifact_id.contains("_reads_")
+fn is_fastq_read_stream_artifact(artifact_id: &str) -> bool {
+    artifact_id == "reads"
+        || artifact_id == "reads_r1"
+        || artifact_id == "reads_r2"
+        || artifact_id == "sample_reads"
+        || artifact_id.ends_with("_reads")
+        || artifact_id.contains("_reads_r1")
+        || artifact_id.contains("_reads_r2")
         || artifact_id.ends_with("_fastq")
         || artifact_id.ends_with("_fastq_r1")
         || artifact_id.ends_with("_fastq_r2")
-    {
+}
+
+fn is_legacy_generic_read_estimate(artifact_id: &str, estimate: f64) -> bool {
+    is_fastq_read_stream_artifact(artifact_id) && (estimate - 4.0).abs() < f64::EPSILON
+}
+
+fn fallback_artifact_size_estimate_mb(artifact_id: &str) -> f64 {
+    if is_fastq_read_stream_artifact(artifact_id) {
         1000.0
     } else if artifact_id.ends_with("_database")
         || artifact_id.ends_with("_bundle")
