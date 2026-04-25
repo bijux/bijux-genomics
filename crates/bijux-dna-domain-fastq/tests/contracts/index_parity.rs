@@ -277,6 +277,9 @@ fn stage_manifest_tool_integration() -> Result<BTreeMap<String, BTreeMap<String,
             .and_then(Value::as_str)
             .map(str::to_string)
             .with_context(|| format!("stage_id missing in {}", path.display()))?;
+        if yaml.get("status").and_then(Value::as_str) != Some("supported") {
+            continue;
+        }
         let mut tool_map = BTreeMap::new();
         for tool_id in yaml
             .get("compatible_tools")
