@@ -148,7 +148,7 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 - Inputs/Outputs: reads -> screen_report_tsv, classification_report_json.
 - Metrics: classified/unclassified reads, contamination summaries.
 - Defaults: descriptive classification only; no reads are removed by this stage.
-- Tools: kraken2, krakenuniq, centrifuge, metaphlan, kaiju, fastq_screen.
+- Tools: kraken2, krakenuniq, centrifuge, kaiju.
 - References: `domain/fastq/stages/screen_taxonomy.yaml`, `domain/fastq/tools/`.
 
 ### fastq.report_qc {#fastq-qc-post}
