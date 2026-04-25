@@ -53,7 +53,7 @@ pin_strategy: "pinned"
 default_version: "1.0.7"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "paper:https://gigascience.biomedcentral.com/articles/10.1186/s13742-015-0089-y"
 stage_ids: ["fastq.correct_errors"]
 stage_contracts:
   fastq.correct_errors:
