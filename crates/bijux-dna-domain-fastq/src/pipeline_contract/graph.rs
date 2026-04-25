@@ -80,11 +80,11 @@ mod tests {
     }
 
     #[test]
-    fn shotgun_defaults_do_not_include_terminal_damage_trimming() {
+    fn shotgun_defaults_include_terminal_damage_trimming() {
         let defaults = default_shotgun_preprocess_stage_order()
             .into_iter()
             .map(|stage| stage.as_str().to_string())
             .collect::<Vec<_>>();
-        assert!(!defaults.iter().any(|stage| stage == "fastq.trim_terminal_damage"));
+        assert!(defaults.iter().any(|stage| stage == "fastq.trim_terminal_damage"));
     }
 }
