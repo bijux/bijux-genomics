@@ -22,6 +22,12 @@ pub enum ScienceCommand {
         #[arg(long)]
         tool: Option<String>,
     },
+    Closure {
+        #[arg(long)]
+        stage: Option<String>,
+        #[arg(long)]
+        tool: Option<String>,
+    },
     Release {
         #[arg(long)]
         release_id: String,

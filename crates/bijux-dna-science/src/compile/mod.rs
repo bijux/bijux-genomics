@@ -7,8 +7,9 @@ use toml::Value as TomlValue;
 
 use crate::domain::{
     BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience,
-    DecisionReasoningRow, FastqEnvironmentRow, LoadedSpecs, ScienceIndex, SourceAccess,
-    SourceArchiveGapRow, SourceId, SourceInventoryRow, SourceKind, SourceSpec,
+    DecisionReasoningRow, FastqClosureGateRow, FastqEnvironmentRow,
+    FastqMissingClosurePrerequisiteRow, FastqTruthDeltaRow, LoadedSpecs, ScienceIndex,
+    SourceAccess, SourceArchiveGapRow, SourceId, SourceInventoryRow, SourceKind, SourceSpec,
 };
 use crate::errors::validation_error;
 use crate::io::{list_yaml_files, read_utf8};
@@ -208,6 +209,14 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
     );
     let fastq_paper_archive_rows =
         build_fastq_paper_archive_rows(root, &fastq_environment_rows, &paper_map);
+    let fastq_closure_gate_rows = build_fastq_closure_gate_rows(
+        &fastq_environment_rows,
+        &fastq_download_backlog_rows,
+        &fastq_paper_archive_rows,
+    );
+    let fastq_truth_delta_rows = build_fastq_truth_delta_rows(&fastq_closure_gate_rows);
+    let fastq_missing_closure_prerequisite_rows =
+        build_fastq_missing_closure_prerequisite_rows(&fastq_closure_gate_rows);
     let unresolved_refs = validate_cross_references(&loaded);
     if !unresolved_refs.is_empty() {
         return Err(validation_error(unresolved_refs));
@@ -227,6 +236,9 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         fastq_download_backlog_rows: fastq_download_backlog_rows.len(),
         fastq_paper_archive_rows: fastq_paper_archive_rows.len(),
         fastq_environment_rows: fastq_environment_rows.len(),
+        fastq_closure_gate_rows: fastq_closure_gate_rows.len(),
+        fastq_truth_delta_rows: fastq_truth_delta_rows.len(),
+        fastq_missing_closure_prerequisite_rows: fastq_missing_closure_prerequisite_rows.len(),
     };
     Ok(CompiledScience {
         source_inventory,
@@ -239,6 +251,9 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         fastq_download_backlog_rows,
         fastq_paper_archive_rows,
         fastq_environment_rows,
+        fastq_closure_gate_rows,
+        fastq_truth_delta_rows,
+        fastq_missing_closure_prerequisite_rows,
         index,
     })
 }
@@ -807,10 +822,7 @@ fn build_fastq_paper_archive_rows(
 ) -> Vec<crate::domain::FastqPaperArchiveRow> {
     let mut stage_map = BTreeMap::<String, BTreeSet<String>>::new();
     for row in environment_rows {
-        stage_map
-            .entry(row.tool_id.clone())
-            .or_default()
-            .insert(row.stage_id.clone());
+        stage_map.entry(row.tool_id.clone()).or_default().insert(row.stage_id.clone());
     }
     let mut rows = paper_map
         .iter()
@@ -834,8 +846,158 @@ fn build_fastq_paper_archive_rows(
             notes: entry.notes.clone(),
         })
         .collect::<Vec<_>>();
-    rows.sort_by(|left, right| left.tool_id.cmp(&right.tool_id).then(left.paper_id.cmp(&right.paper_id)));
+    rows.sort_by(|left, right| {
+        left.tool_id.cmp(&right.tool_id).then(left.paper_id.cmp(&right.paper_id))
+    });
     rows
+}
+
+fn build_fastq_closure_gate_rows(
+    environment_rows: &[FastqEnvironmentRow],
+    download_rows: &[crate::domain::FastqDownloadBacklogRow],
+    paper_rows: &[crate::domain::FastqPaperArchiveRow],
+) -> Vec<FastqClosureGateRow> {
+    let download_by_tool =
+        download_rows.iter().map(|row| (row.tool_id.as_str(), row)).collect::<BTreeMap<_, _>>();
+    let paper_by_tool = paper_rows.iter().fold(
+        BTreeMap::<&str, Vec<&crate::domain::FastqPaperArchiveRow>>::new(),
+        |mut acc, row| {
+            acc.entry(row.tool_id.as_str()).or_default().push(row);
+            acc
+        },
+    );
+
+    let mut rows = environment_rows
+        .iter()
+        .map(|row| {
+            let mut blockers = Vec::<String>::new();
+            let mut warnings = Vec::<String>::new();
+            if row.execution_status != "closed" {
+                blockers.push("stage_not_marked_closed".to_string());
+            }
+            if row.registry_status != "production" {
+                blockers.push("registry_not_production".to_string());
+            }
+            if row.container_ref.trim().is_empty() {
+                blockers.push("missing_container_ref".to_string());
+            }
+            if row.container_ref.contains("sha256:pending") {
+                blockers.push("pending_container_digest".to_string());
+            }
+            if row.container_ref.contains(
+                "@sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            ) {
+                blockers.push("placeholder_container_digest".to_string());
+            }
+            if row.runtimes.trim().is_empty() {
+                blockers.push("missing_runtime_surface".to_string());
+            }
+            let download = download_by_tool.get(row.tool_id.as_str()).copied();
+            match download {
+                Some(download) => {
+                    if download.backlog_status != "ready" {
+                        blockers.push(format!("source_backlog_{}", download.backlog_status));
+                    }
+                    if download.archive_status == "missing" {
+                        blockers.push("missing_upstream_archive".to_string());
+                    }
+                    if matches!(
+                        download.paper_status.as_str(),
+                        "missing_paper_root" | "missing_paper_map"
+                    ) {
+                        blockers.push(download.paper_status.clone());
+                    }
+                }
+                None => blockers.push("missing_download_backlog_row".to_string()),
+            }
+            let has_present_paper = paper_by_tool
+                .get(row.tool_id.as_str())
+                .is_some_and(|rows| rows.iter().any(|paper| paper.archive_status == "present"));
+            if !has_present_paper {
+                blockers.push("missing_paper_archive".to_string());
+            }
+            if row.benchmark_support == "none" {
+                blockers.push("missing_benchmark_support".to_string());
+            }
+            if row.tool_status == "disallowed" {
+                warnings.push("planned_binding_not_admitted".to_string());
+            }
+            if !row.is_default {
+                warnings.push("non_default_binding".to_string());
+            }
+            let effective_closure_status = if blockers.is_empty() {
+                "world_class_closed"
+            } else if row.execution_status == "closed" {
+                "declared_closed_with_gaps"
+            } else {
+                "not_closed"
+            }
+            .to_string();
+            FastqClosureGateRow {
+                stage_id: row.stage_id.clone(),
+                tool_id: row.tool_id.clone(),
+                is_default: row.is_default,
+                requested_execution_status: row.execution_status.clone(),
+                effective_closure_status,
+                world_class_closed: blockers.is_empty(),
+                blocking_reasons: blockers.join(";"),
+                warning_reasons: warnings.join(";"),
+            }
+        })
+        .collect::<Vec<_>>();
+    rows.sort_by(|left, right| {
+        (&left.stage_id, !left.is_default, &left.tool_id).cmp(&(
+            &right.stage_id,
+            !right.is_default,
+            &right.tool_id,
+        ))
+    });
+    rows
+}
+
+fn build_fastq_truth_delta_rows(rows: &[FastqClosureGateRow]) -> Vec<FastqTruthDeltaRow> {
+    let mut deltas = Vec::new();
+    for row in rows {
+        if row.requested_execution_status == "closed" && !row.world_class_closed {
+            deltas.push(FastqTruthDeltaRow {
+                entity_type: "fastq_stage_tool_binding".to_string(),
+                entity_id: format!("{}:{}", row.stage_id, row.tool_id),
+                layer: "closure_gate".to_string(),
+                expected_status: "world_class_closed".to_string(),
+                observed_status: row.effective_closure_status.clone(),
+                reason: row.blocking_reasons.clone(),
+            });
+        }
+    }
+    deltas
+}
+
+fn build_fastq_missing_closure_prerequisite_rows(
+    rows: &[FastqClosureGateRow],
+) -> Vec<FastqMissingClosurePrerequisiteRow> {
+    let mut missing = Vec::new();
+    for row in rows {
+        for reason in row.blocking_reasons.split(';').filter(|reason| !reason.trim().is_empty()) {
+            missing.push(FastqMissingClosurePrerequisiteRow {
+                stage_id: row.stage_id.clone(),
+                tool_id: row.tool_id.clone(),
+                prerequisite: reason.to_string(),
+                severity: if row.is_default { "blocking" } else { "advisory" }.to_string(),
+                detail: format!(
+                    "{} cannot be treated as world-class closed for {} until {} is resolved",
+                    row.tool_id, row.stage_id, reason
+                ),
+            });
+        }
+    }
+    missing.sort_by(|left, right| {
+        (&left.stage_id, &left.tool_id, &left.prerequisite).cmp(&(
+            &right.stage_id,
+            &right.tool_id,
+            &right.prerequisite,
+        ))
+    });
+    missing
 }
 
 fn merged_tool_metadata(
