@@ -118,7 +118,7 @@ pinned_commit = "0000000000000000000000000000000000000000"
 
 [cutadapt]
 version = "4.9"
-source = "https://github.com/cutadapt/cutadapt"
+source = "https://github.com/marcelm/cutadapt"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
 
@@ -152,7 +152,7 @@ source_sha256 = "4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b
 
 [fastq_screen]
 version = "0.15.3"
-source = "https://github.com/fastq_screen/fastq_screen"
+source = "https://github.com/StevenWingett/FastQ-Screen"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
 
@@ -164,7 +164,7 @@ source_sha256 = "5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa
 
 [fastqvalidator]
 version = "0.1.1"
-source = "https://github.com/fastqvalidator/fastqvalidator"
+source = "https://github.com/statgen/fastQValidator"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
 
@@ -304,13 +304,13 @@ pinned_commit = "0000000000000000000000000000000000000000"
 
 [musket]
 version = "1.1"
-source = "https://github.com/alexdobin/musket"
+source = "https://sourceforge.net/projects/musket/"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
 
 [pear]
 version = "0.9.6"
-source = "https://github.com/xflouris/PEAR"
+source = "https://cme.h-its.org/exelixis/web/software/pear/"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
 
@@ -386,7 +386,7 @@ source_sha256 = "8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9d
 
 [seqkit_stats]
 version = "2.8.2"
-source = "https://github.com/seqkit_stats/seqkit_stats"
+source = "https://github.com/shenwei356/seqkit"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
 
@@ -450,7 +450,7 @@ source_sha256 = "2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abc
 
 [umi_tools]
 version = "1.1.6"
-source = "https://github.com/umi_tools/umi_tools"
+source = "https://github.com/CGATOxford/UMI-tools"
 date_pinned = "2026-02-12"
 pinned_commit = "0000000000000000000000000000000000000000"
 

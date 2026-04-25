@@ -201,7 +201,7 @@
         "apptainer"
       ],
       "tool_id": "cutadapt",
-      "upstream": "https://github.com/cutadapt/cutadapt",
+      "upstream": "https://github.com/marcelm/cutadapt",
       "version": "4.9"
     },
     {
@@ -237,7 +237,7 @@
         "apptainer"
       ],
       "tool_id": "fastq.validate_reads",
-      "upstream": "https://github.com/vsearch/vsearch",
+      "upstream": "https://github.com/torognes/vsearch",
       "version": "2.28.1"
     },
     {
@@ -249,7 +249,7 @@
         "apptainer"
       ],
       "tool_id": "fastq_scan",
-      "upstream": "https://github.com/indraniel/fastq_scan",
+      "upstream": "https://github.com/rpetit3/fastq-scan",
       "version": "0.0.1"
     },
     {
@@ -273,7 +273,7 @@
         "apptainer"
       ],
       "tool_id": "fastqvalidator",
-      "upstream": "https://github.com/fastqvalidator/fastqvalidator",
+      "upstream": "https://github.com/statgen/fastQValidator",
       "version": "v0.1.1"
     },
     {
@@ -453,7 +453,7 @@
         "apptainer"
       ],
       "tool_id": "pear",
-      "upstream": "https://github.com/xflouris/PEAR",
+      "upstream": "https://cme.h-its.org/exelixis/web/software/pear/",
       "version": "0.9.6"
     },
     {
@@ -561,7 +561,7 @@
         "apptainer"
       ],
       "tool_id": "seqkit_stats",
-      "upstream": "https://github.com/seqkit_stats/seqkit_stats",
+      "upstream": "https://github.com/shenwei356/seqkit",
       "version": "2.7.0"
     },
     {
@@ -645,7 +645,7 @@
         "apptainer"
       ],
       "tool_id": "umi_tools",
-      "upstream": "https://github.com/umi_tools/umi_tools",
+      "upstream": "https://github.com/CGATOxford/UMI-tools",
       "version": "1.1.6"
     },
     {

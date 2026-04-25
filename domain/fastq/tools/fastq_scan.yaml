@@ -47,7 +47,7 @@ execution_contract:
     - "report_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
-upstream: "https://github.com/indraniel/fastq_scan"
+upstream: "https://github.com/rpetit3/fastq-scan"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
 default_version: "0.0.1"

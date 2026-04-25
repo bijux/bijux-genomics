@@ -1,9 +1,9 @@
 {
-  "build_date_utc": "2026-03-27T21:24:55+01:00",
+  "build_date_utc": "2026-03-27T21:32:25+01:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
-  "generator_sha256": "d0f98d70b39d0ba869e08e368fe8b3eabc1f2552c921308e197e3201a5da90f2",
+  "generator_sha256": "67561094922775249813e9973b96e75208a4dff7f4a402880d0e9b6adfd63f17",
   "items": [
     {
       "entry_sha256": "210a5704a7808bc100194718200397dc4ccdb34ef14250fe0638c765d9c69d60",
@@ -342,7 +342,7 @@
       "version": "1.0.11"
     },
     {
-      "entry_sha256": "c8196bd4c267d0d0e59387b613bc87b96f5b39780b0de5e844878a6a4eab3b31",
+      "entry_sha256": "fff7fb06249d876b25338dd31efd9e8ecb3dd39eed6c38483b044c08f8e6763d",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -351,7 +351,7 @@
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/cutadapt/cutadapt",
+      "source": "https://github.com/marcelm/cutadapt",
       "source_sha256": "",
       "status": "production",
       "tool": "cutadapt",
@@ -486,7 +486,7 @@
       "version": "0.0.1"
     },
     {
-      "entry_sha256": "4ef1f58f54658396dfb005da8958bfdb9aa5010b2dc69f598466fd5ab6c946a6",
+      "entry_sha256": "ad51fe6ca405d524f27d573bc934cf4c489f4dc266494e1b8fd9bf5e3011929b",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -495,7 +495,7 @@
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/fastq_screen/fastq_screen",
+      "source": "https://github.com/StevenWingett/FastQ-Screen",
       "source_sha256": "",
       "status": "production",
       "tool": "fastq_screen",
@@ -518,7 +518,7 @@
       "version": "0.12.1"
     },
     {
-      "entry_sha256": "e3792f133f05df1378693da697f7974357327e23dfe5f3dc357626c2dd9b872a",
+      "entry_sha256": "5ce2ee525fdd52a674e090663e8c90dbe61c40cce8f93f79779a091014e116d6",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -527,7 +527,7 @@
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/fastqvalidator/fastqvalidator",
+      "source": "https://github.com/statgen/fastQValidator",
       "source_sha256": "",
       "status": "production",
       "tool": "fastqvalidator",
@@ -886,7 +886,7 @@
       "version": "1.21"
     },
     {
-      "entry_sha256": "dc0fe696d16946542307aa43ab737f1d79a5378eaa5798d5e9c83da7dd28e5fd",
+      "entry_sha256": "78babac9da311e912d08067ceab8a10847936470052b110f73c8a0f0ca1e0a34",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -895,7 +895,7 @@
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/alexdobin/musket",
+      "source": "https://sourceforge.net/projects/musket/",
       "source_sha256": "",
       "status": "production",
       "tool": "musket",
@@ -918,7 +918,7 @@
       "version": "0.1.3"
     },
     {
-      "entry_sha256": "9c1623fde9cb4f9c49bc9aa60b92a7fe4b5832f3a729d4f622ad6b433a46d8c5",
+      "entry_sha256": "e55bb0f859e11f0817930b125084ac43f9e675bde47b8795f31edd8081deee16",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -927,7 +927,7 @@
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/xflouris/PEAR",
+      "source": "https://cme.h-its.org/exelixis/web/software/pear/",
       "source_sha256": "",
       "status": "production",
       "tool": "pear",
@@ -1158,7 +1158,7 @@
       "version": "2.8.2"
     },
     {
-      "entry_sha256": "03baefe3e775726d55aa18c462e86b27606d08db2f91eb475fe2d72131dfb320",
+      "entry_sha256": "4bbc94f75891108c2d5a91d33e979be370b1ff6a01cb8adc35926499cac38f36",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1167,7 +1167,7 @@
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/seqkit_stats/seqkit_stats",
+      "source": "https://github.com/shenwei356/seqkit",
       "source_sha256": "",
       "status": "production",
       "tool": "seqkit_stats",
@@ -1350,7 +1350,7 @@
       "version": "0.39"
     },
     {
-      "entry_sha256": "6cd2519c72a14a0581bc34fb5ae5583ff5ae7a73d39d3a098461a4e242234ff2",
+      "entry_sha256": "0fa88ee55568fa1ef8964aaa5bf6ebc044f8652ea907f51cb2b72641b80f3471",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1359,7 +1359,7 @@
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/umi_tools/umi_tools",
+      "source": "https://github.com/CGATOxford/UMI-tools",
       "source_sha256": "",
       "status": "production",
       "tool": "umi_tools",
@@ -1416,6 +1416,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "edc6444248cbba3ccfbe9fc60a25799865d0dc9318c902dbd1e56fac3255a1a6",
+  "source_sha256": "2fddbea76e0e5490d9b561108183a2c45fe7051ec845187e7244d9348f1c875d",
   "version_map_source": "artifacts/containers/version_map.json"
 }
