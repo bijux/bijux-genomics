@@ -86,6 +86,12 @@ contact = "bijux.github.io@gmail.com"
 scope = "container definitions, smoke policy, version locks"
 
 [[owner]]
+tool_id = "bowtie2_build"
+team = "bijux-dna-platform"
+contact = "bijux.github.io@gmail.com"
+scope = "container definitions, smoke policy, version locks"
+
+[[owner]]
 tool_id = "bracken"
 team = "bijux-dna-platform"
 contact = "bijux.github.io@gmail.com"
