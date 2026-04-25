@@ -50,14 +50,14 @@ _smoke-containers-docker-amd64: ## Build+smoke Docker amd64 containers
 _smoke-containers-apptainer: ## Build+smoke Apptainer containers
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" cargo run -q -p bijux-dna-dev -- containers run smoke-containers-apptainer
 
-_smoke-cntainers-apptainer-bijux-run: ## Apptainer smoke in bijux-run mode (registry commands via exec).
-	@TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" cargo run -q -p bijux-dna-dev -- containers run smoke-cntainers-apptainer-bijux-run
+_smoke-containers-apptainer-bijux-run: ## Apptainer smoke in bijux-run mode (registry commands via exec).
+	@TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" cargo run -q -p bijux-dna-dev -- containers run smoke-containers-apptainer-bijux-run
 
-_smoke-cntainers-apptainer-apptainer-run: ## Apptainer smoke in runscript mode (apptainer run).
-	@TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" cargo run -q -p bijux-dna-dev -- containers run smoke-cntainers-apptainer-apptainer-run
+_smoke-containers-apptainer-apptainer-run: ## Apptainer smoke in runscript mode (apptainer run).
+	@TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" cargo run -q -p bijux-dna-dev -- containers run smoke-containers-apptainer-apptainer-run
 
-_smoke-cntainers-apptainer-verify: _smoke-cntainers-apptainer-bijux-run _smoke-cntainers-apptainer-apptainer-run ## Compare bijux-run vs apptainer-run smoke statuses.
-	@CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" cargo run -q -p bijux-dna-dev -- containers run smoke-cntainers-apptainer-verify
+_smoke-containers-apptainer-verify: _smoke-containers-apptainer-bijux-run _smoke-containers-apptainer-apptainer-run ## Compare bijux-run vs apptainer-run smoke statuses.
+	@CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" cargo run -q -p bijux-dna-dev -- containers run smoke-containers-apptainer-verify
 
 _build-images: ## Build Docker images (docker-arm64 only)
 	@CONTAINER_TYPE="$(CONTAINER_TYPE)" TOOLS="$(TOOLS)" BIJUX_WORKERS="$(BIJUX_WORKERS)" BIJUX_BIN="$(BIJUX_BIN)" CONTAINER_ARTIFACT_DIR="$(CONTAINER_ARTIFACT_DIR)" cargo run -q -p bijux-dna-dev -- containers run build-images
@@ -114,7 +114,7 @@ _containers: ## Print tools/runtime/result/log summary from target-containers ma
 
 .PHONY: _container-runtime-check _env-prep _env-smoke _container-smoke _containers-smoke \
 	_smoke-containers-docker-arm64 _smoke-containers-docker-amd64 _smoke-containers-apptainer \
-	_smoke-cntainers-apptainer-bijux-run _smoke-cntainers-apptainer-apptainer-run _smoke-cntainers-apptainer-verify \
+	_smoke-containers-apptainer-bijux-run _smoke-containers-apptainer-apptainer-run _smoke-containers-apptainer-verify \
 	_build-images _test-images _test-images-stage _test-images-tool _image-smoke-vcf _image-qa \
 	_containers-apptainer-build apptainer-build-all _containers-lint _containers-ensure-images _containers-doctor _containers-release-gate _containers \
 	docker-build-all \

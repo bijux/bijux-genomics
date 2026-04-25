@@ -432,16 +432,16 @@ pub(super) fn run_native_container_command(
             ensure_no_args("smoke-containers-apptainer", args)?;
             run_runtime_smoke_contract(workspace, "apptainer", resolved_smoke_tools(workspace)?)
         }
-        NativeContainerCommandKey::SmokeCntainersApptainerBijuxRun => {
-            ensure_no_args("smoke-cntainers-apptainer-bijux-run", args)?;
+        NativeContainerCommandKey::SmokeContainersApptainerBijuxRun => {
+            ensure_no_args("smoke-containers-apptainer-bijux-run", args)?;
             run_runtime_smoke_contract(workspace, "apptainer", resolved_smoke_tools(workspace)?)
         }
-        NativeContainerCommandKey::SmokeCntainersApptainerApptainerRun => {
-            ensure_no_args("smoke-cntainers-apptainer-apptainer-run", args)?;
+        NativeContainerCommandKey::SmokeContainersApptainerApptainerRun => {
+            ensure_no_args("smoke-containers-apptainer-apptainer-run", args)?;
             run_runtime_smoke_contract(workspace, "apptainer", resolved_smoke_tools(workspace)?)
         }
-        NativeContainerCommandKey::SmokeCntainersApptainerVerify => {
-            ensure_no_args("smoke-cntainers-apptainer-verify", args)?;
+        NativeContainerCommandKey::SmokeContainersApptainerVerify => {
+            ensure_no_args("smoke-containers-apptainer-verify", args)?;
             compare_apptainer_smoke_modes(Path::new(&container_artifact_dir()))
         }
         NativeContainerCommandKey::SmokeCrossRuntimeVerify => {
