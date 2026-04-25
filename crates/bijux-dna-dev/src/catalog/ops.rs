@@ -9,6 +9,11 @@ pub fn assets_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::AssetsRefreshGolden,
         ),
         native(
+            "refresh-reference",
+            "Regenerate governed reference asset documentation under assets/reference.",
+            NativeOpsCommandKey::AssetsRefreshReference,
+        ),
+        native(
             "refresh-toy",
             "Regenerate deterministic toy fixtures under assets/toy.",
             NativeOpsCommandKey::AssetsRefreshToy,
