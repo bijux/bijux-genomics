@@ -25,7 +25,7 @@ SCAN_PATTERNS = (
     "mkdocs.yml",
 )
 
-GITHUB_URL_PATTERN = re.compile(r"https?://github\.com/[^\s)>\]\"']+")
+GITHUB_URL_PATTERN = re.compile(r"https?://github\.com/[^\s;,)>\]\"']+")
 TRAILING_URL_JUNK = "`),.;:"
 IGNORED_SCAN_PATHS = {
     "science-docs/upstream/github-repos/MANIFEST.tsv",
@@ -94,7 +94,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def normalize_repo_id(raw_url: str) -> tuple[str, str] | None:
-    trimmed = raw_url.rstrip(TRAILING_URL_JUNK)
+    trimmed = raw_url.split(";", 1)[0].rstrip(TRAILING_URL_JUNK)
     parsed = urlparse(trimmed)
     if parsed.netloc.lower() != "github.com":
         return None
