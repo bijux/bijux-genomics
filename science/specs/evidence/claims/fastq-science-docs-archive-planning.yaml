@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.science-docs-archive-planning"
+statement: "FASTQ manual upstream evidence acquisition must be planned through the local science-docs contract and download backlog before it is treated as available for review."
+scope: "fastq container evidence slice"
+subject: "fastq_manual_evidence_archive"
+predicate: "is_planned_by"
+object: "science-docs/README.md and science-docs/TODO_DOWNLOAD.md"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.science-docs-archive-governance"

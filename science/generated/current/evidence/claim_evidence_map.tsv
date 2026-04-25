@@ -1,6 +1,8 @@
 claim_id	evidence_id
+claim.fastq.container-build-surface-authority	evidence.fastq.container-build-surface-governance
 claim.fastq.default-settings-authority	evidence.fastq.default-settings-governance
 claim.fastq.environment-resolution-authority	evidence.fastq.environment-resolution-governance
 claim.fastq.execution-surface-authority	evidence.fastq.execution-support-governance
 claim.fastq.planned-tools-remain-excluded	evidence.fastq.planned-exclusion-governance
+claim.fastq.science-docs-archive-planning	evidence.fastq.science-docs-archive-governance
 claim.fastq.tool-registry-authority	evidence.fastq.tool-registry-governance

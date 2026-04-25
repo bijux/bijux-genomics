@@ -1,0 +1,9 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.container-build-surface-governance"
+statement: "FASTQ container refs, dockerfile paths, and apptainer definition paths are governed together by the tool registry and the referenced container build directories."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.tool-registry"
+  - "source.fastq.container-dockerfiles"
+  - "source.fastq.container-apptainer-defs"
