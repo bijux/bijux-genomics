@@ -1,0 +1,8 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.generic-profile-semantics-governance"
+statement: "Generic FASTQ default and minimal profiles exclude terminal-damage trimming, while aDNA profiles opt in explicitly."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.default-settings"
+  - "source.fastq.pipeline-contract"

@@ -1,0 +1,9 @@
+schema_version: "bijux.science.source.v1"
+source_id: "source.fastq.pipeline-contract"
+kind: "repo_directory"
+access: "repo_path"
+title: "FASTQ pipeline ordering contract"
+locator: "crates/bijux-dna-domain-fastq/src/pipeline_contract/"
+authority: "domain.fastq.pipeline_contract"
+notes:
+  - "Defines canonical stage order, default profile stage order, optional branches, and forbidden transitions for FASTQ planning."
