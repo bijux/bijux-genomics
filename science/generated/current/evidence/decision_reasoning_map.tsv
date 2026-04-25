@@ -1,3 +1,4 @@
 decision_id	reasoning_id
 decision.fastq.container-evidence-surface	reasoning.fastq.container-evidence-surface
 decision.fastq.environment-tool-surface	reasoning.fastq.environment-tool-surface
+decision.fastq.reference-asset-evidence-surface	reasoning.fastq.reference-asset-evidence-surface
