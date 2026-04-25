@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-04-25T18:28:07+02:00",
+  "build_date_utc": "2026-04-25T19:35:16+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -470,7 +470,7 @@
       "version": "0.23.4"
     },
     {
-      "entry_sha256": "408fbd490d2bf730bb2318b49bab07186633472ce8a1bb1def34db880629789c",
+      "entry_sha256": "846c886bcc0edbfc8ee180bf8b354987edf25bcfdae15c305501982e9adb20d9",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -479,7 +479,7 @@
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/bijux/bijux-dna",
+      "source": "https://github.com/bijux/bijux-genomics",
       "source_sha256": "",
       "status": "production",
       "tool": "fastq_scan",
@@ -1078,7 +1078,7 @@
       "version": "1.0.7"
     },
     {
-      "entry_sha256": "7ce22ba6c4e688e1ef3675170c58a74702391e7790187901af7d6532de652a64",
+      "entry_sha256": "2720828d92d45a8641dac1214e01616c84ac27ee476f5c0d31241559272c4d3c",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1087,7 +1087,7 @@
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/bijux/bijux-dna",
+      "source": "https://github.com/bijux/bijux-genomics",
       "source_sha256": "",
       "status": "production",
       "tool": "rxy",
@@ -1190,7 +1190,7 @@
       "version": "1.3.2"
     },
     {
-      "entry_sha256": "437e3766bca03ef4f54315bea6b879a26ce7d6cf2bc32156b73361a7bb550f9c",
+      "entry_sha256": "5829602394fdb1dfc368f33f8f3d2f6490de885ce3680428583d8cbd43d4512a",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1199,7 +1199,7 @@
       "resolved_image_digest": "",
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
-      "source": "https://github.com/bijux/bijux-dna",
+      "source": "https://github.com/bijux/bijux-genomics",
       "source_sha256": "",
       "status": "production",
       "tool": "seqpurge",
@@ -1416,6 +1416,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v3",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "aa603a3c209a0a966661bc56a452020ed1a10fca5f84461a9593b68ae9706fe4",
+  "source_sha256": "2aaf34cdb5c7938337f4b2ecb2dbd7e9defc9d51a4355ac3fd7b39d93ac3c0f9",
   "version_map_source": "artifacts/containers/version_map.json"
 }

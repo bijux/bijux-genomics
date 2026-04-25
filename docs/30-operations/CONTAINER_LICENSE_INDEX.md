@@ -47,7 +47,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `eagle` | `non-bijux` | `GPL-3.0` | `https://alkesgroup.broadinstitute.org/Eagle/` | `2.4.1` | `sha256:4444444444444444444444444444444444444444444444444444444444444444` |
 | `eigensoft` | `non-bijux` | `GPL-2.0` | `https://github.com/DReichLab/EIG` | `8.0.0` | `sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9` |
 | `fastp` | `bijux` | `NOASSERTION` | `https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz` | `0.23.4` | `sha256:4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5` |
-| `fastq_scan` | `bijux` | `NOASSERTION` | `https://github.com/bijux/bijux-dna` | `0.0.1` | `sha256:bf710343d3ab7619d3a3d40ac5000bb736e30d056e77fa49c44fad9fba948750` |
+| `fastq_scan` | `bijux` | `NOASSERTION` | `https://github.com/bijux/bijux-genomics` | `0.0.1` | `sha256:60bf65394f907c4488a2d92721d082fd5ab638f49e344fb77fe8612153199507` |
 | `fastq_screen` | `bijux` | `NOASSERTION` | `https://github.com/StevenWingett/FastQ-Screen` | `0.15.3` | `sha256:76ec0ea9a0d1f5d1089f53728ec1db118963b287d025ce0c95887ff5ed481525` |
 | `fastqc` | `bijux` | `NOASSERTION` | `https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip` | `0.12.1` | `sha256:5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7` |
 | `fastqvalidator` | `bijux` | `NOASSERTION` | `https://github.com/statgen/fastQValidator` | `0.1.1` | `sha256:d9ce089cce39f2751619477e42a95a65c4ffe91a3875407f5a5d990b4f76424a` |
@@ -63,7 +63,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `ibdseq` | `bijux` | `GPL-3.0` | `https://faculty.washington.edu/browning/ibdseq.shtml` | `3.0` | `sha256:64459e82afddffc02a8dc092862c200568b2971b7b9b3fb401468e0d898a4aff` |
 | `impute5` | `non-bijux` | `research-only` | `https://jmarchini.org/software/#impute-5` | `1.2.0` | `sha256:3333333333333333333333333333333333333333333333333333333333333333` |
 | `kaiju` | `bijux` | `NOASSERTION` | `https://github.com/bioinformatics-centre/kaiju` | `1.10.0` | `sha256:a8cc1e366558427bb3a111498565dc5c63d12ef0ef41870a41f2dcd8df318a59` |
-| `king` | `bijux` | `NOASSERTION` | `https://www.kingrelatedness.com/` | `2.3.0` | `sha256:ab75bc9c99a95913125bf3bf0d40569dc85dfe1b31e40d5439b094d04e4d88fd` |
+| `king` | `bijux` | `NOASSERTION` | `https://www.kingrelatedness.com/executables/Linux-king230.tar.gz` | `2.3.0` | `sha256:86889f70cdf85c5bb8ac74561d30987cc892f9f5b1f05d95111dbaabdec4e4a3` |
 | `kraken2` | `bijux` | `NOASSERTION` | `https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz` | `2.1.3` | `sha256:5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69` |
 | `krakenuniq` | `bijux` | `NOASSERTION` | `https://github.com/fbreitwieser/krakenuniq` | `1.0.4` | `sha256:d4cdfedb97cb74d26f21c2de00fccde980c33c6e79436ac05f7318aedc85112f` |
 | `leehom` | `bijux` | `NOASSERTION` | `https://github.com/grenaud/leeHom` | `1.0.17` | `sha256:146f111ee336a7d01cba5861a9672d75a7739ad7ece923925bbd90c2550341b1` |
@@ -85,14 +85,14 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `pydamage` | `bijux` | `NOASSERTION` | `https://github.com/maxibor/pydamage` | `0.80` | `sha256:ed7af646980160fd8646c75f3330dcb09a610967e275a4a15da40f0efafcd314` |
 | `qualimap` | `bijux` | `NOASSERTION` | `http://qualimap.conesalab.org/` | `2.3` | `sha256:a7ef3df4645eef0e3aed29a857be712e015b2fbb3feac61da36bc2bd60c46ac8` |
 | `rcorrector` | `bijux` | `NOASSERTION` | `https://github.com/mourisl/Rcorrector` | `1.0.7` | `sha256:33274474f6215e3b78829a2b7f86b5a0f6f191d1da7a2da96cba67f1fb4605a8` |
-| `rxy` | `bijux` | `NOASSERTION` | `https://github.com/bijux/bijux-dna` | `1.0.0` | `sha256:5ae625511ab8efc2fbfcaf1f6bcd58fbc9860288097eebd76081c26378804637` |
+| `rxy` | `bijux` | `NOASSERTION` | `https://github.com/bijux/bijux-genomics` | `1.0.0` | `sha256:3a8b71a8c7cea31e1878468f4a24e03f04ced41a89023866f007f7eb59f3f86c` |
 | `samtools` | `bijux` | `NOASSERTION` | `https://github.com/samtools/samtools` | `1.20` | `sha256:7f915fd8e302a115c068f864994f23ff8f44857b185fba8f4aef62b1db0bad4f` |
 | `schmutzi` | `bijux` | `NOASSERTION` | `https://github.com/grenaud/schmutzi` | `1.5.4` | `sha256:46ed7c4f429836afdc96b2f7f1853eef2e1c2ebef679f847fcc443c447d84029` |
 | `seqfu` | `bijux` | `NOASSERTION` | `https://github.com/telatin/seqfu2` | `2.4.0` | `sha256:6e8fb5563184c42672acd4dbb82fceb9fe49a981411b72a19ed22b6b9b7999b2` |
 | `seqkit` | `bijux` | `NOASSERTION` | `https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz` | `2.8.2` | `sha256:8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc` |
 | `seqkit_stats` | `bijux` | `NOASSERTION` | `https://github.com/shenwei356/seqkit` | `2.8.2` | `sha256:05a2a93924694dedaa2d1bd8d3f2232a746c86a01f19d990e7776b012753317e` |
 | `seqprep` | `bijux` | `NOASSERTION` | `https://github.com/jstjohn/SeqPrep` | `1.3.2` | `sha256:ccd11946e632f755c782db26a4b4524171ec87d1edfe9f4f39c457750390904e` |
-| `seqpurge` | `bijux` | `NOASSERTION` | `https://github.com/bijux/bijux-dna` | `0.1.0` | `sha256:247298c21631e954e42e70c7642d7eeb93a2a7f561761521f32a51014dbfe88e` |
+| `seqpurge` | `bijux` | `NOASSERTION` | `https://github.com/bijux/bijux-genomics` | `0.1.0` | `sha256:86b94836e9ec26a6ad42c1f3ca9929d322566e55f83fdcd267f6d209622127e0` |
 | `seqtk` | `bijux` | `NOASSERTION` | `https://github.com/lh3/seqtk.git` | `1.4` | `sha256:c200063b416c6a64fa4655669e904ba17df01433877a99d6764c91006d8e1ab2` |
 | `shapeit` | `bijux` | `MIT` | `https://odelaneau.github.io/shapeit4/` | `4.2.2` | `sha256:b5d22b48e530a42923b45677eb66db572195e149ae6f96a52bc1f99371dba130` |
 | `shapeit5` | `non-bijux` | `MIT` | `https://odelaneau.github.io/shapeit5/` | `5.1.1` | `sha256:1111111111111111111111111111111111111111111111111111111111111111` |

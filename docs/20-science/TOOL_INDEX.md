@@ -97,7 +97,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `prinseq` | `filter` | `fastq.trim_reads, fastq.filter_reads, fastq.filter_low_complexity` | `bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971` | `1.2.4` | upstream:https://github.com/Adrian-Cantu/PRINSEQ-plus-plus | `production` |
 | `pydamage` | `transform` | `bam.damage` | `bijuxdna/pydamage:1.0.0` | `1.0.0` | upstream:https://github.com/maxibor/pydamage | `production` |
 | `rcorrector` | `corrector` | `fastq.correct_errors` | `bijuxdna/rcorrector@sha256:pending` | `1.0.7` | upstream:https://github.com/mourisl/Rcorrector | `production` |
-| `rxy` | `transform` | `bam.sex` | `bijuxdna/rxy:1.0.0` | `1.0.0` | upstream:https://github.com/bijux/bijux-dna | `production` |
+| `rxy` | `transform` | `bam.sex` | `bijuxdna/rxy:1.0.0` | `1.0.0` | upstream:https://github.com/bijux/bijux-genomics | `production` |
 | `samtools` | `transform` | `bam.validate, bam.qc_pre, bam.mapping_summary, bam.filter, bam.mapq_filter, bam.length_filter, bam.markdup, bam.duplication_metrics, bam.coverage, bam.endogenous_content` | `bijuxdna/samtools:1.21` | `1.21` | upstream:https://github.com/samtools/samtools | `production` |
 | `schmutzi` | `transform` | `bam.contamination` | `bijuxdna/schmutzi:1.5.4` | `1.5.4` | upstream:https://github.com/grenaud/schmutzi | `production` |
 | `seqkit` | `filter` | `fastq.trim_reads, fastq.filter_reads, fastq.normalize_abundance, fastq.trim_terminal_damage, fastq.profile_overrepresented_sequences` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.8.2` | upstream:https://github.com/shenwei356/seqkit | `production` |
