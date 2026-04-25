@@ -174,17 +174,6 @@ fn render_stage_tool_integration_block(dom_dir: &Path) -> Result<Vec<String>> {
         for tool_id in compatible {
             integration.insert(tool_id, "governed_contract".to_string());
         }
-        let planned = {
-            let block = list_block(&text, "planned_out_of_scope")?;
-            if block.is_empty() {
-                inline_list(&text, "planned_out_of_scope")?
-            } else {
-                block
-            }
-        };
-        for tool_id in planned {
-            integration.insert(tool_id, "planned_contract".to_string());
-        }
         stage_map.insert(stage_id, integration);
     }
 

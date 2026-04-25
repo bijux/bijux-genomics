@@ -301,7 +301,6 @@ stage_tool_integration:
     umi_tools: governed_contract
   fastq.filter_low_complexity:
     bbduk: governed_contract
-    dustmasker: planned_contract
     prinseq: governed_contract
   fastq.filter_reads:
     bbduk: governed_contract
@@ -323,7 +322,6 @@ stage_tool_integration:
     pear: governed_contract
     vsearch: governed_contract
   fastq.normalize_abundance:
-    seqfu: planned_contract
     seqkit: governed_contract
   fastq.normalize_primers:
     cutadapt: governed_contract
@@ -336,9 +334,6 @@ stage_tool_integration:
     fastqc: governed_contract
     seqkit: governed_contract
   fastq.profile_read_lengths:
-    fastp: planned_contract
-    prinseq: planned_contract
-    seqfu: planned_contract
     seqkit_stats: governed_contract
   fastq.profile_reads:
     seqkit_stats: governed_contract
@@ -352,7 +347,6 @@ stage_tool_integration:
     multiqc: governed_contract
   fastq.screen_taxonomy:
     centrifuge: governed_contract
-    diamond: planned_contract
     kaiju: governed_contract
     kraken2: governed_contract
     krakenuniq: governed_contract
@@ -371,7 +365,6 @@ stage_tool_integration:
     leehom: governed_contract
     prinseq: governed_contract
     seqkit: governed_contract
-    seqpurge: planned_contract
     skewer: governed_contract
     trim_galore: governed_contract
     trimmomatic: governed_contract
