@@ -729,6 +729,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "bijux-dna-science"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bijux-dna-infra",
+ "bijux-dna-policies",
+ "clap",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "toml",
+ "walkdir",
+]
+
+[[package]]
 name = "bijux-dna-stage-contract"
 version = "0.1.0"
 dependencies = [
