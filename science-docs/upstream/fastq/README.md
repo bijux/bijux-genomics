@@ -18,6 +18,8 @@ upstream evidence packets.
 - `tools/<tool-id>/**`
   untracked local payloads placed at the archive paths recorded in the science
   backlog and evidence map
+- `../papers/<paper-id>/`
+  untracked paper roots linked from the FASTQ evidence map
 
 ## Rules
 
