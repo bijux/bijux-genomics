@@ -44,6 +44,14 @@ struct StageContractDoc {
 #[derive(Clone, Debug, Default)]
 struct ToolRegistryEntry {
     status: String,
+    version: String,
+    default_version: String,
+    version_rule: String,
+    upstream: String,
+    citation: String,
+    license: String,
+    pinned_commit: String,
+    pin_strategy: String,
     runtimes: Vec<String>,
     container_ref: String,
     dockerfile: String,
@@ -146,6 +154,8 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
     let decision_reasoning_map = build_decision_reasoning_map(&loaded);
     let binding_resolution = build_binding_resolution(&loaded);
     let fastq_environment_rows = build_fastq_environment_rows(root, &loaded)?;
+    let fastq_container_reference_rows =
+        build_fastq_container_reference_rows(root, &loaded, &fastq_environment_rows)?;
     let unresolved_refs = validate_cross_references(&loaded);
     if !unresolved_refs.is_empty() {
         return Err(validation_error(unresolved_refs));
@@ -161,6 +171,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         decisions: loaded.decisions.len(),
         bindings: loaded.bindings.len(),
         releases: loaded.releases.len(),
+        fastq_container_reference_rows: fastq_container_reference_rows.len(),
         fastq_environment_rows: fastq_environment_rows.len(),
     };
     Ok(CompiledScience {
@@ -170,6 +181,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         decision_reasoning_map,
         binding_resolution,
         unresolved_refs: Vec::new(),
+        fastq_container_reference_rows,
         fastq_environment_rows,
         index,
     })
@@ -524,6 +536,71 @@ fn build_binding_resolution(loaded: &LoadedSpecs) -> Vec<BindingResolutionRow> {
     rows
 }
 
+fn build_fastq_container_reference_rows(
+    root: &Path,
+    loaded: &LoadedSpecs,
+    fastq_environment_rows: &[FastqEnvironmentRow],
+) -> Result<Vec<crate::domain::FastqContainerReferenceRow>> {
+    let registry_source = loaded
+        .bindings
+        .values()
+        .filter(|binding| binding.target_type == "fastq_stage_tool_environment_matrix")
+        .find_map(|binding| {
+            binding
+                .source_ids
+                .iter()
+                .find(|source_id| source_id.as_str() == "source.fastq.tool-registry")
+        })
+        .ok_or_else(|| {
+            anyhow!("missing source.fastq.tool-registry binding for fastq container matrix")
+        })?;
+    let registry_path = loaded
+        .sources
+        .get(registry_source.as_str())
+        .ok_or_else(|| anyhow!("missing source record {}", registry_source))?;
+    let registry = load_tool_registry(&validate_source_path(root, registry_path)?)?;
+
+    let mut stage_map = BTreeMap::<String, BTreeSet<String>>::new();
+    for row in fastq_environment_rows {
+        stage_map.entry(row.tool_id.clone()).or_default().insert(row.stage_id.clone());
+    }
+
+    let mut rows = stage_map
+        .into_iter()
+        .map(|(tool_id, stage_ids)| {
+            let entry = registry.get(&tool_id).cloned().unwrap_or_default();
+            let reference_status = if entry.container_ref.is_empty()
+                && entry.dockerfile.is_empty()
+                && entry.apptainer_def.is_empty()
+            {
+                "missing_registry_metadata".to_string()
+            } else {
+                "governed".to_string()
+            };
+            crate::domain::FastqContainerReferenceRow {
+                tool_id,
+                stage_ids: stage_ids.into_iter().collect::<Vec<_>>().join(","),
+                reference_status,
+                registry_status: entry.status,
+                version: entry.version,
+                default_version: entry.default_version,
+                version_rule: entry.version_rule,
+                upstream: entry.upstream,
+                citation: entry.citation,
+                license: entry.license,
+                pinned_commit: entry.pinned_commit,
+                pin_strategy: entry.pin_strategy,
+                runtimes: entry.runtimes.join(","),
+                container_ref: entry.container_ref,
+                dockerfile: entry.dockerfile,
+                apptainer_def: entry.apptainer_def,
+            }
+        })
+        .collect::<Vec<_>>();
+    rows.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
+    Ok(rows)
+}
+
 fn build_fastq_environment_rows(
     root: &Path,
     loaded: &LoadedSpecs,
@@ -699,6 +776,46 @@ fn load_tool_registry(path: &Path) -> Result<BTreeMap<String, ToolRegistryEntry>
             ToolRegistryEntry {
                 status: table
                     .get("status")
+                    .and_then(TomlValue::as_str)
+                    .unwrap_or_default()
+                    .to_string(),
+                version: table
+                    .get("version")
+                    .and_then(TomlValue::as_str)
+                    .unwrap_or_default()
+                    .to_string(),
+                default_version: table
+                    .get("default_version")
+                    .and_then(TomlValue::as_str)
+                    .unwrap_or_default()
+                    .to_string(),
+                version_rule: table
+                    .get("version_rule")
+                    .and_then(TomlValue::as_str)
+                    .unwrap_or_default()
+                    .to_string(),
+                upstream: table
+                    .get("upstream")
+                    .and_then(TomlValue::as_str)
+                    .unwrap_or_default()
+                    .to_string(),
+                citation: table
+                    .get("citation")
+                    .and_then(TomlValue::as_str)
+                    .unwrap_or_default()
+                    .to_string(),
+                license: table
+                    .get("license")
+                    .and_then(TomlValue::as_str)
+                    .unwrap_or_default()
+                    .to_string(),
+                pinned_commit: table
+                    .get("pinned_commit")
+                    .and_then(TomlValue::as_str)
+                    .unwrap_or_default()
+                    .to_string(),
+                pin_strategy: table
+                    .get("pin_strategy")
                     .and_then(TomlValue::as_str)
                     .unwrap_or_default()
                     .to_string(),

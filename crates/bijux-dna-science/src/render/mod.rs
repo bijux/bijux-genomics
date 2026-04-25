@@ -1,8 +1,8 @@
 use serde::Serialize;
 
 use crate::domain::{
-    BindingResolutionRow, ClaimEvidenceRow, DecisionReasoningRow, FastqEnvironmentRow,
-    ScienceIndex, SourceArchiveGapRow, SourceInventoryRow,
+    BindingResolutionRow, ClaimEvidenceRow, DecisionReasoningRow, FastqContainerReferenceRow,
+    FastqEnvironmentRow, ScienceIndex, SourceArchiveGapRow, SourceInventoryRow,
 };
 
 pub fn source_inventory_tsv(rows: &[SourceInventoryRow]) -> String {
@@ -41,6 +41,34 @@ pub fn source_archive_gaps_tsv(rows: &[SourceArchiveGapRow]) -> String {
             row.citation,
             row.tool_ids,
             row.reason
+        ));
+    }
+    out
+}
+
+pub fn fastq_container_reference_tsv(rows: &[FastqContainerReferenceRow]) -> String {
+    let mut out = String::from(
+        "tool_id\tstage_ids\treference_status\tregistry_status\tversion\tdefault_version\tversion_rule\tupstream\tcitation\tlicense\tpinned_commit\tpin_strategy\truntimes\tcontainer_ref\tdockerfile\tapptainer_def\n",
+    );
+    for row in rows {
+        out.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            row.tool_id,
+            row.stage_ids,
+            row.reference_status,
+            row.registry_status,
+            row.version,
+            row.default_version,
+            row.version_rule,
+            row.upstream,
+            row.citation,
+            row.license,
+            row.pinned_commit,
+            row.pin_strategy,
+            row.runtimes,
+            row.container_ref,
+            row.dockerfile,
+            row.apptainer_def
         ));
     }
     out

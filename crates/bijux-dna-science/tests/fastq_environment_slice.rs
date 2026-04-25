@@ -2,8 +2,9 @@ use std::path::{Path, PathBuf};
 
 use bijux_dna_science::compile::compile_workspace;
 use bijux_dna_science::render::{
-    binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv, fastq_environment_tsv,
-    index_json, source_archive_gaps_tsv, source_inventory_tsv, to_pretty_json,
+    binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv,
+    fastq_container_reference_tsv, fastq_environment_tsv, index_json, source_archive_gaps_tsv,
+    source_inventory_tsv, to_pretty_json,
 };
 
 fn repo_root() -> PathBuf {
@@ -31,6 +32,10 @@ fn fastq_environment_slice_matches_committed_outputs() {
         .source_inventory
         .iter()
         .any(|row| row.source_id == "source.fastq.tool-registry"));
+    assert!(compiled
+        .fastq_container_reference_rows
+        .iter()
+        .any(|row| row.tool_id == "fastp" && row.version == "0.23.4"));
 
     assert_eq!(
         std::fs::read_to_string(
@@ -45,6 +50,13 @@ fn fastq_environment_slice_matches_committed_outputs() {
         )
         .expect("read committed source archive gaps"),
         source_archive_gaps_tsv(&compiled.source_archive_gaps)
+    );
+    assert_eq!(
+        std::fs::read_to_string(
+            root.join("science/generated/current/evidence/fastq_container_reference_matrix.tsv")
+        )
+        .expect("read committed fastq container matrix"),
+        fastq_container_reference_tsv(&compiled.fastq_container_reference_rows)
     );
     assert_eq!(
         std::fs::read_to_string(
