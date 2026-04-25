@@ -13,7 +13,9 @@ mod stage_order;
 mod tool_defaults;
 
 pub(crate) use adna::adna_fastq_defaults;
-pub(crate) use defaults_assembly::fastq_defaults;
+pub(crate) use defaults_assembly::{fastq_defaults, generic_fastq_defaults};
 pub(crate) use reference_adna::reference_adna_fastq_defaults;
 
-pub(crate) use stage_order::{append_stage_once, default_shotgun_required_stages};
+pub(crate) use stage_order::{
+    append_stage_once, default_shotgun_required_stages, minimal_shotgun_required_stages,
+};

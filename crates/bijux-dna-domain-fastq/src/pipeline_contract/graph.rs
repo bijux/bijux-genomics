@@ -9,6 +9,9 @@ pub use assembly::{
 #[cfg(test)]
 mod tests {
     use super::preprocess_pipeline_graph_for_stage_order;
+    use crate::pipeline_contract::{
+        canonical_stage_order, default_shotgun_preprocess_stage_order, forbidden_transitions,
+    };
     use bijux_dna_core::ids::StageId;
 
     #[test]
@@ -58,5 +61,30 @@ mod tests {
                 && edge.from_output_id.as_deref() == Some("qc_json")
                 && edge.to_input_id.as_deref() == Some("qc_artifacts")
         }));
+    }
+
+    #[test]
+    fn umi_extraction_precedes_trim_and_filter_in_canonical_order() {
+        let order = canonical_stage_order();
+        let position = |stage: &str| {
+            order
+                .iter()
+                .position(|candidate| candidate.as_str() == stage)
+                .unwrap_or_else(|| panic!("missing stage {stage}"))
+        };
+        assert!(position("fastq.extract_umis") < position("fastq.trim_reads"));
+        assert!(position("fastq.extract_umis") < position("fastq.filter_reads"));
+        assert!(forbidden_transitions().iter().any(|(from, to)| {
+            from.as_str() == "fastq.trim_reads" && to.as_str() == "fastq.extract_umis"
+        }));
+    }
+
+    #[test]
+    fn shotgun_defaults_do_not_include_terminal_damage_trimming() {
+        let defaults = default_shotgun_preprocess_stage_order()
+            .into_iter()
+            .map(|stage| stage.as_str().to_string())
+            .collect::<Vec<_>>();
+        assert!(!defaults.iter().any(|stage| stage == "fastq.trim_terminal_damage"));
     }
 }
