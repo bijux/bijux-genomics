@@ -15,6 +15,12 @@ upstream evidence packets.
   operator-facing rules for per-tool evidence packets
 - `tools/EVIDENCE_MAP.tsv`
   tracked locator map for curated FASTQ tool evidence packets
+- `STAGE_CLAIMS.tsv`
+  machine-readable stage claim registry for empirical, policy, database,
+  comparability, and order-justification claims
+- `STAGE_LIBRARY_SUPPORT.tsv`
+  machine-readable library-type support, exclusion, and unsafe-use matrix for
+  governed FASTQ stages
 - `tools/<tool-id>/**`
   untracked local payloads placed at the archive paths recorded in the science
   backlog and evidence map
