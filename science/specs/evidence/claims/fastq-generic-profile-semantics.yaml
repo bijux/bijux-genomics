@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.generic-profile-semantics"
+statement: "Generic FASTQ profiles must not require terminal-damage trimming; aDNA-oriented profiles must select that stage explicitly."
+scope: "fastq profile defaults"
+subject: "fastq_generic_profiles"
+predicate: "exclude_specialized_terminal_damage_stage"
+object: "fastq.trim_terminal_damage"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.generic-profile-semantics-governance"

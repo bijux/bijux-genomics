@@ -1,0 +1,8 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.umi-first-ordering-governance"
+statement: "FASTQ pipeline ordering places UMI extraction immediately after validation and forbids trim/filter before inline UMI extraction."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.pipeline-contract"
+  - "source.fastq.default-settings"

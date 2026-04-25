@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.umi-first-ordering"
+statement: "Inline UMI extraction must run before trimming or filtering can remove or alter barcode-bearing read sequence."
+scope: "fastq stage ordering"
+subject: "fastq.extract_umis"
+predicate: "precedes"
+object: "fastq.trim_reads,fastq.filter_reads"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.umi-first-ordering-governance"
