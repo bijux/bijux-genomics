@@ -651,7 +651,7 @@
     {
       "apptainer_def": "containers/apptainer/shared/verifybamid2.def",
       "dockerfile": "containers/docker/arm64/Dockerfile.verifybamid2",
-      "pinned_commit": "git:4b362f5191b8385d038350acc03800890dd66524",
+      "pinned_commit": "git:83a1c936ef2e1a8c9e78ed2d2e2d328adf0c6447",
       "runtimes": [
         "docker",
         "apptainer"
