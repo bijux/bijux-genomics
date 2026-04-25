@@ -35,6 +35,7 @@ pub enum NativeContainerCommandKey {
     CheckToolNameMapGenerated,
     GenerateContainerIndex,
     CheckContainerIndex,
+    GenerateGhcrPublishMatrix,
     GenerateLicenseMetadata,
     CheckLicenseMetadata,
     CheckLicenseIndexGenerated,

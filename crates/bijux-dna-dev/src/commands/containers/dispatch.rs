@@ -71,6 +71,9 @@ pub(super) fn run_native_container_command(
             ensure_no_args("check-index", args)?;
             metadata::check_container_index(workspace)
         }
+        NativeContainerCommandKey::GenerateGhcrPublishMatrix => {
+            metadata::generate_ghcr_publish_matrix(workspace, args)
+        }
         NativeContainerCommandKey::GenerateLicenseMetadata => {
             metadata::generate_license_metadata(workspace, args)
         }

@@ -137,6 +137,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::CheckContainerIndex,
         ),
         native(
+            "generate-ghcr-publish-matrix",
+            "Generate the GHCR publication matrix for governed Docker container images.",
+            NativeContainerCommandKey::GenerateGhcrPublishMatrix,
+        ),
+        native(
             "generate-license-metadata",
             "Generate container license metadata and the license index document.",
             NativeContainerCommandKey::GenerateLicenseMetadata,
