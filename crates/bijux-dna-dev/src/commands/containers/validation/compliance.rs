@@ -1042,7 +1042,11 @@ pub(in super::super) fn check_docker_unpinned_apt(
                 ) {
                     continue;
                 }
-                if token.starts_with('$') || token.starts_with('"') || token.starts_with('/') {
+                if token.starts_with('-')
+                    || token.starts_with('$')
+                    || token.starts_with('"')
+                    || token.starts_with('/')
+                {
                     continue;
                 }
                 if !token.contains('=') {
