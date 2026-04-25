@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.estimate_library_complexity_prealign
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq observe estimate-library-complexity-prealign --reads reads.fq --out library_complexity_report.json
+expected_outputs=library_complexity_report
+expected_stdout_patterns=contract_ok,estimated_duplicate_fraction

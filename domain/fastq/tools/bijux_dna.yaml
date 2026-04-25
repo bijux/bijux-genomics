@@ -1,0 +1,135 @@
+schema_version: "bijux.tool.v2"
+tool_id: "bijux_dna"
+upstream: "https://github.com/bijux/bijux-genomics"
+versioning_strategy: "workspace"
+pin_strategy: "workspace_commit"
+default_version: "workspace"
+install_kind: "workspace_binary"
+license: "project"
+citation: "software:https://github.com/bijux/bijux-genomics"
+planned_stage_ids:
+  - "fastq.build_contaminant_db"
+  - "fastq.build_rrna_db"
+  - "fastq.build_taxonomy_db"
+  - "fastq.capture_provenance_snapshot"
+  - "fastq.classify_layout"
+  - "fastq.concatenate_lanes"
+  - "fastq.deinterleave_reads"
+  - "fastq.demultiplex_reads"
+  - "fastq.detect_duplicates_premerge"
+  - "fastq.detect_instrument_artifacts"
+  - "fastq.estimate_library_complexity_prealign"
+  - "fastq.interleave_reads"
+  - "fastq.materialize_qc_manifest"
+  - "fastq.normalize_read_names"
+  - "fastq.prepare_adapter_bank"
+  - "fastq.prepare_host_reference_bundle"
+  - "fastq.prepare_primer_bank"
+  - "fastq.repair_pairs"
+  - "fastq.subsample_reads"
+  - "fastq.verify_assets"
+stage_ids: []
+stage_contracts:
+  fastq.build_contaminant_db:
+    required_inputs: ["contaminant_sources"]
+    expected_artifacts: ["contaminant_database", "asset_lock"]
+    notes: "Planned internal contract harness for contaminant database asset-build closure."
+  fastq.build_rrna_db:
+    required_inputs: ["rrna_sources"]
+    expected_artifacts: ["rrna_database", "asset_lock"]
+    notes: "Planned internal contract harness for rRNA database asset-build closure."
+  fastq.build_taxonomy_db:
+    required_inputs: ["taxonomy_sources"]
+    expected_artifacts: ["taxonomy_database", "asset_lock"]
+    notes: "Planned internal contract harness for taxonomy database asset-build closure."
+  fastq.capture_provenance_snapshot:
+    required_inputs: ["plan_manifest"]
+    expected_artifacts: ["provenance_snapshot"]
+    notes: "Planned internal contract harness for pre-execution provenance snapshot closure."
+  fastq.classify_layout:
+    required_inputs: ["reads"]
+    expected_artifacts: ["layout_classification"]
+    notes: "Planned internal contract harness for input layout classification closure."
+  fastq.concatenate_lanes:
+    required_inputs: ["lane_manifest"]
+    expected_artifacts: ["concatenated_reads", "lane_manifest_out"]
+    notes: "Planned internal contract harness for lane concatenation closure."
+  fastq.deinterleave_reads:
+    required_inputs: ["interleaved_reads"]
+    expected_artifacts: ["reads_r1", "reads_r2", "layout_report"]
+    notes: "Planned internal contract harness for deinterleaving closure."
+  fastq.demultiplex_reads:
+    required_inputs: ["reads", "barcode_manifest"]
+    expected_artifacts: ["sample_reads", "demultiplex_report"]
+    notes: "Planned internal contract harness for demultiplexing closure."
+  fastq.detect_duplicates_premerge:
+    required_inputs: ["reads"]
+    expected_artifacts: ["duplicate_signal_report"]
+    notes: "Planned internal contract harness for report-only premerge duplicate-signal closure."
+  fastq.detect_instrument_artifacts:
+    required_inputs: ["reads"]
+    expected_artifacts: ["instrument_artifact_report"]
+    notes: "Planned internal contract harness for report-only instrument-artifact closure."
+  fastq.estimate_library_complexity_prealign:
+    required_inputs: ["reads"]
+    expected_artifacts: ["library_complexity_report"]
+    notes: "Planned internal contract harness for prealignment complexity-estimate closure."
+  fastq.interleave_reads:
+    required_inputs: ["reads_r1", "reads_r2"]
+    expected_artifacts: ["interleaved_reads", "layout_report"]
+    notes: "Planned internal contract harness for interleaving closure."
+  fastq.materialize_qc_manifest:
+    required_inputs: ["qc_reports"]
+    expected_artifacts: ["qc_manifest"]
+    notes: "Planned internal contract harness for QC manifest materialization closure."
+  fastq.normalize_read_names:
+    required_inputs: ["reads"]
+    expected_artifacts: ["normalized_reads", "name_normalization_report"]
+    notes: "Planned internal contract harness for read-name normalization closure."
+  fastq.prepare_adapter_bank:
+    required_inputs: ["adapter_sources"]
+    expected_artifacts: ["adapter_bank", "asset_lock"]
+    notes: "Planned internal contract harness for adapter-bank preparation closure."
+  fastq.prepare_host_reference_bundle:
+    required_inputs: ["host_reference_sources"]
+    expected_artifacts: ["host_reference_bundle", "asset_lock"]
+    notes: "Planned internal contract harness for host-reference bundle preparation closure."
+  fastq.prepare_primer_bank:
+    required_inputs: ["primer_sources"]
+    expected_artifacts: ["primer_bank", "asset_lock"]
+    notes: "Planned internal contract harness for primer-bank preparation closure."
+  fastq.repair_pairs:
+    required_inputs: ["reads_r1", "reads_r2"]
+    expected_artifacts: ["repaired_reads_r1", "repaired_reads_r2", "repair_report"]
+    notes: "Planned internal contract harness for pair-repair closure."
+  fastq.subsample_reads:
+    required_inputs: ["reads"]
+    expected_artifacts: ["subsampled_reads", "subsample_report"]
+    notes: "Planned internal contract harness for deterministic subsampling closure."
+  fastq.verify_assets:
+    required_inputs: ["asset_locks"]
+    expected_artifacts: ["asset_verification_report"]
+    notes: "Planned internal contract harness for asset verification closure."
+status: "planned"
+scope: "pre_hpc_pre_vcf"
+expected_artifacts:
+  - "asset_lock"
+  - "asset_verification_report"
+  - "layout_report"
+  - "provenance_snapshot"
+  - "qc_manifest"
+  - "report_json"
+metrics_schema_id: "bijux.stage.metrics.v1"
+metrics_schema: "bijux.stage.metrics.v1"
+version_cmd: "bijux-dna --version"
+help_cmd: "bijux-dna --help"
+comparability:
+  comparable_with: []
+  non_comparable_with: []
+comparability_notes: "Contract harness fixtures are not comparable with scientific backend tools."
+notes: "Internal non-container contract harness for planned FASTQ manifest, layout, asset, and observability stages."
+capabilities:
+  - "manifest"
+  - "asset"
+  - "layout"
+  - "provenance"

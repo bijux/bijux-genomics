@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.capture_provenance_snapshot
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq provenance snapshot --plan plan_manifest.json --out provenance_snapshot.json
+expected_outputs=provenance_snapshot
+expected_stdout_patterns=contract_ok,provenance_entry_count
