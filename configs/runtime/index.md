@@ -28,6 +28,7 @@ Fields:
 - `configs/runtime/reference_bank.toml`
 - `configs/runtime/genetic_map_bank.toml`
 - `configs/runtime/asset_locks.toml`
+- `configs/runtime/asset_hydration.toml`
 - `configs/runtime/organellar_policy.toml`
 - `configs/runtime/reference_sets.toml`
 - `configs/runtime/reference_bundles_lock.sha256`

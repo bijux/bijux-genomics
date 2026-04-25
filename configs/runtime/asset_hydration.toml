@@ -1,0 +1,83 @@
+schema_version = "bijux.runtime.asset_hydration.v1"
+authority = "configs/runtime/asset_hydration.toml"
+lock_authority = "configs/runtime/asset_locks.toml"
+
+[policy]
+checksum_algorithm = "sha256"
+hydrate_default = "verify_existing_then_materialize_missing"
+offline_replay = "prefer_archived_evidence_payloads"
+eviction_policy = "never_evict_locked_assets_without_manifest_update"
+update_policy = "new_lock_family_revision_required_for_digest_change"
+planner_output = "required_runtime_assets"
+
+[[asset_bundle]]
+id = "human_host_depletion_grch38"
+stage_ids = ["fastq.prepare_host_reference_bundle", "fastq.deplete_host"]
+lock_family = "host_depletion_index"
+species = "Homo sapiens"
+build = "GRCh38.p14"
+materialization_root = "artifacts/runtime-assets/fastq/host/human/grch38"
+required_for_routes = ["host_associated_metagenome", "depletion_first"]
+verification_command = "bijux dna runtime assets verify --bundle human_host_depletion_grch38"
+hydration_command = "bijux dna runtime assets hydrate --bundle human_host_depletion_grch38"
+offline_replay_source = "science-docs/upstream/runtime-assets/host/human/grch38"
+
+[[asset_bundle]]
+id = "common_lab_contaminants"
+stage_ids = ["fastq.build_contaminant_db", "fastq.deplete_reference_contaminants"]
+lock_family = "contaminant_depletion_index"
+materialization_root = "artifacts/runtime-assets/fastq/contaminants/common-lab"
+required_for_routes = ["depletion_first"]
+verification_command = "bijux dna runtime assets verify --bundle common_lab_contaminants"
+hydration_command = "bijux dna runtime assets hydrate --bundle common_lab_contaminants"
+offline_replay_source = "science-docs/upstream/runtime-assets/contaminants/common-lab"
+
+[[asset_bundle]]
+id = "shotgun_taxonomy_triage"
+stage_ids = ["fastq.build_taxonomy_db", "fastq.screen_taxonomy"]
+lock_family = "kraken2_database"
+materialization_root = "artifacts/runtime-assets/fastq/taxonomy/shotgun-triage"
+required_for_routes = ["host_associated_metagenome", "depletion_first"]
+verification_command = "bijux dna runtime assets verify --bundle shotgun_taxonomy_triage"
+hydration_command = "bijux dna runtime assets hydrate --bundle shotgun_taxonomy_triage"
+offline_replay_source = "science-docs/upstream/runtime-assets/taxonomy/shotgun-triage"
+
+[[asset_bundle]]
+id = "rrna_depletion_common"
+stage_ids = ["fastq.build_rrna_db", "fastq.deplete_rrna"]
+lock_family = "sortmerna_rrna_database"
+materialization_root = "artifacts/runtime-assets/fastq/rrna/common"
+required_for_routes = ["depletion_first"]
+verification_command = "bijux dna runtime assets verify --bundle rrna_depletion_common"
+hydration_command = "bijux dna runtime assets hydrate --bundle rrna_depletion_common"
+offline_replay_source = "science-docs/upstream/runtime-assets/rrna/common"
+
+[[asset_bundle]]
+id = "amplicon_primer_pack_common_markers"
+stage_ids = ["fastq.prepare_primer_bank", "fastq.normalize_primers"]
+lock_family = "primer_bank"
+materialization_root = "artifacts/runtime-assets/fastq/primers/common-markers"
+required_for_routes = ["amplicon_standard", "amplicon_umi"]
+verification_command = "bijux dna runtime assets verify --bundle amplicon_primer_pack_common_markers"
+hydration_command = "bijux dna runtime assets hydrate --bundle amplicon_primer_pack_common_markers"
+offline_replay_source = "science-docs/upstream/runtime-assets/primers/common-markers"
+
+[[asset_bundle]]
+id = "illumina_adapter_bank"
+stage_ids = ["fastq.prepare_adapter_bank", "fastq.detect_adapters", "fastq.trim_reads"]
+lock_family = "adapter_bank"
+materialization_root = "artifacts/runtime-assets/fastq/adapters/illumina"
+required_for_routes = ["shotgun_standard", "shotgun_adna", "amplicon_standard", "amplicon_umi", "host_associated_metagenome", "premerged_single_end", "default_qc"]
+verification_command = "bijux dna runtime assets verify --bundle illumina_adapter_bank"
+hydration_command = "bijux dna runtime assets hydrate --bundle illumina_adapter_bank"
+offline_replay_source = "science-docs/upstream/runtime-assets/adapters/illumina"
+
+[[asset_bundle]]
+id = "umi_pattern_pack_standard"
+stage_ids = ["fastq.extract_umis"]
+lock_family = "umi_pattern_pack"
+materialization_root = "artifacts/runtime-assets/fastq/umi/standard"
+required_for_routes = ["amplicon_umi"]
+verification_command = "bijux dna runtime assets verify --bundle umi_pattern_pack_standard"
+hydration_command = "bijux dna runtime assets hydrate --bundle umi_pattern_pack_standard"
+offline_replay_source = "science-docs/upstream/runtime-assets/umi/standard"
