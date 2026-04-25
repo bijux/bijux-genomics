@@ -140,6 +140,7 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 - Inputs/Outputs: paired reads -> umi_reads_r1/umi_reads_r2.
 - Metrics: reads_with_umi, reads_in, reads_out.
 - Defaults: no-op until an explicit UMI pattern or extraction contract is bound.
+- Ordering: must run after structural FASTQ validation and before trim/filter stages when inline UMIs are requested.
 - Tools: umi_tools.
 - References: `domain/fastq/stages/extract_umis.yaml`, `domain/fastq/tools/`.
 
@@ -163,7 +164,7 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 - Purpose: trim or mask terminal damage signatures in aDNA-like libraries.
 - Inputs/Outputs: reads -> trimmed_reads, report_json.
 - Metrics: terminal asymmetry before/after trimming.
-- Defaults: ancient-DNA-oriented terminal trimming with symmetric short-end clipping.
+- Defaults: ancient-DNA-oriented terminal trimming with symmetric short-end clipping; generic default and minimal FASTQ profiles do not require this stage.
 - Tools: cutadapt, seqkit.
 - References: `domain/fastq/stages/trim_terminal_damage.yaml`, `domain/fastq/tools/`.
 

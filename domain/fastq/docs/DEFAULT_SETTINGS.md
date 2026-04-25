@@ -2,6 +2,12 @@
 
 Purpose: define deterministic defaults for every FASTQ stage contract.
 
+## Profile Semantics
+- `fastq-to-fastq__default__v1` is the generic FASTQ baseline. It does not require `fastq.trim_terminal_damage` and does not carry terminal-damage tool or parameter defaults.
+- `fastq-to-fastq__minimal__v1` is the reduced generic baseline. It keeps only validation, adapter detection, trimming, filtering, and QC aggregation as required stages.
+- aDNA-oriented FASTQ profiles opt in to `fastq.trim_terminal_damage` explicitly because terminal damage trimming is a library-specific decision, not an unknown-assay default.
+- UMI extraction is ordered immediately after read validation when requested so inline UMIs are captured before adapter, polyG, quality, or length trimming can alter the barcode-bearing sequence.
+
 ## Inputs
 - FASTQ read pairs or single-end reads, plus optional reference/decoy indexes by stage.
 
