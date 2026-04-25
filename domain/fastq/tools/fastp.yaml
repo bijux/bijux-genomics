@@ -52,7 +52,7 @@ pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "upstream:https://github.com/OpenGene/fastp"
+citation: "paper:https://academic.oup.com/bioinformatics/article/34/17/i884/5093234"
 stage_ids:
   - "fastq.trim_reads"
   - "fastq.filter_reads"

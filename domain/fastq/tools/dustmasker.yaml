@@ -6,7 +6,7 @@ pin_strategy: "pinned"
 default_version: "2.15.0"
 install_kind: "container"
 license: "Public-Domain"
-citation: "upstream:https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/src/app/dustmasker/"
+citation: "paper:https://journals.sagepub.com/doi/abs/10.1089/cmb.2006.13.1028"
 planned_stage_ids: ["fastq.filter_low_complexity"]
 stage_ids: ["fastq.filter_low_complexity"]
 stage_contracts:

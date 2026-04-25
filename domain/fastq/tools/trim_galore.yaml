@@ -48,7 +48,7 @@ pin_strategy: "pinned"
 default_version: "0.6.10"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "software:https://github.com/FelixKrueger/TrimGalore"
+citation: "software:https://doi.org/10.5281/zenodo.7598955"
 stage_ids: ["fastq.trim_reads"]
 stage_contracts:
   fastq.trim_reads:
