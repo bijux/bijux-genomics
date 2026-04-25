@@ -226,6 +226,161 @@ pub(super) fn check_container_index(workspace: &Workspace) -> Result<ContainerCo
     success_line("containers index: OK")
 }
 
+fn ghcr_package_prefix(workspace: &Workspace) -> Result<String> {
+    let _repo_name = workspace
+        .root
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| anyhow!("unable to resolve repository name from {}", workspace.root.display()))?;
+    Ok("ghcr.io/bijux".to_string())
+}
+
+fn parse_ghcr_publish_matrix_args(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<(PathBuf, String, BTreeSet<String>, BTreeSet<String>)> {
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- [<output-path>] [--tool <tool-id>]... [--status <status>]... [--package-prefix <prefix>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return Err(anyhow!(usage.to_string()));
+    }
+
+    let mut output = workspace.path("artifacts/containers/ghcr/publish-matrix.json");
+    let mut package_prefix = ghcr_package_prefix(workspace)?;
+    let mut tools = BTreeSet::new();
+    let mut statuses = BTreeSet::new();
+
+    let mut index = 0;
+    if let Some(first) = args.first() {
+        if !first.starts_with("--") {
+            output = path_from_arg(workspace, first);
+            index = 1;
+        }
+    }
+
+    while index < args.len() {
+        match args[index].as_str() {
+            "--tool" => {
+                let Some(tool) = args.get(index + 1) else {
+                    return Err(anyhow!(usage.to_string()));
+                };
+                tools.insert(tool.trim().to_string());
+                index += 2;
+            }
+            "--status" => {
+                let Some(status) = args.get(index + 1) else {
+                    return Err(anyhow!(usage.to_string()));
+                };
+                statuses.insert(status.trim().to_string());
+                index += 2;
+            }
+            "--package-prefix" => {
+                let Some(prefix) = args.get(index + 1) else {
+                    return Err(anyhow!(usage.to_string()));
+                };
+                package_prefix = prefix.trim().trim_end_matches('/').to_string();
+                index += 2;
+            }
+            _ => return Err(anyhow!(usage.to_string())),
+        }
+    }
+
+    Ok((output, package_prefix, tools, statuses))
+}
+
+fn ghcr_publish_matrix_value(
+    workspace: &Workspace,
+    package_prefix: &str,
+    tools_filter: &BTreeSet<String>,
+    status_filter: &BTreeSet<String>,
+) -> Result<serde_json::Value> {
+    let registry = registry_tool_map(workspace)?;
+    let versions = tool_versions(workspace)?;
+    let statuses = governed_container_statuses(workspace)?;
+    let docker_tools = docker_tool_ids(workspace)?;
+
+    let mut items = Vec::new();
+    for tool_id in docker_tools {
+        if !tools_filter.is_empty() && !tools_filter.contains(&tool_id) {
+            continue;
+        }
+        let status = statuses
+            .get(&tool_id)
+            .cloned()
+            .unwrap_or_else(|| "experimental".to_string());
+        if !status_filter.is_empty() && !status_filter.contains(&status) {
+            continue;
+        }
+
+        let version_row = versions.get(&tool_id).cloned().unwrap_or_default();
+        let registry_row = registry.get(&tool_id).cloned().unwrap_or_default();
+        let tool_version = table_string(&version_row, "version")
+            .trim()
+            .to_string();
+        let resolved_version = if tool_version.is_empty() {
+            let registry_version = table_string(&registry_row, "version");
+            if registry_version.trim().is_empty() {
+                "unknown".to_string()
+            } else {
+                registry_version.trim().to_string()
+            }
+        } else {
+            tool_version
+        };
+        let registry_status = table_string(&registry_row, "status");
+        let image_ref = format!("{package_prefix}/{tool_id}");
+        items.push(serde_json::json!({
+            "tool_id": tool_id,
+            "status": status,
+            "dockerfile": format!("containers/docker/arm64/Dockerfile.{tool_id}"),
+            "build_context": ".",
+            "platform": "linux/arm64",
+            "tool_version": resolved_version,
+            "image_ref": image_ref,
+            "push_latest": if registry_status.is_empty() {
+                statuses.get(&tool_id).is_some_and(|value| value == "production")
+            } else {
+                registry_status == "production"
+            },
+        }));
+    }
+
+    if !tools_filter.is_empty() {
+        let resolved_tools = items
+            .iter()
+            .filter_map(|item| item.get("tool_id").and_then(serde_json::Value::as_str))
+            .map(ToOwned::to_owned)
+            .collect::<BTreeSet<_>>();
+        let missing = tools_filter.difference(&resolved_tools).cloned().collect::<Vec<_>>();
+        if !missing.is_empty() {
+            return Err(anyhow!("unknown or non-docker tool ids in GHCR publish matrix request: {}", missing.join(", ")));
+        }
+    }
+
+    Ok(serde_json::json!({
+        "schema_version": "bijux.container.ghcr_publish_matrix.v1",
+        "package_prefix": package_prefix,
+        "repository": workspace.root.file_name().and_then(|name| name.to_str()).unwrap_or_default(),
+        "generated_at_utc": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+        "items": items,
+    }))
+}
+
+pub(super) fn generate_ghcr_publish_matrix(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<ContainerCommandOutcome> {
+    let usage = "Usage: cargo run -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- [<output-path>] [--tool <tool-id>]... [--status <status>]... [--package-prefix <prefix>]";
+    if matches!(args, [single] if single == "--help" || single == "-h") {
+        return success_line(usage);
+    }
+
+    let (output, package_prefix, tools, statuses) =
+        parse_ghcr_publish_matrix_args(workspace, args)?;
+    let payload = ghcr_publish_matrix_value(workspace, &package_prefix, &tools, &statuses)?;
+    write_utf8(&output, &json_string_pretty(&payload)?)?;
+    success_line(format!("generated {}", output.display()))
+}
+
 #[derive(Debug, Clone)]
 struct LicenseMetadataEntry {
     tool: String,
@@ -1136,4 +1291,45 @@ pub(super) fn check_qa_matrix_generated(workspace: &Workspace) -> Result<Contain
         ));
     }
     success_line("qa matrix generated: OK")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_ghcr_publish_matrix_args_keeps_default_output_and_prefix() {
+        let workspace = Workspace { root: PathBuf::from("/tmp/bijux-genomics") };
+        let args = vec![
+            "--tool".to_string(),
+            "fastp".to_string(),
+            "--status".to_string(),
+            "production".to_string(),
+        ];
+        let (output, prefix, tools, statuses) =
+            parse_ghcr_publish_matrix_args(&workspace, &args).expect("parse args");
+        assert_eq!(
+            output,
+            PathBuf::from("/tmp/bijux-genomics/artifacts/containers/ghcr/publish-matrix.json")
+        );
+        assert_eq!(prefix, "ghcr.io/bijux");
+        assert_eq!(tools, BTreeSet::from([String::from("fastp")]));
+        assert_eq!(statuses, BTreeSet::from([String::from("production")]));
+    }
+
+    #[test]
+    fn parse_ghcr_publish_matrix_args_accepts_output_and_prefix_override() {
+        let workspace = Workspace { root: PathBuf::from("/tmp/bijux-genomics") };
+        let args = vec![
+            "reports/publish.json".to_string(),
+            "--package-prefix".to_string(),
+            "ghcr.io/example/private".to_string(),
+        ];
+        let (output, prefix, tools, statuses) =
+            parse_ghcr_publish_matrix_args(&workspace, &args).expect("parse args");
+        assert_eq!(output, PathBuf::from("/tmp/bijux-genomics/reports/publish.json"));
+        assert_eq!(prefix, "ghcr.io/example/private");
+        assert!(tools.is_empty());
+        assert!(statuses.is_empty());
+    }
 }
