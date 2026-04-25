@@ -1,5 +1,5 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- source: cargo run -p bijux-dev-dna -- containers run generate-tool-docs -->
+<!-- source: cargo run -p bijux-dna-dev -- containers run generate-tool-docs -->
 # minimac4
 
 Purpose: generated per-tool container contract summary.
