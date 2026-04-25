@@ -32,6 +32,9 @@ upstream evidence packets.
 - `TAG_ONLY_CONTAINER_BLOCKERS.tsv`
   tracked blocker registry for admitted FASTQ production-registry entries whose
   `container_ref` still uses a tag rather than an immutable `@sha256:` digest
+- `QA_COVERAGE_BLOCKERS.tsv`
+  tracked blocker registry for admitted FASTQ execution-support stages that do
+  not yet have behavioral environment-QA coverage
 - `tools/<tool-id>/**`
   untracked local payloads placed at the archive paths recorded in the science
   backlog and evidence map
