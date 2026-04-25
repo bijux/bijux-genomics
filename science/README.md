@@ -21,6 +21,7 @@ The first implemented slice is the FASTQ environment and container support surfa
 - which tool is the governed default for each FASTQ stage
 - which planned tools remain outside the closed runtime surface
 - which container and runtime references back each admitted tool
+- which upstream source packets and paper roots back each reviewed FASTQ tool
 
 This control surface does not replace `domain/**`, `configs/**`, `containers/**`, or
 `crates/bijux-dna-environment/**`. It traces and compiles the claims that explain how those

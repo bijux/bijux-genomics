@@ -19,7 +19,7 @@ upstream evidence packets.
   untracked local payloads placed at the archive paths recorded in the science
   backlog and evidence map
 - `../papers/<paper-id>/`
-  untracked paper roots linked from the FASTQ evidence map
+  untracked paper or software-citation roots linked from the FASTQ evidence map
 
 ## Rules
 

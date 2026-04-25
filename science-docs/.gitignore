@@ -15,6 +15,7 @@ upstream/fastq/tools/*
 !upstream/papers/
 upstream/papers/*
 !upstream/papers/README.md
+!upstream/papers/TODO_DOWNLOAD.md
 !upstream/papers/TOOL_PAPER_MAP.tsv
 !upstream/github-repos/
 upstream/github-repos/*
