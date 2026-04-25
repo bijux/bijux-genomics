@@ -164,28 +164,20 @@ governed_tool_ids:
   - vsearch
 stage_tool_compatibility:
   fastq.build_contaminant_db:
-  - bijux_dna
   fastq.build_rrna_db:
-  - bijux_dna
   fastq.build_taxonomy_db:
-  - bijux_dna
   fastq.capture_provenance_snapshot:
-  - bijux_dna
   fastq.classify_layout:
-  - bijux_dna
   fastq.cluster_otus:
   - vsearch
   fastq.concatenate_lanes:
-  - bijux_dna
   fastq.correct_errors:
   - rcorrector
   - musket
   - lighter
   - bayeshammer
   fastq.deinterleave_reads:
-  - bijux_dna
   fastq.demultiplex_reads:
-  - bijux_dna
   fastq.deplete_host:
   - bowtie2
   fastq.deplete_reference_contaminants:
@@ -195,11 +187,8 @@ stage_tool_compatibility:
   fastq.detect_adapters:
   - fastqc
   fastq.detect_duplicates_premerge:
-  - bijux_dna
   fastq.detect_instrument_artifacts:
-  - bijux_dna
   fastq.estimate_library_complexity_prealign:
-  - bijux_dna
   fastq.extract_umis:
   - umi_tools
   fastq.filter_low_complexity:
@@ -216,9 +205,7 @@ stage_tool_compatibility:
   fastq.infer_asvs:
   - dada2
   fastq.interleave_reads:
-  - bijux_dna
   fastq.materialize_qc_manifest:
-  - bijux_dna
   fastq.merge_pairs:
   - adapterremoval
   - pear
@@ -231,13 +218,9 @@ stage_tool_compatibility:
   fastq.normalize_primers:
   - cutadapt
   fastq.normalize_read_names:
-  - bijux_dna
   fastq.prepare_adapter_bank:
-  - bijux_dna
   fastq.prepare_host_reference_bundle:
-  - bijux_dna
   fastq.prepare_primer_bank:
-  - bijux_dna
   fastq.profile_overrepresented_sequences:
   - fastqc
   - fastq_scan
@@ -252,7 +235,6 @@ stage_tool_compatibility:
   - fastuniq
   - clumpify
   fastq.repair_pairs:
-  - bijux_dna
   fastq.report_qc:
   - multiqc
   fastq.screen_taxonomy:
@@ -261,7 +243,6 @@ stage_tool_compatibility:
   - centrifuge
   - kaiju
   fastq.subsample_reads:
-  - bijux_dna
   fastq.trim_polyg_tails:
   - fastp
   - bbduk
@@ -290,7 +271,6 @@ stage_tool_compatibility:
   - seqtk
   - fqtools
   fastq.verify_assets:
-  - bijux_dna
 stage_tool_integration:
   fastq.index_reference:
     bowtie2_build: governed_contract

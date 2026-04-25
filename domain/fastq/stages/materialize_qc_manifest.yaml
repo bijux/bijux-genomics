@@ -30,12 +30,12 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "none"
-compatible_tools:
-  - bijux_dna
+compatible_tools: []
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "QC manifest materialization must preserve report-level checksums and tool identities before aggregation."
 bank_hooks:
   - "none"
 metrics_schema: "bijux.stage.metrics.v1"
-planned_out_of_scope: []
+planned_out_of_scope:
+  - bijux_dna

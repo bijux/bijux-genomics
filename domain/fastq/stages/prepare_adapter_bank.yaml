@@ -34,12 +34,12 @@ invariants:
   - "deterministic_output_order"
 allowed_missingness:
   - "none"
-compatible_tools:
-  - bijux_dna
+compatible_tools: []
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "adapter-bank comparability requires fixed sequence records, orientation policy, and checksum provenance."
 bank_hooks:
   - "adapter_bank"
 metrics_schema: "bijux.stage.metrics.v1"
-planned_out_of_scope: []
+planned_out_of_scope:
+  - bijux_dna
