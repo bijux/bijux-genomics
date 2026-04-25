@@ -32,6 +32,9 @@ roots intentionally use homepage or repository snapshots rather than paper PDFs.
 | `atropos` | `paper.fastq.atropos.didion-2017` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC5581536/ |
 | `bayeshammer` | `paper.fastq.bayeshammer.nikolenko-2013` | PDF archived | `open_access_publisher` | https://link.springer.com/article/10.1186/1471-2164-14-S1-S7 |
 | `bbmerge` | `paper.fastq.bbmerge.bushnell-2017` | PDF archived | `open_access_publisher` | https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0185056 |
+| `bowtie2` | `paper.fastq.bowtie2.langmead-2012` | PDF archived | `open_access_pmc` | https://www.nature.com/articles/nmeth.1923 |
+| `bowtie2_build` | `paper.fastq.bowtie2-build.langmead-2012` | PDF archived | `open_access_pmc` | https://www.nature.com/articles/nmeth.1923 |
+| `centrifuge` | `paper.fastq.centrifuge.kim-2016` | PDF archived | `open_access_pmc` | https://genome.cshlp.org/content/26/12/1721 |
 | `cutadapt` | `paper.fastq.cutadapt.martin-2011` | PDF archived | `open_access_publisher` | https://journal.embnet.org/index.php/embnetjournal/article/view/200 |
 | `dada2` | `paper.fastq.dada2.callahan-2016` | PDF archived | `licensed_or_abstract_only` | https://www.nature.com/articles/nmeth.3869 |
 | `diamond` | `paper.fastq.diamond.buchfink-2015` | PDF archived | `licensed_or_abstract_only` | https://www.nature.com/articles/nmeth.3176 |
@@ -41,6 +44,9 @@ roots intentionally use homepage or repository snapshots rather than paper PDFs.
 | `fastuniq` | `paper.fastq.fastuniq.xu-2012` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC3527383/ |
 | `flash2` | `paper.fastq.flash.magoc-2011` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC3198573/ |
 | `fqtools` | `paper.fastq.fqtools.droop-2016` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC4908325/ |
+| `kaiju` | `paper.fastq.kaiju.menzel-2016` | PDF archived | `open_access_publisher` | https://www.nature.com/articles/ncomms11257 |
+| `kraken2` | `paper.fastq.kraken2.wood-2019` | PDF archived | `open_access_publisher` | https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0 |
+| `krakenuniq` | `paper.fastq.krakenuniq.breitwieser-2018` | PDF archived | `open_access_publisher` | https://genomebiology.biomedcentral.com/articles/10.1186/s13059-018-1568-0 |
 | `leehom` | `paper.fastq.leehom.renaud-2014` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC4191382/ |
 | `lighter` | `paper.fastq.lighter.song-2014` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC4248469/ |
 | `multiqc` | `paper.fastq.multiqc.ewels-2016` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC5039924/ |
@@ -53,6 +59,7 @@ roots intentionally use homepage or repository snapshots rather than paper PDFs.
 | `seqkit_stats` | `paper.fastq.seqkit-stats.shen-2016` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/ |
 | `seqpurge` | `paper.fastq.seqpurge.stenzel-2016` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC4862148/ |
 | `skewer` | `paper.fastq.skewer.jiang-2014` | PDF archived | `open_access_publisher` | https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-182 |
+| `sortmerna` | `paper.fastq.sortmerna.kopylova-2012` | PDF archived | `open_access_publisher` | https://academic.oup.com/bioinformatics/article/28/24/3211/246053 |
 | `trimmomatic` | `paper.fastq.trimmomatic.bolger-2014` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC4103590/ |
 | `umi_tools` | `paper.fastq.umi-tools.smith-2017` | PDF archived | `open_access_publisher` | https://genome.cshlp.org/content/27/3/491 |
 | `vsearch` | `paper.fastq.vsearch.rognes-2016` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC5075697/ |
@@ -78,14 +85,7 @@ treat them as archived.
 
 | Tool | Paper ID | Access | Primary Locator | Follow-up |
 | --- | --- | --- | --- | --- |
-| `bowtie2` | `paper.fastq.bowtie2.langmead-2012` | `open_access_pmc` | https://www.nature.com/articles/nmeth.1923 | Archive the Nature Methods article/PDF or an access-compliant PMC copy and record local notes. |
-| `bowtie2_build` | `paper.fastq.bowtie2-build.langmead-2012` | `open_access_pmc` | https://www.nature.com/articles/nmeth.1923 | Archive the same Langmead and Salzberg paper context under the tool-specific build-surface root. |
-| `centrifuge` | `paper.fastq.centrifuge.kim-2016` | `open_access_pmc` | https://genome.cshlp.org/content/26/12/1721 | Archive the Genome Research article/PDF or PMC copy and record local notes. |
-| `kaiju` | `paper.fastq.kaiju.menzel-2016` | `open_access_publisher` | https://www.nature.com/articles/ncomms11257 | Archive the open-access Nature Communications article/PDF and record local notes. |
-| `kraken2` | `paper.fastq.kraken2.wood-2019` | `open_access_publisher` | https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0 | Archive the Genome Biology article/PDF and record local notes. |
-| `krakenuniq` | `paper.fastq.krakenuniq.breitwieser-2018` | `open_access_publisher` | https://genomebiology.biomedcentral.com/articles/10.1186/s13059-018-1568-0 | Archive the Genome Biology article/PDF and record local notes. |
-| `sortmerna` | `paper.fastq.sortmerna.kopylova-2012` | `open_access_publisher` | https://academic.oup.com/bioinformatics/article/28/24/3211/246053 | Archive the Bioinformatics article/PDF and record local notes. |
-| `star` | `paper.fastq.star.dobin-2013` | `open_access_pmc` | https://academic.oup.com/bioinformatics/article-abstract/29/1/15/272537 | Archive the Bioinformatics article/PDF or PMC copy and record local notes. |
+| `star` | `paper.fastq.star.dobin-2013` | `free_pmc_not_open_access` | https://academic.oup.com/bioinformatics/article-abstract/29/1/15/272537 | Archive an access-compliant Bioinformatics article/PDF or allowed PMC payload. Do not use `nmeth.1923`; that is the Bowtie 2 paper. |
 
 ## Notes
 
