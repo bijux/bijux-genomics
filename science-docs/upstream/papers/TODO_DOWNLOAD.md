@@ -72,7 +72,20 @@ roots intentionally use homepage or repository snapshots rather than paper PDFs.
 
 ## PDF Follow-Up
 
-No current FASTQ paper PDF access blockers are tracked here.
+These mapped paper roots still need local payloads under
+`science-docs/upstream/papers/<paper-id>/original/` before closure reports can
+treat them as archived.
+
+| Tool | Paper ID | Access | Primary Locator | Follow-up |
+| --- | --- | --- | --- | --- |
+| `bowtie2` | `paper.fastq.bowtie2.langmead-2012` | `open_access_pmc` | https://www.nature.com/articles/nmeth.1923 | Archive the Nature Methods article/PDF or an access-compliant PMC copy and record local notes. |
+| `bowtie2_build` | `paper.fastq.bowtie2-build.langmead-2012` | `open_access_pmc` | https://www.nature.com/articles/nmeth.1923 | Archive the same Langmead and Salzberg paper context under the tool-specific build-surface root. |
+| `centrifuge` | `paper.fastq.centrifuge.kim-2016` | `open_access_pmc` | https://genome.cshlp.org/content/26/12/1721 | Archive the Genome Research article/PDF or PMC copy and record local notes. |
+| `kaiju` | `paper.fastq.kaiju.menzel-2016` | `open_access_publisher` | https://www.nature.com/articles/ncomms11257 | Archive the open-access Nature Communications article/PDF and record local notes. |
+| `kraken2` | `paper.fastq.kraken2.wood-2019` | `open_access_publisher` | https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0 | Archive the Genome Biology article/PDF and record local notes. |
+| `krakenuniq` | `paper.fastq.krakenuniq.breitwieser-2018` | `open_access_publisher` | https://genomebiology.biomedcentral.com/articles/10.1186/s13059-018-1568-0 | Archive the Genome Biology article/PDF and record local notes. |
+| `sortmerna` | `paper.fastq.sortmerna.kopylova-2012` | `open_access_publisher` | https://academic.oup.com/bioinformatics/article/28/24/3211/246053 | Archive the Bioinformatics article/PDF and record local notes. |
+| `star` | `paper.fastq.star.dobin-2013` | `open_access_pmc` | https://academic.oup.com/bioinformatics/article-abstract/29/1/15/272537 | Archive the Bioinformatics article/PDF or PMC copy and record local notes. |
 
 ## Notes
 
