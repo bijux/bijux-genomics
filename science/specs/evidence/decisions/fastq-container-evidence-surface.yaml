@@ -1,6 +1,6 @@
 schema_version: "bijux.science.decision.v1"
 decision_id: "decision.fastq.container-evidence-surface"
-statement: "FASTQ science must publish a governed container reference matrix and a local archive download backlog alongside the environment matrix."
+statement: "FASTQ science must publish a governed container reference matrix, local archive download backlog, and paper archive matrix alongside the environment matrix."
 decision_type: "governance_surface"
 status: "accepted"
 derived_from:

@@ -6,3 +6,6 @@ strength: "governing"
 source_ids:
   - "source.fastq.science-docs-contract"
   - "source.fastq.science-docs-backlog"
+  - "source.fastq.tool-evidence-map"
+  - "source.fastq.paper-archive-contract"
+  - "source.fastq.paper-map"

@@ -12,5 +12,7 @@ source_ids:
   - "source.fastq.tool-registry"
   - "source.fastq.science-docs-contract"
   - "source.fastq.science-docs-backlog"
+  - "source.fastq.tool-evidence-map"
+  - "source.fastq.paper-map"
 notes:
-  - "This backlog exposes which local archive items are ready, templated, or still blocked by missing registry metadata."
+  - "This backlog exposes which local source packets are ready, which tools still need tool-evidence-map coverage, and which source packets already point at durable paper roots."

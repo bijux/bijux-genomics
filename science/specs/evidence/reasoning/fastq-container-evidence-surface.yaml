@@ -10,5 +10,5 @@ evidence_ids:
   - "evidence.fastq.science-docs-archive-governance"
 assumption_ids:
   - "assumption.fastq.governance-authority-window"
-residual_risk: "Registry rows may still contain placeholder digests, templated upstream locators, or admitted tools without governed registry metadata, so the backlog and matrix must remain review surfaces rather than proof of scientific validity."
-conclusion: "Compile the FASTQ container reference matrix and the local archive download backlog as explicit science outputs so container claims, upstream links, and missing evidence are reviewable."
+residual_risk: "Registry rows may still contain placeholder digests, and many admitted tools still need explicit tool-evidence-map rows or paper roots, so these outputs remain governance and review surfaces rather than proof of scientific validity."
+conclusion: "Compile the FASTQ container reference matrix, local archive download backlog, and paper archive matrix as explicit science outputs so container claims, upstream links, paper roots, and missing evidence are reviewable."
