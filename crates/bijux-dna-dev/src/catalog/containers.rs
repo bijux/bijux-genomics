@@ -637,19 +637,19 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::SmokeContainersApptainer,
         ),
         native(
-            "smoke-cntainers-apptainer-bijux-run",
+            "smoke-containers-apptainer-bijux-run",
             "Run apptainer smoke through the bijux-run execution path.",
-            NativeContainerCommandKey::SmokeCntainersApptainerBijuxRun,
+            NativeContainerCommandKey::SmokeContainersApptainerBijuxRun,
         ),
         native(
-            "smoke-cntainers-apptainer-apptainer-run",
+            "smoke-containers-apptainer-apptainer-run",
             "Run apptainer smoke through the direct apptainer-run path.",
-            NativeContainerCommandKey::SmokeCntainersApptainerApptainerRun,
+            NativeContainerCommandKey::SmokeContainersApptainerApptainerRun,
         ),
         native(
-            "smoke-cntainers-apptainer-verify",
+            "smoke-containers-apptainer-verify",
             "Compare apptainer smoke outputs across execution paths.",
-            NativeContainerCommandKey::SmokeCntainersApptainerVerify,
+            NativeContainerCommandKey::SmokeContainersApptainerVerify,
         ),
         native(
             "smoke-cross-runtime-verify",
