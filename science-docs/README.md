@@ -42,6 +42,10 @@ repositories, supplementary documents, and local notes tied to licensed access.
   downloads
 - `science-docs/upstream/README.md`
   upstream archive contract for local mirrors and source payloads
+- `science-docs/upstream/fastq/README.md`
+  FASTQ-specific archive contract for tool-source evidence packets
+- `science-docs/upstream/fastq/tools/EVIDENCE_MAP.tsv`
+  tracked locator map for focused FASTQ tool evidence packets
 - `science-docs/upstream/github-repos/MANIFEST.tsv`
   tracked manifest of GitHub repository evidence targets
 - `science-docs/upstream/github-repos/mirrors/**`
