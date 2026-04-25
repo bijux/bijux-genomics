@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.build_rrna_db
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq assets build-rrna-db --manifest rrna_sources.json --out rrna_database
+expected_outputs=rrna_database,asset_lock
+expected_stdout_patterns=contract_ok,rrna_database_lock

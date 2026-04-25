@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.prepare_host_reference_bundle
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq assets prepare-host-reference-bundle --manifest host_reference_sources.json --out host_reference_bundle
+expected_outputs=host_reference_bundle,asset_lock
+expected_stdout_patterns=contract_ok,reference_bank

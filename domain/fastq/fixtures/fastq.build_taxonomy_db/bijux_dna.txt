@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.build_taxonomy_db
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq assets build-taxonomy-db --manifest taxonomy_sources.json --out taxonomy_database
+expected_outputs=taxonomy_database,asset_lock
+expected_stdout_patterns=contract_ok,taxonomy_database_lock
