@@ -8,7 +8,7 @@
 max_entries = 4
 
 [[entry]]
-path = "crates/bijux-dna-runner/src/execute.rs"
+path = "crates/bijux-dna-runner/src/step_runner/mod.rs"
 lint = "too_many_lines"
 
 [[entry]]

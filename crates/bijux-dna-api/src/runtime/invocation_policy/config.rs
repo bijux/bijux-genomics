@@ -89,8 +89,8 @@ fn validate_runtime_path(name: &str, value: Option<&str>) -> Result<()> {
     let parsed = PathBuf::from(path);
     if parsed == std::path::Path::new("/tmp")
         || parsed == std::path::Path::new("/var/tmp")
-        || path.starts_with("/tmp/")
-        || path.starts_with("/var/tmp/")
+        || parsed.starts_with(std::path::Path::new("/tmp"))
+        || parsed.starts_with(std::path::Path::new("/var/tmp"))
     {
         bail!("{name} cannot point to system tmp; use isolate/runtime artifact roots");
     }
