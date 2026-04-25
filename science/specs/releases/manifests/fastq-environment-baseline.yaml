@@ -6,6 +6,7 @@ binding_ids:
   - "binding.fastq.environment-tool-surface"
   - "binding.fastq.container-reference-matrix"
   - "binding.fastq.download-backlog"
+  - "binding.fastq.paper-archive-matrix"
 claim_ids:
   - "claim.fastq.execution-surface-authority"
   - "claim.fastq.default-settings-authority"

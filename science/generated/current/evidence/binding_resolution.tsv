@@ -2,3 +2,4 @@ binding_id	decision_id	target_type	target_ref	enforcement_level	status
 binding.fastq.container-reference-matrix	decision.fastq.container-evidence-surface	fastq_container_reference_matrix	fastq.container_reference_surface	blocking	resolved
 binding.fastq.download-backlog	decision.fastq.container-evidence-surface	fastq_download_backlog	fastq.science_docs_download_backlog	blocking	resolved
 binding.fastq.environment-tool-surface	decision.fastq.environment-tool-surface	fastq_stage_tool_environment_matrix	fastq.pre_hpc_pre_vcf.environment_surface	blocking	resolved
+binding.fastq.paper-archive-matrix	decision.fastq.container-evidence-surface	fastq_paper_archive_matrix	fastq.paper_archive_surface	blocking	resolved

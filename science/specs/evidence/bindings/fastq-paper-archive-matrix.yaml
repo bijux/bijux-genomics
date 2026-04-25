@@ -1,0 +1,15 @@
+schema_version: "bijux.science.binding.v1"
+binding_id: "binding.fastq.paper-archive-matrix"
+decision_id: "decision.fastq.container-evidence-surface"
+target_type: "fastq_paper_archive_matrix"
+target_ref: "fastq.paper_archive_surface"
+enforcement_level: "blocking"
+target_domain: "fastq"
+claim_ids:
+  - "claim.fastq.science-docs-archive-planning"
+source_ids:
+  - "source.fastq.paper-archive-contract"
+  - "source.fastq.paper-map"
+  - "source.fastq.tool-evidence-map"
+notes:
+  - "This matrix compiles FASTQ tool paper roots, paper access status, and local archive presence."

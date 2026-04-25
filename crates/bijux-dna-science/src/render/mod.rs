@@ -2,8 +2,8 @@ use serde::Serialize;
 
 use crate::domain::{
     BindingResolutionRow, ClaimEvidenceRow, DecisionReasoningRow, FastqContainerReferenceRow,
-    FastqDownloadBacklogRow, FastqEnvironmentRow, ScienceIndex, SourceArchiveGapRow,
-    SourceInventoryRow,
+    FastqDownloadBacklogRow, FastqEnvironmentRow, FastqPaperArchiveRow, ScienceIndex,
+    SourceArchiveGapRow, SourceInventoryRow,
 };
 
 pub fn source_inventory_tsv(rows: &[SourceInventoryRow]) -> String {
@@ -11,18 +11,20 @@ pub fn source_inventory_tsv(rows: &[SourceInventoryRow]) -> String {
         "source_id\tkind\taccess\tauthority\tlocator\tarchive_path\tarchive_status\tcitation\ttool_ids\n",
     );
     for row in rows {
-        out.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
-            row.source_id,
-            row.kind,
-            row.access,
-            row.authority,
-            row.locator,
-            row.archive_path,
-            row.archive_status,
-            row.citation,
-            row.tool_ids
-        ));
+        let line = [
+            row.source_id.as_str(),
+            row.kind.as_str(),
+            row.access.as_str(),
+            row.authority.as_str(),
+            row.locator.as_str(),
+            row.archive_path.as_str(),
+            row.archive_status.as_str(),
+            row.citation.as_str(),
+            row.tool_ids.as_str(),
+        ]
+        .join("\t");
+        out.push_str(line.trim_end_matches('\t'));
+        out.push('\n');
     }
     out
 }
@@ -77,11 +79,11 @@ pub fn fastq_container_reference_tsv(rows: &[FastqContainerReferenceRow]) -> Str
 
 pub fn fastq_download_backlog_tsv(rows: &[FastqDownloadBacklogRow]) -> String {
     let mut out = String::from(
-        "source_id\ttool_id\tstage_ids\tacquisition_mode\tbacklog_status\tlocator\tcitation\tarchive_path\tarchive_status\tnotes\n",
+        "source_id\ttool_id\tstage_ids\tacquisition_mode\tbacklog_status\tlocator\tcitation\tarchive_path\tarchive_status\tpaper_root\tpaper_status\tnotes\n",
     );
     for row in rows {
         out.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
             row.source_id,
             row.tool_id,
             row.stage_ids,
@@ -90,6 +92,30 @@ pub fn fastq_download_backlog_tsv(rows: &[FastqDownloadBacklogRow]) -> String {
             row.locator,
             row.citation,
             row.archive_path,
+            row.archive_status,
+            row.paper_root,
+            row.paper_status,
+            row.notes
+        ));
+    }
+    out
+}
+
+pub fn fastq_paper_archive_tsv(rows: &[FastqPaperArchiveRow]) -> String {
+    let mut out = String::from(
+        "paper_id\ttool_id\tstage_ids\tpaper_root\tpaper_status\topen_access_status\tprimary_locator\tsupporting_locators\tarchive_status\tnotes\n",
+    );
+    for row in rows {
+        out.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            row.paper_id,
+            row.tool_id,
+            row.stage_ids,
+            row.paper_root,
+            row.paper_status,
+            row.open_access_status,
+            row.primary_locator,
+            row.supporting_locators,
             row.archive_status,
             row.notes
         ));

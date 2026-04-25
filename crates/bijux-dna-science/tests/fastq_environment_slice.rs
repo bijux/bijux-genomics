@@ -3,8 +3,9 @@ use std::path::{Path, PathBuf};
 use bijux_dna_science::compile::compile_workspace;
 use bijux_dna_science::render::{
     binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv,
-    fastq_container_reference_tsv, fastq_download_backlog_tsv, fastq_environment_tsv, index_json,
-    source_archive_gaps_tsv, source_inventory_tsv, to_pretty_json,
+    fastq_container_reference_tsv, fastq_download_backlog_tsv, fastq_environment_tsv,
+    fastq_paper_archive_tsv, index_json, source_archive_gaps_tsv, source_inventory_tsv,
+    to_pretty_json,
 };
 
 fn repo_root() -> PathBuf {
@@ -49,6 +50,15 @@ fn fastq_environment_slice_matches_committed_outputs() {
             && row.backlog_status == "ready"
             && row.locator == "https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/src/app/dustmasker/"
     }));
+    assert!(compiled.fastq_download_backlog_rows.iter().any(|row| {
+        row.tool_id == "fastp"
+            && row.paper_root == "science-docs/upstream/papers/paper.fastq.fastp.chen-2018"
+    }));
+    assert!(compiled.fastq_paper_archive_rows.iter().any(|row| {
+        row.tool_id == "atropos"
+            && row.paper_id == "paper.fastq.atropos.didion-2017"
+            && row.paper_status == "mapped"
+    }));
 
     assert_eq!(
         std::fs::read_to_string(
@@ -77,6 +87,13 @@ fn fastq_environment_slice_matches_committed_outputs() {
         )
         .expect("read committed fastq download backlog"),
         fastq_download_backlog_tsv(&compiled.fastq_download_backlog_rows)
+    );
+    assert_eq!(
+        std::fs::read_to_string(
+            root.join("science/generated/current/evidence/fastq_paper_archive_matrix.tsv")
+        )
+        .expect("read committed fastq paper archive matrix"),
+        fastq_paper_archive_tsv(&compiled.fastq_paper_archive_rows)
     );
     assert_eq!(
         std::fs::read_to_string(

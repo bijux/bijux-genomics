@@ -333,6 +333,8 @@ pub struct FastqDownloadBacklogRow {
     pub citation: String,
     pub archive_path: String,
     pub archive_status: String,
+    pub paper_root: String,
+    pub paper_status: String,
     pub notes: String,
 }
 
@@ -359,6 +361,20 @@ pub struct FastqEnvironmentRow {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct FastqPaperArchiveRow {
+    pub paper_id: String,
+    pub tool_id: String,
+    pub stage_ids: String,
+    pub paper_root: String,
+    pub paper_status: String,
+    pub open_access_status: String,
+    pub primary_locator: String,
+    pub supporting_locators: String,
+    pub archive_status: String,
+    pub notes: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct ScienceIndex {
     pub sources: usize,
     pub source_inventory_rows: usize,
@@ -372,6 +388,7 @@ pub struct ScienceIndex {
     pub releases: usize,
     pub fastq_container_reference_rows: usize,
     pub fastq_download_backlog_rows: usize,
+    pub fastq_paper_archive_rows: usize,
     pub fastq_environment_rows: usize,
 }
 
@@ -385,6 +402,7 @@ pub struct CompiledScience {
     pub unresolved_refs: Vec<String>,
     pub fastq_container_reference_rows: Vec<FastqContainerReferenceRow>,
     pub fastq_download_backlog_rows: Vec<FastqDownloadBacklogRow>,
+    pub fastq_paper_archive_rows: Vec<FastqPaperArchiveRow>,
     pub fastq_environment_rows: Vec<FastqEnvironmentRow>,
     pub index: ScienceIndex,
 }

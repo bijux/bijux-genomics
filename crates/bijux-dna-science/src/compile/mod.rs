@@ -78,6 +78,28 @@ struct FastqToolContractEntry {
     license: String,
 }
 
+#[derive(Clone, Debug)]
+struct ToolEvidenceMapEntry {
+    source_id: String,
+    tool_id: String,
+    archive_path: String,
+    paper_root: String,
+    acquisition_mode: String,
+    primary_locator: String,
+}
+
+#[derive(Clone, Debug)]
+struct PaperMapEntry {
+    paper_id: String,
+    tool_id: String,
+    paper_root: String,
+    paper_status: String,
+    open_access_status: String,
+    primary_locator: String,
+    supporting_locators: String,
+    notes: String,
+}
+
 pub fn load_specs(root: &Path) -> Result<LoadedSpecs> {
     let mut loaded = LoadedSpecs::default();
     let mut errors = Vec::new();
@@ -176,8 +198,16 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
     let fastq_environment_rows = build_fastq_environment_rows(root, &loaded)?;
     let fastq_container_reference_rows =
         build_fastq_container_reference_rows(root, &loaded, &fastq_environment_rows)?;
-    let fastq_download_backlog_rows =
-        build_fastq_download_backlog_rows(root, &fastq_container_reference_rows);
+    let tool_evidence_map = load_fastq_tool_evidence_map(root, &loaded)?;
+    let paper_map = load_fastq_paper_map(root, &loaded)?;
+    let fastq_download_backlog_rows = build_fastq_download_backlog_rows(
+        root,
+        &fastq_container_reference_rows,
+        &tool_evidence_map,
+        &paper_map,
+    );
+    let fastq_paper_archive_rows =
+        build_fastq_paper_archive_rows(root, &fastq_environment_rows, &paper_map);
     let unresolved_refs = validate_cross_references(&loaded);
     if !unresolved_refs.is_empty() {
         return Err(validation_error(unresolved_refs));
@@ -195,6 +225,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         releases: loaded.releases.len(),
         fastq_container_reference_rows: fastq_container_reference_rows.len(),
         fastq_download_backlog_rows: fastq_download_backlog_rows.len(),
+        fastq_paper_archive_rows: fastq_paper_archive_rows.len(),
         fastq_environment_rows: fastq_environment_rows.len(),
     };
     Ok(CompiledScience {
@@ -206,6 +237,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         unresolved_refs: Vec::new(),
         fastq_container_reference_rows,
         fastq_download_backlog_rows,
+        fastq_paper_archive_rows,
         fastq_environment_rows,
         index,
     })
@@ -636,19 +668,30 @@ fn build_fastq_container_reference_rows(
 fn build_fastq_download_backlog_rows(
     root: &Path,
     rows: &[crate::domain::FastqContainerReferenceRow],
+    evidence_map: &[ToolEvidenceMapEntry],
+    paper_map: &[PaperMapEntry],
 ) -> Vec<crate::domain::FastqDownloadBacklogRow> {
+    let evidence_by_tool = evidence_map
+        .iter()
+        .map(|entry| (entry.tool_id.as_str(), entry))
+        .collect::<BTreeMap<_, _>>();
+    let paper_by_root = paper_map
+        .iter()
+        .map(|entry| (entry.paper_root.as_str(), entry))
+        .collect::<BTreeMap<_, _>>();
     let mut backlog = rows
         .iter()
         .map(|row| {
-            let source_id = format!("source.fastq.tool.{}.upstream", row.tool_id);
-            let acquisition_mode = infer_acquisition_mode(&row.upstream);
-            let archive_path = if acquisition_mode.is_empty() {
-                String::new()
-            } else if acquisition_mode == "manual_clone" {
-                format!("science-docs/upstream/fastq/tools/{}/repo", row.tool_id)
-            } else {
-                format!("science-docs/upstream/fastq/tools/{}/download", row.tool_id)
-            };
+            let tool_entry = evidence_by_tool.get(row.tool_id.as_str()).copied();
+            let source_id = tool_entry
+                .map(|entry| entry.source_id.clone())
+                .unwrap_or_else(|| format!("source.fastq.tool.{}.upstream", row.tool_id));
+            let acquisition_mode = tool_entry
+                .map(|entry| entry.acquisition_mode.clone())
+                .unwrap_or_else(|| infer_acquisition_mode(&row.upstream));
+            let archive_path = tool_entry
+                .map(|entry| entry.archive_path.clone())
+                .unwrap_or_else(|| default_archive_path(&row.tool_id, &acquisition_mode));
             let archive_status = if archive_path.is_empty() {
                 "not_applicable".to_string()
             } else if root.join(&archive_path).exists() {
@@ -656,18 +699,46 @@ fn build_fastq_download_backlog_rows(
             } else {
                 "missing".to_string()
             };
-            let has_source_metadata =
-                !(row.upstream.trim().is_empty() && row.citation.trim().is_empty());
-            let backlog_status = if !has_source_metadata {
+            let locator = tool_entry
+                .map(|entry| entry.primary_locator.clone())
+                .unwrap_or_else(|| row.upstream.clone());
+            let paper_root = tool_entry
+                .map(|entry| entry.paper_root.clone())
+                .unwrap_or_default();
+            let paper_status = if paper_root.is_empty() {
+                "missing_paper_root".to_string()
+            } else {
+                paper_by_root
+                    .get(paper_root.as_str())
+                    .map(|entry| entry.paper_status.clone())
+                    .unwrap_or_else(|| "missing_paper_map".to_string())
+            };
+            let has_source_metadata = !(locator.trim().is_empty() && row.citation.trim().is_empty());
+            let backlog_status = if tool_entry.is_none() {
+                "missing_evidence_map".to_string()
+            } else if paper_root.is_empty() {
+                "missing_paper_root".to_string()
+            } else if paper_status == "missing_paper_map" {
+                "missing_paper_map".to_string()
+            } else if !has_source_metadata {
                 "missing_registry_source".to_string()
-            } else if row.upstream.trim().is_empty() {
+            } else if locator.trim().is_empty() {
                 "missing_upstream_locator".to_string()
-            } else if row.upstream.contains("${") {
+            } else if locator.contains("${") {
                 "templated_locator".to_string()
             } else {
                 "ready".to_string()
             };
             let notes = match backlog_status.as_str() {
+                "missing_evidence_map" => {
+                    "tool is on the FASTQ surface but lacks a governed tool evidence map row"
+                }
+                "missing_paper_root" => {
+                    "tool evidence row exists but does not yet point at a durable paper root"
+                }
+                "missing_paper_map" => {
+                    "tool evidence row points at a paper root that is not registered in the tool paper map"
+                }
                 "missing_registry_source" => {
                     "tool is on the FASTQ surface but lacks governed registry source metadata"
                 }
@@ -686,10 +757,12 @@ fn build_fastq_download_backlog_rows(
                 stage_ids: row.stage_ids.clone(),
                 acquisition_mode,
                 backlog_status,
-                locator: row.upstream.clone(),
+                locator,
                 citation: row.citation.clone(),
                 archive_path,
                 archive_status,
+                paper_root,
+                paper_status,
                 notes,
             }
         })
@@ -715,6 +788,54 @@ fn infer_acquisition_mode(locator: &str) -> String {
     } else {
         "manual_download".to_string()
     }
+}
+
+fn default_archive_path(tool_id: &str, acquisition_mode: &str) -> String {
+    if acquisition_mode.is_empty() {
+        String::new()
+    } else if acquisition_mode == "manual_clone" {
+        format!("science-docs/upstream/fastq/tools/{tool_id}/repo")
+    } else {
+        format!("science-docs/upstream/fastq/tools/{tool_id}/download")
+    }
+}
+
+fn build_fastq_paper_archive_rows(
+    root: &Path,
+    environment_rows: &[FastqEnvironmentRow],
+    paper_map: &[PaperMapEntry],
+) -> Vec<crate::domain::FastqPaperArchiveRow> {
+    let mut stage_map = BTreeMap::<String, BTreeSet<String>>::new();
+    for row in environment_rows {
+        stage_map
+            .entry(row.tool_id.clone())
+            .or_default()
+            .insert(row.stage_id.clone());
+    }
+    let mut rows = paper_map
+        .iter()
+        .map(|entry| crate::domain::FastqPaperArchiveRow {
+            paper_id: entry.paper_id.clone(),
+            tool_id: entry.tool_id.clone(),
+            stage_ids: stage_map
+                .get(&entry.tool_id)
+                .map(|stage_ids| stage_ids.iter().cloned().collect::<Vec<_>>().join(","))
+                .unwrap_or_default(),
+            paper_root: entry.paper_root.clone(),
+            paper_status: entry.paper_status.clone(),
+            open_access_status: entry.open_access_status.clone(),
+            primary_locator: entry.primary_locator.clone(),
+            supporting_locators: entry.supporting_locators.clone(),
+            archive_status: if root.join(&entry.paper_root).exists() {
+                "present".to_string()
+            } else {
+                "missing".to_string()
+            },
+            notes: entry.notes.clone(),
+        })
+        .collect::<Vec<_>>();
+    rows.sort_by(|left, right| left.tool_id.cmp(&right.tool_id).then(left.paper_id.cmp(&right.paper_id)));
+    rows
 }
 
 fn merged_tool_metadata(
@@ -1003,6 +1124,73 @@ fn load_fastq_tool_contracts(path: &Path) -> Result<BTreeMap<String, FastqToolCo
         }
     }
     Ok(out)
+}
+
+fn load_fastq_tool_evidence_map(
+    root: &Path,
+    loaded: &LoadedSpecs,
+) -> Result<Vec<ToolEvidenceMapEntry>> {
+    let Some(source) = loaded.sources.get("source.fastq.tool-evidence-map") else {
+        return Ok(Vec::new());
+    };
+    let path = validate_source_path(root, source)?;
+    let rows = parse_tsv_rows(&read_utf8(&path)?);
+    let mut out = Vec::new();
+    for row in rows {
+        out.push(ToolEvidenceMapEntry {
+            source_id: row_value(&row, "source_id"),
+            tool_id: row_value(&row, "tool_id"),
+            archive_path: row_value(&row, "archive_path"),
+            paper_root: row_value(&row, "paper_root"),
+            acquisition_mode: row_value(&row, "acquisition_mode"),
+            primary_locator: row_value(&row, "primary_locator"),
+        });
+    }
+    Ok(out)
+}
+
+fn load_fastq_paper_map(root: &Path, loaded: &LoadedSpecs) -> Result<Vec<PaperMapEntry>> {
+    let Some(source) = loaded.sources.get("source.fastq.paper-map") else {
+        return Ok(Vec::new());
+    };
+    let path = validate_source_path(root, source)?;
+    let rows = parse_tsv_rows(&read_utf8(&path)?);
+    let mut out = Vec::new();
+    for row in rows {
+        out.push(PaperMapEntry {
+            paper_id: row_value(&row, "paper_id"),
+            tool_id: row_value(&row, "tool_id"),
+            paper_root: row_value(&row, "paper_root"),
+            paper_status: row_value(&row, "paper_status"),
+            open_access_status: row_value(&row, "open_access_status"),
+            primary_locator: row_value(&row, "primary_locator"),
+            supporting_locators: row_value(&row, "supporting_locators"),
+            notes: row_value(&row, "notes"),
+        });
+    }
+    Ok(out)
+}
+
+fn parse_tsv_rows(raw: &str) -> Vec<BTreeMap<String, String>> {
+    let mut lines = raw.lines().filter(|line| !line.trim().is_empty());
+    let Some(header_line) = lines.next() else {
+        return Vec::new();
+    };
+    let headers = header_line.split('\t').map(str::to_string).collect::<Vec<_>>();
+    let mut rows = Vec::new();
+    for line in lines {
+        let values = line.split('\t').map(str::to_string).collect::<Vec<_>>();
+        let mut row = BTreeMap::new();
+        for (index, header) in headers.iter().enumerate() {
+            row.insert(header.clone(), values.get(index).cloned().unwrap_or_default());
+        }
+        rows.push(row);
+    }
+    rows
+}
+
+fn row_value(row: &BTreeMap<String, String>, key: &str) -> String {
+    row.get(key).cloned().unwrap_or_default()
 }
 
 fn binding_claim_evidence_count(loaded: &LoadedSpecs, binding: &BindingSpec) -> usize {
