@@ -48,6 +48,8 @@ repositories, supplementary documents, and local notes tied to licensed access.
   tracked locator map for focused FASTQ tool evidence packets
 - `science-docs/upstream/papers/README.md`
   paper archive contract for tool-linked publications
+- `science-docs/upstream/papers/TODO_DOWNLOAD.md`
+  operator-facing paper archive backlog for local publication payloads
 - `science-docs/upstream/papers/TOOL_PAPER_MAP.tsv`
   tracked map from FASTQ tools to durable paper archive roots
 - `science-docs/upstream/github-repos/MANIFEST.tsv`

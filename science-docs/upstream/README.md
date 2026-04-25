@@ -20,6 +20,8 @@ material used to support science, container, and provenance review in
   tracked locator map for tool-specific manual archive packets
 - `papers/README.md`
   contract for local paper archive roots
+- `papers/TODO_DOWNLOAD.md`
+  operator-facing paper archive worklist
 - `papers/TOOL_PAPER_MAP.tsv`
   tracked tool-to-paper root map
 - `github-repos/README.md`

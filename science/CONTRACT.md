@@ -48,3 +48,5 @@ relationship among:
 - `domain/fastq/docs/DEFAULT_SETTINGS.md`
 - `configs/ci/registry/tool_registry.toml`
 - `crates/bijux-dna-environment/docs/ENV_REFERENCE.md`
+- `science-docs/upstream/fastq/tools/EVIDENCE_MAP.tsv`
+- `science-docs/upstream/papers/TOOL_PAPER_MAP.tsv`

@@ -11,6 +11,9 @@ roots that anchor tool evidence packets to publications.
 
 ## Canonical Files
 
+- `TODO_DOWNLOAD.md`
+  operator-facing paper archive worklist for local downloads and homepage
+  snapshots
 - `TOOL_PAPER_MAP.tsv`
   tracked map from tools to durable paper roots, access status, and paper
   locators
