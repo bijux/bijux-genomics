@@ -1,46 +1,47 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
-<!-- Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-tool-name-map -->
+<!-- Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-name-map -->
 
 # Tool Name Mapping
 
 | Tool ID | Expected Binary | Status |
 |---|---|---|
-| `adapterremoval` | `adapterremoval` | `experimental` |
+| `adapterremoval` | `adapterremoval` | `production` |
 | `addeam` | `addeam` | `experimental` |
 | `alientrimmer` | `alientrimmer` | `production` |
 | `angsd` | `angsd` | `planned` |
-| `atropos` | `atropos` | `experimental` |
+| `atropos` | `atropos` | `production` |
 | `authenticct` | `authenticct` | `production` |
 | `bamtools` | `bamtools` | `production` |
 | `bamutil` | `bamutil` | `experimental` |
-| `bayeshammer` | `bayeshammer` | `experimental` |
+| `bayeshammer` | `bayeshammer` | `production` |
 | `bbduk` | `bbduk` | `production` |
-| `bbmerge` | `bbmerge` | `experimental` |
+| `bbmerge` | `bbmerge` | `production` |
 | `bcftools` | `bcftools` | `production` |
 | `beagle` | `beagle` | `experimental` |
 | `bedtools` | `bedtools` | `production` |
 | `bowtie2` | `bowtie2` | `production` |
-| `bracken` | `bracken` | `production` |
+| `bowtie2_build` | `bowtie2-build` | `production` |
+| `bracken` | `bracken` | `experimental` |
 | `bwa` | `bwa` | `production` |
-| `centrifuge` | `centrifuge` | `experimental` |
-| `clumpify` | `clumpify` | `experimental` |
+| `centrifuge` | `centrifuge` | `production` |
+| `clumpify` | `clumpify` | `production` |
 | `contammix` | `contammix` | `production` |
 | `cutadapt` | `cutadapt` | `production` |
-| `dada2` | `dada2` | `experimental` |
+| `dada2` | `dada2` | `production` |
 | `damageprofiler` | `damageprofiler` | `experimental` |
 | `diamond` | `diamond` | `experimental` |
 | `dustmasker` | `dustmasker` | `experimental` |
 | `eagle` | `eagle` | `experimental` |
 | `eigensoft` | `smartpca` | `experimental` |
 | `fastp` | `fastp` | `production` |
-| `fastq_scan` | `fastq_scan` | `experimental` |
+| `fastq_scan` | `fastq_scan` | `production` |
 | `fastq_screen` | `fastq_screen` | `experimental` |
 | `fastqc` | `fastqc` | `production` |
 | `fastqvalidator` | `fastqvalidator` | `production` |
-| `fastuniq` | `fastuniq` | `experimental` |
+| `fastuniq` | `fastuniq` | `production` |
 | `fastx_clipper` | `fastx_clipper` | `production` |
-| `flash2` | `flash2` | `experimental` |
-| `fqtools` | `fqtools` | `experimental` |
+| `flash2` | `flash2` | `production` |
+| `fqtools` | `fqtools` | `production` |
 | `gatk` | `gatk` | `experimental` |
 | `germline` | `germline` | `experimental` |
 | `glimpse` | `glimpse` | `planned` |
@@ -48,18 +49,18 @@
 | `ibdne` | `ibdne` | `planned` |
 | `ibdseq` | `ibdseq` | `planned` |
 | `impute5` | `impute5` | `planned` |
-| `kaiju` | `kaiju` | `experimental` |
+| `kaiju` | `kaiju` | `production` |
 | `king` | `king` | `production` |
 | `kraken2` | `kraken2` | `production` |
 | `krakenuniq` | `krakenuniq` | `production` |
-| `leehom` | `leehom` | `experimental` |
-| `lighter` | `lighter` | `experimental` |
+| `leehom` | `leehom` | `production` |
+| `lighter` | `lighter` | `production` |
 | `mapdamage2` | `mapdamage2` | `production` |
 | `metaphlan` | `metaphlan` | `experimental` |
 | `minimac4` | `minimac4` | `planned` |
 | `mosdepth` | `mosdepth` | `production` |
 | `multiqc` | `multiqc` | `production` |
-| `musket` | `musket` | `experimental` |
+| `musket` | `musket` | `production` |
 | `ngsbriggs` | `ngsbriggs` | `experimental` |
 | `pear` | `pear` | `production` |
 | `picard` | `picard` | `experimental` |
@@ -67,7 +68,7 @@
 | `plink2` | `plink2` | `experimental` |
 | `pmdtools` | `pmdtools` | `production` |
 | `preseq` | `preseq` | `experimental` |
-| `prinseq` | `prinseq++` | `experimental` |
+| `prinseq` | `prinseq++` | `production` |
 | `pydamage` | `pydamage` | `production` |
 | `qualimap` | `qualimap` | `experimental` |
 | `rcorrector` | `rcorrector` | `production` |
@@ -79,15 +80,15 @@
 | `seqkit_stats` | `seqkit_stats` | `production` |
 | `seqprep` | `seqprep` | `experimental` |
 | `seqpurge` | `seqpurge` | `experimental` |
-| `seqtk` | `seqtk` | `experimental` |
+| `seqtk` | `seqtk` | `production` |
 | `shapeit` | `shapeit` | `planned` |
 | `shapeit5` | `shapeit5` | `experimental` |
-| `skewer` | `skewer` | `experimental` |
+| `skewer` | `skewer` | `production` |
 | `sortmerna` | `sortmerna` | `production` |
 | `spades` | `spades` | `experimental` |
 | `star` | `star` | `production` |
-| `trim_galore` | `trim_galore` | `experimental` |
-| `trimmomatic` | `trimmomatic` | `experimental` |
+| `trim_galore` | `trim_galore` | `production` |
+| `trimmomatic` | `trimmomatic` | `production` |
 | `umi_tools` | `umi_tools` | `production` |
 | `verifybamid2` | `verifybamid2` | `production` |
 | `vsearch` | `vsearch` | `production` |
