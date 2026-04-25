@@ -129,17 +129,19 @@ pub fn fastq_closure_gate_tsv(rows: &[FastqClosureGateRow]) -> String {
         "stage_id\ttool_id\tis_default\trequested_execution_status\teffective_closure_status\tworld_class_closed\tblocking_reasons\twarning_reasons\n",
     );
     for row in rows {
-        out.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
-            row.stage_id,
-            row.tool_id,
-            row.is_default,
-            row.requested_execution_status,
-            row.effective_closure_status,
-            row.world_class_closed,
-            row.blocking_reasons,
-            row.warning_reasons
-        ));
+        let line = [
+            row.stage_id.as_str(),
+            row.tool_id.as_str(),
+            if row.is_default { "true" } else { "false" },
+            row.requested_execution_status.as_str(),
+            row.effective_closure_status.as_str(),
+            if row.world_class_closed { "true" } else { "false" },
+            row.blocking_reasons.as_str(),
+            row.warning_reasons.as_str(),
+        ]
+        .join("\t");
+        out.push_str(line.trim_end_matches('\t'));
+        out.push('\n');
     }
     out
 }
