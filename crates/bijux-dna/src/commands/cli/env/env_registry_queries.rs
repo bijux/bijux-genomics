@@ -54,18 +54,22 @@ pub fn print_env_registry_list(registry_path: &Path) -> Result<()> {
 /// # Errors
 /// Returns an error if smoke script execution fails.
 pub fn run_env_smoke(runtime: &str, tool: &str) -> Result<()> {
+    let tools = selected_tools(tool);
     if runtime == "apptainer" {
         let registry_path = current_registry_path()?;
         ensure_apptainer_tools(
             &registry_path,
             &resolved_apptainer_hpc_root()?,
-            &[tool.to_string()],
+            &tools,
             true,
             false,
         )?;
         return Ok(());
     }
-    run_smoke_script(runtime, tool)
+    if tools.len() == 1 {
+        return run_smoke_script(runtime, &tools[0]);
+    }
+    run_env_with_tools(runtime, &tools, "contract")
 }
 
 fn normalize_stage_id(stage: &str) -> String {
@@ -156,17 +160,18 @@ pub fn run_env_prep(
     stage: Option<&str>,
 ) -> Result<()> {
     if let Some(tool) = tool {
+        let tools = selected_tools(tool);
         if runtime == "apptainer" {
             ensure_apptainer_tools(
                 registry_path,
                 &resolved_apptainer_hpc_root()?,
-                &[tool.to_string()],
+                &tools,
                 false,
                 false,
             )?;
             return Ok(());
         }
-        return run_env_with_tools(runtime, &[tool.to_string()], "version");
+        return run_env_with_tools(runtime, &tools, "version");
     }
     if let Some(stage) = stage {
         let tools = registry_tools_for_stage(registry_path, stage, None, "all")?;
@@ -192,6 +197,20 @@ fn run_env_with_tools(runtime: &str, tools: &[String], smoke_level: &str) -> Res
     run_smoke_script_batch(runtime, tools, smoke_level)
 }
 
+fn selected_tools(value: &str) -> Vec<String> {
+    let tools = value
+        .split(',')
+        .map(str::trim)
+        .filter(|tool| !tool.is_empty())
+        .map(ToOwned::to_owned)
+        .collect::<Vec<_>>();
+    if tools.is_empty() {
+        vec![value.trim().to_string()]
+    } else {
+        tools
+    }
+}
+
 fn current_registry_path() -> Result<PathBuf> {
     let cwd = std::env::current_dir().context("resolve current working directory")?;
     Ok(bijux_dna_infra::configs_file(
@@ -212,7 +231,7 @@ fn resolved_apptainer_hpc_root() -> Result<PathBuf> {
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod env_registry_query_tests {
-    use super::registry_tools_for_stage;
+    use super::{registry_tools_for_stage, selected_tools};
 
     fn registry_path() -> std::path::PathBuf {
         crate::commands::support::workspace_root::resolve_repo_root()
@@ -269,6 +288,19 @@ mod env_registry_query_tests {
         )
         .expect("read-length benchmark tools");
         assert_eq!(tools, vec!["seqkit_stats"]);
+    }
+
+    #[test]
+    fn selected_tools_supports_csv_batches() {
+        assert_eq!(
+            selected_tools("fastp, seqkit ,cutadapt"),
+            vec!["fastp", "seqkit", "cutadapt"]
+        );
+    }
+
+    #[test]
+    fn selected_tools_preserves_single_tool_input() {
+        assert_eq!(selected_tools("fastp"), vec!["fastp"]);
     }
 }
 
