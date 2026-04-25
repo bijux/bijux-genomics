@@ -8,7 +8,7 @@ capabilities:
   - "qc"
 container:
   image: "bijuxdna/fastq_scan"
-  digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  digest: "sha256:973e958d84a4a5d779a71e34f890b0a5335607e1fe56207c8a145409fd2937ad"
 command_template:
   - "fastq_scan"
   - "{{reads}}"

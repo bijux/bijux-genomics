@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/fastqvalidator"
-  digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  digest: "sha256:3e01ccfed0313ffb63e8b9a8c4044a47249906d0b7b32c68caccf81f0a532edc"
 command_template:
   - "fastqvalidator"
   - "--file"

@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/fqtools"
-  digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  digest: "sha256:d7190221f5582bdabccecb3bae06d463d81c0cb06d47a80fa4c1b3c4704d4bf6"
 command_template:
   - "fqtools"
   - "validate"
