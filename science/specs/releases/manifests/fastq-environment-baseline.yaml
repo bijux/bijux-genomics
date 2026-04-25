@@ -4,11 +4,15 @@ title: "FASTQ environment baseline"
 status: "candidate"
 binding_ids:
   - "binding.fastq.environment-tool-surface"
+  - "binding.fastq.container-reference-matrix"
+  - "binding.fastq.download-backlog"
 claim_ids:
   - "claim.fastq.execution-surface-authority"
   - "claim.fastq.default-settings-authority"
   - "claim.fastq.tool-registry-authority"
   - "claim.fastq.environment-resolution-authority"
   - "claim.fastq.planned-tools-remain-excluded"
+  - "claim.fastq.container-build-surface-authority"
+  - "claim.fastq.science-docs-archive-planning"
 notes:
-  - "First controlled science release manifest for FASTQ environment governance."
+  - "First controlled science release manifest for FASTQ environment and container evidence governance."

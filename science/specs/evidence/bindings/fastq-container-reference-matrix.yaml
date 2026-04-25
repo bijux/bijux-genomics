@@ -1,0 +1,16 @@
+schema_version: "bijux.science.binding.v1"
+binding_id: "binding.fastq.container-reference-matrix"
+decision_id: "decision.fastq.container-evidence-surface"
+target_type: "fastq_container_reference_matrix"
+target_ref: "fastq.container_reference_surface"
+enforcement_level: "blocking"
+target_domain: "fastq"
+claim_ids:
+  - "claim.fastq.tool-registry-authority"
+  - "claim.fastq.container-build-surface-authority"
+source_ids:
+  - "source.fastq.tool-registry"
+  - "source.fastq.container-dockerfiles"
+  - "source.fastq.container-apptainer-defs"
+notes:
+  - "This matrix compiles version, upstream, pin, and container path data for every tool on the FASTQ governed surface."

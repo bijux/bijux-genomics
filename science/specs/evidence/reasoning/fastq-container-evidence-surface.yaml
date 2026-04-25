@@ -1,0 +1,14 @@
+schema_version: "bijux.science.reasoning.v1"
+reasoning_id: "reasoning.fastq.container-evidence-surface"
+claim_ids:
+  - "claim.fastq.tool-registry-authority"
+  - "claim.fastq.container-build-surface-authority"
+  - "claim.fastq.science-docs-archive-planning"
+evidence_ids:
+  - "evidence.fastq.tool-registry-governance"
+  - "evidence.fastq.container-build-surface-governance"
+  - "evidence.fastq.science-docs-archive-governance"
+assumption_ids:
+  - "assumption.fastq.governance-authority-window"
+residual_risk: "Registry rows may still contain placeholder digests, templated upstream locators, or admitted tools without governed registry metadata, so the backlog and matrix must remain review surfaces rather than proof of scientific validity."
+conclusion: "Compile the FASTQ container reference matrix and the local archive download backlog as explicit science outputs so container claims, upstream links, and missing evidence are reviewable."
