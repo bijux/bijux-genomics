@@ -1,0 +1,8 @@
+schema_version: "bijux.science.evidence.v1"
+evidence_id: "evidence.fastq.qa-coverage-blockers-governance"
+statement: "FASTQ admitted stages without behavioral environment-QA coverage are tracked as explicit closure blockers."
+status: "accepted"
+strength: "governing"
+source_ids:
+  - "source.fastq.qa-coverage-blockers"
+  - "source.fastq.execution-support"

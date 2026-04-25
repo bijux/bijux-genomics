@@ -1,0 +1,12 @@
+schema_version: "bijux.science.claim.v1"
+claim_id: "claim.fastq.qa-coverage-blockers"
+statement: "Every admitted FASTQ execution-support stage must either have behavioral environment-QA coverage or be listed as an explicit QA coverage blocker."
+scope: "fastq environment QA closure"
+subject: "fastq_admitted_execution_stages"
+predicate: "must_have_qa_coverage_or_blocker"
+object: "crates/bijux-dna-environment-qa"
+status: "accepted"
+owner: "bijux-genomics"
+review_due: "2026-10-01"
+supports:
+  - "evidence.fastq.qa-coverage-blockers-governance"
