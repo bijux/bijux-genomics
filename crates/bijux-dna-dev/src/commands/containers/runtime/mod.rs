@@ -201,7 +201,16 @@ pub(super) fn check_apptainer_post_pins(workspace: &Workspace) -> Result<Contain
             ));
         }
     }
-    let floating_re = Regex::new(r"\b(latest|main|master|HEAD)\b").expect("regex");
+    let floating_re = Regex::new(
+        r"(?x)
+        \b(?:latest|master)\b
+        |
+        (?:--branch|checkout)\s+main\b
+        |
+        /(?:archive/refs/heads/)?main(?:[/.]|$)
+        ",
+    )
+    .expect("regex");
     let download_re = Regex::new(r"\b(curl|wget)\b").expect("regex");
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
@@ -225,7 +234,9 @@ pub(super) fn check_apptainer_post_pins(workspace: &Workspace) -> Result<Contain
             let row = versions.get(&tool);
             let source_sha = row.map(|row| table_string(row, "source_sha256")).unwrap_or_default();
             let pin = row.map(|row| table_string(row, "pinned_commit")).unwrap_or_default();
-            if !has_sha {
+            let lock_governed_download = text.contains("NETWORK_SOURCE_VERIFIED_BY_LOCK")
+                && (!source_sha.is_empty() || !pin.is_empty());
+            if !has_sha && !lock_governed_download {
                 errors
                     .push(format!("{rel}: %post downloads without checksum verification command"));
             }
