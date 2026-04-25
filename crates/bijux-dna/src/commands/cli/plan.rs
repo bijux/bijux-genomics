@@ -1196,17 +1196,19 @@ fn apply_scientific_preset(
             }
             args.enable_contaminant_removal = true;
             args.force_merge = false;
+            args.mode = engine_args::FastqPlannerMode::ShotgunAdna;
         }
         crate::commands::cli::parse::ScientificPresetArg::Amplicon => {
             if args.adapter_bank_preset.is_none() {
                 args.adapter_bank_preset = Some("illumina-default".to_string());
             }
             args.force_merge = true;
-            args.mode = engine_args::FastqPlannerMode::EdnaAmplicon;
+            args.mode = engine_args::FastqPlannerMode::AmpliconStandard;
         }
         crate::commands::cli::parse::ScientificPresetArg::Metagenomic => {
             args.enable_contaminant_removal = true;
             args.force_merge = false;
+            args.mode = engine_args::FastqPlannerMode::HostAssociatedMetagenome;
         }
         crate::commands::cli::parse::ScientificPresetArg::WgsStandard => {}
     }

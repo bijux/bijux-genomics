@@ -4,12 +4,12 @@ use bijux_dna_core::contract::PipelineSpec;
 use bijux_dna_core::prelude::input_assessment::{assess_input_dir, FastqLayout};
 use bijux_dna_core::prelude::StageId;
 use bijux_dna_domain_fastq::{
-    assess_merge_suitability, preprocess_pipeline_graph_for_stage_order, FastqPipelineMode,
-    STAGE_CORRECT_ERRORS, STAGE_MERGE_PAIRS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY,
+    assess_merge_suitability, preprocess_pipeline_graph_for_stage_order, STAGE_CORRECT_ERRORS,
+    STAGE_MERGE_PAIRS, STAGE_REPORT_QC, STAGE_SCREEN_TAXONOMY, STAGE_TRIM_TERMINAL_DAMAGE,
 };
 
 use crate::planner::{apply_layout_branching, estimate_mean_q};
-use crate::selection::args::{BenchFastqPreprocessArgs, FastqPlannerMode};
+use crate::selection::args::BenchFastqPreprocessArgs;
 use crate::tool_adapters::stages::pre::preprocess::PreprocessPlan;
 use crate::{default_pipeline_spec, pipeline_spec_from_stage_catalog, DefaultPipelineOptions};
 
@@ -161,12 +161,7 @@ pub fn plan_preprocess(args: &BenchFastqPreprocessArgs, pipeline: PipelineSpec) 
         r2: args.r2.clone(),
         stages: pipeline.stage_catalog(),
         enable_contaminant_removal: args.enable_contaminant_removal,
-        pipeline_mode: match args.mode {
-            FastqPlannerMode::Shotgun => FastqPipelineMode::Shotgun,
-            FastqPlannerMode::EdnaAmplicon | FastqPlannerMode::PollenAmplicon => {
-                FastqPipelineMode::Amplicon
-            }
-        },
+        pipeline_mode: args.mode.pipeline_mode(),
     }
 }
 
@@ -182,11 +177,12 @@ pub fn resolve_preprocess_pipeline(
         "fastq.cluster_otus",
         "fastq.normalize_abundance",
     ];
-    let shotgun_mode = args.mode == FastqPlannerMode::Shotgun;
+    let shotgun_mode = args.mode.is_shotgun_family();
     let enable_merge = decisions.enable_merge;
     let enable_correct = decisions.enable_correct;
     let enable_qc_post = !args.no_qc_post;
     let enable_screen = args.contaminant_preset.is_some();
+    let enable_terminal_damage_trim = args.mode.admits_terminal_damage_trim();
     if let Some(profile_id) = args.profile.as_deref() {
         match bijux_dna_pipelines::registry::profile_by_id(
             bijux_dna_pipelines::Domain::Fastq,
@@ -195,11 +191,7 @@ pub fn resolve_preprocess_pipeline(
             Ok(profile) => filter_preprocess_pipeline(
                 pipeline_spec_from_stage_catalog(
                     crate::fastq_pipeline_id_catalog(profile.id.as_str()),
-                    if shotgun_mode {
-                        FastqPipelineMode::Shotgun
-                    } else {
-                        FastqPipelineMode::Amplicon
-                    },
+                    args.mode.pipeline_mode(),
                 ),
                 args.r2.is_some(),
                 shotgun_mode,
@@ -207,6 +199,7 @@ pub fn resolve_preprocess_pipeline(
                 enable_correct,
                 enable_qc_post,
                 enable_screen,
+                enable_terminal_damage_trim,
                 &amplicon_only,
             ),
             Err(err) => {
@@ -218,11 +211,7 @@ pub fn resolve_preprocess_pipeline(
                         enable_correct,
                         enable_qc_post,
                         enable_screen,
-                        mode: if shotgun_mode {
-                            FastqPipelineMode::Shotgun
-                        } else {
-                            FastqPipelineMode::Amplicon
-                        },
+                        mode: args.mode.pipeline_mode(),
                     }),
                     args.r2.is_some(),
                     shotgun_mode,
@@ -230,6 +219,7 @@ pub fn resolve_preprocess_pipeline(
                     enable_correct,
                     enable_qc_post,
                     enable_screen,
+                    enable_terminal_damage_trim,
                     &amplicon_only,
                 )
             }
@@ -242,11 +232,7 @@ pub fn resolve_preprocess_pipeline(
                 enable_correct,
                 enable_qc_post,
                 enable_screen,
-                mode: if shotgun_mode {
-                    FastqPipelineMode::Shotgun
-                } else {
-                    FastqPipelineMode::Amplicon
-                },
+                mode: args.mode.pipeline_mode(),
             }),
             args.r2.is_some(),
             shotgun_mode,
@@ -254,6 +240,7 @@ pub fn resolve_preprocess_pipeline(
             enable_correct,
             enable_qc_post,
             enable_screen,
+            enable_terminal_damage_trim,
             &amplicon_only,
         )
     }
@@ -267,6 +254,7 @@ fn filter_preprocess_pipeline(
     enable_correct: bool,
     enable_qc_post: bool,
     enable_screen: bool,
+    enable_terminal_damage_trim: bool,
     amplicon_only: &[&str],
 ) -> PipelineSpec {
     let mut allowed_stages = apply_layout_branching(spec.stage_catalog(), paired);
@@ -284,6 +272,9 @@ fn filter_preprocess_pipeline(
     }
     if !enable_screen {
         allowed_stages.retain(|stage| stage != STAGE_SCREEN_TAXONOMY.as_str());
+    }
+    if !enable_terminal_damage_trim {
+        allowed_stages.retain(|stage| stage != STAGE_TRIM_TERMINAL_DAMAGE.as_str());
     }
     if shotgun_mode {
         allowed_stages.retain(|stage| !amplicon_only.contains(&stage.as_str()));

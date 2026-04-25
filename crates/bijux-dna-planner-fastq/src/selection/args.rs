@@ -6,8 +6,56 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FastqPlannerMode {
     Shotgun,
+    ShotgunStandard,
+    ShotgunAdna,
+    HostAssociatedMetagenome,
+    PremergedSingleEnd,
+    AmpliconStandard,
+    AmpliconUmi,
     EdnaAmplicon,
     PollenAmplicon,
+}
+
+impl FastqPlannerMode {
+    #[must_use]
+    pub const fn route_family(self) -> &'static str {
+        match self {
+            Self::Shotgun | Self::ShotgunStandard => "shotgun_standard",
+            Self::ShotgunAdna => "shotgun_adna",
+            Self::HostAssociatedMetagenome => "host_associated_metagenome",
+            Self::PremergedSingleEnd => "premerged_single_end",
+            Self::AmpliconStandard | Self::EdnaAmplicon | Self::PollenAmplicon => {
+                "amplicon_standard"
+            }
+            Self::AmpliconUmi => "amplicon_umi",
+        }
+    }
+
+    #[must_use]
+    pub const fn is_shotgun_family(self) -> bool {
+        matches!(
+            self,
+            Self::Shotgun
+                | Self::ShotgunStandard
+                | Self::ShotgunAdna
+                | Self::HostAssociatedMetagenome
+                | Self::PremergedSingleEnd
+        )
+    }
+
+    #[must_use]
+    pub const fn pipeline_mode(self) -> bijux_dna_domain_fastq::FastqPipelineMode {
+        if self.is_shotgun_family() {
+            bijux_dna_domain_fastq::FastqPipelineMode::Shotgun
+        } else {
+            bijux_dna_domain_fastq::FastqPipelineMode::Amplicon
+        }
+    }
+
+    #[must_use]
+    pub const fn admits_terminal_damage_trim(self) -> bool {
+        matches!(self, Self::ShotgunAdna)
+    }
 }
 
 #[derive(Debug, Clone)]
