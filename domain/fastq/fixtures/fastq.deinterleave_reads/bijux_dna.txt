@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.deinterleave_reads
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq layout deinterleave --input interleaved.fq --r1 reads_R1.fq --r2 reads_R2.fq --report layout_report.json
+expected_outputs=reads_r1,reads_r2,layout_report
+expected_stdout_patterns=contract_ok,pairs_deinterleaved

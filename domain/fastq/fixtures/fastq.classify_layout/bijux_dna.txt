@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.classify_layout
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq layout classify --reads reads.fq --out layout_classification.json
+expected_outputs=layout_classification
+expected_stdout_patterns=contract_ok,layout_confidence

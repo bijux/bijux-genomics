@@ -1,0 +1,10 @@
+tool=bijux_dna
+tool_version=pinned
+stage=fastq.repair_pairs
+domain=fastq
+shipping=external
+fixture_kind=planned
+command=bijux-dna
+args=fastq layout repair-pairs --r1 reads_R1.fq --r2 reads_R2.fq --out-r1 repaired_R1.fq --out-r2 repaired_R2.fq --report repair_report.json
+expected_outputs=repaired_reads_r1,repaired_reads_r2,repair_report
+expected_stdout_patterns=contract_ok,orphan_reads
