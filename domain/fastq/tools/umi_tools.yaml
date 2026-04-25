@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/umi_tools"
-  digest: "sha256:pending"
+  digest: "sha256:b2913af8c02c1eeea5de7a4b5c120f65e2003b90479c8873f0ec37689d36296c"
 command_template:
   - "umi_tools"
   - "extract"

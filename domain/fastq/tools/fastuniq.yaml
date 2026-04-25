@@ -6,7 +6,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/fastuniq"
-  digest: "sha256:pending"
+  digest: "sha256:4e0aba0be50a2894b7d36e34599cb4ff727be3e57fe47895f1a35b04985fcacf"
 command_template:
   - "bash"
   - "-lc"

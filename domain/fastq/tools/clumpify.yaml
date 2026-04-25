@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/clumpify"
-  digest: "sha256:pending"
+  digest: "sha256:fa8159777183edae8355363ba8cc5e8f8f069bee09cb6f2fb70a7ca4220a5c81"
 command_template:
   - "bash"
   - "-lc"
