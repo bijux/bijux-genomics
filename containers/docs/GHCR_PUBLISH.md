@@ -1,38 +1,55 @@
 # GHCR Container Publication
 
-Purpose: define how `bijux-genomics` publishes governed Docker-backed tool images to GitHub Container Registry.
+Purpose: define how `bijux-genomics` publishes governed external-tool container packages to GitHub Container Registry.
 
 ## Scope
 
-- Publication target: `ghcr.io/bijux/<tool_id>`
+- Repository packages view: `https://github.com/bijux?tab=packages&repo_name=bijux-genomics`
 - Repository link target: `https://github.com/bijux/bijux-genomics`
-- Runtime scope: Docker-backed tool images only
+- Runtime families:
+  - Docker arm64 OCI images
+  - Apptainer SIF artifacts stored in GHCR through the `oras://` protocol
 
-Apptainer definitions are not OCI images. They are governed in this repository, but they are not published by this workflow unless they also have a Docker image surface.
+The package namespace must follow the same repository-scoped principle used in sibling repositories such as `bijux-canon`, `bijux-pollenomics`, and `bijux-proteomics`: packages live under `ghcr.io/bijux/bijux-genomics/<package_slug>`, not under a flat organization namespace.
 
 ## Package Topology
 
-- Packages are organization-scoped under `bijux`.
-- Packages must appear on the organization packages view filtered to `repo_name=bijux-genomics`.
-- The publish workflow stamps `org.opencontainers.image.source=https://github.com/bijux/bijux-genomics` at build time so GitHub can link the package back to this repository.
+- Docker arm64 package ref: `ghcr.io/bijux/bijux-genomics/docker-arm64-<tool_id>`
+- Apptainer package ref: `ghcr.io/bijux/bijux-genomics/apptainer-<tool_id>`
+- Docker package page:
+  `https://github.com/bijux/bijux-genomics/pkgs/container/bijux-genomics%2Fdocker-arm64-<tool_id>`
+- Apptainer package page:
+  `https://github.com/bijux/bijux-genomics/pkgs/container/bijux-genomics%2Fapptainer-<tool_id>`
 
-The repository keeps upstream tool provenance in `containers/versions/versions.toml`, `configs/ci/registry/tool_registry*.toml`, and the governed container docs. GHCR publication metadata uses the repository link as the registry-facing source of truth.
+This split keeps runtime identity explicit:
+
+- Docker arm64 packages are the OCI images consumed with `docker pull`.
+- Apptainer packages are the SIF artifacts consumed with `apptainer pull oras://...`.
+
+Do not publish both runtime families under the same package slug.
+
+## Workflows
+
+- Docker arm64 workflow:
+  `.github/workflows/publish-ghcr-container-images.yml`
+- Apptainer workflow:
+  `.github/workflows/publish-ghcr-apptainer-images.yml`
+
+Both workflows are manual release surfaces guarded by `enabled=true`.
 
 ## Publication Inputs
 
-Workflow: `.github/workflows/publish-ghcr-container-images.yml`
-
-Manual inputs:
+Common manual inputs:
 
 - `enabled`: required safety gate for actual publication
 - `tool_ids`: optional comma or space separated subset
 - `status_filter`: optional comma or space separated lifecycle filter
-- `package_prefix`: defaults to `ghcr.io/bijux`
+- `package_prefix`: defaults to `ghcr.io/bijux/bijux-genomics`
 - `push_latest`: applies only to production tools
 
 ## Published Tags
 
-Each published image gets:
+Each package gets:
 
 - `<tool_version>`
 - `sha-<git-sha-prefix>`
@@ -42,25 +59,45 @@ Each published image gets:
 
 ## Authority
 
-- Publication matrix generator:
-  `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/publish-matrix.json`
+- Docker arm64 matrix:
+  `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`
+- Apptainer matrix:
+  `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`
 - Tool versions:
   `containers/versions/versions.toml`
 - Tool runtime coverage:
   `configs/ci/registry/tool_registry*.toml`
 - Docker build surface:
   `containers/docker/arm64/Dockerfile.<tool_id>`
+- Apptainer build surface:
+  `containers/apptainer/shared/<tool_id>.def`
+- Non-bijux provenance:
+  `containers/apptainer/shared/NON_BIJUX_SOURCES.md`
 
-## Non-goals
+## Pull Contract
 
-- Publishing Apptainer `.def` files as OCI images
-- Publishing SIF artifacts to GHCR
-- Rewriting governed runtime `container_ref` entries before real digests exist
+- Docker arm64:
+  `docker pull ghcr.io/bijux/bijux-genomics/docker-arm64-fastp:<tag>`
+- Apptainer:
+  `apptainer pull fastp.sif oras://ghcr.io/bijux/bijux-genomics/apptainer-fastp:<tag>`
+
+Private packages require GHCR read access. Docker pulls use standard GHCR authentication. Apptainer pulls use `apptainer registry login --username <user> oras://ghcr.io` or equivalent token-backed credentials.
 
 ## Verification Surface
 
-- Matrix artifact:
-  `artifacts/containers/ghcr/publish-matrix.json`
-- Workflow result artifacts:
-  `artifacts/containers/ghcr/workflow/<tool_id>.json`
-  `artifacts/containers/ghcr/workflow/<tool_id>.metadata.json`
+- Docker arm64 matrix artifact:
+  `artifacts/containers/ghcr/docker-arm64-publish-matrix.json`
+- Apptainer matrix artifact:
+  `artifacts/containers/ghcr/apptainer-publish-matrix.json`
+- Docker arm64 workflow results:
+  `artifacts/containers/ghcr/workflow/docker-arm64/<tool_id>.json`
+  `artifacts/containers/ghcr/workflow/docker-arm64/<tool_id>.metadata.json`
+- Apptainer workflow results:
+  `artifacts/containers/ghcr/workflow/apptainer/<tool_id>.json`
+
+## Non-goals
+
+- Publishing ungated tools outside registry authority
+- Publishing Docker and Apptainer outputs under a shared ambiguous package name
+- Treating repo-scoped release bundles from `release-ghcr.yml` as substitutes for runtime tool packages
+- Hand-editing `container_ref` state without real package digests and published evidence

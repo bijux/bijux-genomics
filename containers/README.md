@@ -6,5 +6,6 @@ Authoritative entrypoint:
 Operational docs index:
 - `containers/docs/index.md`
 - `containers/docs/GHCR_PUBLISH.md` (GHCR publication surface)
+- `https://github.com/bijux?tab=packages&repo_name=bijux-genomics` (repository packages view)
 - `containers/docs/SMOKE_CONTRACT.md` (smoke contract)
 - `containers/docs/PROMOTION_POLICY.md` (promotion and demotion policy)

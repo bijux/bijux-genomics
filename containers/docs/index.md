@@ -20,6 +20,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Security boundary: `containers/docs/SECURITY_BOUNDARY.md`
 - Multiarch policy: `containers/docs/MULTIARCH_POLICY.md`
 - GHCR publication: `containers/docs/GHCR_PUBLISH.md`
+- GHCR packages view: `https://github.com/bijux?tab=packages&repo_name=bijux-genomics`
 - Licenses: `containers/licenses/`
 - SBOM + vulnerability hooks: `cargo run -p bijux-dna-dev -- containers run check-sbom-artifacts`, `cargo run -p bijux-dna-dev -- containers run check-vuln-hook`
 - Exceptions: `containers/docker/NONROOT_EXCEPTIONS.md`, `containers/docker/ENTRYPOINT_EXCEPTIONS.md`, `containers/docs/PLANNED.md`
@@ -29,7 +30,8 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Tool IDs + lifecycle status: `containers/TOOL_IDS.txt` (generated from registry).
 - Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.
 - Container version metadata: `containers/versions/versions.toml` + `containers/versions/lock.json`.
-- GHCR publish matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/publish-matrix.json`.
+- GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.
+- GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.
 - Non-bijux provenance: `containers/apptainer/shared/NON_BIJUX_SOURCES.md`.
 - Ownership map: `containers/OWNERS.toml`.
 
