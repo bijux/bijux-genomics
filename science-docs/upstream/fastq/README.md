@@ -21,6 +21,10 @@ upstream evidence packets.
 - `STAGE_LIBRARY_SUPPORT.tsv`
   machine-readable library-type support, exclusion, and unsafe-use matrix for
   governed FASTQ stages
+- `TOOL_RISK_REGISTRY.tsv`
+  machine-readable known failure modes, assumption violations, and version,
+  license, command-surface, and output-format authority locators for governed
+  FASTQ tools
 - `tools/<tool-id>/**`
   untracked local payloads placed at the archive paths recorded in the science
   backlog and evidence map
