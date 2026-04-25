@@ -56,7 +56,7 @@ expected_artifacts: ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
 metrics_schema_id: "bijux.fastq.trim_reads.v1"
 metrics_schema: "bijux.fastq.trim_reads.v1"
 version_cmd: "atropos --version"
-help_cmd: "atropos --help"
+help_cmd: "atropos trim --help"
 comparability:
   comparable_with: []
   non_comparable_with: []
