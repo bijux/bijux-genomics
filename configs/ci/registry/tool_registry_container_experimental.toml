@@ -13,7 +13,9 @@ domain = "bam"
 domains = ["bam"]
 container = true
 runtimes = ["docker", "apptainer"]
-expected_bin = "bam"
+expected_bin = "bamutil"
+smoke_version_cmd = "bamutil --version"
+smoke_help_cmd = "bamutil --help"
 dockerfile = "containers/docker/arm64/Dockerfile.bamutil"
 apptainer_def = "containers/apptainer/shared/bamutil.def"
 
@@ -26,6 +28,8 @@ domains = ["fastq"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "bracken"
+smoke_version_cmd = "bracken --version"
+smoke_help_cmd = "bracken -h"
 dockerfile = "containers/docker/arm64/Dockerfile.bracken"
 apptainer_def = "containers/apptainer/shared/bracken.def"
 
@@ -38,6 +42,8 @@ domains = ["fastq"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "diamond"
+smoke_version_cmd = "diamond --version"
+smoke_help_cmd = "diamond help"
 dockerfile = "containers/docker/arm64/Dockerfile.diamond"
 apptainer_def = "containers/apptainer/shared/diamond.def"
 
@@ -50,6 +56,8 @@ domains = ["fastq"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "dustmasker"
+smoke_version_cmd = "dustmasker --version"
+smoke_help_cmd = "dustmasker --help"
 dockerfile = "containers/docker/arm64/Dockerfile.dustmasker"
 apptainer_def = "containers/apptainer/shared/dustmasker.def"
 
@@ -62,6 +70,8 @@ domains = ["fastq"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "fastq_screen"
+smoke_version_cmd = "fastq_screen --version"
+smoke_help_cmd = "fastq_screen --help"
 dockerfile = "containers/docker/arm64/Dockerfile.fastq_screen"
 apptainer_def = "containers/apptainer/shared/fastq_screen.def"
 
@@ -74,6 +84,8 @@ domains = ["bam"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "gatk"
+smoke_version_cmd = "gatk --version"
+smoke_help_cmd = "gatk --help"
 dockerfile = "containers/docker/arm64/Dockerfile.gatk"
 apptainer_def = "containers/apptainer/shared/gatk.def"
 
@@ -86,6 +98,8 @@ domains = ["fastq"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "metaphlan"
+smoke_version_cmd = "metaphlan --version"
+smoke_help_cmd = "metaphlan --help"
 dockerfile = "containers/docker/arm64/Dockerfile.metaphlan"
 apptainer_def = "containers/apptainer/shared/metaphlan.def"
 
@@ -98,6 +112,8 @@ domains = ["bam"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "ngsbriggs"
+smoke_version_cmd = "ngsbriggs --version"
+smoke_help_cmd = "ngsbriggs --help"
 dockerfile = "containers/docker/arm64/Dockerfile.ngsbriggs"
 apptainer_def = "containers/apptainer/shared/ngsbriggs.def"
 
@@ -110,6 +126,8 @@ domains = ["bam"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "picard"
+smoke_version_cmd = "picard --version"
+smoke_help_cmd = "picard --help"
 dockerfile = "containers/docker/arm64/Dockerfile.picard"
 apptainer_def = "containers/apptainer/shared/picard.def"
 
@@ -122,6 +140,8 @@ domains = ["bam"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "preseq"
+smoke_version_cmd = "preseq --version"
+smoke_help_cmd = "preseq --help"
 dockerfile = "containers/docker/arm64/Dockerfile.preseq"
 apptainer_def = "containers/apptainer/shared/preseq.def"
 
@@ -134,6 +154,8 @@ domains = ["bam"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "qualimap"
+smoke_version_cmd = "qualimap --version"
+smoke_help_cmd = "qualimap --help"
 dockerfile = "containers/docker/arm64/Dockerfile.qualimap"
 apptainer_def = "containers/apptainer/shared/qualimap.def"
 
@@ -146,6 +168,8 @@ domains = ["fastq"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "seqfu"
+smoke_version_cmd = "seqfu --version"
+smoke_help_cmd = "seqfu --help"
 dockerfile = "containers/docker/arm64/Dockerfile.seqfu"
 apptainer_def = "containers/apptainer/shared/seqfu.def"
 
@@ -157,7 +181,9 @@ domain = "fastq"
 domains = ["fastq"]
 container = true
 runtimes = ["docker", "apptainer"]
-expected_bin = "SeqPrep"
+expected_bin = "seqprep"
+smoke_version_cmd = "seqprep --version"
+smoke_help_cmd = "seqprep --help"
 dockerfile = "containers/docker/arm64/Dockerfile.seqprep"
 apptainer_def = "containers/apptainer/shared/seqprep.def"
 
@@ -170,6 +196,8 @@ domains = ["fastq"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "seqpurge"
+smoke_version_cmd = "seqpurge --version"
+smoke_help_cmd = "seqpurge --help"
 dockerfile = "containers/docker/arm64/Dockerfile.seqpurge"
 apptainer_def = "containers/apptainer/shared/seqpurge.def"
 
@@ -182,5 +210,7 @@ domains = ["fastq"]
 container = true
 runtimes = ["docker", "apptainer"]
 expected_bin = "spades.py"
+smoke_version_cmd = "spades.py --version"
+smoke_help_cmd = "spades.py --help"
 dockerfile = "containers/docker/arm64/Dockerfile.spades"
 apptainer_def = "containers/apptainer/shared/spades.def"
