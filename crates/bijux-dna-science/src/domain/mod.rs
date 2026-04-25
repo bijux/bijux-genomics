@@ -303,6 +303,26 @@ pub struct SourceArchiveGapRow {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct FastqContainerReferenceRow {
+    pub tool_id: String,
+    pub stage_ids: String,
+    pub reference_status: String,
+    pub registry_status: String,
+    pub version: String,
+    pub default_version: String,
+    pub version_rule: String,
+    pub upstream: String,
+    pub citation: String,
+    pub license: String,
+    pub pinned_commit: String,
+    pub pin_strategy: String,
+    pub runtimes: String,
+    pub container_ref: String,
+    pub dockerfile: String,
+    pub apptainer_def: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct FastqEnvironmentRow {
     pub stage_id: String,
     pub tool_id: String,
@@ -336,6 +356,7 @@ pub struct ScienceIndex {
     pub decisions: usize,
     pub bindings: usize,
     pub releases: usize,
+    pub fastq_container_reference_rows: usize,
     pub fastq_environment_rows: usize,
 }
 
@@ -347,6 +368,7 @@ pub struct CompiledScience {
     pub decision_reasoning_map: Vec<DecisionReasoningRow>,
     pub binding_resolution: Vec<BindingResolutionRow>,
     pub unresolved_refs: Vec<String>,
+    pub fastq_container_reference_rows: Vec<FastqContainerReferenceRow>,
     pub fastq_environment_rows: Vec<FastqEnvironmentRow>,
     pub index: ScienceIndex,
 }
