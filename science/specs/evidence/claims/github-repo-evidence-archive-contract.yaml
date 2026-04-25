@@ -8,3 +8,5 @@ object: "science-docs/upstream/github-repos/MANIFEST.tsv and science-docs/upstre
 status: "accepted"
 owner: "bijux-genomics"
 review_due: "2026-10-01"
+supports:
+  - "evidence.science-docs.github-repo-archive-governance"
