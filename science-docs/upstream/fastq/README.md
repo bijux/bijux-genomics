@@ -25,6 +25,9 @@ upstream evidence packets.
   machine-readable known failure modes, assumption violations, and version,
   license, command-surface, and output-format authority locators for governed
   FASTQ tools
+- `CONTAINER_DIGEST_BLOCKERS.tsv`
+  tracked blocker registry for FASTQ tools whose container references still need
+  immutable release digests before world-class closure
 - `tools/<tool-id>/**`
   untracked local payloads placed at the archive paths recorded in the science
   backlog and evidence map
