@@ -7,10 +7,10 @@ use crate::compile::compile_workspace;
 use crate::io::write_utf8;
 use crate::release::cut_release;
 use crate::render::{
-    binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv,
+    binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv, fastq_closure_gate_tsv,
     fastq_container_reference_tsv, fastq_download_backlog_tsv, fastq_environment_tsv,
-    fastq_paper_archive_tsv, index_json, source_archive_gaps_tsv, source_inventory_tsv,
-    to_pretty_json,
+    fastq_missing_closure_prerequisites_tsv, fastq_paper_archive_tsv, fastq_truth_delta_tsv,
+    index_json, source_archive_gaps_tsv, source_inventory_tsv, to_pretty_json,
 };
 
 pub fn run(cli: ScienceCli) -> Result<()> {
@@ -37,6 +37,28 @@ pub fn run(cli: ScienceCli) -> Result<()> {
                     row.is_default,
                     row.runtimes,
                     row.decision_id
+                );
+            }
+        }
+        ScienceCommand::Closure { stage, tool } => {
+            let compiled = compile_workspace(&cli.workspace_root)?;
+            for row in compiled
+                .fastq_closure_gate_rows
+                .iter()
+                .filter(|row| stage.as_ref().is_none_or(|value| &row.stage_id == value))
+                .filter(|row| tool.as_ref().is_none_or(|value| &row.tool_id == value))
+            {
+                println!(
+                    "{} {} world_class_closed={} status={} blockers={}",
+                    row.stage_id,
+                    row.tool_id,
+                    row.world_class_closed,
+                    row.effective_closure_status,
+                    if row.blocking_reasons.is_empty() {
+                        "none"
+                    } else {
+                        row.blocking_reasons.as_str()
+                    }
                 );
             }
         }
@@ -73,6 +95,18 @@ pub fn build_workspace(root: &PathBuf) -> Result<crate::domain::CompiledScience>
     write_utf8(
         &root.join("science/generated/current/evidence/fastq_paper_archive_matrix.tsv"),
         &fastq_paper_archive_tsv(&compiled.fastq_paper_archive_rows),
+    )?;
+    write_utf8(
+        &root.join("science/generated/current/evidence/fastq_closure_gate.tsv"),
+        &fastq_closure_gate_tsv(&compiled.fastq_closure_gate_rows),
+    )?;
+    write_utf8(
+        &root.join("science/generated/current/evidence/fastq_truth_delta.tsv"),
+        &fastq_truth_delta_tsv(&compiled.fastq_truth_delta_rows),
+    )?;
+    write_utf8(
+        &root.join("science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv"),
+        &fastq_missing_closure_prerequisites_tsv(&compiled.fastq_missing_closure_prerequisite_rows),
     )?;
     write_utf8(
         &root.join("science/generated/current/evidence/claim_evidence_map.tsv"),

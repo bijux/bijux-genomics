@@ -375,6 +375,37 @@ pub struct FastqPaperArchiveRow {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct FastqClosureGateRow {
+    pub stage_id: String,
+    pub tool_id: String,
+    pub is_default: bool,
+    pub requested_execution_status: String,
+    pub effective_closure_status: String,
+    pub world_class_closed: bool,
+    pub blocking_reasons: String,
+    pub warning_reasons: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct FastqTruthDeltaRow {
+    pub entity_type: String,
+    pub entity_id: String,
+    pub layer: String,
+    pub expected_status: String,
+    pub observed_status: String,
+    pub reason: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct FastqMissingClosurePrerequisiteRow {
+    pub stage_id: String,
+    pub tool_id: String,
+    pub prerequisite: String,
+    pub severity: String,
+    pub detail: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct ScienceIndex {
     pub sources: usize,
     pub source_inventory_rows: usize,
@@ -390,6 +421,9 @@ pub struct ScienceIndex {
     pub fastq_download_backlog_rows: usize,
     pub fastq_paper_archive_rows: usize,
     pub fastq_environment_rows: usize,
+    pub fastq_closure_gate_rows: usize,
+    pub fastq_truth_delta_rows: usize,
+    pub fastq_missing_closure_prerequisite_rows: usize,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -404,5 +438,8 @@ pub struct CompiledScience {
     pub fastq_download_backlog_rows: Vec<FastqDownloadBacklogRow>,
     pub fastq_paper_archive_rows: Vec<FastqPaperArchiveRow>,
     pub fastq_environment_rows: Vec<FastqEnvironmentRow>,
+    pub fastq_closure_gate_rows: Vec<FastqClosureGateRow>,
+    pub fastq_truth_delta_rows: Vec<FastqTruthDeltaRow>,
+    pub fastq_missing_closure_prerequisite_rows: Vec<FastqMissingClosurePrerequisiteRow>,
     pub index: ScienceIndex,
 }

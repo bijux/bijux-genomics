@@ -48,7 +48,8 @@ fn fastq_environment_slice_matches_committed_outputs() {
     assert!(compiled.fastq_download_backlog_rows.iter().any(|row| {
         row.tool_id == "dustmasker"
             && row.backlog_status == "ready"
-            && row.locator == "https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/src/app/dustmasker/"
+            && row.locator
+                == "https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/src/app/dustmasker/"
     }));
     assert!(compiled.fastq_download_backlog_rows.iter().any(|row| {
         row.tool_id == "fastp"

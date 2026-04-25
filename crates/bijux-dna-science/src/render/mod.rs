@@ -1,8 +1,9 @@
 use serde::Serialize;
 
 use crate::domain::{
-    BindingResolutionRow, ClaimEvidenceRow, DecisionReasoningRow, FastqContainerReferenceRow,
-    FastqDownloadBacklogRow, FastqEnvironmentRow, FastqPaperArchiveRow, ScienceIndex,
+    BindingResolutionRow, ClaimEvidenceRow, DecisionReasoningRow, FastqClosureGateRow,
+    FastqContainerReferenceRow, FastqDownloadBacklogRow, FastqEnvironmentRow,
+    FastqMissingClosurePrerequisiteRow, FastqPaperArchiveRow, FastqTruthDeltaRow, ScienceIndex,
     SourceArchiveGapRow, SourceInventoryRow,
 };
 
@@ -118,6 +119,56 @@ pub fn fastq_paper_archive_tsv(rows: &[FastqPaperArchiveRow]) -> String {
             row.supporting_locators,
             row.archive_status,
             row.notes
+        ));
+    }
+    out
+}
+
+pub fn fastq_closure_gate_tsv(rows: &[FastqClosureGateRow]) -> String {
+    let mut out = String::from(
+        "stage_id\ttool_id\tis_default\trequested_execution_status\teffective_closure_status\tworld_class_closed\tblocking_reasons\twarning_reasons\n",
+    );
+    for row in rows {
+        out.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+            row.stage_id,
+            row.tool_id,
+            row.is_default,
+            row.requested_execution_status,
+            row.effective_closure_status,
+            row.world_class_closed,
+            row.blocking_reasons,
+            row.warning_reasons
+        ));
+    }
+    out
+}
+
+pub fn fastq_truth_delta_tsv(rows: &[FastqTruthDeltaRow]) -> String {
+    let mut out =
+        String::from("entity_type\tentity_id\tlayer\texpected_status\tobserved_status\treason\n");
+    for row in rows {
+        out.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\n",
+            row.entity_type,
+            row.entity_id,
+            row.layer,
+            row.expected_status,
+            row.observed_status,
+            row.reason
+        ));
+    }
+    out
+}
+
+pub fn fastq_missing_closure_prerequisites_tsv(
+    rows: &[FastqMissingClosurePrerequisiteRow],
+) -> String {
+    let mut out = String::from("stage_id\ttool_id\tprerequisite\tseverity\tdetail\n");
+    for row in rows {
+        out.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\n",
+            row.stage_id, row.tool_id, row.prerequisite, row.severity, row.detail
         ));
     }
     out
