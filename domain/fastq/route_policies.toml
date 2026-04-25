@@ -1,0 +1,90 @@
+schema_version = "bijux.fastq.route_policies.v1"
+authority = "domain/fastq/route_policies.toml"
+
+[[route_family]]
+id = "shotgun_standard"
+pipeline_mode = "shotgun"
+plan_certification = "governed"
+supports_layouts = ["single_end", "paired_end"]
+forbidden_stages = ["fastq.trim_terminal_damage", "fastq.normalize_primers", "fastq.remove_chimeras", "fastq.infer_asvs", "fastq.cluster_otus", "fastq.normalize_abundance"]
+required_assets = ["adapter_bank", "polyx_bank"]
+comparability_boundaries = ["adapter_bank", "polyx_bank", "quality_policy", "minimum_length_policy"]
+invalidation_reasons = ["damage-aware trimming requested without shotgun_adna route", "amplicon-only stage requested in shotgun_standard route"]
+
+[[route_family]]
+id = "shotgun_adna"
+pipeline_mode = "shotgun"
+plan_certification = "governed"
+supports_layouts = ["single_end", "paired_end", "premerged_single_end"]
+forbidden_stages = ["fastq.correct_errors", "fastq.normalize_primers", "fastq.infer_asvs", "fastq.cluster_otus", "fastq.normalize_abundance"]
+required_assets = ["adapter_bank", "polyx_bank"]
+comparability_boundaries = ["damage_trim_policy", "adapter_bank", "merge_policy", "minimum_length_policy"]
+invalidation_reasons = ["modern shotgun quality defaults requested as damage model", "error correction requested for damage-preserving route"]
+
+[[route_family]]
+id = "amplicon_standard"
+pipeline_mode = "amplicon"
+plan_certification = "governed"
+supports_layouts = ["paired_end"]
+forbidden_stages = ["fastq.trim_polyg_tails", "fastq.trim_terminal_damage", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.deplete_rrna"]
+required_assets = ["adapter_bank", "primer_bank"]
+comparability_boundaries = ["primer_bank", "chimera_policy", "amplicon_merge_policy", "abundance_normalization_method"]
+invalidation_reasons = ["host depletion requested for amplicon_standard route", "taxonomy classifier output requested as ASV substitute"]
+
+[[route_family]]
+id = "amplicon_umi"
+pipeline_mode = "amplicon"
+plan_certification = "governed"
+supports_layouts = ["paired_end"]
+forbidden_stages = ["fastq.trim_polyg_tails", "fastq.trim_terminal_damage", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.deplete_rrna"]
+required_assets = ["adapter_bank", "primer_bank", "umi_pattern_pack"]
+comparability_boundaries = ["umi_pattern_pack", "primer_bank", "chimera_policy", "dedup_policy"]
+invalidation_reasons = ["trimming requested before UMI extraction without barcode preservation", "UMI pattern pack missing"]
+
+[[route_family]]
+id = "host_associated_metagenome"
+pipeline_mode = "shotgun"
+plan_certification = "governed"
+supports_layouts = ["single_end", "paired_end"]
+forbidden_stages = ["fastq.trim_terminal_damage", "fastq.normalize_primers", "fastq.remove_chimeras", "fastq.infer_asvs", "fastq.cluster_otus", "fastq.normalize_abundance"]
+required_assets = ["adapter_bank", "host_depletion_index", "taxonomy_database"]
+comparability_boundaries = ["host_reference_bundle", "taxonomy_database", "classifier_policy", "depletion_order"]
+invalidation_reasons = ["host signal is declared primary target", "taxonomy screen requested without locked database"]
+
+[[route_family]]
+id = "premerged_single_end"
+pipeline_mode = "shotgun"
+plan_certification = "exploratory"
+supports_layouts = ["premerged_single_end"]
+forbidden_stages = ["fastq.merge_pairs", "fastq.repair_pairs", "fastq.interleave_reads", "fastq.deinterleave_reads"]
+required_assets = ["adapter_bank"]
+comparability_boundaries = ["premerge_source_policy", "single_end_safe_stage_set", "input_hash"]
+invalidation_reasons = ["paired-end-only stage requested for premerged input", "pair synchronization required after layout collapse"]
+
+[[route_graph]]
+id = "minimal_triage"
+stage_order = ["fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.profile_reads", "fastq.report_qc"]
+classification_intent = "qc"
+required_assets = []
+plan_certification = "exploratory"
+
+[[route_graph]]
+id = "default_qc"
+stage_order = ["fastq.validate_reads", "fastq.profile_read_lengths", "fastq.detect_adapters", "fastq.trim_reads", "fastq.filter_reads", "fastq.profile_reads", "fastq.profile_overrepresented_sequences", "fastq.report_qc"]
+classification_intent = "qc"
+required_assets = ["adapter_bank"]
+plan_certification = "governed"
+
+[[route_graph]]
+id = "depletion_first"
+stage_order = ["fastq.validate_reads", "fastq.trim_reads", "fastq.filter_reads", "fastq.index_reference", "fastq.deplete_host", "fastq.deplete_reference_contaminants", "fastq.deplete_rrna", "fastq.screen_taxonomy", "fastq.report_qc"]
+classification_intent = "scientific_output"
+required_assets = ["adapter_bank", "host_depletion_index", "contaminant_depletion_index", "sortmerna_rrna_database", "taxonomy_database"]
+plan_certification = "governed"
+
+[[route_graph]]
+id = "benchmark_cohort"
+stage_order = ["fastq.capture_provenance_snapshot", "fastq.verify_assets", "fastq.validate_reads", "fastq.subsample_reads", "fastq.trim_reads", "fastq.filter_reads", "fastq.materialize_qc_manifest", "fastq.report_qc"]
+classification_intent = "benchmark"
+required_assets = ["asset_locks", "input_hash_manifest"]
+plan_certification = "benchmark_comparable"
