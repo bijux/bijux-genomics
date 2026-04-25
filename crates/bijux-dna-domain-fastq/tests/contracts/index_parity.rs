@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use bijux_dna_domain_fastq::all_stage_execution_support;
 use serde_json::Value;
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -286,18 +287,29 @@ fn stage_manifest_tool_integration() -> Result<BTreeMap<String, BTreeMap<String,
         {
             tool_map.insert(tool_id.to_string(), "governed_contract".to_string());
         }
-        for tool_id in yaml
-            .get("planned_out_of_scope")
-            .and_then(Value::as_array)
-            .into_iter()
-            .flatten()
-            .filter_map(Value::as_str)
-        {
-            tool_map.insert(tool_id.to_string(), "planned_contract".to_string());
-        }
         out.insert(stage_id, tool_map);
     }
     Ok(out)
+}
+
+fn execution_support_tool_integration() -> BTreeMap<String, BTreeMap<String, String>> {
+    all_stage_execution_support()
+        .into_iter()
+        .map(|support| {
+            let tool_map = support
+                .admitted_tools
+                .into_iter()
+                .map(|tool_id| (tool_id.as_str().to_string(), "governed_contract".to_string()))
+                .collect::<BTreeMap<_, _>>();
+            (support.stage_id.as_str().to_string(), tool_map)
+        })
+        .collect()
+}
+
+fn non_empty_tool_integration(
+    integration: BTreeMap<String, BTreeMap<String, String>>,
+) -> BTreeMap<String, BTreeMap<String, String>> {
+    integration.into_iter().filter(|(_stage_id, tools)| !tools.is_empty()).collect()
 }
 
 fn tool_manifest_reference_index_compatibility() -> Result<BTreeMap<String, BTreeSet<String>>> {
@@ -350,7 +362,17 @@ fn generated_index_stage_tool_integration_matches_stage_manifests() -> Result<()
     assert_eq!(
         indexed_stage_tool_integration()?,
         stage_manifest_tool_integration()?,
-        "domain/fastq/index.yaml stage_tool_integration drifted from stage manifest compatibility and planned bindings"
+        "domain/fastq/index.yaml stage_tool_integration drifted from stage manifest runtime compatibility"
+    );
+    Ok(())
+}
+
+#[test]
+fn generated_index_stage_tool_integration_matches_execution_support() -> Result<()> {
+    assert_eq!(
+        non_empty_tool_integration(indexed_stage_tool_integration()?),
+        execution_support_tool_integration(),
+        "domain/fastq/index.yaml stage_tool_integration drifted from domain/fastq/execution_support.yaml admitted tools"
     );
     Ok(())
 }
