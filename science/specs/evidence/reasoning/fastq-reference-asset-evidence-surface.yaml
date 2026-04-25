@@ -1,0 +1,12 @@
+schema_version: "bijux.science.reasoning.v1"
+reasoning_id: "reasoning.fastq.reference-asset-evidence-surface"
+claim_ids:
+  - "claim.fastq.reference-asset-authority"
+  - "claim.fastq.default-settings-authority"
+evidence_ids:
+  - "evidence.fastq.reference-asset-governance"
+  - "evidence.fastq.default-settings-governance"
+assumption_ids:
+  - "assumption.fastq.governance-authority-window"
+residual_risk: "The current evidence docs identify sentinel contaminant FASTA payloads, but production replacement still requires upstream acquisition, checksum review, and source-lock updates."
+conclusion: "Model FASTQ reference asset provenance separately from tool and container evidence so adapter, primer, contaminant, polyX, and QC-threshold inputs cannot be mistaken for unqualified production scientific references."
