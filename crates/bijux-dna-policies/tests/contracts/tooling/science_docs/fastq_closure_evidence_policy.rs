@@ -106,6 +106,16 @@ fn production_fastq_tag_only_container_tools() -> BTreeSet<String> {
         .collect()
 }
 
+fn planned_runtime_closure_prerequisites() -> BTreeSet<String> {
+    let planned_runtime_blockers =
+        ["missing_container_ref", "missing_runtime_surface", "registry_not_production"];
+    tsv_rows("science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv")
+        .into_iter()
+        .filter(|row| planned_runtime_blockers.contains(&row[2].as_str()))
+        .map(|row| format!("{}:{}:{}", row[0], row[1], row[2]))
+        .collect()
+}
+
 #[test]
 fn policy__contracts__fastq_closure_evidence_policy__default_risks_have_prerequisite_rows() {
     let risk_rows =
@@ -136,6 +146,30 @@ fn policy__contracts__fastq_closure_evidence_policy__default_risks_have_prerequi
         offenders.is_empty(),
         "FASTQ closure evidence policy violations:\n{}",
         offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_closure_evidence_policy__planned_runtime_blockers_match_generated_prerequisites(
+) {
+    let generated = planned_runtime_closure_prerequisites();
+    let tracked = tsv_rows("science-docs/upstream/fastq/PLANNED_RUNTIME_BLOCKERS.tsv")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 8,
+                "FASTQ planned runtime blocker rows must include owner and status columns"
+            );
+            assert_eq!(
+                row[7], "tracked",
+                "FASTQ planned runtime blocker rows must remain explicitly tracked"
+            );
+            format!("{}:{}:{}", row[0], row[1], row[2])
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        tracked, generated,
+        "FASTQ planned runtime blocker registry must match generated closure prerequisites"
     );
 }
 
