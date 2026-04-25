@@ -29,4 +29,4 @@ Cross-runtime parity:
 - For tools available in both Docker and Apptainer, compare:
   - `version_output`
   - `help/minimal/negative` actual exit codes
-  using `cargo run -p bijux-dev-dna -- containers run check-cross-runtime-smoke`.
+  using `cargo run -p bijux-dna-dev -- containers run check-cross-runtime-smoke`.

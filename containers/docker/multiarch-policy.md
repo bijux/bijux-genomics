@@ -2,14 +2,14 @@
 
 Purpose: define supported Docker architecture contract for this repository.
 
-Scope: `containers/docker/**` definitions and checks under `bijux-dev-dna/containers/`.
+Scope: `containers/docker/**` definitions and checks under `bijux-dna-dev/containers/`.
 
 Contracts:
 - Current supported Docker architecture is `arm64` only.
 - `containers/docker/amd64/` may exist only as an empty placeholder unless policy is changed.
 - Any multiarch expansion requires:
   - updates to this policy,
-  - updates to `cargo run -p bijux-dev-dna -- containers run check-docker-arch-policy`,
+  - updates to `cargo run -p bijux-dna-dev -- containers run check-docker-arch-policy`,
   - corresponding CI smoke coverage additions.
 
 Cross-build story (amd64 plan while arm64-only):

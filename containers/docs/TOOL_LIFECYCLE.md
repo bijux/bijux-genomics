@@ -21,5 +21,5 @@ planned -> experimental -> production -> deprecated -> removed
 ## References
 - `containers/docs/PROMOTION_POLICY.md`
 - `containers/versions/deprecations.toml`
-- `cargo run -p bijux-dev-dna -- containers run tool-lifecycle`
-- `cargo run -p bijux-dev-dna -- containers run demote`
+- `cargo run -p bijux-dna-dev -- containers run tool-lifecycle`
+- `cargo run -p bijux-dna-dev -- containers run demote`

@@ -13,6 +13,6 @@ Purpose: clarify build-time vs runtime trust boundaries.
 - Smoke tests verify deterministic help/version/minimal behavior.
 
 ## Enforcement
-- `cargo run -p bijux-dev-dna -- containers run check-runtime-downloads`
-- `cargo run -p bijux-dev-dna -- containers run check-network-disclosure`
-- `cargo run -p bijux-dev-dna -- containers run check-no-secrets`
+- `cargo run -p bijux-dna-dev -- containers run check-runtime-downloads`
+- `cargo run -p bijux-dna-dev -- containers run check-network-disclosure`
+- `cargo run -p bijux-dna-dev -- containers run check-no-secrets`

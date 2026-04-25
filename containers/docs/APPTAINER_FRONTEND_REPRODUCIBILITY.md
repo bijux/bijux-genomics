@@ -18,7 +18,7 @@ Purpose: enforce deterministic Apptainer SIF rebuild behavior on HPC frontend no
   - `LANG=C`
   - `SOURCE_DATE_EPOCH` from repository HEAD commit time (or `0` fallback)
 - Frontend pinned-version requirement:
-  - `cargo run -p bijux-dev-dna -- containers run check-version-hash-pin` must pass before rebuild sampling.
+  - `cargo run -p bijux-dna-dev -- containers run check-version-hash-pin` must pass before rebuild sampling.
 - Compute-node refusal:
   - hostname policy from `configs/ci/tools/hpc_frontend_build_policy.toml`.
 
@@ -35,9 +35,9 @@ Purpose: enforce deterministic Apptainer SIF rebuild behavior on HPC frontend no
 
 ## Commands
 - Run workflow:
-  - `cargo run -p bijux-dev-dna -- containers run run-apptainer-frontend-reproducibility`
+  - `cargo run -p bijux-dna-dev -- containers run run-apptainer-frontend-reproducibility`
 - Gate check:
-  - `cargo run -p bijux-dev-dna -- containers run check-apptainer-frontend-reproducibility`
+  - `cargo run -p bijux-dna-dev -- containers run check-apptainer-frontend-reproducibility`
 
 ## Outputs
 - Machine summary:

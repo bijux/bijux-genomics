@@ -3,10 +3,10 @@
 Purpose: Define the strict format and lifecycle contract for `containers/TOOL_IDS.txt`.
 
 ## Format
-- File is generated-only from registry data by `cargo run -p bijux-dev-dna -- containers run generate-tool-ids`.
+- File is generated-only from registry data by `cargo run -p bijux-dna-dev -- containers run generate-tool-ids`.
 - Header lines are required:
   - `# GENERATED FILE - DO NOT EDIT`
-  - `# Regenerate with: cargo run -p bijux-dev-dna -- containers run generate-tool-ids`
+  - `# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids`
   - `# format: <tool_id><TAB><status>`
 - Data rows must be exactly `<tool_id>\t<status>`.
 

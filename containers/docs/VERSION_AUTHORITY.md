@@ -14,6 +14,6 @@ Each tool entry must include:
 - one of `source_sha256` or `pinned_commit`
 
 ## Enforcement
-- `cargo run -p bijux-dev-dna -- containers run check-version-hash-pin`
-- `cargo run -p bijux-dev-dna -- containers run check-version-authority`
-- `cargo run -p bijux-dev-dna -- containers run check-version-completeness`
+- `cargo run -p bijux-dna-dev -- containers run check-version-hash-pin`
+- `cargo run -p bijux-dna-dev -- containers run check-version-authority`
+- `cargo run -p bijux-dna-dev -- containers run check-version-completeness`
