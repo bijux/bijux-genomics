@@ -5,6 +5,13 @@
 !upstream/
 upstream/*
 !upstream/README.md
+!upstream/fastq/
+upstream/fastq/*
+!upstream/fastq/README.md
+!upstream/fastq/tools/
+upstream/fastq/tools/*
+!upstream/fastq/tools/README.md
+!upstream/fastq/tools/EVIDENCE_MAP.tsv
 !upstream/github-repos/
 upstream/github-repos/*
 !upstream/github-repos/README.md

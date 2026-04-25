@@ -14,16 +14,22 @@ from urllib.parse import urlparse
 
 SCAN_PATTERNS = (
     "configs/ci/registry/*.toml",
+    "domain/**/*.yaml",
     "docs/20-science/**/*.md",
     "docs/30-operations/CONTAINER_LICENSE_INDEX.md",
     "science/**/*.yaml",
     "science-docs/README.md",
     "science-docs/TODO_DOWNLOAD.md",
+    "science-docs/upstream/**/*.md",
+    "science-docs/upstream/**/*.tsv",
     "mkdocs.yml",
 )
 
 GITHUB_URL_PATTERN = re.compile(r"https?://github\.com/[^\s)>\]\"']+")
 TRAILING_URL_JUNK = "`),.;:"
+IGNORED_SCAN_PATHS = {
+    "science-docs/upstream/github-repos/MANIFEST.tsv",
+}
 
 
 @dataclass(frozen=True)
@@ -109,6 +115,8 @@ def discover_repo_records(repo_root: Path) -> list[RepoRecord]:
             if not path.is_file():
                 continue
             relpath = str(path.relative_to(repo_root))
+            if relpath in IGNORED_SCAN_PATHS:
+                continue
             text = path.read_text(encoding="utf-8", errors="ignore")
             for raw_url in GITHUB_URL_PATTERN.findall(text):
                 repo_id = normalize_repo_id(raw_url)

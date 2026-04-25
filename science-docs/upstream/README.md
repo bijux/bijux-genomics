@@ -12,6 +12,12 @@ material used to support science, container, and provenance review in
 
 ## Layout
 
+- `fastq/README.md`
+  contract for FASTQ upstream evidence packets
+- `fastq/tools/README.md`
+  per-tool archive rules for FASTQ source material
+- `fastq/tools/EVIDENCE_MAP.tsv`
+  tracked locator map for tool-specific manual archive packets
 - `github-repos/README.md`
   contract for GitHub repository evidence mirrors
 - `github-repos/MANIFEST.tsv`
