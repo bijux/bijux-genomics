@@ -37,9 +37,16 @@ fn stage_manifest_required_outputs() -> Result<BTreeMap<String, BTreeSet<String>
 }
 
 fn indexed_stage_output_size_estimates() -> Result<BTreeMap<String, BTreeSet<String>>> {
+    Ok(indexed_stage_output_size_estimate_values()?
+        .into_iter()
+        .map(|(stage, estimates)| (stage, estimates.into_keys().collect::<BTreeSet<_>>()))
+        .collect())
+}
+
+fn indexed_stage_output_size_estimate_values() -> Result<BTreeMap<String, BTreeMap<String, f64>>> {
     let raw = std::fs::read_to_string(workspace_root()?.join("domain/fastq/index.yaml"))
         .context("read domain/fastq/index.yaml")?;
-    let mut out = BTreeMap::<String, BTreeSet<String>>::new();
+    let mut out = BTreeMap::<String, BTreeMap<String, f64>>::new();
     let mut in_block = false;
     let mut current_stage = None::<String>;
     for line in raw.lines() {
@@ -63,9 +70,17 @@ fn indexed_stage_output_size_estimates() -> Result<BTreeMap<String, BTreeSet<Str
             out.entry(stage).or_default();
             continue;
         }
-        if let Some(artifact) = line.strip_prefix("    ").and_then(|rest| rest.split(':').next()) {
+        if let Some((artifact, estimate)) =
+            line.strip_prefix("    ").and_then(|rest| rest.split_once(':'))
+        {
             if let Some(stage) = &current_stage {
-                out.entry(stage.clone()).or_default().insert(artifact.to_string());
+                out.entry(stage.clone()).or_default().insert(
+                    artifact.to_string(),
+                    estimate
+                        .trim()
+                        .parse::<f64>()
+                        .with_context(|| format!("parse estimate for {stage}.{artifact}"))?,
+                );
             }
         }
     }
@@ -98,5 +113,28 @@ fn stage_output_size_estimates_match_required_stage_outputs() -> Result<()> {
         stage_manifest_required_outputs()?,
         "domain/fastq/index.yaml stage_output_size_estimates_mb drifted from stage manifest required_outputs"
     );
+    Ok(())
+}
+
+#[test]
+fn read_stream_output_size_estimates_are_not_metadata_sized() -> Result<()> {
+    for (stage, estimates) in indexed_stage_output_size_estimate_values()? {
+        for (artifact, estimate) in estimates {
+            let is_read_stream = artifact == "reads"
+                || artifact == "reads_r1"
+                || artifact == "reads_r2"
+                || artifact == "sample_reads"
+                || artifact.ends_with("_reads")
+                || artifact.contains("_reads_r1")
+                || artifact.contains("_reads_r2");
+            if !is_read_stream {
+                continue;
+            }
+            assert!(
+                estimate >= 100.0,
+                "{stage}.{artifact} should be estimated as a read stream, got {estimate:.1} MB"
+            );
+        }
+    }
     Ok(())
 }

@@ -1221,8 +1221,8 @@ stage_output_size_estimates_mb:
     corrected_reads_r1: 900.0
     report_json: 8.0
   fastq.deinterleave_reads:
-    reads_r1: 4.0
-    reads_r2: 4.0
+    reads_r1: 1000.0
+    reads_r2: 1000.0
     layout_report: 1.0
   fastq.demultiplex_reads:
     sample_reads: 1000.0
