@@ -26,6 +26,9 @@ GitHub repository evidence is governed separately through:
 That manifest is the durable target list for local repository mirrors under
 `science-docs/upstream/github-repos/mirrors/`.
 
+Paper payloads are governed separately through:
+`science-docs/upstream/papers/TODO_DOWNLOAD.md`
+
 ## Ready for Manual Clone
 
 | Source ID | Tool | FASTQ Stages | Archive Path | Upstream |
@@ -38,8 +41,12 @@ That manifest is the durable target list for local repository mirrors under
 | `source.fastq.tool.bowtie2_build.upstream` | `bowtie2_build` | `fastq.index_reference` | `science-docs/upstream/fastq/tools/bowtie2_build/repo` | https://github.com/BenLangmead/bowtie2 |
 | `source.fastq.tool.centrifuge.upstream` | `centrifuge` | `fastq.screen_taxonomy` | `science-docs/upstream/fastq/tools/centrifuge/repo` | https://github.com/DaehwanKimLab/centrifuge |
 | `source.fastq.tool.cutadapt.upstream` | `cutadapt` | `fastq.normalize_primers,fastq.trim_reads,fastq.trim_terminal_damage` | `science-docs/upstream/fastq/tools/cutadapt/repo` | https://github.com/marcelm/cutadapt |
+| `source.fastq.tool.dada2.upstream` | `dada2` | `fastq.infer_asvs` | `science-docs/upstream/fastq/tools/dada2/repo` | https://github.com/benjjneb/dada2 |
+| `source.fastq.tool.diamond.upstream` | `diamond` | `fastq.screen_taxonomy` | `science-docs/upstream/fastq/tools/diamond/repo` | https://github.com/bbuchfink/diamond |
 | `source.fastq.tool.fastq_scan.upstream` | `fastq_scan` | `fastq.profile_overrepresented_sequences,fastq.validate_reads` | `science-docs/upstream/fastq/tools/fastq_scan/repo` | https://github.com/rpetit3/fastq-scan |
 | `source.fastq.tool.fastqvalidator.upstream` | `fastqvalidator` | `fastq.validate_reads` | `science-docs/upstream/fastq/tools/fastqvalidator/repo` | https://github.com/statgen/fastQValidator |
+| `source.fastq.tool.fastp.upstream` | `fastp` | `fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_polyg_tails,fastq.trim_reads` | `science-docs/upstream/fastq/tools/fastp/repo` | https://github.com/OpenGene/fastp |
+| `source.fastq.tool.fastqc.upstream` | `fastqc` | `fastq.detect_adapters,fastq.profile_overrepresented_sequences,fastq.validate_reads` | `science-docs/upstream/fastq/tools/fastqc/repo` | https://github.com/s-andrews/FastQC |
 | `source.fastq.tool.fastx_clipper.upstream` | `fastx_clipper` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/fastx_clipper/repo` | https://github.com/agordon/fastx_toolkit |
 | `source.fastq.tool.flash2.upstream` | `flash2` | `fastq.merge_pairs` | `science-docs/upstream/fastq/tools/flash2/repo` | https://github.com/dstreett/FLASH2 |
 | `source.fastq.tool.fqtools.upstream` | `fqtools` | `fastq.validate_reads` | `science-docs/upstream/fastq/tools/fqtools/repo` | https://github.com/alastair-droop/fqtools |
@@ -52,7 +59,10 @@ That manifest is the durable target list for local repository mirrors under
 | `source.fastq.tool.pear.upstream` | `pear` | `fastq.merge_pairs` | `science-docs/upstream/fastq/tools/pear/download` | https://cme.h-its.org/exelixis/web/software/pear/ |
 | `source.fastq.tool.prinseq.upstream` | `prinseq` | `fastq.filter_low_complexity,fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_reads` | `science-docs/upstream/fastq/tools/prinseq/repo` | https://github.com/Adrian-Cantu/PRINSEQ-plus-plus |
 | `source.fastq.tool.rcorrector.upstream` | `rcorrector` | `fastq.correct_errors` | `science-docs/upstream/fastq/tools/rcorrector/repo` | https://github.com/mourisl/Rcorrector |
+| `source.fastq.tool.seqfu.upstream` | `seqfu` | `fastq.normalize_abundance,fastq.profile_read_lengths` | `science-docs/upstream/fastq/tools/seqfu/repo` | https://github.com/telatin/seqfu2 |
+| `source.fastq.tool.seqkit.upstream` | `seqkit` | `fastq.filter_reads,fastq.normalize_abundance,fastq.profile_overrepresented_sequences,fastq.trim_reads,fastq.trim_terminal_damage` | `science-docs/upstream/fastq/tools/seqkit/repo` | https://github.com/shenwei356/seqkit |
 | `source.fastq.tool.seqkit_stats.upstream` | `seqkit_stats` | `fastq.profile_read_lengths,fastq.profile_reads` | `science-docs/upstream/fastq/tools/seqkit_stats/repo` | https://github.com/shenwei356/seqkit |
+| `source.fastq.tool.seqpurge.upstream` | `seqpurge` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/seqpurge/repo` | https://github.com/imgag/ngs-bits |
 | `source.fastq.tool.seqtk.upstream` | `seqtk` | `fastq.validate_reads` | `science-docs/upstream/fastq/tools/seqtk/repo` | https://github.com/lh3/seqtk.git |
 | `source.fastq.tool.skewer.upstream` | `skewer` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/skewer/repo` | https://github.com/relipmoc/skewer |
 | `source.fastq.tool.sortmerna.upstream` | `sortmerna` | `fastq.deplete_rrna` | `science-docs/upstream/fastq/tools/sortmerna/repo` | https://github.com/biocore/sortmerna |
@@ -68,19 +78,12 @@ That manifest is the durable target list for local repository mirrors under
 | `source.fastq.tool.bbduk.upstream` | `bbduk` | `fastq.filter_low_complexity,fastq.filter_reads,fastq.trim_polyg_tails,fastq.trim_reads` | `science-docs/upstream/fastq/tools/bbduk/download` | https://sourceforge.net/projects/bbmap/ |
 | `source.fastq.tool.bbmerge.upstream` | `bbmerge` | `fastq.merge_pairs` | `science-docs/upstream/fastq/tools/bbmerge/download` | https://sourceforge.net/projects/bbmap/ |
 | `source.fastq.tool.clumpify.upstream` | `clumpify` | `fastq.remove_duplicates` | `science-docs/upstream/fastq/tools/clumpify/download` | https://jgi.doe.gov/data-and-tools/software-tools/bbtools/ |
-| `source.fastq.tool.dada2.upstream` | `dada2` | `fastq.infer_asvs` | `science-docs/upstream/fastq/tools/dada2/download` | https://benjjneb.github.io/dada2/ |
+| `source.fastq.tool.dustmasker.upstream` | `dustmasker` | `fastq.filter_low_complexity` | `science-docs/upstream/fastq/tools/dustmasker/download` | https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/src/app/dustmasker/ |
 | `source.fastq.tool.fastuniq.upstream` | `fastuniq` | `fastq.remove_duplicates` | `science-docs/upstream/fastq/tools/fastuniq/download` | https://sourceforge.net/projects/fastuniq/ |
 | `source.fastq.tool.musket.upstream` | `musket` | `fastq.correct_errors` | `science-docs/upstream/fastq/tools/musket/download` | https://sourceforge.net/projects/musket/ |
 | `source.fastq.tool.trimmomatic.upstream` | `trimmomatic` | `fastq.trim_reads` | `science-docs/upstream/fastq/tools/trimmomatic/download` | http://www.usadellab.org/cms/?page=trimmomatic |
 
-## Needs Registry Repair or Manual Resolution
+## Paper Archive Worklist
 
-| Source ID | Tool | Backlog Status | Archive Path | Mode | Note |
-| --- | --- | --- | --- | --- | --- |
-| `source.fastq.tool.diamond.upstream` | `diamond` | `missing_registry_source` | `` | `` | tool is on the FASTQ surface but lacks governed registry source metadata |
-| `source.fastq.tool.dustmasker.upstream` | `dustmasker` | `missing_registry_source` | `` | `` | tool is on the FASTQ surface but lacks governed registry source metadata |
-| `source.fastq.tool.fastp.upstream` | `fastp` | `templated_locator` | `science-docs/upstream/fastq/tools/fastp/download` | `manual_download` | registry locator contains unresolved template variables; archive the resolved release page or source bundle |
-| `source.fastq.tool.fastqc.upstream` | `fastqc` | `templated_locator` | `science-docs/upstream/fastq/tools/fastqc/download` | `manual_download` | registry locator contains unresolved template variables; archive the resolved release page or source bundle |
-| `source.fastq.tool.seqfu.upstream` | `seqfu` | `missing_registry_source` | `` | `` | tool is on the FASTQ surface but lacks governed registry source metadata |
-| `source.fastq.tool.seqkit.upstream` | `seqkit` | `templated_locator` | `science-docs/upstream/fastq/tools/seqkit/download` | `manual_download` | registry locator contains unresolved template variables; archive the resolved release page or source bundle |
-| `source.fastq.tool.seqpurge.upstream` | `seqpurge` | `missing_registry_source` | `` | `` | tool is on the FASTQ surface but lacks governed registry source metadata |
+Use `science-docs/upstream/papers/TODO_DOWNLOAD.md` for the paired publication or
+software-citation packets behind these tool source archives.
