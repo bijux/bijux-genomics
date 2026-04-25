@@ -9,7 +9,7 @@ container:
   image: bijuxdna/sortmerna
   digest: sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c
 license: GPL-3.0
-citation: pending:tool-publication
+citation: paper:https://academic.oup.com/bioinformatics/article/28/24/3211/246053
 stage_ids:
 - fastq.deplete_rrna
 stage_contracts:
