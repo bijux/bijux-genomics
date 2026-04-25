@@ -11,6 +11,6 @@
   "releases": 1,
   "fastq_container_reference_rows": 44,
   "fastq_download_backlog_rows": 44,
-  "fastq_paper_archive_rows": 15,
+  "fastq_paper_archive_rows": 38,
   "fastq_environment_rows": 70
 }
