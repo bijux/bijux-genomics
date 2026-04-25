@@ -19,13 +19,32 @@ fn rs_test_files(root: &Path) -> Vec<PathBuf> {
         if path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
             continue;
         }
-        if !path_s.contains("/tests/") {
+        let content = std::fs::read_to_string(path).expect("read test source");
+        let is_integration_test = path_s.contains("/tests/");
+        let is_unit_test_container = path_s.contains("/src/")
+            && (content.contains("#[cfg(test)]") || content.contains("mod tests {"));
+        if !is_integration_test && !is_unit_test_container {
             continue;
         }
         files.push(path.to_path_buf());
     }
     files.sort();
     files
+}
+
+fn test_scoped_content(path: &Path) -> String {
+    let content = std::fs::read_to_string(path).expect("read test source");
+    let path_s = path.to_string_lossy();
+    if path_s.contains("/tests/") {
+        return content;
+    }
+    if let Some((_, scoped)) = content.split_once("#[cfg(test)]") {
+        return scoped.to_string();
+    }
+    if let Some((_, scoped)) = content.split_once("mod tests {") {
+        return scoped.to_string();
+    }
+    content
 }
 
 fn is_policy_file(path: &Path) -> bool {
@@ -43,7 +62,7 @@ fn policy__contracts__test_determinism_policy__tests_ban_systemtime_now() {
         if is_policy_file(&file) {
             continue;
         }
-        let content = std::fs::read_to_string(&file).expect("read test source");
+        let content = test_scoped_content(&file);
         if content.contains("SystemTime::now(") || content.contains("std::time::SystemTime::now(") {
             offenders.push(file.display().to_string());
         }
@@ -65,7 +84,7 @@ fn policy__contracts__test_determinism_policy__tests_ban_thread_rng() {
         if is_policy_file(&file) {
             continue;
         }
-        let content = std::fs::read_to_string(&file).expect("read test source");
+        let content = test_scoped_content(&file);
         if content.contains("rand::thread_rng(") || content.contains("thread_rng(") {
             offenders.push(file.display().to_string());
         }
@@ -85,10 +104,12 @@ fn policy__contracts__test_determinism_policy__tests_do_not_write_to_artifacts_r
     let write_to_artifacts =
         Regex::new(r#"(write|create_dir|create_dir_all|open)\s*\([^\n]*[\"']artifacts/"#)
             .expect("compile regex");
+    let hardcoded_artifacts_root =
+        Regex::new(r#"PathBuf::from\(\s*[\"']artifacts(?:/|[\"'])"#).expect("compile regex");
 
     for file in rs_test_files(&root) {
-        let content = std::fs::read_to_string(&file).expect("read test source");
-        if write_to_artifacts.is_match(&content) {
+        let content = test_scoped_content(&file);
+        if write_to_artifacts.is_match(&content) || hardcoded_artifacts_root.is_match(&content) {
             offenders.push(file.display().to_string());
         }
     }

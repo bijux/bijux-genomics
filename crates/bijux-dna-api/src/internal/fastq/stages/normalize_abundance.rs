@@ -418,12 +418,12 @@ mod tests {
     use super::{materialize_normalized_table, read_normalized_table_metrics};
     use anyhow::Result;
     use bijux_dna_domain_fastq::params::edna::AbundanceNormalizationEffectiveParams;
+    use bijux_dna_testkit::TestPaths;
     use std::path::PathBuf;
 
     fn temp_path(name: &str) -> PathBuf {
-        let unique =
-            format!("bijux-normalize-abundance-{}-{}", std::process::id(), uuid::Uuid::new_v4());
-        PathBuf::from("artifacts").join("tmp").join(unique).join(name)
+        let test_paths = TestPaths::new("normalize-abundance");
+        test_paths.child(name)
     }
 
     #[test]

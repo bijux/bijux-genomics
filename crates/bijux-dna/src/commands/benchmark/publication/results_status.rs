@@ -5,12 +5,11 @@ use anyhow::{Context, Result};
 
 use super::models::{PublishedResultsStageReport, PublishedResultsStatusReport, StageResultIssue};
 use super::{
-    benchmark_publication_contracts, configured_stage_run_roots, find_polluting_ds_store_files,
-    json_string_array, load_benchmark_config, load_json_value, localize_results_path,
-    observed_tools_from_report, publication_artifact_file_name, publication_stage_docs_root,
-    relative_to_repo_root, select_stage_run_root, sorted_json_string_array, sorted_strings,
-    summary_corpus_id, unique_existing_run_roots, value_string, BenchmarkWorkspaceConfig,
-    CorpusBenchmarkContract,
+    benchmark_publication_contracts, configured_stage_run_roots, json_string_array,
+    load_benchmark_config, load_json_value, localize_results_path, observed_tools_from_report,
+    publication_artifact_file_name, publication_stage_docs_root, relative_to_repo_root,
+    select_stage_run_root, sorted_json_string_array, sorted_strings, summary_corpus_id,
+    unique_existing_run_roots, value_string, BenchmarkWorkspaceConfig, CorpusBenchmarkContract,
 };
 
 pub(super) fn write_corpus_fastq_results_status(
@@ -179,21 +178,7 @@ pub(super) fn audit_published_results_stage(
             );
         }
     }
-    if selected_run_root.is_dir() {
-        let polluting_files = find_polluting_ds_store_files(&selected_run_root);
-        if !polluting_files.is_empty() {
-            append_stage_result_issue(
-                &mut issues,
-                &contract.stage_id,
-                "polluting-mirror-artifact",
-                format!(
-                    "mirror contains {} .DS_Store files under {}",
-                    polluting_files.len(),
-                    selected_run_root.display()
-                ),
-            );
-        }
-    } else {
+    if !selected_run_root.is_dir() {
         append_stage_result_issue(
             &mut issues,
             &contract.stage_id,

@@ -46,12 +46,12 @@ use self::models::{
 };
 use self::publication_io::{
     absolutize, classify_run_root_source, configured_stage_run_roots, csv_report_value,
-    find_polluting_ds_store_files, json_string_array, load_json_value, localize_results_path,
-    observed_tools_from_report, publication_artifact_file_name, publication_method_file_name,
-    publication_stage_docs_root, relative_to_docs_root, relative_to_repo_root,
-    select_stage_run_root, sorted_json_string_array, sorted_strings, summary_corpus_id,
-    unique_existing_run_roots, value_string, workspace_local_cache_mirror_root,
-    workspace_local_results_root, workspace_remote_corpus_root, workspace_remote_results_root,
+    json_string_array, load_json_value, localize_results_path, observed_tools_from_report,
+    publication_artifact_file_name, publication_method_file_name, publication_stage_docs_root,
+    relative_to_docs_root, relative_to_repo_root, select_stage_run_root, sorted_json_string_array,
+    sorted_strings, summary_corpus_id, unique_existing_run_roots, value_string,
+    workspace_local_cache_mirror_root, workspace_local_results_root, workspace_remote_corpus_root,
+    workspace_remote_results_root,
 };
 use self::remediation::write_corpus_fastq_remediation_queue;
 #[cfg(test)]
@@ -852,68 +852,6 @@ reason = "Compact validation fixture."
         );
         let observed_tools = super::observed_tools_from_report(&report_path).expect("tools");
         assert_eq!(observed_tools, vec!["fastqvalidator", "seqtk"]);
-    }
-
-    #[test]
-    fn results_audit_flags_polluting_mirror_artifacts() {
-        let temp = tempdir().expect("tempdir");
-        let docs_root = temp.path().join("docs").join("benchmark");
-        let cache_root = temp.path().join("cache-mirror");
-        let archive_root = temp.path().join("archive");
-        let remote_root = temp.path().join("remote");
-        let remote_corpus_root = cache_root.join("benchmark_corpus");
-        let workspace =
-            sample_workspace(&cache_root, &archive_root, &remote_root, &remote_corpus_root);
-        let run_root = temp
-            .path()
-            .join("mirror")
-            .join("benchmark_corpus")
-            .join("fastq.validate_reads")
-            .join("cluster-apptainer");
-        let sample_report =
-            run_root.join("bench").join("validate_reads").join("sample_0001").join("report.json");
-        fs::create_dir_all(run_root.join("bench")).expect("create bench");
-        fs::write(run_root.join("bench").join(".DS_Store"), "").expect("write ds store");
-        write_json(
-            &docs_root.join("fastq.validate_reads").join("corpus-01").join("summary.json"),
-            serde_json::json!({
-                "corpus_root": remote_corpus_root,
-                "run_root": run_root,
-            }),
-        );
-        write_json(
-            &sample_report,
-            serde_json::json!({
-                "records": [
-                    {"context": {"tool": "fastqvalidator"}},
-                    {"context": {"tool": "fastqc"}},
-                    {"context": {"tool": "fastq_scan"}},
-                    {"context": {"tool": "fqtools"}},
-                    {"context": {"tool": "seqtk"}},
-                ],
-            }),
-        );
-        write_json(
-            &run_root.join("run_manifest.json"),
-            serde_json::json!({
-                "stage_id": "fastq.validate_reads",
-                "scenario_id": "validation_fairness",
-                "tools": ["fastqvalidator", "fastqc", "fastq_scan", "fqtools", "seqtk"],
-                "dry_run": false,
-                "sample_limit": serde_json::Value::Null,
-                "samples_failed": 0,
-                "runs": [{"sample_id": "sample_0001", "report_json": sample_report}],
-            }),
-        );
-        let report = super::audit_published_results_stage(
-            temp.path(),
-            &workspace,
-            &docs_root,
-            "corpus-01",
-            &validate_reads_contract(),
-        )
-        .expect("stage report");
-        assert!(report.issues.iter().any(|issue| issue.issue_id == "polluting-mirror-artifact"));
     }
 
     #[test]

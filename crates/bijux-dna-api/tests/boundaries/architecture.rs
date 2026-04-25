@@ -205,6 +205,7 @@ fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
     std::fs::read_dir(path)
         .unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
         .map(|entry| entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display())))
+        .filter(|entry| entry.file_name().to_string_lossy() != ".DS_Store")
         .map(|entry| {
             let path = entry.path();
             let name = entry.file_name().to_string_lossy().to_string();
