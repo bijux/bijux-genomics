@@ -34,9 +34,9 @@ roots intentionally use homepage or repository snapshots rather than paper PDFs.
 | `bbmerge` | `paper.fastq.bbmerge.bushnell-2017` | PDF archived | `open_access_publisher` | https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0185056 |
 | `cutadapt` | `paper.fastq.cutadapt.martin-2011` | PDF archived | `open_access_publisher` | https://journal.embnet.org/index.php/embnetjournal/article/view/200 |
 | `dada2` | `paper.fastq.dada2.callahan-2016` | PDF archived | `licensed_or_abstract_only` | https://www.nature.com/articles/nmeth.3869 |
-| `diamond` | `paper.fastq.diamond.buchfink-2015` | PDF archived | `licensed_or_abstract_only` | https://pubmed.ncbi.nlm.nih.gov/25402007/ |
-| `dustmasker` | `paper.fastq.dustmasker.morgulis-2006` | PDF archived | `licensed_or_abstract_only` | https://pubmed.ncbi.nlm.nih.gov/16796549/ |
-| `fastp` | `paper.fastq.fastp.chen-2018` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC6129281/ |
+| `diamond` | `paper.fastq.diamond.buchfink-2015` | PDF archived | `licensed_or_abstract_only` | https://www.nature.com/articles/nmeth.3176 |
+| `dustmasker` | `paper.fastq.dustmasker.morgulis-2006` | PDF archived | `licensed_or_abstract_only` | https://journals.sagepub.com/doi/abs/10.1089/cmb.2006.13.1028 |
+| `fastp` | `paper.fastq.fastp.chen-2018` | PDF archived | `open_access_pmc` | https://academic.oup.com/bioinformatics/article/34/17/i884/5093234 |
 | `fastq_screen` | `paper.fastq.fastq-screen.wingett-2018` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC6124377/ |
 | `fastuniq` | `paper.fastq.fastuniq.xu-2012` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC3527383/ |
 | `flash2` | `paper.fastq.flash.magoc-2011` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC3198573/ |
@@ -68,7 +68,7 @@ roots intentionally use homepage or repository snapshots rather than paper PDFs.
 | `fastqvalidator` | `paper.fastq.fastqvalidator.software-citation` | homepage/repository snapshot archived | https://github.com/statgen/fastQValidator |
 | `fastx_clipper` | `paper.fastq.fastx-toolkit.software-citation` | homepage/repository snapshot archived | https://github.com/agordon/fastx_toolkit |
 | `seqtk` | `paper.fastq.seqtk.software-citation` | homepage/repository snapshot archived | https://github.com/lh3/seqtk |
-| `trim_galore` | `paper.fastq.trim-galore.software-citation` | homepage/repository snapshot archived | https://github.com/FelixKrueger/TrimGalore |
+| `trim_galore` | `paper.fastq.trim-galore.software-citation` | homepage/repository snapshot archived | https://doi.org/10.5281/zenodo.7598955 |
 
 ## PDF Follow-Up
 
@@ -86,3 +86,7 @@ No current FASTQ paper PDF access blockers are tracked here.
   repository-based software references, not as a seqtk methods paper.
 - fastqvalidator keeps the VirIdAl pipeline paper as supporting citation
   context because it cites the fastQValidator GitHub repository.
+- Formal papers should prefer the publisher DOI landing page as the primary
+  locator, with PubMed/PMC retained as supporting index and access locators.
+  Software-only roots should prefer durable software-release DOI records when
+  available, then maintained repository/project pages.
