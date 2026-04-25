@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/seqtk"
-  digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  digest: "sha256:16e615286a66f1654278a862ad47c3d62bdfabbbf17cb2e12a568256d1b05024"
 command_template:
   - "seqtk"
   - "seq"
