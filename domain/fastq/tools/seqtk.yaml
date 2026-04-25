@@ -41,7 +41,7 @@ pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "software:https://github.com/lh3/seqtk"
 stage_ids: ["fastq.validate_reads"]
 stage_contracts:
   fastq.validate_reads:
