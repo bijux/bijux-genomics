@@ -5,6 +5,7 @@ claim.fastq.environment-resolution-authority	evidence.fastq.environment-resoluti
 claim.fastq.execution-surface-authority	evidence.fastq.execution-support-governance
 claim.fastq.generic-profile-semantics	evidence.fastq.generic-profile-semantics-governance
 claim.fastq.planned-tools-remain-excluded	evidence.fastq.planned-exclusion-governance
+claim.fastq.qa-coverage-blockers	evidence.fastq.qa-coverage-blockers-governance
 claim.fastq.reference-asset-authority	evidence.fastq.reference-asset-governance
 claim.fastq.science-docs-archive-planning	evidence.fastq.science-docs-archive-governance
 claim.fastq.science-docs-stage-governance	evidence.fastq.science-docs-stage-governance
