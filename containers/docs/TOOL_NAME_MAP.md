@@ -12,7 +12,7 @@
 | `atropos` | `atropos` | `production` |
 | `authenticct` | `authenticct` | `production` |
 | `bamtools` | `bamtools` | `production` |
-| `bamutil` | `bam` | `experimental` |
+| `bamutil` | `bamutil` | `experimental` |
 | `bayeshammer` | `bayeshammer` | `production` |
 | `bbduk` | `bbduk` | `production` |
 | `bbmerge` | `bbmerge` | `production` |
@@ -78,7 +78,7 @@
 | `seqfu` | `seqfu` | `experimental` |
 | `seqkit` | `seqkit` | `production` |
 | `seqkit_stats` | `seqkit_stats` | `production` |
-| `seqprep` | `SeqPrep` | `experimental` |
+| `seqprep` | `seqprep` | `experimental` |
 | `seqpurge` | `seqpurge` | `experimental` |
 | `seqtk` | `seqtk` | `production` |
 | `shapeit` | `shapeit` | `planned` |
