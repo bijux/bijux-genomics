@@ -1,4 +1,4 @@
-name: publish-ghcr-docker-arm64-images
+name: publish-ghcr-apptainer-images
 
 on:
   workflow_dispatch:
@@ -34,13 +34,13 @@ permissions:
   packages: write
 
 concurrency:
-  group: publish-ghcr-docker-arm64-images-${{ github.ref }}
+  group: publish-ghcr-apptainer-images-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   resolve:
-    name: resolve-ghcr-docker-arm64-plan
-    runs-on: ubuntu-24.04-arm
+    name: resolve-ghcr-apptainer-plan
+    runs-on: ubuntu-24.04
     outputs:
       matrix_json: ${{ steps.plan.outputs.matrix_json }}
     steps:
@@ -56,7 +56,7 @@ jobs:
           rustup toolchain install 1.86.0 --profile minimal
           rustup default 1.86.0
 
-      - name: Generate GHCR docker-arm64 publish matrix
+      - name: Generate GHCR apptainer publish matrix
         id: plan
         shell: bash
         env:
@@ -72,13 +72,13 @@ jobs:
             true|1|yes|on) ;;
             *)
               echo "Manual GHCR publication is disabled for this run." >&2
-              echo "Set enabled=true to publish governed container images." >&2
+              echo "Set enabled=true to publish governed Apptainer packages." >&2
               exit 1
               ;;
           esac
 
           mkdir -p artifacts/containers/ghcr
-          args=("artifacts/containers/ghcr/docker-arm64-publish-matrix.json")
+          args=("artifacts/containers/ghcr/apptainer-publish-matrix.json")
 
           if [[ -n "${INPUT_PACKAGE_PREFIX// }" ]]; then
             args+=(--package-prefix "${INPUT_PACKAGE_PREFIX}")
@@ -125,19 +125,19 @@ jobs:
           PY
           )
 
-          cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- "${args[@]}"
+          cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- "${args[@]}"
 
           matrix_json="$(python3 - <<'PY'
           import json
           import pathlib
 
-          payload = json.loads(pathlib.Path("artifacts/containers/ghcr/docker-arm64-publish-matrix.json").read_text())
+          payload = json.loads(pathlib.Path("artifacts/containers/ghcr/apptainer-publish-matrix.json").read_text())
           print(json.dumps(payload["items"], separators=(",", ":")))
           PY
           )"
 
           if [[ "${matrix_json}" == "[]" ]]; then
-            echo "No governed Docker images matched this GHCR publication request." >&2
+            echo "No governed Apptainer packages matched this GHCR publication request." >&2
             exit 1
           fi
 
@@ -147,23 +147,23 @@ jobs:
             echo "EOF"
           } >> "${GITHUB_OUTPUT}"
 
-      - name: Upload GHCR docker-arm64 publish plan
+      - name: Upload GHCR apptainer publish plan
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ghcr-docker-arm64-publish-plan
-          path: artifacts/containers/ghcr/docker-arm64-publish-matrix.json
+          name: ghcr-apptainer-publish-plan
+          path: artifacts/containers/ghcr/apptainer-publish-matrix.json
           if-no-files-found: error
 
   publish:
-    name: publish-docker-arm64-${{ matrix.tool_id }}
+    name: publish-apptainer-${{ matrix.tool_id }}
     needs: resolve
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
     strategy:
       fail-fast: false
-      max-parallel: 4
+      max-parallel: 2
       matrix:
         include: ${{ fromJSON(needs.resolve.outputs.matrix_json) }}
     steps:
@@ -172,92 +172,99 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Log in to GHCR
+      - name: Ensure Rust toolchain
         shell: bash
         run: |
           set -euo pipefail
-          echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          rustup toolchain install 1.86.0 --profile minimal
+          rustup default 1.86.0
 
-      - name: Ensure Docker buildx is ready
+      - name: Install Apptainer
         shell: bash
         run: |
           set -euo pipefail
-          docker buildx version
-          docker buildx inspect default >/dev/null 2>&1 || docker buildx create --name default --driver docker-container --use
+          sudo apt-get update
+          sudo apt-get install -y software-properties-common
+          sudo add-apt-repository -y ppa:apptainer/ppa
+          sudo apt-get update
+          sudo apt-get install -y apptainer
+          apptainer --version
 
-      - name: Build and publish image
+      - name: Build and publish Apptainer package
         shell: bash
         env:
-          PACKAGE_REF: ${{ matrix.package_ref }}
           TOOL_ID: ${{ matrix.tool_id }}
           TOOL_VERSION: ${{ matrix.tool_version }}
-          DOCKERFILE_PATH: ${{ matrix.dockerfile }}
-          BUILD_CONTEXT: ${{ matrix.build_context }}
-          BUILD_PLATFORM: ${{ matrix.platform }}
+          PACKAGE_REF: ${{ matrix.package_ref }}
+          ARTIFACT_PATH: ${{ matrix.artifact_path }}
           MATRIX_PUSH_LATEST: ${{ matrix.push_latest }}
           INPUT_PUSH_LATEST: ${{ inputs.push_latest }}
         run: |
           set -euo pipefail
 
-          mkdir -p artifacts/containers/ghcr/workflow/docker-arm64
-          created="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          export APPTAINER_AUTHFILE="${RUNNER_TEMP}/apptainer-auth.json"
+          export APPTAINER_CACHEDIR="${RUNNER_TEMP}/apptainer-cache"
+          export APPTAINER_TMPDIR="${RUNNER_TEMP}/apptainer-tmp"
+
+          mkdir -p \
+            "${APPTAINER_CACHEDIR}" \
+            "${APPTAINER_TMPDIR}" \
+            artifacts/containers/ghcr/workflow/apptainer
+
           sha_tag="sha-${GITHUB_SHA::12}"
-          metadata_path="artifacts/containers/ghcr/workflow/docker-arm64/${TOOL_ID}.metadata.json"
-          result_path="artifacts/containers/ghcr/workflow/docker-arm64/${TOOL_ID}.json"
+          result_path="artifacts/containers/ghcr/workflow/apptainer/${TOOL_ID}.json"
 
-          tags=(
-            --tag "${PACKAGE_REF}:${TOOL_VERSION}"
-            --tag "${PACKAGE_REF}:${sha_tag}"
-          )
+          cargo run -q -p bijux-dna-dev -- containers run build-apptainer-all -- --build-one "${TOOL_ID}"
 
-          if [[ "${INPUT_PUSH_LATEST}" == "true" && "${MATRIX_PUSH_LATEST}" == "true" ]]; then
-            tags+=(--tag "${PACKAGE_REF}:latest")
+          if [[ ! -f "${ARTIFACT_PATH}" ]]; then
+            echo "missing built SIF artifact: ${ARTIFACT_PATH}" >&2
+            exit 1
           fi
 
-          docker buildx build \
-            --file "${DOCKERFILE_PATH}" \
-            --platform "${BUILD_PLATFORM}" \
-            --build-arg "OCI_REVISION=${GITHUB_SHA}" \
-            --build-arg "OCI_CREATED=${created}" \
-            --build-arg "TOOL_VERSION=${TOOL_VERSION}" \
-            --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY}" \
-            --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
-            --label "org.opencontainers.image.created=${created}" \
-            --label "org.opencontainers.image.tool=${TOOL_ID}" \
-            --label "org.opencontainers.image.title=${TOOL_ID}" \
-            --metadata-file "${metadata_path}" \
-            "${tags[@]}" \
-            --push \
-            "${BUILD_CONTEXT}"
+          printf '%s' "${{ github.token }}" | apptainer registry login \
+            --authfile "${APPTAINER_AUTHFILE}" \
+            --username "${{ github.actor }}" \
+            --password-stdin \
+            oras://ghcr.io
 
-          python3 - <<'PY' "${metadata_path}" "${result_path}" "${PACKAGE_REF}" "${TOOL_ID}" "${TOOL_VERSION}" "${sha_tag}" "${INPUT_PUSH_LATEST}" "${MATRIX_PUSH_LATEST}"
+          apptainer push --authfile "${APPTAINER_AUTHFILE}" --allow-unsigned \
+            "${ARTIFACT_PATH}" "oras://${PACKAGE_REF}:${TOOL_VERSION}"
+          apptainer push --authfile "${APPTAINER_AUTHFILE}" --allow-unsigned \
+            "${ARTIFACT_PATH}" "oras://${PACKAGE_REF}:${sha_tag}"
+
+          push_latest_applied="false"
+          if [[ "${INPUT_PUSH_LATEST}" == "true" && "${MATRIX_PUSH_LATEST}" == "true" ]]; then
+            apptainer push --authfile "${APPTAINER_AUTHFILE}" --allow-unsigned \
+              "${ARTIFACT_PATH}" "oras://${PACKAGE_REF}:latest"
+            push_latest_applied="true"
+          fi
+
+          python3 - <<'PY' "${ARTIFACT_PATH}" "${result_path}" "${PACKAGE_REF}" "${TOOL_ID}" "${TOOL_VERSION}" "${sha_tag}" "${push_latest_applied}"
+          import hashlib
           import json
           import pathlib
           import sys
 
-          metadata_path = pathlib.Path(sys.argv[1])
+          artifact_path = pathlib.Path(sys.argv[1])
           result_path = pathlib.Path(sys.argv[2])
-          payload = json.loads(metadata_path.read_text())
-          digest = payload.get("containerimage.digest", "")
+          artifact_sha256 = hashlib.sha256(artifact_path.read_bytes()).hexdigest()
           result = {
               "tool_id": sys.argv[4],
               "package_ref": sys.argv[3],
+              "artifact_path": str(artifact_path),
+              "artifact_sha256": artifact_sha256,
               "tool_version": sys.argv[5],
               "sha_tag": sys.argv[6],
-              "push_latest_requested": sys.argv[7] == "true",
-              "push_latest_applied": sys.argv[7] == "true" and sys.argv[8] == "true",
-              "digest": digest,
+              "push_latest_applied": sys.argv[7] == "true",
           }
           result_path.write_text(json.dumps(result, indent=2) + "\n")
           print(json.dumps(result, indent=2))
           PY
 
-      - name: Upload GHCR docker-arm64 publish result
+      - name: Upload GHCR apptainer publish result
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ghcr-docker-arm64-publish-${{ matrix.tool_id }}
-          path: |
-            artifacts/containers/ghcr/workflow/docker-arm64/${{ matrix.tool_id }}.json
-            artifacts/containers/ghcr/workflow/docker-arm64/${{ matrix.tool_id }}.metadata.json
+          name: ghcr-apptainer-publish-${{ matrix.tool_id }}
+          path: artifacts/containers/ghcr/workflow/apptainer/${{ matrix.tool_id }}.json
           if-no-files-found: error
