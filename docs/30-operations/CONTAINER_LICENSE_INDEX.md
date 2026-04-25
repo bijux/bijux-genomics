@@ -33,12 +33,13 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `beagle` | `non-bijux` | `GPL-3.0` | `https://faculty.washington.edu/browning/beagle/beagle.html` | `5.4` | `sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f` |
 | `bedtools` | `bijux` | `NOASSERTION` | `https://github.com/arq5x/bedtools2` | `2.31.1` | `sha256:6862c44a3faf630cd20c5564dd6025f32258989f6079e736edba8e88e92940e5` |
 | `bowtie2` | `bijux` | `NOASSERTION` | `https://github.com/BenLangmead/bowtie2` | `2.5.4` | `sha256:d18520808b8c89328b402bd4cd374955ca6a87dc401f97d5784bdc56bd58e70a` |
+| `bowtie2_build` | `bijux` | `NOASSERTION` | `https://github.com/BenLangmead/bowtie2` | `2.5.4` | `sha256:4cd8f06ab7a68044434e81c6cd551795f02dae6c5787ac673f96cb841e709eba` |
 | `bracken` | `bijux` | `NOASSERTION` | `https://github.com/jenniferlu717/Bracken` | `2.9` | `sha256:11d39aca5485e3d5f1f482044422dd58f90c9a2023275b41c652bb76bd2ff7bd` |
 | `bwa` | `bijux` | `NOASSERTION` | `https://github.com/lh3/bwa` | `0.7.17` | `sha256:0a12a651177e746a5515aabdb69bc67ac0079bba5f75dd2164646fd7aacc3e70` |
 | `centrifuge` | `bijux` | `NOASSERTION` | `https://github.com/DaehwanKimLab/centrifuge` | `1.0.4` | `sha256:75bfdf6ee2b1eb57b8a02a91b62da2b133f40c23b9eb4714bfc9d191ee4e8da7` |
 | `clumpify` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/bbmap/` | `39.06` | `sha256:af7229d9de71b8f6d015b24434bec824f603049db61562aad1640108edf677cd` |
 | `contammix` | `bijux` | `NOASSERTION` | `https://bioconductor.org/packages/contamMix` | `1.0.11` | `sha256:856f6c5c3c2d20a30d989b7271686e6db2df9f2359e076d568467c74ff97acc1` |
-| `cutadapt` | `bijux` | `NOASSERTION` | `https://github.com/cutadapt/cutadapt` | `4.9` | `sha256:1162c1483fbe08a346ba29db58d19cea5f14a5432bd1ab5b539043b7ad24364d` |
+| `cutadapt` | `bijux` | `NOASSERTION` | `https://github.com/marcelm/cutadapt` | `4.9` | `sha256:f7615e4ce1db0a750641e503d44eac54bd49a5882d23b69740b51790ecf9e01b` |
 | `dada2` | `bijux` | `NOASSERTION` | `https://bioconductor.org/packages/dada2` | `1.30.0` | `sha256:930e06fb8e27965ccafae61d4161ab5e32933aea2555e68ad409ef7af43c8245` |
 | `damageprofiler` | `bijux` | `NOASSERTION` | `https://github.com/Integrative-Transcriptomics/DamageProfiler` | `1.1` | `sha256:c8eb0b80e93d2b994ba2b5c4662713cc8e19214345a9488390796e2cebcef1fa` |
 | `diamond` | `bijux` | `NOASSERTION` | `https://github.com/bbuchfink/diamond` | `2.1.10` | `sha256:a89e4dbd4099a8facf8c244ccc591dc0b20fcb7d026dd469b346a2c7a04839c7` |
@@ -47,9 +48,9 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `eigensoft` | `non-bijux` | `GPL-2.0` | `https://github.com/DReichLab/EIG` | `8.0.0` | `sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9` |
 | `fastp` | `bijux` | `NOASSERTION` | `https://github.com/OpenGene/fastp/archive/v${VERSION_FASTP}.tar.gz` | `0.23.4` | `sha256:4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5` |
 | `fastq_scan` | `bijux` | `NOASSERTION` | `https://github.com/bijux/bijux-dna` | `0.0.1` | `sha256:bf710343d3ab7619d3a3d40ac5000bb736e30d056e77fa49c44fad9fba948750` |
-| `fastq_screen` | `bijux` | `NOASSERTION` | `https://github.com/fastq_screen/fastq_screen` | `0.15.3` | `sha256:20dcc10e3fb46ce4d8c9d31c4586caddfb816a1eeead217808863a7a6024edb5` |
+| `fastq_screen` | `bijux` | `NOASSERTION` | `https://github.com/StevenWingett/FastQ-Screen` | `0.15.3` | `sha256:76ec0ea9a0d1f5d1089f53728ec1db118963b287d025ce0c95887ff5ed481525` |
 | `fastqc` | `bijux` | `NOASSERTION` | `https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip` | `0.12.1` | `sha256:5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7` |
-| `fastqvalidator` | `bijux` | `NOASSERTION` | `https://github.com/fastqvalidator/fastqvalidator` | `0.1.1` | `sha256:7b0887265d3b34b691c83b00a46f44c4e90a549f8c28663b0a5015ae9759460e` |
+| `fastqvalidator` | `bijux` | `NOASSERTION` | `https://github.com/statgen/fastQValidator` | `0.1.1` | `sha256:d9ce089cce39f2751619477e42a95a65c4ffe91a3875407f5a5d990b4f76424a` |
 | `fastuniq` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/fastuniq/` | `1.1` | `sha256:25e57fd919d811691d47791a66fb1638836c5717e3ad451dde3763720669c04e` |
 | `fastx_clipper` | `bijux` | `NOASSERTION` | `https://github.com/agordon/fastx_toolkit` | `0.0.14` | `sha256:f29b52706133c33c925d6a472d6d7b39a705aba26001074bb1d87446f3ecfcd5` |
 | `flash2` | `bijux` | `NOASSERTION` | `https://github.com/dstreett/FLASH2` | `2.2.00` | `sha256:f544a5ff21d9ba908520fc400b0097317a253838e39d80834be1163c16cac7a9` |
@@ -72,9 +73,9 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `minimac4` | `non-bijux` | `MIT` | `https://genome.sph.umich.edu/wiki/Minimac4` | `4.1.6` | `sha256:5555555555555555555555555555555555555555555555555555555555555555` |
 | `mosdepth` | `bijux` | `NOASSERTION` | `https://github.com/brentp/mosdepth` | `0.3.11` | `sha256:32105a34f76f78b6912833010dd0bf66a7ab527a2a3c267d7670ee63ff267ac8` |
 | `multiqc` | `bijux` | `NOASSERTION` | `https://github.com/multiqc/multiqc` | `1.21` | `sha256:4e2b7aa385bc8c26eec70c46b244b5fd0da27c11a46a3ea1fd8901ff8e835809` |
-| `musket` | `bijux` | `NOASSERTION` | `https://github.com/alexdobin/musket` | `1.1` | `sha256:461780b7a8a5f6e8bdc1f228e7d3e3734f856678cbafad1caf4220bd56fde25f` |
+| `musket` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/musket/` | `1.1` | `sha256:973cc8f959b73532423188df557eaed7c0b107b85e002d3af7f2fde9e5eb9708` |
 | `ngsbriggs` | `bijux` | `NOASSERTION` | `https://pypi.org/project/ngsbriggs/` | `0.1.3` | `sha256:55750621e1acdb654a0370fce1194b4b24e944cad5fce2b4b678fd0fb5cf843c` |
-| `pear` | `bijux` | `NOASSERTION` | `https://github.com/xflouris/PEAR` | `0.9.6` | `sha256:5571b28d16e8aa48aad3882a6d111b42c0e4e91f0647cf7d095a8775bfe599a0` |
+| `pear` | `bijux` | `NOASSERTION` | `https://cme.h-its.org/exelixis/web/software/pear/` | `0.9.6` | `sha256:e4a236ef6ec46f30a193d0b173f61dad3766b9f243ce37b21678b00678a88cf1` |
 | `picard` | `bijux` | `NOASSERTION` | `https://github.com/broadinstitute/picard` | `3.3.0` | `sha256:a8274ec032205d9b910479b4663375b4380430b0416b53a851b755c37a4c55ca` |
 | `plink` | `bijux` | `GPL-3.0` | `https://www.cog-genomics.org/plink/` | `1.90` | `sha256:6cb76f4aa31d2ab0f24c7a3071a6a4da4f7a0ce9a9532ecbf4a84e5cab8a0578` |
 | `plink2` | `bijux` | `GPL-3.0` | `https://www.cog-genomics.org/plink/2.0/` | `2.00a5` | `sha256:e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec` |
@@ -89,7 +90,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `schmutzi` | `bijux` | `NOASSERTION` | `https://github.com/grenaud/schmutzi` | `1.5.4` | `sha256:46ed7c4f429836afdc96b2f7f1853eef2e1c2ebef679f847fcc443c447d84029` |
 | `seqfu` | `bijux` | `NOASSERTION` | `https://github.com/telatin/seqfu2` | `2.4.0` | `sha256:6e8fb5563184c42672acd4dbb82fceb9fe49a981411b72a19ed22b6b9b7999b2` |
 | `seqkit` | `bijux` | `NOASSERTION` | `https://github.com/shenwei356/seqkit/releases/download/v${VERSION_SEQKIT}/seqkit_linux_arm64.tar.gz` | `2.8.2` | `sha256:8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc` |
-| `seqkit_stats` | `bijux` | `NOASSERTION` | `https://github.com/seqkit_stats/seqkit_stats` | `2.8.2` | `sha256:39c408530df00dda18497c8820a7bb9a010815c34328f5a846326122e838e2fc` |
+| `seqkit_stats` | `bijux` | `NOASSERTION` | `https://github.com/shenwei356/seqkit` | `2.8.2` | `sha256:05a2a93924694dedaa2d1bd8d3f2232a746c86a01f19d990e7776b012753317e` |
 | `seqprep` | `bijux` | `NOASSERTION` | `https://github.com/jstjohn/SeqPrep` | `1.3.2` | `sha256:ccd11946e632f755c782db26a4b4524171ec87d1edfe9f4f39c457750390904e` |
 | `seqpurge` | `bijux` | `NOASSERTION` | `https://github.com/bijux/bijux-dna` | `0.1.0` | `sha256:247298c21631e954e42e70c7642d7eeb93a2a7f561761521f32a51014dbfe88e` |
 | `seqtk` | `bijux` | `NOASSERTION` | `https://github.com/lh3/seqtk.git` | `1.4` | `sha256:c200063b416c6a64fa4655669e904ba17df01433877a99d6764c91006d8e1ab2` |
@@ -101,7 +102,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `star` | `bijux` | `NOASSERTION` | `https://github.com/alexdobin/STAR` | `2.7.11b` | `sha256:756c7904006c87a84da81d04bb2f9b3a760601f697606fd23dc687cd7ec9da7e` |
 | `trim_galore` | `bijux` | `NOASSERTION` | `https://github.com/FelixKrueger/TrimGalore` | `0.6.10` | `sha256:8efa46f091785659e6cc36e8bf0d89c2beaead17f11ff793c64c57b93b9d33ec` |
 | `trimmomatic` | `bijux` | `NOASSERTION` | `http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip` | `0.39` | `sha256:2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca` |
-| `umi_tools` | `bijux` | `NOASSERTION` | `https://github.com/umi_tools/umi_tools` | `1.1.6` | `sha256:f65c48251eac2d1e56bee3452b7ef761fb4a7e78ee9c903293131388f818aa14` |
+| `umi_tools` | `bijux` | `NOASSERTION` | `https://github.com/CGATOxford/UMI-tools` | `1.1.6` | `sha256:52f5a89a629a746671fe7c7642e847d7a1e81e49cde6bf05b330c23eab817a0d` |
 | `verifybamid2` | `bijux` | `NOASSERTION` | `https://github.com/Griffan/VerifyBamID` | `2.0.1` | `sha256:af9a0621cf519a6e2d7f45dc99af81b64aeb419d960de2c6af1a806a37d91ab9` |
 | `vsearch` | `bijux` | `NOASSERTION` | `https://github.com/torognes/vsearch` | `2.29.3` | `sha256:3232156ff62cdb664ef9c415f186bc7a59c81860f5fd1e679c4219421ab6885d` |
 | `yleaf` | `bijux` | `NOASSERTION` | `https://github.com/genid/Yleaf` | `3.0.3` | `sha256:dd56e6914c331d33dcb8d3584f75d05829238f421be68784a561eabe6484a174` |
