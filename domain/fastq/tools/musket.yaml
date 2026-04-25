@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/musket"
-  digest: "sha256:pending"
+  digest: "sha256:d2761679719e961709c0c4842842c0bcb5b3fdc23a5046aa6cd2b28a6dfaca68"
 command_template:
   - "musket"
   - "-p"

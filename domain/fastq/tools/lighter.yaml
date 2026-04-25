@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/lighter"
-  digest: "sha256:pending"
+  digest: "sha256:e65d145062ddedd1e584f7aec7db45c13ddf33f849888e61d6c3b91e89730085"
 command_template:
   - "lighter"
   - "-K"

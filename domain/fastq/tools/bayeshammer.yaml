@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/bayeshammer"
-  digest: "sha256:pending"
+  digest: "sha256:99849ca7576f392a125ce5836e915481ada762cbb4fa9b69593b81c4ca359cd7"
 command_template:
   - "spades.py"
   - "--only-error-correction"
