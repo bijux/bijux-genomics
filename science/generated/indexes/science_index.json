@@ -12,5 +12,8 @@
   "fastq_container_reference_rows": 44,
   "fastq_download_backlog_rows": 44,
   "fastq_paper_archive_rows": 38,
-  "fastq_environment_rows": 70
+  "fastq_environment_rows": 70,
+  "fastq_closure_gate_rows": 70,
+  "fastq_truth_delta_rows": 30,
+  "fastq_missing_closure_prerequisite_rows": 77
 }
