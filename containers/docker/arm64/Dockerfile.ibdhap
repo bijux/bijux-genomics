@@ -30,7 +30,7 @@ RUN printf '%s\n' '#!/usr/bin/env bash' \
     'fi' \
     'echo "ibdhap: planned wrapper (no upstream binary integrated yet)" >&2' \
     'exit 2' > /usr/local/bin/ibdhap && \
-    chmod 0755 /usr/local/bin/ibdhap && \
+    chmod 0755 /usr/local/bin/ibdhap
 
 ENTRYPOINT ["/usr/local/bin/ibdhap"]
 CMD ["--help"]

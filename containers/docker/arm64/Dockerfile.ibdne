@@ -30,7 +30,7 @@ RUN printf '%s\n' '#!/usr/bin/env bash' \
     'fi' \
     'echo "ibdne: planned wrapper (no upstream binary integrated yet)" >&2' \
     'exit 2' > /usr/local/bin/ibdne && \
-    chmod 0755 /usr/local/bin/ibdne && \
+    chmod 0755 /usr/local/bin/ibdne
 
 ENTRYPOINT ["/usr/local/bin/ibdne"]
 CMD ["--help"]
