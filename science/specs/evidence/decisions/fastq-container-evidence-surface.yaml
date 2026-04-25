@@ -1,0 +1,13 @@
+schema_version: "bijux.science.decision.v1"
+decision_id: "decision.fastq.container-evidence-surface"
+statement: "FASTQ science must publish a governed container reference matrix and a local archive download backlog alongside the environment matrix."
+decision_type: "governance_surface"
+status: "accepted"
+derived_from:
+  - "claim.fastq.tool-registry-authority"
+  - "claim.fastq.container-build-surface-authority"
+  - "claim.fastq.science-docs-archive-planning"
+reasoning: "reasoning.fastq.container-evidence-surface"
+owner: "bijux-genomics"
+effective_from: "2026-04-25"
+confidence: "high"
