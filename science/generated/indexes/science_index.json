@@ -1,5 +1,7 @@
 {
   "sources": 5,
+  "source_inventory_rows": 5,
+  "source_archive_gap_rows": 0,
   "evidences": 5,
   "claims": 5,
   "assumptions": 1,

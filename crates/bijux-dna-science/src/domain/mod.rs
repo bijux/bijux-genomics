@@ -278,6 +278,31 @@ pub struct BindingResolutionRow {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct SourceInventoryRow {
+    pub source_id: String,
+    pub kind: String,
+    pub access: String,
+    pub authority: String,
+    pub locator: String,
+    pub archive_path: String,
+    pub archive_status: String,
+    pub citation: String,
+    pub tool_ids: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct SourceArchiveGapRow {
+    pub source_id: String,
+    pub kind: String,
+    pub access: String,
+    pub locator: String,
+    pub archive_path: String,
+    pub citation: String,
+    pub tool_ids: String,
+    pub reason: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct FastqEnvironmentRow {
     pub stage_id: String,
     pub tool_id: String,
@@ -302,6 +327,8 @@ pub struct FastqEnvironmentRow {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct ScienceIndex {
     pub sources: usize,
+    pub source_inventory_rows: usize,
+    pub source_archive_gap_rows: usize,
     pub evidences: usize,
     pub claims: usize,
     pub assumptions: usize,
@@ -314,6 +341,8 @@ pub struct ScienceIndex {
 
 #[derive(Clone, Debug, Serialize)]
 pub struct CompiledScience {
+    pub source_inventory: Vec<SourceInventoryRow>,
+    pub source_archive_gaps: Vec<SourceArchiveGapRow>,
     pub claim_evidence_map: Vec<ClaimEvidenceRow>,
     pub decision_reasoning_map: Vec<DecisionReasoningRow>,
     pub binding_resolution: Vec<BindingResolutionRow>,
