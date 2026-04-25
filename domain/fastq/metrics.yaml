@@ -125,6 +125,7 @@ metric_ids:
   - requested_trim_5p_bases
   - strict_pass
   - threads
+  - tool
   - top_taxa
   - trim_polyg
   - unclassified_fraction
