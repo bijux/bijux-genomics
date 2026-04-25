@@ -7,7 +7,7 @@ capabilities:
   - "PE"
 container:
   image: "bijuxdna/rcorrector"
-  digest: "sha256:pending"
+  digest: "sha256:cfec0e32dc980f61681376e78961785c8f74804bd90ebabccb98f825e5fdb454"
 command_template:
   - "run_rcorrector.pl"
   - "-od"
