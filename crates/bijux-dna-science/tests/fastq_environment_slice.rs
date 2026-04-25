@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use bijux_dna_science::compile::compile_workspace;
 use bijux_dna_science::render::{
     binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv,
-    fastq_container_reference_tsv, fastq_environment_tsv, index_json, source_archive_gaps_tsv,
-    source_inventory_tsv, to_pretty_json,
+    fastq_container_reference_tsv, fastq_download_backlog_tsv, fastq_environment_tsv, index_json,
+    source_archive_gaps_tsv, source_inventory_tsv, to_pretty_json,
 };
 
 fn repo_root() -> PathBuf {
@@ -36,6 +36,9 @@ fn fastq_environment_slice_matches_committed_outputs() {
         .fastq_container_reference_rows
         .iter()
         .any(|row| row.tool_id == "fastp" && row.version == "0.23.4"));
+    assert!(compiled.fastq_download_backlog_rows.iter().any(|row| {
+        row.tool_id == "fastp" && row.source_id == "source.fastq.tool.fastp.upstream"
+    }));
 
     assert_eq!(
         std::fs::read_to_string(
@@ -57,6 +60,13 @@ fn fastq_environment_slice_matches_committed_outputs() {
         )
         .expect("read committed fastq container matrix"),
         fastq_container_reference_tsv(&compiled.fastq_container_reference_rows)
+    );
+    assert_eq!(
+        std::fs::read_to_string(
+            root.join("science/generated/current/evidence/fastq_download_backlog.tsv")
+        )
+        .expect("read committed fastq download backlog"),
+        fastq_download_backlog_tsv(&compiled.fastq_download_backlog_rows)
     );
     assert_eq!(
         std::fs::read_to_string(

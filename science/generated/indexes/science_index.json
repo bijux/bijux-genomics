@@ -10,5 +10,6 @@
   "bindings": 1,
   "releases": 1,
   "fastq_container_reference_rows": 44,
+  "fastq_download_backlog_rows": 44,
   "fastq_environment_rows": 70
 }

@@ -156,6 +156,8 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
     let fastq_environment_rows = build_fastq_environment_rows(root, &loaded)?;
     let fastq_container_reference_rows =
         build_fastq_container_reference_rows(root, &loaded, &fastq_environment_rows)?;
+    let fastq_download_backlog_rows =
+        build_fastq_download_backlog_rows(root, &fastq_container_reference_rows);
     let unresolved_refs = validate_cross_references(&loaded);
     if !unresolved_refs.is_empty() {
         return Err(validation_error(unresolved_refs));
@@ -172,6 +174,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         bindings: loaded.bindings.len(),
         releases: loaded.releases.len(),
         fastq_container_reference_rows: fastq_container_reference_rows.len(),
+        fastq_download_backlog_rows: fastq_download_backlog_rows.len(),
         fastq_environment_rows: fastq_environment_rows.len(),
     };
     Ok(CompiledScience {
@@ -182,6 +185,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         binding_resolution,
         unresolved_refs: Vec::new(),
         fastq_container_reference_rows,
+        fastq_download_backlog_rows,
         fastq_environment_rows,
         index,
     })
@@ -599,6 +603,88 @@ fn build_fastq_container_reference_rows(
         .collect::<Vec<_>>();
     rows.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
     Ok(rows)
+}
+
+fn build_fastq_download_backlog_rows(
+    root: &Path,
+    rows: &[crate::domain::FastqContainerReferenceRow],
+) -> Vec<crate::domain::FastqDownloadBacklogRow> {
+    let mut backlog = rows
+        .iter()
+        .map(|row| {
+            let source_id = format!("source.fastq.tool.{}.upstream", row.tool_id);
+            let acquisition_mode = infer_acquisition_mode(&row.upstream);
+            let archive_path = if acquisition_mode.is_empty() {
+                String::new()
+            } else if acquisition_mode == "manual_clone" {
+                format!("science-docs/upstream/fastq/tools/{}/repo", row.tool_id)
+            } else {
+                format!("science-docs/upstream/fastq/tools/{}/download", row.tool_id)
+            };
+            let archive_status = if archive_path.is_empty() {
+                "not_applicable".to_string()
+            } else if root.join(&archive_path).exists() {
+                "present".to_string()
+            } else {
+                "missing".to_string()
+            };
+            let backlog_status = if row.reference_status != "governed" {
+                "missing_registry_source".to_string()
+            } else if row.upstream.trim().is_empty() {
+                "missing_upstream_locator".to_string()
+            } else if row.upstream.contains("${") {
+                "templated_locator".to_string()
+            } else {
+                "ready".to_string()
+            };
+            let notes = match backlog_status.as_str() {
+                "missing_registry_source" => {
+                    "tool is on the FASTQ surface but lacks governed registry source metadata"
+                }
+                "missing_upstream_locator" => {
+                    "tool has registry metadata but no upstream locator to archive yet"
+                }
+                "templated_locator" => {
+                    "registry locator contains unresolved template variables; archive the resolved release page or source bundle"
+                }
+                _ => "archive upstream evidence for later review and claim confirmation",
+            }
+            .to_string();
+            crate::domain::FastqDownloadBacklogRow {
+                source_id,
+                tool_id: row.tool_id.clone(),
+                stage_ids: row.stage_ids.clone(),
+                acquisition_mode,
+                backlog_status,
+                locator: row.upstream.clone(),
+                citation: row.citation.clone(),
+                archive_path,
+                archive_status,
+                notes,
+            }
+        })
+        .collect::<Vec<_>>();
+    backlog.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
+    backlog
+}
+
+fn infer_acquisition_mode(locator: &str) -> String {
+    if locator.trim().is_empty() {
+        return String::new();
+    }
+    if locator.contains("github.com/") || locator.contains("gitlab.") {
+        if locator.ends_with(".zip")
+            || locator.ends_with(".tar.gz")
+            || locator.contains("/archive/")
+            || locator.contains("/releases/download/")
+        {
+            "manual_download".to_string()
+        } else {
+            "manual_clone".to_string()
+        }
+    } else {
+        "manual_download".to_string()
+    }
 }
 
 fn build_fastq_environment_rows(
