@@ -298,6 +298,7 @@ fn stage_manifest_tool_integration() -> Result<BTreeMap<String, BTreeMap<String,
 fn execution_support_tool_integration() -> BTreeMap<String, BTreeMap<String, String>> {
     all_stage_execution_support()
         .into_iter()
+        .filter(|support| !support.admitted_tools.is_empty())
         .map(|support| {
             let tool_map = support
                 .admitted_tools
