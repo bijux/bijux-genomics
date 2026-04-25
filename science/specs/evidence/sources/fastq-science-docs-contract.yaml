@@ -1,0 +1,9 @@
+schema_version: "bijux.science.source.v1"
+source_id: "source.fastq.science-docs-contract"
+kind: "document"
+access: "repo_path"
+title: "FASTQ science docs archive contract"
+locator: "science-docs/README.md"
+authority: "science_docs.archive_contract"
+notes:
+  - "This source defines how local archive payloads support authored science records without becoming committed truth."
