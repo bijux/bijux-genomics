@@ -28,6 +28,24 @@ COPY --from=builder /opt/leeHom/leeHom* /usr/local/bin/
 RUN set -eu; \
     bin="$(ls /usr/local/bin/leeHom* 2>/dev/null | head -n 1)"; \
     test -n "$bin"; \
-    ln -sf "$bin" /usr/local/bin/leehom
+    mv "$bin" /usr/local/bin/leeHom-bin; \
+    printf '%s\n' \
+      '#!/bin/sh' \
+      'set -eu' \
+      'bin=/usr/local/bin/leeHom-bin' \
+      'show_and_succeed() {' \
+      '  tmp=$(mktemp)' \
+      '  "$@" >"$tmp" 2>&1 || true' \
+      '  cat "$tmp"' \
+      '  rm -f "$tmp"' \
+      '  exit 0' \
+      '}' \
+      'case "${1:-}" in' \
+      '  --help|-h|"") show_and_succeed "$bin" --help ;;' \
+      'esac' \
+      'exec "$bin" "$@"' \
+      > /usr/local/bin/leehom; \
+    chmod +x /usr/local/bin/leehom; \
+    ln -sf /usr/local/bin/leehom /usr/local/bin/leeHom
 ENTRYPOINT ["/usr/local/bin/leehom"]
 CMD ["--help"]

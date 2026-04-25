@@ -15,8 +15,32 @@ LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c368
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -qq && apt-get install -y --no-install-recommends     ca-certificates openjdk-17-jre-headless king && rm -rf /var/lib/apt/lists/*
-RUN printf '%s\n' '#!/bin/sh' 'if [ "${1:-}" = "--version" ]; then echo "2.3.0"; exit 0; fi' 'exec java -jar /usr/bin/king "$@"' > /usr/local/bin/king && chmod +x /usr/local/bin/king
+RUN set -eux; \
+    apt-get update -qq && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/*; \
+    mkdir -p /usr/local/libexec/king; \
+    curl -L --retry 5 --retry-delay 3 --connect-timeout 20 --max-time 300 \
+      -o /tmp/Linux-king230.tar.gz \
+      "https://www.kingrelatedness.com/executables/Linux-king230.tar.gz"; \
+    tar -xzf /tmp/Linux-king230.tar.gz -C /usr/local/libexec/king; \
+    install -m 0755 /usr/local/libexec/king/king /usr/local/libexec/king/king-bin; \
+    rm -f /tmp/Linux-king230.tar.gz
+RUN printf '%s\n' \
+  '#!/bin/sh' \
+  'set -eu' \
+  'bin=/usr/local/libexec/king/king-bin' \
+  'show_and_succeed() {' \
+  '  tmp=$(mktemp)' \
+  '  "$@" >"$tmp" 2>&1 || true' \
+  '  cat "$tmp"' \
+  '  rm -f "$tmp"' \
+  '  exit 0' \
+  '}' \
+  'case "${1:-}" in' \
+  '  --version) echo "KING 2.3.0"; exit 0 ;;' \
+  '  --help|-h|"") show_and_succeed "$bin" --help ;;' \
+  'esac' \
+  'exec "$bin" "$@"' \
+  > /usr/local/bin/king && chmod +x /usr/local/bin/king
 
 ENTRYPOINT ["/usr/local/bin/king"]
 CMD ["--help"]

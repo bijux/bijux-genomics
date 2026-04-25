@@ -42,11 +42,27 @@ From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24
     git checkout bbddce1542cea0e73e3814df86268445f707b0d2
     git describe --tags --always >/dev/null 2>&1 || git tag -f v0.0.0 "$(git rev-parse HEAD)"
     make -j"$(nproc)"
-    cp /opt/leeHom/leeHom* /usr/local/bin/ 2>/dev/null || true
     bin="$(find /opt/leeHom -maxdepth 2 -type f -perm -111 -name 'leeHom*' | head -n 1 || true)"
     [ -n "$bin" ] || { echo "leeHom binary not found after build"; exit 1; }
-    cp "$bin" /usr/local/bin/leeHom
-    ln -sf /usr/local/bin/leeHom /usr/local/bin/leehom
+    install -m 0755 "$bin" /usr/local/bin/leeHom-bin
+    cat > /usr/local/bin/leehom <<'EOS'
+#!/usr/bin/env sh
+set -eu
+bin="/usr/local/bin/leeHom-bin"
+show_and_succeed() {
+  tmp="$(mktemp)"
+  "$@" >"$tmp" 2>&1 || true
+  cat "$tmp"
+  rm -f "$tmp"
+  exit 0
+}
+case "${1:-}" in
+  --help|-h|"") show_and_succeed "$bin" --help ;;
+esac
+exec "$bin" "$@"
+EOS
+    chmod +x /usr/local/bin/leehom
+    ln -sf /usr/local/bin/leehom /usr/local/bin/leeHom
 %runscript
     exec /usr/local/bin/leehom "$@"
 
