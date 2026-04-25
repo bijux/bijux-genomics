@@ -34,3 +34,22 @@ repositories, supplementary documents, and local notes tied to licensed access.
   `TODO_DOWNLOAD.md` aligned with it
 - place each acquired item under a stable path that matches the planned archive
   path recorded in the TODO list or a future science source record
+
+## Canonical Layout
+
+- `science-docs/TODO_DOWNLOAD.md`
+  operator-facing backlog for manual papers, release bundles, and non-GitHub
+  downloads
+- `science-docs/upstream/README.md`
+  upstream archive contract for local mirrors and source payloads
+- `science-docs/upstream/github-repos/MANIFEST.tsv`
+  tracked manifest of GitHub repository evidence targets
+- `science-docs/upstream/github-repos/mirrors/**`
+  untracked local bare clones used as the canonical GitHub repo archive
+- `science-docs/upstream/github-repos/archives/**`
+  optional untracked compressed exports created when a smaller portable snapshot
+  is needed
+
+Do not treat `science-docs/github-repos/` at the archive root as the canonical
+shape going forward. The governed location for GitHub repository evidence is
+`science-docs/upstream/github-repos/`.
