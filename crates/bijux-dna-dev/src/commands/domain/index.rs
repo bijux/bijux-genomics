@@ -300,6 +300,12 @@ pub(super) fn check_domain_index(workspace: &Workspace) -> Result<DomainCommandO
                 "domain index drift for domain/{dom}/index.yaml; regenerate with cargo run -p bijux-dna-dev -- domain run generate-index -- {dom}"
             ));
         }
+        if dom == "fastq" && actual.contains("planned_contract") {
+            errors.push(format!(
+                "{}: generated domain index must not expose planned_contract tools in runtime integration maps",
+                workspace.rel(&index_path).display()
+            ));
+        }
 
         let stage_ids = list_block(&actual, "stage_ids")?;
         let tool_ids = list_block(&actual, "tool_ids")?.into_iter().collect::<BTreeSet<_>>();
