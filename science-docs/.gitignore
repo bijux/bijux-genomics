@@ -9,6 +9,7 @@ upstream/*
 upstream/fastq/*
 !upstream/fastq/README.md
 !upstream/fastq/CONTAINER_DIGEST_BLOCKERS.tsv
+!upstream/fastq/QA_COVERAGE_BLOCKERS.tsv
 !upstream/fastq/STAGE_CLAIMS.tsv
 !upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv
 !upstream/fastq/TAG_ONLY_CONTAINER_BLOCKERS.tsv
