@@ -1,0 +1,186 @@
+# schema_version = 1
+# owner = bijux-dna-platform
+# purpose = Container-only experimental registry for governed definitions that
+#   are not yet admitted to domain production registries.
+# authority = containers/TOOL_IDS.txt + containers/versions/versions.toml
+# stability = experimental
+
+[[tools]]
+id = "bamutil"
+tool_id = "bamutil"
+status = "experimental"
+domain = "bam"
+domains = ["bam"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "bam"
+dockerfile = "containers/docker/arm64/Dockerfile.bamutil"
+apptainer_def = "containers/apptainer/shared/bamutil.def"
+
+[[tools]]
+id = "bracken"
+tool_id = "bracken"
+status = "experimental"
+domain = "fastq"
+domains = ["fastq"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "bracken"
+dockerfile = "containers/docker/arm64/Dockerfile.bracken"
+apptainer_def = "containers/apptainer/shared/bracken.def"
+
+[[tools]]
+id = "diamond"
+tool_id = "diamond"
+status = "experimental"
+domain = "fastq"
+domains = ["fastq"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "diamond"
+dockerfile = "containers/docker/arm64/Dockerfile.diamond"
+apptainer_def = "containers/apptainer/shared/diamond.def"
+
+[[tools]]
+id = "dustmasker"
+tool_id = "dustmasker"
+status = "experimental"
+domain = "fastq"
+domains = ["fastq"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "dustmasker"
+dockerfile = "containers/docker/arm64/Dockerfile.dustmasker"
+apptainer_def = "containers/apptainer/shared/dustmasker.def"
+
+[[tools]]
+id = "fastq_screen"
+tool_id = "fastq_screen"
+status = "experimental"
+domain = "fastq"
+domains = ["fastq"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "fastq_screen"
+dockerfile = "containers/docker/arm64/Dockerfile.fastq_screen"
+apptainer_def = "containers/apptainer/shared/fastq_screen.def"
+
+[[tools]]
+id = "gatk"
+tool_id = "gatk"
+status = "experimental"
+domain = "bam"
+domains = ["bam"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "gatk"
+dockerfile = "containers/docker/arm64/Dockerfile.gatk"
+apptainer_def = "containers/apptainer/shared/gatk.def"
+
+[[tools]]
+id = "metaphlan"
+tool_id = "metaphlan"
+status = "experimental"
+domain = "fastq"
+domains = ["fastq"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "metaphlan"
+dockerfile = "containers/docker/arm64/Dockerfile.metaphlan"
+apptainer_def = "containers/apptainer/shared/metaphlan.def"
+
+[[tools]]
+id = "ngsbriggs"
+tool_id = "ngsbriggs"
+status = "experimental"
+domain = "bam"
+domains = ["bam"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "ngsbriggs"
+dockerfile = "containers/docker/arm64/Dockerfile.ngsbriggs"
+apptainer_def = "containers/apptainer/shared/ngsbriggs.def"
+
+[[tools]]
+id = "picard"
+tool_id = "picard"
+status = "experimental"
+domain = "bam"
+domains = ["bam"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "picard"
+dockerfile = "containers/docker/arm64/Dockerfile.picard"
+apptainer_def = "containers/apptainer/shared/picard.def"
+
+[[tools]]
+id = "preseq"
+tool_id = "preseq"
+status = "experimental"
+domain = "bam"
+domains = ["bam"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "preseq"
+dockerfile = "containers/docker/arm64/Dockerfile.preseq"
+apptainer_def = "containers/apptainer/shared/preseq.def"
+
+[[tools]]
+id = "qualimap"
+tool_id = "qualimap"
+status = "experimental"
+domain = "bam"
+domains = ["bam"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "qualimap"
+dockerfile = "containers/docker/arm64/Dockerfile.qualimap"
+apptainer_def = "containers/apptainer/shared/qualimap.def"
+
+[[tools]]
+id = "seqfu"
+tool_id = "seqfu"
+status = "experimental"
+domain = "fastq"
+domains = ["fastq"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "seqfu"
+dockerfile = "containers/docker/arm64/Dockerfile.seqfu"
+apptainer_def = "containers/apptainer/shared/seqfu.def"
+
+[[tools]]
+id = "seqprep"
+tool_id = "seqprep"
+status = "experimental"
+domain = "fastq"
+domains = ["fastq"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "SeqPrep"
+dockerfile = "containers/docker/arm64/Dockerfile.seqprep"
+apptainer_def = "containers/apptainer/shared/seqprep.def"
+
+[[tools]]
+id = "seqpurge"
+tool_id = "seqpurge"
+status = "experimental"
+domain = "fastq"
+domains = ["fastq"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "seqpurge"
+dockerfile = "containers/docker/arm64/Dockerfile.seqpurge"
+apptainer_def = "containers/apptainer/shared/seqpurge.def"
+
+[[tools]]
+id = "spades"
+tool_id = "spades"
+status = "experimental"
+domain = "fastq"
+domains = ["fastq"]
+container = true
+runtimes = ["docker", "apptainer"]
+expected_bin = "spades.py"
+dockerfile = "containers/docker/arm64/Dockerfile.spades"
+apptainer_def = "containers/apptainer/shared/spades.def"

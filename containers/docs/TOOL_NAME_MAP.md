@@ -12,7 +12,7 @@
 | `atropos` | `atropos` | `production` |
 | `authenticct` | `authenticct` | `production` |
 | `bamtools` | `bamtools` | `production` |
-| `bamutil` | `bamutil` | `experimental` |
+| `bamutil` | `bam` | `experimental` |
 | `bayeshammer` | `bayeshammer` | `production` |
 | `bbduk` | `bbduk` | `production` |
 | `bbmerge` | `bbmerge` | `production` |
@@ -78,14 +78,14 @@
 | `seqfu` | `seqfu` | `experimental` |
 | `seqkit` | `seqkit` | `production` |
 | `seqkit_stats` | `seqkit_stats` | `production` |
-| `seqprep` | `seqprep` | `experimental` |
+| `seqprep` | `SeqPrep` | `experimental` |
 | `seqpurge` | `seqpurge` | `experimental` |
 | `seqtk` | `seqtk` | `production` |
 | `shapeit` | `shapeit` | `planned` |
 | `shapeit5` | `shapeit5` | `experimental` |
 | `skewer` | `skewer` | `production` |
 | `sortmerna` | `sortmerna` | `production` |
-| `spades` | `spades` | `experimental` |
+| `spades` | `spades.py` | `experimental` |
 | `star` | `star` | `production` |
 | `trim_galore` | `trim_galore` | `production` |
 | `trimmomatic` | `trimmomatic` | `production` |
