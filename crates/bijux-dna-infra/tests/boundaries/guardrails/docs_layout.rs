@@ -54,6 +54,32 @@ fn commands_doc_declares_library_only_inventory() {
 }
 
 #[test]
+fn command_boundary_forbids_process_execution() {
+    let root = crate_root();
+    let mut offenders = Vec::new();
+    collect_rust_files(&root.join("src"), &mut offenders);
+    offenders.retain(|file| {
+        let content = fs::read_to_string(file)
+            .unwrap_or_else(|err| panic!("read source {}: {err}", file.display()));
+        content.contains("std::process::Command")
+            || content.contains("Command::new")
+            || content.contains(".spawn(")
+            || content.contains(".status(")
+            || content.contains(".output(")
+    });
+
+    assert!(
+        offenders.is_empty(),
+        "infra must not execute host commands:\n{}",
+        offenders
+            .iter()
+            .map(|path| path.strip_prefix(&root).unwrap_or(path).display().to_string())
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+}
+
+#[test]
 fn markdown_docs_stay_in_the_governed_locations() {
     let root = crate_root();
     let docs_dir = root.join("docs");
@@ -108,6 +134,22 @@ fn collect_markdown_files(dir: &std::path::Path, files: &mut Vec<PathBuf>) {
         {
             collect_markdown_files(&path, files);
         } else if path.extension().and_then(|ext| ext.to_str()) == Some("md") {
+            files.push(path);
+        }
+    }
+}
+
+fn collect_rust_files(dir: &std::path::Path, files: &mut Vec<PathBuf>) {
+    for entry in fs::read_dir(dir).unwrap_or_else(|err| panic!("read {}: {err}", dir.display())) {
+        let entry = entry.unwrap_or_else(|err| panic!("read entry under {}: {err}", dir.display()));
+        let path = entry.path();
+        if entry
+            .file_type()
+            .unwrap_or_else(|err| panic!("file type {}: {err}", path.display()))
+            .is_dir()
+        {
+            collect_rust_files(&path, files);
+        } else if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
             files.push(path);
         }
     }
