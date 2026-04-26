@@ -20,6 +20,8 @@ src/
   invariants/             invariant specs, thresholds, and evaluation
   metrics/                metric types, classes, specs, and deltas
   observer/               parser contracts and governed parser implementations
+    contracts/            observer contract catalog and query helpers
+    parse/                parser implementations grouped by report family
   params/                 descriptors, defaults, parsing, and effective params
     defaults/             shared, processing, profiling, and quality defaults
     descriptor/           stage parameter descriptors grouped by semantic family
