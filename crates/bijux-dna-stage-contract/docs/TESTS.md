@@ -16,6 +16,8 @@ contract intent, with taxonomy documented here instead of in `tests/README.md` p
 ## Suite Directories
 - `tests/boundaries/architecture_tree.rs`: crate root, docs allowance, source
   tree, and integration-test taxonomy contract.
+- `tests/boundaries/command_inventory.rs`: `docs/COMMANDS.md` operation
+  inventory, forbidden command-surface, and verification-command contract.
 - `tests/boundaries/dependency_graph.rs`: runtime and dev dependency boundary
   contract.
 - `tests/boundaries/guardrails/`: no process execution and guardrail checks.
