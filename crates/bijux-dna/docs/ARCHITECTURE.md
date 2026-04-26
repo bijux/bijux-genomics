@@ -1,63 +1,89 @@
 # bijux-dna Architecture
 
-`bijux-dna` is the user-facing CLI package. Its ideal tree is a small public root over an explicit command control plane:
+`bijux-dna` is the CLI adapter crate. It should stay thin: parse arguments, prepare the process
+context, route commands to the correct adapter, render output, and delegate durable genomics logic
+to API/domain/runtime crates.
+
+## Crate Root
+
+```text
+crates/bijux-dna/
+├── Cargo.toml
+├── README.md
+├── docs/
+├── src/
+└── tests/
+```
+
+Only `README.md` belongs at the crate root. All other crate documentation belongs in `docs/`.
+
+## Source Tree
 
 ```text
 src/
-├── lib.rs
-├── cli_entrypoint.rs
-├── process_exit.rs
-├── public_api/
 ├── bin/
 │   └── bijux-dna.rs
-└── commands/
-    ├── bam/
-    ├── benchmark/
-    ├── cli/
-    │   ├── env/
-    │   ├── parse/
-    │   │   └── bench/
-    │   │       └── fastq/
-    │   ├── plan/
-    │   └── render/
-    ├── corpus/
-    ├── ena/
-    ├── example.rs
-    ├── example/
-    ├── fastq/
-    │   ├── api_bridge.rs
-    │   └── meta/
-    ├── hpc/
-    ├── planning/
-    ├── router/
-    ├── status/
-    ├── support/
-    └── vcf/
+├── cli_entrypoint.rs
+├── commands/
+├── lib.rs
+├── process_exit.rs
+└── public_api/
 ```
 
-Root responsibilities:
-
-- `lib.rs` owns only the curated public surface.
-- `cli_entrypoint.rs` owns crate-local CLI startup.
-- `process_exit.rs` owns operator-facing refusal printing and exit-code policy.
-- `public_api/` is the explicit namespace for the stable testable surface.
 - `bin/bijux-dna.rs` is a thin process wrapper.
+- `cli_entrypoint.rs` captures argv/cwd and calls command routing without owning command behavior.
+- `lib.rs` exports only the curated public surface.
+- `process_exit.rs` maps categorized operator failures to stable exit behavior.
+- `public_api/` exposes only testable CLI entrypoints and explicit helper namespaces.
 
-Command responsibilities:
+## Command Tree
 
-- `commands/router/` owns argv parsing, cwd/environment setup, root-command routing, and CLI execution entry.
-- `commands/support/` owns cross-command helpers: shared imports, report input resolution, run profile loading, workspace audit policy, and workspace root discovery.
-- `commands/planning/` owns run-plan assembly and dry-run planning entrypoints.
-- `commands/status/` owns status inspection flows.
-- `commands/corpus/` owns curated corpus workflows.
-- `commands/benchmark/` owns all benchmark-specific configuration, corpus, workspace, publication, suite, and execution flows.
-- `commands/benchmark/fastq_bench/` owns FASTQ benchmark execution entry, adapter-bank inspection, stage discovery, stage explanation, and tool-tier policy as separate internal concerns.
-- `commands/benchmark/corpus_fastq/` owns governed corpus benchmark execution, with run models, stage preparation, runtime support, report-qc support, sortmerna support, and artifact-bundle hashing separated by responsibility.
-- `commands/benchmark/workspace/` owns benchmark config contracts, config queries, publication contract lookup, stage-run layout policy, and workspace value queries.
-- `commands/cli/` owns operator-facing parse, render, plan, validation, and environment command support. Within that tree, `commands/cli/parse/bench/` owns bench-specific CLI parsing, and `commands/cli/parse/bench/fastq/` keeps preprocessing, quality, and workflow argument families separate.
-- `commands/fastq/meta/` owns FASTQ meta-command routing, with dedicated handlers for pipeline, analysis, and environment command families plus focused debug dispatch; `commands/fastq/api_bridge.rs` stays focused on API mediation.
-- `commands/cli/env/` owns environment registry queries, promotion policy, runtime support, registry commands, and benchmark HPC root support as separate internal concerns instead of one include-driven command blob.
-- `commands/bam/`, `commands/fastq/`, and `commands/vcf/` own domain-facing CLI dispatch only.
-- `commands/ena/`, `commands/hpc/`, and `example.rs` own focused operator-facing helpers that do not belong in the routing or support layers.
+`commands/` is partitioned by durable responsibility:
 
-This boundary keeps CLI startup, process exit policy, routing, planning, parse contracts, support helpers, and domain dispatch from collapsing into ambiguous root files.
+- `commands/router/`: argv normalization, root command dispatch, cwd/environment setup, and
+  observability debug/collect routing.
+- `commands/cli/`: parser types, rendering helpers, plan command glue, validation helpers, and
+  environment/registry command support.
+- `commands/planning/`: run-plan and dry-run planning entrypoints.
+- `commands/status/`: runtime and repository status inspection.
+- `commands/corpus/`: curated corpus materialization, normalization, validation, listing, and diff.
+- `commands/benchmark/`: benchmark config, workspace, publication, corpus, suite, and FASTQ/BAM
+  benchmark flows.
+- `commands/fastq/`: FASTQ meta-command dispatch and API mediation.
+- `commands/bam/`, `commands/vcf/`: domain-facing CLI adapters only.
+- `commands/ena/`, `commands/hpc/`, `commands/example.rs`: focused operator helpers that do not
+  belong in router or support.
+- `commands/support/`: shared command helpers with no command ownership.
+
+## Test Tree
+
+```text
+tests/
+├── boundaries.rs
+├── boundaries/
+├── contracts.rs
+├── contracts/
+├── guardrails.rs
+├── snapshots/
+└── workspace_paths.rs
+```
+
+- `boundaries.rs` aggregates layout, dependency, public-surface, and process-spawn checks.
+- `contracts.rs` aggregates command behavior, dry-run, bank, and HPC layout contracts.
+- `snapshots/` stores help and serialized public-surface locks.
+- `workspace_paths.rs` centralizes repo/crate root resolution for integration tests.
+
+Empty placeholder test buckets are not part of the ideal tree. Add a bucket only when it contains
+executable tests or governed snapshots.
+
+## Dependency Direction
+
+The CLI may depend on `bijux-dna-api` and minimal support crates needed for parsing, rendering, and
+declared filesystem effects. Domain semantics, stage execution, runner behavior, and planner policy
+must live behind API or domain-owned boundaries.
+
+## Enforcement
+
+- `tests/boundaries/architecture_tree.rs` enforces the crate tree.
+- `tests/boundaries/guardrails/deps.rs` enforces CLI dependency exclusions.
+- Workspace policy tests enforce docs placement, public surface, and dependency graph contracts.
