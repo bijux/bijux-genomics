@@ -29,6 +29,9 @@ pub(super) fn build_summary_row(
 
     let runtime_outliers = mad_outliers(&runtimes, 3.5);
     let memory_outliers = mad_outliers(&memories, 3.5);
+    let min_replicates_for_bootstrap =
+        usize::try_from(suite.analysis_requirements.min_replicates_for_bootstrap)
+            .unwrap_or(usize::MAX);
 
     let mut warnings = Vec::new();
     let runtime_ci = bootstrap_if_enabled(
@@ -39,7 +42,7 @@ pub(super) fn build_summary_row(
         &runtimes,
         options.ci_bootstrap,
     );
-    if options.ci_bootstrap.is_some() && runtimes.len() < 5 {
+    if options.ci_bootstrap.is_some() && runtimes.len() < min_replicates_for_bootstrap {
         warnings.push(format!("ci_min_n:runtime_s:{stage_id}:{tool}"));
     }
     let memory_ci = bootstrap_if_enabled(
@@ -50,7 +53,7 @@ pub(super) fn build_summary_row(
         &memories,
         options.ci_bootstrap,
     );
-    if options.ci_bootstrap.is_some() && memories.len() < 5 {
+    if options.ci_bootstrap.is_some() && memories.len() < min_replicates_for_bootstrap {
         warnings.push(format!("ci_min_n:memory_mb:{stage_id}:{tool}"));
     }
 
@@ -100,7 +103,7 @@ pub(super) fn build_summary_row(
             &values,
             options.ci_bootstrap,
         );
-        if options.ci_bootstrap.is_some() && values.len() < 5 {
+        if options.ci_bootstrap.is_some() && values.len() < min_replicates_for_bootstrap {
             warnings.push(format!("ci_min_n:{metric_id}:{stage_id}:{tool}"));
         }
         metric_summaries.push(MetricSummary {
