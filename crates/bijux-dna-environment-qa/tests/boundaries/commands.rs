@@ -8,7 +8,7 @@ fn command_inventory_matches_binary_surface() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let commands_doc = std::fs::read_to_string(root.join("docs/COMMANDS.md"))
         .unwrap_or_else(|err| panic!("read docs/COMMANDS.md: {err}"));
-    let bins = sorted_read_dir_paths(&root.join("src/bin"))
+    let bins = sorted_read_dir_paths(root.join("src/bin"))
         .into_iter()
         .map(|path| {
             path.file_stem()
