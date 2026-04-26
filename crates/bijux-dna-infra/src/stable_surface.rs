@@ -1,9 +1,9 @@
 pub use super::hashing::hash_file_sha256;
 pub use super::io::{
-    atomic_write_bytes, atomic_write_bytes_with_retry, atomic_write_json, atomic_write_with,
-    classify_io_error, create_file, ensure_dir, read_to_end_bounded, remove_dir_all, remove_file,
-    remove_file_if_exists, remove_path_if_exists, rename, write_bytes, write_string, IoError,
-    IoErrorKind,
+    append_line, atomic_write_bytes, atomic_write_bytes_with_retry, atomic_write_json,
+    atomic_write_with, classify_io_error, create_file, ensure_dir, read_to_end_bounded,
+    remove_dir_all, remove_file, remove_file_if_exists, remove_path_if_exists, rename, write_bytes,
+    write_string, IoError, IoErrorKind,
 };
 pub use super::locking::FileLock;
 pub use super::logging::init_logging;

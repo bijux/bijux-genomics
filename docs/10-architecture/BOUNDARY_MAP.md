@@ -48,6 +48,7 @@ bijux-dna-planner-vcf: bijux-dna-core bijux-dna-db-ref bijux-dna-domain-vcf biju
 bijux-dna-policies: bijux-dna-core bijux-dna-pipelines bijux-dna-runtime bijux-dna-stage-contract bijux-dna-testkit
 bijux-dna-runner: bijux-dna-core bijux-dna-environment bijux-dna-infra bijux-dna-policies bijux-dna-runtime
 bijux-dna-runtime: bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-testkit
+bijux-dna-science: bijux-dna-infra bijux-dna-policies
 bijux-dna-stage-contract: bijux-dna-core bijux-dna-policies bijux-dna-testkit
 bijux-dna-stages-bam: bijux-dna-core bijux-dna-domain-bam bijux-dna-infra bijux-dna-policies bijux-dna-stage-contract bijux-dna-testkit
 bijux-dna-stages-fastq: bijux-dna-core bijux-dna-domain-fastq bijux-dna-infra bijux-dna-policies bijux-dna-runtime bijux-dna-stage-contract bijux-dna-testkit

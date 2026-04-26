@@ -105,10 +105,10 @@ mod tests {
         let temp = tempfile::tempdir()?;
         let container_dir = temp.path().join("containers").join("apptainer").join("sif");
         let registry_dir = temp.path().join("containers").join("seqtk");
-        fs::create_dir_all(&container_dir)?;
-        fs::create_dir_all(&registry_dir)?;
+        bijux_dna_infra::ensure_dir(&container_dir)?;
+        bijux_dna_infra::ensure_dir(&registry_dir)?;
         let verified_sif = registry_dir.join("16e615286a66.sif");
-        fs::write(&verified_sif, b"sif")?;
+        bijux_dna_infra::write_bytes(&verified_sif, b"sif")?;
         let spec = ToolImageSpec {
             tool: "seqtk".to_string(),
             version: "1.5-r133".to_string(),

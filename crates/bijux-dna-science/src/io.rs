@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
@@ -10,7 +9,7 @@ use walkdir::WalkDir;
 ///
 /// Returns an error when the file cannot be opened or decoded as UTF-8.
 pub fn read_utf8(path: &Path) -> Result<String> {
-    fs::read_to_string(path).with_context(|| format!("read {}", path.display()))
+    std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))
 }
 
 /// Ensure a directory and its parents exist.
@@ -19,7 +18,7 @@ pub fn read_utf8(path: &Path) -> Result<String> {
 ///
 /// Returns an error when the directory cannot be created.
 pub fn ensure_dir(path: &Path) -> Result<()> {
-    fs::create_dir_all(path).with_context(|| format!("create {}", path.display()))
+    bijux_dna_infra::ensure_dir(path).with_context(|| format!("create {}", path.display()))
 }
 
 /// Write UTF-8 text, creating the parent directory when needed.
@@ -28,10 +27,8 @@ pub fn ensure_dir(path: &Path) -> Result<()> {
 ///
 /// Returns an error when the parent directory or file cannot be written.
 pub fn write_utf8(path: &Path, contents: &str) -> Result<()> {
-    if let Some(parent) = path.parent() {
-        ensure_dir(parent)?;
-    }
-    fs::write(path, contents).with_context(|| format!("write {}", path.display()))
+    bijux_dna_infra::write_string(path, contents)
+        .with_context(|| format!("write {}", path.display()))
 }
 
 /// List YAML files below a directory in deterministic order.
