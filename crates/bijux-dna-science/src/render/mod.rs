@@ -195,11 +195,11 @@ pub fn fastq_default_binding_risk_tsv(rows: &[FastqDefaultBindingRiskRow]) -> St
             row.requested_execution_status.as_str(),
             row.effective_closure_status.as_str(),
             row.risk_class.as_str(),
-            row.blocking_reasons.as_str(),
-            row.warning_reasons.as_str(),
+            evidence_cell(&row.blocking_reasons),
+            evidence_cell(&row.warning_reasons),
         ]
         .join("\t");
-        out.push_str(line.trim_end_matches('\t'));
+        out.push_str(&line);
         out.push('\n');
     }
     out
