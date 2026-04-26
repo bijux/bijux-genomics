@@ -34,6 +34,18 @@ plugin and runtime modules remain private.
   snapshot, registry, and docs coverage.
 - New callable operations must be listed in `docs/COMMANDS.md`.
 
+## Plugin Preconditions
+
+- `FastqStagePlugin::handles_stage` and `FastqStagePlugin::materialize` accept
+  only registered FASTQ stage IDs.
+- `FastqStagePlugin::materialize` requires the planner-provided command template
+  to contain at least one nonblank argument and rejects blank arguments.
+- `FastqStagePlugin::materialize` does not choose tools, construct shell
+  commands, resolve environments, or execute processes.
+- `FastqStagePlugin::parse_outputs` parses existing artifacts into the output
+  envelope and preserves observer artifact writes as an explicit observer
+  operation.
+
 ## Internal Modules
 
 - `plugin` validates FASTQ stage support, materializes planned invocations, and

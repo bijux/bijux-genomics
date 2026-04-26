@@ -10,6 +10,8 @@ artifact JSON. It must not execute tools or own runtime orchestration.
   plan, artifact list, or observer fixture.
 - Hash existing stage inputs for metrics provenance.
 - Write explicit observer artifacts through `observer::artifacts`.
+- Validate planner-provided stage IDs and invocation templates before exposing
+  materialized plans.
 - Build deterministic invocation, report, warning, event, and metrics envelope
   values in memory.
 
@@ -33,3 +35,5 @@ under `artifacts/` when commands are invoked from the repository root.
 - `tests/boundaries/pipeline_guardrails.rs` rejects pipeline composition.
 - `tests/boundaries/purity/purity.rs` rejects command construction and tool selection.
 - `tests/boundaries/purity/architecture.rs` rejects process/container execution calls.
+- `tests/boundaries/effect_boundary.rs` rejects production process, network,
+  runner, engine, environment, and unapproved write effects.
