@@ -24,6 +24,7 @@ pub(super) fn test_control_plane_smoke(
     let probes = vec![
         vec!["docs", "run", "check-doc-assets", "--", "--help"],
         vec!["examples", "run", "generate-index", "--", "--help"],
+        vec!["examples", "run", "check-index"],
         vec!["lab", "run", "run-bench", "--", "--help"],
         vec!["smoke", "run", "run", "--", "--help"],
         vec!["test", "run", "toy-runs", "--", "--help"],

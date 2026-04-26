@@ -92,7 +92,8 @@ pub(super) fn examples_check_index(
             "examples/index.yaml must be generated-only with header\n",
         ));
     }
-    let temp = temp_subdir(workspace, "examples-index")?;
+    let temp_root = temp_subdir(workspace, "examples-index")?;
+    let temp = temp_root.join("examples.index.yaml");
     let outcome =
         examples_generate_index(workspace, &["--out".to_string(), temp.display().to_string()])?;
     if !outcome.is_success() {
