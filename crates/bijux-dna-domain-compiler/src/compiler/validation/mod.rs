@@ -48,6 +48,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
     }
     let workspace_root = options.domain_dir.parent().unwrap_or(&options.domain_dir);
     validate_reference_catalogs(workspace_root)?;
+    let shared_tool_domains = load_shared_tool_domains(workspace_root)?;
 
     let mut tool_ids = BTreeMap::<String, String>::new();
     let mut stage_ids = BTreeMap::<String, String>::new();
@@ -63,6 +64,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
             options,
             dom,
             &artifact_vocab,
+            &shared_tool_domains,
             &mut tool_ids,
             &mut tool_capabilities,
             &mut tool_statuses,
@@ -83,4 +85,31 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
 
     println!("domain-validate: OK");
     Ok(())
+}
+
+fn load_shared_tool_domains(workspace_root: &Path) -> Result<BTreeMap<String, BTreeSet<String>>> {
+    let path = workspace_root.join("configs/domain/shared_tools.toml");
+    let text =
+        std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let value: toml::Value =
+        toml::from_str(&text).with_context(|| format!("parse {}", path.display()))?;
+    let mut shared_tool_domains = BTreeMap::new();
+    let Some(shared_tools) = value.get("shared_tools").and_then(toml::Value::as_table) else {
+        return Ok(shared_tool_domains);
+    };
+    for (tool_id, entry) in shared_tools {
+        let domains = entry
+            .get("domains")
+            .and_then(toml::Value::as_array)
+            .map(|values| {
+                values
+                    .iter()
+                    .filter_map(toml::Value::as_str)
+                    .map(ToString::to_string)
+                    .collect::<BTreeSet<_>>()
+            })
+            .unwrap_or_default();
+        shared_tool_domains.insert(tool_id.clone(), domains);
+    }
+    Ok(shared_tool_domains)
 }

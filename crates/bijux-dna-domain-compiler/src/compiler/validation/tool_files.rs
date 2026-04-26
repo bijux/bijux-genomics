@@ -3,11 +3,13 @@ use super::{
     is_tool_meaningful_in_domain, placeholders_allowed, read_yaml, validate_tool_output_subset,
     BTreeMap, BTreeSet, Context, DomainToolLoose, Result, ValidateOptions,
 };
+use std::path::Path;
 
 pub(super) fn validate_tool_files(
     options: &ValidateOptions,
     dom: &str,
     artifact_vocab: &BTreeMap<String, BTreeSet<String>>,
+    shared_tool_domains: &BTreeMap<String, BTreeSet<String>>,
     tool_ids: &mut BTreeMap<String, String>,
     tool_capabilities: &mut BTreeMap<String, BTreeSet<String>>,
     tool_statuses: &mut BTreeMap<String, String>,
@@ -137,11 +139,37 @@ pub(super) fn validate_tool_files(
                 );
             }
         }
-        if let Some(previous) = tool_ids.insert(tool.tool_id.clone(), path.display().to_string()) {
-            bail!("duplicate tool_id {} in {} and {}", tool.tool_id, previous, path.display());
+        if let Some(previous) = tool_ids.get(&tool.tool_id) {
+            let allowed_domains = shared_tool_domains.get(&tool.tool_id).ok_or_else(|| {
+                anyhow!("duplicate tool_id {} in {} and {}", tool.tool_id, previous, path.display())
+            })?;
+            let previous_domain =
+                tool_path_domain(&options.domain_dir, previous).unwrap_or_default();
+            if !allowed_domains.contains(dom) || !allowed_domains.contains(&previous_domain) {
+                bail!(
+                    "duplicate tool_id {} in {} and {} outside shared domains {:?}",
+                    tool.tool_id,
+                    previous,
+                    path.display(),
+                    allowed_domains
+                );
+            }
+        } else {
+            tool_ids.insert(tool.tool_id.clone(), path.display().to_string());
         }
         tool_statuses.insert(tool.tool_id.clone(), tool.status.clone());
         tool_metrics_schemas.insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
     }
     Ok(())
+}
+
+fn tool_path_domain(domain_dir: &Path, path: &str) -> Option<String> {
+    Path::new(path)
+        .strip_prefix(domain_dir)
+        .ok()?
+        .components()
+        .next()?
+        .as_os_str()
+        .to_str()
+        .map(ToString::to_string)
 }
