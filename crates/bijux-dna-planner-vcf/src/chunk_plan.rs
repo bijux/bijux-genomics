@@ -24,6 +24,9 @@ pub fn plan_region_chunks(
     if chunking.overlap_bp >= chunking.window_size_bp {
         bail!("chunk overlap_bp must be < window_size_bp");
     }
+    if chunking.max_parallel_chunks == 0 {
+        bail!("chunk max_parallel_chunks must be > 0");
+    }
     let mut chunks = Vec::new();
     let include_all = chunking.chr_include.is_empty();
     let step = chunking.window_size_bp - chunking.overlap_bp;
