@@ -14,9 +14,25 @@ pub(crate) fn parse_lock_ref(lock_ref: &str) -> Result<(&str, &str)> {
 }
 
 pub(crate) fn validate_sha256(value: &str, name: &str) -> Result<()> {
-    let ascii_hex = value.chars().all(|c| c.is_ascii_hexdigit());
-    if value.len() != 64 || !ascii_hex {
+    let lowercase_hex = value.chars().all(|c| c.is_ascii_digit() || matches!(c, 'a'..='f'));
+    if value.len() != 64 || !lowercase_hex {
         bail!("{name} must be 64-char lowercase hex");
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_sha256;
+
+    #[test]
+    fn validate_sha256_rejects_uppercase_hex() {
+        let uppercase = "A".repeat(64);
+
+        let Err(error) = validate_sha256(&uppercase, "checksum") else {
+            panic!("uppercase checksums must fail");
+        };
+
+        assert!(error.to_string().contains("lowercase hex"));
+    }
 }
