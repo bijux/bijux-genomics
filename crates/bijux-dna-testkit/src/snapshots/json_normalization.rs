@@ -105,7 +105,21 @@ fn looks_like_duration(value: &str) -> bool {
 
 fn is_number(value: &str) -> bool {
     let value = value.trim();
-    !value.is_empty() && value.chars().all(|ch| ch.is_ascii_digit() || ch == '.')
+    if value.is_empty() {
+        return false;
+    }
+    let mut seen_digit = false;
+    let mut seen_dot = false;
+    for ch in value.chars() {
+        if ch.is_ascii_digit() {
+            seen_digit = true;
+        } else if ch == '.' && !seen_dot {
+            seen_dot = true;
+        } else {
+            return false;
+        }
+    }
+    seen_digit
 }
 
 fn is_unstable_key(key: &str) -> bool {

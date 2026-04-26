@@ -16,3 +16,12 @@ fn install_snapshot_env_enforces_locale_and_timezone() {
     assert_eq!(env::var("TZ").unwrap_or_default(), "UTC");
     assert_eq!(env::var("LC_ALL").unwrap_or_default(), "C");
 }
+
+#[test]
+fn snapshot_normalize_json_keeps_malformed_duration_like_strings() {
+    let raw = serde_json::json!({"value": "1.2.3s", "duration": "12ms", "valid": "1.25s"});
+    let normalized = bijux_dna_testkit::snapshot_normalize_json(&raw);
+    assert_eq!(normalized["value"], "1.2.3s");
+    assert_eq!(normalized["valid"], "<DURATION>");
+    assert!(normalized.get("duration").is_none());
+}
