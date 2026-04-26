@@ -12,7 +12,7 @@ pub(super) fn parse_stage_outputs(
     let envelope = envelope::build_metrics_envelope(plan, metrics)?;
     Ok(StagePluginOutputV1 {
         metrics: envelope,
-        artifacts: Vec::new(),
+        artifacts: outputs.to_vec(),
         report_parts: Vec::new(),
         warnings: Vec::new(),
         invariants: Vec::new(),
