@@ -37,3 +37,18 @@ fn tests_doc_references_the_active_test_files() {
         assert!(content.contains(expected), "docs/TESTS.md must reference {expected}");
     }
 }
+
+#[test]
+fn commands_doc_declares_library_only_inventory() {
+    let content = fs::read_to_string(crate_root().join("docs/COMMANDS.md"))
+        .unwrap_or_else(|err| panic!("read docs/COMMANDS.md: {err}"));
+    assert!(content.contains("library-only"), "COMMANDS.md must declare library-only scope");
+    assert!(
+        content.contains("## Managed Command Inventory") && content.contains("None."),
+        "COMMANDS.md must list an empty managed command inventory"
+    );
+    assert!(
+        !crate_root().join("src/bin").exists(),
+        "infra must not add binary entrypoints without updating COMMANDS.md"
+    );
+}
