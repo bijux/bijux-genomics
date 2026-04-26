@@ -1,5 +1,5 @@
-use std::path::Path;
 use std::collections::BTreeSet;
+use std::path::Path;
 
 use bijux_dna_environment::build::{
     default_docker_tools, extract_version_from_dockerfile, DockerToolSpec,
@@ -51,6 +51,12 @@ pub(super) fn build_image_plans(
     let container_dir = Path::new(&platform_spec.container_dir);
     let mut plans = Vec::new();
     for tool in tools {
+        if tool.name.trim().is_empty() {
+            return Err("docker tool name is empty".into());
+        }
+        if tool.probe_cmd.is_some() && tool.probe_expected_exit.is_empty() {
+            return Err(format!("probe expected exits are empty for {}", tool.name).into());
+        }
         let dockerfile = container_dir.join(format!("Dockerfile.{}", tool.name));
         if !dockerfile.exists() {
             return Err(format!("Dockerfile not found: {}", dockerfile.display()).into());
