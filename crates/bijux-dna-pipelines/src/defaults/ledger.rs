@@ -4,6 +4,7 @@
 use std::collections::BTreeMap;
 
 use anyhow::{anyhow, Result};
+use bijux_dna_core::ids::{validate_stage_id, validate_tool_id};
 use serde::{Deserialize, Serialize};
 
 use crate::DefaultParams;
@@ -40,6 +41,16 @@ impl DefaultsLedgerV1 {
     /// # Errors
     /// Returns an error when required provenance fields are missing.
     pub fn validate_strict(&self) -> Result<()> {
+        for (stage_id, tool_id) in &self.tools {
+            validate_stage_id(stage_id)
+                .map_err(|err| anyhow!("defaults ledger has invalid tool stage id: {err}"))?;
+            validate_tool_id(tool_id)
+                .map_err(|err| anyhow!("defaults ledger has invalid tool id: {err}"))?;
+        }
+        for stage_id in self.params.keys() {
+            validate_stage_id(stage_id)
+                .map_err(|err| anyhow!("defaults ledger has invalid params stage id: {err}"))?;
+        }
         for stage_id in self.tools.keys() {
             if !self.tool_provenance.contains_key(stage_id) {
                 return Err(anyhow!(
