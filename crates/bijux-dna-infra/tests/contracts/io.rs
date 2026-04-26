@@ -1,12 +1,18 @@
 use std::collections::BTreeMap;
+use std::ffi::OsString;
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
 
 static CWD_LOCK: Mutex<()> = Mutex::new(());
+static ENV_LOCK: Mutex<()> = Mutex::new(());
 
 fn cwd_lock() -> MutexGuard<'static, ()> {
     CWD_LOCK.lock().unwrap_or_else(|err| panic!("cwd lock poisoned: {err}"))
+}
+
+fn env_lock() -> MutexGuard<'static, ()> {
+    ENV_LOCK.lock().unwrap_or_else(|err| panic!("env lock poisoned: {err}"))
 }
 
 struct CurrentDirGuard {
@@ -24,6 +30,29 @@ impl CurrentDirGuard {
 impl Drop for CurrentDirGuard {
     fn drop(&mut self) {
         let _ = std::env::set_current_dir(&self.previous);
+    }
+}
+
+struct EnvVarGuard {
+    key: &'static str,
+    previous: Option<OsString>,
+}
+
+impl EnvVarGuard {
+    fn set_path(key: &'static str, value: &Path) -> Self {
+        let previous = std::env::var_os(key);
+        std::env::set_var(key, value);
+        Self { key, previous }
+    }
+}
+
+impl Drop for EnvVarGuard {
+    fn drop(&mut self) {
+        if let Some(previous) = &self.previous {
+            std::env::set_var(self.key, previous);
+        } else {
+            std::env::remove_var(self.key);
+        }
     }
 }
 
@@ -145,6 +174,32 @@ fn json_serialization_errors_are_not_input_corruption() {
 #[test]
 fn temp_dir_is_created() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux-dna-test")?;
+    assert!(dir.path().exists());
+    Ok(())
+}
+
+#[test]
+fn temp_dir_honors_test_tmp_dir() -> anyhow::Result<()> {
+    let _env = env_lock();
+    let base = tempfile::tempdir()?;
+    let test_tmp = base.path().join("artifact-rooted-temp");
+    let _guard = EnvVarGuard::set_path("TEST_TMP_DIR", &test_tmp);
+
+    let dir = bijux_dna_infra::temp_dir("bijux-dna-test")?;
+
+    assert!(dir.path().starts_with(&test_tmp));
+    assert!(dir.path().exists());
+    Ok(())
+}
+
+#[test]
+fn temp_dir_in_creates_base_directory() -> anyhow::Result<()> {
+    let base = tempfile::tempdir()?;
+    let nested = base.path().join("missing").join("tmp");
+
+    let dir = bijux_dna_infra::temp_dir_in(&nested, "bijux-dna-test")?;
+
+    assert!(dir.path().starts_with(&nested));
     assert!(dir.path().exists());
     Ok(())
 }
