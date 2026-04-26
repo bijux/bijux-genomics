@@ -15,3 +15,6 @@ Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux
 - Must not hardcode host-specific paths.
 - Must not write artifacts outside caller-provided output roots.
 - Must not own pipeline planning or stage execution logic.
+
+## Notes
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.

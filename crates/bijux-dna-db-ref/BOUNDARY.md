@@ -17,3 +17,5 @@ Forbidden:
 - Network access.
 - Process spawning.
 - Planner/runner side effects.
+
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
