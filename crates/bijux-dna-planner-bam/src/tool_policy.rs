@@ -24,17 +24,12 @@ pub fn enforce(
             }
         }
         BamStage::Contamination => {
-            let effective = params
-                .map(|value| stage.parse_effective_params(value))
-                .transpose()?
-                .and_then(|effective| match effective {
-                    BamEffectiveParams::Contamination(contamination) => Some(contamination),
-                    _ => None,
-                });
-            let scope = effective
-                .as_ref()
-                .map(|contamination| contamination.scope)
-                .unwrap_or(ContaminationScope::Both);
+            let BamEffectiveParams::Contamination(effective) =
+                crate::params::effective_params_for_stage(stage, params)?
+            else {
+                return Err(anyhow!("{} params mismatch", id_catalog::BAM_CONTAMINATION));
+            };
+            let scope = effective.scope;
             match tool_id {
                 id_catalog::TOOL_SCHMUTZI
                     if !matches!(scope, ContaminationScope::Mito | ContaminationScope::Both) =>
@@ -59,9 +54,7 @@ pub fn enforce(
                     ));
                 }
                 id_catalog::TOOL_VERIFYBAMID2 | id_catalog::TOOL_CONTAMMIX
-                    if effective
-                        .as_ref()
-                        .is_some_and(|contamination| contamination.reference_panels.is_empty()) =>
+                    if effective.reference_panels.is_empty() =>
                 {
                     return Err(anyhow!(
                         "{} tool {tool_id} requires non-empty reference_panels",
