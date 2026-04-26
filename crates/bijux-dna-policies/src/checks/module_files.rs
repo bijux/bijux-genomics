@@ -76,11 +76,7 @@ fn declared_module_name(line: &str) -> Option<&str> {
         .or_else(|| line.strip_prefix("pub(super) mod "))
         .or_else(|| line.strip_prefix("pub mod "))
         .or_else(|| line.strip_prefix("mod "))?;
-    declaration
-        .trim()
-        .trim_end_matches(';')
-        .split_whitespace()
-        .next()
+    declaration.trim().trim_end_matches(';').split_whitespace().next()
 }
 
 fn declared_modules_have_sources(path: &std::path::Path, modules: &[String]) -> bool {
