@@ -58,3 +58,14 @@ fn snapshot_normalize_json_redacts_artifact_paths_inside_messages() {
     let normalized = bijux_dna_testkit::snapshot_normalize_json(&raw);
     assert_eq!(normalized["message"], "wrote result.json successfully");
 }
+
+#[test]
+fn snapshot_normalize_json_strips_camel_case_unstable_fields() {
+    let raw = serde_json::json!({
+        "startedAt": "2024-01-01T02:03:04Z",
+        "elapsedMs": 12,
+        "stable": true
+    });
+    let normalized = bijux_dna_testkit::snapshot_normalize_json(&raw);
+    assert_eq!(normalized, serde_json::json!({"stable": true}));
+}
