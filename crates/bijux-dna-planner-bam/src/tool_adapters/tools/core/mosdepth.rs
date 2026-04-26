@@ -9,7 +9,7 @@ pub fn args(bam: &Path, out_prefix: &Path, _params: &CoverageEffectiveParams) ->
     let command = format!(
         "mosdepth -n {prefix} {bam} && \
 samtools depth -a {bam} > {depth} && \
-if [ -f {prefix}.mosdepth.summary.txt ]; then cp {prefix}.mosdepth.summary.txt {summary}; else : > {summary}; fi",
+if [ -f {summary} ]; then :; else : > {summary}; fi",
         prefix = out_prefix.display(),
         bam = bam.display(),
         depth = depth_txt.display(),
