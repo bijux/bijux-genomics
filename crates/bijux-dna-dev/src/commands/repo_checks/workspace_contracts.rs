@@ -572,6 +572,7 @@ pub(crate) fn check_root_layout(
         "domain",
         "examples",
         "makes",
+        "science",
     ];
     let mut offenders = Vec::new();
     for entry in std::fs::read_dir(&workspace.root)
