@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 #[test]
-fn environment_qa_tree_matches_architecture_contract() {
+fn crate_root_and_docs_match_architecture_contract() {
     let root = crate_root("bijux-dna-environment-qa");
 
     assert_eq!(
@@ -26,6 +26,11 @@ fn environment_qa_tree_matches_architecture_contract() {
         ]),
         "docs must stay within the 10-document allowance"
     );
+}
+
+#[test]
+fn source_tree_matches_architecture_contract() {
+    let root = crate_root("bijux-dna-environment-qa");
 
     assert_eq!(
         dir_entries(&root.join("src")),
@@ -102,6 +107,11 @@ fn environment_qa_tree_matches_architecture_contract() {
         btree_set(&["inspection.rs", "merge.rs", "mod.rs", "models.rs", "transform.rs"]),
         "docker_exec tree must keep command builders and models separated"
     );
+}
+
+#[test]
+fn test_tree_matches_architecture_contract() {
+    let root = crate_root("bijux-dna-environment-qa");
 
     assert_eq!(
         dir_entries(&root.join("tests")),
