@@ -53,3 +53,8 @@ Runtime failures surface through backend process errors, missing images, permiss
 
 ## Stability
 Contract changes must update the relevant docs and boundary tests in the same reviewable change.
+
+## Workspace Policy
+Workspace work on this crate is governed by `/Users/bijan/bijux/README.md` and
+`/Users/bijan/bijux/CODEX.md`; re-read both before editing this child repository or
+making commits.
