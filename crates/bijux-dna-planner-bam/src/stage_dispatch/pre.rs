@@ -46,7 +46,16 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
         }
         BamStage::MappingSummary => {
             let bam = request.bam.ok_or_else(|| anyhow!("mapping_summary requires bam"))?;
-            tool_adapters::stages_pre::mapping_summary::plan(request.tool, bam, request.out_dir)
+            let params = params::effective_params_for_stage(stage, request.params)?;
+            let BamEffectiveParams::MappingSummary(params) = params else {
+                return Err(anyhow!("mapping_summary params mismatch"));
+            };
+            tool_adapters::stages_pre::mapping_summary::plan_with_params(
+                request.tool,
+                bam,
+                request.out_dir,
+                &params,
+            )
         }
         BamStage::Filter => {
             let bam = request.bam.ok_or_else(|| anyhow!("filter requires bam"))?;
