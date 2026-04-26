@@ -107,6 +107,20 @@ fn fastq_stage_plugin_rejects_empty_command_templates() {
 }
 
 #[test]
+fn fastq_stage_plugin_rejects_blank_command_template_arguments() {
+    let plugin = FastqStagePlugin;
+    let mut plan = plan("fastq.detect_adapters");
+    plan.command.template = vec!["fastqc".to_string(), "   ".to_string()];
+
+    let error = match plugin.materialize(&plan) {
+        Ok(_) => panic!("blank command template arguments must fail"),
+        Err(error) => error,
+    };
+
+    assert!(error.to_string().contains("blank command template argument"));
+}
+
+#[test]
 fn fastq_stage_plugin_input_fingerprint_is_stable_for_reordered_inputs() -> anyhow::Result<()> {
     let plugin = FastqStagePlugin;
     let temp = bijux_dna_infra::temp_dir("bijux-fastq-plugin-input-order")?;
