@@ -13,7 +13,7 @@ use crate::stage_specs::{
 use crate::StagePlanJson;
 
 fn run_artifacts_dir(run_dir: &Path) -> PathBuf {
-    bijux_dna_runtime::recording::run_artifacts_dir_for_out(run_dir)
+    run_dir.join("run_artifacts")
 }
 
 pub fn write_effective_adapters(
