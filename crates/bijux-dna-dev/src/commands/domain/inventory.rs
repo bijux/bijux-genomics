@@ -394,10 +394,11 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
         let text = read_utf8(entry.path()).unwrap_or_default();
         for captures in tool_ref_re.captures_iter(&text) {
             if let Some(value) = captures.get(1).map(|capture| capture.as_str()) {
-                if !matches!(value, "tool" | "planner" | "unknown") {
-                    if value != "demo_tool" && !external.contains(value) {
-                        code_tools.insert(value.to_string());
-                    }
+                if !matches!(value, "tool" | "planner" | "unknown")
+                    && value != "demo_tool"
+                    && !external.contains(value)
+                {
+                    code_tools.insert(value.to_string());
                 }
             }
         }

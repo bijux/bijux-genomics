@@ -1,7 +1,11 @@
 #![allow(clippy::too_many_lines)]
 
+use std::fmt::Write as _;
+
 #[allow(clippy::wildcard_imports)]
 use super::*;
+
+type SummaryStatus = (BTreeMap<String, String>, BTreeMap<String, String>, BTreeMap<String, String>);
 
 fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {
     let statuses = governed_container_statuses(workspace)?;
@@ -9,7 +13,7 @@ fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {
         "# GENERATED FILE - DO NOT EDIT\n# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids\n# format: <tool_id><TAB><status>\n",
     );
     for (tool_id, status) in statuses {
-        out.push_str(&format!("{tool_id}\t{status}\n"));
+        let _ = writeln!(out, "{tool_id}\t{status}");
     }
     Ok(out)
 }
@@ -1199,9 +1203,7 @@ pub(super) fn check_tool_docs_generated(workspace: &Workspace) -> Result<Contain
     success_line("tool docs generated: OK")
 }
 
-fn load_summary_status(
-    workspace: &Workspace,
-) -> Result<(BTreeMap<String, String>, BTreeMap<String, String>, BTreeMap<String, String>)> {
+fn load_summary_status(workspace: &Workspace) -> SummaryStatus {
     let summary_json = workspace.path("artifacts/containers/summary.json");
     let lock_json = workspace.path("containers/versions/lock.json");
     let mut status_from_summary = BTreeMap::new();
@@ -1295,13 +1297,13 @@ fn load_summary_status(
     for (tool, digest) in lock_apptainer_digest {
         apptainer_digest_from_summary.entry(tool).or_insert(digest);
     }
-    Ok((status_from_summary, docker_digest_from_summary, apptainer_digest_from_summary))
+    (status_from_summary, docker_digest_from_summary, apptainer_digest_from_summary)
 }
 
 fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
     let registry = registry_tool_map(workspace)?;
     let (status_from_summary, docker_digest_from_summary, apptainer_digest_from_summary) =
-        load_summary_status(workspace)?;
+        load_summary_status(workspace);
     let mut rows = Vec::new();
     for (tool, row) in registry {
         if !table_array_strings(&row, "runtimes").iter().any(|runtime| runtime == "apptainer") {
