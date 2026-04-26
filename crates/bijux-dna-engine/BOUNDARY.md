@@ -1,5 +1,12 @@
 # bijux-dna-engine Boundary Contract
 
+Owner: Engine
+Scope: Execution orchestration for an already planned `ExecutionGraph`
+Allowed inputs: planned execution graphs, declared run layouts, runner/runtime responses
+Forbidden dependencies: planners, stage executors, CLI adapters, domain semantics ownership
+Forbidden effects: process spawning, container selection, network access, planning, domain interpretation
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-engine --no-default-features`
+
 ## Why this crate exists
 Owns execution orchestration for an already planned `ExecutionGraph`.
 
@@ -20,3 +27,4 @@ Owns execution orchestration for an already planned `ExecutionGraph`.
 
 ## Notes
 Boundary invariants are enforced by bijux-dna-policies and the engine boundary tests.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
