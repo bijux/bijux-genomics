@@ -261,11 +261,28 @@ fn write_observability_log_pack(run_dir: &Path, out: &Path) -> Result<()> {
     let mut archive = tar::Builder::new(file);
     for rel in entries {
         let path = run_dir.join(rel);
-        archive
-            .append_path_with_name(&path, rel)
-            .with_context(|| format!("add {} to log-pack", path.display()))?;
+        append_observability_log_entry(&mut archive, &path, rel)?;
     }
     archive.finish().context("finalize log-pack tar")?;
+    Ok(())
+}
+
+fn append_observability_log_entry(
+    archive: &mut tar::Builder<std::fs::File>,
+    path: &Path,
+    rel: &str,
+) -> Result<()> {
+    let bytes = std::fs::read(path).with_context(|| format!("read {}", path.display()))?;
+    let mut header = tar::Header::new_gnu();
+    header.set_size(bytes.len() as u64);
+    header.set_mode(0o644);
+    header.set_uid(0);
+    header.set_gid(0);
+    header.set_mtime(0);
+    header.set_cksum();
+    archive
+        .append_data(&mut header, rel, bytes.as_slice())
+        .with_context(|| format!("add {} to log-pack", path.display()))?;
     Ok(())
 }
 
@@ -329,5 +346,28 @@ mod tests {
 
         assert!(err.to_string().contains("no observability artifacts found"));
         assert!(!out.exists());
+    }
+
+    #[test]
+    fn write_observability_log_pack_is_stable_across_file_metadata_changes() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let run_dir = temp.path().join("run-001");
+        let manifest = run_dir.join("run_manifest.json");
+        let first_out = temp.path().join("first.tar");
+        let second_out = temp.path().join("second.tar");
+        std::fs::create_dir_all(&run_dir).expect("run dir");
+        std::fs::write(&manifest, b"{\"run\":\"run-001\"}\n").expect("manifest");
+
+        filetime::set_file_mtime(&manifest, filetime::FileTime::from_unix_time(10, 0))
+            .expect("old mtime");
+        write_observability_log_pack(&run_dir, &first_out).expect("first pack");
+
+        filetime::set_file_mtime(&manifest, filetime::FileTime::from_unix_time(20, 0))
+            .expect("new mtime");
+        write_observability_log_pack(&run_dir, &second_out).expect("second pack");
+
+        let first = std::fs::read(first_out).expect("read first pack");
+        let second = std::fs::read(second_out).expect("read second pack");
+        assert_eq!(first, second);
     }
 }
