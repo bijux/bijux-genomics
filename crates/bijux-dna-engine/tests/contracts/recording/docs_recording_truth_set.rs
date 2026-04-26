@@ -3,9 +3,8 @@ use std::path::PathBuf;
 
 #[test]
 fn recording_truth_set_is_documented() {
-    let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("RECORDING_TRUTH_SET.md");
-    let content =
-        fs::read_to_string(&doc).unwrap_or_else(|err| panic!("read RECORDING_TRUTH_SET.md: {err}"));
+    let doc = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("EFFECTS.md");
+    let content = fs::read_to_string(&doc).unwrap_or_else(|err| panic!("read EFFECTS.md: {err}"));
 
     for required in [
         "effective_config.json",
