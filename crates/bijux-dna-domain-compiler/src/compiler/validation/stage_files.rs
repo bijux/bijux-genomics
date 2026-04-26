@@ -122,12 +122,24 @@ pub(super) fn validate_stage_files(
             stage.inputs.iter().map(|port| port.name.clone()).collect::<BTreeSet<_>>();
         let output_names =
             stage.outputs.iter().map(|port| port.name.clone()).collect::<BTreeSet<_>>();
+        if input_names.len() != stage.inputs.len() {
+            bail!("{} has duplicate input port names", path.display());
+        }
+        if output_names.len() != stage.outputs.len() {
+            bail!("{} has duplicate output port names", path.display());
+        }
         for port in &stage.inputs {
+            if port.name.trim().is_empty() {
+                bail!("{} has input with empty name", path.display());
+            }
             if port.data_type.trim().is_empty() || port.cardinality.trim().is_empty() {
                 bail!("{} has input missing data_type/cardinality", path.display());
             }
         }
         for port in &stage.outputs {
+            if port.name.trim().is_empty() {
+                bail!("{} has output with empty name", path.display());
+            }
             if port.data_type.trim().is_empty() || port.cardinality.trim().is_empty() {
                 bail!("{} has output missing data_type/cardinality", path.display());
             }
