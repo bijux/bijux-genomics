@@ -8,6 +8,14 @@ Planner tests protect deterministic plan output, graph topology, command specs, 
 - `tests/determinism.rs` — deterministic plan ordering and stable graph behavior.
 - `tests/guardrails.rs` — crate-local guardrail smoke coverage.
 
+## Boundary Modules
+- `tests/boundaries/architecture_tree.rs` — locks the intentional crate layout.
+- `tests/boundaries/command_inventory.rs` — keeps `docs/COMMANDS.md` aligned with stage authorities.
+- `tests/boundaries/dependency_graph.rs` — protects allowed runtime and test dependencies.
+- `tests/boundaries/docs_layout.rs` — enforces one root README and ten docs under `docs/`.
+- `tests/boundaries/public_api_docs.rs` — keeps documented exports compilable.
+- `tests/boundaries/source_effects.rs` — prevents process, network, and mutation primitives in production source.
+
 ## Contract Modules
 - `tests/contracts/benchmark_fanout.rs` — benchmark fan-out graph behavior.
 - `tests/contracts/benchmark_profiles.rs` — benchmark profile governance.
