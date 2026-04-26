@@ -93,6 +93,20 @@ fn fastq_stage_plugin_rejects_parsing_unsupported_stage_ids() {
 }
 
 #[test]
+fn fastq_stage_plugin_rejects_empty_command_templates() {
+    let plugin = FastqStagePlugin;
+    let mut plan = plan("fastq.detect_adapters");
+    plan.command.template.clear();
+
+    let error = match plugin.materialize(&plan) {
+        Ok(_) => panic!("empty command templates must fail"),
+        Err(error) => error,
+    };
+
+    assert!(error.to_string().contains("empty command template"));
+}
+
+#[test]
 fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.detect_adapters");
