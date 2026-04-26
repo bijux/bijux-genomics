@@ -116,6 +116,17 @@ fn run_container_command_captures_stdout() -> Result<(), Box<dyn std::error::Err
 }
 
 #[test]
+fn run_container_command_rejects_empty_probe_commands() {
+    let runner = FakeRunner {
+        output: Output { status: exit_status(0), stdout: Vec::new(), stderr: Vec::new() },
+    };
+    let error = run_container_command(&runner, "image", " ")
+        .err()
+        .unwrap_or_else(|| panic!("expected empty command rejection"));
+    assert!(error.to_string().contains("probe command is empty"));
+}
+
+#[test]
 fn run_image_test_reports_missing_image() -> Result<(), Box<dyn std::error::Error>> {
     let runner = FakeRunner {
         output: Output { status: exit_status(1), stdout: Vec::new(), stderr: Vec::new() },
