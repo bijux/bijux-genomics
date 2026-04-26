@@ -9,7 +9,8 @@ stable surface curated by `src/public_api/stable_surface.rs`.
 
 ## Stable Root Exports
 
-- `Engine` - execution entrypoint for a planned `ExecutionGraph`.
+- `Engine` - execution entrypoint for a planned `ExecutionGraph`; validates
+  engine policy and the caller-provided `RunLayout` before invoking a runner.
 - `EngineConfig` - timeout, retry, deterministic scheduling, and parallelism
   policy input.
 - `CancellationToken` - cooperative cancellation state shared with callers.
@@ -28,9 +29,16 @@ stable surface curated by `src/public_api/stable_surface.rs`.
 - Public API changes must update this file, `README.md`, and the closest
   contract or schema test in the same change set.
 
+## Execution Preconditions
+
+`Engine::execute` requires a canonical `RunLayout` whose `run_dir`,
+`stages_dir`, and `summary_dir` already exist. The engine does not create the
+run layout; callers should use `bijux-dna-runtime::run_layout::create_run_layout`
+or an equivalent runtime-owned setup before calling the engine.
+
 ## Enforcement
 
 - `tests/boundaries/architecture_tree.rs` locks `src/public_api/`.
 - `tests/contracts/execution_orchestration_contracts.rs` covers public
-  `Engine`, `EngineConfig`, `CancellationToken`, `EngineEvent`, and
-  `EngineHooks` behavior.
+  `Engine`, `EngineConfig`, `CancellationToken`, `EngineEvent`, `EngineHooks`,
+  and run-layout precondition behavior.

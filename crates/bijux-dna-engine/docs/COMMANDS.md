@@ -9,7 +9,7 @@ command routing belong outside this crate.
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
 | `create-engine` | `Engine::new` | Build an engine with explicit execution policy. |
-| `execute-graph` | `Engine::execute` | Execute a planned graph through a caller-provided runner and return a run record. |
+| `execute-graph` | `Engine::execute` | Validate engine policy and run layout, execute a planned graph through a caller-provided runner, and return a run record. |
 | `validate-engine-config` | `EngineConfig::validate` | Reject unsupported execution policy such as parallelism greater than one. |
 | `cancel-execution` | `CancellationToken::cancel` | Request cooperative cancellation. |
 | `check-cancellation` | `CancellationToken::is_cancelled` | Observe cancellation state before or during execution. |

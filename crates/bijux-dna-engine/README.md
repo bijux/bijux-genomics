@@ -1,8 +1,8 @@
 # bijux-dna-engine
 
-`bijux-dna-engine` executes a fully formed `ExecutionGraph` through a caller
-provided `Runner`, records per-step execution truth, and enforces engine-owned
-output contracts.
+`bijux-dna-engine` validates engine policy and a caller-provided run layout,
+executes a fully formed `ExecutionGraph` through a caller-provided `Runner`,
+records per-step execution truth, and enforces engine-owned output contracts.
 
 This crate follows repository governance documentation. `README.md` and
 `README.md`; re-read those files before editing this child
