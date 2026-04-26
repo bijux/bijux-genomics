@@ -3,7 +3,7 @@ use anyhow::anyhow;
 use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_engine::Engine;
 use bijux_dna_runner::DockerRunner;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// Replay or verify a run from a run manifest.
 ///
@@ -47,8 +47,7 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
         }
         return Ok(());
     }
-    let graph_path =
-        bijux_dna_runtime::recording::run_artifacts_dir_for_out(base_dir).join("graph.json");
+    let graph_path = resolve_graph_path(base_dir, &artifacts);
     let graph_raw =
         std::fs::read_to_string(&graph_path).map_err(|err| anyhow!("read graph.json: {err}"))?;
     let graph: ExecutionGraph =
@@ -66,4 +65,50 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
     };
     Engine::default().execute(&graph, &runner, &layout, None, None)?;
     Ok(())
+}
+
+fn resolve_graph_path(base_dir: &Path, artifacts: &[serde_json::Value]) -> PathBuf {
+    artifacts
+        .iter()
+        .find_map(|entry| {
+            let is_graph = entry.get("kind").and_then(|value| value.as_str()) == Some("graph");
+            let path = entry.get("path").and_then(|value| value.as_str())?;
+            is_graph.then(|| base_dir.join(path))
+        })
+        .unwrap_or_else(|| {
+            bijux_dna_runtime::recording::run_artifacts_dir_for_out(base_dir).join("graph.json")
+        })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::resolve_graph_path;
+
+    #[test]
+    fn resolve_graph_path_uses_manifest_graph_artifact() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let artifacts = vec![serde_json::json!({
+            "kind": "graph",
+            "path": "graph.json",
+            "schema": "bijux.execution_graph.v1"
+        })];
+
+        let graph_path = resolve_graph_path(temp.path(), &artifacts);
+
+        assert_eq!(graph_path, temp.path().join("graph.json"));
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_graph_path_keeps_legacy_artifact_location() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+
+        let graph_path = resolve_graph_path(temp.path(), &[]);
+
+        assert_eq!(
+            graph_path,
+            bijux_dna_runtime::recording::run_artifacts_dir_for_out(temp.path()).join("graph.json")
+        );
+        Ok(())
+    }
 }
