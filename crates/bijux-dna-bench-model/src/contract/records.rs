@@ -44,6 +44,17 @@ pub fn validate_decision(decision: &GateDecision) -> Result<(), BenchError> {
             decision.schema_version
         )));
     }
+    required_text(&decision.dataset_id, "decision dataset_id")?;
+    required_text(&decision.stage_id, "decision stage_id")?;
+    required_text(&decision.tool_id, "decision tool_id")?;
+    required_text(&decision.params_hash, "decision params_hash")?;
+    finite_ratio(decision.completeness_score, "decision completeness_score")?;
+    let expected_passes = decision.violations.is_empty() && decision.missing_metrics.is_empty();
+    if decision.passes != expected_passes {
+        return Err(BenchError::InvalidPolicy(
+            "decision passes must match violations and missing_metrics".to_string(),
+        ));
+    }
     Ok(())
 }
 
@@ -142,11 +153,12 @@ fn finite_value(value: f64, field: &str) -> Result<(), BenchError> {
 mod tests {
     use anyhow::bail;
 
-    use crate::contract::SUMMARY_SCHEMA_V1;
+    use crate::contract::{DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
     use crate::model::{BenchmarkSummary, MetricSummary, SummaryRow};
+    use crate::policy::GateDecision;
     use crate::stats::robust_estimators::RobustStats;
 
-    use super::validate_summary;
+    use super::{validate_decision, validate_summary};
 
     fn metric_summary(metric_id: &str, n: usize) -> MetricSummary {
         MetricSummary {
@@ -187,6 +199,21 @@ mod tests {
             warnings: Vec::new(),
             scientifically_invalid: false,
             invalid_reasons: Vec::new(),
+        }
+    }
+
+    fn valid_decision() -> GateDecision {
+        GateDecision {
+            schema_version: DECISION_SCHEMA_V1.to_string(),
+            dataset_id: "dataset-1".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
+            tool_id: "fastp".to_string(),
+            params_hash: "params-a".to_string(),
+            passes: true,
+            violations: Vec::new(),
+            missing_metrics: Vec::new(),
+            completeness_score: 1.0,
+            rationale_trace: Vec::new(),
         }
     }
 
@@ -266,6 +293,45 @@ mod tests {
         };
 
         assert!(err.to_string().contains("outlier_count does not match"));
+        Ok(())
+    }
+
+    #[test]
+    fn decision_rejects_missing_identifier() -> anyhow::Result<()> {
+        let mut decision = valid_decision();
+        decision.tool_id.clear();
+
+        let Err(err) = validate_decision(&decision) else {
+            bail!("decision without tool_id should fail");
+        };
+
+        assert!(err.to_string().contains("missing decision tool_id"));
+        Ok(())
+    }
+
+    #[test]
+    fn decision_rejects_invalid_completeness() -> anyhow::Result<()> {
+        let mut decision = valid_decision();
+        decision.completeness_score = f64::NAN;
+
+        let Err(err) = validate_decision(&decision) else {
+            bail!("decision with invalid completeness should fail");
+        };
+
+        assert!(err.to_string().contains("decision completeness_score must be finite"));
+        Ok(())
+    }
+
+    #[test]
+    fn decision_rejects_inconsistent_pass_status() -> anyhow::Result<()> {
+        let mut decision = valid_decision();
+        decision.missing_metrics.push("runtime_s".to_string());
+
+        let Err(err) = validate_decision(&decision) else {
+            bail!("decision with missing metrics and passes=true should fail");
+        };
+
+        assert!(err.to_string().contains("passes must match"));
         Ok(())
     }
 }
