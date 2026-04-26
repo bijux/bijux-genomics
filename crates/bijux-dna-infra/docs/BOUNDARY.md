@@ -48,4 +48,5 @@ offline and must not execute host commands.
 
 ## Family Contract
 
-The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
+The family-level contract is indexed in
+[docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md](../../../docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md).
