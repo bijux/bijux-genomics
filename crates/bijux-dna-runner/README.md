@@ -1,51 +1,55 @@
 # bijux-dna-runner
 
 ## What this crate does
-Container execution support for runner-facing commands, step orchestration, and replay.
+`bijux-dna-runner` is the controlled execution boundary for already-planned DNA workflow steps. It turns typed execution specs into Docker or Apptainer process calls, captures stdout, stderr, exit status, and runner artifacts, and can replay existing execution records without running tools again.
 
 ## What it must not do (boundaries)
-No planning or parsing; execution only.
+This crate must not plan stages, select tools, parse domain data, own CLI UX, produce analyzer reports, or reach into engine/planner internals. It receives resolved execution intent and performs only the declared runner effect.
 
 ## Role in the stack
-Upstream: engine via runtime Runner. Downstream: runtime recorder.
+Upstream callers use the `bijux-dna-runtime::Runner` contract and runner facade exports. Downstream effects are process execution, artifact collection, and execution-record replay under declared runtime roots.
 
 ## Public API / entrypoints
-See `crates/bijux-dna-runner/docs/INDEX.md`, `crates/bijux-dna-runner/docs/BACKENDS.md`, `crates/bijux-dna-runner/docs/EXECUTION_SPEC.md`, `crates/bijux-dna-runner/docs/REPLAY.md`, `crates/bijux-dna-runner/docs/SECURITY.md`, `crates/bijux-dna-runner/docs/CHANGE_RULES.md`.
+Use `bijux_dna_runner::api::*` for stable consumer-facing entrypoints. The crate root also exports `DockerRunner` for the concrete runtime adapter. See `docs/PUBLIC_API.md` for the full facade contract and `docs/COMMANDS.md` for the command inventory this crate may manage.
 
 ## Key contracts it owns/consumes
-Execution records and stdout/stderr captures.
+The runner owns backend execution specs, command invocation identity, stdout/stderr capture, exit mapping, runner artifacts, replay verification, and the dependency/effect boundary around those responsibilities.
 
 ## Artifacts / Contracts
-See `crates/bijux-dna-runner/docs/EXECUTION_SPEC.md`, `crates/bijux-dna-runner/docs/BACKENDS.md`, and snapshots under `tests/snapshots/`.
+See `docs/EXECUTION_SPEC.md` for execution records and backend invariants, `docs/DETERMINISM.md` for replay and identity guarantees, and `docs/EFFECTS.md` for allowed side effects.
 
 ## Effect guarantees
 - `cwd`: backend uses the working directory provided by the execution spec.
 - `env`: only specified environment variables are injected; no implicit mutation.
 - `mounts`: input mounts are read-only; output mounts are writable.
 - `stdout/stderr`: captured verbatim and returned in `RunnerResult`.
-- `exit_code`: nonzero exit codes are surfaced as failures in records.
-See `tests/boundaries/backend/backend_invariants.rs` for enforced invariants.
+- `exit_code`: nonzero exit codes are recorded as failed execution outcomes.
+See `tests/boundaries/backend/backend_invariants.rs` and `tests/schemas/docs_backend_invariants.rs` for enforced invariants.
 
 ## Effects & determinism guarantees
-Runner is the only allowed spawn boundary (plus allowlisted QA/CLI). See
-`crates/bijux-dna-runner/docs/EFFECTS.md`, `tests/boundaries/backend/process_guardrail.rs`, and
-`crates/bijux-dna-policies/tests/boundaries/surface/structure_layout/path_policies.rs`.
+Runner is the only crate-local process execution boundary. Replay does not spawn tools, pull images, or mutate execution inputs. See `docs/EFFECTS.md`, `docs/DETERMINISM.md`, `tests/boundaries/backend/process_guardrail.rs`, and `tests/boundaries/backend/network_guardrail.rs`.
 
 ## How to run its tests
-See `crates/bijux-dna-runner/docs/TESTS.md`. Golden tests: `tests/boundaries/backend/backend_invariants.rs`, `tests/determinism/replay/replay_contract.rs`, `tests/determinism/run_id_determinism.rs`, `tests/determinism/replay/replay_determinism.rs`.
+Run:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-runner --no-default-features
+```
+
+See `docs/TESTS.md` for suite ownership and failure meaning.
 
 ## Where to start in code
 - `src/public_api/mod.rs` for the stable consumer-facing runner surface.
-- `src/runner_driver.rs` for the `Runner` implementation used by higher layers.
+- `src/runner_driver/` for the `Runner` implementation used by higher layers.
 - `src/command_runner.rs` for command execution primitives and invocation identity wiring.
-- `src/backend/docker/` for backend-specific execution, image resolution, and replay.
-- `src/step_runner/` for step execution orchestration, effects, records, and support modules.
+- `src/backend/` for backend kinds and backend-facing facade exports.
+- `src/step_runner/` for Docker/Apptainer orchestration, effects, records, identity, inputs, and artifacts.
 
 ## Where the docs live
-Start at `crates/bijux-dna-runner/docs/INDEX.md` and follow the crate docs listed above.
+The crate root has only this `README.md`. All other docs live in `docs/`; start at `docs/INDEX.md`.
 
 ## Failure modes
-Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
+Runtime failures surface through backend process errors, missing images, permissions, timeouts, nonzero exits, or replay artifact mismatches. See `docs/EXECUTION_SPEC.md` and `docs/DETERMINISM.md`.
 
 ## Stability
-Contract and behavior changes follow `crates/bijux-dna-runner/docs/CHANGE_RULES.md`.
+Contract changes must update the relevant docs and boundary tests in the same reviewable change.
