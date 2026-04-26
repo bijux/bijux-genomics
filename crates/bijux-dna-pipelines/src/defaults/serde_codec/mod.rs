@@ -14,6 +14,13 @@ impl DefaultParams {
     }
 }
 
+pub(super) fn from_stage_json(
+    stage_id: &str,
+    value: serde_json::Value,
+) -> anyhow::Result<DefaultParams> {
+    deserialize::from_stage_json(stage_id, value)
+}
+
 impl Serialize for DefaultParams {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

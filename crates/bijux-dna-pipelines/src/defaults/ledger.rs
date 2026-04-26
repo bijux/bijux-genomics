@@ -22,7 +22,7 @@ pub struct DefaultProvenanceV1 {
     pub citations: Vec<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 pub struct DefaultsLedgerV1 {
     pub pipeline_id: PipelineId,
     pub tools: BTreeMap<StageId, ToolId>,
@@ -35,6 +35,54 @@ pub struct DefaultsLedgerV1 {
     pub assumptions: Vec<String>,
     #[serde(default)]
     pub citations: BTreeMap<String, String>,
+}
+
+impl<'de> Deserialize<'de> for DefaultsLedgerV1 {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct RawDefaultsLedgerV1 {
+            pipeline_id: PipelineId,
+            tools: BTreeMap<StageId, ToolId>,
+            params: BTreeMap<StageId, serde_json::Value>,
+            #[serde(default)]
+            thresholds: BTreeMap<StageId, serde_json::Value>,
+            tool_provenance: BTreeMap<StageId, DefaultProvenanceV1>,
+            param_provenance: BTreeMap<StageId, DefaultProvenanceV1>,
+            #[serde(default)]
+            assumptions: Vec<String>,
+            #[serde(default)]
+            citations: BTreeMap<String, String>,
+        }
+
+        let raw = RawDefaultsLedgerV1::deserialize(deserializer)?;
+        let params = raw
+            .params
+            .into_iter()
+            .map(|(stage_id, value)| {
+                let params = super::serde_codec::from_stage_json(stage_id.as_str(), value)
+                    .map_err(|err| {
+                        serde::de::Error::custom(format!(
+                            "defaults ledger params for {} could not be parsed: {err}",
+                            stage_id.as_str()
+                        ))
+                    })?;
+                Ok((stage_id, params))
+            })
+            .collect::<std::result::Result<BTreeMap<_, _>, D::Error>>()?;
+        Ok(Self {
+            pipeline_id: raw.pipeline_id,
+            tools: raw.tools,
+            params,
+            thresholds: raw.thresholds,
+            tool_provenance: raw.tool_provenance,
+            param_provenance: raw.param_provenance,
+            assumptions: raw.assumptions,
+            citations: raw.citations,
+        })
+    }
 }
 
 impl DefaultsLedgerV1 {

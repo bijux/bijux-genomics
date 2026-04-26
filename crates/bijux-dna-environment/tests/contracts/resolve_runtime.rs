@@ -393,6 +393,9 @@ fn cache_paths_and_docker_image_checks_are_deterministic() {
         arch: "arm64".to_string(),
         runner: RuntimeKind::Docker,
     };
+    let temp = bijux_dna_testkit::tempdir_for("environment-docker-image-probe-missing");
+    let _path = EnvVarGuard::capture("PATH");
+    std::env::set_var("PATH", temp.path());
     assert!(!docker_image_exists(&docker));
 }
 
