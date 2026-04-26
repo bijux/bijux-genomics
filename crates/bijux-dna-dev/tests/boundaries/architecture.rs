@@ -154,11 +154,16 @@ fn dev_tree_matches_architecture_contract() {
     assert_eq!(test_entries, expected_tests, "dev test tree must match the documented taxonomy");
 
     let boundary_entries = dir_entries(&root.join("tests/boundaries"));
-    let expected_boundaries: BTreeSet<_> =
-        ["architecture.rs", "command_inventory.rs", "dependencies.rs", "guardrails.rs"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_boundaries: BTreeSet<_> = [
+        "architecture.rs",
+        "command_inventory.rs",
+        "dependencies.rs",
+        "docs_layout.rs",
+        "guardrails.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(
         boundary_entries, expected_boundaries,
         "boundary tests must stay focused on architecture and ownership"
