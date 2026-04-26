@@ -91,6 +91,34 @@ fn commands_doc_is_managed_operation_inventory() {
     }
 }
 
+#[test]
+fn readme_documents_the_exact_docs_allowance() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let docs_dir = root.join("docs");
+    let readme = read_doc(&root.join("README.md"));
+    let mut actual = fs::read_dir(&docs_dir)
+        .unwrap_or_else(|err| panic!("read {}: {err}", docs_dir.display()))
+        .map(|entry| {
+            entry
+                .unwrap_or_else(|err| panic!("read entry in {}: {err}", docs_dir.display()))
+                .file_name()
+                .to_string_lossy()
+                .to_string()
+        })
+        .collect::<Vec<_>>();
+    actual.sort();
+
+    let declared = readme
+        .lines()
+        .filter_map(|line| line.trim().strip_prefix("- `docs/"))
+        .filter_map(|line| line.strip_suffix('`'))
+        .map(str::to_string)
+        .collect::<Vec<_>>();
+
+    assert_eq!(actual.len(), 10, "core docs allowance is exactly 10 files");
+    assert_eq!(declared, actual, "README.md documentation list must match docs/ exactly");
+}
+
 fn public_module_from_doc_line(line: &str) -> Option<String> {
     let line = line.trim();
     if let Some(rest) = line.strip_prefix("- `") {
