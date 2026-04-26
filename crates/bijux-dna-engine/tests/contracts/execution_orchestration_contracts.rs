@@ -1,9 +1,10 @@
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use anyhow::Result;
 use bijux_dna_core::contract::{ArtifactRole, ArtifactSpec, RetryPolicy};
 use bijux_dna_core::prelude::{ArtifactId, StepId};
-use bijux_dna_engine::{CancellationToken, Engine, EngineConfig, EngineEvent};
+use bijux_dna_engine::{CancellationToken, Engine, EngineConfig, EngineEvent, EngineHooks};
 use bijux_dna_runtime::{Invocation, Runner, RunnerResult};
 
 use crate::support::{build_graph, execution_setup, plan_for};
@@ -22,6 +23,23 @@ struct ScenarioRunner {
     write_outputs: bool,
     output_payload: &'static str,
     cancel_on_first_attempt: Option<CancellationToken>,
+}
+
+#[derive(Default)]
+struct RecordingHooks {
+    events: Arc<Mutex<Vec<EngineEvent>>>,
+}
+
+impl RecordingHooks {
+    fn events(&self) -> Vec<EngineEvent> {
+        self.events.lock().unwrap_or_else(|err| panic!("events lock poisoned: {err}")).clone()
+    }
+}
+
+impl EngineHooks for RecordingHooks {
+    fn on_event(&self, event: EngineEvent) {
+        self.events.lock().unwrap_or_else(|err| panic!("events lock poisoned: {err}")).push(event);
+    }
 }
 
 impl ScenarioRunner {
@@ -211,4 +229,26 @@ fn execute_plan_reports_timeout_and_contract_errors() {
         .err()
         .unwrap_or_else(|| panic!("expected missing metrics_envelope contract error"));
     assert!(missing_envelope_err.to_string().contains("missing metrics_envelope.json"));
+}
+
+#[test]
+fn retry_attempts_emit_step_start_events() {
+    let plan = build_graph(vec![plan_for("A")], Vec::new())
+        .with_retry_policy(RetryPolicy { max_attempts: 2, retry_on_exit_codes: vec![1] });
+    let hooks = RecordingHooks::default();
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
+
+    Engine::default()
+        .execute(&plan, &ScenarioRunner::new(Mode::FailOnceThenSuccess), &layout, Some(&hooks), None)
+        .unwrap_or_else(|err| panic!("run: {err}"));
+
+    let starts = hooks
+        .events()
+        .into_iter()
+        .filter_map(|event| match event {
+            EngineEvent::StepStart { attempt, .. } => Some(attempt),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(starts, vec![0, 1]);
 }
