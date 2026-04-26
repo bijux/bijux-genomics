@@ -17,6 +17,15 @@ const FOUNDATION_CRATES: &[&str] = &[
     "bijux-dna-testkit",
 ];
 
+const FASTQ_CATALOG_CRATES: &[&str] = &[
+    "bijux-dna-domain-compiler",
+    "bijux-dna-domain-fastq",
+    "bijux-dna-planner-fastq",
+    "bijux-dna-science",
+    "bijux-dna-stage-contract",
+    "bijux-dna-stages-fastq",
+];
+
 #[test]
 fn policy__boundaries__foundation_lints__foundation_crates_apply_workspace_lints() {
     let workspace = workspace_root();
@@ -49,6 +58,22 @@ fn policy__boundaries__foundation_lints__shared_test_crates_use_workspace_catalo
                 "{crate_name} must use {crate_dependency}.workspace = true instead of an ad hoc path dependency"
             );
         }
+    }
+}
+
+#[test]
+fn policy__boundaries__foundation_lints__fastq_crates_use_workspace_catalog_for_internal_edges() {
+    let workspace = workspace_root();
+
+    for crate_name in FASTQ_CATALOG_CRATES {
+        let manifest_path = workspace.join("crates").join(crate_name).join("Cargo.toml");
+        let manifest = std::fs::read_to_string(&manifest_path)
+            .unwrap_or_else(|err| panic!("read {}: {err}", manifest_path.display()));
+
+        assert!(
+            !manifest.contains("path = \"../bijux-dna-"),
+            "{crate_name} must use the workspace dependency catalog for internal bijux-dna-* dependencies"
+        );
     }
 }
 
