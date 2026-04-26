@@ -3,9 +3,11 @@ use std::fs;
 use anyhow::Result;
 use bijux_dna_core::contract::{ArtifactRole, ExecutionStep};
 
+use crate::{EngineEvent, EngineHooks};
+
 use super::contract_error;
 
-pub(super) fn verify_outputs(step: &ExecutionStep) -> Result<()> {
+pub(super) fn verify_outputs(step: &ExecutionStep, hooks: Option<&dyn EngineHooks>) -> Result<()> {
     for output in &step.io.outputs {
         if output.optional && !output.path.exists() {
             continue;
@@ -40,6 +42,12 @@ pub(super) fn verify_outputs(step: &ExecutionStep) -> Result<()> {
             path = %output.path.display(),
             "artifact verified"
         );
+        if let Some(hooks) = hooks {
+            hooks.on_event(EngineEvent::ArtifactVerified {
+                step_id: step.step_id.clone(),
+                path: output.path.display().to_string(),
+            });
+        }
         if matches!(output.role, ArtifactRole::MetricsJson | ArtifactRole::MetricsEnvelope) {
             let raw = fs::read_to_string(&output.path)?;
             serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {

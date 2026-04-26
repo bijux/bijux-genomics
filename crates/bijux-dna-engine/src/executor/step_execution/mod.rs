@@ -74,7 +74,7 @@ fn execute_step(
             return Err(anyhow!("execution cancelled during {}", step.step_id.0));
         }
         if success {
-            contracts::enforce_contract(step)?;
+            contracts::enforce_contract(step, hooks)?;
             if let Some(hooks) = hooks {
                 hooks.on_event(EngineEvent::StepEnd {
                     step_id: step.step_id.clone(),

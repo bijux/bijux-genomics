@@ -1,12 +1,14 @@
 use anyhow::Result;
 use bijux_dna_core::contract::ExecutionStep;
 
+use crate::EngineHooks;
+
 mod metrics;
 mod outputs;
 mod run_artifacts;
 
-pub(super) fn enforce_contract(step: &ExecutionStep) -> Result<()> {
-    outputs::verify_outputs(step)?;
+pub(super) fn enforce_contract(step: &ExecutionStep, hooks: Option<&dyn EngineHooks>) -> Result<()> {
+    outputs::verify_outputs(step, hooks)?;
     metrics::verify_metrics_envelope(step)?;
     run_artifacts::verify_required_run_artifacts(step)?;
     Ok(())
