@@ -135,3 +135,19 @@ fn policy__root__guardrails__pub_item_budget_counts_scoped_visibility() {
 
     assert!(err.to_string().contains("pub items"), "unexpected guardrail error: {err}");
 }
+
+#[test]
+fn policy__root__guardrails__pub_use_budget_counts_scoped_reexports() {
+    let paths = TestPaths::new("policies-scoped-pub-use-budget");
+    let crate_root = paths.child("crate");
+    write_source(&crate_root, "lib.rs", "mod inner {}\npub(crate) use inner as exposed;\n");
+
+    let mut config = GuardrailConfig::default();
+    config.forbid_pub_use_spam = true;
+    config.max_pub_use_per_file = 0;
+
+    let err =
+        bijux_dna_policies::check(&crate_root, &config).expect_err("scoped pub use must count");
+
+    assert!(err.to_string().contains("pub use re-exports"), "unexpected guardrail error: {err}");
+}
