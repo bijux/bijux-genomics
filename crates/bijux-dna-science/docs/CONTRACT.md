@@ -5,9 +5,19 @@
 traceability outputs, and cuts immutable science release bundles.
 
 ## Inputs and Outputs
+
 - Authored input: `science/specs/**`
-- Generated output: `science/generated/**`
+- Governed upstream evidence input: `science/docs/upstream/**`
+- Generated output: `science/generated/current/evidence/**`
+- Generated index: `science/generated/indexes/science_index.json`
 - Release output: `artifacts/science-releases/**`
+
+## Generated Evidence Contract
+
+`build` must keep committed generated outputs byte-for-byte aligned with
+`compile::compile_workspace`. Generated TSV files must stay rectangular, sorted by
+the compiler's deterministic ordering, and free of comment rows. JSON outputs must
+use stable pretty rendering.
 
 ## Boundaries
 - No pipeline runtime orchestration.
@@ -17,6 +27,7 @@ traceability outputs, and cuts immutable science release bundles.
 - No filesystem concerns inside pure domain types.
 
 ## Owns
+
 - Authored science spec loading and validation.
 - Typed science identifier data structures.
 - Deterministic evidence-row compilation.
@@ -24,6 +35,7 @@ traceability outputs, and cuts immutable science release bundles.
 - Science release bundle writing under `artifacts/science-releases/`.
 
 ## Does Not Own
+
 - Pipeline planning.
 - Stage execution.
 - Container runtime resolution.
