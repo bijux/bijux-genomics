@@ -191,7 +191,10 @@ mod tests {
             ArtifactRole::Reads,
         )]);
 
-        let err = validate_stage_inputs(&step).expect_err("missing input should fail");
+        let err = match validate_stage_inputs(&step) {
+            Ok(()) => panic!("missing input should fail"),
+            Err(err) => err,
+        };
 
         assert!(err.to_string().contains("missing required input reads"), "{err}");
     }
