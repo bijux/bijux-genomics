@@ -69,14 +69,26 @@ serde_yaml = "0.9"
 opentelemetry = "0.24"
 opentelemetry_sdk = "0.24"
 insta = "1"
+bijux-dna-analyze = { path = "crates/bijux-dna-analyze" }
+bijux-dna-api = { path = "crates/bijux-dna-api" }
 bijux-dna-core = { path = "crates/bijux-dna-core" }
+bijux-dna-db-ena = { path = "crates/bijux-dna-db-ena" }
 bijux-dna-domain-bam = { path = "crates/bijux-dna-domain-bam" }
+bijux-dna-domain-compiler = { path = "crates/bijux-dna-domain-compiler" }
 bijux-dna-domain-fastq = { path = "crates/bijux-dna-domain-fastq" }
+bijux-dna-domain-vcf = { path = "crates/bijux-dna-domain-vcf" }
+bijux-dna-engine = { path = "crates/bijux-dna-engine" }
+bijux-dna-environment = { path = "crates/bijux-dna-environment" }
 bijux-dna-infra = { path = "crates/bijux-dna-infra" }
 bijux-dna-pipelines = { path = "crates/bijux-dna-pipelines" }
+bijux-dna-planner-bam = { path = "crates/bijux-dna-planner-bam" }
+bijux-dna-planner-fastq = { path = "crates/bijux-dna-planner-fastq" }
 bijux-dna-policies = { path = "crates/bijux-dna-policies" }
+bijux-dna-runner = { path = "crates/bijux-dna-runner" }
+bijux-dna-runtime = { path = "crates/bijux-dna-runtime" }
 bijux-dna-stage-contract = { path = "crates/bijux-dna-stage-contract" }
 bijux-dna-stages-fastq = { path = "crates/bijux-dna-stages-fastq" }
+bijux-dna-stages-vcf = { path = "crates/bijux-dna-stages-vcf" }
 bijux-dna-testkit = { path = "crates/bijux-dna-testkit" }
 
 [workspace.lints.rust]
