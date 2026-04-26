@@ -1,10 +1,10 @@
 use std::collections::BTreeMap;
 
-use bijux_dna_core::id_catalog;
+use bijux_dna_domain_bam::BamStage;
 use bijux_dna_stage_contract::{StageInvocationV1, StagePlanV1};
 
 pub(super) fn handles_bam_stage(stage_id: &str) -> bool {
-    stage_id.starts_with(id_catalog::BAM_PREFIX)
+    BamStage::try_from(stage_id).is_ok()
 }
 
 pub(super) fn materialize_stage_invocation(plan: &StagePlanV1) -> StageInvocationV1 {
