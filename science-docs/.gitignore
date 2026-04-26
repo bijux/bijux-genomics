@@ -21,6 +21,7 @@ upstream/fastq/container/*
 !upstream/fastq/container/FASTQ_CONTAINER_DIGEST_CLASSES.tsv
 !upstream/fastq/container/FASTQ_CONTAINER_DEFAULT_MATRIX.tsv
 !upstream/fastq/container/FASTQ_CONTAINER_EVIDENCE_STATUS.tsv
+!upstream/fastq/container/FASTQ_CONTAINER_PROOF_GAPS.tsv
 !upstream/fastq/tools/
 upstream/fastq/tools/*
 !upstream/fastq/tools/README.md

@@ -20,6 +20,7 @@ TOOL_DIR = Path("domain/fastq/tools")
 REGISTRY = Path("configs/ci/registry/tool_registry.toml")
 DOWNLOAD_BACKLOG = Path("science/generated/current/evidence/fastq_download_backlog.tsv")
 OUT_DIR = Path("science-docs/upstream/fastq/container")
+PROOF_ROOT = Path("artifacts/containers")
 
 
 @dataclass(frozen=True)
@@ -191,6 +192,14 @@ def digest_class(container_ref: str) -> str:
     return "tag_only"
 
 
+def proof_status(root: Path, candidates: list[Path]) -> tuple[str, str]:
+    for candidate in candidates:
+        path = root / candidate
+        if path.exists():
+            return "present", str(candidate)
+    return "missing_from_snapshot", ";".join(str(candidate) for candidate in candidates)
+
+
 def main() -> int:
     args = parse_args()
     root = args.repo_root.resolve()
@@ -308,6 +317,55 @@ def main() -> int:
         ],
         evidence_rows,
     )
+    proof_rows = []
+    for row in execution_defaults(root):
+        if not row.default_tool:
+            continue
+        for proof_kind, candidates in [
+            (
+                "docker_cyclonedx_sbom",
+                [
+                    PROOF_ROOT / "sbom" / row.default_tool / "docker-cyclonedx.json",
+                    PROOF_ROOT / "sbom" / f"{row.default_tool}.cyclonedx.json",
+                ],
+            ),
+            (
+                "docker_spdx_sbom",
+                [
+                    PROOF_ROOT / "sbom" / row.default_tool / "docker-spdx.json",
+                    PROOF_ROOT / "sbom" / f"{row.default_tool}.spdx.json",
+                ],
+            ),
+            (
+                "apptainer_sbom",
+                [
+                    PROOF_ROOT / "sbom" / row.default_tool / "apptainer-cyclonedx.json",
+                    PROOF_ROOT / "sbom" / f"{row.default_tool}.apptainer.cyclonedx.json",
+                ],
+            ),
+            (
+                "smoke_manifest",
+                [
+                    PROOF_ROOT / "smoke" / row.default_tool / "manifest.json",
+                    PROOF_ROOT / "smoke" / f"{row.default_tool}.json",
+                ],
+            ),
+        ]:
+            status, paths = proof_status(root, candidates)
+            proof_rows.append(
+                [
+                    row.stage_id,
+                    row.default_tool,
+                    proof_kind,
+                    status,
+                    paths,
+                ]
+            )
+    write_tsv(
+        out_dir / "FASTQ_CONTAINER_PROOF_GAPS.tsv",
+        ["stage_id", "default_tool", "proof_kind", "proof_status", "expected_artifact_paths"],
+        proof_rows,
+    )
     print(
         json.dumps(
             {
@@ -316,6 +374,7 @@ def main() -> int:
                     str(out_dir / "FASTQ_CONTAINER_DIGEST_CLASSES.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_ASSET_HOOKS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_EVIDENCE_STATUS.tsv"),
+                    str(out_dir / "FASTQ_CONTAINER_PROOF_GAPS.tsv"),
                 ]
             }
         )
