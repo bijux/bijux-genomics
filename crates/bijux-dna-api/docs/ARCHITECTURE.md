@@ -45,7 +45,8 @@ runtime wiring, support helpers, and domain-specific adapters private.
 - `tests/schemas/` protects public schema snapshots and public surface exports.
 - `tests/contracts/` exercises v1 behavior across public contract flows.
 - `tests/snapshots/` stores governed insta snapshots for response contracts.
-- `tests/workspace_paths.rs` protects workspace path behavior.
+- `tests/support/workspace_paths.rs` provides workspace-root helpers shared by
+  integration suites while keeping support code out of suite roots.
 
 Test documentation lives in `docs/TESTS.md`; README files are intentionally not
 allowed below `tests/`.
