@@ -63,9 +63,12 @@ impl ExecutionPlan {
         let mut stages = stages;
         stages.sort_by_key(stage_node_id);
         let mut edges = edges;
-        edges.sort_by(|a, b| match a.from.cmp(&b.from) {
-            std::cmp::Ordering::Equal => a.to.cmp(&b.to),
-            other => other,
+        edges.sort_by(|left, right| {
+            left.from
+                .cmp(&right.from)
+                .then_with(|| left.to.cmp(&right.to))
+                .then_with(|| left.from_output_id.cmp(&right.from_output_id))
+                .then_with(|| left.to_input_id.cmp(&right.to_input_id))
         });
         let plan = Self {
             schema_version: "bijux.execution_plan.v1".to_string(),
