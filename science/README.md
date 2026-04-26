@@ -13,7 +13,7 @@
 - `science/specs/**` is human-authored review input
 - `science/generated/**` is compiler output
 - `artifacts/science-releases/**` is release output
-- `science-docs/**` is a local manual archive for non-shareable evidence payloads
+- `science/docs/**` is a local manual archive for non-shareable evidence payloads
 
 The first implemented slice is the FASTQ environment and container support surface:
 
@@ -29,10 +29,10 @@ surfaces are used.
 
 ## Local Evidence Archive
 
-`science-docs/` is intentionally separate from `science/`.
+`science/docs/` is intentionally separate from `science/`.
 
 - `science/specs/**` records authored identifiers, claims, and reviewable metadata
-- `science-docs/**` stores the local downloaded or cloned payloads that back those
+- `science/docs/**` stores the local downloaded or cloned payloads that back those
   identifiers when redistribution is not acceptable
 - the science compiler may report expected archive paths, but the archive contents
   themselves stay outside Git

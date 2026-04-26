@@ -3,11 +3,11 @@ reasoning_id: "reasoning.fastq.container-evidence-surface"
 claim_ids:
   - "claim.fastq.tool-registry-authority"
   - "claim.fastq.container-build-surface-authority"
-  - "claim.fastq.science-docs-archive-planning"
+  - "claim.fastq.science/docs-archive-planning"
 evidence_ids:
   - "evidence.fastq.tool-registry-governance"
   - "evidence.fastq.container-build-surface-governance"
-  - "evidence.fastq.science-docs-archive-governance"
+  - "evidence.fastq.science/docs-archive-governance"
 assumption_ids:
   - "assumption.fastq.governance-authority-window"
 residual_risk: "Registry rows may still contain placeholder digests, and many admitted tools still need explicit tool-evidence-map rows or paper roots, so these outputs remain governance and review surfaces rather than proof of scientific validity."

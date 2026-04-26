@@ -18,7 +18,7 @@ Top-level workspace paths only.
 
 | Path | Kind | Owner | Purpose |
 |---|---|---|---|
-| `science-docs` | `dir` | `-` | - |
+| `science/docs` | `dir` | `-` | - |
 | `Cargo.toml` | `file` | `-` | - |
 | `artifacts` | `dir` | `-` | - |
 | `crates` | `dir` | `-` | - |

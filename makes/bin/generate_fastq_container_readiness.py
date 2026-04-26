@@ -21,7 +21,7 @@ REGISTRY = Path("configs/ci/registry/tool_registry.toml")
 VERSION_LOCK = Path("containers/versions/lock.json")
 LICENSE_DIR = Path("containers/licenses")
 DOWNLOAD_BACKLOG = Path("science/generated/current/evidence/fastq_download_backlog.tsv")
-OUT_DIR = Path("science-docs/upstream/fastq/container")
+OUT_DIR = Path("science/docs/upstream/fastq/container")
 PROOF_ROOT = Path("artifacts/containers")
 PLANNER_SNAPSHOT_DIR = Path("crates/bijux-dna-planner-fastq/tests/snapshots")
 

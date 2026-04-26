@@ -3,7 +3,7 @@ source_id: "source.fastq.qa-coverage-blockers"
 kind: "document"
 access: "repo_path"
 title: "FASTQ environment-QA coverage blocker registry"
-locator: "science-docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv"
+locator: "science/docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv"
 authority: "science_docs.fastq.qa_coverage_blockers"
 notes:
   - "Tracks admitted FASTQ execution-support stages that do not yet have behavioral environment-QA coverage."

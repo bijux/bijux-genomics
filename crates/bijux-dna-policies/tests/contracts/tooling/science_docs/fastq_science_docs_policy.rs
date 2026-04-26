@@ -67,8 +67,8 @@ fn fastq_tool_ids() -> BTreeSet<String> {
 #[test]
 fn policy__contracts__fastq_science_docs_policy__stage_claims_cover_governed_stage_catalog() {
     let expected = fastq_stage_ids();
-    let claim_stage_ids = tsv_ids("science-docs/upstream/fastq/STAGE_CLAIMS.tsv", 1);
-    let support_stage_ids = tsv_ids("science-docs/upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv", 0);
+    let claim_stage_ids = tsv_ids("science/docs/upstream/fastq/STAGE_CLAIMS.tsv", 1);
+    let support_stage_ids = tsv_ids("science/docs/upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv", 0);
 
     assert_eq!(
         expected, claim_stage_ids,
@@ -83,7 +83,7 @@ fn policy__contracts__fastq_science_docs_policy__stage_claims_cover_governed_sta
 #[test]
 fn policy__contracts__fastq_science_docs_policy__tool_risks_cover_governed_tool_catalog() {
     let expected = fastq_tool_ids();
-    let risk_tool_ids = tsv_ids("science-docs/upstream/fastq/TOOL_RISK_REGISTRY.tsv", 0);
+    let risk_tool_ids = tsv_ids("science/docs/upstream/fastq/TOOL_RISK_REGISTRY.tsv", 0);
 
     assert_eq!(
         expected, risk_tool_ids,

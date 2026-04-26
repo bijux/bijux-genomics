@@ -7,9 +7,9 @@ claim.fastq.generic-profile-semantics	evidence.fastq.generic-profile-semantics-g
 claim.fastq.planned-tools-remain-excluded	evidence.fastq.planned-exclusion-governance
 claim.fastq.qa-coverage-blockers	evidence.fastq.qa-coverage-blockers-governance
 claim.fastq.reference-asset-authority	evidence.fastq.reference-asset-governance
-claim.fastq.science-docs-archive-planning	evidence.fastq.science-docs-archive-governance
-claim.fastq.science-docs-stage-governance	evidence.fastq.science-docs-stage-governance
+claim.fastq.science/docs-archive-planning	evidence.fastq.science/docs-archive-governance
+claim.fastq.science/docs-stage-governance	evidence.fastq.science/docs-stage-governance
 claim.fastq.tag-only-container-blockers	evidence.fastq.tag-only-container-blockers-governance
 claim.fastq.tool-registry-authority	evidence.fastq.tool-registry-governance
 claim.fastq.umi-first-ordering	evidence.fastq.umi-first-ordering-governance
-claim.science-docs.github-repo-evidence-archive-contract	evidence.science-docs.github-repo-archive-governance
+claim.science/docs.github-repo-evidence-archive-contract	evidence.science/docs.github-repo-archive-governance

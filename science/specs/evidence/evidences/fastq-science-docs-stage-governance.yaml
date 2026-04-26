@@ -1,6 +1,6 @@
 schema_version: "bijux.science.evidence.v1"
-evidence_id: "evidence.fastq.science-docs-stage-governance"
-statement: "FASTQ science-docs tables provide complete stage and tool coverage for scientific claims, library support, and tool risk tracking."
+evidence_id: "evidence.fastq.science/docs-stage-governance"
+statement: "FASTQ science/docs tables provide complete stage and tool coverage for scientific claims, library support, and tool risk tracking."
 status: "accepted"
 strength: "governing"
 source_ids:

@@ -13,7 +13,7 @@ Only build commands may write:
 
 Generated science outputs are never hand-edited.
 
-`science-docs/**` is not a generated surface. It is a local manually managed
+`science/docs/**` is not a generated surface. It is a local manually managed
 archive for evidence payloads that should not be committed.
 
 ## Planes
@@ -32,7 +32,7 @@ archive for evidence payloads that should not be committed.
 - findings belong under results
 - cross-plane links use typed IDs
 - science source records may point at planned local archive paths under
-  `science-docs/**`, but those payloads are not review-authored truth by
+  `science/docs/**`, but those payloads are not review-authored truth by
   themselves
 - local archive payloads must support authored source records rather than replace
   them
@@ -48,5 +48,5 @@ relationship among:
 - `domain/fastq/docs/DEFAULT_SETTINGS.md`
 - `configs/ci/registry/tool_registry.toml`
 - `crates/bijux-dna-environment/docs/ENV_REFERENCE.md`
-- `science-docs/upstream/fastq/tools/EVIDENCE_MAP.tsv`
-- `science-docs/upstream/papers/TOOL_PAPER_MAP.tsv`
+- `science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv`
+- `science/docs/upstream/papers/TOOL_PAPER_MAP.tsv`

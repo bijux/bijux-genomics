@@ -18,22 +18,22 @@ SCAN_PATTERNS = (
     "docs/20-science/**/*.md",
     "docs/30-operations/CONTAINER_LICENSE_INDEX.md",
     "science/**/*.yaml",
-    "science-docs/README.md",
-    "science-docs/TODO_DOWNLOAD.md",
-    "science-docs/upstream/**/*.md",
-    "science-docs/upstream/**/*.tsv",
+    "science/docs/README.md",
+    "science/docs/TODO_DOWNLOAD.md",
+    "science/docs/upstream/**/*.md",
+    "science/docs/upstream/**/*.tsv",
     "mkdocs.yml",
 )
 
 GITHUB_URL_PATTERN = re.compile(r"https?://github\.com/[^\s;,)>\]\"']+")
 TRAILING_URL_JUNK = "`),.;:"
 IGNORED_SCAN_PATHS = {
-    "science-docs/upstream/github-repos/MANIFEST.tsv",
+    "science/docs/upstream/github-repos/MANIFEST.tsv",
 }
 IGNORED_SCAN_PREFIXES = (
-    "science-docs/upstream/github-repos/archives/",
-    "science-docs/upstream/github-repos/mirrors/",
-    "science-docs/upstream/papers/",
+    "science/docs/upstream/github-repos/archives/",
+    "science/docs/upstream/github-repos/mirrors/",
+    "science/docs/upstream/papers/",
 )
 IGNORED_SCAN_SUBSTRINGS = (
     "/repo/source.git/",
@@ -56,37 +56,37 @@ class RepoRecord:
         return f"https://github.com/{self.owner}/{self.repo}.git"
 
     def mirror_relpath(self) -> str:
-        return f"science-docs/upstream/github-repos/mirrors/{self.owner}/{self.repo}.git"
+        return f"science/docs/upstream/github-repos/mirrors/{self.owner}/{self.repo}.git"
 
     def archive_relpath(self) -> str:
-        return f"science-docs/upstream/github-repos/archives/{self.owner}--{self.repo}.tar.gz"
+        return f"science/docs/upstream/github-repos/archives/{self.owner}--{self.repo}.tar.gz"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Sync the local science-docs GitHub repository evidence archive."
+        description="Sync the local science/docs GitHub repository evidence archive."
     )
     repo_root_default = Path(__file__).resolve().parents[2]
     parser.add_argument("--repo-root", type=Path, default=repo_root_default)
     parser.add_argument(
         "--manifest-out",
         type=Path,
-        default=Path("science-docs/upstream/github-repos/MANIFEST.tsv"),
+        default=Path("science/docs/upstream/github-repos/MANIFEST.tsv"),
     )
     parser.add_argument(
         "--mirror-root",
         type=Path,
-        default=Path("science-docs/upstream/github-repos/mirrors"),
+        default=Path("science/docs/upstream/github-repos/mirrors"),
     )
     parser.add_argument(
         "--archive-root",
         type=Path,
-        default=Path("science-docs/upstream/github-repos/archives"),
+        default=Path("science/docs/upstream/github-repos/archives"),
     )
     parser.add_argument(
         "--state-out",
         type=Path,
-        default=Path("artifacts/science-docs/github-repos/local-state.tsv"),
+        default=Path("artifacts/science/docs/github-repos/local-state.tsv"),
     )
     parser.add_argument(
         "--archive-format",

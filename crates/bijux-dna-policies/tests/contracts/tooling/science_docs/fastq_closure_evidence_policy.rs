@@ -153,7 +153,7 @@ fn policy__contracts__fastq_closure_evidence_policy__default_risks_have_prerequi
 fn policy__contracts__fastq_closure_evidence_policy__planned_runtime_blockers_match_generated_prerequisites(
 ) {
     let generated = planned_runtime_closure_prerequisites();
-    let tracked = tsv_rows("science-docs/upstream/fastq/PLANNED_RUNTIME_BLOCKERS.tsv")
+    let tracked = tsv_rows("science/docs/upstream/fastq/PLANNED_RUNTIME_BLOCKERS.tsv")
         .into_iter()
         .map(|row| {
             assert!(
@@ -177,7 +177,7 @@ fn policy__contracts__fastq_closure_evidence_policy__planned_runtime_blockers_ma
 fn policy__contracts__fastq_closure_evidence_policy__stage_library_support_covers_all_fastq_stages()
 {
     let manifest_stage_ids = fastq_manifest_ids("domain/fastq/stages", "stage_id");
-    let support_stage_ids = tsv_rows("science-docs/upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv")
+    let support_stage_ids = tsv_rows("science/docs/upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv")
         .into_iter()
         .map(|row| row[0].clone())
         .collect::<BTreeSet<_>>();
@@ -190,7 +190,7 @@ fn policy__contracts__fastq_closure_evidence_policy__stage_library_support_cover
 #[test]
 fn policy__contracts__fastq_closure_evidence_policy__stage_claims_cover_all_fastq_stages() {
     let manifest_stage_ids = fastq_manifest_ids("domain/fastq/stages", "stage_id");
-    let claim_stage_ids = tsv_rows("science-docs/upstream/fastq/STAGE_CLAIMS.tsv")
+    let claim_stage_ids = tsv_rows("science/docs/upstream/fastq/STAGE_CLAIMS.tsv")
         .into_iter()
         .map(|row| row[1].clone())
         .collect::<BTreeSet<_>>();
@@ -203,7 +203,7 @@ fn policy__contracts__fastq_closure_evidence_policy__stage_claims_cover_all_fast
 #[test]
 fn policy__contracts__fastq_closure_evidence_policy__tool_risk_registry_covers_all_fastq_tools() {
     let manifest_tool_ids = fastq_manifest_ids("domain/fastq/tools", "tool_id");
-    let risk_tool_ids = tsv_rows("science-docs/upstream/fastq/TOOL_RISK_REGISTRY.tsv")
+    let risk_tool_ids = tsv_rows("science/docs/upstream/fastq/TOOL_RISK_REGISTRY.tsv")
         .into_iter()
         .map(|row| row[0].clone())
         .collect::<BTreeSet<_>>();
@@ -239,7 +239,7 @@ fn policy__contracts__fastq_closure_evidence_policy__fastq_tool_publication_plac
 #[test]
 fn policy__contracts__fastq_closure_evidence_policy__pending_digests_match_blocker_registry() {
     let pending = placeholder_digest_tools();
-    let blockers = tsv_rows("science-docs/upstream/fastq/CONTAINER_DIGEST_BLOCKERS.tsv")
+    let blockers = tsv_rows("science/docs/upstream/fastq/CONTAINER_DIGEST_BLOCKERS.tsv")
         .into_iter()
         .map(|row| row[0].clone())
         .collect::<BTreeSet<_>>();
@@ -252,7 +252,7 @@ fn policy__contracts__fastq_closure_evidence_policy__pending_digests_match_block
 #[test]
 fn policy__contracts__fastq_closure_evidence_policy__tag_only_containers_match_blocker_registry() {
     let tag_only = production_fastq_tag_only_container_tools();
-    let blockers = tsv_rows("science-docs/upstream/fastq/TAG_ONLY_CONTAINER_BLOCKERS.tsv")
+    let blockers = tsv_rows("science/docs/upstream/fastq/TAG_ONLY_CONTAINER_BLOCKERS.tsv")
         .into_iter()
         .map(|row| row[0].clone())
         .collect::<BTreeSet<_>>();

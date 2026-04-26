@@ -1,6 +1,6 @@
 # Science Docs Upstream Archive
 
-`science-docs/upstream/` is the canonical local archive root for upstream source
+`science/docs/upstream/` is the canonical local archive root for upstream source
 material used to support science, container, and provenance review in
 `bijux-genomics`.
 
@@ -38,4 +38,4 @@ material used to support science, container, and provenance review in
 - keep the archive payloads untracked
 - keep the target list and archive contract tracked
 - prefer one stable upstream location per evidence family instead of ad hoc
-  directories at the root of `science-docs/`
+  directories at the root of `science/docs/`

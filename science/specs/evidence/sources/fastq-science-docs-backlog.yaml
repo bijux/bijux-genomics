@@ -1,9 +1,9 @@
 schema_version: "bijux.science.source.v1"
-source_id: "source.fastq.science-docs-backlog"
+source_id: "source.fastq.science/docs-backlog"
 kind: "document"
 access: "repo_path"
 title: "FASTQ science docs backlog"
-locator: "science-docs/TODO_DOWNLOAD.md"
+locator: "science/docs/TODO_DOWNLOAD.md"
 authority: "science_docs.fastq_download_backlog"
 notes:
   - "This source records the local acquisition backlog for FASTQ tool evidence that cannot be committed."

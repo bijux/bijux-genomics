@@ -111,7 +111,7 @@ _containers-release-gate: ## Run mandatory container release gate checks.
 
 _fastq-container-readiness: ## Generate FASTQ container readiness evidence reports.
 	@python3 makes/bin/generate_fastq_container_readiness.py
-	@git diff --exit-code -- science-docs/upstream/fastq/container
+	@git diff --exit-code -- science/docs/upstream/fastq/container
 
 _containers: ## Print tools/runtime/result/log summary from target-containers manifests
 	@MANIFEST_DIR="$(CONTAINER_ARTIFACT_DIR)" cargo run -q -p bijux-dna-dev -- containers run summary
