@@ -10,6 +10,14 @@
 - Write runner-owned records, stdout/stderr captures, and artifacts under declared run/output roots.
 - Create temporary paths through `bijux-dna-infra` helpers.
 
+## Effect Codes
+Runner errors use these source-level effect codes:
+
+- `filesystem`
+- `command_spawn`
+- `container_lifecycle`
+- `telemetry_write`
+
 ## Forbidden Effects
 - No CLI parsing or command discovery.
 - No planner, engine, analyzer, or report effects.
@@ -21,6 +29,7 @@
 
 ## Environment Rules
 - Inject only environment variables declared in the execution spec.
+- `BIJUX_ALLOW_NETWORK` is the explicit opt-in for backend network access.
 - Do not mutate process-wide environment state for callers.
 - Treat runtime policy as input; this crate does not invent policy.
 
