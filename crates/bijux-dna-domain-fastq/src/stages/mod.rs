@@ -1,5 +1,5 @@
 //! Owner: bijux-dna-domain-fastq
-//! Declarative stage definitions. See docs/DOMAIN_MODEL.md for stage authority.
+//! Declarative stage definitions. See `docs/DOMAIN_MODEL.md` for stage authority.
 
 pub mod analyze;
 pub mod contract;
