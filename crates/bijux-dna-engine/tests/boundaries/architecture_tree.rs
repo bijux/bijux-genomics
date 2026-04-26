@@ -7,17 +7,25 @@ fn engine_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(root),
-        entries([
-            "BOUNDARY.md",
-            "Cargo.toml",
-            "PUBLIC_API.md",
-            "README.md",
-            "clippy.toml",
-            "docs/",
-            "src/",
-            "tests/",
-        ]),
+        entries(["Cargo.toml", "README.md", "clippy.toml", "docs/", "src/", "tests/"]),
         "crate root must stay minimal and intentional"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("docs")),
+        entries([
+            "ARCHITECTURE.md",
+            "BOUNDARY.md",
+            "CHANGE_RULES.md",
+            "COMMANDS.md",
+            "DEPENDENCIES.md",
+            "DETERMINISM.md",
+            "EFFECTS.md",
+            "INDEX.md",
+            "PUBLIC_API.md",
+            "TESTS.md",
+        ]),
+        "engine docs must stay at the 10-document allowance and live under docs/"
     );
 
     assert_eq!(
@@ -100,7 +108,6 @@ fn engine_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("tests")),
         entries([
-            "README.md",
             "boundaries/",
             "boundaries.rs",
             "contracts/",
@@ -108,7 +115,6 @@ fn engine_tree_matches_architecture_contract() {
             "determinism/",
             "determinism.rs",
             "guardrails.rs",
-            "schemas/",
             "support/",
         ]),
         "test tree must stay organized by enduring intent"

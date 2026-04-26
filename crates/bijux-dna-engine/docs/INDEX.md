@@ -1,27 +1,26 @@
 # bijux-dna-engine Docs Index
 
 ## Reading order
-1. `ENGINE_CONTRACT.md`
-2. `RECORDING_TRUTH_SET.md`
-3. `DETERMINISM.md`
-4. `ERRORS.md`
-5. `EFFECT_BOUNDARY.md`
-6. `EFFECTS.md`
+1. `BOUNDARY.md`
+2. `ARCHITECTURE.md`
+3. `COMMANDS.md`
+4. `DEPENDENCIES.md`
+5. `EFFECTS.md`
+6. `DETERMINISM.md`
+7. `PUBLIC_API.md`
+8. `TESTS.md`
+9. `CHANGE_RULES.md`
 
-## Scope
-See `SCOPE.md` for what belongs here.
+## Scope And Boundary
+See `BOUNDARY.md` for ownership, allowed effects, forbidden effects, and
+dependency separation.
 
-## Effects
-See `EFFECT_BOUNDARY.md` for forbidden effects and `EFFECTS.md` for allowed effects.
+## Managed Operations
+See `COMMANDS.md` for callable operations owned by the engine.
 
-## Boundaries
-See `ARCHITECTURE.md` for structural boundaries and `EFFECT_BOUNDARY.md` for execution limits.
+## Source And Tests
+See `ARCHITECTURE.md` for source layout and `TESTS.md` for test ownership.
 
-## Model
-See `ENGINE_MODEL.md` for engine concepts and boundaries.
-
-## Extension Points
-See `CHANGE_RULES.md` for safe extension guidelines.
-
-## How to Test
-See `TESTS.md` for test mapping and fixtures.
+## Change Safety
+See `CHANGE_RULES.md` before changing public behavior, recording truth, effects,
+or dependencies.

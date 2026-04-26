@@ -1,41 +1,72 @@
 # bijux-dna-engine
 
-## What this crate does
-Executes a fully formed `ExecutionGraph` through a `Runner`, records per-step execution truth, and
-enforces engine-owned output contracts.
+`bijux-dna-engine` executes a fully formed `ExecutionGraph` through a caller
+provided `Runner`, records per-step execution truth, and enforces engine-owned
+output contracts.
+
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read those files before editing this child
+repository and before committing.
 
 ## Boundaries
-This crate does not plan workflows, spawn tools directly, or own container/backend execution
-adapters. It orchestrates a graph that was already planned elsewhere.
+
+This crate does not plan workflows, spawn tools directly, select containers, or
+own backend execution adapters. It orchestrates a graph that was already planned
+elsewhere.
 
 ## Execution lifecycle
+
 ```text
 normalize graph -> order steps -> execute runner invocations -> record execution -> verify artifacts
 ```
 
 ## Internal layout
-- `src/public_api/`: curated stable surface for downstream crates
 - `src/control/`: cancellation token contract and state transitions
-- `src/observability/`: engine events and hook contracts
 - `src/engine_config/`: engine policy inputs and graph-policy application
 - `src/engine_driver.rs`: `Engine` construction and execution entrypoint
 - `src/executor/`: graph preparation, step orchestration, contract enforcement, topology, and
   execution-record persistence
+- `src/observability/`: engine events and hook contracts
+- `src/public_api/`: curated stable surface for downstream crates
 
-## Public entrypoints
-Start with `PUBLIC_API.md` and `docs/ARCHITECTURE.md`. The crate root is intentionally small and
-re-exports the curated API from `src/public_api/mod.rs`.
+## Managed Operations
+
+`docs/COMMANDS.md` is the SSOT for callable engine operations:
+
+- `create-engine`
+- `execute-graph`
+- `validate-engine-config`
+- `cancel-execution`
+- `check-cancellation`
+- `observe-engine-event`
+- `prepare-execution-graph`
+- `execute-ordered-steps`
+- `record-execution`
+- `enforce-output-contract`
+- `enforce-run-artifacts`
+- `enforce-metrics-envelope`
 
 ## Contracts and operating rules
-- execution contract: `docs/ENGINE_CONTRACT.md`
-- execution model: `docs/ENGINE_MODEL.md`
-- effect boundary: `docs/EFFECT_BOUNDARY.md`
-- recording truth set: `docs/RECORDING_TRUTH_SET.md`
-- change policy: `docs/CHANGE_RULES.md`
+
+The crate root intentionally has only this `README.md`. All other crate docs live
+under `docs/`, with a 10-document allowance:
+
+- `docs/ARCHITECTURE.md`
+- `docs/BOUNDARY.md`
+- `docs/CHANGE_RULES.md`
+- `docs/COMMANDS.md`
+- `docs/DEPENDENCIES.md`
+- `docs/DETERMINISM.md`
+- `docs/EFFECTS.md`
+- `docs/INDEX.md`
+- `docs/PUBLIC_API.md`
+- `docs/TESTS.md`
 
 ## Tests
-See `docs/TESTS.md` for the full map. The test tree is organized by enduring intent:
-- `tests/boundaries.rs`: source-tree and effect-boundary guardrails
-- `tests/contracts.rs`: orchestration, recording, and contract behavior
-- `tests/determinism.rs`: stable replay and manifest layout checks
-- `tests/support/`: reusable engine integration helpers
+
+Run from the `bijux-genomics` repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-engine --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-engine --no-default-features
+```
