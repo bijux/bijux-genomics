@@ -50,3 +50,20 @@ fn compare_robust_stats_detects_outliers() -> anyhow::Result<()> {
     assert!(stats.flags.contains(&"outliers_detected".to_string()));
     Ok(())
 }
+
+#[test]
+fn compare_robust_stats_ignores_non_finite_measurements() -> anyhow::Result<()> {
+    let rows = vec![
+        row(1.0, 10.0, 100, 90),
+        row(f64::NAN, f64::INFINITY, 100, 90),
+        row(3.0, 30.0, 100, 90),
+    ];
+
+    let stats = compare_robust_stats(&rows)?;
+
+    assert_eq!(stats.runtime_s.n, 2);
+    assert_eq!(stats.memory_mb.n, 2);
+    assert!(stats.runtime_s.median.is_finite());
+    assert!(stats.memory_mb.median.is_finite());
+    Ok(())
+}
