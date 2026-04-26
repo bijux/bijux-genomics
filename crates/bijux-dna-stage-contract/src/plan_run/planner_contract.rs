@@ -25,7 +25,7 @@ impl From<&StagePlanV1> for PlannerContractV1 {
         let tool_version = if stage.tool_version.trim().is_empty() {
             None
         } else {
-            Some(stage.tool_version.clone())
+            Some(stage.tool_version.trim().to_string())
         };
         let image_ref =
             if stage.image.image.trim().is_empty() { None } else { Some(stage.image.clone()) };
