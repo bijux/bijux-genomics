@@ -4,8 +4,8 @@ use std::path::Path;
 #[test]
 fn public_api_docs_match_curated_exports() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let docs = std::fs::read_to_string(root.join("docs/PUBLIC_API.md"))
-        .expect("read docs/PUBLIC_API.md");
+    let docs =
+        std::fs::read_to_string(root.join("docs/PUBLIC_API.md")).expect("read docs/PUBLIC_API.md");
 
     assert!(
         docs.contains("## Public Modules\nNone."),
