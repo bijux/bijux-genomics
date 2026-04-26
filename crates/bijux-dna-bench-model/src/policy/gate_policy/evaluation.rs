@@ -207,7 +207,13 @@ fn completeness_score(required_metrics: &[String], missing_metrics: &[String]) -
     if required_metrics.is_empty() {
         return 1.0;
     }
-    let missing = f64::from(u32::try_from(missing_metrics.len()).unwrap_or(u32::MAX));
+    let missing_required_count = required_metrics
+        .iter()
+        .filter(|metric_id| {
+            missing_metrics.iter().any(|missing_metric| missing_metric == *metric_id)
+        })
+        .count();
+    let missing = f64::from(u32::try_from(missing_required_count).unwrap_or(u32::MAX));
     let total = f64::from(u32::try_from(required_metrics.len()).unwrap_or(u32::MAX));
     (1.0 - (missing / total)).clamp(0.0, 1.0)
 }
@@ -241,5 +247,29 @@ mod tests {
 
         assert_eq!(decision.missing_metrics, vec!["runtime_s"]);
         assert_eq!(unique_missing.len(), decision.missing_metrics.len());
+    }
+
+    #[test]
+    #[allow(clippy::float_cmp)]
+    fn completeness_counts_required_metrics_only() {
+        let mut thresholds = BTreeMap::new();
+        thresholds.insert("memory_mb".to_string(), 128.0);
+        let policy = GatePolicy {
+            objective: "runtime".to_string(),
+            required_metrics: vec!["runtime_s".to_string()],
+            thresholds,
+            allowed_regressions: BTreeMap::new(),
+            must_not_regress: Vec::new(),
+            semantics_overrides: BTreeMap::new(),
+            stage_overrides: BTreeMap::new(),
+        };
+        let mut metrics = BTreeMap::new();
+        metrics.insert("runtime_s".to_string(), 1.0);
+
+        let decision =
+            policy.decide("dataset-1", "fastq.trim_reads", "fastp", "params-a", &metrics);
+
+        assert_eq!(decision.missing_metrics, vec!["memory_mb"]);
+        assert_eq!(decision.completeness_score, 1.0);
     }
 }
