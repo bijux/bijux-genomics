@@ -11,6 +11,23 @@ fn environment_qa_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
+        dir_entries(&root.join("docs")),
+        btree_set(&[
+            "ARCHITECTURE.md",
+            "BOUNDARY.md",
+            "COMMANDS.md",
+            "CONTRACTS.md",
+            "DEPENDENCIES.md",
+            "EFFECTS.md",
+            "IMAGE_QA.md",
+            "INDEX.md",
+            "PUBLIC_API.md",
+            "TESTS.md",
+        ]),
+        "docs must stay within the 10-document allowance"
+    );
+
+    assert_eq!(
         dir_entries(&root.join("src")),
         btree_set(&["bin/", "image_qa/", "lib.rs", "public_api.rs"]),
         "src tree must match the documented environment qa layout"
@@ -84,6 +101,22 @@ fn environment_qa_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/image_qa/support/docker_exec")),
         btree_set(&["inspection.rs", "merge.rs", "mod.rs", "models.rs", "transform.rs"]),
         "docker_exec tree must keep command builders and models separated"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests")),
+        btree_set(&[
+            "boundaries/",
+            "boundaries.rs",
+            "contracts/",
+            "contracts.rs",
+            "determinism/",
+            "determinism.rs",
+            "fixtures/",
+            "guardrails.rs",
+            "support/",
+        ]),
+        "test tree must stay grouped by taxonomy without nested README docs"
     );
 }
 

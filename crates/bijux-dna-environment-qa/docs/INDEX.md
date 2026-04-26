@@ -1,16 +1,19 @@
 # bijux-dna-environment-qa Docs Index
 
-## Scope
-See `SCOPE.md` for what belongs here.
+## Start Here
 
-## Effects
-See `EFFECTS.md` for allowed effects.
+- [ARCHITECTURE.md](ARCHITECTURE.md): source layout, data flow, and tree rules.
+- [IMAGE_QA.md](IMAGE_QA.md): runbook, QA matrix, datasets, Apptainer scope, and artifact rules.
+- [PUBLIC_API.md](PUBLIC_API.md): public modules, export groups, and stability rules.
 
 ## Boundaries
-See `ARCHITECTURE.md` for internal boundaries.
 
-## Extension Points
-See `CHANGE_RULES.md` for safe extension guidelines.
+- [BOUNDARY.md](BOUNDARY.md): crate ownership and production dependency boundary.
+- [COMMANDS.md](COMMANDS.md): command and host-process SSOT.
+- [CONTRACTS.md](CONTRACTS.md): QA evidence contracts and change rules.
+- [DEPENDENCIES.md](DEPENDENCIES.md): allowed and forbidden dependency graph.
+- [EFFECTS.md](EFFECTS.md): allowed reads, writes, processes, and offline policy.
 
-## How to Test
-See `TESTS.md` for test mapping and fixtures.
+## Verification
+
+- [TESTS.md](TESTS.md): test taxonomy, commands, and fixture map.
