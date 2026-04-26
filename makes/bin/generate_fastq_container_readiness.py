@@ -22,6 +22,7 @@ VERSION_LOCK = Path("containers/versions/lock.json")
 DOWNLOAD_BACKLOG = Path("science/generated/current/evidence/fastq_download_backlog.tsv")
 OUT_DIR = Path("science-docs/upstream/fastq/container")
 PROOF_ROOT = Path("artifacts/containers")
+PLANNER_SNAPSHOT_DIR = Path("crates/bijux-dna-planner-fastq/tests/snapshots")
 
 
 @dataclass(frozen=True)
@@ -185,6 +186,15 @@ def load_version_lock(root: Path) -> dict[str, dict[str, object]]:
     }
 
 
+def load_planner_snapshots(root: Path) -> list[dict[str, object]]:
+    snapshots = []
+    for path in sorted((root / PLANNER_SNAPSHOT_DIR).glob("*stage__fastq__*.json")):
+        data = json.loads(read_text(path))
+        data["_snapshot_path"] = str(path.relative_to(root))
+        snapshots.append(data)
+    return snapshots
+
+
 def write_tsv(path: Path, header: list[str], rows: list[list[str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
@@ -221,6 +231,15 @@ def lock_field_status(value: object) -> str:
     return "present"
 
 
+def planner_status(default_tool: str, planner_tool: str, planner_digest: object) -> str:
+    findings = []
+    if default_tool and planner_tool and default_tool != planner_tool:
+        findings.append("default_tool_mismatch")
+    if planner_digest in (None, ""):
+        findings.append("digest_missing")
+    return ";".join(findings) if findings else "ready"
+
+
 def main() -> int:
     args = parse_args()
     root = args.repo_root.resolve()
@@ -230,6 +249,10 @@ def main() -> int:
     registry = load_registry(root)
     backlog = load_download_backlog(root)
     version_lock = load_version_lock(root)
+    planner_snapshots = load_planner_snapshots(root)
+    default_by_stage = {
+        row.stage_id: row.default_tool for row in execution_defaults(root) if row.stage_id
+    }
 
     matrix = []
     digest_rows = []
@@ -417,6 +440,39 @@ def main() -> int:
         ["default_tool", "lock_field", "lock_value", "field_status", "version", "lock_status"],
         lock_rows,
     )
+    planner_rows = []
+    for snapshot in planner_snapshots:
+        stage_id = str(snapshot.get("stage_id", ""))
+        image = snapshot.get("image", {})
+        if not isinstance(image, dict):
+            image = {}
+        planner_digest = image.get("digest")
+        planner_tool = str(snapshot.get("tool_id", ""))
+        default_tool = default_by_stage.get(stage_id, "")
+        planner_rows.append(
+            [
+                stage_id,
+                default_tool,
+                planner_tool,
+                str(image.get("image", "")),
+                "" if planner_digest is None else str(planner_digest),
+                planner_status(default_tool, planner_tool, planner_digest),
+                str(snapshot.get("_snapshot_path", "")),
+            ]
+        )
+    write_tsv(
+        out_dir / "FASTQ_CONTAINER_PLANNER_GAPS.tsv",
+        [
+            "stage_id",
+            "execution_default_tool",
+            "planner_tool",
+            "planner_image",
+            "planner_digest",
+            "planner_status",
+            "snapshot_path",
+        ],
+        planner_rows,
+    )
     print(
         json.dumps(
             {
@@ -427,6 +483,7 @@ def main() -> int:
                     str(out_dir / "FASTQ_CONTAINER_EVIDENCE_STATUS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_PROOF_GAPS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_LOCK_GAPS.tsv"),
+                    str(out_dir / "FASTQ_CONTAINER_PLANNER_GAPS.tsv"),
                 ]
             }
         )
