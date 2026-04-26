@@ -5,7 +5,7 @@ use std::sync::Mutex;
 
 use anyhow::{anyhow, Result};
 
-#[path = "../../workspace_paths.rs"]
+#[path = "../../support/workspace_paths.rs"]
 mod test_support;
 
 pub use test_support::{crate_root, repo_root};
