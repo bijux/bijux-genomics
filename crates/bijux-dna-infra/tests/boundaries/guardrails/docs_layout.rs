@@ -36,6 +36,14 @@ fn tests_doc_references_the_active_test_files() {
     ] {
         assert!(content.contains(expected), "docs/TESTS.md must reference {expected}");
     }
+    assert!(
+        content.contains("crates/bijux-dna-testkit/docs/SNAPSHOT_POLICY.md"),
+        "docs/TESTS.md must reference the existing testkit snapshot policy"
+    );
+    assert!(
+        !content.contains("crates/bijux-dna-testkit/docs/USAGE.md"),
+        "docs/TESTS.md must not reference removed testkit usage docs"
+    );
 }
 
 #[test]
