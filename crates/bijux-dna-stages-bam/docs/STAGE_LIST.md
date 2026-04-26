@@ -1,11 +1,31 @@
 # STAGE_LIST
 
-| Stage | Phase | Class | Inputs | Outputs | Metrics |
-| --- | --- | --- | --- | --- | --- |
-| bam.align | pre | Essential | FASTQ | BAM | alignment_rate |
-| bam.sort | core | Essential | BAM | sorted BAM | sort_time |
-| bam.index | core | Essential | BAM | BAI | index_stats |
-| bam.markdup | core | Recommended | BAM | dedup BAM | dup_rate |
-| bam.damage | downstream | Optional | BAM | report.json | damage_profile |
-| bam.contamination | downstream | Optional | BAM | report.json | contamination_rate |
-| bam.authenticity | downstream | Optional | BAM | report.json | authenticity_score |
+This list mirrors the `BamStage::all()` registry consumed by this crate. Keep it
+in sync with `bijux-dna-domain-bam` when adding, renaming, or removing stages.
+
+| Stage | Phase | Primary tools | Audit focus |
+| --- | --- | --- | --- |
+| `bam.align` | pre | bwa, bowtie2 | aligned BAM, index, flagstat, idxstats, samtools stats |
+| `bam.validate` | pre | samtools | validation report, flagstat |
+| `bam.qc_pre` | pre | samtools | flagstat, idxstats, samtools stats |
+| `bam.mapping_summary` | pre | samtools | flagstat, idxstats, samtools stats, mapping summary |
+| `bam.filter` | core | samtools, bamtools | filtered BAM, index, before/after flagstat and idxstats |
+| `bam.mapq_filter` | core | samtools, bamtools | filtered BAM, index, before/after flagstat |
+| `bam.length_filter` | core | samtools, picard | filtered BAM, index, length-filter summary |
+| `bam.markdup` | core | picard | duplicate-marked BAM, index, before/after metrics |
+| `bam.duplication_metrics` | core | samtools, picard | duplication report and histogram |
+| `bam.complexity` | core | preseq | complexity report and preseq estimates |
+| `bam.coverage` | core | mosdepth | coverage summary |
+| `bam.insert_size` | core | picard | insert-size metrics and histogram |
+| `bam.gc_bias` | core | picard | GC-bias metrics and plot |
+| `bam.endogenous_content` | core | samtools | endogenous-content report |
+| `bam.overlap_correction` | core | bamutil | overlap-corrected BAM and index |
+| `bam.damage` | downstream | pydamage, mapdamage2 | DNA damage reports |
+| `bam.authenticity` | downstream | authenticct | authenticity report |
+| `bam.contamination` | downstream | angsd | contamination report |
+| `bam.sex` | downstream | rxy | sex inference report |
+| `bam.bias_mitigation` | downstream | mapdamage2 | bias report |
+| `bam.recalibration` | downstream | gatk | recalibrated BAM, index, recalibration report |
+| `bam.haplogroups` | downstream | yleaf | haplogroup report |
+| `bam.genotyping` | downstream | angsd, bcftools | genotyping report |
+| `bam.kinship` | downstream | king | kinship report |
