@@ -8,6 +8,7 @@ mod bench;
 mod config;
 mod config_aliases;
 mod run_layout;
+mod segments;
 mod stable_surface;
 
 pub use stable_surface::*;

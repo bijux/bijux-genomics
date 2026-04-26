@@ -62,3 +62,13 @@ fn pipeline_run_dir_contract_is_stable() {
     );
     assert_eq!(bijux_dna_infra::PIPELINE_RUN_DIR_TEMPLATE, "{pipeline_id}/{sample_id}/{run_id}");
 }
+
+#[test]
+fn pipeline_run_dir_confines_dynamic_segments() {
+    let base = Path::new("/tmp/bijux");
+    let path = bijux_dna_infra::pipeline_run_dir(base, "/absolute/pipeline", "../sample", "run/a");
+    assert_eq!(
+        path,
+        PathBuf::from("/tmp/bijux").join("absolute_pipeline").join("sample").join("run_a")
+    );
+}

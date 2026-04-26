@@ -1,5 +1,6 @@
 use std::path::{Path, PathBuf};
 
+use super::segments::path_segment;
 use crate::run_directories::{RunLayoutPaths, RUN_LAYOUT_CONTRACT};
 
 #[must_use]
@@ -18,7 +19,10 @@ pub fn pipeline_run_dir(
     sample_id: &str,
     run_id: &str,
 ) -> PathBuf {
-    base_dir.join(pipeline_id).join(sample_id).join(run_id)
+    base_dir
+        .join(path_segment(pipeline_id))
+        .join(path_segment(sample_id))
+        .join(path_segment(run_id))
 }
 
 #[must_use]
