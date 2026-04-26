@@ -87,6 +87,20 @@ fn rename_creates_destination_parent() -> anyhow::Result<()> {
 }
 
 #[test]
+fn copy_file_creates_destination_parent() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let source = dir.path().join("source.txt");
+    let destination = dir.path().join("nested").join("copied.txt");
+    bijux_dna_infra::atomic_write_bytes(&source, b"payload")?;
+
+    let bytes = bijux_dna_infra::copy_file(&source, &destination)?;
+
+    assert_eq!(bytes, 7);
+    assert_eq!(std::fs::read_to_string(destination)?, "payload");
+    Ok(())
+}
+
+#[test]
 fn bounded_read_rejects_files_larger_than_limit() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux")?;
     let path = dir.path().join("payload.bin");

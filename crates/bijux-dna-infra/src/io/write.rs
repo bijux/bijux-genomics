@@ -60,6 +60,17 @@ pub fn append_line(path: &Path, line: &str) -> Result<(), IoError> {
     writeln!(file, "{line}").map_err(IoError::from_io)
 }
 
+/// Copy a file, creating the destination parent directory if needed.
+///
+/// # Errors
+/// Returns an IO error if the destination parent cannot be created or the copy fails.
+pub fn copy_file(src: &Path, dst: &Path) -> Result<u64, IoError> {
+    if let Some(parent) = non_empty_parent(dst) {
+        ensure_dir(parent)?;
+    }
+    std::fs::copy(src, dst).map_err(IoError::from_io)
+}
+
 /// Atomically write JSON to a path (temp + rename).
 ///
 /// # Errors

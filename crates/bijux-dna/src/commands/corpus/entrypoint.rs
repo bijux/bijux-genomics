@@ -238,7 +238,7 @@ pub fn materialize_corpus(
     }
 
     let spec_copy = root.join("CORPUS_SPEC.toml");
-    fs::copy(&spec_path, &spec_copy)
+    bijux_dna_infra::copy_file(&spec_path, &spec_copy)
         .with_context(|| format!("copy {} -> {}", spec_path.display(), spec_copy.display()))?;
     write_curated_snapshot(&root, &spec, &curated_rows)?;
     set_fastq_readonly(&raw_dir)?;
@@ -264,7 +264,8 @@ pub fn normalize_corpus(cwd: &Path, corpus: &str) -> Result<()> {
         return Err(anyhow!("missing raw corpus directory {}", raw.display()));
     }
     let normalized = root.join("normalized");
-    fs::create_dir_all(&normalized).with_context(|| format!("create {}", normalized.display()))?;
+    bijux_dna_infra::ensure_dir(&normalized)
+        .with_context(|| format!("create {}", normalized.display()))?;
     clear_fastq_dir(&normalized)?;
 
     let mut keys = collect_sample_keys(&raw)?;
@@ -287,12 +288,12 @@ pub fn normalize_corpus(cwd: &Path, corpus: &str) -> Result<()> {
         let sample_id = format!("{:04}", index + 1);
         if let Some(r1) = &key.r1 {
             let dst = normalized.join(format!("sample_{sample_id}_R1.fastq.gz"));
-            fs::copy(r1, &dst)
+            bijux_dna_infra::copy_file(r1, &dst)
                 .with_context(|| format!("copy {} -> {}", r1.display(), dst.display()))?;
         }
         if let Some(r2) = &key.r2 {
             let dst = normalized.join(format!("sample_{sample_id}_R2.fastq.gz"));
-            fs::copy(r2, &dst)
+            bijux_dna_infra::copy_file(r2, &dst)
                 .with_context(|| format!("copy {} -> {}", r2.display(), dst.display()))?;
         }
     }
@@ -805,14 +806,16 @@ fn clear_fastq_dir(path: &Path) -> Result<()> {
     for entry in fs::read_dir(path).with_context(|| format!("read {}", path.display()))? {
         let path = entry?.path();
         if path.is_dir() {
-            fs::remove_dir_all(&path).with_context(|| format!("remove {}", path.display()))?;
+            bijux_dna_infra::remove_dir_all(&path)
+                .with_context(|| format!("remove {}", path.display()))?;
             continue;
         }
         let Some(name) = path.file_name().and_then(|v| v.to_str()) else {
             continue;
         };
         if name.ends_with(".fastq.gz") {
-            fs::remove_file(&path).with_context(|| format!("remove {}", path.display()))?;
+            bijux_dna_infra::remove_file(&path)
+                .with_context(|| format!("remove {}", path.display()))?;
         }
     }
     Ok(())
