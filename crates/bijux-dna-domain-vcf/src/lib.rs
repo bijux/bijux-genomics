@@ -50,9 +50,6 @@ pub const VCF_PARAMS_CATALOG: &[&str] = &[
     "bijux.vcf.damage_filter.params",
     "bijux.vcf.gl_propagation.params",
 ];
-pub const VCF_METRICS_CATALOG: &[&str] = &[
-    "bijux.vcf.call_summary.v1",
-    "bijux.vcf.filter_breakdown.v1",
-    "bijux.vcf.stats.v1",
-];
+pub const VCF_METRICS_CATALOG: &[&str] =
+    &["bijux.vcf.call_summary.v1", "bijux.vcf.filter_breakdown.v1", "bijux.vcf.stats.v1"];
 pub const VCF_PRODUCTION_TOOLS: &[&str] = &["bcftools"];
