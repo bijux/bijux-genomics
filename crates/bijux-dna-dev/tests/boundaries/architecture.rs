@@ -155,7 +155,7 @@ fn dev_tree_matches_architecture_contract() {
 
     let boundary_entries = dir_entries(&root.join("tests/boundaries"));
     let expected_boundaries: BTreeSet<_> =
-        ["architecture.rs", "command_inventory.rs", "guardrails.rs"]
+        ["architecture.rs", "command_inventory.rs", "dependencies.rs", "guardrails.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();
