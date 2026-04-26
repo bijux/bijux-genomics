@@ -5,7 +5,9 @@ use bijux_dna_domain_bam::metrics::{
     parse_mapdamage2_misincorporation, parse_mosdepth_summary, parse_pydamage_json,
     parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats,
 };
-use bijux_dna_domain_bam::pipeline_contract::{forbidden_transitions, optional_branches};
+use bijux_dna_domain_bam::pipeline_contract::{
+    forbidden_transitions, optional_branches, stage_criticality, StageCriticality,
+};
 use bijux_dna_domain_bam::{
     required_audit_artifacts, stage_contract_json, stage_spec, stage_spec_opt, BamStage,
 };
@@ -36,6 +38,25 @@ fn pipeline_branch_metadata_references_known_stages() {
         BamStage::try_from(*to)
             .unwrap_or_else(|err| panic!("bad forbidden transition target {to}: {err}"));
     }
+}
+
+#[test]
+fn stage_criticality_uses_all_declared_classes() {
+    let mut essential = 0;
+    let mut optional = 0;
+    let mut experimental = 0;
+    for stage in BamStage::all() {
+        match stage_criticality(stage.as_str())
+            .unwrap_or_else(|| panic!("missing criticality for {}", stage.as_str()))
+        {
+            StageCriticality::Essential => essential += 1,
+            StageCriticality::Optional => optional += 1,
+            StageCriticality::Experimental => experimental += 1,
+        }
+    }
+    assert!(essential > 0, "no essential BAM stages declared");
+    assert!(optional > 0, "no optional BAM stages declared");
+    assert!(experimental > 0, "no experimental BAM stages declared");
 }
 
 #[test]
