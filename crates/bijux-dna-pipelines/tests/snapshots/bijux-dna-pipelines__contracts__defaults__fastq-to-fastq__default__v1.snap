@@ -150,18 +150,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.trim_terminal_damage": {
-      "assumptions": [
-        "defaults chosen for pre-HPC deterministic baseline comparisons"
-      ],
-      "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-      ],
-      "comparability_implications": [
-        "changing this default can shift cross-run comparability baselines"
-      ],
-      "rationale": "pipeline default"
-    },
     "fastq.validate_reads": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -284,15 +272,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "polyx_policy": null,
       "q_cutoff": null,
       "threads": 1
-    },
-    "fastq.trim_terminal_damage": {
-      "damage_mode": "ancient",
-      "execution_policy": "explicit_terminal_trim",
-      "paired_mode": "single_end",
-      "schema_version": "bijux.fastq.params.trim_terminal_damage.v1",
-      "threads": 1,
-      "trim_3p_bases": 2,
-      "trim_5p_bases": 2
     },
     "fastq.validate_reads": {
       "pair_sync_policy": "not_applicable",
@@ -449,18 +428,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "rationale": "pipeline default"
     },
-    "fastq.trim_terminal_damage": {
-      "assumptions": [
-        "defaults chosen for pre-HPC deterministic baseline comparisons"
-      ],
-      "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-      ],
-      "comparability_implications": [
-        "changing this default can shift cross-run comparability baselines"
-      ],
-      "rationale": "pipeline default"
-    },
     "fastq.validate_reads": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -487,7 +454,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "fastq.screen_taxonomy": "kraken2",
     "fastq.trim_polyg_tails": "fastp",
     "fastq.trim_reads": "fastp",
-    "fastq.trim_terminal_damage": "cutadapt",
     "fastq.validate_reads": "fastqvalidator"
   }
 }

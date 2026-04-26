@@ -48,7 +48,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.profile_read_lengths",
       "fastq.detect_adapters",
       "fastq.trim_polyg_tails",
-      "fastq.trim_terminal_damage",
       "fastq.trim_reads",
       "fastq.filter_reads",
       "fastq.profile_reads",
@@ -168,15 +167,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "q_cutoff": null,
         "threads": 1
       },
-      "fastq.trim_terminal_damage": {
-        "damage_mode": "ancient",
-        "execution_policy": "explicit_terminal_trim",
-        "paired_mode": "single_end",
-        "schema_version": "bijux.fastq.params.trim_terminal_damage.v1",
-        "threads": 1,
-        "trim_3p_bases": 2,
-        "trim_5p_bases": 2
-      },
       "fastq.validate_reads": {
         "pair_sync_policy": "not_applicable",
         "paired_mode": "single_end",
@@ -198,7 +188,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.screen_taxonomy": "pipeline default",
       "fastq.trim_polyg_tails": "pipeline default",
       "fastq.trim_reads": "pipeline default",
-      "fastq.trim_terminal_damage": "pipeline default",
       "fastq.validate_reads": "pipeline default"
     },
     "tools": {
@@ -214,7 +203,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.screen_taxonomy": "kraken2",
       "fastq.trim_polyg_tails": "fastp",
       "fastq.trim_reads": "fastp",
-      "fastq.trim_terminal_damage": "cutadapt",
       "fastq.validate_reads": "fastqvalidator"
     }
   },
