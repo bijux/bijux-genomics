@@ -30,10 +30,7 @@ fn compiler_outputs_are_stable_across_repeated_runs() -> anyhow::Result<()> {
 
     let pairs = [
         ("ci/registry/tool_registry.toml", "tool_registry.toml"),
-        (
-            "ci/registry/tool_registry_experimental.toml",
-            "tool_registry_experimental.toml",
-        ),
+        ("ci/registry/tool_registry_experimental.toml", "tool_registry_experimental.toml"),
         ("ci/registry/tool_registry_vcf.toml", "tool_registry_vcf.toml"),
         ("ci/stages/stages.toml", "stages.toml"),
         ("ci/stages/stages_vcf.toml", "stages_vcf.toml"),
