@@ -8,10 +8,7 @@ fn command_inventory_matches_science_cli_surface() {
     let cli_rs = read(root.join("src/cli.rs"));
 
     for variant in ["Validate", "Build", "Trace", "Closure", "Release"] {
-        assert!(
-            cli_rs.contains(variant),
-            "src/cli.rs must define ScienceCommand::{variant}"
-        );
+        assert!(cli_rs.contains(variant), "src/cli.rs must define ScienceCommand::{variant}");
     }
 
     for command in [
@@ -21,10 +18,7 @@ fn command_inventory_matches_science_cli_surface() {
         "`closure [--stage <stage_id>] [--tool <tool_id>]`",
         "`release --release-id <release_id>`",
     ] {
-        assert!(
-            commands_doc.contains(command),
-            "docs/COMMANDS.md must document command {command}"
-        );
+        assert!(commands_doc.contains(command), "docs/COMMANDS.md must document command {command}");
     }
 
     for non_owned in [
