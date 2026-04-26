@@ -35,6 +35,22 @@ fn load_run_summary_rejects_bad_schema() -> anyhow::Result<()> {
 }
 
 #[test]
+fn load_run_summary_reports_unreadable_path() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let path = dir.path().join("run_summary.json");
+    std::fs::create_dir(&path)?;
+
+    match load_run_summary(&path) {
+        Err(AnalyzeError::InvalidJson { message }) => {
+            assert!(message.contains(&path.display().to_string()));
+            Ok(())
+        }
+        Err(err) => anyhow::bail!("expected InvalidJson, got {err}"),
+        Ok(_) => anyhow::bail!("expected error"),
+    }
+}
+
+#[test]
 fn load_run_index_rejects_bad_schema() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux")?;
     let path = dir.path().join("run_index.jsonl");
