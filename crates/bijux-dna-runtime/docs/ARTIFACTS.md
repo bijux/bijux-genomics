@@ -1,5 +1,7 @@
 # Runtime Artifacts
 
+Runtime writes only declared runtime artifacts under run-layout roots and tool-run directories.
+
 ## Run layout root
 From `RunLayout`:
 - `RunLayoutV1` contract snapshot: `tests/fixtures/runtime_schema/default/run_layout_v1.json`
@@ -34,7 +36,11 @@ Under `<tool-run>/run_artifacts/`:
 - `reproducibility/report.json`
 - `plans/*.json`
 
-Additional runtime-owned artifacts may be emitted alongside these directories by higher layers.
+## Recorder Rules
+- The recorder is the only write path for runtime manifests, records, metrics, telemetry, provenance, and support files.
+- Canonical JSON writes must go through `write_canonical_json` or a more specific runtime writer.
+- No ad hoc JSON serialization should bypass recording helpers for owned artifacts.
+- `logs/` may receive bounded stdout/stderr tails, but process execution remains outside runtime.
 
 ## Links to schema fixtures
 - `tests/fixtures/runtime_schema/default/run_layout_v1.json`
