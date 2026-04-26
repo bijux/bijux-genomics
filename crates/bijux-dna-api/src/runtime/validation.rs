@@ -43,9 +43,13 @@ pub fn validate_bgzip_tabix(input: &Path) -> Result<()> {
 /// Returns an error when BAM/CRAM input lacks an index.
 pub fn validate_bam_index(input: &Path) -> Result<()> {
     if has_extension(input, "bam") {
-        let bai = input.with_extension("bam.bai");
-        let csi = input.with_extension("bam.csi");
-        if !bai.exists() && !csi.exists() {
+        let index_candidates = [
+            input.with_extension("bam.bai"),
+            input.with_extension("bai"),
+            input.with_extension("bam.csi"),
+            input.with_extension("csi"),
+        ];
+        if !index_candidates.iter().any(|path| path.exists()) {
             bail!(
                 "input contract violation: missing BAM index (.bai/.csi) for {}",
                 input.display()
@@ -53,8 +57,8 @@ pub fn validate_bam_index(input: &Path) -> Result<()> {
         }
     }
     if has_extension(input, "cram") {
-        let crai = input.with_extension("cram.crai");
-        if !crai.exists() {
+        let index_candidates = [input.with_extension("cram.crai"), input.with_extension("crai")];
+        if !index_candidates.iter().any(|path| path.exists()) {
             bail!("input contract violation: missing CRAM index (.crai) for {}", input.display());
         }
     }
@@ -105,7 +109,7 @@ mod tests {
     use flate2::write::GzEncoder;
     use flate2::Compression;
 
-    use super::validate_fastq_format;
+    use super::{validate_bam_index, validate_fastq_format};
 
     #[test]
     fn validate_fastq_format_accepts_gzipped_fastq() -> anyhow::Result<()> {
@@ -116,5 +120,25 @@ mod tests {
         bijux_dna_infra::write_bytes(&path, encoder.finish()?)?;
 
         validate_fastq_format(&path)
+    }
+
+    #[test]
+    fn validate_bam_index_accepts_sibling_bai() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let bam = temp.path().join("sample.bam");
+        bijux_dna_infra::write_bytes(&bam, b"bam")?;
+        bijux_dna_infra::write_bytes(temp.path().join("sample.bai"), b"index")?;
+
+        validate_bam_index(&bam)
+    }
+
+    #[test]
+    fn validate_bam_index_accepts_sibling_crai() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let cram = temp.path().join("sample.cram");
+        bijux_dna_infra::write_bytes(&cram, b"cram")?;
+        bijux_dna_infra::write_bytes(temp.path().join("sample.crai"), b"index")?;
+
+        validate_bam_index(&cram)
     }
 }
