@@ -78,8 +78,7 @@ pub fn resolve_default_reference_set(species: &str, usecase: &str) -> Result<Ref
 /// Returns an error when the reference bundle cannot be resolved or violates contract.
 pub fn resolve_reference_bundle(species: &str, build: &str) -> Result<ReferenceBundle> {
     let bundle = resolve_bundle_entry(species, build)?;
-    validate_sha256(&bundle.source_lock_sha256, "source_lock_sha256")?;
-    validate_sha256(&bundle.bundle_lock_sha256, "bundle_lock_sha256")?;
+    validate_bundle_digests(&bundle)?;
     let normalization_policy = match bundle.normalization_policy.as_str() {
         "strict_only" => ContigNormalizationPolicy::StrictOnly,
         "deterministic_remap" => ContigNormalizationPolicy::DeterministicRemap,
@@ -150,4 +149,47 @@ pub(crate) fn resolve_bundle_entry(species: &str, build: &str) -> Result<BundleE
         .into_iter()
         .find(|entry| entry.species_id == species && entry.build_id == build)
         .ok_or_else(|| anyhow!("no reference bundle found for {species}:{build}"))
+}
+
+fn validate_bundle_digests(bundle: &BundleEntry) -> Result<()> {
+    validate_sha256(&bundle.contig_set_digest, "contig_set_digest")?;
+    validate_sha256(&bundle.source_lock_sha256, "source_lock_sha256")?;
+    validate_sha256(&bundle.bundle_lock_sha256, "bundle_lock_sha256")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_bundle_digests;
+    use crate::runtime_config::{BundleEntry, ContigEntry, SupportedFeatureEntry};
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn validate_bundle_digests_rejects_invalid_contig_set_digest() {
+        let bundle = BundleEntry {
+            bundle_id: "bundle".to_string(),
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            fasta: "ref.fa.gz".to_string(),
+            fai: "ref.fa.gz.fai".to_string(),
+            dict: "ref.dict".to_string(),
+            contig_set_digest: "not-a-digest".to_string(),
+            mask_bed: None,
+            regions_bed: None,
+            source_lock_sha256: "a".repeat(64),
+            bundle_lock_sha256: "b".repeat(64),
+            normalization_policy: "strict_only".to_string(),
+            remap: BTreeMap::new(),
+            sex_system: "xy".to_string(),
+            par_policy: "unsupported".to_string(),
+            default_coverage_regime: None,
+            supported_features: SupportedFeatureEntry::default(),
+            contigs: vec![ContigEntry { name: "1".to_string(), length_bp: 1 }],
+        };
+
+        let Err(error) = validate_bundle_digests(&bundle) else {
+            panic!("invalid contig digest must fail");
+        };
+
+        assert!(error.to_string().contains("contig_set_digest"));
+    }
 }
