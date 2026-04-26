@@ -9,6 +9,7 @@ use bijux_dna::cli::{
 
 #[test]
 fn cli_trim_bench_args_preserve_bank_presets() -> Result<()> {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new()?;
     let args = FastqTrimArgs {
         common: CommonArgs::default(),
@@ -43,6 +44,7 @@ fn cli_trim_bench_args_preserve_bank_presets() -> Result<()> {
 
 #[test]
 fn cli_preprocess_args_require_required_fields() -> Result<()> {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new()?;
     let args = FastqPreprocessArgs {
         common: CommonArgs::default(),
