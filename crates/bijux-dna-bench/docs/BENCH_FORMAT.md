@@ -1,8 +1,9 @@
 # BENCH_FORMAT
 
 ## Stability statement
-The JSON shapes and field ordering in `decision.json`, `observations.jsonl`, and `summary.json`
-are versioned and stable. Breaking changes require a major bump and updated fixtures.
+The JSON shapes and field ordering in `decision.json`, `decisions.json`,
+`observations.jsonl`, and `summary.json` are versioned and stable. Breaking changes require a
+major bump and updated fixtures.
 
 ## decision.json
 Fields:
@@ -22,6 +23,14 @@ Example:
 Invariants:
 - tool_id must be canonical.
 - score is deterministic.
+- `decision.json` is the compatibility single-decision artifact.
+
+## decisions.json
+`decisions.json` is the complete canonical list of gate decisions emitted for a suite run.
+
+Invariants:
+- ordering follows deterministic summary-row ordering.
+- every summary row with a gate decision is represented.
 
 ## observations.jsonl
 Fields:

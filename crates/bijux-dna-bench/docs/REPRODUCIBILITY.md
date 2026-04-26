@@ -1,7 +1,7 @@
 # REPRODUCIBILITY
 
 ## Reproduce a benchmark run
-1. Collect `decision.json` + `observations.jsonl` + `summary.json` inputs.
+1. Collect `decisions.json` + `decision.json` + `observations.jsonl` + `summary.json` inputs.
 2. Run the benchmark comparison via the crate entrypoint.
 3. Compare outputs to fixtures in `tests/fixtures/*`.
 
