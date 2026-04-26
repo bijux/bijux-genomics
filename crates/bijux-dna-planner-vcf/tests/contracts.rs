@@ -190,6 +190,32 @@ fn vcf_planner_refuses_tool_not_declared_in_required_tools_lists() {
 }
 
 #[test]
+fn vcf_planner_refuses_tool_override_for_unplanned_stage() {
+    let mut input = base_inputs(CoverageRegime::Pseudohaploid);
+    input.stage_tool_overrides.insert("vcf.impute".to_string(), "beagle".to_string());
+
+    let err = plan_vcf_stage_plans(&input).expect_err("unplanned tool override must fail");
+
+    assert!(
+        err.to_string().contains("stage_tool_overrides key vcf.impute"),
+        "unexpected planner refusal: {err}"
+    );
+}
+
+#[test]
+fn vcf_planner_refuses_unknown_tool_override_stage() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.stage_tool_overrides.insert("vcf.not_real".to_string(), "bcftools".to_string());
+
+    let err = plan_vcf_stage_plans(&input).expect_err("unknown tool override stage must fail");
+
+    assert!(
+        err.to_string().contains("unknown stage_tool_overrides key vcf.not_real"),
+        "unexpected planner refusal: {err}"
+    );
+}
+
+#[test]
 fn vcf_planner_resolves_coverage_regime_from_mean_depth() {
     let mut input = base_inputs(CoverageRegime::Diploid);
     input.mean_depth_x = Some(0.3);

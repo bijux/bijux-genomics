@@ -30,6 +30,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
     } = crate::reference_context::resolve(inputs)?;
     let chunks = plan_region_chunks(&inputs.species_context, &inputs.chunking)?;
     let stages = resolve_requested_stages(&inputs.requested_stages, resolved_coverage)?;
+    validate_stage_tool_override_keys(inputs, &stages)?;
 
     if stages.contains(&VcfDomainStage::Demography) && !stages.contains(&VcfDomainStage::Ibd) {
         bail!("vcf.demography requires vcf.ibd in requested/default stage set");
@@ -109,6 +110,20 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
         return Err(anyhow!("no VCF stage plans generated"));
     }
     Ok(plans)
+}
+
+fn validate_stage_tool_override_keys(
+    inputs: &VcfPipelineInputs,
+    stages: &[VcfDomainStage],
+) -> Result<()> {
+    for stage_id in inputs.stage_tool_overrides.keys() {
+        let stage = VcfDomainStage::try_from(stage_id.as_str())
+            .map_err(|err| anyhow!("unknown stage_tool_overrides key {stage_id}: {err}"))?;
+        if !stages.contains(&stage) {
+            bail!("stage_tool_overrides key {} is not in the resolved stage set", stage.as_str());
+        }
+    }
+    Ok(())
 }
 
 /// # Errors
