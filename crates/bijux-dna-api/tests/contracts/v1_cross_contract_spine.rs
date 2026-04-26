@@ -91,20 +91,11 @@ fn build_plan(base_dir: &Path) -> Result<ExecutionGraph> {
 #[test]
 fn golden_spine_contract() -> Result<()> {
     let tmp = tempfile::tempdir()?;
-    let base_dir = tmp.path();
+    let (_run_id, layout) = bijux_dna_runtime::run_layout::create_run_layout(tmp.path())?;
+    let base_dir = layout.run_dir.as_path();
     let plan = build_plan(base_dir)?;
 
     let runner = FakeRunner;
-    let layout = bijux_dna_runtime::run_layout::RunLayout {
-        run_dir: base_dir.to_path_buf(),
-        stages_dir: base_dir.join("stages"),
-        summary_dir: base_dir.join("summary"),
-        assessment_path: base_dir.join("input_assessment.json"),
-        manifest_path: base_dir.join("execution_manifest.json"),
-        environment_path: base_dir.join("environment.json"),
-        metadata_path: base_dir.join("run_metadata.json"),
-        events_path: base_dir.join("events.jsonl"),
-    };
     let _record = Engine::default().execute(&plan, &runner, &layout, None, None)?;
 
     let provenance_path = write_plan_provenance(base_dir, &plan)?;
