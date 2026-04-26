@@ -47,3 +47,40 @@ fn load_run_index_rejects_bad_schema() -> anyhow::Result<()> {
         Ok(_) => anyhow::bail!("expected error"),
     }
 }
+
+#[test]
+fn load_run_index_rejects_empty_row_kind() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let path = dir.path().join("run_index.jsonl");
+    bijux_dna_infra::write_bytes(&path, r#"{"schema_version":1,"run":null,"stage":null}"#)?;
+
+    match load_run_index(&path) {
+        Err(AnalyzeError::InvalidJsonlRow { line, message }) => {
+            assert_eq!(line, 1);
+            assert!(message.contains("exactly one of run or stage"));
+            Ok(())
+        }
+        Err(err) => anyhow::bail!("expected InvalidJsonlRow, got {err}"),
+        Ok(_) => anyhow::bail!("expected error"),
+    }
+}
+
+#[test]
+fn load_run_index_rejects_ambiguous_row_kind() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let path = dir.path().join("run_index.jsonl");
+    bijux_dna_infra::write_bytes(
+        &path,
+        r#"{"schema_version":1,"run":{"run_id":"run-1","domain":"fastq","pipeline":"fastq-to-fastq","stages":["fastq.validate_reads"],"tools":["fastqvalidator"],"objective":"qc","platform":"local","success":true},"stage":{"run_id":"run-1","stage_id":"fastq.validate_reads","tool_id":"fastqvalidator","params_hash":"params","input_hash":"input","output_hashes":["output"],"artifacts":{}}}"#,
+    )?;
+
+    match load_run_index(&path) {
+        Err(AnalyzeError::InvalidJsonlRow { line, message }) => {
+            assert_eq!(line, 1);
+            assert!(message.contains("exactly one of run or stage"));
+            Ok(())
+        }
+        Err(err) => anyhow::bail!("expected InvalidJsonlRow, got {err}"),
+        Ok(_) => anyhow::bail!("expected error"),
+    }
+}
