@@ -5,6 +5,12 @@ use std::path::Path;
 fn analyze_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
 
+    assert_crate_root_layout(root);
+    assert_src_layout(root);
+    assert_test_layout(root);
+}
+
+fn assert_crate_root_layout(root: &Path) {
     assert_eq!(
         dir_entries(root),
         entries([
@@ -18,7 +24,9 @@ fn analyze_tree_matches_architecture_contract() {
         ]),
         "crate root must stay minimal and intentional"
     );
+}
 
+fn assert_src_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src")),
         entries([
@@ -39,7 +47,13 @@ fn analyze_tree_matches_architecture_contract() {
         ]),
         "src tree must match the documented analysis layout"
     );
+    assert_contracts_layout(root);
+    assert_exports_layout(root);
+    assert_pipeline_layout(root);
+    assert_report_layout(root);
+}
 
+fn assert_contracts_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src/contracts")),
         entries(["OWNER.toml", "mod.rs"]),
@@ -51,7 +65,9 @@ fn analyze_tree_matches_architecture_contract() {
         entries(["OWNER.toml", "aggregate.rs", "load.rs", "mod.rs"]),
         "diagnostics tree must stay split by durable error concern"
     );
+}
 
+fn assert_exports_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src/exports")),
         entries([
@@ -71,7 +87,9 @@ fn analyze_tree_matches_architecture_contract() {
         entries(["mod.rs", "params_excerpt.rs", "report_access.rs"]),
         "facts support must keep report access and parameter excerpt policy separate"
     );
+}
 
+fn assert_pipeline_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src/pipeline")),
         entries(["OWNER.toml", "mod.rs", "steps/"]),
@@ -89,7 +107,9 @@ fn analyze_tree_matches_architecture_contract() {
         entries(["OWNER.toml", "decision.rs", "exports.rs", "load.rs", "mod.rs", "report.rs"]),
         "public api tree must stay curated"
     );
+}
 
+fn assert_report_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src/report")),
         entries([
@@ -120,7 +140,9 @@ fn analyze_tree_matches_architecture_contract() {
         entries(["construction.rs", "mod.rs"]),
         "render model tree must separate contracts from construction"
     );
+}
 
+fn assert_test_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("tests")),
         entries([
