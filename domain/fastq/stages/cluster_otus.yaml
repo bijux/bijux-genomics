@@ -63,7 +63,7 @@ assumptions:
   - "paired-end libraries must be merged or otherwise reduced to one analysis stream before OTU clustering."
 defaults_source: "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md"
 bank_hooks:
-  - "contaminant_db_bank"
+  - "none"
 metrics_schema: "bijux.stage.metrics.v1"
 required_inputs:
   - "reads"
