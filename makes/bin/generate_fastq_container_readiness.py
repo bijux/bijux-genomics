@@ -145,6 +145,18 @@ def write_tsv(path: Path, header: list[str], rows: list[list[str]]) -> None:
         writer.writerows(rows)
 
 
+def digest_class(container_ref: str) -> str:
+    if not container_ref:
+        return "missing"
+    if "sha256:pending" in container_ref:
+        return "pending"
+    if "sha256:" + ("0" * 64) in container_ref:
+        return "zero_placeholder"
+    if "@sha256:" in container_ref:
+        return "immutable"
+    return "tag_only"
+
+
 def main() -> int:
     args = parse_args()
     root = args.repo_root.resolve()
@@ -154,9 +166,11 @@ def main() -> int:
     registry = load_registry(root)
 
     matrix = []
+    digest_rows = []
     for row in execution_defaults(root):
         tool_image, tool_digest = tools.get(row.default_tool, ("", ""))
         registry_row = registry.get(row.default_tool, {})
+        container_ref = registry_row.get("container_ref", "")
         matrix.append(
             [
                 row.stage_id,
@@ -164,13 +178,22 @@ def main() -> int:
                 row.execution_status,
                 row.default_tool,
                 registry_row.get("status", ""),
-                registry_row.get("container_ref", ""),
+                container_ref,
                 registry_row.get("dockerfile", ""),
                 registry_row.get("apptainer_def", ""),
                 tool_image,
                 tool_digest,
             ]
         )
+        if row.default_tool:
+            digest_rows.append(
+                [
+                    row.stage_id,
+                    row.default_tool,
+                    container_ref,
+                    digest_class(container_ref),
+                ]
+            )
 
     write_tsv(
         out_dir / "FASTQ_CONTAINER_DEFAULT_MATRIX.tsv",
@@ -188,7 +211,21 @@ def main() -> int:
         ],
         matrix,
     )
-    print(json.dumps({"written": [str(out_dir / "FASTQ_CONTAINER_DEFAULT_MATRIX.tsv")]}))
+    write_tsv(
+        out_dir / "FASTQ_CONTAINER_DIGEST_CLASSES.tsv",
+        ["stage_id", "default_tool", "container_ref", "digest_class"],
+        digest_rows,
+    )
+    print(
+        json.dumps(
+            {
+                "written": [
+                    str(out_dir / "FASTQ_CONTAINER_DEFAULT_MATRIX.tsv"),
+                    str(out_dir / "FASTQ_CONTAINER_DIGEST_CLASSES.tsv"),
+                ]
+            }
+        )
+    )
     return 0
 
 
