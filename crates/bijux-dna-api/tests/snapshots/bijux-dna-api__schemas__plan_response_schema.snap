@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-api/tests/schemas/v1_cross_api_stability.rs
-assertion_line: 79
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -99,7 +98,31 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "profile_id": "default",
     "run_id": "plan-only",
     "schema_version": "bijux.run_manifest.v3",
-    "stages": [],
+    "stages": [
+      {
+        "image": "example/tool:1.0",
+        "image_digest": "sha256:deadbeef",
+        "inputs": [
+          {
+            "name": "input",
+            "optional": false,
+            "path": "input",
+            "role": "Reads"
+          }
+        ],
+        "out_dir": "out",
+        "outputs": [
+          {
+            "name": "output",
+            "optional": false,
+            "path": "output",
+            "role": "Reads"
+          }
+        ],
+        "stage_id": "core.test",
+        "step_id": "core.test"
+      }
+    ],
     "tool_invocations": [],
     "toolchain_versions": []
   }

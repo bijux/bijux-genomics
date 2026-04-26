@@ -23,7 +23,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         "dataset_fingerprints": [],
         "tool_invocations": [],
         "output_artifacts": [],
-        "stages": [],
+        "stages": summary_artifact::planned_stage_manifest(&request.graph),
         "failures": [],
     });
     let manifest_path = request.run_dir.join("run_manifest.json");
