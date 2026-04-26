@@ -17,6 +17,7 @@ upstream/fastq/*
 !upstream/fastq/TOOL_RISK_REGISTRY.tsv
 !upstream/fastq/container/
 upstream/fastq/container/*
+!upstream/fastq/container/README.md
 !upstream/fastq/container/FASTQ_CONTAINER_ASSET_HOOKS.tsv
 !upstream/fastq/container/FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv
 !upstream/fastq/container/FASTQ_CONTAINER_DIGEST_CLASSES.tsv
