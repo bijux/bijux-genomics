@@ -2,6 +2,14 @@
 
 `bijux-dna-runner` is a library crate with one root README and all supporting docs in `docs/`. Source files are organized around a narrow execution boundary: stable facade exports, command execution helpers, backend kind contracts, repo-root lookup, concrete runner driver behavior, and step orchestration.
 
+## Root Layout
+- `Cargo.toml` declares runner dependencies and feature gates.
+- `README.md` is the only root documentation file.
+- `docs/` contains the 10 authoritative crate docs.
+- `src/` contains the library implementation.
+- `tests/` contains boundary, contract, determinism, guardrail, schema,
+  semantic, and support coverage.
+
 ## Layout
 - `lib.rs` is a thin crate root that exposes modules plus the stable root re-exports.
 - `public_api/` owns the curated consumer-facing runner facade, with `stable_surface.rs` carrying the stable export contract.
@@ -29,6 +37,22 @@
 - Keep runtime resolution separate from process execution and replay behavior.
 - Keep Docker and Apptainer execution logic out of `step_runner/mod.rs`.
 - Keep `step_runner/mod.rs` orchestration-focused and move support logic into companion modules such as `effects.rs`, `records.rs`, and `internal_contracts.rs`.
+
+## Test Layout
+- `tests/boundaries/backend/` protects backend invariants, fixture parity,
+  invocation identity, process effects, and network guardrails.
+- `tests/contracts/` exercises backend contracts through the public runner
+  surface.
+- `tests/determinism/replay/` keeps replay contracts separate from replay
+  determinism checks.
+- `tests/schemas/` locks backend invariant documentation.
+- `tests/semantics/` owns Docker parsing semantics.
+- `tests/support/workspace_paths.rs` contains shared workspace-root helpers only.
+
+## Dependency Direction
+Runner may depend on core, runtime, and low-level infrastructure contracts
+needed to execute declared backend commands. It must not plan workflows, select
+domain tools, own CLI behavior, or depend on API/engine orchestration.
 
 ## Pointers
 - `INDEX.md` for the doc map.
