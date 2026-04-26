@@ -215,16 +215,7 @@ mod contracts {
         let committed = std::fs::read_to_string(expected_path)
             .unwrap_or_else(|err| panic!("read configs/ci/params/param_registry_vcf.toml: {err}"));
         let generated = param_registry_toml();
-        for required in ["vcf.call", "vcf.filter", "vcf.stats"] {
-            assert!(
-                committed.contains(required),
-                "committed config missing required stage {required}"
-            );
-            assert!(
-                generated.contains(required),
-                "generated config missing required stage {required}"
-            );
-        }
+        assert_eq!(generated, committed);
     }
 
     #[test]
