@@ -11,7 +11,7 @@ mod contracts {
         },
         coverage::domain_coverage_report,
         param_registry_toml, required_tools_toml, validate_downstream_transition, CoverageRegime,
-        VcfDomainStage, VcfStage, VCF_METRICS_CATALOG, VCF_PARAMS_CATALOG,
+        VcfDomainStage, VcfStage, VcfStatsMetricsV1, VCF_METRICS_CATALOG, VCF_PARAMS_CATALOG,
         VCF_STAGE_ORDER_DOWNSTREAM,
     };
 
@@ -236,6 +236,14 @@ mod contracts {
                 "bijux.vcf.stats.v1",
             ]
         );
+    }
+
+    #[test]
+    fn stats_metrics_constructor_preserves_sample_identity() {
+        let metrics = VcfStatsMetricsV1::empty_for_sample("HG00096");
+        assert_eq!(metrics.sample_name, "HG00096");
+        assert_eq!(metrics.call_summary.sample_name, "HG00096");
+        assert_eq!(metrics.filter_summary.sample_name, "HG00096");
     }
 
     #[test]
