@@ -46,10 +46,7 @@ fn run_layout_paths_confine_run_id() {
 fn run_stage_dir_confines_stage_and_tool() {
     let base = Path::new("/tmp/bijux");
     let path = bijux_dna_infra::run_stage_dir(base, "run-1", "../stage/a", "/tool/b");
-    assert_eq!(
-        path,
-        base.join("runs").join("run-1").join("stage_a").join("tool_b")
-    );
+    assert_eq!(path, base.join("runs").join("run-1").join("stage_a").join("tool_b"));
 }
 
 #[test]
@@ -88,5 +85,18 @@ fn pipeline_run_dir_confines_dynamic_segments() {
     assert_eq!(
         path,
         PathBuf::from("/tmp/bijux").join("absolute_pipeline").join("sample").join("run_a")
+    );
+}
+
+#[test]
+fn configs_file_confines_relative_inputs() {
+    let root = Path::new("/tmp/bijux");
+    assert_eq!(
+        bijux_dna_infra::configs_file(root, "/runtime/platforms.toml"),
+        root.join("configs").join("runtime").join("platforms.toml")
+    );
+    assert_eq!(
+        bijux_dna_infra::configs_file(root, "../secrets.toml"),
+        root.join("configs").join("secrets.toml")
     );
 }

@@ -1,4 +1,4 @@
-use std::path::{Component, Path};
+use std::path::{Component, Path, PathBuf};
 
 pub(super) fn path_segment(value: &str) -> String {
     let segments = confined_components(value);
@@ -7,6 +7,10 @@ pub(super) fn path_segment(value: &str) -> String {
     } else {
         segments.join("_")
     }
+}
+
+pub(super) fn relative_path(value: &str) -> PathBuf {
+    confined_components(value).into_iter().collect()
 }
 
 fn confined_components(value: &str) -> Vec<String> {
@@ -20,7 +24,11 @@ fn confined_components(value: &str) -> Vec<String> {
                     .map(|ch| if matches!(ch, '/' | '\\' | '\0') { '_' } else { ch })
                     .collect::<String>();
                 let clean = clean.trim();
-                if clean.is_empty() { None } else { Some(clean.to_string()) }
+                if clean.is_empty() {
+                    None
+                } else {
+                    Some(clean.to_string())
+                }
             }
             Component::CurDir | Component::ParentDir | Component::RootDir => None,
             Component::Prefix(_) => None,
