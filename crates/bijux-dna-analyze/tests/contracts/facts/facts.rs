@@ -2,7 +2,9 @@ use bijux_dna_runtime::*;
 use std::fs;
 use std::path::PathBuf;
 
-use bijux_dna_analyze::exports::{summarize_facts, write_run_summary_json};
+use bijux_dna_analyze::exports::{
+    summarize_facts, write_run_summary_json, write_stage_summary_csv,
+};
 use bijux_dna_analyze::load::load_facts;
 
 fn snapshot_name(group: &str, name: &str) -> String {
@@ -89,6 +91,20 @@ fn facts_loader_orders_full_identity_key() -> anyhow::Result<()> {
         rows.iter().map(|row| row.input_hash.as_str()).collect::<Vec<_>>(),
         vec!["input-a", "input-b"]
     );
+    Ok(())
+}
+
+#[test]
+fn stage_summary_csv_quotes_carriage_returns() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let path = dir.path().join("stage_summary.csv");
+    let mut row = facts_row("ih");
+    row.tool_version = "0.23\r4".to_string();
+
+    write_stage_summary_csv(&path, &[row])?;
+    let csv = fs::read_to_string(&path)?;
+
+    assert!(csv.contains("\"0.23\r4\""));
     Ok(())
 }
 
