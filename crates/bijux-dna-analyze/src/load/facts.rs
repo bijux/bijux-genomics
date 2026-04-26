@@ -49,7 +49,7 @@ pub fn load_facts(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeEr
             row.stage_id.as_str(),
             row.tool_id.as_str(),
             row.params_hash.as_str(),
-            "",
+            row.input_hash.as_str(),
         )
     });
     Ok(rows)
@@ -102,7 +102,7 @@ pub fn load_facts_parquet(path: &Path) -> std::result::Result<Vec<FactsRowV1>, A
             row.stage_id.as_str(),
             row.tool_id.as_str(),
             row.params_hash.as_str(),
-            "",
+            row.input_hash.as_str(),
         )
     });
     Ok(rows)
