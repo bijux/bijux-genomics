@@ -11,3 +11,5 @@ mod mod_boundaries_docs_layout_rs;
 mod mod_boundaries_guardrails_rs;
 #[path = "boundaries/plan/guardrails.rs"]
 mod mod_boundaries_plan_guardrails_rs;
+#[path = "boundaries/public_api_docs.rs"]
+mod mod_boundaries_public_api_docs_rs;
