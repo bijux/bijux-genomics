@@ -80,6 +80,6 @@ assumptions:
   - "rRNA reference bank is versioned separately from host and taxonomy databases."
   - "single-end input omits reads_r2 and rrna_filtered_reads_r2; paired-end input preserves mate synchronization."
 bank_hooks:
-  - "none"
+  - "rrna_database_lock"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []
