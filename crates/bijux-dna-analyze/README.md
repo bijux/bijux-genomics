@@ -47,7 +47,8 @@ Outputs:
 - `src/report/`: report construction, rendering, and section assembly
 
 ## How to run its tests
-See `docs/TESTS.md` for the full map. The test tree is split by enduring intent:
+See `docs/COMMANDS.md` for the command source of truth and `docs/TESTS.md` for the full test map.
+The test tree is split by enduring intent:
 - `tests/boundaries.rs`: architecture and public-surface guardrails
 - `tests/contracts.rs`: report, facts, pipeline, and public contract behavior
 - `tests/determinism.rs`: fixture stability guarantees
@@ -55,4 +56,5 @@ See `docs/TESTS.md` for the full map. The test tree is split by enduring intent:
 - `tests/semantics.rs`: ranking and decision semantics
 
 ## Where the docs live
-Primary docs live in `docs/INDEX.md`. Test guidance is in `docs/TESTS.md`.
+Primary docs live in `docs/`. Commands are in `docs/COMMANDS.md`; test guidance is in
+`docs/TESTS.md`.
