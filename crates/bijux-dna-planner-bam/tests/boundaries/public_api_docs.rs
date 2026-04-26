@@ -4,8 +4,8 @@ use std::path::Path;
 #[test]
 fn public_api_docs_match_root_exports() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let docs = std::fs::read_to_string(root.join("docs/PUBLIC_API.md"))
-        .expect("read docs/PUBLIC_API.md");
+    let docs =
+        std::fs::read_to_string(root.join("docs/PUBLIC_API.md")).expect("read docs/PUBLIC_API.md");
 
     assert_eq!(
         markdown_list_after_heading(&docs, "## Public Modules"),
