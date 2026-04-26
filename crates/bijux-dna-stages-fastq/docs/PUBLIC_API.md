@@ -25,6 +25,22 @@ plugin and runtime modules remain private.
 - `runtime_interpretation_for_stage_tool`
 - `runtime_interpretation_stage_ids`
 
+## Observer Parser Exports
+
+The `observer` module re-exports the governed FASTQ parser surface used by
+stage plugins and command/API crates:
+
+- backend metrics: `parse_adapterremoval_metrics`, `parse_fastp_metrics`,
+  `parse_fastqc_summary_metrics`, `parse_multiqc_general_stats_metrics`,
+  `parse_samtools_flagstat_metrics`, `parse_seqkit_tool_metrics`
+- read statistics: `parse_fastqvalidator_count`, `parse_seqkit_stats`,
+  `parse_length_histogram`
+- governed FASTQ reports: `parse_trim_reads_report`,
+  `parse_filter_reads_report`, `parse_filter_low_complexity_report`,
+  `parse_merge_pairs_report`, `parse_deduplicate_report`,
+  `parse_remove_duplicates_report`, `parse_report_qc_report`,
+  `parse_screen_taxonomy_report`, and related stage report parsers
+
 ## Compatibility Rules
 
 - Removing or renaming a public export is breaking.
