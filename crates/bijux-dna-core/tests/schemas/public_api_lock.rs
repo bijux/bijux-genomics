@@ -20,9 +20,21 @@ fn read_public_modules() -> BTreeSet<String> {
                     modules.insert(name.to_string());
                 }
             }
+            let cells = markdown_table_cells(line);
+            if cells.len() >= 2 && cells[0].starts_with('`') && cells[0].ends_with('`') {
+                modules.insert(cells[0].trim_matches('`').to_string());
+            }
         }
     }
     modules
+}
+
+fn markdown_table_cells(line: &str) -> Vec<&str> {
+    let line = line.trim();
+    if !line.starts_with('|') || !line.ends_with('|') {
+        return Vec::new();
+    }
+    line.trim_matches('|').split('|').map(str::trim).collect()
 }
 
 fn read_lib_pub_mods() -> BTreeSet<String> {

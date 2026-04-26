@@ -49,8 +49,10 @@ business logic.
 ## Architecture
 
 - `src/contract/` owns serialized contract families and validation rules.
-- `src/foundation/` owns crate-local canonicalization, hashing, command specs,
-  errors, invariants, measurement, and input assessment helpers.
+- `src/foundation/` owns crate-private canonicalization, hashing, command specs,
+  errors, invariants, measurement, and input assessment helpers that are exposed
+  through stable public modules and prelude groups when downstream crates need
+  them.
 - `src/id_catalog/` owns canonical pipeline, stage, and tool constants.
 - `src/ids/` owns typed identifiers, parsing, and domain models.
 - `src/metrics/` owns metric ids, schemas, registry lookup, and metric payloads.
@@ -60,7 +62,6 @@ business logic.
 ## Allowed `pub` modules
 
 - `contract`
-- `foundation`
 - `id_catalog`
 - `ids`
 - `metrics`
