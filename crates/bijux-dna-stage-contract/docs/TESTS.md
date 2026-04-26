@@ -10,12 +10,16 @@ contract intent, with taxonomy documented here instead of in `tests/README.md` p
 - `tests/determinism.rs`: fixture and stable-output checks.
 - `tests/schemas.rs`: public type and schema snapshots.
 - `tests/guardrails.rs`: shared policy guardrail smoke coverage.
+- `tests/support/workspace_paths.rs`: shared repository path helpers used by
+  integration suites.
 
 ## Suite Directories
 - `tests/boundaries/guardrails/`: no process execution and layout ownership checks.
 - `tests/contracts/versioning/`: semantic-version and SSOT versioning contracts.
 - `tests/determinism/`: fixture stability checks.
 - `tests/schemas/schema/`: public type, docs, and schema snapshot checks.
+- `tests/support/`: helper modules only; files here must not become standalone
+  integration test targets.
 
 ## No-Execution Boundary
 The no-execution scan forbids process spawning and runtime effects in this crate. Stage execution
