@@ -11,7 +11,7 @@ pub(super) use placeholders::{
     placeholders_allowed,
 };
 pub(super) use render::{encode_f64_map, encode_threshold_map, generated_header, toml_array};
-pub(super) use repository::{domain_content_hash, git_head_commit};
+pub(super) use repository::{collect_yaml_files, domain_content_hash, git_head_commit};
 pub(super) use status::{
     ensure_status, is_tool_meaningful_in_domain, is_umbrella_stage, scope_active,
 };
