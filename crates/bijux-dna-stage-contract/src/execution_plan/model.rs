@@ -98,6 +98,9 @@ impl ExecutionPlan {
                     stage.stage_id.0
                 ));
             }
+            if stage.command.template.is_empty() {
+                return Err(anyhow!("stage {} missing command template", stage.stage_id.0));
+            }
             if stage.params.is_null() {
                 return Err(anyhow!("stage {} missing parameters_json", stage.stage_id.0));
             }
