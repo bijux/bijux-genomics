@@ -21,6 +21,7 @@ struct ScenarioRunner {
     mode: Mode,
     write_required_artifacts: bool,
     invalid_run_artifact: Option<&'static str>,
+    metrics_envelope_payload: Option<&'static str>,
     write_outputs: bool,
     output_payload: &'static str,
     cancel_on_first_attempt: Option<CancellationToken>,
@@ -49,6 +50,7 @@ impl ScenarioRunner {
             mode,
             write_required_artifacts: true,
             invalid_run_artifact: None,
+            metrics_envelope_payload: None,
             write_outputs: true,
             output_payload: "{}",
             cancel_on_first_attempt: None,
@@ -77,6 +79,9 @@ impl Runner for ScenarioRunner {
                     if self.invalid_run_artifact == Some(name) { "not-json" } else { "{}" };
                 bijux_dna_infra::write_bytes(run_artifacts.join(name), payload)?;
             }
+        }
+        if let Some(payload) = self.metrics_envelope_payload {
+            bijux_dna_infra::write_bytes(run_artifacts.join("metrics_envelope.json"), payload)?;
         }
 
         if self.write_outputs {
@@ -233,6 +238,23 @@ fn execute_plan_reports_timeout_and_contract_errors() {
         .err()
         .unwrap_or_else(|| panic!("expected missing metrics_envelope contract error"));
     assert!(missing_envelope_err.to_string().contains("missing metrics_envelope.json"));
+}
+
+#[test]
+fn metrics_envelope_schema_must_match_declared_schema_ids() {
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
+    let mut step = plan_for("A");
+    step.metrics_schema_ids = vec!["schema.v1".to_string()];
+    let graph = build_graph(vec![step], Vec::new());
+    let mut runner = ScenarioRunner::new(Mode::Success);
+    runner.metrics_envelope_payload =
+        Some(r#"{"metrics":{"metrics_schema":"other.v1"},"schema_version":"bijux.metrics_envelope.v2"}"#);
+
+    let err = Engine::default()
+        .execute(&graph, &runner, &layout, None, None)
+        .err()
+        .unwrap_or_else(|| panic!("expected metrics schema mismatch"));
+    assert!(err.to_string().contains("metrics schema other.v1 not declared"));
 }
 
 #[test]
