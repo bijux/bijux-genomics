@@ -286,6 +286,24 @@ fn expected_artifact_ids_must_be_declared_outputs() {
 }
 
 #[test]
+fn unsupported_parallelism_config_is_rejected() {
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
+    let graph = build_graph(vec![plan_for("A")], Vec::new());
+    let engine = Engine::new(EngineConfig {
+        step_timeout_s: None,
+        deterministic_scheduler: true,
+        retry_policy: None,
+        max_parallelism: Some(2),
+    });
+
+    let err = engine
+        .execute(&graph, &ScenarioRunner::new(Mode::Success), &layout, None, None)
+        .err()
+        .unwrap_or_else(|| panic!("expected unsupported parallelism failure"));
+    assert!(err.to_string().contains("max_parallelism > 1"));
+}
+
+#[test]
 fn report_json_outputs_must_be_parseable_json() {
     let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
     let mut step = plan_for("A");

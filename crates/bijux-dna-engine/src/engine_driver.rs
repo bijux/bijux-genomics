@@ -28,6 +28,7 @@ impl Engine {
         hooks: Option<&dyn EngineHooks>,
         cancel: Option<&CancellationToken>,
     ) -> Result<RunRecordV1> {
+        self.config.validate()?;
         let graph = apply_engine_config(graph, &self.config);
         executor::execute_plan(&graph, runner, hooks, cancel)
     }
