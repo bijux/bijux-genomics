@@ -48,7 +48,7 @@ fn crate_tree_matches_domain_vcf_boundary() {
     assert_eq!(dir_entries(&root.join("src")), expected_src, "source tree changed");
 
     let expected_tests: BTreeSet<_> =
-        ["boundaries/", "boundaries.rs", "contracts.rs", "guardrails.rs"]
+        ["boundaries/", "boundaries.rs", "contracts.rs", "guardrails.rs", "public_api_docs.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();
