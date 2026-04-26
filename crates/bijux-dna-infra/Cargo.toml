@@ -18,6 +18,7 @@ tracing-appender.workspace = true
 tracing-subscriber = { workspace = true, optional = true }
 
 [dev-dependencies]
+anyhow.workspace = true
 bijux-dna-policies.workspace = true
 insta.workspace = true
 regex.workspace = true

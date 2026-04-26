@@ -552,6 +552,7 @@ dependencies = [
 name = "bijux-dna-infra"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "bijux-dna-policies",
  "bijux-dna-testkit",
  "fs4",
