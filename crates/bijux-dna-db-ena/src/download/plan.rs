@@ -1,5 +1,6 @@
 use super::{output_layout, DownloadConfig, DownloadTask};
 use crate::model::EnaRecord;
+use std::collections::BTreeSet;
 
 #[must_use]
 pub(super) fn build_download_tasks(
@@ -7,6 +8,7 @@ pub(super) fn build_download_tasks(
     config: &DownloadConfig,
 ) -> Vec<DownloadTask> {
     let mut tasks = Vec::new();
+    let mut seen_outputs = BTreeSet::new();
 
     for record in records {
         let urls = record.preferred_urls(config.source, config.preference);
@@ -14,6 +16,9 @@ pub(super) fn build_download_tasks(
             let file = output_layout::file_name_from_url(&url);
             let accession = record.accession_label();
             let output = config.output_dir.join(&accession).join(file);
+            if !seen_outputs.insert(output.clone()) {
+                continue;
+            }
             tasks.push(DownloadTask {
                 project: record.study_accession.clone(),
                 sample: record.sample_accession.clone(),
