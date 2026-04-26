@@ -17,8 +17,10 @@ fn collect_rs_files(root: &Path, files: &mut Vec<std::path::PathBuf>) {
 
 #[test]
 fn cli_does_not_spawn_processes() {
+    let src = super::support::crate_src("bijux-dna")
+        .unwrap_or_else(|err| panic!("resolve bijux-dna src: {err}"));
     let mut files = Vec::new();
-    collect_rs_files(Path::new("../../../src"), &mut files);
+    collect_rs_files(&src, &mut files);
     let mut offenders = Vec::new();
     let needles = [
         concat!("std::process::", "Command"),
