@@ -17,7 +17,7 @@ use crate::params::{
 };
 
 mod specs;
-pub use specs::{required_audit_artifacts, stage_spec, stage_specs};
+pub use specs::{required_audit_artifacts, stage_spec, stage_spec_opt, stage_specs};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BamArtifactKind {

@@ -7,7 +7,7 @@ use bijux_dna_domain_bam::metrics::{
 };
 use bijux_dna_domain_bam::pipeline_contract::{forbidden_transitions, optional_branches};
 use bijux_dna_domain_bam::{
-    required_audit_artifacts, stage_contract_json, stage_spec, BamStage,
+    required_audit_artifacts, stage_contract_json, stage_spec, stage_spec_opt, BamStage,
 };
 
 fn fixture_path(name: &str) -> PathBuf {
@@ -60,7 +60,9 @@ fn every_stage_contract_names_responsible_tools() {
 #[test]
 fn bam_stages_meet_completeness_contract() {
     for stage in BamStage::all() {
-        let spec = stage_spec(*stage);
+        let spec = stage_spec_opt(*stage)
+            .unwrap_or_else(|| panic!("stage {} missing spec", stage.as_str()));
+        assert_eq!(stage_spec(*stage).stage, spec.stage);
         let audit = required_audit_artifacts(*stage);
         assert!(!audit.is_empty(), "stage {} missing audit artifacts", stage.as_str());
         assert!(
