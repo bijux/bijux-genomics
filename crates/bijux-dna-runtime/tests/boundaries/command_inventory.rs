@@ -27,7 +27,7 @@ fn command_inventory_documents_no_runtime_commands() {
     );
     assert!(
         !root.join("src").join("bin").exists(),
-        "bijux-dna-runtime must not define src/bin command entrypoints"
+        "bijux-dna-runtime must not define Cargo binary targets"
     );
     assert_eq!(
         documented_entrypoints(&content),

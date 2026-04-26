@@ -23,7 +23,7 @@ fn command_inventory_documents_runner_backend_commands() {
     );
     assert!(
         !root.join("src").join("bin").exists(),
-        "bijux-dna-runner must not define src/bin CLI entrypoints"
+        "bijux-dna-runner must not define Cargo binary targets"
     );
     assert_eq!(
         documented_commands(&content),
