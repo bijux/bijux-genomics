@@ -174,11 +174,17 @@ fn vcf_planner_refuses_edna_or_pollen_domain() {
     let mut input = base_inputs(CoverageRegime::LowCovGl);
     input.pipeline_domain = "edna".to_string();
     let err = plan_vcf_stage_plans(&input).expect_err("edna domain must be refused");
-    assert!(
-        err.to_string().contains("eDNA/pollen")
-            || err.to_string().contains("non-applicable domain"),
-        "unexpected refusal message: {err}"
-    );
+    assert!(err.to_string().contains("eDNA/pollen"), "unexpected refusal message: {err}");
+}
+
+#[test]
+fn vcf_planner_refuses_pollen_domain_with_science_specific_message() {
+    let mut input = base_inputs(CoverageRegime::LowCovGl);
+    input.pipeline_domain = "ancient_pollen".to_string();
+
+    let err = plan_vcf_stage_plans(&input).expect_err("pollen domain must be refused");
+
+    assert!(err.to_string().contains("eDNA/pollen"), "unexpected refusal message: {err}");
 }
 
 #[test]
