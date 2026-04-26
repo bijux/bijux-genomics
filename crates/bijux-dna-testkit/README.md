@@ -8,6 +8,17 @@ The crate is deliberately not a production dependency owner. It must not contain
 domain semantics, product runtime behavior, CLI adapters, process execution, or
 network access.
 
+## What this crate does
+
+This crate owns deterministic test-only helpers for clocks, seeded randomness,
+fixture loading, snapshot normalization, temporary paths, and workspace-aware
+test text loading.
+
+## Boundaries
+
+This crate does not own production domain semantics, runtime behavior, CLI
+adapters, process execution, or network access.
+
 ## Public Surface
 
 - `determinism`: fixed clocks, seeded RNG, timestamp-field stripping, and stable
@@ -34,7 +45,7 @@ Key docs:
 - [docs/SNAPSHOT_POLICY.md](docs/SNAPSHOT_POLICY.md): fixture and snapshot rules.
 - [docs/TESTS.md](docs/TESTS.md): local verification commands.
 
-## Verification
+## Tests
 
 ```sh
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --no-default-features

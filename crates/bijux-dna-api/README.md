@@ -8,7 +8,7 @@ This crate follows repository governance documentation. `README.md` and
 `README.md`; re-read those files before editing this child
 repository and before committing.
 
-## Scope
+## What this crate does
 
 This crate owns:
 
@@ -20,11 +20,15 @@ This crate owns:
   selection, benchmark runtime selection, and QA gates under `src/support/`.
 - Private handler wiring under `src/internal/`.
 
+## Boundaries
+
 This crate does not own domain algorithms, planner semantics, runner command
 execution, environment discovery, or analyzer storage internals. Those contracts
 belong to their dedicated crates and are consumed here through typed APIs.
+Declared effects are limited to runtime/reporting/audit paths documented in
+`docs/EFFECTS.md` and the command contracts.
 
-## Public Commands
+## Public entrypoints
 
 The SSOT for callable API operations is `docs/COMMANDS.md`. The main managed
 commands are:
@@ -41,7 +45,7 @@ commands are:
 - `workspace-edges`
 - `write-workspace-audit`
 
-## Architecture
+## Contracts and operating rules
 
 - `src/lib.rs` exposes `pub mod v1` and keeps all other modules crate-private.
 - `src/v1/` is the only stable public namespace.
@@ -70,7 +74,7 @@ under `docs/`, with a 10-document allowance enforced by the boundary tests:
 - `docs/SECURITY.md`
 - `docs/TESTS.md`
 
-## Verification
+## Tests
 
 Run crate checks from the `bijux-genomics` repository root:
 
@@ -80,3 +84,6 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-api --test bound
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-api --test schemas --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-api --test contracts --no-default-features
 ```
+
+Primary test entrypoints are `tests/boundaries.rs`, `tests/schemas.rs`, and
+`tests/contracts.rs`.

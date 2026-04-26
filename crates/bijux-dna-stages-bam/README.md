@@ -8,6 +8,11 @@ This crate follows repository governance documentation. `README.md` and
 `README.md`; re-read those files before editing this child
 repository and before committing.
 
+## What this crate does
+
+This crate owns BAM stage contract exports, observer parser exports, and
+deterministic metrics-envelope materialization for already-planned BAM stages.
+
 ## Boundary
 
 This crate does not plan workflows, choose tools, assemble shell commands,

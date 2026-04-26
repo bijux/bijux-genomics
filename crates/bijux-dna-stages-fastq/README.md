@@ -8,6 +8,12 @@ This crate follows repository governance documentation. `README.md` and
 `README.md`; re-read those files before editing this child
 repository and before committing.
 
+## What this crate does
+
+This crate owns FASTQ stage contract exports, observer-side parsing, stage
+metrics normalization, and stage-plugin output envelopes for already-planned
+FASTQ stages.
+
 ## Boundary
 
 This crate does not plan workflows, choose tools, assemble shell commands,
