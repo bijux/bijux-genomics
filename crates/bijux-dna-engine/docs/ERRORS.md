@@ -25,6 +25,12 @@ Guaranteed fields:
 - `artifact_id`
 - `path`
 
+Examples:
+- missing or empty declared output
+- invalid JSON for JSON-typed outputs or required run artifacts
+- missing or schema-mismatched `metrics_envelope.json`
+- `expected_artifact_ids` entries that are not declared as outputs
+
 ## Execution errors
 Execution errors wrap runner failures and orchestration failures.
 Guaranteed fields:
