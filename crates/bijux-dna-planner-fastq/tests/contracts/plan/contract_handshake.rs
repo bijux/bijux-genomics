@@ -7,7 +7,8 @@ use bijux_dna_core::prelude::{
 use bijux_dna_planner_fastq::stage_api::default_tool_for_stage;
 use bijux_dna_planner_fastq::{
     compose_fastq_stage_bindings, default_pipeline_spec, DefaultPipelineOptions, FastqStageBinding,
-    FastqStageParameters, FilterReadsStageParams,
+    FastqStageParameters, FilterReadsStageParams, StageArtifactInputBinding,
+    StageArtifactInputPolicy,
 };
 use bijux_dna_stage_contract::{default_edges_for_stages, ExecutionPlan, PlanValidationContext};
 
@@ -249,5 +250,43 @@ fn compose_rejects_params_from_wrong_stage_variant() -> anyhow::Result<()> {
     .expect_err("stage params from a different stage must be rejected");
 
     assert!(error.to_string().contains("received FilterReads parameters"));
+    Ok(())
+}
+
+#[test]
+fn compose_rejects_report_artifact_bound_as_reads() -> anyhow::Result<()> {
+    let bindings =
+        vec![binding_for_stage("fastq.validate_reads"), binding_for_stage("fastq.trim_reads")];
+    let mut explicit_inputs = StageArtifactInputPolicy::new();
+    explicit_inputs.insert(
+        "fastq.trim_reads".to_string(),
+        vec![StageArtifactInputBinding {
+            from_stage_node_id: "fastq.validate_reads".to_string(),
+            from_output_id: "validation_report".to_string(),
+            to_input_id: "reads_r1".to_string(),
+        }],
+    );
+    let temp = bijux_dna_infra::temp_dir("fastq-plan-artifact-role")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let error = compose_fastq_stage_bindings(
+        &bindings,
+        &BTreeMap::new(),
+        None,
+        None,
+        None,
+        false,
+        &r1,
+        None,
+        None,
+        Some(&explicit_inputs),
+        |binding, _r1, _r2| {
+            Ok(temp.path().join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
+        },
+    )
+    .expect_err("report JSON must not satisfy reads_r1");
+
+    assert!(error.to_string().contains("has role report_json"));
     Ok(())
 }

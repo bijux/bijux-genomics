@@ -20,6 +20,7 @@ pub use bijux_dna_domain_fastq::{
     STAGE_TRIM_READS, STAGE_TRIM_TERMINAL_DAMAGE, STAGE_VALIDATE_READS,
 };
 
+pub use crate::compose::{StageArtifactInputBinding, StageArtifactInputPolicy};
 pub use crate::pipeline_defaults::{default_pipeline_spec, DefaultPipelineOptions};
 pub(crate) use crate::pipeline_defaults::{pipeline_spec_from_stage_catalog, required_id_catalog};
 pub use crate::planner::*;
