@@ -21,5 +21,5 @@ mod mod_boundaries_effects_boundary_rs;
 mod mod_boundaries_guardrails_rs;
 #[path = "boundaries/public_api_docs.rs"]
 mod mod_boundaries_public_api_docs_rs;
-#[path = "workspace_paths.rs"]
+#[path = "support/workspace_paths.rs"]
 mod support;
