@@ -47,10 +47,10 @@ fn execution_identity_defaults_to_stage_and_step_ids() {
 
 #[test]
 fn image_version_inference_distinguishes_registry_ports_from_tags() {
-    assert_eq!(infer_tool_version_from_image("bijux/fastqc:0.12.1"), "0.12.1");
-    assert_eq!(infer_tool_version_from_image("localhost:5000/bijux/fastqc:0.12.1"), "0.12.1");
-    assert_eq!(infer_tool_version_from_image("localhost:5000/bijux/fastqc"), "unknown");
-    assert_eq!(infer_tool_version_from_image("bijux/fastqc:latest@sha256:abc123"), "unknown");
+    assert_eq!(infer_tool_version_from_image("bijux/toolx:0.12.1"), "0.12.1");
+    assert_eq!(infer_tool_version_from_image("localhost:5000/bijux/toolx:0.12.1"), "0.12.1");
+    assert_eq!(infer_tool_version_from_image("localhost:5000/bijux/toolx"), "unknown");
+    assert_eq!(infer_tool_version_from_image("bijux/toolx:latest@sha256:abc123"), "unknown");
 }
 
 #[test]
