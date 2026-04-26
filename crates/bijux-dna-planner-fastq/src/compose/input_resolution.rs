@@ -166,7 +166,6 @@ pub(super) fn explicit_report_qc_inputs(
         .iter()
         .filter(|input| input.to_input_id == "qc_artifacts")
         .map(|input| {
-            ensure_governed_qc_artifact(input)?;
             ensure_input_role(
                 input,
                 "qc_artifacts",
@@ -180,6 +179,7 @@ pub(super) fn explicit_report_qc_inputs(
                     ArtifactRole::Index,
                 ],
             )?;
+            ensure_governed_qc_artifact(input)?;
             Ok(super::report_qc_input_artifact(&input.source_stage_node_id, &input.artifact, None))
         })
         .collect::<Result<Vec<_>>>()?;
