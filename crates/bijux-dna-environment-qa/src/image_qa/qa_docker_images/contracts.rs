@@ -90,6 +90,17 @@ fn image_exists_false_when_docker_fails() -> Result<(), Box<dyn std::error::Erro
 }
 
 #[test]
+fn image_exists_rejects_empty_image_names() {
+    let runner = FakeRunner {
+        output: Output { status: exit_status(0), stdout: Vec::new(), stderr: Vec::new() },
+    };
+    let error = image_exists(&runner, " ")
+        .err()
+        .unwrap_or_else(|| panic!("expected empty image rejection"));
+    assert!(error.to_string().contains("image name is empty"));
+}
+
+#[test]
 fn run_container_command_captures_stdout() -> Result<(), Box<dyn std::error::Error>> {
     let runner = FakeRunner {
         output: Output {
