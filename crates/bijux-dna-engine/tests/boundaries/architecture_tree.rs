@@ -52,13 +52,19 @@ fn engine_tree_matches_architecture_contract() {
         entries([
             "OWNER.toml",
             "contracts/",
-            "graph.rs",
+            "facade.rs",
+            "graph/",
             "mod.rs",
             "recording/",
             "step_execution/",
-            "topology.rs",
         ]),
         "executor tree must stay partitioned by execution concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/executor/graph")),
+        entries(["mod.rs", "topology.rs"]),
+        "executor graph tree must keep normalization and ordering together"
     );
 
     assert_eq!(
