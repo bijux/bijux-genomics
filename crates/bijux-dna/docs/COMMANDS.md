@@ -1,13 +1,15 @@
 # bijux-dna Commands
 
-`COMMANDS.md` is the single source of truth for command names managed by this crate. Parser types
-live under `src/commands/cli/parse/`; routing lives under `src/commands/router/` and
-domain-specific command adapters under `src/commands/*/`.
+This file is the single source of truth for commands managed by the `bijux-dna` crate. Parser types
+live under `src/commands/cli/parse/`, routing lives under `src/commands/router/`, and command
+adapters live under `src/commands/*/`.
 
-## Managed Command Inventory
+Commands listed here are owned by this crate even when their durable behavior is delegated to
+`bijux-dna-api` or support crates.
 
-### Stable operator commands
+## Stable Operator Commands
 
+### Environment
 - `bijux-dna env images`
 - `bijux-dna env info`
 - `bijux-dna env doctor`
@@ -17,11 +19,13 @@ domain-specific command adapters under `src/commands/*/`.
 - `bijux-dna env export-hpc`
 - `bijux-dna env sif-inventory`
 - `bijux-dna env ensure`
-- `bijux-dna env apptainer-qa-matrix`
 - `bijux-dna env ensure-images`
 - `bijux-dna env lint-apptainer-defs`
 - `bijux-dna env smoke`
 - `bijux-dna env prep`
+- `bijux-dna env apptainer-qa-matrix`
+
+### Registry
 - `bijux-dna registry list-tools`
 - `bijux-dna registry list-stages`
 - `bijux-dna registry show-tool`
@@ -35,23 +39,53 @@ domain-specific command adapters under `src/commands/*/`.
 - `bijux-dna registry doctor`
 - `bijux-dna registry promote`
 - `bijux-dna registry lint`
+
+### Corpus
 - `bijux-dna corpus materialize`
 - `bijux-dna corpus normalize`
 - `bijux-dna corpus validate`
 - `bijux-dna corpus list`
 - `bijux-dna corpus diff`
+
+### Status
 - `bijux-dna status`
+
+### FASTQ Run Surface
+The public FASTQ command family is mounted under `run`.
+
+- `bijux-dna run list-stages`
+- `bijux-dna run stages`
+- `bijux-dna run doctor`
+- `bijux-dna run list-tools`
+- `bijux-dna run explain`
+- `bijux-dna run validate-pre`
+- `bijux-dna run trim`
 - `bijux-dna run filter`
 - `bijux-dna run merge`
-- `bijux-dna run trim`
+- `bijux-dna run contam`
+- `bijux-dna run stats-neutral`
+- `bijux-dna run umi`
+- `bijux-dna run error-correct`
+- `bijux-dna run qc`
+- `bijux-dna run align`
 - `bijux-dna run preprocess`
 - `bijux-dna run run`
-- `bijux-dna run stats-neutral`
-- `bijux-dna run validate-pre`
 - `bijux-dna run compare`
+
+Visible aliases are part of the operator surface:
+
+- `bijux-dna run validate` aliases `bijux-dna run validate-pre`.
+- `bijux-dna run stats` aliases `bijux-dna run stats-neutral`.
+
+### Pipeline Profiles
 - `bijux-dna plan list`
 - `bijux-dna plan explain`
-- `bijux-dna plan plan`
+- `bijux-dna plan explain-profile`
+- `bijux-dna plan validate-profile`
+- `bijux-dna plan profile-diff`
+- `bijux-dna plan audit`
+
+### Analysis And Explanation
 - `bijux-dna analyze runs`
 - `bijux-dna analyze summary`
 - `bijux-dna analyze compare`
@@ -66,6 +100,8 @@ domain-specific command adapters under `src/commands/*/`.
 - `bijux-dna explain report`
 - `bijux-dna explain metrics`
 - `bijux-dna explain bench`
+
+### Benchmarking
 - `bijux-dna bench config validate`
 - `bijux-dna bench run`
 - `bijux-dna bench status`
@@ -79,10 +115,11 @@ domain-specific command adapters under `src/commands/*/`.
 - `bijux-dna bench corpus-fastq-report`
 - `bijux-dna bench corpus-fastq-publication-status`
 - `bijux-dna bench corpus-fastq-published-dossiers`
-- `bijux-dna bench fastq trim`
+- `bijux-dna bench schema`
+- `bijux-dna bench fastq trim-reads`
 - `bijux-dna bench fastq trim-polyg-tails`
 - `bijux-dna bench fastq trim-terminal-damage`
-- `bijux-dna bench fastq validate`
+- `bijux-dna bench fastq validate-reads`
 - `bijux-dna bench fastq detect-adapters`
 - `bijux-dna bench fastq profile-read-lengths`
 - `bijux-dna bench fastq filter`
@@ -98,17 +135,27 @@ domain-specific command adapters under `src/commands/*/`.
 - `bijux-dna bench fastq report-qc`
 - `bijux-dna bench fastq umi`
 - `bijux-dna bench fastq index-reference`
-- `bijux-dna bench fastq screen`
+- `bijux-dna bench fastq screen-taxonomy`
 - `bijux-dna bench fastq deplete-host`
 - `bijux-dna bench fastq deplete-reference-contaminants`
 - `bijux-dna bench fastq deplete-rrna`
-- `bijux-dna bench fastq stats`
+- `bijux-dna bench fastq profile-reads`
 - `bijux-dna bench fastq profile-overrepresented-sequences`
 - `bijux-dna bench fastq preprocess`
 - `bijux-dna bench bam stage`
 - `bijux-dna bench bam pipeline`
 
-### Debug/development commands
+Visible FASTQ benchmark aliases are allowed for operator convenience, but canonical docs and tests
+should prefer the long names above:
+
+- `trim` for `trim-reads`
+- `validate` for `validate-reads`
+- `qc-post` for `report-qc`
+- `screen` for `screen-taxonomy`
+- `stats` for `profile-reads`
+- `overrepresented` for `profile-overrepresented-sequences`
+
+## Debug And Repository-Control Commands
 
 These commands are hidden in non-debug builds or exist for repository control-plane work:
 
@@ -139,12 +186,19 @@ These commands are hidden in non-debug builds or exist for repository control-pl
 ## Ownership Rules
 
 - Add a command here in the same change that adds a parser variant.
-- Keep command implementation in the smallest matching `src/commands/*` owner.
+- Keep implementation in the smallest matching `src/commands/*` owner.
 - Use `bijux-dna-api` for planning, reporting, domain semantics, and execution contracts.
 - Update help snapshots when visible help output changes.
+- Prefer canonical command names in docs and tests; list aliases only when they are intentionally
+  supported.
 
 ## Verification
 
-- Command parser changes: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test contracts --no-default-features`
-- Help text changes: update and review `tests/snapshots/*.txt`
-- Command inventory changes: update this file and run the docs policy suite.
+- Parser changes:
+
+```text
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test contracts --no-default-features
+```
+
+- Help text changes: update and review `tests/snapshots/*.txt`.
+- Command inventory changes: run the docs and boundary policy checks.
