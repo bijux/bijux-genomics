@@ -270,6 +270,23 @@ fn artifact_checksums_emit_deterministic_sha256_ledger() {
 }
 
 #[test]
+fn tool_invocation_writer_rejects_stage_id_path_separators() {
+    let dir = std::env::temp_dir().join("runtime_tool_invocation_path_contract");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
+
+    let err = bijux_dna_runtime::recording::write_tool_invocation_json(
+        &dir,
+        "../fastq.trim_reads",
+        &tool_invocation_fixture(),
+    )
+    .err()
+    .unwrap_or_else(|| panic!("expected invalid tool invocation stage id"));
+
+    assert!(err.to_string().contains("file stem"), "unexpected invocation path error: {err}");
+}
+
+#[test]
 fn atomic_writer_preserves_existing_tmp_sibling_files() {
     let dir = std::env::temp_dir().join("runtime_atomic_tmp_contract");
     let _ = std::fs::remove_dir_all(&dir);
@@ -286,6 +303,34 @@ fn atomic_writer_preserves_existing_tmp_sibling_files() {
         std::fs::read(&target).unwrap_or_else(|e| panic!("read target: {e}")),
         b"{\"ok\":true}"
     );
+}
+
+fn tool_invocation_fixture() -> bijux_dna_core::metrics::ToolInvocationV1 {
+    bijux_dna_core::metrics::ToolInvocationV1 {
+        schema_version: "bijux.tool_invocation.v1".to_string(),
+        contract_version: bijux_dna_core::contract::ContractVersion::v1(),
+        stage_id: bijux_dna_core::ids::StageId::new("fastq.trim_reads"),
+        tool_id: bijux_dna_core::ids::ToolId::new("fastp"),
+        tool_version: "1.0".to_string(),
+        resolved_tool_version: None,
+        image_digest: "sha256:img".to_string(),
+        runner_kind: "docker".to_string(),
+        platform: "local".to_string(),
+        parameters_json: serde_json::json!({}),
+        parameters_json_normalized: serde_json::json!({}),
+        effective_params_json: serde_json::json!({}),
+        effective_params_json_normalized: serde_json::json!({}),
+        params_provenance: serde_json::json!({}),
+        params_provenance_normalized: serde_json::json!({}),
+        adapter_bank: None,
+        banks: None,
+        bank_assets: None,
+        resources: bijux_dna_core::contract::ToolConstraints::default(),
+        environment: BTreeMap::default(),
+        input_hashes: vec!["sha256:input".to_string()],
+        output_hashes: vec!["sha256:output".to_string()],
+        executed_command: None,
+    }
 }
 
 #[test]
