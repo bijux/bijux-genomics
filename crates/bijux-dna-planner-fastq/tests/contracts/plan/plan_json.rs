@@ -158,7 +158,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("stage__fastq__fastq.trim_terminal_damage", &plan)?;
 
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads::plan_filter(
-        &domain_tool("fastq.filter_reads", "seqkit"),
+        &domain_tool("fastq.filter_reads", "fastp"),
         r1,
         None,
         out_dir,

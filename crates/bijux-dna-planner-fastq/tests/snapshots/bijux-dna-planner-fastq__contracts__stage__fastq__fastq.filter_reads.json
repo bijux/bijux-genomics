@@ -1,29 +1,31 @@
 {
   "stage_id": "fastq.filter_reads",
-  "stage_instance_id": "fastq.filter_reads.tool.seqkit",
+  "stage_instance_id": "fastq.filter_reads.tool.fastp",
   "stage_version": 1,
-  "tool_id": "seqkit",
+  "tool_id": "fastp",
   "tool_version": "domain-manifest",
   "image": {
-    "image": "bijuxdna/seqkit",
+    "image": "bijuxdna/fastp",
     "digest": null
   },
   "command": {
     "template": [
-      "seqkit",
-      "seq",
-      "-m",
-      "1",
-      "-o",
-      "out/seqkit.fastq.gz",
-      "reads_R1.fastq.gz"
+      "fastp",
+      "--in1",
+      "reads_R1.fastq.gz",
+      "--out1",
+      "out/fastp.fastq.gz",
+      "--thread",
+      "4",
+      "--json",
+      "out/fastp.filter.json"
     ]
   },
   "resources": {
     "runtime": "local",
-    "mem_gb": 4,
-    "tmp_gb": 2,
-    "threads": 2
+    "mem_gb": 8,
+    "tmp_gb": 4,
+    "threads": 4
   },
   "io": {
     "inputs": [
@@ -37,7 +39,7 @@
     "outputs": [
       {
         "name": "filtered_reads_r1",
-        "path": "out/seqkit.fastq.gz",
+        "path": "out/fastp.fastq.gz",
         "role": "reads",
         "optional": false
       },
@@ -59,15 +61,15 @@
     "max_n": null,
     "max_n_count": null,
     "max_n_fraction": null,
-    "output_r1": "out/seqkit.fastq.gz",
+    "output_r1": "out/fastp.fastq.gz",
     "output_r2": null,
     "polyx_policy": null,
-    "raw_backend_report": null,
-    "raw_backend_report_format": null,
+    "raw_backend_report": "out/fastp.filter.json",
+    "raw_backend_report_format": "fastp_json",
     "redundant_filters": [],
     "report_json": "out/filter_report.json",
-    "threads": 2,
-    "tool": "seqkit"
+    "threads": 4,
+    "tool": "fastp"
   },
   "effective_params": {
     "contaminant_db": null,
@@ -79,7 +81,7 @@
     "n_policy": null,
     "paired_mode": "single_end",
     "polyx_policy": null,
-    "threads": 2
+    "threads": 4
   },
   "aux_images": {},
   "reason": {
