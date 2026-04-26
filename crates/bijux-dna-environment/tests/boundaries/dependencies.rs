@@ -8,17 +8,11 @@ fn dependency_graph_matches_environment_boundary() {
         .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
 
     let dependencies = section_keys(&manifest, "[dependencies]");
-    let expected_dependencies: BTreeSet<_> = [
-        "anyhow",
-        "bijux-dna-infra",
-        "regex",
-        "serde",
-        "sha2",
-        "thiserror",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_dependencies: BTreeSet<_> =
+        ["anyhow", "bijux-dna-infra", "regex", "serde", "sha2", "thiserror"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(dependencies, expected_dependencies, "unexpected direct dependency shape");
 
     let dev_dependencies = section_keys(&manifest, "[dev-dependencies]");
@@ -27,10 +21,7 @@ fn dependency_graph_matches_environment_boundary() {
             .into_iter()
             .map(str::to_string)
             .collect();
-    assert_eq!(
-        dev_dependencies, expected_dev_dependencies,
-        "unexpected dev dependency shape"
-    );
+    assert_eq!(dev_dependencies, expected_dev_dependencies, "unexpected dev dependency shape");
     assert!(
         manifest.contains("bijux-dna-policies.workspace = true"),
         "bijux-dna-policies must use the workspace dependency declaration"

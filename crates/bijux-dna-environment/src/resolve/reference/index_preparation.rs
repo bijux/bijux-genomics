@@ -18,13 +18,7 @@ pub(super) fn prepare_reference_indices(
     if request.build_dict && !dict.exists() {
         commands::run_command(
             "gatk",
-            &[
-                "CreateSequenceDictionary",
-                "-R",
-                path_str(fasta_target)?,
-                "-O",
-                path_str(dict)?,
-            ],
+            &["CreateSequenceDictionary", "-R", path_str(fasta_target)?, "-O", path_str(dict)?],
         )?;
     }
     if request.build_bwa_index && !bwa_prefix.with_extension("bwt").exists() {

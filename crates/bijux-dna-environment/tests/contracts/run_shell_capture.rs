@@ -20,8 +20,7 @@ fn run_shell_capture_preserves_stderr_on_failure() {
 
 #[test]
 fn run_shell_capture_rejects_empty_command() {
-    let error = run_shell_capture("  ")
-        .err()
-        .unwrap_or_else(|| panic!("expected empty command rejection"));
+    let error =
+        run_shell_capture("  ").err().unwrap_or_else(|| panic!("expected empty command rejection"));
     assert!(error.to_string().contains("empty command"));
 }
