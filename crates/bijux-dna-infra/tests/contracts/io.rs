@@ -1,18 +1,12 @@
 use std::collections::BTreeMap;
-use std::ffi::OsString;
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
 
 static CWD_LOCK: Mutex<()> = Mutex::new(());
-static ENV_LOCK: Mutex<()> = Mutex::new(());
 
 fn cwd_lock() -> MutexGuard<'static, ()> {
     CWD_LOCK.lock().unwrap_or_else(|err| panic!("cwd lock poisoned: {err}"))
-}
-
-fn env_lock() -> MutexGuard<'static, ()> {
-    ENV_LOCK.lock().unwrap_or_else(|err| panic!("env lock poisoned: {err}"))
 }
 
 struct CurrentDirGuard {
@@ -30,29 +24,6 @@ impl CurrentDirGuard {
 impl Drop for CurrentDirGuard {
     fn drop(&mut self) {
         let _ = std::env::set_current_dir(&self.previous);
-    }
-}
-
-struct EnvVarGuard {
-    key: &'static str,
-    previous: Option<OsString>,
-}
-
-impl EnvVarGuard {
-    fn set_path(key: &'static str, value: &Path) -> Self {
-        let previous = std::env::var_os(key);
-        std::env::set_var(key, value);
-        Self { key, previous }
-    }
-}
-
-impl Drop for EnvVarGuard {
-    fn drop(&mut self) {
-        if let Some(previous) = &self.previous {
-            std::env::set_var(self.key, previous);
-        } else {
-            std::env::remove_var(self.key);
-        }
     }
 }
 
@@ -179,20 +150,6 @@ fn temp_dir_is_created() -> anyhow::Result<()> {
 }
 
 #[test]
-fn temp_dir_honors_test_tmp_dir() -> anyhow::Result<()> {
-    let _env = env_lock();
-    let base = tempfile::tempdir()?;
-    let test_tmp = base.path().join("artifact-rooted-temp");
-    let _guard = EnvVarGuard::set_path("TEST_TMP_DIR", &test_tmp);
-
-    let dir = bijux_dna_infra::temp_dir("bijux-dna-test")?;
-
-    assert!(dir.path().starts_with(&test_tmp));
-    assert!(dir.path().exists());
-    Ok(())
-}
-
-#[test]
 fn temp_dir_in_creates_base_directory() -> anyhow::Result<()> {
     let base = tempfile::tempdir()?;
     let nested = base.path().join("missing").join("tmp");
@@ -202,6 +159,32 @@ fn temp_dir_in_creates_base_directory() -> anyhow::Result<()> {
     assert!(dir.path().starts_with(&nested));
     assert!(dir.path().exists());
     Ok(())
+}
+
+#[test]
+fn relative_test_tmp_dir_is_independent_of_current_directory() -> anyhow::Result<()> {
+    let Some(test_tmp_dir) = std::env::var_os("TEST_TMP_DIR").map(PathBuf::from) else {
+        return Ok(());
+    };
+    let _cwd = cwd_lock();
+    let workspace_root = workspace_root();
+    let dir = tempfile::tempdir()?;
+    let _guard = CurrentDirGuard::change_to(dir.path())?;
+
+    let temp = bijux_dna_infra::temp_dir("bijux-dna-test")?;
+
+    let expected_root =
+        if test_tmp_dir.is_absolute() { test_tmp_dir } else { workspace_root.join(test_tmp_dir) };
+    assert!(temp.path().starts_with(expected_root));
+    Ok(())
+}
+
+fn workspace_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(|crates_dir| crates_dir.parent())
+        .unwrap_or_else(|| panic!("resolve workspace root from CARGO_MANIFEST_DIR"))
+        .to_path_buf()
 }
 
 #[test]
