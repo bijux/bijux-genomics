@@ -1,3 +1,5 @@
+use std::fmt::Write as _;
+
 #[must_use]
 pub fn param_registry_toml() -> String {
     const HEADER: &str = "# schema_version = 1\n\
@@ -26,8 +28,9 @@ pub fn param_registry_toml() -> String {
             out.push('\n');
         }
         out.push_str("[[params]]\n");
-        out.push_str(&format!("stage_id = \"{stage_id}\"\n"));
-        out.push_str(&format!("param_type_id = \"{param_type_id}\"\n"));
+        writeln!(&mut out, "stage_id = \"{stage_id}\"").expect("writing to String cannot fail");
+        writeln!(&mut out, "param_type_id = \"{param_type_id}\"")
+            .expect("writing to String cannot fail");
         out.push_str("schema_version = \"bijux.vcf.params.v1\"\n");
         out.push_str("params = []\n");
     }

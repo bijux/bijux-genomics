@@ -58,8 +58,7 @@ mod contracts {
             validate_downstream_transition(VcfDomainStage::Filter, VcfDomainStage::Stats).is_ok()
         );
         assert!(
-            validate_downstream_transition(VcfDomainStage::Filter, VcfDomainStage::Filter)
-                .is_err()
+            validate_downstream_transition(VcfDomainStage::Filter, VcfDomainStage::Filter).is_err()
         );
         assert!(validate_downstream_transition(VcfDomainStage::Imputation, VcfDomainStage::Call)
             .is_err());
@@ -307,11 +306,7 @@ mod contracts {
     fn public_metrics_catalog_matches_exported_vcf_metrics() {
         assert_eq!(
             VCF_METRICS_CATALOG,
-            [
-                "bijux.vcf.call_summary.v1",
-                "bijux.vcf.filter_breakdown.v1",
-                "bijux.vcf.stats.v1",
-            ]
+            ["bijux.vcf.call_summary.v1", "bijux.vcf.filter_breakdown.v1", "bijux.vcf.stats.v1",]
         );
     }
 
