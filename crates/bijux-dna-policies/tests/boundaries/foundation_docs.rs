@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 use std::path::{Path, PathBuf};
 
 const FOUNDATION_CRATES: &[&str] = &[
