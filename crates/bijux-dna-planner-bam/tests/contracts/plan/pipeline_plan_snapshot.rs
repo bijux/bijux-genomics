@@ -101,3 +101,34 @@ fn pipeline_plan_snapshots_are_stable() -> Result<()> {
     assert_snapshot("pipeline__bam__bam-to-bam__adna_capture__v1", &payload, temp.path())?;
     Ok(())
 }
+
+#[test]
+fn pipeline_rejects_inputs_for_stages_outside_profile() -> Result<()> {
+    let temp = bijux_dna_infra::temp_dir("bam-invalid-input-map")?;
+    let bam = temp.path().join("sample.bam");
+    std::fs::write(&bam, b"")?;
+    let mut inputs = BamPipelineInputs {
+        policy: PlanPolicy::PreferAccuracy,
+        tool_specs: BTreeMap::new(),
+        params_overrides: BTreeMap::from([(
+            "fastq.trim_reads".to_string(),
+            serde_json::json!({"threads": 1}),
+        )]),
+        bam,
+        bam_index: None,
+        reference: None,
+        sample_id: Some("sample".to_string()),
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    };
+    let error = bijux_dna_planner_bam::plan_bam_to_bam__adna_shotgun__v1(&inputs)
+        .expect_err("foreign params override should fail");
+    assert!(error.to_string().contains("fastq.trim_reads"));
+
+    inputs.params_overrides.clear();
+    inputs.tool_specs.insert("vcf.call".to_string(), dummy_tool("bcftools"));
+    let error = bijux_dna_planner_bam::plan_bam_to_bam__adna_shotgun__v1(&inputs)
+        .expect_err("foreign tool spec should fail");
+    assert!(error.to_string().contains("vcf.call"));
+    Ok(())
+}
