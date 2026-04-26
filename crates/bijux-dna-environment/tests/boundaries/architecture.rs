@@ -1,7 +1,7 @@
 use std::collections::BTreeSet;
 
 #[test]
-fn environment_tree_matches_architecture_contract() {
+fn crate_root_and_docs_match_architecture_contract() {
     let root = crate_root("bijux-dna-environment");
 
     assert_eq!(
@@ -26,6 +26,11 @@ fn environment_tree_matches_architecture_contract() {
         ]),
         "docs must stay within the 10-document allowance"
     );
+}
+
+#[test]
+fn source_tree_matches_architecture_contract() {
+    let root = crate_root("bijux-dna-environment");
 
     assert_eq!(
         dir_entries(&root.join("src")),
@@ -103,6 +108,11 @@ fn environment_tree_matches_architecture_contract() {
         btree_set(&["mod.rs", "stable_surface.rs"]),
         "public api tree must keep the stable surface explicit"
     );
+}
+
+#[test]
+fn test_tree_matches_architecture_contract() {
+    let root = crate_root("bijux-dna-environment");
 
     assert_eq!(
         dir_entries(&root.join("tests")),
