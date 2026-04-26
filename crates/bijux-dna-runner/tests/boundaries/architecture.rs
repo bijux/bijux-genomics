@@ -211,25 +211,19 @@ fn runner_tree_matches_architecture_contract() {
     );
 
     let determinism_test_entries = dir_entries(&root.join("tests/determinism"));
-    let expected_determinism_tests: BTreeSet<_> = [
-        "determinism.rs",
-        "replay/",
-        "replay.rs",
-        "run_id_determinism.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_determinism_tests: BTreeSet<_> =
+        ["determinism.rs", "replay/", "replay.rs", "run_id_determinism.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(
         determinism_test_entries, expected_determinism_tests,
         "runner determinism tests must keep replay coverage grouped"
     );
 
     let replay_test_entries = dir_entries(&root.join("tests/determinism/replay"));
-    let expected_replay_tests: BTreeSet<_> = ["replay_contract.rs", "replay_determinism.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_replay_tests: BTreeSet<_> =
+        ["replay_contract.rs", "replay_determinism.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         replay_test_entries, expected_replay_tests,
         "runner replay tests must stay split by contract and determinism behavior"

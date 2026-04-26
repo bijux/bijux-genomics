@@ -10,10 +10,7 @@ fn backend_invariants_are_documented() {
         fs::read_to_string(&doc).unwrap_or_else(|err| panic!("read EXECUTION_SPEC.md: {err}"));
 
     for invariant in ["cwd", "env", "mounts", "stdout/stderr", "exit semantics"] {
-        assert!(
-            content.contains(invariant),
-            "EXECUTION_SPEC.md missing invariant {invariant}"
-        );
+        assert!(content.contains(invariant), "EXECUTION_SPEC.md missing invariant {invariant}");
     }
 
     assert!(
