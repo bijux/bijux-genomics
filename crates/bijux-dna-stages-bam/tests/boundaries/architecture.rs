@@ -87,6 +87,7 @@ fn stages_bam_tree_matches_architecture_contract() {
         dir_entries(&root.join("tests/boundaries")),
         btree_set(&[
             "architecture.rs",
+            "dependency_graph.rs",
             "docs_layout.rs",
             "guardrails.rs",
             "pipeline_guardrails.rs",
