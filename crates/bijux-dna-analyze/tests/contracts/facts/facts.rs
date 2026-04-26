@@ -9,11 +9,8 @@ fn snapshot_name(group: &str, name: &str) -> String {
     format!("bijux-dna-analyze__{group}__{name}")
 }
 
-#[test]
-fn facts_loader_and_summary_work() -> anyhow::Result<()> {
-    let dir = bijux_dna_infra::temp_dir("bijux")?;
-    let path = dir.path().join("facts.jsonl");
-    let row = FactsRowV1 {
+fn facts_row(input_hash: &str) -> FactsRowV1 {
+    FactsRowV1 {
         schema_version: "bijux.facts.v1".to_string(),
         run_id: "run-1".to_string(),
         stage_id: "fastq.trim_reads".to_string(),
@@ -23,7 +20,7 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
         trace_id: "trace-1".to_string(),
         span_id: "span-1".to_string(),
         params_hash: "ph".to_string(),
-        input_hash: "ih".to_string(),
+        input_hash: input_hash.to_string(),
         output_hashes: vec!["oh".to_string()],
         runtime_s: 1.5,
         memory_mb: 42.0,
@@ -41,7 +38,14 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
             "retention_report": "retention_report.json"
         }),
         artifacts: serde_json::json!({"metrics_envelope": "metrics.json"}),
-    };
+    }
+}
+
+#[test]
+fn facts_loader_and_summary_work() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let path = dir.path().join("facts.jsonl");
+    let row = facts_row("ih");
     let payload = serde_json::to_string(&row)?;
     bijux_dna_infra::write_bytes(&path, format!("{payload}\n"))?;
 
@@ -65,6 +69,26 @@ fn facts_loader_and_summary_work() -> anyhow::Result<()> {
     assert_eq!(summary_json["stage_rows"][0]["image_digest"], "sha256:abc");
     assert_eq!(summary_json["stage_rows"][0]["bank_hashes"]["adapters"], "hash");
 
+    Ok(())
+}
+
+#[test]
+fn facts_loader_orders_full_identity_key() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let path = dir.path().join("facts.jsonl");
+    let row_b = facts_row("input-b");
+    let row_a = facts_row("input-a");
+    bijux_dna_infra::write_bytes(
+        &path,
+        format!("{}\n{}\n", serde_json::to_string(&row_b)?, serde_json::to_string(&row_a)?),
+    )?;
+
+    let rows = load_facts(&path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
+
+    assert_eq!(
+        rows.iter().map(|row| row.input_hash.as_str()).collect::<Vec<_>>(),
+        vec!["input-a", "input-b"]
+    );
     Ok(())
 }
 
