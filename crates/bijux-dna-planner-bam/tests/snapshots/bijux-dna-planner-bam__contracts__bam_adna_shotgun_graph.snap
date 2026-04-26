@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-planner-bam/tests/contracts/graph/graph_snapshots.rs
-assertion_line: 77
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -249,14 +248,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aux_images": {},
       "command": {
         "template": [
-          "pydamage",
-          "analyze",
-          "--input",
-          "filtered.bam",
-          "--output",
-          "damage.pydamage.json",
-          "--min-mapq",
-          "0.3"
+          "sh",
+          "-c",
+          "<TIMESTAMP>"
         ]
       },
       "expected_artifact_ids": [
@@ -390,7 +384,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "expected_artifact_ids": [
         "coverage_summary",
-        "stage_metrics"
+        "stage_metrics",
+        "coverage_depth"
       ],
       "image": {
         "digest": null,
@@ -417,6 +412,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "optional": false,
             "path": "stage.metrics.json",
             "role": "metrics_json"
+          },
+          {
+            "name": "coverage_depth",
+            "optional": false,
+            "path": "coverage.depth.txt",
+            "role": "report_json"
           }
         ]
       },
@@ -943,6 +944,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "optional": false,
             "path": "sample.bam",
             "role": "bam"
+          },
+          {
+            "name": "reference",
+            "optional": false,
+            "path": "reference.fasta",
+            "role": "reference"
           }
         ],
         "outputs": [

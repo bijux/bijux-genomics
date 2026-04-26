@@ -4,7 +4,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.before.txt && samtools idxstats tests/fixtures/plan_inputs/default/sample.bam > out/idxstats.before.txt && bamtools stats -in tests/fixtures/plan_inputs/default/sample.bam >/dev/null && samtools view -b tests/fixtures/plan_inputs/default/sample.bam > out/filtered.bam && samtools index out/filtered.bam && samtools flagstat out/filtered.bam > out/flagstat.after.txt && samtools idxstats out/filtered.bam > out/idxstats.after.txt && python - <<'PY' > out/filter.summary.json\nimport json\nprint(json.dumps({\"filter_tool\": \"bamtools\"}, indent=2))\nPY"
+      "samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.before.txt && samtools idxstats tests/fixtures/plan_inputs/default/sample.bam > out/idxstats.before.txt && samtools view -h -b -q 30 tests/fixtures/plan_inputs/default/sample.bam | awk 'BEGIN{OFS=\"\\t\"} /^@/{print; next} length($10)>=30' | samtools view -b - | samtools sort -@ 1 -l 6 -o out/filtered.bam && samtools index -@ 1 out/filtered.bam out/filtered.bam.bai && samtools flagstat out/filtered.bam > out/flagstat.after.txt && samtools idxstats out/filtered.bam > out/idxstats.after.txt && python - <<'PY' > out/filter.summary.json\nimport json\npayload = {\"action\": \"filter\", \"input_bam\": \"tests/fixtures/plan_inputs/default/sample.bam\", \"output_bam\": \"out/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 30, \"remove_duplicates\": false}, \"artifacts\": {\"flagstat_before\": \"out/flagstat.before.txt\", \"flagstat_after\": \"out/flagstat.after.txt\", \"idxstats_before\": \"out/idxstats.before.txt\", \"idxstats_after\": \"out/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
     ]
   },
   "effective_params": {
@@ -95,7 +95,7 @@
       "defaults_diff": {}
     },
     "kind": "default",
-    "summary": "tool bamtools selected by planner"
+    "summary": "tool samtools selected by planner"
   },
   "resources": {
     "mem_gb": 1,
@@ -105,6 +105,6 @@
   },
   "stage_id": "bam.filter",
   "stage_version": 1,
-  "tool_id": "bamtools",
+  "tool_id": "samtools",
   "tool_version": "1.0.0"
 }

@@ -1,48 +1,66 @@
 {
-  "stage_id": "bam.genotyping",
-  "stage_version": 1,
-  "tool_id": "angsd",
-  "tool_version": "1.0.0",
-  "image": {
-    "image": "bijux/test:latest",
-    "digest": null
-  },
+  "aux_images": {},
   "command": {
-    "template": []
+    "template": [
+      "/bin/sh",
+      "-c",
+      "angsd -i tests/fixtures/plan_inputs/default/sample.bam -doGlf 2 -doMajorMinor 1 -doMaf 1 -out out/genotyping && bcftools view out/genotyping.bcf -Oz -o out/genotyping.vcf.gz && tabix -f -p vcf out/genotyping.vcf.gz && python - <<'PY' > out/genotyping.gl.json\nimport json\nprint(json.dumps({\"producer\": \"angsd\", \"gl_source\": \"out/genotyping.glf.gz\"}, indent=2))\nPY && python - <<'PY' > out/genotyping.summary.json\nimport json\nprint(json.dumps({\"caller\": \"angsd\", \"vcf\": \"out/genotyping.vcf.gz\", \"tbi\": \"out/genotyping.vcf.gz.tbi\", \"min_posterior\": 0.8, \"min_call_rate\": 0.7}, indent=2))\nPY && python - <<'PY' > out/genotyping.json\nimport json\nprint(json.dumps({\"status\": \"ok\", \"producer\": \"bam.genotyping\"}, indent=2))\nPY"
+    ]
   },
-  "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+  "effective_params": {
+    "caller": "angsd",
+    "min_call_rate": 0.7,
+    "min_posterior": 0.8
+  },
+  "image": {
+    "digest": null,
+    "image": "bijux/test:latest"
   },
   "io": {
     "inputs": [
       {
         "name": "bam",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       }
     ],
     "outputs": [
       {
         "name": "genotyping_report",
+        "optional": false,
         "path": "out/genotyping.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "summary",
+        "optional": false,
         "path": "out/genotyping.summary.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "stage_metrics",
+        "optional": false,
         "path": "out/stage.metrics.json",
-        "role": "metrics_json",
-        "optional": false
+        "role": "metrics_json"
+      },
+      {
+        "name": "genotyping_vcf",
+        "optional": true,
+        "path": "out/genotyping.vcf.gz",
+        "role": "report_json"
+      },
+      {
+        "name": "genotyping_vcf_tbi",
+        "optional": true,
+        "path": "out/genotyping.vcf.gz.tbi",
+        "role": "index"
+      },
+      {
+        "name": "genotyping_gl",
+        "optional": true,
+        "path": "out/genotyping.gl.json",
+        "role": "report_json"
       }
     ]
   },
@@ -51,20 +69,29 @@
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
     "caller": "angsd",
     "min_call_rate": 0.7,
-    "min_posterior": 0.8
-  },
-  "effective_params": {
-    "caller": "angsd",
-    "min_call_rate": 0.7,
-    "min_posterior": 0.8
-  },
-  "aux_images": {},
-  "reason": {
-    "kind": "default",
-    "summary": "tool angsd selected by planner",
-    "details": {
-      "contract_hash": "2cabbde418b2cfeb4e55115e2cd56fff3797b076550084ea54a1628bf4877861",
-      "defaults_diff": {}
+    "min_posterior": 0.8,
+    "producer_contract": {
+      "gl": "out/genotyping.gl.json",
+      "tbi": "out/genotyping.vcf.gz.tbi",
+      "vcf": "out/genotyping.vcf.gz"
     }
-  }
+  },
+  "reason": {
+    "details": {
+      "contract_hash": "a10aaa2c1a2a479df7bcf0456d3d1c9ca57d6299f75560fffae4af1d1bd164c1",
+      "defaults_diff": {}
+    },
+    "kind": "default",
+    "summary": "tool angsd selected by planner"
+  },
+  "resources": {
+    "mem_gb": 1,
+    "runtime": "docker",
+    "threads": 1,
+    "tmp_gb": 1
+  },
+  "stage_id": "bam.genotyping",
+  "stage_version": 1,
+  "tool_id": "angsd",
+  "tool_version": "1.0.0"
 }

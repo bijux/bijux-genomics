@@ -4,7 +4,7 @@
     "template": [
       "/bin/sh",
       "-c",
-      "bamtools stats -in tests/fixtures/plan_inputs/default/sample.bam > out/validation.json && samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.txt"
+      "samtools quickcheck -v tests/fixtures/plan_inputs/default/sample.bam > out/validation.json && samtools flagstat tests/fixtures/plan_inputs/default/sample.bam > out/flagstat.txt"
     ]
   },
   "effective_params": {
@@ -69,7 +69,7 @@
       "defaults_diff": {}
     },
     "kind": "default",
-    "summary": "tool bamtools selected by planner"
+    "summary": "tool samtools selected by planner"
   },
   "resources": {
     "mem_gb": 1,
@@ -79,6 +79,6 @@
   },
   "stage_id": "bam.validate",
   "stage_version": 1,
-  "tool_id": "bamtools",
+  "tool_id": "samtools",
   "tool_version": "1.0.0"
 }

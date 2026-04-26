@@ -20,12 +20,12 @@ fn snapshot_name(group: &str, name: &str) -> String {
 }
 
 #[cfg(feature = "bam_downstream")]
-fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
+fn dummy_tool(tool_id: &str) -> ToolExecutionSpecV1 {
     ToolExecutionSpecV1 {
-        tool_id: ToolId::new(format!("tool.{stage}")),
+        tool_id: ToolId::new(tool_id),
         tool_version: "99.99.99+fixture".to_string(),
         image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
-        command: CommandSpecV1 { template: vec!["echo".to_string(), stage.to_string()] },
+        command: CommandSpecV1 { template: vec!["echo".to_string(), tool_id.to_string()] },
         resources: ToolConstraints {
             runtime: "docker".to_string(),
             mem_gb: 1,
@@ -40,13 +40,17 @@ fn dummy_tool(stage: &str) -> ToolExecutionSpecV1 {
 #[cfg(feature = "bam_downstream")]
 fn bam_adna_shotgun_graph_is_pure() -> anyhow::Result<()> {
     let mut tool_specs = BTreeMap::new();
-    for stage in BamStage::all() {
-        tool_specs.insert(stage.as_str().to_string(), dummy_tool(stage.as_str()));
+    for stage_id in bijux_dna_planner_bam::pipeline_id_catalog("bam-to-bam__adna_shotgun__v1") {
+        let stage = BamStage::try_from(stage_id.as_str())?;
+        let tool_id = bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage);
+        tool_specs.insert(stage_id, dummy_tool(tool_id.as_str()));
     }
 
     let temp = bijux_dna_infra::temp_dir("bam-graph-snapshot")?;
     let bam = temp.path().join("sample.bam");
+    let reference = temp.path().join("reference.fasta");
     std::fs::write(&bam, b"")?;
+    std::fs::write(&reference, b">chrM\nACGT\n")?;
 
     let inputs = BamPipelineInputs {
         policy: PlanPolicy::PreferAccuracy,
@@ -54,7 +58,7 @@ fn bam_adna_shotgun_graph_is_pure() -> anyhow::Result<()> {
         params_overrides: BTreeMap::new(),
         bam: bam.clone(),
         bam_index: None,
-        reference: None,
+        reference: Some(reference),
         sample_id: Some("sample".to_string()),
         out_dir: temp.path().join("out"),
         allow_planned: false,

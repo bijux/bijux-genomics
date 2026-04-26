@@ -1,48 +1,43 @@
 {
-  "stage_id": "bam.bias_mitigation",
-  "stage_version": 1,
-  "tool_id": "angsd",
-  "tool_version": "1.0.0",
-  "image": {
-    "image": "bijux/test:latest",
-    "digest": null
-  },
+  "aux_images": {},
   "command": {
     "template": []
   },
-  "resources": {
-    "runtime": "docker",
-    "mem_gb": 1,
-    "tmp_gb": 1,
-    "threads": 1
+  "effective_params": {
+    "gc_bias_correction": true,
+    "map_bias_correction": false
+  },
+  "image": {
+    "digest": null,
+    "image": "bijux/test:latest"
   },
   "io": {
     "inputs": [
       {
         "name": "bam",
+        "optional": false,
         "path": "tests/fixtures/plan_inputs/default/sample.bam",
-        "role": "bam",
-        "optional": false
+        "role": "bam"
       }
     ],
     "outputs": [
       {
         "name": "bias_report",
+        "optional": false,
         "path": "out/bias.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "summary",
+        "optional": false,
         "path": "out/bias.summary.json",
-        "role": "report_json",
-        "optional": false
+        "role": "report_json"
       },
       {
         "name": "stage_metrics",
+        "optional": false,
         "path": "out/stage.metrics.json",
-        "role": "metrics_json",
-        "optional": false
+        "role": "metrics_json"
       }
     ]
   },
@@ -52,17 +47,22 @@
     "gc_bias_correction": true,
     "map_bias_correction": false
   },
-  "effective_params": {
-    "gc_bias_correction": true,
-    "map_bias_correction": false
-  },
-  "aux_images": {},
   "reason": {
-    "kind": "default",
-    "summary": "tool angsd selected by planner",
     "details": {
-      "contract_hash": "b504bef5432cc75e4c87122fa8f98dcc3b33653010879baf4fce9fcb9215e07d",
+      "contract_hash": "e97296bbc613772df31cc4219a89cf1eb0fb3d730859ef494c389c20bb58ded0",
       "defaults_diff": {}
-    }
-  }
+    },
+    "kind": "default",
+    "summary": "tool mapdamage2 selected by planner"
+  },
+  "resources": {
+    "mem_gb": 1,
+    "runtime": "docker",
+    "threads": 1,
+    "tmp_gb": 1
+  },
+  "stage_id": "bam.bias_mitigation",
+  "stage_version": 1,
+  "tool_id": "mapdamage2",
+  "tool_version": "1.0.0"
 }
