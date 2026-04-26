@@ -32,8 +32,15 @@ fn planner_fastq_tree_matches_architecture_contract() {
     );
     assert_eq!(
         child_entries(&root.join("src/compose")),
-        entries(["input_resolution.rs", "lineage.rs", "mod.rs", "models.rs", "stage_params.rs"]),
-        "compose/ must keep route lineage and stage parameter concerns separated"
+        entries([
+            "input_resolution.rs",
+            "lineage.rs",
+            "mod.rs",
+            "models.rs",
+            "qc_inputs.rs",
+            "stage_params.rs",
+        ]),
+        "compose/ must keep routing and stage parameter concerns separated"
     );
     assert_eq!(
         child_entries(&root.join("src/planner")),
