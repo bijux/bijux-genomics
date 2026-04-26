@@ -75,6 +75,7 @@ fn runtime_kind_from_str_parses_known_runners() -> Result<(), EnvError> {
     assert_eq!(RuntimeKind::from_str("docker")?, RuntimeKind::Docker);
     assert_eq!(RuntimeKind::from_str("singularity")?, RuntimeKind::Singularity);
     assert_eq!(RuntimeKind::from_str("apptainer")?, RuntimeKind::Apptainer);
+    assert_eq!(RuntimeKind::from_str(" Docker ")? , RuntimeKind::Docker);
     Ok(())
 }
 

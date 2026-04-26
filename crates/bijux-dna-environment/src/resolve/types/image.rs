@@ -87,7 +87,7 @@ impl std::str::FromStr for RuntimeKind {
     type Err = EnvError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s.to_lowercase().as_str() {
+        match s.trim().to_lowercase().as_str() {
             "docker" => Ok(RuntimeKind::Docker),
             "singularity" => Ok(RuntimeKind::Singularity),
             "apptainer" => Ok(RuntimeKind::Apptainer),
