@@ -1,8 +1,8 @@
 # bijux-dna-science Docs Index
 
 ## Scope
-- `SCOPE.md` defines the science evidence compiler surface.
 - `CONTRACT.md` records the crate role and governed input/output paths.
+- `DEPENDENCIES.md` records allowed dependency edges and forbidden runtime couplings.
 
 ## Effects
 - `COMMANDS.md` lists commands and write destinations.

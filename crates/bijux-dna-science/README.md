@@ -44,7 +44,8 @@ Primary test files:
 ## Where the docs live
 See [docs/INDEX.md](docs/INDEX.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md),
 [docs/COMMANDS.md](docs/COMMANDS.md), [docs/SCHEMAS.md](docs/SCHEMAS.md),
-[docs/BOUNDARY.md](docs/BOUNDARY.md), [docs/PUBLIC_API.md](docs/PUBLIC_API.md),
+[docs/BOUNDARY.md](docs/BOUNDARY.md), [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md),
+[docs/PUBLIC_API.md](docs/PUBLIC_API.md),
 [docs/TESTS.md](docs/TESTS.md), and [docs/VERSIONING.md](docs/VERSIONING.md).
 
 ## Local Archive Boundary
