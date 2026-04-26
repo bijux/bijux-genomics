@@ -308,6 +308,7 @@
             impute: None,
             postprocess: None,
             invariants: InvariantConfig {
+                allow_contig_aliasing: true,
                 require_sex_metadata_for_sex_chr: false,
                 ..InvariantConfig::default()
             },
@@ -450,6 +451,7 @@
             impute: None,
             postprocess: None,
             invariants: InvariantConfig {
+                allow_contig_aliasing: true,
                 require_sex_metadata_for_sex_chr: false,
                 ..InvariantConfig::default()
             },
