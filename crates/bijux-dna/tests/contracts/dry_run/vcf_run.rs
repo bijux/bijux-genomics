@@ -38,18 +38,6 @@ run_base_dir = "runs"
 image_pull_policy = "if_not_present"
 "#,
     )
-    .expect("write profile");
-    std::fs::write(
-        runtime_dir.join("profiles").join("local.toml"),
-        r#"
-container_runtime = "docker"
-default_threads = 1
-default_mem_gb = 1
-default_time_minutes = 1
-run_base_dir = "runs"
-image_pull_policy = "if_not_present"
-"#,
-    )
     .expect("write runtime profile");
     std::fs::write(
         runtime_dir.join("platforms.toml"),
