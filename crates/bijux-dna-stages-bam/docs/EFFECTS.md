@@ -10,6 +10,7 @@ create run products or execute tools.
 - Read existing stage input files for stable input fingerprints.
 - Build deterministic invocation and metrics envelope values in memory.
 - Parse supported tool outputs into BAM domain metric structures.
+- Validate that planner-provided invocation templates are structurally usable.
 
 ## Forbidden Production Effects
 
