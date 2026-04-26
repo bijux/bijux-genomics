@@ -36,6 +36,8 @@ mod mod_boundaries_docs_layout_rs;
 mod mod_boundaries_empty_tests_dirs_rs;
 #[path = "boundaries/fixtures_policy.rs"]
 mod mod_boundaries_fixtures_policy_rs;
+#[path = "boundaries/foundation_lints.rs"]
+mod mod_boundaries_foundation_lints_rs;
 #[path = "boundaries/guardrails.rs"]
 mod mod_boundaries_guardrails_rs;
 #[path = "boundaries/hashmap_policy.rs"]
