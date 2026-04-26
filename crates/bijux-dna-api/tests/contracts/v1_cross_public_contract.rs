@@ -18,6 +18,7 @@ fn v1_surface() -> Result<String> {
         "report/request_contracts.rs",
         "bench/mod.rs",
         "bench/exports.rs",
+        "vcf.rs",
     ] {
         contents.push_str(&std::fs::read_to_string(base.join(module))?);
         contents.push('\n');
