@@ -44,4 +44,5 @@ artifact root instead of the OS temp root.
 - `tests/schemas/public_surface.rs` — public API surface snapshot.
 
 ## Testkit patterns
-See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+See `crates/bijux-dna-testkit/docs/SNAPSHOT_POLICY.md` for shared fixture and
+snapshot stability rules.
