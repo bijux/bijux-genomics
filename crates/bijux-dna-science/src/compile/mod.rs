@@ -1091,29 +1091,29 @@ fn merged_tool_metadata(
         return registry;
     };
     if registry.status.is_empty() {
-        registry.status = contract.status.clone();
+        registry.status.clone_from(&contract.status);
     }
     if registry.default_version.is_empty() {
-        registry.default_version = contract.default_version.clone();
+        registry.default_version.clone_from(&contract.default_version);
     }
     if registry.version_rule.is_empty() {
-        registry.version_rule = if !contract.versioning_strategy.is_empty() {
-            contract.versioning_strategy.clone()
-        } else {
+        registry.version_rule = if contract.versioning_strategy.is_empty() {
             contract.pin_strategy.clone()
+        } else {
+            contract.versioning_strategy.clone()
         };
     }
     if registry.upstream.is_empty() {
-        registry.upstream = contract.upstream.clone();
+        registry.upstream.clone_from(&contract.upstream);
     }
     if registry.citation.is_empty() || registry.citation == "pending:tool-publication" {
-        registry.citation = contract.citation.clone();
+        registry.citation.clone_from(&contract.citation);
     }
     if registry.license.is_empty() {
-        registry.license = contract.license.clone();
+        registry.license.clone_from(&contract.license);
     }
     if registry.pin_strategy.is_empty() {
-        registry.pin_strategy = contract.pin_strategy.clone();
+        registry.pin_strategy.clone_from(&contract.pin_strategy);
     }
     registry
 }
