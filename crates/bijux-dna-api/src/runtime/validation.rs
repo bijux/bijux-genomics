@@ -116,6 +116,7 @@ mod tests {
     use std::path::PathBuf;
 
     use bijux_dna_core::contract::ExecutionStep;
+    use bijux_dna_core::id_catalog::FASTQ_VALIDATE_READS;
     use bijux_dna_core::ids::{ArtifactId, StageId, StepId};
     use bijux_dna_core::prelude::{
         ArtifactRole, ArtifactSpec, CommandSpecV1, ContainerImageRefV1, StageIO, ToolConstraints,
@@ -130,7 +131,7 @@ mod tests {
     fn validation_step(inputs: Vec<ArtifactSpec>) -> ExecutionStep {
         ExecutionStep {
             step_id: StepId::new("test.validate"),
-            stage_id: StageId::new("test.validate"),
+            stage_id: StageId::from_static(FASTQ_VALIDATE_READS),
             command: CommandSpecV1 { template: vec!["echo".to_string(), "ok".to_string()] },
             image: ContainerImageRefV1 { image: "example/validator:1".to_string(), digest: None },
             resources: ToolConstraints::default(),

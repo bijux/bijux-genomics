@@ -696,7 +696,6 @@ dependencies = [
  "bijux-dna-infra",
  "bijux-dna-policies",
  "bijux-dna-runtime",
- "bijux-dna-testkit",
  "cargo_metadata",
  "chrono",
  "flate2",
