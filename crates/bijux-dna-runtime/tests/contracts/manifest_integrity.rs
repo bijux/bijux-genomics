@@ -290,6 +290,27 @@ fn artifact_checksums_reject_declared_missing_artifacts() {
 }
 
 #[test]
+fn artifact_checksums_reject_declared_directory_artifacts() {
+    let dir = std::env::temp_dir().join("runtime_checksums_directory_contract");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
+    let directory_artifact = dir.join("artifact_dir");
+    std::fs::create_dir_all(&directory_artifact).unwrap_or_else(|e| panic!("mkdir artifact: {e}"));
+
+    let err = bijux_dna_runtime::recording::write_artifact_checksums_json(
+        &dir,
+        &[("artifact_dir".to_string(), directory_artifact)],
+    )
+    .err()
+    .unwrap_or_else(|| panic!("expected directory artifact to fail"));
+
+    assert!(
+        err.to_string().contains("must be a regular file"),
+        "unexpected directory artifact error: {err}"
+    );
+}
+
+#[test]
 fn tool_invocation_writer_rejects_stage_id_path_separators() {
     let dir = std::env::temp_dir().join("runtime_tool_invocation_path_contract");
     let _ = std::fs::remove_dir_all(&dir);
