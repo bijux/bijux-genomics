@@ -27,6 +27,7 @@ fn runner_has_no_engine_dependency() {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn runner_tree_matches_architecture_contract() {
     let root = crate::support::crate_root("bijux-dna-runner")
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
