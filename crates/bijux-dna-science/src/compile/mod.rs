@@ -31,7 +31,7 @@ struct ExecutionSupportStage {
     runtime_support: String,
     normalization_support: String,
     benchmark_support: String,
-    default_tool: String,
+    default_tool: Option<String>,
     admitted_tools: Vec<String>,
 }
 
@@ -1125,7 +1125,7 @@ fn build_fastq_binding_rows(
         }
         for tool_id in tool_ids {
             let registry_entry = registry.get(&tool_id).cloned().unwrap_or_default();
-            let is_default = tool_id == stage.default_tool;
+            let is_default = stage.default_tool.as_ref().is_some_and(|default| default == &tool_id);
             let tool_status = if is_default {
                 "default".to_string()
             } else if stage.admitted_tools.iter().any(|candidate| candidate == &tool_id) {
