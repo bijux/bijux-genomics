@@ -6,6 +6,7 @@ fn command_inventory_matches_science_cli_surface() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let commands_doc = read(root.join("docs/COMMANDS.md"));
     let cli_rs = read(root.join("src/cli.rs"));
+    let manifest = read(root.join("Cargo.toml"));
 
     for variant in ["Validate", "Build", "Trace", "Closure", "Release"] {
         assert!(cli_rs.contains(variant), "src/cli.rs must define ScienceCommand::{variant}");
@@ -32,6 +33,25 @@ fn command_inventory_matches_science_cli_surface() {
             commands_doc.contains(non_owned),
             "docs/COMMANDS.md must document non-owned command surface: {non_owned}"
         );
+    }
+
+    assert!(root.join("src/main.rs").exists(), "science must keep its documented binary shell");
+    assert!(
+        manifest.contains("name = \"bijux-dna-science\""),
+        "Cargo binary name must stay documented"
+    );
+    assert!(manifest.contains("path = \"src/main.rs\""), "Cargo binary path must stay documented");
+    assert!(
+        commands_doc.contains("`src/main.rs` is the only Cargo binary entrypoint"),
+        "docs/COMMANDS.md must document the binary entrypoint"
+    );
+    for forbidden in [
+        "No bioinformatics tool execution.",
+        "No container, scheduler, runtime, or runner orchestration.",
+        "No network clients.",
+        "No writes outside `science/generated/**` or `artifacts/science-releases/**`.",
+    ] {
+        assert!(commands_doc.contains(forbidden), "docs/COMMANDS.md must document `{forbidden}`");
     }
 }
 
