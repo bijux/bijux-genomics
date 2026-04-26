@@ -25,4 +25,5 @@ parameter schemas/defaults, metric semantics, pipeline ordering, and invariant e
 
 ## Notes
 Boundary invariants are enforced by bijux-dna-policies contract tests.
-The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
+The repository policy is rooted at `README.md`, and the repository coding
+policy is rooted at `README.md`.
