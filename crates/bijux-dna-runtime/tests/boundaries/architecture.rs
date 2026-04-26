@@ -113,6 +113,91 @@ fn runtime_source_tree_matches_architecture_contract() {
     );
 }
 
+#[test]
+fn runtime_test_tree_matches_architecture_contract() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+
+    assert_eq!(
+        dir_entries(&root.join("tests")),
+        entries([
+            "boundaries/",
+            "boundaries.rs",
+            "contracts/",
+            "contracts.rs",
+            "determinism/",
+            "determinism.rs",
+            "fixtures/",
+            "guardrails.rs",
+            "schemas/",
+            "schemas.rs",
+            "workspace_paths.rs",
+        ]),
+        "runtime tests must stay grouped by boundary, contract, determinism, schema, and workspace concerns"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/boundaries")),
+        entries([
+            "architecture.rs",
+            "command_inventory.rs",
+            "dependency_graph.rs",
+            "docs_layout.rs",
+            "effects_boundary.rs",
+            "guardrails.rs",
+            "public_api_docs.rs",
+        ]),
+        "runtime boundary tests must cover docs, dependencies, architecture, effects, and public API contracts"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/contracts")),
+        entries([
+            "canonical_writer.rs",
+            "contracts.rs",
+            "docs_layout.rs",
+            "experimental_registry_alias.rs",
+            "manifest_integrity.rs",
+            "reference/",
+            "reference.rs",
+            "run_layout_contract.rs",
+            "stage_runner_contract.rs",
+            "telemetry_contract.rs",
+            "telemetry_golden.rs",
+        ]),
+        "runtime contract tests must stay split by runtime contract surface"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/contracts/reference")),
+        entries(["docs_reference_example.rs", "reference_example.rs"]),
+        "runtime reference tests must keep docs examples separate from runtime examples"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/determinism")),
+        entries(["fixture_stability.rs"]),
+        "runtime determinism tests must stay focused on stable fixtures"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/schemas")),
+        entries(["schema/", "schema.rs"]),
+        "runtime schema tests must keep the suite wrapper separate from schema cases"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/schemas/schema")),
+        entries(["runtime_schema_snapshots.rs"]),
+        "runtime schema snapshot tests must stay in the schema suite"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/fixtures/runtime_schema")),
+        entries(["default/", "telemetry_toy_run/"]),
+        "runtime schema fixtures must stay grouped by fixture case"
+    );
+}
+
 fn dir_entries(path: &Path) -> BTreeSet<String> {
     std::fs::read_dir(path)
         .unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
