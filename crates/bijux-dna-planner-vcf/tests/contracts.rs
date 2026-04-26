@@ -307,3 +307,16 @@ fn vcf_planner_keeps_variant_stream_after_report_stages() {
     assert_eq!(roh.io.inputs[0].path, PathBuf::from("out/postprocess_vcf.vcf.gz"));
     assert_eq!(stats.io.inputs[0].path, PathBuf::from("out/postprocess_vcf.vcf.gz"));
 }
+
+#[test]
+fn vcf_planner_refuses_zero_parallel_chunk_setting() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.chunking.max_parallel_chunks = 0;
+
+    let err = plan_vcf_stage_plans(&input).expect_err("zero parallel chunk setting must fail");
+
+    assert!(
+        err.to_string().contains("max_parallel_chunks must be > 0"),
+        "unexpected planner refusal: {err}"
+    );
+}
