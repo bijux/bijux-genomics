@@ -65,3 +65,19 @@ fn policy__root__guardrails__allow_paths_match_exact_suffixes() {
 
     assert!(err.to_string().contains("panic/expect found"), "unexpected guardrail error: {err}");
 }
+
+#[test]
+fn policy__root__guardrails__panic_expect_scan_ignores_comment_mentions() {
+    let paths = TestPaths::new("policies-panic-comments");
+    let crate_root = paths.child("crate");
+    write_source(
+        &crate_root,
+        "lib.rs",
+        "// None::<u8>.expect(\"documented only\")\npub fn ok() {}\n",
+    );
+
+    let mut config = GuardrailConfig::default();
+    config.forbid_panic_expect = true;
+
+    bijux_dna_policies::check(&crate_root, &config).expect("comment-only expect is allowed");
+}
