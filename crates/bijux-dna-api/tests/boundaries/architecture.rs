@@ -14,7 +14,7 @@ fn api_tree_matches_architecture_contract() {
 fn assert_root_tree(root: &std::path::Path) {
     assert_dir_entries(
         root,
-        &["BOUNDARY.md", "Cargo.toml", "PUBLIC_API.md", "README.md", "docs/", "src/", "tests/"],
+        &["Cargo.toml", "README.md", "docs/", "src/", "tests/"],
         "api crate root must stay minimal and intentional",
     );
     assert_dir_entries(
