@@ -130,9 +130,15 @@ fn runtime_test_tree_matches_architecture_contract() {
             "guardrails.rs",
             "schemas/",
             "schemas.rs",
-            "workspace_paths.rs",
+            "support/",
         ]),
         "runtime tests must stay grouped by boundary, contract, determinism, schema, and workspace concerns"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/support")),
+        entries(["workspace_paths.rs"]),
+        "runtime support tests must stay under tests/support"
     );
 
     assert_eq!(

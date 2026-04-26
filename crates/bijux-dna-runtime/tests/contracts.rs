@@ -17,5 +17,5 @@ mod mod_contracts_stage_runner_contract_rs;
 mod mod_contracts_telemetry_contract_rs;
 #[path = "contracts/telemetry_golden.rs"]
 mod mod_contracts_telemetry_golden_rs;
-#[path = "workspace_paths.rs"]
+#[path = "support/workspace_paths.rs"]
 mod support;

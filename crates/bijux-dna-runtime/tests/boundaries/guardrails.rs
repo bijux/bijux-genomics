@@ -1,4 +1,4 @@
-#[path = "../workspace_paths.rs"]
+#[path = "../support/workspace_paths.rs"]
 mod support;
 
 use bijux_dna_policies::{check, GuardrailConfig};

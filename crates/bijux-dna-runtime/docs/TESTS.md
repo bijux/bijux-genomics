@@ -8,6 +8,7 @@ This file maps runtime tests to their contract purpose. Directory-local README f
 - `tests/determinism.rs` loads fixture stability checks.
 - `tests/schemas.rs` loads schema snapshot checks.
 - `tests/guardrails.rs` keeps the root guardrail smoke test visible.
+- `tests/support/workspace_paths.rs` provides repository path helpers without creating a helper-only test binary.
 
 ## Boundaries Suite
 - `tests/boundaries/command_inventory.rs` checks `docs/COMMANDS.md`.
