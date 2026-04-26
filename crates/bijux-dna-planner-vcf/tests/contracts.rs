@@ -180,6 +180,37 @@ fn vcf_planner_refuses_unknown_stage_knob_override() {
 }
 
 #[test]
+fn vcf_planner_refuses_param_override_for_unplanned_stage() {
+    let mut input = base_inputs(CoverageRegime::Pseudohaploid);
+    input.stage_param_overrides.insert(
+        "vcf.impute".to_string(),
+        serde_json::json!({
+            "ne": 20000
+        }),
+    );
+
+    let err = plan_vcf_stage_plans(&input).expect_err("unplanned param override must fail");
+
+    assert!(
+        err.to_string().contains("stage_param_overrides key vcf.impute"),
+        "unexpected planner refusal: {err}"
+    );
+}
+
+#[test]
+fn vcf_planner_refuses_unknown_param_override_stage() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.stage_param_overrides.insert("vcf.not_real".to_string(), serde_json::json!({}));
+
+    let err = plan_vcf_stage_plans(&input).expect_err("unknown param override stage must fail");
+
+    assert!(
+        err.to_string().contains("unknown stage_param_overrides key vcf.not_real"),
+        "unexpected planner refusal: {err}"
+    );
+}
+
+#[test]
 fn vcf_planner_refuses_tool_not_declared_in_required_tools_lists() {
     let mut input = base_inputs(CoverageRegime::Diploid);
     input
