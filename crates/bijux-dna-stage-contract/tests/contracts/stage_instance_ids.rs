@@ -6,7 +6,7 @@ use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, StepId, ToolId};
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
 use bijux_dna_stage_contract::{
     default_edges_for_stages, execution_step_from_stage_plan, ExecutionPlan, PlanDecisionReason,
-    PlanEdge, StagePlanV1,
+    PlanEdge, PlannerContractV1, StagePlanV1,
 };
 
 fn trim_plan(instance_id: &str, tool_id: &str, output_id: &str) -> StagePlanV1 {
@@ -401,4 +401,14 @@ fn strict_validation_rejects_missing_command_template() {
         .expect_err("strict validation must require a command template");
 
     assert!(error.to_string().contains("missing command template"));
+}
+
+#[test]
+fn planner_contract_trims_tool_version_projection() {
+    let mut stage = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
+    stage.tool_version = " 0.24.0 ".to_string();
+
+    let contract = PlannerContractV1::from(&stage);
+
+    assert_eq!(contract.tool_version.as_deref(), Some("0.24.0"));
 }
