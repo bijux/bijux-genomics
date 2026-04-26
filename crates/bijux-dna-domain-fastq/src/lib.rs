@@ -90,6 +90,7 @@ pub use comparison_contract::{
     comparison_contract_for_stage, comparison_input_artifact_ids_for_stage,
     StageComparisonContract,
 };
+pub use domain_adapter::FastqDomain;
 pub use execution_support::{
     admitted_tools_for_stage as admitted_execution_tools_for_stage, all_stage_execution_support,
     closed_stage_ids as execution_closed_stage_ids,

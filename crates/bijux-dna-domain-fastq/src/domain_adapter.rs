@@ -1,6 +1,5 @@
 use bijux_dna_core::contract::PipelineDomain;
 
-#[allow(dead_code)]
 pub struct FastqDomain;
 
 impl PipelineDomain for FastqDomain {

@@ -1,7 +1,6 @@
 //! Owner: bijux-dna-domain-fastq
 //! Declarative stage definitions. See `docs/DOMAIN_MODEL.md` for stage authority.
 
-pub mod analyze;
 pub mod contract;
 pub mod ids;
 pub mod ports;

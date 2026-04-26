@@ -1,6 +1,8 @@
 use std::fs;
 use std::path::PathBuf;
 
+use bijux_dna_core::contract::PipelineDomain;
+
 #[test]
 fn public_surface_is_constrained() -> anyhow::Result<()> {
     let lib_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src").join("lib.rs");
@@ -48,6 +50,7 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         "cluster_otus_artifacts",
         "artifacts::{",
         "comparison_contract",
+        "FastqDomain",
         "execution_support",
         "integration_matrix",
         "metrics",
@@ -76,4 +79,13 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         );
     }
     Ok(())
+}
+
+#[test]
+fn fastq_domain_adapter_exposes_pipeline_contract() {
+    assert_eq!(bijux_dna_domain_fastq::FastqDomain::domain_id(), "fastq");
+    assert!(
+        !bijux_dna_domain_fastq::FastqDomain::canonical_pipeline().ordered_stage_ids().is_empty(),
+        "domain adapter must expose the canonical FASTQ pipeline"
+    );
 }
