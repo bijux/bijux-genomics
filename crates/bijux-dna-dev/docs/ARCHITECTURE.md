@@ -14,19 +14,19 @@ src/
 ├── application/
 ├── catalog/
 ├── cli/
-└── commands/
-    ├── automation_boundary.rs
-    ├── checks.rs
-    ├── command_support.rs
-    ├── repo_checks.rs
-    ├── containers/
-    │   ├── runtime/
-    │   ├── validation/
-    │   └── versioning.rs
-    ├── domain/
-    ├── native_dispatch.rs
-    ├── ops/
-    └── repo_checks/
+├── commands/
+│   ├── automation_boundary.rs
+│   ├── checks.rs
+│   ├── command_support.rs
+│   ├── containers/
+│   │   ├── runtime/
+│   │   ├── validation/
+│   │   └── versioning.rs
+│   ├── domain/
+│   ├── native_dispatch.rs
+│   ├── ops/
+│   ├── repo_checks/
+│   └── repo_checks.rs
 ├── dev_entrypoint.rs
 ├── main.rs
 ├── model/
@@ -51,3 +51,13 @@ Command boundaries:
 - `ops/` owns non-domain operational workflows grouped by CLI surface: assets, docs, examples, HPC, lab, smoke, test, and tooling.
 
 This separation keeps production runtime crates free of development-only automation concerns while preserving a typed, testable control plane for workspace maintenance.
+
+Test boundaries mirror that split:
+
+- `tests/boundaries/architecture.rs` locks the root, source, command, runtime,
+  and test tree shown here.
+- `tests/boundaries/command_inventory.rs` keeps `docs/COMMANDS.md` as the SSOT
+  for development commands.
+- `tests/boundaries/dependencies.rs` protects the dependency graph so
+  development automation remains outside production crates.
+- `tests/support/workspace_paths.rs` contains shared workspace-root helpers only.
