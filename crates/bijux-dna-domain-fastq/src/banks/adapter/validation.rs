@@ -74,11 +74,7 @@ pub(super) fn validate_adapter_presets(
                 return Err(anyhow!("preset {} has empty adapter id", preset.name));
             }
             if !preset_adapter_ids.insert(adapter_id.clone()) {
-                return Err(anyhow!(
-                    "preset {} repeats adapter id {}",
-                    preset.name,
-                    adapter_id
-                ));
+                return Err(anyhow!("preset {} repeats adapter id {}", preset.name, adapter_id));
             }
             if !bank_ids.contains(adapter_id) {
                 return Err(anyhow!(
@@ -163,13 +159,22 @@ mod tests {
         }
     }
 
+    fn assert_err<T>(result: Result<T>, message: &str) -> anyhow::Error {
+        match result {
+            Ok(_) => panic!("{message}"),
+            Err(err) => err,
+        }
+    }
+
     #[test]
     fn adapter_bank_rejects_blank_adapter_id() {
         let mut adapter = valid_adapter();
         adapter.id = " ".to_string();
 
-        let err = validate_adapter_bank(&valid_bank_with(adapter))
-            .expect_err("blank adapter ids must be invalid");
+        let err = assert_err(
+            validate_adapter_bank(&valid_bank_with(adapter)),
+            "blank adapter ids must be invalid",
+        );
 
         assert!(err.to_string().contains("missing id"));
     }
@@ -179,8 +184,10 @@ mod tests {
         let mut adapter = valid_adapter();
         adapter.sequence = " ".to_string();
 
-        let err = validate_adapter_bank(&valid_bank_with(adapter))
-            .expect_err("blank adapter sequences must be invalid");
+        let err = assert_err(
+            validate_adapter_bank(&valid_bank_with(adapter)),
+            "blank adapter sequences must be invalid",
+        );
 
         assert!(err.to_string().contains("sequence cannot be empty"));
     }
@@ -213,8 +220,10 @@ mod tests {
         let mut preset = valid_preset();
         preset.name = " ".to_string();
 
-        let err = validate_adapter_presets(&valid_presets_with(preset), &bank)
-            .expect_err("blank adapter preset names must be invalid");
+        let err = assert_err(
+            validate_adapter_presets(&valid_presets_with(preset), &bank),
+            "blank adapter preset names must be invalid",
+        );
 
         assert!(err.to_string().contains("missing name"));
     }
@@ -224,13 +233,13 @@ mod tests {
         let bank = valid_bank_with(valid_adapter());
         let mut preset = valid_preset();
         preset.tags.clear();
-        preset.adapter_ids = vec![
-            "illumina-universal".to_string(),
-            "illumina-universal".to_string(),
-        ];
+        preset.adapter_ids =
+            vec!["illumina-universal".to_string(), "illumina-universal".to_string()];
 
-        let err = validate_adapter_presets(&valid_presets_with(preset), &bank)
-            .expect_err("repeated adapter ids must be invalid");
+        let err = assert_err(
+            validate_adapter_presets(&valid_presets_with(preset), &bank),
+            "repeated adapter ids must be invalid",
+        );
 
         assert!(err.to_string().contains("repeats adapter id"));
     }
