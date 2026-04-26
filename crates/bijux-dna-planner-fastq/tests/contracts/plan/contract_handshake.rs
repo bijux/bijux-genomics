@@ -290,3 +290,42 @@ fn compose_rejects_report_artifact_bound_as_reads() -> anyhow::Result<()> {
     assert!(error.to_string().contains("has role report_json"));
     Ok(())
 }
+
+#[test]
+fn compose_rejects_reads_artifact_bound_as_qc_input() -> anyhow::Result<()> {
+    let bindings =
+        vec![binding_for_stage("fastq.trim_reads"), binding_for_stage("fastq.report_qc")];
+    let mut explicit_inputs = StageArtifactInputPolicy::new();
+    explicit_inputs.insert(
+        "fastq.report_qc".to_string(),
+        vec![StageArtifactInputBinding {
+            from_stage_node_id: "fastq.trim_reads".to_string(),
+            from_output_id: "trimmed_reads_r1".to_string(),
+            to_input_id: "qc_artifacts".to_string(),
+        }],
+    );
+    let temp = bijux_dna_infra::temp_dir("fastq-plan-qc-artifact-role")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let error = compose_fastq_stage_bindings(
+        &bindings,
+        &BTreeMap::new(),
+        None,
+        None,
+        None,
+        false,
+        &r1,
+        None,
+        None,
+        Some(&explicit_inputs),
+        |binding, _r1, _r2| {
+            Ok(temp.path().join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
+        },
+    )
+    .expect_err("read artifacts must not satisfy report_qc qc_artifacts");
+
+    assert!(error.to_string().contains("explicit input qc_artifacts"));
+    assert!(error.to_string().contains("has role trimmed_reads"));
+    Ok(())
+}
