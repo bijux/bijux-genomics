@@ -563,3 +563,32 @@ fn policy__contracts__fastq_closure_evidence_policy__production_ledger_matches_l
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__fastq_closure_evidence_policy__production_ledger_matches_qa_blockers() {
+    let mut qa_by_stage = BTreeMap::<String, Vec<String>>::new();
+    for row in tsv_records("science/docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv") {
+        qa_by_stage.entry(row["stage_id"].clone()).or_default().push(row["blocker"].clone());
+    }
+    let mut offenders = Vec::new();
+
+    for row in
+        tsv_records("science/docs/upstream/fastq/container/FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv")
+    {
+        let mut expected = qa_by_stage.get(&row["stage_id"]).cloned().unwrap_or_default();
+        expected.sort();
+        let expected = if expected.is_empty() { "ready".to_string() } else { expected.join(";") };
+        if row["behavioral_qa_status"] != expected {
+            offenders.push(format!(
+                "{}:{} ledger behavioral_qa_status={} but QA blockers report has {expected}",
+                row["stage_id"], row["tool_id"], row["behavioral_qa_status"]
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "FASTQ production ledger QA parity violations:\n{}",
+        offenders.join("\n")
+    );
+}
