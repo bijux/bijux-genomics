@@ -326,6 +326,10 @@ mod contracts {
             .unwrap_or_else(|err| panic!("read configs/ci/params/param_registry_vcf.toml: {err}"));
         let generated = param_registry_toml();
         assert_eq!(generated, committed);
+        assert!(
+            generated.contains("# owner = bijux-dna-domain-vcf"),
+            "VCF param registry must name the domain crate as owner"
+        );
     }
 
     #[test]
@@ -336,5 +340,13 @@ mod contracts {
             .unwrap_or_else(|err| panic!("read configs/ci/tools/required_tools_vcf.toml: {err}"));
         let generated = required_tools_toml();
         assert_eq!(generated, committed);
+        assert!(
+            generated.contains("# owner = bijux-dna-domain-vcf"),
+            "VCF required tools registry must name the domain crate as owner"
+        );
+        assert!(
+            !generated.contains("# source_commit: 53b050a6d117e40e0122777655e9d8cc428be9ad"),
+            "VCF required tools registry must not embed a stale static source commit"
+        );
     }
 }
