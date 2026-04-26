@@ -58,11 +58,16 @@ pub fn validate_reference_panel_governance(panel: &ReferencePanelGovernance) -> 
     if panel.panel_id.trim().is_empty() || panel.reference_build.trim().is_empty() {
         return Err(anyhow!("panel governance requires non-empty panel_id/reference_build"));
     }
-    if panel.panel_checksum_sha256.len() != 64 || panel.index_checksum_sha256.len() != 64 {
+    if !is_sha256_hex(&panel.panel_checksum_sha256) || !is_sha256_hex(&panel.index_checksum_sha256)
+    {
         bail!("panel governance requires 64-char sha256 locks for panel/index");
     }
     if panel.license_id.trim().is_empty() {
         bail!("panel governance requires license_id");
     }
     Ok(())
+}
+
+fn is_sha256_hex(value: &str) -> bool {
+    value.len() == 64 && value.as_bytes().iter().all(u8::is_ascii_hexdigit)
 }
