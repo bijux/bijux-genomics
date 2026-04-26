@@ -16,7 +16,7 @@ impl PipelineProfile {
                 comparability_implications: vec![
                     "changing this default can shift cross-run comparability baselines".to_string(),
                 ],
-                citations: vec!["docs/20-science/fastq/GOLD_PIPELINE_SPEC.md".to_string()],
+                citations: vec![default_citation_for_stage(stage.as_str()).to_string()],
             };
             if self.defaults.tools.contains_key(stage) {
                 tool_provenance.insert(stage.clone(), provenance.clone());
@@ -51,5 +51,17 @@ impl PipelineProfile {
             assumptions: Vec::new(),
             citations: BTreeMap::new(),
         }
+    }
+}
+
+fn default_citation_for_stage(stage_id: &str) -> &'static str {
+    if stage_id.starts_with("bam.") {
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+    } else if stage_id.starts_with("vcf.") {
+        "docs/20-science/vcf/GOLD_PIPELINE_SPEC.md"
+    } else if stage_id.starts_with("core.") || stage_id.starts_with("cross.") {
+        "docs/20-science/cross/GOLD_PIPELINE_SPEC.md"
+    } else {
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
     }
 }
