@@ -10,7 +10,8 @@ Runner determinism is about stable invocation identity, stable records, and repl
 ## Replay
 Replay does:
 - Read execution manifests and runner-owned records.
-- Verify declared artifacts exist and are non-empty where required.
+- Verify the recorded output directory exists.
+- Verify declared input files still match manifest hashes.
 - Reconstruct records deterministically from existing files.
 
 Replay does not:
@@ -26,5 +27,5 @@ Replay does not:
 
 ## Validation
 - `tests/determinism/run_id_determinism.rs` covers run-id stability.
-- `tests/determinism/replay.rs` and `tests/determinism/replay/replay_*.rs` cover replay behavior where present.
+- `tests/determinism/replay.rs` and `tests/determinism/replay/replay_*.rs` cover replay behavior.
 - `tests/boundaries/backend/invocation_hash.rs` covers invocation identity rules.

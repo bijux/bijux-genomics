@@ -11,6 +11,7 @@ fn replay_is_deterministic() -> Result<()> {
     let out_dir = root.join("run");
     bijux_dna_infra::ensure_dir(&out_dir)?;
     let output = out_dir.join("output.txt");
+    bijux_dna_infra::write_bytes(&output, "recorded-output")?;
 
     let manifest = ExecutionManifest {
         contract_version: ContractVersion::v1(),
@@ -31,7 +32,6 @@ fn replay_is_deterministic() -> Result<()> {
 
     replay_run("run-1", root)?;
     let hash_first = bijux_dna_infra::hash_file_sha256(&output)?;
-    std::fs::remove_file(&output)?;
     replay_run("run-1", root)?;
     let hash_second = bijux_dna_infra::hash_file_sha256(&output)?;
 

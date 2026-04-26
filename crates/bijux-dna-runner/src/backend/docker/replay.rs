@@ -1,14 +1,13 @@
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
 
 use bijux_dna_core::contract::ExecutionManifest;
 
-/// Replay a recorded run by locating its manifest and re-running the stored command.
+/// Replay a recorded run by locating its manifest and validating recorded state.
 ///
 /// # Errors
-/// Returns an error if the manifest cannot be found/read/parsed or execution fails.
+/// Returns an error if the manifest cannot be found/read/parsed or recorded state is missing.
 pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
     if std::env::var("BIJUX_TRACE_ENGINE").is_ok() {
         println!("[engine][composer] replay run_id={run_id}");
@@ -26,15 +25,29 @@ pub fn replay_run(run_id: &str, search_root: &Path) -> Result<()> {
     if manifest.runner != "docker" {
         return Err(anyhow!("replay only supports docker runner, got {}", manifest.runner));
     }
-    let status = Command::new("sh")
-        .arg("-c")
-        .arg(&manifest.command)
-        .current_dir(output_dir)
-        .status()
-        .with_context(|| format!("replay command {}", manifest.command))?;
-    if !status.success() {
-        return Err(anyhow!("replay command failed: {}", manifest.command));
+    verify_input_hashes(&manifest)?;
+    Ok(())
+}
+
+fn verify_input_hashes(manifest: &ExecutionManifest) -> Result<()> {
+    if manifest.input_files.len() != manifest.input_hashes.len() {
+        return Err(anyhow!(
+            "replay manifest input file/hash count mismatch: {} files, {} hashes",
+            manifest.input_files.len(),
+            manifest.input_hashes.len()
+        ));
     }
+
+    for (input_file, expected_hash) in manifest.input_files.iter().zip(&manifest.input_hashes) {
+        let actual_hash = bijux_dna_infra::hash_file_sha256(Path::new(input_file))
+            .with_context(|| format!("hash replay input {input_file}"))?;
+        if &actual_hash != expected_hash {
+            return Err(anyhow!(
+                "replay input hash mismatch for {input_file}: expected {expected_hash}, got {actual_hash}"
+            ));
+        }
+    }
+
     Ok(())
 }
 
