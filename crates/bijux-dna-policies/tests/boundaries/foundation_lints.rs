@@ -50,6 +50,28 @@ fn policy__boundaries__foundation_lints__shared_test_crates_use_workspace_catalo
     }
 }
 
+#[test]
+fn policy__boundaries__foundation_lints__manifest_sections_are_visually_separated() {
+    let workspace = workspace_root();
+
+    for crate_name in FOUNDATION_CRATES {
+        let manifest_path = workspace.join("crates").join(crate_name).join("Cargo.toml");
+        let manifest = std::fs::read_to_string(&manifest_path)
+            .unwrap_or_else(|err| panic!("read {}: {err}", manifest_path.display()));
+
+        let mut previous_line = "";
+        for line in manifest.lines() {
+            if line.starts_with('[') {
+                assert!(
+                    previous_line.trim().is_empty(),
+                    "{crate_name} Cargo.toml section {line} must be preceded by a blank line"
+                );
+            }
+            previous_line = line;
+        }
+    }
+}
+
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
