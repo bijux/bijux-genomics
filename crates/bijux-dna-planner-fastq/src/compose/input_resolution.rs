@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::prelude::ArtifactRef;
+use bijux_dna_core::prelude::{ArtifactRef, ArtifactRole};
 use bijux_dna_stage_contract::StagePlanV1;
 
 use super::models::{ReferenceIndexState, ResolvedStageInputArtifact};
@@ -123,7 +123,11 @@ pub(super) fn explicit_reference_index_state(
     inputs: &[ResolvedStageInputArtifact],
     input_id: &str,
 ) -> Result<Option<ReferenceIndexState>> {
-    Ok(unique_resolved_input_artifact(inputs, input_id)?.map(|input| ReferenceIndexState {
+    let Some(input) = unique_resolved_input_artifact(inputs, input_id)? else {
+        return Ok(None);
+    };
+    ensure_input_role(input, input_id, &[ArtifactRole::Index])?;
+    Ok(Some(ReferenceIndexState {
         path: input.artifact.path.clone(),
         tool_id: input.source_tool_id.clone(),
     }))
@@ -133,14 +137,21 @@ pub(super) fn explicit_reads_input_path(
     inputs: &[ResolvedStageInputArtifact],
     input_id: &str,
 ) -> Result<Option<PathBuf>> {
-    Ok(unique_resolved_input_artifact(inputs, input_id)?.map(|input| input.artifact.path.clone()))
+    let Some(input) = unique_resolved_input_artifact(inputs, input_id)? else {
+        return Ok(None);
+    };
+    ensure_input_role(input, input_id, &[ArtifactRole::Reads, ArtifactRole::TrimmedReads])?;
+    Ok(Some(input.artifact.path.clone()))
 }
 
 pub(super) fn explicit_abundance_table(
     inputs: &[ResolvedStageInputArtifact],
 ) -> Result<Option<PathBuf>> {
-    Ok(unique_resolved_input_artifact(inputs, "abundance_table")?
-        .map(|input| input.artifact.path.clone()))
+    let Some(input) = unique_resolved_input_artifact(inputs, "abundance_table")? else {
+        return Ok(None);
+    };
+    ensure_input_role(input, "abundance_table", &[ArtifactRole::SummaryTsv])?;
+    Ok(Some(input.artifact.path.clone()))
 }
 
 pub(super) fn explicit_report_qc_inputs(
@@ -164,4 +175,21 @@ pub(super) fn explicit_report_qc_inputs(
     });
     qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
     Some(qc_inputs)
+}
+
+fn ensure_input_role(
+    input: &ResolvedStageInputArtifact,
+    input_id: &str,
+    allowed_roles: &[ArtifactRole],
+) -> Result<()> {
+    if allowed_roles.iter().any(|role| *role == input.artifact.role) {
+        return Ok(());
+    }
+    Err(anyhow!(
+        "explicit input {input_id} from {}.{} has role {}; expected one of [{}]",
+        input.source_stage_node_id,
+        input.artifact.name.as_str(),
+        input.artifact.role.as_str(),
+        allowed_roles.iter().map(|role| role.as_str()).collect::<Vec<_>>().join(", ")
+    ))
 }
