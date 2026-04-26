@@ -36,6 +36,21 @@ fn policy__root__guardrails__empty_source_tree_is_rejected() {
 }
 
 #[test]
+fn policy__root__guardrails__missing_source_tree_is_rejected() {
+    let paths = TestPaths::new("policies-missing-source-tree");
+    let crate_root = paths.child("missing-src-crate");
+    fs::create_dir_all(&crate_root).expect("create crate root");
+
+    let err =
+        bijux_dna_policies::check(&crate_root, &GuardrailConfig::default()).expect_err("no src");
+
+    assert!(
+        err.to_string().contains("No such file") || err.to_string().contains("os error"),
+        "unexpected guardrail error: {err}"
+    );
+}
+
+#[test]
 fn policy__root__guardrails__allow_paths_match_exact_suffixes() {
     let paths = TestPaths::new("policies-allow-path-suffix");
     let crate_root = paths.child("crate");
