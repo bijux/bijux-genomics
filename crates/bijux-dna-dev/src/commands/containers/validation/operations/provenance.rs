@@ -65,8 +65,8 @@ pub(in super::super::super) fn check_build_provenance(
         }
     }
 
-    let hex64 = Regex::new(r"^[0-9a-f]{64}$").expect("regex");
-    let hex40 = Regex::new(r"^[0-9a-f]{40}$").expect("regex");
+    let hex64 = Regex::new(r"^[0-9a-f]{64}$")?;
+    let hex40 = Regex::new(r"^[0-9a-f]{40}$")?;
     let mut errors = Vec::new();
     for row in rows {
         let Some(row) = row.as_table() else {
@@ -309,7 +309,7 @@ pub(in super::super::super) fn check_digest_output_policy(
         }
     }
 
-    let latest_regex = Regex::new(r":[Ll][Aa][Tt][Ee][Ss][Tt]\b").expect("regex");
+    let latest_regex = Regex::new(r":[Ll][Aa][Tt][Ee][Ss][Tt]\b")?;
     for base in [
         workspace.path("containers/docs"),
         workspace.path("containers"),
