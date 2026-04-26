@@ -1,6 +1,6 @@
 # Commands
 
-`bijux-dna-runner` is a library crate. It does not expose CLI commands or `src/bin` entrypoints.
+`bijux-dna-runner` is a library crate. It does not expose Cargo binary targets or a CLI surface.
 
 ## Runtime Commands
 None.

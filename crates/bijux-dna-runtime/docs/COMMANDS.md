@@ -1,6 +1,6 @@
 # Commands
 
-`bijux-dna-runtime` is a library crate. It does not expose CLI commands or `src/bin` entrypoints, and it must not spawn backend commands.
+`bijux-dna-runtime` is a library crate. It does not expose Cargo binary targets or a CLI surface, and it must not spawn backend commands.
 
 ## Runtime Commands
 None.
