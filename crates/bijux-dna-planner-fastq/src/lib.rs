@@ -7,6 +7,7 @@ mod report_stage;
 mod selection;
 mod surface;
 pub mod tool_adapters;
+mod tool_policy;
 
 pub use surface::*;
 

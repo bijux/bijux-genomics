@@ -179,3 +179,37 @@ fn reference_guided_plan_rejects_incompatible_index_backend() -> anyhow::Result<
     );
     Ok(())
 }
+
+#[test]
+fn compose_rejects_tool_from_wrong_stage_roster() -> anyhow::Result<()> {
+    let bindings = vec![FastqStageBinding {
+        stage_id: "fastq.validate_reads".to_string(),
+        stage_instance_id: None,
+        tool: tool_for_stage("fastq.trim_reads"),
+        reason: None,
+        params: None,
+    }];
+    let temp = bijux_dna_infra::temp_dir("fastq-plan-foreign-tool")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let error = compose_fastq_stage_bindings(
+        &bindings,
+        &BTreeMap::new(),
+        None,
+        None,
+        None,
+        false,
+        &r1,
+        None,
+        None,
+        None,
+        |binding, _r1, _r2| {
+            Ok(temp.path().join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
+        },
+    )
+    .expect_err("foreign stage tool must be rejected before adapter planning");
+
+    assert!(error.to_string().contains("is not admitted for fastq.validate_reads"));
+    Ok(())
+}
