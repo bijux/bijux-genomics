@@ -27,6 +27,10 @@ pub(super) fn hydrate_catalog_digests_from_registry(
         let Some(digest) = digest.strip_prefix("sha256:") else {
             continue;
         };
+        let digest = digest.trim();
+        if digest.is_empty() {
+            continue;
+        }
         let Some(spec) = catalog.get_mut(&tool.id) else {
             continue;
         };
