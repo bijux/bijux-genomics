@@ -1,28 +1,41 @@
-# DOMAIN_MODEL
+# bijux-dna-domain-fastq Domain Model
 
-This crate owns FASTQ domain truth: IDs, params, metric semantics, and invariant verdicts.
+This crate owns FASTQ domain truth: IDs, stage contracts, bank contracts, parameters, metrics,
+invariants, observer semantics, and benchmark metadata.
 
-## Domain truth set
-- IDs: stage IDs and tool IDs live in `src/stages/ids.rs` and `src/id_catalog.rs`.
-- Params: canonical JSON and defaults in `src/params/*` and `docs/PARAMS.md`.
-- Metrics: meaning + ordering rules in `src/metrics/*` and `docs/METRICS.md`.
-- Invariants: evaluation rules in `src/invariants/*` and `docs/FAILURE_PATTERNS.md`.
+## Stage Truth
 
-## Retention semantics
-Retention is always scoped as `numerator/denominator` at a specific stage boundary.
-Examples are enforced in `tests/semantics/retention_truth_table.rs` and
-`tests/semantics/retention_semantics.rs`.
+- Stage IDs and constants live in `src/stages/ids.rs`.
+- Stage IO, semantics, stable ordering, criticality, and contract JSON live under `src/stages/`.
+- Scientific intent is explicit: validate malformed inputs, profile reads, correct or transform
+  reads, trim adapters and low-quality bases, merge pairs, deplete contaminants, screen taxonomy,
+  and report QC.
 
-## Invariant verdicts
-Verdicts are stable and mean:
-- pass: invariant holds within thresholds.
-- warn: invariant deviation detected; pipeline can continue but operator review required.
-- fail: invariant violated; pipeline must treat as a hard contract failure.
+## Parameters
 
-Invariant expectations are enforced by the invariant suite:
-- `tests/invariants/invariant_specs.rs`
-- `tests/invariants/invariants.rs`
+- Parameter descriptors live under `src/params/descriptor/`.
+- Effective defaults live under `src/params/defaults/`.
+- Stage-specific parameter families live under `src/params/processing/`, `src/params/quality/`,
+  and `src/params/edna.rs`.
+- Canonicalization must preserve deterministic key ordering, float rendering, and path treatment.
 
-## Forbidden
-- Tool selection
-- Execution or runner concepts
+## Metrics And Invariants
+
+- Metric type contracts live under `src/metrics/types/`.
+- Metric classes and specs live under `src/metrics/spec/`.
+- Invariant specs and threshold evaluation live under `src/invariants/`.
+- Retention is always a stage-boundary ratio with numerator, denominator, unit, conditions, and
+  boundary context. Naked percentages are forbidden.
+
+## Banks And References
+
+- Adapter banks live under `src/banks/adapter/`.
+- Contaminant banks live under `src/banks/contaminant/`.
+- PolyX banks live under `src/banks/polyx/`.
+- Selection policy lives under `src/banks/selection/` and must not be redefined downstream.
+- Bank changes require provenance, stable ordering, and refreshed fixtures or snapshots.
+
+## Observer And Benchmark Contracts
+
+- Observer contracts map stage/tool outputs onto semantic surfaces without executing tools.
+- Benchmark query context and corpus metadata are domain descriptors, not benchmark execution.

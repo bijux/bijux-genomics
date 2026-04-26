@@ -1,31 +1,30 @@
-# Tests
+# bijux-dna-domain-fastq Tests
 
-## What
-Maps tests in this crate to their purpose and failure meaning.
+The test suite locks domain boundaries, manifest parity, public surface, deterministic fixtures,
+semantic behavior, and contract snapshots.
 
-## Why
-Tests should explain the contract they enforce.
+## Test Map
 
-## Non-goals
-- Full test implementation detail.
+| Surface | Test file or directory | Contract |
+| --- | --- | --- |
+| Boundaries | `tests/boundaries.rs`, `tests/boundaries/*` | Docs layout, command-free surface, dependency graph, guardrails, purity, and deterministic source shape. |
+| Contracts | `tests/contracts.rs`, `tests/contracts/*` | Stage contracts, domain manifest parity, tool manifests, public surface, SSOT literals, and snapshots. |
+| Determinism | `tests/determinism.rs`, `tests/determinism/*` | Fixture stability and reproducibility checks. |
+| Semantics | `tests/semantics.rs`, `tests/semantics/*` | Retention, canonical params, observability, execution support, tool models, and stage params. |
+| Invariants | `tests/semantics/invariants/*` | Invariant specs, metric fixtures, and evaluation behavior. |
 
-## Contracts
-- Each test file should be referenced here.
+## Commands
 
-## Suite map
-- `tests/boundaries/*` → architecture, purity, determinism, and policy guardrails.
-- `tests/contracts/*` → stage contracts, manifest parity, SSOT ids, and public surface.
-- `tests/determinism/*` → fixture stability and reproducibility checks.
-- `tests/semantics/*` → retention semantics, params canonicalization, observability.
-- `tests/semantics/invariants/*` → invariant specs and invariant enforcement.
+```bash
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-fastq --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-fastq --no-default-features --test boundaries
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-fastq --no-default-features --test contracts
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-fastq --no-default-features --test determinism
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-fastq --no-default-features --test semantics
+CARGO_TARGET_DIR=artifacts/cargo-target cargo clippy -p bijux-dna-domain-fastq --all-targets --no-default-features -- -D warnings
+```
 
-## Examples
-- `tests/contracts/stage_contract_snapshots.rs` → stage contract snapshots.
-- `tests/contracts/domain_manifest_parity.rs` → source-manifest parity with crate catalogs.
-- `tests/semantics/invariants/invariant_specs.rs` → invariant coverage and metric fixtures.
+## Artifact Discipline
 
-## Failure modes
-- Missing test documentation causes drift and confusion.
-
-## Testkit patterns
-See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+Rust build products must use `CARGO_TARGET_DIR=artifacts/cargo-target`. Snapshot updates are
+governed outputs and should be staged only when the snapshot change is the intended contract update.
