@@ -22,6 +22,8 @@ Tests should explain the contract they enforce.
 
 ## Boundaries
 - `tests/boundaries/guardrails/canonical_owner.rs` — PATHS doc must point to bijux-dna-core.
+- `tests/boundaries/guardrails/dependencies.rs` — runtime dependencies must match the documented
+  low-level dependency boundary.
 - `tests/boundaries/guardrails/no_generic_helpers.rs` — no generic helper-y API creep.
 - `tests/boundaries/guardrails/policies.rs` — shared policy guardrails.
 - `tests/boundaries/guardrails/public_surface.rs` — public API surface snapshot.

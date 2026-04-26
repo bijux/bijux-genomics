@@ -22,6 +22,7 @@ the crate-local `IoError` taxonomy so callers can wrap them at their own boundar
 
 ## Test Dependencies
 
+- `anyhow`: shared policy test module result plumbing.
 - `bijux-dna-policies`: workspace guardrails.
 - `bijux-dna-testkit`: deterministic snapshot helpers.
 - `insta`: public surface snapshot tests.
