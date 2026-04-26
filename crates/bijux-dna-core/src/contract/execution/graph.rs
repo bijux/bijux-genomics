@@ -332,6 +332,12 @@ fn validate_graph_step(step: &ExecutionStep, step_ids: &mut HashSet<String>) -> 
     if step.command.template.is_empty() {
         return Err(BijuxError::validation(format!("step {} missing command", step.step_id.0)));
     }
+    if step.command.template.iter().any(|token| token.trim().is_empty()) {
+        return Err(BijuxError::validation(format!(
+            "step {} command contains an empty token",
+            step.step_id.0
+        )));
+    }
     if step.image.image.trim().is_empty() {
         return Err(BijuxError::validation(format!("step {} missing image", step.step_id.0)));
     }
@@ -592,5 +598,23 @@ mod tests {
         assert!(error.is_err_and(|err| err
             .to_string()
             .contains("execution graph must contain at least one step")));
+    }
+
+    #[test]
+    fn execution_graph_rejects_blank_command_tokens() {
+        let mut bad_step = step("trim", id_catalog::FASTQ_TRIM);
+        bad_step.command.template.push(" ".to_string());
+
+        let error = ExecutionGraph::new(
+            "fastq-to-fastq__graph__v1",
+            "planner",
+            PlanPolicy::PreferAccuracy,
+            vec![bad_step],
+            Vec::new(),
+        );
+
+        assert!(error.is_err_and(|err| err
+            .to_string()
+            .contains("step trim command contains an empty token")));
     }
 }
