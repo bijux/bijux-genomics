@@ -178,3 +178,41 @@ fn no_new_top_level_modules_without_owner() {
     }
     assert!(offenders.is_empty(), "top-level modules require OWNER.toml: {offenders:?}");
 }
+
+#[test]
+fn owner_files_document_responsibility_and_boundaries() -> anyhow::Result<()> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let src_dir = manifest_dir.join("src");
+    let required = ["owner", "responsibility", "may_depend_on", "must_not_depend_on"];
+    let mut offenders = Vec::new();
+
+    for entry in fs::read_dir(src_dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+
+        let owner_path = path.join("OWNER.toml");
+        let raw = fs::read_to_string(&owner_path)?;
+        let value: toml::Value = toml::from_str(&raw)?;
+        let Some(table) = value.as_table() else {
+            offenders.push(owner_path.display().to_string());
+            continue;
+        };
+
+        for key in required {
+            let valid = table.get(key).is_some_and(|value| match value {
+                toml::Value::String(text) => !text.trim().is_empty(),
+                toml::Value::Array(items) => !items.is_empty(),
+                _ => false,
+            });
+            if !valid {
+                offenders.push(format!("{} missing {key}", owner_path.display()));
+            }
+        }
+    }
+
+    assert!(offenders.is_empty(), "OWNER.toml files need durable metadata: {offenders:?}");
+    Ok(())
+}
