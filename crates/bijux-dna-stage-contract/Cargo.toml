@@ -13,8 +13,8 @@ serde_json.workspace = true
 sha2.workspace = true
 
 [dev-dependencies]
-bijux-dna-policies = { path = "../bijux-dna-policies" }
-bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+bijux-dna-policies.workspace = true
+bijux-dna-testkit.workspace = true
 toml.workspace = true
 walkdir.workspace = true
 
