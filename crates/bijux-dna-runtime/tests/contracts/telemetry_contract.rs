@@ -106,3 +106,33 @@ fn telemetry_contract_requires_stage_start_end_and_artifact_refs() -> anyhow::Re
     assert!(validate_stage_telemetry(&events).is_empty());
     Ok(())
 }
+
+#[test]
+fn telemetry_contract_rejects_mixed_stage_event_lists() -> anyhow::Result<()> {
+    let base = TelemetryEventV1 {
+        schema_version: "bijux.telemetry.v1".to_string(),
+        run_id: "run-1".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
+        tool_id: "fastp".to_string(),
+        event_name: TelemetryEventName::StageStart,
+        timestamp: chrono::DateTime::parse_from_rfc3339("2026-01-01T00:00:00Z")?
+            .with_timezone(&chrono::Utc),
+        duration_ms: None,
+        status: "ok".to_string(),
+        trace_id: "trace-1".to_string(),
+        span_id: "span-1".to_string(),
+        attrs: std::collections::BTreeMap::default(),
+        failure_code: None,
+    };
+    let mut mixed = base.clone();
+    mixed.stage_id = "fastq.qc_pre".to_string();
+    mixed.event_name = TelemetryEventName::StageEnd;
+
+    let violations = validate_stage_telemetry(&[base, mixed]);
+
+    assert!(
+        violations.iter().any(|violation| violation.contains("does not match expected stage")),
+        "mixed-stage telemetry must be rejected: {violations:?}"
+    );
+    Ok(())
+}

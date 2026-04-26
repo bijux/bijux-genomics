@@ -121,6 +121,14 @@ pub fn redacted_attrs(attrs: &AttrMap) -> AttrMap {
 #[must_use]
 pub fn validate_stage_telemetry(events: &[TelemetryEventV1]) -> Vec<String> {
     let mut violations = Vec::new();
+    if let Some(first_stage_id) = events.first().map(|event| event.stage_id.as_str()) {
+        for event in events.iter().filter(|event| event.stage_id != first_stage_id) {
+            violations.push(format!(
+                "event stage_id {} does not match expected stage {first_stage_id}",
+                event.stage_id
+            ));
+        }
+    }
     let has_start =
         events.iter().any(|event| matches!(event.event_name, TelemetryEventName::StageStart));
     let has_end =
