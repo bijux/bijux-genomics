@@ -8,9 +8,9 @@ rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-bijux-dna-core = { path = "../bijux-dna-core" }
-bijux-dna-runtime = { path = "../bijux-dna-runtime" }
-bijux-dna-infra = { path = "../bijux-dna-infra" }
+bijux-dna-core.workspace = true
+bijux-dna-runtime.workspace = true
+bijux-dna-infra.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
