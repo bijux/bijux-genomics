@@ -387,7 +387,7 @@ fn cache_paths_and_docker_image_checks_are_deterministic() {
     let _cache_root = EnvVarGuard::capture("BIJUX_CACHE_ROOT");
     std::env::set_var("BIJUX_CACHE_ROOT", cache_root.path());
     assert!(cache_dir(RuntimeKind::Docker).to_string_lossy().contains("bijux/docker/images"));
-    assert!(apptainer_sif_path(&image).to_string_lossy().contains("fastp-sha256:abc123-arm64.sif"));
+    assert!(apptainer_sif_path(&image).to_string_lossy().contains("fastp-sha256-abc123-arm64.sif"));
 
     let docker = ResolvedImage {
         full_name: "bijuxdna/fastp:0.23.4-arm64".to_string(),
