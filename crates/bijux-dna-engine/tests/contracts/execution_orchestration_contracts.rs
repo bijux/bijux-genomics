@@ -272,6 +272,20 @@ fn required_run_artifacts_must_be_parseable_json() {
 }
 
 #[test]
+fn expected_artifact_ids_must_be_declared_outputs() {
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
+    let mut step = plan_for("A");
+    step.expected_artifact_ids = vec![ArtifactId::new("missing")];
+    let graph = build_graph(vec![step], Vec::new());
+
+    let err = Engine::default()
+        .execute(&graph, &ScenarioRunner::new(Mode::Success), &layout, None, None)
+        .err()
+        .unwrap_or_else(|| panic!("expected undeclared artifact failure"));
+    assert!(err.to_string().contains("expected artifact is not declared"));
+}
+
+#[test]
 fn report_json_outputs_must_be_parseable_json() {
     let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
     let mut step = plan_for("A");

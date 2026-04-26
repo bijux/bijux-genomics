@@ -8,6 +8,16 @@ use crate::{EngineEvent, EngineHooks};
 use super::contract_error;
 
 pub(super) fn verify_outputs(step: &ExecutionStep, hooks: Option<&dyn EngineHooks>) -> Result<()> {
+    for expected in &step.expected_artifact_ids {
+        if !step.io.outputs.iter().any(|output| output.name == *expected) {
+            return Err(contract_error(
+                step,
+                expected.as_str(),
+                "",
+                "expected artifact is not declared as an output",
+            ));
+        }
+    }
     for output in &step.io.outputs {
         if output.optional && !output.path.exists() {
             continue;
