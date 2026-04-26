@@ -484,3 +484,51 @@ fn policy__contracts__fastq_closure_evidence_policy__production_ledger_matches_p
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__fastq_closure_evidence_policy__production_ledger_matches_proof_gaps() {
+    let mut sbom_by_stage = BTreeMap::<String, Vec<String>>::new();
+    let mut smoke_by_stage = BTreeMap::<String, String>::new();
+    for row in tsv_records("science/docs/upstream/fastq/container/FASTQ_CONTAINER_PROOF_GAPS.tsv") {
+        let stage_id = row["stage_id"].clone();
+        let proof_kind = &row["proof_kind"];
+        let proof_status = &row["proof_status"];
+        if proof_kind.ends_with("_sbom") && proof_status != "present" {
+            sbom_by_stage.entry(stage_id).or_default().push(format!("{proof_kind}:{proof_status}"));
+        } else if proof_kind == "smoke_manifest" {
+            smoke_by_stage.insert(stage_id, proof_status.clone());
+        }
+    }
+    let mut offenders = Vec::new();
+
+    for row in
+        tsv_records("science/docs/upstream/fastq/container/FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv")
+    {
+        let mut expected_sbom = sbom_by_stage.get(&row["stage_id"]).cloned().unwrap_or_default();
+        expected_sbom.sort();
+        let expected_sbom =
+            if expected_sbom.is_empty() { "ready".to_string() } else { expected_sbom.join(";") };
+        let expected_smoke = smoke_by_stage
+            .get(&row["stage_id"])
+            .map(String::as_str)
+            .unwrap_or("missing_from_snapshot");
+        if row["sbom_status"] != expected_sbom {
+            offenders.push(format!(
+                "{}:{} ledger sbom_status={} but proof gaps report has {expected_sbom}",
+                row["stage_id"], row["tool_id"], row["sbom_status"]
+            ));
+        }
+        if row["smoke_status"] != expected_smoke {
+            offenders.push(format!(
+                "{}:{} ledger smoke_status={} but proof gaps report has {expected_smoke}",
+                row["stage_id"], row["tool_id"], row["smoke_status"]
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "FASTQ production ledger proof parity violations:\n{}",
+        offenders.join("\n")
+    );
+}
