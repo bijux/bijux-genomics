@@ -802,12 +802,23 @@ fn ensure_workspace_corpus_binding(cwd: &Path, corpus_name: &str, corpus_root: &
         bijux_dna_infra::ensure_dir(parent)?;
     }
     #[cfg(unix)]
-    std::os::unix::fs::symlink(corpus_root, &workspace_corpus).with_context(|| {
-        format!(
-            "symlink {} -> {}",
+    {
+        std::os::unix::fs::symlink(corpus_root, &workspace_corpus).with_context(|| {
+            format!(
+                "symlink {} -> {}",
+                workspace_corpus.display(),
+                corpus_root.display()
+            )
+        })?;
+        Ok(())
+    }
+
+    #[cfg(not(unix))]
+    {
+        Err(anyhow!(
+            "workspace corpus binding requires Unix symlink support: {} -> {}",
             workspace_corpus.display(),
             corpus_root.display()
-        )
-    })?;
-    Ok(())
+        ))
+    }
 }
