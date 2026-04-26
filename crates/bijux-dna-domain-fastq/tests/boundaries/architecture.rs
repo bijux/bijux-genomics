@@ -230,6 +230,35 @@ fn crate_tree_matches_domain_fastq_boundary() {
         "metric invariant evaluators must stay split by metric family"
     );
 
+    assert_eq!(
+        dir_entries(&root.join("src/pipeline_contract")),
+        entries(["catalog.rs", "catalog/", "graph.rs", "graph/", "mod.rs"]),
+        "pipeline_contract/ must keep catalog and graph concerns separate"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/pipeline_contract/catalog")),
+        entries(["criticality.rs", "modes.rs", "ordering.rs", "transitions.rs"]),
+        "pipeline catalog must stay split by catalog concern"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/pipeline_contract/graph")),
+        entries(["assembly.rs", "dependencies.rs", "edges.rs"]),
+        "pipeline graph must keep assembly, dependencies, and edges separate"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/stage_tool_governance")),
+        entries([
+            "input_layout.rs",
+            "layout_catalog.rs",
+            "mod.rs",
+            "model.rs",
+            "profiles.rs",
+            "readiness.rs",
+        ]),
+        "stage-tool governance must keep layout, profiles, readiness, and model concerns separate"
+    );
+
     let expected_stages: BTreeSet<_> = [
         "contract.rs",
         "contract/",
@@ -247,6 +276,43 @@ fn crate_tree_matches_domain_fastq_boundary() {
         dir_entries(&root.join("src/stages")),
         expected_stages,
         "stages/ must contain durable stage-contract ownership modules"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/stages/contract")),
+        entries(["catalog.rs", "export.rs", "runtime/"]),
+        "stage contracts must keep catalog, export, and runtime policy separated"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/stages/contract/runtime")),
+        entries([
+            "header_inspection.rs",
+            "merge_suitability.rs",
+            "mod.rs",
+            "output_normalization.rs",
+        ]),
+        "stage runtime contract helpers must stay split by runtime preflight concern"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/stages/ports")),
+        entries(["manifest.rs", "mod.rs", "queries.rs"]),
+        "stage ports must separate manifest data and query helpers"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/stages/semantics")),
+        entries(["catalog/", "queries.rs"]),
+        "stage semantics must separate catalog data and query helpers"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/stages/semantics/catalog")),
+        entries([
+            "amplicon.rs",
+            "boundaries.rs",
+            "cleanup.rs",
+            "mod.rs",
+            "screening.rs",
+            "transforms.rs",
+        ]),
+        "stage semantics catalog must stay split by semantic stage family"
     );
 
     let expected_tests: BTreeSet<_> = [
