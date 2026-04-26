@@ -1,11 +1,21 @@
-# INVARIANTS
+# Invariants
 
-## Contract invariants (must always hold)
-- Canonical JSON sorting is stable (`tests/contract/canonicalization.rs::canonicalize_json_value_sorts_keys`).
-- Parameters JSON canonicalization normalizes numbers (`tests/contract/canonicalization.rs::parameters_json_canonicalization_normalizes_numbers`).
-- Metrics schemas resolve for known stages (`tests/contract/canonicalization.rs::metrics_schema_resolves_stage`).
-- Execution graphs are acyclic (`tests/contract/execution_graph_validate.rs::validate_rejects_cycles`).
-- Execution graph serialization is stage-plan free (`tests/contract/execution_graph_purity.rs::execution_graph_serialization_is_stage_plan_free`).
+Core invariants are the behaviors downstream crates may rely on without
+revalidating contract shape themselves. When an invariant changes, update this
+file and the closest test in the same change set.
+
+## Contract Invariants
+
+- Canonical JSON object keys are stable:
+  `tests/contracts/surface/canonicalization.rs::canonicalize_json_value_sorts_keys`.
+- Parameter JSON canonicalization is deterministic for numeric JSON values:
+  `tests/contracts/surface/canonicalization.rs::parameters_json_canonicalization_normalizes_numbers`.
+- Metrics schemas resolve for known stages:
+  `tests/contracts/surface/canonicalization.rs::metrics_schema_resolves_stage`.
+- Execution graphs reject cycles:
+  `tests/contracts/execution/execution_graph_validate.rs::validate_rejects_cycles`.
+- Execution graph serialization stays free of stage-plan and plugin payloads:
+  `tests/boundaries/execution_graph_purity.rs::execution_graph_serialization_is_stage_plan_free`.
 
 ## ExecutionGraph
 ### Valid (acyclic)
@@ -20,12 +30,17 @@
   "edges": []
 }
 ```
-### Invalid (cycle)
+### Invalid Cycle
+
 ```json
 {"edges": [{"from": "step.a", "to": "step.a"}]}
 ```
-Enforced by `tests/contract/execution_graph_validate.rs::validate_rejects_cycles`.
+
+Enforced by
+`tests/contracts/execution/execution_graph_validate.rs::validate_rejects_cycles`.
 
 ## Stage plan purity
+
 Execution graphs must not serialize stage-plan or plugin types.
-Enforced by `tests/contract/execution_graph_purity.rs::execution_graph_serialization_is_stage_plan_free`.
+Enforced by
+`tests/boundaries/execution_graph_purity.rs::execution_graph_serialization_is_stage_plan_free`.
