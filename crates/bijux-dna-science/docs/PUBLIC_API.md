@@ -29,6 +29,10 @@ The crate root exports these modules from `src/lib.rs`:
 ## Data Surface
 
 `domain` owns typed science identifiers, authored spec structs, compiled row structs,
-`ScienceIndex`, and `CompiledScience`. `render` owns TSV and JSON rendering for the
-compiled rows. `schema` owns the accepted authored spec schema version constants.
+`ScienceIndex`, `FastqClosureSummary`, `FastqEvidenceSummary`, and `CompiledScience`.
+`render` owns TSV and JSON rendering for the compiled rows. `schema` owns the accepted
+authored spec schema version constants.
 
+`ScienceIndex` is the stable JSON index surface for generated science output. Its FASTQ
+summary fields are intended for operator entrypoints and governance checks that need
+rolled-up state before drilling into individual TSV rows.
