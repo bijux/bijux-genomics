@@ -49,6 +49,7 @@ from = "docs/10-architecture/index.md"
 children = [
   "docs/10-architecture/ANTI_PATTERNS.md",
   "docs/10-architecture/ARCHITECTURE.md",
+  "docs/10-architecture/ARCHITECTURE_CONTRACT.md",
   "docs/10-architecture/ARCHITECTURE_LITMUS.md",
   "docs/10-architecture/ARCHITECTURE_OVERVIEW.md",
   "docs/10-architecture/BOUNDARY_DIAGRAM.md",
@@ -56,10 +57,15 @@ children = [
   "docs/10-architecture/CONTRACTS/index.md",
   "docs/10-architecture/CONTRACT_AUTHORITY.md",
   "docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md",
+  "docs/10-architecture/CONTRACT_INDEX.md",
   "docs/10-architecture/CONTRACT_SPINE.md",
   "docs/10-architecture/CRATE_AUTHORITY_MAP.md",
+  "docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md",
   "docs/10-architecture/DATAFLOW.md",
   "docs/10-architecture/DEPENDENCY_RULES.md",
+  "docs/10-architecture/DRY_RUN_EFFECTS_CONTRACT.md",
+  "docs/10-architecture/GENERATED_FILES_CONTRACT.md",
+  "docs/10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md",
   "docs/10-architecture/SSOT.md",
 ]
 
