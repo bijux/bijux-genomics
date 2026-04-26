@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::run::{
@@ -11,7 +11,7 @@ use bijux_dna_core::prelude::{
     ArtifactRole, ArtifactSpec, CommandSpecV1, ContainerImageRefV1, StageIO, ToolConstraints,
 };
 
-fn minimal_graph() -> Result<ExecutionGraph> {
+fn minimal_graph(run_dir: &Path) -> Result<ExecutionGraph> {
     let step = ExecutionStep {
         step_id: StepId::new("fastq.validate_reads"),
         stage_id: StageId::new("fastq.validate_reads"),
@@ -33,7 +33,7 @@ fn minimal_graph() -> Result<ExecutionGraph> {
                 ArtifactRole::Reads,
             )],
         },
-        out_dir: PathBuf::from("out"),
+        out_dir: run_dir.join("out"),
         aux_images: BTreeMap::default(),
         expected_artifact_ids: Vec::new(),
         metrics_schema_ids: Vec::new(),
@@ -57,7 +57,7 @@ fn docker_contracts_enabled() -> bool {
 #[test]
 fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
     let temp = tempfile::tempdir()?;
-    let graph = minimal_graph()?;
+    let graph = minimal_graph(temp.path())?;
     let request = DryRunRequest {
         graph,
         run_dir: temp.path().to_path_buf(),
@@ -74,7 +74,7 @@ fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
 fn dry_run_creates_missing_run_dir() -> Result<()> {
     let temp = tempfile::tempdir()?;
     let run_dir = temp.path().join("runs").join("dry-run");
-    let graph = minimal_graph()?;
+    let graph = minimal_graph(&run_dir)?;
     let request = DryRunRequest {
         graph,
         run_dir: run_dir.clone(),
@@ -92,7 +92,7 @@ fn dry_run_creates_missing_run_dir() -> Result<()> {
 #[test]
 fn dry_run_manifest_verifies_output_artifacts() -> Result<()> {
     let temp = tempfile::tempdir()?;
-    let graph = minimal_graph()?;
+    let graph = minimal_graph(temp.path())?;
     let request = DryRunRequest {
         graph,
         run_dir: temp.path().to_path_buf(),
@@ -106,7 +106,7 @@ fn dry_run_manifest_verifies_output_artifacts() -> Result<()> {
 #[test]
 fn dry_run_manifest_records_planned_stages() -> Result<()> {
     let temp = tempfile::tempdir()?;
-    let graph = minimal_graph()?;
+    let graph = minimal_graph(temp.path())?;
     let request = DryRunRequest {
         graph,
         run_dir: temp.path().to_path_buf(),
@@ -128,7 +128,7 @@ fn execute_emits_run_summary_artifact() -> Result<()> {
     }
 
     let temp = tempfile::tempdir()?;
-    let graph = minimal_graph()?;
+    let graph = minimal_graph(temp.path())?;
     let response = execute(&ExecuteRequest {
         graph,
         runner: RuntimeKind::Docker,
