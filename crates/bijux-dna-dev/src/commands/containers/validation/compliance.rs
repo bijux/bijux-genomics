@@ -448,6 +448,26 @@ pub(in super::super) fn check_hpc_image_naming(
 pub(in super::super) fn check_planned_actionability(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
+    let registry =
+        load_toml(&workspace.path("configs/ci/registry/tool_registry_vcf_downstream.toml"))?;
+    let planned_registry_tools = registry
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|value| value.as_table().cloned())
+        .filter(|row| table_string(row, "status") == "planned")
+        .map(|row| {
+            let tool = table_string(&row, "id");
+            if tool.is_empty() {
+                table_string(&row, "tool_id")
+            } else {
+                tool
+            }
+        })
+        .filter(|tool| !tool.is_empty())
+        .collect::<BTreeSet<_>>();
     let planned = workspace.path("containers/docs/PLANNED.md");
     if !planned.exists() {
         return Ok(ContainerCommandOutcome::failure(
@@ -481,22 +501,34 @@ pub(in super::super) fn check_planned_actionability(
     if rows.is_empty() {
         errors.push("PLANNED.md has no actionable planned tool rows".to_string());
     }
+    let mut documented_tools = BTreeSet::new();
     for row in rows {
         let cols = row.trim_matches('|').split('|').map(str::trim).collect::<Vec<_>>();
         if cols.len() < 5 {
             errors.push(format!("PLANNED.md malformed row: {row}"));
             continue;
         }
-        let tool = cols[0];
+        let tool = cols[0].trim_matches('`');
         let owner = cols[4];
+        documented_tools.insert(tool.to_string());
         if matches!(owner, "" | "-" | "`-`" | "`\"") {
             errors.push(format!("{tool}: missing owner"));
         }
     }
+    for tool in planned_registry_tools.difference(&documented_tools) {
+        errors.push(format!(
+            "{tool}: planned in configs/ci/registry/tool_registry_vcf_downstream.toml but missing from containers/docs/PLANNED.md"
+        ));
+    }
+    for tool in documented_tools.difference(&planned_registry_tools) {
+        errors.push(format!(
+            "{tool}: documented in containers/docs/PLANNED.md but not planned in configs/ci/registry/tool_registry_vcf_downstream.toml"
+        ));
+    }
     if errors.is_empty() {
         return success_line(format!(
             "planned actionability: OK ({})",
-            text.lines().filter(|line| line.trim().starts_with('|')).count().saturating_sub(2)
+            documented_tools.len()
         ));
     }
     failure_lines("planned actionability: FAILED", &errors)
