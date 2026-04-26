@@ -185,6 +185,41 @@ mod contracts {
     }
 
     #[test]
+    fn species_keyed_invariants_reject_invalid_species_context() {
+        let species = SpeciesContext {
+            species_id: "homo_sapiens".to_string(),
+            build_id: "GRCh37".to_string(),
+            contig_set_digest: "contigs-sha256".to_string(),
+            contigs: vec![ContigSpec { name: "1".to_string(), length_bp: 0 }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch37_par".to_string(),
+            default_coverage_regime: Some(CoverageRegime::LowCovGl),
+        };
+        let entry = EntryVcfInvariantState {
+            build_id: "GRCh37".to_string(),
+            contig_set_digest: "contigs-sha256".to_string(),
+            sorted_by_contig_and_pos: true,
+            bgzip_compressed: true,
+            tabix_index_present: true,
+            sample_ids_non_empty_unique: true,
+            ploidy_constraints_ok: true,
+        };
+        assert!(validate_entry_vcf_invariants(&species, &entry).is_err());
+
+        let panel_map = PanelMapInvariantState {
+            species_id: "homo_sapiens".to_string(),
+            build_id: "GRCh37".to_string(),
+            contig_set_digest: "contigs-sha256".to_string(),
+            phased_or_gl_compatible: true,
+            format_requirements_ok: true,
+            sample_count_ok: true,
+            license_allowed: true,
+            checksums_match: true,
+        };
+        assert!(validate_panel_map_invariants(&species, &panel_map).is_err());
+    }
+
+    #[test]
     fn pseudohaploid_to_diploid_imputation_is_refused() {
         let err = match refuse_unsupported_regime_transition(CoverageRegime::Pseudohaploid, true) {
             Ok(()) => panic!("pseudohaploid to diploid imputation transition must be refused"),

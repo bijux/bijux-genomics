@@ -140,6 +140,7 @@ pub fn validate_entry_vcf_invariants(
     species: &SpeciesContext,
     state: &EntryVcfInvariantState,
 ) -> Result<()> {
+    validate_species_context(species)?;
     if state.build_id != species.build_id {
         bail!("{:?}", RefusalReason::BuildMismatch);
     }
@@ -167,6 +168,7 @@ pub fn validate_panel_map_invariants(
     species: &SpeciesContext,
     state: &PanelMapInvariantState,
 ) -> Result<()> {
+    validate_species_context(species)?;
     if state.species_id != species.species_id || state.build_id != species.build_id {
         bail!("{:?}", RefusalReason::BuildMismatch);
     }
