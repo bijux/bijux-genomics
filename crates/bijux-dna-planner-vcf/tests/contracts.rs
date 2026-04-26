@@ -360,3 +360,16 @@ fn vcf_planner_refuses_unknown_chunk_exclude_contig() {
         "unexpected planner refusal: {err}"
     );
 }
+
+#[test]
+fn vcf_planner_refuses_chunk_filters_with_no_regions() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.chunking.chr_exclude = vec!["1".to_string(), "2".to_string()];
+
+    let err = plan_vcf_stage_plans(&input).expect_err("empty chunk plan must fail");
+
+    assert!(
+        err.to_string().contains("produced no region chunks"),
+        "unexpected planner refusal: {err}"
+    );
+}
