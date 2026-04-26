@@ -334,3 +334,29 @@ fn vcf_planner_refuses_conflicting_chunk_contig_filters() {
         "unexpected planner refusal: {err}"
     );
 }
+
+#[test]
+fn vcf_planner_refuses_unknown_chunk_include_contig() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.chunking.chr_include = vec!["chr01".to_string()];
+
+    let err = plan_vcf_stage_plans(&input).expect_err("unknown included contig must fail");
+
+    assert!(
+        err.to_string().contains("chr_include contains unknown contig `chr01`"),
+        "unexpected planner refusal: {err}"
+    );
+}
+
+#[test]
+fn vcf_planner_refuses_unknown_chunk_exclude_contig() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.chunking.chr_exclude = vec!["chrM".to_string()];
+
+    let err = plan_vcf_stage_plans(&input).expect_err("unknown excluded contig must fail");
+
+    assert!(
+        err.to_string().contains("chr_exclude contains unknown contig `chrM`"),
+        "unexpected planner refusal: {err}"
+    );
+}
