@@ -15,9 +15,27 @@ src/
     compile.rs                 # generation orchestration and output writes
     coverage.rs                # validation coverage reporting
     loading/                   # source loading and TOML rendering builders
+      image_registries.rs      # image/source registry readers
+      index_catalogs.rs        # reference index catalog materialization
+      index_defaults.rs        # generated reference-index defaults
+      load_and_collect.rs      # shared load/collect orchestration
+      stage_loading.rs         # authored stage YAML readers
+      stage_registries.rs      # stage registry render builders
+      tool_loading.rs          # authored tool YAML readers
+      tool_registries.rs       # tool registry render builders
     models.rs                  # internal domain/config data shapes and public options
     support/                   # repository, rendering, placeholder, status, and tool helpers
+      placeholders.rs          # placeholder and planned-status policy helpers
+      render.rs                # deterministic rendering helpers
+      repository.rs            # workspace and source path helpers
+      status.rs                # status validation helpers
+      tooling.rs               # tool-role and domain-meaning helpers
     validation/                # schema, catalog, index, stage, and tool validation
+      catalog_coverage.rs      # stage coverage validation
+      catalog_validation.rs    # generated catalog consistency checks
+      index_rules/             # reference-index compatibility, inventory, and version rules
+      stage_files.rs           # stage YAML validation
+      tool_files.rs            # tool YAML validation
     vcf_emit.rs                # separate generated VCF config views
   lib.rs                       # public crate surface
 ```

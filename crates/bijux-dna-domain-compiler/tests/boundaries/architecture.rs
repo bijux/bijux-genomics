@@ -52,6 +52,65 @@ fn crate_tree_matches_domain_compiler_boundary() {
         expected_compiler,
         "compiler module tree changed"
     );
+
+    let expected_loading: BTreeSet<_> = [
+        "image_registries.rs",
+        "index_catalogs.rs",
+        "index_defaults.rs",
+        "load_and_collect.rs",
+        "mod.rs",
+        "stage_loading.rs",
+        "stage_registries.rs",
+        "tool_loading.rs",
+        "tool_registries.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        dir_entries(&root.join("src/compiler/loading")),
+        expected_loading,
+        "loading/ must stay split by source family"
+    );
+
+    let expected_support: BTreeSet<_> =
+        ["mod.rs", "placeholders.rs", "render.rs", "repository.rs", "status.rs", "tooling.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(
+        dir_entries(&root.join("src/compiler/support")),
+        expected_support,
+        "support/ must stay limited to compiler helpers"
+    );
+
+    let expected_validation: BTreeSet<_> = [
+        "catalog_coverage.rs",
+        "catalog_validation.rs",
+        "index_rules/",
+        "mod.rs",
+        "stage_files.rs",
+        "tool_files.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        dir_entries(&root.join("src/compiler/validation")),
+        expected_validation,
+        "validation/ must stay split by validation family"
+    );
+
+    let expected_index_rules: BTreeSet<_> =
+        ["compatibility_matrix.rs", "domain_inventory.rs", "domain_versions.rs", "mod.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
+    assert_eq!(
+        dir_entries(&root.join("src/compiler/validation/index_rules")),
+        expected_index_rules,
+        "index_rules/ must keep reference-index checks grouped"
+    );
 }
 
 #[test]
