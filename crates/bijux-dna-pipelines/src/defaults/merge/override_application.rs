@@ -8,6 +8,7 @@ pub(super) fn apply(
 ) -> anyhow::Result<()> {
     for (stage, tool) in &overrides.tools {
         super::validation::ensure_stage_known(profile, stage, "tool override")?;
+        super::validation::ensure_tool_id_valid(tool, "tool override")?;
         merged.tools.insert(stage.clone(), tool.clone());
         merged.rationales.insert(stage.clone(), rationale.to_string());
     }
