@@ -4,3 +4,5 @@ mod mod_boundaries_architecture_rs;
 mod mod_boundaries_commands_rs;
 #[path = "boundaries/dependency_graph.rs"]
 mod mod_boundaries_dependency_graph_rs;
+#[path = "boundaries/public_api.rs"]
+mod mod_boundaries_public_api_rs;
