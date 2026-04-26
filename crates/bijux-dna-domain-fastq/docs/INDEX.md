@@ -10,6 +10,8 @@ See `EFFECTS.md` for allowed effects.
 See `ARCHITECTURE.md` for internal boundaries.
 - `BOUNDARY.md`
 - `COMMANDS.md`
+- `CONTRACTS.md`
+- `DEPENDENCIES.md`
 - `PUBLIC_API.md`
 
 ## Domain truth
