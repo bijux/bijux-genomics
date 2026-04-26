@@ -65,11 +65,17 @@ pub struct VcfStatsMetricsV1 {
 impl VcfStatsMetricsV1 {
     #[must_use]
     pub fn empty() -> Self {
+        Self::empty_for_sample("sample")
+    }
+
+    #[must_use]
+    pub fn empty_for_sample(sample_name: impl Into<String>) -> Self {
+        let sample_name = sample_name.into();
         Self {
             schema_version: "bijux.vcf.stats.v1".to_string(),
-            sample_name: "sample".to_string(),
-            call_summary: VcfCallSummaryMetricsV1::empty("sample"),
-            filter_summary: VcfFilterBreakdownMetricsV1::empty("sample"),
+            sample_name: sample_name.clone(),
+            call_summary: VcfCallSummaryMetricsV1::empty(sample_name.clone()),
+            filter_summary: VcfFilterBreakdownMetricsV1::empty(sample_name),
             variants_total: 0,
             snps: 0,
             indels: 0,
