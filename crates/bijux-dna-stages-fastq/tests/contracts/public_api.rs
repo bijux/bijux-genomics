@@ -47,3 +47,23 @@ fn public_modules_remain_available() {
     let _validator_parser = bijux_dna_stages_fastq::observer::parse_fastqvalidator_count;
     let _stage_specs = bijux_dna_stages_fastq::stage_specs::STAGES.len();
 }
+
+#[test]
+fn observer_parser_exports_remain_available() {
+    let _ = bijux_dna_stages_fastq::observer::parse_adapterremoval_metrics;
+    let _ = bijux_dna_stages_fastq::observer::parse_fastp_metrics;
+    let _ = bijux_dna_stages_fastq::observer::parse_fastqc_summary_metrics;
+    let _ = bijux_dna_stages_fastq::observer::parse_multiqc_general_stats_metrics;
+    let _ = bijux_dna_stages_fastq::observer::parse_samtools_flagstat_metrics;
+    let _ = bijux_dna_stages_fastq::observer::parse_seqkit_tool_metrics;
+    let _ = bijux_dna_stages_fastq::observer::parse_seqkit_stats;
+    let _ = bijux_dna_stages_fastq::observer::parse_length_histogram;
+    let _ = bijux_dna_stages_fastq::observer::parse_trim_reads_report;
+    let _ = bijux_dna_stages_fastq::observer::parse_filter_reads_report;
+    let _ = bijux_dna_stages_fastq::observer::parse_filter_low_complexity_report;
+    let _ = bijux_dna_stages_fastq::observer::parse_merge_pairs_report;
+    let _ = bijux_dna_stages_fastq::observer::parse_deduplicate_report;
+    let _ = bijux_dna_stages_fastq::observer::parse_remove_duplicates_report;
+    let _ = bijux_dna_stages_fastq::observer::parse_report_qc_report;
+    let _ = bijux_dna_stages_fastq::observer::parse_screen_taxonomy_report;
+}
