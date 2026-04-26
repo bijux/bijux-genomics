@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use super::{
     anyhow, apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
     docker_tool_ids, dockerfile_paths, env_or_default, env_or_empty, failure_lines, fs,

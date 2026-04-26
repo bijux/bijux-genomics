@@ -1,4 +1,6 @@
-#[allow(clippy::too_many_lines, clippy::wildcard_imports)]
+#![allow(clippy::too_many_lines)]
+
+#[allow(clippy::wildcard_imports)]
 use super::*;
 
 pub(super) fn run_native_container_command(

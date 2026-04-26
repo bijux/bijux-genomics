@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use super::{
     anyhow, ensure_help_only, env_or_default, generate_compatibility_matrix, generate_docs_graph,
     generate_domain_coverage_doc, generate_repo_root_map, generate_tool_index, json, json_u64,
