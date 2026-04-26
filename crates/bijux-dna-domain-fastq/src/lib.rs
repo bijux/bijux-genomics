@@ -2,13 +2,8 @@
 //!
 //! Owns: FASTQ stage semantics, invariants, and contracts.
 //! Must NOT depend on: bijux-dna-engine or runtime/container execution logic.
-// Reading order:
-// 1. domain.rs
-// 2. core types
-// 3. stage semantics
-// 4. metrics spec
-// 5. domain adapter
-// Structural layout of this crate is frozen as of FASTQ v1.
+//! Reading order: `stages`, `params`, `metrics`, `invariants`, `banks`, then `observer`.
+//! Structural layout is documented in `docs/ARCHITECTURE.md`.
 mod artifacts;
 pub mod banks;
 mod bench;
