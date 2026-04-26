@@ -52,6 +52,29 @@ pub(crate) fn collect_files(dir: &Path, out: &mut Vec<PathBuf>) -> Result<()> {
     Ok(())
 }
 
+pub(crate) fn collect_yaml_files(dir: &Path) -> Result<Vec<PathBuf>> {
+    let mut files = Vec::new();
+    if !dir.exists() {
+        return Ok(files);
+    }
+    for entry in
+        std::fs::read_dir(dir).with_context(|| format!("read directory {}", dir.display()))?
+    {
+        let path = entry?.path();
+        if path.extension().and_then(|value| value.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|value| value.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        if path.is_file() {
+            files.push(path);
+        }
+    }
+    files.sort();
+    Ok(files)
+}
+
 pub(crate) fn domain_content_hash(domain_dir: &Path) -> Result<String> {
     let mut files = Vec::new();
     collect_files(domain_dir, &mut files)?;

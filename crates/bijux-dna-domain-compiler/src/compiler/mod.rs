@@ -22,9 +22,9 @@ use self::models::{
     StageResourceHint, StageStatusMap, StageToolMap, ThresholdBand, ToolMap, ToolRow,
 };
 use self::support::{
-    default_healthcheck_cmd, default_version_regex, domain_content_hash, encode_f64_map,
-    encode_threshold_map, ensure_no_placeholders_in_active_config, ensure_status, generated_header,
-    git_head_commit, has_supported_placeholder_forbidden_token, infer_tool_role,
+    collect_yaml_files, default_healthcheck_cmd, default_version_regex, domain_content_hash,
+    encode_f64_map, encode_threshold_map, ensure_no_placeholders_in_active_config, ensure_status,
+    generated_header, git_head_commit, has_supported_placeholder_forbidden_token, infer_tool_role,
     is_tool_meaningful_in_domain, is_umbrella_stage, is_unspecified, parse_container_ref,
     parse_version_from_recipe, placeholders_allowed, read_text_if_exists, read_yaml,
     required_tool_roles_for_stage, resolve_tool_citation, resolve_tool_upstream,
