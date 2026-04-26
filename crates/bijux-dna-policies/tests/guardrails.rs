@@ -151,3 +151,16 @@ fn policy__root__guardrails__pub_use_budget_counts_scoped_reexports() {
 
     assert!(err.to_string().contains("pub use re-exports"), "unexpected guardrail error: {err}");
 }
+
+#[test]
+fn policy__root__guardrails__empty_module_scan_ignores_attributes_and_scoped_mods() {
+    let paths = TestPaths::new("policies-empty-mod-scoped");
+    let crate_root = paths.child("crate");
+    write_source(&crate_root, "mod.rs", "#![allow(dead_code)]\npub(crate) mod inner;\n");
+    write_source(&crate_root, "inner.rs", "pub fn real() {}\n");
+
+    let err = bijux_dna_policies::check(&crate_root, &GuardrailConfig::default())
+        .expect_err("attribute-only module shell must fail");
+
+    assert!(err.to_string().contains("empty module file"), "unexpected guardrail error: {err}");
+}
