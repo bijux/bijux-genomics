@@ -33,7 +33,7 @@ This crate owns no Cargo binaries or host commands.
 None; utility-only.
 
 ## Artifacts / Contracts
-See `crates/bijux-dna-infra/docs/LOGGING.md`, `crates/bijux-dna-infra/docs/PATHS.md`, and `crates/bijux-dna-infra/docs/WHY_YAML.md` for behavioral contracts.
+See `docs/EFFECTS.md`, `docs/PATHS.md`, and `docs/FORMATS.md` for behavioral contracts.
 
 ## Effects & determinism guarantees
 No process/network effects; deterministic helpers only. See `crates/bijux-dna-infra/docs/EFFECTS.md` and the golden tests below.
@@ -53,4 +53,5 @@ Root docs are limited to this `README.md`. All other crate docs live in `docs/`;
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `docs/CHANGE_RULES.md` and `docs/PUBLIC_API.md`.
+Contract and behavior changes follow `docs/PUBLIC_API.md`, `docs/BOUNDARY.md`, and
+`docs/DEPENDENCIES.md`.
