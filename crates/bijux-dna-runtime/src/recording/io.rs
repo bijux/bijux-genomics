@@ -105,10 +105,11 @@ pub fn write_artifact_checksums_json(
 ) -> Result<std::collections::BTreeMap<String, String>> {
     let mut checksums = std::collections::BTreeMap::new();
     for (name, path) in artifacts {
-        if path.exists() {
-            let sum = hash_file_sha256(path)?;
-            checksums.insert(name.clone(), sum);
+        if !path.exists() {
+            return Err(anyhow!("declared artifact `{name}` is missing at {}", path.display()));
         }
+        let sum = hash_file_sha256(path)?;
+        checksums.insert(name.clone(), sum);
     }
     let out_path = output_dir.join("artifact_checksums.json");
     write_canonical_json(&out_path, &checksums)

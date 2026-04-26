@@ -270,6 +270,26 @@ fn artifact_checksums_emit_deterministic_sha256_ledger() {
 }
 
 #[test]
+fn artifact_checksums_reject_declared_missing_artifacts() {
+    let dir = std::env::temp_dir().join("runtime_checksums_missing_contract");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
+    let missing = dir.join("missing.txt");
+
+    let err = bijux_dna_runtime::recording::write_artifact_checksums_json(
+        &dir,
+        &[("missing".to_string(), missing)],
+    )
+    .err()
+    .unwrap_or_else(|| panic!("expected missing artifact to fail"));
+
+    assert!(
+        err.to_string().contains("declared artifact `missing` is missing"),
+        "unexpected missing artifact error: {err}"
+    );
+}
+
+#[test]
 fn tool_invocation_writer_rejects_stage_id_path_separators() {
     let dir = std::env::temp_dir().join("runtime_tool_invocation_path_contract");
     let _ = std::fs::remove_dir_all(&dir);
