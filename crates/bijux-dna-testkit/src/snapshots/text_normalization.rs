@@ -4,37 +4,45 @@ use std::env;
 pub fn sanitize_snapshot_text(input: &str) -> String {
     let mut out = input.replace("\r\n", "\n");
     if let Ok(pwd) = env::current_dir() {
-        out = out.replace(&pwd.display().to_string(), "<ROOT>");
+        out = replace_nonempty(out, &pwd.display().to_string(), "<ROOT>");
     }
     if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
-        out = out.replace(&manifest_dir, "<ROOT>");
+        out = replace_nonempty(out, &manifest_dir, "<ROOT>");
     }
     if let Ok(tmpdir) = env::var("TMPDIR") {
-        out = out.replace(&tmpdir, "<TMPDIR>");
+        out = replace_nonempty(out, &tmpdir, "<TMPDIR>");
     }
     if let Ok(tmp) = env::var("TMP") {
-        out = out.replace(&tmp, "<TMPDIR>");
+        out = replace_nonempty(out, &tmp, "<TMPDIR>");
     }
     if let Ok(temp) = env::var("TEMP") {
-        out = out.replace(&temp, "<TMPDIR>");
+        out = replace_nonempty(out, &temp, "<TMPDIR>");
     }
     out = normalize_tmp_subdir(&out);
     if let Ok(home) = env::var("HOME") {
-        out = out.replace(&home, "<HOME>");
+        out = replace_nonempty(out, &home, "<HOME>");
     }
     if let Ok(user) = env::var("USER") {
-        out = out.replace(&user, "<USER>");
+        out = replace_nonempty(out, &user, "<USER>");
     }
     if let Ok(logname) = env::var("LOGNAME") {
-        out = out.replace(&logname, "<USER>");
+        out = replace_nonempty(out, &logname, "<USER>");
     }
     if let Ok(hostname) = env::var("HOSTNAME") {
-        out = out.replace(&hostname, "<HOSTNAME>");
+        out = replace_nonempty(out, &hostname, "<HOSTNAME>");
     }
     if let Ok(hostname) = env::var("COMPUTERNAME") {
-        out = out.replace(&hostname, "<HOSTNAME>");
+        out = replace_nonempty(out, &hostname, "<HOSTNAME>");
     }
     out.replace('\\', "/")
+}
+
+fn replace_nonempty(input: String, needle: &str, replacement: &str) -> String {
+    if needle.is_empty() {
+        input
+    } else {
+        input.replace(needle, replacement)
+    }
 }
 
 fn normalize_tmp_subdir(input: &str) -> String {
