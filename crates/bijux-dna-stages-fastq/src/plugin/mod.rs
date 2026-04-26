@@ -55,11 +55,19 @@ impl StagePlugin for FastqStagePlugin {
         if !self.handles_stage(plan.stage_id.as_str()) {
             return Err(anyhow!("unsupported FASTQ stage {}", plan.stage_id.as_str()));
         }
-        let input_paths: Vec<std::path::PathBuf> =
-            plan.io.inputs.iter().map(|input| input.path.clone()).collect();
         let output_refs = if outputs.is_empty() { &plan.io.outputs } else { outputs };
-        let output_paths: Vec<std::path::PathBuf> =
-            output_refs.iter().map(|output| output.path.clone()).collect();
+        let input_paths: Vec<std::path::PathBuf> = plan
+            .io
+            .inputs
+            .iter()
+            .filter(|input| input.role == bijux_dna_core::contract::ArtifactRole::Reads)
+            .map(|input| input.path.clone())
+            .collect();
+        let output_paths: Vec<std::path::PathBuf> = output_refs
+            .iter()
+            .filter(|output| output.role == bijux_dna_core::contract::ArtifactRole::Reads)
+            .map(|output| output.path.clone())
+            .collect();
         let envelope = metrics::build_metrics_envelope(plan, &input_paths, &output_paths)?;
         let context = observation_context::observation_context(plan, outputs);
         let expected_artifact_names = plan
