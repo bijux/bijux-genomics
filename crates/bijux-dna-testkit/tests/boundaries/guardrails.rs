@@ -36,3 +36,11 @@ fn tempdir_for_sanitizes_test_names_for_filesystem_prefixes() {
     let name = dir.path().file_name().and_then(|name| name.to_str()).unwrap_or_default();
     assert!(name.starts_with("bijux-dna-suite-name-with-spaces-"));
 }
+
+#[test]
+fn sorted_read_dir_paths_reports_failed_directory() {
+    let missing = std::path::Path::new("missing-testkit-directory");
+    let result = std::panic::catch_unwind(|| bijux_dna_testkit::sorted_read_dir_paths(missing));
+    let message = result.err().and_then(|panic| panic.downcast::<String>().ok()).map(|text| *text);
+    assert!(message.unwrap_or_default().contains("missing-testkit-directory"));
+}
