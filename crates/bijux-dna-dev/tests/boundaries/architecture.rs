@@ -155,7 +155,10 @@ fn dev_tree_matches_architecture_contract() {
 
     let boundary_entries = dir_entries(&root.join("tests/boundaries"));
     let expected_boundaries: BTreeSet<_> =
-        ["architecture.rs", "guardrails.rs"].into_iter().map(str::to_string).collect();
+        ["architecture.rs", "command_inventory.rs", "guardrails.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(
         boundary_entries, expected_boundaries,
         "boundary tests must stay focused on architecture and ownership"
