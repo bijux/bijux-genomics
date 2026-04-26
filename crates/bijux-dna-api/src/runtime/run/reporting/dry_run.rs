@@ -5,6 +5,7 @@ use anyhow::anyhow;
 /// # Errors
 /// Returns an error if dry-run output cannot be written.
 pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
+    bijux_dna_infra::ensure_dir(&request.run_dir)?;
     let graph_hash = request.graph.hash()?;
     let graph_path = request.run_dir.join("graph.json");
     let graph_payload =
