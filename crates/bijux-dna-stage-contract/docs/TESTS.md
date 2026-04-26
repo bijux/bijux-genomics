@@ -28,6 +28,9 @@ Run from the `bijux-genomics` repository root:
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stage-contract --no-default-features
 ```
 
+`docs/COMMANDS.md` lists the narrower package checks for command-inventory,
+contract, and schema changes.
+
 ## Failure Modes
 - Boundary failures mean the contract crate gained behavior, effects, or undocumented layout drift.
 - Contract failures mean public metadata, instance identity, or versioning behavior changed.
