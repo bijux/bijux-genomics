@@ -337,7 +337,6 @@ dependencies = [
  "bijux-dna-policies",
  "bijux-dna-runtime",
  "bijux-dna-testkit",
- "fastrand",
  "insta",
  "serde",
  "serde_json",

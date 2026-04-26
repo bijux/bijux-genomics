@@ -121,6 +121,40 @@ fn bench_tree_matches_architecture_contract() {
     );
 }
 
+#[test]
+fn manifest_dependency_graph_matches_boundary_contract() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let manifest = root.join("Cargo.toml");
+    let content = std::fs::read_to_string(&manifest)
+        .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
+    let parsed: toml::Value = toml::from_str(&content)
+        .unwrap_or_else(|err| panic!("parse {}: {err}", manifest.display()));
+
+    let dependencies = dependency_names(&parsed, "dependencies");
+    let dev_dependencies = dependency_names(&parsed, "dev-dependencies");
+    let duplicates = dependencies.intersection(&dev_dependencies).cloned().collect::<Vec<_>>();
+
+    assert!(
+        duplicates.is_empty(),
+        "normal and dev dependencies must not duplicate edges: {duplicates:?}",
+    );
+    for forbidden in [
+        "bijux-dna-api",
+        "bijux-dna-analyze",
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-planner-bam",
+        "bijux-dna-planner-fastq",
+        "bijux-dna-runner",
+        "fastrand",
+    ] {
+        assert!(
+            !dependencies.contains(forbidden),
+            "bijux-dna-bench must not carry normal dependency `{forbidden}`",
+        );
+    }
+}
+
 fn assert_docs_tree(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("docs")),
@@ -164,6 +198,14 @@ fn dir_entries(path: &Path) -> BTreeSet<String> {
 
 fn entries<const N: usize>(items: [&str; N]) -> BTreeSet<String> {
     items.into_iter().map(str::to_string).collect()
+}
+
+fn dependency_names(parsed: &toml::Value, table_name: &str) -> BTreeSet<String> {
+    parsed
+        .get(table_name)
+        .and_then(toml::Value::as_table)
+        .map(|table| table.keys().cloned().collect())
+        .unwrap_or_default()
 }
 
 fn markdown_files_outside_docs(root: &Path) -> Vec<String> {
