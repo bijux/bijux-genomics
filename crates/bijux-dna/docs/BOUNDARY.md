@@ -3,8 +3,8 @@
 Owner: CLI
 Scope: User-facing command adapter over stable API, registry, environment, and operator helpers
 Allowed inputs: CLI arguments, current working directory, repository configs, explicit environment variables, API responses
-Forbidden dependencies: engine internals, runner internals, direct stage execution crates, direct domain semantics ownership
-Forbidden effects: undeclared writes, network access, process spawning, hidden runtime mutation
+Forbidden dependencies: engine internals, runner internals, runtime internals, direct stage execution crates, direct domain semantics ownership
+Forbidden effects: undeclared writes, undeclared network access, process spawning, hidden runtime mutation
 Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --no-default-features`
 
 ## Why this crate exists
@@ -28,12 +28,15 @@ renders human/JSON output, and exits with categorized operator failures.
 ## Allowed dependencies
 - `bijux-dna-api` for stable planning, runtime, report, environment, and domain-facing contracts.
 - `bijux-dna-infra` for declared filesystem helpers.
+- Explicit data access adapters when the CLI command owns that operator workflow, such as ENA corpus
+  materialization.
 - CLI support libraries for parsing, serialization, rendering, and deterministic archives.
 - Debug/operator helper crates only when explicitly justified by command ownership.
 
 ## Forbidden dependency shape
-The CLI must not directly depend on stage execution crates. Domain or stage logic needed for a
-command must move behind `bijux-dna-api` or a smaller owning crate before the CLI calls it.
+The CLI must not directly depend on stage execution crates, engine crates, runner crates, runtime
+internals, or domain crates to run science logic. Domain or stage logic needed for a command must
+move behind `bijux-dna-api` or a smaller owning crate before the CLI calls it.
 
 ## Allowed effects
 - Read repository configs and governed domain/assets files through declared paths.
