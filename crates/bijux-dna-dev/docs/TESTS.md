@@ -9,8 +9,8 @@
 - `src/commands/automation_boundary.rs` validates the allowed automation invocation surface.
 
 ## How to run
-- `cargo test -p bijux-dna-dev`
-- `cargo test -p bijux-dna-dev --test boundaries`
+- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-dev --no-default-features`
+- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-dev --no-default-features --test boundaries`
 - `cargo test -p bijux-dna-policies policy__boundaries__docs_spine__crate_docs_contract -- --nocapture`
 
 ## Lint Gates
@@ -23,3 +23,4 @@
 - Prefer targeted boundary tests when changing tree layout or ownership.
 - Prefer targeted command-module tests when changing one automation surface.
 - Re-run policy tests after updating docs, command names, or generated-control outputs.
+- Do not add README files under `tests/`; crate narrative docs belong under `docs/`.
