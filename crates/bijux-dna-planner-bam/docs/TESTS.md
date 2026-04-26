@@ -14,6 +14,7 @@ Planner tests protect deterministic plan output, graph topology, command specs, 
 - `tests/boundaries/dependency_graph.rs` — allowed runtime and test dependency graph.
 - `tests/boundaries/docs_layout.rs` — root `README.md` plus exactly ten `docs/` files.
 - `tests/boundaries/public_api_docs.rs` — `docs/PUBLIC_API.md` export list.
+- `tests/boundaries/source_effects.rs` — forbidden source-side execution, network, and mutation APIs.
 
 ## Contract Modules
 - `tests/contracts/graph/graph_snapshots.rs` — execution graph snapshots.
