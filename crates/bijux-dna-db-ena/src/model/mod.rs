@@ -28,4 +28,16 @@ mod tests {
             "https://ftp.sra.ebi.ac.uk/vol1/x.fastq.gz"
         );
     }
+
+    #[test]
+    fn normalize_url_trims_raw_values_before_scheme_handling() {
+        assert_eq!(
+            normalize_url(" ftp.sra.ebi.ac.uk/vol1/x.fastq.gz ", EnaSourcePreference::Ftp),
+            "ftp://ftp.sra.ebi.ac.uk/vol1/x.fastq.gz"
+        );
+        assert_eq!(
+            normalize_url(" https://example.org/reads.fastq.gz ", EnaSourcePreference::Ftp),
+            "https://example.org/reads.fastq.gz"
+        );
+    }
 }
