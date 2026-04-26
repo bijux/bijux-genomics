@@ -72,6 +72,7 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "filetime",
         "filetime.workspace",
         "flate2",
+        "flate2.workspace",
         "gag",
         "insta",
         "insta.workspace",

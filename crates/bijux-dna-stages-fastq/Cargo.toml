@@ -17,8 +17,8 @@ flate2.workspace = true
 tracing.workspace = true
 
 [dev-dependencies]
-bijux-dna-policies = { path = "../bijux-dna-policies" }
-bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+bijux-dna-policies.workspace = true
+bijux-dna-testkit.workspace = true
 anyhow.workspace = true
 serde_json.workspace = true
 walkdir.workspace = true

@@ -21,7 +21,7 @@ schemars.workspace = true
 bijux-dna-policies.workspace = true
 insta = { workspace = true, features = ["json"] }
 walkdir.workspace = true
-bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+bijux-dna-testkit.workspace = true
 
 [lints]
 workspace = true

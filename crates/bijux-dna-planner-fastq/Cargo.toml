@@ -21,7 +21,7 @@ toml = { workspace = true }
 
 [dev-dependencies]
 bijux-dna-policies.workspace = true
-bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+bijux-dna-testkit.workspace = true
 flate2.workspace = true
 insta = { workspace = true, features = ["json", "filters"] }
 
