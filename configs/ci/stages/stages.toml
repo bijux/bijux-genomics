@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 2d8cb6b1dfb856c46455b1f14f07bd3175e406be
+# source_commit: 77d6e8b4f739df26e38f6227a55becbc75ef5ee7
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -393,8 +393,8 @@ tools = ["fastqc"]
 id = "fastq.extract_umis"
 status = "supported"
 output_kinds = ["fastq", "json"]
-ordering_after = ["fastq.trim_reads"]
-prerequisites = ["fastq.trim_reads"]
+ordering_after = ["fastq.validate_reads"]
+prerequisites = ["fastq.validate_reads"]
 resource_memory_gb = 4
 resource_time_minutes = 20
 resource_threads = 4
