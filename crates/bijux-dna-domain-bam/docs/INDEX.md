@@ -1,28 +1,21 @@
 # bijux-dna-domain-bam Docs Index
 
 ## Scope
-See `SCOPE.md` for what belongs here.
-
-## Effects
-See `EFFECTS.md` for allowed effects.
+See [SCOPE.md](SCOPE.md) for what belongs here.
 
 ## Boundaries
-See `ARCHITECTURE.md` for internal boundaries.
-- `BOUNDARY.md`
-- `PUBLIC_API.md`
-- `COMMANDS.md`
+See [ARCHITECTURE.md](ARCHITECTURE.md) for internal boundaries.
+- [BOUNDARY.md](BOUNDARY.md)
+- [PUBLIC_API.md](PUBLIC_API.md)
+- [COMMANDS.md](COMMANDS.md)
 
 ## Domain truth
-- `DOMAIN_MODEL.md`
-- `PHASES.md`
-- `METRICS.md`
-- `METRICS_GLOSSARY.md`
-- `PARAMS.md`
-- `INTERPRETATION.md`
-- `FIXTURES.md`
+- [DOMAIN_MODEL.md](DOMAIN_MODEL.md)
+- [METRICS.md](METRICS.md)
+- [FIXTURES.md](FIXTURES.md)
 
 ## Extension Points
-See `CHANGE_RULES.md` for safe extension guidelines.
+Safe extension rules live in [DOMAIN_MODEL.md](DOMAIN_MODEL.md).
 
 ## How to Test
-See `TESTS.md` for test mapping and fixtures.
+See [TESTS.md](TESTS.md) for test mapping and fixtures.
