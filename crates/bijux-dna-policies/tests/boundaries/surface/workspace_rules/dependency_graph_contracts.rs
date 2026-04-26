@@ -386,3 +386,63 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         );
     }
 }
+
+#[test]
+fn policy__boundaries__workspace__foundation_policy_crates_are_dev_only() {
+    let crates = collect_workspace_crates();
+    let known: BTreeSet<String> = crates.keys().cloned().collect();
+
+    for crate_name in [
+        "bijux-dna",
+        "bijux-dna-api",
+        "bijux-dna-core",
+        "bijux-dna-dev",
+        "bijux-dna-engine",
+        "bijux-dna-infra",
+        "bijux-dna-runner",
+        "bijux-dna-runtime",
+        "bijux-dna-testkit",
+    ] {
+        let path = crates
+            .get(crate_name)
+            .unwrap_or_else(|| bijux_dna_policies::policy_panic!("missing crate {crate_name}"));
+        let normal_deps = parse_dependency_section(&path.join("Cargo.toml"), &known, "dependencies");
+
+        for test_only in ["bijux-dna-policies", "bijux-dna-testkit"] {
+            bijux_dna_policies::policy_assert!(
+                !normal_deps.contains(test_only),
+                "{crate_name} must keep {test_only} out of normal dependencies"
+            );
+        }
+    }
+}
+
+fn parse_dependency_section(
+    manifest: &Path,
+    known: &BTreeSet<String>,
+    section: &str,
+) -> BTreeSet<String> {
+    let content = std::fs::read_to_string(manifest).expect("read Cargo.toml");
+    let header = format!("[{section}]");
+    let mut deps = BTreeSet::new();
+    let mut in_section = false;
+
+    for line in content.lines() {
+        let line = line.trim();
+        if line.starts_with('[') {
+            in_section = line == header;
+            continue;
+        }
+        if !in_section || line.is_empty() || line.starts_with('#') {
+            continue;
+        }
+        if let Some((name, _rest)) = line.split_once('=') {
+            let name = name.trim().trim_matches('"').strip_suffix(".workspace").unwrap_or(name);
+            if !name.is_empty() && known.contains(name) {
+                deps.insert(name.to_string());
+            }
+        }
+    }
+
+    deps
+}
