@@ -34,7 +34,28 @@ pub fn sanitize_snapshot_text(input: &str) -> String {
     if let Ok(hostname) = env::var("COMPUTERNAME") {
         out = replace_nonempty(out, &hostname, "<HOSTNAME>");
     }
-    out.replace('\\', "/")
+    normalize_windows_path_separators(&out)
+}
+
+fn normalize_windows_path_separators(input: &str) -> String {
+    if contains_windows_path(input) {
+        input.replace('\\', "/")
+    } else {
+        input.to_string()
+    }
+}
+
+fn contains_windows_path(input: &str) -> bool {
+    let bytes = input.as_bytes();
+    if bytes.starts_with(b"\\\\") {
+        return true;
+    }
+    bytes.windows(3).enumerate().any(|(index, window)| {
+        let has_drive_prefix =
+            window[0].is_ascii_alphabetic() && window[1] == b':' && window[2] == b'\\';
+        let has_boundary = index == 0 || !bytes[index - 1].is_ascii_alphanumeric();
+        has_drive_prefix && has_boundary
+    })
 }
 
 fn replace_nonempty(input: String, needle: &str, replacement: &str) -> String {
