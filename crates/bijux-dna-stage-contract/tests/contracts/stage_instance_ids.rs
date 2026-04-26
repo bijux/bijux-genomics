@@ -194,6 +194,75 @@ fn execution_plan_accepts_artifact_bound_edges() {
 }
 
 #[test]
+fn execution_plan_sorts_artifact_bound_edges_by_binding_ids() {
+    let mut left = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_z");
+    left.io.outputs.push(ArtifactRef::required(
+        ArtifactId::new("trimmed_reads_a".to_string()),
+        PathBuf::from("trimmed_reads_a.fastq.gz"),
+        ArtifactRole::TrimmedReads,
+    ));
+    let right = StagePlanV1 {
+        io: StageIO {
+            inputs: vec![
+                ArtifactRef::required(
+                    ArtifactId::new("trimmed_reads_z".to_string()),
+                    PathBuf::from("trimmed_reads_z.fastq.gz"),
+                    ArtifactRole::TrimmedReads,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::new("trimmed_reads_a".to_string()),
+                    PathBuf::from("trimmed_reads_a.fastq.gz"),
+                    ArtifactRole::TrimmedReads,
+                ),
+            ],
+            outputs: vec![ArtifactRef::required(
+                ArtifactId::new("qc_report".to_string()),
+                PathBuf::from("qc_report.json"),
+                ArtifactRole::ReportJson,
+            )],
+        },
+        stage_id: StageId::from_static("fastq.report_qc"),
+        stage_instance_id: Some(StepId::new("fastq.report_qc.multiqc")),
+        stage_version: StageVersion(1),
+        tool_id: ToolId::new("multiqc".to_string()),
+        tool_version: "test".to_string(),
+        image: ContainerImageRefV1 { image: "bijux/test".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["multiqc".to_string()] },
+        resources: ToolConstraints::default(),
+        out_dir: PathBuf::from("out"),
+        params: serde_json::json!({}),
+        effective_params: serde_json::json!({}),
+        aux_images: BTreeMap::new(),
+        reason: PlanDecisionReason::default(),
+    };
+
+    let plan = ExecutionPlan::new(
+        "fastq-to-fastq__trim_reads_qc__v1",
+        "planner-v1",
+        PlanPolicy::default(),
+        vec![right, left],
+        vec![
+            PlanEdge::with_artifact_binding(
+                "fastq.trim_reads.tool.fastp",
+                "fastq.report_qc.multiqc",
+                "trimmed_reads_z",
+                "trimmed_reads_z",
+            ),
+            PlanEdge::with_artifact_binding(
+                "fastq.trim_reads.tool.fastp",
+                "fastq.report_qc.multiqc",
+                "trimmed_reads_a",
+                "trimmed_reads_a",
+            ),
+        ],
+    )
+    .expect("artifact-bound edges should validate and sort deterministically");
+
+    assert_eq!(plan.edges()[0].from_output_id(), Some("trimmed_reads_a"));
+    assert_eq!(plan.edges()[1].from_output_id(), Some("trimmed_reads_z"));
+}
+
+#[test]
 fn execution_steps_inherit_stage_instance_identity() {
     let plan = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
     let step = execution_step_from_stage_plan(&plan);
