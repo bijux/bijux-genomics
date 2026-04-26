@@ -34,3 +34,19 @@ fn policy__root__guardrails__empty_source_tree_is_rejected() {
         "unexpected guardrail error: {err}"
     );
 }
+
+#[test]
+fn policy__root__guardrails__allow_paths_match_exact_suffixes() {
+    let paths = TestPaths::new("policies-allow-path-suffix");
+    let crate_root = paths.child("crate");
+    write_source(&crate_root, "allowed_extra.rs", "pub fn fail() { None::<u8>.expect(\"x\"); }\n");
+
+    let mut config = GuardrailConfig::default();
+    config.forbid_panic_expect = true;
+    config.allow_panic_expect_paths = vec!["/src/allowed".to_string()];
+
+    let err = bijux_dna_policies::check(&crate_root, &config)
+        .expect_err("substring allowlist must not suppress failure");
+
+    assert!(err.to_string().contains("panic/expect found"), "unexpected guardrail error: {err}");
+}

@@ -3,6 +3,7 @@ use std::fs;
 use std::path::Path;
 use walkdir::WalkDir;
 
+use crate::checks::path_match::path_has_allowed_suffix;
 use crate::GuardrailConfig;
 
 pub(crate) fn check_mod_only_dirs(src_dir: &Path, config: &GuardrailConfig) -> Result<()> {
@@ -17,8 +18,7 @@ pub(crate) fn check_mod_only_dirs(src_dir: &Path, config: &GuardrailConfig) -> R
         if entry.path().components().any(|component| component.as_os_str() == "tests") {
             continue;
         }
-        let dir = entry.path().to_string_lossy();
-        if config.allow_mod_only_dirs.iter().any(|allowed| dir.ends_with(allowed)) {
+        if path_has_allowed_suffix(entry.path(), &config.allow_mod_only_dirs) {
             continue;
         }
         let mut rs_files = Vec::new();
