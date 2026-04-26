@@ -36,8 +36,8 @@ pub(in super::super::super) fn check_cross_runtime_representative_at_paths(
         ));
     }
 
-    let docker_rows = load_runtime_manifest_rows(&docker_dir)?;
-    let apptainer_rows = load_runtime_manifest_rows(&apptainer_dir)?;
+    let docker_rows = load_runtime_manifest_rows(docker_dir)?;
+    let apptainer_rows = load_runtime_manifest_rows(apptainer_dir)?;
     let shared = docker_rows
         .keys()
         .filter(|tool| apptainer_rows.contains_key(*tool))
@@ -122,8 +122,8 @@ pub(in super::super::super) fn check_cross_runtime_smoke_at_paths(
         )));
     }
 
-    let docker_rows = load_runtime_manifest_rows(&docker_dir)?;
-    let apptainer_rows = load_runtime_manifest_rows(&apptainer_dir)?;
+    let docker_rows = load_runtime_manifest_rows(docker_dir)?;
+    let apptainer_rows = load_runtime_manifest_rows(apptainer_dir)?;
     let mut expected_regexes = BTreeMap::new();
     for row in registry_tool_rows(workspace)? {
         let tool = registry_tool_id(&row);

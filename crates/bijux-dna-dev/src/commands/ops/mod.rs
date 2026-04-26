@@ -1630,8 +1630,8 @@ data_manifest_glob = ""
 
     #[test]
     fn config_string_reads_string_arrays_as_csv() {
-        let value: TomlValue =
-            toml::from_str("pipeline_ids = [\"one\", \"two\"]").expect("parse config");
+        let value: TomlValue = toml::from_str("pipeline_ids = [\"one\", \"two\"]")
+            .unwrap_or_else(|err| panic!("parse config: {err}"));
         assert_eq!(config_string(&value, "pipeline_ids"), Some("one,two".to_string()));
     }
 
@@ -1643,7 +1643,7 @@ corpus_root = "${BIJUX_TEST_CORPUS_ROOT}"
 pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
 "#,
         )
-        .expect("parse config");
+        .unwrap_or_else(|err| panic!("parse config: {err}"));
         std::env::set_var("BIJUX_TEST_CORPUS_ROOT", "/tmp/corpus");
         std::env::set_var("BIJUX_TEST_PIPELINE_A", "pipe-a");
         expand_toml_env_placeholders(&mut value);
@@ -1714,8 +1714,10 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             remote_containers_root: None,
         };
 
-        let error = super::validate_benchmark_sync_roots(&workspace)
-            .expect_err("expected overlapping remote roots to fail");
+        let error = match super::validate_benchmark_sync_roots(&workspace) {
+            Ok(()) => panic!("expected overlapping remote roots to fail"),
+            Err(error) => error,
+        };
         assert!(
             error.to_string().contains("private frontend repo root"),
             "unexpected error: {error}"
@@ -1745,8 +1747,10 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
             remote_containers_root: None,
         };
 
-        let error = super::validate_benchmark_sync_roots(&workspace)
-            .expect_err("expected invalid local cache mirror to fail");
+        let error = match super::validate_benchmark_sync_roots(&workspace) {
+            Ok(()) => panic!("expected invalid local cache mirror to fail"),
+            Err(error) => error,
+        };
         assert!(error.to_string().contains("local cache mirror"), "unexpected error: {error}");
     }
 
@@ -1793,8 +1797,11 @@ pipeline_ids = ["${BIJUX_TEST_PIPELINE_A}", "fixed"]
 
     #[test]
     fn env_or_contract_requires_declared_value() {
-        let error = env_or_contract("BIJUX_TEST_MISSING", None, "workspace.remote.repo_root")
-            .expect_err("missing contract must fail");
+        let error = match env_or_contract("BIJUX_TEST_MISSING", None, "workspace.remote.repo_root")
+        {
+            Ok(value) => panic!("missing contract must fail, got {value}"),
+            Err(error) => error,
+        };
         assert!(error
             .to_string()
             .contains("BIJUX_TEST_MISSING or workspace.remote.repo_root must be declared"));

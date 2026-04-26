@@ -94,6 +94,7 @@ pub(crate) fn check_assets_reference_schema(
         Regex::new(r"(?m)^\s*-\s*id:\s*([A-Za-z0-9_.-]+)\s*$").context("compile id regex")?;
     let preset_key_re =
         Regex::new(r"^\s*[A-Za-z0-9_]+_ids:\s*$").context("compile preset key regex")?;
+    let nested_key_re = Regex::new(r"^\s*[A-Za-z0-9_]+:\s*").context("compile nested key regex")?;
     let yaml_iter = WalkDir::new(&ref_root)
         .into_iter()
         .filter_map(std::result::Result::ok)
@@ -189,9 +190,7 @@ pub(crate) fn check_assets_reference_schema(
                     }
                     if !next.starts_with("      - ")
                         && !next.starts_with("    - ")
-                        && Regex::new(r"^\s*[A-Za-z0-9_]+:\s*")
-                            .context("compile nested key regex")?
-                            .is_match(next)
+                        && nested_key_re.is_match(next)
                     {
                         break;
                     }
