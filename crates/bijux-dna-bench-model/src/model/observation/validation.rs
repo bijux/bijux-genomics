@@ -96,6 +96,28 @@ impl BenchmarkObservation {
         }
         validate_nonnegative_finite(self.runtime_s, "runtime_s")?;
         validate_nonnegative_finite(self.memory_mb, "memory_mb")?;
+        match (self.exit_code, self.failure_kind.as_deref()) {
+            (0, Some(kind)) if !kind.trim().is_empty() => {
+                return Err(BenchError::InvalidObservation {
+                    reason: "successful observation must not record failure_kind".to_string(),
+                });
+            }
+            (code, None) if code != 0 => {
+                return Err(BenchError::InvalidObservation {
+                    reason: format!(
+                        "failed observation with exit_code {code} missing failure_kind"
+                    ),
+                });
+            }
+            (code, Some(kind)) if code != 0 && kind.trim().is_empty() => {
+                return Err(BenchError::InvalidObservation {
+                    reason: format!(
+                        "failed observation with exit_code {code} missing failure_kind"
+                    ),
+                });
+            }
+            _ => {}
+        }
         Ok(())
     }
 }
@@ -209,6 +231,32 @@ mod tests {
         };
 
         assert!(err.to_string().contains("metric retention_reads must be finite"));
+        Ok(())
+    }
+
+    #[test]
+    fn observation_rejects_success_failure_kind() -> anyhow::Result<()> {
+        let mut obs = valid_observation();
+        obs.failure_kind = Some("timeout".to_string());
+
+        let Err(err) = obs.validate() else {
+            bail!("successful observation with failure_kind should fail");
+        };
+
+        assert!(err.to_string().contains("must not record failure_kind"));
+        Ok(())
+    }
+
+    #[test]
+    fn observation_rejects_failed_run_without_failure_kind() -> anyhow::Result<()> {
+        let mut obs = valid_observation();
+        obs.exit_code = 137;
+
+        let Err(err) = obs.validate() else {
+            bail!("failed observation without failure_kind should fail");
+        };
+
+        assert!(err.to_string().contains("missing failure_kind"));
         Ok(())
     }
 }
