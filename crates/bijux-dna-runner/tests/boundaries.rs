@@ -11,6 +11,8 @@ mod mod_boundaries_backend_invocation_hash_rs;
 mod mod_boundaries_backend_process_guardrail_rs;
 #[path = "boundaries/command_inventory.rs"]
 mod mod_boundaries_command_inventory_rs;
+#[path = "boundaries/dependency_graph.rs"]
+mod mod_boundaries_dependency_graph_rs;
 #[path = "boundaries/guardrails.rs"]
 mod mod_boundaries_guardrails_rs;
 #[path = "workspace_paths.rs"]

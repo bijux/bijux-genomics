@@ -11,13 +11,11 @@ serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 uuid.workspace = true
-chrono.workspace = true
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-environment = { path = "../bijux-dna-environment" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
 sha2.workspace = true
-flate2 = "1"
 walkdir.workspace = true
 
 [dev-dependencies]
@@ -25,6 +23,7 @@ bijux-dna-policies = { path = "../bijux-dna-policies" }
 assert_cmd = "2"
 tempfile.workspace = true
 cargo_metadata = "0.18"
+toml.workspace = true
 
 [features]
 docker-runner = []
