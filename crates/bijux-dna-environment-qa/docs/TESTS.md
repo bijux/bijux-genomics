@@ -1,28 +1,38 @@
-# Tests
+# bijux-dna-environment-qa Tests
 
-## What
-Maps tests in this crate to their purpose and failure meaning.
+## Commands
 
-## Why
-Tests should explain the contract they enforce.
+Use artifact-rooted target and test temp directories:
 
-## Non-goals
-- Full test implementation detail.
+```sh
+TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-environment-qa --no-default-features
+TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-environment-qa --no-default-features --test boundaries
+TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-environment-qa --no-default-features --test contracts
+```
 
-## Contracts suite (`tests/contracts/*`)
-- `tests/contracts/artifacts/qa_artifact_contract.rs` → artifact contract checks.
-- `tests/contracts/qa_contracts.rs` → shared QA contract coverage, including support fixtures.
+## Boundaries Suite
 
-## Boundaries suite (`tests/boundaries/*`)
-- `tests/boundaries/architecture.rs` → source tree contract.
-- `tests/boundaries/guardrails/guardrails.rs` → dependency boundaries.
-- `tests/boundaries/guardrails/offline_guardrails.rs` → offline-by-default policy.
+- `tests/boundaries/architecture.rs`: crate root, docs, source, and test layout.
+- `tests/boundaries/guardrails/guardrails.rs`: workspace policy guardrails.
+- `tests/boundaries/guardrails/offline_guardrails.rs`: offline-by-default documentation.
+- Command, dependency, and public API boundaries should fail when contracts drift.
 
-## Determinism suite (`tests/determinism/*`)
-- `tests/determinism/fixture_stability.rs` → stable fixture output checks.
+## Contracts Suite
 
-## Support fixtures
-- `tests/support/image_qa_support.rs` → support fixtures reused by contract tests.
+- `tests/contracts/artifacts/qa_artifact_contract.rs`: fixture manifest/report shape.
+- `tests/contracts/qa_contracts.rs`: shared QA support contract coverage.
 
-## Failure modes
-- Missing test documentation causes drift and confusion.
+## Determinism Suite
+
+- `tests/determinism/fixture_stability.rs`: stable JSON fixture ordering.
+
+## Support Fixtures
+
+- `tests/support/image_qa_support.rs`: helper contract tests included by `tests/contracts.rs`.
+- `tests/fixtures/qa_artifacts/default/`: minimal manifest/report fixtures.
+
+## Failure Meaning
+
+- Boundary failures mean layout, docs, commands, dependencies, or public exports drifted.
+- Contract failures mean QA evidence shape or support behavior changed.
+- Determinism failures mean fixture output is no longer stable.
