@@ -8,7 +8,7 @@ dependencies are allowed.
 See `EFFECTS.md` for allowed effects.
 
 ## Public API
-See `PUBLIC_API.md` for exported types and snapshots.
+See `PUBLIC_API.md` for exported types, schema examples, and snapshots.
 
 ## Contract
 See `CONTRACT.md` for versioning, terminology, and examples.
