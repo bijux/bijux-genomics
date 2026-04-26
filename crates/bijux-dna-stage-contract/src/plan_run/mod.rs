@@ -227,4 +227,47 @@ mod tests {
 
         assert!(error.to_string().contains("output contract belongs to"));
     }
+
+    #[test]
+    fn validate_stage_outputs_rejects_duplicate_output_names() {
+        let run_spec = RunSpec {
+            stage: StageId::from_static(id_catalog::FASTQ_TRIM),
+            tool: ToolId::from_static("fastp"),
+            paths: PathSpec { input: Vec::new(), output: Vec::new(), work: PathBuf::from("work") },
+            params: BTreeMap::new(),
+        };
+        let stage_spec = StageSpec {
+            stage_id: StageId::from_static(id_catalog::FASTQ_TRIM),
+            semantic_kind: StageSemanticKind::Transform,
+            input_kind: ArtifactKind::Fastq,
+            output_kind: ArtifactKind::Fastq,
+            produced_artifacts: vec!["trimmed_reads".to_string()],
+            stage_semver: "1.0.0".to_string(),
+            runtime_scale: RuntimeScale::Small,
+            inputs: Vec::new(),
+            outputs: vec![
+                PortSpec {
+                    name: "trimmed_reads".to_string(),
+                    data_type: "fastq".to_string(),
+                    cardinality: Cardinality::One,
+                },
+                PortSpec {
+                    name: "trimmed_reads".to_string(),
+                    data_type: "fastq".to_string(),
+                    cardinality: Cardinality::One,
+                },
+            ],
+            parameters: Vec::new(),
+            metrics: Vec::new(),
+            description: None,
+            behavior: Default::default(),
+            image_requirements: None,
+            extends: None,
+        };
+
+        let error = super::validate_stage_outputs(&stage_spec, &run_spec)
+            .expect_err("duplicate output names must fail validation");
+
+        assert!(error.to_string().contains("duplicate output contract entry"));
+    }
 }

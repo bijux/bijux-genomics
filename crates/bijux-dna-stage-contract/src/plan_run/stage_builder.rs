@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
@@ -26,11 +26,19 @@ pub fn validate_stage_outputs(stage_spec: &StageSpec, run_spec: &RunSpec) -> Res
             run_spec.stage.0
         ));
     }
+    let mut output_names = HashSet::new();
     for output in &stage_spec.outputs {
         if output.name.trim().is_empty() || output.data_type.trim().is_empty() {
             return Err(anyhow!(
                 "stage {} has invalid output contract entry (name/data_type must be non-empty)",
                 run_spec.stage.0
+            ));
+        }
+        if !output_names.insert(output.name.as_str()) {
+            return Err(anyhow!(
+                "stage {} has duplicate output contract entry {}",
+                run_spec.stage.0,
+                output.name
             ));
         }
     }
