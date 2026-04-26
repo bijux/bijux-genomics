@@ -87,7 +87,7 @@ assumptions:
   - "supported tools must emit read-level taxonomic classifications from the screened FASTQ input."
   - "screen_report_tsv preserves the raw classifier summary while classification_report_json stores the governed taxonomy report contract."
 bank_hooks:
-  - "contaminant_db_bank"
+  - "taxonomy_database_lock"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope:
   - "diamond"
