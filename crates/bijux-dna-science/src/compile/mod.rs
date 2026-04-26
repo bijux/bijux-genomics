@@ -478,7 +478,18 @@ fn validate_claim(row: &ClaimSpec) -> Result<()> {
 
 fn validate_cross_references(loaded: &LoadedSpecs) -> Vec<String> {
     let mut errors = Vec::new();
+    validate_evidence_references(loaded, &mut errors);
+    validate_claim_references(loaded, &mut errors);
+    validate_reasoning_references(loaded, &mut errors);
+    validate_decision_references(loaded, &mut errors);
+    validate_binding_references(loaded, &mut errors);
+    validate_release_references(loaded, &mut errors);
+    errors.sort();
+    errors.dedup();
+    errors
+}
 
+fn validate_evidence_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
     for evidence in loaded.evidences.values() {
         for source_id in &evidence.source_ids {
             if !loaded.sources.contains_key(source_id.as_str()) {
@@ -489,6 +500,9 @@ fn validate_cross_references(loaded: &LoadedSpecs) -> Vec<String> {
             }
         }
     }
+}
+
+fn validate_claim_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
     for claim in loaded.claims.values() {
         for evidence_id in &claim.supports {
             if !loaded.evidences.contains_key(evidence_id.as_str()) {
@@ -499,6 +513,9 @@ fn validate_cross_references(loaded: &LoadedSpecs) -> Vec<String> {
             }
         }
     }
+}
+
+fn validate_reasoning_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
     for reasoning in loaded.reasonings.values() {
         if reasoning.claim_ids.is_empty() {
             errors.push(format!("{} must reference at least one claim", reasoning.reasoning_id));
@@ -528,6 +545,9 @@ fn validate_cross_references(loaded: &LoadedSpecs) -> Vec<String> {
             }
         }
     }
+}
+
+fn validate_decision_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
     for decision in loaded.decisions.values() {
         if !loaded.reasonings.contains_key(decision.reasoning.as_str()) {
             errors.push(format!(
@@ -544,6 +564,9 @@ fn validate_cross_references(loaded: &LoadedSpecs) -> Vec<String> {
             }
         }
     }
+}
+
+fn validate_binding_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
     for binding in loaded.bindings.values() {
         if !loaded.decisions.contains_key(binding.decision_id.as_str()) {
             errors.push(format!(
@@ -566,6 +589,9 @@ fn validate_cross_references(loaded: &LoadedSpecs) -> Vec<String> {
             }
         }
     }
+}
+
+fn validate_release_references(loaded: &LoadedSpecs, errors: &mut Vec<String>) {
     for release in loaded.releases.values() {
         for binding_id in &release.binding_ids {
             if !loaded.bindings.contains_key(binding_id.as_str()) {
@@ -582,10 +608,6 @@ fn validate_cross_references(loaded: &LoadedSpecs) -> Vec<String> {
             }
         }
     }
-
-    errors.sort();
-    errors.dedup();
-    errors
 }
 
 fn build_claim_evidence_map(loaded: &LoadedSpecs) -> Vec<ClaimEvidenceRow> {
