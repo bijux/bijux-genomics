@@ -14,6 +14,14 @@ fn command_inventory_documents_runner_backend_commands() {
         "COMMANDS.md must make the runtime command ownership boundary explicit"
     );
     assert!(
+        content.contains("## Managed Command Inventory"),
+        "COMMANDS.md must provide a managed command inventory section"
+    );
+    assert!(
+        content.contains("## Local Verification Commands"),
+        "COMMANDS.md must list local verification commands for command-boundary changes"
+    );
+    assert!(
         !root.join("src").join("bin").exists(),
         "bijux-dna-runner must not define src/bin CLI entrypoints"
     );
@@ -29,6 +37,18 @@ fn command_inventory_documents_runner_backend_commands() {
         ]),
         "COMMANDS.md must document each command family this crate can manage"
     );
+
+    for expected in [
+        "cargo test -p bijux-dna-runner --test boundaries --no-default-features",
+        "cargo test -p bijux-dna-runner --test contracts --no-default-features",
+        "cargo test -p bijux-dna-runner --test determinism --no-default-features",
+        "cargo test -p bijux-dna-runner --no-default-features",
+    ] {
+        assert!(
+            content.contains(expected),
+            "COMMANDS.md must include verification command `{expected}`"
+        );
+    }
 }
 
 fn documented_commands(content: &str) -> BTreeSet<String> {
