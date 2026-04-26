@@ -3,6 +3,8 @@
 Read these files from the crate root when changing BAM stage contracts,
 observers, metrics, or plugin behavior.
 
+## Reading Order
+
 1. `ARCHITECTURE.md` - source and test layout, stage phases, and ownership map.
 2. `BOUNDARY.md` - responsibilities, allowed effects, and forbidden layers.
 3. `CHANGE_RULES.md` - compatibility rules and observer/stage extension checklist.

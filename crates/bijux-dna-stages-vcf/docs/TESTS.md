@@ -21,7 +21,7 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-stages-vcf --no
 
 - `tests/boundaries.rs` locks source layout, documentation placement, dependency
   shape, and command inventory.
-- `tests/contracts.rs` includes the focused contract-suite files for pipeline,
+- `tests/contracts.rs` includes the focused `tests/contracts/` files for pipeline,
   stage, IO, invariant, imputation, panel, phasing, population, and real-tool
   behavior.
 - `tests/guardrails.rs` loads the repository policy guardrail for this crate.

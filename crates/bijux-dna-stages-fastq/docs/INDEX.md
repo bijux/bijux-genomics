@@ -3,6 +3,8 @@
 Read these files from the crate root when changing FASTQ stage contracts,
 observers, metrics, plugin behavior, or runtime-interpretation policy.
 
+## Reading Order
+
 1. `ARCHITECTURE.md` - source and test layout, ownership map, and module responsibilities.
 2. `BOUNDARY.md` - responsibilities, allowed effects, and forbidden layers.
 3. `CHANGE_RULES.md` - compatibility rules and observer/stage extension checklist.
