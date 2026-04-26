@@ -30,8 +30,8 @@ contig names are rejected.
 
 Panel and map catalogs must declare lock references, files, checksums, and
 compatibility metadata. Lock references must point to relative lock files under
-the catalog directory and anchors must use `locks.<key>`. Lock entries must
-match catalog species, build, and id fields.
+the catalog directory, paths must end in `.toml`, and anchors must use
+`locks.<key>`. Lock entries must match catalog species, build, and id fields.
 
 ## Provider Contracts
 
