@@ -98,7 +98,6 @@ fn policy__boundaries__architecture_tree__policies_tree_matches_architecture_con
             "determinism.rs",
             "fixtures/",
             "guardrails.rs",
-            "schemas/",
             "snapshots/",
             "support/",
         ]),
