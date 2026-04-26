@@ -7,7 +7,6 @@ use super::{
 
 /// # Errors
 /// Returns an error if fastp JSON cannot be parsed.
-#[allow(dead_code)]
 pub fn parse_fastp_metrics(report_json: &str) -> Result<FastpToolMetricsV1> {
     let parsed: serde_json::Value =
         serde_json::from_str(report_json).context("parse fastp json")?;
@@ -35,7 +34,6 @@ pub fn parse_fastp_metrics(report_json: &str) -> Result<FastpToolMetricsV1> {
 }
 
 /// Parse `AdapterRemoval` output into canonical merge metrics.
-#[allow(dead_code)]
 pub fn parse_adapterremoval_metrics(stdout: &str) -> AdapterRemovalToolMetricsV1 {
     let pairs_processed = parse_prefix_u64(stdout, "Total number of read pairs");
     let pairs_merged = parse_prefix_u64(stdout, "Number of fully overlapping pairs");
@@ -54,7 +52,6 @@ pub fn parse_adapterremoval_metrics(stdout: &str) -> AdapterRemovalToolMetricsV1
 
 /// # Errors
 /// Returns an error if seqkit output cannot be parsed.
-#[allow(dead_code)]
 pub fn parse_seqkit_tool_metrics(output: &str) -> Result<SeqkitToolMetricsV1> {
     let parsed = parse_seqkit_stats(output)?;
     Ok(SeqkitToolMetricsV1 {
@@ -67,7 +64,6 @@ pub fn parse_seqkit_tool_metrics(output: &str) -> Result<SeqkitToolMetricsV1> {
 }
 
 /// Parse `samtools flagstat` output into canonical alignment metrics.
-#[allow(dead_code)]
 pub fn parse_samtools_flagstat_metrics(stdout: &str) -> SamtoolsFlagstatMetricsV1 {
     let total_reads = parse_prefix_u64(stdout, "in total");
     let mapped_reads = parse_prefix_u64(stdout, "mapped (");
@@ -82,7 +78,6 @@ pub fn parse_samtools_flagstat_metrics(stdout: &str) -> SamtoolsFlagstatMetricsV
 }
 
 /// Parse `FastQC` summary text into canonical summary metrics.
-#[allow(dead_code)]
 pub fn parse_fastqc_summary_metrics(summary_txt: &str) -> FastqcToolMetricsV1 {
     let mut total_sequences = 0;
     let mut gc_percent = 0.0;
@@ -104,7 +99,6 @@ pub fn parse_fastqc_summary_metrics(summary_txt: &str) -> FastqcToolMetricsV1 {
 
 /// # Errors
 /// Returns an error if multiqc general stats JSON cannot be parsed.
-#[allow(dead_code)]
 pub fn parse_multiqc_general_stats_metrics(raw_json: &str) -> Result<MultiqcToolMetricsV1> {
     let parsed: serde_json::Value =
         serde_json::from_str(raw_json).context("parse multiqc general stats json")?;
@@ -150,7 +144,6 @@ pub(super) fn parse_kv_u64_field(raw: &str, field: &str) -> Option<u64> {
     })
 }
 
-#[allow(dead_code)]
 pub(super) fn parse_prefix_u64(raw: &str, marker: &str) -> u64 {
     raw.lines()
         .find_map(|line| {
