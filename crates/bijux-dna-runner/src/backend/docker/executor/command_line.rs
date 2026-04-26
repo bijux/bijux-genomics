@@ -44,5 +44,38 @@ pub(super) fn push_arg(cmd: &mut Command, args: &mut Vec<String>, value: impl In
 }
 
 pub(super) fn command_string(args: &[String]) -> String {
-    format!("docker {}", args.join(" "))
+    std::iter::once("docker")
+        .chain(args.iter().map(String::as_str))
+        .map(shell_token)
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+fn shell_token(value: &str) -> String {
+    if value.is_empty() {
+        return "''".to_string();
+    }
+    if value.chars().all(|ch| {
+        ch.is_ascii_alphanumeric()
+            || matches!(ch, '.' | '_' | '/' | '-' | ':' | '=' | '@' | '+' | ',' | '%')
+    }) {
+        return value.to_string();
+    }
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::command_string;
+
+    #[test]
+    fn docker_command_string_quotes_args_with_spaces() {
+        let args = vec![
+            "run".to_string(),
+            "-v".to_string(),
+            "/tmp/input reads:/data/input:ro".to_string(),
+        ];
+
+        assert_eq!(command_string(&args), "docker run -v '/tmp/input reads:/data/input:ro'");
+    }
 }
