@@ -61,6 +61,7 @@ pub(super) fn resolved_stage_input_artifacts(
             inputs.push(ResolvedStageInputArtifact {
                 to_input_id: stage_input.to_input_id.clone(),
                 artifact: artifact.clone(),
+                source_stage_id: source_plan.stage_id.to_string(),
                 source_stage_node_id: stage_input.from_stage_node_id.clone(),
                 source_tool_id: source_plan.tool_id.to_string(),
             });
@@ -83,6 +84,7 @@ pub(super) fn resolved_stage_input_artifacts(
         inputs.push(ResolvedStageInputArtifact {
             to_input_id: stage_input.to_input_id.clone(),
             artifact: synthetic_artifact.clone(),
+            source_stage_id: stage_input.from_stage_node_id.clone(),
             source_stage_node_id: stage_input.from_stage_node_id.clone(),
             source_tool_id: "planner".to_string(),
         });
@@ -164,6 +166,7 @@ pub(super) fn explicit_report_qc_inputs(
         .iter()
         .filter(|input| input.to_input_id == "qc_artifacts")
         .map(|input| {
+            ensure_governed_qc_artifact(input)?;
             ensure_input_role(
                 input,
                 "qc_artifacts",
@@ -188,6 +191,20 @@ pub(super) fn explicit_report_qc_inputs(
     });
     qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
     Ok(Some(qc_inputs))
+}
+
+fn ensure_governed_qc_artifact(input: &ResolvedStageInputArtifact) -> Result<()> {
+    let governed_output_ids =
+        crate::qc_contract::governed_qc_output_ids_for_stage(&input.source_stage_id);
+    if governed_output_ids.iter().any(|output_id| output_id == input.artifact.name.as_str()) {
+        return Ok(());
+    }
+    Err(anyhow!(
+        "explicit qc_artifacts binding from {}.{} is not a governed QC output for {}",
+        input.source_stage_node_id,
+        input.artifact.name.as_str(),
+        input.source_stage_id
+    ))
 }
 
 fn ensure_input_role(

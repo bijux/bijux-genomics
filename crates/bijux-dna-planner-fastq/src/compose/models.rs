@@ -24,6 +24,7 @@ pub type SyntheticStageArtifactPolicy = BTreeMap<String, Vec<ArtifactRef>>;
 pub(super) struct ResolvedStageInputArtifact {
     pub(super) to_input_id: String,
     pub(super) artifact: ArtifactRef,
+    pub(super) source_stage_id: String,
     pub(super) source_stage_node_id: String,
     pub(super) source_tool_id: String,
 }
