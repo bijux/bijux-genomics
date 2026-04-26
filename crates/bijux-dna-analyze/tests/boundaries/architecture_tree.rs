@@ -14,9 +14,7 @@ fn assert_crate_root_layout(root: &Path) {
     assert_eq!(
         dir_entries(root),
         entries([
-            "BOUNDARY.md",
             "Cargo.toml",
-            "PUBLIC_API.md",
             "README.md",
             "docs/",
             "src/",

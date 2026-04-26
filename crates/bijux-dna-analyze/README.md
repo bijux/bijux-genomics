@@ -13,7 +13,7 @@ The crate computes deterministic summaries and report outputs from recorded runt
 It does not mutate runtime inputs and keeps report shape/versioning under documented contracts.
 
 ## Public API / entrypoints
-Start with `PUBLIC_API.md` for the curated surface and `docs/ARCHITECTURE.md` for the internal
+Start with `docs/PUBLIC_API.md` for the curated surface and `docs/ARCHITECTURE.md` for the internal
 tree. The crate root keeps a single execution entrypoint in `src/lib.rs`, while stable exports are
 curated in `src/public_api/mod.rs`.
 
