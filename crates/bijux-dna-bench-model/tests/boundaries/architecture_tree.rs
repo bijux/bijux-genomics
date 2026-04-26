@@ -5,6 +5,7 @@ use std::path::Path;
 fn bench_model_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
 
+    assert_docs_tree(root);
     assert_eq!(
         dir_entries(root),
         entries(["Cargo.toml", "README.md", "docs/", "src/", "tests/"]),
@@ -101,6 +102,51 @@ fn bench_model_tree_matches_architecture_contract() {
         entries(["contracts.rs", "mod.rs"]),
         "robust estimators must separate typed stats contracts from estimator functions"
     );
+
+    assert_eq!(
+        dir_entries(&root.join("tests")),
+        entries([
+            "boundaries/",
+            "boundaries.rs",
+            "contracts/",
+            "contracts.rs",
+            "determinism/",
+            "determinism.rs",
+            "fixtures/",
+            "guardrails.rs",
+            "schemas/",
+            "schemas.rs",
+            "semantics/",
+            "semantics.rs",
+            "snapshots/",
+        ]),
+        "test tree must stay organized by enduring intent"
+    );
+}
+
+fn assert_docs_tree(root: &Path) {
+    assert_eq!(
+        dir_entries(&root.join("docs")),
+        entries([
+            "ARCHITECTURE.md",
+            "BOUNDARY.md",
+            "CHANGE_RULES.md",
+            "COMMANDS.md",
+            "DECISION_EXPLAINABILITY.md",
+            "DETERMINISM.md",
+            "GATE_POLICY.md",
+            "PUBLIC_API.md",
+            "STATISTICS.md",
+            "TESTS.md",
+        ]),
+        "bench model docs must stay at the 10-document allowance and live under docs/"
+    );
+
+    let misplaced_docs = markdown_files_outside_docs(root);
+    assert!(
+        misplaced_docs.is_empty(),
+        "crate markdown outside docs/ must be limited to root README.md: {misplaced_docs:?}",
+    );
 }
 
 fn dir_entries(path: &Path) -> BTreeSet<String> {
@@ -121,4 +167,29 @@ fn dir_entries(path: &Path) -> BTreeSet<String> {
 
 fn entries<const N: usize>(items: [&str; N]) -> BTreeSet<String> {
     items.into_iter().map(str::to_string).collect()
+}
+
+fn markdown_files_outside_docs(root: &Path) -> Vec<String> {
+    let mut files = Vec::new();
+    collect_markdown_files(root, root, &mut files);
+    files
+}
+
+fn collect_markdown_files(root: &Path, path: &Path, files: &mut Vec<String>) {
+    let entries = std::fs::read_dir(path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+    for entry in entries {
+        let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
+        let path = entry.path();
+        if path.is_dir() {
+            collect_markdown_files(root, &path, files);
+            continue;
+        }
+        if path.extension().is_some_and(|ext| ext == "md")
+            && path != root.join("README.md")
+            && !path.starts_with(root.join("docs"))
+        {
+            files.push(path.display().to_string());
+        }
+    }
 }
