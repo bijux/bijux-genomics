@@ -14,6 +14,13 @@ fn validate_nonnegative_finite(value: f64, field: &str) -> Result<(), BenchError
     Ok(())
 }
 
+fn validate_required_text(value: &str, field: &str) -> Result<(), BenchError> {
+    if value.trim().is_empty() {
+        return Err(BenchError::InvalidObservation { reason: format!("missing {field}") });
+    }
+    Ok(())
+}
+
 impl BenchmarkObservation {
     /// # Errors
     /// Returns an error if required confounders are missing.
@@ -23,6 +30,14 @@ impl BenchmarkObservation {
                 reason: "missing schema_version".to_string(),
             });
         }
+        validate_required_text(&self.run_id, "run_id")?;
+        validate_required_text(&self.dataset_id, "dataset_id")?;
+        validate_required_text(&self.stage_id, "stage_id")?;
+        validate_required_text(&self.tool_id, "tool_id")?;
+        validate_required_text(&self.tool_version, "tool_version")?;
+        validate_required_text(&self.params_hash, "params_hash")?;
+        validate_required_text(&self.input_hash, "input_hash")?;
+        validate_required_text(&self.replicate_id, "replicate_id")?;
         if self.dataset_class.trim().is_empty() {
             return Err(BenchError::MissingConfounder { field: "dataset_class" });
         }
@@ -118,7 +133,10 @@ mod tests {
         let mut obs = valid_observation();
         obs.runtime_s = f64::NAN;
 
-        let err = obs.validate().expect_err("nan runtime should fail");
+        let err = match obs.validate() {
+            Ok(()) => panic!("nan runtime should fail"),
+            Err(err) => err,
+        };
 
         assert!(err.to_string().contains("runtime_s must be finite"));
     }
@@ -128,8 +146,24 @@ mod tests {
         let mut obs = valid_observation();
         obs.memory_mb = -1.0;
 
-        let err = obs.validate().expect_err("negative memory should fail");
+        let err = match obs.validate() {
+            Ok(()) => panic!("negative memory should fail"),
+            Err(err) => err,
+        };
 
         assert!(err.to_string().contains("memory_mb must be non-negative"));
+    }
+
+    #[test]
+    fn observation_rejects_missing_core_identifier() {
+        let mut obs = valid_observation();
+        obs.stage_id.clear();
+
+        let err = match obs.validate() {
+            Ok(()) => panic!("missing stage_id should fail"),
+            Err(err) => err,
+        };
+
+        assert!(err.to_string().contains("missing stage_id"));
     }
 }
