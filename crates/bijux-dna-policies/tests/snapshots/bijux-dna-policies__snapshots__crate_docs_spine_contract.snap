@@ -1,5 +1,6 @@
 ---
 source: crates/bijux-dna-policies/tests/boundaries/surface/docs/docs_spine_contract.rs
+assertion_line: 32
 expression: "bijux_dna_testkit::snapshot_normalize_text(&lines.join(\"\\n\"))"
 ---
 [bijux-dna]
@@ -564,6 +565,27 @@ See `CHANGE_RULES.md` for safe extension guidelines.
 
 ## How to Test
 See `TESTS.md` for test mapping and fixtures.
+
+[bijux-dna-science]
+# bijux-dna-science Docs Index
+
+## Scope
+- `SCOPE.md` defines the science evidence compiler surface.
+- `CONTRACT.md` records the crate role and governed input/output paths.
+
+## Effects
+- `COMMANDS.md` lists commands and write destinations.
+- `VERSIONING.md` explains immutable science release bundles.
+
+## Boundaries
+- `ARCHITECTURE.md` describes module ownership and forbidden runtime behavior.
+- Root `BOUNDARY.md` records dependency and effect constraints.
+
+## Extension Points
+- `SCHEMAS.md` describes authored science spec versions and generated evidence rows.
+
+## How to Test
+- `TESTS.md` lists contract, determinism, and shape checks for this crate.
 
 [bijux-dna-stage-contract]
 # bijux-dna-stage-contract Docs Index
