@@ -1,6 +1,7 @@
 #[test]
 fn no_execution_details() {
-    let root = crate::support::crate_src("bijux-dna-stage-contract")
+    let root = crate::support::crate_root("bijux-dna-stage-contract")
+        .map(|root| root.join("src"))
         .unwrap_or_else(|err| panic!("resolve crate src: {err}"));
     let mut offenders = Vec::new();
     for entry in walkdir::WalkDir::new(root).into_iter().filter_map(|e| e.ok()) {
