@@ -47,11 +47,15 @@ impl EnaFileSource {
 
 #[must_use]
 pub fn normalize_url(raw: &str, preference: EnaSourcePreference) -> String {
-    if raw.starts_with("http://") || raw.starts_with("https://") || raw.starts_with("ftp://") {
-        return raw.to_string();
+    let trimmed = raw.trim();
+    if trimmed.starts_with("http://")
+        || trimmed.starts_with("https://")
+        || trimmed.starts_with("ftp://")
+    {
+        return trimmed.to_string();
     }
     match preference {
-        EnaSourcePreference::Ftp => format!("ftp://{raw}"),
-        EnaSourcePreference::Https => format!("https://{raw}"),
+        EnaSourcePreference::Ftp => format!("ftp://{trimmed}"),
+        EnaSourcePreference::Https => format!("https://{trimmed}"),
     }
 }
