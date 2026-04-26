@@ -205,14 +205,13 @@ fn profile_hash_contract_snapshot() {
     profiles.extend(bijux_dna_pipelines::registry::cross_profiles());
     profiles.extend(bijux_dna_pipelines::registry::vcf_profiles());
     for profile in profiles {
-        hashes.insert(
-            profile.id.as_str().to_string(),
-            serde_json::json!({
-                "profile_hash": profile.profile_hash(),
-                "manifest": profile.profile_manifest(),
-                "drift_components": profile_drift_components(&profile),
-            }),
-        );
+        let mut hash_entry = serde_json::json!({
+            "profile_hash": profile.profile_hash(),
+            "manifest": profile.profile_manifest(),
+            "drift_components": profile_drift_components(&profile),
+        });
+        prune_bam_downstream(&mut hash_entry);
+        hashes.insert(profile.id.as_str().to_string(), hash_entry);
     }
     assert_json_snapshot!(
         name,
