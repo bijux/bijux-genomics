@@ -1,4 +1,4 @@
-//! Pipeline registry for FASTQ, BAM, and cross-domain profiles.
+//! Pipeline registry for FASTQ, BAM, VCF, and cross-domain profiles.
 
 mod catalog;
 mod families;
