@@ -24,7 +24,7 @@ insta.workspace = true
 regex.workspace = true
 walkdir.workspace = true
 
-bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+bijux-dna-testkit.workspace = true
 [lints]
 workspace = true
 
