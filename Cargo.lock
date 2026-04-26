@@ -294,7 +294,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bijux-dna-analyze",
- "bijux-dna-bench",
  "bijux-dna-core",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",

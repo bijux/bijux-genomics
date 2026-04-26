@@ -12,6 +12,33 @@ fn api_tree_matches_architecture_contract() {
     assert_v1_tree(&root);
 }
 
+#[test]
+fn manifest_dependency_graph_has_no_duplicate_edges() {
+    let root = crate::support::crate_root("bijux-dna-api")
+        .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
+    let manifest = root.join("Cargo.toml");
+    let content = std::fs::read_to_string(&manifest)
+        .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
+    let parsed: toml::Value =
+        toml::from_str(&content).unwrap_or_else(|err| panic!("parse {}: {err}", manifest.display()));
+
+    let dependencies = dependency_names(&parsed, "dependencies");
+    let dev_dependencies = dependency_names(&parsed, "dev-dependencies");
+    let duplicates = dependencies
+        .intersection(&dev_dependencies)
+        .cloned()
+        .collect::<Vec<_>>();
+
+    assert!(
+        duplicates.is_empty(),
+        "normal and dev dependencies must not duplicate edges: {duplicates:?}",
+    );
+    assert!(
+        !dependencies.contains("bijux-dna-bench"),
+        "bijux-dna-api must not depend on bijux-dna-bench unless source code imports its API",
+    );
+}
+
 fn assert_root_tree(root: &std::path::Path) {
     assert_dir_entries(
         root,
@@ -220,4 +247,12 @@ fn markdown_files_below(path: &std::path::Path) -> Vec<String> {
         .filter(|entry| entry.path().extension().is_some_and(|extension| extension == "md"))
         .map(|entry| entry.path().display().to_string())
         .collect()
+}
+
+fn dependency_names(parsed: &toml::Value, table_name: &str) -> BTreeSet<String> {
+    parsed
+        .get(table_name)
+        .and_then(toml::Value::as_table)
+        .map(|table| table.keys().cloned().collect())
+        .unwrap_or_default()
 }

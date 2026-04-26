@@ -44,7 +44,6 @@ Allowed normal dependencies are the crates needed to compose API workflows:
 - `bijux-dna-engine`
 - `bijux-dna-environment`
 - `bijux-dna-analyze`
-- `bijux-dna-bench`
 - `bijux-dna-planner-fastq`
 - `bijux-dna-planner-bam`
 - `bijux-dna-runner`
