@@ -71,8 +71,15 @@ fn normalize_string(input: &str) -> String {
 
 fn normalize_artifact_tmp_path(input: &str) -> String {
     if input.chars().any(char::is_whitespace) {
-        return input.to_string();
+        return input
+            .split_inclusive(char::is_whitespace)
+            .map(normalize_artifact_tmp_path_token)
+            .collect();
     }
+    normalize_artifact_tmp_path_token(input)
+}
+
+fn normalize_artifact_tmp_path_token(input: &str) -> String {
     let is_artifact_path = input.contains("artifacts/target/")
         || input.contains("artifacts/tmp/")
         || input.contains("artifacts/coverage/profraw-")
