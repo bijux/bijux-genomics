@@ -1,17 +1,23 @@
 # bijux-dna-domain-compiler Boundary Contract
 
+Owner: Domain compiler
+Scope: Compile authored domain source into generated config views and validation diagnostics
+Allowed inputs: domain source files, compiler options, governed config destinations
+Forbidden dependencies: runner, CLI, engine internals, runtime execution backends
+Forbidden effects: product execution, network access, undeclared writes outside governed outputs
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-compiler --no-default-features`
+
 ## Why this crate exists
-Defines a focused layer in the bijux-dna architecture with explicit boundaries.
+Validates domain source and emits generated registry/stage/config views consumed by the rest of the
+workspace.
 
 ## Allowed dependencies
-- `bijux-dna-infra` for YAML, filesystem, and generated file helpers.
-- Domain crates consumed as canonical catalog sources.
-- No reverse-layer coupling (enforced by policy tests).
+- Domain crates and infra helpers required to parse, validate, and render generated config views.
+- No product execution or runtime backend ownership.
 
 ## Allowed effects
-- Read authored `domain/**`, `assets/reference/**`, and container definition metadata.
-- Write generated config views under the caller-provided configs directory.
-- No pipeline execution, tool execution, runtime orchestration, or network access.
+- Read authored domain source.
+- Write only declared generated config outputs when invoked for generation.
 
 ## Notes
-Boundary invariants are enforced by bijux-dna-policies contract tests.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
