@@ -1,16 +1,22 @@
 # bijux-dna-domain-bam Boundary Contract
 
+Owner: Domain
+Scope: BAM authored domain truth, IDs, vocabularies, contracts, and invariants
+Allowed inputs: BAM domain source, typed core IDs, deterministic fixtures
+Forbidden dependencies: runtime, runner, engine, API, CLI, planner orchestration
+Forbidden effects: product execution, generated config writes, process spawning, network access
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-bam --no-default-features`
+
 ## Why this crate exists
-Defines a focused layer in the bijux-dna architecture with explicit boundaries.
+Defines BAM domain truth and biological/contract invariants consumed by planners, stages, and
+generated config views.
 
 ## Allowed dependencies
-- `bijux-dna-core` for shared IDs and canonical hashing only.
-- No reverse-layer coupling (enforced by policy tests).
+- Core IDs, policy contracts, and testkit fixtures needed to express domain semantics.
+- No reverse-layer coupling to runtime or command surfaces.
 
 ## Allowed effects
-- Pure data/model crates: no runtime side effects.
-- No filesystem, process, network, runtime, CLI, runner, or container effects.
-- Tests may read crate-local fixtures and snapshots only.
+- Pure deterministic computation over domain contracts and fixtures.
 
 ## Notes
-Boundary invariants are enforced by bijux-dna-policies contract tests.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.

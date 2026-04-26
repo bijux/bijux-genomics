@@ -1,15 +1,21 @@
 # bijux-dna-domain-vcf Boundary Contract
 
+Owner: Domain
+Scope: VCF authored domain truth, IDs, contracts, and downstream policy invariants
+Allowed inputs: VCF domain source, typed IDs, deterministic fixtures
+Forbidden dependencies: runtime, runner, engine, API, CLI, planner orchestration
+Forbidden effects: product execution, generated config writes, process spawning, network access
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-vcf --no-default-features`
+
 ## Why this crate exists
-Defines a focused layer in the bijux-dna architecture with explicit boundaries.
+Defines VCF domain truth and invariants consumed by planners, stages, and generated config views.
 
 ## Allowed dependencies
-- Workspace crates required for this layer only.
-- No reverse-layer coupling (enforced by policy tests).
+- Policy-neutral crate support required to express VCF contracts.
+- No reverse-layer coupling to runtime or command surfaces.
 
 ## Allowed effects
-- Pure data/model crates: no runtime side effects.
-- Runtime/CLI/runner crates: controlled filesystem/process/network effects only.
+- Pure deterministic computation over VCF contract inputs.
 
 ## Notes
-Boundary invariants are enforced by bijux-dna-policies contract tests.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.

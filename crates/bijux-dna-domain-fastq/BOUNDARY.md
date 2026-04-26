@@ -1,5 +1,12 @@
 # bijux-dna-domain-fastq Boundary Contract
 
+Owner: Domain
+Scope: FASTQ authored domain truth, IDs, contracts, bank contracts, and invariants
+Allowed inputs: FASTQ domain source, governed bank metadata, typed core IDs, deterministic fixtures
+Forbidden dependencies: runtime, runner, engine, API, CLI, planner orchestration
+Forbidden effects: product execution, generated config writes, process spawning, network access
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-fastq --no-default-features`
+
 ## Why this crate exists
 Defines FASTQ domain truth for bijux-dna: stage IDs, stage contracts, bank contracts,
 parameter schemas/defaults, metric semantics, pipeline ordering, and invariant evaluation.
