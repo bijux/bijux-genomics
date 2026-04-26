@@ -85,6 +85,6 @@ assumptions:
   - "primer normalization applies only to amplicon libraries with explicit primer governance."
   - "single-end input omits reads_r2 and normalized_reads_r2; paired-end input preserves mate synchronization."
 bank_hooks:
-  - "none"
+  - "primer_bank"
 metrics_schema: "bijux.stage.metrics.v1"
 planned_out_of_scope: []
