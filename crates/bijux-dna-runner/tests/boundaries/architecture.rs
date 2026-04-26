@@ -154,6 +154,85 @@ fn runner_tree_matches_architecture_contract() {
         step_runner_entries, expected_step_runner,
         "runner step_runner tree must remain decomposed by concern"
     );
+
+    let tests_entries = dir_entries(&root.join("tests"));
+    let expected_tests: BTreeSet<_> = [
+        "boundaries/",
+        "boundaries.rs",
+        "contracts/",
+        "contracts.rs",
+        "determinism/",
+        "determinism.rs",
+        "guardrails.rs",
+        "schemas/",
+        "schemas.rs",
+        "semantics/",
+        "semantics.rs",
+        "workspace_paths.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(tests_entries, expected_tests, "runner tests tree must stay grouped by intent");
+
+    let boundary_test_entries = dir_entries(&root.join("tests/boundaries"));
+    let expected_boundary_tests: BTreeSet<_> = [
+        "architecture.rs",
+        "backend/",
+        "command_inventory.rs",
+        "dependency_graph.rs",
+        "docs_layout.rs",
+        "guardrails.rs",
+        "public_api_docs.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        boundary_test_entries, expected_boundary_tests,
+        "runner boundary tests must cover architecture, docs, commands, dependencies, and guardrails"
+    );
+
+    let backend_boundary_entries = dir_entries(&root.join("tests/boundaries/backend"));
+    let expected_backend_boundary_tests: BTreeSet<_> = [
+        "backend_invariants.rs",
+        "fixture_parity.rs",
+        "invocation_hash.rs",
+        "network_guardrail.rs",
+        "process_guardrail.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        backend_boundary_entries, expected_backend_boundary_tests,
+        "runner backend boundary tests must stay focused on backend invariants and effects"
+    );
+
+    let determinism_test_entries = dir_entries(&root.join("tests/determinism"));
+    let expected_determinism_tests: BTreeSet<_> = [
+        "determinism.rs",
+        "replay/",
+        "replay.rs",
+        "run_id_determinism.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        determinism_test_entries, expected_determinism_tests,
+        "runner determinism tests must keep replay coverage grouped"
+    );
+
+    let replay_test_entries = dir_entries(&root.join("tests/determinism/replay"));
+    let expected_replay_tests: BTreeSet<_> = ["replay_contract.rs", "replay_determinism.rs"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
+    assert_eq!(
+        replay_test_entries, expected_replay_tests,
+        "runner replay tests must stay split by contract and determinism behavior"
+    );
 }
 
 fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
