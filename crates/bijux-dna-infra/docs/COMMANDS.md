@@ -19,7 +19,7 @@ helpers.
 
 ## Forbidden Command Ownership
 
-- No `src/bin/` entrypoints.
+- No Cargo binary targets.
 - No `std::process::Command` execution.
 - No shell command wrappers.
 - No Docker, Apptainer, Git, network-fetch, benchmark-runner, or workflow orchestration commands.
