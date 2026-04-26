@@ -7,9 +7,7 @@ fn stages_vcf_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root),
         btree_set(&[
-            "BOUNDARY.md",
             "Cargo.toml",
-            "PUBLIC_API.md",
             "README.md",
             "docs/",
             "src/",

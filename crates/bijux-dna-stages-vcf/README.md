@@ -1,38 +1,39 @@
 # bijux-dna-stages-vcf
 
-## What this crate does
-Owns VCF stage wiring, metrics schema typing, and parser/smoke support metadata.
+`bijux-dna-stages-vcf` owns the VCF stage execution surface used by the
+genomics workspace. It provides typed stage runners, VCF IO helpers, preflight
+invariants, metrics parsers, wrapper checks, and the dispatch entrypoint for
+VCF stage plans.
 
-## What it must not do (boundaries)
-Must not own pipeline profile selection, domain ID authority, or execution runtime policy.
+This crate is intentionally effectful. Unlike FASTQ and BAM stage-spec crates,
+the current VCF crate owns product stage execution helpers and writes stage
+artifacts. Command-line routing, API request handling, planner policy, runtime
+scheduling, and environment provisioning still belong outside this crate.
 
-## Effects & determinism guarantees
-Stage metadata and parser outputs are deterministic for fixed input fixtures.
+## Public Surface
 
-## Public API / entrypoints
-- `src/lib.rs`
-- `src/metrics.rs`
-- `src/stage_specs.rs`
+- `engine`: dispatch request/result types and `run_vcf_pipeline`.
+- `pipeline`: typed VCF stage runner families.
+- `invariants`: VCF preflight checks and normalized artifact generation.
+- `metrics`: deterministic parser helpers for VCF metrics payloads.
+- `vcf_io`: VCF validation, normalization, indexing, region, and overlap helpers.
+- `stage_specs`: VCF stage registry metadata.
 
-## Key contracts it owns/consumes
-Consumes domain-vcf stages and owns stage-level metrics schema compatibility checks.
+## Documentation
 
-## Artifacts / Contracts
-- [docs/INDEX.md](docs/INDEX.md)
-- [docs/SCOPE.md](docs/SCOPE.md)
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/TESTS.md](docs/TESTS.md)
+The crate keeps one root `README.md`. All other crate documentation lives under
+`docs/` and is indexed from [docs/INDEX.md](docs/INDEX.md).
 
-## Failure modes
-Unsupported parser/schema pairings or missing fixtures break stage contracts.
+Key docs:
 
-## How to run its tests
-- `cargo test -p bijux-dna-stages-vcf --test contracts`
-- `cargo test -p bijux-dna-stages-vcf --test guardrails`
-- `cargo test -p bijux-dna-stages-vcf`
-- `tests/contracts.rs`
-- `tests/guardrails.rs`
-- `src/stage_specs.rs`
+- [docs/COMMANDS.md](docs/COMMANDS.md): SSOT for operations managed by this crate.
+- [docs/BOUNDARY.md](docs/BOUNDARY.md): ownership and forbidden surfaces.
+- [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md): dependency graph rules.
+- [docs/STAGE_CONTRACTS.md](docs/STAGE_CONTRACTS.md): VCF stage coverage.
+- [docs/TESTS.md](docs/TESTS.md): local verification commands.
 
-## Where the docs live
-All crate docs live under `docs/`, indexed by [docs/INDEX.md](docs/INDEX.md).
+## Verification
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-vcf --no-default-features
+```
