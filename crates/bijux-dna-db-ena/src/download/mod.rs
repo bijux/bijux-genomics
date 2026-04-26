@@ -29,6 +29,7 @@ pub fn download_tasks(tasks: &[DownloadTask], config: &DownloadConfig) -> Result
 mod tests {
     use super::*;
     use crate::model::{EnaFileSource, EnaResultKind, EnaSourcePreference};
+    use anyhow::bail;
     use std::path::PathBuf;
 
     #[test]
@@ -106,5 +107,24 @@ mod tests {
 
         assert_eq!(tasks.len(), 1);
         assert_eq!(tasks[0].url, "ftp://ftp.sra.ebi.ac.uk/vol1/ERR1_1.fastq.gz");
+    }
+
+    #[test]
+    fn download_tasks_rejects_zero_jobs_for_dry_run() -> anyhow::Result<()> {
+        let cfg = DownloadConfig {
+            output_dir: PathBuf::from("out"),
+            jobs: 0,
+            retries: 0,
+            source: EnaFileSource::FastqFtp,
+            preference: EnaSourcePreference::Ftp,
+            dry_run: true,
+        };
+
+        let Err(error) = download_tasks(&[], &cfg) else {
+            bail!("zero download jobs must fail");
+        };
+
+        assert!(error.to_string().contains("jobs must be greater than zero"));
+        Ok(())
     }
 }
