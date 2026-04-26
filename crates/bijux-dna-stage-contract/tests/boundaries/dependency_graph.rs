@@ -13,6 +13,10 @@ fn normal_dependency_graph_matches_stage_contract_boundary() {
         entries(["anyhow", "bijux-dna-core", "serde", "serde_json", "sha2"]),
         "stage-contract runtime dependencies must stay pure contract-facing"
     );
+    assert!(
+        dependency_uses_workspace(&parsed, "dependencies", "bijux-dna-core"),
+        "bijux-dna-core must come from the workspace catalog"
+    );
     for forbidden in [
         "bijux-dna-api",
         "bijux-dna-engine",
@@ -54,6 +58,17 @@ fn dependency_names(parsed: &toml::Value, table_name: &str) -> BTreeSet<String> 
         .and_then(toml::Value::as_table)
         .map(|table| table.keys().cloned().collect())
         .unwrap_or_default()
+}
+
+fn dependency_uses_workspace(parsed: &toml::Value, table_name: &str, dependency: &str) -> bool {
+    parsed
+        .get(table_name)
+        .and_then(toml::Value::as_table)
+        .and_then(|table| table.get(dependency))
+        .and_then(toml::Value::as_table)
+        .and_then(|table| table.get("workspace"))
+        .and_then(toml::Value::as_bool)
+        .unwrap_or(false)
 }
 
 fn entries<const N: usize>(expected: [&str; N]) -> BTreeSet<String> {
