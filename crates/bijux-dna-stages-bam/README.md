@@ -27,6 +27,15 @@ layers.
 
 `docs/COMMANDS.md` is the SSOT for callable operations managed by this crate.
 
+Managed operations:
+
+- `list-bam-stages`
+- `check-bam-stage-support`
+- `materialize-bam-stage`
+- `parse-bam-stage-outputs`
+- `collect-bam-metrics`
+- `parse-bam-observer-output`
+
 ## Documentation
 
 The crate root intentionally has only this `README.md`. All other docs live
