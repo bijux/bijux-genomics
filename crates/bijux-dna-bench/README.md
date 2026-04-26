@@ -1,49 +1,76 @@
 # bijux-dna-bench
 
-## What this crate does
-Builds deterministic benchmark summaries, policy decisions, and comparison reports from benchmark
-observations and analyze/runtime-derived artifacts.
+`bijux-dna-bench` turns governed benchmark observations into deterministic
+summaries, gate decisions, comparisons, and persisted benchmark artifacts.
 
-## What it must not do (boundaries)
-This crate must not plan workflows or execute tools. It owns benchmark orchestration and artifact
-serialization only.
+Workspace work on this crate is governed by `/Users/bijan/bijux/README.md` and
+`/Users/bijan/bijux/CODEX.md`; re-read those files before editing this child
+repository and before committing.
 
-## Effects & determinism guarantees
-This crate deterministically derives benchmark artifacts from recorded observations and managed
-analysis/runtime inputs.
+## Scope
 
-## Internal layout
-- `src/public_api/`: curated stable surface
-- `src/workflow/`: benchmark loading, summarization, evaluation, and suite orchestration
-- `src/repo/`: repository root discovery plus persisted run-artifact loading
-- `src/artifacts/`: deterministic benchmark artifact writers
+This crate owns:
 
-## Public API / entrypoints
-Start with `PUBLIC_API.md` and `docs/ARCHITECTURE.md`. The crate root is intentionally thin and
-routes its stable surface through `src/public_api/mod.rs`.
+- Loading benchmark suite specifications.
+- Summarizing benchmark observations into stable `BenchmarkSummary` values.
+- Evaluating summaries against `GatePolicy` rules.
+- Comparing completed summaries.
+- Reading runtime/analyze artifacts that are already materialized.
+- Writing deterministic benchmark artifacts under declared output roots.
+- Resolving crate-owned benchmark data and suite directories.
 
-## Key contracts it owns/consumes
-- benchmark contracts: `docs/BENCH_CONTRACT.md`
-- artifact format: `docs/BENCH_FORMAT.md`
-- reproducibility: `docs/REPRODUCIBILITY.md`
-- architecture: `docs/ARCHITECTURE.md`
-- test map: `docs/TESTS.md`
+This crate does not plan workflows, execute tools, choose runner backends, or own
+domain-stage semantics. Those boundaries belong to planner, runner, runtime,
+domain, and API crates.
 
-## Artifacts / Contracts
-Benchmark report artifacts and wire contracts are defined in `docs/BENCH_CONTRACT.md` and
-`docs/BENCH_FORMAT.md`.
+## Public Operations
 
-## How to run its tests
-See `docs/TESTS.md` for the full map. The test tree is organized by enduring intent:
-- `tests/boundaries.rs`: source-tree guardrails
-- `tests/contracts.rs`: API, contract, fixture, and workspace-path checks
-- `tests/determinism.rs`: stable ordering and realistic snapshot checks
-- `tests/semantics.rs`: gate semantics
+The SSOT for callable operations is `docs/COMMANDS.md`.
 
-## Failure modes
-- invalid benchmark fixture/report schema inputs
-- missing benchmark artifact dependencies for synthesis
-- policy gate violations in benchmark package composition
+- `load-suite`
+- `summarize`
+- `compare`
+- `gate`
+- `bench-data-dir`
+- `bench-suites-dir`
 
-## Where the docs live
-Primary docs live in `docs/INDEX.md`; test coverage maps live in `docs/TESTS.md`.
+## Architecture
+
+- `src/lib.rs` stays thin and re-exports `public_api`.
+- `src/public_api/` owns the curated stable surface.
+- `src/workflow/` owns suite loading, summarization, comparison, gate decisions,
+  and suite artifact persistence.
+- `src/repo/` owns workspace path policy and read-only run artifact loading.
+- `src/artifacts/` owns deterministic artifact serialization.
+- `bench/suites/` contains the checked-in benchmark suite catalog.
+
+See `docs/ARCHITECTURE.md`, `docs/BOUNDARY.md`, and `docs/PUBLIC_API.md` for the
+full contract.
+
+## Documentation
+
+The crate root intentionally has only this `README.md`. All other crate docs live
+under `docs/`, with a 10-document allowance enforced by boundary tests:
+
+- `docs/ARCHITECTURE.md`
+- `docs/BENCH_CONTRACT.md`
+- `docs/BENCH_FORMAT.md`
+- `docs/BOUNDARY.md`
+- `docs/CHANGE_RULES.md`
+- `docs/COMMANDS.md`
+- `docs/PUBLIC_API.md`
+- `docs/REPRODUCIBILITY.md`
+- `docs/SUITE_DESIGN.md`
+- `docs/TESTS.md`
+
+## Verification
+
+Run from the `bijux-genomics` repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-bench --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test boundaries --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test contracts --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test determinism --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test semantics --no-default-features
+```
