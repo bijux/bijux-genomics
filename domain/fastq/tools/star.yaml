@@ -3,10 +3,12 @@ tool_id: star
 upstream: https://github.com/alexdobin/STAR
 versioning_strategy: pinned
 pin_strategy: pinned
-default_version: latest-pinned
+default_version: 2.7.11b
 install_kind: container
 license: GPL-3.0
 citation: paper:https://academic.oup.com/bioinformatics/article/29/1/15/272537
+container:
+  image: bijuxdna/star
 stage_ids:
 - fastq.index_reference
 stage_contracts:
