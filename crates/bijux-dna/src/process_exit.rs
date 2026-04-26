@@ -74,9 +74,12 @@ fn exit_code_for_error(err: &anyhow::Error) -> i32 {
         4
     } else if msg.contains("tool") && msg.contains("failed") {
         5
-    } else if msg.contains("contract") || msg.contains("invariant") {
-        3
-    } else if msg.contains("invalid") || msg.contains("missing") || msg.contains("not found") {
+    } else if msg.contains("contract")
+        || msg.contains("invariant")
+        || msg.contains("invalid")
+        || msg.contains("missing")
+        || msg.contains("not found")
+    {
         3
     } else {
         70
