@@ -6,6 +6,7 @@ use clap::Parser;
 use crate::commands::cli;
 
 fn global_option_value_arity(flag: &str) -> Option<usize> {
+    let flag = flag.split_once('=').map_or(flag, |(name, _)| name);
     match flag {
         "--log-level" | "--profile" | "--platform" | "--telemetry-jsonl" => Some(1),
         _ => None,
@@ -45,12 +46,16 @@ fn normalize_cli_argv(argv: &[String]) -> Vec<String> {
         let token = raw[index].as_str();
         if let Some(value_arity) = global_option_value_arity(token) {
             normalized.push(raw[index].clone());
-            for offset in 1..=value_arity {
-                if let Some(value) = raw.get(index + offset) {
-                    normalized.push(value.clone());
+            if !token.contains('=') {
+                for offset in 1..=value_arity {
+                    if let Some(value) = raw.get(index + offset) {
+                        normalized.push(value.clone());
+                    }
                 }
+                index = (index + 1 + value_arity).min(raw.len());
+            } else {
+                index += 1;
             }
-            index = (index + 1 + value_arity).min(raw.len());
             continue;
         }
         if is_global_switch(token) {
@@ -114,5 +119,22 @@ mod tests {
         ]));
 
         assert_eq!(host_route, argv(&["bijux-dna", "--json", "--platform", "test", "env", "info"]));
+    }
+
+    #[test]
+    fn host_runtime_route_preserves_inline_global_option_values_before_the_namespace() {
+        let host_route = normalize_cli_argv(&argv(&[
+            "bijux",
+            "--platform=test",
+            "--log-level=debug",
+            "dna",
+            "env",
+            "info",
+        ]));
+
+        assert_eq!(
+            host_route,
+            argv(&["bijux-dna", "--platform=test", "--log-level=debug", "env", "info"])
+        );
     }
 }
