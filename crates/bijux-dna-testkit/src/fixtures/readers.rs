@@ -19,6 +19,8 @@ pub fn load_fixture_text(path: impl AsRef<Path>) -> String {
 /// Panics if the file cannot be read or parsed as JSON.
 #[must_use]
 pub fn load_fixture_json(path: impl AsRef<Path>) -> Value {
+    let path = path.as_ref();
     let raw = load_fixture_text(path);
-    serde_json::from_str(&raw).unwrap_or_else(|err| panic!("fixture JSON must parse: {err}"))
+    serde_json::from_str(&raw)
+        .unwrap_or_else(|err| panic!("fixture JSON {} must parse: {err}", path.display()))
 }
