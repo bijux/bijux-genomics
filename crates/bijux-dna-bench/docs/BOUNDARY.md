@@ -1,21 +1,59 @@
-# bijux-dna-bench Boundary Contract
+# Boundary
 
-Owner: Benchmark
-Scope: Benchmark model orchestration, scoring support, and benchmark contract helpers
-Allowed inputs: benchmark configs, analyzer outputs, domain fixtures, runtime summaries
-Forbidden dependencies: CLI adapters, runner backends as required runtime deps, direct tool execution
-Forbidden effects: product execution, network access, undeclared writes outside benchmark roots
-Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --no-default-features`
+Owner: `bijux-dna-bench`
 
-## Why this crate exists
-Owns benchmark contract helpers and scoring surfaces without launching product workflows.
+This crate owns benchmark suite loading, summarization, comparison, gate
+evaluation, deterministic benchmark artifact writing, and read-only loading of
+finished runtime/analyze artifacts.
 
-## Allowed dependencies
-- Analyze, core, domain, model, runtime, infra, policy, and testkit contracts needed for benchmark
-  interpretation.
+## Allowed Inputs
 
-## Allowed effects
-- Deterministic reads/writes under declared benchmark artifacts.
+- Benchmark suite TOML files from `bench/suites/`.
+- `BenchmarkObservation` streams from governed runtime/analyze outputs.
+- `summary.json`, `decision.json`, `decisions.json`, and `observations.jsonl`
+  fixtures or prior benchmark artifacts.
+- Run manifests, metric payloads, and run metadata that have already been
+  materialized by lower-level crates.
 
-## Notes
-The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
+## Allowed Effects
+
+- Read checked-in suite files and declared benchmark input artifacts.
+- Write deterministic benchmark artifacts under caller-declared benchmark output
+  roots.
+- Resolve repository-local benchmark data and suite directories.
+- Canonicalize JSON before writing stable artifact files.
+
+## Forbidden Effects
+
+- Planning workflows.
+- Executing tools, runners, containers, or product pipelines.
+- Opening network connections.
+- Writing outside declared benchmark output roots.
+- Mutating checked-in suite catalogs during normal benchmark operations.
+- Re-exporting planner, runner, API, or domain execution crates as benchmark
+  public API.
+
+## Dependency Direction
+
+Allowed normal dependency families:
+
+- `bijux-dna-bench-model` for benchmark contracts, summaries, policies, and
+  statistics.
+- `bijux-dna-core` for canonical JSON and run artifact contracts.
+- `bijux-dna-analyze` for metric semantics.
+- `bijux-dna-infra` for repository path and directory helpers.
+- `bijux-dna-runtime` for atomic artifact writes and runtime report contracts.
+
+Policy, domain, and testkit crates belong in dev-dependencies unless production
+source imports their contracts.
+
+## Determinism
+
+For the same suite, observations, policy, and options, outputs must have stable
+ordering, stable numeric decisions, and stable serialized JSON shape.
+
+## Legacy Policy
+
+Legacy benchmark artifacts may remain as fixtures for historical comparison, but
+new behavior must use the current suite catalog and v1 benchmark model
+contracts. Do not add new legacy schema shapes.
