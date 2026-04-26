@@ -16,10 +16,41 @@
 - `src/report_stage.rs` owns the report aggregation graph step.
 
 ## Stage Families
-- `tool_adapters/stages/pre/` covers validation, read profiling, adapter detection, and reference indexing.
-- `tool_adapters/stages/qc/` covers QC reports, taxonomy screening, and rRNA depletion.
-- `tool_adapters/stages/transform/` covers trim, merge, filter, deduplicate, correction, UMI, and depletion transforms.
-- `tool_adapters/stages/amplicon/` covers primer normalization, chimera removal, ASV/OTU processing, and abundance normalization.
+```text
+src/tool_adapters/stages/
+  catalog.rs                    stage adapter registry surface
+  pre/
+    detect_adapters.rs          adapter-evidence planning
+    index_reference.rs          reference-index planning
+    plan_preprocess.rs          preprocess route assembly
+    preprocess.rs               preprocess stage plan helpers
+    profile_overrepresented_sequences.rs
+    profile_read_lengths.rs
+    validate_reads.rs
+  qc/
+    deplete_rrna.rs             rRNA depletion planning
+    profile_reads.rs            read profiling planning
+    report_qc.rs                QC report aggregation planning
+    screen_taxonomy.rs          taxonomy screening planning
+  transform/
+    correct_errors.rs           read correction planning
+    deplete_host.rs             host depletion planning
+    deplete_reference_contaminants.rs
+    extract_umis.rs
+    filter_low_complexity.rs
+    filter_reads.rs
+    merge_pairs.rs
+    remove_duplicates.rs
+    trim_polyg_tails.rs
+    trim_reads/                 trim planning, config, and reporting helpers
+    trim_terminal_damage.rs
+  amplicon/
+    cluster_otus.rs
+    infer_asvs.rs
+    normalize_abundance.rs
+    normalize_primers.rs
+    remove_chimeras.rs
+```
 
 ## Design Rules
 - Keep root files as facades or stable subsystem entrypoints.
