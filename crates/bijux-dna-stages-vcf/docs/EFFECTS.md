@@ -31,6 +31,27 @@ and write stage artifacts under caller-provided output directories.
 - Best-effort external-tool paths must have deterministic fallback behavior.
 - Environment overrides must be named explicitly in code, tests, and docs.
 
+## Documented Environment Overrides
+
+- `BIJUX_ADNA_MODE`
+- `BIJUX_ALLOW_SKIP_DAMAGE_FILTER`
+- `BIJUX_BUILD_ID`
+- `BIJUX_CONTAINER_RUNTIME`
+- `BIJUX_IMPUTE_EXCLUDE_CHR`
+- `BIJUX_IMPUTE_INCLUDE_CHR`
+- `BIJUX_LIBRARY_TYPE`
+- `BIJUX_REPO_ROOT`
+- `BIJUX_SPECIES_ID`
+- `BIJUX_STAGE_CLEANUP_POLICY`
+- `BIJUX_VCF_ALLOW_NETWORK`
+- `BIJUX_VCF_DAMAGE_MASK_MODE`
+- `BIJUX_VCF_DAMAGE_PMD_MIN`
+- `BIJUX_VCF_DAMAGE_TERMINAL_THRESHOLD`
+- `BIJUX_VCF_PANEL_MISMATCH_MAX`
+- `BIJUX_VCF_PANEL_OVERLAP_MIN`
+- `BIJUX_VCF_POSTPROCESS_LEFT_ALIGN`
+- `BIJUX_VCF_READY_FOR_DOWNSTREAM`
+
 ## Enforcement
 
 - `tests/contracts.rs` exercises stage outputs and refusal behavior.
