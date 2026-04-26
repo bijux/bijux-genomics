@@ -3,10 +3,11 @@ mod contracts {
         contracts::{
             refuse_unsupported_regime_transition, stage_artifact_contract, stage_failure_modes,
             stage_io_contract, stage_metrics_contract, validate_entry_vcf_invariants,
-            validate_panel_map_invariants, validate_species_context, validate_vcf_invariants,
-            ContigSpec, DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy,
-            EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
-            PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext, VcfInvariantState,
+            validate_panel_map_invariants, validate_reference_panel_governance,
+            validate_species_context, validate_vcf_invariants, ContigSpec,
+            DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy, EntryVcfInvariantState,
+            PanelMapInvariantState, PanelSelectionContext, PanelSelectionPolicy,
+            ReferencePanelGovernance, SpeciesContext, VcfInvariantState,
             DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE,
         },
         coverage::domain_coverage_report,
@@ -110,6 +111,21 @@ mod contracts {
             },
         );
         assert_eq!(selected.map(|p| p.panel_id.as_str()), Some("1000g_phase3"));
+    }
+
+    #[test]
+    fn panel_governance_rejects_non_hex_checksum_locks() {
+        let panel = ReferencePanelGovernance {
+            panel_id: "1000g_phase3".to_string(),
+            reference_build: "GRCh37".to_string(),
+            panel_checksum_sha256: "z".repeat(64),
+            index_checksum_sha256: "b".repeat(64),
+            license_id: "CC-BY-4.0".to_string(),
+            license_constraints: vec!["attribution".to_string()],
+            ancestry_tags: vec!["eur".to_string()],
+            target_tags: vec!["ancient".to_string()],
+        };
+        assert!(validate_reference_panel_governance(&panel).is_err());
     }
 
     #[test]
