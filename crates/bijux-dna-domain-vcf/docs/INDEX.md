@@ -9,6 +9,7 @@
 ## Boundaries
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [BOUNDARY.md](BOUNDARY.md)
+- [COMMANDS.md](COMMANDS.md)
 - [PUBLIC_API.md](PUBLIC_API.md)
 
 ## Extension Points

@@ -12,6 +12,7 @@ Effects are pure data transforms with deterministic serde payloads and stable sc
 ## Public API / entrypoints
 - `src/lib.rs`
 - `src/params/mod.rs`
+- Command inventory: [docs/COMMANDS.md](docs/COMMANDS.md)
 
 ## Key contracts it owns/consumes
 Owns VCF param typing contracts and consumes workspace ID/catalog contracts.
@@ -20,6 +21,7 @@ Owns VCF param typing contracts and consumes workspace ID/catalog contracts.
 - [docs/INDEX.md](docs/INDEX.md)
 - [docs/BOUNDARY.md](docs/BOUNDARY.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/COMMANDS.md](docs/COMMANDS.md)
 - [docs/PUBLIC_API.md](docs/PUBLIC_API.md)
 - [docs/TESTS.md](docs/TESTS.md)
 
