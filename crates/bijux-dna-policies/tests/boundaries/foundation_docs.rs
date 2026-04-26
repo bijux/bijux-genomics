@@ -15,6 +15,9 @@ const FOUNDATION_CRATES: &[&str] = &[
     "bijux-dna-testkit",
 ];
 
+const WORKSPACE_POLICY_PATHS: &[&str] =
+    &["README.md", "README.md"];
+
 #[test]
 fn policy__boundaries__foundation_docs__foundation_crates_keep_docs_in_governed_locations() {
     let workspace = workspace_root();
@@ -43,6 +46,24 @@ fn policy__boundaries__foundation_docs__foundation_crates_keep_docs_in_governed_
                 is_root_readme || is_docs_file,
                 "{crate_name} has markdown outside root README.md and docs/: {}",
                 markdown.display()
+            );
+        }
+    }
+}
+
+#[test]
+fn policy__boundaries__foundation_docs__foundation_readmes_expose_workspace_policy() {
+    let workspace = workspace_root();
+
+    for crate_name in FOUNDATION_CRATES {
+        let readme = workspace.join("crates").join(crate_name).join("README.md");
+        let content = std::fs::read_to_string(&readme)
+            .unwrap_or_else(|err| panic!("read {}: {err}", readme.display()));
+
+        for policy_path in WORKSPACE_POLICY_PATHS {
+            assert!(
+                content.contains(policy_path),
+                "{crate_name} README.md must expose repository policy path {policy_path}"
             );
         }
     }
