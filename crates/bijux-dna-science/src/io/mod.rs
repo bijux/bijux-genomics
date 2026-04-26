@@ -47,7 +47,7 @@ pub fn list_yaml_files(path: &Path) -> Result<Vec<PathBuf>> {
         .into_iter()
         .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
-        .map(|entry| entry.into_path())
+        .map(walkdir::DirEntry::into_path)
         .filter(|entry| {
             entry
                 .extension()
