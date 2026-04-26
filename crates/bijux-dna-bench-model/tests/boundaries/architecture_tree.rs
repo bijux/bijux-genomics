@@ -178,8 +178,9 @@ fn assert_source_owners(root: &Path) {
         if !header.contains("Owner: bijux-dna-bench-model") {
             missing_owner.push(file.display().to_string());
         }
+        let old_owner = concat!("Owner: bijux-dna-", "bench");
         assert!(
-            !header.contains("Owner: bijux-dna-bench\n"),
+            !header.lines().any(|line| line.trim_end().ends_with(old_owner)),
             "{} must use the bench-model owner, not the bench crate owner",
             file.display(),
         );
