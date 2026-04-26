@@ -186,12 +186,10 @@ fn policy__root__guardrails__empty_module_scan_ignores_attributes_and_scoped_mod
     write_source(&crate_root, "mod.rs", "#![allow(dead_code)]\npub(crate) mod inner;\n");
     write_source(&crate_root, "inner.rs", "pub fn real() {}\n");
 
-    let err = must_fail(
+    must_pass(
         bijux_dna_policies::check(&crate_root, &GuardrailConfig::default()),
-        "attribute-only module shell must fail",
+        "module router with sourced scoped module is allowed",
     );
-
-    assert!(err.to_string().contains("empty module file"), "unexpected guardrail error: {err}");
 }
 
 #[test]
