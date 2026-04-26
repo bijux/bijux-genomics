@@ -13,10 +13,7 @@ fn command_inventory_documents_fastq_stage_commands_and_synthetic_steps() {
         content.contains("## Runtime Commands\nNone."),
         "FASTQ planner must document that it exposes no runtime commands"
     );
-    assert!(
-        !root.join("src/bin").exists(),
-        "FASTQ planner must not grow runtime CLI entrypoints"
-    );
+    assert!(!root.join("src/bin").exists(), "FASTQ planner must not grow runtime CLI entrypoints");
 
     let documented = documented_ids_with_prefix(&content, "fastq.");
     let expected = STAGES
@@ -45,11 +42,7 @@ fn command_inventory_documents_fastq_stage_commands_and_synthetic_steps() {
 }
 
 fn documented_ids_with_prefix(content: &str, prefix: &str) -> BTreeSet<String> {
-    content
-        .split('`')
-        .filter(|segment| segment.starts_with(prefix))
-        .map(str::to_string)
-        .collect()
+    content.split('`').filter(|segment| segment.starts_with(prefix)).map(str::to_string).collect()
 }
 
 fn entries<const N: usize>(items: [&str; N]) -> BTreeSet<String> {
