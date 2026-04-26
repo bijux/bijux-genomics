@@ -219,7 +219,6 @@ fn policy__contracts__assets_governance_policy__primer_doi_status_matches_author
 }
 
 #[test]
-#[ignore = "TODO: align publication manifest requirements with current assets/publications contract"]
 fn policy__contracts__assets_governance_policy__publication_dirs_require_manifest_toml() {
     let root = repo_root();
     let publications = root.join("assets/publications");
@@ -255,13 +254,32 @@ fn policy__contracts__assets_governance_policy__publication_dirs_require_manifes
                 ));
             }
         }
+        for required in ["title", "provenance_notes", "license"] {
+            if parsed
+                .get(required)
+                .and_then(toml::Value::as_str)
+                .is_none_or(|value| value.trim().is_empty())
+            {
+                offenders.push(format!(
+                    "assets/publications/{id}/MANIFEST.toml field `{required}` must be a non-empty string"
+                ));
+            }
+        }
+        if parsed
+            .get("authors")
+            .and_then(toml::Value::as_array)
+            .is_none_or(|authors| authors.is_empty())
+        {
+            offenders.push(format!(
+                "assets/publications/{id}/MANIFEST.toml field `authors` must be a non-empty array"
+            ));
+        }
     }
-    if !offenders.is_empty() {
-        eprintln!(
-            "publication asset dirs manifest drift (non-fatal during migration):\n{}",
-            offenders.join("\n")
-        );
-    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "publication asset dirs manifest violations:\n{}",
+        offenders.join("\n")
+    );
 }
 
 #[test]

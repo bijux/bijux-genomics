@@ -4,4 +4,4 @@ year = 2024
 doi = ""
 license = "CC-BY-4.0"
 citation = "Bijux Genomics Team (2024). Ancient DNA methods benchmark corpus."
-provenance = "Curated internal publication-aligned bundle for deterministic regression contracts."
+provenance_notes = "Curated internal publication-aligned bundle for deterministic regression contracts."
