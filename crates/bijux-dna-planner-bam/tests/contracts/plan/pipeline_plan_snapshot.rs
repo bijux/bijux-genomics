@@ -132,3 +132,43 @@ fn pipeline_rejects_inputs_for_stages_outside_profile() -> Result<()> {
     assert!(error.to_string().contains("vcf.call"));
     Ok(())
 }
+
+#[test]
+#[cfg(feature = "bam_downstream")]
+fn pipeline_does_not_promote_optional_bam_outputs_to_downstream_input() -> Result<()> {
+    let temp = bijux_dna_infra::temp_dir("bam-optional-output-handoff")?;
+    let bam = temp.path().join("sample.bam");
+    let reference = temp.path().join("reference.fasta");
+    std::fs::write(&bam, b"")?;
+    std::fs::write(&reference, b">chrM\nACGT\n")?;
+    let mut tool_specs = tool_specs_for_profile("bam-to-bam__adna_shotgun__v1");
+    tool_specs.insert("bam.authenticity".to_string(), dummy_tool("pmdtools"));
+    let inputs = BamPipelineInputs {
+        policy: PlanPolicy::PreferAccuracy,
+        tool_specs,
+        params_overrides: BTreeMap::new(),
+        bam,
+        bam_index: None,
+        reference: Some(reference),
+        sample_id: Some("sample".to_string()),
+        out_dir: temp.path().join("out"),
+        allow_planned: false,
+    };
+    let graph = bijux_dna_planner_bam::plan_bam_to_bam__adna_shotgun__v1(&inputs)?;
+    let contamination = graph
+        .steps()
+        .iter()
+        .find(|step| step.stage_id.as_str() == "bam.contamination")
+        .expect("contamination step");
+    let bam_input = contamination
+        .io
+        .inputs
+        .iter()
+        .find(|input| input.name.as_str() == "bam")
+        .expect("contamination bam input");
+    assert!(
+        !bam_input.path.ends_with("pmd.filtered.bam"),
+        "optional pmdtools BAM output must not replace the main downstream BAM"
+    );
+    Ok(())
+}
