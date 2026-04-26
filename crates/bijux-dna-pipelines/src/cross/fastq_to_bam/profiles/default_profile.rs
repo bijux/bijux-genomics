@@ -88,7 +88,7 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
         capabilities: PipelineCapabilities {
             input_domains: vec![Domain::Fastq, Domain::Cross],
             output_domains: vec![Domain::Bam],
-            input_artifacts: vec![ArtifactType::FastqReads, ArtifactType::Bam],
+            input_artifacts: vec![ArtifactType::FastqReads, ArtifactType::ReferenceFasta],
             output_artifacts: vec![ArtifactType::Bam, ArtifactType::MetricsBundle],
             required_inputs: vec!["fastq", "reference"],
             produces_outputs: vec!["fastq", "bam", "bam.metrics"],

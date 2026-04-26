@@ -208,3 +208,30 @@ fn adna_cross_pipeline_keeps_adna_source_defaults() {
         "aDNA FASTQ-to-BAM must keep terminal-damage trimming"
     );
 }
+
+#[test]
+fn cross_pipelines_declare_reference_not_bam_input_artifact() {
+    for profile in [fastq_to_bam_default_profile(), fastq_to_bam_adna_shotgun_profile()] {
+        assert!(
+            profile
+                .capabilities
+                .input_artifacts
+                .contains(&bijux_dna_pipelines::ArtifactType::FastqReads),
+            "{} must consume FASTQ reads",
+            profile.id
+        );
+        assert!(
+            profile
+                .capabilities
+                .input_artifacts
+                .contains(&bijux_dna_pipelines::ArtifactType::ReferenceFasta),
+            "{} must consume a reference FASTA",
+            profile.id
+        );
+        assert!(
+            !profile.capabilities.input_artifacts.contains(&bijux_dna_pipelines::ArtifactType::Bam),
+            "{} must not declare BAM as an input artifact",
+            profile.id
+        );
+    }
+}
