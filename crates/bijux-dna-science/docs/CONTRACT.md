@@ -23,6 +23,12 @@ The generated FASTQ evidence set includes the environment matrix, container
 reference matrix, download backlog, paper archive matrix, closure gate, truth
 delta, missing closure prerequisites, and default binding risk ledger.
 
+`science/generated/indexes/science_index.json` is not just an inventory counter.
+It must also summarize the FASTQ closure surface through:
+
+- `fastq_closure_summary` for rolled-up closure state and blocker/warning counts
+- `fastq_evidence_summary` for backlog, paper archive, prerequisite, risk, and truth-delta counts
+
 ## Boundaries
 - No pipeline runtime orchestration.
 - No stage execution.

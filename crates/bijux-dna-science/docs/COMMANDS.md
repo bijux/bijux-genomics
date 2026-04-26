@@ -15,7 +15,7 @@ which defaults to the current directory.
 | Command | Writes files | Purpose |
 | --- | --- | --- |
 | `validate` | No | Load authored science specs and fail on parse, schema, or cross-reference errors. |
-| `build` | Yes | Compile authored specs and refresh governed generated science outputs. |
+| `build` | Yes | Compile authored specs, refresh governed generated science outputs, and print the rolled-up FASTQ closure summary. |
 | `trace [--stage <stage_id>] [--tool <tool_id>]` | No | Print FASTQ stage-tool environment evidence rows, optionally filtered. |
 | `closure [--stage <stage_id>] [--tool <tool_id>]` | No | Print FASTQ closure-gate rows, optionally filtered. |
 | `release --release-id <release_id>` | Yes | Write an immutable science release bundle for an authored release manifest. |
@@ -35,6 +35,9 @@ from these roots:
 
 - `science/generated/current/evidence/**`
 - `science/generated/indexes/science_index.json`
+
+The generated index now includes row counts plus rolled-up FASTQ closure and evidence
+summaries so operators can spot closure debt before opening the detailed TSV outputs.
 
 `release` writes immutable bundles under:
 
