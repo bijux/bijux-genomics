@@ -80,6 +80,7 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "regex",
         "regex.workspace",
         "serde_yaml",
+        "serde_yaml.workspace",
         "serde_json",
         "serde_json.workspace",
         "sha2",
