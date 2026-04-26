@@ -108,6 +108,12 @@ pub fn write_artifact_checksums_json(
         if !path.exists() {
             return Err(anyhow!("declared artifact `{name}` is missing at {}", path.display()));
         }
+        if !path.is_file() {
+            return Err(anyhow!(
+                "declared artifact `{name}` must be a regular file: {}",
+                path.display()
+            ));
+        }
         let sum = hash_file_sha256(path)?;
         checksums.insert(name.clone(), sum);
     }
