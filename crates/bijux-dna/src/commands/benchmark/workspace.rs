@@ -67,10 +67,40 @@ mod tests {
         BenchmarkWorkspaceLocal, BenchmarkWorkspaceStageRuns, BENCHMARK_CONFIG_ENV,
     };
     use std::collections::BTreeMap;
+    use std::ffi::{OsStr, OsString};
     use std::path::Path;
     use std::sync::Mutex;
 
     static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+    struct EnvVarGuard {
+        key: &'static str,
+        value: Option<OsString>,
+    }
+
+    impl EnvVarGuard {
+        fn set(key: &'static str, value: impl AsRef<OsStr>) -> Self {
+            let guard = Self { key, value: std::env::var_os(key) };
+            std::env::set_var(key, value.as_ref());
+            guard
+        }
+
+        fn remove(key: &'static str) -> Self {
+            let guard = Self { key, value: std::env::var_os(key) };
+            std::env::remove_var(key);
+            guard
+        }
+    }
+
+    impl Drop for EnvVarGuard {
+        fn drop(&mut self) {
+            if let Some(value) = &self.value {
+                std::env::set_var(self.key, value);
+            } else {
+                std::env::remove_var(self.key);
+            }
+        }
+    }
 
     fn write_text(path: impl AsRef<Path>, content: &str) {
         bijux_dna_infra::write_bytes(path.as_ref(), content.as_bytes()).expect("write fixture");
@@ -174,11 +204,10 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
         let config_path = temp.path().join("custom-benchmark.toml");
         write_text(&config_path, "");
 
-        std::env::set_var(BENCHMARK_CONFIG_ENV, &config_path);
+        let _config_env = EnvVarGuard::set(BENCHMARK_CONFIG_ENV, config_path.as_os_str());
         let benchmark_path = benchmark_config_path(temp.path(), None);
         let workspace_path = benchmark_workspace_config_path(temp.path(), None);
         let publication_path = benchmark_publication_config_path(temp.path(), None);
-        std::env::remove_var(BENCHMARK_CONFIG_ENV);
 
         assert_eq!(benchmark_path, config_path);
         assert_eq!(workspace_path, config_path);
@@ -488,9 +517,8 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
 results_root = "${BIJUX_TEST_RESULTS_ROOT}"
 "#,
         );
-        std::env::set_var("BIJUX_TEST_RESULTS_ROOT", "/tmp/env-results");
+        let _results_env = EnvVarGuard::set("BIJUX_TEST_RESULTS_ROOT", "/tmp/env-results");
         let config = load_benchmark_config(temp.path(), None).expect("load benchmark config");
-        std::env::remove_var("BIJUX_TEST_RESULTS_ROOT");
         assert_eq!(
             config.workspace.local.and_then(|row| row.results_root),
             Some("/tmp/env-results".to_string())
@@ -500,6 +528,7 @@ results_root = "${BIJUX_TEST_RESULTS_ROOT}"
     #[test]
     fn benchmark_config_treats_unset_placeholder_values_as_missing() {
         let _env_lock = ENV_LOCK.lock().expect("env lock");
+        let _corpus_env = EnvVarGuard::remove("BIJUX_TEST_CORPUS_ROOT");
         let temp = tempfile::tempdir().expect("tempdir");
         let config_dir = temp.path().join("configs/bench");
         std::fs::create_dir_all(&config_dir).expect("create config dir");
@@ -538,11 +567,9 @@ tools = ["fastqc"]
 "#,
         );
 
-        std::env::set_var("BIJUX_TEST_RESULTS_ROOT", "/tmp/legacy-results");
-        std::env::set_var("BIJUX_TEST_CORPUS_ROOT", "/tmp/legacy-corpus");
+        let _results_env = EnvVarGuard::set("BIJUX_TEST_RESULTS_ROOT", "/tmp/legacy-results");
+        let _corpus_env = EnvVarGuard::set("BIJUX_TEST_CORPUS_ROOT", "/tmp/legacy-corpus");
         let config = load_benchmark_config(temp.path(), None).expect("load benchmark config");
-        std::env::remove_var("BIJUX_TEST_RESULTS_ROOT");
-        std::env::remove_var("BIJUX_TEST_CORPUS_ROOT");
 
         assert_eq!(
             config.workspace.local.and_then(|row| row.results_root),
@@ -568,6 +595,7 @@ tools = ["fastqc"]
     #[test]
     fn benchmark_config_rejects_missing_environment_placeholders() {
         let _env_lock = ENV_LOCK.lock().expect("env lock");
+        let _missing_env = EnvVarGuard::remove("BIJUX_MISSING_RESULTS_ROOT");
         let error = expand_env_placeholders("results_root = \"${BIJUX_MISSING_RESULTS_ROOT}\"\n")
             .expect_err("missing environment placeholder must fail");
         assert!(error
