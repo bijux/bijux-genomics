@@ -107,6 +107,11 @@ struct QaCoverageBlockerEntry {
     blocker: String,
 }
 
+/// Load and validate authored science specs from a workspace.
+///
+/// # Errors
+///
+/// Returns an error when spec files cannot be listed, read, parsed, or validated.
 pub fn load_specs(root: &Path) -> Result<LoadedSpecs> {
     let mut loaded = LoadedSpecs::default();
     let mut errors = Vec::new();
@@ -117,7 +122,7 @@ pub fn load_specs(root: &Path) -> Result<LoadedSpecs> {
         &mut loaded.sources,
         SOURCE_SCHEMA_VERSION,
         |row| row.source_id.as_str().to_string(),
-        |row| validate_source(row),
+        validate_source,
         &mut errors,
     )?;
     load_dir::<crate::domain::EvidenceSpec, _, _>(
@@ -135,7 +140,7 @@ pub fn load_specs(root: &Path) -> Result<LoadedSpecs> {
         &mut loaded.claims,
         CLAIM_SCHEMA_VERSION,
         |row| row.claim_id.as_str().to_string(),
-        |row| validate_claim(row),
+        validate_claim,
         &mut errors,
     )?;
     load_dir::<crate::domain::AssumptionSpec, _, _>(
@@ -191,23 +196,34 @@ pub fn load_specs(root: &Path) -> Result<LoadedSpecs> {
     Ok(loaded)
 }
 
+/// Compile authored science specs and derived evidence rows for a workspace.
+///
+/// # Errors
+///
+/// Returns an error when specs cannot be loaded or derived FASTQ evidence cannot be compiled.
 pub fn compile_workspace(root: &Path) -> Result<CompiledScience> {
     let loaded = load_specs(root)?;
-    compile_loaded(root, loaded)
+    compile_loaded(root, &loaded)
 }
 
-pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScience> {
-    let source_inventory = build_source_inventory(root, &loaded);
+/// Compile already loaded science specs into deterministic generated models.
+///
+/// # Errors
+///
+/// Returns an error when loaded specs contain unresolved references or required FASTQ evidence
+/// sources cannot be resolved.
+pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScience> {
+    let source_inventory = build_source_inventory(root, loaded);
     let source_archive_gaps = build_source_archive_gaps(&source_inventory);
-    let claim_evidence_map = build_claim_evidence_map(&loaded);
-    let decision_reasoning_map = build_decision_reasoning_map(&loaded);
-    let binding_resolution = build_binding_resolution(&loaded);
-    let fastq_environment_rows = build_fastq_environment_rows(root, &loaded)?;
+    let claim_evidence_map = build_claim_evidence_map(loaded);
+    let decision_reasoning_map = build_decision_reasoning_map(loaded);
+    let binding_resolution = build_binding_resolution(loaded);
+    let fastq_environment_rows = build_fastq_environment_rows(root, loaded)?;
     let fastq_container_reference_rows =
-        build_fastq_container_reference_rows(root, &loaded, &fastq_environment_rows)?;
-    let tool_evidence_map = load_fastq_tool_evidence_map(root, &loaded)?;
-    let paper_map = load_fastq_paper_map(root, &loaded)?;
-    let qa_coverage_blockers = load_fastq_qa_coverage_blockers(root, &loaded)?;
+        build_fastq_container_reference_rows(root, loaded, &fastq_environment_rows)?;
+    let tool_evidence_map = load_fastq_tool_evidence_map(root, loaded)?;
+    let paper_map = load_fastq_paper_map(root, loaded)?;
+    let qa_coverage_blockers = load_fastq_qa_coverage_blockers(root, loaded)?;
     let fastq_download_backlog_rows = build_fastq_download_backlog_rows(
         root,
         &fastq_container_reference_rows,
@@ -227,7 +243,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         build_fastq_missing_closure_prerequisite_rows(&fastq_closure_gate_rows);
     let fastq_default_binding_risk_rows =
         build_fastq_default_binding_risk_rows(&fastq_closure_gate_rows);
-    let unresolved_refs = validate_cross_references(&loaded);
+    let unresolved_refs = validate_cross_references(loaded);
     if !unresolved_refs.is_empty() {
         return Err(validation_error(&unresolved_refs));
     }
