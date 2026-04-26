@@ -14,8 +14,16 @@ fn command_inventory_documents_no_runtime_commands() {
         "COMMANDS.md must make runtime command ownership explicit"
     );
     assert!(
-        content.contains("## Managed Command Families\nNone."),
+        content.contains("## Managed Command Inventory"),
+        "COMMANDS.md must provide a managed command inventory section"
+    );
+    assert!(
+        content.contains("### Command Families\nNone."),
         "COMMANDS.md must make the managed command set empty"
+    );
+    assert!(
+        content.contains("## Local Verification Commands"),
+        "COMMANDS.md must list local verification commands for runtime-boundary changes"
     );
     assert!(
         !root.join("src").join("bin").exists(),
@@ -33,6 +41,18 @@ fn command_inventory_documents_no_runtime_commands() {
         ]),
         "COMMANDS.md must list runtime entrypoints without treating them as shell commands"
     );
+
+    for expected in [
+        "cargo test -p bijux-dna-runtime --test boundaries --no-default-features",
+        "cargo test -p bijux-dna-runtime --test contracts --no-default-features",
+        "cargo test -p bijux-dna-runtime --test schemas --no-default-features",
+        "cargo test -p bijux-dna-runtime --no-default-features",
+    ] {
+        assert!(
+            content.contains(expected),
+            "COMMANDS.md must include verification command `{expected}`"
+        );
+    }
 }
 
 fn documented_entrypoints(content: &str) -> BTreeSet<String> {
