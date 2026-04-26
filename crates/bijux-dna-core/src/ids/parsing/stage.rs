@@ -37,18 +37,20 @@ pub fn validate_stage_id_str(id: &str) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    use crate::id_catalog::{BAM_MARKDUP, FASTQ_PREFIX, FASTQ_TRIM};
+
     use super::validate_stage_id_str;
 
     #[test]
     fn stage_id_rejects_empty_segments() {
-        assert!(validate_stage_id_str("fastq.").is_err());
+        assert!(validate_stage_id_str(FASTQ_PREFIX).is_err());
         assert!(validate_stage_id_str(".trim_reads").is_err());
-        assert!(validate_stage_id_str("fastq..trim_reads").is_err());
+        assert!(validate_stage_id_str(&format!("{FASTQ_PREFIX}.trim_reads")).is_err());
     }
 
     #[test]
     fn stage_id_accepts_canonical_segments() {
-        assert!(validate_stage_id_str("fastq.trim_reads").is_ok());
-        assert!(validate_stage_id_str("bam.mark_duplicates").is_ok());
+        assert!(validate_stage_id_str(FASTQ_TRIM).is_ok());
+        assert!(validate_stage_id_str(BAM_MARKDUP).is_ok());
     }
 }

@@ -240,6 +240,7 @@ mod tests {
     use super::{
         objective_spec, select_stage, BenchResultRecord, BenchResultStatus, Objective, ToolScore,
     };
+    use crate::id_catalog::FASTQ_TRIM;
     use crate::ids::StageId;
 
     fn successful_record(runtime_s: Option<f64>, memory_mb: Option<f64>) -> BenchResultRecord {
@@ -260,7 +261,7 @@ mod tests {
 
     #[test]
     fn zero_weighted_missing_metrics_do_not_produce_nan_scores() {
-        let stage = StageId::new("fastq.trim_reads");
+        let stage = StageId::new(FASTQ_TRIM);
         let records = vec![
             ("fast".to_string(), vec![successful_record(Some(1.0), None)]),
             ("slow".to_string(), vec![successful_record(Some(2.0), None)]),
@@ -275,7 +276,7 @@ mod tests {
 
     #[test]
     fn retention_selection_ignores_invalid_fraction_values() {
-        let stage = StageId::new("fastq.trim_reads");
+        let stage = StageId::new(FASTQ_TRIM);
         let invalid = BenchResultRecord {
             metrics: Some(serde_json::json!({"retention": {"value": 1.2}})),
             ..successful_record(Some(1.0), Some(1.0))

@@ -166,6 +166,7 @@ fn finite_value(value: f64, field: &str) -> Result<(), BenchError> {
 #[cfg(test)]
 mod tests {
     use anyhow::bail;
+    use bijux_dna_core::id_catalog::FASTQ_TRIM;
 
     use crate::contract::{DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
     use crate::model::{BenchmarkSummary, MetricSummary, SummaryRow};
@@ -196,7 +197,7 @@ mod tests {
                 dataset_id: "dataset-1".to_string(),
                 dataset_class: "trueseq".to_string(),
                 read_layout: "paired".to_string(),
-                stage_id: "fastq.trim_reads".to_string(),
+                stage_id: FASTQ_TRIM.to_string(),
                 stage_instance_id: None,
                 lineage_id: None,
                 tool_id: "fastp".to_string(),
@@ -220,7 +221,7 @@ mod tests {
         GateDecision {
             schema_version: DECISION_SCHEMA_V1.to_string(),
             dataset_id: "dataset-1".to_string(),
-            stage_id: "fastq.trim_reads".to_string(),
+            stage_id: FASTQ_TRIM.to_string(),
             tool_id: "fastp".to_string(),
             params_hash: "params-a".to_string(),
             passes: true,

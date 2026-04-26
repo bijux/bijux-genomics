@@ -5,6 +5,13 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_core::id_catalog::{
+    FASTQ_CORRECT, FASTQ_DEDUPLICATE, FASTQ_DEPLETE_HOST, FASTQ_DEPLETE_REFERENCE_CONTAMINANTS,
+    FASTQ_DEPLETE_RRNA, FASTQ_DETECT_ADAPTERS, FASTQ_FILTER, FASTQ_INDEX_REFERENCE,
+    FASTQ_LOW_COMPLEXITY, FASTQ_MERGE, FASTQ_PROFILE_OVERREPRESENTED_SEQUENCES,
+    FASTQ_PROFILE_READ_LENGTHS, FASTQ_QC_POST, FASTQ_SCREEN, FASTQ_STATS_NEUTRAL, FASTQ_TRIM,
+    FASTQ_TRIM_POLYG_TAILS, FASTQ_TRIM_TERMINAL_DAMAGE, FASTQ_UMI, FASTQ_VALIDATE_READS,
+};
 use walkdir::WalkDir;
 
 use super::domain_workflow::{
@@ -248,26 +255,26 @@ fn render_pipeline_compositions_block(dom: &str) -> Vec<String> {
     let mut rendered = vec!["  pre_hpc_best:".to_string()];
     rendered.extend(
         [
-            "fastq.validate_reads",
-            "fastq.extract_umis",
-            "fastq.profile_read_lengths",
-            "fastq.detect_adapters",
-            "fastq.trim_polyg_tails",
-            "fastq.trim_terminal_damage",
-            "fastq.trim_reads",
-            "fastq.filter_reads",
-            "fastq.correct_errors",
-            "fastq.index_reference",
-            "fastq.deplete_host",
-            "fastq.deplete_reference_contaminants",
-            "fastq.deplete_rrna",
-            "fastq.merge_pairs",
-            "fastq.remove_duplicates",
-            "fastq.filter_low_complexity",
-            "fastq.profile_reads",
-            "fastq.profile_overrepresented_sequences",
-            "fastq.screen_taxonomy",
-            "fastq.report_qc",
+            FASTQ_VALIDATE_READS,
+            FASTQ_UMI,
+            FASTQ_PROFILE_READ_LENGTHS,
+            FASTQ_DETECT_ADAPTERS,
+            FASTQ_TRIM_POLYG_TAILS,
+            FASTQ_TRIM_TERMINAL_DAMAGE,
+            FASTQ_TRIM,
+            FASTQ_FILTER,
+            FASTQ_CORRECT,
+            FASTQ_INDEX_REFERENCE,
+            FASTQ_DEPLETE_HOST,
+            FASTQ_DEPLETE_REFERENCE_CONTAMINANTS,
+            FASTQ_DEPLETE_RRNA,
+            FASTQ_MERGE,
+            FASTQ_DEDUPLICATE,
+            FASTQ_LOW_COMPLEXITY,
+            FASTQ_STATS_NEUTRAL,
+            FASTQ_PROFILE_OVERREPRESENTED_SEQUENCES,
+            FASTQ_SCREEN,
+            FASTQ_QC_POST,
         ]
         .into_iter()
         .map(|stage_id| format!("  - {stage_id}")),
