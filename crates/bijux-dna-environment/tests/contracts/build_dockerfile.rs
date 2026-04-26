@@ -44,3 +44,29 @@ fn extract_version_from_dockerfile_strips_optional_quotes() -> Result<(), EnvErr
     let _ = bijux_dna_infra::remove_file(&path);
     Ok(())
 }
+
+#[test]
+fn extract_version_from_dockerfile_trims_tool_selector() -> Result<(), EnvError> {
+    let path = write_dockerfile(
+        "bijux_test_fastp_spaced_tool.Dockerfile",
+        b"FROM ubuntu:20.04\nARG VERSION_FASTP=0.23.4\n",
+    )?;
+    let version = extract_version_from_dockerfile(&path, " fastp ")?;
+    assert_eq!(version, "0.23.4");
+    let _ = bijux_dna_infra::remove_file(&path);
+    Ok(())
+}
+
+#[test]
+fn extract_version_from_dockerfile_rejects_empty_tool_selector() -> Result<(), EnvError> {
+    let path = write_dockerfile(
+        "bijux_test_empty_tool_selector.Dockerfile",
+        b"FROM ubuntu:20.04\nARG VERSION_FASTP=0.23.4\n",
+    )?;
+    let error = extract_version_from_dockerfile(&path, " ")
+        .err()
+        .ok_or_else(|| EnvError::Dockerfile("expected empty tool selector rejection".to_string()))?;
+    assert!(error.to_string().contains("tool name is empty"));
+    let _ = bijux_dna_infra::remove_file(&path);
+    Ok(())
+}
