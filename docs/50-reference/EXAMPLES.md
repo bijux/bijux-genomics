@@ -12,17 +12,25 @@ Canonical examples index.
 - `corpus_01_mini`: `examples/data/corpus-01-mini/README.md`
 - `corpus_01`: `examples/data/corpus-01/README.md`
 
+## Recipe-Only Benchmark Docs
+- `examples/fastq/index-reference-bench/README.md`
+- `examples/fastq/normalize-abundance-bench/README.md`
+
 ## Root Example Guide
 - `examples/README.md`
+- `examples/POLICY.md`
+- `examples/RECIPE_ONLY.txt`
 
 ## Purpose
-This document defines the intended behavior and navigation contract for this topic.
+Define the navigation contract for runnable examples, recipe-only benchmark docs, and example-linked corpora.
 
 ## Scope
-Applies only to the files and workflows referenced in this document.
+Applies to the `examples/` tree, the generated example index, and the docs that explain how example classes differ.
 
 ## Non-goals
 - Not a replacement for lower-level implementation or crate-specific contracts.
 
 ## Contracts
-- Content here is normative where explicitly stated.
+- `examples/index.yaml` is the SSOT for runnable example IDs only.
+- Recipe-only benchmark docs are intentionally excluded from `examples/index.yaml` until they grow an executable example contract.
+- `examples/data/` holds corpora inputs and can appear in navigation docs without being treated as runnable examples.
