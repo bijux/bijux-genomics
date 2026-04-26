@@ -106,6 +106,7 @@ pub(in super::super::super) fn check_smoke_contract(
                     value
                 }
             };
+            let minimal_rationale = table_string(row, "smoke_minimal_rationale");
             let negative_cmd = {
                 let value = table_string(row, "smoke_negative_cmd");
                 if value.is_empty() {
@@ -147,6 +148,15 @@ pub(in super::super::super) fn check_smoke_contract(
             }
             if minimal_exit.is_none() {
                 errors.push(format!("{rel}: {tool_id} smoke_minimal_exit_code must be integer"));
+            }
+            if rel.ends_with("tool_registry_vcf_downstream.toml")
+                && status == "planned"
+                && minimal_cmd.trim() == help_cmd.trim()
+                && minimal_rationale.is_empty()
+            {
+                errors.push(format!(
+                    "{rel}: {tool_id} help-only smoke_minimal_cmd requires smoke_minimal_rationale"
+                ));
             }
             if negative_cmd.is_empty() {
                 errors.push(format!("{rel}: {tool_id} resolved smoke_negative_cmd is empty"));
