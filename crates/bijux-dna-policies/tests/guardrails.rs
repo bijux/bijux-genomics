@@ -121,3 +121,17 @@ fn policy__root__guardrails__stage_id_scan_rejects_raw_strings() {
 
     assert!(err.to_string().contains("stage id literal"), "unexpected guardrail error: {err}");
 }
+
+#[test]
+fn policy__root__guardrails__pub_item_budget_counts_scoped_visibility() {
+    let paths = TestPaths::new("policies-scoped-pub-budget");
+    let crate_root = paths.child("crate");
+    write_source(&crate_root, "lib.rs", "pub(super) fn visible_to_parent() {}\n");
+
+    let mut config = GuardrailConfig::default();
+    config.max_pub_items_per_file = 0;
+
+    let err = bijux_dna_policies::check(&crate_root, &config).expect_err("scoped pub must count");
+
+    assert!(err.to_string().contains("pub items"), "unexpected guardrail error: {err}");
+}
