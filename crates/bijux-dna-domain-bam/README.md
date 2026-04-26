@@ -14,10 +14,10 @@ Upstream: core IDs. Downstream: planners/stages/analyze.
 See `docs/INDEX.md`, `docs/DOMAIN_MODEL.md`, `docs/METRICS.md`, `docs/COMMANDS.md`, `docs/BOUNDARY.md`, and `docs/PUBLIC_API.md`.
 
 ## Most important docs
-- `crates/bijux-dna-domain-bam/docs/PHASES.md`
-- `crates/bijux-dna-domain-bam/docs/METRICS.md`
-- `crates/bijux-dna-domain-bam/docs/METRICS_GLOSSARY.md`
-- `crates/bijux-dna-domain-bam/docs/INTERPRETATION.md`
+- `docs/DOMAIN_MODEL.md`
+- `docs/METRICS.md`
+- `docs/FIXTURES.md`
+- `docs/TESTS.md`
 
 ## v1 scope
 Includes pre/core/downstream parameter groups and the BAM metrics surfaced in `crates/bijux-dna-domain-bam/docs/METRICS.md`.
@@ -29,7 +29,7 @@ Domain JSON shapes and fixtures.
 See `crates/bijux-dna-domain-bam/docs/DOMAIN_MODEL.md`, `src/stage_specs/`, and the snapshot fixtures under `tests/snapshots/`.
 
 ## Effects & determinism guarantees
-Pure data/validation. See `crates/bijux-dna-domain-bam/docs/EFFECTS.md` and the golden tests below.
+Pure data/validation. See `docs/DOMAIN_MODEL.md` and the golden tests below.
 
 ## How to run its tests
 See `crates/bijux-dna-domain-bam/docs/TESTS.md`. Golden tests: `tests/semantics/invariants/phase_semantics.rs`,
@@ -46,4 +46,4 @@ Start at `docs/INDEX.md` and follow the crate docs listed above.
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `crates/bijux-dna-domain-bam/docs/CHANGE_RULES.md`.
+Contract and behavior changes follow the change rules in `docs/DOMAIN_MODEL.md`.
