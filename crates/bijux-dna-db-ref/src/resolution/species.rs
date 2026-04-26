@@ -1,6 +1,7 @@
 use anyhow::{anyhow, bail, Result};
 use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
+use std::collections::BTreeSet;
 
 use crate::resolution::resolve_bundle_entry;
 use crate::runtime_config::{
@@ -83,13 +84,32 @@ pub fn enforce_declared_build_and_contigs(
         );
     }
     let contig_map = resolve_contig_map(species, declared_build)?;
+    let known_contigs = known_contig_names(&contig_map);
     for contig in observed_contigs {
-        let normalized = contig_map.aliases.get(contig).cloned().unwrap_or_else(|| contig.clone());
+        let observed = contig.trim();
+        if observed.is_empty() {
+            bail!("observed contig name must not be empty");
+        }
+        let normalized =
+            contig_map.aliases.get(observed).cloned().unwrap_or_else(|| observed.to_string());
         if normalized.trim().is_empty() {
             bail!("contig normalization produced empty value for {contig}");
         }
+        if !known_contigs.contains(observed) && !known_contigs.contains(normalized.as_str()) {
+            bail!("contig {contig} is not declared for {species}:{declared_build}");
+        }
     }
     Ok(())
+}
+
+fn known_contig_names(contig_map: &ContigMap) -> BTreeSet<&str> {
+    let mut names = BTreeSet::new();
+    names.insert(contig_map.mitochondrion_id.as_str());
+    for (alias, canonical) in &contig_map.aliases {
+        names.insert(alias.as_str());
+        names.insert(canonical.as_str());
+    }
+    names
 }
 
 /// # Errors
@@ -140,7 +160,7 @@ fn parse_coverage_regime(raw: &str) -> Result<CoverageRegime> {
 
 #[cfg(test)]
 mod tests {
-    use super::resolve_species_alias;
+    use super::{enforce_declared_build_and_contigs, resolve_species_alias};
 
     #[test]
     fn resolve_species_alias_trims_alias_and_requested_build() {
@@ -149,5 +169,18 @@ mod tests {
 
         assert_eq!(species, "Homo sapiens");
         assert_eq!(build, "GRCh38");
+    }
+
+    #[test]
+    fn enforce_declared_build_and_contigs_rejects_unknown_contigs() {
+        let Err(error) = enforce_declared_build_and_contigs(
+            "Homo sapiens",
+            "GRCh38",
+            &["not_a_contig".to_string()],
+        ) else {
+            panic!("unknown contig must fail");
+        };
+
+        assert!(error.to_string().contains("not declared"));
     }
 }
