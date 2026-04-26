@@ -32,3 +32,6 @@
   `PATHS.md`.
 - New command or process surfaces are forbidden unless `COMMANDS.md`, `BOUNDARY.md`, and boundary
   tests change in the same commit.
+- Breaking behavior changes require explicit approval, focused contract tests, and snapshot updates
+  where the public surface changes.
+- Internal helpers are not stable unless they are re-exported from `src/lib.rs`.

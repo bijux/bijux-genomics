@@ -17,12 +17,23 @@ Validation command:
 - Logging bootstrap for callers that enable the `tracing` feature.
 - JSON, TOML, and optional YAML helpers for config-compatible payloads.
 
+## Scope Rules
+
+Belongs here: deterministic helpers and generic filesystem utilities.
+Does not belong here: domain knowledge, contract schemas, command routing, or orchestration.
+
 ## Does Not Belong Here
 
 - Biological domain models, stage/tool catalogs, pipeline semantics, or contract schema ownership.
 - CLI routing, planner selection, runtime execution, or process orchestration.
 - Canonical path normalization. Canonicalization belongs to `bijux-dna-core`.
 - Shared governance policy ownership.
+
+## No Domain Semantics
+
+Forbidden code includes imports from domain, stage, planner, runner, API, database, analysis,
+environment, science, and benchmark crates; defining stage/tool catalogs; and embedding product
+workflow IDs in infra helpers.
 
 ## Dependency Direction
 
