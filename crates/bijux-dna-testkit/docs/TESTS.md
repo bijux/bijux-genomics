@@ -22,7 +22,7 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-testkit --no-de
 ## Test Layout
 
 - `tests/boundaries.rs` locks source layout, docs placement, dependency shape,
-  dev-dependency usage, and effect boundaries.
+  dev-dependency usage, command inventory, and effect boundaries.
 - `tests/contracts.rs` locks helper contracts such as fixture error reporting.
 - `tests/determinism.rs` locks deterministic clock, RNG, ordering, and timestamp
   behavior.
