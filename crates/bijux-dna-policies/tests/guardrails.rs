@@ -56,14 +56,19 @@ fn policy__root__guardrails__allow_paths_match_exact_suffixes() {
     let crate_root = paths.child("crate");
     write_source(&crate_root, "allowed_extra.rs", "pub fn fail() { None::<u8>.expect(\"x\"); }\n");
 
-    let mut config = GuardrailConfig::default();
-    config.forbid_panic_expect = true;
-    config.allow_panic_expect_paths = vec!["/src/allowed".to_string()];
+    let config = GuardrailConfig {
+        forbid_panic_expect: true,
+        allow_panic_expect_paths: vec!["/src/allowed".to_string()],
+        ..Default::default()
+    };
 
     let err = bijux_dna_policies::check(&crate_root, &config)
         .expect_err("substring allowlist must not suppress failure");
 
-    assert!(err.to_string().contains("panic/expect found"), "unexpected guardrail error: {err}");
+    assert!(
+        err.to_string().contains("panic/expect/unwrap found"),
+        "unexpected guardrail error: {err}"
+    );
 }
 
 #[test]
@@ -76,8 +81,7 @@ fn policy__root__guardrails__panic_expect_scan_ignores_comment_mentions() {
         "// None::<u8>.expect(\"documented only\")\npub fn ok() {}\n",
     );
 
-    let mut config = GuardrailConfig::default();
-    config.forbid_panic_expect = true;
+    let config = GuardrailConfig { forbid_panic_expect: true, ..Default::default() };
 
     bijux_dna_policies::check(&crate_root, &config).expect("comment-only expect is allowed");
 }
@@ -88,8 +92,7 @@ fn policy__root__guardrails__panic_expect_scan_rejects_unwrap() {
     let crate_root = paths.child("crate");
     write_source(&crate_root, "lib.rs", "pub fn fail() { Some(1).unwrap(); }\n");
 
-    let mut config = GuardrailConfig::default();
-    config.forbid_panic_expect = true;
+    let config = GuardrailConfig { forbid_panic_expect: true, ..Default::default() };
 
     let err = bijux_dna_policies::check(&crate_root, &config).expect_err("unwrap must fail");
 
@@ -102,8 +105,7 @@ fn policy__root__guardrails__stage_id_scan_ignores_comment_mentions() {
     let crate_root = paths.child("crate");
     write_source(&crate_root, "lib.rs", "// example: \"fastq.qc\"\npub fn ok() {}\n");
 
-    let mut config = GuardrailConfig::default();
-    config.forbid_stage_id_strings = true;
+    let config = GuardrailConfig { forbid_stage_id_strings: true, ..Default::default() };
 
     bijux_dna_policies::check(&crate_root, &config).expect("comment-only stage id is allowed");
 }
@@ -114,8 +116,7 @@ fn policy__root__guardrails__stage_id_scan_rejects_raw_strings() {
     let crate_root = paths.child("crate");
     write_source(&crate_root, "lib.rs", "pub const STAGE: &str = r#\"fastq.qc\"#;\n");
 
-    let mut config = GuardrailConfig::default();
-    config.forbid_stage_id_strings = true;
+    let config = GuardrailConfig { forbid_stage_id_strings: true, ..Default::default() };
 
     let err = bijux_dna_policies::check(&crate_root, &config).expect_err("raw stage id must fail");
 
@@ -128,8 +129,7 @@ fn policy__root__guardrails__pub_item_budget_counts_scoped_visibility() {
     let crate_root = paths.child("crate");
     write_source(&crate_root, "lib.rs", "pub(super) fn visible_to_parent() {}\n");
 
-    let mut config = GuardrailConfig::default();
-    config.max_pub_items_per_file = 0;
+    let config = GuardrailConfig { max_pub_items_per_file: 0, ..Default::default() };
 
     let err = bijux_dna_policies::check(&crate_root, &config).expect_err("scoped pub must count");
 
@@ -142,9 +142,11 @@ fn policy__root__guardrails__pub_use_budget_counts_scoped_reexports() {
     let crate_root = paths.child("crate");
     write_source(&crate_root, "lib.rs", "mod inner {}\npub(crate) use inner as exposed;\n");
 
-    let mut config = GuardrailConfig::default();
-    config.forbid_pub_use_spam = true;
-    config.max_pub_use_per_file = 0;
+    let config = GuardrailConfig {
+        forbid_pub_use_spam: true,
+        max_pub_use_per_file: 0,
+        ..Default::default()
+    };
 
     let err =
         bijux_dna_policies::check(&crate_root, &config).expect_err("scoped pub use must count");
@@ -175,9 +177,11 @@ fn policy__root__guardrails__literal_scans_ignore_block_comments() {
         "/*\nNone::<u8>.expect(\"comment only\");\n\"fastq.qc\"\n*/\npub fn ok() {}\n",
     );
 
-    let mut config = GuardrailConfig::default();
-    config.forbid_panic_expect = true;
-    config.forbid_stage_id_strings = true;
+    let config = GuardrailConfig {
+        forbid_panic_expect: true,
+        forbid_stage_id_strings: true,
+        ..Default::default()
+    };
 
     bijux_dna_policies::check(&crate_root, &config).expect("block-comment mentions are allowed");
 }
