@@ -56,6 +56,9 @@ Core dependencies must remain generic library dependencies or dev-only test
 dependencies. Any dependency that imports pipeline policy, command execution,
 or product behavior into core is a boundary violation.
 
+`tests/boundaries/dependency_graph.rs` locks the current normal dependency set
+and rejects downstream crate dependencies in `[dependencies]`.
+
 ## Validation
 
 Run from the repository root:
