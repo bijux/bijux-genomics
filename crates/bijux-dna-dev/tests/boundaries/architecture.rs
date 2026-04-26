@@ -18,6 +18,7 @@ fn dev_tree_matches_architecture_contract() {
     let expected_docs: BTreeSet<_> = [
         "ARCHITECTURE.md",
         "BOUNDARY.md",
+        "CHANGE_RULES.md",
         "COMMANDS.md",
         "CONTRACTS.md",
         "DEPENDENCIES.md",

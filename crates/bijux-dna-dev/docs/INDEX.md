@@ -2,6 +2,7 @@
 
 ## Scope
 - [SCOPE.md](SCOPE.md)
+- [CHANGE_RULES.md](CHANGE_RULES.md)
 
 ## Effects
 - Repository-scoped filesystem reads and writes for automation artifacts.
