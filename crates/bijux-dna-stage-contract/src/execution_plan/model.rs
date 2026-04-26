@@ -5,7 +5,9 @@ use serde::{Deserialize, Serialize};
 
 use bijux_dna_core::contract::PlanPolicy;
 
-use crate::{lint_execution_plan, stage_node_id, PlanEdge, PlanValidationContext, StagePlanV1};
+use crate::{lint_execution_plan, PlanEdge, PlanValidationContext, StagePlanV1};
+
+use super::validation::stage_node_id;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
