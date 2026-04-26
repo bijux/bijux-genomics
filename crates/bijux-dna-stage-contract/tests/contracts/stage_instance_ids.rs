@@ -358,3 +358,24 @@ fn execution_plan_rejects_empty_artifact_bindings() {
 
     assert!(error.to_string().contains("has empty artifact binding"));
 }
+
+#[test]
+fn execution_plan_rejects_duplicate_stage_output_artifacts() {
+    let mut stage = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
+    stage.io.outputs.push(ArtifactRef::required(
+        ArtifactId::new("trimmed_reads_fastp".to_string()),
+        PathBuf::from("trimmed_reads_fastp.copy.fastq.gz"),
+        ArtifactRole::TrimmedReads,
+    ));
+
+    let error = ExecutionPlan::new(
+        "fastq-to-fastq__trim_reads_qc__v1",
+        "planner-v1",
+        PlanPolicy::default(),
+        vec![stage],
+        Vec::new(),
+    )
+    .expect_err("duplicate stage outputs must fail validation");
+
+    assert!(error.to_string().contains("duplicate output artifact trimmed_reads_fastp"));
+}
