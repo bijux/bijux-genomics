@@ -90,7 +90,6 @@ fn policy__boundaries__architecture_tree__policies_tree_matches_architecture_con
     assert_eq!(
         dir_entries(&root.join("tests")),
         entries([
-            "README.md",
             "boundaries/",
             "boundaries.rs",
             "contracts/",
