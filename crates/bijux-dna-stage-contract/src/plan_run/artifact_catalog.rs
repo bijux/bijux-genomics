@@ -1,6 +1,6 @@
 #[must_use]
 pub fn artifact_kind_schema(role: &str) -> (&'static str, &'static str) {
-    match role {
+    match role.trim() {
         "reads" | "trimmed_reads" => ("fastq", "bijux.artifact.fastq.v1"),
         "bam" | "dedup_bam" => ("bam", "bijux.artifact.bam.v1"),
         "report_json" | "metrics_json" | "summary_json" => {
@@ -13,5 +13,16 @@ pub fn artifact_kind_schema(role: &str) -> (&'static str, &'static str) {
         "metrics_envelope" => ("json", "bijux.metrics.envelope.v1"),
         "stage_report" => ("json", "bijux.stage_report.v1"),
         _ => ("file", "bijux.artifact.file.v1"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn artifact_kind_schema_trims_role_before_lookup() {
+        assert_eq!(
+            super::artifact_kind_schema(" trimmed_reads "),
+            ("fastq", "bijux.artifact.fastq.v1")
+        );
     }
 }
