@@ -3,9 +3,9 @@ use std::path::PathBuf;
 use bijux_dna_stages_bam::observer::{
     parse_contamination_json, parse_damageprofiler_json, parse_mapdamage2_misincorporation,
     parse_mosdepth_summary, parse_picard_gc_bias_metrics, parse_picard_insert_size_metrics,
-    parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth, parse_samtools_flagstat,
-    parse_samtools_depth_with_uniformity, parse_samtools_idxstats, parse_samtools_stats,
-    parse_sex_json,
+    parse_preseq_estimates, parse_pydamage_json, parse_samtools_depth,
+    parse_samtools_depth_with_uniformity, parse_samtools_flagstat, parse_samtools_idxstats,
+    parse_samtools_stats, parse_sex_json,
 };
 
 fn fixture(path: &str) -> std::path::PathBuf {
@@ -30,7 +30,8 @@ fn parses_complexity_and_coverage_observers() -> anyhow::Result<()> {
     assert!(mos.mean > 0.0);
     let depth = parse_samtools_depth(&fixture("samtools.depth.txt"))?;
     assert!(depth.mean >= 0.0);
-    let (_depth, uniformity) = parse_samtools_depth_with_uniformity(&fixture("samtools.depth.txt"))?;
+    let (_depth, uniformity) =
+        parse_samtools_depth_with_uniformity(&fixture("samtools.depth.txt"))?;
     assert!(uniformity.coefficient_of_variation >= 0.0);
     assert!((0.0..=1.0).contains(&uniformity.dropout_fraction));
     Ok(())
