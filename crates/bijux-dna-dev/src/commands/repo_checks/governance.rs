@@ -306,7 +306,7 @@ pub(crate) fn check_clippy_allowlist_growth(
     let max_entries = baseline
         .get("max_entries")
         .and_then(toml::Value::as_integer)
-        .unwrap_or(base_entries.len() as i64);
+        .unwrap_or_else(|| i64::try_from(base_entries.len()).unwrap_or(i64::MAX));
     let allow_keys = allow
         .iter()
         .filter_map(|entry| {
@@ -326,7 +326,8 @@ pub(crate) fn check_clippy_allowlist_growth(
         })
         .collect::<BTreeSet<_>>();
     let mut errors = Vec::new();
-    if allow.len() as i64 > max_entries {
+    let allow_len = i64::try_from(allow.len()).unwrap_or(i64::MAX);
+    if allow_len > max_entries {
         errors.push(format!("allowlist grew: {} > max_entries={max_entries}", allow.len()));
     }
     for (path, lint) in allow_keys.difference(&base_keys) {

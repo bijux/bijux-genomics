@@ -146,15 +146,15 @@ pub(super) fn assert_no_excess_float_precision(value: &Value, tag: &str, errors:
     }
 }
 
-pub(super) fn normalize_benchmark_html(raw: &str) -> String {
-    let timestamp_re = Regex::new(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z").expect("valid regex");
-    let user_re = Regex::new(r#"/Users/[^"'< ]+"#).expect("valid regex");
-    let home_re = Regex::new(r#"/home/[^"'< ]+"#).expect("valid regex");
-    let run_re = Regex::new(r#"run[_-]id[:=][^"'< ]+"#).expect("valid regex");
+pub(super) fn normalize_benchmark_html(raw: &str) -> Result<String> {
+    let timestamp_re = Regex::new(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")?;
+    let user_re = Regex::new(r#"/Users/[^"'< ]+"#)?;
+    let home_re = Regex::new(r#"/home/[^"'< ]+"#)?;
+    let run_re = Regex::new(r#"run[_-]id[:=][^"'< ]+"#)?;
     let text = timestamp_re.replace_all(raw, "<TS>");
     let text = user_re.replace_all(&text, "<PATH>");
     let text = home_re.replace_all(&text, "<PATH>");
-    run_re.replace_all(&text, "run_id=<RUN>").into_owned()
+    Ok(run_re.replace_all(&text, "run_id=<RUN>").into_owned())
 }
 
 pub(super) fn relative_diff(left: f64, right: f64) -> f64 {

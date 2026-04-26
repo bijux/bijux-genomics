@@ -666,6 +666,7 @@ pub(in super::super) fn tooling_benchmark_integrity_mini(
             }
         }
     }
+    let host_path_re = Regex::new(r"/Users/|/home/|\btmp/")?;
     for (tag, path) in [("run_a", t_a.as_ref()), ("run_b", t_b.as_ref())] {
         if let Some(path) = path {
             let mut by_stage = BTreeMap::new();
@@ -690,14 +691,15 @@ pub(in super::super) fn tooling_benchmark_integrity_mini(
                         ));
                     }
                 }
-                if Regex::new(r"/Users/|/home/|\btmp/")?.is_match(line) {
+                if host_path_re.is_match(line) {
                     errors.push(format!("{tag}:{}: telemetry leaks host path", line_number + 1));
                 }
             }
         }
     }
     if let (Some(h_a), Some(h_b)) = (h_a.as_ref(), h_b.as_ref()) {
-        if normalize_benchmark_html(&read_utf8(h_a)?) != normalize_benchmark_html(&read_utf8(h_b)?)
+        if normalize_benchmark_html(&read_utf8(h_a)?)?
+            != normalize_benchmark_html(&read_utf8(h_b)?)?
         {
             errors.push(
                 "report.html normalized structure differs across consecutive mini benchmark runs"

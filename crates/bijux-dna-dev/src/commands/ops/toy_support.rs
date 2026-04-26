@@ -125,7 +125,7 @@ fn stable_toy_digest(path: &Path) -> Result<String> {
             let payload = normalize_toy_json(&read_json_value(path)?);
             Ok(sha256_hex_bytes(serde_json::to_string(&payload)?.as_bytes()))
         }
-        Some("html") => Ok(sha256_hex_bytes(normalize_toy_html(&read_utf8(path)?).as_bytes())),
+        Some("html") => Ok(sha256_hex_bytes(normalize_toy_html(&read_utf8(path)?)?.as_bytes())),
         _ => sha256_hex(path),
     }
 }
@@ -148,11 +148,11 @@ fn normalize_toy_json(value: &Value) -> Value {
     }
 }
 
-fn normalize_toy_html(raw: &str) -> String {
-    let generated_re = Regex::new(r"generated_at=[^<]+").expect("regex");
-    let json_re = Regex::new(r#""generated_at"\s*:\s*"[^"]+""#).expect("regex");
+fn normalize_toy_html(raw: &str) -> Result<String> {
+    let generated_re = Regex::new(r"generated_at=[^<]+")?;
+    let json_re = Regex::new(r#""generated_at"\s*:\s*"[^"]+""#)?;
     let text = generated_re.replace_all(raw, "generated_at=<normalized>");
-    json_re.replace_all(&text, r#""generated_at":"<normalized>""#).into_owned()
+    Ok(json_re.replace_all(&text, r#""generated_at":"<normalized>""#).into_owned())
 }
 
 pub(super) fn compare_toy_goldens(
