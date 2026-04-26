@@ -179,6 +179,7 @@ fn assert_v1_tree(root: &std::path::Path) {
             "report/",
             "run/",
             "shared.rs",
+            "vcf.rs",
         ],
         "api v1 tree must stay curated",
     );
