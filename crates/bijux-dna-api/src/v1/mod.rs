@@ -15,6 +15,7 @@ pub(crate) mod plan;
 pub(crate) mod report;
 pub(crate) mod run;
 pub(crate) mod shared;
+pub(crate) mod vcf;
 
 // Keep this module non-empty to satisfy guardrails and clarify intent.
 pub const API_V1_BANNER: &str = "bijux-dna-api v1";

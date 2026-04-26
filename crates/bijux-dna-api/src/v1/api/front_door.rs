@@ -46,6 +46,11 @@ pub mod env {
     pub use crate::v1::env::*;
 }
 
+/// VCF-specific helpers (v1).
+pub mod vcf {
+    pub use crate::v1::vcf::*;
+}
+
 /// Shared helpers (v1).
 pub mod shared {
     pub use crate::v1::shared::*;
