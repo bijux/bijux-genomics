@@ -155,10 +155,6 @@ def resolve_path(repo_root: Path, path: Path) -> Path:
 def write_manifest(repo_root: Path, manifest_path: Path, records: list[RepoRecord]) -> None:
     ensure_parent(manifest_path)
     with manifest_path.open("w", encoding="utf-8", newline="") as handle:
-        handle.write(
-            "# GENERATED FILE - DO NOT EDIT\n"
-            "# Regenerate with: python3 makes/bin/sync_science_docs_github_repos.py --skip-sync\n"
-        )
         writer = csv.writer(handle, delimiter="\t", lineterminator="\n")
         writer.writerow(
             [
