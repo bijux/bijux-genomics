@@ -36,7 +36,8 @@ fn parse_dev_dependencies(manifest: &Path) -> Vec<String> {
             continue;
         }
         if let Some((name, _)) = line.split_once('=') {
-            let name = name.trim().trim_matches('"').to_string();
+            let name = name.trim().trim_matches('"');
+            let name = name.strip_suffix(".workspace").unwrap_or(name).to_string();
             if !name.is_empty() {
                 deps.push(name);
             }
@@ -48,6 +49,7 @@ fn parse_dev_dependencies(manifest: &Path) -> Vec<String> {
 #[test]
 fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
     let allowlist: BTreeSet<&str> = BTreeSet::from([
+        "anyhow",
         "anyhow.workspace",
         "assert_cmd",
         "assert_cmd.workspace",

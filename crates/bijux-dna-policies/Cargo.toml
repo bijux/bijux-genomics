@@ -20,10 +20,10 @@ serde_json = { workspace = true }
 sha2.workspace = true
 serde_yaml.workspace = true
 bijux-dna-testkit.workspace = true
-bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
-bijux-dna-core = { path = "../bijux-dna-core" }
-bijux-dna-runtime = { path = "../bijux-dna-runtime" }
-bijux-dna-stage-contract = { path = "../bijux-dna-stage-contract" }
+bijux-dna-pipelines.workspace = true
+bijux-dna-core.workspace = true
+bijux-dna-runtime.workspace = true
+bijux-dna-stage-contract.workspace = true
 
 [lints]
 workspace = true

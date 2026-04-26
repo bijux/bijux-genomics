@@ -101,6 +101,7 @@ fn parse_dependencies(manifest: &Path, known: &BTreeSet<String>) -> BTreeSet<Str
         }
         if let Some((name, _rest)) = line.split_once('=') {
             let name = name.trim().trim_matches('"');
+            let name = name.strip_suffix(".workspace").unwrap_or(name);
             if !name.is_empty() && known.contains(name) {
                 deps.insert(name.to_string());
             }
