@@ -259,7 +259,7 @@ fn dna_tree_matches_architecture_contract() {
 
     let planning_entries = dir_entries(&root.join("src/commands/planning"));
     let expected_planning: BTreeSet<_> =
-        ["OWNER.toml", "mod.rs"].into_iter().map(str::to_string).collect();
+        ["OWNER.toml", "entrypoint.rs", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         planning_entries, expected_planning,
         "planning tree must stay focused on run planning"
@@ -267,7 +267,7 @@ fn dna_tree_matches_architecture_contract() {
 
     let status_entries = dir_entries(&root.join("src/commands/status"));
     let expected_status: BTreeSet<_> =
-        ["OWNER.toml", "mod.rs"].into_iter().map(str::to_string).collect();
+        ["OWNER.toml", "entrypoint.rs", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         status_entries, expected_status,
         "status tree must stay focused on runtime status inspection"
@@ -275,14 +275,15 @@ fn dna_tree_matches_architecture_contract() {
 
     let corpus_entries = dir_entries(&root.join("src/commands/corpus"));
     let expected_corpus: BTreeSet<_> =
-        ["OWNER.toml", "mod.rs"].into_iter().map(str::to_string).collect();
+        ["OWNER.toml", "entrypoint.rs", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         corpus_entries, expected_corpus,
         "corpus tree must stay focused on curated corpus workflows"
     );
 
     let public_api_entries = dir_entries(&root.join("src/public_api"));
-    let expected_public_api: BTreeSet<_> = ["mod.rs"].into_iter().map(str::to_string).collect();
+    let expected_public_api: BTreeSet<_> =
+        ["cli.rs", "hpc.rs", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(public_api_entries, expected_public_api, "public api tree must stay curated");
 }
 

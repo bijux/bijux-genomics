@@ -1,3 +1,3 @@
 mod entrypoint;
 
-pub(crate) use entrypoint::*;
+pub use entrypoint::*;
