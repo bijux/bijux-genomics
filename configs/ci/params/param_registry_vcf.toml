@@ -1,7 +1,7 @@
 # schema_version = 1
-# owner = bijux-dna-infra
+# owner = bijux-dna-domain-vcf
 # purpose = Contract config for configs/ci/params/param_registry_vcf.toml
-# authority = bijux-dna-infra
+# authority = bijux-dna-domain-vcf
 # stability = stable
 # last_updated = 2026-02-13
 
