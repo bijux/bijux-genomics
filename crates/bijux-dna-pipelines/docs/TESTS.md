@@ -22,6 +22,9 @@ Pipeline profiles are consumed across the stack, so registry drift, defaults dri
 ## Effects Contract
 `tests/boundaries/effects_boundary.rs` scans source for forbidden process and network primitives.
 
+## Public API Contract
+`tests/boundaries/public_api_docs.rs` locks that `docs/PUBLIC_API.md` lists the public modules exported by `src/lib.rs`.
+
 ## Standard Command
 Run:
 
