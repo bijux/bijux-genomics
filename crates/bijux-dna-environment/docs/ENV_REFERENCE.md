@@ -1,42 +1,55 @@
-# ENV_REFERENCE
+# bijux-dna-environment Reference
 
-## Resolution Flow
-Input spec → pinned digest → resolved schema object.
+This is the executable behavior map for environment resolution.
 
-## Resolution Precedence (Executable Spec)
-1. Explicit digest in spec
-2. Versioned image tag
-3. Default image tag
+## Platform Matrix
 
-## Digest Rules
-- If digest is provided, it is authoritative.
-- Tag-only references resolve to a digest via the local catalog (no network).
+Supported platform records are defined by `configs/runtime/platforms.toml`. The crate accepts any
+platform entry that provides:
+
+- `runner`: `docker`, `apptainer`, or `singularity`
+- `container_dir`: runtime-specific local container directory
+- `image_prefix`: image namespace or registry prefix
+- `arch`: architecture suffix used in tag construction
+
+Docker platforms keep their configured `container_dir`. Apptainer and Singularity platforms prefer:
+
+1. `BIJUX_APPTAINER_CONTAINER_DIR`
+2. `BIJUX_CACHE_ROOT/bijux-dna-container/apptainer/sif`
+3. `BIJUX_HPC_ROOT/.cache/bijux-dna-container/apptainer/sif`
+4. the configured `container_dir`
+
+## Image Resolution
+
+Input spec to resolved image:
+
+1. Load `ToolImageSpec` from the local image catalog.
+2. Hydrate missing digests from the local registry pin file when available.
+3. Reject empty tool names, versions, digests, platform prefixes, and architectures.
+4. Prefer digest form: `<image_prefix>/<tool>@<digest>`.
+5. Otherwise emit tag form: `<image_prefix>/<tool>:<version>-<arch>`.
+
+## Cache Semantics
+
+Cache keys are derived from runner, tool, digest or version, and architecture. Digest changes and
+platform changes produce different paths. Cache helpers compute or inspect local state; they do not
+pull images.
 
 ## Fixtures
-These examples correspond to `tests/contracts/matrix/reference_matrix.rs` fixtures.
-- tool_image_spec.json (tag → digest)
-- platform_spec.json (platform normalization)
 
-## Deterministic guarantee
-Given the same input spec and catalog, resolution is stable and produces the same digest.
+These examples correspond to `tests/contracts/matrix/reference_matrix.rs` fixtures:
 
-## Threat model (stability breakers)
-- Changing image catalog contents or digest mappings.
-- Changing platform spec defaults (arch, runner, image prefix).
-- Modifying resolution precedence or canonicalization.
+- `tests/fixtures/env_schema/default/tool_image_spec.json`
+- `tests/fixtures/env_schema/default/platform_spec.json`
 
-## Schema evolution
-If a spec JSON field changes (name, type, or semantics), bump the schema version and update snapshots.
+## Threat Model
 
-## Not supported yet
-- Network pulls or remote registry probing.
+Stable resolution assumes local input files are trusted. Stability can be broken by changing catalog
+contents, registry pin mappings, platform defaults, architecture suffixes, or precedence rules.
+Network registry answers, mutable tags, and undeclared host state are not trusted resolution inputs.
+
+## Not Supported
+
+- Remote registry resolution during normal image resolution.
 - HPC scheduler integration.
-
-## Example
-```json
-{
-  "tool_id": "fastp",
-  "image": "ghcr.io/bijux/fastp:0.23.2",
-  "digest": "sha256:deadbeef"
-}
-```
+- Automatic schema migration for changed serialized fields.

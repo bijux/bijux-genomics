@@ -6,16 +6,25 @@ fn environment_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root),
-        btree_set(&[
-            "BOUNDARY.md",
-            "Cargo.toml",
-            "PUBLIC_API.md",
-            "README.md",
-            "docs/",
-            "src/",
-            "tests/",
-        ]),
+        btree_set(&["Cargo.toml", "README.md", "docs/", "src/", "tests/"]),
         "crate root must stay minimal and intentional"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("docs")),
+        btree_set(&[
+            "ARCHITECTURE.md",
+            "BOUNDARY.md",
+            "COMMANDS.md",
+            "CONTRACTS.md",
+            "DEPENDENCIES.md",
+            "EFFECTS.md",
+            "ENV_REFERENCE.md",
+            "INDEX.md",
+            "PUBLIC_API.md",
+            "TESTS.md",
+        ]),
+        "docs must stay within the 10-document allowance"
     );
 
     assert_eq!(
@@ -93,6 +102,23 @@ fn environment_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/public_api")),
         btree_set(&["mod.rs", "stable_surface.rs"]),
         "public api tree must keep the stable surface explicit"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests")),
+        btree_set(&[
+            "boundaries/",
+            "boundaries.rs",
+            "contracts/",
+            "contracts.rs",
+            "determinism/",
+            "determinism.rs",
+            "fixtures/",
+            "guardrails.rs",
+            "schemas/",
+            "schemas.rs",
+        ]),
+        "test tree must stay grouped by taxonomy without nested README docs"
     );
 }
 

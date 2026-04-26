@@ -1,37 +1,44 @@
-# Tests
+# bijux-dna-environment Tests
 
-## What
-Maps tests in this crate to their purpose and failure meaning.
+## Commands
 
-## Why
-Tests should explain the contract they enforce.
+Use artifact-rooted target and test temp directories:
 
-## Non-goals
-- Full test implementation detail.
+```sh
+mkdir -p artifacts/cargo-target artifacts/test-tmp
+TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-environment --no-default-features
+TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-environment --no-default-features --test boundaries
+TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-environment --no-default-features --test contracts
+```
 
-## Contracts suite (`tests/contracts/*`)
-- `tests/contracts/build_dockerfile.rs` → Dockerfile version parsing coverage.
-- `tests/contracts/run_shell_capture.rs` → shell capture behavior.
-- `tests/contracts/resolve_runtime.rs` → resolver, runtime, cache, and catalog contracts.
-- `tests/contracts/matrix/reference_matrix.rs` → resolution matrix coverage.
-- `tests/contracts/matrix/docs_reference_matrix.rs` → reference-doc fixture coverage.
+## Boundaries Suite
 
-## Boundaries suite (`tests/boundaries/*`)
-- `tests/boundaries/architecture.rs` → source tree contract.
-- `tests/boundaries/guardrails/guardrails.rs` → boundary checks.
-- `tests/boundaries/guardrails/guardrails_runtime.rs` → runtime guardrails.
-- `tests/boundaries/guardrails/no_runner_usage.rs` → no runner dependency.
+- `tests/boundaries/architecture.rs`: crate root, docs, source, and test layout.
+- `tests/boundaries/commands.rs`: `COMMANDS.md` and process-use inventory.
+- `tests/boundaries/dependencies.rs`: allowed direct dependency graph.
+- `tests/boundaries/guardrails/*.rs`: workspace and runtime guardrail checks.
 
-## Determinism suite (`tests/determinism/*`)
-- `tests/determinism/fixture_stability.rs` → stable fixture output checks.
+## Contracts Suite
 
-## Schemas suite (`tests/schemas/*`)
-- `tests/schemas/schema/schema_snapshots.rs` → schema snapshot stability.
+- `tests/contracts/build_dockerfile.rs`: Dockerfile version ARG parsing.
+- `tests/contracts/run_shell_capture.rs`: merged stdout/stderr behavior.
+- `tests/contracts/resolve_runtime.rs`: runtime parsing, platform loading, catalog hydration, image
+  resolution, cache paths, and shell capture.
+- `tests/contracts/matrix/reference_matrix.rs`: image reference formatting.
+- `tests/contracts/matrix/docs_reference_matrix.rs`: `ENV_REFERENCE.md` links to the matrix tests.
 
-## Fixtures mapping
-Schema fixtures in `tests/fixtures/env_schema/*` are validated by:
-- `tests/schemas/schema/schema_snapshots.rs`
-- `tests/contracts/matrix/reference_matrix.rs`
+## Determinism Suite
 
-## Failure modes
-- Missing test documentation causes drift and confusion.
+- `tests/determinism/fixture_stability.rs`: stable JSON ordering for schema fixtures.
+
+## Schemas Suite
+
+- `tests/schemas/schema/schema_snapshots.rs`: canonical JSON snapshots for `PlatformSpec` and
+  `ToolImageSpec`.
+
+## Failure Meaning
+
+- Boundary failures mean the docs, tree, command inventory, or dependency graph drifted.
+- Contract failures mean public behavior changed.
+- Schema failures mean serialized environment contracts changed.
+- Determinism failures mean fixture output is no longer stable.

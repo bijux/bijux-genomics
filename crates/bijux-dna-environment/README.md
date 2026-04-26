@@ -1,62 +1,78 @@
 # bijux-dna-environment
 
 ## What this crate does
-Deterministic resolution of tool images and environment specs.
+`bijux-dna-environment` resolves runtime platform facts, tool-image catalog entries, local cache
+paths, and reference registration records for genomics execution layers.
 
 ## What it must not do (boundaries)
-No tool execution or container runs.
+It must not own user-facing CLI routing, biological stage execution, planner/domain semantics,
+runner backend implementation, or remote registry resolution. Bounded host command helpers are
+listed in `docs/COMMANDS.md`.
 
 ## Role in the stack
-Upstream: API/planners. Downstream: runner.
+Upstream consumers: API, CLI, runner, environment QA, and stage orchestration.
+
+Downstream inputs: shared core/runtime models, infrastructure config parsing, local platform files,
+local image catalogs, local registry pins, and explicit cache roots.
 
 ## Public API / entrypoints
-See `crates/bijux-dna-environment/docs/INDEX.md`, `crates/bijux-dna-environment/docs/ENV_REFERENCE.md`, `crates/bijux-dna-environment/docs/ENV_MATRIX.md`, `crates/bijux-dna-environment/docs/SCHEMAS.md`, `crates/bijux-dna-environment/docs/BOUNDARY.md`, `crates/bijux-dna-environment/docs/CHANGE_RULES.md`.
+See `docs/PUBLIC_API.md`.
 
-## Resolution precedence (inputs → spec → digest → cache)
+Main modules:
+
+- `build`: Docker tool defaults and Dockerfile version extraction.
+- `resolve`: platform loading, catalog loading, image resolution, cache helpers, command probes,
+  shell capture, smoke helpers, and reference registration.
+- `runtime_spec`: compatibility checks between selected runner and platform.
+- `public_api::api`: stable facade re-export.
+
+## Resolution precedence
 Inputs flow in a strict order:
-1. Inputs
-2. Spec normalization
-3. Digest resolution
-4. Cache (resolved result reused)
 
-Authoritative rules live in `crates/bijux-dna-environment/docs/ENV_REFERENCE.md`.
+1. Platform and tool catalog files are loaded from repository config paths.
+2. Local registry pins hydrate missing image digests.
+3. Explicit digests win over tags.
+4. Cache paths are derived from runner, tool, digest or version, and architecture.
 
-Example (tag pinned to digest, then cached):
-```
-tool_image_spec.json -> resolve to digest -> cached resolved spec
-```
+Authoritative behavior lives in `docs/ENV_REFERENCE.md`.
 
 ## Key contracts it owns/consumes
-Resolved environment specs and digests only.
+- `PlatformSpec`, `RuntimeKind`, `RuntimeSpec`
+- `ToolImageSpec`, `ResolvedImage`, `ImageRef`
+- `ReferenceBuildRequest`, `ReferenceRecord`, `ReferenceRegistry`
+- `EnvError`
 
-## Artifacts / Contracts
-See schema fixtures under `tests/fixtures/env_schema/` and `crates/bijux-dna-environment/docs/SCHEMAS.md`.
+Contract and schema details live in `docs/CONTRACTS.md`.
 
-## Effects & determinism guarantees
-Pure resolution; no network execution. Stable digest for the same inputs; see `crates/bijux-dna-environment/docs/THREAT_MODEL.md` for stability breakers.
-
-## What's deliberately NOT supported yet
-- Network pulls or remote registry probing.
-- HPC scheduler integration.
-
-## No execution
-This crate must not depend on `bijux-dna-runner` or execute tools. See `crates/bijux-dna-environment/docs/BOUNDARY.md` and `tests/boundaries/guardrails/no_runner_usage.rs`.
-
-## Common failures
-- Bad platform spec (schema mismatch): see `tests/schemas/schema/schema_snapshots.rs`.
-- Missing tool image spec: see `tests/contracts/matrix/reference_matrix.rs`.
+## Effects and determinism
+Declared inputs resolve deterministically. Host probes, shell capture, smoke helpers, Docker image
+inspection, and requested reference-index commands are effectful and documented in
+`docs/EFFECTS.md` and `docs/COMMANDS.md`.
 
 ## How to run its tests
-See `crates/bijux-dna-environment/docs/TESTS.md`. High-signal targets: `tests/contracts/matrix/reference_matrix.rs`, `tests/contracts/resolve_runtime.rs`, `tests/schemas/schema/schema_snapshots.rs`, `tests/boundaries/guardrails/guardrails_runtime.rs`, `tests/contracts/matrix/docs_reference_matrix.rs`.
+See `docs/TESTS.md`.
+
+High-signal commands:
+
+```sh
+TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-environment --no-default-features --test boundaries
+TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-environment --no-default-features --test contracts
+TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-environment --no-default-features
+```
 
 ## Where the docs live
-Start at `crates/bijux-dna-environment/docs/INDEX.md` and follow the crate docs listed above.
+Root docs are limited to this `README.md`. All other crate docs live in `docs/`; start at
+`docs/INDEX.md`.
 
 ## Failure modes
-Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
+- Bad platform specs fail contract or schema tests.
+- Missing or disabled image specs fail catalog validation.
+- Command inventory drift fails boundary tests.
+- Serialized model drift fails schema snapshot tests.
 
 ## Stability
-Contract and behavior changes follow `crates/bijux-dna-environment/docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CONTRACTS.md`, `docs/PUBLIC_API.md`, and
+`docs/DEPENDENCIES.md`.
 
 ## Where to start
 - `src/runtime_spec/mod.rs`
