@@ -10,6 +10,12 @@ fn command_inventory_lists_all_testkit_operations() {
         expected_command_names(),
         "docs/COMMANDS.md must be the exact SSOT for testkit operations"
     );
+
+    assert_eq!(
+        verification_commands(&commands),
+        expected_verification_commands(),
+        "docs/COMMANDS.md must list the exact local verification commands for this crate"
+    );
 }
 
 fn command_names(commands: &str) -> std::collections::BTreeSet<String> {
@@ -50,6 +56,28 @@ fn expected_command_names() -> std::collections::BTreeSet<String> {
         "snapshot-normalize-text",
         "stable-json",
         "strip-json-timestamp-fields",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect()
+}
+
+fn verification_commands(commands: &str) -> std::collections::BTreeSet<String> {
+    commands
+        .lines()
+        .map(str::trim)
+        .filter(|line| line.starts_with("CARGO_TARGET_DIR=artifacts/cargo-target cargo test"))
+        .map(str::to_string)
+        .collect()
+}
+
+fn expected_verification_commands() -> std::collections::BTreeSet<String> {
+    [
+        "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --test boundaries --no-default-features",
+        "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --test contracts --no-default-features",
+        "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --test determinism --no-default-features",
+        "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --test schemas --no-default-features",
+        "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --no-default-features",
     ]
     .into_iter()
     .map(str::to_string)
