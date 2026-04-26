@@ -7,15 +7,7 @@ fn db_ref_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(root),
-        entries([
-            "BOUNDARY.md",
-            "Cargo.toml",
-            "PUBLIC_API.md",
-            "README.md",
-            "docs/",
-            "src/",
-            "tests/",
-        ]),
+        entries(["Cargo.toml", "README.md", "docs/", "src/", "tests/"]),
         "crate root must stay minimal and intentional"
     );
 
@@ -84,6 +76,34 @@ fn db_ref_tree_matches_architecture_contract() {
         entries(["mod.rs"]),
         "public api tree must stay curated"
     );
+
+    assert_eq!(
+        dir_entries(&root.join("docs")),
+        entries([
+            "ARCHITECTURE.md",
+            "BOUNDARY.md",
+            "CHANGE_RULES.md",
+            "COMMANDS.md",
+            "CONTRACTS.md",
+            "DEPENDENCIES.md",
+            "INDEX.md",
+            "PUBLIC_API.md",
+            "SCOPE.md",
+            "TESTS.md",
+        ]),
+        "crate docs must stay under docs/ and within the 10-document allowance"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests")),
+        entries(["boundaries/", "boundaries.rs", "contracts/", "contracts.rs", "guardrails.rs"]),
+        "integration tests must only track active test files and intent directories"
+    );
+
+    assert!(
+        markdown_files_outside_docs(root).is_empty(),
+        "crate markdown outside docs/ must be limited to root README.md"
+    );
 }
 
 fn dir_entries(path: &Path) -> BTreeSet<String> {
@@ -104,4 +124,29 @@ fn dir_entries(path: &Path) -> BTreeSet<String> {
 
 fn entries<const N: usize>(items: [&str; N]) -> BTreeSet<String> {
     items.into_iter().map(str::to_string).collect()
+}
+
+fn markdown_files_outside_docs(root: &Path) -> Vec<String> {
+    let mut files = Vec::new();
+    collect_markdown_files(root, root, &mut files);
+    files
+}
+
+fn collect_markdown_files(root: &Path, path: &Path, files: &mut Vec<String>) {
+    let entries =
+        std::fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+    for entry in entries {
+        let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
+        let path = entry.path();
+        if path.is_dir() {
+            collect_markdown_files(root, &path, files);
+            continue;
+        }
+        if path.extension().is_some_and(|ext| ext == "md")
+            && path != root.join("README.md")
+            && !path.starts_with(root.join("docs"))
+        {
+            files.push(path.display().to_string());
+        }
+    }
 }
