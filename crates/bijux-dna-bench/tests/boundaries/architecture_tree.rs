@@ -5,6 +5,7 @@ use std::path::Path;
 fn bench_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
 
+    assert_docs_tree(root);
     assert_eq!(
         dir_entries(root),
         entries(["Cargo.toml", "README.md", "bench/", "docs/", "src/", "tests/"]),
@@ -103,7 +104,6 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("tests")),
         entries([
-            "README.md",
             "boundaries/",
             "boundaries.rs",
             "contracts/",
@@ -112,13 +112,37 @@ fn bench_tree_matches_architecture_contract() {
             "determinism.rs",
             "fixtures/",
             "guardrails.rs",
-            "schemas/",
             "semantics/",
             "semantics.rs",
             "snapshots/",
             "workspace_paths.rs",
         ]),
         "test tree must stay organized by enduring intent"
+    );
+}
+
+fn assert_docs_tree(root: &Path) {
+    assert_eq!(
+        dir_entries(&root.join("docs")),
+        entries([
+            "ARCHITECTURE.md",
+            "BENCH_CONTRACT.md",
+            "BENCH_FORMAT.md",
+            "BOUNDARY.md",
+            "CHANGE_RULES.md",
+            "COMMANDS.md",
+            "PUBLIC_API.md",
+            "REPRODUCIBILITY.md",
+            "SUITE_DESIGN.md",
+            "TESTS.md",
+        ]),
+        "bench docs must stay at the 10-document allowance and live under docs/"
+    );
+
+    let misplaced_docs = markdown_files_outside_docs(root);
+    assert!(
+        misplaced_docs.is_empty(),
+        "crate markdown outside docs/ must be limited to root README.md: {misplaced_docs:?}",
     );
 }
 
@@ -140,4 +164,18 @@ fn dir_entries(path: &Path) -> BTreeSet<String> {
 
 fn entries<const N: usize>(items: [&str; N]) -> BTreeSet<String> {
     items.into_iter().map(str::to_string).collect()
+}
+
+fn markdown_files_outside_docs(root: &Path) -> Vec<String> {
+    walkdir::WalkDir::new(root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "md"))
+        .filter(|entry| {
+            let path = entry.path();
+            path != root.join("README.md") && !path.starts_with(root.join("docs"))
+        })
+        .map(|entry| entry.path().display().to_string())
+        .collect()
 }
