@@ -6,9 +6,8 @@ mod edna;
 mod evaluation;
 mod metrics;
 mod specs;
-mod verdicts;
 
 pub use edna::validate_edna_table;
 pub use evaluation::{thresholds_from_env, InvariantEvaluation, InvariantThresholds};
-pub use metrics::evaluate_invariants;
+pub use metrics::{evaluate_invariants, EVALUATED_STAGES};
 pub use specs::fastq_invariant_specs;

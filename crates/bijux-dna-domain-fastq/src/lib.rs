@@ -108,7 +108,7 @@ pub use integration_matrix::{
 };
 pub use invariants::{
     evaluate_invariants, fastq_invariant_specs, thresholds_from_env, validate_edna_table,
-    InvariantEvaluation, InvariantThresholds,
+    InvariantEvaluation, InvariantThresholds, EVALUATED_STAGES,
 };
 pub use metrics::{
     BrackenClassificationMetricsV1, BrackenRecordV1, ClassificationDbProvenanceV1,

@@ -5,4 +5,4 @@ mod stage_sets;
 mod trim_filter;
 mod validation;
 
-pub use evaluate::{evaluate_invariants, CORE_STAGES, META_STAGES, OPTIONAL_STAGES};
+pub use evaluate::{evaluate_invariants, EVALUATED_STAGES};

@@ -22,7 +22,7 @@ use bijux_dna_domain_fastq::params::trim::TrimEffectiveParams;
 use bijux_dna_domain_fastq::params::validate::{
     PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION,
 };
-use bijux_dna_domain_fastq::{fastq_invariant_specs, PairedMode};
+use bijux_dna_domain_fastq::{fastq_invariant_specs, PairedMode, EVALUATED_STAGES};
 
 fn retention_metric() -> RetentionReportMetricV1 {
     RetentionReportMetricV1 {
@@ -294,4 +294,14 @@ fn fastq_invariants_have_specs_and_fixtures() -> Result<()> {
         assert!(status != InvariantStatusV1::Pass, "fixture did not trigger {}", spec.id);
     }
     Ok(())
+}
+
+#[test]
+fn evaluated_stage_set_matches_fastq_invariant_scope() {
+    let stages = EVALUATED_STAGES.iter().map(ToString::to_string).collect::<Vec<_>>();
+    assert_eq!(
+        stages,
+        vec!["fastq.validate_reads", "fastq.trim_reads", "fastq.merge_pairs", "fastq.filter_reads",],
+        "FASTQ invariant evaluation should list only stages with concrete evaluator logic"
+    );
 }

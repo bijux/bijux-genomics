@@ -7,7 +7,7 @@ use crate::stages::ids::{
     STAGE_FILTER_READS, STAGE_MERGE_PAIRS, STAGE_TRIM_READS, STAGE_VALIDATE_READS,
 };
 
-pub use stage_sets::{CORE_STAGES, META_STAGES, OPTIONAL_STAGES};
+pub use stage_sets::EVALUATED_STAGES;
 
 #[must_use]
 pub fn evaluate_invariants(
