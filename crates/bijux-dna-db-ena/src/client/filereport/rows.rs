@@ -1,5 +1,5 @@
 use crate::client::EnaClientError;
-use crate::model::{split_ena_field, split_ena_u64_field, EnaQuery, EnaRecord};
+use crate::model::{split_ena_field, EnaQuery, EnaRecord};
 
 use super::headers;
 
@@ -52,7 +52,7 @@ pub(crate) fn parse_filereport_tsv(
             instrument_model: opt_field(field("instrument_model")).map(ToString::to_string),
             base_count: parse_optional_u64("base_count", field("base_count"), line_index + 2)?,
             read_count: parse_optional_u64("read_count", field("read_count"), line_index + 2)?,
-            fastq_bytes: split_ena_u64_field(field("fastq_bytes")),
+            fastq_bytes: parse_u64_list("fastq_bytes", field("fastq_bytes"), line_index + 2)?,
             fastq_ftp: split_ena_field(field("fastq_ftp")),
             submitted_ftp: split_ena_field(field("submitted_ftp")),
             sra_ftp: split_ena_field(field("sra_ftp")),
@@ -91,6 +91,25 @@ fn parse_optional_u64(
             "filereport row {line_number} has invalid {field_name} value {value:?}: {error}"
         ))
     })
+}
+
+fn parse_u64_list(
+    field_name: &str,
+    field_value: &str,
+    line_number: usize,
+) -> Result<Vec<u64>, EnaClientError> {
+    field_value
+        .split(';')
+        .map(str::trim)
+        .filter(|token| !token.is_empty())
+        .map(|token| {
+            token.parse::<u64>().map_err(|error| {
+                EnaClientError::InvalidResponse(format!(
+                    "filereport row {line_number} has invalid {field_name} value {token:?}: {error}"
+                ))
+            })
+        })
+        .collect()
 }
 
 fn opt_field(value: &str) -> Option<&str> {
@@ -155,6 +174,32 @@ mod tests {
         };
 
         assert!(error.to_string().contains("invalid base_count value"));
+        Ok(())
+    }
+
+    #[test]
+    fn parse_filereport_tsv_rejects_invalid_fastq_bytes() -> anyhow::Result<()> {
+        let query = EnaQuery {
+            projects: vec!["PRJEB1".to_string()],
+            samples: Vec::new(),
+            extra_accessions: Vec::new(),
+            result: EnaResultKind::ReadRun,
+        };
+        let tsv = concat!(
+            "study_accession\tsample_accession\texperiment_accession\trun_accession\t",
+            "tax_id\tscientific_name\tlibrary_layout\tlibrary_source\tlibrary_strategy\t",
+            "instrument_model\tbase_count\tread_count\tfastq_bytes\tfastq_ftp\t",
+            "submitted_ftp\tsra_ftp\n",
+            "PRJEB1\tSAMEA1\tERX1\tERR1\t9606\tHomo sapiens\tPAIRED\tGENOMIC\tWGS\t",
+            "Illumina NovaSeq 6000\t100\t20\t84;bad\tftp.sra.ebi.ac.uk/a.fastq.gz\t",
+            "ftp.sra.ebi.ac.uk/a.submitted.fastq.gz\tftp.sra.ebi.ac.uk/a.sra\n",
+        );
+
+        let Err(error) = parse_filereport_tsv(tsv, &query) else {
+            bail!("invalid fastq byte counts must fail");
+        };
+
+        assert!(error.to_string().contains("invalid fastq_bytes value"));
         Ok(())
     }
 }
