@@ -109,6 +109,15 @@ _containers-doctor: ## Run container doctor status report (missing images, lock 
 _containers-release-gate: ## Run mandatory container release gate checks.
 	@cargo run -q -p bijux-dna-dev -- containers run release-gate
 
+_ghcr-apptainer-publish-matrix: ## Generate GHCR Apptainer publish matrix.
+	@cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- $(GHCR_PUBLISH_ARGS)
+
+_ghcr-docker-publish-matrix: ## Generate GHCR Docker publish matrix.
+	@cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- $(GHCR_PUBLISH_ARGS)
+
+_ghcr-apptainer-build-one: ## Build one Apptainer image for GHCR publication.
+	@cargo run -q -p bijux-dna-dev -- containers run build-apptainer-all -- --build-one "$(TOOL_ID)"
+
 _fastq-container-readiness: ## Generate FASTQ container readiness evidence reports.
 	@python3 makes/bin/generate_fastq_container_readiness.py
 	@git diff --exit-code -- science/docs/upstream/fastq/container
@@ -121,5 +130,6 @@ _containers: ## Print tools/runtime/result/log summary from target-containers ma
 	_smoke-containers-apptainer-bijux-run _smoke-containers-apptainer-apptainer-run _smoke-containers-apptainer-verify \
 	_build-images _test-images _test-images-stage _test-images-tool _image-smoke-vcf _image-qa \
 	_containers-apptainer-build apptainer-build-all _containers-lint _containers-ensure-images _containers-doctor _containers-release-gate _fastq-container-readiness _containers \
+	_ghcr-apptainer-publish-matrix _ghcr-docker-publish-matrix _ghcr-apptainer-build-one \
 	docker-build-all \
 	_apptainer-ensure _apptainer-ensure-stage
