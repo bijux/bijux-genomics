@@ -10,11 +10,11 @@ fn read_doc(path: &PathBuf) -> String {
 fn docs_cover_public_api_modules() {
     let base = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs");
     let public_api = read_doc(&base.join("PUBLIC_API.md"));
-    let index = read_doc(&base.join("INDEX.md"));
     let contracts = read_doc(&base.join("CONTRACTS.md"));
-    let ssot = read_doc(&base.join("SSOT.md"));
+    let contract_map = read_doc(&base.join("CONTRACT_MAP.md"));
+    let commands = read_doc(&base.join("COMMANDS.md"));
 
-    let docs = format!("{index}\n{contracts}\n{ssot}").to_lowercase();
+    let docs = format!("{contracts}\n{contract_map}\n{commands}").to_lowercase();
 
     let modules: Vec<String> = public_api
         .lines()
@@ -37,7 +37,7 @@ fn docs_cover_public_api_modules() {
     for module in modules {
         assert!(
             docs.contains(&module),
-            "Docs must mention public module `{module}` in INDEX/CONTRACTS/SSOT"
+            "Docs must mention public module `{module}` in CONTRACTS/CONTRACT_MAP/COMMANDS"
         );
     }
 }
