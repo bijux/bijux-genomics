@@ -1,32 +1,45 @@
 # Tests
 
-## What
-Maps tests in this crate to their purpose and failure meaning.
+The test tree is organized by the contract each suite protects.
 
-## Why
-Tests should explain the contract they enforce.
+## Suite Map
 
-## Non-goals
-- Full test implementation detail.
+- `tests/boundaries.rs`: guardrails, purity, dependency graph, docs placement, and architecture
+  checks.
+- `tests/contracts.rs`: stage specs, registry, command inventory, public API, docs contracts,
+  symmetry, and contract snapshots.
+- `tests/contracts/observer/`: observer parsing, fixture-bank invariants, and determinism.
+- `tests/determinism.rs`: fixture stability checks.
+- `tests/semantics/`: behavior checks that exercise parsed reports and metrics.
+- `tests/guardrails.rs`: shared repository guardrail policy.
 
-## Contracts
-- `tests/boundaries/*` → guardrails, purity, and architecture checks (docs/ARCHITECTURE.md).
-- `tests/contracts/*` → stage specs, registry, symmetry, and contract snapshots (docs/STAGE_CONTRACTS.md).
-- `tests/contracts/observer/*` → observer parsing + determinism (docs/OBSERVERS.md).
-- `tests/determinism/*` → fixture stability checks.
-- `tests/semantics/*` → behavior checks that exercise parsed reports and metrics.
+## Important Directories
 
-## Mapping
-- `tests/contracts/contract_snapshots.rs` → stage contract snapshots.
-- `tests/contracts/registry_completeness.rs` → registry completeness.
-- `tests/contracts/symmetry.rs` → contract-level symmetry only.
-- `tests/contracts/structure_contract.rs` → stages file structure.
-- `tests/contracts/observer/observer_parsers.rs` → observer fixture parsing.
-- `tests/contracts/observer/observer_determinism.rs` → stable observer outputs.
-- `tests/boundaries/purity/architecture.rs` → no execution details in stages-fastq.
+- `tests/boundaries/`: layout, dependency, docs, and effect-boundary assertions.
+- `tests/contracts/observer/`: observer parser coverage.
+- `tests/fixtures/`: parser fixtures, stage output bank, and contract snapshots.
+- `tests/snapshots/`: schema shape snapshots.
 
-## Failure modes
-- Missing test documentation causes drift and confusion.
+The crate intentionally has no `tests/README.md` files and no placeholder
+schema directory. New tests should live under the suite that owns the contract
+being protected.
 
-## Testkit patterns
-See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+## Verification
+
+Run from the `bijux-genomics` repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-fastq --test boundaries --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-fastq --test contracts --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-fastq --test determinism --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-fastq --no-default-features
+```
+
+## Failure Meaning
+
+- Boundary failures mean layout, layering, dependency, docs placement, or effect
+  ownership drifted.
+- Contract failures mean public plugin behavior, registry coverage, parser
+  outputs, snapshots, or docs contracts changed.
+- Determinism failures mean fixture canonicalization or snapshot stability changed.
+- Semantic failures mean report parsing or required metric coverage changed.

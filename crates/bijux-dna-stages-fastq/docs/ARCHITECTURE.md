@@ -1,24 +1,49 @@
 # Architecture
 
-This file is a compact map for the FASTQ stages crate. Keep the contract here short and put detailed behavior in the focused docs listed below.
+`bijux-dna-stages-fastq` is a stage-contract and observer library. It exposes
+FASTQ contract registries, parser helpers, runtime-interpretation queries, and
+stage-plugin output envelopes without owning planning, command construction,
+process execution, or environment setup.
 
-## Layout
-- `lib.rs`, `contracts.rs`, and `surface.rs` expose the supported public surface.
+## Source Layout
+
+```text
+src/
+├── contracts.rs
+├── lib.rs
+├── metrics/
+│   ├── envelope_support.rs
+│   ├── fastqc.rs
+│   ├── filters.rs
+│   ├── mod.rs
+│   └── stage_metrics/
+├── observer/
+├── plugin/
+│   ├── observation_context.rs
+│   ├── output_contract.rs
+│   ├── plugin_contracts.rs
+│   └── semantic/
+├── runtime/
+├── stage_specs/
+└── surface.rs
+```
+
+## Ownership
+
+- `contracts.rs` re-exports domain contract lookups and contract types.
+- `surface.rs` owns stable registry and observer-surface queries.
 - `stage_specs/` owns declarative stage and artifact descriptions.
 - `runtime/` owns interpretation policy for stages and stage-tool pairs.
-- `observer/` owns observer-facing parsing helpers and command support.
-- `metrics/` owns governed envelope builders and the `stage_metrics/` namespace tree grouped by workflow family.
-- `plugin/` owns plugin integration details, with `observation_context.rs` for observation state assembly and `output_contract.rs` for invariant, report, warning, and event assembly.
-- `plugin/semantic/` owns semantic metric extraction grouped by workflow family instead of one catch-all parser.
+- `observer/` owns observer-facing parser helpers and crate-owned observer artifact writers.
+- `metrics/` owns governed metrics envelope builders and stage-metrics families.
+- `plugin/` validates FASTQ stage support, returns planned invocations, parses existing outputs,
+  and assembles plugin output contracts.
 
 ## Change rules
+
 - Keep stage specs declarative and free of command construction or execution.
-- Keep runtime interpretation isolated from the public surface and catalog definitions.
+- Keep runtime interpretation isolated from catalog definitions.
 - Keep public contract exports in `contracts.rs` instead of hiding them under unrelated query modules.
 - Group metrics by concern instead of growing one catch-all module, and add new stage metrics under the closest `stage_metrics/` family module.
 - Keep plugin parsing orchestration small by pushing context-building and output-contract assembly into focused helpers.
-
-## Pointers
-- `INDEX.md` for the documentation map.
-- `STAGE_CONTRACTS.md`, `STAGE_LIST.md`, `OBSERVERS.md`, and `METRICS.md` for crate behavior.
-- `CHANGE_RULES.md`, `TOOL_ROSTER.md`, and `TESTS.md` for maintenance policy.
+- Update this file and architecture boundary tests together when the layout changes intentionally.
