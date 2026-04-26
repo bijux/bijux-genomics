@@ -35,3 +35,8 @@ Run:
 ```bash
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --no-default-features
 ```
+
+## Repository Policy
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read both before editing this child repository or
+making commits.

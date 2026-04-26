@@ -26,3 +26,8 @@ See [docs/TESTS.md](docs/TESTS.md). Key coverage starts in `tests/boundaries.rs`
 
 ## Where the docs live
 Start at [docs/INDEX.md](docs/INDEX.md), then read [docs/SCOPE.md](docs/SCOPE.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/COMMANDS.md](docs/COMMANDS.md), [docs/CONTRACTS.md](docs/CONTRACTS.md), and [docs/TESTS.md](docs/TESTS.md).
+
+## Repository Policy
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read both before editing this child repository or
+making commits.
