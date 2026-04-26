@@ -10,6 +10,7 @@
 - Must not execute tools or call runtime backends.
 - Must not embed planner-specific behavior.
 - [BOUNDARY.md](BOUNDARY.md)
+- [COMMANDS.md](COMMANDS.md)
 - [PUBLIC_API.md](PUBLIC_API.md)
 
 ## Extension Points
