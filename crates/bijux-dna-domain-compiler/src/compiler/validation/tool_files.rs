@@ -5,15 +5,19 @@ use super::{
 };
 use std::path::Path;
 
+pub(super) struct ToolValidationState<'a> {
+    pub(super) ids: &'a mut BTreeMap<String, String>,
+    pub(super) capabilities: &'a mut BTreeMap<String, BTreeSet<String>>,
+    pub(super) statuses: &'a mut BTreeMap<String, String>,
+    pub(super) metrics_schemas: &'a mut BTreeMap<String, String>,
+}
+
 pub(super) fn validate_tool_files(
     options: &ValidateOptions,
     dom: &str,
     artifact_vocab: &BTreeMap<String, BTreeSet<String>>,
     shared_tool_domains: &BTreeMap<String, BTreeSet<String>>,
-    tool_ids: &mut BTreeMap<String, String>,
-    tool_capabilities: &mut BTreeMap<String, BTreeSet<String>>,
-    tool_statuses: &mut BTreeMap<String, String>,
-    tool_metrics_schemas: &mut BTreeMap<String, String>,
+    state: &mut ToolValidationState<'_>,
 ) -> Result<()> {
     let tool_glob = options.domain_dir.join(dom).join("tools");
     if !tool_glob.exists() {
@@ -67,7 +71,8 @@ pub(super) fn validate_tool_files(
             bail!("{} missing required tool fields", path.display());
         }
         if !tool.capabilities.is_empty() {
-            tool_capabilities
+            state
+                .capabilities
                 .insert(tool.tool_id.clone(), tool.capabilities.iter().cloned().collect());
         }
         if dom != "vcf" && tool.status == "supported" {
@@ -139,7 +144,7 @@ pub(super) fn validate_tool_files(
                 );
             }
         }
-        if let Some(previous) = tool_ids.get(&tool.tool_id) {
+        if let Some(previous) = state.ids.get(&tool.tool_id) {
             let allowed_domains = shared_tool_domains.get(&tool.tool_id).ok_or_else(|| {
                 anyhow!("duplicate tool_id {} in {} and {}", tool.tool_id, previous, path.display())
             })?;
@@ -155,10 +160,10 @@ pub(super) fn validate_tool_files(
                 );
             }
         } else {
-            tool_ids.insert(tool.tool_id.clone(), path.display().to_string());
+            state.ids.insert(tool.tool_id.clone(), path.display().to_string());
         }
-        tool_statuses.insert(tool.tool_id.clone(), tool.status.clone());
-        tool_metrics_schemas.insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
+        state.statuses.insert(tool.tool_id.clone(), tool.status.clone());
+        state.metrics_schemas.insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
     }
     Ok(())
 }
