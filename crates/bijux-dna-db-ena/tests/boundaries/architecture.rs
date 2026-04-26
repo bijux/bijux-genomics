@@ -6,15 +6,7 @@ fn db_ena_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root),
-        btree_set(&[
-            "BOUNDARY.md",
-            "Cargo.toml",
-            "PUBLIC_API.md",
-            "README.md",
-            "docs/",
-            "src/",
-            "tests/",
-        ]),
+        btree_set(&["Cargo.toml", "README.md", "docs/", "src/", "tests/",]),
         "crate root must stay minimal and intentional"
     );
 
@@ -90,6 +82,34 @@ fn db_ena_tree_matches_architecture_contract() {
         btree_set(&["mod.rs"]),
         "public api tree must remain curated"
     );
+
+    assert_eq!(
+        dir_entries(&root.join("docs")),
+        btree_set(&[
+            "ARCHITECTURE.md",
+            "BOUNDARY.md",
+            "CHANGE_RULES.md",
+            "COMMANDS.md",
+            "CONTRACTS.md",
+            "DEPENDENCIES.md",
+            "INDEX.md",
+            "PUBLIC_API.md",
+            "SCOPE.md",
+            "TESTS.md",
+        ]),
+        "crate docs must stay under docs/ and within the 10-document allowance"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests")),
+        btree_set(&["boundaries/", "boundaries.rs", "guardrails.rs"]),
+        "integration tests must only track active test files and intent directories"
+    );
+
+    assert!(
+        markdown_files_outside_docs(&root).is_empty(),
+        "crate markdown outside docs/ must be limited to root README.md"
+    );
 }
 
 fn crate_root(crate_name: &str) -> std::path::PathBuf {
@@ -117,4 +137,29 @@ fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
 
 fn btree_set(entries: &[&str]) -> BTreeSet<String> {
     entries.iter().map(|entry| (*entry).to_string()).collect()
+}
+
+fn markdown_files_outside_docs(root: &std::path::Path) -> Vec<String> {
+    let mut files = Vec::new();
+    collect_markdown_files(root, root, &mut files);
+    files
+}
+
+fn collect_markdown_files(root: &std::path::Path, path: &std::path::Path, files: &mut Vec<String>) {
+    let entries =
+        std::fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+    for entry in entries {
+        let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
+        let path = entry.path();
+        if path.is_dir() {
+            collect_markdown_files(root, &path, files);
+            continue;
+        }
+        if path.extension().is_some_and(|ext| ext == "md")
+            && path != root.join("README.md")
+            && !path.starts_with(root.join("docs"))
+        {
+            files.push(path.display().to_string());
+        }
+    }
 }
