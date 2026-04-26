@@ -79,6 +79,74 @@ fn crate_tree_matches_domain_fastq_boundary() {
         "bank selection must stay split by bank family"
     );
 
+    assert_eq!(
+        dir_entries(&root.join("src/params")),
+        entries([
+            "defaults/",
+            "descriptor/",
+            "edna.rs",
+            "effective.rs",
+            "mod.rs",
+            "parsing.rs",
+            "processing/",
+            "quality/",
+        ]),
+        "params/ must keep defaults, descriptors, parsing, and typed parameter families separate"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/params/defaults")),
+        entries(["mod.rs", "processing.rs", "profiling.rs", "quality.rs", "shared.rs"]),
+        "parameter defaults must stay grouped by semantic concern"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/params/descriptor")),
+        entries(["edna.rs", "mod.rs", "processing.rs", "quality.rs"]),
+        "parameter descriptors must stay grouped by semantic concern"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/params/processing")),
+        entries([
+            "correct.rs",
+            "merge.rs",
+            "mod.rs",
+            "preprocess.rs",
+            "reference_index.rs",
+            "remove_duplicates.rs",
+            "umi.rs",
+        ]),
+        "processing parameters must stay split by transform family"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/params/quality")),
+        entries([
+            "detect_adapters.rs",
+            "filter.rs",
+            "mod.rs",
+            "qc_post.rs",
+            "screen/",
+            "stats.rs",
+            "trim/",
+            "validate.rs",
+        ]),
+        "quality parameters must stay split by quality and screening concern"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/params/quality/screen")),
+        entries([
+            "host_depletion.rs",
+            "mod.rs",
+            "reference_depletion.rs",
+            "rrna_depletion.rs",
+            "taxonomy.rs",
+        ]),
+        "screen parameters must stay split by screen target"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/params/quality/trim")),
+        entries(["mod.rs", "terminal_damage.rs", "tool_profiles.rs"]),
+        "trim parameters must keep terminal damage and tool-profile policy separated"
+    );
+
     let expected_stages: BTreeSet<_> = [
         "contract.rs",
         "contract/",

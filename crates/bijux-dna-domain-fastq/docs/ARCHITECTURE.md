@@ -21,6 +21,10 @@ src/
   metrics/                metric types, classes, specs, and deltas
   observer/               parser contracts and governed parser implementations
   params/                 descriptors, defaults, parsing, and effective params
+    defaults/             shared, processing, profiling, and quality defaults
+    descriptor/           stage parameter descriptors grouped by semantic family
+    processing/           typed processing and transform parameter models
+    quality/              typed quality, screen, trim, and validation parameter models
   pipeline_contract/      pipeline ordering, transitions, and dependency graph
   run/                    FASTQ input discovery and benchmark corpus helpers
   stage_tool_governance/  tool layout, readiness, maturity, and input layout policy
