@@ -30,38 +30,6 @@ fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
     }
 }
 
-fn stage_snapshot_id(stage: BamStage) -> &'static str {
-    match stage {
-        BamStage::Align => "stage__bam__bam.align",
-        BamStage::Validate => "stage__bam__bam.validate",
-        BamStage::QcPre => "stage__bam__bam.qc_pre",
-        BamStage::Filter => "stage__bam__bam.filter",
-        BamStage::Markdup => "stage__bam__bam.markdup",
-        BamStage::Complexity => "stage__bam__bam.complexity",
-        BamStage::Coverage => "stage__bam__bam.coverage",
-        BamStage::Damage => "stage__bam__bam.damage",
-        BamStage::Authenticity => "stage__bam__bam.authenticity",
-        BamStage::Contamination => "stage__bam__bam.contamination",
-        BamStage::Sex => "stage__bam__bam.sex",
-        BamStage::BiasMitigation => "stage__bam__bam.bias_mitigation",
-        BamStage::Recalibration => "stage__bam__bam.recalibration",
-        BamStage::Haplogroups => "stage__bam__bam.haplogroups",
-        BamStage::Genotyping => "stage__bam__bam.genotyping",
-        BamStage::Kinship => "stage__bam__bam.kinship",
-        _ => "stage__bam__bam.align",
-    }
-}
-
-fn tool_id_from_snapshot(stage: BamStage) -> Option<ToolId> {
-    let snapshot_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("snapshots")
-        .join(format!("{}.json", snapshot_name("contracts", stage_snapshot_id(stage))));
-    let raw = fs::read_to_string(snapshot_path).ok()?;
-    let parsed: Value = serde_json::from_str(&raw).ok()?;
-    parsed.get("tool_id").and_then(Value::as_str).map(ToolId::new)
-}
-
 fn plan_for_stage(stage: BamStage) -> Result<StagePlanV1> {
     let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
@@ -70,8 +38,7 @@ fn plan_for_stage(stage: BamStage) -> Result<StagePlanV1> {
         .join("default");
     // Avoid any dependency on process CWD in concurrent test runs.
     let out_dir = fixtures.join("out");
-    let tool_id = tool_id_from_snapshot(stage)
-        .unwrap_or_else(|| bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage));
+    let tool_id = bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage);
     let tool = dummy_tool(tool_id.as_str());
     plan_stage(StagePlanRequest {
         stage_id: stage.as_str(),
