@@ -12,6 +12,10 @@ pub(super) fn extract_version_from_dockerfile(
     dockerfile: &Path,
     tool: &str,
 ) -> Result<String, EnvError> {
+    let tool = tool.trim();
+    if tool.is_empty() {
+        return Err(EnvError::Dockerfile("tool name is empty".to_string()));
+    }
     let content = std::fs::read_to_string(dockerfile)?;
     let pattern = version_arg_pattern(tool);
     let regex = Regex::new(&pattern)
