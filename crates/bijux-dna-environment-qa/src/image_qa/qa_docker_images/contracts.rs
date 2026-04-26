@@ -164,7 +164,8 @@ fn run_image_test_reports_missing_image() -> Result<(), Box<dyn std::error::Erro
 
 #[test]
 fn run_options_do_not_consume_neighbor_flags_as_values() {
-    let args = vec!["qa_docker_images".to_string(), "--platform".to_string(), "--quiet".to_string()];
+    let args =
+        vec!["qa_docker_images".to_string(), "--platform".to_string(), "--quiet".to_string()];
     let options = parse_run_options(&args);
     assert_eq!(options.platform, None);
     assert!(options.quiet);
