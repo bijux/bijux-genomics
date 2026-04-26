@@ -18,7 +18,7 @@ pub(super) fn build_apptainer_exec_args(
 ) -> Result<Vec<String>> {
     let preserve_absolute_inputs = preserve_absolute_input_paths(inputs);
     let bind_roots = input_bind_roots(inputs, input_root, preserve_absolute_inputs);
-    let output_mount = format!("{}:/data/output", out_dir.display());
+    let output_mount = format!("{}:/data/output:rw", out_dir.display());
     let mut args: Vec<String> = vec![
         "exec".to_string(),
         "--cleanenv".to_string(),
