@@ -18,7 +18,10 @@ src/
   execution_support/      manifest-backed execution support catalog
   integration_matrix/     stage/tool compatibility and benchmark scenarios
   invariants/             invariant specs, thresholds, and evaluation
+    metrics/              metric invariant evaluators grouped by metric family
   metrics/                metric types, classes, specs, and deltas
+    spec/                 metric specification catalog and classes
+    types/                shared, tool, summary, and stage metric value types
   observer/               parser contracts and governed parser implementations
     contracts/            observer contract catalog and query helpers
     parse/                parser implementations grouped by report family
