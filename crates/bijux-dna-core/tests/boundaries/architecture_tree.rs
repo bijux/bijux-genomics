@@ -240,6 +240,7 @@ fn assert_test_layout(root: &Path) {
             "architecture_tree.rs",
             "core_scope_guardrail.rs",
             "dependency_graph.rs",
+            "docs_layout.rs",
             "execution_graph_purity.rs",
             "guardrails.rs",
             "layering.rs",
