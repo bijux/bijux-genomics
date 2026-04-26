@@ -4,6 +4,7 @@
 #   are not yet admitted to domain production registries.
 # authority = containers/TOOL_IDS.txt + containers/versions/versions.toml
 # stability = experimental
+# last_updated = 2026-04-26
 
 [[tools]]
 id = "bamutil"

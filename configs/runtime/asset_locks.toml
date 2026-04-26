@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-runtime
+# purpose = Runtime asset lock-family contracts and comparability boundaries.
+# authority = configs/runtime/asset_locks.toml
+# stability = stable
+# last_updated = 2026-04-26
+
 schema_version = "bijux.runtime.asset_locks.v1"
 authority = "configs/runtime/asset_locks.toml"
 
