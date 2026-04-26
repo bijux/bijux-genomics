@@ -29,21 +29,39 @@ business logic.
 `docs/COMMANDS.md` is the SSOT for callable core operations, including:
 
 - `canonicalize-json`
+- `canonicalize-parameters-json`
+- `canonicalize-truth-json`
 - `canonical-json-bytes`
 - `params-hash`
 - `parameters-fingerprint`
 - `input-fingerprint`
+- `run-id-from-hashes`
+- `parse-pipeline-id`
+- `validate-pipeline-id`
+- `parse-stage-id`
+- `validate-stage-id`
+- `parse-tool-id`
+- `validate-tool-id`
+- `validate-artifact-id`
+- `validate-profile-id`
 - `discover-fastq-files`
+- `detect-fastq-path`
+- `detect-gzip-path`
 - `assess-input-dir`
 - `write-input-assessment`
 - `validate-execution-graph`
+- `hash-execution-graph`
+- `normalize-execution-graph`
+- `topological-step-ids`
 - `validate-execution-outputs`
-- `select-stage`
 - `query-run-index`
-- `parse-pipeline-id`
-- `parse-stage-id`
-- `parse-tool-id`
+- `build-run-dir`
+- `select-stage`
+- `objective-spec`
+- `parse-metric-id`
+- `parse-derived-metric-id`
 - `validate-metric-id`
+- `validate-derived-metric-id`
 - `metrics-schema-for-stage`
 
 ## Architecture
