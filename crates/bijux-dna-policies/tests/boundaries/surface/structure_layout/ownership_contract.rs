@@ -41,16 +41,15 @@ fn is_policies_ownership_test(path: &Path) -> bool {
 fn policy__boundaries__ownership_contract__ownership_contract_is_complete() {
     let root = workspace_root();
     let contract_path =
-        root.join("crates").join("bijux-dna-core").join("docs").join("BOUNDARIES.md");
-    let content = std::fs::read_to_string(&contract_path).expect("read boundaries.md");
+        root.join("crates").join("bijux-dna-core").join("docs").join("BOUNDARY.md");
+    let content = std::fs::read_to_string(&contract_path).expect("read boundary doc");
     let required = [
-        "## OWNERSHIP",
-        "IDs (PipelineId/StageId/ToolId/MetricId):",
-        "Defaults/profiles:",
-        "Param schemas:",
-        "Metric semantics:",
-        "Artifact layout:",
-        "Report schema/rendering:",
+        "Public contract types for execution graphs",
+        "Canonical JSON rules",
+        "Hashing helpers",
+        "Typed identifiers and parsing/validation",
+        "Canonical identifier catalogs",
+        "Shared metric identifiers",
     ];
     let missing: Vec<&str> =
         required.iter().copied().filter(|needle| !content.contains(needle)).collect();

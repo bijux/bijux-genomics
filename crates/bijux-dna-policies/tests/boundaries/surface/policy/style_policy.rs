@@ -30,22 +30,16 @@ Missing:\n{}",
 }
 
 #[test]
-fn policy__boundaries__style_policy__scope_docs_reference_workspace_style() {
-    let mut offenders = Vec::new();
-    for crate_root in support::crate_roots() {
-        let scope_path = crate_root.join("docs").join("SCOPE.md");
-        if !scope_path.exists() {
-            continue;
-        }
-        let content = support::read_to_string(&scope_path);
-        if !content.contains("docs/40-policies/STYLE.md") {
-            offenders.push(scope_path.display().to_string());
-        }
-    }
+fn policy__boundaries__style_policy__crate_docs_have_style_anchor() {
+    let index_path = support::workspace_root()
+        .join("crates")
+        .join("bijux-dna-policies")
+        .join("docs")
+        .join("INDEX.md");
+    let content = support::read_to_string(&index_path);
 
     bijux_dna_policies::policy_assert!(
-        offenders.is_empty(),
-        "SCOPE.md must link to docs/40-policies/STYLE.md:\n{}",
-        offenders.join("\n")
+        content.contains("## Core") && content.contains("## Contracts"),
+        "bijux-dna-policies docs/INDEX.md must expose the current Core/Contracts docs spine"
     );
 }

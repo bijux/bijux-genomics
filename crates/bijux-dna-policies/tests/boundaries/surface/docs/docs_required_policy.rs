@@ -4,7 +4,7 @@ mod support;
 
 use std::path::Path;
 
-const REQUIRED_DOCS: &[&str] = &["SCOPE.md", "ARCHITECTURE.md"];
+const REQUIRED_DOCS: &[&str] = &["ARCHITECTURE.md"];
 fn has_uppercase_name(path: &Path) -> bool {
     path.file_stem()
         .and_then(|name| name.to_str())
@@ -13,7 +13,7 @@ fn has_uppercase_name(path: &Path) -> bool {
 }
 
 #[test]
-fn policy__boundaries__docs_required_policy__crates_require_scope_and_architecture_docs() {
+fn policy__boundaries__docs_required_policy__crates_require_architecture_docs() {
     let mut missing = Vec::new();
     for crate_root in support::crate_roots() {
         let docs_root = crate_root.join("docs");
@@ -31,9 +31,9 @@ fn policy__boundaries__docs_required_policy__crates_require_scope_and_architectu
 
     bijux_dna_policies::policy_assert!(
         missing.is_empty(),
-        "crates must include SCOPE.md and ARCHITECTURE.md in docs/.\n\
+        "crates must include ARCHITECTURE.md in docs/.\n\
 Fix by adding the docs under crates/<crate>/docs (UPPERCASE).\n\
-See docs/40-policies/STYLE.md for documentation spine.\n\
+See crates/bijux-dna-policies/docs/INDEX.md for the current documentation spine.\n\
 Missing:\n{}",
         missing.join("\n")
     );

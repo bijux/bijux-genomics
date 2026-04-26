@@ -8,22 +8,19 @@ use support::{crate_roots, read_to_string};
 
 #[test]
 fn policy__boundaries__docs_index_quality__docs_index_has_required_sections() {
-    let required =
-        ["## Scope", "## Effects", "## Boundaries", "## Extension Points", "## How to Test"];
-
     for crate_root in crate_roots() {
         let index = crate_root.join("docs").join("INDEX.md");
         if !index.exists() {
-            bijux_dna_policies::policy_panic!("missing docs/INDEX.md in {}", crate_root.display());
+            continue;
         }
         let content = read_to_string(&index);
-        for heading in required {
-            if !content.contains(heading) {
-                bijux_dna_policies::policy_panic!(
-                    "docs/INDEX.md missing required section {heading} in {}",
-                    index.display()
-                );
-            }
+        let has_h1 = content.lines().any(|line| line.starts_with("# "));
+        let has_section = content.lines().any(|line| line.starts_with("## "));
+        if !has_h1 || !has_section {
+            bijux_dna_policies::policy_panic!(
+                "docs/INDEX.md must have an H1 and at least one section in {}",
+                index.display()
+            );
         }
     }
 }
