@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::Path;
 
 use anyhow::Result;
 
@@ -14,6 +14,12 @@ use crate::render::{
     to_pretty_json,
 };
 
+/// Run the science CLI command.
+///
+/// # Errors
+///
+/// Returns an error when validation, build, trace, closure, or release work cannot compile the
+/// workspace science inputs or write the requested outputs.
 pub fn run(cli: ScienceCli) -> Result<()> {
     match cli.command {
         ScienceCommand::Validate => {
@@ -71,11 +77,21 @@ pub fn run(cli: ScienceCli) -> Result<()> {
     Ok(())
 }
 
-pub fn validate_workspace(root: &PathBuf) -> Result<()> {
+/// Validate authored science inputs for a workspace.
+///
+/// # Errors
+///
+/// Returns an error when science specs cannot be read, parsed, or resolved.
+pub fn validate_workspace(root: &Path) -> Result<()> {
     compile_workspace(root).map(|_| ())
 }
 
-pub fn build_workspace(root: &PathBuf) -> Result<crate::domain::CompiledScience> {
+/// Compile science inputs and refresh governed generated outputs.
+///
+/// # Errors
+///
+/// Returns an error when compilation fails or a generated output cannot be written.
+pub fn build_workspace(root: &Path) -> Result<crate::domain::CompiledScience> {
     let compiled = compile_workspace(root)?;
     write_utf8(
         &root.join("science/generated/current/evidence/source_inventory.tsv"),
@@ -140,8 +156,13 @@ pub fn build_workspace(root: &PathBuf) -> Result<crate::domain::CompiledScience>
     Ok(compiled)
 }
 
+/// Return compiled FASTQ environment rows, optionally filtered by stage and tool.
+///
+/// # Errors
+///
+/// Returns an error when the workspace cannot be compiled.
 pub fn trace_workspace(
-    root: &PathBuf,
+    root: &Path,
     stage: Option<&str>,
     tool: Option<&str>,
 ) -> Result<Vec<crate::domain::FastqEnvironmentRow>> {
@@ -162,6 +183,12 @@ pub fn trace_workspace(
     Ok(rows)
 }
 
-pub fn release_workspace(root: &PathBuf, release_id: &str) -> Result<()> {
+/// Cut an immutable science release bundle for a known release manifest.
+///
+/// # Errors
+///
+/// Returns an error when the release manifest is missing, compilation fails, or release outputs
+/// cannot be written.
+pub fn release_workspace(root: &Path, release_id: &str) -> Result<()> {
     cut_release(root, release_id)
 }
