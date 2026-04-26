@@ -310,3 +310,51 @@ fn execution_plan_rejects_edges_with_empty_endpoints() {
 
     assert!(error.to_string().contains("plan edge has empty endpoint"));
 }
+
+#[test]
+fn execution_plan_rejects_empty_artifact_bindings() {
+    let left = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
+    let right = StagePlanV1 {
+        io: StageIO {
+            inputs: vec![ArtifactRef::required(
+                ArtifactId::new("trimmed_reads_fastp".to_string()),
+                PathBuf::from("trimmed_reads_fastp.fastq.gz"),
+                ArtifactRole::TrimmedReads,
+            )],
+            outputs: vec![ArtifactRef::required(
+                ArtifactId::new("qc_report".to_string()),
+                PathBuf::from("qc_report.json"),
+                ArtifactRole::ReportJson,
+            )],
+        },
+        stage_id: StageId::from_static("fastq.report_qc"),
+        stage_instance_id: Some(StepId::new("fastq.report_qc.multiqc")),
+        stage_version: StageVersion(1),
+        tool_id: ToolId::new("multiqc".to_string()),
+        tool_version: "test".to_string(),
+        image: ContainerImageRefV1 { image: "bijux/test".to_string(), digest: None },
+        command: CommandSpecV1 { template: vec!["multiqc".to_string()] },
+        resources: ToolConstraints::default(),
+        out_dir: PathBuf::from("out"),
+        params: serde_json::json!({}),
+        effective_params: serde_json::json!({}),
+        aux_images: BTreeMap::new(),
+        reason: PlanDecisionReason::default(),
+    };
+
+    let error = ExecutionPlan::new(
+        "fastq-to-fastq__trim_reads_qc__v1",
+        "planner-v1",
+        PlanPolicy::default(),
+        vec![left, right],
+        vec![PlanEdge::with_artifact_binding(
+            "fastq.trim_reads.tool.fastp",
+            "fastq.report_qc.multiqc",
+            "",
+            "trimmed_reads_fastp",
+        )],
+    )
+    .expect_err("empty artifact bindings must fail validation");
+
+    assert!(error.to_string().contains("has empty artifact binding"));
+}
