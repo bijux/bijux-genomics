@@ -2,7 +2,7 @@ use bijux_dna_core::ids::validate_tool_id;
 use bijux_dna_core::ids::StageId;
 use bijux_dna_core::ids::ToolId;
 
-use crate::EffectiveDefaults;
+use crate::{DefaultParams, EffectiveDefaults};
 
 pub(super) fn ensure_stage_known(
     profile: &EffectiveDefaults,
@@ -18,4 +18,22 @@ pub(super) fn ensure_stage_known(
 pub(super) fn ensure_tool_id_valid(tool: &ToolId, context: &str) -> anyhow::Result<()> {
     validate_tool_id(tool)
         .map_err(|err| anyhow::anyhow!("{} references invalid tool id {}: {err}", context, tool))
+}
+
+pub(super) fn ensure_params_match_stage(
+    stage: &StageId,
+    params: &DefaultParams,
+    context: &str,
+) -> anyhow::Result<()> {
+    let stage_id = stage.as_str();
+    let valid = match params {
+        DefaultParams::Bam(_) => stage_id.starts_with("bam."),
+        DefaultParams::Vcf(_) => stage_id.starts_with("vcf."),
+        DefaultParams::Empty(_) => stage_id.starts_with("core.") || stage_id.starts_with("cross."),
+        _ => stage_id.starts_with("fastq."),
+    };
+    if valid {
+        return Ok(());
+    }
+    Err(anyhow::anyhow!("{} uses params incompatible with stage {}", context, stage_id))
 }

@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use bijux_dna_core::ids::{StageId, ToolId};
-use bijux_dna_pipelines::{merge_effective_defaults, EffectiveDefaults};
+use bijux_dna_pipelines::{merge_effective_defaults, DefaultParams, EffectiveDefaults};
 use bijux_dna_testkit::snapshot_name;
 
 #[test]
@@ -75,4 +75,33 @@ fn override_rejects_invalid_tool_ids() {
     let err = merge_effective_defaults(&base, Some(&overrides), None, None)
         .expect_err("invalid tool id must fail");
     assert!(err.to_string().contains("invalid tool id"), "unexpected error: {err}");
+}
+
+#[test]
+fn override_rejects_params_for_the_wrong_stage_namespace() {
+    let stage = StageId::from_static("fastq.trim_reads");
+
+    let mut base_tools = BTreeMap::new();
+    base_tools.insert(stage.clone(), ToolId::from_static("fastp"));
+
+    let mut override_params = BTreeMap::new();
+    override_params.insert(stage, DefaultParams::Empty(Default::default()));
+
+    let base = EffectiveDefaults {
+        tools: base_tools,
+        params: BTreeMap::new(),
+        rationales: BTreeMap::new(),
+    };
+    let overrides = EffectiveDefaults {
+        tools: BTreeMap::new(),
+        params: override_params,
+        rationales: BTreeMap::new(),
+    };
+
+    let err = merge_effective_defaults(&base, Some(&overrides), None, None)
+        .expect_err("wrong namespace params must fail");
+    assert!(
+        err.to_string().contains("params incompatible with stage fastq.trim_reads"),
+        "unexpected error: {err}"
+    );
 }
