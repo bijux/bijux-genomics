@@ -30,6 +30,8 @@ mod mod_boundaries_deps_infra_boundaries_rs;
 mod mod_boundaries_deps_pipelines_dependency_policy_rs;
 #[path = "boundaries/deps/budgets/qa_dependency_policy.rs"]
 mod mod_boundaries_deps_qa_dependency_policy_rs;
+#[path = "boundaries/docs_layout.rs"]
+mod mod_boundaries_docs_layout_rs;
 #[path = "boundaries/empty_tests_dirs.rs"]
 mod mod_boundaries_empty_tests_dirs_rs;
 #[path = "boundaries/fixtures_policy.rs"]
