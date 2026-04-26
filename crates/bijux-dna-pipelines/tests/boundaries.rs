@@ -1,6 +1,8 @@
 // Auto-generated test aggregator for boundaries
 #[path = "boundaries/architecture_tree.rs"]
 mod mod_boundaries_architecture_tree_rs;
+#[path = "boundaries/command_inventory.rs"]
+mod mod_boundaries_command_inventory_rs;
 #[path = "boundaries/guardrails/guardrails.rs"]
 mod mod_boundaries_guardrails_guardrails_rs;
 #[path = "boundaries/guardrails/no_stage_contracts.rs"]
