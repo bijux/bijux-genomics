@@ -28,12 +28,15 @@ mod tests {
 
     #[test]
     fn command_string_quotes_args_with_spaces() {
-        let args =
-            vec!["--input".to_string(), "/tmp/sample reads.fq".to_string(), "O'Reilly".to_string()];
+        let args = vec![
+            "--input".to_string(),
+            "/workspace/sample reads.fq".to_string(),
+            "O'Reilly".to_string(),
+        ];
 
         assert_eq!(
             build_command_string("bijux-tool", &args),
-            "bijux-tool --input '/tmp/sample reads.fq' 'O'\"'\"'Reilly'"
+            "bijux-tool --input '/workspace/sample reads.fq' 'O'\"'\"'Reilly'"
         );
     }
 
