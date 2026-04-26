@@ -5,7 +5,7 @@ Public module exported from `src/lib.rs`:
 
 Stable root re-exports are grouped by responsibility:
 - Hashing: `hash_file_sha256`
-- Filesystem IO: `atomic_write_*`, `write_*`, `read_to_end_bounded`, removal helpers, `IoError`, `IoErrorKind`
+- Filesystem IO: `atomic_write_*`, `write_*`, `copy_file`, `read_to_end_bounded`, removal helpers, `IoError`, `IoErrorKind`
 - Locking and logging: `FileLock`, `init_logging`
 - Paths: bench paths, config paths, run-layout path builders
 - Retry: `RetryPolicy`, `Clock`, `SystemClock`, `backoff_delay`, `retry_with`
