@@ -1,26 +1,42 @@
 # Change Rules
 
-## What
-Defines breaking vs non‑breaking changes for `bijux-dna-analyze`.
+## Purpose
+Prevent silent contract drift in analysis outputs, public API exports, report schemas, and
+architecture boundaries.
 
-## Why
-Prevents silent contract drift.
+## Non-Breaking Changes
+- Adding an optional report field with absent-safe readers.
+- Adding a new helper behind `src/public_api/` without changing existing names or semantics.
+- Adding a new report section that is optional and documented in `docs/REPORT_CONTRACT.md`.
+- Adding tests or fixtures that do not change blessed artifact output.
 
-## Non-goals
-- Automatic versioning.
+## Breaking Changes
+- Removing or renaming public API items.
+- Changing a report field type, meaning, requiredness, or stable section name.
+- Changing ranking semantics, tie-breaks, or missing-data policy.
+- Changing loaded artifact schema requirements.
+- Moving ownership across `load`, `decision`, `report`, or `pipeline` in a way that weakens the
+  dependency direction in `docs/ARCHITECTURE.md`.
 
-## Contracts
-- Breaking changes require explicit approval and snapshot updates.
+Breaking changes require explicit approval, a schema or contract version decision, and reviewed
+snapshot updates.
 
-## Examples
-- Changing a public contract field is breaking.
+## Required Update Checklist
+- Update `docs/REPORT_CONTRACT.md` for report or schema behavior.
+- Update `docs/PUBLIC_API.md` for stable API changes.
+- Update `docs/DECISIONS.md` for ranking, compare, trace, or missing-data semantics.
+- Update `docs/COMMANDS.md` when crate-owned modes or package commands change.
+- Update `docs/TESTS.md` when coverage moves or new suites become authoritative.
+- Update fixtures and snapshots in `tests/fixtures/` and `tests/snapshots/` when blessed artifact
+  output changes.
 
-## Failure modes
-- Unversioned breaking changes are rejected in CI.
+## Required Checks
+Use `docs/COMMANDS.md` for command details. At minimum, run the suite that owns the changed
+contract plus `tests/boundaries.rs` when source layout, docs layout, public surface, or dependency
+direction changes.
 
-## Schema change checklist
-- Update `docs/REPORT_CONTRACT.md` and bump schema version if required.
-- Update golden fixtures and snapshots in `tests/fixtures/` and `tests/snapshots/`.
-- Update `docs/TESTS.md` to reflect the new coverage.
-- Run `tests/contracts/report/report_contract.rs` and
-  `tests/contracts/report/report_determinism.rs`.
+## Failure Modes
+- Unversioned breaking report changes fail contract or snapshot review.
+- Public-surface creep fails boundary tests.
+- Cross-layer imports fail guardrail tests.
+- Undocumented docs growth fails docs-layout tests.
