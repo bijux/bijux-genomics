@@ -31,3 +31,24 @@ reason about directly.
   deliberate submodule split.
 - Keep public re-exports curated in `src/lib.rs` and `src/public_api/surface.rs`.
 - Update `tests/boundaries/architecture_tree.rs` with intentional tree changes.
+
+## Test Layout
+
+- `tests/boundaries/` protects architecture, command inventory, dependency
+  shape, dev-dependency boundaries, docs layout, effects, and guardrails.
+- `tests/contracts/` exercises helper behavior through public contracts.
+- `tests/schemas/` locks the public API mirror and lightweight documentation
+  expectations.
+- `tests/snapshots/` contains governed snapshot fixtures only.
+
+## Dependency Direction
+
+Testkit may depend on lightweight test-only helpers and policies needed to
+support tests. Production crates may use it only from `dev-dependencies`; it
+must not become a normal runtime dependency or own domain, runner, CLI, or API
+workflow behavior.
+
+## Command Inventory
+
+`docs/COMMANDS.md` remains the SSOT for crate-managed operations. This library
+owns helper APIs, not shell commands or binaries.
