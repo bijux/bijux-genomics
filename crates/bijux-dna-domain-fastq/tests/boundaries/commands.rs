@@ -13,9 +13,17 @@ fn command_inventory_declares_library_only_surface() {
         "COMMANDS.md must explicitly state that this crate is library-only"
     );
     assert!(
-        commands_doc.contains("There are no crate-managed CLI commands"),
+        commands_doc.contains("There are no crate-managed CLI commands, Cargo binary targets"),
         "COMMANDS.md must list an empty managed command inventory"
     );
+    for forbidden in [
+        "No Cargo binary targets or `src/bin` command modules.",
+        "No `src/main.rs`.",
+        "No CLI parser ownership.",
+        "No process spawning or runtime command execution.",
+    ] {
+        assert!(commands_doc.contains(forbidden), "COMMANDS.md must document `{forbidden}`");
+    }
     assert!(
         !root.join("src/bin").exists(),
         "domain-fastq must not grow binary entrypoints without updating docs/COMMANDS.md"
