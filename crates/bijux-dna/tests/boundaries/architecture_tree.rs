@@ -311,6 +311,59 @@ fn dna_tree_matches_architecture_contract() {
     let expected_public_api: BTreeSet<_> =
         ["cli.rs", "hpc.rs", "mod.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(public_api_entries, expected_public_api, "public api tree must stay curated");
+
+    let tests_entries = dir_entries(&root.join("tests"));
+    let expected_tests: BTreeSet<_> = [
+        "boundaries/",
+        "boundaries.rs",
+        "contracts/",
+        "contracts.rs",
+        "guardrails.rs",
+        "schemas/",
+        "schemas.rs",
+        "snapshots/",
+        "snapshots.rs",
+        "support/",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        tests_entries, expected_tests,
+        "dna tests tree must stay grouped by enduring test intent"
+    );
+
+    let support_test_entries = dir_entries(&root.join("tests/support"));
+    let expected_support_tests: BTreeSet<_> =
+        ["workspace_paths.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        support_test_entries, expected_support_tests,
+        "dna test support must keep shared helpers out of suite roots"
+    );
+
+    let boundary_test_entries = dir_entries(&root.join("tests/boundaries"));
+    let expected_boundary_tests: BTreeSet<_> = [
+        "architecture_tree.rs",
+        "dependency_graph.rs",
+        "docs_layout.rs",
+        "guardrails/",
+        "guardrails.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        boundary_test_entries, expected_boundary_tests,
+        "dna boundary tests must stay focused on architecture, docs, dependencies, and guardrails"
+    );
+
+    let schema_test_entries = dir_entries(&root.join("tests/schemas"));
+    let expected_schema_tests: BTreeSet<_> =
+        ["public_surface.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        schema_test_entries, expected_schema_tests,
+        "dna schema tests must own public-surface snapshot locks"
+    );
 }
 
 fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {

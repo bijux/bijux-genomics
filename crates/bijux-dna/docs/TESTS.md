@@ -22,7 +22,7 @@ tests/
 - `tests/boundaries.rs`: layout, docs placement, dependency, public-surface, no-process-spawn, and
   guardrail checks.
 - `tests/boundaries/architecture_tree.rs`: root, docs, source, command, and public API tree
-  contract.
+  contract, including the integration-test taxonomy and support-helper location.
 - `tests/contracts.rs`: command behavior, bank, dry-run, and HPC layout contracts.
 - `tests/contracts/dry_run.rs`: dry-run command families and VCF toy execution coverage.
 - `tests/guardrails.rs`: shared policy guardrail smoke for this crate.
