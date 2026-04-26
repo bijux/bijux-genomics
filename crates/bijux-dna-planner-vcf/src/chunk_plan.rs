@@ -28,6 +28,8 @@ pub fn plan_region_chunks(
     if chunking.max_parallel_chunks == 0 {
         bail!("chunk max_parallel_chunks must be > 0");
     }
+    validate_unique_filter_names("chr_include", &chunking.chr_include)?;
+    validate_unique_filter_names("chr_exclude", &chunking.chr_exclude)?;
     let include_names = chunking.chr_include.iter().collect::<BTreeSet<_>>();
     let exclude_names = chunking.chr_exclude.iter().collect::<BTreeSet<_>>();
     if let Some(name) = include_names.intersection(&exclude_names).next() {
@@ -87,4 +89,14 @@ pub fn plan_region_chunks(
         bail!("chunk filters produced no region chunks");
     }
     Ok(chunks)
+}
+
+fn validate_unique_filter_names(label: &str, names: &[String]) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for name in names {
+        if !seen.insert(name) {
+            bail!("chunk {label} contains duplicate contig `{name}`");
+        }
+    }
+    Ok(())
 }

@@ -373,3 +373,16 @@ fn vcf_planner_refuses_chunk_filters_with_no_regions() {
         "unexpected planner refusal: {err}"
     );
 }
+
+#[test]
+fn vcf_planner_refuses_duplicate_chunk_filter_entries() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.chunking.chr_include = vec!["1".to_string(), "1".to_string()];
+
+    let err = plan_vcf_stage_plans(&input).expect_err("duplicate chunk filter must fail");
+
+    assert!(
+        err.to_string().contains("chr_include contains duplicate contig `1`"),
+        "unexpected planner refusal: {err}"
+    );
+}
