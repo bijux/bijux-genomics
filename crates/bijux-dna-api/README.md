@@ -26,7 +26,8 @@ This crate does not own domain algorithms, planner semantics, runner command
 execution, environment discovery, or analyzer storage internals. Those contracts
 belong to their dedicated crates and are consumed here through typed APIs.
 Declared effects are limited to runtime/reporting/audit paths documented in
-`docs/EFFECTS.md` and the command contracts.
+`docs/BOUNDARY.md`, `docs/REQUEST_FLOW.md`, `docs/SECURITY.md`, and the command
+contracts.
 
 ## Public entrypoints
 
