@@ -11,7 +11,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -23,7 +23,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -35,7 +35,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -47,7 +47,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -59,7 +59,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -71,7 +71,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -83,7 +83,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -95,7 +95,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -107,7 +107,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -119,7 +119,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -131,7 +131,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -143,7 +143,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -155,7 +155,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -167,7 +167,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -179,7 +179,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/cross/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -582,7 +582,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -594,7 +594,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -606,7 +606,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -618,7 +618,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -630,7 +630,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -642,7 +642,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -654,7 +654,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -666,7 +666,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -678,7 +678,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -690,7 +690,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -702,7 +702,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -714,7 +714,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -726,7 +726,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -738,7 +738,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"
@@ -750,7 +750,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "defaults chosen for pre-HPC deterministic baseline comparisons"
       ],
       "citations": [
-        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+        "docs/20-science/cross/GOLD_PIPELINE_SPEC.md"
       ],
       "comparability_implications": [
         "changing this default can shift cross-run comparability baselines"

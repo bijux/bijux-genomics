@@ -6,7 +6,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "capabilities": {
     "input_artifacts": [
       "FastqReads",
-      "Bam"
+      "ReferenceFasta"
     ],
     "input_domains": [
       "Fastq",
@@ -58,12 +58,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.profile_read_lengths",
       "fastq.detect_adapters",
       "fastq.trim_polyg_tails",
-      "fastq.trim_terminal_damage",
       "fastq.trim_reads",
       "fastq.filter_reads",
       "fastq.profile_reads",
       "fastq.profile_overrepresented_sequences",
       "fastq.report_qc",
+      "fastq.trim_terminal_damage",
       "fastq.merge_pairs",
       "core.prepare_reference",
       "bam.align",
