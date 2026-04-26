@@ -125,6 +125,7 @@ fn engine_tree_matches_architecture_contract() {
         entries([
             "architecture_tree.rs",
             "dependency_graph.rs",
+            "docs_layout.rs",
             "effect_boundary.rs",
             "guardrails.rs",
         ]),
