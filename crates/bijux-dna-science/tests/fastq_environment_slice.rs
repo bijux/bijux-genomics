@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -26,6 +27,7 @@ fn fastq_environment_slice_matches_committed_outputs() -> Result<()> {
     let compiled = compile_workspace(&root)?;
 
     assert_fastq_slice_rows(&compiled);
+    assert_generated_output_inventory(&root)?;
     assert_committed_outputs_match(&root, &compiled)?;
     Ok(())
 }
@@ -148,6 +150,47 @@ fn assert_committed_outputs_match(root: &Path, compiled: &CompiledScience) -> Re
         "science/generated/indexes/science_index.json",
         &index_json(&compiled.index)?,
     )?;
+    Ok(())
+}
+
+fn assert_generated_output_inventory(root: &Path) -> Result<()> {
+    let evidence_root = root.join("science/generated/current/evidence");
+    let mut actual = BTreeSet::new();
+    for entry in
+        fs::read_dir(&evidence_root).with_context(|| format!("read {}", evidence_root.display()))?
+    {
+        let entry = entry?;
+        if entry.file_type()?.is_file() {
+            actual.insert(format!(
+                "science/generated/current/evidence/{}",
+                entry.file_name().to_string_lossy()
+            ));
+        }
+    }
+    actual.insert("science/generated/indexes/science_index.json".to_string());
+
+    let expected = [
+        "science/generated/current/evidence/binding_resolution.tsv",
+        "science/generated/current/evidence/claim_evidence_map.tsv",
+        "science/generated/current/evidence/decision_reasoning_map.tsv",
+        "science/generated/current/evidence/fastq_closure_gate.tsv",
+        "science/generated/current/evidence/fastq_container_reference_matrix.tsv",
+        "science/generated/current/evidence/fastq_default_binding_risk_ledger.tsv",
+        "science/generated/current/evidence/fastq_download_backlog.tsv",
+        "science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv",
+        "science/generated/current/evidence/fastq_paper_archive_matrix.tsv",
+        "science/generated/current/evidence/fastq_stage_tool_environment_matrix.tsv",
+        "science/generated/current/evidence/fastq_truth_delta.tsv",
+        "science/generated/current/evidence/source_archive_gaps.tsv",
+        "science/generated/current/evidence/source_inventory.tsv",
+        "science/generated/current/evidence/unresolved_refs.json",
+        "science/generated/indexes/science_index.json",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect::<BTreeSet<_>>();
+
+    assert_eq!(actual, expected, "generated science output inventory changed");
     Ok(())
 }
 
