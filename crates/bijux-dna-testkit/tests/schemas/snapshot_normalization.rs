@@ -60,6 +60,15 @@ fn snapshot_normalize_json_redacts_artifact_paths_inside_messages() {
 }
 
 #[test]
+fn snapshot_normalize_json_preserves_tmp_command_paths() {
+    let raw = serde_json::json!({
+        "command": "mkdir -p '<TMPDIR>/<TMP>/out/fastqc' && 'fastqc' --outdir '<TMPDIR>/<TMP>/out/fastqc'"
+    });
+    let normalized = bijux_dna_testkit::snapshot_normalize_json(&raw);
+    assert_eq!(normalized["command"], raw["command"]);
+}
+
+#[test]
 fn snapshot_normalize_json_strips_camel_case_unstable_fields() {
     let raw = serde_json::json!({
         "startedAt": "2024-01-01T02:03:04Z",

@@ -80,10 +80,13 @@ fn normalize_artifact_tmp_path(input: &str) -> String {
 }
 
 fn normalize_artifact_tmp_path_token(input: &str) -> String {
+    if input.contains("<TMPDIR>/<TMP>/") {
+        return input.to_string();
+    }
+
     let is_artifact_path = input.contains("artifacts/target/")
         || input.contains("artifacts/tmp/")
-        || input.contains("artifacts/coverage/profraw-")
-        || input.contains("<TMPDIR>/<TMP>/");
+        || input.contains("artifacts/coverage/profraw-");
     if !is_artifact_path || !input.contains('/') {
         return input.to_string();
     }
