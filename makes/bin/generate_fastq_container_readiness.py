@@ -245,6 +245,39 @@ def proof_status(root: Path, candidates: list[Path]) -> tuple[str, str]:
     return "missing_from_snapshot", ";".join(str(candidate) for candidate in candidates)
 
 
+def proof_candidates(tool_id: str) -> list[tuple[str, list[Path]]]:
+    return [
+        (
+            "docker_cyclonedx_sbom",
+            [
+                PROOF_ROOT / "sbom" / tool_id / "docker-cyclonedx.json",
+                PROOF_ROOT / "sbom" / f"{tool_id}.cyclonedx.json",
+            ],
+        ),
+        (
+            "docker_spdx_sbom",
+            [
+                PROOF_ROOT / "sbom" / tool_id / "docker-spdx.json",
+                PROOF_ROOT / "sbom" / f"{tool_id}.spdx.json",
+            ],
+        ),
+        (
+            "apptainer_sbom",
+            [
+                PROOF_ROOT / "sbom" / tool_id / "apptainer-cyclonedx.json",
+                PROOF_ROOT / "sbom" / f"{tool_id}.apptainer.cyclonedx.json",
+            ],
+        ),
+        (
+            "smoke_manifest",
+            [
+                PROOF_ROOT / "smoke" / tool_id / "manifest.json",
+                PROOF_ROOT / "smoke" / f"{tool_id}.json",
+            ],
+        ),
+    ]
+
+
 def lock_field_status(value: object) -> str:
     if value in (None, "", 0):
         return "missing"
@@ -296,6 +329,12 @@ def package_status(registry_package: str, domain_package: str) -> str:
         if package and not package.startswith("bijuxdna/"):
             findings.append(f"{label}_namespace_review_required")
     return ";".join(findings) if findings else "ready"
+
+
+def evidence_readiness(evidence: dict[str, str]) -> str:
+    archive_status = evidence.get("archive_status", "missing_backlog_row")
+    paper_status = evidence.get("paper_status", "missing_backlog_row")
+    return "ready" if archive_status == "present" and paper_status else "needs_evidence"
 
 
 def main() -> int:
@@ -398,7 +437,6 @@ def main() -> int:
         evidence = backlog.get(tool_id, {})
         archive_status = evidence.get("archive_status", "missing_backlog_row")
         paper_status = evidence.get("paper_status", "missing_backlog_row")
-        readiness = "ready" if archive_status == "present" and paper_status else "needs_evidence"
         evidence_rows.append(
             [
                 tool_id,
@@ -407,7 +445,7 @@ def main() -> int:
                 evidence.get("paper_root", ""),
                 paper_status,
                 evidence.get("citation", ""),
-                readiness,
+                evidence_readiness(evidence),
             ]
         )
     write_tsv(
@@ -427,36 +465,7 @@ def main() -> int:
     for row in execution_defaults(root):
         if not row.default_tool:
             continue
-        for proof_kind, candidates in [
-            (
-                "docker_cyclonedx_sbom",
-                [
-                    PROOF_ROOT / "sbom" / row.default_tool / "docker-cyclonedx.json",
-                    PROOF_ROOT / "sbom" / f"{row.default_tool}.cyclonedx.json",
-                ],
-            ),
-            (
-                "docker_spdx_sbom",
-                [
-                    PROOF_ROOT / "sbom" / row.default_tool / "docker-spdx.json",
-                    PROOF_ROOT / "sbom" / f"{row.default_tool}.spdx.json",
-                ],
-            ),
-            (
-                "apptainer_sbom",
-                [
-                    PROOF_ROOT / "sbom" / row.default_tool / "apptainer-cyclonedx.json",
-                    PROOF_ROOT / "sbom" / f"{row.default_tool}.apptainer.cyclonedx.json",
-                ],
-            ),
-            (
-                "smoke_manifest",
-                [
-                    PROOF_ROOT / "smoke" / row.default_tool / "manifest.json",
-                    PROOF_ROOT / "smoke" / f"{row.default_tool}.json",
-                ],
-            ),
-        ]:
+        for proof_kind, candidates in proof_candidates(row.default_tool):
             status, paths = proof_status(root, candidates)
             proof_rows.append(
                 [
@@ -597,6 +606,106 @@ def main() -> int:
         ],
         planner_rows,
     )
+    planner_status_by_stage = {row[0]: row[5] for row in planner_rows}
+    closure_rows = []
+    for row in execution_defaults(root):
+        blockers = []
+        stage = stages.get(row.stage_id, {})
+        if not row.default_tool:
+            status = "declared_only"
+            blockers.append("no_default_tool")
+            closure_rows.append(
+                [
+                    row.stage_id,
+                    row.execution_status,
+                    row.default_tool,
+                    status,
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    "",
+                    ";".join(blockers),
+                ]
+            )
+            continue
+        tool_image, _tool_digest = tools.get(row.default_tool, ("", ""))
+        registry_ref = registry.get(row.default_tool, {}).get("container_ref", "")
+        digest = digest_class(registry_ref)
+        if digest != "immutable":
+            blockers.append(f"digest_{digest}")
+        evidence_status = evidence_readiness(backlog.get(row.default_tool, {}))
+        if evidence_status != "ready":
+            blockers.append(evidence_status)
+        license_finding = license_status(licenses.get(row.default_tool, {}))
+        if license_finding != "ready":
+            blockers.append("license:" + license_finding)
+        registry_package = image_package(registry_ref)
+        domain_package = image_package(tool_image)
+        package_finding = package_status(registry_package, domain_package)
+        if package_finding != "ready":
+            blockers.append("package:" + package_finding)
+        planner_finding = planner_status_by_stage.get(row.stage_id, "missing_planner_snapshot")
+        if planner_finding != "ready":
+            blockers.append("planner:" + planner_finding)
+        lock_item = version_lock.get(row.default_tool, {})
+        lock_blockers = [
+            f"{field}:{lock_field_status(lock_item.get(field, ''))}"
+            for field in lock_fields
+            if lock_field_status(lock_item.get(field, "")) != "present"
+        ]
+        blockers.extend("lock:" + item for item in lock_blockers)
+        proof_blockers = [
+            proof_kind
+            for proof_kind, candidates in proof_candidates(row.default_tool)
+            if proof_status(root, candidates)[0] != "present"
+        ]
+        blockers.extend("proof:" + item for item in proof_blockers)
+        asset_blockers = []
+        for hook in stage.get("bank_hooks", []):
+            hook = str(hook)
+            if hook != "none" and hook not in producers:
+                asset_blockers.append(hook)
+        blockers.extend("asset:" + item for item in asset_blockers)
+        closure_rows.append(
+            [
+                row.stage_id,
+                row.execution_status,
+                row.default_tool,
+                "ready" if not blockers else "blocked",
+                digest,
+                evidence_status,
+                license_finding,
+                package_finding,
+                planner_finding,
+                ";".join(lock_blockers),
+                ";".join(proof_blockers),
+                ";".join(asset_blockers),
+                ";".join(blockers),
+            ]
+        )
+    write_tsv(
+        out_dir / "FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv",
+        [
+            "stage_id",
+            "execution_status",
+            "default_tool",
+            "closure_status",
+            "digest_class",
+            "evidence_readiness",
+            "license_status",
+            "package_status",
+            "planner_status",
+            "lock_blockers",
+            "proof_blockers",
+            "asset_blockers",
+            "blockers",
+        ],
+        closure_rows,
+    )
     print(
         json.dumps(
             {
@@ -610,6 +719,7 @@ def main() -> int:
                     str(out_dir / "FASTQ_CONTAINER_LICENSE_GAPS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_PACKAGE_PARITY.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_PLANNER_GAPS.tsv"),
+                    str(out_dir / "FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv"),
                 ]
             }
         )
