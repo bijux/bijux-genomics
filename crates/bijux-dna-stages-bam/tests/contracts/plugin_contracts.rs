@@ -4,8 +4,8 @@ use std::path::PathBuf;
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
 use bijux_dna_core::ids::{ArtifactId, StageId, StageVersion, ToolId};
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
-use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
 use bijux_dna_stage_contract::StagePlugin;
+use bijux_dna_stage_contract::{PlanDecisionReason, StagePlanV1};
 use bijux_dna_stages_bam::BamStagePlugin;
 
 fn stage_plan(stage_id: &str) -> StagePlanV1 {
@@ -113,5 +113,29 @@ fn bam_stage_plugin_reads_plan_out_dir_when_outputs_are_empty() -> anyhow::Resul
     let parsed = plugin.parse_outputs(&plan, &[])?;
 
     assert_eq!(parsed.metrics.metrics["alignment"]["total"], 10);
+    Ok(())
+}
+
+#[test]
+fn bam_stage_plugin_input_fingerprint_is_stable_for_reordered_inputs() -> anyhow::Result<()> {
+    let plugin = BamStagePlugin;
+    let temp = bijux_dna_infra::temp_dir("bijux-bam-plugin-input-order")?;
+    let input_a = temp.path().join("a.bam");
+    let input_b = temp.path().join("b.bam");
+    bijux_dna_infra::write_bytes(&input_a, b"input-a")?;
+    bijux_dna_infra::write_bytes(&input_b, b"input-b")?;
+
+    let input_ref_a = ArtifactRef::required(ArtifactId::new("input_a"), input_a, ArtifactRole::Bam);
+    let input_ref_b = ArtifactRef::required(ArtifactId::new("input_b"), input_b, ArtifactRole::Bam);
+    let mut first_plan = stage_plan("bam.mapping_summary");
+    first_plan.io.inputs = vec![input_ref_a.clone(), input_ref_b.clone()];
+    let mut second_plan = stage_plan("bam.mapping_summary");
+    second_plan.io.inputs = vec![input_ref_b, input_ref_a];
+
+    let first = plugin.parse_outputs(&first_plan, &[])?;
+    let second = plugin.parse_outputs(&second_plan, &[])?;
+
+    assert_eq!(first.metrics.input_hashes, second.metrics.input_hashes);
+    assert_eq!(first.metrics.input_fingerprint, second.metrics.input_fingerprint);
     Ok(())
 }
