@@ -102,3 +102,19 @@ fn strict_defaults_ledger_rejects_orphan_provenance() {
     let err = ledger.validate_strict().expect_err("orphan provenance must fail");
     assert!(err.to_string().contains("tool_provenance has orphan stage"));
 }
+
+#[test]
+fn generated_defaults_ledger_uses_domain_specific_citations() {
+    let ledger = bijux_dna_pipelines::cross::fastq_to_bam_default_profile().defaults_ledger();
+
+    let fastq_citations =
+        &ledger.param_provenance[&StageId::from_static("fastq.trim_reads")].citations;
+    assert_eq!(fastq_citations, &["docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"]);
+
+    let bam_citations = &ledger.param_provenance[&StageId::from_static("bam.align")].citations;
+    assert_eq!(bam_citations, &["docs/20-science/bam/GOLD_PIPELINE_SPEC.md"]);
+
+    let core_citations =
+        &ledger.param_provenance[&StageId::from_static("core.prepare_reference")].citations;
+    assert_eq!(core_citations, &["docs/20-science/cross/GOLD_PIPELINE_SPEC.md"]);
+}
