@@ -180,6 +180,26 @@ fn container_command_template_rewrites_exact_output_root_inside_shell_scripts() 
 }
 
 #[test]
+fn container_command_template_does_not_rewrite_sibling_prefix_paths() {
+    let template = vec![
+        "sh".to_string(),
+        "-lc".to_string(),
+        "cat /artifacts/runtime/input-old/sample.fq > /artifacts/runtime/out-old/report.txt"
+            .to_string(),
+    ];
+
+    let rewritten = container_command_template(
+        &template,
+        Path::new("/artifacts/runtime/input"),
+        Path::new("/artifacts/runtime/out"),
+        false,
+    );
+
+    assert!(rewritten[2].contains("/artifacts/runtime/input-old/sample.fq"));
+    assert!(rewritten[2].contains("/artifacts/runtime/out-old/report.txt"));
+}
+
+#[test]
 fn container_command_template_keeps_output_paths_writable_when_out_dir_is_under_input_root() {
     let template = vec![
         "sh".to_string(),

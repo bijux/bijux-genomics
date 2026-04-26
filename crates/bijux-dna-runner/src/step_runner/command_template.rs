@@ -7,18 +7,50 @@ pub(super) fn rewrite_container_path(
     host_root: &Path,
     container_root: &str,
 ) -> String {
-    let host_root_path = host_root;
-    let host_root = host_root_path.display().to_string();
-    let rewritten = value.replace(&host_root, container_root);
-    if value == host_root {
-        return container_root.to_string();
+    let host_root = host_root.display().to_string();
+    let mut rewritten = String::with_capacity(value.len());
+    let mut cursor = 0;
+
+    for (index, _) in value.match_indices(&host_root) {
+        if index < cursor {
+            continue;
+        }
+        if !path_match_has_shell_boundaries(value, index, host_root.len()) {
+            continue;
+        }
+        rewritten.push_str(&value[cursor..index]);
+        rewritten.push_str(container_root);
+        cursor = index + host_root.len();
     }
-    if host_root_path.is_file() {
-        return rewritten;
-    }
-    let host_prefix = format!("{host_root}/");
-    let container_prefix = format!("{container_root}/");
-    rewritten.replace(&host_prefix, &container_prefix)
+    rewritten.push_str(&value[cursor..]);
+    rewritten
+}
+
+fn path_match_has_shell_boundaries(value: &str, start: usize, len: usize) -> bool {
+    let before = value[..start].chars().next_back();
+    let after = value[start + len..].chars().next();
+
+    path_start_boundary(before) && path_end_boundary(after)
+}
+
+fn path_start_boundary(value: Option<char>) -> bool {
+    value.is_none_or(|value| {
+        value.is_ascii_whitespace()
+            || matches!(
+                value,
+                '\'' | '"' | '=' | ':' | ',' | '(' | '[' | '{' | '|' | '&' | '<' | '>'
+            )
+    })
+}
+
+fn path_end_boundary(value: Option<char>) -> bool {
+    value.is_none_or(|value| {
+        value.is_ascii_whitespace()
+            || matches!(
+                value,
+                '/' | '\'' | '"' | ':' | ',' | ')' | ']' | '}' | '|' | '&' | '<' | '>' | ';'
+            )
+    })
 }
 
 pub(super) fn container_command_template(
