@@ -11,8 +11,7 @@ Purity is enforced by `tests/boundaries/purity.rs`.
 Upstream: core IDs. Downstream: planners/stages/analyze.
 
 ## Public API / entrypoints
-See `crates/bijux-dna-domain-bam/docs/INDEX.md`, `crates/bijux-dna-domain-bam/docs/PHASES.md`, `crates/bijux-dna-domain-bam/docs/METRICS.md`, `crates/bijux-dna-domain-bam/docs/METRICS_GLOSSARY.md`,
-`crates/bijux-dna-domain-bam/docs/PARAMS.md`, `crates/bijux-dna-domain-bam/docs/DOMAIN_MODEL.md`, `crates/bijux-dna-domain-bam/docs/CHANGE_RULES.md`.
+See `docs/INDEX.md`, `docs/DOMAIN_MODEL.md`, `docs/METRICS.md`, `docs/COMMANDS.md`, `docs/BOUNDARY.md`, and `docs/PUBLIC_API.md`.
 
 ## Most important docs
 - `crates/bijux-dna-domain-bam/docs/PHASES.md`
@@ -38,7 +37,7 @@ See `crates/bijux-dna-domain-bam/docs/TESTS.md`. Golden tests: `tests/semantics/
 `tests/contracts/reference_suite/reference_suite.rs`.
 
 ## Where the docs live
-Start at `crates/bijux-dna-domain-bam/docs/INDEX.md` and follow the crate docs listed above.
+Start at `docs/INDEX.md` and follow the crate docs listed above.
 
 ## Start here in code
 `src/pipeline_contract.rs` → `src/stage_specs/*` → `src/metrics/*` → `src/invariants/*`.
