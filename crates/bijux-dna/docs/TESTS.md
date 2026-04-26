@@ -13,6 +13,7 @@ tests/
 ├── guardrails.rs
 ├── schemas.rs
 ├── schemas/
+├── snapshots.rs
 ├── snapshots/
 └── workspace_paths.rs
 ```
@@ -26,7 +27,7 @@ tests/
 - `tests/contracts/dry_run.rs`: dry-run command families and VCF toy execution coverage.
 - `tests/guardrails.rs`: shared policy guardrail smoke for this crate.
 - `tests/schemas.rs`: public API surface snapshots.
-- `tests/snapshots/`: help output and public API snapshots.
+- `tests/snapshots.rs`: CLI help output snapshots and docs-to-help checks.
 - `src/process_exit.rs` unit tests: operator error and exit-code behavior.
 
 Markdown files under `tests/` are not allowed; test taxonomy belongs here.

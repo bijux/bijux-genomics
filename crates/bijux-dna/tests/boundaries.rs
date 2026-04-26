@@ -19,7 +19,5 @@ mod mod_boundaries_guardrails_no_process_spawn_rs;
 mod mod_boundaries_guardrails_policies_rs;
 #[path = "boundaries/guardrails.rs"]
 mod mod_boundaries_guardrails_rs;
-#[path = "snapshots/help.rs"]
-mod mod_snapshots_help_rs;
 #[path = "workspace_paths.rs"]
 mod support;
