@@ -767,13 +767,9 @@ fn build_fastq_download_backlog_rows(
             } else {
                 "missing".to_string()
             };
-            let locator = tool_entry.map_or_else(
-                || row.upstream.clone(),
-                |entry| entry.primary_locator.clone(),
-            );
-            let paper_root = tool_entry
-                .map(|entry| entry.paper_root.clone())
-                .unwrap_or_default();
+            let locator = tool_entry
+                .map_or_else(|| row.upstream.clone(), |entry| entry.primary_locator.clone());
+            let paper_root = tool_entry.map(|entry| entry.paper_root.clone()).unwrap_or_default();
             let paper_status = if paper_root.is_empty() {
                 "missing_paper_root".to_string()
             } else {
@@ -782,7 +778,8 @@ fn build_fastq_download_backlog_rows(
                     |entry| entry.paper_status.clone(),
                 )
             };
-            let has_source_metadata = !(locator.trim().is_empty() && row.citation.trim().is_empty());
+            let has_source_metadata =
+                !(locator.trim().is_empty() && row.citation.trim().is_empty());
             let backlog_status = if tool_entry.is_none() {
                 "missing_evidence_map".to_string()
             } else if paper_root.is_empty() {
@@ -798,28 +795,7 @@ fn build_fastq_download_backlog_rows(
             } else {
                 "ready".to_string()
             };
-            let notes = match backlog_status.as_str() {
-                "missing_evidence_map" => {
-                    "tool is on the FASTQ surface but lacks a governed tool evidence map row"
-                }
-                "missing_paper_root" => {
-                    "tool evidence row exists but does not yet point at a durable paper root"
-                }
-                "missing_paper_map" => {
-                    "tool evidence row points at a paper root that is not registered in the tool paper map"
-                }
-                "missing_registry_source" => {
-                    "tool is on the FASTQ surface but lacks governed registry source metadata"
-                }
-                "missing_upstream_locator" => {
-                    "tool has registry metadata but no upstream locator to archive yet"
-                }
-                "templated_locator" => {
-                    "registry locator contains unresolved template variables; archive the resolved release page or source bundle"
-                }
-                _ => "archive upstream evidence for later review and claim confirmation",
-            }
-            .to_string();
+            let notes = backlog_notes(&backlog_status).to_string();
             crate::domain::FastqDownloadBacklogRow {
                 source_id,
                 tool_id: row.tool_id.clone(),
@@ -838,6 +814,28 @@ fn build_fastq_download_backlog_rows(
         .collect::<Vec<_>>();
     backlog.sort_by(|left, right| left.tool_id.cmp(&right.tool_id));
     backlog
+}
+
+fn backlog_notes(backlog_status: &str) -> &'static str {
+    match backlog_status {
+        "missing_evidence_map" => {
+            "tool is on the FASTQ surface but lacks a governed tool evidence map row"
+        }
+        "missing_paper_root" => {
+            "tool evidence row exists but does not yet point at a durable paper root"
+        }
+        "missing_paper_map" => {
+            "tool evidence row points at a paper root that is not registered in the tool paper map"
+        }
+        "missing_registry_source" => {
+            "tool is on the FASTQ surface but lacks governed registry source metadata"
+        }
+        "missing_upstream_locator" => "tool has registry metadata but no upstream locator to archive yet",
+        "templated_locator" => {
+            "registry locator contains unresolved template variables; archive the resolved release page or source bundle"
+        }
+        _ => "archive upstream evidence for later review and claim confirmation",
+    }
 }
 
 fn infer_acquisition_mode(locator: &str) -> String {
