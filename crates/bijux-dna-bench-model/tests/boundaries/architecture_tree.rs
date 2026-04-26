@@ -7,15 +7,7 @@ fn bench_model_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(root),
-        entries([
-            "BOUNDARY.md",
-            "Cargo.toml",
-            "PUBLIC_API.md",
-            "README.md",
-            "docs/",
-            "src/",
-            "tests/",
-        ]),
+        entries(["Cargo.toml", "README.md", "docs/", "src/", "tests/"]),
         "crate root must stay minimal and intentional"
     );
 
