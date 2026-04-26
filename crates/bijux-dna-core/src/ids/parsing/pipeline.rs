@@ -24,10 +24,15 @@ pub fn validate_pipeline_id_str(id: &str) -> Result<()> {
     let graph = parts[0];
     let flavor = parts[1];
     let version = parts[2];
+    if graph.is_empty() || flavor.is_empty() {
+        return Err(BijuxError::validation("pipeline id graph and flavor cannot be empty"));
+    }
     if !graph.contains("-to-") {
         return Err(BijuxError::validation("pipeline id graph must contain '-to-'"));
     }
-    if !version.starts_with('v') || version.len() < 2 || !version[1..].chars().all(char::is_numeric)
+    if !version.starts_with('v')
+        || version.len() < 2
+        || !version[1..].chars().all(|value| value.is_ascii_digit())
     {
         return Err(BijuxError::validation("pipeline id version must be v<digits>"));
     }
@@ -36,4 +41,21 @@ pub fn validate_pipeline_id_str(id: &str) -> Result<()> {
         return Err(BijuxError::validation("pipeline id contains invalid characters"));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_pipeline_id_str;
+
+    #[test]
+    fn pipeline_id_rejects_empty_graph_or_flavor() {
+        assert!(validate_pipeline_id_str("__default__v1").is_err());
+        assert!(validate_pipeline_id_str("fastq-to-fastq____v1").is_err());
+    }
+
+    #[test]
+    fn pipeline_id_version_requires_ascii_digits() {
+        assert!(validate_pipeline_id_str("fastq-to-fastq__default__v١").is_err());
+        assert!(validate_pipeline_id_str("fastq-to-fastq__default__v1").is_ok());
+    }
 }
