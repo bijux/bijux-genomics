@@ -72,10 +72,10 @@ pub(super) fn validate_index_matrix_and_pipelines(
         if !index.stage_ids.contains(stage_id) {
             bail!("{} matrix references unknown stage {}", index_path.display(), stage_id);
         }
-        if tools.is_empty() {
+        let stage_status = stage_status_by_id.get(stage_id).map_or("", String::as_str);
+        if tools.is_empty() && stage_status == "supported" {
             bail!("{} stage {} has empty compatibility list", index_path.display(), stage_id);
         }
-        let stage_status = stage_status_by_id.get(stage_id).map_or("", String::as_str);
         if stage_status != "supported" {
             continue;
         }
