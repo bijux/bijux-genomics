@@ -120,7 +120,6 @@ fn single_end_default_pipeline_uses_contract_essentials_only() {
         "fastq.profile_read_lengths",
         "fastq.detect_adapters",
         "fastq.trim_polyg_tails",
-        "fastq.trim_terminal_damage",
         "fastq.trim_reads",
         "fastq.filter_reads",
         "fastq.profile_reads",

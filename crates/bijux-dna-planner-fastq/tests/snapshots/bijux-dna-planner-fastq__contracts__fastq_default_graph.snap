@@ -1,6 +1,6 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/graph/graph_snapshots.rs
-assertion_line: 83
+assertion_line: 78
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -114,7 +114,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     {
       "from": "fastq.trim_polyg_tails.tool.fastp",
-      "to": "fastq.trim_terminal_damage.tool.cutadapt"
+      "to": "fastq.trim_reads.tool.fastp"
     },
     {
       "from": "fastq.trim_reads.tool.fastp",
@@ -131,22 +131,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "from_output_id": "report_json",
       "to": "fastq.report_qc.tool.multiqc",
       "to_input_id": "qc_artifacts"
-    },
-    {
-      "from": "fastq.trim_terminal_damage.tool.cutadapt",
-      "from_output_id": "raw_backend_report_json",
-      "to": "fastq.report_qc.tool.multiqc",
-      "to_input_id": "qc_artifacts"
-    },
-    {
-      "from": "fastq.trim_terminal_damage.tool.cutadapt",
-      "from_output_id": "report_json",
-      "to": "fastq.report_qc.tool.multiqc",
-      "to_input_id": "qc_artifacts"
-    },
-    {
-      "from": "fastq.trim_terminal_damage.tool.cutadapt",
-      "to": "fastq.trim_reads.tool.fastp"
     },
     {
       "from": "fastq.validate_reads.tool.fastqvalidator",
@@ -206,12 +190,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "from": "fastq.validate_reads.tool.fastqvalidator",
       "from_output_id": "validated_reads_manifest",
       "to": "fastq.trim_reads.tool.fastp",
-      "to_input_id": "validated_reads_manifest"
-    },
-    {
-      "from": "fastq.validate_reads.tool.fastqvalidator",
-      "from_output_id": "validated_reads_manifest",
-      "to": "fastq.trim_terminal_damage.tool.cutadapt",
       "to_input_id": "validated_reads_manifest"
     }
   ],
@@ -681,18 +659,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "role": "report_json"
           },
           {
-            "name": "fastq.trim_terminal_damage.raw_backend_report_json",
-            "optional": true,
-            "path": "trim_terminal_damage.cutadapt.raw.json",
-            "role": "report_json"
-          },
-          {
-            "name": "fastq.trim_terminal_damage.report_json",
-            "optional": false,
-            "path": "trim_terminal_damage_report.json",
-            "role": "report_json"
-          },
-          {
             "name": "fastq.validate_reads.validated_reads_manifest",
             "optional": false,
             "path": "validated_reads_manifest.json",
@@ -841,7 +807,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "reads_r1",
             "optional": false,
-            "path": "trim_terminal_damage.cutadapt.fastq.gz",
+            "path": "polyg.fastp.fastq.gz",
             "role": "reads"
           },
           {
@@ -884,73 +850,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "stage_id": "fastq.trim_reads",
       "step_id": "fastq.trim_reads.tool.fastp"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "sh",
-          "-lc",
-          "<TIMESTAMP>"
-        ]
-      },
-      "expected_artifact_ids": [
-        "trimmed_reads_r1",
-        "report_json",
-        "raw_backend_report_json"
-      ],
-      "image": {
-        "digest": null,
-        "image": "bijux/dummy:latest"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "reads_r1",
-            "optional": false,
-            "path": "polyg.fastp.fastq.gz",
-            "role": "reads"
-          },
-          {
-            "name": "validated_reads_manifest",
-            "optional": false,
-            "path": "validated_reads_manifest.json",
-            "role": "stage_report"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "trimmed_reads_r1",
-            "optional": false,
-            "path": "trim_terminal_damage.cutadapt.fastq.gz",
-            "role": "trimmed_reads"
-          },
-          {
-            "name": "report_json",
-            "optional": false,
-            "path": "trim_terminal_damage_report.json",
-            "role": "report_json"
-          },
-          {
-            "name": "raw_backend_report_json",
-            "optional": true,
-            "path": "trim_terminal_damage.cutadapt.raw.json",
-            "role": "report_json"
-          }
-        ]
-      },
-      "metrics_schema_ids": [
-        "fastq_trim_terminal_damage_v2"
-      ],
-      "out_dir": "cutadapt",
-      "resources": {
-        "mem_gb": 1,
-        "runtime": "docker",
-        "threads": 1,
-        "tmp_gb": 1
-      },
-      "stage_id": "fastq.trim_terminal_damage",
-      "step_id": "fastq.trim_terminal_damage.tool.cutadapt"
     },
     {
       "aux_images": {},
