@@ -226,6 +226,17 @@ def digest_class(container_ref: str) -> str:
     return "tag_only"
 
 
+def image_package(ref: str) -> str:
+    if not ref:
+        return ""
+    package = ref.split("@", 1)[0]
+    if "/" in package.rsplit("/", 1)[-1]:
+        return package
+    if ":" in package.rsplit("/", 1)[-1]:
+        package = package.rsplit(":", 1)[0]
+    return package
+
+
 def proof_status(root: Path, candidates: list[Path]) -> tuple[str, str]:
     for candidate in candidates:
         path = root / candidate
@@ -270,6 +281,23 @@ def license_status(license_row: dict[str, object]) -> str:
     return ";".join(findings) if findings else "ready"
 
 
+def package_status(registry_package: str, domain_package: str) -> str:
+    findings = []
+    if not registry_package:
+        findings.append("registry_package_missing")
+    if not domain_package:
+        findings.append("domain_package_missing")
+    if registry_package and domain_package and registry_package != domain_package:
+        findings.append("package_mismatch")
+    for label, package in [
+        ("registry", registry_package),
+        ("domain", domain_package),
+    ]:
+        if package and not package.startswith("bijuxdna/"):
+            findings.append(f"{label}_namespace_review_required")
+    return ";".join(findings) if findings else "ready"
+
+
 def main() -> int:
     args = parse_args()
     root = args.repo_root.resolve()
@@ -287,6 +315,7 @@ def main() -> int:
 
     matrix = []
     digest_rows = []
+    stages_by_tool: dict[str, list[str]] = {}
     for row in execution_defaults(root):
         tool_image, tool_digest = tools.get(row.default_tool, ("", ""))
         registry_row = registry.get(row.default_tool, {})
@@ -306,6 +335,7 @@ def main() -> int:
             ]
         )
         if row.default_tool:
+            stages_by_tool.setdefault(row.default_tool, []).append(row.stage_id)
             digest_rows.append(
                 [
                     row.stage_id,
@@ -502,6 +532,38 @@ def main() -> int:
         ],
         license_rows,
     )
+    package_rows = []
+    for tool_id in seen_tools:
+        tool_image, _tool_digest = tools.get(tool_id, ("", ""))
+        registry_ref = registry.get(tool_id, {}).get("container_ref", "")
+        registry_package = image_package(registry_ref)
+        domain_package = image_package(tool_image)
+        package_rows.append(
+            [
+                tool_id,
+                ";".join(stages_by_tool.get(tool_id, [])),
+                registry_ref,
+                registry_package,
+                tool_image,
+                domain_package,
+                digest_class(registry_ref),
+                package_status(registry_package, domain_package),
+            ]
+        )
+    write_tsv(
+        out_dir / "FASTQ_CONTAINER_PACKAGE_PARITY.tsv",
+        [
+            "default_tool",
+            "stage_ids",
+            "registry_container_ref",
+            "registry_package",
+            "domain_container_image",
+            "domain_package",
+            "digest_class",
+            "package_status",
+        ],
+        package_rows,
+    )
     planner_rows = []
     for snapshot in planner_snapshots:
         stage_id = str(snapshot.get("stage_id", ""))
@@ -546,6 +608,7 @@ def main() -> int:
                     str(out_dir / "FASTQ_CONTAINER_PROOF_GAPS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_LOCK_GAPS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_LICENSE_GAPS.tsv"),
+                    str(out_dir / "FASTQ_CONTAINER_PACKAGE_PARITY.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_PLANNER_GAPS.tsv"),
                 ]
             }
