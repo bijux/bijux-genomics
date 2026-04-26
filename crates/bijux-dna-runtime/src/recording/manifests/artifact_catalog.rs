@@ -1,4 +1,4 @@
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
@@ -66,6 +66,7 @@ pub fn write_stage_plan_json<T: Serialize>(
     file_name: &str,
     plan: &T,
 ) -> Result<PathBuf> {
+    validate_relative_artifact_path("stage plan file name", file_name)?;
     let root = run_artifacts_dir(run_dirs)?;
     let plans_dir = root.join("plans");
     bijux_dna_infra::ensure_dir(&plans_dir).context("create plans artifact dir")?;
@@ -74,6 +75,19 @@ pub fn write_stage_plan_json<T: Serialize>(
         .context("create plan parent dir")?;
     write_canonical_json(&path, plan).context("write stage plan json")?;
     Ok(path)
+}
+
+fn validate_relative_artifact_path(label: &str, value: &str) -> Result<()> {
+    if value.trim().is_empty() {
+        return Err(anyhow!("{label} must not be empty"));
+    }
+    let path = Path::new(value);
+    if path.components().any(|component| {
+        matches!(component, Component::Prefix(_) | Component::RootDir | Component::ParentDir)
+    }) {
+        return Err(anyhow!("{label} must be a relative path inside run_artifacts"));
+    }
+    Ok(())
 }
 
 #[must_use]
