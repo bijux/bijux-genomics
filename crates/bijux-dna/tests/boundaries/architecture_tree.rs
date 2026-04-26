@@ -8,7 +8,7 @@ fn dna_tree_matches_architecture_contract() {
 
     let root_entries = dir_entries(&root);
     let expected_root: BTreeSet<_> =
-        ["BOUNDARY.md", "Cargo.toml", "PUBLIC_API.md", "README.md", "docs/", "src/", "tests/"]
+        ["Cargo.toml", "README.md", "docs/", "src/", "tests/"]
             .into_iter()
             .map(str::to_string)
             .collect();

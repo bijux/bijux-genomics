@@ -15,7 +15,7 @@ No direct engine or runner calls; the CLI depends on `bijux-dna-api` only.
 CLI output is deterministic for the same inputs; effects are limited to requested output files.
 
 ## Public API / entrypoints
-Start with `PUBLIC_API.md`, `docs/ARCHITECTURE.md`, and `docs/COMMANDS.md`. The library surface is routed through `src/public_api/`, the crate-local launcher lives in `src/cli_entrypoint.rs`, and the process exit contract lives in `src/process_exit.rs`.
+Start with `docs/PUBLIC_API.md`, `docs/BOUNDARY.md`, `docs/ARCHITECTURE.md`, and `docs/COMMANDS.md`. The library surface is routed through `src/public_api/`, the crate-local launcher lives in `src/cli_entrypoint.rs`, and the process exit contract lives in `src/process_exit.rs`.
 
 The command tree is intentionally partitioned: `src/commands/router/` owns routing, `src/commands/support/` owns shared command helpers, `src/commands/planning/` owns run planning, `src/commands/status/` owns status inspection, `src/commands/corpus/` owns curated corpus workflows, and `src/commands/fastq/meta/` owns FASTQ meta-command dispatch.
 
