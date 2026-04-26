@@ -1,5 +1,6 @@
 use anyhow::{bail, Result};
 use serde::Serialize;
+use std::collections::BTreeSet;
 
 use crate::api::ChunkPlanSettings;
 use bijux_dna_domain_vcf::contracts::SpeciesContext;
@@ -26,6 +27,11 @@ pub fn plan_region_chunks(
     }
     if chunking.max_parallel_chunks == 0 {
         bail!("chunk max_parallel_chunks must be > 0");
+    }
+    let include_names = chunking.chr_include.iter().collect::<BTreeSet<_>>();
+    let exclude_names = chunking.chr_exclude.iter().collect::<BTreeSet<_>>();
+    if let Some(name) = include_names.intersection(&exclude_names).next() {
+        bail!("chunk contig `{name}` cannot appear in both chr_include and chr_exclude");
     }
     let mut chunks = Vec::new();
     let include_all = chunking.chr_include.is_empty();
