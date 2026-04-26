@@ -11,6 +11,10 @@ The FASTQ domain is only reviewable when each supported backend can be traced to
 - Replacement for upstream manuals.
 - Claiming a paper for software that is only documented as software.
 
+## Contracts
+- Every admitted FASTQ backend must have either a paper locator or an explicit software-citation locator.
+- Evidence gaps must remain visible in the generated evidence backlog rather than being hidden in prose.
+
 ## Citation Policy
 - Prefer DOI-bearing publisher pages or stable full-text records for papers.
 - Use software/project pages for tools without a dedicated peer-reviewed paper.
@@ -72,7 +76,7 @@ The FASTQ domain is only reviewable when each supported backend can be traced to
 ## Amplicon, Error Correction, and UMI Handling
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
-| dada2 | `fastq.infer_asvs` governed placeholder | paper | https://www.nature.com/articles/nmeth.3869 |
+| dada2 | `fastq.infer_asvs` governed catalog-only entry | paper | https://www.nature.com/articles/nmeth.3869 |
 | rcorrector | `fastq.correct_errors` | paper | https://gigascience.biomedcentral.com/articles/10.1186/s13742-015-0089-y |
 | musket | `fastq.correct_errors` | paper | https://academic.oup.com/bioinformatics/article/29/3/308/257257 |
 | lighter | `fastq.correct_errors` | paper | https://pmc.ncbi.nlm.nih.gov/articles/PMC4248469/ |

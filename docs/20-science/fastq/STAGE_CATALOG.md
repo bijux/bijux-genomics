@@ -196,7 +196,7 @@ Keeps stage names tied to stable inputs, outputs, and mutations so tool support 
 - Purpose: infer amplicon sequence variants.
 - Inputs/Outputs: reads -> asv_table_tsv, asv_sequences_fasta, taxonomy_ready_fasta, taxonomy_ready_fastq.
 - Metrics: inferred variant counts.
-- Defaults: no production backend admitted yet; stage remains a governed placeholder in the catalog only.
+- Defaults: no production backend admitted yet; stage remains a governed catalog-only entry.
 - Tools: no admitted backend yet.
 - References: `domain/fastq/stages/infer_asvs.yaml`, `domain/fastq/tools/`.
 

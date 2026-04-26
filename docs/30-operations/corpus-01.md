@@ -2,6 +2,20 @@
 
 `corpus-01` is the Lunarc benchmark FASTQ corpus for human DNA stage benchmarking.
 
+## Purpose
+Define the stable benchmark corpus used by governed FASTQ performance and integrity checks.
+
+## Scope
+This document covers corpus composition, materialization, and the committed corpus contract.
+
+## Non-goals
+- Replacing the machine-readable corpus specification.
+- Describing ad hoc local corpora outside the governed `corpus-01` contract.
+
+## Contracts
+- Corpus membership must stay aligned with `configs/runtime/corpora/corpus-01.toml`.
+- Materialized files must remain under the configured corpus root, not under source directories.
+
 It is intentionally curated instead of randomly sampled so the benchmark surface stays stable over time:
 
 - 20 total samples

@@ -3,6 +3,20 @@
 `docs/badges.md` defines the shared badge contract for `bijux-genomics`
 repository entry surfaces.
 
+## Purpose
+Keep repository badges centralized so README and documentation entry points do not drift.
+
+## Scope
+This file covers project status, CI, release-readiness, package, and documentation badges.
+
+## Non-goals
+- Publishing package versions before release channels exist.
+- Replacing GitHub Actions, package registry, or documentation status pages.
+
+## Contracts
+- Badges must point to stable repository-owned status surfaces.
+- Generated badge blocks must remain between the managed start and end markers.
+
 This repository is private and does not publish public release channels yet, so
 release badges intentionally show readiness state rather than package versions.
 

@@ -33,7 +33,7 @@ exports while routing the stable surface through `src/public_api/mod.rs`.
 
 ## Artifacts / Contracts
 Manifest schemas and download planning contracts are documented in `docs/ARCHITECTURE.md`,
-`docs/CONTRACT.md`, and `docs/SCHEMAS.md`.
+`docs/SCOPE.md`, and `docs/INDEX.md`.
 
 ## Failure modes
 - invalid ENA query descriptors or malformed filereport payloads
