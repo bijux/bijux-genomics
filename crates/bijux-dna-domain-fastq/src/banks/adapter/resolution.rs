@@ -94,6 +94,42 @@ pub(super) fn resolve_adapter_ids_and_sequences(
     Ok((enabled_ids, adapters, sequences))
 }
 
+pub(super) fn hash_preset_sequences(sequences: &[String]) -> String {
+    let mut ordered: Vec<String> = sequences.to_vec();
+    ordered.sort();
+    let joined = ordered.join("|");
+    let digest = sha2::Sha256::digest(joined.as_bytes());
+    sha256_hex(digest)
+}
+
+#[must_use]
+pub fn adapter_categories() -> BTreeSet<String> {
+    super::ADAPTER_TAGS.iter().map(|tag| (*tag).to_string()).collect()
+}
+
+#[must_use]
+pub fn adapters_by_category(bank: &AdapterBankV1) -> BTreeMap<String, Vec<String>> {
+    let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    for adapter in &bank.adapters {
+        for tag in &adapter.tags {
+            map.entry(tag.clone()).or_default().push(adapter.id.clone());
+        }
+    }
+    for ids in map.values_mut() {
+        ids.sort();
+    }
+    map
+}
+
+fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
+    let bytes = digest.as_ref();
+    let mut hex = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -139,51 +175,17 @@ mod tests {
 
     #[test]
     fn resolve_adapter_preset_rejects_unknown_disable_override() {
-        let err = resolve_adapter_preset(
+        let result = resolve_adapter_preset(
             &bank(),
             &presets(),
             "truseq",
             &[],
             &["misspelled-adapter".to_string()],
-        )
-        .expect_err("unknown disable overrides must be invalid");
+        );
+        let Err(err) = result else {
+            panic!("unknown disable overrides must be invalid");
+        };
 
         assert!(err.to_string().contains("unknown adapter id misspelled-adapter"));
     }
-}
-
-pub(super) fn hash_preset_sequences(sequences: &[String]) -> String {
-    let mut ordered: Vec<String> = sequences.to_vec();
-    ordered.sort();
-    let joined = ordered.join("|");
-    let digest = sha2::Sha256::digest(joined.as_bytes());
-    sha256_hex(digest)
-}
-
-#[must_use]
-pub fn adapter_categories() -> BTreeSet<String> {
-    super::ADAPTER_TAGS.iter().map(|tag| (*tag).to_string()).collect()
-}
-
-#[must_use]
-pub fn adapters_by_category(bank: &AdapterBankV1) -> BTreeMap<String, Vec<String>> {
-    let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
-    for adapter in &bank.adapters {
-        for tag in &adapter.tags {
-            map.entry(tag.clone()).or_default().push(adapter.id.clone());
-        }
-    }
-    for ids in map.values_mut() {
-        ids.sort();
-    }
-    map
-}
-
-fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
-    let bytes = digest.as_ref();
-    let mut hex = String::with_capacity(bytes.len() * 2);
-    for byte in bytes {
-        let _ = write!(&mut hex, "{byte:02x}");
-    }
-    hex
 }

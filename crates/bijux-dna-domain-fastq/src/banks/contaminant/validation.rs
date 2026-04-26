@@ -27,10 +27,7 @@ pub(super) fn validate_contaminant_motifs(bank: &ContaminantMotifBankV1) -> Resu
             || motif.rationale.trim().is_empty()
             || motif.source.trim().is_empty()
         {
-            return Err(anyhow!(
-                "contaminant motif {} missing name/rationale/source",
-                motif.id
-            ));
+            return Err(anyhow!("contaminant motif {} missing name/rationale/source", motif.id));
         }
         ensure_sequence_alphabet(&motif.sequence)?;
     }
@@ -54,10 +51,7 @@ pub(super) fn validate_contaminant_presets(
             return Err(anyhow!("contaminant preset {} missing hash", preset.name));
         }
         if preset.rationale.trim().is_empty() {
-            return Err(anyhow!(
-                "contaminant preset {} missing rationale",
-                preset.name
-            ));
+            return Err(anyhow!("contaminant preset {} missing rationale", preset.name));
         }
         let mut motif_ids = BTreeSet::new();
         for motif_id in &preset.motif_ids {
@@ -100,6 +94,19 @@ pub(super) fn validate_contaminant_presets(
             if !path.exists() {
                 return Err(anyhow!("missing contaminant reference {}", path.display()));
             }
+        }
+    }
+    Ok(())
+}
+
+fn ensure_sequence_alphabet(sequence: &str) -> Result<()> {
+    if sequence.trim().is_empty() {
+        return Err(anyhow!("sequence cannot be empty"));
+    }
+    for ch in sequence.chars() {
+        match ch.to_ascii_uppercase() {
+            'A' | 'C' | 'G' | 'T' | 'N' => {}
+            _ => return Err(anyhow!("invalid base {ch} in sequence")),
         }
     }
     Ok(())
@@ -152,13 +159,22 @@ mod tests {
         }
     }
 
+    fn assert_err<T>(result: Result<T>, message: &str) -> anyhow::Error {
+        match result {
+            Ok(_) => panic!("{message}"),
+            Err(err) => err,
+        }
+    }
+
     #[test]
     fn contaminant_motif_bank_rejects_blank_motif_id() {
         let mut motif = valid_motif();
         motif.id = " ".to_string();
 
-        let err = validate_contaminant_motifs(&motif_bank_with(motif))
-            .expect_err("blank contaminant motif ids must be invalid");
+        let err = assert_err(
+            validate_contaminant_motifs(&motif_bank_with(motif)),
+            "blank contaminant motif ids must be invalid",
+        );
 
         assert!(err.to_string().contains("missing id"));
     }
@@ -168,8 +184,10 @@ mod tests {
         let mut motif = valid_motif();
         motif.source.clear();
 
-        let err = validate_contaminant_motifs(&motif_bank_with(motif))
-            .expect_err("contaminant motif provenance must be complete");
+        let err = assert_err(
+            validate_contaminant_motifs(&motif_bank_with(motif)),
+            "contaminant motif provenance must be complete",
+        );
 
         assert!(err.to_string().contains("missing name/rationale/source"));
     }
@@ -183,8 +201,10 @@ mod tests {
             presets: vec![preset.clone(), preset],
         };
 
-        let err = validate_contaminant_presets(&presets, &bank, Path::new("."))
-            .expect_err("duplicate contaminant preset names must be invalid");
+        let err = assert_err(
+            validate_contaminant_presets(&presets, &bank, Path::new(".")),
+            "duplicate contaminant preset names must be invalid",
+        );
 
         assert!(err.to_string().contains("duplicate contaminant preset name"));
     }
@@ -195,22 +215,11 @@ mod tests {
         let mut preset = valid_preset();
         preset.motif_ids = vec!["phi-x".to_string(), "phi-x".to_string()];
 
-        let err = validate_contaminant_presets(&valid_presets_with(preset), &bank, Path::new("."))
-            .expect_err("repeated motif ids must be invalid");
+        let err = assert_err(
+            validate_contaminant_presets(&valid_presets_with(preset), &bank, Path::new(".")),
+            "repeated motif ids must be invalid",
+        );
 
         assert!(err.to_string().contains("repeats motif id"));
     }
-}
-
-fn ensure_sequence_alphabet(sequence: &str) -> Result<()> {
-    if sequence.trim().is_empty() {
-        return Err(anyhow!("sequence cannot be empty"));
-    }
-    for ch in sequence.chars() {
-        match ch.to_ascii_uppercase() {
-            'A' | 'C' | 'G' | 'T' | 'N' => {}
-            _ => return Err(anyhow!("invalid base {ch} in sequence")),
-        }
-    }
-    Ok(())
 }

@@ -46,6 +46,10 @@ pub fn resolve_effective_contaminants(
     )
 }
 
+/// Build contaminant bank provenance JSON from a resolved selection.
+///
+/// # Errors
+/// Returns an error if a referenced contaminant FASTA cannot be read or hashed.
 pub fn contaminant_bank_provenance_json(
     selection: &ContaminantSelection,
     effective: &crate::EffectiveContaminantSet,
@@ -68,8 +72,8 @@ pub fn contaminant_bank_provenance_json(
         .iter()
         .map(|reference| {
             let path = references_dir.join(&reference.file);
-            let fasta =
-                std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+            let fasta = std::fs::read_to_string(&path)
+                .with_context(|| format!("read {}", path.display()))?;
             let hash = bijux_dna_infra::hash_file_sha256(&path)
                 .with_context(|| format!("hash {}", path.display()))?;
             Ok(serde_json::json!({
@@ -148,8 +152,11 @@ mod tests {
 
     #[test]
     fn contaminant_provenance_rejects_missing_reference_files() {
-        let err = contaminant_bank_provenance_json(&selection(), &effective_with_missing_reference())
-            .expect_err("missing contaminant references must fail provenance generation");
+        let result =
+            contaminant_bank_provenance_json(&selection(), &effective_with_missing_reference());
+        let Err(err) = result else {
+            panic!("missing contaminant references must fail provenance generation");
+        };
 
         assert!(err.to_string().contains("missing-reference.fa"));
     }

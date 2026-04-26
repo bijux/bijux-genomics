@@ -26,10 +26,7 @@ pub(super) fn validate_polyx_bank(bank: &PolyxBankV1) -> Result<()> {
             || entry.rationale.trim().is_empty()
             || entry.source.trim().is_empty()
         {
-            return Err(anyhow!(
-                "polyx entry {} missing name/rationale/source",
-                entry.id
-            ));
+            return Err(anyhow!("polyx entry {} missing name/rationale/source", entry.id));
         }
         ensure_sequence_alphabet(&entry.sequence)?;
     }
@@ -57,11 +54,7 @@ pub(super) fn validate_polyx_presets(presets: &PolyxPresetsV1, bank: &PolyxBankV
                 return Err(anyhow!("polyx preset {} has empty polyx id", preset.name));
             }
             if !polyx_ids.insert(polyx_id.clone()) {
-                return Err(anyhow!(
-                    "polyx preset {} repeats polyx id {}",
-                    preset.name,
-                    polyx_id
-                ));
+                return Err(anyhow!("polyx preset {} repeats polyx id {}", preset.name, polyx_id));
             }
             if !bank.entries.iter().any(|entry| entry.id == *polyx_id) {
                 return Err(anyhow!("unknown polyx id {polyx_id}"));
@@ -69,6 +62,19 @@ pub(super) fn validate_polyx_presets(presets: &PolyxPresetsV1, bank: &PolyxBankV
         }
         for seq in &preset.sequences {
             ensure_sequence_alphabet(seq)?;
+        }
+    }
+    Ok(())
+}
+
+fn ensure_sequence_alphabet(sequence: &str) -> Result<()> {
+    if sequence.trim().is_empty() {
+        return Err(anyhow!("sequence cannot be empty"));
+    }
+    for ch in sequence.chars() {
+        match ch.to_ascii_uppercase() {
+            'A' | 'C' | 'G' | 'T' | 'N' => {}
+            _ => return Err(anyhow!("invalid base {ch} in sequence")),
         }
     }
     Ok(())
@@ -120,13 +126,20 @@ mod tests {
         }
     }
 
+    fn assert_err<T>(result: Result<T>, message: &str) -> anyhow::Error {
+        match result {
+            Ok(_) => panic!("{message}"),
+            Err(err) => err,
+        }
+    }
+
     #[test]
     fn polyx_bank_rejects_blank_entry_id() {
         let mut entry = valid_entry();
         entry.id = " ".to_string();
 
-        let err = validate_polyx_bank(&bank_with(entry))
-            .expect_err("blank polyx ids must be invalid");
+        let err =
+            assert_err(validate_polyx_bank(&bank_with(entry)), "blank polyx ids must be invalid");
 
         assert!(err.to_string().contains("missing id"));
     }
@@ -136,8 +149,8 @@ mod tests {
         let mut entry = valid_entry();
         entry.rationale.clear();
 
-        let err = validate_polyx_bank(&bank_with(entry))
-            .expect_err("polyx metadata must be complete");
+        let err =
+            assert_err(validate_polyx_bank(&bank_with(entry)), "polyx metadata must be complete");
 
         assert!(err.to_string().contains("missing name/rationale/source"));
     }
@@ -151,8 +164,10 @@ mod tests {
             presets: vec![preset.clone(), preset],
         };
 
-        let err = validate_polyx_presets(&presets, &bank)
-            .expect_err("duplicate polyx preset names must be invalid");
+        let err = assert_err(
+            validate_polyx_presets(&presets, &bank),
+            "duplicate polyx preset names must be invalid",
+        );
 
         assert!(err.to_string().contains("duplicate polyx preset name"));
     }
@@ -163,22 +178,11 @@ mod tests {
         let mut preset = valid_preset();
         preset.polyx_ids = vec!["poly-g".to_string(), "poly-g".to_string()];
 
-        let err = validate_polyx_presets(&presets_with(preset), &bank)
-            .expect_err("repeated polyx ids must be invalid");
+        let err = assert_err(
+            validate_polyx_presets(&presets_with(preset), &bank),
+            "repeated polyx ids must be invalid",
+        );
 
         assert!(err.to_string().contains("repeats polyx id"));
     }
-}
-
-fn ensure_sequence_alphabet(sequence: &str) -> Result<()> {
-    if sequence.trim().is_empty() {
-        return Err(anyhow!("sequence cannot be empty"));
-    }
-    for ch in sequence.chars() {
-        match ch.to_ascii_uppercase() {
-            'A' | 'C' | 'G' | 'T' | 'N' => {}
-            _ => return Err(anyhow!("invalid base {ch} in sequence")),
-        }
-    }
-    Ok(())
 }
