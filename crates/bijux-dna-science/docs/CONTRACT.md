@@ -19,6 +19,10 @@ traceability outputs, and cuts immutable science release bundles.
 the compiler's deterministic ordering, and free of comment rows. JSON outputs must
 use stable pretty rendering.
 
+The generated FASTQ evidence set includes the environment matrix, container
+reference matrix, download backlog, paper archive matrix, closure gate, truth
+delta, missing closure prerequisites, and default binding risk ledger.
+
 ## Boundaries
 - No pipeline runtime orchestration.
 - No stage execution.
