@@ -1,7 +1,9 @@
 use std::fs;
 use std::path::PathBuf;
 
-use bijux_dna_domain_bam::{BamStage, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG};
+use bijux_dna_domain_bam::{
+    BamStage, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG, BAM_STAGE_ID_CATALOG,
+};
 
 #[test]
 fn public_surface_is_constrained() -> anyhow::Result<()> {
@@ -57,6 +59,13 @@ fn params_catalog_covers_every_stage_once() {
         .map(|suffix| format!("bijux.bam.params.{suffix}.v1"))
         .collect();
     assert_eq!(BAM_PARAMS_CATALOG, expected.as_slice());
+}
+
+#[test]
+fn stage_id_catalog_matches_stage_enum() {
+    let mut expected: Vec<&str> = BamStage::all().iter().map(|stage| stage.as_str()).collect();
+    expected.sort_unstable();
+    assert_eq!(BAM_STAGE_ID_CATALOG, expected.as_slice());
 }
 
 #[test]
