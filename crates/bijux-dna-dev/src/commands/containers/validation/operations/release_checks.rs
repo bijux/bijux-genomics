@@ -333,8 +333,7 @@ pub(in super::super::super) fn check_release_checklist(
     }
     let checklist = read_utf8(&checklist_path)?;
     let registry = crate::catalog::containers::container_registry(workspace)?;
-    let command_regex =
-        Regex::new(r"cargo run -p bijux-dna-dev -- containers run ([a-z0-9-]+)").expect("regex");
+    let command_regex = Regex::new(r"cargo run -p bijux-dna-dev -- containers run ([a-z0-9-]+)")?;
     let missing = command_regex
         .captures_iter(&checklist)
         .filter_map(|capture| capture.get(1).map(|value| value.as_str().to_string()))

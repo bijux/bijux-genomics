@@ -60,7 +60,7 @@ pub(in super::super) fn check_tool_name_collision(
             }
         }
     }
-    let numeric_suffix_re = Regex::new(r"^([a-z_]+?)(\d+)$").expect("regex");
+    let numeric_suffix_re = Regex::new(r"^([a-z_]+?)(\d+)$")?;
     for tool_id in tools.keys() {
         let Some(captures) = numeric_suffix_re.captures(tool_id) else {
             continue;
@@ -102,7 +102,7 @@ pub(in super::super) fn check_tool_name_collision(
         ("domain_tools", domain_ids),
     ];
     let all_ids = surfaces.iter().flat_map(|(_, ids)| ids.iter().cloned()).collect::<BTreeSet<_>>();
-    let norm_re = Regex::new(r"^[a-z][a-z0-9_]*$").expect("regex");
+    let norm_re = Regex::new(r"^[a-z][a-z0-9_]*$")?;
     for tool_id in &all_ids {
         if !norm_re.is_match(tool_id) {
             errors.push(format!("id normalization: '{tool_id}' is not snake_case"));
@@ -548,7 +548,7 @@ pub(in super::super) fn check_tool_id_contract(
     ];
     let allowed_status =
         ["production", "experimental", "planned"].into_iter().collect::<BTreeSet<_>>();
-    let tool_re = Regex::new(r"^[a-z][a-z0-9_]*$").expect("regex");
+    let tool_re = Regex::new(r"^[a-z][a-z0-9_]*$")?;
     let docker_ids = docker_tool_ids(workspace)?;
     let apptainer_ids = apptainer_tool_ids(workspace);
     let mut seen = BTreeSet::new();
@@ -726,8 +726,9 @@ pub(in super::super) fn check_docker_context(
 ) -> Result<ContainerCommandOutcome> {
     let mut errors = Vec::new();
     let scan_roots = [workspace.path("makes"), workspace.path("crates/bijux-dna-dev/src")];
-    let broad_build_re = Regex::new(r"\bdocker\s+build\b.*\s\.\s*$").expect("regex");
-    let host_copy_re = Regex::new(r"\b(COPY|ADD)\s+(\.\./|/Users/|~/)").expect("regex");
+    let broad_build_re = Regex::new(r"\bdocker\s+build\b.*\s\.\s*$")?;
+    let host_copy_re = Regex::new(r"\b(COPY|ADD)\s+(\.\./|/Users/|~/)")?;
+    let broad_context_copy_re = Regex::new(r"^(COPY|ADD)\s+\.\s")?;
     for root in scan_roots {
         if !root.exists() {
             continue;
@@ -791,7 +792,7 @@ pub(in super::super) fn check_docker_context(
         for (index, line) in lines.iter().enumerate() {
             let trimmed = line.trim();
             if trimmed.ends_with('\\')
-                && lines.get(index + 1).map(|next| next.trim().is_empty()).unwrap_or(true)
+                && lines.get(index + 1).map_or(true, |next| next.trim().is_empty())
             {
                 errors.push(format!(
                     "{}:{}: dangling Dockerfile line continuation before blank line or EOF",
@@ -799,7 +800,7 @@ pub(in super::super) fn check_docker_context(
                     index + 1
                 ));
             }
-            if Regex::new(r"^(COPY|ADD)\s+\.\s").expect("regex").is_match(trimmed) {
+            if broad_context_copy_re.is_match(trimmed) {
                 errors.push(format!(
                     "{}:{}: forbidden broad context copy ('COPY . ...' or 'ADD . ...')",
                     workspace.rel(&path).display(),
@@ -836,7 +837,7 @@ pub(in super::super) fn check_docker_hardening(
             "missing containers/docker/ENTRYPOINT_EXCEPTIONS.md\n",
         ));
     }
-    let row_re = Regex::new(r"\|\s*`([^`]+)`\s*\|").expect("regex");
+    let row_re = Regex::new(r"\|\s*`([^`]+)`\s*\|")?;
     let allowed = row_re
         .captures_iter(&read_utf8(&exceptions_doc)?)
         .filter_map(|captures| captures.get(1).map(|value| value.as_str().to_string()))
@@ -846,12 +847,14 @@ pub(in super::super) fn check_docker_hardening(
         .filter_map(|captures| captures.get(1).map(|value| value.as_str().to_string()))
         .collect::<BTreeSet<_>>();
     let required_labels = canonical_container_label_keys();
-    let entrypoint_re = Regex::new(r"^ENTRYPOINT\s+\[").expect("regex");
-    let cmd_re = Regex::new(r"^CMD\s+\[").expect("regex");
-    let cmd_line_re = Regex::new(r"^CMD\s+\[(.+)\]\s*$").expect("regex");
-    let user_re = Regex::new(r"^USER\s+(.+)$").expect("regex");
-    let healthcheck_re = Regex::new(r"^HEALTHCHECK\s+(.+)$").expect("regex");
-    let sh_entrypoint_re = Regex::new(r#"^ENTRYPOINT\s+\["/bin/sh",\s*"-c""#).expect("regex");
+    let entrypoint_re = Regex::new(r"^ENTRYPOINT\s+\[")?;
+    let cmd_re = Regex::new(r"^CMD\s+\[")?;
+    let cmd_line_re = Regex::new(r"^CMD\s+\[(.+)\]\s*$")?;
+    let user_re = Regex::new(r"^USER\s+(.+)$")?;
+    let healthcheck_re = Regex::new(r"^HEALTHCHECK\s+(.+)$")?;
+    let sh_entrypoint_re = Regex::new(r#"^ENTRYPOINT\s+\["/bin/sh",\s*"-c""#)?;
+    let pipe_shell_re =
+        Regex::new(r"curl\s+[^|\n]*\|\s*(bash|sh)\b|wget\s+[^|\n]*\|\s*(bash|sh)\b")?;
     let mut errors = Vec::new();
     for path in dockerfile_paths(workspace)? {
         let tool_id = path
@@ -867,9 +870,6 @@ pub(in super::super) fn check_docker_hardening(
                 errors.push(format!("{rel}: missing label {label}"));
             }
         }
-        let pipe_shell_re =
-            Regex::new(r"curl\s+[^|\n]*\|\s*(bash|sh)\b|wget\s+[^|\n]*\|\s*(bash|sh)\b")
-                .expect("regex");
         if pipe_shell_re.is_match(&text) {
             errors.push(format!("{rel}: forbidden curl|bash or wget|sh pattern"));
         }
@@ -952,12 +952,9 @@ pub(in super::super) fn check_docker_labels(
         "org.opencontainers.image.source",
         "org.opencontainers.image.licenses",
     ];
-    let tool_re =
-        Regex::new(r#"org\.opencontainers\.image\.tool="?([A-Za-z0-9_.-]+)"?"#).expect("regex");
-    let version_re =
-        Regex::new(r#"org\.opencontainers\.image\.version="?([A-Za-z0-9_.:-]+)"?"#).expect("regex");
-    let apptainer_version_re =
-        Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)").expect("regex");
+    let tool_re = Regex::new(r#"org\.opencontainers\.image\.tool="?([A-Za-z0-9_.-]+)"?"#)?;
+    let version_re = Regex::new(r#"org\.opencontainers\.image\.version="?([A-Za-z0-9_.:-]+)"?"#)?;
+    let apptainer_version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)")?;
     let mut docker_versions = BTreeMap::new();
     let mut errors = Vec::new();
     for path in dockerfile_paths(workspace)? {
@@ -1024,6 +1021,7 @@ pub(in super::super) fn check_docker_unpinned_apt(
     let ci_mode =
         matches!(env_or_empty("CI").trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes");
     let mut errors = Vec::new();
+    let option_re = Regex::new(r"--[a-zA-Z0-9-]+(?:=[^\s]+)?")?;
     for dockerfile in dockerfile_paths(workspace)? {
         let rel = workspace.rel(&dockerfile).display().to_string();
         for line in read_utf8(&dockerfile)?.lines() {
@@ -1037,7 +1035,6 @@ pub(in super::super) fn check_docker_unpinned_apt(
             } else {
                 continue;
             };
-            let option_re = Regex::new(r"--[a-zA-Z0-9-]+(?:=[^\s]+)?").expect("regex");
             segment = option_re.replace_all(&segment, " ").into_owned();
             segment = segment.replace("&&", " ").replace('\\', " ");
             for token in segment.split_whitespace().filter(|token| !token.is_empty()) {
@@ -1084,7 +1081,7 @@ pub(in super::super) fn check_docker_version_sync(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
     let versions = tool_versions(workspace)?;
-    let arg_re = Regex::new(r"^ARG\s+TOOL_VERSION\s*=\s*([^\s#]+)\s*$").expect("regex");
+    let arg_re = Regex::new(r"^ARG\s+TOOL_VERSION\s*=\s*([^\s#]+)\s*$")?;
     let mut errors = Vec::new();
     for dockerfile in dockerfile_paths(workspace)? {
         let tool = dockerfile
@@ -1215,16 +1212,14 @@ pub(in super::super) fn check_no_secrets(workspace: &Workspace) -> Result<Contai
     scan.extend(apptainer_def_paths(workspace));
     scan.extend(dockerfile_paths(workspace)?);
     let patterns = [
-        Regex::new(r"AKIA[0-9A-Z]{16}").expect("regex"),
-        Regex::new(r#"(?i)(secret|token|password)\s*[:=]\s*['"]?[A-Za-z0-9_\-]{8,}"#)
-            .expect("regex"),
-        Regex::new(r"ghp_[A-Za-z0-9]{20,}").expect("regex"),
-        Regex::new(r"github_pat_[A-Za-z0-9_]{20,}").expect("regex"),
-        Regex::new(r"xox[baprs]-[A-Za-z0-9-]{10,}").expect("regex"),
-        Regex::new(r"AIza[0-9A-Za-z\-_]{35}").expect("regex"),
-        Regex::new(r#"(?i)aws_secret_access_key\s*[:=]\s*['"]?[A-Za-z0-9/+=]{30,}"#)
-            .expect("regex"),
-        Regex::new(r"(?i)-----BEGIN (?:RSA|OPENSSH|EC) PRIVATE KEY-----").expect("regex"),
+        Regex::new(r"AKIA[0-9A-Z]{16}")?,
+        Regex::new(r#"(?i)(secret|token|password)\s*[:=]\s*['"]?[A-Za-z0-9_\-]{8,}"#)?,
+        Regex::new(r"ghp_[A-Za-z0-9]{20,}")?,
+        Regex::new(r"github_pat_[A-Za-z0-9_]{20,}")?,
+        Regex::new(r"xox[baprs]-[A-Za-z0-9-]{10,}")?,
+        Regex::new(r"AIza[0-9A-Za-z\-_]{35}")?,
+        Regex::new(r#"(?i)aws_secret_access_key\s*[:=]\s*['"]?[A-Za-z0-9/+=]{30,}"#)?,
+        Regex::new(r"(?i)-----BEGIN (?:RSA|OPENSSH|EC) PRIVATE KEY-----")?,
     ];
     let mut errors = Vec::new();
     for path in scan {
@@ -1275,7 +1270,7 @@ pub(in super::super) fn check_runtime_downloads(
             );
         }
     }
-    let download_re = Regex::new(r"\b(curl|wget)\b").expect("regex");
+    let download_re = Regex::new(r"\b(curl|wget)\b")?;
     let mut errors = Vec::new();
     for path in apptainer_def_paths(workspace) {
         let text = read_utf8(&path)?;
@@ -1340,7 +1335,7 @@ pub(in super::super) fn check_vuln_allowlist(
         )));
     }
     let data = load_toml(&path)?;
-    let cve_re = Regex::new(r"^CVE-\d{4}-\d{4,}$").expect("regex");
+    let cve_re = Regex::new(r"^CVE-\d{4}-\d{4,}$")?;
     let now = Utc::now();
     let mut seen = BTreeSet::new();
     let mut errors = Vec::new();
