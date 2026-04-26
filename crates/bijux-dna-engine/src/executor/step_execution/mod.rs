@@ -70,6 +70,9 @@ fn execute_step(
                 return Err(anyhow!("step {} exceeded timeout {}s", step.step_id.0, timeout_s));
             }
         }
+        if cancel.is_some_and(CancellationToken::is_cancelled) {
+            return Err(anyhow!("execution cancelled during {}", step.step_id.0));
+        }
         if success {
             contracts::enforce_contract(step)?;
             if let Some(hooks) = hooks {
