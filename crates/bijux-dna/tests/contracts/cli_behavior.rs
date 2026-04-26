@@ -3,6 +3,8 @@
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+use bijux_dna::public_api::run_with_args;
+
 struct CliWorkspace {
     root: tempfile::TempDir,
     home: PathBuf,
@@ -95,6 +97,25 @@ fn assert_removed_subcommand(workspace: &CliWorkspace, args: &[&str], name: &str
         err.contains("unrecognized subcommand") && err.contains(name),
         "expected removed subcommand `{name}` error, got: {err}"
     );
+}
+
+#[test]
+fn public_api_run_restores_cli_environment() {
+    let workspace = CliWorkspace::new();
+    workspace.setup_configs();
+    let _env_guard = crate::support::EnvGuard::new().expect("capture env");
+    let _cwd_guard = crate::support::CWD_LOCK.lock().expect("cwd lock");
+    std::env::set_var("BIJUX_OUTPUT_JSON", "outer-json");
+    std::env::remove_var("BIJUX_VERBOSE");
+
+    run_with_args(
+        &["bijux", "--json", "--verbose", "--platform", "test", "env", "info"],
+        workspace.path(),
+    )
+    .expect("cli ok");
+
+    assert_eq!(std::env::var("BIJUX_OUTPUT_JSON").as_deref(), Ok("outer-json"));
+    assert!(std::env::var_os("BIJUX_VERBOSE").is_none());
 }
 
 #[test]
