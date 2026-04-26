@@ -13,13 +13,7 @@ fn analyze_tree_matches_architecture_contract() {
 fn assert_crate_root_layout(root: &Path) {
     assert_eq!(
         dir_entries(root),
-        entries([
-            "Cargo.toml",
-            "README.md",
-            "docs/",
-            "src/",
-            "tests/",
-        ]),
+        entries(["Cargo.toml", "README.md", "docs/", "src/", "tests/",]),
         "crate root must stay minimal and intentional"
     );
 }
