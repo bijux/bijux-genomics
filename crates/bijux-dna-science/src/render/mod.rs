@@ -144,11 +144,11 @@ pub fn fastq_closure_gate_tsv(rows: &[FastqClosureGateRow]) -> String {
             row.requested_execution_status.as_str(),
             row.effective_closure_status.as_str(),
             if row.world_class_closed { "true" } else { "false" },
-            row.blocking_reasons.as_str(),
-            row.warning_reasons.as_str(),
+            evidence_cell(&row.blocking_reasons),
+            evidence_cell(&row.warning_reasons),
         ]
         .join("\t");
-        out.push_str(line.trim_end_matches('\t'));
+        out.push_str(&line);
         out.push('\n');
     }
     out
