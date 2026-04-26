@@ -15,9 +15,9 @@ normalize graph -> order steps -> execute runner invocations -> record execution
 
 ## Internal layout
 - `src/public_api/`: curated stable surface for downstream crates
-- `src/control.rs`: cancellation control
-- `src/observability.rs`: engine events and hook contracts
-- `src/engine_config.rs`: engine policy inputs
+- `src/control/`: cancellation token contract and state transitions
+- `src/observability/`: engine events and hook contracts
+- `src/engine_config/`: engine policy inputs and graph-policy application
 - `src/engine_driver.rs`: `Engine` construction and execution entrypoint
 - `src/executor/`: graph preparation, step orchestration, contract enforcement, topology, and
   execution-record persistence

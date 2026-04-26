@@ -15,8 +15,14 @@ Written into `run_artifacts/` for each step:
 - `metrics.json`
 - `stage_report.json`
 - `execution_record.json`
+- `metrics_envelope.json` when `ExecutionStep::metrics_schema_ids` is non-empty
 
 ## Non-goals
 - Planning or tool selection
 - Process spawning or runtime backend logic
 - Domain semantics (owned by planners and domains)
+
+## Contract validation
+The engine verifies that required run artifacts are non-empty parseable JSON, declared JSON outputs
+are parseable JSON, expected artifact IDs are declared as outputs, and metrics envelopes match one
+of the step's declared metrics schema IDs.
