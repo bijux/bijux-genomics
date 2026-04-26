@@ -9,6 +9,10 @@ queries; execution crates decide when and how to run tools.
 src/
   artifacts/              stage report and manifest schemas
   banks/                  adapter, contaminant, and polyX banks plus selection
+    adapter/              adapter bank models, validation, and preset resolution
+    contaminant/          contaminant bank models, validation, and preset resolution
+    polyx/                polyX bank models, validation, and preset resolution
+    selection/            effective bank selection and provenance helpers
   bench/                  benchmark query context and repository contracts
   comparison_contract/    stage comparison artifact contracts
   execution_support/      manifest-backed execution support catalog
