@@ -25,3 +25,14 @@ fn snapshot_normalize_json_keeps_malformed_duration_like_strings() {
     assert_eq!(normalized["valid"], "<DURATION>");
     assert!(normalized.get("duration").is_none());
 }
+
+#[test]
+fn snapshot_normalize_json_keeps_non_timestamp_labels() {
+    let raw = serde_json::json!({
+        "label": "T-cell sample: A-B",
+        "observed": "2024-01-01T02:03:04Z"
+    });
+    let normalized = bijux_dna_testkit::snapshot_normalize_json(&raw);
+    assert_eq!(normalized["label"], "T-cell sample: A-B");
+    assert_eq!(normalized["observed"], "<TIMESTAMP>");
+}
