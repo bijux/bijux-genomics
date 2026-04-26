@@ -48,7 +48,7 @@ management commands.
 
 ## Forbidden Command Surfaces
 
-- No `src/bin`.
+- No Cargo binary targets or `src/bin` command modules.
 - No CLI parser ownership.
 - No process spawning.
 - No runtime command execution.
