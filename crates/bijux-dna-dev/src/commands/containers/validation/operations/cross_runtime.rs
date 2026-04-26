@@ -1,7 +1,7 @@
 use super::{
     env_or_default, env_or_empty, failure_lines, load_runtime_manifest_rows,
     normalized_version_output, registry_tool_id, registry_tool_rows, success_line, table_string,
-    BTreeMap, ContainerCommandOutcome, PathBuf, Regex, Result, Workspace,
+    BTreeMap, ContainerCommandOutcome, Path, PathBuf, Regex, Result, Workspace,
 };
 
 pub(in super::super::super) fn check_cross_runtime_representative(
@@ -15,13 +15,13 @@ pub(in super::super::super) fn check_cross_runtime_representative(
         "APPTAINER_DIR",
         &workspace.path("artifacts/containers/apptainer").display().to_string(),
     ));
-    check_cross_runtime_representative_at_paths(workspace, docker_dir, apptainer_dir)
+    check_cross_runtime_representative_at_paths(workspace, &docker_dir, &apptainer_dir)
 }
 
 pub(in super::super::super) fn check_cross_runtime_representative_at_paths(
     _workspace: &Workspace,
-    docker_dir: PathBuf,
-    apptainer_dir: PathBuf,
+    docker_dir: &Path,
+    apptainer_dir: &Path,
 ) -> Result<ContainerCommandOutcome> {
     if !docker_dir.exists() || !apptainer_dir.exists() {
         if env_or_empty("CI").is_empty() {
@@ -103,13 +103,13 @@ pub(in super::super::super) fn check_cross_runtime_smoke(
         "APPTAINER_DIR",
         &workspace.path("artifacts/containers/apptainer").display().to_string(),
     ));
-    check_cross_runtime_smoke_at_paths(workspace, docker_dir, apptainer_dir)
+    check_cross_runtime_smoke_at_paths(workspace, &docker_dir, &apptainer_dir)
 }
 
 pub(in super::super::super) fn check_cross_runtime_smoke_at_paths(
     workspace: &Workspace,
-    docker_dir: PathBuf,
-    apptainer_dir: PathBuf,
+    docker_dir: &Path,
+    apptainer_dir: &Path,
 ) -> Result<ContainerCommandOutcome> {
     if !docker_dir.exists() || !apptainer_dir.exists() {
         if env_or_empty("CI").is_empty() {

@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use super::{
     all_registry_paths, anyhow, append_toml_table, container_version_deprecations_path,
     env_or_empty, failure_lines, fs, git_last_modified_timestamp, governed_container_file_ids,

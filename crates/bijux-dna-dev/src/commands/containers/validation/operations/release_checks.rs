@@ -1,7 +1,9 @@
+#![allow(clippy::too_many_lines)]
+
 use super::{
     apptainer_def_paths, dockerfile_paths, env_or_empty, failure_lines, git_show_file, load_toml,
     read_json, read_utf8, registry_tool_id, success_line, table_bool, table_string, walk_paths,
-    BTreeMap, BTreeSet, ContainerCommandOutcome, PathBuf, Regex, Result, Workspace,
+    BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex, Result, Workspace,
 };
 
 pub(in super::super::super) fn check_image_size_regression(
@@ -78,7 +80,11 @@ pub(in super::super::super) fn check_image_size_regression(
             continue;
         }
         checked += 1;
-        let growth = ((new_size - old_size) as f64 / old_size as f64) * 100.0;
+        let size_delta =
+            (new_size - old_size).to_string().parse::<f64>().context("parse image size delta")?;
+        let previous_size =
+            old_size.to_string().parse::<f64>().context("parse previous image size")?;
+        let growth = (size_delta / previous_size) * 100.0;
         let from_version = previous_row
             .get("version")
             .and_then(serde_json::Value::as_str)

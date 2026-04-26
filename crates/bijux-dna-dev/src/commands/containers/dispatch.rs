@@ -448,11 +448,9 @@ pub(super) fn run_native_container_command(
         }
         NativeContainerCommandKey::SmokeCrossRuntimeVerify => {
             ensure_no_args("smoke-cross-runtime-verify", args)?;
-            validation::check_cross_runtime_smoke_at_paths(
-                workspace,
-                PathBuf::from(format!("{}/docker-arm64", container_artifact_dir())),
-                PathBuf::from(format!("{}/apptainer", container_artifact_dir())),
-            )
+            let docker_dir = PathBuf::from(format!("{}/docker-arm64", container_artifact_dir()));
+            let apptainer_dir = PathBuf::from(format!("{}/apptainer", container_artifact_dir()));
+            validation::check_cross_runtime_smoke_at_paths(workspace, &docker_dir, &apptainer_dir)
         }
         NativeContainerCommandKey::SmokeToolkitDockerArm64 => {
             ensure_no_args("smoke-toolkit-docker-arm64", args)?;

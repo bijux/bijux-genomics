@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use super::{
     env_or_empty, failure_lines, fs, load_toml, read_json, registry_tool_id, success_line,
     table_bool, table_string, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf,

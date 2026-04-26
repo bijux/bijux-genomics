@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use super::{
     env_or_empty, failure_lines, fs, load_toml, missing_container_label_markers, read_json,
     read_utf8, registry_tool_id, success_line, table_bool, table_string, BTreeMap, BTreeSet,
@@ -112,9 +114,7 @@ pub(in super::super::super) fn check_build_provenance(
                     .push(format!("{tool}: missing manifest artifact {}", manifest_path.display()));
                 continue;
             }
-            let payload = if let Ok(payload) = read_json(&manifest_path) {
-                payload
-            } else {
+            let Ok(payload) = read_json(&manifest_path) else {
                 errors.push(format!("{tool}: invalid json in {}", manifest_path.display()));
                 continue;
             };
@@ -301,7 +301,8 @@ pub(in super::super::super) fn check_digest_output_policy(
         let name = path.file_name().and_then(|value| value.to_str()).unwrap_or_default();
         let forbidden_name = path.extension().and_then(|ext| ext.to_str()) == Some("digest")
             || path.extension().and_then(|ext| ext.to_str()) == Some("sha256")
-            || name.contains("digests") && name.ends_with(".json");
+            || name.contains("digests")
+                && path.extension().is_some_and(|ext| ext.eq_ignore_ascii_case("json"));
         if forbidden_name && !path.starts_with(&versions_root) {
             errors.push(format!(
                 "generated digest artifacts must not live under containers/ tree: {rel}"
