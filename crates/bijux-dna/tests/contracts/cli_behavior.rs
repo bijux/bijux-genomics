@@ -1,10 +1,7 @@
 #![allow(clippy::expect_used)]
 
-use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-
-use bijux_dna::public_api::run_with_args;
-use gag::BufferRedirect;
+use std::process::Command;
 
 struct CliWorkspace {
     root: tempfile::TempDir,
@@ -74,16 +71,22 @@ arch = "x86_64"
 }
 
 fn run_cli_capture(workspace: &CliWorkspace, args: &[&str]) -> Result<String, String> {
-    let mut buffer = BufferRedirect::stdout().expect("capture stdout");
-    std::env::set_var("HOME", &workspace.home);
-    std::env::set_var("BIJUX_SKIP_QA", "1");
-    std::env::set_var("BIJUX_ALLOW_SILVER", "1");
-    std::env::set_var("BIJUX_SKIP_IMAGE_CHECK", "1");
-    let result = run_with_args(args, workspace.path());
-    std::io::stdout().flush().expect("flush stdout");
-    let mut output = String::new();
-    buffer.read_to_string(&mut output).expect("read stdout");
-    result.map(|()| output).map_err(|err| err.to_string())
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .args(args)
+        .current_dir(workspace.path())
+        .env("HOME", &workspace.home)
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .output()
+        .map_err(|err| format!("run bijux-dna: {err}"))?;
+    let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
+    if output.status.success() {
+        Ok(stdout)
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        Err(format!("{stdout}{stderr}"))
+    }
 }
 
 fn assert_removed_subcommand(workspace: &CliWorkspace, args: &[&str], name: &str) {
