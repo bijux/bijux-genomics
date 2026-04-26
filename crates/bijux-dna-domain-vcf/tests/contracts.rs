@@ -11,7 +11,7 @@ mod contracts {
         },
         coverage::domain_coverage_report,
         param_registry_toml, required_tools_toml, validate_downstream_transition, CoverageRegime,
-        VcfDomainStage, VcfStage, VCF_STAGE_ORDER_DOWNSTREAM,
+        VcfDomainStage, VcfStage, VCF_PARAMS_CATALOG, VCF_STAGE_ORDER_DOWNSTREAM,
     };
 
     #[test]
@@ -206,6 +206,23 @@ mod contracts {
         for stage in ["vcf.call", "vcf.filter", "vcf.stats"] {
             assert!(registry.contains(stage), "missing stage {stage}");
         }
+    }
+
+    #[test]
+    fn public_param_catalog_matches_registered_vcf_params() {
+        assert_eq!(
+            VCF_PARAMS_CATALOG,
+            [
+                "bijux.vcf.call.params",
+                "bijux.vcf.filter.params",
+                "bijux.vcf.stats.params",
+                "bijux.vcf.call_gl.params",
+                "bijux.vcf.call_diploid.params",
+                "bijux.vcf.call_pseudohaploid.params",
+                "bijux.vcf.damage_filter.params",
+                "bijux.vcf.gl_propagation.params",
+            ]
+        );
     }
 
     #[test]

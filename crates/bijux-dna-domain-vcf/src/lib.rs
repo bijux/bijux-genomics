@@ -40,7 +40,15 @@ pub const VCF_STAGE_ID_CATALOG: &[&str] = &[
     "vcf.roh",
     "vcf.stats",
 ];
-pub const VCF_PARAMS_CATALOG: &[&str] =
-    &["bijux.vcf.call.params", "bijux.vcf.filter.params", "bijux.vcf.stats.params"];
+pub const VCF_PARAMS_CATALOG: &[&str] = &[
+    "bijux.vcf.call.params",
+    "bijux.vcf.filter.params",
+    "bijux.vcf.stats.params",
+    "bijux.vcf.call_gl.params",
+    "bijux.vcf.call_diploid.params",
+    "bijux.vcf.call_pseudohaploid.params",
+    "bijux.vcf.damage_filter.params",
+    "bijux.vcf.gl_propagation.params",
+];
 pub const VCF_METRICS_CATALOG: &[&str] = &["bijux.vcf.stats.v1"];
 pub const VCF_PRODUCTION_TOOLS: &[&str] = &["bcftools"];
