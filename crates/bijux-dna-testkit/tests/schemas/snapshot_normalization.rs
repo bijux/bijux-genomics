@@ -1,6 +1,13 @@
 use std::env;
 
 #[test]
+fn snapshot_name_includes_package_bucket_and_test_name() {
+    let name = bijux_dna_testkit::snapshot_name("schemas", "public_api");
+
+    assert_eq!(name, "bijux-dna-testkit__schemas__public_api");
+}
+
+#[test]
 fn snapshot_normalize_text_normalizes_windows_paths_and_line_endings() {
     let raw = "C:\\Users\\alice\\repo\\file.txt\r\nnext";
     let normalized = bijux_dna_testkit::snapshot_normalize_text(raw);
