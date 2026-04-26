@@ -463,7 +463,7 @@ where
                 (plan, next_r1, Some(next_r2), inherited.feature_table.clone())
             }
             stage if stage == STAGE_REPORT_QC.as_str() => {
-                let report_qc_inputs = explicit_report_qc_inputs(&resolved_inputs)
+                let report_qc_inputs = explicit_report_qc_inputs(&resolved_inputs)?
                     .unwrap_or_else(|| inherited.qc_inputs.clone());
                 let mut stage_aux_images = std::collections::BTreeMap::new();
                 if tool.tool_id.0 == "multiqc" {

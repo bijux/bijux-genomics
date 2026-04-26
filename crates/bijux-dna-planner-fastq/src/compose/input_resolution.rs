@@ -156,25 +156,37 @@ pub(super) fn explicit_abundance_table(
 
 pub(super) fn explicit_report_qc_inputs(
     inputs: &[ResolvedStageInputArtifact],
-) -> Option<Vec<ArtifactRef>> {
+) -> Result<Option<Vec<ArtifactRef>>> {
     if inputs.is_empty() {
-        return None;
+        return Ok(None);
     }
     let mut qc_inputs = inputs
         .iter()
         .filter(|input| input.to_input_id == "qc_artifacts")
         .map(|input| {
-            super::report_qc_input_artifact(&input.source_stage_node_id, &input.artifact, None)
+            ensure_input_role(
+                input,
+                "qc_artifacts",
+                &[
+                    ArtifactRole::ReportJson,
+                    ArtifactRole::MetricsJson,
+                    ArtifactRole::MetricsEnvelope,
+                    ArtifactRole::StageReport,
+                    ArtifactRole::SummaryJson,
+                    ArtifactRole::SummaryTsv,
+                ],
+            )?;
+            Ok(super::report_qc_input_artifact(&input.source_stage_node_id, &input.artifact, None))
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>>>()?;
     if qc_inputs.is_empty() {
-        return None;
+        return Ok(None);
     }
     qc_inputs.sort_by(|left, right| {
         left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
     });
     qc_inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
-    Some(qc_inputs)
+    Ok(Some(qc_inputs))
 }
 
 fn ensure_input_role(
