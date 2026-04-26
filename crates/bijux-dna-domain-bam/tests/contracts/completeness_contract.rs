@@ -114,6 +114,19 @@ fn bam_stages_meet_completeness_contract() {
 }
 
 #[test]
+fn default_param_presets_never_emit_null_json() {
+    for stage in BamStage::all() {
+        let default = default_params_json(*stage);
+        assert_ne!(
+            default,
+            serde_json::Value::Null,
+            "{} default params emitted null",
+            stage.as_str()
+        );
+    }
+}
+
+#[test]
 fn bam_truth_stage_parsers_have_fixtures() -> anyhow::Result<()> {
     let flagstat = fixture_path("flagstat.txt");
     let idxstats = fixture_path("idxstats.txt");

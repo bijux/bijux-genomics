@@ -4,6 +4,7 @@ use crate::params::{
 };
 use crate::stage_specs::stage_spec;
 use crate::BamStage;
+use serde::Serialize;
 
 #[must_use]
 pub fn default_params_json(stage: BamStage) -> serde_json::Value {
@@ -79,77 +80,36 @@ pub fn adna_capture_params_json(stage: BamStage) -> serde_json::Value {
 #[allow(clippy::match_same_arms)]
 fn bam_params_value(params: &BamEffectiveParams) -> serde_json::Value {
     match params {
-        BamEffectiveParams::Align(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Validate(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::QcPre(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::MappingSummary(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Filter(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::MapqFilter(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::LengthFilter(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Markdup(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::DuplicationMetrics(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Complexity(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Coverage(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::InsertSize(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::GcBias(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::EndogenousContent(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::OverlapCorrection(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Damage(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Authenticity(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Contamination(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Sex(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::BiasMitigation(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Recalibration(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Haplogroups(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Genotyping(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
-        BamEffectiveParams::Kinship(inner) => {
-            serde_json::to_value(inner).unwrap_or(serde_json::Value::Null)
-        }
+        BamEffectiveParams::Align(inner) => params_value(inner),
+        BamEffectiveParams::Validate(inner) => params_value(inner),
+        BamEffectiveParams::QcPre(inner) => params_value(inner),
+        BamEffectiveParams::MappingSummary(inner) => params_value(inner),
+        BamEffectiveParams::Filter(inner) => params_value(inner),
+        BamEffectiveParams::MapqFilter(inner) => params_value(inner),
+        BamEffectiveParams::LengthFilter(inner) => params_value(inner),
+        BamEffectiveParams::Markdup(inner) => params_value(inner),
+        BamEffectiveParams::DuplicationMetrics(inner) => params_value(inner),
+        BamEffectiveParams::Complexity(inner) => params_value(inner),
+        BamEffectiveParams::Coverage(inner) => params_value(inner),
+        BamEffectiveParams::InsertSize(inner) => params_value(inner),
+        BamEffectiveParams::GcBias(inner) => params_value(inner),
+        BamEffectiveParams::EndogenousContent(inner) => params_value(inner),
+        BamEffectiveParams::OverlapCorrection(inner) => params_value(inner),
+        BamEffectiveParams::Damage(inner) => params_value(inner),
+        BamEffectiveParams::Authenticity(inner) => params_value(inner),
+        BamEffectiveParams::Contamination(inner) => params_value(inner),
+        BamEffectiveParams::Sex(inner) => params_value(inner),
+        BamEffectiveParams::BiasMitigation(inner) => params_value(inner),
+        BamEffectiveParams::Recalibration(inner) => params_value(inner),
+        BamEffectiveParams::Haplogroups(inner) => params_value(inner),
+        BamEffectiveParams::Genotyping(inner) => params_value(inner),
+        BamEffectiveParams::Kinship(inner) => params_value(inner),
+    }
+}
+
+fn params_value<T: Serialize>(params: &T) -> serde_json::Value {
+    match serde_json::to_value(params) {
+        Ok(value) => value,
+        Err(err) => unreachable!("BAM default params must serialize: {err}"),
     }
 }
