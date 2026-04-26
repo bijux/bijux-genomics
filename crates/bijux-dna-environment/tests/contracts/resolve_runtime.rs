@@ -264,6 +264,7 @@ arch = "amd64"
 
 #[test]
 fn load_image_catalog_hydrates_missing_digests_from_registry() -> anyhow::Result<()> {
+    let _env = env_lock();
     let temp = bijux_dna_testkit::tempdir_for("environment-image-catalog");
     let _cwd = CurrentDirGuard::change_to(temp.path())?;
     write_image_catalog_fixture(
@@ -284,6 +285,7 @@ container_ref = "bijuxdna/fastqc@sha256:abc123"
 
 #[test]
 fn cache_paths_and_docker_image_checks_are_deterministic() {
+    let _env = env_lock();
     let image = ResolvedImage {
         full_name: "bijuxdna/fastp@sha256:abc123".to_string(),
         arch: "arm64".to_string(),
