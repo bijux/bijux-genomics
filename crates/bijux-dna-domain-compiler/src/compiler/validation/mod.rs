@@ -18,7 +18,7 @@ use self::catalog_validation::{
 };
 use self::index_rules::validate_domain_indexes_and_pipelines;
 use self::stage_files::validate_stage_files;
-use self::tool_files::validate_tool_files;
+use self::tool_files::{validate_tool_files, ToolValidationState};
 
 /// Validate authored domain files and cross-domain invariants.
 ///
@@ -60,16 +60,13 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
 
     for dom in ["fastq", "bam", "vcf"] {
         validate_stage_files(options, dom, &artifact_vocab, &metric_vocab, &mut stage_ids)?;
-        validate_tool_files(
-            options,
-            dom,
-            &artifact_vocab,
-            &shared_tool_domains,
-            &mut tool_ids,
-            &mut tool_capabilities,
-            &mut tool_statuses,
-            &mut tool_metrics_schemas,
-        )?;
+        let mut tool_state = ToolValidationState {
+            ids: &mut tool_ids,
+            capabilities: &mut tool_capabilities,
+            statuses: &mut tool_statuses,
+            metrics_schemas: &mut tool_metrics_schemas,
+        };
+        validate_tool_files(options, dom, &artifact_vocab, &shared_tool_domains, &mut tool_state)?;
     }
 
     validate_canonical_stage_coverage(&stage_ids)?;
