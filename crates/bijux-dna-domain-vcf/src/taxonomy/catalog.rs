@@ -184,6 +184,9 @@ pub const VCF_STAGE_TAXONOMY: &[VcfStageTaxonomyRecord] = &[
 /// # Errors
 /// Returns an error when a transition violates downstream order or is explicitly forbidden.
 pub fn validate_downstream_transition(from: VcfDomainStage, to: VcfDomainStage) -> Result<()> {
+    if from == to {
+        return Err(anyhow!("self transition is not downstream: {}", from.as_str()));
+    }
     if VCF_FORBIDDEN_TRANSITIONS.contains(&(from, to)) {
         return Err(anyhow!(
             "forbidden downstream transition: {} -> {}",

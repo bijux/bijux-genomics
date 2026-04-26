@@ -56,6 +56,10 @@ mod contracts {
         assert!(
             validate_downstream_transition(VcfDomainStage::Filter, VcfDomainStage::Stats).is_ok()
         );
+        assert!(
+            validate_downstream_transition(VcfDomainStage::Filter, VcfDomainStage::Filter)
+                .is_err()
+        );
         assert!(validate_downstream_transition(VcfDomainStage::Imputation, VcfDomainStage::Call)
             .is_err());
         assert_eq!(
