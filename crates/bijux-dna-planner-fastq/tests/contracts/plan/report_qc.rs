@@ -190,7 +190,7 @@ fn compose_routes_reference_screen_reports_into_report_qc() -> anyhow::Result<()
 fn compose_routes_cleanup_and_length_reports_into_report_qc() -> anyhow::Result<()> {
     let plans = compose_fastq_stage_bindings(
         &[
-            binding("fastq.profile_read_lengths", "seqkit"),
+            binding("fastq.profile_read_lengths", "seqkit_stats"),
             binding("fastq.filter_low_complexity", "prinseq"),
             binding("fastq.report_qc", "multiqc"),
         ],
@@ -213,7 +213,8 @@ fn compose_routes_cleanup_and_length_reports_into_report_qc() -> anyhow::Result<
         .find(|plan| plan.stage_id.as_str() == "fastq.report_qc")
         .expect("report_qc stage");
     assert!(report_plan.io.inputs.iter().any(|artifact| {
-        artifact.name.as_str() == "fastq.profile_read_lengths.tool.seqkit.length_distribution_json"
+        artifact.name.as_str()
+            == "fastq.profile_read_lengths.tool.seqkit_stats.length_distribution_json"
     }));
     assert!(report_plan.io.inputs.iter().any(|artifact| {
         artifact.name.as_str() == "fastq.filter_low_complexity.tool.prinseq.filter_report_json"
