@@ -52,3 +52,63 @@ fn commands_doc_declares_library_only_inventory() {
         "infra must not add binary entrypoints without updating COMMANDS.md"
     );
 }
+
+#[test]
+fn markdown_docs_stay_in_the_governed_locations() {
+    let root = crate_root();
+    let docs_dir = root.join("docs");
+    let mut markdown_files = Vec::new();
+    collect_markdown_files(&root, &mut markdown_files);
+
+    let allowed_docs = [
+        "ARCHITECTURE.md",
+        "BOUNDARY.md",
+        "COMMANDS.md",
+        "DEPENDENCIES.md",
+        "EFFECTS.md",
+        "FORMATS.md",
+        "INDEX.md",
+        "PATHS.md",
+        "PUBLIC_API.md",
+        "TESTS.md",
+    ];
+
+    let mut offenders = Vec::new();
+    for file in &markdown_files {
+        let allowed_root_readme = file == &root.join("README.md");
+        let allowed_doc = allowed_docs.iter().any(|name| file == &docs_dir.join(name));
+        if !allowed_root_readme && !allowed_doc {
+            offenders.push(file.strip_prefix(&root).unwrap_or(file).display().to_string());
+        }
+    }
+
+    assert!(offenders.is_empty(), "unexpected markdown files:\n{}", offenders.join("\n"));
+
+    let mut actual_docs = fs::read_dir(&docs_dir)
+        .unwrap_or_else(|err| panic!("read docs dir: {err}"))
+        .map(|entry| entry.unwrap_or_else(|err| panic!("read docs entry: {err}")).file_name())
+        .map(|name| name.to_string_lossy().into_owned())
+        .collect::<Vec<_>>();
+    actual_docs.sort();
+    let expected_docs = allowed_docs.iter().map(ToString::to_string).collect::<Vec<_>>();
+    assert_eq!(actual_docs, expected_docs, "docs/ must stay at the 10-file allowance");
+}
+
+fn collect_markdown_files(dir: &std::path::Path, files: &mut Vec<PathBuf>) {
+    for entry in fs::read_dir(dir).unwrap_or_else(|err| panic!("read {}: {err}", dir.display())) {
+        let entry = entry.unwrap_or_else(|err| panic!("read entry under {}: {err}", dir.display()));
+        let path = entry.path();
+        if path.file_name().and_then(|name| name.to_str()) == Some("target") {
+            continue;
+        }
+        if entry
+            .file_type()
+            .unwrap_or_else(|err| panic!("file type {}: {err}", path.display()))
+            .is_dir()
+        {
+            collect_markdown_files(&path, files);
+        } else if path.extension().and_then(|ext| ext.to_str()) == Some("md") {
+            files.push(path);
+        }
+    }
+}
