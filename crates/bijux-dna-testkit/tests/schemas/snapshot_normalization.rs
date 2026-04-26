@@ -36,3 +36,16 @@ fn snapshot_normalize_json_keeps_non_timestamp_labels() {
     assert_eq!(normalized["label"], "T-cell sample: A-B");
     assert_eq!(normalized["observed"], "<TIMESTAMP>");
 }
+
+#[test]
+fn snapshot_normalize_text_ignores_empty_environment_values() {
+    let previous = env::var_os("COMPUTERNAME");
+    env::set_var("COMPUTERNAME", "");
+    let normalized = bijux_dna_testkit::snapshot_normalize_text("abc");
+    if let Some(previous) = previous {
+        env::set_var("COMPUTERNAME", previous);
+    } else {
+        env::remove_var("COMPUTERNAME");
+    }
+    assert_eq!(normalized, "abc");
+}
