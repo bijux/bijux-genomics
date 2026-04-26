@@ -19,6 +19,7 @@ STAGE_DIR = Path("domain/fastq/stages")
 TOOL_DIR = Path("domain/fastq/tools")
 REGISTRY = Path("configs/ci/registry/tool_registry.toml")
 VERSION_LOCK = Path("containers/versions/lock.json")
+LICENSE_DIR = Path("containers/licenses")
 DOWNLOAD_BACKLOG = Path("science/generated/current/evidence/fastq_download_backlog.tsv")
 OUT_DIR = Path("science-docs/upstream/fastq/container")
 PROOF_ROOT = Path("artifacts/containers")
@@ -186,6 +187,16 @@ def load_version_lock(root: Path) -> dict[str, dict[str, object]]:
     }
 
 
+def load_licenses(root: Path) -> dict[str, dict[str, object]]:
+    rows = {}
+    for path in sorted((root / LICENSE_DIR).glob("*.license.toml")):
+        data = tomllib.loads(read_text(path))
+        tool_id = str(data.get("tool_id") or path.name.removesuffix(".license.toml"))
+        data["_license_path"] = str(path.relative_to(root))
+        rows[tool_id] = data
+    return rows
+
+
 def load_planner_snapshots(root: Path) -> list[dict[str, object]]:
     snapshots = []
     for path in sorted((root / PLANNER_SNAPSHOT_DIR).glob("*stage__fastq__*.json")):
@@ -240,6 +251,25 @@ def planner_status(default_tool: str, planner_tool: str, planner_digest: object)
     return ";".join(findings) if findings else "ready"
 
 
+def license_status(license_row: dict[str, object]) -> str:
+    if not license_row:
+        return "missing_license_file"
+    findings = []
+    for field in ["spdx", "upstream_license_id"]:
+        value = str(license_row.get(field, ""))
+        if not value:
+            findings.append(f"{field}_missing")
+        elif value == "NOASSERTION":
+            findings.append(f"{field}_noassertion")
+    if not license_row.get("upstream_url"):
+        findings.append("upstream_url_missing")
+    if not license_row.get("upstream_checksum"):
+        findings.append("upstream_checksum_missing")
+    if not license_row.get("redistribution_note"):
+        findings.append("redistribution_note_missing")
+    return ";".join(findings) if findings else "ready"
+
+
 def main() -> int:
     args = parse_args()
     root = args.repo_root.resolve()
@@ -249,6 +279,7 @@ def main() -> int:
     registry = load_registry(root)
     backlog = load_download_backlog(root)
     version_lock = load_version_lock(root)
+    licenses = load_licenses(root)
     planner_snapshots = load_planner_snapshots(root)
     default_by_stage = {
         row.stage_id: row.default_tool for row in execution_defaults(root) if row.stage_id
@@ -440,6 +471,37 @@ def main() -> int:
         ["default_tool", "lock_field", "lock_value", "field_status", "version", "lock_status"],
         lock_rows,
     )
+    license_rows = []
+    for tool_id in seen_tools:
+        license_row = licenses.get(tool_id, {})
+        license_rows.append(
+            [
+                tool_id,
+                str(license_row.get("_license_path", "")),
+                str(license_row.get("spdx", "")),
+                str(license_row.get("upstream_license_id", "")),
+                str(license_row.get("upstream_url", "")),
+                str(license_row.get("upstream_version", "")),
+                str(license_row.get("upstream_checksum", "")),
+                str(license_row.get("redistribution_note", "")),
+                license_status(license_row),
+            ]
+        )
+    write_tsv(
+        out_dir / "FASTQ_CONTAINER_LICENSE_GAPS.tsv",
+        [
+            "default_tool",
+            "license_path",
+            "spdx",
+            "upstream_license_id",
+            "upstream_url",
+            "upstream_version",
+            "upstream_checksum",
+            "redistribution_note",
+            "license_status",
+        ],
+        license_rows,
+    )
     planner_rows = []
     for snapshot in planner_snapshots:
         stage_id = str(snapshot.get("stage_id", ""))
@@ -483,6 +545,7 @@ def main() -> int:
                     str(out_dir / "FASTQ_CONTAINER_EVIDENCE_STATUS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_PROOF_GAPS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_LOCK_GAPS.tsv"),
+                    str(out_dir / "FASTQ_CONTAINER_LICENSE_GAPS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_PLANNER_GAPS.tsv"),
                 ]
             }
