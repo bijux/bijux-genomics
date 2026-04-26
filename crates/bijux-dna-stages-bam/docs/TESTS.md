@@ -13,17 +13,19 @@ Tests should explain the contract they enforce.
 - Each test file should be referenced here.
 
 ## Suite map
-- `tests/observer/*` → observer parser fixtures under `tests/fixtures/*`.
+- `tests/boundaries/*` → layering, purity, and policy guardrails.
 - `tests/contracts/*` → stage specs, registry, structure, and contract snapshots.
-- `tests/metrics/*` → metric completeness checks.
-- `tests/purity/*` → declarative-only and boundary checks.
+- `tests/contracts/observer/*` → observer parser fixtures under `tests/fixtures/observer/default/*`.
+- `tests/determinism/*` → reproducibility and fixture stability checks.
+- `tests/semantics/metrics/*` → metric completeness checks.
 
 ## Structure contract
 The structure contract test enforces expected stage spec/observer layout to prevent
 accidental drift that breaks contract snapshots.
 
 ## Examples
-- `tests/observer/observer_parsers.rs` → observer fixture parsing.
+- `tests/contracts/observer/observer_parsers.rs` → observer fixture parsing.
+- `tests/semantics/metrics/metrics_completeness.rs` → metric completeness coverage.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
