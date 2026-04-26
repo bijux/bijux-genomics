@@ -18,10 +18,13 @@ tree. The crate root keeps a single execution entrypoint in `src/lib.rs`, while 
 curated in `src/public_api/mod.rs`.
 
 ## Key contracts it owns/consumes
+- crate boundary: `docs/BOUNDARY.md`
+- command authority: `docs/COMMANDS.md`
+- public API: `docs/PUBLIC_API.md`
 - report structure: `docs/REPORT_CONTRACT.md`
 - decision semantics: `docs/DECISIONS.md`
-- schema compatibility: `docs/SCHEMA.md`
 - determinism: `docs/DETERMINISM.md`
+- failure handling: `docs/FAILURE_HANDLING.md`
 - change policy: `docs/CHANGE_RULES.md`
 
 ## Artifacts / Contracts
