@@ -11,21 +11,16 @@ test = false
 [dependencies]
 anyhow.workspace = true
 serde.workspace = true
-serde_json.workspace = true
 thiserror.workspace = true
 regex.workspace = true
 sha2.workspace = true
-tracing.workspace = true
-uuid.workspace = true
-bijux-dna-core = { path = "../bijux-dna-core" }
-bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
 
 [dev-dependencies]
-bijux-dna-policies = { path = "../bijux-dna-policies" }
-tempfile.workspace = true
-walkdir.workspace = true
+bijux-dna-core = { path = "../bijux-dna-core" }
+bijux-dna-policies.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+walkdir.workspace = true
 
 [lints]
 workspace = true
