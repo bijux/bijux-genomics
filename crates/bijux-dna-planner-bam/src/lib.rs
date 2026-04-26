@@ -3,6 +3,7 @@ use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_pipelines::PipelineProfile;
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
 use serde_json::Value;
+use std::collections::BTreeSet;
 
 pub const PLANNER_VERSION: &str = "bijux-dna-planner-bam.v1";
 
@@ -78,6 +79,7 @@ pub fn pipeline_id_catalog(profile_id: &str) -> Vec<String> {
 }
 
 fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
+    validate_pipeline_input_maps(profile, inputs)?;
     let mut bam = inputs.bam.clone();
     let mut bam_index = inputs.bam_index.clone();
     let mut stages = Vec::new();
@@ -91,7 +93,6 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         let stage_key = bijux_dna_core::ids::StageId::from_static(stage_id);
         let default_params = profile.defaults.params.get(&stage_key).map(|params| params.to_json());
         let params = inputs.params_overrides.get(stage_id).or(default_params.as_ref());
-        tool_policy::enforce(stage, &tool.tool_id.0, params, inputs.reference.as_deref())?;
         let stage_dir = inputs.out_dir.join(stage_id.replace('.', "_"));
         let plan = plan_stage(StagePlanRequest {
             stage_id,
@@ -131,4 +132,33 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         &stages,
         "planned bam pipeline graph",
     )
+}
+
+fn validate_pipeline_input_maps(
+    profile: &PipelineProfile,
+    inputs: &BamPipelineInputs,
+) -> Result<()> {
+    let stage_ids = profile
+        .capabilities
+        .required_stages
+        .iter()
+        .map(|stage_id| stage_id.as_str())
+        .collect::<BTreeSet<_>>();
+    for stage_id in inputs.params_overrides.keys() {
+        if !stage_ids.contains(stage_id.as_str()) {
+            return Err(anyhow!(
+                "params override for stage {stage_id} is not part of profile {}",
+                profile.id.as_str()
+            ));
+        }
+    }
+    for stage_id in inputs.tool_specs.keys() {
+        if !stage_ids.contains(stage_id.as_str()) {
+            return Err(anyhow!(
+                "tool spec for stage {stage_id} is not part of profile {}",
+                profile.id.as_str()
+            ));
+        }
+    }
+    Ok(())
 }
