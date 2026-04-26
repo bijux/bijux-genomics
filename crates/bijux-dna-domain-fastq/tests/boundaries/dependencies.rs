@@ -37,6 +37,17 @@ fn dependency_graph_matches_domain_fastq_boundary() {
         manifest.contains("bijux-dna-policies.workspace = true"),
         "bijux-dna-policies must use the workspace dependency declaration"
     );
+    for dependency in ["bijux-dna-core", "bijux-dna-infra"] {
+        assert!(
+            manifest.contains(&format!("{dependency}.workspace = true"))
+                || manifest.contains(&format!("{dependency} = {{ workspace = true")),
+            "`{dependency}` must use the workspace dependency declaration"
+        );
+    }
+    assert!(
+        !manifest.contains("path = \"../bijux-dna-"),
+        "domain FASTQ must not declare ad hoc internal path dependencies"
+    );
 
     for forbidden in [
         "bijux-dna",
