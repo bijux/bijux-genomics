@@ -127,13 +127,23 @@ fn execute_plan_handles_cancel_before_and_during_retry() {
     let during = CancellationToken::new();
     let mut runner = ScenarioRunner::new(Mode::FailOnceThenSuccess);
     runner.cancel_on_first_attempt = Some(during.clone());
-    let retry_plan =
-        plan.with_retry_policy(RetryPolicy { max_attempts: 2, retry_on_exit_codes: vec![1] });
+    let retry_plan = plan
+        .clone()
+        .with_retry_policy(RetryPolicy { max_attempts: 2, retry_on_exit_codes: vec![1] });
     let during_err = engine
         .execute(&retry_plan, &runner, &layout, None, Some(&during))
         .err()
         .unwrap_or_else(|| panic!("expected cancellation during execution"));
     assert!(during_err.to_string().contains("cancelled during"));
+
+    let successful_runner_cancel = CancellationToken::new();
+    let mut runner = ScenarioRunner::new(Mode::Success);
+    runner.cancel_on_first_attempt = Some(successful_runner_cancel.clone());
+    let success_cancel_err = engine
+        .execute(&plan, &runner, &layout, None, Some(&successful_runner_cancel))
+        .err()
+        .unwrap_or_else(|| panic!("expected cancellation after runner success"));
+    assert!(success_cancel_err.to_string().contains("cancelled during"));
 }
 
 #[test]
