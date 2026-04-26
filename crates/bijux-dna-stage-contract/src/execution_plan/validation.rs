@@ -43,6 +43,11 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
             return Err(anyhow!("stage {} missing resource hints", stage.stage_id.0));
         }
     }
+    let stage_by_node_id = plan
+        .stages()
+        .iter()
+        .map(|stage| (stage_node_id(stage), stage))
+        .collect::<BTreeMap<_, _>>();
     let mut edges = Vec::new();
     for edge in plan.edges() {
         if edge.from().trim().is_empty() || edge.to().trim().is_empty() {
@@ -58,26 +63,20 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
                 edge.to()
             ));
         }
-        let from_stage =
-            plan.stages().iter().find(|stage| stage_node_id(stage) == edge.from()).ok_or_else(
-                || {
-                    anyhow!(
-                        "plan edge {} -> {} could not resolve source stage after validation",
-                        edge.from(),
-                        edge.to()
-                    )
-                },
-            )?;
-        let to_stage =
-            plan.stages().iter().find(|stage| stage_node_id(stage) == edge.to()).ok_or_else(
-                || {
-                    anyhow!(
-                        "plan edge {} -> {} could not resolve target stage after validation",
-                        edge.from(),
-                        edge.to()
-                    )
-                },
-            )?;
+        let from_stage = stage_by_node_id.get(edge.from()).ok_or_else(|| {
+            anyhow!(
+                "plan edge {} -> {} could not resolve source stage after validation",
+                edge.from(),
+                edge.to()
+            )
+        })?;
+        let to_stage = stage_by_node_id.get(edge.to()).ok_or_else(|| {
+            anyhow!(
+                "plan edge {} -> {} could not resolve target stage after validation",
+                edge.from(),
+                edge.to()
+            )
+        })?;
         match (edge.from_output_id(), edge.to_input_id()) {
             (Some(from_output_id), Some(to_input_id)) => {
                 if from_output_id.trim().is_empty() || to_input_id.trim().is_empty() {
