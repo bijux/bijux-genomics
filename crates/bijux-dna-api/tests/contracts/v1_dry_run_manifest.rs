@@ -31,6 +31,31 @@ fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
 }
 
 #[test]
+fn dry_run_creates_missing_run_dir() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let run_dir = temp.path().join("runs").join("dry-run");
+    let graph = ExecutionGraph::new(
+        "fastq-to-fastq__default__v1",
+        "test-planner",
+        PlanPolicy::PreferAccuracy,
+        Vec::new(),
+        Vec::new(),
+    )?;
+    let request = DryRunRequest {
+        graph,
+        run_dir: run_dir.clone(),
+        profile_id: "fastq-to-fastq__default__v1".to_string(),
+    };
+
+    let response = dry_run(&request)?;
+
+    assert!(run_dir.is_dir());
+    assert!(response.graph_path.exists());
+    assert!(response.manifest_path.exists());
+    Ok(())
+}
+
+#[test]
 fn execute_emits_run_summary_artifact() -> Result<()> {
     let temp = tempfile::tempdir()?;
     let graph = ExecutionGraph::new(
