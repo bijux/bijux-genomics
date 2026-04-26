@@ -15,6 +15,8 @@ pub struct EnaQuery {
 pub enum QueryValidationError {
     #[error("provide at least one of --project, --sample, or --accession")]
     MissingSelectors,
+    #[error("invalid ENA selector {0:?}; use accession characters only")]
+    InvalidSelector(String),
 }
 
 impl EnaQuery {
@@ -32,8 +34,13 @@ impl EnaQuery {
     /// # Errors
     /// Returns an error when the query does not contain any usable selector.
     pub fn validate(&self) -> Result<(), QueryValidationError> {
-        if self.normalized_accessions().is_empty() {
+        let accessions = self.normalized_accessions();
+        if accessions.is_empty() {
             return Err(QueryValidationError::MissingSelectors);
+        }
+        if let Some(accession) = accessions.into_iter().find(|accession| !valid_selector(accession))
+        {
+            return Err(QueryValidationError::InvalidSelector(accession));
         }
         Ok(())
     }
@@ -62,6 +69,10 @@ fn normalized_values(values: &[String]) -> Vec<String> {
         .collect()
 }
 
+fn valid_selector(value: &str) -> bool {
+    value.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.'))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -88,5 +99,20 @@ mod tests {
         };
 
         assert_eq!(query.validate(), Err(QueryValidationError::MissingSelectors));
+    }
+
+    #[test]
+    fn validate_rejects_malformed_selectors() {
+        let query = EnaQuery {
+            projects: vec!["PRJEB1/PRJEB2".to_string()],
+            samples: Vec::new(),
+            extra_accessions: Vec::new(),
+            result: EnaResultKind::ReadRun,
+        };
+
+        assert_eq!(
+            query.validate(),
+            Err(QueryValidationError::InvalidSelector("PRJEB1/PRJEB2".to_string()))
+        );
     }
 }
