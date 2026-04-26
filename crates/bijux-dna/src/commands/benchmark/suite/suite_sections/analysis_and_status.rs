@@ -352,7 +352,7 @@ fn validate_suite_contracts(suite: &SuiteSpec) -> Result<()> {
 fn validate_governed_stage_tool_bindings(suite: &SuiteSpec) -> Result<()> {
     let registry_path =
         bijux_dna_infra::configs_file(&workspace_root(), "ci/registry/tool_registry.toml");
-    let registry = bijux_dna_runtime::manifests::load_manifests(&registry_path)
+    let registry = bijux_dna_api::v1::api::run::load_manifests(&registry_path)
         .with_context(|| format!("load {}", registry_path.display()))?;
     for stage in &suite.stages {
         let stage_id = bijux_dna_api::v1::api::run::StageId::try_from(stage.stage.as_str())

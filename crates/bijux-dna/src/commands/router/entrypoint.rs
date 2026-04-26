@@ -194,25 +194,26 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
             let telemetry_path = run_dir.join("run_artifacts").join("telemetry.jsonl");
             let raw = std::fs::read_to_string(&telemetry_path)
                 .with_context(|| format!("read {}", telemetry_path.display()))?;
-            let mut failure: Option<bijux_dna_runtime::TelemetryEventV1> = None;
+            let mut failure: Option<serde_json::Value> = None;
             for line in raw.lines() {
-                let Ok(event) = serde_json::from_str::<bijux_dna_runtime::TelemetryEventV1>(line)
-                else {
+                let Ok(event) = serde_json::from_str::<serde_json::Value>(line) else {
                     continue;
                 };
-                if matches!(event.event_name, bijux_dna_runtime::TelemetryEventName::RunFailed) {
+                if event.get("event_name").and_then(serde_json::Value::as_str) == Some("run_failed")
+                {
                     failure = Some(event);
                 }
             }
             if let Some(event) = failure {
-                println!("run_id: {}", event.run_id);
-                println!("stage_id: {}", event.stage_id);
-                println!("tool_id: {}", event.tool_id);
-                println!("status: {}", event.status);
-                if let Some(code) = event.failure_code {
-                    println!("failure_code: {}", serde_json::to_string(&code)?);
+                println!("run_id: {}", json_string(&event, "run_id"));
+                println!("stage_id: {}", json_string(&event, "stage_id"));
+                println!("tool_id: {}", json_string(&event, "tool_id"));
+                println!("status: {}", json_string(&event, "status"));
+                if let Some(code) = event.get("failure_code") {
+                    println!("failure_code: {}", serde_json::to_string(code)?);
                 }
-                if let Some(stderr) = event.attrs.get("stderr_path") {
+                if let Some(stderr) = event.get("attrs").and_then(|attrs| attrs.get("stderr_path"))
+                {
                     println!("stderr_path: {}", serde_json::to_string(stderr)?);
                 } else {
                     println!("stderr_path: {}", run_dir.join("logs/stderr.log").display());
@@ -235,6 +236,10 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
         }
         _ => Ok(false),
     }
+}
+
+fn json_string(value: &serde_json::Value, key: &str) -> String {
+    value.get(key).and_then(serde_json::Value::as_str).unwrap_or("unknown").to_string()
 }
 
 const OBSERVABILITY_LOG_PACK_FILES: [&str; 4] = [
