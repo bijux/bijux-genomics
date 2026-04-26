@@ -9,15 +9,7 @@ fn policy__boundaries__architecture_tree__policies_tree_matches_architecture_con
 
     assert_eq!(
         dir_entries(root),
-        entries([
-            "BOUNDARY.md",
-            "Cargo.toml",
-            "PUBLIC_API.md",
-            "README.md",
-            "docs/",
-            "src/",
-            "tests/",
-        ]),
+        entries(["Cargo.toml", "README.md", "docs/", "src/", "tests/"]),
         "crate root must stay minimal and intentional"
     );
 
