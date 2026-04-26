@@ -372,24 +372,24 @@ where
     FValidate: Fn(&T) -> Result<()>,
 {
     for path in list_yaml_files(&root.join(rel))? {
-        let raw = read_utf8(&path)?;
-        let row: T = bijux_dna_infra::formats::yaml::parse_yaml(&raw)
+        let document = read_utf8(&path)?;
+        let spec: T = bijux_dna_infra::formats::yaml::parse_yaml(&document)
             .map_err(|err| anyhow!("parse {}: {err}", path.display()))?;
-        if row.schema_version() != expected_schema {
+        if spec.schema_version() != expected_schema {
             errors.push(format!(
                 "{} uses schema {} but {} is required",
                 path.display(),
-                row.schema_version(),
+                spec.schema_version(),
                 expected_schema
             ));
             continue;
         }
-        if let Err(err) = validate_fn(&row) {
+        if let Err(err) = validate_fn(&spec) {
             errors.push(format!("{}: {err}", path.display()));
             continue;
         }
-        let key = key_fn(&row);
-        if out.insert(key.clone(), row).is_some() {
+        let key = key_fn(&spec);
+        if out.insert(key.clone(), spec).is_some() {
             errors.push(format!("{rel} contains duplicate id {key}"));
         }
     }
@@ -656,7 +656,7 @@ fn build_fastq_container_reference_rows(
     let registry_path = loaded
         .sources
         .get(registry_source.as_str())
-        .ok_or_else(|| anyhow!("missing source record {}", registry_source))?;
+        .ok_or_else(|| anyhow!("missing source record {registry_source}"))?;
     let registry = load_tool_registry(&validate_source_path(root, registry_path)?)?;
     let tool_contracts = load_fastq_tool_contracts(&root.join("domain/fastq/tools"))?;
 
@@ -726,15 +726,18 @@ fn build_fastq_download_backlog_rows(
         .iter()
         .map(|row| {
             let tool_entry = evidence_by_tool.get(row.tool_id.as_str()).copied();
-            let source_id = tool_entry
-                .map(|entry| entry.source_id.clone())
-                .unwrap_or_else(|| format!("source.fastq.tool.{}.upstream", row.tool_id));
-            let acquisition_mode = tool_entry
-                .map(|entry| entry.acquisition_mode.clone())
-                .unwrap_or_else(|| infer_acquisition_mode(&row.upstream));
-            let archive_path = tool_entry
-                .map(|entry| entry.archive_path.clone())
-                .unwrap_or_else(|| default_archive_path(&row.tool_id, &acquisition_mode));
+            let source_id = tool_entry.map_or_else(
+                || format!("source.fastq.tool.{}.upstream", row.tool_id),
+                |entry| entry.source_id.clone(),
+            );
+            let acquisition_mode = tool_entry.map_or_else(
+                || infer_acquisition_mode(&row.upstream),
+                |entry| entry.acquisition_mode.clone(),
+            );
+            let archive_path = tool_entry.map_or_else(
+                || default_archive_path(&row.tool_id, &acquisition_mode),
+                |entry| entry.archive_path.clone(),
+            );
             let archive_status = if archive_path.is_empty() {
                 "not_applicable".to_string()
             } else if root.join(&archive_path).exists() {
@@ -742,19 +745,20 @@ fn build_fastq_download_backlog_rows(
             } else {
                 "missing".to_string()
             };
-            let locator = tool_entry
-                .map(|entry| entry.primary_locator.clone())
-                .unwrap_or_else(|| row.upstream.clone());
+            let locator = tool_entry.map_or_else(
+                || row.upstream.clone(),
+                |entry| entry.primary_locator.clone(),
+            );
             let paper_root = tool_entry
                 .map(|entry| entry.paper_root.clone())
                 .unwrap_or_default();
             let paper_status = if paper_root.is_empty() {
                 "missing_paper_root".to_string()
             } else {
-                paper_by_root
-                    .get(paper_root.as_str())
-                    .map(|entry| entry.paper_status.clone())
-                    .unwrap_or_else(|| "missing_paper_map".to_string())
+                paper_by_root.get(paper_root.as_str()).map_or_else(
+                    || "missing_paper_map".to_string(),
+                    |entry| entry.paper_status.clone(),
+                )
             };
             let has_source_metadata = !(locator.trim().is_empty() && row.citation.trim().is_empty());
             let backlog_status = if tool_entry.is_none() {
@@ -819,8 +823,9 @@ fn infer_acquisition_mode(locator: &str) -> String {
         return String::new();
     }
     if locator.contains("github.com/") || locator.contains("gitlab.") {
-        if locator.ends_with(".zip")
-            || locator.ends_with(".tar.gz")
+        let lowercase_locator = locator.to_ascii_lowercase();
+        if lowercase_locator.ends_with(".zip")
+            || lowercase_locator.ends_with(".tar.gz")
             || locator.contains("/archive/")
             || locator.contains("/releases/download/")
         {
@@ -1420,8 +1425,8 @@ fn load_fastq_qa_coverage_blockers(
     Ok(out)
 }
 
-fn parse_tsv_rows(raw: &str) -> Vec<BTreeMap<String, String>> {
-    let mut lines = raw.lines().filter(|line| !line.trim().is_empty());
+fn parse_tsv_rows(text: &str) -> Vec<BTreeMap<String, String>> {
+    let mut lines = text.lines().filter(|line| !line.trim().is_empty());
     let Some(header_line) = lines.next() else {
         return Vec::new();
     };
@@ -1429,11 +1434,11 @@ fn parse_tsv_rows(raw: &str) -> Vec<BTreeMap<String, String>> {
     let mut rows = Vec::new();
     for line in lines {
         let values = line.split('\t').map(str::to_string).collect::<Vec<_>>();
-        let mut row = BTreeMap::new();
+        let mut parsed_row = BTreeMap::new();
         for (index, header) in headers.iter().enumerate() {
-            row.insert(header.clone(), values.get(index).cloned().unwrap_or_default());
+            parsed_row.insert(header.clone(), values.get(index).cloned().unwrap_or_default());
         }
-        rows.push(row);
+        rows.push(parsed_row);
     }
     rows
 }
