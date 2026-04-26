@@ -296,3 +296,17 @@ fn execution_plan_validation_reports_unresolved_edge_nodes_without_panicking() {
 
     assert!(error.to_string().contains("plan edge references unknown stage"));
 }
+
+#[test]
+fn execution_plan_rejects_edges_with_empty_endpoints() {
+    let error = ExecutionPlan::new(
+        "fastq-to-fastq__trim_reads_qc__v1",
+        "planner-v1",
+        PlanPolicy::default(),
+        vec![trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp")],
+        vec![PlanEdge::new("", "fastq.trim_reads.tool.fastp")],
+    )
+    .expect_err("empty edge endpoints must fail validation");
+
+    assert!(error.to_string().contains("plan edge has empty endpoint"));
+}
