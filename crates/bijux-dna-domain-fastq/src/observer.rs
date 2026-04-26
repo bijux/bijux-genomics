@@ -8,7 +8,11 @@ pub use contracts::{
     observer_specialization_contract_for_stage_tool, observer_specialization_contracts,
     observer_specialized_stage_tool_bindings, ObserverSpecializationContract,
 };
-pub use parse::tool_metrics::{parse_fastp_metrics, parse_multiqc_general_stats_metrics};
+pub use parse::tool_metrics::{
+    parse_adapterremoval_metrics, parse_fastp_metrics, parse_fastqc_summary_metrics,
+    parse_multiqc_general_stats_metrics, parse_samtools_flagstat_metrics,
+    parse_seqkit_tool_metrics,
+};
 pub use parse::{
     parse_bbduk_reads_removed, parse_cluster_otus_report, parse_correct_errors_report,
     parse_deduplicate_report, parse_deplete_host_report,
