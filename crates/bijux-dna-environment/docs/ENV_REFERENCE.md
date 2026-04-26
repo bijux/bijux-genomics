@@ -32,8 +32,9 @@ Input spec to resolved image:
 ## Cache Semantics
 
 Cache keys are derived from runner, tool, digest or version, and architecture. Digest changes and
-platform changes produce different paths. Cache helpers compute or inspect local state; they do not
-pull images.
+platform changes produce different paths. Digest separators are normalized for SIF filenames, so
+`sha256:abc123` becomes `sha256-abc123` in the path component. Cache helpers compute or inspect
+local state; they do not pull images.
 
 ## Fixtures
 

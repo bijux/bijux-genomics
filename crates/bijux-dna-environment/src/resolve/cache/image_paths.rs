@@ -29,7 +29,7 @@ fn extract_tool_name(full_name: &str) -> String {
 
 fn extract_version_or_digest(full_name: &str, arch: &str) -> String {
     if let Some((_, digest)) = full_name.rsplit_once('@') {
-        digest.to_string()
+        digest.replace(':', "-")
     } else if let Some((_, tag)) = full_name.rsplit_once(':') {
         tag.strip_suffix(&format!("-{arch}")).unwrap_or(tag).to_string()
     } else {
