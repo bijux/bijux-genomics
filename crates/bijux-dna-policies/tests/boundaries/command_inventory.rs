@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 
 #[test]
-fn command_inventory_documents_policy_commands_without_runtime_entrypoints() {
+fn policy__boundaries__command_inventory__documents_policy_commands_without_runtime_entrypoints() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let commands_doc = root.join("docs").join("COMMANDS.md");
     let content = fs::read_to_string(&commands_doc)

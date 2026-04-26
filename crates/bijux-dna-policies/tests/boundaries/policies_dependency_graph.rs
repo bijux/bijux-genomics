@@ -5,7 +5,7 @@ use std::path::Path;
 use toml::Value;
 
 #[test]
-fn dependency_graph_matches_policy_crate_boundary() {
+fn policy__boundaries__policies_dependency_graph__dependency_graph_matches_policy_crate_boundary() {
     let manifest_path = Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml");
     let manifest = fs::read_to_string(&manifest_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", manifest_path.display()));

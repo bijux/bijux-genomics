@@ -14,7 +14,7 @@ const FOUNDATION_CRATES: &[&str] = &[
 ];
 
 #[test]
-fn foundation_crates_apply_workspace_lints() {
+fn policy__boundaries__foundation_lints__foundation_crates_apply_workspace_lints() {
     let workspace = workspace_root();
 
     for crate_name in FOUNDATION_CRATES {

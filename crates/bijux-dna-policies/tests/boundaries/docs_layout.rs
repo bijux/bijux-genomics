@@ -3,7 +3,7 @@ use std::fs;
 use std::path::Path;
 
 #[test]
-fn markdown_docs_stay_in_root_readme_or_docs_dir() {
+fn policy__boundaries__docs_layout__markdown_docs_stay_in_root_readme_or_docs_dir() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let markdown_files = markdown_files(root);
     let expected = entries([
