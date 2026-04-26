@@ -87,11 +87,14 @@ mod tests {
     use super::QaStage;
 
     fn workspace_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        let Some(root) = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .parent()
             .and_then(Path::parent)
-            .expect("workspace root")
-            .to_path_buf()
+            .map(Path::to_path_buf)
+        else {
+            panic!("workspace root");
+        };
+        root
     }
 
     fn qa_coverage_blocker_stage_ids() -> BTreeSet<String> {
@@ -101,7 +104,11 @@ mod tests {
         raw.lines()
             .enumerate()
             .filter(|(index, line)| *index > 0 && !line.trim().is_empty())
-            .map(|(_index, line)| line.split('\t').next().expect("stage_id column").to_string())
+            .map(|(index, line)| {
+                let stage_id = line.split('\t').next().unwrap_or_default().trim();
+                assert!(!stage_id.is_empty(), "missing stage_id column at line {}", index + 1);
+                stage_id.to_string()
+            })
             .collect()
     }
 
