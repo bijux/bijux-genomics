@@ -17,7 +17,7 @@ engine behavior, and determinism tests guard replayable output.
 - `tests/boundaries/`: crate-tree, dependency, and side-effect boundary assertions.
 - `tests/boundaries/command_inventory.rs`: `docs/COMMANDS.md` operation inventory contract.
 - `tests/contracts/`: engine-facing behavior and documentation contracts.
-- `tests/contracts/recording/`: execution truth-set documentation and recording completeness checks
+- `tests/contracts/recording.rs`: execution truth-set documentation and recording completeness checks.
 - `tests/determinism/`: replay and run-manifest stability assertions.
 - `tests/support/`: shared engine fixtures, graph builders, and runner stubs.
 

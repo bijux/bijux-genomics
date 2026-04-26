@@ -132,6 +132,32 @@ fn engine_tree_matches_architecture_contract() {
         ]),
         "boundary tests must stay partitioned by architecture concern"
     );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/contracts")),
+        entries([
+            "architecture.rs",
+            "execution_orchestration_contracts.rs",
+            "params_hash.rs",
+            "recording.rs",
+            "recording/",
+            "runner_tests.rs",
+            "support_naming.rs",
+        ]),
+        "contract tests must stay named by the behavior they protect"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/contracts/recording")),
+        entries(["docs_recording_truth_set.rs", "recording_completeness.rs", "run_manifest.rs"]),
+        "recording contract tests must stay split by docs, completeness, and manifest concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/determinism")),
+        entries(["manifest_layout_snapshot.rs", "replay_determinism.rs"]),
+        "determinism tests must not keep shadow suite aggregators"
+    );
 }
 
 fn dir_entries(path: &Path) -> BTreeSet<String> {
