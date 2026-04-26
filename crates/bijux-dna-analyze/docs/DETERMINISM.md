@@ -1,11 +1,30 @@
-# DETERMINISM
+# Determinism
 
-## What is stable
-- Report ordering, section naming, and numeric aggregations are deterministic for the same inputs.
-- `report.json` and `report_bundle/index.html` are stable for identical inputs and schema versions.
+## Contract
+For identical inputs, feature flags, schema versions, and dependency versions,
+`bijux-dna-analyze` must produce stable analysis outputs.
 
-## What may vary
-- Wall-clock timestamps, durations, and similar timing metadata are intentionally unstable.
+## Stable Outputs
+- Loaded facts are sorted by run, stage, tool, params hash, and input hash.
+- Report section names and table order are deterministic.
+- `report.json`, `report_bundle/index.html`, and snapshot-normalized report outputs are stable.
+- Ranking output uses explicit tie-breaks rather than incidental collection order.
+- SQLite query tests must return stable latest-record selection when the `sqlite` feature is
+  enabled.
 
-## Threat model
-If input artifacts, schema versions, or metrics registries change, outputs are expected to change.
+## Allowed Variance
+- Values read from input artifacts may vary when the upstream run varied.
+- Wall-clock timestamps and durations may vary when they are upstream input data.
+- Domain snapshot hashes are expected to change when governed domain inputs or docs change.
+
+## Forbidden Variance
+- Hash-map iteration order must not leak into reports.
+- Filesystem traversal order must be sorted before it affects output.
+- Optional feature support must fail explicitly when disabled; for example, parquet paths return
+  `UnsupportedParquet` without the `parquet` feature.
+
+## Coverage
+- `tests/determinism/fixture_stability.rs`
+- `tests/contracts/report/report_determinism.rs`
+- `tests/contracts/pipeline/stable_ordering.rs`
+- `tests/schemas/sqlite/sqlite_determinism.rs`
