@@ -11,6 +11,8 @@ tests/
 ├── contracts.rs
 ├── contracts/
 ├── guardrails.rs
+├── schemas.rs
+├── schemas/
 ├── snapshots/
 └── workspace_paths.rs
 ```
@@ -23,6 +25,7 @@ tests/
 - `tests/contracts.rs`: command behavior, bank, dry-run, and HPC layout contracts.
 - `tests/contracts/dry_run.rs`: dry-run command families and VCF toy execution coverage.
 - `tests/guardrails.rs`: shared policy guardrail smoke for this crate.
+- `tests/schemas.rs`: public API surface snapshots.
 - `tests/snapshots/`: help output and public API snapshots.
 - `src/process_exit.rs` unit tests: operator error and exit-code behavior.
 
