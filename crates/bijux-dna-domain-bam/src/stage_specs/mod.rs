@@ -370,8 +370,7 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "bam.validate" | "bam.qc_pre" | "bam.mapping_summary" | "bam.endogenous_content" => {
             vec!["samtools"]
         }
-        "bam.filter" => vec!["samtools", "bamtools"],
-        "bam.mapq_filter" => vec!["samtools", "bamtools"],
+        "bam.filter" | "bam.mapq_filter" => vec!["samtools", "bamtools"],
         "bam.length_filter" | "bam.duplication_metrics" => vec!["samtools", "picard"],
         "bam.markdup" | "bam.insert_size" | "bam.gc_bias" => vec!["picard"],
         "bam.recalibration" => vec!["gatk"],
