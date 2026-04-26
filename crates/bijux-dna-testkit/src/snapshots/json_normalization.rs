@@ -183,16 +183,20 @@ fn is_number(value: &str) -> bool {
 
 fn is_unstable_key(key: &str) -> bool {
     matches!(
-        key,
+        key.to_ascii_lowercase().as_str(),
         "timestamp"
             | "time"
             | "date"
             | "datetime"
+            | "startedat"
             | "started_at"
+            | "endedat"
             | "ended_at"
             | "duration"
+            | "durationms"
             | "duration_ms"
             | "elapsed"
+            | "elapsedms"
             | "elapsed_ms"
     )
 }
