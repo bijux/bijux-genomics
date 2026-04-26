@@ -19,6 +19,7 @@ fn dev_tree_matches_architecture_contract() {
         "ARCHITECTURE.md",
         "BOUNDARY.md",
         "COMMANDS.md",
+        "DEPENDENCIES.md",
         "INDEX.md",
         "PUBLIC_API.md",
         "SCOPE.md",

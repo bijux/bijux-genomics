@@ -10,6 +10,7 @@
 ## Boundaries
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [BOUNDARY.md](BOUNDARY.md)
+- [DEPENDENCIES.md](DEPENDENCIES.md)
 - [PUBLIC_API.md](PUBLIC_API.md)
 - [TESTS.md](TESTS.md)
 
