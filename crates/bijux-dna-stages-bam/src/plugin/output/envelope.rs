@@ -30,7 +30,7 @@ pub(super) fn build_metrics_envelope(
         stage_id: plan.stage_id.0.to_string(),
         stage_version: plan.stage_version.0,
         tool_id: plan.tool_id.0.to_string(),
-        tool_version: plan.tool_version.clone(),
+        tool_version: plan.tool_version.trim().to_string(),
         image_digest,
         parameters_fingerprint,
         input_fingerprint,

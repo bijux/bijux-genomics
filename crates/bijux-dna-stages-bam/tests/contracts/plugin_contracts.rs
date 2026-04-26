@@ -139,3 +139,15 @@ fn bam_stage_plugin_input_fingerprint_is_stable_for_reordered_inputs() -> anyhow
     assert_eq!(first.metrics.input_fingerprint, second.metrics.input_fingerprint);
     Ok(())
 }
+
+#[test]
+fn bam_stage_plugin_trims_tool_version_in_metrics_envelope() -> anyhow::Result<()> {
+    let plugin = BamStagePlugin;
+    let mut plan = stage_plan("bam.mapping_summary");
+    plan.tool_version = " 1.17 ".to_string();
+
+    let parsed = plugin.parse_outputs(&plan, &[])?;
+
+    assert_eq!(parsed.metrics.tool_version, "1.17");
+    Ok(())
+}
