@@ -164,3 +164,20 @@ fn policy__root__guardrails__empty_module_scan_ignores_attributes_and_scoped_mod
 
     assert!(err.to_string().contains("empty module file"), "unexpected guardrail error: {err}");
 }
+
+#[test]
+fn policy__root__guardrails__literal_scans_ignore_block_comments() {
+    let paths = TestPaths::new("policies-block-comment-scans");
+    let crate_root = paths.child("crate");
+    write_source(
+        &crate_root,
+        "lib.rs",
+        "/*\nNone::<u8>.expect(\"comment only\");\n\"fastq.qc\"\n*/\npub fn ok() {}\n",
+    );
+
+    let mut config = GuardrailConfig::default();
+    config.forbid_panic_expect = true;
+    config.forbid_stage_id_strings = true;
+
+    bijux_dna_policies::check(&crate_root, &config).expect("block-comment mentions are allowed");
+}
