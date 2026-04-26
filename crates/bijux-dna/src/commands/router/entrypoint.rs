@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Component, Path, PathBuf};
 
 #[cfg(debug_assertions)]
 use anyhow::Context;
@@ -192,7 +192,7 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
             if args.view != "tail" {
                 return Err(anyhow!("unsupported --view `{}` (expected `tail`)", args.view));
             }
-            let run_dir = cwd.join(&args.search_root).join(&args.run_id);
+            let run_dir = observability_run_dir(cwd, &args.search_root, &args.run_id)?;
             let telemetry_path = run_dir.join("run_artifacts").join("telemetry.jsonl");
             let raw = std::fs::read_to_string(&telemetry_path)
                 .with_context(|| format!("read {}", telemetry_path.display()))?;
@@ -226,7 +226,7 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
         }
         #[cfg(debug_assertions)]
         cli::DnaCommand::Collect(args) => {
-            let run_dir = cwd.join(&args.search_root).join(&args.run);
+            let run_dir = observability_run_dir(cwd, &args.search_root, &args.run)?;
             let out = args
                 .out
                 .clone()
@@ -252,5 +252,55 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
             Ok(true)
         }
         _ => Ok(false),
+    }
+}
+
+fn observability_run_dir(cwd: &Path, search_root: &Path, run_id: &str) -> Result<PathBuf> {
+    ensure_observability_run_id(run_id)?;
+    Ok(cwd.join(search_root).join(run_id))
+}
+
+fn ensure_observability_run_id(run_id: &str) -> Result<()> {
+    if run_id.trim().is_empty() {
+        return Err(anyhow!("observability run id must be non-empty"));
+    }
+    let mut components = Path::new(run_id).components();
+    let Some(Component::Normal(_)) = components.next() else {
+        return Err(anyhow!("observability run id must be a single path segment"));
+    };
+    if components.next().is_some() {
+        return Err(anyhow!("observability run id must be a single path segment"));
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::observability_run_dir;
+
+    #[test]
+    fn observability_run_dir_accepts_single_segment_run_ids() {
+        let run_dir = observability_run_dir(
+            std::path::Path::new("/workspace"),
+            std::path::Path::new("artifacts/bench"),
+            "run-001",
+        )
+        .expect("run dir");
+
+        assert_eq!(run_dir, std::path::Path::new("/workspace/artifacts/bench/run-001"));
+    }
+
+    #[test]
+    fn observability_run_dir_rejects_path_like_run_ids() {
+        for run_id in ["", "../run-001", "nested/run-001", "/tmp/run-001", "."] {
+            let err = observability_run_dir(
+                std::path::Path::new("/workspace"),
+                std::path::Path::new("artifacts/bench"),
+                run_id,
+            )
+            .expect_err("run id should be rejected");
+
+            assert!(err.to_string().contains("observability run id"));
+        }
     }
 }
