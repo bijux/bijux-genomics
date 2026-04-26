@@ -63,6 +63,23 @@ def yaml_list(text: str, key: str) -> list[str]:
     return values
 
 
+def yaml_named_items(text: str, key: str) -> list[str]:
+    lines = text.splitlines()
+    values: list[str] = []
+    in_block = False
+    for line in lines:
+        if re.match(rf"^{re.escape(key)}:\s*$", line):
+            in_block = True
+            continue
+        if in_block and re.match(r"^[A-Za-z0-9_]+:", line):
+            break
+        if in_block:
+            match = re.match(r"\s*-\s*name:\s*['\"]?([^'\"]+)['\"]?\s*$", line)
+            if match:
+                values.append(match.group(1).strip())
+    return values
+
+
 def execution_defaults(root: Path) -> list[FastqDefault]:
     text = read_text(root / EXECUTION_SUPPORT)
     rows: list[FastqDefault] = []
@@ -94,16 +111,20 @@ def execution_defaults(root: Path) -> list[FastqDefault]:
     return rows
 
 
-def load_stage_status(root: Path) -> dict[str, str]:
-    statuses = {}
+def load_stages(root: Path) -> dict[str, dict[str, list[str] | str]]:
+    stages = {}
     for path in sorted((root / STAGE_DIR).glob("*.yaml")):
         if path.name == "_schema.yaml":
             continue
         text = read_text(path)
         stage_id = yaml_scalar(text, "stage_id")
         if stage_id:
-            statuses[stage_id] = yaml_scalar(text, "status")
-    return statuses
+            stages[stage_id] = {
+                "status": yaml_scalar(text, "status"),
+                "bank_hooks": yaml_list(text, "bank_hooks"),
+                "outputs": yaml_named_items(text, "outputs"),
+            }
+    return stages
 
 
 def load_tool_containers(root: Path) -> dict[str, tuple[str, str]]:
@@ -161,7 +182,7 @@ def main() -> int:
     args = parse_args()
     root = args.repo_root.resolve()
     out_dir = args.out_dir if args.out_dir.is_absolute() else root / args.out_dir
-    stages = load_stage_status(root)
+    stages = load_stages(root)
     tools = load_tool_containers(root)
     registry = load_registry(root)
 
@@ -174,7 +195,7 @@ def main() -> int:
         matrix.append(
             [
                 row.stage_id,
-                stages.get(row.stage_id, ""),
+                str(stages.get(row.stage_id, {}).get("status", "")),
                 row.execution_status,
                 row.default_tool,
                 registry_row.get("status", ""),
@@ -216,12 +237,39 @@ def main() -> int:
         ["stage_id", "default_tool", "container_ref", "digest_class"],
         digest_rows,
     )
+
+    producers: dict[str, list[str]] = {}
+    for stage_id, stage in stages.items():
+        for output in stage.get("outputs", []):
+            producers.setdefault(str(output), []).append(stage_id)
+    asset_rows = []
+    for stage_id, stage in sorted(stages.items()):
+        for hook in stage.get("bank_hooks", []):
+            hook = str(hook)
+            if hook == "none":
+                continue
+            producer_stages = producers.get(hook, [])
+            asset_rows.append(
+                [
+                    stage_id,
+                    str(stage.get("status", "")),
+                    hook,
+                    ";".join(producer_stages) if producer_stages else "external_or_unproduced",
+                    "tracked" if producer_stages else "needs_asset_authority",
+                ]
+            )
+    write_tsv(
+        out_dir / "FASTQ_CONTAINER_ASSET_HOOKS.tsv",
+        ["stage_id", "stage_status", "asset_hook", "producer_stages", "readiness"],
+        asset_rows,
+    )
     print(
         json.dumps(
             {
                 "written": [
                     str(out_dir / "FASTQ_CONTAINER_DEFAULT_MATRIX.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_DIGEST_CLASSES.tsv"),
+                    str(out_dir / "FASTQ_CONTAINER_ASSET_HOOKS.tsv"),
                 ]
             }
         )
