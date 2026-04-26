@@ -15,7 +15,7 @@ Deterministic expected outputs used by contract and integration checks.
 - Historical bundles require explicit rationale in commit message and `GENERATE.md`.
 
 ## Update Workflow
-1. Regenerate via `cargo run -p bijux-dev-dna -- assets run refresh-golden`.
+1. Regenerate via `cargo run -p bijux-dna-dev -- assets run refresh-golden`.
 2. Verify integrity checks pass (`check-asset-checksums`, `check-assets-drift`).
 3. Review `artifacts/assets-refresh/golden/report.json` for deterministic inputs/outputs.
 4. Commit generated bundle plus report-driven changes together.
@@ -23,4 +23,4 @@ Deterministic expected outputs used by contract and integration checks.
 ---
 Asset Provenance Footer
 Last regenerated: 2026-02-13
-Regenerate command: `cargo run -p bijux-dev-dna -- assets run refresh-toy && cargo run -p bijux-dev-dna -- assets run refresh-golden`
+Regenerate command: `cargo run -p bijux-dna-dev -- assets run refresh-golden`
