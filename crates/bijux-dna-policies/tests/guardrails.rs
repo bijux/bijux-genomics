@@ -107,3 +107,17 @@ fn policy__root__guardrails__stage_id_scan_ignores_comment_mentions() {
 
     bijux_dna_policies::check(&crate_root, &config).expect("comment-only stage id is allowed");
 }
+
+#[test]
+fn policy__root__guardrails__stage_id_scan_rejects_raw_strings() {
+    let paths = TestPaths::new("policies-stage-id-raw-strings");
+    let crate_root = paths.child("crate");
+    write_source(&crate_root, "lib.rs", "pub const STAGE: &str = r#\"fastq.qc\"#;\n");
+
+    let mut config = GuardrailConfig::default();
+    config.forbid_stage_id_strings = true;
+
+    let err = bijux_dna_policies::check(&crate_root, &config).expect_err("raw stage id must fail");
+
+    assert!(err.to_string().contains("stage id literal"), "unexpected guardrail error: {err}");
+}
