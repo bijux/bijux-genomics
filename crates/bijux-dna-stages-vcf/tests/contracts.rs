@@ -42,4 +42,5 @@ mod contracts {
     include!("contracts_suite/command_inventory_tests.rs");
     include!("contracts_suite/public_api_tests.rs");
     include!("contracts_suite/stage_contract_docs_tests.rs");
+    include!("contracts_suite/stage_catalog_tests.rs");
 }

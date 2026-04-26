@@ -1,4 +1,4 @@
-use bijux_dna_domain_vcf::{VcfStage, STAGE_CALL, STAGE_FILTER_READS, STAGE_STATS};
+use bijux_dna_domain_vcf::{VcfDomainStage, VcfStage, STAGE_CALL, STAGE_FILTER_READS, STAGE_STATS};
 
 #[derive(Debug, Clone, Copy)]
 pub struct VcfStageSpec {
@@ -97,6 +97,41 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
             experimental: false,
         },
         VcfStageSpec {
+            stage_id: "vcf.imputation",
+            metrics_schema: "bijux.vcf.imputation.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: false,
+        },
+        VcfStageSpec {
+            stage_id: "vcf.impute",
+            metrics_schema: "bijux.vcf.impute.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: false,
+        },
+        VcfStageSpec {
+            stage_id: "vcf.phasing",
+            metrics_schema: "bijux.vcf.phasing.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: false,
+        },
+        VcfStageSpec {
+            stage_id: "vcf.postprocess",
+            metrics_schema: "bijux.vcf.postprocess.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: false,
+        },
+        VcfStageSpec {
+            stage_id: "vcf.prepare_reference_panel",
+            metrics_schema: "bijux.vcf.prepare_reference_panel.v1",
+            smoke_supported: true,
+            parser_supported: true,
+            experimental: false,
+        },
+        VcfStageSpec {
             stage_id: "vcf.demography",
             metrics_schema: "bijux.vcf.demography.v1",
             smoke_supported: true,
@@ -122,6 +157,14 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
 
 #[must_use]
 pub fn vcf_stage_completeness(stage: VcfStage) -> bool {
+    vcf_stage_catalog()
+        .iter()
+        .find(|spec| spec.stage_id == stage.as_str())
+        .is_some_and(|spec| spec.smoke_supported && spec.parser_supported)
+}
+
+#[must_use]
+pub fn vcf_domain_stage_completeness(stage: VcfDomainStage) -> bool {
     vcf_stage_catalog()
         .iter()
         .find(|spec| spec.stage_id == stage.as_str())

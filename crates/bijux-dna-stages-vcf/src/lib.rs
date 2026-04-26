@@ -29,6 +29,6 @@ pub mod vcf_io;
 pub mod wrappers;
 
 #[must_use]
-pub fn implemented_stages() -> Vec<bijux_dna_domain_vcf::VcfStage> {
-    bijux_dna_domain_vcf::VcfStage::all().to_vec()
+pub fn implemented_stages() -> Vec<bijux_dna_domain_vcf::VcfDomainStage> {
+    bijux_dna_domain_vcf::VcfDomainStage::all().to_vec()
 }
