@@ -3,6 +3,7 @@ use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_core::contract::ExecutionStep;
+use flate2::read::MultiGzDecoder;
 
 fn has_extension(path: &Path, ext: &str) -> bool {
     path.extension()
@@ -11,7 +12,9 @@ fn has_extension(path: &Path, ext: &str) -> bool {
 }
 
 fn file_name_ends_with(path: &Path, suffix: &str) -> bool {
-    path.file_name().and_then(std::ffi::OsStr::to_str).is_some_and(|name| name.ends_with(suffix))
+    path.file_name()
+        .and_then(std::ffi::OsStr::to_str)
+        .is_some_and(|name| name.to_ascii_lowercase().ends_with(suffix))
 }
 
 /// # Errors
@@ -61,17 +64,19 @@ pub fn validate_bam_index(input: &Path) -> Result<()> {
 /// # Errors
 /// Returns an error when FASTQ content does not start with a header marker.
 pub fn validate_fastq_format(input: &Path) -> Result<()> {
-    if !(has_extension(input, "fastq")
-        || has_extension(input, "fq")
-        || file_name_ends_with(input, ".fastq.gz")
-        || file_name_ends_with(input, ".fq.gz"))
-    {
+    let is_gzip_fastq =
+        file_name_ends_with(input, ".fastq.gz") || file_name_ends_with(input, ".fq.gz");
+    if !(has_extension(input, "fastq") || has_extension(input, "fq") || is_gzip_fastq) {
         return Ok(());
     }
     let file = std::fs::File::open(input).with_context(|| format!("open {}", input.display()))?;
-    let mut reader = std::io::BufReader::new(file);
+    let mut reader: Box<dyn BufRead> = if is_gzip_fastq {
+        Box::new(std::io::BufReader::new(MultiGzDecoder::new(file)))
+    } else {
+        Box::new(std::io::BufReader::new(file))
+    };
     let mut first = String::new();
-    let _ = reader.read_line(&mut first)?;
+    let _ = reader.read_line(&mut first).with_context(|| format!("read {}", input.display()))?;
     if !first.starts_with('@') {
         bail!("input contract violation: FASTQ header must start with '@' ({})", input.display());
     }
@@ -91,4 +96,25 @@ pub fn validate_stage_inputs(step: &ExecutionStep) -> Result<()> {
         validate_fastq_format(path)?;
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use std::io::Write;
+
+    use flate2::write::GzEncoder;
+    use flate2::Compression;
+
+    use super::validate_fastq_format;
+
+    #[test]
+    fn validate_fastq_format_accepts_gzipped_fastq() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let path = temp.path().join("reads.fastq.gz");
+        let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+        encoder.write_all(b"@read-1\nACGT\n+\n!!!!\n")?;
+        bijux_dna_infra::write_bytes(&path, encoder.finish()?)?;
+
+        validate_fastq_format(&path)
+    }
 }
