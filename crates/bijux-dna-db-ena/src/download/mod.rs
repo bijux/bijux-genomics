@@ -67,4 +67,44 @@ mod tests {
         assert!(tasks[0].output.to_string_lossy().contains("out/ERR1/ERR1_1.fastq.gz"));
         let _ = EnaResultKind::ReadRun;
     }
+
+    #[test]
+    fn build_download_tasks_deduplicates_repeated_output_paths() {
+        let record = EnaRecord {
+            study_accession: Some("PRJEB1".to_string()),
+            sample_accession: Some("SAMEA1".to_string()),
+            experiment_accession: Some("ERX1".to_string()),
+            run_accession: Some("ERR1".to_string()),
+            analysis_accession: None,
+            tax_id: None,
+            scientific_name: None,
+            library_layout: Some("PAIRED".to_string()),
+            library_source: Some("GENOMIC".to_string()),
+            library_strategy: Some("WGS".to_string()),
+            instrument_model: Some("Illumina".to_string()),
+            base_count: Some(1000),
+            read_count: Some(100),
+            fastq_bytes: vec![10, 10],
+            fastq_ftp: vec![
+                "ftp.sra.ebi.ac.uk/vol1/ERR1_1.fastq.gz".to_string(),
+                "ftp.sra.ebi.ac.uk/vol1/ERR1_1.fastq.gz".to_string(),
+            ],
+            submitted_ftp: Vec::new(),
+            sra_ftp: Vec::new(),
+            bam_ftp: Vec::new(),
+        };
+        let cfg = DownloadConfig {
+            output_dir: PathBuf::from("out"),
+            jobs: 1,
+            retries: 0,
+            source: EnaFileSource::FastqFtp,
+            preference: EnaSourcePreference::Ftp,
+            dry_run: true,
+        };
+
+        let tasks = build_download_tasks(&[record], &cfg);
+
+        assert_eq!(tasks.len(), 1);
+        assert_eq!(tasks[0].url, "ftp://ftp.sra.ebi.ac.uk/vol1/ERR1_1.fastq.gz");
+    }
 }
