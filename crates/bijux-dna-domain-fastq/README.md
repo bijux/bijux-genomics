@@ -11,6 +11,7 @@ Upstream: core IDs. Downstream: planners/stages/analyze.
 
 ## Public API / entrypoints
 See `docs/INDEX.md`, `docs/DOMAIN_MODEL.md`, and `docs/PUBLIC_API.md`.
+Command inventory is authoritative in `docs/COMMANDS.md`.
 
 ## Domain truth set (SSOT)
 The FASTQ domain defines:
