@@ -9,9 +9,12 @@
 
 ## Boundaries
 - [ARCHITECTURE.md](ARCHITECTURE.md)
-- `BOUNDARY.md`
-- `PUBLIC_API.md`
+- [BOUNDARY.md](BOUNDARY.md)
+- [PUBLIC_API.md](PUBLIC_API.md)
 - [TESTS.md](TESTS.md)
+
+## Command Catalog
+- [COMMANDS.md](COMMANDS.md) is the single source of truth for the command groups managed by this crate.
 
 ## Extension Points
 - Add new cataloged commands under `src/catalog` and wire them through `src/commands`.
