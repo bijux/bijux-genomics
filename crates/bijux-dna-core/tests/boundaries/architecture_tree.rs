@@ -251,7 +251,7 @@ fn assert_test_layout(root: &Path) {
 
     assert_eq!(
         dir_entries(&root.join("tests/contracts")),
-        entries(["contracts.rs", "execution/", "identity/", "surface/"]),
+        entries(["execution/", "identity/", "surface/"]),
         "contract tests must stay partitioned by execution, identity, and surface concern"
     );
 
