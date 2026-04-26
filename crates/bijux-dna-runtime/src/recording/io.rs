@@ -138,7 +138,10 @@ fn truncate_tail(text: &str, tail_kb: usize) -> String {
         return text.to_string();
     }
     let bytes = text.as_bytes();
-    let start = bytes.len().saturating_sub(max_bytes);
+    let mut start = bytes.len().saturating_sub(max_bytes);
+    while start < bytes.len() && !text.is_char_boundary(start) {
+        start += 1;
+    }
     String::from_utf8_lossy(&bytes[start..]).to_string()
 }
 
@@ -149,4 +152,19 @@ fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
         let _ = write!(&mut hex, "{byte:02x}");
     }
     hex
+}
+
+#[cfg(test)]
+mod tests {
+    use super::truncate_tail;
+
+    #[test]
+    fn truncate_tail_preserves_utf8_boundaries() {
+        let text = format!("x{}", "😀".repeat(300));
+
+        let tail = truncate_tail(&text, 1);
+
+        assert!(!tail.contains('\u{fffd}'));
+        assert!(tail.starts_with('😀'));
+    }
 }
