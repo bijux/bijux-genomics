@@ -1,54 +1,29 @@
 # bijux-dna-planner-fastq
 
-## What this crate does
-FASTQ planner: selects tools and generates graphs + explain payloads.
-Stage grouping is explicit: `pre` (validation + stats), `qc` (quality reports),
-and `transform` (trim/merge/filter/correct/umi/screen).
+`bijux-dna-planner-fastq` is the deterministic FASTQ planner. It selects governed tool bindings, composes `StagePlanV1` values, builds execution graphs, and emits stable explain metadata without running tools or parsing runtime output.
 
-## Selection + explainability
-Selection inputs:
-- pipeline id + profile overrides
-- allow/deny tool lists (CLI/API)
-- stage availability from domain contracts
-- explicit tool version pins (if provided)
+## Repository Policy
+This crate is governed by `README.md` and `README.md`. Re-read those files before changing this crate or committing work in this repository.
 
-Explain output guarantees:
-- lists chosen tools in stable order
-- includes defaults diff (profile vs pipeline)
-- includes reasons for each selection
-- includes contract hashes for plan stability
+## Role
+- Upstream contracts: `bijux-dna-domain-fastq`, `bijux-dna-stages-fastq`, `bijux-dna-stage-contract`, and `bijux-dna-pipelines`.
+- Downstream consumers: runner, engine, CLI, API, and analysis crates.
+- Boundary: plan construction only; execution and parsing stay downstream.
 
-## What it must not do (boundaries)
-No parsing or execution.
+## Entry Points
+- `src/lib.rs` exports the stable planner API.
+- `src/surface.rs` collects root reexports and planner constants.
+- `src/stage_api.rs` provides the curated compatibility surface for stage-level planning.
+- `src/planner/` builds graph-backed FASTQ plans and benchmark fan-out graphs.
+- `src/compose/` binds inputs, outputs, params, and stage dependencies.
+- `src/tool_adapters/` builds stage-specific command specs.
 
-## Role in the stack
-Upstream: pipelines. Downstream: engine.
+## Documentation
+Start with `docs/INDEX.md`. Public API, architecture, command inventory, dependency boundaries, effects, determinism, explain output, and test contracts are documented under `docs/`.
 
-## Public API / entrypoints
-See `crates/bijux-dna-planner-fastq/docs/INDEX.md`, `crates/bijux-dna-planner-fastq/docs/PLANNER_MODEL.md`, `crates/bijux-dna-planner-fastq/docs/TOOL_SELECTION.md`, `crates/bijux-dna-planner-fastq/docs/EXPLAIN_OUTPUT.md`,
-`crates/bijux-dna-planner-fastq/docs/STAGE_MAPPING.md`, `crates/bijux-dna-planner-fastq/docs/ADD_TOOL.md`, `crates/bijux-dna-planner-fastq/docs/CHANGE_RULES.md`.
+## Validation
+Run:
 
-## Key contracts it owns/consumes
-Plan JSON and explain payload snapshots.
-
-## Artifacts / Contracts
-See `crates/bijux-dna-planner-fastq/docs/PLANNER_MODEL.md`, `crates/bijux-dna-planner-fastq/docs/EXPLAIN_OUTPUT.md`, and snapshots under `tests/snapshots/`.
-
-## Effects & determinism guarantees
-Pure planning; deterministic ordering/hashes. See `crates/bijux-dna-planner-fastq/docs/DETERMINISM.md` and the golden tests below.
-
-## How to run its tests
-See `crates/bijux-dna-planner-fastq/docs/TESTS.md`. Golden tests: `tests/determinism.rs`, `tests/contracts/graph.rs`,
-`tests/explain.rs`, `tests/plan.rs`.
-
-## Start here in code
-`src/lib.rs` → `src/selection/tool_selection.rs` → `src/tool_adapters/fastq.rs`
-
-## Where the docs live
-Start at `crates/bijux-dna-planner-fastq/docs/INDEX.md` and follow the crate docs listed above.
-
-## Failure modes
-Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
-
-## Stability
-Contract and behavior changes follow `crates/bijux-dna-planner-fastq/docs/CHANGE_RULES.md`.
+```bash
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-planner-fastq --no-default-features
+```

@@ -1,21 +1,28 @@
 # Architecture
 
-This file stays short on purpose. `bijux-dna-planner-fastq` should read as a thin surface over named planning subsystems, with deeper rules documented next to the relevant contract docs.
+`bijux-dna-planner-fastq` is a planner crate. The architecture keeps public surface, pipeline planning, stage composition, tool selection, and tool-specific command spec construction in separate modules.
 
 ## Layout
-- `lib.rs` and `surface.rs` expose the supported planner surface.
-- `preprocess/` owns pipeline choice and preprocess policy.
-- `selection/` owns tool allowlisting, override merging, and selection helpers.
-- `planner/` owns route expansion, graph planning, and planner-local support types.
-- `compose/` owns stage-plan composition, input resolution, and parameter binding.
-- `tool_adapters/` owns stage-specific plan construction.
+- `src/lib.rs` exposes `surface`, `stage_api`, and `tool_adapters`.
+- `src/surface.rs` centralizes root-level reexports and constants.
+- `src/stage_api.rs` exposes stage-level compatibility helpers and governance views.
+- `src/planner/` owns graph planning, route expansion, benchmark fan-out, graph policy, and planner-local support types.
+- `src/compose/` owns input resolution, stage parameters, and stage binding composition.
+- `src/preprocess/` owns preprocess policy and pipeline choice.
+- `src/selection/` owns tool allowlisting, override merging, and selection helpers.
+- `src/tool_adapters/` owns stage-specific command spec construction.
+- `src/qc_contract.rs` owns governed QC contributor relationships.
+- `src/report_stage.rs` owns the report aggregation graph step.
 
-## Change rules
+## Stage Families
+- `tool_adapters/stages/pre/` covers validation, read profiling, adapter detection, and reference indexing.
+- `tool_adapters/stages/qc/` covers QC reports, taxonomy screening, and rRNA depletion.
+- `tool_adapters/stages/transform/` covers trim, merge, filter, deduplicate, correction, UMI, and depletion transforms.
+- `tool_adapters/stages/amplicon/` covers primer normalization, chimera removal, ASV/OTU processing, and abundance normalization.
+
+## Design Rules
 - Keep root files as facades or stable subsystem entrypoints.
-- Split adapter support by concern instead of growing catch-all modules.
-- Update this map and the tree contract together when the layout changes intentionally.
-
-## Pointers
-- `INDEX.md` for the doc map.
-- `PLANNER_MODEL.md`, `TOOL_SELECTION.md`, and `STAGE_MAPPING.md` for planner structure.
-- `CHANGE_RULES.md`, `EFFECTS.md`, and `TESTS.md` for extension and verification policy.
+- Keep domain truth in `bijux-dna-domain-fastq`; do not duplicate stage/tool matrices in planner docs.
+- Keep command templates in `tool_adapters/`; do not hide runtime parsing in planner glue.
+- Keep benchmark fan-out graph construction in `planner/`; do not mix it into stage adapters.
+- Update this map and the architecture tree test when the layout changes intentionally.
