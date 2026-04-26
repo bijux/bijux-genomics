@@ -69,13 +69,11 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             let BamEffectiveParams::MapqFilter(params) = params else {
                 return Err(anyhow!("mapq_filter params mismatch"));
             };
-            let mut mapq_params = params;
-            mapq_params.min_length = 0;
             tool_adapters::stages_pre::mapq_filter::plan(
                 request.tool,
                 bam,
                 request.out_dir,
-                &mapq_params,
+                &params,
             )
         }
         BamStage::LengthFilter => {

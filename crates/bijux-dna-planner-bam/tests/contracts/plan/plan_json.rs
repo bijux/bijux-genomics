@@ -211,3 +211,36 @@ fn plan_stage_rejects_tool_from_wrong_stage() {
     });
     assert!(result.is_err(), "planner accepted a tool that is not registered for bam.align");
 }
+
+#[test]
+fn mapq_filter_preserves_effective_min_length_override() -> Result<()> {
+    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("fixtures")
+        .join("plan_inputs")
+        .join("default");
+    let stage = BamStage::MapqFilter;
+    let tool_id = bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage);
+    let tool = dummy_tool(tool_id.as_str());
+    let plan = plan_stage(StagePlanRequest {
+        stage_id: stage.as_str(),
+        tool: &tool,
+        out_dir: fixtures.join("out").as_path(),
+        bam: Some(&fixtures.join("sample.bam")),
+        bam_index: Some(&fixtures.join("sample.bam.bai")),
+        r1: None,
+        r2: None,
+        reference: None,
+        sample_id: Some("sample"),
+        params: Some(&serde_json::json!({
+            "mapq_threshold": 30,
+            "include_flags": [],
+            "exclude_flags": [],
+            "min_length": 12,
+            "remove_duplicates": false,
+            "base_quality_threshold": 20
+        })),
+    })?;
+    assert_eq!(plan.effective_params["min_length"], 12);
+    Ok(())
+}
