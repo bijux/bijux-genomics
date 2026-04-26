@@ -48,17 +48,28 @@ pub(super) fn verify_outputs(step: &ExecutionStep, hooks: Option<&dyn EngineHook
                 path: output.path.display().to_string(),
             });
         }
-        if matches!(output.role, ArtifactRole::MetricsJson | ArtifactRole::MetricsEnvelope) {
+        if is_json_role(output.role) {
             let raw = fs::read_to_string(&output.path)?;
             serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {
                 contract_error(
                     step,
                     output.name.as_str(),
                     &output.path.display().to_string(),
-                    &format!("metrics output not parseable: {err}"),
+                    &format!("json output not parseable: {err}"),
                 )
             })?;
         }
     }
     Ok(())
+}
+
+fn is_json_role(role: ArtifactRole) -> bool {
+    matches!(
+        role,
+        ArtifactRole::MetricsJson
+            | ArtifactRole::MetricsEnvelope
+            | ArtifactRole::ReportJson
+            | ArtifactRole::StageReport
+            | ArtifactRole::SummaryJson
+    )
 }

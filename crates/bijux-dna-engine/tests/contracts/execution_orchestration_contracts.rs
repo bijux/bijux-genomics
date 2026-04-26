@@ -221,7 +221,7 @@ fn execute_plan_reports_timeout_and_contract_errors() {
         .execute(&graph, &invalid_metrics_runner, &layout, None, None)
         .err()
         .unwrap_or_else(|| panic!("expected parse error for metrics output"));
-    assert!(invalid_metrics_err.to_string().contains("metrics output not parseable"));
+    assert!(invalid_metrics_err.to_string().contains("json output not parseable"));
 
     let metrics_graph = make_graph(true);
     let missing_envelope_err = Engine::default()
@@ -229,6 +229,27 @@ fn execute_plan_reports_timeout_and_contract_errors() {
         .err()
         .unwrap_or_else(|| panic!("expected missing metrics_envelope contract error"));
     assert!(missing_envelope_err.to_string().contains("missing metrics_envelope.json"));
+}
+
+#[test]
+fn report_json_outputs_must_be_parseable_json() {
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
+    let mut step = plan_for("A");
+    let output_path = step.out_dir.join("report.json");
+    step.io.outputs = vec![ArtifactSpec::required(
+        ArtifactId::new("report"),
+        output_path,
+        ArtifactRole::ReportJson,
+    )];
+    let graph = build_graph(vec![step], Vec::new());
+    let mut runner = ScenarioRunner::new(Mode::Success);
+    runner.output_payload = "not-json";
+
+    let err = Engine::default()
+        .execute(&graph, &runner, &layout, None, None)
+        .err()
+        .unwrap_or_else(|| panic!("expected report json parse failure"));
+    assert!(err.to_string().contains("json output not parseable"));
 }
 
 #[test]
