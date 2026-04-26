@@ -20,7 +20,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.sex": "baefa9d6f18b22287ff81b048816e8f7da64b8a198b86341d32ec09563e22a48",
         "bam.validate": "f73b69e6270cf767e0d8a99e2a78c8a3d5b241d8ad0bf4c8ba8f5626fcafc9c2"
       },
-      "param_bindings_hash": "91b3b0eaed57bea4022947d728ed6491bc3cd422fa0387fbff5722ca28cfe7ee",
+      "param_bindings_hash": "587aabf03691f64e3bef56ce82f2a08fadb179e17c3f467dad5769866f014cbd",
       "tool_bindings": {
         "bam.authenticity": "authenticct",
         "bam.contamination": "authenticct",
@@ -35,7 +35,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.sex": "rxy",
         "bam.validate": "samtools"
       },
-      "tool_bindings_hash": "6f76aa12cc1eabb91995f4a9b638112dc5078a615b2df9d3f04232807ab6858b"
+      "tool_bindings_hash": "5e5dd8e4bd9048651036a92e0f6ded621925c0354dceb4c94f14ae3d1cc68b67"
     },
     "manifest": {
       "invariants_preset": "adna",
@@ -95,7 +95,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.validate": "samtools"
       }
     },
-    "profile_hash": "11261d38a12034b8f996425507a4f8b79a24eea492534e02d48c00bd6f010471"
+    "profile_hash": "494937d0009e96ce9e944ae706109cffb2e3614157a466586cfcaed3bffccece"
   },
   "bam-to-bam__adna_shotgun__v1": {
     "drift_components": {
@@ -113,7 +113,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.sex": "baefa9d6f18b22287ff81b048816e8f7da64b8a198b86341d32ec09563e22a48",
         "bam.validate": "f73b69e6270cf767e0d8a99e2a78c8a3d5b241d8ad0bf4c8ba8f5626fcafc9c2"
       },
-      "param_bindings_hash": "fb8c1bb1cedfe0e951437385dee062edda2b1b571dcfffb9902cd4019e7f1cc3",
+      "param_bindings_hash": "8b3651212069a88f5c12b8b0dbba413594bad52ed6d279ea01c8740467ece281",
       "tool_bindings": {
         "bam.authenticity": "authenticct",
         "bam.contamination": "authenticct",
@@ -128,7 +128,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.sex": "rxy",
         "bam.validate": "samtools"
       },
-      "tool_bindings_hash": "6f76aa12cc1eabb91995f4a9b638112dc5078a615b2df9d3f04232807ab6858b"
+      "tool_bindings_hash": "5e5dd8e4bd9048651036a92e0f6ded621925c0354dceb4c94f14ae3d1cc68b67"
     },
     "manifest": {
       "invariants_preset": "adna",
@@ -188,7 +188,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.validate": "samtools"
       }
     },
-    "profile_hash": "26fc96aeb8c5bbaa5a1d09b40b81f74aeaedcb682dd45156ff5e1e8d43df5b1e"
+    "profile_hash": "4ef0a6278972d2066fd683ca0289bfefe60bde3f5a8aa20a3721313961a38b7f"
   },
   "bam-to-bam__default__v1": {
     "drift_components": {
@@ -269,7 +269,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.sex": "baefa9d6f18b22287ff81b048816e8f7da64b8a198b86341d32ec09563e22a48",
         "bam.validate": "f73b69e6270cf767e0d8a99e2a78c8a3d5b241d8ad0bf4c8ba8f5626fcafc9c2"
       },
-      "param_bindings_hash": "fb8c1bb1cedfe0e951437385dee062edda2b1b571dcfffb9902cd4019e7f1cc3",
+      "param_bindings_hash": "8b3651212069a88f5c12b8b0dbba413594bad52ed6d279ea01c8740467ece281",
       "tool_bindings": {
         "bam.authenticity": "authenticct",
         "bam.contamination": "authenticct",
@@ -284,7 +284,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.sex": "rxy",
         "bam.validate": "samtools"
       },
-      "tool_bindings_hash": "6f76aa12cc1eabb91995f4a9b638112dc5078a615b2df9d3f04232807ab6858b"
+      "tool_bindings_hash": "5e5dd8e4bd9048651036a92e0f6ded621925c0354dceb4c94f14ae3d1cc68b67"
     },
     "manifest": {
       "invariants_preset": "adna",
@@ -344,7 +344,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "bam.validate": "samtools"
       }
     },
-    "profile_hash": "dce5f9e9e3eb252f4f0cdef70b2226992346f68a40264850fa8af44a0498038b"
+    "profile_hash": "416e4f746553ddee3402397044ab20466d1586c1cf05fc0a23e8b5c3926d327f"
   },
   "fastq-to-bam__adna_shotgun__v1": {
     "drift_components": {
@@ -379,7 +379,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.trim_terminal_damage": "cc0feabde576f574c4c555230b60010db695bc353e5737c2b19f873566bc0693",
         "fastq.validate_reads": "b2ddfba3215362ef80ed6605910b54efc3c17dfef041d563302aa285d639b212"
       },
-      "param_bindings_hash": "e92d3f3964f4f6be59a272fb6ed7da26fc48239d9d0a8863515600b0f421b419",
+      "param_bindings_hash": "3561b2c95a4919067c65b7d16bfa7f168bcf4675c42f0e52838a1f710f9c433a",
       "tool_bindings": {
         "bam.align": "bwa",
         "bam.authenticity": "authenticct",
@@ -411,7 +411,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.trim_terminal_damage": "cutadapt",
         "fastq.validate_reads": "fastqvalidator"
       },
-      "tool_bindings_hash": "b4d9f960f08401c726405b3babd2821c14ff0a9444d0f58f7fd897f977c5d6fa"
+      "tool_bindings_hash": "0a8834936ff38e5dd599cc847b7d8cd6d93fe1164ffe2251e4a5f5355f5f2bc5"
     },
     "manifest": {
       "invariants_preset": "adna",
@@ -522,7 +522,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashe
         "fastq.validate_reads": "fastqvalidator"
       }
     },
-    "profile_hash": "1168c27a2b27a191a6193e95f044cf43b91b1421090c555a2db3f62d21dc6e2c"
+    "profile_hash": "89545c7c5598586e35511652f826ffc40828ea13aa9ebeb9c8cb8fb7572d238e"
   },
   "fastq-to-bam__default__v1": {
     "drift_components": {
