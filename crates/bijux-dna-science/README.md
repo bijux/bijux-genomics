@@ -14,7 +14,7 @@ FASTQ environment and container support:
 - planned tools kept outside the closed runtime surface
 - environment and container references backing those decisions
 - local evidence archive planning for non-shareable papers and upstream source
-  material under `science-docs/`
+  material under governed science archive paths
 
 ## Public entrypoints
 - library: `app::validate_workspace`, `app::build_workspace`, `app::trace_workspace`,
@@ -22,10 +22,10 @@ FASTQ environment and container support:
 - binary: `cargo run -p bijux-dna-science -- <command>`
 
 ## Where the docs live
-See `docs/architecture.md`, `docs/cli.md`, `docs/schema-model.md`, and `docs/release-model.md`.
+See `docs/INDEX.md`, `docs/ARCHITECTURE.md`, `docs/COMMANDS.md`, `docs/SCHEMAS.md`, and
+`docs/VERSIONING.md`.
 
 ## Local Archive Boundary
 
-This crate may validate and report expected archive paths under `science-docs/`,
-but it must not treat local archive payloads as handwritten SSOT. Review-owned
-truth stays under `science/specs/**`.
+This crate may validate and report expected archive paths, but it must not treat local archive
+payloads as handwritten SSOT. Review-owned truth stays under `science/specs/**`.
