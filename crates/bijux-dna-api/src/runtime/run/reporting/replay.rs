@@ -136,8 +136,10 @@ mod tests {
     fn resolve_manifest_relative_path_rejects_parent_traversal() -> anyhow::Result<()> {
         let temp = tempfile::tempdir()?;
 
-        let err = resolve_manifest_relative_path(temp.path(), "../outside.json")
-            .expect_err("parent traversal should fail");
+        let err = match resolve_manifest_relative_path(temp.path(), "../outside.json") {
+            Ok(path) => panic!("parent traversal should fail: {}", path.display()),
+            Err(err) => err,
+        };
 
         assert!(
             err.to_string().contains("must stay within run directory"),
@@ -150,8 +152,10 @@ mod tests {
     fn resolve_manifest_relative_path_rejects_absolute_paths() -> anyhow::Result<()> {
         let temp = tempfile::tempdir()?;
 
-        let err = resolve_manifest_relative_path(temp.path(), "/tmp/outside.json")
-            .expect_err("absolute path should fail");
+        let err = match resolve_manifest_relative_path(temp.path(), "/tmp/outside.json") {
+            Ok(path) => panic!("absolute path should fail: {}", path.display()),
+            Err(err) => err,
+        };
 
         assert!(err.to_string().contains("must be relative"), "unexpected error: {err}");
         Ok(())
