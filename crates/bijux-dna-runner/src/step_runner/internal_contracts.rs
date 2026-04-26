@@ -131,6 +131,7 @@ fn apptainer_exec_defaults_workdir_to_output_mount() -> anyhow::Result<()> {
         .position(|value| value == "--pwd")
         .ok_or_else(|| anyhow!("missing --pwd flag in apptainer args"))?;
     assert_eq!(args[pwd_index + 1], "/data/output");
+    assert!(args.contains(&"/artifacts/runtime/out:/data/output:rw".to_string()));
     Ok(())
 }
 
