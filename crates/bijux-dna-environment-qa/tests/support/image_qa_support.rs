@@ -59,8 +59,8 @@ fn validate_execution_outputs_allows_optional_outputs_in_strict_mode(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let dir = bijux_dna_infra::temp_dir("bijux")?;
     let out_dir = dir.path();
-    bijux_dna_infra::write_bytes(&out_dir.join("out.fastq.gz"), "data")?;
-    bijux_dna_infra::write_bytes(&out_dir.join("metrics.json"), "{}")?;
+    bijux_dna_infra::write_bytes(out_dir.join("out.fastq.gz"), "data")?;
+    bijux_dna_infra::write_bytes(out_dir.join("metrics.json"), "{}")?;
 
     let contract = ExecutionContract {
         required_inputs: vec![],
