@@ -86,6 +86,8 @@ mod mod_contracts_tooling_container_version_variable_policy_rs;
 mod mod_contracts_tooling_container_versions_policy_rs;
 #[path = "contracts/tooling/governance_core/contract_authority_policy.rs"]
 mod mod_contracts_tooling_contract_authority_policy_rs;
+#[path = "contracts/tooling/governance_core/contract_index_policy.rs"]
+mod mod_contracts_tooling_contract_index_policy_rs;
 #[path = "contracts/tooling/governance/default_profile_binding_policy.rs"]
 mod mod_contracts_tooling_default_profile_binding_policy_rs;
 #[path = "contracts/tooling/docs/docs_links.rs"]
