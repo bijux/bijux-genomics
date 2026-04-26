@@ -429,7 +429,7 @@ spec_path = "configs/runtime/corpora/corpus-01.toml"
             corpora: [(
                 "corpus-42".to_string(),
                 super::BenchmarkCorpusConfig {
-                    spec_path: Some("configs/runtime/corpora/corpus-42.toml".to_string()),
+                    spec_path: Some("configs/runtime/corpora/corpus-01.toml".to_string()),
                 },
             )]
             .into_iter()

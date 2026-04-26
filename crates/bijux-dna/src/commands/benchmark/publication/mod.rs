@@ -180,10 +180,10 @@ mod tests {
                 "fastq.filter_reads",
                 "corpus-01",
                 "report",
-                Some(Path::new("configs/bench/alt.toml")),
+                Some(Path::new("configs/bench/benchmark.toml")),
             )
             .expect("report command"),
-            "bijux-dna bench corpus-fastq-report --stage fastq.filter_reads --corpus-id corpus-01 --config configs/bench/alt.toml"
+            "bijux-dna bench corpus-fastq-report --stage fastq.filter_reads --corpus-id corpus-01 --config configs/bench/benchmark.toml"
         );
     }
 

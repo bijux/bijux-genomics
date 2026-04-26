@@ -350,7 +350,7 @@ mod tests {
     fn repo_checks_flag_hardcoded_remote_user_path() {
         let temp = tempfile::tempdir().expect("tempdir");
         let repo_root = temp.path();
-        let config_path = repo_root.join("configs/bench/workspace.md");
+        let config_path = repo_root.join("configs/bench/benchmark.toml");
         fs::create_dir_all(config_path.parent().expect("config dir")).expect("create config dir");
         fs::write(&config_path, "remote_root = \"/home/alice/bijux/results\"\n")
             .expect("write config");
