@@ -1,5 +1,12 @@
 # bijux-dna-dev Boundary Contract
 
+Owner: Developer automation
+Scope: Repository control-plane automation, command catalogs, checks, and developer workflows
+Allowed inputs: workspace files, command catalogs, explicit CLI arguments, delegated check results
+Forbidden dependencies: production runtime ownership, domain semantics ownership, hidden workflow execution
+Forbidden effects: undeclared network access, writes outside workspace-governed paths, product pipeline execution
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-dev --no-default-features`
+
 ## Why this crate exists
 Provides versioned control-plane automation for repository checks, domain automation, container governance, and other developer workflows.
 
@@ -23,3 +30,4 @@ Provides versioned control-plane automation for repository checks, domain automa
 
 ## Notes
 This crate owns the durable command catalog and execution surface for repository automation.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
