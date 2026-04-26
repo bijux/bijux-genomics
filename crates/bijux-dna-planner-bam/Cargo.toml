@@ -2,8 +2,8 @@
 name = "bijux-dna-planner-bam"
 version = "0.1.0"
 edition = "2021"
-
 license.workspace = true
+
 [dependencies]
 anyhow = { workspace = true }
 bijux-dna-core = { path = "../bijux-dna-core" }
@@ -17,10 +17,9 @@ tracing = { workspace = true }
 toml = { workspace = true }
 
 [dev-dependencies]
-bijux-dna-policies = { path = "../bijux-dna-policies" }
+bijux-dna-policies.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
-insta = { version = "1", features = ["json", "filters"] }
-serde_json.workspace = true
+insta = { workspace = true, features = ["json", "filters"] }
 
 [features]
 bam_downstream = [
