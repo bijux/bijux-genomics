@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 0a39c22c03105d751edc2b8fd5d0c49aaec0a929
+# source_commit: 7eef690103ea79403f69e198e0a4c2753d3d371d
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -10,34 +10,18 @@
 # last_updated = 2026-02-14
 
 [[stages]]
-id = "vcf.prepare_reference_panel"
+id = "vcf.admixture"
 status = "planned"
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
-tools = ["bcftools"]
+tools = ["plink", "plink2"]
 
 [[stages]]
-id = "vcf.population_structure"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.call.v1"
-smoke_required = true
-tools = ["plink", "plink2", "eigensoft"]
-
-[[stages]]
-id = "vcf.gl_propagation"
+id = "vcf.call"
 status = "supported"
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
-smoke_required = true
-tools = ["bcftools", "angsd"]
-
-[[stages]]
-id = "vcf.filter"
-status = "supported"
-experimental = true
-metrics_schema = "bijux.vcf.filter.v1"
 smoke_required = true
 tools = ["bcftools"]
 
@@ -50,52 +34,12 @@ smoke_required = true
 tools = ["bcftools"]
 
 [[stages]]
-id = "vcf.call"
-status = "supported"
-experimental = true
-metrics_schema = "bijux.vcf.call.v1"
-smoke_required = true
-tools = ["bcftools"]
-
-[[stages]]
-id = "vcf.phasing"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.call.v1"
-smoke_required = true
-tools = ["beagle", "shapeit5", "eagle"]
-
-[[stages]]
-id = "vcf.admixture"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.call.v1"
-smoke_required = true
-tools = ["plink", "plink2"]
-
-[[stages]]
 id = "vcf.call_gl"
 status = "supported"
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
 tools = ["angsd", "bcftools"]
-
-[[stages]]
-id = "vcf.imputation"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.call.v1"
-smoke_required = true
-tools = ["beagle", "glimpse", "impute5", "minimac4"]
-
-[[stages]]
-id = "vcf.damage_filter"
-status = "supported"
-experimental = true
-metrics_schema = "bijux.vcf.call.v1"
-smoke_required = true
-tools = ["bcftools", "angsd"]
 
 [[stages]]
 id = "vcf.call_pseudohaploid"
@@ -106,6 +50,14 @@ smoke_required = true
 tools = ["angsd", "bcftools"]
 
 [[stages]]
+id = "vcf.damage_filter"
+status = "supported"
+experimental = true
+metrics_schema = "bijux.vcf.call.v1"
+smoke_required = true
+tools = ["bcftools", "angsd"]
+
+[[stages]]
 id = "vcf.demography"
 status = "planned"
 experimental = true
@@ -114,28 +66,20 @@ smoke_required = true
 tools = ["ibdne"]
 
 [[stages]]
-id = "vcf.pca"
-status = "planned"
+id = "vcf.filter"
+status = "supported"
 experimental = true
-metrics_schema = "bijux.vcf.call.v1"
-smoke_required = true
-tools = ["plink2", "eigensoft"]
-
-[[stages]]
-id = "vcf.postprocess"
-status = "planned"
-experimental = true
-metrics_schema = "bijux.vcf.call.v1"
+metrics_schema = "bijux.vcf.filter.v1"
 smoke_required = true
 tools = ["bcftools"]
 
 [[stages]]
-id = "vcf.roh"
-status = "planned"
+id = "vcf.gl_propagation"
+status = "supported"
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
-tools = ["plink2"]
+tools = ["bcftools", "angsd"]
 
 [[stages]]
 id = "vcf.ibd"
@@ -146,20 +90,12 @@ smoke_required = true
 tools = ["germline", "ibdhap"]
 
 [[stages]]
-id = "vcf.qc"
+id = "vcf.imputation"
 status = "planned"
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
-tools = ["plink", "plink2"]
-
-[[stages]]
-id = "vcf.stats"
-status = "supported"
-experimental = true
-metrics_schema = "bijux.vcf.stats.v1"
-smoke_required = true
-tools = ["bcftools"]
+tools = ["beagle", "glimpse", "impute5", "minimac4"]
 
 [[stages]]
 id = "vcf.impute"
@@ -168,4 +104,68 @@ experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
 tools = ["beagle", "glimpse", "impute5", "minimac4"]
+
+[[stages]]
+id = "vcf.pca"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.call.v1"
+smoke_required = true
+tools = ["plink2", "eigensoft"]
+
+[[stages]]
+id = "vcf.phasing"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.call.v1"
+smoke_required = true
+tools = ["beagle", "shapeit5", "eagle"]
+
+[[stages]]
+id = "vcf.population_structure"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.call.v1"
+smoke_required = true
+tools = ["plink", "plink2", "eigensoft"]
+
+[[stages]]
+id = "vcf.postprocess"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.call.v1"
+smoke_required = true
+tools = ["bcftools"]
+
+[[stages]]
+id = "vcf.prepare_reference_panel"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.call.v1"
+smoke_required = true
+tools = ["bcftools"]
+
+[[stages]]
+id = "vcf.qc"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.call.v1"
+smoke_required = true
+tools = ["plink", "plink2"]
+
+[[stages]]
+id = "vcf.roh"
+status = "planned"
+experimental = true
+metrics_schema = "bijux.vcf.call.v1"
+smoke_required = true
+tools = ["plink2"]
+
+[[stages]]
+id = "vcf.stats"
+status = "supported"
+experimental = true
+metrics_schema = "bijux.vcf.stats.v1"
+smoke_required = true
+tools = ["bcftools"]
 
