@@ -5,9 +5,10 @@ use anyhow::{Context, Result};
 use bijux_dna_science::compile::compile_workspace;
 use bijux_dna_science::domain::CompiledScience;
 use bijux_dna_science::render::{
-    binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv,
-    fastq_container_reference_tsv, fastq_download_backlog_tsv, fastq_environment_tsv,
-    fastq_paper_archive_tsv, index_json, source_archive_gaps_tsv, source_inventory_tsv,
+    binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv, fastq_closure_gate_tsv,
+    fastq_container_reference_tsv, fastq_default_binding_risk_tsv, fastq_download_backlog_tsv,
+    fastq_environment_tsv, fastq_missing_closure_prerequisites_tsv, fastq_paper_archive_tsv,
+    fastq_truth_delta_tsv, index_json, source_archive_gaps_tsv, source_inventory_tsv,
     to_pretty_json,
 };
 
@@ -116,6 +117,26 @@ fn assert_committed_outputs_match(root: &Path, compiled: &CompiledScience) -> Re
         root,
         "science/generated/current/evidence/fastq_stage_tool_environment_matrix.tsv",
         &fastq_environment_tsv(&compiled.fastq_environment_rows),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/fastq_closure_gate.tsv",
+        &fastq_closure_gate_tsv(&compiled.fastq_closure_gate_rows),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/fastq_truth_delta.tsv",
+        &fastq_truth_delta_tsv(&compiled.fastq_truth_delta_rows),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv",
+        &fastq_missing_closure_prerequisites_tsv(&compiled.fastq_missing_closure_prerequisite_rows),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/fastq_default_binding_risk_ledger.tsv",
+        &fastq_default_binding_risk_tsv(&compiled.fastq_default_binding_risk_rows),
     )?;
     assert_rendered(
         root,
