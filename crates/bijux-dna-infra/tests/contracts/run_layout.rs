@@ -100,3 +100,12 @@ fn configs_file_confines_relative_inputs() {
         root.join("configs").join("secrets.toml")
     );
 }
+
+#[test]
+fn bench_base_dir_confines_stage_and_sample() {
+    let out = Path::new("/tmp/bijux");
+    assert_eq!(
+        bijux_dna_infra::bench_base_dir(out, "../stage", "/sample/one"),
+        out.join("bench").join("stage").join("sample_one")
+    );
+}

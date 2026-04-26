@@ -1,8 +1,10 @@
 use std::path::{Path, PathBuf};
 
+use super::segments::path_segment;
+
 #[must_use]
 pub fn bench_base_dir(out: &Path, stage: &str, sample_id: &str) -> PathBuf {
-    out.join("bench").join(stage).join(sample_id)
+    out.join("bench").join(path_segment(stage)).join(path_segment(sample_id))
 }
 
 #[must_use]
