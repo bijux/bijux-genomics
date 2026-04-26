@@ -1,13 +1,15 @@
-# EXPLAIN_OUTPUT
+# Explain Output
 
-## Guarantee
-Explain output includes:
-- `selected_tools` in stable order
-- `defaults_diff` (profile vs pipeline)
-- `reasons` for tool selection
-- `contract_hashes` for each stage
+Explain output makes planner decisions auditable. It must describe what was selected and why without requiring command execution.
 
-## Canonical example
+## Guarantees
+- Selected tools are emitted in stable order.
+- `defaults_diff` is present in plan reason details.
+- Tool-selection reasons use stable reason kinds and messages.
+- Stage contract hashes are included when available.
+- Explain snapshots cover ancient-DNA BAM stages with high review value.
+
+## Canonical Shape
 ```json
 {
   "selected_tools": ["bwa", "samtools"],
