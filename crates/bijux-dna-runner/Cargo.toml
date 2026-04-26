@@ -22,6 +22,7 @@ walkdir.workspace = true
 
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
+bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 assert_cmd = "2"
 tempfile.workspace = true
 cargo_metadata = "0.18"
