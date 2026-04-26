@@ -170,6 +170,19 @@ fn vcf_planner_refuses_duplicate_requested_stages() {
 }
 
 #[test]
+fn vcf_planner_refuses_requested_stage_outside_resolved_coverage() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages = Some(vec!["vcf.call_gl".to_string(), "vcf.stats".to_string()]);
+
+    let err = plan_vcf_stage_plans(&input).expect_err("coverage-incompatible stage must fail");
+
+    assert!(
+        err.to_string().contains("vcf.call_gl is not supported"),
+        "unexpected planner refusal: {err}"
+    );
+}
+
+#[test]
 fn vcf_planner_refuses_edna_or_pollen_domain() {
     let mut input = base_inputs(CoverageRegime::LowCovGl);
     input.pipeline_domain = "edna".to_string();

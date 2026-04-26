@@ -32,6 +32,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
     let stages = resolve_requested_stages(&inputs.requested_stages, resolved_coverage)?;
     validate_stage_tool_override_keys(inputs, &stages)?;
     validate_stage_param_override_keys(inputs, &stages)?;
+    validate_stage_coverage_support(&stages, resolved_coverage)?;
 
     if stages.contains(&VcfDomainStage::Demography) && !stages.contains(&VcfDomainStage::Ibd) {
         bail!("vcf.demography requires vcf.ibd in requested/default stage set");
@@ -136,6 +137,22 @@ fn validate_stage_param_override_keys(
             .map_err(|err| anyhow!("unknown stage_param_overrides key {stage_id}: {err}"))?;
         if !stages.contains(&stage) {
             bail!("stage_param_overrides key {} is not in the resolved stage set", stage.as_str());
+        }
+    }
+    Ok(())
+}
+
+fn validate_stage_coverage_support(
+    stages: &[VcfDomainStage],
+    coverage: CoverageRegime,
+) -> Result<()> {
+    for stage in stages {
+        if !stage.taxonomy().coverage_regimes.contains(&coverage) {
+            bail!(
+                "{} is not supported for resolved coverage regime {:?}",
+                stage.as_str(),
+                coverage
+            );
         }
     }
     Ok(())
