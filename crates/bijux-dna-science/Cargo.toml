@@ -16,7 +16,7 @@ serde.workspace = true
 serde_json.workspace = true
 toml.workspace = true
 walkdir.workspace = true
-bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
+bijux-dna-infra = { workspace = true, features = ["yaml"] }
 
 [dev-dependencies]
 bijux-dna-policies.workspace = true

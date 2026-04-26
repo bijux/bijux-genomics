@@ -13,8 +13,8 @@ serde_json.workspace = true
 sha2.workspace = true
 tracing.workspace = true
 uuid.workspace = true
-bijux-dna-core = { path = "../bijux-dna-core" }
-bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
+bijux-dna-core.workspace = true
+bijux-dna-infra = { workspace = true, features = ["yaml"] }
 schemars.workspace = true
 
 [dev-dependencies]
