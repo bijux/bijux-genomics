@@ -30,6 +30,21 @@ pub enum BamArtifactKind {
     Report,
 }
 
+impl BamArtifactKind {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Bam => "bam",
+            Self::BamIndex => "bam_index",
+            Self::ReferenceFasta => "reference_fasta",
+            Self::ReferenceIndex => "reference_index",
+            Self::ReferenceDict => "reference_dict",
+            Self::BedRegions => "bed_regions",
+            Self::Report => "report",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct BamStageContract {
     pub input: BamArtifactKind,
@@ -399,8 +414,8 @@ pub fn stage_contract_json(stage_id: &str) -> Option<serde_json::Value> {
         "outputs": required_outputs,
         "audit_artifacts": required_audit,
         "io": {
-            "input_kind": format!("{:?}", contract.input),
-            "output_kind": format!("{:?}", contract.output),
+            "input_kind": contract.input.as_str(),
+            "output_kind": contract.output.as_str(),
             "emits_bam": contract.emits_bam,
             "emits_report": contract.emits_report,
             "sorting": contract.sorting,

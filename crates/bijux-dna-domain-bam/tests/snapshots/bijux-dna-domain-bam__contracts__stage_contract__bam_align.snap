@@ -1,6 +1,6 @@
 ---
-source: crates/bijux-dna-domain-bam/tests/stage_contract_snapshots.rs
-expression: json
+source: crates/bijux-dna-domain-bam/tests/contracts/stage_contract_snapshots.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "audit_artifacts": [
@@ -42,10 +42,10 @@ expression: json
     "emits_bam": true,
     "emits_report": true,
     "indexing": "produces_index_if_requested",
-    "input_kind": "ReferenceFasta",
+    "input_kind": "reference_fasta",
     "mapping_quality_policy": "no_mapping_quality_filter",
     "nondeterminism_reason": null,
-    "output_kind": "Bam",
+    "output_kind": "bam",
     "read_group_policy": "adds_or_regenerates_read_groups",
     "sorting": "output_sorting_tool_specific"
   },

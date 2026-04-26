@@ -30,10 +30,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "emits_bam": true,
     "emits_report": true,
     "indexing": "requires_index_and_produces_index",
-    "input_kind": "Bam",
+    "input_kind": "bam",
     "mapping_quality_policy": "no_mapping_quality_filter",
     "nondeterminism_reason": null,
-    "output_kind": "Bam",
+    "output_kind": "bam",
     "read_group_policy": "preserves_read_groups",
     "sorting": "requires_coordinate_sorted_input"
   },

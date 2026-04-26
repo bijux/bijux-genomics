@@ -43,6 +43,22 @@ fn every_stage_contract_names_responsible_tools() {
     for stage in BamStage::all() {
         let contract = stage_contract_json(stage.as_str())
             .unwrap_or_else(|| panic!("missing contract json for {}", stage.as_str()));
+        let io = contract
+            .get("io")
+            .and_then(serde_json::Value::as_object)
+            .unwrap_or_else(|| panic!("contract for {} missing io object", stage.as_str()));
+        for key in ["input_kind", "output_kind"] {
+            let kind = io
+                .get(key)
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_else(|| panic!("contract for {} missing io.{key}", stage.as_str()));
+            assert!(
+                kind.chars()
+                    .all(|ch| ch.is_ascii_lowercase() || ch == '_'),
+                "{} io.{key} is not a stable snake-case contract value: {kind}",
+                stage.as_str()
+            );
+        }
         let tool_ids = contract
             .get("tool_ids")
             .and_then(serde_json::Value::as_array)
