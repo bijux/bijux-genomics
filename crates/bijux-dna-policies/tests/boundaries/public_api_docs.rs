@@ -2,7 +2,7 @@ use std::collections::BTreeSet;
 use std::path::Path;
 
 #[test]
-fn public_api_docs_match_curated_exports() {
+fn policy__boundaries__public_api_docs__public_api_docs_match_curated_exports() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let docs =
         std::fs::read_to_string(root.join("docs/PUBLIC_API.md")).expect("read docs/PUBLIC_API.md");
@@ -27,7 +27,7 @@ fn public_api_docs_match_curated_exports() {
 }
 
 #[test]
-fn documented_root_exports_remain_compilable() {
+fn policy__boundaries__public_api_docs__documented_root_exports_remain_compilable() {
     use anyhow::Result;
     use bijux_dna_policies::GuardrailConfig;
     use std::path::Path;

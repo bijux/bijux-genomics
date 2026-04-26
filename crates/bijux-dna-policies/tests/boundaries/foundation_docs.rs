@@ -14,7 +14,7 @@ const FOUNDATION_CRATES: &[&str] = &[
 ];
 
 #[test]
-fn foundation_crates_keep_docs_in_governed_locations() {
+fn policy__boundaries__foundation_docs__foundation_crates_keep_docs_in_governed_locations() {
     let workspace = workspace_root();
 
     for crate_name in FOUNDATION_CRATES {

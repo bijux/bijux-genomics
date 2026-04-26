@@ -1,7 +1,8 @@
 use std::path::{Path, PathBuf};
 
 #[test]
-fn production_source_does_not_spawn_processes_or_open_networks() {
+fn policy__boundaries__source_effects__production_source_does_not_spawn_processes_or_open_networks()
+{
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let findings = forbidden_source_tokens(
         &root.join("src"),
@@ -28,7 +29,7 @@ fn production_source_does_not_spawn_processes_or_open_networks() {
 }
 
 #[test]
-fn production_source_does_not_mutate_filesystem_outputs() {
+fn policy__boundaries__source_effects__production_source_does_not_mutate_filesystem_outputs() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let findings = forbidden_source_tokens(
         &root.join("src"),

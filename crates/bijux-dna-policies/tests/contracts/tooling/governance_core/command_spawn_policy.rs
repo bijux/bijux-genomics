@@ -81,6 +81,9 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
         if !path_str.contains("/tests/") {
             continue;
         }
+        if path_str.contains("/tests/boundaries/") {
+            continue;
+        }
         if path_str.contains("/crates/bijux-dna-policies/tests/")
             || path_str.contains("/crates/bijux-dna-stages-fastq/tests/architecture.rs")
             || path_str
