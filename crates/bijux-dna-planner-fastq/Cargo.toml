@@ -1,8 +1,9 @@
 [package]
 name = "bijux-dna-planner-fastq"
 version = "0.1.0"
-edition = "2021"
+edition.workspace = true
 license.workspace = true
+rust-version.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
@@ -23,3 +24,6 @@ bijux-dna-policies.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 flate2 = "1"
 insta = { workspace = true, features = ["json", "filters"] }
+
+[lints]
+workspace = true
