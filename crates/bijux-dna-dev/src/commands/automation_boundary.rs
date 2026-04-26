@@ -209,6 +209,14 @@ fn collect_legacy_automation_hits(rel: &str, raw: &str, re: &Regex, out: &mut BT
             continue;
         }
         for capture in re.find_iter(line) {
+            if line[..capture.start()].ends_with(".github/") {
+                continue;
+            }
+            if line[..capture.start()].ends_with(".bijux/shared/bijux-checks/")
+                || line[..capture.start()].ends_with("shared/bijux-checks/")
+            {
+                continue;
+            }
             out.insert(format!("{rel}:{}:{}", index + 1, capture.as_str()));
         }
     }

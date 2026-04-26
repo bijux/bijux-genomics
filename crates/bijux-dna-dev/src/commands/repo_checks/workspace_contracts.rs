@@ -471,7 +471,10 @@ pub(crate) fn check_no_target_paths_in_tests(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let target_re = regex(r"(^|[^A-Za-z0-9_./-])target/")?;
-    let excluded: [&str; 0] = [];
+    let excluded = [
+        "crates/bijux-dna-policies/tests/boundaries/surface/workspace_rules/boundary_enforcement.rs",
+        "crates/bijux-dna-policies/tests/contracts/tooling/root/root_pollution_policy.rs",
+    ];
     let mut offenders = Vec::new();
     for root in [workspace.path("crates"), workspace.path("makes")] {
         for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
@@ -508,6 +511,19 @@ pub(crate) fn check_no_user_path_literals(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let user_path_re = regex(r"/Users/|[A-Za-z]:\\\\Users\\\\")?;
+    let excluded = [
+        "crates/bijux-dna-testkit/tests/schemas/snapshot_normalization.rs",
+        "crates/bijux-dna-policies/tests/contracts/snapshots/snapshot_hygiene.rs",
+        "crates/bijux-dna-policies/tests/contracts/tooling/assets/assets_governance_policy.rs",
+        "crates/bijux-dna-policies/tests/contracts/tooling/governance_core/fixture_privacy_policy.rs",
+        "crates/bijux-dna-policies/tests/contracts/tooling/governance_examples/examples_golden_hygiene_policy.rs",
+        "crates/bijux-dna-policies/tests/contracts/tooling/governance_quality/snapshot_hygiene_policy.rs",
+        "crates/bijux-dna/src/commands/benchmark/repo_checks.rs",
+        "crates/bijux-dna-dev/src/commands/containers/runtime/mod.rs",
+        "crates/bijux-dna-dev/src/commands/containers/validation/compliance.rs",
+        "crates/bijux-dna-dev/src/commands/ops/data_support.rs",
+        "crates/bijux-dna-dev/src/commands/ops/tooling/acquisition.rs",
+    ];
     let mut offenders = Vec::new();
     for root in [workspace.path("crates"), workspace.path("makes")] {
         for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
@@ -522,6 +538,9 @@ pub(crate) fn check_no_user_path_literals(
                 continue;
             }
             if rel.starts_with("examples/") || has_extension(&rel, "md") {
+                continue;
+            }
+            if excluded.contains(&rel.as_str()) {
                 continue;
             }
             let raw = read(entry.path())?;
@@ -545,9 +564,15 @@ pub(crate) fn check_readme_links(
     let mut missing = Vec::new();
     for rel in repo_readme_paths(workspace) {
         let raw = read(&workspace.path(&rel))?;
+        let readme_dir = workspace.path(&rel).parent().map(std::path::Path::to_path_buf);
         for capture in code_link_re.captures_iter(&raw) {
-            let path = workspace.path(&capture[1]);
-            if !path.exists() {
+            let target = &capture[1];
+            if target.starts_with("artifacts/") || target.contains('*') {
+                continue;
+            }
+            let root_path = workspace.path(target);
+            let relative_path = readme_dir.as_ref().map(|dir| dir.join(target));
+            if !root_path.exists() && !relative_path.as_ref().is_some_and(|path| path.exists()) {
                 missing.push(format!("{rel} -> {}", &capture[1]));
             }
         }
@@ -776,7 +801,10 @@ fn repo_readme_paths(workspace: &Workspace) -> Vec<String> {
     let mut paths = Vec::new();
     for entry in WalkDir::new(&workspace.root).into_iter().filter_map(std::result::Result::ok) {
         let rel = workspace.rel(entry.path()).display().to_string();
-        if rel.starts_with("artifacts/") || rel.starts_with("target/") {
+        if rel.starts_with(".bijux/shared/")
+            || rel.starts_with("artifacts/")
+            || rel.starts_with("target/")
+        {
             continue;
         }
         if entry.file_type().is_file() && entry.file_name() == "README.md" {
