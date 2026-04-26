@@ -118,3 +118,28 @@ fn generated_defaults_ledger_uses_domain_specific_citations() {
         &ledger.param_provenance[&StageId::from_static("core.prepare_reference")].citations;
     assert_eq!(core_citations, &["docs/20-science/cross/GOLD_PIPELINE_SPEC.md"]);
 }
+
+#[test]
+fn strict_defaults_ledger_rejects_invalid_stage_and_tool_ids() {
+    let stage = StageId::new("fastq..trim_reads".to_string());
+    let mut ledger = DefaultsLedgerV1 {
+        pipeline_id: PipelineId::from_static("fastq-to-fastq__default__v1"),
+        tools: [(stage.clone(), ToolId::from_static("fastp"))].into(),
+        params: [(stage.clone(), DefaultParams::Empty(EmptyParams::default()))].into(),
+        thresholds: Default::default(),
+        tool_provenance: [(stage.clone(), complete_provenance())].into(),
+        param_provenance: [(stage, complete_provenance())].into(),
+        assumptions: Default::default(),
+        citations: Default::default(),
+    };
+    let err = ledger.validate_strict().expect_err("invalid stage id must fail");
+    assert!(err.to_string().contains("invalid tool stage id"), "unexpected error: {err}");
+
+    let stage = StageId::from_static("fastq.trim_reads");
+    ledger.tools = [(stage.clone(), ToolId::new("_bad".to_string()))].into();
+    ledger.params = [(stage.clone(), DefaultParams::Empty(EmptyParams::default()))].into();
+    ledger.tool_provenance = [(stage.clone(), complete_provenance())].into();
+    ledger.param_provenance = [(stage, complete_provenance())].into();
+    let err = ledger.validate_strict().expect_err("invalid tool id must fail");
+    assert!(err.to_string().contains("invalid tool id"), "unexpected error: {err}");
+}
