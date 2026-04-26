@@ -67,6 +67,19 @@ fn fastq_stage_plugin_handles_only_registered_fastq_stage_ids() {
 }
 
 #[test]
+fn fastq_stage_plugin_rejects_materializing_unsupported_stage_ids() {
+    let plugin = FastqStagePlugin;
+    let plan = plan("fastq.not_registered");
+
+    let error = match plugin.materialize(&plan) {
+        Ok(_) => panic!("unsupported FASTQ stages must fail"),
+        Err(error) => error,
+    };
+
+    assert!(error.to_string().contains("unsupported FASTQ stage fastq.not_registered"));
+}
+
+#[test]
 fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.detect_adapters");
