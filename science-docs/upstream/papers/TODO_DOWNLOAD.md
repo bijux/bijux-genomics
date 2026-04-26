@@ -69,6 +69,7 @@ roots intentionally use homepage or repository snapshots rather than paper PDFs.
 | Tool | Paper ID | Local Status | Primary Locator |
 | --- | --- | --- | --- |
 | `bbduk` | `paper.fastq.bbduk.bbtools-software-citation` | homepage/repository snapshot archived | https://bbmap.org/tools/bbduk |
+| `bijux_dna` | `paper.fastq.bijux-dna.software-citation` | repository snapshot archived | https://github.com/bijux/bijux-genomics |
 | `clumpify` | `paper.fastq.clumpify.bbtools-software-citation` | homepage/repository snapshot archived | https://bbmap.org/tools/clumpify |
 | `fastq_scan` | `paper.fastq.fastq-scan.software-citation` | homepage/repository snapshot archived | https://github.com/rpetit3/fastq-scan |
 | `fastqc` | `paper.fastq.fastqc.selection-pending` | homepage/repository snapshot archived | https://www.bioinformatics.babraham.ac.uk/projects/fastqc/ |
