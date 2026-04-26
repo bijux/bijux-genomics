@@ -13,6 +13,9 @@ See `PUBLIC_API.md` for exported types, schema examples, and snapshots.
 ## Contract
 See `CONTRACT.md` for versioning, terminology, and the example-plan field map.
 
+## Commands
+See `COMMANDS.md` for the SSOT of pure callable operations owned by this crate.
+
 ## Architecture
 See `ARCHITECTURE.md` for internal module boundaries.
 
