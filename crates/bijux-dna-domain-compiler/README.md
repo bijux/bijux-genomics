@@ -33,14 +33,12 @@ Outputs are written as generated artifacts and are safe to overwrite.
 - Duplicate IDs or invalid compatibility mappings.
 
 ## How to run its tests
-- `cargo test -p bijux-dna-domain-compiler`
-- `cargo test -p bijux-dna-domain-compiler --test guardrails`
-- `cargo test -p bijux-dna-domain-compiler --lib`
-- `cargo test -p bijux-dna-domain-compiler --test determinism_generated_outputs`
-- `cargo test -p bijux-dna-domain-compiler --test planned_tool_registry_boundaries`
-- `cargo clippy -p bijux-dna-domain-compiler --all-targets -- -D warnings`
+- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-compiler --no-default-features`
+- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-compiler --no-default-features --test boundaries`
+- `CARGO_TARGET_DIR=artifacts/cargo-target cargo clippy -p bijux-dna-domain-compiler --all-targets --no-default-features -- -D warnings`
 
 Primary test files:
+- `tests/boundaries.rs`
 - `tests/guardrails.rs`
 - `tests/determinism_generated_outputs.rs`
 - `tests/planned_tool_registry_boundaries.rs`
