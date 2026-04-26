@@ -133,6 +133,26 @@ fn fastq_stage_plugin_input_fingerprint_is_stable_for_reordered_inputs() -> anyh
 }
 
 #[test]
+fn fastq_stage_plugin_trims_tool_version_in_metrics_envelope() -> anyhow::Result<()> {
+    let plugin = FastqStagePlugin;
+    let mut plan = plan("fastq.detect_adapters");
+    plan.tool_version = " test ".to_string();
+
+    let output = plugin.parse_outputs(&plan, &[])?;
+
+    assert_eq!(output.metrics.tool_version, "test");
+    assert_eq!(
+        output
+            .metrics
+            .metric_provenance
+            .as_ref()
+            .map(|provenance| provenance.tool_version.as_str()),
+        Some("test")
+    );
+    Ok(())
+}
+
+#[test]
 fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.detect_adapters");
