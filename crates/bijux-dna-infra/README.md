@@ -25,7 +25,9 @@ Explicitly forbidden:
 Upstream: core/runtime/etc. Downstream: all crates as helpers.
 
 ## Public API / entrypoints
-See `docs/PUBLIC_API.md` and `docs/INDEX.md`.
+See `docs/PUBLIC_API.md`, `docs/COMMANDS.md`, and `docs/INDEX.md`.
+
+This crate owns no Cargo binaries or host commands.
 
 ## Key contracts it owns/consumes
 None; utility-only.

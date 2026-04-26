@@ -9,6 +9,9 @@ See `EFFECTS.md` for allowed effects.
 ## Boundaries
 See `ARCHITECTURE.md` for internal boundaries.
 
+## Commands
+See `COMMANDS.md` for the crate-level command inventory. This crate is library-only.
+
 ## Extension Points
 See `CHANGE_RULES.md` for safe extension guidelines.
 If you add a utility here, prove it is deterministic and does not duplicate
