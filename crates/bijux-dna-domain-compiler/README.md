@@ -1,53 +1,64 @@
 # bijux-dna-domain-compiler
 
-## What this crate does
-Compiles authored `domain/` YAML into generated runtime configs (`configs/ci/registry/tool_registry.toml`, `configs/ci/stages/stages.toml`, `configs/ci/tools/images.toml`) and validates domain schema completeness.
-This crate owns the domain-to-config compilation and validation logic used by CLI/tooling.
+`bijux-dna-domain-compiler` validates authored domain metadata and compiles it into deterministic
+generated config views. It is the bridge from `domain/` YAML into governed `configs/ci/` TOML.
 
-## What it must not do (boundaries)
-It must not execute pipelines, run tools, or perform runtime orchestration.
-It must not own benchmark logic or planner execution behavior.
+## Responsibilities
 
-## Effects & determinism guarantees
-Compilation is deterministic for the same domain input and scope.
-Outputs are written as generated artifacts and are safe to overwrite.
+- Validate FASTQ, BAM, and VCF domain schemas, indexes, vocabularies, stages, tools, and catalogs.
+- Compile active domain scope metadata into generated tool, stage, image, and required-tool views.
+- Keep generated output stable for identical input and scope.
+- Preserve planned alternatives as metadata without promoting planned-only tools into governed
+  runtime registries.
+- Own the two command binaries listed in [docs/COMMANDS.md](docs/COMMANDS.md).
 
-## Public API / entrypoints
-- Library: `compile_domain_configs`, `validate_domain`
-- Library: `domain_coverage_report`
-- Binaries: `compile_domain_configs`, `domain_validate`
-- Command SSOT: [docs/COMMANDS.md](docs/COMMANDS.md)
+## Boundaries
 
-## Key contracts it owns/consumes
-- Owns generated config contract headers and structure.
-- Consumes domain schema and stage/tool compatibility declarations.
+This crate must not execute pipelines, run bioinformatics tools, launch containers, schedule work,
+open network connections, or own planner/runtime behavior. Execution-facing crates consume generated
+outputs; they are not compiler dependencies.
 
-## Artifacts / Contracts
-- `configs/ci/registry/tool_registry.toml`
-- `configs/ci/stages/stages.toml`
-- `configs/ci/tools/images.toml`
+## Public API
 
-## Failure modes
-- Missing required domain fields.
-- Invalid stage/tool references.
-- Duplicate IDs or invalid compatibility mappings.
+- `compile_domain_configs`
+- `validate_domain`
+- `domain_coverage_report`
+- `CompileOptions`
+- `ValidateOptions`
+- `DEFAULT_DOMAIN_DIR`
+- `DEFAULT_CONFIGS_DIR`
+- `DEFAULT_COMPILE_SCOPE`
 
-## How to run its tests
-- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-compiler --no-default-features`
-- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-compiler --no-default-features --test boundaries`
-- `CARGO_TARGET_DIR=artifacts/cargo-target cargo clippy -p bijux-dna-domain-compiler --all-targets --no-default-features -- -D warnings`
+See [docs/PUBLIC_API.md](docs/PUBLIC_API.md) for signatures and stability rules.
 
-Primary test files:
-- `tests/boundaries.rs`
-- `tests/guardrails.rs`
-- `tests/determinism_generated_outputs.rs`
-- `tests/planned_tool_registry_boundaries.rs`
+## Generated Outputs
 
-## Where the docs live
+`compile_domain_configs` writes the generated files listed in [docs/CONTRACTS.md](docs/CONTRACTS.md):
+
+- `ci/registry/tool_registry.toml`
+- `ci/registry/tool_registry_experimental.toml`
+- `ci/registry/tool_registry_vcf.toml`
+- `ci/stages/stages.toml`
+- `ci/stages/stages_vcf.toml`
+- `ci/tools/images.toml`
+- `ci/tools/required_tools.toml`
+
+## Verification
+
+```bash
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-compiler --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo clippy -p bijux-dna-domain-compiler --all-targets --no-default-features -- -D warnings
+```
+
+## Documentation
+
 - [docs/INDEX.md](docs/INDEX.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/BOUNDARY.md](docs/BOUNDARY.md)
 - [docs/COMMANDS.md](docs/COMMANDS.md)
 - [docs/CONTRACTS.md](docs/CONTRACTS.md)
 - [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)
+- [docs/EFFECTS.md](docs/EFFECTS.md)
 - [docs/PUBLIC_API.md](docs/PUBLIC_API.md)
+- [docs/SCOPE.md](docs/SCOPE.md)
 - [docs/TESTS.md](docs/TESTS.md)
