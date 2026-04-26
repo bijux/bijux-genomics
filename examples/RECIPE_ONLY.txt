@@ -1,0 +1,4 @@
+# Example directories that intentionally document first-class bench commands
+# instead of participating in the runnable example contract.
+examples/fastq/index-reference-bench
+examples/fastq/normalize-abundance-bench
