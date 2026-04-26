@@ -141,6 +141,41 @@ fn bam_stage_plugin_input_fingerprint_is_stable_for_reordered_inputs() -> anyhow
 }
 
 #[test]
+fn bam_stage_plugin_metric_discovery_is_stable_for_reordered_outputs() -> anyhow::Result<()> {
+    let plugin = BamStagePlugin;
+    let temp = bijux_dna_infra::temp_dir("bijux-bam-plugin-output-order")?;
+    let metrics_dir = temp.path().join("metrics");
+    let reports_dir = temp.path().join("reports");
+    bijux_dna_infra::ensure_dir(&metrics_dir)?;
+    bijux_dna_infra::ensure_dir(&reports_dir)?;
+    bijux_dna_infra::write_bytes(
+        metrics_dir.join("flagstat.txt"),
+        include_bytes!("../fixtures/observer/default/flagstat.txt"),
+    )?;
+
+    let metrics_output = ArtifactRef::required(
+        ArtifactId::new("flagstat"),
+        metrics_dir.join("flagstat.txt"),
+        ArtifactRole::ReportJson,
+    );
+    let report_output = ArtifactRef::required(
+        ArtifactId::new("summary"),
+        reports_dir.join("summary.json"),
+        ArtifactRole::ReportJson,
+    );
+
+    let mut plan = stage_plan("bam.mapping_summary");
+    plan.out_dir = temp.path().join("unused");
+
+    let first = plugin.parse_outputs(&plan, &[metrics_output.clone(), report_output.clone()])?;
+    let second = plugin.parse_outputs(&plan, &[report_output, metrics_output])?;
+
+    assert_eq!(first.metrics.metrics["alignment"]["total"], 10);
+    assert_eq!(first.metrics.metrics, second.metrics.metrics);
+    Ok(())
+}
+
+#[test]
 fn bam_stage_plugin_trims_tool_version_in_metrics_envelope() -> anyhow::Result<()> {
     let plugin = BamStagePlugin;
     let mut plan = stage_plan("bam.mapping_summary");
