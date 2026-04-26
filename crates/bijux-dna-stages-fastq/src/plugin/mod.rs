@@ -47,6 +47,9 @@ impl StagePlugin for FastqStagePlugin {
         plan: &StagePlanV1,
         outputs: &[ArtifactRef],
     ) -> Result<StagePluginOutputV1> {
+        if !self.handles_stage(plan.stage_id.as_str()) {
+            return Err(anyhow!("unsupported FASTQ stage {}", plan.stage_id.as_str()));
+        }
         let input_paths: Vec<std::path::PathBuf> =
             plan.io.inputs.iter().map(|input| input.path.clone()).collect();
         let output_paths: Vec<std::path::PathBuf> =
