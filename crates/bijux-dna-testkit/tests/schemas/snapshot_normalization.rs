@@ -69,6 +69,15 @@ fn snapshot_normalize_json_preserves_tmp_command_paths() {
 }
 
 #[test]
+fn snapshot_normalize_json_preserves_regex_escapes_in_commands() {
+    let raw = serde_json::json!({
+        "command": "python - <<'PY'\nimport re\nre.findall(r'EXAMINED:\\s*(\\d+)', text)\nPY"
+    });
+    let normalized = bijux_dna_testkit::snapshot_normalize_json(&raw);
+    assert_eq!(normalized["command"], raw["command"]);
+}
+
+#[test]
 fn snapshot_normalize_json_strips_camel_case_unstable_fields() {
     let raw = serde_json::json!({
         "startedAt": "2024-01-01T02:03:04Z",
