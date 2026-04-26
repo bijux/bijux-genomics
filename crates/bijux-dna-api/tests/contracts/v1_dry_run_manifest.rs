@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::run::{
@@ -75,6 +76,56 @@ fn dry_run_manifest_verifies_output_artifacts() -> Result<()> {
     let response = dry_run(&request)?;
 
     replay_manifest(&response.manifest_path, true)
+}
+
+#[test]
+fn dry_run_manifest_records_planned_stages() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let step = ExecutionStep {
+        step_id: StepId::new("fastq.validate_reads"),
+        stage_id: StageId::new("fastq.validate_reads"),
+        command: CommandSpecV1 { template: vec!["echo".to_string(), "hello".to_string()] },
+        image: ContainerImageRefV1 {
+            image: "example/validator:1".to_string(),
+            digest: Some("sha256:deadbeef".to_string()),
+        },
+        resources: ToolConstraints::default(),
+        io: StageIO {
+            inputs: vec![ArtifactSpec::required(
+                ArtifactId::new("reads"),
+                PathBuf::from("reads.fastq"),
+                ArtifactRole::Reads,
+            )],
+            outputs: vec![ArtifactSpec::required(
+                ArtifactId::new("validated"),
+                PathBuf::from("validated.fastq"),
+                ArtifactRole::Reads,
+            )],
+        },
+        out_dir: PathBuf::from("out"),
+        aux_images: BTreeMap::default(),
+        expected_artifact_ids: Vec::new(),
+        metrics_schema_ids: Vec::new(),
+    };
+    let graph = ExecutionGraph::new(
+        "fastq-to-fastq__default__v1",
+        "test-planner",
+        PlanPolicy::PreferAccuracy,
+        vec![step],
+        Vec::new(),
+    )?;
+    let request = DryRunRequest {
+        graph,
+        run_dir: temp.path().to_path_buf(),
+        profile_id: "fastq-to-fastq__default__v1".to_string(),
+    };
+    let response = dry_run(&request)?;
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(response.manifest_path)?)?;
+
+    assert_eq!(manifest["stages"][0]["stage_id"], "fastq.validate_reads");
+    assert_eq!(manifest["stages"][0]["image_digest"], "sha256:deadbeef");
+    Ok(())
 }
 
 #[test]

@@ -1,4 +1,4 @@
-use super::Result;
+use super::{summary_artifact, Result};
 use crate::request_args::{PlanRequest, PlanResponse};
 
 /// # Errors
@@ -36,7 +36,7 @@ pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
                 "sha256": serde_json::Value::Null
             }
         ],
-        "stages": [],
+        "stages": summary_artifact::planned_stage_manifest(&request.graph),
         "failures": [],
     });
     Ok(PlanResponse { graph: request.graph, graph_hash, manifest })
