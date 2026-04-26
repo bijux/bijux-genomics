@@ -264,4 +264,25 @@ mod tests {
         assert!(reloaded.iter().any(|obs| obs.run_id == "run-2"));
         Ok(())
     }
+
+    #[test]
+    fn resume_observation_write_keeps_distinct_stage_branches() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let path = temp.path().join("observations.jsonl");
+        let mut branch_a = sample_observation("run-1", "r1");
+        branch_a.stage_instance_id = Some("fastq.trim_reads.tool.fastp.a".to_string());
+        branch_a.lineage_id = Some("branch-a".to_string());
+        let mut branch_b = sample_observation("run-2", "r1");
+        branch_b.stage_instance_id = Some("fastq.trim_reads.tool.fastp.b".to_string());
+        branch_b.lineage_id = Some("branch-b".to_string());
+
+        write_observations_jsonl(&path, &[branch_a], WriteMode::Force)?;
+        write_observations_jsonl(&path, &[branch_b], WriteMode::Resume)?;
+
+        let reloaded = read_observations_jsonl(&path)?;
+        assert_eq!(reloaded.len(), 2);
+        assert!(reloaded.iter().any(|obs| obs.lineage_id.as_deref() == Some("branch-a")));
+        assert!(reloaded.iter().any(|obs| obs.lineage_id.as_deref() == Some("branch-b")));
+        Ok(())
+    }
 }
