@@ -341,6 +341,23 @@ container_ref = "bijuxdna/fastqc@sha256:abc123"
 }
 
 #[test]
+fn load_image_catalog_rejects_tool_key_mismatch() -> anyhow::Result<()> {
+    let _env = env_lock();
+    let temp = bijux_dna_testkit::tempdir_for("environment-image-catalog-key-mismatch");
+    let _cwd = CurrentDirGuard::change_to(temp.path())?;
+    write_image_catalog_fixture(
+        temp.path(),
+        b"[fastp]\ntool = \"fastqc\"\nversion = \"0.23.4\"\n",
+        b"",
+    )?;
+    let err = load_image_catalog()
+        .err()
+        .unwrap_or_else(|| panic!("expected image catalog key mismatch"));
+    assert!(err.to_string().contains("does not match catalog key fastp"));
+    Ok(())
+}
+
+#[test]
 fn cache_paths_and_docker_image_checks_are_deterministic() {
     let _env = env_lock();
     let image = ResolvedImage {

@@ -23,6 +23,11 @@ pub(super) fn load_image_catalog_from_file(
         }
         if spec.tool.trim().is_empty() {
             spec.tool.clone_from(&key);
+        } else if spec.tool != key {
+            return Err(EnvError::Image(format!(
+                "tool field {} does not match catalog key {key}",
+                spec.tool
+            )));
         }
         if catalog.insert(key.clone(), spec).is_some() {
             return Err(EnvError::Image(format!("duplicate tool {key}")));
