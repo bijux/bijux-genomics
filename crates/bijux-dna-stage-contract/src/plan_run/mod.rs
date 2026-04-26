@@ -191,4 +191,40 @@ mod tests {
         assert_eq!(plan.params, serde_json::json!({"quality": "20", "trim_poly_g": "true"}));
         assert_eq!(plan.effective_params, plan.params);
     }
+
+    #[test]
+    fn validate_stage_outputs_rejects_stage_id_mismatch() {
+        let run_spec = RunSpec {
+            stage: StageId::from_static(id_catalog::FASTQ_TRIM),
+            tool: ToolId::from_static("fastp"),
+            paths: PathSpec { input: Vec::new(), output: Vec::new(), work: PathBuf::from("work") },
+            params: BTreeMap::new(),
+        };
+        let stage_spec = StageSpec {
+            stage_id: StageId::from_static(id_catalog::FASTQ_FILTER),
+            semantic_kind: StageSemanticKind::Transform,
+            input_kind: ArtifactKind::Fastq,
+            output_kind: ArtifactKind::Fastq,
+            produced_artifacts: vec!["trimmed_reads".to_string()],
+            stage_semver: "1.0.0".to_string(),
+            runtime_scale: RuntimeScale::Small,
+            inputs: Vec::new(),
+            outputs: vec![PortSpec {
+                name: "trimmed_reads".to_string(),
+                data_type: "fastq".to_string(),
+                cardinality: Cardinality::One,
+            }],
+            parameters: Vec::new(),
+            metrics: Vec::new(),
+            description: None,
+            behavior: Default::default(),
+            image_requirements: None,
+            extends: None,
+        };
+
+        let error = super::validate_stage_outputs(&stage_spec, &run_spec)
+            .expect_err("stage output contract must match the requested run stage");
+
+        assert!(error.to_string().contains("output contract belongs to"));
+    }
 }

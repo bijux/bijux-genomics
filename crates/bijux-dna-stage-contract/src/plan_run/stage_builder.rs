@@ -12,6 +12,14 @@ use crate::{ArtifactRef, PlanDecisionReason, PlanReasonKind, StageIO, StagePlanV
 /// # Errors
 /// Returns an error if the stage has an invalid output contract.
 pub fn validate_stage_outputs(stage_spec: &StageSpec, run_spec: &RunSpec) -> Result<()> {
+    if stage_spec.stage_id != run_spec.stage {
+        return Err(anyhow!(
+            "stage {} output contract belongs to {}; expected {}",
+            run_spec.stage.0,
+            stage_spec.stage_id.0,
+            run_spec.stage.0
+        ));
+    }
     if stage_spec.outputs.is_empty() {
         return Err(anyhow!(
             "stage {} has no declared outputs; planning requires explicit output contract",
