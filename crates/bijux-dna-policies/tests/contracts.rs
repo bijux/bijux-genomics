@@ -140,6 +140,8 @@ mod mod_contracts_tooling_root_layout_policy_rs;
 mod mod_contracts_tooling_root_migration_guard_policy_rs;
 #[path = "contracts/tooling/root/root_pollution_policy.rs"]
 mod mod_contracts_tooling_root_pollution_policy_rs;
+#[path = "contracts/tooling/governance_core/root_architecture_contract_policy.rs"]
+mod mod_contracts_tooling_root_architecture_contract_policy_rs;
 #[path = "contracts/tooling/science_docs/fastq_closure_evidence_policy.rs"]
 mod mod_contracts_tooling_science_docs_fastq_closure_evidence_policy_rs;
 #[path = "contracts/tooling/science_docs/fastq_science_docs_policy.rs"]
