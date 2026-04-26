@@ -15,7 +15,7 @@ tests/
 ├── schemas/
 ├── snapshots.rs
 ├── snapshots/
-└── workspace_paths.rs
+└── support/
 ```
 
 ## Coverage Map
