@@ -7,8 +7,8 @@ rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-bijux-dna-core = { path = "../bijux-dna-core" }
-bijux-dna-infra = { path = "../bijux-dna-infra" }
+bijux-dna-core.workspace = true
+bijux-dna-infra.workspace = true
 chrono.workspace = true
 clap.workspace = true
 reqwest.workspace = true
