@@ -46,11 +46,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     {
       "banks": {},
-      "stage_id": "fastq.merge_pairs",
-      "tool_id": "leehom"
-    },
-    {
-      "banks": {},
       "stage_id": "fastq.profile_overrepresented_sequences",
       "tool_id": "fastqc"
     },
@@ -77,12 +72,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     {
       "banks": {},
       "stage_id": "fastq.trim_reads",
-      "tool_id": "adapterremoval"
-    },
-    {
-      "banks": {},
-      "stage_id": "fastq.trim_terminal_damage",
-      "tool_id": "cutadapt"
+      "tool_id": "fastp"
     },
     {
       "banks": {},
@@ -109,8 +99,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.detect_adapters:retention_report",
       "fastq.filter_reads:metrics_path",
       "fastq.filter_reads:retention_report",
-      "fastq.merge_pairs:metrics_path",
-      "fastq.merge_pairs:retention_report",
       "fastq.profile_overrepresented_sequences:metrics_path",
       "fastq.profile_overrepresented_sequences:retention_report",
       "fastq.profile_read_lengths:metrics_path",
@@ -123,8 +111,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.trim_polyg_tails:retention_report",
       "fastq.trim_reads:metrics_path",
       "fastq.trim_reads:retention_report",
-      "fastq.trim_terminal_damage:metrics_path",
-      "fastq.trim_terminal_damage:retention_report",
       "fastq.validate_reads:metrics_path",
       "fastq.validate_reads:retention_report"
     ],
@@ -311,16 +297,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.merge_pairs",
-      "stage_id": "fastq.merge_pairs",
-      "tool_id": "leehom",
-      "tool_version": "99.99.99+fixture",
-      "trace_id": "trace-1"
-    },
-    {
-      "bank_hashes": {},
-      "image_digest": "sha256:img",
-      "params_hash": "params",
       "span_id": "span-fastq.profile_overrepresented_sequences",
       "stage_id": "fastq.profile_overrepresented_sequences",
       "tool_id": "fastqc",
@@ -373,17 +349,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "span_id": "span-fastq.trim_reads",
       "stage_id": "fastq.trim_reads",
-      "tool_id": "adapterremoval",
-      "tool_version": "99.99.99+fixture",
-      "trace_id": "trace-1"
-    },
-    {
-      "bank_hashes": {},
-      "image_digest": "sha256:img",
-      "params_hash": "params",
-      "span_id": "span-fastq.trim_terminal_damage",
-      "stage_id": "fastq.trim_terminal_damage",
-      "tool_id": "cutadapt",
+      "tool_id": "fastp",
       "tool_version": "99.99.99+fixture",
       "trace_id": "trace-1"
     },
@@ -451,12 +417,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "bases": 800,
           "reads": 80,
-          "stage_id": "fastq.merge_pairs",
-          "tool_id": "leehom"
-        },
-        {
-          "bases": 800,
-          "reads": 80,
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "fastqc"
         },
@@ -488,13 +448,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bases": 800,
           "reads": 80,
           "stage_id": "fastq.trim_reads",
-          "tool_id": "adapterremoval"
-        },
-        {
-          "bases": 800,
-          "reads": 80,
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt"
+          "tool_id": "fastp"
         },
         {
           "bases": 800,
@@ -595,11 +549,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         {
           "results": [],
-          "stage_id": "fastq.merge_pairs",
-          "tool_id": "leehom"
-        },
-        {
-          "results": [],
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "fastqc"
         },
@@ -626,12 +575,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "results": [],
           "stage_id": "fastq.trim_reads",
-          "tool_id": "adapterremoval"
-        },
-        {
-          "results": [],
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt"
+          "tool_id": "fastp"
         },
         {
           "results": [],
@@ -1009,11 +953,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         {
           "banks": {},
-          "stage_id": "fastq.merge_pairs",
-          "tool_id": "leehom"
-        },
-        {
-          "banks": {},
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "fastqc"
         },
@@ -1040,12 +979,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "banks": {},
           "stage_id": "fastq.trim_reads",
-          "tool_id": "adapterremoval"
-        },
-        {
-          "banks": {},
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt"
+          "tool_id": "fastp"
         },
         {
           "banks": {},
@@ -1073,8 +1007,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "fastq.detect_adapters:retention_report",
         "fastq.filter_reads:metrics_path",
         "fastq.filter_reads:retention_report",
-        "fastq.merge_pairs:metrics_path",
-        "fastq.merge_pairs:retention_report",
         "fastq.profile_overrepresented_sequences:metrics_path",
         "fastq.profile_overrepresented_sequences:retention_report",
         "fastq.profile_read_lengths:metrics_path",
@@ -1087,8 +1019,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "fastq.trim_polyg_tails:retention_report",
         "fastq.trim_reads:metrics_path",
         "fastq.trim_reads:retention_report",
-        "fastq.trim_terminal_damage:metrics_path",
-        "fastq.trim_terminal_damage:retention_report",
         "fastq.validate_reads:metrics_path",
         "fastq.validate_reads:retention_report"
       ],
@@ -1245,22 +1175,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.merge_pairs",
-          "telemetry_decisions": [],
-          "tool_id": "leehom",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "adapter_validation": {},
-          "contaminant_action": false,
-          "input_hash": "input",
-          "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path",
-            "retention_report"
-          ],
-          "params_hash": "params",
-          "quality_gate": {},
           "stage_id": "fastq.profile_overrepresented_sequences",
           "telemetry_decisions": [],
           "tool_id": "fastqc",
@@ -1343,23 +1257,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "quality_gate": {},
           "stage_id": "fastq.trim_reads",
           "telemetry_decisions": [],
-          "tool_id": "adapterremoval",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "adapter_validation": {},
-          "contaminant_action": false,
-          "input_hash": "input",
-          "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path",
-            "retention_report"
-          ],
-          "params_hash": "params",
-          "quality_gate": {},
-          "stage_id": "fastq.trim_terminal_damage",
-          "telemetry_decisions": [],
-          "tool_id": "cutadapt",
+          "tool_id": "fastp",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1404,8 +1302,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "fastq.detect_adapters:retention_report",
           "fastq.filter_reads:metrics_path",
           "fastq.filter_reads:retention_report",
-          "fastq.merge_pairs:metrics_path",
-          "fastq.merge_pairs:retention_report",
           "fastq.profile_overrepresented_sequences:metrics_path",
           "fastq.profile_overrepresented_sequences:retention_report",
           "fastq.profile_read_lengths:metrics_path",
@@ -1418,8 +1314,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "fastq.trim_polyg_tails:retention_report",
           "fastq.trim_reads:metrics_path",
           "fastq.trim_reads:retention_report",
-          "fastq.trim_terminal_damage:metrics_path",
-          "fastq.trim_terminal_damage:retention_report",
           "fastq.validate_reads:metrics_path",
           "fastq.validate_reads:retention_report"
         ],
@@ -1428,7 +1322,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "fastq": {
       "schema_version": "bijux.report.section.fastq.v1",
-      "stages": 11
+      "stages": 9
     },
     "filtering": {},
     "final_qc_summary": {
@@ -1458,7 +1352,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bases_dropped": 200,
           "reads_dropped": 20,
           "stage_id": "fastq.trim_reads",
-          "tool_id": "adapterremoval"
+          "tool_id": "fastp"
         }
       ]
     },
@@ -1471,7 +1365,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "kind": "missing_metrics"
       },
       {
-        "count": 32,
+        "count": 28,
         "items": [
           "bam.align:metrics_path",
           "bam.align:retention_report",
@@ -1487,8 +1381,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "fastq.detect_adapters:retention_report",
           "fastq.filter_reads:metrics_path",
           "fastq.filter_reads:retention_report",
-          "fastq.merge_pairs:metrics_path",
-          "fastq.merge_pairs:retention_report",
           "fastq.profile_overrepresented_sequences:metrics_path",
           "fastq.profile_overrepresented_sequences:retention_report",
           "fastq.profile_read_lengths:metrics_path",
@@ -1501,8 +1393,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "fastq.trim_polyg_tails:retention_report",
           "fastq.trim_reads:metrics_path",
           "fastq.trim_reads:retention_report",
-          "fastq.trim_terminal_damage:metrics_path",
-          "fastq.trim_terminal_damage:retention_report",
           "fastq.validate_reads:metrics_path",
           "fastq.validate_reads:retention_report"
         ],
@@ -1593,13 +1483,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "effective_config_path": "",
           "params_hash": "params",
-          "stage_id": "fastq.merge_pairs",
-          "tool_id": "leehom",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "effective_config_path": "",
-          "params_hash": "params",
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "fastqc",
           "tool_version": "99.99.99+fixture"
@@ -1636,14 +1519,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "effective_config_path": "",
           "params_hash": "params",
           "stage_id": "fastq.trim_reads",
-          "tool_id": "adapterremoval",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "effective_config_path": "",
-          "params_hash": "params",
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt",
+          "tool_id": "fastp",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1710,13 +1586,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "image_digest": "sha256:img",
           "params_hash": "params",
-          "stage_id": "fastq.merge_pairs",
-          "tool_id": "leehom",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "image_digest": "sha256:img",
-          "params_hash": "params",
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "fastqc",
           "tool_version": "99.99.99+fixture"
@@ -1753,14 +1622,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "image_digest": "sha256:img",
           "params_hash": "params",
           "stage_id": "fastq.trim_reads",
-          "tool_id": "adapterremoval",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "image_digest": "sha256:img",
-          "params_hash": "params",
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt",
+          "tool_id": "fastp",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1783,43 +1645,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
             ],
             "rationale": "modern default alignment preset"
           },
-          "bam.authenticity": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
-          "bam.contamination": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
           "bam.coverage": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -1831,31 +1669,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
-          "bam.duplication_metrics": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
-          "bam.endogenous_content": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -1867,19 +1681,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
-          "bam.length_filter": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -1891,19 +1693,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
-          "bam.mapq_filter": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -1915,31 +1705,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
             ],
             "rationale": "cross-domain compatibility bridge for BAM pre-QC defaults"
           },
-          "bam.sex": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
           "bam.validate": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -1951,7 +1729,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/cross/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -1980,7 +1758,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
             ],
-            "rationale": "aDNA preset: stricter adapter detection depth for short fragments"
+            "rationale": "pipeline default"
           },
           "fastq.extract_umis": {
             "assumptions": [
@@ -2016,7 +1794,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
             ],
-            "rationale": "aDNA preset: aggressive overlap merge/collapse for fragmented paired-end reads"
+            "rationale": "pipeline default"
           },
           "fastq.profile_overrepresented_sequences": {
             "assumptions": [
@@ -2091,18 +1869,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "rationale": "pipeline default"
           },
           "fastq.trim_reads": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "aDNA preset: short-read preserving trim with strict adapter handling"
-          },
-          "fastq.trim_terminal_damage": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
@@ -2144,16 +1910,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "rg_policy": "regenerate",
             "threads": 1
           },
-          "bam.authenticity": {
-            "mode": "aggregate"
-          },
-          "bam.contamination": {
-            "assumptions": null,
-            "prior": null,
-            "reference_panels": [],
-            "scope": "both",
-            "sex_specific": false
-          },
           "bam.coverage": {
             "depth_thresholds": [
               1,
@@ -2169,17 +1925,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "trim_5p": 2,
             "udg_model": "non_udg"
           },
-          "bam.duplication_metrics": {
-            "duplicate_action": "mark",
-            "optical_duplicates": "mark_only",
-            "umi_policy": "ignore"
-          },
-          "bam.endogenous_content": {
-            "depth_thresholds": [
-              1
-            ],
-            "regions": null
-          },
           "bam.filter": {
             "base_quality_threshold": 20,
             "exclude_flags": [],
@@ -2188,31 +1933,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "min_length": 30,
             "remove_duplicates": false
           },
-          "bam.length_filter": {
-            "base_quality_threshold": 20,
-            "exclude_flags": [],
-            "include_flags": [],
-            "mapq_threshold": 0,
-            "min_length": 30,
-            "remove_duplicates": false
-          },
           "bam.mapping_summary": {
             "regions": null
           },
-          "bam.mapq_filter": {
-            "base_quality_threshold": 20,
-            "exclude_flags": [],
-            "include_flags": [],
-            "mapq_threshold": 30,
-            "min_length": 0,
-            "remove_duplicates": false
-          },
           "bam.qc_pre": {
             "regions": null
-          },
-          "bam.sex": {
-            "expected_sex": null,
-            "method": "rxy"
           },
           "bam.validate": {
             "strict": true
@@ -2225,7 +1950,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "kmer_size": null,
             "max_memory_gb": null,
             "musket_kmer_budget": null,
-            "paired_mode": "paired_end",
+            "paired_mode": "single_end",
             "quality_encoding": "phred33",
             "schema_version": "bijux.fastq.params.correct.v1",
             "threads": 1,
@@ -2237,61 +1962,60 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "evidence_format": "fastqc_summary",
             "evidence_scope": "full_input",
             "inspection_mode": "evidence_only",
-            "paired_mode": "paired_end",
+            "paired_mode": "single_end",
             "report_only": true,
-            "sample_reads": 2000000,
+            "sample_reads": null,
             "schema_version": "bijux.fastq.params.detect_adapters.v1",
             "threads": 1
           },
           "fastq.extract_umis": {
-            "paired_mode": "paired_end",
+            "paired_mode": "single_end",
             "schema_version": "bijux.fastq.params.umi.v1",
             "threads": 1,
             "umi_pattern": null
           },
           "fastq.filter_reads": {
             "contaminant_db": null,
-            "damage_mode": "ancient",
             "entropy_threshold": null,
             "low_complexity_threshold": null,
             "max_n": null,
             "max_n_count": null,
-            "max_n_fraction": 0.02,
+            "max_n_fraction": null,
             "n_policy": null,
-            "paired_mode": "paired_end",
-            "polyx_policy": "trim",
+            "paired_mode": "single_end",
+            "polyx_policy": null,
             "threads": 1
           },
           "fastq.merge_pairs": {
             "merge_engine": "pear",
-            "merge_overlap": 11,
-            "min_len": 20,
-            "paired_mode": "paired_end",
+            "merge_overlap": null,
+            "min_len": null,
+            "paired_mode": "single_end",
             "schema_version": "bijux.fastq.params.merge_pairs.v1",
             "threads": 6,
             "unmerged_read_policy": "emit_unmerged_pairs"
           },
           "fastq.profile_overrepresented_sequences": {
-            "paired_mode": "paired_end",
+            "paired_mode": "single_end",
             "schema_version": "bijux.fastq.params.overrepresented_profile.v1",
             "threads": 2,
             "top_k": 50
           },
           "fastq.profile_read_lengths": {
             "histogram_bins": 100,
-            "paired_mode": "paired_end",
+            "paired_mode": "single_end",
             "schema_version": "bijux.fastq.params.read_length_profile.v1",
             "threads": 2
           },
           "fastq.profile_reads": {
-            "paired_mode": "paired_end",
+            "paired_mode": "single_end",
             "schema_version": "bijux.fastq.params.stats.v1",
             "threads": 2
           },
           "fastq.report_qc": {
             "aggregation_engine": "multiqc",
             "aggregation_scope": "governed_qc_artifacts",
-            "paired_mode": "paired_end",
+            "paired_mode": "single_end",
             "schema_version": "bijux.fastq.params.report_qc.v1"
           },
           "fastq.screen_taxonomy": {
@@ -2306,41 +2030,31 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "database_scope": "read_screening",
             "emit_unclassified": true,
             "minimum_confidence": null,
-            "paired_mode": "paired_end",
+            "paired_mode": "single_end",
             "report_format": "kraken_report",
             "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
             "threads": 4
           },
           "fastq.trim_polyg_tails": {
             "min_polyg_run": 10,
-            "paired_mode": "paired_end",
+            "paired_mode": "single_end",
             "schema_version": "bijux.fastq.params.trim_polyg_tails.v1",
             "threads": 4,
             "trim_polyg": true
           },
           "fastq.trim_reads": {
-            "adapter_policy": "ancient_strict",
+            "adapter_policy": "none",
             "contaminant_policy": null,
-            "damage_mode": "ancient",
-            "min_len": 25,
+            "min_len": 30,
             "n_policy": null,
-            "paired_mode": "paired_end",
-            "polyx_policy": "trim",
-            "q_cutoff": 20,
+            "paired_mode": "single_end",
+            "polyx_policy": null,
+            "q_cutoff": null,
             "threads": 1
           },
-          "fastq.trim_terminal_damage": {
-            "damage_mode": "ancient",
-            "execution_policy": "explicit_terminal_trim",
-            "paired_mode": "paired_end",
-            "schema_version": "bijux.fastq.params.trim_terminal_damage.v1",
-            "threads": 1,
-            "trim_3p_bases": 2,
-            "trim_5p_bases": 2
-          },
           "fastq.validate_reads": {
-            "pair_sync_policy": "require_header_sync",
-            "paired_mode": "paired_end",
+            "pair_sync_policy": "not_applicable",
+            "paired_mode": "single_end",
             "schema_version": "bijux.fastq.params.validate_reads.v1",
             "threads": 4,
             "validation_mode": "strict"
@@ -2354,43 +2068,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
             ],
             "rationale": "modern default alignment preset"
           },
-          "bam.authenticity": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
-          "bam.contamination": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
           "bam.coverage": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -2402,31 +2092,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
-          "bam.duplication_metrics": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
-          "bam.endogenous_content": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -2438,19 +2104,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
-          "bam.length_filter": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -2462,19 +2116,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
-          "bam.mapq_filter": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -2486,31 +2128,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
             ],
             "rationale": "cross-domain compatibility bridge for BAM pre-QC defaults"
           },
-          "bam.sex": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
           "bam.validate": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -2522,7 +2152,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
               "defaults chosen for pre-HPC deterministic baseline comparisons"
             ],
             "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+              "docs/20-science/cross/GOLD_PIPELINE_SPEC.md"
             ],
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
@@ -2551,7 +2181,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
             ],
-            "rationale": "aDNA preset: stricter adapter detection depth for short fragments"
+            "rationale": "pipeline default"
           },
           "fastq.extract_umis": {
             "assumptions": [
@@ -2587,7 +2217,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
             ],
-            "rationale": "aDNA preset: aggressive overlap merge/collapse for fragmented paired-end reads"
+            "rationale": "pipeline default"
           },
           "fastq.profile_overrepresented_sequences": {
             "assumptions": [
@@ -2671,18 +2301,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "comparability_implications": [
               "changing this default can shift cross-run comparability baselines"
             ],
-            "rationale": "aDNA preset: short-read preserving trim with strict adapter handling"
-          },
-          "fastq.trim_terminal_damage": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
             "rationale": "pipeline default"
           },
           "fastq.validate_reads": {
@@ -2700,33 +2318,25 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         "tools": {
           "bam.align": "bwa",
-          "bam.authenticity": "authenticct",
-          "bam.contamination": "authenticct",
           "bam.coverage": "mosdepth",
           "bam.damage": "pydamage",
-          "bam.duplication_metrics": "samtools",
-          "bam.endogenous_content": "samtools",
           "bam.filter": "samtools",
-          "bam.length_filter": "samtools",
           "bam.mapping_summary": "samtools",
-          "bam.mapq_filter": "samtools",
           "bam.qc_pre": "samtools",
-          "bam.sex": "rxy",
           "bam.validate": "samtools",
           "core.prepare_reference": "samtools",
           "fastq.correct_errors": "rcorrector",
           "fastq.detect_adapters": "fastqc",
           "fastq.extract_umis": "umi_tools",
           "fastq.filter_reads": "fastp",
-          "fastq.merge_pairs": "leehom",
+          "fastq.merge_pairs": "pear",
           "fastq.profile_overrepresented_sequences": "fastqc",
           "fastq.profile_read_lengths": "seqkit_stats",
           "fastq.profile_reads": "seqkit_stats",
           "fastq.report_qc": "multiqc",
           "fastq.screen_taxonomy": "kraken2",
           "fastq.trim_polyg_tails": "fastp",
-          "fastq.trim_reads": "adapterremoval",
-          "fastq.trim_terminal_damage": "cutadapt",
+          "fastq.trim_reads": "fastp",
           "fastq.validate_reads": "fastqvalidator"
         }
       },
@@ -2840,20 +2450,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "scientific_preset": null,
-          "stage_id": "fastq.merge_pairs",
-          "tier_rationale": "unknown_tool",
-          "tool_id": "leehom",
-          "tool_tier": "experimental",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "image_digest": "sha256:img",
-          "input_hash": "input",
-          "output_hashes": [
-            "out"
-          ],
-          "params_hash": "params",
-          "scientific_preset": null,
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tier_rationale": "unknown_tool",
           "tool_id": "fastqc",
@@ -2925,23 +2521,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "scientific_preset": null,
           "stage_id": "fastq.trim_reads",
-          "tier_rationale": "unknown_tool",
-          "tool_id": "adapterremoval",
-          "tool_tier": "experimental",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "image_digest": "sha256:img",
-          "input_hash": "input",
-          "output_hashes": [
-            "out"
-          ],
-          "params_hash": "params",
-          "scientific_preset": null,
-          "stage_id": "fastq.trim_terminal_damage",
-          "tier_rationale": "unknown_tool",
-          "tool_id": "cutadapt",
-          "tool_tier": "experimental",
+          "tier_rationale": "curated_default",
+          "tool_id": "fastp",
+          "tool_tier": "gold",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -3121,20 +2703,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.merge_pairs",
-          "tool_id": "leehom",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "effective_params": {},
-          "image_digest": "sha256:img",
-          "input_hash": "input",
-          "output_hashes": [
-            "out"
-          ],
-          "params_hash": "params",
-          "raw_params": {},
-          "resolved_tool_version": null,
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "fastqc",
           "tool_version": "99.99.99+fixture"
@@ -3206,21 +2774,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "raw_params": {},
           "resolved_tool_version": null,
           "stage_id": "fastq.trim_reads",
-          "tool_id": "adapterremoval",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "effective_params": {},
-          "image_digest": "sha256:img",
-          "input_hash": "input",
-          "output_hashes": [
-            "out"
-          ],
-          "params_hash": "params",
-          "raw_params": {},
-          "resolved_tool_version": null,
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt",
+          "tool_id": "fastp",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -3312,15 +2866,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "metrics_path",
             "retention_report"
           ],
-          "stage_id": "fastq.merge_pairs",
-          "status": "incomplete"
-        },
-        {
-          "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path",
-            "retention_report"
-          ],
           "stage_id": "fastq.profile_overrepresented_sequences",
           "status": "incomplete"
         },
@@ -3367,15 +2912,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "retention_report"
           ],
           "stage_id": "fastq.trim_reads",
-          "status": "incomplete"
-        },
-        {
-          "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path",
-            "retention_report"
-          ],
-          "stage_id": "fastq.trim_terminal_damage",
           "status": "incomplete"
         },
         {
@@ -3444,13 +2980,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "bucket": "high",
           "reasons": [],
           "score": 1.0,
-          "stage_id": "fastq.merge_pairs",
-          "tool_id": "leehom"
-        },
-        {
-          "bucket": "high",
-          "reasons": [],
-          "score": 1.0,
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "fastqc"
         },
@@ -3487,14 +3016,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reasons": [],
           "score": 1.0,
           "stage_id": "fastq.trim_reads",
-          "tool_id": "adapterremoval"
-        },
-        {
-          "bucket": "high",
-          "reasons": [],
-          "score": 1.0,
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt"
+          "tool_id": "fastp"
         },
         {
           "bucket": "high",
@@ -3568,14 +3090,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "gc_delta": null,
           "mean_q_delta": null,
           "read_retention": 0.8,
-          "stage_id": "fastq.merge_pairs",
-          "tool_id": "leehom"
-        },
-        {
-          "base_retention": 0.8,
-          "gc_delta": null,
-          "mean_q_delta": null,
-          "read_retention": 0.8,
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "fastqc"
         },
@@ -3617,15 +3131,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "mean_q_delta": null,
           "read_retention": 0.8,
           "stage_id": "fastq.trim_reads",
-          "tool_id": "adapterremoval"
-        },
-        {
-          "base_retention": 0.8,
-          "gc_delta": null,
-          "mean_q_delta": null,
-          "read_retention": 0.8,
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt"
+          "tool_id": "fastp"
         },
         {
           "base_retention": 0.8,
@@ -3667,10 +3173,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         {
           "read_retention": 0.8,
-          "stage_id": "fastq.merge_pairs"
-        },
-        {
-          "read_retention": 0.8,
           "stage_id": "fastq.profile_overrepresented_sequences"
         },
         {
@@ -3692,10 +3194,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "read_retention": 0.8,
           "stage_id": "fastq.trim_reads"
-        },
-        {
-          "read_retention": 0.8,
-          "stage_id": "fastq.trim_terminal_damage"
         },
         {
           "read_retention": 0.8,
@@ -3831,22 +3329,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.merge_pairs",
-      "stage_report_path": "fastq.merge_pairs/stage_report.json",
-      "tool_id": "leehom",
-      "tool_invocation_path": "",
-      "tool_version": "99.99.99+fixture"
-    },
-    {
-      "bank_report_path": null,
-      "effective_config_path": "",
-      "exit_code": 0,
-      "input_hash": "input",
-      "memory_mb": 64.0,
-      "metrics_path": "",
-      "params_hash": "params",
-      "retention_report_path": null,
-      "runtime_s": 1.0,
       "stage_id": "fastq.profile_overrepresented_sequences",
       "stage_report_path": "fastq.profile_overrepresented_sequences/stage_report.json",
       "tool_id": "fastqc",
@@ -3929,23 +3411,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "runtime_s": 1.0,
       "stage_id": "fastq.trim_reads",
       "stage_report_path": "fastq.trim_reads/stage_report.json",
-      "tool_id": "adapterremoval",
-      "tool_invocation_path": "",
-      "tool_version": "99.99.99+fixture"
-    },
-    {
-      "bank_report_path": null,
-      "effective_config_path": "",
-      "exit_code": 0,
-      "input_hash": "input",
-      "memory_mb": 64.0,
-      "metrics_path": "",
-      "params_hash": "params",
-      "retention_report_path": null,
-      "runtime_s": 1.0,
-      "stage_id": "fastq.trim_terminal_damage",
-      "stage_report_path": "fastq.trim_terminal_damage/stage_report.json",
-      "tool_id": "cutadapt",
+      "tool_id": "fastp",
       "tool_invocation_path": "",
       "tool_version": "99.99.99+fixture"
     },
@@ -3977,14 +3443,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "core.prepare_reference/telemetry/events.jsonl",
       "fastq.detect_adapters/telemetry/events.jsonl",
       "fastq.filter_reads/telemetry/events.jsonl",
-      "fastq.merge_pairs/telemetry/events.jsonl",
       "fastq.profile_overrepresented_sequences/telemetry/events.jsonl",
       "fastq.profile_read_lengths/telemetry/events.jsonl",
       "fastq.profile_reads/telemetry/events.jsonl",
       "fastq.report_qc/telemetry/events.jsonl",
       "fastq.trim_polyg_tails/telemetry/events.jsonl",
       "fastq.trim_reads/telemetry/events.jsonl",
-      "fastq.trim_terminal_damage/telemetry/events.jsonl",
       "fastq.validate_reads/telemetry/events.jsonl"
     ],
     "timeline": []
