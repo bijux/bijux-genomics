@@ -55,6 +55,17 @@ fn qc_pre_params_complete() -> Result<()> {
 }
 
 #[test]
+fn mapping_summary_params_complete() -> Result<()> {
+    let plan = bijux_dna_planner_bam::tool_adapters::bam::mapping_summary::plan(
+        &dummy_tool("samtools"),
+        Path::new("reads.bam"),
+        Path::new("out"),
+    )?;
+    assert_keys(&plan.effective_params, &["regions"])?;
+    Ok(())
+}
+
+#[test]
 fn filter_params_complete() -> Result<()> {
     let params = bijux_dna_domain_bam::params::FilterEffectiveParams {
         mapq_threshold: 30,

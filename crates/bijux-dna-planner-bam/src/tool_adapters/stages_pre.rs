@@ -303,6 +303,7 @@ pub mod mapping_summary {
     use bijux_dna_core::prelude::{
         ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
     };
+    use bijux_dna_domain_bam::params::QcPreEffectiveParams;
     use bijux_dna_stage_contract::{StageIO, StagePlanV1};
 
     pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::MappingSummary.as_str();
@@ -314,6 +315,17 @@ pub mod mapping_summary {
         tool: &ToolExecutionSpecV1,
         bam: &Path,
         out_dir: &Path,
+    ) -> anyhow::Result<StagePlanV1> {
+        plan_with_params(tool, bam, out_dir, &QcPreEffectiveParams { regions: None })
+    }
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan_with_params(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+        params: &QcPreEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
         let outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::MappingSummary,
@@ -345,9 +357,11 @@ pub mod mapping_summary {
                 outputs,
             },
             out_dir: out_dir.to_path_buf(),
-            params: serde_json::json!({ "bam": bam }),
+            params: serde_json::json!({ "bam": bam, "regions": params.regions }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
-                serde_json::json!({"summary":"mapping"}),
+                serde_json::to_value(params).map_err(|error| {
+                    anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+                })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),

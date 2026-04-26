@@ -244,3 +244,29 @@ fn mapq_filter_preserves_effective_min_length_override() -> Result<()> {
     assert_eq!(plan.effective_params["min_length"], 12);
     Ok(())
 }
+
+#[test]
+fn mapping_summary_preserves_regions_override() -> Result<()> {
+    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("fixtures")
+        .join("plan_inputs")
+        .join("default");
+    let stage = BamStage::MappingSummary;
+    let tool_id = bijux_dna_planner_bam::stage_api::default_tool_for_stage(stage);
+    let tool = dummy_tool(tool_id.as_str());
+    let plan = plan_stage(StagePlanRequest {
+        stage_id: stage.as_str(),
+        tool: &tool,
+        out_dir: fixtures.join("out").as_path(),
+        bam: Some(&fixtures.join("sample.bam")),
+        bam_index: Some(&fixtures.join("sample.bam.bai")),
+        r1: None,
+        r2: None,
+        reference: None,
+        sample_id: Some("sample"),
+        params: Some(&serde_json::json!({"regions": "targets.bed"})),
+    })?;
+    assert_eq!(plan.effective_params["regions"], "targets.bed");
+    Ok(())
+}
