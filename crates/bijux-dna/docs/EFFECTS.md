@@ -7,10 +7,12 @@
 - Write declared command outputs, including dry-run manifests, reports, status files, and
   observability log packs.
 - Print deterministic terminal or JSON output.
+- Contact remote services only from commands whose purpose explicitly requires it, such as ENA
+  materialization or fetch workflows.
 
 ## Forbidden Effects
 - No direct process spawning for tools or containers.
-- No undeclared network access.
+- No undeclared network access or background fetches.
 - No writes outside paths requested by command flags or documented command defaults.
 - No mutation of source, registry, or generated config files unless the command explicitly owns that
   maintenance workflow.
