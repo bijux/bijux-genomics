@@ -378,13 +378,14 @@ fn load_image_catalog_rejects_tool_key_mismatch() -> anyhow::Result<()> {
 #[test]
 fn cache_paths_and_docker_image_checks_are_deterministic() {
     let _env = env_lock();
+    let cache_root = bijux_dna_testkit::tempdir_for("environment-cache-root");
     let image = ResolvedImage {
         full_name: "bijuxdna/fastp@sha256:abc123".to_string(),
         arch: "arm64".to_string(),
         runner: RuntimeKind::Apptainer,
     };
     let _cache_root = EnvVarGuard::capture("BIJUX_CACHE_ROOT");
-    std::env::set_var("BIJUX_CACHE_ROOT", std::env::temp_dir().join("bijux_cache"));
+    std::env::set_var("BIJUX_CACHE_ROOT", cache_root.path());
     assert!(cache_dir(RuntimeKind::Docker).to_string_lossy().contains("bijux/docker/images"));
     assert!(apptainer_sif_path(&image).to_string_lossy().contains("fastp-sha256:abc123-arm64.sif"));
 
