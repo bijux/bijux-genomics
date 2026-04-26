@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, ensure, Result};
 use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_dna_stage_contract::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
 use std::fs;
@@ -34,12 +34,7 @@ impl StagePlugin for FastqStagePlugin {
         if !self.handles_stage(plan.stage_id.as_str()) {
             return Err(anyhow!("unsupported FASTQ stage {}", plan.stage_id.as_str()));
         }
-        if plan.command.template.is_empty() {
-            return Err(anyhow!(
-                "FASTQ stage {} has empty command template",
-                plan.stage_id.as_str()
-            ));
-        }
+        validate_command_template(plan)?;
         Ok(StageInvocationV1 {
             command: plan.command.template.clone(),
             env: std::collections::BTreeMap::new(),
@@ -99,6 +94,20 @@ impl StagePlugin for FastqStagePlugin {
             event_hints,
         })
     }
+}
+
+fn validate_command_template(plan: &StagePlanV1) -> Result<()> {
+    ensure!(
+        !plan.command.template.is_empty(),
+        "FASTQ stage {} has empty command template",
+        plan.stage_id.as_str()
+    );
+    ensure!(
+        plan.command.template.iter().all(|arg| !arg.trim().is_empty()),
+        "FASTQ stage {} has blank command template argument",
+        plan.stage_id.as_str()
+    );
+    Ok(())
 }
 
 #[cfg(test)]
