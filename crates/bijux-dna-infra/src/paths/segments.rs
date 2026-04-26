@@ -30,8 +30,10 @@ fn confined_components(value: &str) -> Vec<String> {
                     Some(clean.to_string())
                 }
             }
-            Component::CurDir | Component::ParentDir | Component::RootDir => None,
-            Component::Prefix(_) => None,
+            Component::CurDir
+            | Component::ParentDir
+            | Component::RootDir
+            | Component::Prefix(_) => None,
         })
         .collect()
 }

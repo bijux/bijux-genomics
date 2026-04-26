@@ -71,26 +71,38 @@ where
     let mut temp = tempfile::NamedTempFile::new_in(parent).map_err(IoError::from_io)?;
     writer(temp.as_file_mut()).map_err(IoError::from_io)?;
     temp.as_file_mut().sync_all().map_err(IoError::from_io)?;
-    let perm = existing_or_default_permissions(path);
-    if let Some(perm) = perm {
-        temp.as_file_mut().set_permissions(perm).map_err(IoError::from_io)?;
-    }
+    apply_target_permissions(path, &mut temp)?;
     temp.persist(path).map_err(|err| IoError::from_io(err.error))?;
     Ok(())
 }
 
-fn existing_or_default_permissions(path: &Path) -> Option<std::fs::Permissions> {
+#[cfg(unix)]
+fn apply_target_permissions(
+    path: &Path,
+    temp: &mut tempfile::NamedTempFile,
+) -> Result<(), IoError> {
+    let permissions = existing_or_default_permissions(path);
+    temp.as_file_mut().set_permissions(permissions).map_err(IoError::from_io)
+}
+
+#[cfg(not(unix))]
+fn apply_target_permissions(
+    path: &Path,
+    temp: &mut tempfile::NamedTempFile,
+) -> Result<(), IoError> {
     if let Ok(metadata) = std::fs::metadata(path) {
-        return Some(metadata.permissions());
+        temp.as_file_mut().set_permissions(metadata.permissions()).map_err(IoError::from_io)?;
     }
-    #[cfg(unix)]
-    {
+    Ok(())
+}
+
+#[cfg(unix)]
+fn existing_or_default_permissions(path: &Path) -> std::fs::Permissions {
+    if let Ok(metadata) = std::fs::metadata(path) {
+        metadata.permissions()
+    } else {
         use std::os::unix::fs::PermissionsExt;
-        return Some(std::fs::Permissions::from_mode(0o644));
-    }
-    #[cfg(not(unix))]
-    {
-        None
+        std::fs::Permissions::from_mode(0o644)
     }
 }
 
