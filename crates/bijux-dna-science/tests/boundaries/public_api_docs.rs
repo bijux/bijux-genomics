@@ -16,9 +16,9 @@ fn public_api_doc_matches_science_root_surface() {
 
     assert_eq!(
         modules,
-        entries([
-            "app", "cli", "compile", "domain", "errors", "io", "release", "render", "schema",
-        ]),
+        entries(
+            ["app", "cli", "compile", "domain", "errors", "io", "release", "render", "schema",]
+        ),
         "src/lib.rs must expose the documented science modules"
     );
 
