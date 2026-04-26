@@ -45,6 +45,7 @@ image probes, while preserving Apptainer-specific image/cache behavior.
 
 ## Artifact Contract
 
-Runtime QA writes under `artifacts/image-qa/<platform>/`. Fixture artifacts use production-like
-names (`manifest.json`, `report.json`) and are checked by
+Runtime QA records write under `artifacts/image-qa/<platform>/`; per-run tool outputs write under
+`artifacts/image-qa/runs/<stage>/`. Fixture artifacts use production-like names (`manifest.json`,
+`report.json`) and are checked by
 `tests/contracts/artifacts/qa_artifact_contract.rs`.

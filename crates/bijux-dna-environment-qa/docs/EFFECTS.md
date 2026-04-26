@@ -15,7 +15,7 @@ QA crate and only under explicit command surfaces."
 
 - QA records, summaries, SQLite databases, logs, and generated subsets under
   `artifacts/image-qa/<platform>/`.
-- Per-run QA output directories under the repository `artifacts/` tree.
+- Per-run QA output directories under `artifacts/image-qa/runs/<stage>/`.
 - Docker image builds when `build_docker_images` is explicitly invoked.
 
 ## Allowed Processes
