@@ -63,7 +63,7 @@ Explainability is deterministic for the same graph and defaults ledger.
 ## Policy Audit
 
 1. Caller invokes `policy_audit`, `workspace_edges`, or `write_workspace_audit`.
-2. The API inspects crate/workspace dependency evidence.
+2. `policy_audit` returns the owning dev/policy crates and verification commands; API runtime code does not execute policy guardrails.
 3. The flow returns JSON or persisted audit artifacts.
 
 Audit output is evidence for this crate boundary; it must not change source
