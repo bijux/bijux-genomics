@@ -8,11 +8,11 @@ None.
 ## Managed Command Inventory
 
 ### Policy Gates
-These repository commands are the policy gates this crate defines, documents, or validates:
+This crate defines package-level policy tests. Repository-level Make targets are owned by the
+workspace Makefiles and `bijux-dna-dev`; do not list a Make target here unless that target exists
+in the root Makefile stack and delegates to this package.
 
-- `make guardrails`
-- `make policies`
-- `make structure-check`
+None.
 
 ## Package Test Commands
 Use these when changing this crate:

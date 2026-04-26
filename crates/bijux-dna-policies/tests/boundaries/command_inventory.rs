@@ -27,9 +27,6 @@ fn policy__boundaries__command_inventory__documents_policy_commands_without_runt
     assert_eq!(
         documented_commands(&content),
         entries([
-            "make guardrails",
-            "make policies",
-            "make structure-check",
             "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --no-default-features",
             "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test boundaries --no-default-features",
             "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test contracts --no-default-features",
