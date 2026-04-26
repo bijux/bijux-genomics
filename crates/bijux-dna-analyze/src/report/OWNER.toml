@@ -1,1 +1,4 @@
 owner = "bijux-dna-analyze"
+responsibility = "report model construction, benchmark views, sections, and renderers"
+may_depend_on = ["typed facts", "domain stage identifiers", "pipeline defaults", "infra writers"]
+must_not_depend_on = ["load", "pipeline orchestration", "runner", "engine"]

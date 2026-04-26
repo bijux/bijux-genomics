@@ -1,1 +1,4 @@
 owner = "bijux-dna-analyze"
+responsibility = "runtime artifact loading, schema checks, run indexes, summaries, and optional storage readers"
+may_depend_on = ["runtime facts", "core contracts", "sqlite feature", "parquet feature"]
+must_not_depend_on = ["decision", "report", "pipeline orchestration"]

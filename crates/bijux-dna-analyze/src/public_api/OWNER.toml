@@ -1,1 +1,4 @@
 owner = "bijux-dna-analyze"
+responsibility = "curated stable re-export surface"
+may_depend_on = ["internal stable modules", "core metric set"]
+must_not_depend_on = ["private implementation files", "test-only crates"]

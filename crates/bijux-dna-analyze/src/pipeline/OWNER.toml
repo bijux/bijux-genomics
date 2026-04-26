@@ -1,1 +1,4 @@
 owner = "bijux-dna-analyze"
+responsibility = "canonical analyze orchestration across load, validate, compute, report, and render"
+may_depend_on = ["load", "decision", "report", "exports", "infra atomic writers"]
+must_not_depend_on = ["runner", "engine", "tool execution"]

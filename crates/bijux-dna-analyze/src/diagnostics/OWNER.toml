@@ -1,1 +1,4 @@
 owner = "bijux-dna-analyze"
+responsibility = "durable load and aggregate error types"
+may_depend_on = ["core measure errors", "serde_json", "sqlite feature errors"]
+must_not_depend_on = ["pipeline orchestration", "report rendering"]

@@ -1,1 +1,4 @@
 owner = "bijux-dna-analyze"
+responsibility = "metric aggregation, metric schemas, and report-ready facts"
+may_depend_on = ["core metrics", "runtime facts"]
+must_not_depend_on = ["load", "report", "pipeline"]
