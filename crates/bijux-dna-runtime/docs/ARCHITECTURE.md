@@ -24,6 +24,24 @@ The canonical runtime contract lives in `RUNTIME_CONTRACT.md`. This file maps th
 - Keep stable module exports in `stable_surface.rs` files.
 - Add new files only for durable ownership concerns, not as temporary staging areas.
 
+## Test Layout
+
+- `tests/boundaries/` protects architecture, docs layout, dependency graph,
+  effects, guardrails, and public API documentation.
+- `tests/contracts/` protects canonical writing, manifest integrity, run layout,
+  stage-runner contracts, telemetry, and reference examples.
+- `tests/contracts/reference/` keeps documentation examples separate from
+  runtime example execution.
+- `tests/determinism/` owns fixture stability.
+- `tests/schemas/` owns runtime schema snapshots.
+- `tests/support/workspace_paths.rs` contains shared workspace-root helpers only.
+
+## Dependency Direction
+
+Runtime may define runner contracts and write governed runtime artifacts. It
+must not plan workflows, select tools, execute backend processes directly,
+depend on CLI/API edge crates, or absorb runner backend implementation details.
+
 ## Pointers
 - `RUNTIME_CONTRACT.md` for the authoritative contract narrative.
 - `ARTIFACTS.md` for run-layout and tool-run file inventory.
