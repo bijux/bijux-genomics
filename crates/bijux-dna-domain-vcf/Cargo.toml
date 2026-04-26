@@ -15,4 +15,4 @@ schemars.workspace = true
 workspace = true
 
 [dev-dependencies]
-bijux-dna-policies = { path = "../bijux-dna-policies" }
+bijux-dna-policies.workspace = true
