@@ -17,9 +17,9 @@ pub fn ensure_dir<P: AsRef<Path>>(path: P) -> Result<(), IoError> {
 /// # Errors
 /// Returns an IO error if the parent cannot be created or the file cannot be opened.
 pub fn create_file(path: &Path) -> Result<File, IoError> {
-    let parent =
-        path.parent().ok_or_else(|| IoError::new(IoErrorKind::Missing, "path has no parent"))?;
-    ensure_dir(parent)?;
+    if let Some(parent) = non_empty_parent(path) {
+        ensure_dir(parent)?;
+    }
     File::create(path).map_err(IoError::from_io)
 }
 
@@ -65,8 +65,7 @@ pub fn atomic_write_with<F>(path: &Path, writer: F) -> Result<(), IoError>
 where
     F: FnOnce(&mut File) -> std::io::Result<()>,
 {
-    let parent =
-        path.parent().ok_or_else(|| IoError::new(IoErrorKind::Missing, "path has no parent"))?;
+    let parent = non_empty_parent(path).unwrap_or_else(|| Path::new("."));
     ensure_dir(parent)?;
 
     let mut temp = tempfile::NamedTempFile::new_in(parent).map_err(IoError::from_io)?;
@@ -92,4 +91,8 @@ where
 /// Returns an IO error if the rename fails.
 pub fn rename(src: &Path, dst: &Path) -> Result<(), IoError> {
     std::fs::rename(src, dst).map_err(IoError::from_io)
+}
+
+fn non_empty_parent(path: &Path) -> Option<&Path> {
+    path.parent().filter(|parent| !parent.as_os_str().is_empty())
 }

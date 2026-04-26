@@ -1,3 +1,31 @@
+use std::io::Write as _;
+use std::path::{Path, PathBuf};
+use std::sync::{Mutex, MutexGuard};
+
+static CWD_LOCK: Mutex<()> = Mutex::new(());
+
+fn cwd_lock() -> MutexGuard<'static, ()> {
+    CWD_LOCK.lock().unwrap_or_else(|err| panic!("cwd lock poisoned: {err}"))
+}
+
+struct CurrentDirGuard {
+    previous: PathBuf,
+}
+
+impl CurrentDirGuard {
+    fn change_to(path: &Path) -> anyhow::Result<Self> {
+        let previous = std::env::current_dir()?;
+        std::env::set_current_dir(path)?;
+        Ok(Self { previous })
+    }
+}
+
+impl Drop for CurrentDirGuard {
+    fn drop(&mut self) {
+        let _ = std::env::set_current_dir(&self.previous);
+    }
+}
+
 #[test]
 fn atomic_write_failure_does_not_clobber() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux")?;
@@ -8,6 +36,22 @@ fn atomic_write_failure_does_not_clobber() -> anyhow::Result<()> {
     assert!(result.is_err());
     let data = std::fs::read_to_string(&target)?;
     assert_eq!(data, "stable");
+    Ok(())
+}
+
+#[test]
+fn leaf_relative_paths_write_in_current_directory() -> anyhow::Result<()> {
+    let _cwd = cwd_lock();
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let _guard = CurrentDirGuard::change_to(dir.path())?;
+
+    bijux_dna_infra::atomic_write_bytes(Path::new("payload.bin"), b"payload")?;
+    assert_eq!(std::fs::read("payload.bin")?, b"payload");
+
+    let mut file = bijux_dna_infra::create_file(Path::new("created.txt"))?;
+    file.write_all(b"created")?;
+    drop(file);
+    assert_eq!(std::fs::read_to_string("created.txt")?, "created");
     Ok(())
 }
 
