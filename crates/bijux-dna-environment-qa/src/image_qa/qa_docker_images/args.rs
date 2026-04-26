@@ -15,7 +15,11 @@ pub(super) fn parse_run_options(args: &[String]) -> RunOptions {
 }
 
 fn parse_arg_value(args: &[String], flag: &str) -> Option<String> {
-    args.iter().position(|arg| arg == flag).and_then(|idx| args.get(idx + 1)).cloned()
+    args.iter()
+        .position(|arg| arg == flag)
+        .and_then(|idx| args.get(idx + 1))
+        .filter(|value| !value.starts_with("--"))
+        .cloned()
 }
 
 fn has_flag(args: &[String], flag: &str) -> bool {
@@ -24,6 +28,9 @@ fn has_flag(args: &[String], flag: &str) -> bool {
 
 fn env_flag(name: &str) -> bool {
     std::env::var(name)
-        .map(|value| value == "1" || value.eq_ignore_ascii_case("true"))
+        .map(|value| {
+            let value = value.trim();
+            value == "1" || value.eq_ignore_ascii_case("true")
+        })
         .unwrap_or(false)
 }
