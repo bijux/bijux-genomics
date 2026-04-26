@@ -823,9 +823,7 @@ fn infer_acquisition_mode(locator: &str) -> String {
         return String::new();
     }
     if locator.contains("github.com/") || locator.contains("gitlab.") {
-        let lowercase_locator = locator.to_ascii_lowercase();
-        if lowercase_locator.ends_with(".zip")
-            || lowercase_locator.ends_with(".tar.gz")
+        if has_download_archive_suffix(locator)
             || locator.contains("/archive/")
             || locator.contains("/releases/download/")
         {
@@ -836,6 +834,20 @@ fn infer_acquisition_mode(locator: &str) -> String {
     } else {
         "manual_download".to_string()
     }
+}
+
+fn has_download_archive_suffix(locator: &str) -> bool {
+    let path = Path::new(locator);
+    if path.extension().is_some_and(|extension| extension.eq_ignore_ascii_case("zip")) {
+        return true;
+    }
+    let Some((archive_stem, extension)) = locator.rsplit_once('.') else {
+        return false;
+    };
+    extension.eq_ignore_ascii_case("gz")
+        && archive_stem
+            .rsplit_once('.')
+            .is_some_and(|(_, inner_extension)| inner_extension.eq_ignore_ascii_case("tar"))
 }
 
 fn default_archive_path(tool_id: &str, acquisition_mode: &str) -> String {
