@@ -188,3 +188,26 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
     }
     Ok(())
 }
+
+#[test]
+fn plan_stage_rejects_tool_from_wrong_stage() {
+    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("fixtures")
+        .join("plan_inputs")
+        .join("default");
+    let tool = dummy_tool("fastp");
+    let result = plan_stage(StagePlanRequest {
+        stage_id: BamStage::Align.as_str(),
+        tool: &tool,
+        out_dir: fixtures.join("out").as_path(),
+        bam: Some(&fixtures.join("sample.bam")),
+        bam_index: Some(&fixtures.join("sample.bam.bai")),
+        r1: Some(&fixtures.join("reads_R1.fastq.gz")),
+        r2: Some(&fixtures.join("reads_R2.fastq.gz")),
+        reference: Some(&fixtures.join("reference.fasta")),
+        sample_id: Some("sample"),
+        params: None,
+    });
+    assert!(result.is_err(), "planner accepted a tool that is not registered for bam.align");
+}

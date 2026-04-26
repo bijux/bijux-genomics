@@ -42,6 +42,7 @@ impl BamPlanner {
 #[allow(clippy::needless_pass_by_value)]
 pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
     let stage = bijux_dna_domain_bam::BamStage::try_from(request.stage_id)?;
+    tool_policy::enforce(stage, &request.tool.tool_id.0, request.params, request.reference)?;
     let mut plan = stage_dispatch::plan(stage, &request)?;
     let mut details = serde_json::Map::new();
     details.insert("defaults_diff".to_string(), serde_json::json!({}));

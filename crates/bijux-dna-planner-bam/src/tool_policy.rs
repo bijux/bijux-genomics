@@ -13,6 +13,7 @@ pub fn enforce(
     params: Option<&Value>,
     reference: Option<&Path>,
 ) -> Result<()> {
+    enforce_registered_tool(stage, tool_id)?;
     match stage {
         BamStage::Authenticity if tool_id == id_catalog::TOOL_PMDTOOLS => {
             if reference.is_none() {
@@ -73,4 +74,16 @@ pub fn enforce(
         _ => {}
     }
     Ok(())
+}
+
+fn enforce_registered_tool(stage: BamStage, tool_id: &str) -> Result<()> {
+    let allowed = crate::selection::allowed_tools_for_stage(stage);
+    if allowed.iter().any(|tool| tool.as_str() == tool_id) {
+        return Ok(());
+    }
+    let allowed = allowed.iter().map(|tool| tool.as_str()).collect::<Vec<_>>().join(", ");
+    Err(anyhow!(
+        "tool {tool_id} is not registered for {}; allowed tools: {allowed}",
+        stage.as_str()
+    ))
 }
