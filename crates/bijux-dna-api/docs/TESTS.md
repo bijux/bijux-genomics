@@ -1,38 +1,59 @@
 # Tests
 
-## What
-Maps tests in this crate to their purpose and failure meaning.
+This file is the single test documentation entrypoint for `bijux-dna-api`.
+README files are intentionally not allowed under `tests/`.
 
-## Why
-Tests should explain the contract they enforce.
+## Suite Entrypoints
 
-## Suite entrypoints
-- `tests/boundaries.rs` loads architecture and guardrail coverage.
-- `tests/contracts.rs` loads public contract and integration coverage.
-- `tests/schemas.rs` loads schema and public-surface stability checks.
-- `tests/guardrails.rs` and `tests/workspace_paths.rs` keep crate-level support checks visible at the root.
+- `tests/boundaries.rs` loads architecture, docs-layout, and guardrail tests.
+- `tests/schemas.rs` loads schema snapshots, public surface, and documentation
+  alignment tests.
+- `tests/contracts.rs` loads public behavior and integration contract tests.
+- `tests/guardrails.rs` runs the shared crate guardrail policy from the root.
+- `tests/workspace_paths.rs` provides repository path helpers for integration
+  tests and boundary aggregators.
 
-## Boundaries suite (`tests/boundaries/*`)
-- `tests/boundaries/architecture.rs` — source tree matches the documented crate architecture.
-- `tests/boundaries/guardrails.rs` — shared guardrail harness for the crate.
-- `tests/boundaries/guardrails/args_module.rs` — generic `args.rs` files stay forbidden.
-- `tests/boundaries/guardrails/policies.rs` — shared policy enforcement.
-- `tests/boundaries/v1_cross_guardrails.rs` — v1 layout guardrails.
+## Boundary Tests
 
-## Contracts suite (`tests/contracts/*`)
-- `tests/contracts/fastq_amplicon_governance_contract.rs` — governed fastq runtime behavior remains stable.
-- `tests/contracts/v1_cross_contract_spine.rs` — plan, manifest, and report contract spine stays coherent.
-- `tests/contracts/v1_cross_explain_roundtrip.rs` — explainability payloads round-trip.
-- `tests/contracts/v1_cross_public_contract.rs` — public API contract stays curated.
-- `tests/contracts/v1_dry_run_manifest.rs` — dry-run manifest output remains stable.
-- `tests/contracts/v1_fastq_small_integration.rs` — fastq integration contract remains intact.
+- `tests/boundaries/architecture.rs` protects the crate root shape, 10-docs
+  allowance, absence of test READMEs, source tree layout, and v1 namespace tree.
+- `tests/boundaries/guardrails.rs` runs the shared guardrail harness.
+- `tests/boundaries/guardrails/args_module.rs` forbids vague `args.rs` modules.
+- `tests/boundaries/guardrails/policies.rs` applies shared policy checks.
+- `tests/boundaries/v1_cross_guardrails.rs` keeps cross-domain v1 modules from
+  hard-coding stage id literals.
 
-## Schemas suite (`tests/schemas/*`)
-- `tests/schemas/v1_cross_api_stability.rs` — API response schemas are stable.
-- `tests/schemas/v1_cross_contract_handshake.rs` — fixtures stay aligned across public contracts.
-- `tests/schemas/v1_cross_docs_schema_snapshots.rs` — docs and schema snapshots stay aligned.
-- `tests/schemas/v1_cross_public_surface.rs` — the public surface remains curated.
-- `tests/schemas/v1_operator_failure_contract.rs` — operator-facing failure envelopes stay stable.
+## Schema Tests
 
-## Testkit patterns
-See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+- `tests/schemas/v1_cross_api_stability.rs` locks response schema behavior.
+- `tests/schemas/v1_cross_contract_handshake.rs` keeps contract fixtures aligned.
+- `tests/schemas/v1_cross_docs_schema_snapshots.rs` ensures `docs/API.md`
+  references the public schema snapshots.
+- `tests/schemas/v1_cross_public_surface.rs` snapshots the public root export.
+- `tests/schemas/v1_operator_failure_contract.rs` locks operator-facing failure
+  envelopes.
+
+## Contract Tests
+
+- `tests/contracts/v1_cross_contract_spine.rs` checks the plan, manifest, and
+  report contract spine.
+- `tests/contracts/v1_cross_explain_roundtrip.rs` checks explainability
+  round-tripping.
+- `tests/contracts/v1_cross_public_contract.rs` checks curated public API usage.
+- `tests/contracts/v1_dry_run_manifest.rs` checks dry-run manifest output.
+- `tests/contracts/v1_fastq_small_integration.rs` checks a small FASTQ flow.
+- `tests/contracts/fastq_amplicon_governance_contract.rs` checks governed FASTQ
+  amplicon inputs and locks.
+
+## Recommended Commands
+
+Run from the `bijux-genomics` repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-api --test boundaries --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-api --test schemas --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-api --test contracts --no-default-features
+```
+
+Run `cargo test -p bijux-dna-api --all-features` before release-facing handoff
+when feature-gated code changed.
