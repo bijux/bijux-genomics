@@ -45,6 +45,26 @@ fn dev_dependency_graph_stays_test_facing() {
 }
 
 #[test]
+fn internal_dependencies_use_workspace_catalog() {
+    let manifest =
+        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
+            .expect("read Cargo.toml");
+
+    for dependency in
+        ["bijux-dna-core", "bijux-dna-domain-fastq", "bijux-dna-infra", "bijux-dna-stage-contract"]
+    {
+        assert!(
+            manifest.contains(&format!("{dependency}.workspace = true")),
+            "`{dependency}` must come from the workspace catalog"
+        );
+    }
+    assert!(
+        !manifest.contains("path = \"../bijux-dna-"),
+        "focused FASTQ stage dependencies must not use ad hoc internal path declarations"
+    );
+}
+
+#[test]
 fn stages_fastq_rejects_planner_runtime_runner_api_and_environment_edges() {
     let manifest =
         std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
