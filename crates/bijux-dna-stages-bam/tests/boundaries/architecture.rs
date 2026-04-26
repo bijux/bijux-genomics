@@ -82,6 +82,19 @@ fn stages_bam_tree_matches_architecture_contract() {
         ]),
         "test tree must stay organized by enduring contract intent"
     );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/boundaries")),
+        btree_set(&[
+            "architecture.rs",
+            "docs_layout.rs",
+            "guardrails.rs",
+            "pipeline_guardrails.rs",
+            "purity/",
+            "purity.rs",
+        ]),
+        "boundary tests must stay partitioned by architecture concern"
+    );
 }
 
 fn crate_root(crate_name: &str) -> std::path::PathBuf {
