@@ -159,7 +159,6 @@ fn runtime_test_tree_matches_architecture_contract() {
         dir_entries(&root.join("tests/contracts")),
         entries([
             "canonical_writer.rs",
-            "contracts.rs",
             "docs_layout.rs",
             "experimental_registry_alias.rs",
             "manifest_integrity.rs",
