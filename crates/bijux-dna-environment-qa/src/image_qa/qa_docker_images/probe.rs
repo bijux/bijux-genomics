@@ -47,6 +47,12 @@ pub(super) fn run_container_command(
     image: &str,
     cmd: &str,
 ) -> Result<ProbeResult, Box<dyn std::error::Error>> {
+    if image.trim().is_empty() {
+        return Err("docker image name is empty".into());
+    }
+    if cmd.trim().is_empty() {
+        return Err("container probe command is empty".into());
+    }
     let args = ["docker", "run", "--rm", image, "sh", "-c", cmd];
     let output = runner.run(&args)?;
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
