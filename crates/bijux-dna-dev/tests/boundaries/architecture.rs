@@ -8,12 +8,26 @@ fn dev_tree_matches_architecture_contract() {
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
 
     let root_entries = dir_entries(&root);
-    let expected_root: BTreeSet<_> =
-        ["BOUNDARY.md", "Cargo.toml", "PUBLIC_API.md", "README.md", "docs/", "src/", "tests/"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_root: BTreeSet<_> = ["Cargo.toml", "README.md", "docs/", "src/", "tests/"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
     assert_eq!(root_entries, expected_root, "dev crate root must stay minimal and intentional");
+
+    let docs_entries = dir_entries(&root.join("docs"));
+    let expected_docs: BTreeSet<_> = [
+        "ARCHITECTURE.md",
+        "BOUNDARY.md",
+        "COMMANDS.md",
+        "INDEX.md",
+        "PUBLIC_API.md",
+        "SCOPE.md",
+        "TESTS.md",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(docs_entries, expected_docs, "dev crate docs must stay centralized under docs/");
 
     let src_entries = dir_entries(&root.join("src"));
     let expected_src: BTreeSet<_> = [
@@ -129,24 +143,16 @@ fn dev_tree_matches_architecture_contract() {
     );
 
     let test_entries = dir_entries(&root.join("tests"));
-    let expected_tests: BTreeSet<_> = [
-        "README.md",
-        "boundaries/",
-        "boundaries.rs",
-        "contracts/",
-        "determinism/",
-        "guardrails.rs",
-        "schemas/",
-        "workspace_paths.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
+    let expected_tests: BTreeSet<_> =
+        ["boundaries/", "boundaries.rs", "guardrails.rs", "workspace_paths.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(test_entries, expected_tests, "dev test tree must match the documented taxonomy");
 
     let boundary_entries = dir_entries(&root.join("tests/boundaries"));
     let expected_boundaries: BTreeSet<_> =
-        ["README.md", "architecture.rs", "guardrails.rs"].into_iter().map(str::to_string).collect();
+        ["architecture.rs", "guardrails.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         boundary_entries, expected_boundaries,
         "boundary tests must stay focused on architecture and ownership"

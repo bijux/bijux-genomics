@@ -30,4 +30,4 @@ Provides versioned control-plane automation for repository checks, domain automa
 
 ## Notes
 This crate owns the durable command catalog and execution surface for repository automation.
-The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
+The repository-level onboarding policy lives at `README.md`; child-repository work must apply that policy before changing this crate.
