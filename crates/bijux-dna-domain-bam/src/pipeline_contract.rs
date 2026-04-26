@@ -27,10 +27,7 @@ pub fn stage_criticality(stage_id: &str) -> Option<StageCriticality> {
 #[must_use]
 pub const fn optional_branches() -> &'static [(&'static str, &'static [&'static str])] {
     &[
-        (
-            "ancient_dna_authenticity",
-            &["bam.damage", "bam.authenticity", "bam.contamination"],
-        ),
+        ("ancient_dna_authenticity", &["bam.damage", "bam.authenticity", "bam.contamination"]),
         ("sample_identity", &["bam.sex", "bam.haplogroups", "bam.kinship"]),
         ("variant_readiness", &["bam.recalibration", "bam.genotyping"]),
         ("bias_controls", &["bam.gc_bias", "bam.bias_mitigation"]),

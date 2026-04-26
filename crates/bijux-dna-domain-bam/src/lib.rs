@@ -16,8 +16,8 @@ pub mod types;
 pub use invariants::bam_invariant_specs;
 pub use stage_specs::{
     contract_for_stage, required_audit_artifacts, stage_contract_hash, stage_contract_json,
-    stage_spec, stage_specs, ArtifactPolicy, AuditArtifact, BamArtifactKind, BamStage,
-    BamStageContract, BamStageSpec, StageSpec, STAGE_PREFIX,
+    stage_spec, stage_spec_opt, stage_specs, ArtifactPolicy, AuditArtifact, BamArtifactKind,
+    BamStage, BamStageContract, BamStageSpec, StageSpec, STAGE_PREFIX,
 };
 pub use types::{
     BamInvariantsPreset, BAM_METRICS_CATALOG, BAM_PARAMS_CATALOG, BAM_STAGE_ID_CATALOG,

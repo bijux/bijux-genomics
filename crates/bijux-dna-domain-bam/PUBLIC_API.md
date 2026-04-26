@@ -10,3 +10,8 @@ Public modules exported from src/lib.rs:
 - prelude
 - stage_specs
 - types
+
+Primary stage-spec helpers:
+- `stage_spec_opt`
+- `stage_spec`
+- `stage_specs`
