@@ -132,6 +132,7 @@ where
         let stage_id = binding.stage_id.as_str();
         let tool = &binding.tool;
         crate::tool_policy::enforce_stage_tool(stage_id, &tool.tool_id)?;
+        stage_params::ensure_stage_params_match(binding)?;
         let (plan, next_r1, next_r2, next_feature_table) = match stage_id {
             stage if stage == STAGE_DETECT_ADAPTERS.as_str() => {
                 let plan = crate::tool_adapters::fastq::detect_adapters::plan_with_options(
