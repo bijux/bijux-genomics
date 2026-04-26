@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -14,6 +15,25 @@ fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
 
 fn crate_src_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("src")
+}
+
+fn dir_entries(path: &Path) -> BTreeSet<String> {
+    fs::read_dir(path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
+        .map(|entry| {
+            let entry =
+                entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
+            let mut name = entry.file_name().to_string_lossy().into_owned();
+            if entry.path().is_dir() {
+                name.push('/');
+            }
+            name
+        })
+        .collect()
+}
+
+fn entries<const N: usize>(items: [&str; N]) -> BTreeSet<String> {
+    items.into_iter().map(str::to_string).collect()
 }
 
 #[test]
@@ -51,45 +71,80 @@ fn stages_fastq_has_no_execution_calls() -> Result<(), Box<dyn std::error::Error
 #[test]
 fn stages_fastq_layout_matches_documented_architecture() {
     let root = crate_src_root();
-    let expected_files = [
+    let expected_root = entries([
         "contracts.rs",
         "lib.rs",
+        "metrics/",
+        "observer/",
+        "plugin/",
+        "runtime/",
+        "stage_specs/",
         "surface.rs",
-        "runtime/mod.rs",
-        "runtime/interpretation.rs",
-        "stage_specs/mod.rs",
-        "stage_specs/catalog.rs",
-        "stage_specs/artifacts.rs",
-        "observer/mod.rs",
-        "observer/artifacts.rs",
-        "observer/commands.rs",
-        "metrics/mod.rs",
-        "metrics/envelope_support.rs",
-        "metrics/stage_metrics/mod.rs",
-        "metrics/stage_metrics/analysis.rs",
-        "metrics/stage_metrics/analysis_feature_tables.rs",
-        "metrics/stage_metrics/analysis_screening.rs",
-        "metrics/stage_metrics/reporting.rs",
-        "metrics/stage_metrics/transform.rs",
-        "metrics/stage_metrics/transform_filtering.rs",
-        "metrics/stage_metrics/transform_pairing.rs",
-        "plugin/mod.rs",
-        "plugin/observation_context.rs",
-        "plugin/output_contract.rs",
-        "plugin/plugin_contracts.rs",
-        "plugin/semantic/mod.rs",
-        "plugin/semantic/feature_tables.rs",
-        "plugin/semantic/processing.rs",
-        "plugin/semantic/processing_cleanup.rs",
-        "plugin/semantic/processing_read_preparation.rs",
-        "plugin/semantic/processing_trimming.rs",
-        "plugin/semantic/profiling.rs",
-        "plugin/semantic/quality.rs",
-        "plugin/semantic/quality_qc.rs",
-        "plugin/semantic/quality_read_flow.rs",
-        "plugin/semantic/taxonomy.rs",
-        "plugin/semantic/validation_semantics.rs",
-    ];
+    ]);
+    assert_eq!(dir_entries(&root), expected_root, "src/ tree changed");
+
+    let expected_metrics =
+        entries(["envelope_support.rs", "fastqc.rs", "filters.rs", "mod.rs", "stage_metrics/"]);
+    assert_eq!(dir_entries(&root.join("metrics")), expected_metrics, "metrics/ tree changed");
+
+    let expected_stage_metrics = entries([
+        "analysis.rs",
+        "analysis_feature_tables.rs",
+        "analysis_screening.rs",
+        "mod.rs",
+        "reporting.rs",
+        "transform.rs",
+        "transform_filtering.rs",
+        "transform_pairing.rs",
+    ]);
+    assert_eq!(
+        dir_entries(&root.join("metrics/stage_metrics")),
+        expected_stage_metrics,
+        "metrics/stage_metrics/ tree changed"
+    );
+
+    let expected_observer = entries(["artifacts.rs", "commands.rs", "mod.rs"]);
+    assert_eq!(dir_entries(&root.join("observer")), expected_observer, "observer/ tree changed");
+
+    let expected_plugin = entries([
+        "mod.rs",
+        "observation_context.rs",
+        "output_contract.rs",
+        "plugin_contracts.rs",
+        "semantic/",
+    ]);
+    assert_eq!(dir_entries(&root.join("plugin")), expected_plugin, "plugin/ tree changed");
+
+    let expected_semantic = entries([
+        "feature_tables.rs",
+        "mod.rs",
+        "processing.rs",
+        "processing_cleanup.rs",
+        "processing_read_preparation.rs",
+        "processing_trimming.rs",
+        "profiling.rs",
+        "quality.rs",
+        "quality_qc.rs",
+        "quality_read_flow.rs",
+        "taxonomy.rs",
+        "validation_semantics.rs",
+    ]);
+    assert_eq!(
+        dir_entries(&root.join("plugin/semantic")),
+        expected_semantic,
+        "plugin/semantic/ tree changed"
+    );
+
+    let expected_runtime = entries(["interpretation.rs", "mod.rs"]);
+    assert_eq!(dir_entries(&root.join("runtime")), expected_runtime, "runtime/ tree changed");
+
+    let expected_stage_specs = entries(["artifacts.rs", "catalog.rs", "mod.rs"]);
+    assert_eq!(
+        dir_entries(&root.join("stage_specs")),
+        expected_stage_specs,
+        "stage_specs/ tree changed"
+    );
+
     let legacy_files = [
         "runtime_interpretation.rs",
         "stage_specs.rs",
@@ -100,13 +155,6 @@ fn stages_fastq_layout_matches_documented_architecture() {
         "metrics/stage_metrics_reporting.rs",
         "metrics/stage_metrics_analysis.rs",
     ];
-
-    for relative_path in expected_files {
-        assert!(
-            root.join(relative_path).is_file(),
-            "expected architecture file is missing: {relative_path}"
-        );
-    }
 
     for relative_path in legacy_files {
         assert!(
