@@ -106,18 +106,10 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
             sample_id: inputs.sample_id.as_deref(),
             params,
         })?;
-        let next_bam = plan
-            .io
-            .outputs
-            .iter()
-            .find(|output| output.path.extension().is_some_and(|ext| ext == "bam"))
-            .map(|output| output.path.clone());
-        let next_bai = plan
-            .io
-            .outputs
-            .iter()
-            .find(|output| output.path.extension().is_some_and(|ext| ext == "bai"))
-            .map(|output| output.path.clone());
+        let next_bam =
+            next_required_output_path(&plan, bijux_dna_core::contract::ArtifactRole::Bam);
+        let next_bai =
+            next_required_output_path(&plan, bijux_dna_core::contract::ArtifactRole::Index);
         if let Some(path) = next_bam {
             bam = path;
         }
@@ -161,4 +153,15 @@ fn validate_pipeline_input_maps(
         }
     }
     Ok(())
+}
+
+fn next_required_output_path(
+    plan: &StagePlanV1,
+    role: bijux_dna_core::contract::ArtifactRole,
+) -> Option<std::path::PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|output| !output.optional && output.role == role)
+        .map(|output| output.path.clone())
 }
