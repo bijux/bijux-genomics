@@ -1,7 +1,9 @@
 use std::collections::BTreeMap;
 
 use anyhow::{anyhow, Result};
-use bijux_dna_api::v1::api::run::{dry_run, execute, DryRunRequest, ExecuteRequest, RuntimeKind};
+use bijux_dna_api::v1::api::run::{
+    dry_run, execute, replay_manifest, DryRunRequest, ExecuteRequest, RuntimeKind,
+};
 use bijux_dna_core::contract::{ExecutionGraph, ExecutionStep, PlanPolicy};
 use bijux_dna_core::ids::{ArtifactId, StageId, StepId};
 use bijux_dna_core::prelude::{
@@ -53,6 +55,26 @@ fn dry_run_creates_missing_run_dir() -> Result<()> {
     assert!(response.graph_path.exists());
     assert!(response.manifest_path.exists());
     Ok(())
+}
+
+#[test]
+fn dry_run_manifest_verifies_output_artifacts() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let graph = ExecutionGraph::new(
+        "fastq-to-fastq__default__v1",
+        "test-planner",
+        PlanPolicy::PreferAccuracy,
+        Vec::new(),
+        Vec::new(),
+    )?;
+    let request = DryRunRequest {
+        graph,
+        run_dir: temp.path().to_path_buf(),
+        profile_id: "fastq-to-fastq__default__v1".to_string(),
+    };
+    let response = dry_run(&request)?;
+
+    replay_manifest(&response.manifest_path, true)
 }
 
 #[test]
