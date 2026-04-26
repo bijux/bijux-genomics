@@ -25,6 +25,11 @@ on stable contracts without importing implementation layout by accident.
    snapshots.
 5. Do not expose orchestration, runner, planner, CLI, API, or product behavior
    through core public modules.
+6. If a public helper is a callable operation rather than a data type or
+   constructor, add it to `docs/COMMANDS.md` in the same change set.
+7. If a public helper reads or writes the filesystem, document the effect in
+   `docs/BOUNDARY.md` and cover the behavior in the closest semantic or
+   contract test.
 
 ## Enforcement
 
@@ -32,3 +37,5 @@ on stable contracts without importing implementation layout by accident.
 - `tests/schemas/public_surface.rs` and
   `tests/schemas/public_surface_lock.rs` lock the curated public surface.
 - `tests/contracts/identity/prelude_snapshot.rs` locks prelude ergonomics.
+- `tests/schemas/docs_public_api.rs` locks the managed operation inventory and
+  the README docs allowance.
