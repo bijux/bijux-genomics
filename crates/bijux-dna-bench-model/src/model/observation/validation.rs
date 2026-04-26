@@ -127,6 +127,7 @@ mod tests {
     use std::collections::BTreeMap;
 
     use anyhow::bail;
+    use bijux_dna_core::id_catalog::{FASTQ_FILTER, FASTQ_TRIM};
 
     use crate::model::observation::MetricsEnvelope;
 
@@ -139,7 +140,7 @@ mod tests {
             dataset_id: "dataset-1".to_string(),
             dataset_class: "trueseq".to_string(),
             read_layout: "paired".to_string(),
-            stage_id: "fastq.trim_reads".to_string(),
+            stage_id: FASTQ_TRIM.to_string(),
             stage_instance_id: None,
             lineage_id: None,
             tool_id: "fastp".to_string(),
@@ -153,7 +154,7 @@ mod tests {
             exit_code: 0,
             failure_kind: None,
             metrics: MetricsEnvelope {
-                stage_id: "fastq.trim_reads".to_string(),
+                stage_id: FASTQ_TRIM.to_string(),
                 schema_version: "metrics.v1".to_string(),
                 values: BTreeMap::new(),
             },
@@ -211,7 +212,7 @@ mod tests {
     #[test]
     fn observation_rejects_metric_stage_mismatch() -> anyhow::Result<()> {
         let mut obs = valid_observation();
-        obs.metrics.stage_id = "fastq.filter_reads".to_string();
+        obs.metrics.stage_id = FASTQ_FILTER.to_string();
 
         let Err(err) = obs.validate() else {
             bail!("metric stage mismatch should fail");

@@ -222,6 +222,8 @@ fn completeness_score(required_metrics: &[String], missing_metrics: &[String]) -
 mod tests {
     use std::collections::{BTreeMap, HashSet};
 
+    use bijux_dna_core::id_catalog::FASTQ_TRIM;
+
     use crate::policy::GatePolicy;
 
     #[test]
@@ -241,7 +243,7 @@ mod tests {
         };
 
         let decision =
-            policy.decide("dataset-1", "fastq.trim_reads", "fastp", "params-a", &BTreeMap::new());
+            policy.decide("dataset-1", FASTQ_TRIM, "fastp", "params-a", &BTreeMap::new());
         let unique_missing: HashSet<&str> =
             decision.missing_metrics.iter().map(String::as_str).collect();
 
@@ -266,8 +268,7 @@ mod tests {
         let mut metrics = BTreeMap::new();
         metrics.insert("runtime_s".to_string(), 1.0);
 
-        let decision =
-            policy.decide("dataset-1", "fastq.trim_reads", "fastp", "params-a", &metrics);
+        let decision = policy.decide("dataset-1", FASTQ_TRIM, "fastp", "params-a", &metrics);
 
         assert_eq!(decision.missing_metrics, vec!["memory_mb"]);
         assert_eq!(decision.completeness_score, 1.0);
