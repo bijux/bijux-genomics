@@ -17,13 +17,23 @@ const FOUNDATION_CRATES: &[&str] = &[
     "bijux-dna-testkit",
 ];
 
-const FASTQ_CATALOG_CRATES: &[&str] = &[
+const INTERNAL_CATALOG_CRATES: &[&str] = &[
+    "bijux-dna",
+    "bijux-dna-api",
+    "bijux-dna-core",
+    "bijux-dna-dev",
     "bijux-dna-domain-compiler",
     "bijux-dna-domain-fastq",
+    "bijux-dna-engine",
+    "bijux-dna-infra",
     "bijux-dna-planner-fastq",
+    "bijux-dna-policies",
+    "bijux-dna-runner",
+    "bijux-dna-runtime",
     "bijux-dna-science",
     "bijux-dna-stage-contract",
     "bijux-dna-stages-fastq",
+    "bijux-dna-testkit",
 ];
 
 #[test]
@@ -65,7 +75,7 @@ fn policy__boundaries__foundation_lints__shared_test_crates_use_workspace_catalo
 fn policy__boundaries__foundation_lints__fastq_crates_use_workspace_catalog_for_internal_edges() {
     let workspace = workspace_root();
 
-    for crate_name in FASTQ_CATALOG_CRATES {
+    for crate_name in INTERNAL_CATALOG_CRATES {
         let manifest_path = workspace.join("crates").join(crate_name).join("Cargo.toml");
         let manifest = std::fs::read_to_string(&manifest_path)
             .unwrap_or_else(|err| panic!("read {}: {err}", manifest_path.display()));
