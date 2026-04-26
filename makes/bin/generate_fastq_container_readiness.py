@@ -18,6 +18,7 @@ EXECUTION_SUPPORT = Path("domain/fastq/execution_support.yaml")
 STAGE_DIR = Path("domain/fastq/stages")
 TOOL_DIR = Path("domain/fastq/tools")
 REGISTRY = Path("configs/ci/registry/tool_registry.toml")
+DOWNLOAD_BACKLOG = Path("science/generated/current/evidence/fastq_download_backlog.tsv")
 OUT_DIR = Path("science-docs/upstream/fastq/container")
 
 
@@ -158,6 +159,18 @@ def load_registry(root: Path) -> dict[str, dict[str, str]]:
     return rows
 
 
+def load_download_backlog(root: Path) -> dict[str, dict[str, str]]:
+    path = root / DOWNLOAD_BACKLOG
+    if not path.exists():
+        return {}
+    with path.open(encoding="utf-8", newline="") as handle:
+        return {
+            row["tool_id"]: row
+            for row in csv.DictReader(handle, delimiter="\t")
+            if row.get("tool_id")
+        }
+
+
 def write_tsv(path: Path, header: list[str], rows: list[list[str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
@@ -185,6 +198,7 @@ def main() -> int:
     stages = load_stages(root)
     tools = load_tool_containers(root)
     registry = load_registry(root)
+    backlog = load_download_backlog(root)
 
     matrix = []
     digest_rows = []
@@ -263,6 +277,37 @@ def main() -> int:
         ["stage_id", "stage_status", "asset_hook", "producer_stages", "readiness"],
         asset_rows,
     )
+    evidence_rows = []
+    seen_tools = sorted({row.default_tool for row in execution_defaults(root) if row.default_tool})
+    for tool_id in seen_tools:
+        evidence = backlog.get(tool_id, {})
+        archive_status = evidence.get("archive_status", "missing_backlog_row")
+        paper_status = evidence.get("paper_status", "missing_backlog_row")
+        readiness = "ready" if archive_status == "present" and paper_status else "needs_evidence"
+        evidence_rows.append(
+            [
+                tool_id,
+                evidence.get("archive_path", ""),
+                archive_status,
+                evidence.get("paper_root", ""),
+                paper_status,
+                evidence.get("citation", ""),
+                readiness,
+            ]
+        )
+    write_tsv(
+        out_dir / "FASTQ_CONTAINER_EVIDENCE_STATUS.tsv",
+        [
+            "default_tool",
+            "archive_path",
+            "archive_status",
+            "paper_root",
+            "paper_status",
+            "citation",
+            "readiness",
+        ],
+        evidence_rows,
+    )
     print(
         json.dumps(
             {
@@ -270,6 +315,7 @@ def main() -> int:
                     str(out_dir / "FASTQ_CONTAINER_DEFAULT_MATRIX.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_DIGEST_CLASSES.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_ASSET_HOOKS.tsv"),
+                    str(out_dir / "FASTQ_CONTAINER_EVIDENCE_STATUS.tsv"),
                 ]
             }
         )
