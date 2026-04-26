@@ -250,15 +250,12 @@ fn pipelines_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("tests")),
         entries([
-            "README.md",
             "boundaries/",
             "boundaries.rs",
             "contracts/",
             "contracts.rs",
-            "determinism/",
             "guardrails.rs",
             "invariant_fast.rs",
-            "schemas/",
             "snapshots/",
         ]),
         "test tree must stay organized by enduring intent"
