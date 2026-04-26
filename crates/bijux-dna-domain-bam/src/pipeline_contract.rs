@@ -25,11 +25,26 @@ pub fn stage_criticality(stage_id: &str) -> Option<StageCriticality> {
 }
 
 #[must_use]
-pub fn optional_branches() -> Vec<(&'static str, &'static [&'static str])> {
-    Vec::new()
+pub const fn optional_branches() -> &'static [(&'static str, &'static [&'static str])] {
+    &[
+        (
+            "ancient_dna_authenticity",
+            &["bam.damage", "bam.authenticity", "bam.contamination"],
+        ),
+        ("sample_identity", &["bam.sex", "bam.haplogroups", "bam.kinship"]),
+        ("variant_readiness", &["bam.recalibration", "bam.genotyping"]),
+        ("bias_controls", &["bam.gc_bias", "bam.bias_mitigation"]),
+    ]
 }
 
 #[must_use]
-pub fn forbidden_transitions() -> Vec<(&'static str, &'static str)> {
-    Vec::new()
+pub const fn forbidden_transitions() -> &'static [(&'static str, &'static str)] {
+    &[
+        ("bam.align", "bam.damage"),
+        ("bam.align", "bam.authenticity"),
+        ("bam.align", "bam.contamination"),
+        ("bam.align", "bam.sex"),
+        ("bam.align", "bam.genotyping"),
+        ("bam.align", "bam.kinship"),
+    ]
 }

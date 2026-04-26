@@ -5,6 +5,7 @@ use bijux_dna_domain_bam::metrics::{
     parse_mapdamage2_misincorporation, parse_mosdepth_summary, parse_pydamage_json,
     parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats,
 };
+use bijux_dna_domain_bam::pipeline_contract::{forbidden_transitions, optional_branches};
 use bijux_dna_domain_bam::{required_audit_artifacts, stage_spec, BamStage};
 
 fn fixture_path(name: &str) -> PathBuf {
@@ -14,6 +15,25 @@ fn fixture_path(name: &str) -> PathBuf {
         .join("bam")
         .join("default")
         .join(name)
+}
+
+#[test]
+fn pipeline_branch_metadata_references_known_stages() {
+    for (branch_id, stages) in optional_branches() {
+        assert!(!branch_id.trim().is_empty(), "empty optional branch id");
+        assert!(!stages.is_empty(), "optional branch {branch_id} has no stages");
+        for stage_id in *stages {
+            BamStage::try_from(*stage_id)
+                .unwrap_or_else(|err| panic!("optional branch {branch_id} has bad stage: {err}"));
+        }
+    }
+
+    for (from, to) in forbidden_transitions() {
+        BamStage::try_from(*from)
+            .unwrap_or_else(|err| panic!("bad forbidden transition source {from}: {err}"));
+        BamStage::try_from(*to)
+            .unwrap_or_else(|err| panic!("bad forbidden transition target {to}: {err}"));
+    }
 }
 
 #[test]
