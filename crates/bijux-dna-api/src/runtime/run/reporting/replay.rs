@@ -152,7 +152,7 @@ mod tests {
     fn resolve_manifest_relative_path_rejects_absolute_paths() -> anyhow::Result<()> {
         let temp = tempfile::tempdir()?;
 
-        let err = match resolve_manifest_relative_path(temp.path(), "/tmp/outside.json") {
+        let err = match resolve_manifest_relative_path(temp.path(), "/outside.json") {
             Ok(path) => panic!("absolute path should fail: {}", path.display()),
             Err(err) => err,
         };

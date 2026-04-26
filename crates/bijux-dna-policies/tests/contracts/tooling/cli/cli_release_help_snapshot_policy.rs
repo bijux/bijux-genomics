@@ -52,6 +52,6 @@ fn policy__contracts__cli_release_help_snapshot_policy__release_help_matches_sna
     assert_eq!(
         actual.trim(),
         expected.trim(),
-        "docs/cli/release_help_snapshot.txt is stale. Regenerate with: target/debug/bijux-dna --help > docs/cli/release_help_snapshot.txt"
+        "docs/cli/release_help_snapshot.txt is stale. Regenerate with: cargo run -q -p bijux-dna -- --help > docs/cli/release_help_snapshot.txt"
     );
 }

@@ -79,10 +79,10 @@ mod tests {
         let args = vec![
             "run".to_string(),
             "-v".to_string(),
-            "/tmp/input reads:/data/input:ro".to_string(),
+            "/workspace/input reads:/data/input:ro".to_string(),
         ];
 
-        assert_eq!(command_string(&args), "docker run -v '/tmp/input reads:/data/input:ro'");
+        assert_eq!(command_string(&args), "docker run -v '/workspace/input reads:/data/input:ro'");
     }
 
     #[test]

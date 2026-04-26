@@ -68,6 +68,6 @@ fn slow__policy__contracts__cli_command_snapshot_policy__dna_help_matches_snapsh
     assert_eq!(
         normalize_whitespace(&actual),
         normalize_whitespace(&expected),
-        "docs/cli/command_snapshot.txt is stale. Regenerate with: target/debug/bijux-dna --help | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//' > docs/cli/command_snapshot.txt"
+        "docs/cli/command_snapshot.txt is stale. Regenerate with: cargo run -q -p bijux-dna -- --help | sed -E 's/[[:space:]]+/ /g; s/^ //; s/ $//' > docs/cli/command_snapshot.txt"
     );
 }
