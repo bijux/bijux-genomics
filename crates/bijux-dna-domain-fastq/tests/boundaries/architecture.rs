@@ -61,6 +61,25 @@ fn crate_tree_matches_domain_fastq_boundary() {
     .collect();
     assert_eq!(dir_entries(&root.join("src")), expected_src, "source tree changed");
 
+    let expected_stages: BTreeSet<_> = [
+        "contract.rs",
+        "contract/",
+        "ids.rs",
+        "mod.rs",
+        "ports/",
+        "semantics.rs",
+        "semantics/",
+        "specs.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        dir_entries(&root.join("src/stages")),
+        expected_stages,
+        "stages/ must contain durable stage-contract ownership modules"
+    );
+
     let expected_tests: BTreeSet<_> = [
         "benchmark_scenario_coverage.rs",
         "boundaries/",
