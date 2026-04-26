@@ -6,4 +6,4 @@
 ## Does not belong here
 - Execution or tool selection.
 
-See docs/40-policies/STYLE.md for documentation and policy style.
+See repository-level `docs/40-policies/STYLE.md` for documentation and policy style.
