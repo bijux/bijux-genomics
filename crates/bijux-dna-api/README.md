@@ -1,72 +1,82 @@
 # bijux-dna-api
 
-## What this crate does
-Public API surface for versioned orchestration endpoints, schema contracts, and runtime-facing API adapters.
+`bijux-dna-api` is the stable, versioned Rust API for planning, dry-run,
+execution, reporting, explainability, and policy-audit workflows in
+`bijux-genomics`.
 
-## What it must not do (boundaries)
-It must not own stage-specific execution behavior, domain registry loading rules, or environment/runtime implementation details outside its adapter layer.
+Workspace work on this crate is governed by `/Users/bijan/bijux/README.md` and
+`/Users/bijan/bijux/CODEX.md`; re-read those files before editing this child
+repository and before committing.
 
-## Effects & determinism guarantees
-Deterministic request handling for the same inputs; no side effects beyond HTTP I/O.
+## Scope
 
-## Public API / entrypoints
-See the stable v1 endpoints below and `crates/bijux-dna-api/docs/API.md`.
+This crate owns:
 
-## Stable v1 endpoints
-- `plan` → returns `PlanResponse`
-- `execute` → returns `ExecuteResponse`
-- `dry-run` → returns `DryRunResponse`
-- `status` → returns `RunStatus`
-- `explain` → returns `ExplainResponse`
-- `policy-audit` → returns policy audit JSON
+- The curated public `v1` API surface under `src/v1/api/front_door.rs`.
+- Stable request and response contracts under `src/surface/`.
+- Runtime adapters that coordinate planners, runners, reports, manifests, and
+  policy audits under `src/runtime/`.
+- API-local support for workspace resolution, reference resolution, tool
+  selection, benchmark runtime selection, and QA gates under `src/support/`.
+- Private handler wiring under `src/internal/`.
 
-## Versioning rules
-- The v1 API is the only stable surface.
-- Schema changes require snapshot updates and explicit review.
-- Compatibility rules live in `crates/bijux-dna-api/docs/API_STABILITY.md`.
+This crate does not own domain algorithms, planner semantics, runner command
+execution, environment discovery, or analyzer storage internals. Those contracts
+belong to their dedicated crates and are consumed here through typed APIs.
 
-## Contract snapshots (source of truth)
-- `tests/snapshots/bijux-dna-api__schemas__plan_response_schema.snap`
-- `tests/snapshots/bijux-dna-api__schemas__execute_response_schema.snap`
-- `tests/snapshots/bijux-dna-api__schemas__dry_run_response_schema.snap`
-- `tests/snapshots/bijux-dna-api__schemas__status_schema.snap`
-- `tests/snapshots/bijux-dna-api__schemas__explain_schema.snap`
-- `tests/snapshots/bijux-dna-api__schemas__policy_audit_schema.snap`
+## Public Commands
 
-## Key contracts it owns/consumes
-- Owns the public API response schemas: `crates/bijux-dna-api/docs/API.md` and `crates/bijux-dna-api/docs/API_STABILITY.md`.
-- Stability snapshots: `tests/snapshots/bijux-dna-api__schemas__*.snap`.
+The SSOT for callable API operations is `docs/COMMANDS.md`. The main managed
+commands are:
 
-## Artifacts / Contracts
-- Response schemas in `crates/bijux-dna-api/docs/API.md` and snapshot tests under `tests/snapshots/`.
-- Request/response flow contract in `crates/bijux-dna-api/docs/REQUEST_FLOW.md`.
+- `plan`
+- `execute`
+- `execute-and-report`
+- `dry-run`
+- `status`
+- `explain`
+- `policy-audit`
+- `render-report`
+- `render-report-html`
+- `workspace-edges`
+- `write-workspace-audit`
 
-## Failure modes
-Most failures surface as schema drift (snapshot diffs) or handler contract mismatches.
+## Architecture
 
-## Internal handlers (non-public)
-`src/internal/*` is not public API and may change at any time. It is for wiring and adapters only.
+- `src/lib.rs` exposes `pub mod v1` and keeps all other modules crate-private.
+- `src/v1/` is the only stable public namespace.
+- `src/surface/` holds schema and explainability contracts.
+- `src/runtime/` adapts requests into runtime, reporting, validation, audit, and
+  invocation-policy behavior.
+- `src/support/` contains API-local helpers that are not stable public exports.
+- `src/internal/` contains private cross-domain and FASTQ handler wiring.
 
-## Where to start in code
-- `src/v1/` for the stable public surface.
-- `src/v1/run/` for execution entrypoints, request contracts, runtime support exports, and operator-facing failure contracts.
-- `src/v1/report/` for report entrypoints, request contracts, analysis exports, and HTML bundle rendering.
-- `src/surface/` for request and explainability contracts that feed the public API.
-- `src/runtime/` for execution/reporting adapters, runtime validation, and invocation policy.
-- `src/runtime/run/reporting/` for report rendering, dry-run/execute entrypoints, run replay/status helpers, plan response materialization, summary artifacts, and workspace audit support.
-- `src/support/workspace/` for repository root resolution and workspace registry loading.
-- `src/support/tool_selection.rs` for tool eligibility policy.
-- `src/support/benchmark_runtime.rs` for benchmark runtime selection.
-- `src/internal/` for non-public handler wiring and domain-specific adapters.
+See `docs/ARCHITECTURE.md` and `docs/BOUNDARY.md` for the full layout and
+dependency direction.
 
-## Request flow
-See `crates/bijux-dna-api/docs/REQUEST_FLOW.md` for how requests map to planners, engine, and runtime artifacts.
+## Documentation
 
-## Docs entrypoints
-See `crates/bijux-dna-api/docs/INDEX.md`, `crates/bijux-dna-api/docs/API.md`, `crates/bijux-dna-api/docs/API_STABILITY.md`, `crates/bijux-dna-api/docs/REQUEST_FLOW.md`, `crates/bijux-dna-api/docs/BOUNDARIES.md`, `crates/bijux-dna-api/docs/CHANGE_RULES.md`.
+The crate root intentionally has only this `README.md`. All other crate docs live
+under `docs/`, with a 10-document allowance enforced by the boundary tests:
 
-## How to run its tests
-See `crates/bijux-dna-api/docs/TESTS.md`. Key tests: `tests/schemas/v1_cross_api_stability.rs`, `tests/schemas/v1_cross_docs_schema_snapshots.rs`, `tests/contracts/v1_cross_public_contract.rs`, `tests/contracts/v1_cross_contract_spine.rs`, `tests/boundaries/architecture.rs`.
+- `docs/API.md`
+- `docs/ARCHITECTURE.md`
+- `docs/BOUNDARY.md`
+- `docs/CHANGE_RULES.md`
+- `docs/COMMANDS.md`
+- `docs/FEATURES.md`
+- `docs/PUBLIC_API.md`
+- `docs/REQUEST_FLOW.md`
+- `docs/SECURITY.md`
+- `docs/TESTS.md`
 
-## Where the docs live
-Start at `crates/bijux-dna-api/docs/INDEX.md`, then follow the API and stability docs above.
+## Verification
+
+Run crate checks from the `bijux-genomics` repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-api --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-api --test boundaries --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-api --test schemas --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-api --test contracts --no-default-features
+```
