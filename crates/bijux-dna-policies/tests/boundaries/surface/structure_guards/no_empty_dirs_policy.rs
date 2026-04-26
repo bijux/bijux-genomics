@@ -120,18 +120,17 @@ fn policy__boundaries__no_empty_dirs_policy__support_dirs_are_documented() {
             .ok()
             .map(|it| it.flatten().collect::<Vec<_>>())
             .unwrap_or_default();
-        let file_count = entries.iter().filter(|e| e.path().is_file()).count();
-        let has_readme = entries
+        let has_rust_helper = entries
             .iter()
-            .any(|e| e.path().file_name().and_then(|n| n.to_str()) == Some("README.md"));
-        if file_count < 2 || !has_readme {
+            .any(|e| e.path().extension().and_then(|ext| ext.to_str()) == Some("rs"));
+        if !has_rust_helper {
             offenders.push(support_dir.display().to_string());
         }
     }
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "support/ dirs must have >=2 files and a README.md describing their purpose.\n\
+        "support/ dirs must contain Rust helpers instead of placeholder docs.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );
