@@ -67,6 +67,9 @@ pub(super) fn resolve_adapter_ids_and_sequences(
     }
 
     for adapter_id in disable {
+        if !bank.adapters.iter().any(|adapter| adapter.id == *adapter_id) {
+            return Err(anyhow!("unknown adapter id {adapter_id}"));
+        }
         selected.remove(adapter_id);
     }
     for adapter_id in enable {
@@ -89,6 +92,64 @@ pub(super) fn resolve_adapter_ids_and_sequences(
     }
     let sequences: Vec<String> = adapters.iter().map(|adapter| adapter.sequence.clone()).collect();
     Ok((enabled_ids, adapters, sequences))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::banks::adapter::ReadScope;
+
+    fn bank() -> AdapterBankV1 {
+        AdapterBankV1 {
+            schema_version: "bijux.fastq.adapter_bank.v1".to_string(),
+            bank_id: "adapter-bank".to_string(),
+            version: "2026-01-01".to_string(),
+            provenance_status: "complete".to_string(),
+            adapters: vec![AdapterEntryV1 {
+                id: "truseq-universal".to_string(),
+                tags: vec!["truseq".to_string()],
+                name: "TruSeq universal".to_string(),
+                sequence: "AGATCGGAAGAG".to_string(),
+                read_scope: ReadScope::Both,
+                enabled_by_default: true,
+                rationale: "standard adapter".to_string(),
+                source: "vendor".to_string(),
+                notes: String::new(),
+            }],
+        }
+    }
+
+    fn presets() -> AdapterPresetsV1 {
+        let sequences = vec!["AGATCGGAAGAG".to_string()];
+        AdapterPresetsV1 {
+            schema_version: "bijux.fastq.adapter_presets.v1".to_string(),
+            presets: vec![AdapterPresetV1 {
+                name: "truseq".to_string(),
+                description: None,
+                tags: vec!["truseq".to_string()],
+                adapter_ids: Vec::new(),
+                sequences: sequences.clone(),
+                rationale: "default Illumina preset".to_string(),
+                references: Vec::new(),
+                notes: Vec::new(),
+                hash: hash_preset_sequences(&sequences),
+            }],
+        }
+    }
+
+    #[test]
+    fn resolve_adapter_preset_rejects_unknown_disable_override() {
+        let err = resolve_adapter_preset(
+            &bank(),
+            &presets(),
+            "truseq",
+            &[],
+            &["misspelled-adapter".to_string()],
+        )
+        .expect_err("unknown disable overrides must be invalid");
+
+        assert!(err.to_string().contains("unknown adapter id misspelled-adapter"));
+    }
 }
 
 pub(super) fn hash_preset_sequences(sequences: &[String]) -> String {
