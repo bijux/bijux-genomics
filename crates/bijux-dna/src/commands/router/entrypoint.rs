@@ -9,7 +9,7 @@ use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
 use crate::commands::router::argv::parse_cli_from_argv;
 use crate::commands::router::root::try_handle_root_command;
 use crate::commands::router::runtime::{
-    configure_process_cli_env, configure_run_context_env, enter_cli_cwd,
+    capture_cli_env, configure_process_cli_env, configure_run_context_env, enter_cli_cwd,
 };
 use crate::commands::{bam, bench, cli, fastq, planning, vcf};
 
@@ -25,6 +25,7 @@ pub fn run_with_args(args: &[&str], cwd: &Path) -> Result<()> {
 /// Returns an error if CLI execution fails.
 pub fn run_with_cli(cli: &cli::Cli, cwd: &Path) -> Result<()> {
     let _guard = enter_cli_cwd(cwd)?;
+    let _env_guard = capture_cli_env();
     configure_process_cli_env(cli, cwd);
     let domain_dir = cwd.join("domain");
     let registry_path = bijux_dna_infra::configs_file(cwd, "ci/registry/tool_registry.toml");

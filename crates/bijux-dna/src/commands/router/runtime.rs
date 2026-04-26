@@ -1,3 +1,4 @@
+use std::ffi::OsString;
 use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
@@ -12,6 +13,44 @@ impl Drop for CwdGuard {
     fn drop(&mut self) {
         let _ = std::env::set_current_dir(&self.0);
     }
+}
+
+pub(crate) struct ProcessEnvGuard(Vec<(&'static str, Option<OsString>)>);
+
+impl ProcessEnvGuard {
+    pub(crate) fn capture(keys: &[&'static str]) -> Self {
+        Self(keys.iter().map(|key| (*key, std::env::var_os(key))).collect())
+    }
+}
+
+impl Drop for ProcessEnvGuard {
+    fn drop(&mut self) {
+        for (key, value) in self.0.iter().rev() {
+            if let Some(value) = value {
+                std::env::set_var(key, value);
+            } else {
+                std::env::remove_var(key);
+            }
+        }
+    }
+}
+
+pub(crate) fn capture_cli_env() -> ProcessEnvGuard {
+    ProcessEnvGuard::capture(&[
+        "BIJUX_ALLOW_NETWORK",
+        "BIJUX_ALLOW_SILVER",
+        "BIJUX_EXPERIMENTAL_TOOLS",
+        "BIJUX_HPC_SITE",
+        "BIJUX_OUTPUT_JSON",
+        "BIJUX_POLICY_CLEAN_REPORT_JSON",
+        "BIJUX_PROFILE_HASH",
+        "BIJUX_QUIET",
+        "BIJUX_RUN_CONTEXT",
+        "BIJUX_SCIENTIFIC_PRESET",
+        "BIJUX_TELEMETRY_JSONL",
+        "BIJUX_VERBOSE",
+        "RUST_LOG",
+    ])
 }
 
 fn sha256_hex(bytes: &[u8]) -> String {
