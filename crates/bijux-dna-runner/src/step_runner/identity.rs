@@ -98,7 +98,7 @@ pub(super) fn runtime_platform_identity(runner: RuntimeKind) -> String {
 pub(super) fn infer_tool_version_from_image(image: &str) -> String {
     let without_digest = image.split('@').next().unwrap_or(image);
     if let Some((_, tag)) = without_digest.rsplit_once(':') {
-        if !tag.is_empty() && tag != "latest" {
+        if !tag.is_empty() && tag != "latest" && !tag.contains('/') {
             return tag.to_string();
         }
     }

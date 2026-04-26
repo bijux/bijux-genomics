@@ -1,5 +1,6 @@
 use super::identity::{
-    execution_pipeline_identity, execution_sample_identity, hash_path, runtime_platform_identity,
+    execution_pipeline_identity, execution_sample_identity, hash_path,
+    infer_tool_version_from_image, runtime_platform_identity,
 };
 use super::inputs::container_input_mapping;
 use super::observer::build_observer_command_args;
@@ -41,6 +42,14 @@ fn execution_identity_defaults_to_stage_and_step_ids() {
 
     assert_eq!(execution_pipeline_identity(&step), "stage.trim");
     assert_eq!(execution_sample_identity(&step), "sample-0001.reads.trim.fastp");
+}
+
+#[test]
+fn image_version_inference_distinguishes_registry_ports_from_tags() {
+    assert_eq!(infer_tool_version_from_image("bijux/fastqc:0.12.1"), "0.12.1");
+    assert_eq!(infer_tool_version_from_image("localhost:5000/bijux/fastqc:0.12.1"), "0.12.1");
+    assert_eq!(infer_tool_version_from_image("localhost:5000/bijux/fastqc"), "unknown");
+    assert_eq!(infer_tool_version_from_image("bijux/fastqc:latest@sha256:abc123"), "unknown");
 }
 
 #[test]
