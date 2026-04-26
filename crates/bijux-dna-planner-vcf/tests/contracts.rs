@@ -138,11 +138,10 @@ fn vcf_downstream_snapshot_diploid_override_tools() {
 
 #[test]
 fn vcf_downstream_snapshot_requested_subset_with_panel() {
-    let mut input = base_inputs(CoverageRegime::LowCovGl);
+    let mut input = base_inputs(CoverageRegime::Diploid);
     input.requested_stages = Some(vec![
         "vcf.prepare_reference_panel".to_string(),
-        "vcf.call_gl".to_string(),
-        "vcf.gl_propagation".to_string(),
+        "vcf.call_diploid".to_string(),
         "vcf.impute".to_string(),
         "vcf.ibd".to_string(),
         "vcf.demography".to_string(),
