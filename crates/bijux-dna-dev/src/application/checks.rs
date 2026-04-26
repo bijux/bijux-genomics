@@ -23,7 +23,7 @@ impl CheckApplication {
 
     #[must_use]
     pub fn registry() -> Vec<CheckDefinition> {
-        check_registry()
+        normalize_registry(check_registry())
     }
 
     /// # Errors
@@ -87,6 +87,46 @@ impl CheckApplication {
         match outcome {
             Ok(result) => Ok(result),
             Err(error) => Ok(CheckOutcome::leaf(check.id, CheckStatus::Failed, error.to_string())),
+        }
+    }
+}
+
+fn normalize_registry(mut registry: Vec<CheckDefinition>) -> Vec<CheckDefinition> {
+    registry.sort_by(|left, right| left.id.cmp(right.id));
+    for pair in registry.windows(2) {
+        assert_ne!(pair[0].id, pair[1].id, "duplicate check id `{}`", pair[0].id);
+    }
+    registry
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::model::check::{CheckDefinition, CommandSpec, ExecutionMode, NativeCheckKey};
+
+    use super::normalize_registry;
+
+    #[test]
+    fn normalizes_check_registry_order() {
+        let registry = normalize_registry(vec![check("check-zeta"), check("check-alpha")]);
+
+        let ids = registry.into_iter().map(|check| check.id).collect::<Vec<_>>();
+        assert_eq!(ids, ["check-alpha", "check-zeta"]);
+    }
+
+    #[test]
+    #[should_panic(expected = "duplicate check id `check-alpha`")]
+    fn rejects_duplicate_check_ids() {
+        let _registry = normalize_registry(vec![check("check-alpha"), check("check-alpha")]);
+    }
+
+    fn check(id: &'static str) -> CheckDefinition {
+        CheckDefinition {
+            id,
+            version: 1,
+            summary: String::new(),
+            aliases: &[],
+            execution_mode: ExecutionMode::Primary,
+            command: CommandSpec::Native { key: NativeCheckKey::AutomationIntent },
         }
     }
 }
