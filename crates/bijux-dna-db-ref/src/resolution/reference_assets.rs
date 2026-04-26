@@ -79,6 +79,7 @@ pub fn resolve_default_reference_set(species: &str, usecase: &str) -> Result<Ref
 pub fn resolve_reference_bundle(species: &str, build: &str) -> Result<ReferenceBundle> {
     let bundle = resolve_bundle_entry(species, build)?;
     validate_bundle_digests(&bundle)?;
+    validate_bundle_contigs(&bundle)?;
     let normalization_policy = match bundle.normalization_policy.as_str() {
         "strict_only" => ContigNormalizationPolicy::StrictOnly,
         "deterministic_remap" => ContigNormalizationPolicy::DeterministicRemap,
@@ -176,9 +177,28 @@ fn validate_bundle_digests(bundle: &BundleEntry) -> Result<()> {
     validate_sha256(&bundle.bundle_lock_sha256, "bundle_lock_sha256")
 }
 
+fn validate_bundle_contigs(bundle: &BundleEntry) -> Result<()> {
+    if bundle.contigs.is_empty() {
+        bail!("reference bundle {} must declare at least one contig", bundle.bundle_id);
+    }
+    for contig in &bundle.contigs {
+        if contig.name.trim().is_empty() {
+            bail!("reference bundle {} contains an empty contig name", bundle.bundle_id);
+        }
+        if contig.length_bp == 0 {
+            bail!(
+                "reference bundle {} contig {} must have positive length",
+                bundle.bundle_id,
+                contig.name
+            );
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
-    use super::validate_bundle_digests;
+    use super::{validate_bundle_contigs, validate_bundle_digests};
     use crate::runtime_config::{BundleEntry, ContigEntry, SupportedFeatureEntry};
     use std::collections::BTreeMap;
 
@@ -210,6 +230,36 @@ mod tests {
         };
 
         assert!(error.to_string().contains("contig_set_digest"));
+    }
+
+    #[test]
+    fn validate_bundle_contigs_rejects_empty_contig_sets() {
+        let bundle = BundleEntry {
+            bundle_id: "bundle".to_string(),
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            fasta: "ref.fa.gz".to_string(),
+            fai: "ref.fa.gz.fai".to_string(),
+            dict: "ref.dict".to_string(),
+            contig_set_digest: "a".repeat(64),
+            mask_bed: None,
+            regions_bed: None,
+            source_lock_sha256: "a".repeat(64),
+            bundle_lock_sha256: "b".repeat(64),
+            normalization_policy: "strict_only".to_string(),
+            remap: BTreeMap::new(),
+            sex_system: "xy".to_string(),
+            par_policy: "unsupported".to_string(),
+            default_coverage_regime: None,
+            supported_features: SupportedFeatureEntry::default(),
+            contigs: Vec::new(),
+        };
+
+        let Err(error) = validate_bundle_contigs(&bundle) else {
+            panic!("empty contig set must fail");
+        };
+
+        assert!(error.to_string().contains("at least one contig"));
     }
 
     #[test]
