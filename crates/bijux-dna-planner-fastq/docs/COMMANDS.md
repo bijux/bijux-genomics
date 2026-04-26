@@ -1,9 +1,16 @@
 # Commands
 
-`bijux-dna-planner-fastq` does not expose runtime CLI commands. It manages deterministic command specifications inside planned `StagePlanV1` values and `ExecutionGraph` steps.
+`bijux-dna-planner-fastq` does not expose Cargo binary targets, runtime CLI
+commands, or process execution. It manages deterministic command specifications
+inside planned `StagePlanV1` values and `ExecutionGraph` steps.
 
 ## Runtime Commands
 None.
+
+## Forbidden Command Surfaces
+- No Cargo binary targets or `src/bin` command modules.
+- No CLI parser ownership.
+- No process spawning or runtime command execution.
 
 ## Managed Plan Command Specs
 The crate can produce command specs for these FASTQ stage IDs:

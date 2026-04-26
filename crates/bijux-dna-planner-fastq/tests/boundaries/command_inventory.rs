@@ -13,7 +13,17 @@ fn command_inventory_documents_fastq_stage_commands_and_synthetic_steps() {
         content.contains("## Runtime Commands\nNone."),
         "FASTQ planner must document that it exposes no runtime commands"
     );
-    assert!(!root.join("src/bin").exists(), "FASTQ planner must not grow runtime CLI entrypoints");
+    for forbidden in [
+        "No Cargo binary targets or `src/bin` command modules.",
+        "No CLI parser ownership.",
+        "No process spawning or runtime command execution.",
+    ] {
+        assert!(content.contains(forbidden), "COMMANDS.md must document `{forbidden}`");
+    }
+    assert!(
+        !root.join("src/bin").exists(),
+        "FASTQ planner must not grow Cargo binary command entrypoints"
+    );
 
     let documented = documented_ids_with_prefix(&content, "fastq.");
     let expected = STAGES
