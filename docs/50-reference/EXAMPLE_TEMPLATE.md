@@ -1,17 +1,19 @@
 # EXAMPLE_TEMPLATE
 
 ## Purpose
-Define the required structure for any example README.
+Define the required structure for runnable example READMEs.
 
 ## Scope
-Applies to example docs under `examples/**/README.md`.
+Applies only to example READMEs in directories that ship an `example.toml`.
 
 ## Non-goals
 - Replacing per-example scientific interpretation details.
+- Defining recipe-only benchmark docs or corpus README structure.
 
 ## Contracts
 - Every example README must include Step 1 through Step 4 sections in order.
 - Output and interpretation sections are mandatory.
+- Recipe-only benchmark docs listed in `examples/RECIPE_ONLY.txt` are intentionally out of scope.
 
 ## Required Step Pattern
 1. **Step 1: Containers Ready**
