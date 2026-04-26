@@ -453,3 +453,34 @@ fn policy__contracts__fastq_closure_evidence_policy__blocked_rows_name_owner_and
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__fastq_closure_evidence_policy__production_ledger_matches_planner_gaps() {
+    let planner_by_stage =
+        tsv_records("science/docs/upstream/fastq/container/FASTQ_CONTAINER_PLANNER_GAPS.tsv")
+            .into_iter()
+            .map(|row| (row["stage_id"].clone(), row["planner_status"].clone()))
+            .collect::<BTreeMap<_, _>>();
+    let mut offenders = Vec::new();
+
+    for row in
+        tsv_records("science/docs/upstream/fastq/container/FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv")
+    {
+        let expected = planner_by_stage
+            .get(&row["stage_id"])
+            .map(String::as_str)
+            .unwrap_or("missing_planner_snapshot");
+        if row["planner_digest_status"] != expected {
+            offenders.push(format!(
+                "{}:{} ledger planner_digest_status={} but planner gaps report has {expected}",
+                row["stage_id"], row["tool_id"], row["planner_digest_status"]
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "FASTQ production ledger planner parity violations:\n{}",
+        offenders.join("\n")
+    );
+}
