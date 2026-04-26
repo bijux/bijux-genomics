@@ -1,8 +1,37 @@
 use std::process::{ExitStatus, Output};
+use std::sync::{Mutex, MutexGuard};
 
+use super::args::parse_run_options;
 use super::models::{ImageFailureReason, ImagePlan, ImageTestOutcome};
 use super::probe::{image_exists, run_container_command, run_image_test};
 use super::runtime::{CommandRunner, LogLevel, Logger};
+
+static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+fn env_lock() -> MutexGuard<'static, ()> {
+    ENV_LOCK.lock().unwrap_or_else(|err| panic!("environment lock poisoned: {err}"))
+}
+
+struct EnvVarGuard {
+    key: &'static str,
+    value: Option<std::ffi::OsString>,
+}
+
+impl EnvVarGuard {
+    fn capture(key: &'static str) -> Self {
+        Self { key, value: std::env::var_os(key) }
+    }
+}
+
+impl Drop for EnvVarGuard {
+    fn drop(&mut self) {
+        if let Some(value) = self.value.take() {
+            std::env::set_var(self.key, value);
+        } else {
+            std::env::remove_var(self.key);
+        }
+    }
+}
 
 #[cfg(unix)]
 fn exit_status(code: i32) -> ExitStatus {
@@ -90,4 +119,24 @@ fn run_image_test_reports_missing_image() -> Result<(), Box<dyn std::error::Erro
     let outcome = run_image_test(&runner, &mut logger, &plan)?;
     assert!(matches!(outcome, ImageTestOutcome::Fail(ImageFailureReason::ImageNotFound)));
     Ok(())
+}
+
+#[test]
+fn run_options_do_not_consume_neighbor_flags_as_values() {
+    let args = vec!["qa_docker_images".to_string(), "--platform".to_string(), "--quiet".to_string()];
+    let options = parse_run_options(&args);
+    assert_eq!(options.platform, None);
+    assert!(options.quiet);
+}
+
+#[test]
+fn run_options_trim_environment_boolean_flags() {
+    let _env = env_lock();
+    let _debug = EnvVarGuard::capture("DEBUG");
+    let _quiet = EnvVarGuard::capture("QUIET");
+    std::env::set_var("DEBUG", " true ");
+    std::env::set_var("QUIET", " 1 ");
+    let options = parse_run_options(&["qa_docker_images".to_string()]);
+    assert!(options.debug);
+    assert!(options.quiet);
 }
