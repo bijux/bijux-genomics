@@ -17,6 +17,7 @@ This crate owns QA evidence contracts, not production execution contracts.
 - JSONL: `artifacts/image-qa/<platform>/qa.jsonl`
 - SQLite: `artifacts/image-qa/<platform>/qa.sqlite`
 - Summary: `artifacts/image-qa/<platform>/qa.json`
+- Per-run outputs: `artifacts/image-qa/runs/<stage>/<tool>-<uuid>/`
 - Fixture contracts: `tests/fixtures/qa_artifacts/default/manifest.json` and `report.json`
 
 ## Dataset Rules

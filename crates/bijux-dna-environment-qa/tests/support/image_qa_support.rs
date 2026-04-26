@@ -22,7 +22,7 @@ fn image_qa_paths_are_stable() {
 
 #[test]
 fn hash_file_sha256_matches_content() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let dir = bijux_dna_testkit::tempdir_for("environment-qa-hash-file");
     let path = dir.path().join("sample.txt");
     bijux_dna_infra::write_bytes(&path, "hello")?;
     let hash = hash_file_sha256(&path)?;
@@ -32,7 +32,7 @@ fn hash_file_sha256_matches_content() -> Result<(), Box<dyn std::error::Error>> 
 
 #[test]
 fn validate_execution_outputs_enforces_contract() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let dir = bijux_dna_testkit::tempdir_for("environment-qa-output-contract");
     let out_dir = dir.path();
     let expected = out_dir.join("out.fastq.gz");
     bijux_dna_infra::write_bytes(&expected, "data")?;
@@ -57,7 +57,7 @@ fn validate_execution_outputs_enforces_contract() -> Result<(), Box<dyn std::err
 #[test]
 fn validate_execution_outputs_allows_optional_outputs_in_strict_mode(
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let dir = bijux_dna_testkit::tempdir_for("environment-qa-optional-output-contract");
     let out_dir = dir.path();
     bijux_dna_infra::write_bytes(out_dir.join("out.fastq.gz"), "data")?;
     bijux_dna_infra::write_bytes(out_dir.join("metrics.json"), "{}")?;
