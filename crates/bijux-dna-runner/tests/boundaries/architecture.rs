@@ -33,11 +33,10 @@ fn runner_tree_matches_architecture_contract() {
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
 
     let root_entries = dir_entries(&root);
-    let expected_root: BTreeSet<_> =
-        ["BOUNDARY.md", "Cargo.toml", "PUBLIC_API.md", "README.md", "docs/", "src/", "tests/"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_root: BTreeSet<_> = ["Cargo.toml", "README.md", "docs/", "src/", "tests/"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
     assert_eq!(root_entries, expected_root, "runner crate root must stay minimal and intentional");
 
     let src_entries = dir_entries(&root.join("src"));
