@@ -8,6 +8,19 @@ pub(super) struct DomainVocabularies {
     pub(super) metric_vocab: BTreeMap<String, BTreeSet<String>>,
 }
 
+fn collect_unique_ids(path: &Path, field: &str, ids: Vec<String>) -> Result<BTreeSet<String>> {
+    let mut unique_ids = BTreeSet::new();
+    for id in ids {
+        if id.trim().is_empty() {
+            bail!("{} has empty {field} entry", path.display());
+        }
+        if !unique_ids.insert(id.clone()) {
+            bail!("{} has duplicate {field} entry `{id}`", path.display());
+        }
+    }
+    Ok(unique_ids)
+}
+
 pub(super) fn validate_reference_catalogs(workspace_root: &Path) -> Result<()> {
     let adapter_bank_path =
         workspace_root.join("assets").join("reference").join("adapters").join("bank.v1.yaml");
@@ -143,8 +156,14 @@ pub(super) fn validate_domain_vocabularies(domain_dir: &Path) -> Result<DomainVo
         if metrics.metric_ids.is_empty() {
             bail!("{} missing metric_ids", metrics_path.display());
         }
-        artifact_vocab.insert(dom.to_string(), artifacts.artifact_ids.into_iter().collect());
-        metric_vocab.insert(dom.to_string(), metrics.metric_ids.into_iter().collect());
+        artifact_vocab.insert(
+            dom.to_string(),
+            collect_unique_ids(&artifacts_path, "artifact_ids", artifacts.artifact_ids)?,
+        );
+        metric_vocab.insert(
+            dom.to_string(),
+            collect_unique_ids(&metrics_path, "metric_ids", metrics.metric_ids)?,
+        );
     }
 
     Ok(DomainVocabularies { artifact_vocab, metric_vocab })
