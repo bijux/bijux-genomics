@@ -1,62 +1,78 @@
 # bijux-dna-bench-model
 
-## What this crate does
-Pure statistical model for benchmark decisions.
+`bijux-dna-bench-model` owns pure benchmark model contracts, validation,
+comparison, gate policy evaluation, diagnostics, and deterministic statistical
+helpers.
 
-## What it must not do (boundaries)
-No I/O or hidden randomness.
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read those files before editing this child
+repository and before committing.
 
-## Role in the stack
-Upstream: benchmark inputs. Downstream: benchmark decisions.
+## Scope
 
-## Model philosophy
-- Robust stats: minimize sensitivity to outliers.
-- Outlier handling: detect and downweight extreme observations.
-- Tie-breaking: deterministic and explainable (stable ordering rules).
-- Explainability: every decision must provide reasons, weights, and deltas.
+This crate owns:
 
-## Public API / entrypoints
-Start with `PUBLIC_API.md`, `docs/ARCHITECTURE.md`, and `docs/TESTS.md`. The public surface is curated through `src/public_api/`, while comparison, contracts, diagnostics, policy, and statistics live under focused namespaces in `src/`.
+- Benchmark observation, suite, summary, decision, graph, and policy types.
+- Schema ids and validation entrypoints for benchmark model contracts.
+- Deterministic comparison reports for benchmark summaries.
+- Gate policy configuration, overrides, violations, and decision outcomes.
+- Deterministic robust statistics, seeded bootstrap intervals, and outlier
+  detection.
+- Stable public exports through `src/public_api/stable_surface.rs`.
 
-## Decision explainability contract
-See `docs/DECISION_EXPLAINABILITY.md` and `tests/semantics/decision_explainability.rs`.
+This crate does not own filesystem I/O, benchmark artifact writing, workflow
+execution, runner integration, API orchestration, or report persistence.
 
-## Purity statement
-Model functions are pure and deterministic; no RNG is allowed unless explicitly seeded and
-recorded. This is enforced by `tests/guardrails.rs`, `tests/determinism.rs`, and determinism-focused semantic checks.
+## Managed Operations
 
-## Key contracts it owns/consumes
-Public model types and their invariants:
-- `Decision` (deterministic choice + rationale).
-- `Suite` (collection of observations with stratification rules).
-- `Observation` (single metric envelope with stable ids).
-- `Summary` (aggregate outputs with ordering guarantees).
+`docs/COMMANDS.md` is the SSOT for callable pure-model operations:
 
-## Artifacts / Contracts
-The model is pure code; its contract surface is defined by public types and snapshots.
-See `tests/schemas/public_api.rs` and `tests/snapshots/bijux-dna-bench-model__schemas__public_api.txt`.
+- `validate-suite`
+- `validate-observation`
+- `validate-summary`
+- `validate-decision`
+- `compare-summaries`
+- `gate-policy-decide`
+- `robust-stats`
+- `bootstrap-ci`
+- `mad-outliers`
 
-## Effects & determinism guarantees
-Pure computation; determinism enforced by tests. See `docs/EFFECTS.md` and the golden tests below.
+## Architecture
 
-## How to run its tests
-See `docs/TESTS.md`. Key coverage starts in `tests/boundaries.rs`, `tests/contracts.rs`, `tests/schemas/public_api.rs`, and `tests/semantics/decision_explainability.rs`.
+- `src/lib.rs` exposes the curated public surface and focused namespaces.
+- `src/public_api/` owns stable re-exports.
+- `src/model/` owns benchmark contract data types.
+- `src/contract/` owns schema ids and validation rules.
+- `src/policy/` owns gate configuration and evaluation.
+- `src/compare/` owns deterministic summary comparison.
+- `src/stats/` owns deterministic statistical helpers.
+- `src/diagnostics/` owns stable error taxonomy.
 
-## Where the docs live
-Start at `docs/INDEX.md` and follow the crate docs listed above.
+## Documentation
 
-## Public surface lock
-The authoritative public surface snapshot lives at `tests/snapshots/bijux-dna-bench-model__schemas__public_api.txt`.
-See `tests/schemas/public_api.rs`.
+The crate root intentionally has only this `README.md`. All other crate docs live
+under `docs/`, with a 10-document allowance enforced by boundary tests:
 
-## Model glossary (authoritative)
-All terms are defined in `docs/MODEL_GLOSSARY.md`. Do not redefine terms elsewhere.
+- `docs/ARCHITECTURE.md`
+- `docs/BOUNDARY.md`
+- `docs/CHANGE_RULES.md`
+- `docs/COMMANDS.md`
+- `docs/DECISION_EXPLAINABILITY.md`
+- `docs/DETERMINISM.md`
+- `docs/GATE_POLICY.md`
+- `docs/PUBLIC_API.md`
+- `docs/STATISTICS.md`
+- `docs/TESTS.md`
 
-## Start here in code
-`src/lib.rs` → `src/model/*` → `src/compare/*`.
+## Verification
 
-## Failure modes
-Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
+Run from the `bijux-genomics` repository root:
 
-## Stability
-Contract and behavior changes follow `docs/CHANGE_RULES.md`.
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-bench-model --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test boundaries --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test contracts --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test determinism --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test schemas --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test semantics --no-default-features
+```
