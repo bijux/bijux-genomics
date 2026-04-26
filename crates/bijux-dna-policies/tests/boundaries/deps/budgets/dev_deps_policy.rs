@@ -65,6 +65,7 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "bijux-dna-runtime",
         "bijux-dna-stage-contract",
         "bijux-dna-testkit",
+        "bijux-dna-testkit.workspace",
         "cargo_metadata",
         "filetime",
         "flate2",
