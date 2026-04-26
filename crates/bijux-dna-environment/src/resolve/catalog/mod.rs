@@ -43,8 +43,11 @@ pub(super) fn validate_images_for_stage(
     tools: &[&str],
 ) -> Result<(), EnvError> {
     for tool in tools {
-        if !catalog.contains_key(*tool) {
+        let Some(spec) = catalog.get(*tool) else {
             return Err(EnvError::Image(format!("missing image entry for tool {tool}")));
+        };
+        if spec.enabled == Some(false) {
+            return Err(EnvError::Image(format!("image entry for tool {tool} is disabled")));
         }
     }
     Ok(())

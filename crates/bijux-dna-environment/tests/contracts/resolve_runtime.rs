@@ -242,6 +242,25 @@ fn validate_images_for_stage_reports_missing_tools() {
 }
 
 #[test]
+fn validate_images_for_stage_rejects_disabled_tools() {
+    let mut catalog = HashMap::new();
+    catalog.insert(
+        "angsd".to_string(),
+        ToolImageSpec {
+            tool: "angsd".to_string(),
+            version: "planned".to_string(),
+            digest: None,
+            enabled: Some(false),
+            shipping_policy: None,
+        },
+    );
+    let err = validate_images_for_stage(&catalog, &["angsd"])
+        .err()
+        .unwrap_or_else(|| panic!("expected disabled tool error"));
+    assert!(err.to_string().contains("disabled"));
+}
+
+#[test]
 fn load_platform_prefers_cache_root_for_apptainer_platforms() -> anyhow::Result<()> {
     let _env = env_lock();
     let temp = bijux_dna_testkit::tempdir_for("environment-platform-cache-root");
