@@ -62,7 +62,7 @@ fn assert_fastq_slice_rows(compiled: &CompiledScience) {
     }));
     assert!(compiled.fastq_download_backlog_rows.iter().any(|row| {
         row.tool_id == "fastp"
-            && row.paper_root == "science-docs/upstream/papers/paper.fastq.fastp.chen-2018"
+            && row.paper_root == "science/docs/upstream/papers/paper.fastq.fastp.chen-2018"
     }));
     assert!(compiled.fastq_paper_archive_rows.iter().any(|row| {
         row.tool_id == "atropos"

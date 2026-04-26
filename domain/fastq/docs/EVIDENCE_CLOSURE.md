@@ -7,7 +7,7 @@ Evidence-closure rules for FASTQ stage and tool support.
 The FASTQ domain separates three different claims that are easy to conflate:
 
 - the runtime contract is represented in `domain/fastq/`;
-- the scientific method or software citation is represented in `science-docs/upstream/` and `docs/20-science/fastq/REFERENCES.md`;
+- the scientific method or software citation is represented in `science/docs/upstream/` and `docs/20-science/fastq/REFERENCES.md`;
 - the local archive state is represented by governed payloads and generated closure reports.
 
 ## Closure Contract
@@ -15,8 +15,8 @@ Treat a FASTQ tool-stage pair as closed only when all of these are true:
 
 - the stage manifest admits the tool or the planned status is explicit;
 - `domain/fastq/tools/<tool>.yaml` has a paper or software citation locator;
-- `science-docs/upstream/fastq/tools/EVIDENCE_MAP.tsv` maps the tool to its upstream evidence root;
-- `science-docs/upstream/papers/TOOL_PAPER_MAP.tsv` maps peer-reviewed tools to a paper root;
+- `science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv` maps the tool to its upstream evidence root;
+- `science/docs/upstream/papers/TOOL_PAPER_MAP.tsv` maps peer-reviewed tools to a paper root;
 - required local paper and upstream archives are present when the generated closure report requires them;
 - runtime metadata, container references, and smoke-test surfaces are production-ready for production-admitted tools.
 

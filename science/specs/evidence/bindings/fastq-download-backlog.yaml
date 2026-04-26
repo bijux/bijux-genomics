@@ -7,11 +7,11 @@ enforcement_level: "blocking"
 target_domain: "fastq"
 claim_ids:
   - "claim.fastq.container-build-surface-authority"
-  - "claim.fastq.science-docs-archive-planning"
+  - "claim.fastq.science/docs-archive-planning"
 source_ids:
   - "source.fastq.tool-registry"
-  - "source.fastq.science-docs-contract"
-  - "source.fastq.science-docs-backlog"
+  - "source.fastq.science/docs-contract"
+  - "source.fastq.science/docs-backlog"
   - "source.fastq.tool-evidence-map"
   - "source.fastq.paper-map"
 notes:

@@ -1,9 +1,9 @@
 schema_version: "bijux.science.source.v1"
-source_id: "source.science-docs.github-repo-manifest"
+source_id: "source.science/docs.github-repo-manifest"
 kind: "document"
 access: "repo_path"
 title: "Science docs GitHub repository evidence manifest"
-locator: "science-docs/upstream/github-repos/MANIFEST.tsv"
+locator: "science/docs/upstream/github-repos/MANIFEST.tsv"
 authority: "science_docs.github_repo_evidence_manifest"
 notes:
   - "This source records the tracked target manifest for local GitHub repository evidence mirrors."

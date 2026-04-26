@@ -98,7 +98,7 @@ mod tests {
     }
 
     fn qa_coverage_blocker_stage_ids() -> BTreeSet<String> {
-        let path = workspace_root().join("science-docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv");
+        let path = workspace_root().join("science/docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv");
         let raw = std::fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
         raw.lines()
@@ -162,7 +162,7 @@ mod tests {
         assert_eq!(
             qa_coverage_blocker_stage_ids(),
             missing,
-            "science-docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv must match admitted execution-support stages without environment-QA coverage"
+            "science/docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv must match admitted execution-support stages without environment-QA coverage"
         );
     }
 }

@@ -6,7 +6,7 @@ target_ref: "fastq.paper_archive_surface"
 enforcement_level: "blocking"
 target_domain: "fastq"
 claim_ids:
-  - "claim.fastq.science-docs-archive-planning"
+  - "claim.fastq.science/docs-archive-planning"
 source_ids:
   - "source.fastq.paper-archive-contract"
   - "source.fastq.paper-map"

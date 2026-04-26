@@ -3,7 +3,7 @@ source_id: "source.fastq.stage-library-support"
 kind: "document"
 access: "repo_path"
 title: "FASTQ stage library support matrix"
-locator: "science-docs/upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv"
+locator: "science/docs/upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv"
 authority: "science_docs.fastq.stage_library_support"
 notes:
   - "Records supported, unsupported, and unsafe library families for each governed FASTQ stage."

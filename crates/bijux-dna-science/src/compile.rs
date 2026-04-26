@@ -350,7 +350,7 @@ fn build_source_archive_gaps(rows: &[SourceInventoryRow]) -> Vec<SourceArchiveGa
             archive_path: row.archive_path.clone(),
             citation: row.citation.clone(),
             tool_ids: row.tool_ids.clone(),
-            reason: "expected archive payload is not present under science-docs".to_string(),
+            reason: "expected archive payload is not present under science/docs".to_string(),
         })
         .collect::<Vec<_>>();
     gaps.sort_by(|left, right| left.source_id.cmp(&right.source_id));
@@ -433,9 +433,9 @@ fn validate_source(row: &SourceSpec) -> Result<()> {
                 row.archive_path.as_deref().filter(|value| !value.trim().is_empty()).ok_or_else(
                     || anyhow!("manual acquisition sources must declare archive_path"),
                 )?;
-            if !archive_path.starts_with("science-docs/") {
+            if !archive_path.starts_with("science/docs/") {
                 return Err(anyhow!(
-                    "archive_path must live under science-docs/ for manual acquisition sources"
+                    "archive_path must live under science/docs/ for manual acquisition sources"
                 ));
             }
             if matches!(row.access, SourceAccess::ManualClone)
@@ -874,9 +874,9 @@ fn default_archive_path(tool_id: &str, acquisition_mode: &str) -> String {
     if acquisition_mode.is_empty() {
         String::new()
     } else if acquisition_mode == "manual_clone" {
-        format!("science-docs/upstream/fastq/tools/{tool_id}/repo")
+        format!("science/docs/upstream/fastq/tools/{tool_id}/repo")
     } else {
-        format!("science-docs/upstream/fastq/tools/{tool_id}/download")
+        format!("science/docs/upstream/fastq/tools/{tool_id}/download")
     }
 }
 

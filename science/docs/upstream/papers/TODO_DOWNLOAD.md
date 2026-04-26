@@ -1,7 +1,7 @@
 # FASTQ Paper Archive Backlog
 
 This file is the operator-facing worklist for local paper payloads under
-`science-docs/upstream/papers/`.
+`science/docs/upstream/papers/`.
 
 ## Purpose
 
@@ -13,8 +13,8 @@ This file is the operator-facing worklist for local paper payloads under
 
 For each `paper_root`, place material under:
 
-- `science-docs/upstream/papers/<paper-id>/original/`
-- `science-docs/upstream/papers/<paper-id>/notes/`
+- `science/docs/upstream/papers/<paper-id>/original/`
+- `science/docs/upstream/papers/<paper-id>/notes/`
 
 Use the same root for PDFs, supplementary files, homepage snapshots, README
 exports, and local notes about access constraints.
@@ -81,7 +81,7 @@ roots intentionally use homepage or repository snapshots rather than paper PDFs.
 ## PDF Follow-Up
 
 These mapped paper roots still need local payloads under
-`science-docs/upstream/papers/<paper-id>/original/` before closure reports can
+`science/docs/upstream/papers/<paper-id>/original/` before closure reports can
 treat them as archived.
 
 | Tool | Paper ID | Access | Primary Locator | Follow-up |

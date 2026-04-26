@@ -20,7 +20,7 @@ materialization_root = "artifacts/runtime-assets/fastq/host/human/grch38"
 required_for_routes = ["host_associated_metagenome", "depletion_first"]
 verification_command = "bijux dna runtime assets verify --bundle human_host_depletion_grch38"
 hydration_command = "bijux dna runtime assets hydrate --bundle human_host_depletion_grch38"
-offline_replay_source = "science-docs/upstream/runtime-assets/host/human/grch38"
+offline_replay_source = "science/docs/upstream/runtime-assets/host/human/grch38"
 
 [[asset_bundle]]
 id = "common_lab_contaminants"
@@ -30,7 +30,7 @@ materialization_root = "artifacts/runtime-assets/fastq/contaminants/common-lab"
 required_for_routes = ["depletion_first"]
 verification_command = "bijux dna runtime assets verify --bundle common_lab_contaminants"
 hydration_command = "bijux dna runtime assets hydrate --bundle common_lab_contaminants"
-offline_replay_source = "science-docs/upstream/runtime-assets/contaminants/common-lab"
+offline_replay_source = "science/docs/upstream/runtime-assets/contaminants/common-lab"
 
 [[asset_bundle]]
 id = "shotgun_taxonomy_triage"
@@ -40,7 +40,7 @@ materialization_root = "artifacts/runtime-assets/fastq/taxonomy/shotgun-triage"
 required_for_routes = ["host_associated_metagenome", "depletion_first"]
 verification_command = "bijux dna runtime assets verify --bundle shotgun_taxonomy_triage"
 hydration_command = "bijux dna runtime assets hydrate --bundle shotgun_taxonomy_triage"
-offline_replay_source = "science-docs/upstream/runtime-assets/taxonomy/shotgun-triage"
+offline_replay_source = "science/docs/upstream/runtime-assets/taxonomy/shotgun-triage"
 
 [[asset_bundle]]
 id = "rrna_depletion_common"
@@ -50,7 +50,7 @@ materialization_root = "artifacts/runtime-assets/fastq/rrna/common"
 required_for_routes = ["depletion_first"]
 verification_command = "bijux dna runtime assets verify --bundle rrna_depletion_common"
 hydration_command = "bijux dna runtime assets hydrate --bundle rrna_depletion_common"
-offline_replay_source = "science-docs/upstream/runtime-assets/rrna/common"
+offline_replay_source = "science/docs/upstream/runtime-assets/rrna/common"
 
 [[asset_bundle]]
 id = "amplicon_primer_pack_common_markers"
@@ -60,7 +60,7 @@ materialization_root = "artifacts/runtime-assets/fastq/primers/common-markers"
 required_for_routes = ["amplicon_standard", "amplicon_umi"]
 verification_command = "bijux dna runtime assets verify --bundle amplicon_primer_pack_common_markers"
 hydration_command = "bijux dna runtime assets hydrate --bundle amplicon_primer_pack_common_markers"
-offline_replay_source = "science-docs/upstream/runtime-assets/primers/common-markers"
+offline_replay_source = "science/docs/upstream/runtime-assets/primers/common-markers"
 
 [[asset_bundle]]
 id = "illumina_adapter_bank"
@@ -70,7 +70,7 @@ materialization_root = "artifacts/runtime-assets/fastq/adapters/illumina"
 required_for_routes = ["shotgun_standard", "shotgun_adna", "amplicon_standard", "amplicon_umi", "host_associated_metagenome", "premerged_single_end", "default_qc"]
 verification_command = "bijux dna runtime assets verify --bundle illumina_adapter_bank"
 hydration_command = "bijux dna runtime assets hydrate --bundle illumina_adapter_bank"
-offline_replay_source = "science-docs/upstream/runtime-assets/adapters/illumina"
+offline_replay_source = "science/docs/upstream/runtime-assets/adapters/illumina"
 
 [[asset_bundle]]
 id = "umi_pattern_pack_standard"
@@ -80,4 +80,4 @@ materialization_root = "artifacts/runtime-assets/fastq/umi/standard"
 required_for_routes = ["amplicon_umi"]
 verification_command = "bijux dna runtime assets verify --bundle umi_pattern_pack_standard"
 hydration_command = "bijux dna runtime assets hydrate --bundle umi_pattern_pack_standard"
-offline_replay_source = "science-docs/upstream/runtime-assets/umi/standard"
+offline_replay_source = "science/docs/upstream/runtime-assets/umi/standard"

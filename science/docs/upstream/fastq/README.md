@@ -1,6 +1,6 @@
 # FASTQ Upstream Archive
 
-`science-docs/upstream/fastq/` is the tracked contract surface for FASTQ-specific
+`science/docs/upstream/fastq/` is the tracked contract surface for FASTQ-specific
 upstream evidence packets.
 
 ## Scope

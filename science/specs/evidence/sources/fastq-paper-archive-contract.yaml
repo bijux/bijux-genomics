@@ -3,7 +3,7 @@ source_id: "source.fastq.paper-archive-contract"
 kind: "document"
 access: "repo_path"
 title: "FASTQ paper archive contract"
-locator: "science-docs/upstream/papers/README.md"
+locator: "science/docs/upstream/papers/README.md"
 authority: "science_docs.fastq.paper_archive_contract"
 notes:
   - "Defines the durable local archive rules for tool-linked publications."

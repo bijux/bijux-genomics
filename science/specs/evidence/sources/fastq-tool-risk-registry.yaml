@@ -3,7 +3,7 @@ source_id: "source.fastq.tool-risk-registry"
 kind: "document"
 access: "repo_path"
 title: "FASTQ tool risk registry"
-locator: "science-docs/upstream/fastq/TOOL_RISK_REGISTRY.tsv"
+locator: "science/docs/upstream/fastq/TOOL_RISK_REGISTRY.tsv"
 authority: "science_docs.fastq.tool_risk_registry"
 notes:
   - "Records known failure modes, assumption violations, and authority locators for every FASTQ tool manifest."

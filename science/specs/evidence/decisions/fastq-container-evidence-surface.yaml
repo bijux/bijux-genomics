@@ -6,7 +6,7 @@ status: "accepted"
 derived_from:
   - "claim.fastq.tool-registry-authority"
   - "claim.fastq.container-build-surface-authority"
-  - "claim.fastq.science-docs-archive-planning"
+  - "claim.fastq.science/docs-archive-planning"
 reasoning: "reasoning.fastq.container-evidence-surface"
 owner: "bijux-genomics"
 effective_from: "2026-04-25"
