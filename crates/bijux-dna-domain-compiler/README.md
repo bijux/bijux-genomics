@@ -46,4 +46,6 @@ Primary test files:
 
 ## Where the docs live
 - [docs/INDEX.md](docs/INDEX.md)
+- [docs/BOUNDARY.md](docs/BOUNDARY.md)
+- [docs/PUBLIC_API.md](docs/PUBLIC_API.md)
 - [docs/TESTS.md](docs/TESTS.md)

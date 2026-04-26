@@ -9,6 +9,8 @@
 ## Boundaries
 - Must not execute tools or call runtime backends.
 - Must not embed planner-specific behavior.
+- [BOUNDARY.md](BOUNDARY.md)
+- [PUBLIC_API.md](PUBLIC_API.md)
 
 ## Extension Points
 - Add new domain keys through schema + compiler mapping in one change.
