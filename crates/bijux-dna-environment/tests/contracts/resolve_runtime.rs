@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
 use std::sync::{Mutex, MutexGuard};
@@ -394,6 +395,25 @@ fn cache_paths_and_docker_image_checks_are_deterministic() {
         runner: RuntimeKind::Docker,
     };
     assert!(!docker_image_exists(&docker));
+}
+
+#[test]
+fn docker_image_exists_skips_non_docker_runners() -> anyhow::Result<()> {
+    let _env = env_lock();
+    let temp = bijux_dna_testkit::tempdir_for("environment-docker-probe-runner-kind");
+    let docker = temp.path().join("docker");
+    bijux_dna_infra::atomic_write_bytes(&docker, b"#!/bin/sh\nexit 0\n")?;
+    std::fs::set_permissions(&docker, std::fs::Permissions::from_mode(0o755))?;
+    let _path = EnvVarGuard::capture("PATH");
+    std::env::set_var("PATH", temp.path());
+
+    let image = ResolvedImage {
+        full_name: "bijuxdna/fastp@sha256:abc123".to_string(),
+        arch: "arm64".to_string(),
+        runner: RuntimeKind::Apptainer,
+    };
+    assert!(!docker_image_exists(&image));
+    Ok(())
 }
 
 #[test]

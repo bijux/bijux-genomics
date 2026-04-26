@@ -7,6 +7,9 @@ pub(in crate::resolve) fn docker_image_exists_with<F>(image: &ResolvedImage, run
 where
     F: Fn(&[&str]) -> bool,
 {
+    if image.runner != RuntimeKind::Docker {
+        return false;
+    }
     runner(&["image", "inspect", &image.full_name])
 }
 
