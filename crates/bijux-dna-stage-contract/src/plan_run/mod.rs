@@ -20,6 +20,7 @@ pub use planner_contract::*;
 pub use stage_builder::{build_stage_plan, build_tool_execution_spec, validate_stage_outputs};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RunExecutionPlan {
     pub run_id: RunId,
     pub run_dir: PathBuf,

@@ -6,6 +6,7 @@ use super::contract::StagePlanV1;
 use super::reason::PlanDecisionReason;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct StagePlanJsonV1 {
     pub stage_id: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
