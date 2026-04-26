@@ -20,6 +20,13 @@ views and keeps VCF config views separated into explicit generated VCF files.
   schedule pipelines, or mutate runtime state.
 - New command flags must be documented here in the same change that adds the CLI behavior.
 
+## Forbidden Command Surfaces
+
+- No bioinformatics tool execution.
+- No container, scheduler, or runtime orchestration.
+- No network clients.
+- No writes outside declared generated config outputs.
+
 ## Verification
 
 Use `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-compiler --no-default-features --test boundaries`

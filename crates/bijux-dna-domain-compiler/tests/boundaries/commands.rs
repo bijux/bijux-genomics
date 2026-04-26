@@ -37,6 +37,14 @@ fn command_inventory_matches_binary_tree() {
         commands_doc.contains("pre_hpc_pre_vcf"),
         "docs/COMMANDS.md must document the default compiler scope"
     );
+    for forbidden in [
+        "No bioinformatics tool execution.",
+        "No container, scheduler, or runtime orchestration.",
+        "No network clients.",
+        "No writes outside declared generated config outputs.",
+    ] {
+        assert!(commands_doc.contains(forbidden), "docs/COMMANDS.md must document `{forbidden}`");
+    }
     assert!(
         !manifest.contains("[[bin]]"),
         "command binaries should remain discovered from src/bin unless Cargo metadata needs a reviewed exception"
