@@ -77,6 +77,31 @@ fn policy__contracts__assets_governance_policy__assets_root_uses_taxonomy_dirs_o
 }
 
 #[test]
+fn policy__contracts__assets_governance_policy__assets_docs_use_current_dev_crate_name() {
+    let root = repo_root();
+    let assets = root.join("assets");
+    let mut offenders = Vec::new();
+    for entry in
+        WalkDir::new(&assets).into_iter().filter_map(Result::ok).filter(|e| e.file_type().is_file())
+    {
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("md") {
+            continue;
+        }
+        let rel = path.strip_prefix(&root).unwrap_or(path).display().to_string();
+        let raw = std::fs::read_to_string(path).unwrap_or_else(|err| panic!("read {rel}: {err}"));
+        if raw.contains("bijux-dev-dna") {
+            offenders.push(rel);
+        }
+    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "assets markdown must use the current bijux-dna-dev crate name:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
 fn policy__contracts__assets_governance_policy__contaminant_references_publish_status_rows() {
     let rows = tsv_records("assets/reference/contaminants/references/REFERENCE_STATUS.tsv");
     let by_asset =
