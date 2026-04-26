@@ -19,6 +19,7 @@ pub(super) fn build_metrics_envelope(
             }
         }
     }
+    input_hashes.sort();
     let input_fingerprint = input_fingerprint(&input_hashes);
     let parameters_fingerprint = parameters_fingerprint(&plan.params)?;
     let parameters_json_normalized = parameters_json_canonicalization(&plan.params);
