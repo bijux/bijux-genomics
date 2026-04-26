@@ -6,7 +6,7 @@ fastq.deplete_rrna	sortmerna	sortmerna	bijuxdna/sortmerna		digest_missing	crates
 fastq.detect_adapters	fastqc	fastqc	bijuxdna/fastqc		digest_missing	crates/bijux-dna-planner-fastq/tests/snapshots/bijux-dna-planner-fastq__contracts__stage__fastq__fastq.detect_adapters.json
 fastq.extract_umis	umi_tools	umi_tools	bijuxdna/umi_tools		digest_missing	crates/bijux-dna-planner-fastq/tests/snapshots/bijux-dna-planner-fastq__contracts__stage__fastq__fastq.extract_umis.json
 fastq.filter_low_complexity	bbduk	bbduk	bijuxdna/bbduk		digest_missing	crates/bijux-dna-planner-fastq/tests/snapshots/bijux-dna-planner-fastq__contracts__stage__fastq__fastq.filter_low_complexity.json
-fastq.filter_reads	fastp	seqkit	bijuxdna/seqkit		default_tool_mismatch;digest_missing	crates/bijux-dna-planner-fastq/tests/snapshots/bijux-dna-planner-fastq__contracts__stage__fastq__fastq.filter_reads.json
+fastq.filter_reads	fastp	fastp	bijuxdna/fastp		digest_missing	crates/bijux-dna-planner-fastq/tests/snapshots/bijux-dna-planner-fastq__contracts__stage__fastq__fastq.filter_reads.json
 fastq.index_reference	bowtie2_build	bowtie2_build	bijuxdna/bowtie2_build		digest_missing	crates/bijux-dna-planner-fastq/tests/snapshots/bijux-dna-planner-fastq__contracts__stage__fastq__fastq.index_reference.json
 fastq.merge_pairs	pear	pear	bijuxdna/pear		digest_missing	crates/bijux-dna-planner-fastq/tests/snapshots/bijux-dna-planner-fastq__contracts__stage__fastq__fastq.merge_pairs.json
 fastq.profile_overrepresented_sequences	fastqc	fastqc	bijuxdna/fastqc		digest_missing	crates/bijux-dna-planner-fastq/tests/snapshots/bijux-dna-planner-fastq__contracts__stage__fastq__fastq.profile_overrepresented_sequences.json
