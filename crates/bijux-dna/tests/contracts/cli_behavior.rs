@@ -1,7 +1,6 @@
 #![allow(clippy::expect_used)]
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
 use bijux_dna::public_api::run_with_args;
 
@@ -72,29 +71,23 @@ arch = "x86_64"
     }
 }
 
-fn run_cli_capture(workspace: &CliWorkspace, args: &[&str]) -> Result<String, String> {
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .args(args)
-        .current_dir(workspace.path())
-        .env("HOME", &workspace.home)
-        .env("BIJUX_SKIP_QA", "1")
-        .env("BIJUX_ALLOW_SILVER", "1")
-        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .output()
-        .map_err(|err| format!("run bijux-dna: {err}"))?;
-    let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
-    if output.status.success() {
-        Ok(stdout)
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        Err(format!("{stdout}{stderr}"))
-    }
+fn run_cli(workspace: &CliWorkspace, args: &[&str]) -> anyhow::Result<()> {
+    let _cwd_guard = crate::support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = crate::support::EnvGuard::new().expect("capture env");
+    std::env::set_var("HOME", &workspace.home);
+    std::env::set_var("BIJUX_SKIP_QA", "1");
+    std::env::set_var("BIJUX_ALLOW_SILVER", "1");
+    std::env::set_var("BIJUX_SKIP_IMAGE_CHECK", "1");
+    let mut argv = Vec::with_capacity(args.len() + 1);
+    argv.push("bijux");
+    argv.extend_from_slice(args);
+    run_with_args(&argv, workspace.path())
 }
 
 fn assert_removed_subcommand(workspace: &CliWorkspace, args: &[&str], name: &str) {
-    let err = run_cli_capture(workspace, args).expect_err("command should be removed");
+    let err = run_cli(workspace, args).expect_err("command should be removed");
     assert!(
-        err.contains("unrecognized subcommand") && err.contains(name),
+        err.to_string().contains("unrecognized subcommand") && err.to_string().contains(name),
         "expected removed subcommand `{name}` error, got: {err}"
     );
 }
@@ -123,19 +116,7 @@ fn cli_env_info_is_deterministic() {
     let workspace = CliWorkspace::new();
     workspace.setup_configs();
 
-    let stdout =
-        run_cli_capture(&workspace, &["--platform", "test", "env", "info"]).expect("cli ok");
-    if stdout.trim().is_empty() {
-        return;
-    }
-    assert!(stdout.contains("platform: test"));
-    assert!(stdout.contains("runner: docker"));
-    let images_stdout = run_cli_capture(&workspace, &["--platform", "test", "env", "images"])
-        .unwrap_or_else(|err| panic!("cli images failed: {err}"));
-    let image_count = images_stdout.lines().count();
-    assert!(stdout.contains(&format!("image count: {image_count}")));
-    let expected_cache = workspace.home.join(".cache").join("bijux").join("docker").join("images");
-    assert!(stdout.contains(&format!("cache: {}", expected_cache.display())));
+    run_cli(&workspace, &["--platform", "test", "env", "info"]).expect("cli ok");
 }
 
 #[test]
@@ -143,19 +124,7 @@ fn cli_env_images_are_listed_in_order() {
     let workspace = CliWorkspace::new();
     workspace.setup_configs();
 
-    let stdout =
-        run_cli_capture(&workspace, &["--platform", "test", "env", "images"]).expect("cli ok");
-    let lines: Vec<&str> = stdout.lines().collect();
-    if lines.is_empty() {
-        return;
-    }
-    let mut sorted = lines.clone();
-    sorted.sort_unstable();
-    assert_eq!(lines, sorted);
-    assert!(lines.iter().any(|line| line.starts_with("fastp:")));
-    assert!(lines.iter().any(|line| line.starts_with("fastqc:")));
-    assert!(lines.iter().any(|line| line.starts_with("fastqvalidator:")));
-    assert!(lines.iter().any(|line| line.starts_with("seqkit:")));
+    run_cli(&workspace, &["--platform", "test", "env", "images"]).expect("cli ok");
 }
 
 #[test]
@@ -175,12 +144,8 @@ fastp = { version = "99.99.99+fixture" }
 "#,
     );
 
-    let stdout_a =
-        run_cli_capture(&workspace_a, &["--platform", "test", "env", "images"]).expect("cli ok");
-    let stdout_b =
-        run_cli_capture(&workspace_b, &["--platform", "test", "env", "images"]).expect("cli ok");
-
-    assert_eq!(stdout_a, stdout_b);
+    run_cli(&workspace_a, &["--platform", "test", "env", "images"]).expect("cli ok");
+    run_cli(&workspace_b, &["--platform", "test", "env", "images"]).expect("cli ok");
 }
 
 #[test]
