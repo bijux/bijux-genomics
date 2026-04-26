@@ -18,12 +18,15 @@ pub fn resolve_species_alias(
 ) -> Result<(String, String)> {
     let path = workspace_root().join("configs/runtime/species_aliases.toml");
     let cfg: AliasesConfig = load_toml(&path)?;
+    let normalized_alias = alias.trim().to_ascii_lowercase();
     let canonical_species = cfg
         .aliases
-        .get(&alias.to_ascii_lowercase())
+        .get(&normalized_alias)
         .cloned()
         .ok_or_else(|| anyhow!("unknown species alias: {alias}"))?;
     let build = requested_build
+        .map(str::trim)
+        .filter(|build| !build.is_empty())
         .map(ToString::to_string)
         .or_else(|| cfg.default_builds.get(&canonical_species).cloned())
         .ok_or_else(|| {
@@ -132,5 +135,19 @@ fn parse_coverage_regime(raw: &str) -> Result<CoverageRegime> {
         "pseudohaploid" => Ok(CoverageRegime::Pseudohaploid),
         "diploid" => Ok(CoverageRegime::Diploid),
         _ => bail!("unknown coverage regime value: {raw}"),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::resolve_species_alias;
+
+    #[test]
+    fn resolve_species_alias_trims_alias_and_requested_build() {
+        let (species, build) = resolve_species_alias(" Human ", Some(" GRCh38 "))
+            .unwrap_or_else(|error| panic!("resolve species alias: {error}"));
+
+        assert_eq!(species, "Homo sapiens");
+        assert_eq!(build, "GRCh38");
     }
 }
