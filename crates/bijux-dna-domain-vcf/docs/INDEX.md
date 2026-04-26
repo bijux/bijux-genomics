@@ -8,6 +8,8 @@
 
 ## Boundaries
 - [ARCHITECTURE.md](ARCHITECTURE.md)
+- [BOUNDARY.md](BOUNDARY.md)
+- [PUBLIC_API.md](PUBLIC_API.md)
 
 ## Extension Points
 - Extend via typed params and stage contracts.
