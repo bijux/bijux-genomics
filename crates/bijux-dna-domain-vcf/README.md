@@ -22,6 +22,9 @@ Owns VCF param typing contracts and consumes workspace ID/catalog contracts.
 - [docs/BOUNDARY.md](docs/BOUNDARY.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/COMMANDS.md](docs/COMMANDS.md)
+- [docs/CONTRACTS.md](docs/CONTRACTS.md)
+- [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)
+- [docs/DOMAIN_MODEL.md](docs/DOMAIN_MODEL.md)
 - [docs/PUBLIC_API.md](docs/PUBLIC_API.md)
 - [docs/TESTS.md](docs/TESTS.md)
 
