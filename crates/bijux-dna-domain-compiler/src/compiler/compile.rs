@@ -5,7 +5,7 @@ use super::loading::{
 use super::vcf_emit::write_vcf_generated_views;
 use super::{
     bail, domain_content_hash, ensure_dir, ensure_no_placeholders_in_active_config,
-    git_head_commit, write_string, CompileOptions, Context, Path, Result,
+    git_head_commit, write_string, CompileOptions, Context, Path, Result, DEFAULT_COMPILE_SCOPE,
 };
 
 /// Compile generated config views from authored domain sources.
@@ -24,7 +24,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         stage_statuses,
         stage_output_kinds,
     ) = collect_domain_data(&options.domain_dir, &options.scope)?;
-    if options.scope == "pre_hpc_pre_vcf" {
+    if options.scope == DEFAULT_COMPILE_SCOPE {
         if tools.keys().any(|tool_id| tool_id.starts_with("vcf.")) {
             bail!("pre_hpc_pre_vcf scope must not include VCF tools in generated configs");
         }

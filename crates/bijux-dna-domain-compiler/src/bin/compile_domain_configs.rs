@@ -1,17 +1,20 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use bijux_dna_domain_compiler::{compile_domain_configs, CompileOptions};
+use bijux_dna_domain_compiler::{
+    compile_domain_configs, CompileOptions, DEFAULT_COMPILE_SCOPE, DEFAULT_CONFIGS_DIR,
+    DEFAULT_DOMAIN_DIR,
+};
 use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(name = "compile_domain_configs")]
 struct Args {
-    #[arg(long, default_value = "domain")]
+    #[arg(long, default_value = DEFAULT_DOMAIN_DIR)]
     domain_dir: PathBuf,
-    #[arg(long, default_value = "configs")]
+    #[arg(long, default_value = DEFAULT_CONFIGS_DIR)]
     configs_dir: PathBuf,
-    #[arg(long, default_value = "pre_hpc_pre_vcf")]
+    #[arg(long, default_value = DEFAULT_COMPILE_SCOPE)]
     scope: String,
 }
 

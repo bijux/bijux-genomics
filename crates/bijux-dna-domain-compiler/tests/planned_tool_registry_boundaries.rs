@@ -1,5 +1,7 @@
 use anyhow::Result;
-use bijux_dna_domain_compiler::{compile_domain_configs, CompileOptions};
+use bijux_dna_domain_compiler::{
+    compile_domain_configs, CompileOptions, DEFAULT_COMPILE_SCOPE, DEFAULT_DOMAIN_DIR,
+};
 
 #[path = "support/mod.rs"]
 mod support;
@@ -9,9 +11,9 @@ fn compiler_keeps_planned_fastq_tools_out_of_governed_registry() -> Result<()> {
     let root = support::repo_root();
     let out_dir = support::artifact_output_dir("planned-tools-")?;
     compile_domain_configs(&CompileOptions {
-        domain_dir: root.join("domain"),
+        domain_dir: root.join(DEFAULT_DOMAIN_DIR),
         configs_dir: out_dir.path().to_path_buf(),
-        scope: "pre_hpc_pre_vcf".to_string(),
+        scope: DEFAULT_COMPILE_SCOPE.to_string(),
     })?;
 
     let governed_registry =

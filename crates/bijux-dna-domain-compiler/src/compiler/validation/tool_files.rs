@@ -1,7 +1,7 @@
 use super::{
     anyhow, bail, ensure_status, has_supported_placeholder_forbidden_token,
     is_tool_meaningful_in_domain, placeholders_allowed, read_yaml, validate_tool_output_subset,
-    BTreeMap, BTreeSet, Context, DomainToolLoose, Result, ValidateOptions,
+    BTreeMap, BTreeSet, Context, DomainToolLoose, Result, ValidateOptions, DEFAULT_COMPILE_SCOPE,
 };
 use std::path::Path;
 
@@ -35,7 +35,7 @@ pub(super) fn validate_tool_files(
                 path.display()
             );
         }
-        if dom != "vcf" && tool.scope != "pre_hpc_pre_vcf" {
+        if dom != "vcf" && tool.scope != DEFAULT_COMPILE_SCOPE {
             bail!("{} invalid tool scope {}", path.display(), tool.scope);
         }
         if tool.default_version.trim() == "0.0.0" {

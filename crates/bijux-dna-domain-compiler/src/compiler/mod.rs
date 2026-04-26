@@ -34,5 +34,7 @@ use self::support::{
 
 pub use self::compile::compile_domain_configs;
 pub use self::coverage::domain_coverage_report;
-pub use self::models::{CompileOptions, ValidateOptions};
+pub use self::models::{
+    CompileOptions, ValidateOptions, DEFAULT_COMPILE_SCOPE, DEFAULT_CONFIGS_DIR, DEFAULT_DOMAIN_DIR,
+};
 pub use self::validation::validate_domain;

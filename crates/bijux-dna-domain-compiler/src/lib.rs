@@ -4,5 +4,5 @@ mod compiler;
 
 pub use compiler::{
     compile_domain_configs, domain_coverage_report, validate_domain, CompileOptions,
-    ValidateOptions,
+    ValidateOptions, DEFAULT_COMPILE_SCOPE, DEFAULT_CONFIGS_DIR, DEFAULT_DOMAIN_DIR,
 };
