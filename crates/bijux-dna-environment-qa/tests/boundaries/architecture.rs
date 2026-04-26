@@ -114,6 +114,7 @@ fn environment_qa_tree_matches_architecture_contract() {
             "determinism.rs",
             "fixtures/",
             "guardrails.rs",
+            "public_api_docs.rs",
             "support/",
         ]),
         "test tree must stay grouped by taxonomy without nested README docs"
