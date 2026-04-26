@@ -1,7 +1,7 @@
 use super::{
     anyhow, bail, ensure_status, has_supported_placeholder_forbidden_token, is_umbrella_stage,
     placeholders_allowed, read_yaml, BTreeMap, BTreeSet, Context, DomainStage, Result,
-    ValidateOptions,
+    ValidateOptions, DEFAULT_COMPILE_SCOPE,
 };
 
 pub(super) fn validate_stage_files(
@@ -168,7 +168,7 @@ pub(super) fn validate_stage_files(
                 path.display()
             );
         }
-        if dom != "vcf" && stage.scope != "pre_hpc_pre_vcf" {
+        if dom != "vcf" && stage.scope != DEFAULT_COMPILE_SCOPE {
             bail!("{} invalid stage scope {}", path.display(), stage.scope);
         }
         if dom != "vcf" && stage.domain != dom {

@@ -1,5 +1,9 @@
 use super::*;
 
+pub const DEFAULT_DOMAIN_DIR: &str = "domain";
+pub const DEFAULT_CONFIGS_DIR: &str = "configs";
+pub const DEFAULT_COMPILE_SCOPE: &str = "pre_hpc_pre_vcf";
+
 #[derive(Debug, Clone)]
 pub struct CompileOptions {
     pub domain_dir: PathBuf,

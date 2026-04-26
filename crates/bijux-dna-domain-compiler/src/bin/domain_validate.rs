@@ -1,13 +1,13 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use bijux_dna_domain_compiler::{validate_domain, ValidateOptions};
+use bijux_dna_domain_compiler::{validate_domain, ValidateOptions, DEFAULT_DOMAIN_DIR};
 use clap::Parser;
 
 #[derive(Parser, Debug)]
 #[command(name = "domain_validate")]
 struct Args {
-    #[arg(long, default_value = "domain")]
+    #[arg(long, default_value = DEFAULT_DOMAIN_DIR)]
     domain_dir: PathBuf,
 }
 

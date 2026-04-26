@@ -3,7 +3,7 @@ use super::{
     is_tool_meaningful_in_domain, is_umbrella_stage, is_unspecified, placeholders_allowed,
     read_yaml, validate_tool_output_subset, AdapterBank, BTreeMap, BTreeSet, ContaminationDbBank,
     Context, DomainArtifactVocabulary, DomainIndex, DomainMetricVocabulary, DomainStage,
-    DomainToolLoose, Path, ReferenceBank, Result, ValidateOptions,
+    DomainToolLoose, Path, ReferenceBank, Result, ValidateOptions, DEFAULT_COMPILE_SCOPE,
 };
 
 mod catalog_coverage;

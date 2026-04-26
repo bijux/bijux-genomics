@@ -1,4 +1,6 @@
-use bijux_dna_domain_compiler::{compile_domain_configs, CompileOptions};
+use bijux_dna_domain_compiler::{
+    compile_domain_configs, CompileOptions, DEFAULT_COMPILE_SCOPE, DEFAULT_DOMAIN_DIR,
+};
 
 #[path = "support/mod.rs"]
 mod support;
@@ -6,18 +8,18 @@ mod support;
 #[test]
 fn compiler_outputs_are_stable_across_repeated_runs() -> anyhow::Result<()> {
     let root = support::repo_root();
-    let domain_dir = root.join("domain");
+    let domain_dir = root.join(DEFAULT_DOMAIN_DIR);
     let out_a = support::artifact_output_dir("determinism-a-")?;
     let out_b = support::artifact_output_dir("determinism-b-")?;
     let opts_a = CompileOptions {
         domain_dir: domain_dir.clone(),
         configs_dir: out_a.path().to_path_buf(),
-        scope: "pre_hpc_pre_vcf".to_string(),
+        scope: DEFAULT_COMPILE_SCOPE.to_string(),
     };
     let opts_b = CompileOptions {
         domain_dir,
         configs_dir: out_b.path().to_path_buf(),
-        scope: "pre_hpc_pre_vcf".to_string(),
+        scope: DEFAULT_COMPILE_SCOPE.to_string(),
     };
     compile_domain_configs(&opts_a)?;
     compile_domain_configs(&opts_b)?;

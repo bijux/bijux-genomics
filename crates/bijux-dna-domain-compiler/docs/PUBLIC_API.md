@@ -18,6 +18,12 @@ reaching into internal compiler modules.
 - `ValidateOptions`
   - `domain_dir: PathBuf`
 
+## Defaults
+
+- `DEFAULT_DOMAIN_DIR`
+- `DEFAULT_CONFIGS_DIR`
+- `DEFAULT_COMPILE_SCOPE`
+
 ## Stability Rules
 
 - Public additions must be documented here and covered by contract or boundary tests.
