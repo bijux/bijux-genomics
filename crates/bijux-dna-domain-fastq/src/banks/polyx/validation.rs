@@ -37,11 +37,32 @@ pub(super) fn validate_polyx_bank(bank: &PolyxBankV1) -> Result<()> {
 }
 
 pub(super) fn validate_polyx_presets(presets: &PolyxPresetsV1, bank: &PolyxBankV1) -> Result<()> {
+    let mut names = BTreeSet::new();
     for preset in &presets.presets {
         if preset.name.trim().is_empty() {
             return Err(anyhow!("polyx preset missing name"));
         }
+        if !names.insert(preset.name.clone()) {
+            return Err(anyhow!("duplicate polyx preset name {}", preset.name));
+        }
+        if preset.hash.trim().is_empty() {
+            return Err(anyhow!("polyx preset {} missing hash", preset.name));
+        }
+        if preset.rationale.trim().is_empty() {
+            return Err(anyhow!("polyx preset {} missing rationale", preset.name));
+        }
+        let mut polyx_ids = BTreeSet::new();
         for polyx_id in &preset.polyx_ids {
+            if polyx_id.trim().is_empty() {
+                return Err(anyhow!("polyx preset {} has empty polyx id", preset.name));
+            }
+            if !polyx_ids.insert(polyx_id.clone()) {
+                return Err(anyhow!(
+                    "polyx preset {} repeats polyx id {}",
+                    preset.name,
+                    polyx_id
+                ));
+            }
             if !bank.entries.iter().any(|entry| entry.id == *polyx_id) {
                 return Err(anyhow!("unknown polyx id {polyx_id}"));
             }
@@ -56,7 +77,7 @@ pub(super) fn validate_polyx_presets(presets: &PolyxPresetsV1, bank: &PolyxBankV
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::banks::polyx::PolyxEntryV1;
+    use crate::banks::polyx::{PolyxEntryV1, PolyxPresetV1};
 
     fn valid_entry() -> PolyxEntryV1 {
         PolyxEntryV1 {
@@ -76,6 +97,26 @@ mod tests {
             bank_id: "polyx-bank".to_string(),
             version: "2026-01-01".to_string(),
             entries: vec![entry],
+        }
+    }
+
+    fn presets_with(preset: PolyxPresetV1) -> PolyxPresetsV1 {
+        PolyxPresetsV1 {
+            schema_version: "bijux.fastq.polyx_presets.v1".to_string(),
+            presets: vec![preset],
+        }
+    }
+
+    fn valid_preset() -> PolyxPresetV1 {
+        PolyxPresetV1 {
+            name: "two-color".to_string(),
+            description: None,
+            polyx_ids: vec!["poly-g".to_string()],
+            sequences: Vec::new(),
+            rationale: "default two-color trimming".to_string(),
+            references: Vec::new(),
+            notes: Vec::new(),
+            hash: "sha256:fixture".to_string(),
         }
     }
 
@@ -99,6 +140,33 @@ mod tests {
             .expect_err("polyx metadata must be complete");
 
         assert!(err.to_string().contains("missing name/rationale/source"));
+    }
+
+    #[test]
+    fn polyx_presets_reject_duplicate_names() {
+        let bank = bank_with(valid_entry());
+        let preset = valid_preset();
+        let presets = PolyxPresetsV1 {
+            schema_version: "bijux.fastq.polyx_presets.v1".to_string(),
+            presets: vec![preset.clone(), preset],
+        };
+
+        let err = validate_polyx_presets(&presets, &bank)
+            .expect_err("duplicate polyx preset names must be invalid");
+
+        assert!(err.to_string().contains("duplicate polyx preset name"));
+    }
+
+    #[test]
+    fn polyx_presets_reject_repeated_polyx_ids() {
+        let bank = bank_with(valid_entry());
+        let mut preset = valid_preset();
+        preset.polyx_ids = vec!["poly-g".to_string(), "poly-g".to_string()];
+
+        let err = validate_polyx_presets(&presets_with(preset), &bank)
+            .expect_err("repeated polyx ids must be invalid");
+
+        assert!(err.to_string().contains("repeats polyx id"));
     }
 }
 
