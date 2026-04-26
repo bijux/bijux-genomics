@@ -34,4 +34,5 @@ against the host; they use fake runners or fixture data.
 - Runtime QA must not mutate source, docs, configs, or checked-in fixtures.
 - Production crates must not import this crate to gain command execution.
 - Network access must not happen in default tests.
-- QA output must not be written to `target/qa`, OS temp roots, or ad hoc source-tree directories.
+- QA output must not be written to target-directory QA folders, OS temp roots, or ad hoc
+  source-tree directories.
