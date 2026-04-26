@@ -62,6 +62,66 @@ fn planner_fastq_tree_matches_architecture_contract() {
         "stage adapters must stay grouped by stage family"
     );
     assert_eq!(
+        child_entries(&root.join("src/tool_adapters/stages/pre")),
+        entries([
+            "detect_adapters.rs",
+            "index_reference.rs",
+            "mod.rs",
+            "plan_preprocess.rs",
+            "preprocess.rs",
+            "profile_overrepresented_sequences.rs",
+            "profile_read_lengths.rs",
+            "validate_reads.rs",
+        ]),
+        "pre adapters must stay focused on validation, profiling, adapter detection, indexing, and preprocess planning"
+    );
+    assert_eq!(
+        child_entries(&root.join("src/tool_adapters/stages/qc")),
+        entries([
+            "deplete_rrna.rs",
+            "mod.rs",
+            "profile_reads.rs",
+            "report_qc.rs",
+            "screen_taxonomy.rs"
+        ]),
+        "qc adapters must stay focused on reporting and screening stages"
+    );
+    assert_eq!(
+        child_entries(&root.join("src/tool_adapters/stages/transform")),
+        entries([
+            "correct_errors.rs",
+            "deplete_host.rs",
+            "deplete_reference_contaminants.rs",
+            "extract_umis.rs",
+            "filter_low_complexity.rs",
+            "filter_reads.rs",
+            "merge_pairs.rs",
+            "mod.rs",
+            "remove_duplicates.rs",
+            "trim_polyg_tails.rs",
+            "trim_reads/",
+            "trim_terminal_damage.rs",
+        ]),
+        "transform adapters must stay split by mutating FASTQ stage"
+    );
+    assert_eq!(
+        child_entries(&root.join("src/tool_adapters/stages/transform/trim_reads")),
+        entries(["config.rs", "mod.rs", "reporting.rs"]),
+        "trim_reads adapter must keep config and report construction out of the stage planner"
+    );
+    assert_eq!(
+        child_entries(&root.join("src/tool_adapters/stages/amplicon")),
+        entries([
+            "cluster_otus.rs",
+            "infer_asvs.rs",
+            "mod.rs",
+            "normalize_abundance.rs",
+            "normalize_primers.rs",
+            "remove_chimeras.rs",
+        ]),
+        "amplicon adapters must stay split by amplicon stage"
+    );
+    assert_eq!(
         child_entries(&root.join("tests")),
         entries([
             "boundaries/",
