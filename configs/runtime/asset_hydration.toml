@@ -1,3 +1,10 @@
+# schema_version = 1
+# owner = bijux-dna-runtime
+# purpose = Runtime asset hydration policy for governed bundles.
+# authority = configs/runtime/asset_hydration.toml
+# stability = stable
+# last_updated = 2026-04-26
+
 schema_version = "bijux.runtime.asset_hydration.v1"
 authority = "configs/runtime/asset_hydration.toml"
 lock_authority = "configs/runtime/asset_locks.toml"
