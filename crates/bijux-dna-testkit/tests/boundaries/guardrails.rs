@@ -29,3 +29,10 @@ fn test_paths_child_rejects_parent_traversal() {
     let result = std::panic::catch_unwind(|| paths.child("../outside"));
     assert!(result.is_err(), "parent traversal must not escape the test root");
 }
+
+#[test]
+fn tempdir_for_sanitizes_test_names_for_filesystem_prefixes() {
+    let dir = bijux_dna_testkit::tempdir_for("suite/name with spaces");
+    let name = dir.path().file_name().and_then(|name| name.to_str()).unwrap_or_default();
+    assert!(name.starts_with("bijux-dna-suite-name-with-spaces-"));
+}
