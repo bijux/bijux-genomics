@@ -2,7 +2,7 @@
 #[path = "../../../support/fs.rs"]
 mod support;
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 
 fn tsv_ids(path: &str, id_column: usize) -> BTreeSet<String> {
@@ -18,6 +18,33 @@ fn tsv_ids(path: &str, id_column: usize) -> BTreeSet<String> {
         ids.insert(columns[id_column].to_string());
     }
     ids
+}
+
+fn tsv_records(path: &str) -> Vec<BTreeMap<String, String>> {
+    let root = support::workspace_root();
+    let raw =
+        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let mut lines = raw.lines();
+    let header = lines
+        .next()
+        .unwrap_or_else(|| panic!("{path} must not be empty"))
+        .split('\t')
+        .map(str::to_string)
+        .collect::<Vec<_>>();
+    lines
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let row = line.split('\t').map(str::to_string).collect::<Vec<_>>();
+            assert_eq!(
+                row.len(),
+                header.len(),
+                "{path} row has {} columns but header has {}",
+                row.len(),
+                header.len()
+            );
+            header.iter().cloned().zip(row).collect()
+        })
+        .collect()
 }
 
 fn fastq_stage_ids() -> BTreeSet<String> {
@@ -89,4 +116,83 @@ fn policy__contracts__fastq_science_docs_policy__tool_risks_cover_governed_tool_
         expected, risk_tool_ids,
         "FASTQ tool risk registry must cover the governed tool catalog exactly"
     );
+}
+
+#[test]
+fn policy__contracts__fastq_science_docs_policy__software_citation_tools_do_not_claim_papers() {
+    let rows = tsv_records("science/docs/upstream/papers/TOOL_PAPER_MAP.tsv");
+    let expected = BTreeMap::from([
+        ("bbduk", "paper.fastq.bbduk.bbtools-software-citation"),
+        ("clumpify", "paper.fastq.clumpify.bbtools-software-citation"),
+        ("fastq_scan", "paper.fastq.fastq-scan.software-citation"),
+        ("fastqc", "paper.fastq.fastqc.software-citation"),
+    ]);
+
+    let mut offenders = Vec::new();
+    for (tool_id, paper_id) in expected {
+        let row = rows
+            .iter()
+            .find(|row| row["tool_id"] == tool_id)
+            .unwrap_or_else(|| panic!("missing TOOL_PAPER_MAP row for {tool_id}"));
+        if row["paper_id"] != paper_id {
+            offenders.push(format!("{tool_id} must use {paper_id}, found {}", row["paper_id"]));
+        }
+        if row["paper_status"] != "software_citation_only" {
+            offenders.push(format!(
+                "{tool_id} must remain software_citation_only, found {}",
+                row["paper_status"]
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "FASTQ software-citation authority violations:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_science_docs_policy__fastq_scan_stays_distinct_from_fastq_screen() {
+    let paper_rows = tsv_records("science/docs/upstream/papers/TOOL_PAPER_MAP.tsv");
+    let evidence_rows = tsv_records("science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv");
+    let fastq_scan_rows = paper_rows
+        .iter()
+        .filter(|row| row["tool_id"] == "fastq_scan")
+        .chain(evidence_rows.iter().filter(|row| row["tool_id"] == "fastq_scan"));
+
+    let mut offenders = Vec::new();
+    for row in fastq_scan_rows {
+        let joined = row.values().cloned().collect::<Vec<_>>().join("\t");
+        for forbidden in ["fastq_screen", "FastQ Screen", "30254741", "PMC6124377"] {
+            if joined.contains(forbidden) {
+                offenders.push(format!("fastq_scan row contains {forbidden}: {joined}"));
+            }
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "fastq_scan must not inherit FastQ Screen evidence:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_science_docs_policy__star_uses_dobin_paper_not_bowtie2() {
+    let rows = tsv_records("science/docs/upstream/papers/TOOL_PAPER_MAP.tsv");
+    let row = rows.iter().find(|row| row["tool_id"] == "star").expect("missing STAR paper map row");
+    assert_eq!(row["paper_id"], "paper.fastq.star.dobin-2013");
+    assert_eq!(row["paper_status"], "mapped");
+    assert!(
+        row["primary_locator"].contains("bioinformatics/article"),
+        "STAR primary locator must stay on the Bioinformatics Dobin paper"
+    );
+    let joined = row.values().cloned().collect::<Vec<_>>().join("\t");
+    for forbidden in ["nmeth.1923", "22388286"] {
+        assert!(
+            !joined.contains(forbidden),
+            "STAR evidence must not use Bowtie 2 locator {forbidden}"
+        );
+    }
 }
