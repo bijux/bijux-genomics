@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for boundaries
+#[path = "boundaries/architecture.rs"]
+mod mod_boundaries_architecture_rs;
 #[path = "boundaries/guardrails/canonical_owner.rs"]
 mod mod_boundaries_guardrails_canonical_owner_rs;
 #[path = "boundaries/guardrails/dependencies.rs"]

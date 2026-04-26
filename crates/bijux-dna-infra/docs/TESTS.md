@@ -32,6 +32,7 @@ artifact root instead of the OS temp root.
 - `tests/determinism/retry.rs` — retry backoff sequence remains stable.
 
 ## Boundaries
+- `tests/boundaries/architecture.rs` — crate tree, docs allowance, source ownership, and test taxonomy.
 - `tests/boundaries/guardrails/canonical_owner.rs` — PATHS doc must point to bijux-dna-core.
 - `tests/boundaries/guardrails/dependencies.rs` — runtime dependencies must match the documented
   low-level dependency boundary.
