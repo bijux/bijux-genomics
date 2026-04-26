@@ -37,6 +37,17 @@ fn dependency_graph_matches_compiler_boundary() {
         manifest.contains("tempfile.workspace = true"),
         "tempfile must use the workspace dependency declaration"
     );
+    for dependency in ["bijux-dna-domain-bam", "bijux-dna-domain-fastq", "bijux-dna-infra"] {
+        assert!(
+            manifest.contains(&format!("{dependency}.workspace = true"))
+                || manifest.contains(&format!("{dependency} = {{ workspace = true")),
+            "`{dependency}` must use the workspace dependency declaration"
+        );
+    }
+    assert!(
+        !manifest.contains("path = \"../bijux-dna-"),
+        "domain compiler must not declare ad hoc internal path dependencies"
+    );
 
     for forbidden in [
         "bijux-dna-api",
