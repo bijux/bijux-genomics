@@ -151,6 +151,43 @@ fn resolve_image_builds_tagged_and_digest_pinned_names() -> Result<(), EnvError>
 }
 
 #[test]
+fn resolve_image_rejects_incomplete_image_inputs() {
+    let platform = PlatformSpec {
+        name: "docker-mac-arm64".to_string(),
+        runner: RuntimeKind::Docker,
+        container_dir: PathBuf::from("containers/docker/arm64"),
+        image_prefix: "bijuxdna".to_string(),
+        arch: "arm64".to_string(),
+    };
+    let empty_tool = ToolImageSpec {
+        tool: " ".to_string(),
+        version: "0.23.4".to_string(),
+        digest: None,
+        enabled: None,
+        shipping_policy: None,
+    };
+    assert!(resolve_image(&empty_tool, &platform).is_err());
+
+    let empty_version = ToolImageSpec {
+        tool: "fastp".to_string(),
+        version: " ".to_string(),
+        digest: None,
+        enabled: None,
+        shipping_policy: None,
+    };
+    assert!(resolve_image(&empty_version, &platform).is_err());
+
+    let empty_digest = ToolImageSpec {
+        tool: "fastp".to_string(),
+        version: "0.23.4".to_string(),
+        digest: Some(" ".to_string()),
+        enabled: None,
+        shipping_policy: None,
+    };
+    assert!(resolve_image(&empty_digest, &platform).is_err());
+}
+
+#[test]
 fn resolved_image_and_runtime_spec_report_compatibility_consistently() {
     let docker_platform = PlatformSpec {
         name: "docker-mac-arm64".to_string(),
