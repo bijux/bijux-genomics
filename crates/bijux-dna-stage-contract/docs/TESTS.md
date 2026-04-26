@@ -14,7 +14,9 @@ contract intent, with taxonomy documented here instead of in `tests/README.md` p
   integration suites.
 
 ## Suite Directories
-- `tests/boundaries/guardrails/`: no process execution and layout ownership checks.
+- `tests/boundaries/architecture_tree.rs`: crate root, docs allowance, source
+  tree, and integration-test taxonomy contract.
+- `tests/boundaries/guardrails/`: no process execution and guardrail checks.
 - `tests/contracts/versioning/`: semantic-version and SSOT versioning contracts.
 - `tests/determinism/`: fixture stability checks.
 - `tests/schemas/schema/`: public type, docs, and schema snapshot checks.
