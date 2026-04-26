@@ -15,7 +15,8 @@ downstream crates consume without redefining contract shape.
 
 Execution graphs are declarative. They may contain command templates and
 container image refs as data, but they must not contain runtime execution state,
-stage planner internals, or runner-specific behavior.
+stage planner internals, runner-specific behavior, plugin payloads, or backend
+execution state.
 
 ## Run Contracts
 
@@ -27,8 +28,9 @@ stage planner internals, or runner-specific behavior.
 - `ScientificProvenanceV1` and `ToolProvenanceV1`.
 - Pipeline domain/spec records used by planners and APIs.
 
-Run index helpers can read and query typed index files, but this crate does not
-own runtime publish workflows or report persistence.
+Run index helpers can read and query typed index files. This crate owns the file
+shape and query semantics, but it does not own runtime publish workflows,
+artifact movement, report persistence, or retention policy.
 
 ## Tooling Contracts
 
@@ -39,8 +41,8 @@ own runtime publish workflows or report persistence.
 - `Objective`, `ObjectiveSpec`, `ObjectiveWeights`, `ToolScore`,
   `Disqualification`, `StageSelection`, and `select_stage`.
 
-Selection is pure scoring over typed candidate data. It does not execute tools
-or choose runtime backends.
+Selection is pure scoring over typed candidate data. It does not execute tools,
+probe environments, download images, or choose runtime backends.
 
 ## Identifier Contracts
 
@@ -67,6 +69,16 @@ shape and id validation live here.
 
 Foundation helpers must stay generic and must not import orchestration,
 planning, runtime, or product API behavior.
+
+The only foundation helper that writes is `write_input_assessment`, which
+persists a caller-provided assessment payload with local filesystem IO. The
+operation does not discover tools, run validators, or mutate runtime state.
+
+## Operation Inventory
+
+`docs/COMMANDS.md` is the SSOT for callable operations owned by this crate. Add
+new callable contract, identity, input-assessment, execution, run, tooling, or
+metric helpers there in the same change set that adds the helper.
 
 ## Verification
 
