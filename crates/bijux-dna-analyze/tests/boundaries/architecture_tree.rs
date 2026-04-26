@@ -144,7 +144,6 @@ fn assert_test_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("tests")),
         entries([
-            "README.md",
             "boundaries/",
             "boundaries.rs",
             "contracts/",
