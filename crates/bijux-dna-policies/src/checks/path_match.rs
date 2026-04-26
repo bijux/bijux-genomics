@@ -9,11 +9,13 @@ pub(crate) fn path_has_allowed_suffix(path: &Path, allowed_suffixes: &[String]) 
 }
 
 fn normalize(path: impl AsRef<Path>) -> String {
-    path.as_ref().components().fold(String::new(), |mut out, component| {
-        if !out.ends_with('/') {
-            out.push('/');
-        }
-        out.push_str(&component.as_os_str().to_string_lossy());
-        out
-    })
+    let parts = path
+        .as_ref()
+        .components()
+        .filter_map(|component| {
+            let text = component.as_os_str().to_string_lossy();
+            (!text.is_empty() && text != "/").then(|| text.to_string())
+        })
+        .collect::<Vec<_>>();
+    format!("/{}", parts.join("/"))
 }
