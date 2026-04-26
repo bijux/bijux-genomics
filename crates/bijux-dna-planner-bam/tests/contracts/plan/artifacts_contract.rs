@@ -89,6 +89,29 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     )?;
     assert_audit_outputs(BamStage::Filter, &filter);
 
+    let mapq_filter = bijux_dna_planner_bam::tool_adapters::bam::mapq_filter::plan(
+        &dummy_tool("samtools"),
+        bam,
+        out,
+        &filter_params,
+    )?;
+    assert_audit_outputs(BamStage::MapqFilter, &mapq_filter);
+
+    let length_filter = bijux_dna_planner_bam::tool_adapters::bam::length_filter::plan(
+        &dummy_tool("samtools"),
+        bam,
+        out,
+        &filter_params,
+    )?;
+    assert_audit_outputs(BamStage::LengthFilter, &length_filter);
+
+    let mapping_summary = bijux_dna_planner_bam::tool_adapters::bam::mapping_summary::plan(
+        &dummy_tool("samtools"),
+        bam,
+        out,
+    )?;
+    assert_audit_outputs(BamStage::MappingSummary, &mapping_summary);
+
     let markdup_params = MarkDupEffectiveParams {
         optical_duplicates: bijux_dna_domain_bam::params::OpticalDuplicatePolicy::MarkOnly,
         umi_policy: bijux_dna_domain_bam::params::UmiPolicy::Ignore,

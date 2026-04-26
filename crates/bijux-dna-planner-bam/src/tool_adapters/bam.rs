@@ -6,4 +6,7 @@ pub use super::stages_downstream::{bias_mitigation, genotyping, haplogroups, kin
 pub use super::stages_post::{
     complexity, coverage, duplication_metrics, gc_bias, insert_size, markdup, recalibration,
 };
-pub use super::stages_pre::{align, filter, qc_pre, validate};
+pub use super::stages_pre::{
+    align, filter, length_filter, mapping_summary, mapq_filter, overlap_correction, qc_pre,
+    validate,
+};
