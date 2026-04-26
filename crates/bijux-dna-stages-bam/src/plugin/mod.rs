@@ -5,7 +5,6 @@ use bijux_dna_stage_contract::{StagePlugin, StagePluginOutputV1};
 mod invocation;
 mod output;
 
-#[allow(dead_code)]
 pub struct BamStagePlugin;
 
 impl StagePlugin for BamStagePlugin {
