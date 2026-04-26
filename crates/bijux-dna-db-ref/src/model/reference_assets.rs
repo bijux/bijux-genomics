@@ -64,6 +64,7 @@ pub struct ReferenceBundle {
     pub fai: String,
     pub dict: String,
     pub contig_set_digest: String,
+    pub contigs: Vec<String>,
     pub mask_bed: Option<String>,
     pub regions_bed: Option<String>,
     pub source_lock_sha256: String,
