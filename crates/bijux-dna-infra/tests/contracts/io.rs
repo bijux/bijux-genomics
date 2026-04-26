@@ -103,6 +103,22 @@ fn bounded_read_rejects_files_larger_than_limit() -> anyhow::Result<()> {
 }
 
 #[test]
+fn path_shape_io_errors_are_corruption() {
+    assert_eq!(
+        bijux_dna_infra::classify_io_error(&std::io::Error::from(
+            std::io::ErrorKind::AlreadyExists
+        )),
+        bijux_dna_infra::IoErrorKind::Corruption
+    );
+    assert_eq!(
+        bijux_dna_infra::classify_io_error(&std::io::Error::from(
+            std::io::ErrorKind::NotADirectory
+        )),
+        bijux_dna_infra::IoErrorKind::Corruption
+    );
+}
+
+#[test]
 fn temp_dir_is_created() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux-dna-test")?;
     assert!(dir.path().exists());
