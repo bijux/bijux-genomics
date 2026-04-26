@@ -21,18 +21,18 @@ pub fn source_inventory_tsv(rows: &[SourceInventoryRow]) -> String {
     );
     for row in rows {
         let line = [
-            row.source_id.as_str(),
-            row.kind.as_str(),
-            row.access.as_str(),
-            row.authority.as_str(),
-            row.locator.as_str(),
-            row.archive_path.as_str(),
-            row.archive_status.as_str(),
-            row.citation.as_str(),
-            row.tool_ids.as_str(),
+            evidence_cell(&row.source_id),
+            evidence_cell(&row.kind),
+            evidence_cell(&row.access),
+            evidence_cell(&row.authority),
+            evidence_cell(&row.locator),
+            evidence_cell(&row.archive_path),
+            evidence_cell(&row.archive_status),
+            evidence_cell(&row.citation),
+            evidence_cell(&row.tool_ids),
         ]
         .join("\t");
-        out.push_str(line.trim_end_matches('\t'));
+        out.push_str(&line);
         out.push('\n');
     }
     out

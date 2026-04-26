@@ -1,23 +1,23 @@
 source_id	kind	access	authority	locator	archive_path	archive_status	citation	tool_ids
-source.fastq.container-apptainer-defs	repo_directory	repo_path	containers.apptainer.shared	containers/apptainer/shared		not_applicable
-source.fastq.container-dockerfiles	repo_directory	repo_path	containers.docker.arm64	containers/docker/arm64		not_applicable
-source.fastq.default-settings	document	repo_path	domain.fastq.default_settings	domain/fastq/docs/DEFAULT_SETTINGS.md		not_applicable
-source.fastq.environment-reference	document	repo_path	bijux_dna_environment.env_reference	crates/bijux-dna-environment/docs/ENV_REFERENCE.md		not_applicable
-source.fastq.execution-support	repo_file	repo_path	domain.fastq.execution_support	domain/fastq/execution_support.yaml		not_applicable
-source.fastq.paper-archive-contract	document	repo_path	science_docs.fastq.paper_archive_contract	science-docs/upstream/papers/README.md		not_applicable
-source.fastq.paper-map	document	repo_path	science_docs.fastq.tool_paper_map	science-docs/upstream/papers/TOOL_PAPER_MAP.tsv		not_applicable
-source.fastq.pipeline-contract	repo_directory	repo_path	domain.fastq.pipeline_contract	crates/bijux-dna-domain-fastq/src/pipeline_contract/		not_applicable
-source.fastq.qa-coverage-blockers	document	repo_path	science_docs.fastq.qa_coverage_blockers	science-docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv		not_applicable
-source.fastq.reference-assets	document	repo_path	assets.reference.evidence	assets/reference/EVIDENCE.md		not_applicable
-source.fastq.reference-lock	document	repo_path	assets.reference.lock	assets/reference/LOCK.md		not_applicable
-source.fastq.science-docs-backlog	document	repo_path	science_docs.fastq_download_backlog	science-docs/TODO_DOWNLOAD.md		not_applicable
-source.fastq.science-docs-contract	document	repo_path	science_docs.archive_contract	science-docs/README.md		not_applicable
-source.fastq.stage-claims	document	repo_path	science_docs.fastq.stage_claims	science-docs/upstream/fastq/STAGE_CLAIMS.tsv		not_applicable
-source.fastq.stage-contracts	repo_directory	repo_path	domain.fastq.stage_contracts	domain/fastq/stages		not_applicable
-source.fastq.stage-library-support	document	repo_path	science_docs.fastq.stage_library_support	science-docs/upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv		not_applicable
-source.fastq.tag-only-container-blockers	document	repo_path	science_docs.fastq_container_blockers	science-docs/upstream/fastq/TAG_ONLY_CONTAINER_BLOCKERS.tsv		not_applicable
-source.fastq.tool-evidence-map	document	repo_path	science_docs.fastq.tool_evidence_map	science-docs/upstream/fastq/tools/EVIDENCE_MAP.tsv		not_applicable
-source.fastq.tool-registry	repo_file	repo_path	configs.ci.registry.tool_registry	configs/ci/registry/tool_registry.toml		not_applicable
-source.fastq.tool-risk-registry	document	repo_path	science_docs.fastq.tool_risk_registry	science-docs/upstream/fastq/TOOL_RISK_REGISTRY.tsv		not_applicable
-source.science-docs.github-repo-archive-readme	document	repo_path	science_docs.github_repo_archive_instructions	science-docs/upstream/github-repos/README.md		not_applicable
-source.science-docs.github-repo-manifest	document	repo_path	science_docs.github_repo_evidence_manifest	science-docs/upstream/github-repos/MANIFEST.tsv		not_applicable
+source.fastq.container-apptainer-defs	repo_directory	repo_path	containers.apptainer.shared	containers/apptainer/shared	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.container-dockerfiles	repo_directory	repo_path	containers.docker.arm64	containers/docker/arm64	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.default-settings	document	repo_path	domain.fastq.default_settings	domain/fastq/docs/DEFAULT_SETTINGS.md	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.environment-reference	document	repo_path	bijux_dna_environment.env_reference	crates/bijux-dna-environment/docs/ENV_REFERENCE.md	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.execution-support	repo_file	repo_path	domain.fastq.execution_support	domain/fastq/execution_support.yaml	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.paper-archive-contract	document	repo_path	science_docs.fastq.paper_archive_contract	science-docs/upstream/papers/README.md	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.paper-map	document	repo_path	science_docs.fastq.tool_paper_map	science-docs/upstream/papers/TOOL_PAPER_MAP.tsv	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.pipeline-contract	repo_directory	repo_path	domain.fastq.pipeline_contract	crates/bijux-dna-domain-fastq/src/pipeline_contract/	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.qa-coverage-blockers	document	repo_path	science_docs.fastq.qa_coverage_blockers	science-docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.reference-assets	document	repo_path	assets.reference.evidence	assets/reference/EVIDENCE.md	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.reference-lock	document	repo_path	assets.reference.lock	assets/reference/LOCK.md	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.science-docs-backlog	document	repo_path	science_docs.fastq_download_backlog	science-docs/TODO_DOWNLOAD.md	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.science-docs-contract	document	repo_path	science_docs.archive_contract	science-docs/README.md	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.stage-claims	document	repo_path	science_docs.fastq.stage_claims	science-docs/upstream/fastq/STAGE_CLAIMS.tsv	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.stage-contracts	repo_directory	repo_path	domain.fastq.stage_contracts	domain/fastq/stages	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.stage-library-support	document	repo_path	science_docs.fastq.stage_library_support	science-docs/upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.tag-only-container-blockers	document	repo_path	science_docs.fastq_container_blockers	science-docs/upstream/fastq/TAG_ONLY_CONTAINER_BLOCKERS.tsv	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.tool-evidence-map	document	repo_path	science_docs.fastq.tool_evidence_map	science-docs/upstream/fastq/tools/EVIDENCE_MAP.tsv	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.tool-registry	repo_file	repo_path	configs.ci.registry.tool_registry	configs/ci/registry/tool_registry.toml	not_applicable	not_applicable	not_applicable	not_applicable
+source.fastq.tool-risk-registry	document	repo_path	science_docs.fastq.tool_risk_registry	science-docs/upstream/fastq/TOOL_RISK_REGISTRY.tsv	not_applicable	not_applicable	not_applicable	not_applicable
+source.science-docs.github-repo-archive-readme	document	repo_path	science_docs.github_repo_archive_instructions	science-docs/upstream/github-repos/README.md	not_applicable	not_applicable	not_applicable	not_applicable
+source.science-docs.github-repo-manifest	document	repo_path	science_docs.github_repo_evidence_manifest	science-docs/upstream/github-repos/MANIFEST.tsv	not_applicable	not_applicable	not_applicable	not_applicable
