@@ -1,5 +1,6 @@
 use anyhow::Result;
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
+use std::collections::BTreeSet;
 
 /// # Errors
 /// Returns an error if requested stage ids cannot be mapped to known VCF stages.
@@ -9,8 +10,12 @@ pub fn resolve_requested_stages(
 ) -> Result<Vec<VcfDomainStage>> {
     if let Some(requested) = requested_stages {
         let mut out = Vec::new();
+        let mut seen = BTreeSet::new();
         for stage_id in requested {
             let stage = VcfDomainStage::try_from(stage_id.as_str())?;
+            if !seen.insert(stage.as_str()) {
+                anyhow::bail!("requested_stages contains duplicate stage {}", stage.as_str());
+            }
             out.push(stage);
         }
         if out.is_empty() {

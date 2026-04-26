@@ -152,6 +152,24 @@ fn vcf_downstream_snapshot_requested_subset_with_panel() {
 }
 
 #[test]
+fn vcf_planner_refuses_duplicate_requested_stages() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages = Some(vec![
+        "vcf.call_diploid".to_string(),
+        "vcf.filter".to_string(),
+        "vcf.filter".to_string(),
+        "vcf.stats".to_string(),
+    ]);
+
+    let err = plan_vcf_stage_plans(&input).expect_err("duplicate requested stages must fail");
+
+    assert!(
+        err.to_string().contains("duplicate stage vcf.filter"),
+        "unexpected planner refusal: {err}"
+    );
+}
+
+#[test]
 fn vcf_planner_refuses_edna_or_pollen_domain() {
     let mut input = base_inputs(CoverageRegime::LowCovGl);
     input.pipeline_domain = "edna".to_string();
