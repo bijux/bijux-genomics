@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench
+//! Deterministic observation JSONL reader and contract validator.
+
 use std::path::Path;
 
 use anyhow::{Context, Result};

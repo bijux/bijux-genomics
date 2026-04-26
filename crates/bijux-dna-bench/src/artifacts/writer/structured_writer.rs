@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench
+//! Canonical structured benchmark artifact writer.
+
 use std::path::Path;
 
 use anyhow::{Context, Result};

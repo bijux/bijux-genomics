@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench
+//! Repository root discovery for benchmark-owned paths.
+
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};

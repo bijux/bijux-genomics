@@ -1,4 +1,5 @@
-//! SQLite-backed repository implementations.
+//! Owner: bijux-dna-bench
+//! SQLite-backed benchmark repository adapters.
 
 pub mod catalog;
 pub mod queries;

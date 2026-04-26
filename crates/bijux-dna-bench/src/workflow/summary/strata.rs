@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench
+//! Stratum aggregation for benchmark summary rows.
+
 use std::collections::BTreeMap;
 
 use bijux_dna_bench_model::{SummaryRow, SummaryStratum};

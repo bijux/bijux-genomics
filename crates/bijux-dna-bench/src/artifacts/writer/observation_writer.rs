@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench
+//! Deterministic observation JSONL writer.
+
 use std::collections::BTreeSet;
 use std::path::Path;
 

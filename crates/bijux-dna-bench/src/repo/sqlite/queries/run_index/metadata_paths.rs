@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench
+//! Metadata path policy for run-index query results.
+
 use bijux_dna_core::contract::RunIndexEntry;
 
 use crate::repo::RunMetadata;
