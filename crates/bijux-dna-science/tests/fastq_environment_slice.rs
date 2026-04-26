@@ -72,6 +72,35 @@ fn assert_fastq_slice_rows(compiled: &CompiledScience) {
             && row.paper_id == "paper.fastq.atropos.didion-2017"
             && row.paper_status == "mapped"
     }));
+    assert_eq!(
+        compiled.index.fastq_closure_summary.total_rows,
+        compiled.fastq_closure_gate_rows.len()
+    );
+    assert_eq!(
+        compiled.index.fastq_closure_summary.default_rows,
+        compiled.fastq_closure_gate_rows.iter().filter(|row| row.is_default).count()
+    );
+    assert!(
+        compiled
+            .index
+            .fastq_closure_summary
+            .blocking_reason_counts
+            .contains_key("missing_environment_qa_stage")
+    );
+    assert!(
+        compiled
+            .index
+            .fastq_evidence_summary
+            .prerequisite_counts
+            .contains_key("missing_environment_qa_stage")
+    );
+    assert!(
+        compiled
+            .index
+            .fastq_evidence_summary
+            .default_risk_counts
+            .contains_key("closure_prerequisite_blocked")
+    );
 }
 
 fn assert_committed_outputs_match(root: &Path, compiled: &CompiledScience) -> Result<()> {

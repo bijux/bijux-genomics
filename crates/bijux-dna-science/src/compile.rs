@@ -7,9 +7,10 @@ use toml::Value as TomlValue;
 
 use crate::domain::{
     BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience,
-    DecisionReasoningRow, FastqClosureGateRow, FastqDefaultBindingRiskRow, FastqEnvironmentRow,
-    FastqMissingClosurePrerequisiteRow, FastqTruthDeltaRow, LoadedSpecs, ScienceIndex,
-    SourceAccess, SourceArchiveGapRow, SourceId, SourceInventoryRow, SourceKind, SourceSpec,
+    DecisionReasoningRow, FastqClosureGateRow, FastqClosureSummary, FastqDefaultBindingRiskRow,
+    FastqEnvironmentRow, FastqEvidenceSummary, FastqMissingClosurePrerequisiteRow,
+    FastqTruthDeltaRow, LoadedSpecs, ScienceIndex, SourceAccess, SourceArchiveGapRow, SourceId,
+    SourceInventoryRow, SourceKind, SourceSpec,
 };
 use crate::errors::validation_error;
 use crate::io::{list_yaml_files, read_utf8};
@@ -243,6 +244,14 @@ pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScien
         build_fastq_missing_closure_prerequisite_rows(&fastq_closure_gate_rows);
     let fastq_default_binding_risk_rows =
         build_fastq_default_binding_risk_rows(&fastq_closure_gate_rows);
+    let fastq_closure_summary = build_fastq_closure_summary(&fastq_closure_gate_rows);
+    let fastq_evidence_summary = build_fastq_evidence_summary(
+        &fastq_download_backlog_rows,
+        &fastq_paper_archive_rows,
+        &fastq_missing_closure_prerequisite_rows,
+        &fastq_default_binding_risk_rows,
+        &fastq_truth_delta_rows,
+    );
     let unresolved_refs = validate_cross_references(loaded);
     if !unresolved_refs.is_empty() {
         return Err(validation_error(&unresolved_refs));
@@ -266,6 +275,8 @@ pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScien
         fastq_truth_delta_rows: fastq_truth_delta_rows.len(),
         fastq_missing_closure_prerequisite_rows: fastq_missing_closure_prerequisite_rows.len(),
         fastq_default_binding_risk_rows: fastq_default_binding_risk_rows.len(),
+        fastq_closure_summary,
+        fastq_evidence_summary,
     };
     Ok(CompiledScience {
         source_inventory,
@@ -317,6 +328,85 @@ fn build_source_inventory(root: &Path, loaded: &LoadedSpecs) -> Vec<SourceInvent
         .collect::<Vec<_>>();
     rows.sort_by(|left, right| left.source_id.cmp(&right.source_id));
     rows
+}
+
+fn build_fastq_closure_summary(rows: &[FastqClosureGateRow]) -> FastqClosureSummary {
+    let mut blocking_reason_counts = BTreeMap::new();
+    let mut warning_reason_counts = BTreeMap::new();
+    for row in rows {
+        increment_compound_counts(&mut blocking_reason_counts, &row.blocking_reasons);
+        increment_compound_counts(&mut warning_reason_counts, &row.warning_reasons);
+    }
+    FastqClosureSummary {
+        total_rows: rows.len(),
+        default_rows: rows.iter().filter(|row| row.is_default).count(),
+        world_class_closed_rows: rows.iter().filter(|row| row.world_class_closed).count(),
+        declared_closed_with_gaps_rows: rows
+            .iter()
+            .filter(|row| row.effective_closure_status == "declared_closed_with_gaps")
+            .count(),
+        not_closed_rows: rows
+            .iter()
+            .filter(|row| row.effective_closure_status == "not_closed")
+            .count(),
+        blocking_reason_counts,
+        warning_reason_counts,
+    }
+}
+
+fn build_fastq_evidence_summary(
+    backlog_rows: &[crate::domain::FastqDownloadBacklogRow],
+    paper_rows: &[crate::domain::FastqPaperArchiveRow],
+    prerequisite_rows: &[FastqMissingClosurePrerequisiteRow],
+    default_risk_rows: &[FastqDefaultBindingRiskRow],
+    truth_delta_rows: &[FastqTruthDeltaRow],
+) -> FastqEvidenceSummary {
+    let mut backlog_status_counts = BTreeMap::new();
+    let mut paper_status_counts = BTreeMap::new();
+    let mut paper_archive_status_counts = BTreeMap::new();
+    let mut prerequisite_counts = BTreeMap::new();
+    let mut default_risk_counts = BTreeMap::new();
+    let mut truth_delta_reason_counts = BTreeMap::new();
+
+    for row in backlog_rows {
+        increment_scalar_count(&mut backlog_status_counts, &row.backlog_status);
+    }
+    for row in paper_rows {
+        increment_scalar_count(&mut paper_status_counts, &row.paper_status);
+        increment_scalar_count(&mut paper_archive_status_counts, &row.archive_status);
+    }
+    for row in prerequisite_rows {
+        increment_scalar_count(&mut prerequisite_counts, &row.prerequisite);
+    }
+    for row in default_risk_rows {
+        increment_scalar_count(&mut default_risk_counts, &row.risk_class);
+    }
+    for row in truth_delta_rows {
+        increment_compound_counts(&mut truth_delta_reason_counts, &row.reason);
+    }
+
+    FastqEvidenceSummary {
+        backlog_status_counts,
+        paper_status_counts,
+        paper_archive_status_counts,
+        prerequisite_counts,
+        default_risk_counts,
+        truth_delta_reason_counts,
+    }
+}
+
+fn increment_scalar_count(counts: &mut BTreeMap<String, usize>, value: &str) {
+    let value = value.trim();
+    if value.is_empty() || value == "not_applicable" {
+        return;
+    }
+    *counts.entry(value.to_string()).or_insert(0) += 1;
+}
+
+fn increment_compound_counts(counts: &mut BTreeMap<String, usize>, value: &str) {
+    for label in value.split(';').map(str::trim) {
+        increment_scalar_count(counts, label);
+    }
 }
 
 fn source_kind_label(kind: &SourceKind) -> &'static str {
