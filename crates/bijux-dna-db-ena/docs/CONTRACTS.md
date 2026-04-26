@@ -37,7 +37,8 @@ effects and must stay under the requested manifest path.
 deduplicates repeated output destinations. `DownloadConfig::validate` rejects
 empty output roots and zero-job execution before dry-run or transfer work.
 `download::download_tasks` either dry-runs the task set or transfers files with
-the configured job count and retry count.
+the configured job count and retry count. Failed output paths in
+`DownloadReport` are sorted for stable reports.
 
 ## Verification
 
