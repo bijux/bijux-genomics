@@ -97,6 +97,26 @@ fn testkit_tree_matches_architecture_contract() {
         ]),
         "test tree must stay organized by enduring intent"
     );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/boundaries")),
+        entries([
+            "architecture_tree.rs",
+            "command_inventory.rs",
+            "dependency_graph.rs",
+            "dev_dep_boundary.rs",
+            "docs_layout.rs",
+            "effect_boundary.rs",
+            "guardrails.rs",
+        ]),
+        "boundary tests must stay partitioned by architecture, command, dependency, docs, and effect concerns"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/contracts")),
+        entries(["fixtures.rs"]),
+        "contract tests must stay focused on helper behavior"
+    );
 }
 
 fn dir_entries(path: &Path) -> BTreeSet<String> {
