@@ -1,103 +1,46 @@
-# bijux-dna-core Architecture
+# Architecture
 
 `bijux-dna-core` is the lowest shared model crate in `bijux-genomics`. It owns
-stable contract types, canonical identifiers, metrics contracts, deterministic
-serialization, hashing, and a curated public import surface.
+stable contract types, canonical identifiers, hashing, deterministic
+serialization, metric contracts, and the curated prelude surface.
 
-## Source Tree
+## Source Map
 
-```text
-src/
-├── lib.rs
-├── contract/
-│   ├── canonical.rs
-│   ├── execution/
-│   ├── run/
-│   ├── tooling/
-│   │   └── selection/
-│   └── version.rs
-├── foundation/
-│   ├── cache.rs
-│   ├── canonical.rs
-│   ├── command/
-│   ├── errors.rs
-│   ├── hashing.rs
-│   ├── input_assessment.rs
-│   ├── invariants.rs
-│   ├── measure.rs
-│   └── version.rs
-├── id_catalog/
-│   ├── pipeline/
-│   ├── stage/
-│   └── tool/
-├── ids/
-│   ├── domain_model.rs
-│   ├── parsing/
-│   └── typed/
-├── metrics/
-├── prelude/
-└── public_api/
-    ├── catalog/
-    ├── contracts/
-    ├── ergonomics/
-    ├── identity/
-    └── metrics/
-```
+- `src/contract/` owns execution graphs, run records, tooling contracts, and
+  canonical JSON helpers.
+- `src/foundation/` owns low-level shared models and deterministic helpers used
+  by core contracts.
+- `src/id_catalog/` owns canonical pipeline, stage, and tool identifiers.
+- `src/ids/` owns typed identifiers, parsing rules, and symbolic validation.
+- `src/metrics/` owns metric identifiers, derived metrics, schema lookup, and
+  registry constants.
+- `src/prelude/` exposes the stable ergonomic import surface.
+- `src/public_api/` mirrors the stable public modules through explicit
+  namespaces.
 
-## Module Roles
+## Test Map
 
-- `contract/` owns serialized execution, run, provenance, tooling, selection,
-  versioning, and canonical JSON contract entrypoints.
-- `foundation/` owns crate-local implementation helpers that support public
-  contracts: command specs, container image refs, canonicalization, hashing,
-  input assessment, errors, cache keys, invariant records, and measurement
-  records.
-- `id_catalog/` owns canonical pipeline, stage, and tool ids partitioned by
-  workflow/domain.
-- `ids/` owns typed id wrappers, parsing rules, symbolic id validation, and
-  domain/library metadata models.
-- `metrics/` owns metric ids, derived metric parsing, schema lookup, registry
-  constants, and metric payload contracts.
-- `prelude/` groups imports by source area and exposes the stable ergonomic
-  surface through `stable_surface.rs`; it is the intended broad import path for
-  downstream crates that consume core contracts.
-- `public_api/` mirrors the stable public modules through explicit namespaces:
-  `contracts`, `catalog`, `identity`, `metrics`, and `ergonomics`.
+- `tests/boundaries.rs` checks source layout, dependency graph, layering, docs
+  placement, and guardrails.
+- `tests/contracts.rs` checks execution, identity, run metadata, and public
+  surface contracts.
+- `tests/schemas.rs` checks schema and public module snapshots.
+- `tests/semantics.rs` checks identifier, metric, and input-assessment
+  semantics.
 
-## Test Tree
+## Boundaries
 
-```text
-tests/
-├── boundaries.rs
-├── boundaries/
-├── contracts.rs
-├── contracts/
-├── fixtures/
-├── guardrails.rs
-├── schemas.rs
-├── schemas/
-├── semantics.rs
-├── semantics/
-└── snapshots/
-```
+Core must not depend on domain, planner, API, engine, runner, or CLI crates. It
+may define pure contracts consumed by those crates. The only documented
+filesystem exception is `foundation::input_assessment`, which discovers and
+writes typed FASTQ assessment contracts.
 
-Boundary tests lock the crate root, docs allowance, source tree, test tree,
-source layering, and scope. Contract tests cover execution, identity, canonical
-JSON, run index, run metadata, selection, and public surface behavior. Schema
-tests lock docs and public surfaces. Semantic tests cover identifiers, metrics,
-and input assessment.
+## Dependency Direction
 
-## Dependency Shape
+Downstream crates consume core contracts. Core does not call downstream crates,
+select tools, run workflows, or interpret domain-specific stage policy.
 
-Normal dependencies must stay low-level and contract-facing:
+## Command Inventory
 
-- `serde`, `serde_json`, `thiserror`, `sha2`, and `regex` support stable
-  contract serialization, errors, hashing, and validation.
-- `chrono` records assessment creation time.
-- `walkdir` supports deterministic FASTQ discovery during input assessment.
-- `tempfile` is dev-only and supports tests that need isolated filesystem
-  fixtures.
-
-This crate must not depend on API, CLI, planner, runner, engine, runtime,
-environment, domain, stage, analyze, or benchmark crates. Any dependency that
-pulls orchestration or product behavior into core is a boundary violation.
+`docs/COMMANDS.md` lists the library operations this crate manages. Keep command
+entries aligned with public modules and contract tests.

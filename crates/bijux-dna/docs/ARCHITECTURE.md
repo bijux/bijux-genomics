@@ -1,91 +1,45 @@
-# bijux-dna Architecture
+# Architecture
 
-`bijux-dna` is the CLI adapter crate. It should stay thin: parse arguments, prepare the process
-context, route commands to the correct adapter, render output, and delegate durable genomics logic
-to API/domain/runtime crates.
+`bijux-dna` is the CLI boundary for the genomics workspace. It owns argument
+parsing, command routing, process context, output rendering, help snapshots, and
+operator-facing exit behavior.
 
-## Crate Root
+## Source Map
 
-```text
-crates/bijux-dna/
-├── Cargo.toml
-├── README.md
-├── docs/
-├── src/
-└── tests/
-```
+- `src/bin/bijux-dna.rs` is the binary wrapper.
+- `src/cli_entrypoint.rs` exposes the testable CLI entrypoint.
+- `src/process_exit.rs` maps categorized failures to process exits.
+- `src/commands/` owns command parsing, routing, rendering, and CLI-only
+  orchestration.
+- `src/public_api/` exposes the small crate-local surface used by tests and
+  downstream command documentation.
 
-Only `README.md` belongs at the crate root. All other crate documentation belongs in `docs/`.
+## Test Map
 
-## Source Tree
+- `tests/boundaries.rs` checks source layout, dependency boundaries, command
+  inventory, and help/documentation contracts.
+- `tests/contracts.rs` checks CLI behavior and dry-run output contracts.
+- `tests/guardrails.rs` runs shared policy guardrails for the crate.
+- `tests/workspace_paths.rs` is intentionally present for workspace-path
+  contract coverage when tests are selected by name.
+- `tests/contracts/` and `tests/snapshots/` hold focused contract fixtures and
+  rendered help snapshots.
 
-```text
-src/
-├── bin/
-│   └── bijux-dna.rs
-├── cli_entrypoint.rs
-├── commands/
-├── lib.rs
-├── process_exit.rs
-└── public_api/
-```
+## Boundaries
 
-- `bin/bijux-dna.rs` is a thin process wrapper.
-- `cli_entrypoint.rs` captures argv/cwd and calls command routing without owning command behavior.
-- `lib.rs` exports only the curated public surface.
-- `process_exit.rs` maps categorized operator failures to stable exit behavior.
-- `public_api/` exposes only testable CLI entrypoints and explicit helper namespaces.
-
-## Command Tree
-
-`commands/` is partitioned by durable responsibility:
-
-- `commands/router/`: argv normalization, root command dispatch, cwd/environment setup, and
-  observability debug/collect routing.
-- `commands/cli/`: parser types, rendering helpers, plan command glue, validation helpers, and
-  environment/registry command support.
-- `commands/planning/`: run-plan and dry-run planning entrypoints.
-- `commands/status/`: runtime and repository status inspection.
-- `commands/corpus/`: curated corpus materialization, normalization, validation, listing, and diff.
-- `commands/benchmark/`: benchmark config, workspace, publication, corpus, suite, schema, and
-  FASTQ/BAM benchmark flows.
-- `commands/fastq/`: FASTQ meta-command dispatch and API mediation.
-- `commands/bam/`, `commands/vcf/`: domain-facing CLI adapters only.
-- `commands/ena/`, `commands/hpc/`, `commands/example.rs`, `commands/example/`: focused operator
-  helpers that do not belong in router or support.
-- `commands/support/`: shared command helpers with no command ownership.
-
-## Test Tree
-
-```text
-tests/
-├── boundaries.rs
-├── boundaries/
-├── contracts.rs
-├── contracts/
-├── guardrails.rs
-├── snapshots/
-└── workspace_paths.rs
-```
-
-- `boundaries.rs` aggregates layout, docs placement, dependency, public-surface, and process-spawn
-  checks.
-- `contracts.rs` aggregates command behavior, dry-run, bank, and HPC layout contracts.
-- `guardrails.rs` runs the shared crate guardrail config.
-- `snapshots/` stores help and serialized public-surface locks.
-- `workspace_paths.rs` centralizes repo/crate root resolution for integration tests.
-
-Empty placeholder test buckets are not part of the ideal tree. Add a bucket only when it contains
-executable tests or governed snapshots.
+The CLI must not own science semantics, planner policy, engine internals,
+runner backends, or hidden filesystem effects. It may coordinate declared CLI
+commands and delegate durable behavior to API, domain, infrastructure, and
+runtime crates where the dependency contract allows it.
 
 ## Dependency Direction
 
-The CLI may depend on `bijux-dna-api` and minimal support crates needed for parsing, rendering, and
-declared filesystem effects. Domain semantics, stage execution, runner behavior, runtime telemetry,
-and planner policy must live behind API or domain-owned boundaries.
+`bijux-dna` is an edge adapter. It may depend on the public API, selected
+domain/compiler/runtime helpers required by commands, and infrastructure helpers
+for declared effects. Lower-level crates must not depend on the CLI.
 
-## Enforcement
+## Command Inventory
 
-- `tests/boundaries/architecture_tree.rs` enforces the crate tree.
-- `tests/boundaries/guardrails/deps.rs` enforces CLI dependency exclusions.
-- Workspace policy tests enforce docs placement, public surface, and dependency graph contracts.
+`docs/COMMANDS.md` is the SSOT for commands managed by this crate. Update it
+with command routing, help snapshots, and command contract tests in the same
+change.
