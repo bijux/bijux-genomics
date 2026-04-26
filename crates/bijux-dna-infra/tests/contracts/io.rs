@@ -55,6 +55,23 @@ fn leaf_relative_paths_write_in_current_directory() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[cfg(unix)]
+#[test]
+fn atomic_write_preserves_existing_permissions() -> anyhow::Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let path = dir.path().join("private.txt");
+    bijux_dna_infra::atomic_write_bytes(&path, b"first")?;
+    std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600))?;
+
+    bijux_dna_infra::atomic_write_bytes(&path, b"second")?;
+
+    assert_eq!(std::fs::read_to_string(&path)?, "second");
+    assert_eq!(std::fs::metadata(&path)?.permissions().mode() & 0o777, 0o600);
+    Ok(())
+}
+
 #[test]
 fn bounded_read_rejects_files_larger_than_limit() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux")?;
