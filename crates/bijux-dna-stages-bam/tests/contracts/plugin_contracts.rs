@@ -72,3 +72,17 @@ fn bam_stage_plugin_rejects_parsing_unsupported_stage_ids() {
 
     assert!(error.to_string().contains("unsupported BAM stage bam.not_registered"));
 }
+
+#[test]
+fn bam_stage_plugin_rejects_empty_command_templates() {
+    let plugin = BamStagePlugin;
+    let mut plan = stage_plan("bam.mapping_summary");
+    plan.command.template.clear();
+
+    let error = match plugin.materialize(&plan) {
+        Ok(_) => panic!("empty command templates must fail"),
+        Err(error) => error,
+    };
+
+    assert!(error.to_string().contains("empty command template"));
+}
