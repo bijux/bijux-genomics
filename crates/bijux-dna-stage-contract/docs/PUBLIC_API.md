@@ -28,36 +28,46 @@ CLI parsing, process execution, or environment control APIs.
 - `PlanEdge`
 - `PlanValidationContext`
 - `RunExecutionPlan`
-- `StagePlan`
 - `StagePlanV1`
-- `StageSpecRef`
-- `PluginSpec`
+- `StagePlanJsonV1`
+- `PlannedArtifactV1`
+- `PlannerContractV1`
 - `StageInvocationV1`
 - `StagePluginOutputV1`
 - `StageReportPartV1`
 - `StageEventHintV1`
+- `StagePlugin`
+- `Executor`
+- `DryRunExecutor`
+- `PlanDecisionReason`
+- `PlanReasonKind`
 - `StageExecutorEntry`
 - `ReadinessBadge`
 - `StageDomain`
+- `ArtifactRef`
+- `StageIO`
 
-## Schema Examples
+## Shape Examples
+
+These examples are abbreviated for readability. Fixture snapshots under
+`tests/fixtures/` are the exact serialized contracts.
 
 ### StagePlanV1
 
 ```json
-{"schema_version":"bijux.stage_plan.v1","stage_id":"fastq.trim_reads"}
+{"stage_id":"fastq.trim_reads","stage_version":1,"tool_id":"fastp","tool_version":"1.0","command":{"template":["fastp"]}}
 ```
 
 ### ExecutionPlanV1
 
 ```json
-{"schema_version":"bijux.execution_plan.v1","steps":[],"edges":[]}
+{"schema_version":"bijux.execution_plan.v1","pipeline_id":"fastq-to-fastq__default__v1","planner_version":"planner","stages":[],"edges":[]}
 ```
 
 ### StagePluginOutputV1
 
 ```json
-{"schema_version":"bijux.stage_plugin_output.v1","metrics":{}}
+{"metrics":{},"artifacts":[],"report_parts":[],"warnings":[],"invariants":[],"event_hints":[]}
 ```
 
 ## Snapshots And Fixtures
