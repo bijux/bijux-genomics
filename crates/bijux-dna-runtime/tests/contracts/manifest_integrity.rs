@@ -132,6 +132,20 @@ fn run_manifest_output_artifacts_include_hashes_for_runtime_files() {
 }
 
 #[test]
+fn prepare_tool_run_dirs_rejects_path_traversal_segments() {
+    let base = std::env::temp_dir().join("runtime_run_dirs_segment_contract");
+    let _ = std::fs::remove_dir_all(&base);
+    std::fs::create_dir_all(&base).unwrap_or_else(|e| panic!("create base dir: {e}"));
+
+    for (tool, run_id) in [("../fastp", "run-1"), ("fastp", "../run-1"), ("", "run-1")] {
+        let err = prepare_tool_run_dirs(&base, tool, run_id)
+            .err()
+            .unwrap_or_else(|| panic!("expected invalid segment for tool={tool:?} run={run_id:?}"));
+        assert!(err.to_string().contains("path segment"), "unexpected segment error: {err}");
+    }
+}
+
+#[test]
 fn run_manifest_writes_reproducibility_report_artifact() {
     let base = std::env::var("TEST_TMP_DIR")
         .map_or_else(|_| std::env::temp_dir(), PathBuf::from)
