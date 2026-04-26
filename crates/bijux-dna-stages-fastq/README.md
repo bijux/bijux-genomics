@@ -46,7 +46,7 @@ See `crates/bijux-dna-stages-fastq/docs/STAGE_CONTRACTS.md`, `crates/bijux-dna-s
 Pure parsing; deterministic snapshots. See `crates/bijux-dna-stages-fastq/docs/EFFECTS.md` and the golden tests below.
 
 ## How to run its tests
-See `crates/bijux-dna-stages-fastq/docs/TESTS.md`. Golden tests: `tests/contracts/contract_snapshots.rs`, `tests/observer/observer_determinism.rs`, `tests/contracts/symmetry.rs`, `tests/contracts/registry_completeness.rs`.
+See `crates/bijux-dna-stages-fastq/docs/TESTS.md`. Golden tests: `tests/contracts/contract_snapshots.rs`, `tests/contracts/observer/observer_determinism.rs`, `tests/contracts/symmetry.rs`, `tests/contracts/registry_completeness.rs`.
 
 ## Where the docs live
 Start at `crates/bijux-dna-stages-fastq/docs/INDEX.md` and follow the crate docs listed above.
