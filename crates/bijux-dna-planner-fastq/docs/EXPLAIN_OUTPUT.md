@@ -1,12 +1,15 @@
-# EXPLAIN_OUTPUT
+# Explain Output
 
-## Fields
-- selected_tools
-- defaults_diff
-- reasons
-- contract_hashes
+Explain output is carried in plan decision reasons and snapshot payloads. It must make tool selection and defaults visible without requiring runtime execution.
 
-## Canonical example
+## Required Concepts
+- selected tool IDs
+- defaults diff
+- deterministic selection reason
+- contract hash when available
+- effective params used to build the command spec
+
+## Example
 ```json
 {
   "selected_tools": ["fastp"],
@@ -16,4 +19,7 @@
 }
 ```
 
-See `tests/explain/explainability.rs` (integration test lives at `tests/contracts/explain/explainability.rs`).
+## Enforcement
+- `tests/contracts/explain/explainability.rs`
+- `tests/contracts/explain/docs_explainability.rs`
+- snapshots under `tests/snapshots/`

@@ -1,19 +1,23 @@
 # Effects
 
-## What
-Defines what effects `bijux-dna-planner-fastq` is allowed to use.
+`bijux-dna-planner-fastq` is a planning crate. Its output may contain command specs, but this crate must not execute them.
 
-## Why
-Preserves architectural purity and reproducibility.
+## Allowed
+- Pure plan construction.
+- Reading repository-owned tool registry and fixture configuration.
+- Deterministic serialization and snapshot generation during tests.
+- Tracing plan graph metadata.
 
-## Non-goals
-- Granting permissions not required by the crate.
+## Forbidden
+- Process spawning.
+- Runtime tool discovery.
+- Network access.
+- Product execution.
+- CLI parsing or command routing.
+- Tool-output parsing.
+- Generated configuration mutation.
 
-## Contracts
-- Effects allowed/forbidden are enforced by policy tests.
-
-## Examples
-- Runner crates may spawn processes; most others may not.
-
-## Failure modes
-- Using forbidden effects fails policy checks.
+## Enforcement
+- Shared policy guardrails run through `tests/boundaries.rs`.
+- Planner-specific purity checks live under `tests/contracts/plan/no_parsing.rs`.
+- `docs/COMMANDS.md` records that this crate owns planned command specs, not runtime commands.

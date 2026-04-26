@@ -23,35 +23,28 @@ fn parse_toml(path: &Path) -> Value {
 }
 
 #[test]
-fn stage_mapping_points_to_manifest_authorities() {
+fn command_inventory_points_to_stage_authority() {
     let doc =
-        read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("STAGE_MAPPING.md"));
+        read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("COMMANDS.md"));
     assert!(
-        doc.contains("intentionally not a manual stage-to-tool matrix"),
-        "STAGE_MAPPING.md must refuse manual stage/tool tables",
+        doc.contains("## Runtime Commands\nNone."),
+        "COMMANDS.md must state that the planner exposes no runtime commands",
     );
-    for authority in [
-        "domain/fastq/index.yaml",
-        "domain/fastq/execution_support.yaml",
-        "domain/fastq/stages/*.yaml",
-        "domain/fastq/tools/*.yaml",
-        "src/tool_adapters/fastq.rs",
-    ] {
+    for authority in ["bijux_dna_domain_fastq::STAGES", "src/tool_adapters/"] {
         assert!(
             doc.contains(authority),
-            "STAGE_MAPPING.md must point to manifest authority {authority}",
+            "COMMANDS.md must point to command authority {authority}",
         );
     }
 }
 
 #[test]
-fn tool_selection_doc_describes_closed_runtime_boundary() {
+fn dependencies_doc_describes_forbidden_runtime_boundary() {
     let doc =
-        read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("TOOL_SELECTION.md"));
+        read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("DEPENDENCIES.md"));
     assert!(
-        doc.contains("publish only the\nclosed FASTQ execution surface")
-            || doc.contains("publish only the closed FASTQ execution surface"),
-        "TOOL_SELECTION.md must explain that generated configs expose only closed runtime support",
+        doc.contains("runner, engine, CLI, API, database, environment"),
+        "DEPENDENCIES.md must explain that runtime and application crates stay downstream",
     );
 }
 
@@ -102,18 +95,18 @@ fn ci_tool_registry_excludes_unpublished_fastq_tools() {
 #[test]
 fn stage_mapping_documents_declared_only_infer_asvs() {
     let doc =
-        read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("STAGE_MAPPING.md"));
+        read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("COMMANDS.md"));
     assert!(
-        doc.contains("`fastq.infer_asvs`") && doc.contains("governed `dada2` runtime contract"),
-        "STAGE_MAPPING.md must explain the admitted infer_asvs runtime boundary",
+        doc.contains("`fastq.infer_asvs`"),
+        "COMMANDS.md must list admitted FASTQ stages including infer_asvs",
     );
 }
 
 #[test]
 fn add_tool_doc_refuses_manual_mapping_updates() {
-    let doc = read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("ADD_TOOL.md"));
+    let doc = read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("INDEX.md"));
     assert!(
-        doc.contains("Do not maintain manual stage-to-tool tables in docs"),
-        "ADD_TOOL.md must route contributors to manifest SSOT instead of manual mapping docs",
+        doc.contains("Do not maintain manual stage-to-tool matrices in Markdown"),
+        "INDEX.md must route contributors to domain/test authority instead of manual mapping docs",
     );
 }
