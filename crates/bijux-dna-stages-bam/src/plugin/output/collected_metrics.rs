@@ -7,7 +7,7 @@ pub(super) fn collect_output_metrics(plan: &StagePlanV1, outputs: &[ArtifactRef]
     let out_dir = outputs
         .first()
         .and_then(|output| output.path.parent())
-        .map_or_else(|| std::path::PathBuf::from("."), std::path::PathBuf::from);
+        .map_or_else(|| plan.out_dir.clone(), std::path::PathBuf::from);
     let mut metrics = bam_metrics_from_dir(&out_dir);
     let thresholds = bijux_dna_domain_bam::metrics::BamInvariantThresholds::default();
     let evaluation = bijux_dna_domain_bam::metrics::evaluate_bam_invariants(

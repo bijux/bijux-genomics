@@ -98,3 +98,20 @@ fn bam_stage_plugin_preserves_reported_output_artifacts() -> anyhow::Result<()> 
     assert_eq!(parsed.artifacts, outputs);
     Ok(())
 }
+
+#[test]
+fn bam_stage_plugin_reads_plan_out_dir_when_outputs_are_empty() -> anyhow::Result<()> {
+    let plugin = BamStagePlugin;
+    let temp = bijux_dna_infra::temp_dir("bijux-bam-plugin-out-dir")?;
+    let mut plan = stage_plan("bam.mapping_summary");
+    plan.out_dir = temp.path().to_path_buf();
+    bijux_dna_infra::write_bytes(
+        plan.out_dir.join("flagstat.txt"),
+        include_bytes!("../fixtures/observer/default/flagstat.txt"),
+    )?;
+
+    let parsed = plugin.parse_outputs(&plan, &[])?;
+
+    assert_eq!(parsed.metrics.metrics["alignment"]["total"], 10);
+    Ok(())
+}
