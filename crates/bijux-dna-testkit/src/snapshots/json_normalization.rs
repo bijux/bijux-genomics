@@ -86,7 +86,59 @@ fn normalize_artifact_tmp_path(input: &str) -> String {
 }
 
 fn looks_like_timestamp(value: &str) -> bool {
-    value.contains('T') && value.contains(':') && value.contains('-')
+    let value = value.trim();
+    let bytes = value.as_bytes();
+    if bytes.len() < "2000-01-01T00:00:00".len() {
+        return false;
+    }
+    matches!(
+        (
+            digit(bytes, 0),
+            digit(bytes, 1),
+            digit(bytes, 2),
+            digit(bytes, 3),
+            bytes.get(4),
+            digit(bytes, 5),
+            digit(bytes, 6),
+            bytes.get(7),
+            digit(bytes, 8),
+            digit(bytes, 9),
+            bytes.get(10),
+            digit(bytes, 11),
+            digit(bytes, 12),
+            bytes.get(13),
+            digit(bytes, 14),
+            digit(bytes, 15),
+            bytes.get(16),
+            digit(bytes, 17),
+            digit(bytes, 18),
+        ),
+        (
+            true,
+            true,
+            true,
+            true,
+            Some(b'-'),
+            true,
+            true,
+            Some(b'-'),
+            true,
+            true,
+            Some(b'T'),
+            true,
+            true,
+            Some(b':'),
+            true,
+            true,
+            Some(b':'),
+            true,
+            true
+        )
+    )
+}
+
+fn digit(bytes: &[u8], index: usize) -> bool {
+    bytes.get(index).is_some_and(u8::is_ascii_digit)
 }
 
 fn looks_like_duration(value: &str) -> bool {
