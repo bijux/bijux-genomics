@@ -53,3 +53,8 @@ Runtime failures surface through backend process errors, missing images, permiss
 
 ## Stability
 Contract changes must update the relevant docs and boundary tests in the same reviewable change.
+
+## Repository Policy
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read both before editing this child repository or
+making commits.

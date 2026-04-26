@@ -55,3 +55,8 @@ Primary failures surface as snapshot or contract violations; inspect the golden 
 ## Stability
 Contract and behavior changes follow `docs/PUBLIC_API.md`, `docs/BOUNDARY.md`, and
 `docs/DEPENDENCIES.md`.
+
+## Repository Policy
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read both before editing this child repository or
+making commits.
