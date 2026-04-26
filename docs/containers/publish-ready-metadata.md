@@ -2,6 +2,20 @@
 
 `bijux-dna` treats OCI image labels as the canonical metadata surface for publishable containers.
 
+## Purpose
+Define the metadata contract containers must satisfy before publication.
+
+## Scope
+This document covers OCI label expectations for Docker and Apptainer image definitions.
+
+## Non-goals
+- Publishing images.
+- Defining tool runtime behavior inside an image.
+
+## Contracts
+- Container definitions must expose the canonical OCI label set.
+- Release automation must stamp source revision and creation metadata before publication.
+
 This policy is designed so the same container definition can stay valid for:
 
 - Apptainer builds on Lunarc
@@ -36,7 +50,7 @@ Those patterns duplicate OCI labels, drift easily, and do not improve registry p
 
 ## Build-Time Stamping
 
-Definitions may keep placeholder values such as `unknown` for:
+Definitions may keep sentinel values such as `unknown` for:
 
 - `org.opencontainers.image.revision`
 - `org.opencontainers.image.created`
