@@ -1,19 +1,23 @@
 # Features
 
-`api_internal`
-- Enables internal API modules used for in-repo orchestration and testing.
+`bijux-dna-api` has an empty default feature set. Feature flags should expose
+optional behavior without changing the stable meaning of v1 contracts.
 
-`bam_downstream`
-- Enables BAM downstream planning paths via planner/pipeline feature propagation.
+## Feature Flags
 
-`bench`
-- Enables benchmarking-oriented code paths.
+| Feature | Purpose |
+| --- | --- |
+| `api_internal` | Enables internal API modules used by in-repo orchestration and tests. |
+| `bam_downstream` | Propagates downstream BAM planning support into planner and pipeline crates. |
+| `bench` | Enables benchmarking-oriented code paths and helper exports. |
+| `docker-runner` | Enables Docker-runtime behavior hooks where runner/runtime support is available. |
+| `report-html` | Enables HTML report rendering integration points. |
+| `default` | Empty; callers opt in to optional behavior explicitly. |
 
-`default`
-- Empty default feature set.
+## Rules
 
-`docker-runner`
-- Enables Docker runtime-specific behavior hooks.
-
-`report-html`
-- Enables HTML reporting integration points.
+- Keep feature-gated behavior additive.
+- Do not hide breaking schema changes behind a feature flag.
+- Document new feature flags here and in `Cargo.toml` in the same change.
+- Validate feature-sensitive changes with `cargo test -p bijux-dna-api
+  --all-features` before release-facing handoff.

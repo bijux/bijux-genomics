@@ -1,29 +1,70 @@
 # Request Flow
 
-## Goal
-Make handler wiring explicit and prevent handler sprawl.
+The API crate is a Rust front door, not an HTTP server. Callers enter through
+`bijux_dna_api::v1::api`, provide typed requests, and receive typed responses or
+JSON audit/report evidence.
 
-## Flow (v1)
-1. Parse request into v1 request types.
-2. Map request to planner inputs.
-3. Call planners to build execution plans.
-4. Hand plan to engine for validation + execution.
-5. Persist runtime artifacts (manifest, record, provenance).
-6. Return v1 response schema.
+## Plan
 
-## Example: `plan`
-Input:
-- `PlanRequest` (pipeline id + inputs)
+1. Caller builds `PlanRequest`.
+2. `v1::api::plan` routes to `runtime/run/reporting/plan_response.rs`.
+3. The API validates the execution graph and profile context.
+4. The response returns `PlanResponse` with the graph, graph hash, and manifest
+   preview.
 
-Mapping:
-- Load tool registry
-- Build an execution graph via planners
+No stages execute in this flow.
 
-Artifacts:
-- `ExecutionGraph` (plan)
-- `PlanResponse` (stable schema)
+## Dry Run
 
-## Boundaries
-- API owns request/response types and schema stability.
-- Engine owns execution, runtime owns artifacts.
-- `src/internal/*` is wiring only and may change at any time.
+1. Caller builds `DryRunRequest` with graph, run directory, and profile id.
+2. `v1::api::dry_run` routes to `runtime/run/reporting/dry_run.rs`.
+3. The API writes deterministic graph and manifest artifacts under the declared
+   run directory.
+4. The response returns `DryRunResponse` paths to those artifacts.
+
+Dry-run may write declared artifacts, but it must not execute stage tools.
+
+## Execute
+
+1. Caller builds `ExecuteRequest` with graph, runtime kind, and run directory.
+2. `v1::api::execute` routes to `runtime/run/reporting/execute_run.rs`.
+3. The API validates input and delegates execution through runtime/runner
+   boundaries.
+4. The response returns `ExecuteResponse` with run id, manifest path, and
+   optional report path.
+
+Execution is the only managed flow allowed to invoke runner/runtime execution.
+
+## Execute And Report
+
+1. Caller invokes `execute_and_report` with `ExecuteRequest`.
+2. Execution runs through the execute path.
+3. Report rendering runs through `runtime/run/reporting/rendering.rs`.
+4. The response remains an `ExecuteResponse`; report artifacts are declared by
+   the response paths and run manifest.
+
+## Status
+
+1. Caller asks for status for a run directory.
+2. `v1::api::status` reads persisted manifest/report evidence.
+3. The response returns `RunStatus`.
+
+Status must not mutate the run.
+
+## Explain
+
+1. Caller provides an execution graph and optional defaults ledger.
+2. `v1::api::explain` calls the explainability surface.
+3. The response returns `ExplainResponse` with selected tools, defaults diff, and
+   stage contract hashes when available.
+
+Explainability is deterministic for the same graph and defaults ledger.
+
+## Policy Audit
+
+1. Caller invokes `policy_audit`, `workspace_edges`, or `write_workspace_audit`.
+2. The API inspects crate/workspace dependency evidence.
+3. The flow returns JSON or persisted audit artifacts.
+
+Audit output is evidence for this crate boundary; it must not change source
+state.
