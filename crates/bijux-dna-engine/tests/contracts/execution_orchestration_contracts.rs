@@ -254,6 +254,30 @@ fn retry_attempts_emit_step_start_events() {
 }
 
 #[test]
+fn verified_outputs_emit_artifact_events() {
+    let mut step = plan_for("A");
+    let output_path = step.out_dir.join("output.json");
+    step.io.outputs = vec![ArtifactSpec::required(
+        ArtifactId::new("output"),
+        output_path.clone(),
+        ArtifactRole::MetricsJson,
+    )];
+    let plan = build_graph(vec![step], Vec::new());
+    let hooks = RecordingHooks::default();
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
+
+    Engine::default()
+        .execute(&plan, &ScenarioRunner::new(Mode::Success), &layout, Some(&hooks), None)
+        .unwrap_or_else(|err| panic!("run: {err}"));
+
+    let verified = hooks.events().into_iter().any(|event| match event {
+        EngineEvent::ArtifactVerified { path, .. } => path == output_path.display().to_string(),
+        _ => false,
+    });
+    assert!(verified, "expected artifact verification event for {}", output_path.display());
+}
+
+#[test]
 fn exhausted_retries_emit_failure_end_event() {
     let plan = build_graph(vec![plan_for("A")], Vec::new())
         .with_retry_policy(RetryPolicy { max_attempts: 1, retry_on_exit_codes: vec![1] });
