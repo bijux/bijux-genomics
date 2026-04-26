@@ -3,7 +3,7 @@ use anyhow::anyhow;
 use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_engine::Engine;
 use bijux_dna_runner::DockerRunner;
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 /// Replay or verify a run from a run manifest.
 ///
@@ -29,7 +29,7 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
             let Some(path_str) = path_value.as_str() else {
                 continue;
             };
-            let path = base_dir.join(path_str);
+            let path = resolve_manifest_relative_path(base_dir, path_str)?;
             if !path.exists() {
                 return Err(anyhow!("missing output artifact {}", path.display()));
             }
@@ -47,7 +47,7 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
         }
         return Ok(());
     }
-    let graph_path = resolve_graph_path(base_dir, &artifacts);
+    let graph_path = resolve_graph_path(base_dir, &artifacts)?;
     let graph_raw =
         std::fs::read_to_string(&graph_path).map_err(|err| anyhow!("read graph.json: {err}"))?;
     let graph: ExecutionGraph =
@@ -67,22 +67,42 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
     Ok(())
 }
 
-fn resolve_graph_path(base_dir: &Path, artifacts: &[serde_json::Value]) -> PathBuf {
+fn resolve_graph_path(base_dir: &Path, artifacts: &[serde_json::Value]) -> Result<PathBuf> {
     artifacts
         .iter()
         .find_map(|entry| {
             let is_graph = entry.get("kind").and_then(|value| value.as_str()) == Some("graph");
             let path = entry.get("path").and_then(|value| value.as_str())?;
-            is_graph.then(|| base_dir.join(path))
+            is_graph.then_some(path)
         })
-        .unwrap_or_else(|| {
-            bijux_dna_runtime::recording::run_artifacts_dir_for_out(base_dir).join("graph.json")
-        })
+        .map_or_else(
+            || {
+                Ok(bijux_dna_runtime::recording::run_artifacts_dir_for_out(base_dir)
+                    .join("graph.json"))
+            },
+            |path| resolve_manifest_relative_path(base_dir, path),
+        )
+}
+
+fn resolve_manifest_relative_path(base_dir: &Path, path: &str) -> Result<PathBuf> {
+    if path.is_empty() {
+        return Err(anyhow!("output artifact path must not be empty"));
+    }
+    let relative_path = Path::new(path);
+    if relative_path.is_absolute() {
+        return Err(anyhow!("output artifact path must be relative: {path}"));
+    }
+    if relative_path.components().any(|component| {
+        matches!(component, Component::ParentDir | Component::RootDir | Component::Prefix(_))
+    }) {
+        return Err(anyhow!("output artifact path must stay within run directory: {path}"));
+    }
+    Ok(base_dir.join(relative_path))
 }
 
 #[cfg(test)]
 mod tests {
-    use super::resolve_graph_path;
+    use super::{resolve_graph_path, resolve_manifest_relative_path};
 
     #[test]
     fn resolve_graph_path_uses_manifest_graph_artifact() -> anyhow::Result<()> {
@@ -93,7 +113,7 @@ mod tests {
             "schema": "bijux.execution_graph.v1"
         })];
 
-        let graph_path = resolve_graph_path(temp.path(), &artifacts);
+        let graph_path = resolve_graph_path(temp.path(), &artifacts)?;
 
         assert_eq!(graph_path, temp.path().join("graph.json"));
         Ok(())
@@ -103,12 +123,37 @@ mod tests {
     fn resolve_graph_path_keeps_legacy_artifact_location() -> anyhow::Result<()> {
         let temp = tempfile::tempdir()?;
 
-        let graph_path = resolve_graph_path(temp.path(), &[]);
+        let graph_path = resolve_graph_path(temp.path(), &[])?;
 
         assert_eq!(
             graph_path,
             bijux_dna_runtime::recording::run_artifacts_dir_for_out(temp.path()).join("graph.json")
         );
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_manifest_relative_path_rejects_parent_traversal() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+
+        let err = resolve_manifest_relative_path(temp.path(), "../outside.json")
+            .expect_err("parent traversal should fail");
+
+        assert!(
+            err.to_string().contains("must stay within run directory"),
+            "unexpected error: {err}"
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_manifest_relative_path_rejects_absolute_paths() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+
+        let err = resolve_manifest_relative_path(temp.path(), "/tmp/outside.json")
+            .expect_err("absolute path should fail");
+
+        assert!(err.to_string().contains("must be relative"), "unexpected error: {err}");
         Ok(())
     }
 }
