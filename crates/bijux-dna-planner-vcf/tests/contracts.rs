@@ -183,6 +183,19 @@ fn vcf_planner_refuses_requested_stage_outside_resolved_coverage() {
 }
 
 #[test]
+fn vcf_planner_refuses_requested_stages_out_of_downstream_order() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages = Some(vec!["vcf.stats".to_string(), "vcf.filter".to_string()]);
+
+    let err = plan_vcf_stage_plans(&input).expect_err("out-of-order stages must fail");
+
+    assert!(
+        err.to_string().contains("downstream ordering violation"),
+        "unexpected planner refusal: {err}"
+    );
+}
+
+#[test]
 fn vcf_planner_refuses_edna_or_pollen_domain() {
     let mut input = base_inputs(CoverageRegime::LowCovGl);
     input.pipeline_domain = "edna".to_string();
