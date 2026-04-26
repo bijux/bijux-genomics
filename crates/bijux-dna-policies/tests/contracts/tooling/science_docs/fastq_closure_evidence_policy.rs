@@ -532,3 +532,34 @@ fn policy__contracts__fastq_closure_evidence_policy__production_ledger_matches_p
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__fastq_closure_evidence_policy__production_ledger_matches_license_gaps() {
+    let license_by_tool =
+        tsv_records("science/docs/upstream/fastq/container/FASTQ_CONTAINER_LICENSE_GAPS.tsv")
+            .into_iter()
+            .map(|row| (row["default_tool"].clone(), row["license_status"].clone()))
+            .collect::<BTreeMap<_, _>>();
+    let mut offenders = Vec::new();
+
+    for row in
+        tsv_records("science/docs/upstream/fastq/container/FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv")
+    {
+        let expected = license_by_tool
+            .get(&row["tool_id"])
+            .map(String::as_str)
+            .unwrap_or("missing_license_file");
+        if row["license_status"] != expected {
+            offenders.push(format!(
+                "{}:{} ledger license_status={} but license gaps report has {expected}",
+                row["stage_id"], row["tool_id"], row["license_status"]
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "FASTQ production ledger license parity violations:\n{}",
+        offenders.join("\n")
+    );
+}
