@@ -7,7 +7,11 @@ See `SCOPE.md` for what belongs here.
 See `EFFECTS.md` for allowed effects.
 
 ## Boundaries
-See `ARCHITECTURE.md` for internal boundaries.
+See `BOUNDARY.md` for crate ownership and forbidden dependencies.
+
+## Commands
+See `COMMANDS.md` for the command inventory SSOT. This crate owns no CLI
+commands.
 
 ## Observers
 See `OBSERVERS.md` for parsing rules and determinism.
