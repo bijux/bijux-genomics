@@ -61,6 +61,24 @@ fn crate_tree_matches_domain_fastq_boundary() {
     .collect();
     assert_eq!(dir_entries(&root.join("src")), expected_src, "source tree changed");
 
+    assert_eq!(
+        dir_entries(&root.join("src/banks")),
+        entries(["adapter/", "contaminant/", "mod.rs", "polyx/", "selection/", "selection.rs"]),
+        "banks/ must stay split by bank family and selection concern"
+    );
+    for family in ["adapter", "contaminant", "polyx"] {
+        assert_eq!(
+            dir_entries(&root.join("src/banks").join(family)),
+            entries(["mod.rs", "models.rs", "resolution.rs", "validation.rs"]),
+            "{family} bank must keep models, resolution, and validation separate"
+        );
+    }
+    assert_eq!(
+        dir_entries(&root.join("src/banks/selection")),
+        entries(["adapters.rs", "contaminants.rs", "polyx.rs", "warnings.rs"]),
+        "bank selection must stay split by bank family"
+    );
+
     let expected_stages: BTreeSet<_> = [
         "contract.rs",
         "contract/",
@@ -129,6 +147,10 @@ fn dir_entries(path: &Path) -> BTreeSet<String> {
             }
         })
         .collect()
+}
+
+fn entries<const N: usize>(items: [&str; N]) -> BTreeSet<String> {
+    items.into_iter().map(str::to_string).collect()
 }
 
 fn collect_markdown_outside_docs(root: &Path, path: &Path, offenders: &mut Vec<String>) {
