@@ -23,7 +23,6 @@ This file maps runner tests to their contract purpose. Directory-local README fi
 - `tests/contracts/backend.rs` checks backend contract behavior visible to crate consumers.
 
 ## Determinism Suite
-- `tests/determinism/determinism.rs` is the suite-level determinism coverage anchor.
 - `tests/determinism/run_id_determinism.rs` checks run-id stability.
 - `tests/determinism/replay.rs` and `tests/determinism/replay/replay_*.rs` check replay contract behavior where present.
 
