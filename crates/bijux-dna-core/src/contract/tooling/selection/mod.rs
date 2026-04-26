@@ -224,7 +224,15 @@ fn median(values: &[f64]) -> Option<f64> {
 fn read_retention(record: &BenchResultRecord) -> Option<f64> {
     let metrics = record.metrics.as_ref()?;
     let retention = metrics.get("retention")?;
-    retention.get("value").and_then(serde_json::Value::as_f64).or_else(|| retention.as_f64())
+    let value = retention
+        .get("value")
+        .and_then(serde_json::Value::as_f64)
+        .or_else(|| retention.as_f64())?;
+    if value.is_finite() && (0.0..=1.0).contains(&value) {
+        Some(value)
+    } else {
+        None
+    }
 }
 
 #[cfg(test)]
@@ -263,5 +271,33 @@ mod tests {
         assert_eq!(selection.selected.as_deref(), Some("fast"));
         assert!(score_for(&selection.scores, "fast").is_some_and(f64::is_finite));
         assert!(score_for(&selection.scores, "slow").is_some_and(f64::is_finite));
+    }
+
+    #[test]
+    fn retention_selection_ignores_invalid_fraction_values() {
+        let stage = StageId::new("fastq.trim_reads");
+        let invalid = BenchResultRecord {
+            metrics: Some(serde_json::json!({"retention": {"value": 1.2}})),
+            ..successful_record(Some(1.0), Some(1.0))
+        };
+        let valid = BenchResultRecord {
+            metrics: Some(serde_json::json!({"retention": 0.9})),
+            ..successful_record(Some(5.0), Some(5.0))
+        };
+        let records =
+            vec![("invalid".to_string(), vec![invalid]), ("valid".to_string(), vec![valid])];
+
+        let selection =
+            select_stage(&stage, &records, &objective_spec(Objective::Retention), false);
+
+        assert_eq!(selection.selected.as_deref(), Some("valid"));
+        assert_eq!(
+            selection
+                .scores
+                .iter()
+                .find(|score| score.tool == "invalid")
+                .and_then(|score| score.retention_median),
+            None
+        );
     }
 }
