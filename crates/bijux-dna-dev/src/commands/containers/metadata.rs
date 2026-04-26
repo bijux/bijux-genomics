@@ -1445,7 +1445,7 @@ mod tests {
         ];
         let (output, prefix, tools, statuses) =
             parse_ghcr_publish_matrix_args(&workspace, GhcrRuntimeKind::DockerArm64, &args)
-                .expect("parse args");
+                .unwrap_or_else(|err| panic!("parse args: {err}"));
         assert_eq!(
             output,
             PathBuf::from(
@@ -1467,7 +1467,7 @@ mod tests {
         ];
         let (output, prefix, tools, statuses) =
             parse_ghcr_publish_matrix_args(&workspace, GhcrRuntimeKind::DockerArm64, &args)
-                .expect("parse args");
+                .unwrap_or_else(|err| panic!("parse args: {err}"));
         assert_eq!(output, PathBuf::from("/tmp/bijux-genomics/reports/publish.json"));
         assert_eq!(prefix, "ghcr.io/example/private");
         assert!(tools.is_empty());
@@ -1479,7 +1479,7 @@ mod tests {
         let workspace = Workspace { root: PathBuf::from("/tmp/bijux-genomics") };
         let (output, prefix, tools, statuses) =
             parse_ghcr_publish_matrix_args(&workspace, GhcrRuntimeKind::Apptainer, &[])
-                .expect("parse args");
+                .unwrap_or_else(|err| panic!("parse args: {err}"));
         assert_eq!(
             output,
             PathBuf::from(

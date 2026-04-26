@@ -58,7 +58,7 @@ pub(in super::super::super) fn run_container_smoke(
         return Ok(prep);
     }
     let smoke = run_env_smoke(workspace, &[])?;
-    Ok(merge_outcomes(prep, smoke))
+    Ok(merge_outcomes(prep, &smoke))
 }
 
 pub(in super::super::super) fn run_containers_smoke(
@@ -92,7 +92,7 @@ pub(in super::super::super) fn run_containers_smoke(
             ]
             .concat(),
         )?;
-        aggregate = merge_outcomes(aggregate, prep.clone());
+        aggregate = merge_outcomes(aggregate, &prep);
         if !prep.is_success() {
             return Ok(aggregate);
         }
@@ -110,7 +110,7 @@ pub(in super::super::super) fn run_containers_smoke(
             ]
             .concat(),
         )?;
-        aggregate = merge_outcomes(aggregate, smoke.clone());
+        aggregate = merge_outcomes(aggregate, &smoke);
         if !smoke.is_success() {
             return Ok(aggregate);
         }

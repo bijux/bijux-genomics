@@ -48,7 +48,7 @@ pub(super) fn append_named_outcome(
     outcome: ContainerCommandOutcome,
 ) {
     let _ = writeln!(aggregate.stdout, "== {name}");
-    *aggregate = merge_outcomes(aggregate.clone(), outcome);
+    *aggregate = merge_outcomes(aggregate.clone(), &outcome);
 }
 
 pub(super) fn iso_root_path(workspace: &Workspace) -> PathBuf {
