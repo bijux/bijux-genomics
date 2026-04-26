@@ -225,13 +225,6 @@ mod contracts {
         let committed = std::fs::read_to_string(expected_path)
             .unwrap_or_else(|err| panic!("read configs/ci/tools/required_tools_vcf.toml: {err}"));
         let generated = required_tools_toml();
-        assert!(
-            committed.contains("required_tools = [\"bcftools\"]"),
-            "committed required-tools config must include bcftools"
-        );
-        assert!(
-            generated.contains("required_tools = [\"bcftools\"]"),
-            "generated required-tools config must include bcftools"
-        );
+        assert_eq!(generated, committed);
     }
 }
