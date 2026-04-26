@@ -51,8 +51,13 @@ pub(super) fn validate_stage_files(
             if stage.outputs.is_empty() {
                 bail!("{} missing outputs", path.display());
             }
-            if stage.compatible_tools.is_empty() {
-                bail!("{} missing compatible_tools", path.display());
+            if stage.compatible_tools.is_empty()
+                && (stage.status == "supported" || stage.planned_out_of_scope.is_empty())
+            {
+                bail!(
+                    "{} missing compatible_tools or planned_out_of_scope",
+                    path.display()
+                );
             }
             if stage.invariants.is_empty() {
                 bail!("{} missing invariants", path.display());

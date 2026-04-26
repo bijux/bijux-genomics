@@ -1031,7 +1031,7 @@ stage_ordering_constraints:
   fastq.correct_errors:
   - fastq.filter_reads
   fastq.extract_umis:
-  - fastq.trim_reads
+  - fastq.validate_reads
   fastq.profile_read_lengths:
   - fastq.validate_reads
   fastq.trim_polyg_tails:
@@ -1081,7 +1081,7 @@ stage_prerequisites:
   fastq.correct_errors:
   - fastq.filter_reads
   fastq.extract_umis:
-  - fastq.trim_reads
+  - fastq.validate_reads
   fastq.profile_read_lengths:
   - fastq.validate_reads
   fastq.trim_polyg_tails:
