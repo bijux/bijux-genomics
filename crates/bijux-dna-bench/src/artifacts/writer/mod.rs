@@ -73,6 +73,43 @@ mod tests {
         SummaryRow,
     };
 
+    fn sample_observation(run_id: &str, replicate_id: &str) -> BenchmarkObservation {
+        BenchmarkObservation {
+            schema_version: "bijux.bench.observation.v1".to_string(),
+            run_id: run_id.to_string(),
+            dataset_id: "dataset-1".to_string(),
+            dataset_class: "trueseq".to_string(),
+            read_layout: "paired".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: None,
+            lineage_id: None,
+            tool_id: "fastp".to_string(),
+            tool_version: "0.23.4".to_string(),
+            image_digest: "sha256:abc".to_string(),
+            container_digest: "sha256:abc".to_string(),
+            params_hash: "params-a".to_string(),
+            input_hash: "input".to_string(),
+            runtime_s: 1.0,
+            memory_mb: 100.0,
+            exit_code: 0,
+            failure_kind: None,
+            metrics: MetricsEnvelope {
+                stage_id: "fastq.trim_reads".to_string(),
+                schema_version: "metrics.v1".to_string(),
+                values: BTreeMap::new(),
+            },
+            replicate_id: replicate_id.to_string(),
+            replicate_index: 0,
+            warmup_policy: "none".to_string(),
+            seed_policy: "default".to_string(),
+            runner: "docker".to_string(),
+            platform: "linux".to_string(),
+            cpu: "x86_64".to_string(),
+            threads: 4,
+            io_mode: "local".to_string(),
+        }
+    }
+
     #[test]
     fn artifacts_are_stable_and_atomic() -> anyhow::Result<()> {
         let temp = tempfile::tempdir()?;
@@ -208,6 +245,23 @@ mod tests {
 
         let reloaded = read_observations_jsonl(&out_dir.join("observations.jsonl"))?;
         assert_eq!(reloaded.len(), 1);
+        Ok(())
+    }
+
+    #[test]
+    fn resume_observation_write_preserves_existing_rows() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let path = temp.path().join("observations.jsonl");
+        let existing = sample_observation("run-1", "r1");
+        let incoming = sample_observation("run-2", "r2");
+
+        write_observations_jsonl(&path, &[existing], WriteMode::Force)?;
+        write_observations_jsonl(&path, &[incoming], WriteMode::Resume)?;
+
+        let reloaded = read_observations_jsonl(&path)?;
+        assert_eq!(reloaded.len(), 2);
+        assert!(reloaded.iter().any(|obs| obs.run_id == "run-1"));
+        assert!(reloaded.iter().any(|obs| obs.run_id == "run-2"));
         Ok(())
     }
 }

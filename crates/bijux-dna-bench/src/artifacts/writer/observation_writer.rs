@@ -28,9 +28,19 @@ pub(super) fn write_observations_jsonl(
     path: &Path,
     observations: &[BenchmarkObservation],
     mode: WriteMode,
-    tool_id_key: &str,
+    _tool_id_key: &str,
 ) -> Result<()> {
-    let mut ordered = observations.to_vec();
+    let mut ordered = if matches!(mode, WriteMode::Resume) {
+        observation_reader::read_observations_jsonl(path)?
+    } else {
+        Vec::new()
+    };
+    let mut existing = ordered.iter().map(observation_key).collect::<BTreeSet<_>>();
+    for obs in observations {
+        if existing.insert(observation_key(obs)) {
+            ordered.push(obs.clone());
+        }
+    }
     ordered.sort_by(|a, b| {
         (&a.dataset_id, &a.stage_id, &a.tool_id, &a.params_hash, &a.replicate_id, a.replicate_index)
             .cmp(&(
@@ -42,16 +52,8 @@ pub(super) fn write_observations_jsonl(
                 b.replicate_index,
             ))
     });
-    let existing = if matches!(mode, WriteMode::Resume) {
-        observation_reader::load_existing_keys(path, tool_id_key)?
-    } else {
-        BTreeSet::new()
-    };
     let mut payload = String::new();
     for obs in ordered {
-        if matches!(mode, WriteMode::Resume) && existing.contains(&observation_key(&obs)) {
-            continue;
-        }
         payload.push_str(&canonical_json_line(&obs)?);
         payload.push('\n');
     }
