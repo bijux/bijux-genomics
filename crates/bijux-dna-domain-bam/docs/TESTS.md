@@ -20,7 +20,7 @@ Tests should explain the contract they enforce.
 - `tests/contracts.rs` → contract suite aggregator for serialized API, stage contracts, parsers, docs, snapshots, and public surface.
 - `tests/determinism.rs` → determinism suite aggregator for fixture and snapshot stability.
 - `tests/semantics.rs` → semantic suite aggregator for invariant behavior.
-- `tests/contracts/parsers/*` → parsing fixtures under `tests/fixtures/bam/default/*` and `tests/fixtures/tool_metrics/default/*`.
+- `tests/contracts/parsers/bam_tool_parsers.rs` and `tests/contracts/parsers/new_tool_metrics.rs` → parsing fixtures under `tests/fixtures/bam/default/*` and `tests/fixtures/tool_metrics/default/*`.
 - `tests/contracts/*` → stage contracts, public surface, canonical serialization, and docs checks.
 - `tests/semantics/invariants/*` → invariant specs and stage semantics.
 - `tests/contracts/reference_suite/*` → reference suite coverage.
