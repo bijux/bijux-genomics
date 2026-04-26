@@ -6,6 +6,7 @@ fn bench_model_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
 
     assert_docs_tree(root);
+    assert_dependency_graph(root);
     assert_eq!(
         dir_entries(root),
         entries(["Cargo.toml", "README.md", "docs/", "src/", "tests/"]),
@@ -124,6 +125,29 @@ fn bench_model_tree_matches_architecture_contract() {
     );
 }
 
+fn assert_dependency_graph(root: &Path) {
+    let cargo_toml_path = root.join("Cargo.toml");
+    let cargo_toml = std::fs::read_to_string(&cargo_toml_path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", cargo_toml_path.display()));
+    let dependencies = manifest_dependencies(&cargo_toml, "[dependencies]");
+    let dev_dependencies = manifest_dependencies(&cargo_toml, "[dev-dependencies]");
+
+    let duplicate_edges: Vec<_> =
+        dependencies.intersection(&dev_dependencies).map(String::as_str).collect();
+    assert!(
+        duplicate_edges.is_empty(),
+        "dependencies must not be duplicated in dev-dependencies: {duplicate_edges:?}",
+    );
+
+    let forbidden = ["bijux-dna-api", "bijux-dna-bench", "bijux-dna-runner", "bijux-dna-runtime"];
+    for name in forbidden {
+        assert!(
+            !dependencies.contains(name) && !dev_dependencies.contains(name),
+            "bench-model must not depend on downstream orchestration crate {name}",
+        );
+    }
+}
+
 fn assert_docs_tree(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("docs")),
@@ -169,6 +193,26 @@ fn entries<const N: usize>(items: [&str; N]) -> BTreeSet<String> {
     items.into_iter().map(str::to_string).collect()
 }
 
+fn manifest_dependencies(manifest: &str, section: &str) -> BTreeSet<String> {
+    let mut in_section = false;
+    let mut deps = BTreeSet::new();
+    for line in manifest.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('[') {
+            in_section = trimmed == section;
+            continue;
+        }
+        if !in_section || trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        let Some((name, _)) = trimmed.split_once('=') else {
+            continue;
+        };
+        deps.insert(name.trim().to_string());
+    }
+    deps
+}
+
 fn markdown_files_outside_docs(root: &Path) -> Vec<String> {
     let mut files = Vec::new();
     collect_markdown_files(root, root, &mut files);
@@ -176,8 +220,8 @@ fn markdown_files_outside_docs(root: &Path) -> Vec<String> {
 }
 
 fn collect_markdown_files(root: &Path, path: &Path, files: &mut Vec<String>) {
-    let entries = std::fs::read_dir(path)
-        .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+    let entries =
+        std::fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
     for entry in entries {
         let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
         let path = entry.path();
