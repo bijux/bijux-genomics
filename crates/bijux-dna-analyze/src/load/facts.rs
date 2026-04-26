@@ -132,7 +132,7 @@ fn normalize_bank_hashes(bank_hashes: &mut serde_json::Value) {
 /// Returns an error if facts cannot be loaded from jsonl or parquet.
 pub fn load_facts_auto(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeError> {
     match path.extension().and_then(|ext| ext.to_str()) {
-        Some("parquet") => load_facts_parquet(path),
+        Some(ext) if ext.eq_ignore_ascii_case("parquet") => load_facts_parquet(path),
         _ => load_facts(path),
     }
 }
