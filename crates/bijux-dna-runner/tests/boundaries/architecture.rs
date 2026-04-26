@@ -182,6 +182,7 @@ fn runner_tree_matches_architecture_contract() {
         "command_inventory.rs",
         "dependency_graph.rs",
         "docs_layout.rs",
+        "effects_boundary.rs",
         "guardrails.rs",
         "public_api_docs.rs",
     ]
