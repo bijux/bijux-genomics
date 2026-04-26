@@ -331,6 +331,46 @@ fn compose_rejects_reads_artifact_bound_as_qc_input() -> anyhow::Result<()> {
 }
 
 #[test]
+fn compose_rejects_non_governed_index_bound_as_qc_input() -> anyhow::Result<()> {
+    let bindings =
+        vec![binding_for_stage("fastq.index_reference"), binding_for_stage("fastq.report_qc")];
+    let mut explicit_inputs = StageArtifactInputPolicy::new();
+    explicit_inputs.insert(
+        "fastq.report_qc".to_string(),
+        vec![StageArtifactInputBinding {
+            from_stage_node_id: "fastq.index_reference".to_string(),
+            from_output_id: "reference_index".to_string(),
+            to_input_id: "qc_artifacts".to_string(),
+        }],
+    );
+    let temp = bijux_dna_infra::temp_dir("fastq-plan-qc-governance")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    let reference = temp.path().join("reference.fa");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+    std::fs::write(&reference, b">chr1\nA\n")?;
+
+    let error = compose_fastq_stage_bindings(
+        &bindings,
+        &BTreeMap::new(),
+        None,
+        None,
+        None,
+        false,
+        &r1,
+        None,
+        Some(&reference),
+        Some(&explicit_inputs),
+        |binding, _r1, _r2| {
+            Ok(temp.path().join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
+        },
+    )
+    .expect_err("non-QC reference indexes must not satisfy report_qc qc_artifacts");
+
+    assert!(error.to_string().contains("is not a governed QC output"));
+    Ok(())
+}
+
+#[test]
 fn compose_rejects_single_end_input_for_paired_only_tool() -> anyhow::Result<()> {
     let bindings = vec![FastqStageBinding {
         stage_id: "fastq.remove_duplicates".to_string(),
