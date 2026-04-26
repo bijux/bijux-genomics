@@ -138,12 +138,7 @@ pub(super) fn validate_tool_files(
             }
         }
         if let Some(previous) = tool_ids.insert(tool.tool_id.clone(), path.display().to_string()) {
-            bail!(
-                "duplicate tool_id {} in {} and {}",
-                tool.tool_id,
-                previous,
-                path.display()
-            );
+            bail!("duplicate tool_id {} in {} and {}", tool.tool_id, previous, path.display());
         }
         tool_statuses.insert(tool.tool_id.clone(), tool.status.clone());
         tool_metrics_schemas.insert(tool.tool_id.clone(), tool.metrics_schema_id.clone());
