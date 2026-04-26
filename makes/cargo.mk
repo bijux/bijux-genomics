@@ -311,6 +311,7 @@ _ci-fast: ## Fast CI tier: unit + contract + registry lint + profile invariants.
 	$(MAKE) lint-workspace
 	$(MAKE) _unit-contract-fast
 	$(MAKE) _release-readiness
+	$(MAKE) _fastq-container-readiness
 	$(MAKE) _test-profile-invariants
 	$(MAKE) _policy-no-raw-cargo
 

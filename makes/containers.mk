@@ -109,6 +109,10 @@ _containers-doctor: ## Run container doctor status report (missing images, lock 
 _containers-release-gate: ## Run mandatory container release gate checks.
 	@cargo run -q -p bijux-dna-dev -- containers run release-gate
 
+_fastq-container-readiness: ## Generate FASTQ container readiness evidence reports.
+	@python3 makes/bin/generate_fastq_container_readiness.py
+	@git diff --exit-code -- science-docs/upstream/fastq/container
+
 _containers: ## Print tools/runtime/result/log summary from target-containers manifests
 	@MANIFEST_DIR="$(CONTAINER_ARTIFACT_DIR)" cargo run -q -p bijux-dna-dev -- containers run summary
 
@@ -116,6 +120,6 @@ _containers: ## Print tools/runtime/result/log summary from target-containers ma
 	_smoke-containers-docker-arm64 _smoke-containers-docker-amd64 _smoke-containers-apptainer \
 	_smoke-containers-apptainer-bijux-run _smoke-containers-apptainer-apptainer-run _smoke-containers-apptainer-verify \
 	_build-images _test-images _test-images-stage _test-images-tool _image-smoke-vcf _image-qa \
-	_containers-apptainer-build apptainer-build-all _containers-lint _containers-ensure-images _containers-doctor _containers-release-gate _containers \
+	_containers-apptainer-build apptainer-build-all _containers-lint _containers-ensure-images _containers-doctor _containers-release-gate _fastq-container-readiness _containers \
 	docker-build-all \
 	_apptainer-ensure _apptainer-ensure-stage
