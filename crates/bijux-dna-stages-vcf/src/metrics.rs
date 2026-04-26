@@ -1,11 +1,12 @@
 use std::collections::BTreeMap;
 use std::path::Path;
-use std::process::Command;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_domain_vcf::{
     VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1,
 };
+
+use crate::vcf_io::read_vcf_text;
 
 fn parse_record_fields(line: &str) -> Option<Vec<&str>> {
     if line.trim().is_empty() || line.starts_with('#') {
@@ -16,21 +17,6 @@ fn parse_record_fields(line: &str) -> Option<Vec<&str>> {
         return None;
     }
     Some(fields)
-}
-
-fn read_vcf_text(path: &Path) -> Result<String> {
-    if path.extension().and_then(|x| x.to_str()).is_some_and(|x| x == "gz" || x == "bcf") {
-        let output =
-            Command::new("bcftools").args(["view", &path.display().to_string()]).output()?;
-        if output.status.success() {
-            return Ok(String::from_utf8_lossy(&output.stdout).to_string());
-        }
-        if let Ok(raw) = std::fs::read(path) {
-            return Ok(String::from_utf8_lossy(&raw).to_string());
-        }
-        return Err(anyhow!("bcftools view failed while parsing {}", path.display()));
-    }
-    Ok(std::fs::read_to_string(path)?)
 }
 
 #[must_use]
