@@ -56,10 +56,12 @@ arch = "x86_64"
     std::fs::copy(workspace_stages, ci_stages_dir.join("stages.toml")).expect("write stages");
 
     #[cfg(unix)]
-    std::os::unix::fs::symlink(repo_root.join("domain"), root.join("domain"))
-        .expect("symlink domain");
-    std::os::unix::fs::symlink(repo_root.join("assets"), root.join("assets"))
-        .expect("symlink assets");
+    {
+        std::os::unix::fs::symlink(repo_root.join("domain"), root.join("domain"))
+            .expect("symlink domain");
+        std::os::unix::fs::symlink(repo_root.join("assets"), root.join("assets"))
+            .expect("symlink assets");
+    }
 
     let defaults_dir = out_dir.join("bench").join("preprocess").join("sample").join("tools");
     std::fs::create_dir_all(&defaults_dir).expect("create defaults dir");
