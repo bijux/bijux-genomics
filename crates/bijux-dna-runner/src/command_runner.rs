@@ -2,7 +2,7 @@ use std::path::Path;
 use std::process::Command;
 use std::time::Instant;
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 
 mod command_line;
 mod command_output;
@@ -28,6 +28,9 @@ pub fn run_command_with_context(
     current_dir: Option<&Path>,
     envs: Option<&BTreeMap<String, String>>,
 ) -> Result<CommandOutputV1> {
+    if command.trim().is_empty() {
+        bail!("command executable must not be empty");
+    }
     let start = Instant::now();
     let mut child = Command::new(command);
     child.args(args);
@@ -49,4 +52,17 @@ pub fn run_command_with_context(
         runtime_s,
         command: build_command_string(command, args),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::run_command_with_context;
+
+    #[test]
+    fn run_command_rejects_empty_executable() {
+        let err = run_command_with_context("  ", &[], None, None)
+            .expect_err("empty executable should be rejected before spawn");
+
+        assert_eq!(err.to_string(), "command executable must not be empty");
+    }
 }
