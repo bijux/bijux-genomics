@@ -2,7 +2,9 @@ use anyhow::Result;
 use sha2::Digest;
 use std::fmt::Write as _;
 
-use crate::{stage_node_id, ExecutionPlan, PlanEdge, StagePlanV1};
+use crate::{ExecutionPlan, PlanEdge, StagePlanV1};
+
+use super::validation::stage_node_id;
 
 impl ExecutionPlan {
     /// # Errors
