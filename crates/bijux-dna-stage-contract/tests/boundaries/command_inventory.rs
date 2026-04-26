@@ -42,7 +42,7 @@ fn commands_doc_is_complete_stage_contract_inventory() {
         "COMMANDS.md must list the exact callable operation inventory"
     );
     for forbidden in [
-        "No `src/bin`.",
+        "No Cargo binary targets or `src/bin` command modules.",
         "No CLI parser ownership.",
         "No process spawning.",
         "No runtime command execution.",
@@ -52,7 +52,7 @@ fn commands_doc_is_complete_stage_contract_inventory() {
     }
     assert!(
         !root.join("src/bin").exists(),
-        "stage-contract must not define binary command entrypoints"
+        "stage-contract must not define Cargo binary command entrypoints"
     );
     assert_local_verification_commands(&commands);
 }
