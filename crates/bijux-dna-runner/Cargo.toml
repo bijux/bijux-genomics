@@ -21,7 +21,7 @@ walkdir.workspace = true
 
 [dev-dependencies]
 bijux-dna-policies.workspace = true
-assert_cmd = "2"
+assert_cmd.workspace = true
 tempfile.workspace = true
 cargo_metadata.workspace = true
 toml.workspace = true
