@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_dna_stage_contract::{StageInvocationV1, StagePlugin, StagePluginOutputV1};
 use std::fs;
@@ -32,6 +32,9 @@ impl StagePlugin for FastqStagePlugin {
     }
 
     fn materialize(&self, plan: &StagePlanV1) -> Result<StageInvocationV1> {
+        if !self.handles_stage(plan.stage_id.as_str()) {
+            return Err(anyhow!("unsupported FASTQ stage {}", plan.stage_id.as_str()));
+        }
         Ok(StageInvocationV1 {
             command: plan.command.template.clone(),
             env: std::collections::BTreeMap::new(),
