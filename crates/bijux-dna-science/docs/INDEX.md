@@ -10,7 +10,8 @@
 
 ## Boundaries
 - `ARCHITECTURE.md` describes module ownership and forbidden runtime behavior.
-- Root `BOUNDARY.md` records dependency and effect constraints.
+- `BOUNDARY.md` records dependency and effect constraints.
+- `PUBLIC_API.md` records the stable module and function surface.
 
 ## Extension Points
 - `SCHEMAS.md` describes authored science spec versions and generated evidence rows.
