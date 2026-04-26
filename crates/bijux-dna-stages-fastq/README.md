@@ -1,61 +1,75 @@
 # bijux-dna-stages-fastq
 
-## What this crate does
-FASTQ stage contracts plus observer-side parsing/metrics helpers.
+`bijux-dna-stages-fastq` owns FASTQ stage contract exports, observer-side
+parsing, stage metrics normalization, and stage-plugin output envelopes for
+already-planned FASTQ stages.
 
-## What it must not do (boundaries)
-No command assembly or tool selection.
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read those files before editing this child
+repository and before committing.
 
-## Role in the stack
-Upstream: domain contracts. Downstream: planners/analyze.
+## Boundary
 
-## Public API / entrypoints
-See `crates/bijux-dna-stages-fastq/docs/INDEX.md`, `crates/bijux-dna-stages-fastq/docs/STAGE_LIST.md`, `crates/bijux-dna-stages-fastq/docs/STAGE_CONTRACTS.md`, `crates/bijux-dna-stages-fastq/docs/OBSERVERS.md`, `crates/bijux-dna-stages-fastq/docs/TOOL_ROSTER.md`, `crates/bijux-dna-stages-fastq/docs/CHANGE_RULES.md`.
+This crate does not plan workflows, choose tools, assemble shell commands,
+execute processes, manage environments, or expose CLI commands. Planners and
+runtime-facing callers may consume this crate; this crate must not call back
+into planner, runner, engine, API, CLI, or environment layers.
 
-## Observer boundaries
-Observers parse known tool outputs into metrics.
-- Parsed: fixtures and documented output formats per tool.
-- Ignored: extra/unknown fields that are not part of the contract.
-- Required: the fields listed in `crates/bijux-dna-stages-fastq/docs/STAGE_CONTRACTS.md`.
+## Public Surface
 
-## Stages and observers
-`contract_stage_ids()` publishes the full FASTQ contract surface.
-`implemented_stages()` publishes the full closed execution surface implemented for governed FASTQ
-stages.
-`observer_specialized_stage_ids()` is the narrower set with fully observer-specialized runtime
-interpretation in this crate.
-`observer_stage_ids()` remains an alias for that narrower observer-specialized subset documented
-under `crates/bijux-dna-stages-fastq/docs/OBSERVERS.md`.
+- `FastqStagePlugin`
+- `StagePlanJson`
+- `contract_stage_ids`
+- `closed_execution_stage_ids`
+- `implemented_stages`
+- `observer_specialized_stage_ids`
+- `observer_stage_ids`
+- `observer_stage_tool_bindings`
+- `runtime_interpretation_for_stage`
+- `runtime_interpretation_for_stage_tool`
+- `runtime_interpretation_stage_ids`
+- `RuntimeInterpretationLevel`
+- `contracts`
+- `metrics`
+- `observer`
+- `stage_specs`
 
-| Stage | Observer Inputs → Outputs |
-| --- | --- |
-| fastq.validate_reads | FASTQ validator output → validation metrics |
-| fastq.profile_read_lengths | seqkit/fastp/prinseq output → length metrics |
-| fastq.detect_adapters | FastQC output → adapter evidence metrics |
-| fastq.profile_overrepresented_sequences | FastQC/seqkit output → sequence evidence metrics |
-| fastq.profile_reads | seqkit stats output → read/base metrics |
-| fastq.report_qc | MultiQC output → QC aggregation metrics |
+`docs/COMMANDS.md` is the SSOT for callable operations managed by this crate.
 
-## Key contracts it owns/consumes
-Stage report/metrics shape snapshots.
+Managed operations:
 
-## Artifacts / Contracts
-See `crates/bijux-dna-stages-fastq/docs/STAGE_CONTRACTS.md`, `crates/bijux-dna-stages-fastq/docs/OBSERVERS.md`, and snapshots under `tests/snapshots/`.
+- `list-fastq-contract-stages`
+- `list-fastq-implemented-stages`
+- `list-fastq-observer-stages`
+- `classify-fastq-runtime-interpretation`
+- `check-fastq-stage-support`
+- `materialize-fastq-stage`
+- `parse-fastq-stage-outputs`
+- `build-fastq-metrics-envelope`
+- `parse-fastq-observer-output`
+- `write-fastq-observer-artifact`
 
-## Effects & determinism guarantees
-Pure parsing; deterministic snapshots. See `crates/bijux-dna-stages-fastq/docs/EFFECTS.md` and the golden tests below.
+## Documentation
 
-## How to run its tests
-See `crates/bijux-dna-stages-fastq/docs/TESTS.md`. Golden tests: `tests/contracts/contract_snapshots.rs`, `tests/contracts/observer/observer_determinism.rs`, `tests/contracts/symmetry.rs`, `tests/contracts/registry_completeness.rs`.
+The crate root intentionally has only this `README.md`. All other docs live
+under `docs/`, with a 10-document allowance:
 
-## Where the docs live
-Start at `crates/bijux-dna-stages-fastq/docs/INDEX.md` and follow the crate docs listed above.
+- `docs/ARCHITECTURE.md`
+- `docs/BOUNDARY.md`
+- `docs/CHANGE_RULES.md`
+- `docs/COMMANDS.md`
+- `docs/DEPENDENCIES.md`
+- `docs/EFFECTS.md`
+- `docs/INDEX.md`
+- `docs/PUBLIC_API.md`
+- `docs/STAGE_CONTRACTS.md`
+- `docs/TESTS.md`
 
-## Start here in code
-`src/contracts.rs`, then `src/surface.rs`, then `src/plugin/mod.rs`, then `src/metrics/stage_metrics/mod.rs`.
+## Tests
 
-## Failure modes
-Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
+Run from the `bijux-genomics` repository root:
 
-## Stability
-Contract and behavior changes follow `crates/bijux-dna-stages-fastq/docs/CHANGE_RULES.md`.
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-stages-fastq --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-fastq --no-default-features
+```

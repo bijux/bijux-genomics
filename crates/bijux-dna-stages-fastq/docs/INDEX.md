@@ -1,16 +1,14 @@
-# bijux-dna-stages-fastq Docs Index
+# Documentation Index
 
-## Scope
-See `SCOPE.md` for what belongs here.
+Read these files from the crate root when changing FASTQ stage contracts,
+observers, metrics, plugin behavior, or runtime-interpretation policy.
 
-## Effects
-See `EFFECTS.md` for allowed effects.
-
-## Boundaries
-See `ARCHITECTURE.md` for internal boundaries.
-
-## Extension Points
-See `CHANGE_RULES.md` for safe extension guidelines.
-
-## How to Test
-See `TESTS.md` for test mapping and fixtures.
+1. `ARCHITECTURE.md` - source and test layout, ownership map, and module responsibilities.
+2. `BOUNDARY.md` - responsibilities, allowed effects, and forbidden layers.
+3. `CHANGE_RULES.md` - compatibility rules and observer/stage extension checklist.
+4. `COMMANDS.md` - SSOT for operations managed by this crate.
+5. `DEPENDENCIES.md` - direct dependency graph and forbidden edges.
+6. `EFFECTS.md` - filesystem, observer-artifact, and determinism effect policy.
+7. `PUBLIC_API.md` - crate-root exports and compatibility expectations.
+8. `STAGE_CONTRACTS.md` - stage registry, observer coverage, metrics, fixtures, and references.
+9. `TESTS.md` - suite ownership, fixture use, and verification commands.
