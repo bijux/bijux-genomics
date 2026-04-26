@@ -319,7 +319,10 @@ fn hash_inputs_rejects_missing_paths() -> anyhow::Result<()> {
     let temp = tempdir()?;
     let missing = temp.path().join("missing.txt");
 
-    let err = hash_inputs(&[missing]).expect_err("missing input must fail");
+    let err = match hash_inputs(&[missing]) {
+        Ok(_) => panic!("missing input must fail"),
+        Err(err) => err,
+    };
 
     assert!(err.to_string().contains("declared input path does not exist"));
     Ok(())
@@ -404,5 +407,5 @@ fn execution_step_fixture(
         "expected_artifact_ids": [],
         "metrics_schema_ids": []
     }))
-    .expect("execution step fixture must deserialize")
+    .unwrap_or_else(|err| panic!("execution step fixture must deserialize: {err}"))
 }

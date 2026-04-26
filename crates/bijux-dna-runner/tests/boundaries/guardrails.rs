@@ -1,3 +1,4 @@
+#[allow(clippy::expect_used)]
 #[path = "../../../bijux-dna-policies/tests/guardrails.rs"]
 mod policies;
 
