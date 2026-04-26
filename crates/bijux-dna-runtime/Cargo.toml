@@ -9,10 +9,10 @@ rust-version.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 opentelemetry = { workspace = true, optional = true }
-bijux-dna-core = { path = "../bijux-dna-core" }
+bijux-dna-core.workspace = true
 anyhow.workspace = true
 sha2.workspace = true
-bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
+bijux-dna-infra = { workspace = true, features = ["yaml"] }
 toml.workspace = true
 uuid.workspace = true
 chrono.workspace = true

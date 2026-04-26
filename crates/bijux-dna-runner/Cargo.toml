@@ -12,10 +12,10 @@ serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
 uuid.workspace = true
-bijux-dna-core = { path = "../bijux-dna-core" }
-bijux-dna-runtime = { path = "../bijux-dna-runtime" }
-bijux-dna-environment = { path = "../bijux-dna-environment" }
-bijux-dna-infra = { path = "../bijux-dna-infra" }
+bijux-dna-core.workspace = true
+bijux-dna-runtime.workspace = true
+bijux-dna-environment.workspace = true
+bijux-dna-infra.workspace = true
 sha2.workspace = true
 walkdir.workspace = true
 
