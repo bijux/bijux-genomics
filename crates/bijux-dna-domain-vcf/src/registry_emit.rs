@@ -37,6 +37,12 @@ pub fn param_registry_toml() -> String {
 #[must_use]
 pub fn required_tools_toml() -> String {
     let mut out = String::new();
+    out.push_str("# schema_version = 1\n");
+    out.push_str("# owner = bijux-dna-infra\n");
+    out.push_str("# purpose = Contract config for configs/ci/tools/required_tools_vcf.toml\n");
+    out.push_str("# authority = bijux-dna-infra\n");
+    out.push_str("# stability = stable\n");
+    out.push_str("# last_updated = 2026-02-13\n\n");
     out.push_str("# GENERATED - DO NOT EDIT - source: crates/bijux-dna-domain-vcf\n");
     out.push_str("# source_commit: 53b050a6d117e40e0122777655e9d8cc428be9ad\n");
     out.push_str("# domain_schema_version: bijux.domain.v1\n\n");
