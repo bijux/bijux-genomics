@@ -74,8 +74,7 @@ fn every_stage_contract_names_responsible_tools() {
                 .and_then(serde_json::Value::as_str)
                 .unwrap_or_else(|| panic!("contract for {} missing io.{key}", stage.as_str()));
             assert!(
-                kind.chars()
-                    .all(|ch| ch.is_ascii_lowercase() || ch == '_'),
+                kind.chars().all(|ch| ch.is_ascii_lowercase() || ch == '_'),
                 "{} io.{key} is not a stable snake-case contract value: {kind}",
                 stage.as_str()
             );
