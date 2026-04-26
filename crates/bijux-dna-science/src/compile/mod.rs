@@ -101,6 +101,12 @@ struct PaperMapEntry {
     notes: String,
 }
 
+#[derive(Clone, Debug)]
+struct QaCoverageBlockerEntry {
+    stage_id: String,
+    blocker: String,
+}
+
 pub fn load_specs(root: &Path) -> Result<LoadedSpecs> {
     let mut loaded = LoadedSpecs::default();
     let mut errors = Vec::new();
@@ -201,6 +207,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         build_fastq_container_reference_rows(root, &loaded, &fastq_environment_rows)?;
     let tool_evidence_map = load_fastq_tool_evidence_map(root, &loaded)?;
     let paper_map = load_fastq_paper_map(root, &loaded)?;
+    let qa_coverage_blockers = load_fastq_qa_coverage_blockers(root, &loaded)?;
     let fastq_download_backlog_rows = build_fastq_download_backlog_rows(
         root,
         &fastq_container_reference_rows,
@@ -213,6 +220,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         &fastq_environment_rows,
         &fastq_download_backlog_rows,
         &fastq_paper_archive_rows,
+        &qa_coverage_blockers,
     );
     let fastq_truth_delta_rows = build_fastq_truth_delta_rows(&fastq_closure_gate_rows);
     let fastq_missing_closure_prerequisite_rows =
@@ -860,6 +868,7 @@ fn build_fastq_closure_gate_rows(
     environment_rows: &[FastqEnvironmentRow],
     download_rows: &[crate::domain::FastqDownloadBacklogRow],
     paper_rows: &[crate::domain::FastqPaperArchiveRow],
+    qa_coverage_blockers: &[QaCoverageBlockerEntry],
 ) -> Vec<FastqClosureGateRow> {
     let download_by_tool =
         download_rows.iter().map(|row| (row.tool_id.as_str(), row)).collect::<BTreeMap<_, _>>();
@@ -867,6 +876,13 @@ fn build_fastq_closure_gate_rows(
         BTreeMap::<&str, Vec<&crate::domain::FastqPaperArchiveRow>>::new(),
         |mut acc, row| {
             acc.entry(row.tool_id.as_str()).or_default().push(row);
+            acc
+        },
+    );
+    let qa_blockers_by_stage = qa_coverage_blockers.iter().fold(
+        BTreeMap::<&str, BTreeSet<&str>>::new(),
+        |mut acc, blocker| {
+            acc.entry(blocker.stage_id.as_str()).or_default().insert(blocker.blocker.as_str());
             acc
         },
     );
@@ -922,6 +938,9 @@ fn build_fastq_closure_gate_rows(
             }
             if row.benchmark_support == "none" {
                 blockers.push("missing_benchmark_support".to_string());
+            }
+            if let Some(stage_qa_blockers) = qa_blockers_by_stage.get(row.stage_id.as_str()) {
+                blockers.extend(stage_qa_blockers.iter().map(|blocker| (*blocker).to_string()));
             }
             if row.tool_status == "disallowed" {
                 warnings.push("planned_binding_not_admitted".to_string());
@@ -1360,6 +1379,27 @@ fn load_fastq_paper_map(root: &Path, loaded: &LoadedSpecs) -> Result<Vec<PaperMa
             supporting_locators: row_value(&row, "supporting_locators"),
             notes: row_value(&row, "notes"),
         });
+    }
+    Ok(out)
+}
+
+fn load_fastq_qa_coverage_blockers(
+    root: &Path,
+    loaded: &LoadedSpecs,
+) -> Result<Vec<QaCoverageBlockerEntry>> {
+    let Some(source) = loaded.sources.get("source.fastq.qa-coverage-blockers") else {
+        return Ok(Vec::new());
+    };
+    let path = validate_source_path(root, source)?;
+    let rows = parse_tsv_rows(&read_utf8(&path)?);
+    let mut out = Vec::new();
+    for row in rows {
+        if row_value(&row, "status") == "tracked" {
+            out.push(QaCoverageBlockerEntry {
+                stage_id: row_value(&row, "stage_id"),
+                blocker: row_value(&row, "blocker"),
+            });
+        }
     }
     Ok(out)
 }
