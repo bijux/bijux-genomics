@@ -88,6 +88,20 @@ fn bam_stage_plugin_rejects_empty_command_templates() {
 }
 
 #[test]
+fn bam_stage_plugin_rejects_blank_command_template_arguments() {
+    let plugin = BamStagePlugin;
+    let mut plan = stage_plan("bam.mapping_summary");
+    plan.command.template = vec!["samtools".to_string(), "   ".to_string()];
+
+    let error = match plugin.materialize(&plan) {
+        Ok(_) => panic!("blank command template arguments must fail"),
+        Err(error) => error,
+    };
+
+    assert!(error.to_string().contains("blank command template argument"));
+}
+
+#[test]
 fn bam_stage_plugin_preserves_reported_output_artifacts() -> anyhow::Result<()> {
     let plugin = BamStagePlugin;
     let plan = stage_plan("bam.mapping_summary");

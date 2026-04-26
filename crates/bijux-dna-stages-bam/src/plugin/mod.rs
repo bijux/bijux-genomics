@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, ensure, Result};
 use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_dna_stage_contract::{StagePlugin, StagePluginOutputV1};
 
@@ -19,9 +19,7 @@ impl StagePlugin for BamStagePlugin {
         if !self.handles_stage(plan.stage_id.as_str()) {
             return Err(anyhow!("unsupported BAM stage {}", plan.stage_id.as_str()));
         }
-        if plan.command.template.is_empty() {
-            return Err(anyhow!("BAM stage {} has empty command template", plan.stage_id.as_str()));
-        }
+        validate_command_template(plan)?;
         Ok(invocation::materialize_stage_invocation(plan))
     }
 
@@ -35,4 +33,18 @@ impl StagePlugin for BamStagePlugin {
         }
         output::parse_stage_outputs(plan, outputs)
     }
+}
+
+fn validate_command_template(plan: &StagePlanV1) -> Result<()> {
+    ensure!(
+        !plan.command.template.is_empty(),
+        "BAM stage {} has empty command template",
+        plan.stage_id.as_str()
+    );
+    ensure!(
+        plan.command.template.iter().all(|arg| !arg.trim().is_empty()),
+        "BAM stage {} has blank command template argument",
+        plan.stage_id.as_str()
+    );
+    Ok(())
 }
