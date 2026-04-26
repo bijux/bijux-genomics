@@ -16,7 +16,7 @@ regex.workspace = true
 
 [dev-dependencies]
 anyhow.workspace = true
-bijux-dna-policies = { path = "../bijux-dna-policies" }
+bijux-dna-policies.workspace = true
 insta.workspace = true
 tempfile.workspace = true
 

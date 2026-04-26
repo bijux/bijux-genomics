@@ -18,7 +18,7 @@ uuid.workspace = true
 chrono.workspace = true
 
 [dev-dependencies]
-bijux-dna-policies = { path = "../bijux-dna-policies" }
+bijux-dna-policies.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 walkdir.workspace = true
 
