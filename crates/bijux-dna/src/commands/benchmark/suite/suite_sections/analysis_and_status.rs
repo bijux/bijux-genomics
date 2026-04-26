@@ -383,54 +383,6 @@ fn validate_governed_stage_tool_bindings(suite: &SuiteSpec) -> Result<()> {
     Ok(())
 }
 
-#[cfg(test)]
-#[allow(clippy::expect_used, clippy::items_after_test_module)]
-mod suite_contract_tests {
-    use super::{validate_suite_contracts, FairnessSpec, SuiteSpec, SuiteStage};
-
-    fn governed_suite(stage: &str, tools: &[&str]) -> SuiteSpec {
-        SuiteSpec {
-            schema_version: "bijux.bench.suite.v1".to_string(),
-            suite_id: "fastq_stage02_trim".to_string(),
-            corpus: "example-102".to_string(),
-            stages: vec![SuiteStage {
-                stage: stage.to_string(),
-                tools: tools.iter().map(|tool| (*tool).to_string()).collect(),
-            }],
-            repetitions: 2,
-            resource_hints: None,
-            fairness: Some(FairnessSpec {
-                threads: 16,
-                mem_gb: 64,
-                tmp_policy: "unique-per-run-id".to_string(),
-                cold_runs: 1,
-                warm_runs: 1,
-            }),
-        }
-    }
-
-    #[test]
-    fn suite_validation_rejects_noncanonical_stage_ids() {
-        let suite = governed_suite("trim", &["fastp"]);
-        let error = validate_suite_contracts(&suite).expect_err("legacy stage ids must fail");
-        assert!(error.to_string().contains("canonical stage ids"));
-    }
-
-    #[test]
-    fn suite_validation_rejects_unguarded_stage_tools() {
-        let suite = governed_suite("fastq.trim_reads", &["imaginarytool"]);
-        let error = validate_suite_contracts(&suite)
-            .expect_err("planned or missing registry tool must fail");
-        assert!(error.to_string().contains("not admitted in governed registry"));
-    }
-
-    #[test]
-    fn suite_validation_accepts_governed_fastq_bindings() {
-        let suite = governed_suite("fastq.trim_reads", &["fastp", "bbduk"]);
-        validate_suite_contracts(&suite).expect("governed bindings must validate");
-    }
-}
-
 fn suite_signature(cwd: &Path, suite_id: &str, hpc: bool) -> Result<String> {
     let path = suite_path(cwd, suite_id)?;
     let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
@@ -498,4 +450,52 @@ fn deterministic_metric(
     let n = u16::from_le_bytes([bytes[0], bytes[1]]);
     let unit = f64::from(n) / f64::from(u16::MAX);
     min + unit * (max - min)
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod suite_contract_tests {
+    use super::{validate_suite_contracts, FairnessSpec, SuiteSpec, SuiteStage};
+
+    fn governed_suite(stage: &str, tools: &[&str]) -> SuiteSpec {
+        SuiteSpec {
+            schema_version: "bijux.bench.suite.v1".to_string(),
+            suite_id: "fastq_stage02_trim".to_string(),
+            corpus: "example-102".to_string(),
+            stages: vec![SuiteStage {
+                stage: stage.to_string(),
+                tools: tools.iter().map(|tool| (*tool).to_string()).collect(),
+            }],
+            repetitions: 2,
+            resource_hints: None,
+            fairness: Some(FairnessSpec {
+                threads: 16,
+                mem_gb: 64,
+                tmp_policy: "unique-per-run-id".to_string(),
+                cold_runs: 1,
+                warm_runs: 1,
+            }),
+        }
+    }
+
+    #[test]
+    fn suite_validation_rejects_noncanonical_stage_ids() {
+        let suite = governed_suite("trim", &["fastp"]);
+        let error = validate_suite_contracts(&suite).expect_err("legacy stage ids must fail");
+        assert!(error.to_string().contains("canonical stage ids"));
+    }
+
+    #[test]
+    fn suite_validation_rejects_unguarded_stage_tools() {
+        let suite = governed_suite("fastq.trim_reads", &["imaginarytool"]);
+        let error = validate_suite_contracts(&suite)
+            .expect_err("planned or missing registry tool must fail");
+        assert!(error.to_string().contains("not admitted in governed registry"));
+    }
+
+    #[test]
+    fn suite_validation_accepts_governed_fastq_bindings() {
+        let suite = governed_suite("fastq.trim_reads", &["fastp", "bbduk"]);
+        validate_suite_contracts(&suite).expect("governed bindings must validate");
+    }
 }
