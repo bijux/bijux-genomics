@@ -125,7 +125,7 @@ jobs:
           PY
           )
 
-          cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- "${args[@]}"
+          GHCR_PUBLISH_ARGS="${args[*]}" make _ghcr-apptainer-publish-matrix
 
           matrix_json="$(python3 - <<'PY'
           import json
@@ -214,7 +214,7 @@ jobs:
           sha_tag="sha-${GITHUB_SHA::12}"
           result_path="artifacts/containers/ghcr/workflow/apptainer/${TOOL_ID}.json"
 
-          cargo run -q -p bijux-dna-dev -- containers run build-apptainer-all -- --build-one "${TOOL_ID}"
+          make _ghcr-apptainer-build-one TOOL_ID="${TOOL_ID}"
 
           if [[ ! -f "${ARTIFACT_PATH}" ]]; then
             echo "missing built SIF artifact: ${ARTIFACT_PATH}" >&2

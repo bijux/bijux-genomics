@@ -125,7 +125,7 @@ jobs:
           PY
           )
 
-          cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- "${args[@]}"
+          GHCR_PUBLISH_ARGS="${args[*]}" make _ghcr-docker-publish-matrix
 
           matrix_json="$(python3 - <<'PY'
           import json
