@@ -49,3 +49,12 @@ fn snapshot_normalize_text_ignores_empty_environment_values() {
     }
     assert_eq!(normalized, "abc");
 }
+
+#[test]
+fn snapshot_normalize_json_redacts_artifact_paths_inside_messages() {
+    let raw = serde_json::json!({
+        "message": "wrote /repo/artifacts/tmp/run-123/result.json successfully"
+    });
+    let normalized = bijux_dna_testkit::snapshot_normalize_json(&raw);
+    assert_eq!(normalized["message"], "wrote result.json successfully");
+}
