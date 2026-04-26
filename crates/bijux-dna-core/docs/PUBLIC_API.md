@@ -8,7 +8,6 @@ on stable contracts without importing implementation layout by accident.
 | Module | Role |
 | --- | --- |
 | `contract` | Serialized execution, run, tooling, selection, version, and canonical JSON contracts. |
-| `foundation` | Generic command, hashing, canonicalization, error, invariant, measurement, cache, and input-assessment helpers. |
 | `id_catalog` | Canonical pipeline, stage, and tool id constants. |
 | `ids` | Typed identifiers, id parsing, symbolic validation, and domain model records. |
 | `metrics` | Metric ids, schemas, registry lookup, derived metric parsing, and metric payloads. |

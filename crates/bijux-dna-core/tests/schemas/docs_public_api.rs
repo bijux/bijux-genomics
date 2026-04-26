@@ -18,16 +18,7 @@ fn docs_cover_public_api_modules() {
 
     let modules: Vec<String> = public_api
         .lines()
-        .filter_map(|line| {
-            let line = line.trim();
-            if let Some(rest) = line.strip_prefix("- `") {
-                return rest.strip_suffix('`').map(str::to_string);
-            }
-            if let Some(rest) = line.strip_prefix("- ") {
-                return Some(rest.trim().to_string());
-            }
-            None
-        })
+        .filter_map(public_module_from_doc_line)
         .map(|s| s.to_lowercase())
         .filter(|s| !s.is_empty())
         .collect();
@@ -40,6 +31,81 @@ fn docs_cover_public_api_modules() {
             "Docs must mention public module `{module}` in CONTRACTS/CONTRACT_MAP/COMMANDS"
         );
     }
+}
+
+#[test]
+fn commands_doc_is_managed_operation_inventory() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let commands = read_doc(&root.join("docs/COMMANDS.md"));
+    let readme = read_doc(&root.join("README.md"));
+
+    let operations: Vec<String> = commands.lines().filter_map(operation_from_table_row).collect();
+    let expected = [
+        "canonicalize-json",
+        "canonical-json-bytes",
+        "params-hash",
+        "parameters-fingerprint",
+        "input-fingerprint",
+        "discover-fastq-files",
+        "assess-input-dir",
+        "write-input-assessment",
+        "validate-execution-graph",
+        "validate-execution-outputs",
+        "select-stage",
+        "query-run-index",
+        "parse-pipeline-id",
+        "parse-stage-id",
+        "parse-tool-id",
+        "validate-metric-id",
+        "metrics-schema-for-stage",
+    ];
+
+    assert_eq!(
+        operations, expected,
+        "COMMANDS.md must list the managed operation inventory in stable order"
+    );
+
+    for operation in expected {
+        assert!(
+            readme.contains(&format!("`{operation}`")),
+            "README.md must reference managed operation `{operation}`"
+        );
+    }
+}
+
+fn public_module_from_doc_line(line: &str) -> Option<String> {
+    let line = line.trim();
+    if let Some(rest) = line.strip_prefix("- `") {
+        return rest.strip_suffix('`').map(str::to_string);
+    }
+    if let Some(rest) = line.strip_prefix("- ") {
+        return Some(rest.trim().to_string());
+    }
+    let cells = markdown_table_cells(line);
+    if cells.len() >= 2 && cells[0].starts_with('`') && cells[0].ends_with('`') {
+        return Some(cells[0].trim_matches('`').to_string());
+    }
+    None
+}
+
+fn operation_from_table_row(line: &str) -> Option<String> {
+    let cells = markdown_table_cells(line);
+    if cells.len() < 3 {
+        return None;
+    }
+    let operation = cells[0].trim_matches('`');
+    if operation.is_empty() || operation == "Operation" || operation.chars().all(|ch| ch == '-') {
+        return None;
+    }
+    Some(operation.to_string())
+}
+
+fn markdown_table_cells(line: &str) -> Vec<&str> {
+    let line = line.trim();
+    if !line.starts_with('|') || !line.ends_with('|') {
+        return Vec::new();
+    }
+    line.trim_matches('|').split('|').map(str::trim).collect()
 }
 
 #[test]

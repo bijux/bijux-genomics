@@ -21,10 +21,22 @@ fn read_public_modules() -> Vec<String> {
                     modules.push(name.to_string());
                 }
             }
+            let cells = markdown_table_cells(line);
+            if cells.len() >= 2 && cells[0].starts_with('`') && cells[0].ends_with('`') {
+                modules.push(cells[0].trim_matches('`').to_string());
+            }
         }
     }
     modules.sort();
     modules
+}
+
+fn markdown_table_cells(line: &str) -> Vec<&str> {
+    let line = line.trim();
+    if !line.starts_with('|') || !line.ends_with('|') {
+        return Vec::new();
+    }
+    line.trim_matches('|').split('|').map(str::trim).collect()
 }
 
 #[test]
