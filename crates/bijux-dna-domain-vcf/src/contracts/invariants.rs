@@ -1,3 +1,5 @@
+use std::collections::BTreeSet;
+
 use anyhow::{bail, Result};
 use serde::Serialize;
 
@@ -111,6 +113,18 @@ pub fn validate_species_context(species: &SpeciesContext) -> Result<()> {
     }
     if species.contigs.is_empty() {
         bail!("species context requires non-empty contig list");
+    }
+    let mut seen_contigs = BTreeSet::new();
+    for contig in &species.contigs {
+        if contig.name.trim().is_empty() {
+            bail!("species context contig names must be non-empty");
+        }
+        if contig.length_bp == 0 {
+            bail!("species context contig lengths must be positive");
+        }
+        if !seen_contigs.insert(contig.name.as_str()) {
+            bail!("species context contig names must be unique");
+        }
     }
     if species.par_policy.eq_ignore_ascii_case("unsupported")
         && !species.sex_system.eq_ignore_ascii_case("unknown")

@@ -163,6 +163,28 @@ mod contracts {
     }
 
     #[test]
+    fn species_context_rejects_invalid_contig_records() {
+        let mut species = SpeciesContext {
+            species_id: "homo_sapiens".to_string(),
+            build_id: "GRCh37".to_string(),
+            contig_set_digest: "contigs-sha256".to_string(),
+            contigs: vec![ContigSpec { name: "1".to_string(), length_bp: 249_250_621 }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch37_par".to_string(),
+            default_coverage_regime: Some(CoverageRegime::LowCovGl),
+        };
+
+        species.contigs.push(ContigSpec { name: "1".to_string(), length_bp: 243_199_373 });
+        assert!(validate_species_context(&species).is_err());
+
+        species.contigs = vec![ContigSpec { name: "2".to_string(), length_bp: 0 }];
+        assert!(validate_species_context(&species).is_err());
+
+        species.contigs = vec![ContigSpec { name: " ".to_string(), length_bp: 1 }];
+        assert!(validate_species_context(&species).is_err());
+    }
+
+    #[test]
     fn pseudohaploid_to_diploid_imputation_is_refused() {
         let err = match refuse_unsupported_regime_transition(CoverageRegime::Pseudohaploid, true) {
             Ok(()) => panic!("pseudohaploid to diploid imputation transition must be refused"),
