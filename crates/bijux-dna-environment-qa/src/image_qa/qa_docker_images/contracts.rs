@@ -3,6 +3,7 @@ use std::sync::{Mutex, MutexGuard};
 
 use super::args::parse_run_options;
 use super::models::{ImageFailureReason, ImagePlan, ImageTestOutcome};
+use super::planning::filter_tools;
 use super::probe::{image_exists, run_container_command, run_image_test};
 use super::runtime::{CommandRunner, LogLevel, Logger};
 
@@ -139,4 +140,12 @@ fn run_options_trim_environment_boolean_flags() {
     let options = parse_run_options(&["qa_docker_images".to_string()]);
     assert!(options.debug);
     assert!(options.quiet);
+}
+
+#[test]
+fn tool_filter_rejects_unknown_entries() {
+    let error = filter_tools(Some("fastp,definitely_missing".to_string()))
+        .err()
+        .unwrap_or_else(|| panic!("expected unknown tool filter rejection"));
+    assert!(error.to_string().contains("definitely_missing"));
 }
