@@ -30,6 +30,7 @@ impl EnaClient {
     /// # Errors
     /// Returns an error if any ENA request fails or response decoding fails.
     pub fn fetch_records(&self, query: &EnaQuery) -> Result<Vec<EnaRecord>, EnaClientError> {
+        query.validate()?;
         let accessions = query.normalized_accessions();
         let mut out = Vec::new();
         for accession in accessions {
@@ -116,6 +117,24 @@ mod tests {
             bail!("missing columns must fail");
         };
         assert!(error.to_string().contains("missing required columns: sample_accession"));
+        Ok(())
+    }
+
+    #[test]
+    fn fetch_records_rejects_invalid_queries_before_request() -> anyhow::Result<()> {
+        let client = EnaClient::new(CRATE_USER_AGENT)?;
+        let query = EnaQuery {
+            projects: vec![" ".to_string()],
+            samples: Vec::new(),
+            extra_accessions: Vec::new(),
+            result: EnaResultKind::ReadRun,
+        };
+
+        let Err(error) = client.fetch_records(&query) else {
+            bail!("invalid queries must fail before requesting ENA");
+        };
+
+        assert!(error.to_string().contains("invalid ENA query"));
         Ok(())
     }
 }
