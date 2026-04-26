@@ -3,7 +3,7 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-fn validate_typed_id(prefix: &str, value: &str) -> Result<(), String> {
+fn check_typed_identifier(prefix: &str, value: &str) -> Result<(), String> {
     if !value.starts_with(prefix) {
         return Err(format!("{value} must start with {prefix}"));
     }
@@ -38,7 +38,7 @@ macro_rules! typed_id {
             /// suffix, contains empty path segments, or uses unsupported characters.
             pub fn parse(value: impl Into<String>) -> Result<Self, String> {
                 let value = value.into();
-                validate_typed_id($prefix, &value)?;
+                check_typed_identifier($prefix, &value)?;
                 Ok(Self(value))
             }
 
