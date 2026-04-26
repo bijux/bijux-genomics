@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use super::{
     env_or_default, env_or_empty, failure_lines, load_toml, read_json, read_utf8, registry_tool_id,
     success_line, table_array_strings, table_bool, table_string, BTreeMap, BTreeSet,
@@ -223,9 +225,9 @@ pub(in super::super::super) fn check_imputation_hardening(
     let entrypoint_ex = read_utf8(&workspace.path("containers/docker/ENTRYPOINT_EXCEPTIONS.md"))?;
     let wildcard_nonroot = nonroot_ex.contains("`*`");
     let wildcard_entrypoint = entrypoint_ex.contains("`*`");
-    let user_regex = Regex::new(r"(?m)^USER\\s+")?;
-    let entrypoint_regex = Regex::new(r"(?m)^ENTRYPOINT\\s+\\[")?;
-    let cmd_regex = Regex::new(r"(?m)^CMD\\s+\\[")?;
+    let user_regex = Regex::new(r"(?m)^USER\s+")?;
+    let entrypoint_regex = Regex::new(r"(?m)^ENTRYPOINT\s+\[")?;
+    let cmd_regex = Regex::new(r"(?m)^CMD\s+\[")?;
     let mut errors = Vec::new();
     for tool in vcf_imputation_core_tools() {
         let dockerfile = workspace.path(&format!("containers/docker/arm64/Dockerfile.{tool}"));

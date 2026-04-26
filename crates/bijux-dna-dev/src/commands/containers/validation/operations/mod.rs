@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use super::{
     anyhow, append_named_outcome, apptainer_def_paths, artifact_env, artifact_root_path,
     bijux_command_prefix, canonical_metadata_labels, check_apptainer_frontend_reproducibility,

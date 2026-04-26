@@ -273,9 +273,10 @@ pub(in super::super::super) fn run_apptainer_frontend_reproducibility(
     }
     let policy =
         load_toml(&workspace.path("configs/ci/tools/apptainer_reproducibility_policy.toml"))?;
-    let sample_count =
-        policy.get("tool_sample_count").and_then(toml::Value::as_integer).unwrap_or(10).max(0)
-            as usize;
+    let sample_count = usize::try_from(
+        policy.get("tool_sample_count").and_then(toml::Value::as_integer).unwrap_or(10).max(0),
+    )
+    .context("tool_sample_count exceeds usize")?;
     let seed = env_or_default("REPRO_SEED", &env_or_default("ISO_RUN_ID", "frontend-repro"));
     let out_dir = workspace.path("artifacts/containers/hpc/frontend-reproducibility/run");
     bijux_dna_infra::ensure_dir(&out_dir)

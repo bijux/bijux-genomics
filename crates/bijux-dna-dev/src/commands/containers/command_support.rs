@@ -45,7 +45,7 @@ pub(super) fn write_utf8(path: &std::path::Path, content: &str) -> Result<()> {
 pub(super) fn append_named_outcome(
     aggregate: &mut ContainerCommandOutcome,
     name: &str,
-    outcome: ContainerCommandOutcome,
+    #[allow(clippy::needless_pass_by_value)] outcome: ContainerCommandOutcome,
 ) {
     let _ = writeln!(aggregate.stdout, "== {name}");
     *aggregate = merge_outcomes(aggregate.clone(), &outcome);

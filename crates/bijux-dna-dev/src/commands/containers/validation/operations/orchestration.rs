@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use super::{
     anyhow, append_named_outcome, artifact_root_path, check_apptainer_hardening,
     check_apptainer_post_pins, check_apptainer_version_label_sync, check_docker_context,

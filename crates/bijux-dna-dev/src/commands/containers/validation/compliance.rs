@@ -792,7 +792,7 @@ pub(in super::super) fn check_docker_context(
         for (index, line) in lines.iter().enumerate() {
             let trimmed = line.trim();
             if trimmed.ends_with('\\')
-                && lines.get(index + 1).map_or(true, |next| next.trim().is_empty())
+                && lines.get(index + 1).is_none_or(|next| next.trim().is_empty())
             {
                 errors.push(format!(
                     "{}:{}: dangling Dockerfile line continuation before blank line or EOF",
