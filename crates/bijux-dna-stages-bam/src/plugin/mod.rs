@@ -28,6 +28,9 @@ impl StagePlugin for BamStagePlugin {
         plan: &StagePlanV1,
         outputs: &[ArtifactRef],
     ) -> Result<StagePluginOutputV1> {
+        if !self.handles_stage(plan.stage_id.as_str()) {
+            return Err(anyhow!("unsupported BAM stage {}", plan.stage_id.as_str()));
+        }
         output::parse_stage_outputs(plan, outputs)
     }
 }

@@ -59,3 +59,16 @@ fn bam_stage_plugin_rejects_materializing_unsupported_stage_ids() {
 
     assert!(error.to_string().contains("unsupported BAM stage bam.not_registered"));
 }
+
+#[test]
+fn bam_stage_plugin_rejects_parsing_unsupported_stage_ids() {
+    let plugin = BamStagePlugin;
+    let plan = stage_plan("bam.not_registered");
+
+    let error = match plugin.parse_outputs(&plan, &[]) {
+        Ok(_) => panic!("unsupported BAM stages must fail"),
+        Err(error) => error,
+    };
+
+    assert!(error.to_string().contains("unsupported BAM stage bam.not_registered"));
+}
