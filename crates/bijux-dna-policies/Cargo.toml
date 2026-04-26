@@ -10,12 +10,12 @@ anyhow = { workspace = true }
 regex = { workspace = true }
 walkdir = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-serde_json = { workspace = true }
-cargo_metadata = "0.18"
 toml = { workspace = true }
 
 [dev-dependencies]
+cargo_metadata = "0.18"
 insta = { workspace = true, features = ["glob"] }
+serde_json = { workspace = true }
 sha2.workspace = true
 serde_yaml = "0.9"
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
