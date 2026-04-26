@@ -223,7 +223,6 @@ fn assert_test_layout(root: &Path) {
             "boundaries.rs",
             "contracts/",
             "contracts.rs",
-            "determinism/",
             "fixtures/",
             "guardrails.rs",
             "schemas/",
