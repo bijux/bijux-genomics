@@ -220,7 +220,7 @@ fn runner_tree_matches_architecture_contract() {
 
     let determinism_test_entries = dir_entries(&root.join("tests/determinism"));
     let expected_determinism_tests: BTreeSet<_> =
-        ["determinism.rs", "replay/", "replay.rs", "run_id_determinism.rs"]
+        ["replay/", "replay.rs", "run_id_determinism.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();
