@@ -110,20 +110,38 @@ pub fn resolve_reference_bundle(species: &str, build: &str) -> Result<ReferenceB
 /// # Errors
 /// Returns an error if policy forbids remapping and contig names differ.
 pub fn normalize_contig_name(bundle: &ReferenceBundle, contig: &str) -> Result<String> {
+    let contig = contig.trim();
+    if contig.is_empty() {
+        bail!("contig name must not be empty");
+    }
     match bundle.normalization_policy {
-        ContigNormalizationPolicy::StrictOnly => Ok(contig.to_string()),
-        ContigNormalizationPolicy::DeterministicRemap => bundle
-            .remap_table
-            .get(contig)
-            .cloned()
-            .or_else(|| {
-                if bundle.remap_table.values().any(|value| value == contig) {
-                    Some(contig.to_string())
-                } else {
-                    None
-                }
-            })
-            .ok_or_else(|| anyhow!("contig {contig} not in deterministic remap table")),
+        ContigNormalizationPolicy::StrictOnly => {
+            if bundle.contigs.iter().any(|canonical| canonical == contig) {
+                return Ok(contig.to_string());
+            }
+            bail!("contig {contig} not declared for bundle {}", bundle.bundle_id);
+        }
+        ContigNormalizationPolicy::DeterministicRemap => {
+            let normalized = bundle
+                .remap_table
+                .get(contig)
+                .cloned()
+                .or_else(|| {
+                    if bundle.remap_table.values().any(|value| value == contig) {
+                        Some(contig.to_string())
+                    } else {
+                        None
+                    }
+                })
+                .ok_or_else(|| anyhow!("contig {contig} not in deterministic remap table"))?;
+            if bundle.contigs.iter().any(|canonical| canonical == &normalized) {
+                return Ok(normalized);
+            }
+            bail!(
+                "contig {contig} normalized to {normalized}, which is not declared for bundle {}",
+                bundle.bundle_id
+            );
+        }
     }
 }
 
@@ -201,5 +219,17 @@ mod tests {
 
         assert!(bundle.contigs.iter().any(|contig| contig == "1"));
         assert!(bundle.contigs.iter().any(|contig| contig == "X"));
+    }
+
+    #[test]
+    fn strict_contig_normalization_rejects_undeclared_contigs() {
+        let bundle = super::resolve_reference_bundle("Homo sapiens", "GRCh38")
+            .unwrap_or_else(|error| panic!("resolve reference bundle: {error}"));
+
+        let Err(error) = super::normalize_contig_name(&bundle, "chr1") else {
+            panic!("strict bundle must reject non-canonical contig");
+        };
+
+        assert!(error.to_string().contains("not declared"));
     }
 }
