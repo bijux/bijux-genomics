@@ -42,6 +42,12 @@ pub(super) struct RealRunner;
 
 impl CommandRunner for RealRunner {
     fn run(&self, args: &[&str]) -> Result<Output, std::io::Error> {
+        if args.is_empty() {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::InvalidInput,
+                "command argument vector is empty",
+            ));
+        }
         let mut cmd = Command::new(args[0]);
         if args.len() > 1 {
             cmd.args(&args[1..]);

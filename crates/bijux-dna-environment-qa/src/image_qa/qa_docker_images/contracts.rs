@@ -5,7 +5,7 @@ use super::args::parse_run_options;
 use super::models::{ImageFailureReason, ImagePlan, ImageTestOutcome};
 use super::planning::filter_tools;
 use super::probe::{image_exists, run_container_command, run_image_test};
-use super::runtime::{CommandRunner, LogLevel, Logger};
+use super::runtime::{CommandRunner, LogLevel, Logger, RealRunner};
 
 static ENV_LOCK: Mutex<()> = Mutex::new(());
 
@@ -185,4 +185,11 @@ fn tool_filter_rejects_unknown_entries() {
         .err()
         .unwrap_or_else(|| panic!("expected unknown tool filter rejection"));
     assert!(error.to_string().contains("definitely_missing"));
+}
+
+#[test]
+fn real_runner_rejects_empty_command_vectors() {
+    let runner = RealRunner;
+    let error = runner.run(&[]).err().unwrap_or_else(|| panic!("expected empty command rejection"));
+    assert_eq!(error.kind(), std::io::ErrorKind::InvalidInput);
 }
