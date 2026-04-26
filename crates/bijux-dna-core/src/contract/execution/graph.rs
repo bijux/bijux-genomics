@@ -376,7 +376,21 @@ fn validate_graph_edges(
     graph: &ExecutionGraph,
     by_id: &BTreeMap<&str, &ExecutionStep>,
 ) -> Result<()> {
+    let mut edge_ids = HashSet::new();
     for edge in &graph.edges {
+        let edge_key = (
+            edge.from().to_string(),
+            edge.to().to_string(),
+            edge.from_output_id().map(ToString::to_string),
+            edge.to_input_id().map(ToString::to_string),
+        );
+        if !edge_ids.insert(edge_key) {
+            return Err(BijuxError::validation(format!(
+                "duplicate execution edge {} -> {}",
+                edge.from().as_str(),
+                edge.to().as_str()
+            )));
+        }
         if !by_id.contains_key(edge.from().as_str()) || !by_id.contains_key(edge.to().as_str()) {
             return Err(BijuxError::validation(format!(
                 "edge references unknown step: {} -> {}",
@@ -635,5 +649,24 @@ mod tests {
         );
 
         assert!(error.is_err_and(|err| err.to_string().contains("step trim missing out_dir")));
+    }
+
+    #[test]
+    fn execution_graph_rejects_duplicate_edges() {
+        let edge = ExecutionEdge::new(StepId::new("validate"), StepId::new("trim"));
+        let error = ExecutionGraph::new(
+            "fastq-to-fastq__graph__v1",
+            "planner",
+            PlanPolicy::PreferAccuracy,
+            vec![
+                step("validate", id_catalog::FASTQ_VALIDATE_READS),
+                step("trim", id_catalog::FASTQ_TRIM),
+            ],
+            vec![edge.clone(), edge],
+        );
+
+        assert!(error.is_err_and(|err| err
+            .to_string()
+            .contains("duplicate execution edge validate -> trim")));
     }
 }
