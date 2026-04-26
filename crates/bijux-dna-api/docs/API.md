@@ -14,7 +14,7 @@ are public.
 | `dry_run` | `DryRunRequest` | `DryRunResponse` | Writes deterministic graph and manifest artifacts without executing stages. |
 | `status` | run identifier/path input | `RunStatus` | Reads persisted manifest/report status for a run. |
 | `explain` | execution graph plus optional defaults ledger | `ExplainResponse` | Returns selected tools, defaults diff, and stage contract evidence. |
-| `policy_audit` | audit target input | policy audit JSON | Runs crate/workspace policy checks used by report evidence. |
+| `policy_audit` | audit target input | policy audit JSON | Reports the policy-audit owner and commands without executing policy guardrails from runtime API code. |
 | `render_report` | `RenderReportRequest` | `RenderReportResult` | Renders a report bundle for existing run facts. |
 
 `docs/COMMANDS.md` is the SSOT for the full command list and local verification

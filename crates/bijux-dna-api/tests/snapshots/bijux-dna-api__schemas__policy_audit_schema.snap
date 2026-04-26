@@ -1,20 +1,16 @@
 ---
-source: crates/bijux-dna-api/tests/v1_cross_api_stability.rs
-expression: json
+source: crates/bijux-dna-api/tests/schemas/v1_cross_api_stability.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
-  "guardrails": {
-    "bijux-dna-api": {
-      "error": "<error>",
-      "status": "fail"
-    },
-    "bijux-dna-core": {
-      "error": "<error>",
-      "status": "fail"
-    },
-    "bijux-dna-engine": {
-      "error": "<error>",
-      "status": "fail"
-    }
+  "policy_audit": {
+    "commands": [
+      "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test boundaries --no-default-features",
+      "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test contracts --no-default-features"
+    ],
+    "owner_crate": "bijux-dna-dev",
+    "policy_crate": "bijux-dna-policies",
+    "reason": "bijux-dna-api exposes audit metadata but does not execute policy guardrails at runtime",
+    "status": "delegated"
   }
 }

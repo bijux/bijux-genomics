@@ -15,7 +15,7 @@ These v1 operations are exported through `bijux_dna_api::v1::api`.
 | `dry-run` | `dry_run(DryRunRequest)` | Validate inputs and emit deterministic dry-run graph and manifest artifacts. |
 | `status` | `status(run_id)` | Read persisted run state and return `RunStatus`. |
 | `explain` | `explain(plan, defaults_ledger)` | Build the explainability bundle for a planned graph. |
-| `policy-audit` | `policy_audit(...)` | Run workspace/crate policy checks and return policy-audit JSON. |
+| `policy-audit` | `policy_audit(...)` | Return the policy-audit owner and commands; policy execution stays in `bijux-dna-dev` and `bijux-dna-policies`. |
 | `render-report` | `render_report(RenderReportRequest)` | Render an existing run report bundle. |
 | `render-report-html` | `render_report_bundle_html(...)` | Render the v1 HTML report bundle. |
 | `workspace-edges` | `workspace_edges(...)` | Inspect workspace dependency edges for audit/reporting flows. |

@@ -33,7 +33,6 @@ bijux-dna-runner = { path = "../bijux-dna-runner" }
 bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
 bijux-dna-infra = { path = "../bijux-dna-infra", features = ["tracing"] }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
-bijux-dna-policies = { path = "../bijux-dna-policies" }
 
 [features]
 bam_downstream = ["bijux-dna-planner-bam/bam_downstream", "bijux-dna-pipelines/bam_downstream"]
@@ -47,6 +46,7 @@ default = []
 insta = { version = "1", features = ["json"] }
 tempfile = { workspace = true }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
+bijux-dna-policies = { path = "../bijux-dna-policies" }
 
 [lints]
 workspace = true

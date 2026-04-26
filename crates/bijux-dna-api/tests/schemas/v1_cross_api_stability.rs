@@ -156,18 +156,7 @@ fn explain_schema_is_stable() -> anyhow::Result<()> {
 
 #[test]
 fn policy_audit_schema_is_stable() -> anyhow::Result<()> {
-    let mut json = policy_audit()?;
-    if let Some(guardrails) = json.get_mut("guardrails") {
-        if let Some(obj) = guardrails.as_object_mut() {
-            for value in obj.values_mut() {
-                if let Some(error) = value.get_mut("error") {
-                    if !error.is_null() {
-                        *error = serde_json::Value::String("<error>".to_string());
-                    }
-                }
-            }
-        }
-    }
+    let json = policy_audit()?;
     let name = snapshot_name("schemas", "policy_audit_schema");
     let settings = snapshot_settings();
     settings.bind(|| {

@@ -7,28 +7,17 @@ use std::path::{Path, PathBuf};
 /// # Errors
 /// Returns an error if policy checks fail or cannot be executed.
 pub fn policy_audit() -> Result<serde_json::Value> {
-    let workspace = std::env::current_dir()?;
-    let mut guardrails = serde_json::Map::new();
-    for crate_name in ["bijux-dna-core", "bijux-dna-engine", "bijux-dna-api"] {
-        let crate_root = workspace.join("crates").join(crate_name);
-        let result = bijux_dna_policies::check(
-            &crate_root,
-            &bijux_dna_policies::GuardrailConfig::for_crate(crate_name),
-        );
-        let (status, error) = match result {
-            Ok(()) => ("ok", None),
-            Err(err) => ("fail", Some(err.to_string())),
-        };
-        guardrails.insert(
-            crate_name.to_string(),
-            serde_json::json!({
-                "status": status,
-                "error": error,
-            }),
-        );
-    }
     Ok(serde_json::json!({
-        "guardrails": guardrails,
+        "policy_audit": {
+            "status": "delegated",
+            "owner_crate": "bijux-dna-dev",
+            "policy_crate": "bijux-dna-policies",
+            "reason": "bijux-dna-api exposes audit metadata but does not execute policy guardrails at runtime",
+            "commands": [
+                "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test boundaries --no-default-features",
+                "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test contracts --no-default-features"
+            ],
+        },
     }))
 }
 
