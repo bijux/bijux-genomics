@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 use bijux_dna_stage_contract::{StagePlugin, StagePluginOutputV1};
 
@@ -17,6 +17,9 @@ impl StagePlugin for BamStagePlugin {
         &self,
         plan: &StagePlanV1,
     ) -> Result<bijux_dna_stage_contract::StageInvocationV1> {
+        if !self.handles_stage(plan.stage_id.as_str()) {
+            return Err(anyhow!("unsupported BAM stage {}", plan.stage_id.as_str()));
+        }
         Ok(invocation::materialize_stage_invocation(plan))
     }
 
