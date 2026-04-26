@@ -35,6 +35,9 @@ pub(super) fn image_exists(
     runner: &dyn CommandRunner,
     image: &str,
 ) -> Result<bool, Box<dyn std::error::Error>> {
+    if image.trim().is_empty() {
+        return Err("docker image name is empty".into());
+    }
     let output = runner.run(&["docker", "image", "inspect", image])?;
     Ok(output.status.success())
 }
