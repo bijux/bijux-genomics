@@ -286,7 +286,7 @@ fn workspace_entry_summary(path: &Path) -> Result<WorkspaceEntrySummary> {
 
     let mut file_count = 0u64;
     let mut total_size_bytes = 0u64;
-    let mut newest_mtime = modified_secs(&metadata).unwrap_or(0);
+    let mut newest_mtime = 0u64;
     accumulate_workspace_entry_summary(
         path,
         &mut file_count,
