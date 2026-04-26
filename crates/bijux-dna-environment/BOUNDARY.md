@@ -1,15 +1,21 @@
 # bijux-dna-environment Boundary Contract
 
+Owner: Environment
+Scope: Image catalog, runtime resolution, environment probing, and cache policy contracts
+Allowed inputs: runtime profiles, image catalogs, platform definitions, declared cache roots
+Forbidden dependencies: planner/domain semantics, CLI adapters, report/analyzer ownership
+Forbidden effects: product execution, undeclared writes, network access outside declared prep workflows
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-environment --no-default-features`
+
 ## Why this crate exists
-Defines a focused layer in the bijux-dna architecture with explicit boundaries.
+Resolves runtime and image environment facts without owning planning or product execution.
 
 ## Allowed dependencies
-- Workspace crates required for this layer only.
-- No reverse-layer coupling (enforced by policy tests).
+- Core, runtime model, infra, policy, and testkit support for environment contracts.
+- No stage or domain semantics ownership.
 
 ## Allowed effects
-- Pure data/model crates: no runtime side effects.
-- Runtime/CLI/runner crates: controlled filesystem/process/network effects only.
+- Controlled environment inspection and cache checks.
 
 ## Notes
-Boundary invariants are enforced by bijux-dna-policies contract tests.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.

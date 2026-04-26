@@ -1,15 +1,20 @@
 # bijux-dna-bench-model Boundary Contract
 
+Owner: Benchmark model
+Scope: Pure benchmark model types, schemas, scoring metadata, and manifests
+Allowed inputs: typed benchmark payloads, profile manifests, deterministic fixtures
+Forbidden dependencies: runner backends, CLI adapters, product execution crates
+Forbidden effects: filesystem writes, process spawning, network access, runtime mutation
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --no-default-features`
+
 ## Why this crate exists
-Defines a focused layer in the bijux-dna architecture with explicit boundaries.
+Defines benchmark data contracts without owning benchmark execution or reporting side effects.
 
 ## Allowed dependencies
-- Workspace crates required for this layer only.
-- No reverse-layer coupling (enforced by policy tests).
+- Core, stage-contract, analyze models, policy, and testkit support needed for schema validation.
 
 ## Allowed effects
-- Pure data/model crates: no runtime side effects.
-- Runtime/CLI/runner crates: controlled filesystem/process/network effects only.
+- Pure deterministic model construction and fixture-backed schema tests.
 
 ## Notes
-Boundary invariants are enforced by bijux-dna-policies contract tests.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.

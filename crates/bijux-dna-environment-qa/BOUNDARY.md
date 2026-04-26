@@ -1,15 +1,21 @@
 # bijux-dna-environment-qa Boundary Contract
 
+Owner: Environment QA
+Scope: Environment smoke, artifact QA, and reproducibility evidence contracts
+Allowed inputs: image catalogs, QA fixtures, run artifacts, declared cache roots
+Forbidden dependencies: CLI adapters, planner selection logic, product pipeline ownership
+Forbidden effects: undeclared network access, source mutation, writes outside QA output roots
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-environment-qa --no-default-features`
+
 ## Why this crate exists
-Defines a focused layer in the bijux-dna architecture with explicit boundaries.
+Checks environment readiness and QA evidence without owning production runtime orchestration.
 
 ## Allowed dependencies
-- Workspace crates required for this layer only.
-- No reverse-layer coupling (enforced by policy tests).
+- Analyze, core, domain, environment, runtime, infra, policy, and testkit contracts needed for QA.
+- No CLI or planner ownership.
 
 ## Allowed effects
-- Pure data/model crates: no runtime side effects.
-- Runtime/CLI/runner crates: controlled filesystem/process/network effects only.
+- Controlled QA artifact reads/writes under declared roots.
 
 ## Notes
-Boundary invariants are enforced by bijux-dna-policies contract tests.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
