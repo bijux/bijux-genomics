@@ -265,17 +265,17 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
             .file_name()
             .and_then(|name| name.to_str())
             .ok_or_else(|| anyhow!("invalid domain directory {}", dom_dir.display()))?;
-        let doc = dom_dir.join("docs/DEFAULT_SETTINGS.md");
-        if !doc.is_file() {
+        let settings_doc = dom_dir.join("docs/DEFAULT_SETTINGS.md");
+        if !settings_doc.is_file() {
             errors.push(format!("domain/{dom}/docs/DEFAULT_SETTINGS.md missing"));
             continue;
         }
-        let text = read_utf8(&doc)?.to_lowercase();
+        let text = read_utf8(&settings_doc)?.to_lowercase();
         for section in required_sections {
             if !text.contains(section) {
                 errors.push(format!(
                     "{}: missing required section phrase '{section}'",
-                    workspace.rel(&doc).display()
+                    workspace.rel(&settings_doc).display()
                 ));
             }
         }
@@ -303,13 +303,13 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
             if !text.contains(&stage_lower) {
                 errors.push(format!(
                     "{}: missing stage coverage for '{stage}'",
-                    workspace.rel(&doc).display()
+                    workspace.rel(&settings_doc).display()
                 ));
             }
             if !regex(&format!(r"{}.*default", regex::escape(&stage_lower)))?.is_match(&text) {
                 errors.push(format!(
                     "{}: missing blessed default description for '{stage}'",
-                    workspace.rel(&doc).display()
+                    workspace.rel(&settings_doc).display()
                 ));
             }
             let has_doc_rationale =
@@ -334,7 +334,7 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
             if !(has_doc_rationale || has_idx_rationale) {
                 errors.push(format!(
                     "{}: missing blessed default rationale for '{stage}'",
-                    workspace.rel(&doc).display()
+                    workspace.rel(&settings_doc).display()
                 ));
             }
             if !(has_idx_default
@@ -342,7 +342,7 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
             {
                 errors.push(format!(
                     "{}: missing blessed default mapping for '{stage}'",
-                    workspace.rel(&doc).display()
+                    workspace.rel(&settings_doc).display()
                 ));
             }
         }
@@ -397,7 +397,7 @@ fn check_default_settings_docs(workspace: &Workspace) -> Result<DomainCommandOut
                     if !text.contains(&marker) {
                         errors.push(format!(
                             "{}: missing '{marker}' for single-tool stage",
-                            workspace.rel(&doc).display()
+                            workspace.rel(&settings_doc).display()
                         ));
                     }
                 }
