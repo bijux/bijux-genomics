@@ -371,6 +371,7 @@ fn policy__boundaries__workspace__workspace_no_orphan_crates() {
         "bijux-dna-planner-vcf",
         "bijux-dna-runner",
         "bijux-dna-runtime",
+        "bijux-dna-science",
         "bijux-dna-stages-vcf",
     ]);
     for (name, count) in dependents {
