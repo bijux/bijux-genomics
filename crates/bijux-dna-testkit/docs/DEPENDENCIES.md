@@ -5,10 +5,7 @@ dependencies on product workspace crates.
 
 ## Normal Dependencies
 
-- `anyhow`: reserved for shared helper APIs that need workspace-style error
-  compatibility.
 - `rand`: seeded deterministic RNG helpers.
-- `serde`: JSON value and serialization compatibility for callers.
 - `serde_json`: fixture parsing and snapshot normalization.
 - `tempfile`: isolated temporary directories.
 
