@@ -25,7 +25,7 @@ Explicitly forbidden:
 Upstream: core/runtime/etc. Downstream: all crates as helpers.
 
 ## Public API / entrypoints
-See `crates/bijux-dna-infra/docs/INDEX.md`, `crates/bijux-dna-infra/docs/NO_DOMAIN.md`, `crates/bijux-dna-infra/docs/LOGGING.md`, `crates/bijux-dna-infra/docs/PATHS.md`, `crates/bijux-dna-infra/docs/WHY_YAML.md`, `crates/bijux-dna-infra/docs/CHANGE_RULES.md`.
+See `docs/PUBLIC_API.md` and `docs/INDEX.md`.
 
 ## Key contracts it owns/consumes
 None; utility-only.
@@ -44,10 +44,11 @@ See `crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_dupl
 See `crates/bijux-dna-infra/docs/TESTS.md`. Key tests: `tests/contracts/io.rs`, `tests/contracts/run_layout.rs`, `tests/determinism/hash.rs`, `tests/determinism/retry.rs`, `tests/boundaries/guardrails/public_surface.rs`.
 
 ## Where the docs live
-Start at `crates/bijux-dna-infra/docs/INDEX.md` and follow the crate docs listed above.
+Root docs are limited to this `README.md`. All other crate docs live in `docs/`; start at
+`docs/INDEX.md`.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `crates/bijux-dna-infra/docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/CHANGE_RULES.md` and `docs/PUBLIC_API.md`.
