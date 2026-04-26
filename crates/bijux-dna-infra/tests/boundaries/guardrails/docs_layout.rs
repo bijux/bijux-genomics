@@ -57,7 +57,7 @@ fn commands_doc_declares_library_only_inventory() {
     );
     assert!(
         !crate_root().join("src/bin").exists(),
-        "infra must not add binary entrypoints without updating COMMANDS.md"
+        "infra must not add Cargo binary targets without updating COMMANDS.md"
     );
 }
 
