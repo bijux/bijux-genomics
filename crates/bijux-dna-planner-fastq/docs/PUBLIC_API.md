@@ -14,31 +14,25 @@ The public API is the planner surface exported from `src/lib.rs`.
 - `FastqStageBinding`
 - `FastqStageToolsetBinding`
 - `FastqStageParameters`
-- `FastqArtifactInputBinding`
 - `StageArtifactInputBinding`
 - `StageArtifactInputPolicy`
-- `StageToolCapability`
-- `StageToolBenchmarkProfile`
-- `BenchmarkCohort`
-- `BenchmarkReadinessLevel`
-- `StageToolMaturityLevel`
-- `ToolsetExecutionMode`
 - `DefaultPipelineOptions`
 - `PreprocessPolicyDecision`
 - `CorrectDecisionTrace`
 - `MergeDecisionTrace`
 - `PreprocessDecisions`
-- `StagePlanJson`
 - `PLANNER_VERSION`
 - `TOOL_SEQKIT`
 - `STAGE_PREPROCESS_SUMMARY`
 - `STAGE_REPORT_AGGREGATE`
 - `STAGE_COMPARE_STAGE_TOOLS`
 - `STAGE_SELECT_STAGE_TOOL`
+- `args`
 - `plan_fastq_to_fastq__default__v1`
 - `plan_fastq_to_bam__default__v1`
 - `compose_fastq_stage_bindings`
 - `compose_fastq_stage_bindings_with_dependencies`
+- `scale_tool_spec_for_jobs`
 - `default_pipeline_spec`
 - `apply_preprocess_policy`
 - `plan_preprocess`
@@ -47,8 +41,19 @@ The public API is the planner surface exported from `src/lib.rs`.
 - `report_stage_step`
 - `cross_fastq_to_bam_id_catalog`
 
-## `stage_api`
-`stage_api` is the curated compatibility surface for downstream stage planning, toolset selection, stage-tool maturity, benchmark cohorts, bank resolution helpers, and stage spec access.
+## Stage API Exports
+The `stage_api` module is the curated compatibility surface for downstream stage planning, toolset selection, stage-tool maturity, benchmark cohorts, bank resolution helpers, and stage spec access.
+
+- `StageToolCapability`
+- `StageToolBenchmarkProfile`
+- `BenchmarkCohort`
+- `BenchmarkReadinessLevel`
+- `StageToolMaturityLevel`
+- `ToolsetExecutionMode`
+- `StagePlanJson`
+- `toolset_for_stage`
+- `stage_tool_maturity`
+- `benchmark_cohorts_for_stage`
 
 ## Stability Rules
 - Additions must be documented here and covered by boundary or contract tests.
