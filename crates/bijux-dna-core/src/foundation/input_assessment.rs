@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-use crate::foundation::{ContractVersion, Result};
+use crate::foundation::{BijuxError, ContractVersion, Result};
 use chrono::Utc;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -212,9 +212,25 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
 /// # Errors
 /// Returns an error if serialization or writing fails.
 pub fn write_input_assessment(path: &Path, assessment: &InputAssessmentV1) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(path, assessment).map_err(|err| {
-        crate::foundation::BijuxError::Io(format!("write input assessment: {err}"))
-    })?;
+    let payload = serde_json::to_vec_pretty(assessment)?;
+    atomic_write_bytes(path, &payload)
+        .map_err(|err| BijuxError::Io(format!("write input assessment: {err}")))?;
+    Ok(())
+}
+
+fn atomic_write_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
+    use std::io::Write as _;
+
+    let parent = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    std::fs::create_dir_all(parent)?;
+
+    let mut temp = tempfile::NamedTempFile::new_in(parent)?;
+    temp.write_all(bytes)?;
+    temp.as_file_mut().sync_all()?;
+    temp.persist(path).map_err(|err| err.error)?;
     Ok(())
 }
 
