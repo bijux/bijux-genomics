@@ -19,10 +19,14 @@ pub(crate) fn parse_lock_ref(lock_ref: &str) -> Result<(&str, &str)> {
 }
 
 fn validate_lock_path(path: &str, lock_ref: &str) -> Result<()> {
-    if Path::new(path).components().any(|component| {
+    let path = Path::new(path);
+    if path.components().any(|component| {
         matches!(component, Component::ParentDir | Component::RootDir | Component::Prefix(_))
     }) {
         bail!("invalid lock_ref `{lock_ref}`: lock path must be relative and stay within catalog");
+    }
+    if path.extension().and_then(|ext| ext.to_str()) != Some("toml") {
+        bail!("invalid lock_ref `{lock_ref}`: lock path must point to a TOML file");
     }
     Ok(())
 }
@@ -63,6 +67,15 @@ mod tests {
         };
 
         assert!(error.to_string().contains("stay within catalog"));
+    }
+
+    #[test]
+    fn parse_lock_ref_rejects_non_toml_paths() {
+        let Err(error) = parse_lock_ref("locks/panel_locks.json#locks.panel") else {
+            panic!("non-toml lock path must fail");
+        };
+
+        assert!(error.to_string().contains("TOML file"));
     }
 
     #[test]
