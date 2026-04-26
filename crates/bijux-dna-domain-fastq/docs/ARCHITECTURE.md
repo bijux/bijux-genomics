@@ -1,41 +1,45 @@
-# Architecture
+# bijux-dna-domain-fastq Architecture
 
-## Layout principles
-- `src/lib.rs` is a public facade and compatibility layer, not a place for domain implementations.
-- Domain subsystems own their own directories so the filesystem matches Rust module ownership.
-- Manifest loaders live next to the domain they catalog instead of being embedded inside policy code.
-- Stage truth lives under `src/stages/`; compatibility surfaces may re-export it, but they do not redefine it.
+`bijux-dna-domain-fastq` is a pure FASTQ domain library. It owns typed domain truth and contract
+queries; execution crates decide when and how to run tools.
 
-## Preferred tree
+## Layout
+
 ```text
 src/
-  artifacts/              stage reports and manifests
-  banks/                  adapter, contaminant, and polyX banks
+  artifacts/              stage report and manifest schemas
+  banks/                  adapter, contaminant, and polyX banks plus selection
   bench/                  benchmark query context and repository contracts
-  execution_support/      execution support models and manifest catalog
-  invariants/             invariant specs, evaluation, and thresholds
-  metrics/                metric types, specs, and deltas
-  observer/
-    contracts/            observer specialization catalog
-    parse/                governed parser implementations
-  params/
-    edna/                 amplicon parameter shapes
-    processing/           preprocessing and transform parameter shapes
-    quality/              QC and filtering parameter shapes
-  pipeline_contract/      pipeline catalog and graph assembly
+  comparison_contract/    stage comparison artifact contracts
+  execution_support/      manifest-backed execution support catalog
+  integration_matrix/     stage/tool compatibility and benchmark scenarios
+  invariants/             invariant specs, thresholds, and evaluation
+  metrics/                metric types, classes, specs, and deltas
+  observer/               parser contracts and governed parser implementations
+  params/                 descriptors, defaults, parsing, and effective params
+  pipeline_contract/      pipeline ordering, transitions, and dependency graph
   run/                    FASTQ input discovery and benchmark corpus helpers
-  stage_tool_governance/  tool layout catalog and governance policy
-  stages/                 authoritative stage IDs, contracts, semantics, and IO
-  types/                  shared FASTQ domain types
+  stage_tool_governance/  tool layout, readiness, maturity, and input layout policy
+  stages/                 stage IDs, specs, ports, semantics, and contract JSON
+  types/                  shared FASTQ domain value types
+  lib.rs                  public facade and compatibility re-exports
 ```
 
-## Ownership map
-- `artifacts/` owns governed stage report schemas and manifest contracts.
-- `observer/` owns parser behavior and the stage-tool specialization map that explains normalization surfaces.
-- `pipeline_contract/` owns stage ordering and dependency graph assembly, but not stage semantics.
-- `execution_support/` and `stage_tool_governance/` own manifest-backed readiness/catalog views.
-- `bench/` owns benchmark query matching, lineage metadata, and repository contracts.
+## Ownership Rules
 
-## Data flow
-- Provides FASTQ domain truth to planners, stages, API layers, and benchmark tooling.
-- Consumes SSOT manifests under `domain/fastq/` without reaching into execution/runtime behavior.
+- `stages/` is the authority for FASTQ stage IDs, semantics, IO, and contract JSON.
+- `params/`, `metrics/`, and `invariants/` must stay aligned; changing one usually requires tests
+  for the others.
+- `banks/` owns bank content, preset resolution, provenance, and deterministic hashes.
+- `observer/` may parse governed tool reports, but it must not execute tools or own runtime policy.
+- `execution_support/`, `integration_matrix/`, and `stage_tool_governance/` expose domain readiness
+  and compatibility metadata; they do not schedule execution.
+- `run/` may discover FASTQ inputs and benchmark corpus descriptors, but it must remain domain
+  discovery, not runner orchestration.
+
+## Data Flow
+
+1. Domain metadata and typed modules define IDs, artifacts, params, metrics, and invariants.
+2. Contract query APIs expose stable views to planners, stages, benchmark tooling, and analyzers.
+3. Parser and observer helpers normalize governed tool outputs into typed reports.
+4. Tests lock parity with `domain/fastq/` manifests, snapshots, and semantic fixtures.
