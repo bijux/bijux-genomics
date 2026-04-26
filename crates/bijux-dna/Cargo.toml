@@ -41,7 +41,6 @@ bijux-dna-policies = { path = "../bijux-dna-policies" }
 tempfile = "3"
 predicates = "3"
 insta = { workspace = true }
-gag = "1"
 filetime = "0.2"
 [lints]
 workspace = true
