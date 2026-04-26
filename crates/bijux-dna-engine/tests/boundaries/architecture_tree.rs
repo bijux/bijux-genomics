@@ -124,6 +124,7 @@ fn engine_tree_matches_architecture_contract() {
         dir_entries(&root.join("tests/boundaries")),
         entries([
             "architecture_tree.rs",
+            "command_inventory.rs",
             "dependency_graph.rs",
             "docs_layout.rs",
             "effect_boundary.rs",

@@ -6,15 +6,16 @@ guard the crate shape and dependency graph, contract tests guard observable
 engine behavior, and determinism tests guard replayable output.
 
 ## Suite map
-- `tests/boundaries.rs`: architecture tree, documentation placement, dependency graph, and
-  effect-boundary enforcement.
-- `tests/contracts.rs`: public behavior for orchestration, runner retries, cancellation, command
-  inventory, params hashing, recording truth-set contracts, and helper naming.
+- `tests/boundaries.rs`: architecture tree, command inventory, documentation placement,
+  dependency graph, and effect-boundary enforcement.
+- `tests/contracts.rs`: public behavior for orchestration, runner retries, cancellation, params
+  hashing, recording truth-set contracts, and helper naming.
 - `tests/determinism.rs`: replay determinism and manifest layout stability.
 - `tests/guardrails.rs`: repository policy guardrails shared with generated policy tests.
 
 ## Important directories
 - `tests/boundaries/`: crate-tree, dependency, and side-effect boundary assertions.
+- `tests/boundaries/command_inventory.rs`: `docs/COMMANDS.md` operation inventory contract.
 - `tests/contracts/`: engine-facing behavior and documentation contracts.
 - `tests/contracts/recording/`: execution truth-set documentation and recording completeness checks
 - `tests/determinism/`: replay and run-manifest stability assertions.
@@ -38,6 +39,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-engine --no-defa
 ## Failure interpretation
 - Boundary failures mean the source tree, docs layout, dependency graph, or effect boundary
   changed.
-- Contract failures mean public execution behavior, command inventory, or recorded artifacts
-  changed.
+- Contract failures mean public execution behavior or recorded artifacts changed.
 - Determinism failures mean stable ordering or repeatable output changed.
