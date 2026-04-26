@@ -19,7 +19,7 @@ enter through `bijux_dna_api::v1::api`.
 - Contract types: `PlanRequest`, `PlanResponse`, `ExecuteRequest`,
   `ExecuteResponse`, `DryRunRequest`, `DryRunResponse`, `RunStatus`,
   `RenderReportRequest`, `RenderReportResult`, `ExplainResponse`,
-  `ExplainToolSelection`, and `PlanExplainV1`.
+  `ExplainToolSelection`, `PlanExplainV1`, and `VcfRunRequest`.
 - Curated helper namespaces: `bench`, `plan`, `run`, `report`, `bam`, `fastq`,
   `env`, and `shared`.
 

@@ -9,6 +9,9 @@ use bijux_dna_stages_vcf::engine::{run_vcf_pipeline, VcfPipelineRequest};
 use bijux_dna_stages_vcf::invariants::InvariantConfig;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+/// Request contract for running the VCF v1 pipeline.
+///
+/// Stability: v1 (stable).
 pub struct VcfRunRequest {
     pub profile: String,
     pub vcf: PathBuf,
