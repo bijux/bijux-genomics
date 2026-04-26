@@ -541,13 +541,9 @@ dependencies = [
  "bijux-dna-runtime",
  "bijux-dna-testkit",
  "clap",
- "regex",
  "rusqlite",
- "serde",
  "serde_json",
  "sha2",
- "tempfile",
- "thiserror 2.0.18",
  "tracing",
  "uuid",
 ]
