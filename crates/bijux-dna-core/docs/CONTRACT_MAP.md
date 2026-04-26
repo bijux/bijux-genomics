@@ -26,6 +26,7 @@ This file is the SSOT for core contract families and their owning modules.
 | Domain model | `src/ids/domain_model.rs` | Shared assay, domain, platform, layout, and library model records. |
 | Metrics | `src/metrics/` | Metric ids, derived metric parsing, schema ids, registry constants, and metric payloads. |
 | Input assessment | `src/foundation/input_assessment.rs` | FASTQ discovery, assessment records, hashing, and assessment persistence helper. |
+| Managed operations | `docs/COMMANDS.md` | SSOT for callable operations exposed by core. |
 
 ## SSOT Rules
 
@@ -35,6 +36,9 @@ This file is the SSOT for core contract families and their owning modules.
 - Do not re-implement canonical JSON or hashing rules outside this crate.
 - Do not add serialized contract fields without following `docs/CHANGE_RULES.md`.
 - Do not add callable core operations without updating `docs/COMMANDS.md`.
+- Do not move input discovery or run-index query semantics into downstream
+  crates; downstream crates may orchestrate calls, but the contract shape stays
+  here.
 
 ## Public Access
 
