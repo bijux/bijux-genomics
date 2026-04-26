@@ -40,8 +40,7 @@ fn is_policies_ownership_test(path: &Path) -> bool {
 #[test]
 fn policy__boundaries__ownership_contract__ownership_contract_is_complete() {
     let root = workspace_root();
-    let contract_path =
-        root.join("crates").join("bijux-dna-core").join("docs").join("BOUNDARY.md");
+    let contract_path = root.join("crates").join("bijux-dna-core").join("docs").join("BOUNDARY.md");
     let content = std::fs::read_to_string(&contract_path).expect("read boundary doc");
     let required = [
         "Public contract types for execution graphs",

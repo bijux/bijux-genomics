@@ -120,9 +120,8 @@ fn policy__boundaries__no_empty_dirs_policy__support_dirs_are_documented() {
             .ok()
             .map(|it| it.flatten().collect::<Vec<_>>())
             .unwrap_or_default();
-        let has_rust_helper = entries
-            .iter()
-            .any(|e| e.path().extension().and_then(|ext| ext.to_str()) == Some("rs"));
+        let has_rust_helper =
+            entries.iter().any(|e| e.path().extension().and_then(|ext| ext.to_str()) == Some("rs"));
         if !has_rust_helper {
             offenders.push(support_dir.display().to_string());
         }
