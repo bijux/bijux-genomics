@@ -34,6 +34,22 @@ pub(super) fn verify_required_run_artifacts(step: &ExecutionStep) -> Result<()> 
         if metadata.len() == 0 {
             return Err(contract_error(step, label, &path.display().to_string(), "artifact empty"));
         }
+        let raw = fs::read_to_string(&path).map_err(|err| {
+            contract_error(
+                step,
+                label,
+                &path.display().to_string(),
+                &format!("unable to read run artifact: {err}"),
+            )
+        })?;
+        serde_json::from_str::<serde_json::Value>(&raw).map_err(|err| {
+            contract_error(
+                step,
+                label,
+                &path.display().to_string(),
+                &format!("run artifact json not parseable: {err}"),
+            )
+        })?;
     }
     Ok(())
 }

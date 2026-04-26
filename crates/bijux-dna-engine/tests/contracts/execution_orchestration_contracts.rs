@@ -20,6 +20,7 @@ enum Mode {
 struct ScenarioRunner {
     mode: Mode,
     write_required_artifacts: bool,
+    invalid_run_artifact: Option<&'static str>,
     write_outputs: bool,
     output_payload: &'static str,
     cancel_on_first_attempt: Option<CancellationToken>,
@@ -47,6 +48,7 @@ impl ScenarioRunner {
         Self {
             mode,
             write_required_artifacts: true,
+            invalid_run_artifact: None,
             write_outputs: true,
             output_payload: "{}",
             cancel_on_first_attempt: None,
@@ -71,7 +73,9 @@ impl Runner for ScenarioRunner {
                 "stage_report.json",
                 "tool_invocation.json",
             ] {
-                bijux_dna_infra::write_bytes(run_artifacts.join(name), "{}")?;
+                let payload =
+                    if self.invalid_run_artifact == Some(name) { "not-json" } else { "{}" };
+                bijux_dna_infra::write_bytes(run_artifacts.join(name), payload)?;
             }
         }
 
@@ -229,6 +233,20 @@ fn execute_plan_reports_timeout_and_contract_errors() {
         .err()
         .unwrap_or_else(|| panic!("expected missing metrics_envelope contract error"));
     assert!(missing_envelope_err.to_string().contains("missing metrics_envelope.json"));
+}
+
+#[test]
+fn required_run_artifacts_must_be_parseable_json() {
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
+    let graph = build_graph(vec![plan_for("A")], Vec::new());
+    let mut runner = ScenarioRunner::new(Mode::Success);
+    runner.invalid_run_artifact = Some("stage_report.json");
+
+    let err = Engine::default()
+        .execute(&graph, &runner, &layout, None, None)
+        .err()
+        .unwrap_or_else(|| panic!("expected invalid run artifact failure"));
+    assert!(err.to_string().contains("run artifact json not parseable"));
 }
 
 #[test]
