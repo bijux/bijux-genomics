@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-analyze/tests/contracts/pipeline/pipeline_e2e.rs
-assertion_line: 163
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -52,11 +51,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     {
       "banks": {},
-      "stage_id": "fastq.trim_terminal_damage",
-      "tool_id": "cutadapt"
-    },
-    {
-      "banks": {},
       "stage_id": "fastq.validate_reads",
       "tool_id": "fastqvalidator"
     }
@@ -80,8 +74,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.trim_polyg_tails:retention_report",
       "fastq.trim_reads:metrics_path",
       "fastq.trim_reads:retention_report",
-      "fastq.trim_terminal_damage:metrics_path",
-      "fastq.trim_terminal_damage:retention_report",
       "fastq.validate_reads:metrics_path",
       "fastq.validate_reads:retention_report"
     ],
@@ -278,16 +270,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bank_hashes": {},
       "image_digest": "sha256:img",
       "params_hash": "params",
-      "span_id": "span-fastq.trim_terminal_damage",
-      "stage_id": "fastq.trim_terminal_damage",
-      "tool_id": "cutadapt",
-      "tool_version": "99.99.99+fixture",
-      "trace_id": "trace-1"
-    },
-    {
-      "bank_hashes": {},
-      "image_digest": "sha256:img",
-      "params_hash": "params",
       "span_id": "span-fastq.validate_reads",
       "stage_id": "fastq.validate_reads",
       "tool_id": "fastqvalidator",
@@ -350,12 +332,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "reads": 80,
           "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
-        },
-        {
-          "bases": 800,
-          "reads": 80,
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt"
         },
         {
           "bases": 800,
@@ -461,11 +437,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         {
           "results": [],
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt"
-        },
-        {
-          "results": [],
           "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator"
         }
@@ -529,11 +500,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         },
         {
           "banks": {},
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt"
-        },
-        {
-          "banks": {},
           "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator"
         }
@@ -558,8 +524,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "fastq.trim_polyg_tails:retention_report",
         "fastq.trim_reads:metrics_path",
         "fastq.trim_reads:retention_report",
-        "fastq.trim_terminal_damage:metrics_path",
-        "fastq.trim_terminal_damage:retention_report",
         "fastq.validate_reads:metrics_path",
         "fastq.validate_reads:retention_report"
       ],
@@ -730,22 +694,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "quality_gate": {},
-          "stage_id": "fastq.trim_terminal_damage",
-          "telemetry_decisions": [],
-          "tool_id": "cutadapt",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "adapter_validation": {},
-          "contaminant_action": false,
-          "input_hash": "input",
-          "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path",
-            "retention_report"
-          ],
-          "params_hash": "params",
-          "quality_gate": {},
           "stage_id": "fastq.validate_reads",
           "telemetry_decisions": [],
           "tool_id": "fastqvalidator",
@@ -777,8 +725,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "fastq.trim_polyg_tails:retention_report",
           "fastq.trim_reads:metrics_path",
           "fastq.trim_reads:retention_report",
-          "fastq.trim_terminal_damage:metrics_path",
-          "fastq.trim_terminal_damage:retention_report",
           "fastq.validate_reads:metrics_path",
           "fastq.validate_reads:retention_report"
         ],
@@ -787,7 +733,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "fastq": {
       "schema_version": "bijux.report.section.fastq.v1",
-      "stages": 10
+      "stages": 9
     },
     "filtering": {},
     "final_qc_summary": {
@@ -823,7 +769,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "key_findings": [
       {
-        "count": 20,
+        "count": 18,
         "items": [
           "fastq.detect_adapters:metrics_path",
           "fastq.detect_adapters:retention_report",
@@ -841,8 +787,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "fastq.trim_polyg_tails:retention_report",
           "fastq.trim_reads:metrics_path",
           "fastq.trim_reads:retention_report",
-          "fastq.trim_terminal_damage:metrics_path",
-          "fastq.trim_terminal_damage:retention_report",
           "fastq.validate_reads:metrics_path",
           "fastq.validate_reads:retention_report"
         ],
@@ -940,13 +884,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "effective_config_path": "",
           "params_hash": "params",
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "effective_config_path": "",
-          "params_hash": "params",
           "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator",
           "tool_version": "99.99.99+fixture"
@@ -1010,13 +947,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "stage_id": "fastq.trim_reads",
           "tool_id": "fastp",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "image_digest": "sha256:img",
-          "params_hash": "params",
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt",
           "tool_version": "99.99.99+fixture"
         },
         {
@@ -1178,18 +1108,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.trim_terminal_damage": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
           "fastq.validate_reads": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -1312,15 +1230,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "polyx_policy": null,
             "q_cutoff": null,
             "threads": 1
-          },
-          "fastq.trim_terminal_damage": {
-            "damage_mode": "ancient",
-            "execution_policy": "explicit_terminal_trim",
-            "paired_mode": "single_end",
-            "schema_version": "bijux.fastq.params.trim_terminal_damage.v1",
-            "threads": 1,
-            "trim_3p_bases": 2,
-            "trim_5p_bases": 2
           },
           "fastq.validate_reads": {
             "pair_sync_policy": "not_applicable",
@@ -1477,18 +1386,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             ],
             "rationale": "pipeline default"
           },
-          "fastq.trim_terminal_damage": {
-            "assumptions": [
-              "defaults chosen for pre-HPC deterministic baseline comparisons"
-            ],
-            "citations": [
-              "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
-            ],
-            "comparability_implications": [
-              "changing this default can shift cross-run comparability baselines"
-            ],
-            "rationale": "pipeline default"
-          },
           "fastq.validate_reads": {
             "assumptions": [
               "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -1515,7 +1412,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "fastq.screen_taxonomy": "kraken2",
           "fastq.trim_polyg_tails": "fastp",
           "fastq.trim_reads": "fastp",
-          "fastq.trim_terminal_damage": "cutadapt",
           "fastq.validate_reads": "fastqvalidator"
         }
       },
@@ -1643,20 +1539,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           ],
           "params_hash": "params",
           "scientific_preset": null,
-          "stage_id": "fastq.trim_terminal_damage",
-          "tier_rationale": "unknown_tool",
-          "tool_id": "cutadapt",
-          "tool_tier": "experimental",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "image_digest": "sha256:img",
-          "input_hash": "input",
-          "output_hashes": [
-            "out"
-          ],
-          "params_hash": "params",
-          "scientific_preset": null,
           "stage_id": "fastq.validate_reads",
           "tier_rationale": "unknown_tool",
           "tool_id": "fastqvalidator",
@@ -1710,7 +1592,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "definitions": []
     },
     "run_provenance": {
-      "domain_snapshot_hash": "16dd805db01b6288d603acb0221337cbea7c7e96",
+      "domain_snapshot_hash": "0a39c22c03105d751edc2b8fd5d0c49aaec0a929",
       "graph_hash": "unknown",
       "input_hashes": [],
       "manifest_signature_sha256": "unknown",
@@ -1840,20 +1722,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "params_hash": "params",
           "raw_params": {},
           "resolved_tool_version": null,
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt",
-          "tool_version": "99.99.99+fixture"
-        },
-        {
-          "effective_params": {},
-          "image_digest": "sha256:img",
-          "input_hash": "input",
-          "output_hashes": [
-            "out"
-          ],
-          "params_hash": "params",
-          "raw_params": {},
-          "resolved_tool_version": null,
           "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator",
           "tool_version": "99.99.99+fixture"
@@ -1940,15 +1808,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "metrics_path",
             "retention_report"
           ],
-          "stage_id": "fastq.trim_terminal_damage",
-          "status": "incomplete"
-        },
-        {
-          "missing_metrics": [],
-          "missing_reports": [
-            "metrics_path",
-            "retention_report"
-          ],
           "stage_id": "fastq.validate_reads",
           "status": "incomplete"
         }
@@ -2011,13 +1870,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "score": 1.0,
           "stage_id": "fastq.trim_reads",
           "tool_id": "fastp"
-        },
-        {
-          "bucket": "high",
-          "reasons": [],
-          "score": 1.0,
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt"
         },
         {
           "bucket": "high",
@@ -2099,14 +1951,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "gc_delta": null,
           "mean_q_delta": null,
           "read_retention": 0.8,
-          "stage_id": "fastq.trim_terminal_damage",
-          "tool_id": "cutadapt"
-        },
-        {
-          "base_retention": 0.8,
-          "gc_delta": null,
-          "mean_q_delta": null,
-          "read_retention": 0.8,
           "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator"
         }
@@ -2143,10 +1987,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "read_retention": 0.8,
           "stage_id": "fastq.trim_reads"
-        },
-        {
-          "read_retention": 0.8,
-          "stage_id": "fastq.trim_terminal_damage"
         },
         {
           "read_retention": 0.8,
@@ -2298,22 +2138,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
-      "stage_id": "fastq.trim_terminal_damage",
-      "stage_report_path": "fastq.trim_terminal_damage/stage_report.json",
-      "tool_id": "cutadapt",
-      "tool_invocation_path": "",
-      "tool_version": "99.99.99+fixture"
-    },
-    {
-      "bank_report_path": null,
-      "effective_config_path": "",
-      "exit_code": 0,
-      "input_hash": "input",
-      "memory_mb": 64.0,
-      "metrics_path": "",
-      "params_hash": "params",
-      "retention_report_path": null,
-      "runtime_s": 1.0,
       "stage_id": "fastq.validate_reads",
       "stage_report_path": "fastq.validate_reads/stage_report.json",
       "tool_id": "fastqvalidator",
@@ -2333,7 +2157,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.report_qc/telemetry/events.jsonl",
       "fastq.trim_polyg_tails/telemetry/events.jsonl",
       "fastq.trim_reads/telemetry/events.jsonl",
-      "fastq.trim_terminal_damage/telemetry/events.jsonl",
       "fastq.validate_reads/telemetry/events.jsonl"
     ],
     "timeline": []
