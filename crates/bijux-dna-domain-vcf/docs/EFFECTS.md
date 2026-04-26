@@ -1,19 +1,24 @@
-# Effects
+# bijux-dna-domain-vcf Effects
 
-## What
-This crate keeps effects explicit and deterministic.
+The crate should be effect-free in production code.
 
-## Why
-Ensures reproducibility and stable contracts.
+## Allowed Effects
 
-## Non-goals
-- Hidden I/O or network side effects.
+- Deterministic computation over typed inputs.
+- Serialization and deserialization of owned parameter and metric payloads.
+- String rendering for generated TOML content.
+- Test-only reads of committed config artifacts.
 
-## Contracts
-Effects are constrained by workspace guardrail and policy tests.
+## Forbidden Effects
 
-## Examples
-Run crate contract tests.
+- Process spawning or shelling out.
+- Network access.
+- Container execution.
+- Filesystem writes.
+- Runtime state mutation.
+- Planner or runner orchestration.
 
-## Failure modes
-Undeclared effects trigger policy failures.
+## Determinism
+
+Public catalogs, registry TOML output, invariant decisions, and taxonomy ordering must be stable for
+identical inputs.
