@@ -185,6 +185,51 @@ fn crate_tree_matches_domain_fastq_boundary() {
         "profile parsers must stay split by profile output family"
     );
 
+    assert_eq!(
+        dir_entries(&root.join("src/metrics")),
+        entries(["deltas.rs", "mod.rs", "spec/", "types.rs", "types/"]),
+        "metrics/ must separate specs, deltas, and value types"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/metrics/spec")),
+        entries(["catalog.rs", "classes.rs", "mod.rs"]),
+        "metric specs must keep catalog and class vocabulary separate"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/metrics/types")),
+        entries([
+            "classification.rs",
+            "common.rs",
+            "stage_metrics/",
+            "summaries.rs",
+            "tool_metrics.rs",
+        ]),
+        "metric value types must stay grouped by metric family"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/metrics/types/stage_metrics")),
+        entries(["cleanup.rs", "mod.rs", "reporting.rs", "transforms.rs", "validation.rs"]),
+        "stage metric value types must stay split by stage metric family"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/invariants")),
+        entries(["edna.rs", "evaluation.rs", "metrics/", "mod.rs", "specs.rs"]),
+        "invariants/ must separate specs, evaluation, eDNA, and metric evaluators"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/invariants/metrics")),
+        entries([
+            "evaluate.rs",
+            "merge.rs",
+            "mod.rs",
+            "shared.rs",
+            "stage_sets.rs",
+            "trim_filter.rs",
+            "validation.rs",
+        ]),
+        "metric invariant evaluators must stay split by metric family"
+    );
+
     let expected_stages: BTreeSet<_> = [
         "contract.rs",
         "contract/",
