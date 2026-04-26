@@ -1,15 +1,22 @@
 # bijux-dna-runtime Boundary Contract
 
+Owner: Runtime
+Scope: Run layout, execution context, telemetry, manifest, and runner handoff contracts
+Allowed inputs: execution plans, runner responses, runtime profiles, declared run roots
+Forbidden dependencies: CLI adapters, planner selection logic, domain semantics ownership
+Forbidden effects: undeclared writes outside run layouts, hidden network access, direct planning
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-runtime --no-default-features`
+
 ## Why this crate exists
-Defines a focused layer in the bijux-dna architecture with explicit boundaries.
+Owns runtime contracts after planning and before/around runner backend execution.
 
 ## Allowed dependencies
-- Workspace crates required for this layer only.
-- No reverse-layer coupling (enforced by policy tests).
+- Core, infra, policy, and testkit support needed for runtime manifests and layout contracts.
+- No CLI or planner-selection ownership.
 
 ## Allowed effects
-- Pure data/model crates: no runtime side effects.
-- Runtime/CLI/runner crates: controlled filesystem/process/network effects only.
+- Writes only under declared run/layout roots.
+- Process execution remains delegated through runner boundaries.
 
 ## Notes
-Boundary invariants are enforced by bijux-dna-policies contract tests.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.

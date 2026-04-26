@@ -1,15 +1,21 @@
 # bijux-dna-policies Boundary Contract
 
+Owner: Policies
+Scope: Repository policy diagnostics over source, docs, configs, fixtures, and snapshots
+Allowed inputs: repository files, policy fixtures, docs, generated config views
+Forbidden dependencies: product execution ownership, runner backends as required runtime deps
+Forbidden effects: source mutation, generated config rewrites, snapshot rewrites, network access
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --no-default-features`
+
 ## Why this crate exists
-Defines a focused layer in the bijux-dna architecture with explicit boundaries.
+Owns deterministic repository policy checks and actionable diagnostics.
 
 ## Allowed dependencies
-- Workspace crates required for this layer only.
-- No reverse-layer coupling (enforced by policy tests).
+- Testkit and model crates required to inspect repository contracts.
+- No product pipeline execution.
 
 ## Allowed effects
-- Pure data/model crates: no runtime side effects.
-- Runtime/CLI/runner crates: controlled filesystem/process/network effects only.
+- Read-only repository inspection and test diagnostics.
 
 ## Notes
-Boundary invariants are enforced by bijux-dna-policies contract tests.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
