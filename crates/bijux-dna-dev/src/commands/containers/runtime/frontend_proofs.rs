@@ -477,8 +477,13 @@ pub(crate) fn write_frontend_repro_summary(
             })
         })
         .sum::<usize>();
-    let confidence =
-        if total_checks == 0 { 1.0 } else { passed_checks as f64 / total_checks as f64 };
+    let confidence = if total_checks == 0 {
+        1.0
+    } else {
+        let passed = u32::try_from(passed_checks).context("passed frontend checks exceed u32")?;
+        let total = u32::try_from(total_checks).context("total frontend checks exceed u32")?;
+        f64::from(passed) / f64::from(total)
+    };
     let all_ok = items
         .iter()
         .all(|row| row.get("deterministic").and_then(serde_json::Value::as_bool).unwrap_or(false));

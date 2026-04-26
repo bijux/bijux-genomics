@@ -1190,7 +1190,7 @@ pub(super) fn sha256_file_hex(path: &Path) -> Result<String> {
 
 pub(super) fn merge_outcomes(
     mut left: ContainerCommandOutcome,
-    right: ContainerCommandOutcome,
+    right: &ContainerCommandOutcome,
 ) -> ContainerCommandOutcome {
     left.exit_code = if left.exit_code != 0 { left.exit_code } else { right.exit_code };
     left.stdout.push_str(&right.stdout);
