@@ -77,7 +77,7 @@ pub fn copy_file(src: &Path, dst: &Path) -> Result<u64, IoError> {
 /// Returns an IO error if serialization or writing fails.
 pub fn atomic_write_json<T: serde::Serialize>(path: &Path, value: &T) -> Result<(), IoError> {
     let payload = serde_json::to_vec_pretty(value)
-        .map_err(|err| IoError::new(IoErrorKind::Corruption, format!("serialize json: {err}")))?;
+        .map_err(|err| IoError::new(IoErrorKind::Other, format!("serialize json: {err}")))?;
     atomic_write_bytes(path, &payload)
 }
 
