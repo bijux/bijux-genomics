@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use regex::Regex;
 use walkdir::WalkDir;
 
-use crate::commands::command_support::{fail, pass, read, run_command};
+use crate::commands::command_support::{fail, pass, read, regex, run_command};
 use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::runtime::workspace::Workspace;
 
@@ -17,7 +17,7 @@ pub(crate) fn check_artifact_env_contract(
     let expected_cargo_home = expected_artifact_root.join("cargo/home");
     let expected_tmp_dir = expected_artifact_root.join("tmp");
     let snapshots = workspace.path("crates");
-    let path_re = Regex::new(r"/Users/|[A-Za-z]:\\\\Users\\\\").expect("regex");
+    let path_re = regex(r"/Users/|[A-Za-z]:\\\\Users\\\\")?;
     let mut leaks = Vec::new();
     for entry in WalkDir::new(&snapshots).into_iter().filter_map(std::result::Result::ok) {
         if !entry.file_type().is_file() {
@@ -52,7 +52,7 @@ pub(crate) fn check_artifacts_layout(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let _ = workspace;
-    let _ = Regex::new(r"artifacts/[A-Za-z0-9._/-]+").expect("regex");
+    let _ = regex(r"artifacts/[A-Za-z0-9._/-]+")?;
     pass(check, "artifact paths stay under approved roots")
 }
 
@@ -220,8 +220,7 @@ pub(crate) fn check_no_fake_artifacts(
         workspace.path("crates/bijux-dna-stages-vcf/src"),
         workspace.path("crates/bijux-dna-api/src/internal/handlers"),
     ];
-    let source_re =
-        Regex::new(r"placeholder|fake_artifact|dummy_artifact|stub_artifact").expect("regex");
+    let source_re = regex(r"placeholder|fake_artifact|dummy_artifact|stub_artifact")?;
     let mut hits = Vec::new();
     for root in source_roots {
         for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {

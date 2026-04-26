@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
+use regex::Regex;
+use sha2::{Digest, Sha256};
 use walkdir::WalkDir;
 
 use crate::model::check::{CheckDefinition, CheckOutcome, CheckStatus};
@@ -47,4 +49,26 @@ pub(crate) fn run_command(
 
 pub(crate) fn read(path: &Path) -> Result<String> {
     std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))
+}
+
+pub(crate) fn regex(pattern: &str) -> Result<Regex> {
+    Regex::new(pattern).with_context(|| format!("compile regex `{pattern}`"))
+}
+
+pub(crate) fn sha256_hex(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let digest = Sha256::digest(bytes);
+    let mut out = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        out.push(HEX[usize::from(byte >> 4)] as char);
+        out.push(HEX[usize::from(byte & 0x0f)] as char);
+    }
+    out
+}
+
+pub(crate) fn has_extension(path: impl AsRef<Path>, expected: &str) -> bool {
+    path.as_ref()
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| ext.eq_ignore_ascii_case(expected))
 }

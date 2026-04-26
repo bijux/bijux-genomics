@@ -1,10 +1,10 @@
 use std::collections::BTreeSet;
 
 use anyhow::{Context, Result};
-use regex::Regex;
-use sha2::{Digest, Sha256};
 
-use crate::commands::command_support::{fail, pass, read, run_command};
+use crate::commands::command_support::{
+    fail, has_extension, pass, read, regex, run_command, sha256_hex,
+};
 use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::runtime::workspace::Workspace;
 
@@ -45,9 +45,9 @@ pub(crate) fn check_ssot_guardrails(
     }
     let stages_changed = changed
         .iter()
-        .any(|path| path.starts_with("configs/ci/stages/") && path.ends_with(".toml"));
+        .any(|path| path.starts_with("configs/ci/stages/") && has_extension(path, "toml"));
     let params_changed = changed.iter().any(|path| {
-        path.starts_with("configs/ci/params/param_registry") && path.ends_with(".toml")
+        path.starts_with("configs/ci/params/param_registry") && has_extension(path, "toml")
     });
     if stages_changed && !params_changed {
         return fail(check, "partial stage edit detected without param registry update");
@@ -72,7 +72,7 @@ pub(crate) fn check_species_aliases(
         .unwrap_or_default();
     let species_rows =
         species_cfg.get("species").and_then(toml::Value::as_array).cloned().unwrap_or_default();
-    let canonical = Regex::new(r"^[A-Z][a-z]+ [a-z]+$").expect("regex");
+    let canonical = regex(r"^[A-Z][a-z]+ [a-z]+$")?;
     let mut authority_default_build = std::collections::BTreeMap::new();
     let mut authority_species = BTreeSet::new();
     let mut errors = Vec::new();
@@ -134,17 +134,13 @@ pub(crate) fn check_tool_registry_lock(
     for rel in inputs {
         let bytes = std::fs::read(workspace.path(rel))
             .with_context(|| format!("read {}", workspace.path(rel).display()))?;
-        let file_sha =
-            Sha256::digest(&bytes).iter().map(|byte| format!("{byte:02x}")).collect::<String>();
+        let file_sha = sha256_hex(&bytes);
         payload.push_str(rel);
         payload.push(' ');
         payload.push_str(&file_sha);
         payload.push('\n');
     }
-    let expected = Sha256::digest(payload.as_bytes())
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect::<String>();
+    let expected = sha256_hex(payload.as_bytes());
     let actual =
         read(&workspace.path("configs/ci/registry/tool_registry_lock.sha256"))?.trim().to_string();
     if expected != actual {

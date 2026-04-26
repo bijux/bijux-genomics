@@ -1,9 +1,8 @@
 use std::collections::BTreeSet;
 
 use anyhow::{Context, Result};
-use regex::Regex;
 
-use crate::commands::command_support::{fail, pass, read};
+use crate::commands::command_support::{fail, pass, read, regex};
 use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::runtime::workspace::Workspace;
 
@@ -19,7 +18,7 @@ pub(crate) fn check_audit_allowlist(
     let rows =
         document.get("advisory").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let today = chrono::Utc::now().date_naive();
-    let id_re = Regex::new(r"^RUSTSEC-\d{4}-\d{4}$").expect("regex");
+    let id_re = regex(r"^RUSTSEC-\d{4}-\d{4}$")?;
     let mut errors = Vec::new();
     for (index, row) in rows.iter().enumerate() {
         let tag = format!("entry[{index}]");

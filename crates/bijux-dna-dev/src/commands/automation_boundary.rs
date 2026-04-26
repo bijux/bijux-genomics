@@ -4,7 +4,7 @@ use anyhow::Result;
 use regex::Regex;
 use walkdir::WalkDir;
 
-use crate::commands::command_support::{fail, make_files, pass, read};
+use crate::commands::command_support::{fail, make_files, pass, read, regex};
 use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::runtime::workspace::Workspace;
 
@@ -97,10 +97,9 @@ pub(crate) fn check_no_raw_cargo_in_makes(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let raw_cargo_re =
-        Regex::new(r"^\t@?.*(?:^|[[:space:]])cargo(?:[[:space:]]|$)").expect("regex");
-    let allowed_re = Regex::new(r"cargo\s+run\s+(-q\s+)?-p\s+bijux-dna-dev\s+--").expect("regex");
-    let install_note_re = Regex::new(r"cargo install").expect("regex");
+    let raw_cargo_re = regex(r"^\t@?.*(?:^|[[:space:]])cargo(?:[[:space:]]|$)")?;
+    let allowed_re = regex(r"cargo\s+run\s+(-q\s+)?-p\s+bijux-dna-dev\s+--")?;
+    let install_note_re = regex(r"cargo install")?;
     let mut violations = Vec::new();
     for file in make_files(workspace)? {
         let rel = workspace.rel(&file).display().to_string();
@@ -182,8 +181,7 @@ fn repo_legacy_automation_references(
     roots: &[std::path::PathBuf],
 ) -> Result<Vec<String>> {
     let mut offenders = BTreeSet::new();
-    let script_re =
-        Regex::new(&format!(r"{}[A-Za-z0-9_./-]+", ["scr", "ipts/"].concat())).expect("regex");
+    let script_re = regex(&format!(r"{}[A-Za-z0-9_./-]+", ["scr", "ipts/"].concat()))?;
     for root in roots {
         if root.is_file() {
             let rel = workspace.rel(root).display().to_string();
