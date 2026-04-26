@@ -6,6 +6,7 @@ fn bench_model_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
 
     assert_docs_tree(root);
+    assert_commands_doc(root);
     assert_dependency_graph(root);
     assert_eq!(
         dir_entries(root),
@@ -123,6 +124,45 @@ fn bench_model_tree_matches_architecture_contract() {
         ]),
         "test tree must stay organized by enduring intent"
     );
+}
+
+fn assert_commands_doc(root: &Path) {
+    let commands_path = root.join("docs").join("COMMANDS.md");
+    let commands_doc = std::fs::read_to_string(&commands_path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", commands_path.display()));
+    let required_operations = [
+        "`validate-suite`",
+        "`validate-observation`",
+        "`validate-summary`",
+        "`validate-decision`",
+        "`compare-summaries`",
+        "`gate-policy-decide`",
+        "`robust-stats`",
+        "`bootstrap-ci`",
+        "`mad-outliers`",
+    ];
+    for operation in required_operations {
+        assert!(
+            commands_doc.contains(operation),
+            "COMMANDS.md must list managed operation {operation}",
+        );
+    }
+    for entrypoint in [
+        "contract::validate_suite",
+        "contract::validate_observation",
+        "contract::validate_summary",
+        "contract::validate_decision",
+        "compare::compare_summaries",
+        "GatePolicy::decide",
+        "stats::robust_stats",
+        "stats::bootstrap_ci",
+        "stats::mad_outliers",
+    ] {
+        assert!(
+            commands_doc.contains(entrypoint),
+            "COMMANDS.md must link operation to Rust entrypoint {entrypoint}",
+        );
+    }
 }
 
 fn assert_dependency_graph(root: &Path) {
