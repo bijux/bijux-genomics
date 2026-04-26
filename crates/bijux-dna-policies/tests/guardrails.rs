@@ -2,12 +2,20 @@
 
 use anyhow::Result;
 use bijux_dna_policies::GuardrailConfig;
-use bijux_dna_testkit::TestPaths;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
+
+static TEMP_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 pub fn guardrails() {
     let _config = GuardrailConfig::for_crate("bijux-dna-policies");
+}
+
+fn test_root(test_name: &str) -> PathBuf {
+    let counter = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
+    std::env::temp_dir()
+        .join(format!("bijux-dna-policies-{test_name}-{}-{counter}", std::process::id()))
 }
 
 fn write_source(crate_root: &Path, rel: &str, content: &str) {
@@ -47,8 +55,7 @@ fn policy__root__guardrails__guardrails_smoke() {
 
 #[test]
 fn policy__root__guardrails__empty_source_tree_is_rejected() {
-    let paths = TestPaths::new("policies-empty-source-tree");
-    let crate_root = paths.child("empty-crate");
+    let crate_root = test_root("empty-source-tree").join("empty-crate");
     create_dir(crate_root.join("src"));
 
     let err =
@@ -62,8 +69,7 @@ fn policy__root__guardrails__empty_source_tree_is_rejected() {
 
 #[test]
 fn policy__root__guardrails__missing_source_tree_is_rejected() {
-    let paths = TestPaths::new("policies-missing-source-tree");
-    let crate_root = paths.child("missing-src-crate");
+    let crate_root = test_root("missing-source-tree").join("missing-src-crate");
     create_dir(&crate_root);
 
     let err =
@@ -77,8 +83,7 @@ fn policy__root__guardrails__missing_source_tree_is_rejected() {
 
 #[test]
 fn policy__root__guardrails__allow_paths_match_exact_suffixes() {
-    let paths = TestPaths::new("policies-allow-path-suffix");
-    let crate_root = paths.child("crate");
+    let crate_root = test_root("allow-path-suffix").join("crate");
     write_source(&crate_root, "allowed_extra.rs", "pub fn fail() { None::<u8>.expect(\"x\"); }\n");
 
     let config = GuardrailConfig {
@@ -100,8 +105,7 @@ fn policy__root__guardrails__allow_paths_match_exact_suffixes() {
 
 #[test]
 fn policy__root__guardrails__panic_expect_scan_ignores_comment_mentions() {
-    let paths = TestPaths::new("policies-panic-comments");
-    let crate_root = paths.child("crate");
+    let crate_root = test_root("panic-comments").join("crate");
     write_source(
         &crate_root,
         "lib.rs",
@@ -115,8 +119,7 @@ fn policy__root__guardrails__panic_expect_scan_ignores_comment_mentions() {
 
 #[test]
 fn policy__root__guardrails__panic_expect_scan_rejects_unwrap() {
-    let paths = TestPaths::new("policies-unwrap-scan");
-    let crate_root = paths.child("crate");
+    let crate_root = test_root("unwrap-scan").join("crate");
     write_source(&crate_root, "lib.rs", "pub fn fail() { Some(1).unwrap(); }\n");
 
     let config = GuardrailConfig { forbid_panic_expect: true, ..Default::default() };
@@ -128,8 +131,7 @@ fn policy__root__guardrails__panic_expect_scan_rejects_unwrap() {
 
 #[test]
 fn policy__root__guardrails__stage_id_scan_ignores_comment_mentions() {
-    let paths = TestPaths::new("policies-stage-id-comments");
-    let crate_root = paths.child("crate");
+    let crate_root = test_root("stage-id-comments").join("crate");
     write_source(&crate_root, "lib.rs", "// example: \"fastq.qc\"\npub fn ok() {}\n");
 
     let config = GuardrailConfig { forbid_stage_id_strings: true, ..Default::default() };
@@ -139,8 +141,7 @@ fn policy__root__guardrails__stage_id_scan_ignores_comment_mentions() {
 
 #[test]
 fn policy__root__guardrails__stage_id_scan_rejects_raw_strings() {
-    let paths = TestPaths::new("policies-stage-id-raw-strings");
-    let crate_root = paths.child("crate");
+    let crate_root = test_root("stage-id-raw-strings").join("crate");
     write_source(&crate_root, "lib.rs", "pub const STAGE: &str = r#\"fastq.qc\"#;\n");
 
     let config = GuardrailConfig { forbid_stage_id_strings: true, ..Default::default() };
@@ -152,8 +153,7 @@ fn policy__root__guardrails__stage_id_scan_rejects_raw_strings() {
 
 #[test]
 fn policy__root__guardrails__pub_item_budget_counts_scoped_visibility() {
-    let paths = TestPaths::new("policies-scoped-pub-budget");
-    let crate_root = paths.child("crate");
+    let crate_root = test_root("scoped-pub-budget").join("crate");
     write_source(&crate_root, "lib.rs", "pub(super) fn visible_to_parent() {}\n");
 
     let config = GuardrailConfig { max_pub_items_per_file: 0, ..Default::default() };
@@ -165,8 +165,7 @@ fn policy__root__guardrails__pub_item_budget_counts_scoped_visibility() {
 
 #[test]
 fn policy__root__guardrails__pub_use_budget_counts_scoped_reexports() {
-    let paths = TestPaths::new("policies-scoped-pub-use-budget");
-    let crate_root = paths.child("crate");
+    let crate_root = test_root("scoped-pub-use-budget").join("crate");
     write_source(&crate_root, "lib.rs", "mod inner {}\npub(crate) use inner as exposed;\n");
 
     let config = GuardrailConfig {
@@ -183,8 +182,7 @@ fn policy__root__guardrails__pub_use_budget_counts_scoped_reexports() {
 
 #[test]
 fn policy__root__guardrails__empty_module_scan_ignores_attributes_and_scoped_mods() {
-    let paths = TestPaths::new("policies-empty-mod-scoped");
-    let crate_root = paths.child("crate");
+    let crate_root = test_root("empty-mod-scoped").join("crate");
     write_source(&crate_root, "mod.rs", "#![allow(dead_code)]\npub(crate) mod inner;\n");
     write_source(&crate_root, "inner.rs", "pub fn real() {}\n");
 
@@ -198,8 +196,7 @@ fn policy__root__guardrails__empty_module_scan_ignores_attributes_and_scoped_mod
 
 #[test]
 fn policy__root__guardrails__literal_scans_ignore_block_comments() {
-    let paths = TestPaths::new("policies-block-comment-scans");
-    let crate_root = paths.child("crate");
+    let crate_root = test_root("block-comment-scans").join("crate");
     write_source(
         &crate_root,
         "lib.rs",
