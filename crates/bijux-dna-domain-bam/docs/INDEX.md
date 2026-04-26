@@ -8,6 +8,9 @@ See `EFFECTS.md` for allowed effects.
 
 ## Boundaries
 See `ARCHITECTURE.md` for internal boundaries.
+- `BOUNDARY.md`
+- `PUBLIC_API.md`
+- `COMMANDS.md`
 
 ## Domain truth
 - `DOMAIN_MODEL.md`

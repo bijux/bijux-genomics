@@ -19,4 +19,4 @@ generated config views.
 - Pure deterministic computation over domain contracts and fixtures.
 
 ## Notes
-The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
+The repository-level onboarding policy lives at `/Users/bijan/bijux/README.md`; child-repository work must apply that policy before changing this crate.
