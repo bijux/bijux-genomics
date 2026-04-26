@@ -37,4 +37,4 @@ Refresh goldens (explicit opt-in):
 ---
 Asset Provenance Footer
 Last regenerated: 2026-02-13
-Regenerate command: `cargo run -p bijux-dev-dna -- assets run refresh-toy && cargo run -p bijux-dev-dna -- assets run refresh-golden`
+Regenerate command: `cargo run -p bijux-dna-dev -- assets run refresh-golden`

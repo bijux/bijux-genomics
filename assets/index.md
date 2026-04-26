@@ -17,9 +17,10 @@ A single taxonomy keeps ownership clear, prevents root-level sprawl, and separat
 - Toy data must live under `assets/toy/<dataset-id>/`.
 - Golden artifacts must include deterministic regeneration guidance.
 - Publication folders must include `MANIFEST.toml`.
+- Publication metadata is authored and reviewed manually until a dedicated publication refresh flow exists.
 - Global rules are enforced by `assets/CONTRACT.md`.
 
 ---
 Asset Provenance Footer
 Last regenerated: 2026-02-13
-Regenerate command: `cargo run -p bijux-dev-dna -- assets run refresh-toy && cargo run -p bijux-dev-dna -- assets run refresh-golden`
+Managed commands: `cargo run -p bijux-dna-dev -- assets run refresh-reference`, `cargo run -p bijux-dna-dev -- assets run refresh-toy`, `cargo run -p bijux-dna-dev -- assets run refresh-golden`
