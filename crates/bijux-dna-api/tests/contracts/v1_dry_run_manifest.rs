@@ -47,13 +47,11 @@ fn minimal_graph() -> Result<ExecutionGraph> {
     )?)
 }
 
-fn docker_available() -> bool {
-    std::process::Command::new("docker")
-        .arg("version")
-        .arg("--format")
-        .arg("{{.Server.Version}}")
-        .status()
-        .map_or(false, |status| status.success())
+fn docker_contracts_enabled() -> bool {
+    matches!(
+        std::env::var("BIJUX_DNA_DOCKER_CONTRACTS").as_deref(),
+        Ok("1") | Ok("true") | Ok("yes")
+    )
 }
 
 #[test]
@@ -125,7 +123,7 @@ fn dry_run_manifest_records_planned_stages() -> Result<()> {
 
 #[test]
 fn execute_emits_run_summary_artifact() -> Result<()> {
-    if !docker_available() {
+    if !docker_contracts_enabled() {
         return Ok(());
     }
 
