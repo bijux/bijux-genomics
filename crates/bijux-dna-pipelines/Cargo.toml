@@ -20,8 +20,8 @@ bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
 bam_downstream = []
 
 [dev-dependencies]
-insta = { version = "1", features = ["json"] }
-bijux-dna-policies = { path = "../bijux-dna-policies" }
+insta = { workspace = true, features = ["json"] }
+bijux-dna-policies.workspace = true
 walkdir.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
