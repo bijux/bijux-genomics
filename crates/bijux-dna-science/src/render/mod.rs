@@ -7,6 +7,14 @@ use crate::domain::{
     FastqTruthDeltaRow, ScienceIndex, SourceArchiveGapRow, SourceInventoryRow,
 };
 
+fn evidence_cell(value: &str) -> &str {
+    if value.trim().is_empty() {
+        "not_applicable"
+    } else {
+        value
+    }
+}
+
 pub fn source_inventory_tsv(rows: &[SourceInventoryRow]) -> String {
     let mut out = String::from(
         "source_id\tkind\taccess\tauthority\tlocator\tarchive_path\tarchive_status\tcitation\ttool_ids\n",
@@ -61,18 +69,18 @@ pub fn fastq_container_reference_tsv(rows: &[FastqContainerReferenceRow]) -> Str
             row.stage_ids,
             row.reference_status,
             row.registry_status,
-            row.version,
-            row.default_version,
-            row.version_rule,
-            row.upstream,
-            row.citation,
-            row.license,
-            row.pinned_commit,
-            row.pin_strategy,
-            row.runtimes,
-            row.container_ref,
-            row.dockerfile,
-            row.apptainer_def
+            evidence_cell(&row.version),
+            evidence_cell(&row.default_version),
+            evidence_cell(&row.version_rule),
+            evidence_cell(&row.upstream),
+            evidence_cell(&row.citation),
+            evidence_cell(&row.license),
+            evidence_cell(&row.pinned_commit),
+            evidence_cell(&row.pin_strategy),
+            evidence_cell(&row.runtimes),
+            evidence_cell(&row.container_ref),
+            evidence_cell(&row.dockerfile),
+            evidence_cell(&row.apptainer_def)
         ));
     }
     out

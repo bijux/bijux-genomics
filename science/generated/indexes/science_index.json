@@ -9,12 +9,12 @@
   "decisions": 3,
   "bindings": 5,
   "releases": 1,
-  "fastq_container_reference_rows": 44,
-  "fastq_download_backlog_rows": 44,
+  "fastq_container_reference_rows": 45,
+  "fastq_download_backlog_rows": 45,
   "fastq_paper_archive_rows": 46,
-  "fastq_environment_rows": 70,
-  "fastq_closure_gate_rows": 70,
+  "fastq_environment_rows": 90,
+  "fastq_closure_gate_rows": 90,
   "fastq_truth_delta_rows": 6,
-  "fastq_missing_closure_prerequisite_rows": 16,
+  "fastq_missing_closure_prerequisite_rows": 196,
   "fastq_default_binding_risk_rows": 25
 }
