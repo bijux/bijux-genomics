@@ -15,6 +15,9 @@ pub(crate) fn check_panic_expect(files: &[PathBuf], config: &GuardrailConfig) ->
         }
         let content = fs::read_to_string(path)?;
         for (idx, line) in content.lines().enumerate() {
+            if line.trim_start().starts_with("//") {
+                continue;
+            }
             if panic_re.is_match(line) || expect_re.is_match(line) {
                 anyhow::bail!("panic/expect found in {}:{}", path.display(), idx + 1);
             }
