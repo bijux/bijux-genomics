@@ -23,7 +23,6 @@ mod observation_context;
 mod output_contract;
 mod semantic;
 
-#[allow(dead_code)]
 pub struct FastqStagePlugin;
 
 impl StagePlugin for FastqStagePlugin {
