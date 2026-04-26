@@ -18,6 +18,7 @@ EXECUTION_SUPPORT = Path("domain/fastq/execution_support.yaml")
 STAGE_DIR = Path("domain/fastq/stages")
 TOOL_DIR = Path("domain/fastq/tools")
 REGISTRY = Path("configs/ci/registry/tool_registry.toml")
+VERSION_LOCK = Path("containers/versions/lock.json")
 DOWNLOAD_BACKLOG = Path("science/generated/current/evidence/fastq_download_backlog.tsv")
 OUT_DIR = Path("science-docs/upstream/fastq/container")
 PROOF_ROOT = Path("artifacts/containers")
@@ -172,6 +173,18 @@ def load_download_backlog(root: Path) -> dict[str, dict[str, str]]:
         }
 
 
+def load_version_lock(root: Path) -> dict[str, dict[str, object]]:
+    path = root / VERSION_LOCK
+    if not path.exists():
+        return {}
+    data = json.loads(read_text(path))
+    return {
+        str(item.get("tool")): item
+        for item in data.get("items", [])
+        if item.get("tool")
+    }
+
+
 def write_tsv(path: Path, header: list[str], rows: list[list[str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
@@ -200,6 +213,14 @@ def proof_status(root: Path, candidates: list[Path]) -> tuple[str, str]:
     return "missing_from_snapshot", ";".join(str(candidate) for candidate in candidates)
 
 
+def lock_field_status(value: object) -> str:
+    if value in (None, "", 0):
+        return "missing"
+    if isinstance(value, str) and set(value) == {"0"}:
+        return "placeholder_zero"
+    return "present"
+
+
 def main() -> int:
     args = parse_args()
     root = args.repo_root.resolve()
@@ -208,6 +229,7 @@ def main() -> int:
     tools = load_tool_containers(root)
     registry = load_registry(root)
     backlog = load_download_backlog(root)
+    version_lock = load_version_lock(root)
 
     matrix = []
     digest_rows = []
@@ -366,6 +388,35 @@ def main() -> int:
         ["stage_id", "default_tool", "proof_kind", "proof_status", "expected_artifact_paths"],
         proof_rows,
     )
+    lock_rows = []
+    lock_fields = [
+        "resolved_image_digest",
+        "image_size_bytes",
+        "resolved_sif_sha256",
+        "frontend_resolved_sif_sha256",
+        "source_sha256",
+        "pinned_commit",
+        "frontend_smoke_version_output_sha256",
+    ]
+    for tool_id in seen_tools:
+        lock_item = version_lock.get(tool_id, {})
+        for field in lock_fields:
+            value = lock_item.get(field, "")
+            lock_rows.append(
+                [
+                    tool_id,
+                    field,
+                    str(value),
+                    lock_field_status(value),
+                    str(lock_item.get("version", "")),
+                    str(lock_item.get("status", "")),
+                ]
+            )
+    write_tsv(
+        out_dir / "FASTQ_CONTAINER_LOCK_GAPS.tsv",
+        ["default_tool", "lock_field", "lock_value", "field_status", "version", "lock_status"],
+        lock_rows,
+    )
     print(
         json.dumps(
             {
@@ -375,6 +426,7 @@ def main() -> int:
                     str(out_dir / "FASTQ_CONTAINER_ASSET_HOOKS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_EVIDENCE_STATUS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_PROOF_GAPS.tsv"),
+                    str(out_dir / "FASTQ_CONTAINER_LOCK_GAPS.tsv"),
                 ]
             }
         )

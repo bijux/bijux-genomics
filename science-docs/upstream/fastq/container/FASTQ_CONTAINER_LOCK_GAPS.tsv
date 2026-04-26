@@ -1,0 +1,127 @@
+default_tool	lock_field	lock_value	field_status	version	lock_status
+bbduk	resolved_image_digest		missing	39.06	production
+bbduk	image_size_bytes	0	missing	39.06	production
+bbduk	resolved_sif_sha256		missing	39.06	production
+bbduk	frontend_resolved_sif_sha256		missing	39.06	production
+bbduk	source_sha256		missing	39.06	production
+bbduk	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	39.06	production
+bbduk	frontend_smoke_version_output_sha256		missing	39.06	production
+bowtie2	resolved_image_digest		missing	2.5.4	production
+bowtie2	image_size_bytes	0	missing	2.5.4	production
+bowtie2	resolved_sif_sha256		missing	2.5.4	production
+bowtie2	frontend_resolved_sif_sha256		missing	2.5.4	production
+bowtie2	source_sha256		missing	2.5.4	production
+bowtie2	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	2.5.4	production
+bowtie2	frontend_smoke_version_output_sha256		missing	2.5.4	production
+bowtie2_build	resolved_image_digest		missing	2.5.4	production
+bowtie2_build	image_size_bytes	0	missing	2.5.4	production
+bowtie2_build	resolved_sif_sha256		missing	2.5.4	production
+bowtie2_build	frontend_resolved_sif_sha256		missing	2.5.4	production
+bowtie2_build	source_sha256		missing	2.5.4	production
+bowtie2_build	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	2.5.4	production
+bowtie2_build	frontend_smoke_version_output_sha256		missing	2.5.4	production
+clumpify	resolved_image_digest		missing	39.06	production
+clumpify	image_size_bytes	0	missing	39.06	production
+clumpify	resolved_sif_sha256		missing	39.06	production
+clumpify	frontend_resolved_sif_sha256		missing	39.06	production
+clumpify	source_sha256		missing	39.06	production
+clumpify	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	39.06	production
+clumpify	frontend_smoke_version_output_sha256		missing	39.06	production
+cutadapt	resolved_image_digest		missing	4.9	production
+cutadapt	image_size_bytes	0	missing	4.9	production
+cutadapt	resolved_sif_sha256		missing	4.9	production
+cutadapt	frontend_resolved_sif_sha256		missing	4.9	production
+cutadapt	source_sha256		missing	4.9	production
+cutadapt	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	4.9	production
+cutadapt	frontend_smoke_version_output_sha256		missing	4.9	production
+dada2	resolved_image_digest		missing	1.30.0	production
+dada2	image_size_bytes	0	missing	1.30.0	production
+dada2	resolved_sif_sha256		missing	1.30.0	production
+dada2	frontend_resolved_sif_sha256		missing	1.30.0	production
+dada2	source_sha256		missing	1.30.0	production
+dada2	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	1.30.0	production
+dada2	frontend_smoke_version_output_sha256		missing	1.30.0	production
+fastp	resolved_image_digest		missing	0.23.4	production
+fastp	image_size_bytes	0	missing	0.23.4	production
+fastp	resolved_sif_sha256		missing	0.23.4	production
+fastp	frontend_resolved_sif_sha256		missing	0.23.4	production
+fastp	source_sha256	4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5	present	0.23.4	production
+fastp	pinned_commit		missing	0.23.4	production
+fastp	frontend_smoke_version_output_sha256		missing	0.23.4	production
+fastqc	resolved_image_digest		missing	0.12.1	production
+fastqc	image_size_bytes	0	missing	0.12.1	production
+fastqc	resolved_sif_sha256		missing	0.12.1	production
+fastqc	frontend_resolved_sif_sha256		missing	0.12.1	production
+fastqc	source_sha256	5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7	present	0.12.1	production
+fastqc	pinned_commit		missing	0.12.1	production
+fastqc	frontend_smoke_version_output_sha256		missing	0.12.1	production
+fastqvalidator	resolved_image_digest		missing	0.1.1	production
+fastqvalidator	image_size_bytes	0	missing	0.1.1	production
+fastqvalidator	resolved_sif_sha256		missing	0.1.1	production
+fastqvalidator	frontend_resolved_sif_sha256		missing	0.1.1	production
+fastqvalidator	source_sha256		missing	0.1.1	production
+fastqvalidator	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	0.1.1	production
+fastqvalidator	frontend_smoke_version_output_sha256		missing	0.1.1	production
+kraken2	resolved_image_digest		missing	2.1.3	production
+kraken2	image_size_bytes	0	missing	2.1.3	production
+kraken2	resolved_sif_sha256		missing	2.1.3	production
+kraken2	frontend_resolved_sif_sha256		missing	2.1.3	production
+kraken2	source_sha256	5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69	present	2.1.3	production
+kraken2	pinned_commit		missing	2.1.3	production
+kraken2	frontend_smoke_version_output_sha256		missing	2.1.3	production
+multiqc	resolved_image_digest		missing	1.21	production
+multiqc	image_size_bytes	0	missing	1.21	production
+multiqc	resolved_sif_sha256		missing	1.21	production
+multiqc	frontend_resolved_sif_sha256		missing	1.21	production
+multiqc	source_sha256		missing	1.21	production
+multiqc	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	1.21	production
+multiqc	frontend_smoke_version_output_sha256		missing	1.21	production
+pear	resolved_image_digest		missing	0.9.6	production
+pear	image_size_bytes	0	missing	0.9.6	production
+pear	resolved_sif_sha256		missing	0.9.6	production
+pear	frontend_resolved_sif_sha256		missing	0.9.6	production
+pear	source_sha256		missing	0.9.6	production
+pear	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	0.9.6	production
+pear	frontend_smoke_version_output_sha256		missing	0.9.6	production
+rcorrector	resolved_image_digest		missing	1.0.7	production
+rcorrector	image_size_bytes	0	missing	1.0.7	production
+rcorrector	resolved_sif_sha256		missing	1.0.7	production
+rcorrector	frontend_resolved_sif_sha256		missing	1.0.7	production
+rcorrector	source_sha256		missing	1.0.7	production
+rcorrector	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	1.0.7	production
+rcorrector	frontend_smoke_version_output_sha256		missing	1.0.7	production
+seqkit	resolved_image_digest		missing	2.8.2	production
+seqkit	image_size_bytes	0	missing	2.8.2	production
+seqkit	resolved_sif_sha256		missing	2.8.2	production
+seqkit	frontend_resolved_sif_sha256		missing	2.8.2	production
+seqkit	source_sha256	8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc	present	2.8.2	production
+seqkit	pinned_commit		missing	2.8.2	production
+seqkit	frontend_smoke_version_output_sha256		missing	2.8.2	production
+seqkit_stats	resolved_image_digest		missing	2.8.2	production
+seqkit_stats	image_size_bytes	0	missing	2.8.2	production
+seqkit_stats	resolved_sif_sha256		missing	2.8.2	production
+seqkit_stats	frontend_resolved_sif_sha256		missing	2.8.2	production
+seqkit_stats	source_sha256		missing	2.8.2	production
+seqkit_stats	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	2.8.2	production
+seqkit_stats	frontend_smoke_version_output_sha256		missing	2.8.2	production
+sortmerna	resolved_image_digest		missing	4.3.7	production
+sortmerna	image_size_bytes	0	missing	4.3.7	production
+sortmerna	resolved_sif_sha256		missing	4.3.7	production
+sortmerna	frontend_resolved_sif_sha256		missing	4.3.7	production
+sortmerna	source_sha256		missing	4.3.7	production
+sortmerna	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	4.3.7	production
+sortmerna	frontend_smoke_version_output_sha256		missing	4.3.7	production
+umi_tools	resolved_image_digest		missing	1.1.6	production
+umi_tools	image_size_bytes	0	missing	1.1.6	production
+umi_tools	resolved_sif_sha256		missing	1.1.6	production
+umi_tools	frontend_resolved_sif_sha256		missing	1.1.6	production
+umi_tools	source_sha256		missing	1.1.6	production
+umi_tools	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	1.1.6	production
+umi_tools	frontend_smoke_version_output_sha256		missing	1.1.6	production
+vsearch	resolved_image_digest		missing	2.29.3	production
+vsearch	image_size_bytes	0	missing	2.29.3	production
+vsearch	resolved_sif_sha256		missing	2.29.3	production
+vsearch	frontend_resolved_sif_sha256		missing	2.29.3	production
+vsearch	source_sha256		missing	2.29.3	production
+vsearch	pinned_commit	0000000000000000000000000000000000000000	placeholder_zero	2.29.3	production
+vsearch	frontend_smoke_version_output_sha256		missing	2.29.3	production
