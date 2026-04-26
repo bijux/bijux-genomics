@@ -2,9 +2,7 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::prelude::{
-    ArtifactRef, ContainerImageRefV1, StageId, StepId, ToolExecutionSpecV1,
-};
+use bijux_dna_core::prelude::{ArtifactRef, ContainerImageRefV1, StepId};
 use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::ids::{
     STAGE_INDEX_REFERENCE, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_PROFILE_READ_LENGTHS,
@@ -973,47 +971,4 @@ pub(crate) fn ensure_normalize_abundance_tool(tool_id: &str) -> Result<()> {
         return Ok(());
     }
     Err(anyhow!("{} requires seqkit; got {}", STAGE_NORMALIZE_ABUNDANCE.as_str(), tool_id))
-}
-
-#[allow(dead_code)]
-fn plan_fastq_transform_stage(
-    stage_id: &str,
-    tool: &ToolExecutionSpecV1,
-    input: &std::path::Path,
-    out_dir: &std::path::Path,
-    output_name: &str,
-    effective_params: serde_json::Value,
-) -> StagePlanV1 {
-    StagePlanV1 {
-        stage_id: StageId::new(stage_id),
-        stage_instance_id: None,
-        stage_version: bijux_dna_core::prelude::StageVersion(1),
-        tool_id: tool.tool_id.clone(),
-        tool_version: tool.tool_version.clone(),
-        image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: tool.command.template.to_vec(),
-        },
-        resources: tool.resources.clone(),
-        io: bijux_dna_stage_contract::StageIO {
-            inputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
-                bijux_dna_core::prelude::ArtifactId::from_static("reads"),
-                input.to_path_buf(),
-                bijux_dna_core::prelude::ArtifactRole::Reads,
-            )],
-            outputs: vec![bijux_dna_stage_contract::ArtifactRef::required(
-                bijux_dna_core::prelude::ArtifactId::from_static("trimmed_reads"),
-                out_dir.join(output_name),
-                bijux_dna_core::prelude::ArtifactRole::Reads,
-            )],
-        },
-        out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({}),
-        effective_params,
-        aux_images: std::collections::BTreeMap::new(),
-        reason: PlanDecisionReason::new(
-            PlanReasonKind::Fallback,
-            "fastq transform stage contract default".to_string(),
-        ),
-    }
 }
