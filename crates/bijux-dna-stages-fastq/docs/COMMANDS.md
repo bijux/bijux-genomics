@@ -24,6 +24,13 @@ CLI parsing and command routing belong outside this crate.
 None. This crate owns no binaries, subcommands, shell entrypoints, process
 execution surfaces, or environment commands.
 
+## Forbidden Command Surfaces
+
+- No Cargo binary targets or `src/bin` command modules.
+- No CLI parser ownership.
+- No process spawning or runtime command execution.
+- No tool selection or pipeline composition commands.
+
 ## Commands Owned Elsewhere
 
 - User-facing CLI commands belong in command/API crates.
