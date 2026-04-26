@@ -30,11 +30,13 @@ Prevents responsibility drift across crates and makes policy failures actionable
 - Workspace policy diagnostics: `crates/bijux-dna-policies/docs/POLICY_DIAGNOSTICS.md`
 
 ## Enforcement
-- Dependency edges: `crates/bijux-dna-policies/tests/boundaries/deps/*.rs`
-- Effect boundaries: `crates/bijux-dna-policies/tests/boundaries/deps/effect_boundary_map.rs`
-- Command spawn confinement: `crates/bijux-dna-policies/tests/contracts/tooling/command_spawn_policy.rs`
+- Dependency edges: `crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs`
+- Dependency graph: `crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs`
+- Effect boundaries: `crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs`
+- Command spawn confinement:
+  `crates/bijux-dna-policies/tests/contracts/tooling/governance_core/command_spawn_policy.rs`
 - Domain/stage purity and crate responsibilities:
-  `crates/bijux-dna-policies/tests/contracts/tooling/purity_effects_responsibility_policy.rs`
+  `crates/bijux-dna-policies/tests/contracts/tooling/governance/purity_effects_responsibility_policy.rs`
 
 ## Examples
 - Planner-only tool selection logic lives in `crates/bijux-dna-planner-*`; execution wiring lives in `crates/bijux-dna-engine`.
