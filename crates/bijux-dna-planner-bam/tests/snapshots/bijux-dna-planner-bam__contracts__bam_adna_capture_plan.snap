@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-planner-bam/tests/contracts/plan/plan_snapshots.rs
-assertion_line: 143
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -75,7 +74,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "samtools flagstat <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.flagstat.txt && samtools stats <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.stats.txt && python - <<'PY' <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.flagstat.txt <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.stats.txt > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.json\nimport json,sys\nflagstat,stats=sys.argv[1],sys.argv[2]\nprint(json.dumps({\"method\":\"signal_aggregate\",\"flagstat\":flagstat,\"stats\":stats,\"mode\":\"aggregate\"}, indent=2))\nPY && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_authenticity/authenticity.summary.json\nimport json\nprint(json.dumps({\"method\": \"signal_aggregate\", \"mode\": \"aggregate\", \"status\": \"ok\"}, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -92,7 +91,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
             "role": "bam"
           }
         ],
@@ -100,19 +99,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "authenticity_report",
             "optional": false,
-            "path": "authenticity.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_authenticity/authenticity.json",
             "role": "report_json"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "authenticity.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_authenticity/authenticity.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_authenticity/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -120,7 +119,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_authenticity",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_authenticity",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -136,7 +135,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "schmutzi --bam <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam --outdir <TMPDIR>/<TMP>/out/bam_contamination && if [ -f <TMPDIR>/<TMP>/out/bam_contamination/contamination.txt ]; then cp <TMPDIR>/<TMP>/out/bam_contamination/contamination.txt <TMPDIR>/<TMP>/out/bam_contamination/contamination.json; else : > <TMPDIR>/<TMP>/out/bam_contamination/contamination.json; fi && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_contamination/contamination.summary.json\nimport json\nprint(json.dumps({\"method\": \"schmutzi\", \"scope\": \"mt\"}, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -153,7 +152,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
             "role": "bam"
           }
         ],
@@ -161,19 +160,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "contamination_report",
             "optional": false,
-            "path": "contamination.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_contamination/contamination.json",
             "role": "report_json"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "contamination.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_contamination/contamination.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_contamination/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -181,7 +180,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_contamination",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_contamination",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -197,7 +196,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "mosdepth -n <TMPDIR>/<TMP>/out/bam_coverage/coverage <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam && samtools depth -a <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_coverage/coverage.depth.txt && if [ -f <TMPDIR>/<TMP>/out/bam_coverage/coverage.mosdepth.summary.txt ]; then :; else : > <TMPDIR>/<TMP>/out/bam_coverage/coverage.mosdepth.summary.txt; fi"
         ]
       },
       "expected_artifact_ids": [
@@ -213,7 +212,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
             "role": "bam"
           }
         ],
@@ -221,13 +220,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "coverage_summary",
             "optional": false,
-            "path": "coverage.mosdepth.summary.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_coverage/coverage.mosdepth.summary.txt",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_coverage/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -235,7 +234,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_coverage",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_coverage",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -251,7 +250,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "mapDamage --bam <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam --folder <TMPDIR>/<TMP>/out/bam_damage && if [ -f <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; elif [ -f <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; else : > <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; fi"
         ]
       },
       "expected_artifact_ids": [
@@ -268,7 +267,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
             "role": "bam"
           }
         ],
@@ -276,19 +275,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "damage_pydamage",
             "optional": false,
-            "path": "damage.pydamage.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.pydamage.json",
             "role": "unknown"
           },
           {
             "name": "damage_mapdamage2",
             "optional": false,
-            "path": "damage.mapdamage2.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt",
             "role": "unknown"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_damage/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -296,7 +295,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_damage",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_damage",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -312,7 +311,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "samtools markdup -s <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam <TMPDIR>/<TMP>/out/bam_duplication_metrics/duplication.tmp.bam 2> <TMPDIR>/<TMP>/out/bam_duplication_metrics/duplication.histogram.txt && python - <<'PY' <TMPDIR>/<TMP>/out/bam_duplication_metrics/duplication.histogram.txt > <TMPDIR>/<TMP>/out/bam_duplication_metrics/duplication.metrics.json\nimport json,re,sys\ntext=open(sys.argv[1]).read()\npairs=re.findall(r'EXAMINED:\\s*(\\d+)', text)\ndups=re.findall(r'DUPLICATE PAIR:\\s*(\\d+)', text)\nout={\"method\":\"samtools\",\"source\":sys.argv[1],\"examined_pairs\":int(pairs[0]) if pairs else 0,\"duplicate_pairs\":int(dups[0]) if dups else 0}\nprint(json.dumps(out, indent=2))\nPY && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_duplication_metrics/duplication.summary.json\nimport json\nprint(json.dumps({\"stage\": \"bam.duplication_metrics\", \"method\": \"samtools\", \"optical_duplicates\": \"MarkOnly\", \"duplicate_action\": \"Mark\"}, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -330,7 +329,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
             "role": "bam"
           }
         ],
@@ -338,25 +337,25 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "duplication_report",
             "optional": false,
-            "path": "duplication.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_duplication_metrics/duplication.metrics.json",
             "role": "report_json"
           },
           {
             "name": "duplication_histogram",
             "optional": false,
-            "path": "duplication.histogram.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_duplication_metrics/duplication.histogram.txt",
             "role": "unknown"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "duplication.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_duplication_metrics/duplication.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_duplication_metrics/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -364,7 +363,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_duplication_metrics",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_duplication_metrics",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -380,7 +379,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "samtools depth -a <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_endogenous_content/coverage.depth.txt && awk '{sum+=$3; if($3>0) cov++} END {mean=(NR>0)?sum/NR:0; print \"total\", NR, cov, mean}' <TMPDIR>/<TMP>/out/bam_endogenous_content/coverage.depth.txt > <TMPDIR>/<TMP>/out/bam_endogenous_content/coverage.mosdepth.summary.txt"
         ]
       },
       "expected_artifact_ids": [
@@ -397,7 +396,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
             "role": "bam"
           }
         ],
@@ -405,19 +404,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "coverage_summary",
             "optional": false,
-            "path": "coverage.mosdepth.summary.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_endogenous_content/coverage.mosdepth.summary.txt",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_endogenous_content/stage.metrics.json",
             "role": "metrics_json"
           },
           {
             "name": "coverage_depth",
             "optional": false,
-            "path": "coverage.depth.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_endogenous_content/coverage.depth.txt",
             "role": "report_json"
           }
         ]
@@ -425,7 +424,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_endogenous_content",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_endogenous_content",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -441,7 +440,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt && samtools view -h -b -q 30 <TMPDIR>/<TMP>/sample.bam | awk 'BEGIN{OFS=\"\\t\"} /^@/{print; next} length($10)>=25' | samtools view -b - | samtools sort -@ 1 -l 6 -o <TMPDIR>/<TMP>/out/bam_filter/filtered.bam && samtools index -@ 1 <TMPDIR>/<TMP>/out/bam_filter/filtered.bam <TMPDIR>/<TMP>/out/bam_filter/filtered.bam.bai && samtools flagstat <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_filter/filter.summary.json\nimport json\npayload = {\"action\": \"filter\", \"input_bam\": \"<TMPDIR>/<TMP>/sample.bam\", \"output_bam\": \"<TMPDIR>/<TMP>/out/bam_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 25, \"remove_duplicates\": false}, \"artifacts\": {\"flagstat_before\": \"<TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt\", \"flagstat_after\": \"<TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt\", \"idxstats_before\": \"<TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt\", \"idxstats_after\": \"<TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -463,7 +462,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "sample.bam",
+            "path": "<TMPDIR>/<TMP>/sample.bam",
             "role": "bam"
           }
         ],
@@ -471,49 +470,49 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "filtered_bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam",
             "role": "bam"
           },
           {
             "name": "filtered_bai",
             "optional": false,
-            "path": "filtered.bam.bai",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam.bai",
             "role": "index"
           },
           {
             "name": "flagstat_before",
             "optional": false,
-            "path": "flagstat.before.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt",
             "role": "report_json"
           },
           {
             "name": "flagstat_after",
             "optional": false,
-            "path": "flagstat.after.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt",
             "role": "report_json"
           },
           {
             "name": "idxstats_before",
             "optional": false,
-            "path": "idxstats.before.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt",
             "role": "unknown"
           },
           {
             "name": "idxstats_after",
             "optional": false,
-            "path": "idxstats.after.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt",
             "role": "unknown"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "filter.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filter.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -521,7 +520,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_filter",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_filter",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -537,7 +536,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "king -b <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam --kinship --related --prefix <TMPDIR>/<TMP>/out/bam_kinship/kinship && if [ -f <TMPDIR>/<TMP>/out/bam_kinship/kinship.kin0 ]; then cp <TMPDIR>/<TMP>/out/bam_kinship/kinship.kin0 <TMPDIR>/<TMP>/out/bam_kinship/kinship.segments.tsv; else : > <TMPDIR>/<TMP>/out/bam_kinship/kinship.segments.tsv; fi && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_kinship/kinship.summary.json\nimport json\nprint(json.dumps({\"method\": \"king\", \"reference_panel\": \"panel.vcf\", \"min_overlap_snps\": 200}, indent=2))\nPY && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_kinship/kinship.json\nimport json\nprint(json.dumps({\"status\": \"ok\", \"tool\": \"king\", \"segments\": \"<TMPDIR>/<TMP>/out/bam_kinship/kinship.segments.tsv\"}, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -554,7 +553,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
             "role": "bam"
           }
         ],
@@ -562,19 +561,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "kinship_report",
             "optional": false,
-            "path": "kinship.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_kinship/kinship.json",
             "role": "report_json"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "kinship.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_kinship/kinship.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_kinship/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -582,7 +581,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_kinship",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_kinship",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -598,7 +597,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "samtools flagstat <TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_length_filter/flagstat.before.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_length_filter/idxstats.before.txt && samtools view -h -b -q 0 <TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam | awk 'BEGIN{OFS=\"\\t\"} /^@/{print; next} length($10)>=30' | samtools view -b - | samtools sort -@ 1 -l 6 -o <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam && samtools index -@ 1 <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam.bai && samtools flagstat <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_length_filter/flagstat.after.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_length_filter/idxstats.after.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_length_filter/length_filter.summary.json\nimport json\npayload = {\"action\": \"length_filter\", \"input_bam\": \"<TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam\", \"output_bam\": \"<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 0, \"min_length\": 30, \"remove_duplicates\": false}, \"artifacts\": {\"flagstat_before\": \"<TMPDIR>/<TMP>/out/bam_length_filter/flagstat.before.txt\", \"flagstat_after\": \"<TMPDIR>/<TMP>/out/bam_length_filter/flagstat.after.txt\", \"idxstats_before\": \"<TMPDIR>/<TMP>/out/bam_length_filter/idxstats.before.txt\", \"idxstats_after\": \"<TMPDIR>/<TMP>/out/bam_length_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -620,7 +619,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam",
             "role": "bam"
           }
         ],
@@ -628,49 +627,49 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "filtered_bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
             "role": "bam"
           },
           {
             "name": "filtered_bai",
             "optional": false,
-            "path": "filtered.bam.bai",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam.bai",
             "role": "index"
           },
           {
             "name": "flagstat_before",
             "optional": false,
-            "path": "flagstat.before.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/flagstat.before.txt",
             "role": "report_json"
           },
           {
             "name": "flagstat_after",
             "optional": false,
-            "path": "flagstat.after.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/flagstat.after.txt",
             "role": "report_json"
           },
           {
             "name": "idxstats_before",
             "optional": false,
-            "path": "idxstats.before.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/idxstats.before.txt",
             "role": "unknown"
           },
           {
             "name": "idxstats_after",
             "optional": false,
-            "path": "idxstats.after.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/idxstats.after.txt",
             "role": "unknown"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "filter.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filter.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -678,7 +677,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_length_filter",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_length_filter",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -694,7 +693,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/flagstat.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/idxstats.txt && samtools stats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/samtools_stats.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_mapping_summary/mapping.summary.json\nimport json\nprint(json.dumps({\"stage\":\"bam.mapping_summary\",\"flagstat\":\"<TMPDIR>/<TMP>/out/bam_mapping_summary/flagstat.txt\",\"idxstats\":\"<TMPDIR>/<TMP>/out/bam_mapping_summary/idxstats.txt\",\"stats\":\"<TMPDIR>/<TMP>/out/bam_mapping_summary/samtools_stats.txt\"}, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -713,7 +712,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "sample.bam",
+            "path": "<TMPDIR>/<TMP>/sample.bam",
             "role": "bam"
           }
         ],
@@ -721,31 +720,31 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "flagstat",
             "optional": false,
-            "path": "flagstat.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/flagstat.txt",
             "role": "report_json"
           },
           {
             "name": "idxstats",
             "optional": false,
-            "path": "idxstats.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/idxstats.txt",
             "role": "unknown"
           },
           {
             "name": "stats",
             "optional": false,
-            "path": "samtools_stats.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/samtools_stats.txt",
             "role": "unknown"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "mapping.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/mapping.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -753,7 +752,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_mapping_summary",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_mapping_summary",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -769,7 +768,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "samtools flagstat <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_mapq_filter/flagstat.before.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_mapq_filter/idxstats.before.txt && samtools view -h -b -q 30 <TMPDIR>/<TMP>/out/bam_filter/filtered.bam | cat | samtools view -b - | samtools sort -@ 1 -l 6 -o <TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam && samtools index -@ 1 <TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam <TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam.bai && samtools flagstat <TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_mapq_filter/flagstat.after.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_mapq_filter/idxstats.after.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_mapq_filter/mapq_filter.summary.json\nimport json\npayload = {\"action\": \"mapq_filter\", \"input_bam\": \"<TMPDIR>/<TMP>/out/bam_filter/filtered.bam\", \"output_bam\": \"<TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 0, \"remove_duplicates\": false}, \"artifacts\": {\"flagstat_before\": \"<TMPDIR>/<TMP>/out/bam_mapq_filter/flagstat.before.txt\", \"flagstat_after\": \"<TMPDIR>/<TMP>/out/bam_mapq_filter/flagstat.after.txt\", \"idxstats_before\": \"<TMPDIR>/<TMP>/out/bam_mapq_filter/idxstats.before.txt\", \"idxstats_after\": \"<TMPDIR>/<TMP>/out/bam_mapq_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -791,7 +790,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam",
             "role": "bam"
           }
         ],
@@ -799,49 +798,49 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "filtered_bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam",
             "role": "bam"
           },
           {
             "name": "filtered_bai",
             "optional": false,
-            "path": "filtered.bam.bai",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapq_filter/filtered.bam.bai",
             "role": "index"
           },
           {
             "name": "flagstat_before",
             "optional": false,
-            "path": "flagstat.before.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapq_filter/flagstat.before.txt",
             "role": "report_json"
           },
           {
             "name": "flagstat_after",
             "optional": false,
-            "path": "flagstat.after.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapq_filter/flagstat.after.txt",
             "role": "report_json"
           },
           {
             "name": "idxstats_before",
             "optional": false,
-            "path": "idxstats.before.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapq_filter/idxstats.before.txt",
             "role": "unknown"
           },
           {
             "name": "idxstats_after",
             "optional": false,
-            "path": "idxstats.after.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapq_filter/idxstats.after.txt",
             "role": "unknown"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "filter.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapq_filter/filter.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_mapq_filter/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -849,7 +848,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_mapq_filter",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_mapq_filter",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -865,7 +864,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "template": [
           "/bin/sh",
           "-c",
-          "<TIMESTAMP>"
+          "rxy --input <TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_sex/sex.json && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_sex/sex.summary.json\nimport json\npayload = {\"method\": \"rxy\", \"x_to_y_ratio\": 0.0, \"confidence\": 0.0}\nprint(json.dumps(payload, indent=2))\nPY"
         ]
       },
       "expected_artifact_ids": [
@@ -882,7 +881,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "filtered.bam",
+            "path": "<TMPDIR>/<TMP>/out/bam_length_filter/filtered.bam",
             "role": "bam"
           }
         ],
@@ -890,19 +889,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "sex_report",
             "optional": false,
-            "path": "sex.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/sex.json",
             "role": "report_json"
           },
           {
             "name": "summary",
             "optional": false,
-            "path": "sex.summary.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/sex.summary.json",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_sex/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -910,7 +909,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_sex",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_sex",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
@@ -943,13 +942,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "bam",
             "optional": false,
-            "path": "sample.bam",
+            "path": "<TMPDIR>/<TMP>/sample.bam",
             "role": "bam"
           },
           {
             "name": "reference",
             "optional": false,
-            "path": "mt_reference.fasta",
+            "path": "<TMPDIR>/<TMP>/mt_reference.fasta",
             "role": "reference"
           }
         ],
@@ -957,19 +956,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           {
             "name": "validation_report",
             "optional": false,
-            "path": "validation.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_validate/validation.json",
             "role": "report_json"
           },
           {
             "name": "flagstat",
             "optional": false,
-            "path": "flagstat.txt",
+            "path": "<TMPDIR>/<TMP>/out/bam_validate/flagstat.txt",
             "role": "report_json"
           },
           {
             "name": "stage_metrics",
             "optional": false,
-            "path": "stage.metrics.json",
+            "path": "<TMPDIR>/<TMP>/out/bam_validate/stage.metrics.json",
             "role": "metrics_json"
           }
         ]
@@ -977,7 +976,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "metrics_schema_ids": [
         "bam_metrics_v1"
       ],
-      "out_dir": "bam_validate",
+      "out_dir": "<TMPDIR>/<TMP>/out/bam_validate",
       "resources": {
         "mem_gb": 2,
         "runtime": "short",
