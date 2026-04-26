@@ -1,0 +1,202 @@
+use std::collections::BTreeSet;
+
+const CLI_COMMANDS: &[&str] = &[
+    "bijux-dna env images",
+    "bijux-dna env info",
+    "bijux-dna env doctor",
+    "bijux-dna env list",
+    "bijux-dna env export-json",
+    "bijux-dna env export-containers --json",
+    "bijux-dna env export-hpc",
+    "bijux-dna env sif-inventory",
+    "bijux-dna env ensure",
+    "bijux-dna env ensure-images",
+    "bijux-dna env lint-apptainer-defs",
+    "bijux-dna env smoke",
+    "bijux-dna env prep",
+    "bijux-dna env apptainer-qa-matrix",
+    "bijux-dna registry list-tools",
+    "bijux-dna registry list-stages",
+    "bijux-dna registry show-tool",
+    "bijux-dna registry show-stage",
+    "bijux-dna registry show",
+    "bijux-dna registry export-json",
+    "bijux-dna registry export-containers --json",
+    "bijux-dna registry coverage-matrix",
+    "bijux-dna registry validate-tool",
+    "bijux-dna registry audit",
+    "bijux-dna registry doctor",
+    "bijux-dna registry promote",
+    "bijux-dna registry lint",
+    "bijux-dna corpus materialize",
+    "bijux-dna corpus normalize",
+    "bijux-dna corpus validate",
+    "bijux-dna corpus list",
+    "bijux-dna corpus diff",
+    "bijux-dna status",
+    "bijux-dna run list-stages",
+    "bijux-dna run stages",
+    "bijux-dna run doctor",
+    "bijux-dna run list-tools",
+    "bijux-dna run explain",
+    "bijux-dna run validate-pre",
+    "bijux-dna run trim",
+    "bijux-dna run filter",
+    "bijux-dna run merge",
+    "bijux-dna run contam",
+    "bijux-dna run stats-neutral",
+    "bijux-dna run umi",
+    "bijux-dna run error-correct",
+    "bijux-dna run qc",
+    "bijux-dna run align",
+    "bijux-dna run preprocess",
+    "bijux-dna run run",
+    "bijux-dna run compare",
+    "bijux-dna run validate",
+    "bijux-dna run stats",
+    "bijux-dna plan list",
+    "bijux-dna plan explain",
+    "bijux-dna plan explain-profile",
+    "bijux-dna plan validate-profile",
+    "bijux-dna plan profile-diff",
+    "bijux-dna plan audit",
+    "bijux-dna analyze runs",
+    "bijux-dna analyze summary",
+    "bijux-dna analyze compare",
+    "bijux-dna analyze rank",
+    "bijux-dna analyze report",
+    "bijux-dna analyze metrics",
+    "bijux-dna analyze bench",
+    "bijux-dna explain runs",
+    "bijux-dna explain summary",
+    "bijux-dna explain compare",
+    "bijux-dna explain rank",
+    "bijux-dna explain report",
+    "bijux-dna explain metrics",
+    "bijux-dna explain bench",
+    "bijux-dna bench config validate",
+    "bijux-dna bench run",
+    "bijux-dna bench status",
+    "bijux-dna bench workspace-value",
+    "bijux-dna bench config-json",
+    "bijux-dna bench repo-checks",
+    "bijux-dna bench write-screen-taxonomy-database-lineage",
+    "bijux-dna bench publication-targets",
+    "bijux-dna bench corpus-fastq",
+    "bijux-dna bench normalize-workspace-layout",
+    "bijux-dna bench corpus-fastq-report",
+    "bijux-dna bench corpus-fastq-publication-status",
+    "bijux-dna bench corpus-fastq-published-dossiers",
+    "bijux-dna bench schema",
+    "bijux-dna bench fastq trim-reads",
+    "bijux-dna bench fastq trim-polyg-tails",
+    "bijux-dna bench fastq trim-terminal-damage",
+    "bijux-dna bench fastq validate-reads",
+    "bijux-dna bench fastq detect-adapters",
+    "bijux-dna bench fastq profile-read-lengths",
+    "bijux-dna bench fastq filter",
+    "bijux-dna bench fastq filter-low-complexity",
+    "bijux-dna bench fastq merge",
+    "bijux-dna bench fastq remove-duplicates",
+    "bijux-dna bench fastq remove-chimeras",
+    "bijux-dna bench fastq normalize-primers",
+    "bijux-dna bench fastq infer-asvs",
+    "bijux-dna bench fastq cluster-otus",
+    "bijux-dna bench fastq normalize-abundance",
+    "bijux-dna bench fastq correct",
+    "bijux-dna bench fastq report-qc",
+    "bijux-dna bench fastq umi",
+    "bijux-dna bench fastq index-reference",
+    "bijux-dna bench fastq screen-taxonomy",
+    "bijux-dna bench fastq deplete-host",
+    "bijux-dna bench fastq deplete-reference-contaminants",
+    "bijux-dna bench fastq deplete-rrna",
+    "bijux-dna bench fastq profile-reads",
+    "bijux-dna bench fastq profile-overrepresented-sequences",
+    "bijux-dna bench fastq preprocess",
+    "bijux-dna bench bam stage",
+    "bijux-dna bench bam pipeline",
+    "bijux-dna ena select",
+    "bijux-dna ena fetch",
+    "bijux-dna tool validate",
+    "bijux-dna domain validate",
+    "bijux-dna domain coverage",
+    "bijux-dna lab corpus list-fastq",
+    "bijux-dna config init-hpc",
+    "bijux-dna config doctor",
+    "bijux-dna bam run",
+    "bijux-dna bam list-stages",
+    "bijux-dna bam explain",
+    "bijux-dna vcf plan",
+    "bijux-dna vcf explain",
+    "bijux-dna vcf run",
+    "bijux-dna validate-manifests",
+    "bijux-dna platform",
+    "bijux-dna image-qa",
+    "bijux-dna replay",
+    "bijux-dna compare",
+    "bijux-dna policies audit",
+    "bijux-dna ci validate",
+    "bijux-dna debug",
+    "bijux-dna collect",
+];
+
+const REQUIRED_SECTIONS: &[&str] = &[
+    "## Stable Operator Commands",
+    "### Environment",
+    "### Registry",
+    "### Corpus",
+    "### Status",
+    "### FASTQ Run Surface",
+    "### Pipeline Profiles",
+    "### Analysis And Explanation",
+    "### Benchmarking",
+    "## Debug And Repository-Control Commands",
+    "## Ownership Rules",
+    "## Verification",
+];
+
+#[test]
+fn command_doc_is_complete_cli_inventory() {
+    let root = crate::support::crate_root("bijux-dna")
+        .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
+    let commands_doc = root.join("docs/COMMANDS.md");
+    let commands = std::fs::read_to_string(&commands_doc)
+        .unwrap_or_else(|err| panic!("read {}: {err}", commands_doc.display()));
+
+    assert!(
+        commands.contains("This file is the single source of truth for commands managed by the `bijux-dna` crate."),
+        "COMMANDS.md must identify itself as the CLI command SSOT"
+    );
+    for section in REQUIRED_SECTIONS {
+        assert!(commands.contains(section), "COMMANDS.md must include `{section}`");
+    }
+    assert_eq!(
+        documented_cli_commands(&commands),
+        CLI_COMMANDS.iter().map(|command| (*command).to_string()).collect(),
+        "docs/COMMANDS.md must list the exact CLI command inventory"
+    );
+    assert!(
+        commands.contains("- `bijux-dna run validate` aliases `bijux-dna run validate-pre`."),
+        "COMMANDS.md must document the visible validate alias"
+    );
+    assert!(
+        commands.contains("- `bijux-dna run stats` aliases `bijux-dna run stats-neutral`."),
+        "COMMANDS.md must document the visible stats alias"
+    );
+    assert!(
+        commands.contains(
+            "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test boundaries --no-default-features"
+        ),
+        "COMMANDS.md must list the focused command-inventory verification command"
+    );
+}
+
+fn documented_cli_commands(commands: &str) -> BTreeSet<String> {
+    commands
+        .lines()
+        .filter_map(|line| line.strip_prefix("- `"))
+        .filter_map(|line| line.split_once('`').map(|(command, _)| command.to_string()))
+        .filter(|command| command.starts_with("bijux-dna "))
+        .collect()
+}

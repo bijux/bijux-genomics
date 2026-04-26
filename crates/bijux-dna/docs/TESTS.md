@@ -23,6 +23,8 @@ tests/
   guardrail checks.
 - `tests/boundaries/architecture_tree.rs`: root, docs, source, command, and public API tree
   contract, including the integration-test taxonomy and support-helper location.
+- `tests/boundaries/command_inventory.rs`: `docs/COMMANDS.md` command inventory, section, alias,
+  and verification-command contract.
 - `tests/contracts.rs`: command behavior, bank, dry-run, and HPC layout contracts.
 - `tests/contracts/dry_run.rs`: dry-run command families and VCF toy execution coverage.
 - `tests/guardrails.rs`: shared policy guardrail smoke for this crate.
