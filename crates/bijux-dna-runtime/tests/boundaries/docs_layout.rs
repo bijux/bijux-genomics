@@ -40,7 +40,8 @@ fn collect_markdown(root: &Path, current: &Path, files: &mut BTreeSet<String>) {
     for entry in
         fs::read_dir(current).unwrap_or_else(|err| panic!("read {}: {err}", current.display()))
     {
-        let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", current.display()));
+        let entry =
+            entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", current.display()));
         let path = entry.path();
         if path.is_dir() {
             collect_markdown(root, &path, files);
