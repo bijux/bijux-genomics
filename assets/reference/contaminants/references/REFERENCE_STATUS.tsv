@@ -1,0 +1,3 @@
+asset_id	path	current_status	production_use	source_locator	expected_replacement	review_note
+phix174	assets/reference/contaminants/references/phix174.fasta	sentinel	blocked_for_production	https://www.ncbi.nlm.nih.gov/nuccore/NC_001422.1	complete PhiX174 RefSeq snapshot with checksum, retrieval date, sequence length, and accession	This checkout record is a tiny parser and policy sentinel, not a complete PhiX174 reference.
+univec	assets/reference/contaminants/references/univec.fasta	sentinel	blocked_for_production	https://www.ncbi.nlm.nih.gov/tools/vecscreen/univec/	pinned UniVec snapshot with checksum, retrieval date, sequence count, total bases, and source note	This checkout record is a tiny parser and policy sentinel, not a complete UniVec reference.
