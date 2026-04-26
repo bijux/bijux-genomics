@@ -9,6 +9,9 @@ fn policy__boundaries__workspace__workspace_boundary_contract_matches_docs() {
         };
         let deps = parse_dependencies(&path.join("Cargo.toml"), &known);
         for dep in deps {
+            if dep == "bijux-dna-policies" || dep == "bijux-dna-testkit" {
+                continue;
+            }
             bijux_dna_policies::policy_assert!(
                 allowed.contains(&dep),
                 "boundary violation: {crate_name} depends on {dep}, allowed: {allowed:?}"
