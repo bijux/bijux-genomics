@@ -39,3 +39,14 @@ pulling planner or runtime ownership into this crate.
 - Changing the shape of observer JSON, stage contract snapshots, or metrics
   envelopes is breaking unless versioned explicitly.
 - New callable operations must be listed in `docs/COMMANDS.md`.
+
+## Plugin Preconditions
+
+`BamStagePlugin::materialize` validates that the stage ID belongs to the BAM
+registry and that the planner-provided command template is present and nonblank.
+The plugin does not choose a tool, construct a shell command, or resolve an
+environment.
+
+`BamStagePlugin::parse_outputs` parses existing artifact paths into a metrics
+envelope and preserves reported artifact references. It must not write files or
+execute tools.
