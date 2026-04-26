@@ -18,11 +18,7 @@ fn indexed_contract_rows(content: &str) -> Vec<(&str, &str)> {
             if !trimmed.starts_with('|') || trimmed.contains("---") {
                 return None;
             }
-            let cells = trimmed
-                .trim_matches('|')
-                .split('|')
-                .map(str::trim)
-                .collect::<Vec<_>>();
+            let cells = trimmed.trim_matches('|').split('|').map(str::trim).collect::<Vec<_>>();
             if cells.len() != 2 || cells[0] == "Contract category" {
                 return None;
             }

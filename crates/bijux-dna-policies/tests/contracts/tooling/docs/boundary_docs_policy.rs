@@ -13,6 +13,10 @@ fn crate_dirs(root: &std::path::Path) -> Vec<std::path::PathBuf> {
     dirs
 }
 
+fn crate_name(dir: &std::path::Path) -> String {
+    dir.file_name().and_then(|name| name.to_str()).unwrap_or("<unknown>").to_string()
+}
+
 #[test]
 fn policy__contracts__boundary_docs_policy__every_crate_has_boundary_and_public_api_docs() {
     let root = support::workspace_root();
@@ -30,6 +34,50 @@ fn policy__contracts__boundary_docs_policy__every_crate_has_boundary_and_public_
     assert!(
         offenders.is_empty(),
         "boundary/public-api docs policy violations:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__boundary_docs_policy__boundary_docs_declare_enforceable_contract_fields() {
+    let root = support::workspace_root();
+    let required_fields = [
+        "Owner:",
+        "Scope:",
+        "Allowed inputs:",
+        "Forbidden dependencies:",
+        "Forbidden effects:",
+        "Validation command:",
+    ];
+    let mut offenders = Vec::new();
+
+    for dir in crate_dirs(&root) {
+        let boundary = dir.join("BOUNDARY.md");
+        let raw = std::fs::read_to_string(&boundary)
+            .unwrap_or_else(|_| panic!("read {}", boundary.display()));
+        for field in required_fields {
+            if !raw.lines().any(|line| line.starts_with(field)) {
+                offenders.push(format!("{} missing `{field}`", boundary.display()));
+            }
+        }
+        let expected_validation = format!("cargo test -p {} ", crate_name(&dir));
+        if !raw.contains(&expected_validation) {
+            offenders.push(format!(
+                "{} validation command must target its crate package",
+                boundary.display()
+            ));
+        }
+        if !raw.contains("docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md") {
+            offenders.push(format!(
+                "{} missing crate boundary contract index reference",
+                boundary.display()
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "boundary contract field policy violations:\n{}",
         offenders.join("\n")
     );
 }

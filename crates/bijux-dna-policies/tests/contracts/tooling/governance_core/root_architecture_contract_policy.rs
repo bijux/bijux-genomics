@@ -11,8 +11,8 @@ fn repo_root() -> PathBuf {
 }
 
 #[test]
-fn policy__contracts__root_architecture_contract_policy__root_contract_declares_reviewable_authority()
-{
+fn policy__contracts__root_architecture_contract_policy__root_contract_declares_reviewable_authority(
+) {
     let root = repo_root();
     let path = root.join("docs/10-architecture/ARCHITECTURE_CONTRACT.md");
     let content = std::fs::read_to_string(&path)
@@ -32,10 +32,8 @@ fn policy__contracts__root_architecture_contract_policy__root_contract_declares_
         "cargo test -p bijux-dna-policies --test contracts",
     ];
 
-    let missing = required
-        .into_iter()
-        .filter(|needle| !content.contains(needle))
-        .collect::<Vec<_>>();
+    let missing =
+        required.into_iter().filter(|needle| !content.contains(needle)).collect::<Vec<_>>();
 
     bijux_dna_policies::policy_assert!(
         missing.is_empty(),
