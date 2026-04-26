@@ -33,6 +33,13 @@ pub fn plan_region_chunks(
     if let Some(name) = include_names.intersection(&exclude_names).next() {
         bail!("chunk contig `{name}` cannot appear in both chr_include and chr_exclude");
     }
+    let known_contigs = species.contigs.iter().map(|contig| &contig.name).collect::<BTreeSet<_>>();
+    if let Some(name) = include_names.difference(&known_contigs).next() {
+        bail!("chunk chr_include contains unknown contig `{name}`");
+    }
+    if let Some(name) = exclude_names.difference(&known_contigs).next() {
+        bail!("chunk chr_exclude contains unknown contig `{name}`");
+    }
     let mut chunks = Vec::new();
     let include_all = chunking.chr_include.is_empty();
     let step = chunking.window_size_bp - chunking.overlap_bp;
