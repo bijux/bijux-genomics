@@ -86,3 +86,15 @@ fn bam_stage_plugin_rejects_empty_command_templates() {
 
     assert!(error.to_string().contains("empty command template"));
 }
+
+#[test]
+fn bam_stage_plugin_preserves_reported_output_artifacts() -> anyhow::Result<()> {
+    let plugin = BamStagePlugin;
+    let plan = stage_plan("bam.mapping_summary");
+    let outputs = plan.io.outputs.clone();
+
+    let parsed = plugin.parse_outputs(&plan, &outputs)?;
+
+    assert_eq!(parsed.artifacts, outputs);
+    Ok(())
+}
