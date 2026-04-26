@@ -16,6 +16,7 @@ Tests should explain the contract they enforce.
 - `tests/boundaries.rs` → boundary suite aggregator for ownership guardrails and purity.
 - `tests/boundaries/architecture.rs` → root layout, docs allowance, source tree, and Markdown placement.
 - `tests/boundaries/commands.rs` → command-free library boundary and `docs/COMMANDS.md`.
+- `tests/boundaries/dependencies.rs` → direct dependency graph and forbidden execution-layer edges.
 - `tests/contracts.rs` → contract suite aggregator for serialized API, stage contracts, parsers, docs, snapshots, and public surface.
 - `tests/determinism.rs` → determinism suite aggregator for fixture and snapshot stability.
 - `tests/semantics.rs` → semantic suite aggregator for invariant behavior.
