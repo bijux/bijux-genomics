@@ -23,5 +23,4 @@ workspace = true
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 walkdir = { workspace = true }
-bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
