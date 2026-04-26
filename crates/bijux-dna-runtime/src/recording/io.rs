@@ -1,6 +1,5 @@
 use std::fmt::Write as _;
-use std::fs::OpenOptions;
-use std::io::Write;
+use std::io;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
@@ -12,12 +11,7 @@ use sha2::Digest;
 /// # Errors
 /// Returns an error if the file cannot be opened or written.
 pub fn append_jsonl_line(path: &Path, line: &str) -> std::io::Result<()> {
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)?;
-    }
-    let mut file = OpenOptions::new().create(true).append(true).open(path)?;
-    writeln!(file, "{line}")?;
-    Ok(())
+    bijux_dna_infra::append_line(path, line).map_err(io::Error::other)
 }
 
 /// Write bytes atomically by writing a temp file and renaming.
@@ -25,16 +19,8 @@ pub fn append_jsonl_line(path: &Path, line: &str) -> std::io::Result<()> {
 /// # Errors
 /// Returns an error if the target cannot be written.
 pub fn write_atomic_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
-    let dir = path.parent().ok_or_else(|| anyhow!("missing parent for {}", path.display()))?;
-    bijux_dna_infra::ensure_dir(dir)?;
-    let file_name =
-        path.file_name().ok_or_else(|| anyhow!("missing file name for {}", path.display()))?;
-    let temp = dir.join(format!(".{}.{}.tmp", file_name.to_string_lossy(), uuid::Uuid::new_v4()));
-    let mut file = std::fs::File::create(&temp)?;
-    file.write_all(bytes)?;
-    file.sync_all()?;
-    bijux_dna_infra::rename(&temp, path)?;
-    Ok(())
+    bijux_dna_infra::atomic_write_bytes(path, bytes)
+        .with_context(|| format!("write {}", path.display()))
 }
 
 /// Write canonical JSON using core canonicalizer.

@@ -1,4 +1,4 @@
-use std::fs::File;
+use std::fs::{File, OpenOptions};
 use std::io::Write;
 use std::path::Path;
 
@@ -45,6 +45,22 @@ pub fn write_bytes<P: AsRef<Path>, B: AsRef<[u8]>>(path: P, bytes: B) -> Result<
 /// Returns an IO error if writing fails.
 pub fn write_string<P: AsRef<Path>>(path: P, contents: &str) -> Result<(), IoError> {
     write_bytes(path, contents.as_bytes())
+}
+
+/// Append a single UTF-8 line to a path, creating parent directories if needed.
+///
+/// # Errors
+/// Returns an IO error if the parent cannot be created or the file cannot be opened or written.
+pub fn append_line(path: &Path, line: &str) -> Result<(), IoError> {
+    if let Some(parent) = non_empty_parent(path) {
+        ensure_dir(parent)?;
+    }
+    let mut file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(path)
+        .map_err(IoError::from_io)?;
+    writeln!(file, "{line}").map_err(IoError::from_io)
 }
 
 /// Atomically write JSON to a path (temp + rename).
