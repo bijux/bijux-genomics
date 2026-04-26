@@ -11,10 +11,10 @@ name = "bijux-dna"
 path = "src/bin/bijux-dna.rs"
 
 [dependencies]
-bijux-dna-api = { path = "../bijux-dna-api" }
-bijux-dna-domain-compiler = { path = "../bijux-dna-domain-compiler" }
-bijux-dna-infra = { path = "../bijux-dna-infra" }
-bijux-dna-db-ena = { path = "../bijux-dna-db-ena" }
+bijux-dna-api.workspace = true
+bijux-dna-domain-compiler.workspace = true
+bijux-dna-infra.workspace = true
+bijux-dna-db-ena.workspace = true
 anyhow = { workspace = true }
 clap = { workspace = true }
 tracing = { workspace = true }

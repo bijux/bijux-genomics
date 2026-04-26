@@ -17,7 +17,8 @@ fn cli_forbids_internal_deps() -> Result<()> {
             continue;
         }
         if let Some((name, _)) = line.split_once('=') {
-            deps.push(name.trim().trim_matches('"').to_string());
+            let name = name.trim().trim_matches('"');
+            deps.push(name.strip_suffix(".workspace").unwrap_or(name).to_string());
         }
     }
     let forbidden = [
