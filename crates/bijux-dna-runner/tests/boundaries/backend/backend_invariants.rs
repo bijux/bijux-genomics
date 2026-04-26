@@ -6,11 +6,11 @@ fn backend_invariants_are_documented() {
         crate::support::crate_root("bijux-dna-runner")
             .unwrap_or_else(|err| panic!("resolve runner root: {err}"))
             .join("docs")
-            .join("BACKENDS.md"),
+            .join("EXECUTION_SPEC.md"),
     )
-    .unwrap_or_else(|err| panic!("docs/BACKENDS.md missing: {err}"));
+    .unwrap_or_else(|err| panic!("docs/EXECUTION_SPEC.md missing: {err}"));
     for phrase in ["cwd", "mount", "env", "stdout", "stderr", "exit"] {
-        assert!(doc.contains(phrase), "BACKENDS.md missing {phrase}");
+        assert!(doc.contains(phrase), "EXECUTION_SPEC.md missing {phrase}");
     }
 }
 

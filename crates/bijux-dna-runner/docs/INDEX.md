@@ -1,16 +1,24 @@
 # bijux-dna-runner Docs Index
 
-## Scope
-See `SCOPE.md` for what belongs here.
+This directory is the single documentation home for `bijux-dna-runner`. The crate root keeps only `README.md`; every other crate doc belongs here.
 
-## Effects
-See `EFFECTS.md` for allowed effects.
+## Core Contracts
+- `ARCHITECTURE.md` maps source layout and ownership.
+- `BOUNDARY.md` defines what the runner may and may not own.
+- `PUBLIC_API.md` lists stable modules, root exports, and facade exports.
+- `EXECUTION_SPEC.md` documents backend execution semantics, failure handling, and backend invariants.
 
-## Boundaries
-See `ARCHITECTURE.md` for internal boundaries.
+## Operational Boundaries
+- `COMMANDS.md` is the single source of truth for commands this crate can manage.
+- `DEPENDENCIES.md` documents allowed runtime and dev dependencies.
+- `EFFECTS.md` documents process, filesystem, environment, and network effects.
+- `DETERMINISM.md` documents replay, invocation identity, and stable-output guarantees.
 
-## Extension Points
-See `CHANGE_RULES.md` for safe extension guidelines.
+## Maintenance
+- `TESTS.md` maps test suites to the contracts they enforce.
 
-## How to Test
-See `TESTS.md` for test mapping and fixtures.
+## Change Rules
+- Keep docs and tests together when changing a runner contract.
+- Keep runtime responsibilities limited to resolved execution, artifact capture, and replay verification.
+- Add dependencies only when they fit `DEPENDENCIES.md` and update the dependency boundary test.
+- Add commands only when they fit `COMMANDS.md` and update the command inventory test.
