@@ -341,6 +341,9 @@ fn validate_graph_step(step: &ExecutionStep, step_ids: &mut HashSet<String>) -> 
     if step.image.image.trim().is_empty() {
         return Err(BijuxError::validation(format!("step {} missing image", step.step_id.0)));
     }
+    if step.out_dir.as_os_str().is_empty() {
+        return Err(BijuxError::validation(format!("step {} missing out_dir", step.step_id.0)));
+    }
     if step.io.inputs.is_empty() || step.io.outputs.is_empty() {
         return Err(BijuxError::validation(format!("step {} missing IO", step.step_id.0)));
     }
@@ -616,5 +619,21 @@ mod tests {
         assert!(error.is_err_and(|err| err
             .to_string()
             .contains("step trim command contains an empty token")));
+    }
+
+    #[test]
+    fn execution_graph_rejects_empty_step_out_dir() {
+        let mut bad_step = step("trim", id_catalog::FASTQ_TRIM);
+        bad_step.out_dir = PathBuf::new();
+
+        let error = ExecutionGraph::new(
+            "fastq-to-fastq__graph__v1",
+            "planner",
+            PlanPolicy::PreferAccuracy,
+            vec![bad_step],
+            Vec::new(),
+        );
+
+        assert!(error.is_err_and(|err| err.to_string().contains("step trim missing out_dir")));
     }
 }
