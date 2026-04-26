@@ -6,7 +6,9 @@ use bijux_dna_domain_bam::metrics::{
     parse_samtools_flagstat, parse_samtools_idxstats, parse_samtools_stats,
 };
 use bijux_dna_domain_bam::pipeline_contract::{forbidden_transitions, optional_branches};
-use bijux_dna_domain_bam::{required_audit_artifacts, stage_spec, BamStage};
+use bijux_dna_domain_bam::{
+    required_audit_artifacts, stage_contract_json, stage_spec, BamStage,
+};
 
 fn fixture_path(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -33,6 +35,25 @@ fn pipeline_branch_metadata_references_known_stages() {
             .unwrap_or_else(|err| panic!("bad forbidden transition source {from}: {err}"));
         BamStage::try_from(*to)
             .unwrap_or_else(|err| panic!("bad forbidden transition target {to}: {err}"));
+    }
+}
+
+#[test]
+fn every_stage_contract_names_responsible_tools() {
+    for stage in BamStage::all() {
+        let contract = stage_contract_json(stage.as_str())
+            .unwrap_or_else(|| panic!("missing contract json for {}", stage.as_str()));
+        let tool_ids = contract
+            .get("tool_ids")
+            .and_then(serde_json::Value::as_array)
+            .unwrap_or_else(|| panic!("contract for {} missing tool_ids", stage.as_str()));
+        assert!(!tool_ids.is_empty(), "{} has no responsible tools", stage.as_str());
+        for tool_id in tool_ids {
+            let tool_id = tool_id
+                .as_str()
+                .unwrap_or_else(|| panic!("{} has non-string tool id", stage.as_str()));
+            assert!(!tool_id.trim().is_empty(), "{} has empty tool id", stage.as_str());
+        }
     }
 }
 

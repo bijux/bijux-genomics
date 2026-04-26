@@ -1,6 +1,6 @@
 ---
-source: crates/bijux-dna-domain-bam/tests/stage_contract_snapshots.rs
-expression: json
+source: crates/bijux-dna-domain-bam/tests/contracts/stage_contract_snapshots.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "audit_artifacts": [
@@ -45,5 +45,7 @@ expression: json
   ],
   "schema_version": "bijux.stage_contract.v1",
   "stage_id": "bam.qc_pre",
-  "tool_ids": []
+  "tool_ids": [
+    "samtools"
+  ]
 }

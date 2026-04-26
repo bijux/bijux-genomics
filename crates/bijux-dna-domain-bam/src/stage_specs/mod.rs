@@ -352,7 +352,10 @@ pub fn contract_for_stage(stage_id: &str) -> Option<BamStageContract> {
 fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
     match stage_id {
         "bam.align" => vec!["bwa", "bowtie2"],
-        "bam.validate" | "bam.mapping_summary" | "bam.endogenous_content" => vec!["samtools"],
+        "bam.validate" | "bam.qc_pre" | "bam.mapping_summary" | "bam.endogenous_content" => {
+            vec!["samtools"]
+        }
+        "bam.filter" => vec!["samtools", "bamtools"],
         "bam.mapq_filter" => vec!["samtools", "bamtools"],
         "bam.length_filter" | "bam.duplication_metrics" => vec!["samtools", "picard"],
         "bam.markdup" | "bam.insert_size" | "bam.gc_bias" => vec!["picard"],
@@ -366,6 +369,8 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         "bam.kinship" => vec!["king"],
         "bam.contamination" => vec!["angsd"],
         "bam.sex" => vec!["rxy"],
+        "bam.bias_mitigation" => vec!["mapdamage2"],
+        "bam.genotyping" => vec!["angsd", "bcftools"],
         _ => Vec::new(),
     }
 }
