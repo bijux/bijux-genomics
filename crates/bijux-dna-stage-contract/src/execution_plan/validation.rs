@@ -39,6 +39,9 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
     }
     let mut edges = Vec::new();
     for edge in plan.edges() {
+        if edge.from().trim().is_empty() || edge.to().trim().is_empty() {
+            return Err(anyhow!("plan edge has empty endpoint"));
+        }
         if edge.from() == edge.to() {
             return Err(anyhow!("plan edge self-loop {}", edge.from()));
         }
