@@ -1,20 +1,22 @@
 # Public API
 
-The crate root exports the stable BAM stage surface from `src/lib.rs`.
+The crate root exports a narrow BAM stage surface from `src/lib.rs`. Internal
+plugin modules remain private.
 
 ## Public Modules
+
 - `metrics`
 - `observer`
 - `stage_specs`
 
-The `plugin` and `surface` modules are private implementation modules.
+## Stable Root Exports
 
-## Public Types And Functions
 - `BamStagePlugin`
 - `StagePlanJson`
 - `implemented_stages`
 
 ## Stage Specs Surface
+
 `stage_specs` intentionally re-exports:
 
 - `bijux_dna_domain_bam::*`
@@ -24,9 +26,16 @@ The `plugin` and `surface` modules are private implementation modules.
 This keeps planner-facing stage code on the BAM domain vocabulary without
 pulling planner or runtime ownership into this crate.
 
+## Internal Modules
+
+- `plugin` materializes a planned BAM invocation and parses existing outputs.
+- `surface` keeps crate-root aliases and registry functions out of `lib.rs`.
+
 ## Compatibility Rules
+
 - Adding a parser, metric field, or stage contract requires matching snapshot
   and registry coverage.
 - Removing or renaming a public export is breaking.
 - Changing the shape of observer JSON, stage contract snapshots, or metrics
   envelopes is breaking unless versioned explicitly.
+- New callable operations must be listed in `docs/COMMANDS.md`.

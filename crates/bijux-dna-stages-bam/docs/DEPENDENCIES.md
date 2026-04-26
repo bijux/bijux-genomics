@@ -35,3 +35,10 @@ dependency graph must stay below planner, runtime, runner, API, and CLI layers.
 Any new normal dependency must support BAM stage contracts directly. If it owns
 tool choice, command execution, orchestration, storage, network access, or user
 command surfaces, it belongs outside this crate.
+
+## Verification
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo tree -p bijux-dna-stages-bam --no-default-features --edges normal,dev
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-bam --test boundaries --no-default-features
+```
