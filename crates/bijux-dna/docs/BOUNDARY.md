@@ -44,4 +44,5 @@ move behind `bijux-dna-api` or a smaller owning crate before the CLI calls it.
 - Create deterministic observability log packs from declared run artifacts.
 
 ## Notes
-The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
+The family-level contract is indexed in
+[docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md](../../../docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md).

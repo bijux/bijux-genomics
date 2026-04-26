@@ -33,5 +33,5 @@ These are implementation details and must not become stable exports:
 - Keep `lib.rs` exports synchronized with the public-surface snapshot.
 
 ## Verification
-- `tests/boundaries/guardrails/public_surface.rs`
+- `tests/schemas/public_surface.rs`
 - `tests/snapshots/bijux-dna__schemas__public_surface.snap`
