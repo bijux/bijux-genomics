@@ -33,8 +33,7 @@ fn markdown_files(root: &Path) -> BTreeSet<String> {
 }
 
 fn visit(root: &Path, path: &Path, files: &mut BTreeSet<String>) {
-    for entry in fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
-    {
+    for entry in fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display())) {
         let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
         let path = entry.path();
         if path.is_dir() {

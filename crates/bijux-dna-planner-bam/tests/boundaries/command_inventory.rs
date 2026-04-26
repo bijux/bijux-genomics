@@ -21,10 +21,8 @@ fn command_inventory_documents_planned_bam_stage_commands() {
     );
 
     let documented = documented_bam_stage_ids(&content);
-    let expected = BamStage::all()
-        .iter()
-        .map(|stage| stage.as_str().to_string())
-        .collect::<BTreeSet<_>>();
+    let expected =
+        BamStage::all().iter().map(|stage| stage.as_str().to_string()).collect::<BTreeSet<_>>();
     assert_eq!(
         documented, expected,
         "COMMANDS.md must document every BAM stage command this planner can produce"
@@ -32,9 +30,5 @@ fn command_inventory_documents_planned_bam_stage_commands() {
 }
 
 fn documented_bam_stage_ids(content: &str) -> BTreeSet<String> {
-    content
-        .split('`')
-        .filter(|segment| segment.starts_with("bam."))
-        .map(str::to_string)
-        .collect()
+    content.split('`').filter(|segment| segment.starts_with("bam.")).map(str::to_string).collect()
 }
