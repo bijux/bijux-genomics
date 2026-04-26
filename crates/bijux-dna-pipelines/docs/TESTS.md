@@ -19,6 +19,9 @@ Pipeline profiles are consumed across the stack, so registry drift, defaults dri
 ## Command Contract
 `tests/boundaries/command_inventory.rs` locks that this crate owns no runtime commands and has no `src/bin/` entrypoints.
 
+## Effects Contract
+`tests/boundaries/effects_boundary.rs` scans source for forbidden process and network primitives.
+
 ## Standard Command
 Run:
 
