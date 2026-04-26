@@ -71,18 +71,27 @@ where
     let mut temp = tempfile::NamedTempFile::new_in(parent).map_err(IoError::from_io)?;
     writer(temp.as_file_mut()).map_err(IoError::from_io)?;
     temp.as_file_mut().sync_all().map_err(IoError::from_io)?;
-    #[cfg(unix)]
-    let perm = {
-        use std::os::unix::fs::PermissionsExt;
-        Some(std::fs::Permissions::from_mode(0o644))
-    };
-    #[cfg(not(unix))]
-    let perm: Option<std::fs::Permissions> = None;
+    let perm = existing_or_default_permissions(path);
     if let Some(perm) = perm {
         temp.as_file_mut().set_permissions(perm).map_err(IoError::from_io)?;
     }
     temp.persist(path).map_err(|err| IoError::from_io(err.error))?;
     Ok(())
+}
+
+fn existing_or_default_permissions(path: &Path) -> Option<std::fs::Permissions> {
+    if let Ok(metadata) = std::fs::metadata(path) {
+        return Some(metadata.permissions());
+    }
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        return Some(std::fs::Permissions::from_mode(0o644));
+    }
+    #[cfg(not(unix))]
+    {
+        None
+    }
 }
 
 /// Rename a filesystem path.
