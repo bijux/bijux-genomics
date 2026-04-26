@@ -2,7 +2,8 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::input_assessment::{
-    assess_input_dir, discover_fastq_files, is_fastq_path, is_gzip_path, FastqLayout,
+    assess_input_dir, discover_fastq_files, is_fastq_path, is_gzip_path, write_input_assessment,
+    FastqLayout,
 };
 
 fn temp_dir() -> Result<tempfile::TempDir> {
@@ -120,5 +121,42 @@ fn assess_input_dir_keeps_first_duplicate_read_candidate() -> Result<()> {
 
     assert_eq!(sample.id.r1_path, preferred_r1);
     assert_eq!(sample.naming_warnings, vec!["multiple R1 candidates for sample"]);
+    Ok(())
+}
+
+#[test]
+fn write_input_assessment_persists_typed_payload() -> Result<()> {
+    let dir = temp_dir()?;
+    let root = dir.path();
+    write_file(&root.join("sample_R1.fastq.gz"), b"r1")?;
+    write_file(&root.join("sample_R2.fastq.gz"), b"r2")?;
+    let assessment = assess_input_dir(root)?;
+    let output = root.join("reports").join("input-assessment.json");
+
+    write_input_assessment(&output, &assessment)?;
+
+    let encoded = std::fs::read_to_string(&output)?;
+    let decoded: bijux_dna_core::prelude::input_assessment::InputAssessmentV1 =
+        serde_json::from_str(&encoded)?;
+    assert_eq!(decoded.schema_version, 1);
+    assert_eq!(decoded.samples.len(), 1);
+    assert!(decoded.samples[0].r2.is_some());
+    Ok(())
+}
+
+#[test]
+fn write_input_assessment_replaces_existing_payload() -> Result<()> {
+    let dir = temp_dir()?;
+    let root = dir.path();
+    write_file(&root.join("sample.fastq"), b"r1")?;
+    let assessment = assess_input_dir(root)?;
+    let output = root.join("input-assessment.json");
+    write_file(&output, br#"{"stale":true}"#)?;
+
+    write_input_assessment(&output, &assessment)?;
+
+    let encoded = std::fs::read_to_string(&output)?;
+    assert!(encoded.contains("\"schema_version\""));
+    assert!(!encoded.contains("stale"));
     Ok(())
 }

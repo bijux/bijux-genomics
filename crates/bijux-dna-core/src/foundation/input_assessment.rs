@@ -1,5 +1,8 @@
 use std::collections::BTreeMap;
+use std::fs::{File, OpenOptions};
+use std::io::Write as _;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::foundation::{BijuxError, ContractVersion, Result};
 use chrono::Utc;
@@ -167,9 +170,6 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
             Some(r2_path) => (FastqLayout::PairedEnd, Some(r2_path)),
             None => (FastqLayout::SingleEnd, None),
         };
-        if layout == FastqLayout::PairedEnd && r2_path.is_none() {
-            issues.push(format!("sample {sample_name} missing R2"));
-        }
         let r1_assessment = file_assessment(&r1_path)?;
         let r2_assessment = match r2_path.as_ref() {
             Some(path) => Some(file_assessment(path)?),
@@ -187,14 +187,6 @@ pub fn assess_input_dir(root: &Path) -> Result<InputAssessmentV1> {
             naming_warnings,
         };
         samples.push(assessment);
-    }
-
-    for sample in &samples {
-        if sample.id.layout == FastqLayout::SingleEnd {
-            if let Some(r2) = sample.id.r2_path.clone() {
-                unpaired.push(r2);
-            }
-        }
     }
 
     Ok(InputAssessmentV1 {
@@ -218,20 +210,45 @@ pub fn write_input_assessment(path: &Path, assessment: &InputAssessmentV1) -> Re
     Ok(())
 }
 
-fn atomic_write_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
-    use std::io::Write as _;
+static TEMP_FILE_COUNTER: AtomicU64 = AtomicU64::new(0);
 
+fn atomic_write_bytes(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
     let parent = path
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty())
         .unwrap_or_else(|| Path::new("."));
     std::fs::create_dir_all(parent)?;
 
-    let mut temp = tempfile::NamedTempFile::new_in(parent)?;
+    let temp_path = create_temp_path(parent, path);
+    let result = write_and_rename(&temp_path, path, bytes);
+    if result.is_err() {
+        let _ = std::fs::remove_file(&temp_path);
+    }
+    result
+}
+
+fn create_temp_path(parent: &Path, target: &Path) -> PathBuf {
+    let file_name = target.file_name().and_then(|value| value.to_str()).unwrap_or("assessment");
+    let counter = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
+    let process_id = std::process::id();
+    parent.join(format!(".{file_name}.{process_id}.{counter}.tmp"))
+}
+
+fn write_and_rename(temp_path: &Path, target: &Path, bytes: &[u8]) -> std::io::Result<()> {
+    let mut temp = OpenOptions::new().write(true).create_new(true).open(temp_path)?;
     temp.write_all(bytes)?;
-    temp.as_file_mut().sync_all()?;
-    temp.persist(path).map_err(|err| err.error)?;
-    Ok(())
+    temp.sync_all()?;
+    drop(temp);
+    std::fs::rename(temp_path, target)?;
+    sync_parent_dir(target)
+}
+
+fn sync_parent_dir(path: &Path) -> std::io::Result<()> {
+    let parent = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
+    File::open(parent)?.sync_all()
 }
 
 fn hash_file_sha256(path: &Path) -> Result<String> {

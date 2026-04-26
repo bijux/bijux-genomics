@@ -7,16 +7,8 @@ fn normal_dependency_graph_stays_low_level() {
         std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
             .expect("read Cargo.toml");
     let dependencies = dependency_names(&manifest, "dependencies");
-    let expected = entries([
-        "chrono",
-        "regex",
-        "serde",
-        "serde_json",
-        "sha2",
-        "tempfile",
-        "thiserror",
-        "walkdir",
-    ]);
+    let expected =
+        entries(["chrono", "regex", "serde", "serde_json", "sha2", "thiserror", "walkdir"]);
 
     assert_eq!(
         dependencies, expected,
@@ -30,7 +22,7 @@ fn dev_dependency_graph_stays_test_only() {
         std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
             .expect("read Cargo.toml");
     let dependencies = dependency_names(&manifest, "dev-dependencies");
-    let expected = entries(["anyhow", "bijux-dna-policies", "insta"]);
+    let expected = entries(["anyhow", "bijux-dna-policies", "insta", "tempfile"]);
 
     assert_eq!(dependencies, expected, "dev dependencies must stay test-facing");
 }
