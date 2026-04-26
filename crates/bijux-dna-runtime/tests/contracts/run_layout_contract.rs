@@ -4,10 +4,12 @@ use bijux_dna_runtime::run_layout::create_run_layout;
 fn run_layout_paths_match_contract() {
     let temp = bijux_dna_testkit::tempdir_for("run-layout");
     let temp_root = temp.path().to_path_buf();
-    let (_run_id, layout) = match create_run_layout(&temp_root) {
+    let (run_id, layout) = match create_run_layout(&temp_root) {
         Ok(value) => value,
         Err(err) => panic!("layout: {err}"),
     };
+    assert!(run_id.starts_with("run-"), "run layout id must use the public run-* prefix");
+    assert!(layout.run_dir.ends_with(&run_id), "run layout directory must end with run id");
     assert!(layout.assessment_path.ends_with("input_assessment.json"));
     assert!(layout.manifest_path.ends_with("execution_manifest.json"));
     assert!(layout.environment_path.ends_with("environment.json"));
