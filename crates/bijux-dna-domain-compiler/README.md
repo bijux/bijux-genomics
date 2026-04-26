@@ -14,7 +14,8 @@ Outputs are written as generated artifacts and are safe to overwrite.
 
 ## Public API / entrypoints
 - Library: `compile_domain_configs`, `validate_domain`
-- Binary: `compile_domain_configs`
+- Library: `domain_coverage_report`
+- Binaries: `compile_domain_configs`, `domain_validate`
 
 ## Key contracts it owns/consumes
 - Owns generated config contract headers and structure.
@@ -34,11 +35,9 @@ Outputs are written as generated artifacts and are safe to overwrite.
 - `cargo test -p bijux-dna-domain-compiler`
 - `cargo test -p bijux-dna-domain-compiler --test guardrails`
 - `cargo test -p bijux-dna-domain-compiler --lib`
-- `cargo test -p bijux-dna-domain-compiler --test boundaries`
-- `cargo test -p bijux-dna-domain-compiler --test contracts`
-- `crates/bijux-dna-domain-compiler/tests/guardrails.rs`
-- `crates/bijux-dna-domain-compiler/src/lib.rs`
-- `crates/bijux-dna-domain-compiler/src/lib.rs`
+- `cargo test -p bijux-dna-domain-compiler --test determinism_generated_outputs`
+- `cargo test -p bijux-dna-domain-compiler --test planned_tool_registry_boundaries`
+- `cargo clippy -p bijux-dna-domain-compiler --all-targets -- -D warnings`
 
 ## Where the docs live
 - [docs/INDEX.md](docs/INDEX.md)
