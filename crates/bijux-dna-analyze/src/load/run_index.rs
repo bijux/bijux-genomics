@@ -29,6 +29,12 @@ pub fn load_run_index(path: &Path) -> std::result::Result<Vec<RunIndexLine>, Ana
                 expected: "1".to_string(),
             });
         }
+        if parsed_row.run.is_some() == parsed_row.stage.is_some() {
+            return Err(AnalyzeError::InvalidJsonlRow {
+                line: idx + 1,
+                message: "run index row must contain exactly one of run or stage".to_string(),
+            });
+        }
         rows.push(parsed_row);
     }
     Ok(rows)
