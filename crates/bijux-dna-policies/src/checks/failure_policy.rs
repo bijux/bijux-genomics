@@ -9,6 +9,7 @@ use crate::GuardrailConfig;
 pub(crate) fn check_panic_expect(files: &[PathBuf], config: &GuardrailConfig) -> Result<()> {
     let panic_re = Regex::new(r"\bpanic!\(")?;
     let expect_re = Regex::new(r"\.expect\(")?;
+    let unwrap_re = Regex::new(r"\.unwrap\(")?;
     for path in files {
         if path_has_allowed_suffix(path, &config.allow_panic_expect_paths) {
             continue;
@@ -18,8 +19,8 @@ pub(crate) fn check_panic_expect(files: &[PathBuf], config: &GuardrailConfig) ->
             if line.trim_start().starts_with("//") {
                 continue;
             }
-            if panic_re.is_match(line) || expect_re.is_match(line) {
-                anyhow::bail!("panic/expect found in {}:{}", path.display(), idx + 1);
+            if panic_re.is_match(line) || expect_re.is_match(line) || unwrap_re.is_match(line) {
+                anyhow::bail!("panic/expect/unwrap found in {}:{}", path.display(), idx + 1);
             }
         }
     }
