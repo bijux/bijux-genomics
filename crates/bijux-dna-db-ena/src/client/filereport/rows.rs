@@ -50,8 +50,8 @@ pub(crate) fn parse_filereport_tsv(
             library_source: opt_field(field("library_source")).map(ToString::to_string),
             library_strategy: opt_field(field("library_strategy")).map(ToString::to_string),
             instrument_model: opt_field(field("instrument_model")).map(ToString::to_string),
-            base_count: opt_field(field("base_count")).and_then(|v| v.parse::<u64>().ok()),
-            read_count: opt_field(field("read_count")).and_then(|v| v.parse::<u64>().ok()),
+            base_count: parse_optional_u64("base_count", field("base_count"), line_index + 2)?,
+            read_count: parse_optional_u64("read_count", field("read_count"), line_index + 2)?,
             fastq_bytes: split_ena_u64_field(field("fastq_bytes")),
             fastq_ftp: split_ena_field(field("fastq_ftp")),
             submitted_ftp: split_ena_field(field("submitted_ftp")),
@@ -75,6 +75,22 @@ fn validate_row_width(
     Err(EnaClientError::InvalidResponse(format!(
         "filereport row {line_number} has {value_count} columns, expected {header_count}"
     )))
+}
+
+fn parse_optional_u64(
+    field_name: &str,
+    field_value: &str,
+    line_number: usize,
+) -> Result<Option<u64>, EnaClientError> {
+    let Some(value) = opt_field(field_value) else {
+        return Ok(None);
+    };
+
+    value.parse::<u64>().map(Some).map_err(|error| {
+        EnaClientError::InvalidResponse(format!(
+            "filereport row {line_number} has invalid {field_name} value {value:?}: {error}"
+        ))
+    })
 }
 
 fn opt_field(value: &str) -> Option<&str> {
@@ -113,6 +129,32 @@ mod tests {
         };
 
         assert!(error.to_string().contains("row 2 has 4 columns"));
+        Ok(())
+    }
+
+    #[test]
+    fn parse_filereport_tsv_rejects_invalid_scalar_counts() -> anyhow::Result<()> {
+        let query = EnaQuery {
+            projects: vec!["PRJEB1".to_string()],
+            samples: Vec::new(),
+            extra_accessions: Vec::new(),
+            result: EnaResultKind::ReadRun,
+        };
+        let tsv = concat!(
+            "study_accession\tsample_accession\texperiment_accession\trun_accession\t",
+            "tax_id\tscientific_name\tlibrary_layout\tlibrary_source\tlibrary_strategy\t",
+            "instrument_model\tbase_count\tread_count\tfastq_bytes\tfastq_ftp\t",
+            "submitted_ftp\tsra_ftp\n",
+            "PRJEB1\tSAMEA1\tERX1\tERR1\t9606\tHomo sapiens\tPAIRED\tGENOMIC\tWGS\t",
+            "Illumina NovaSeq 6000\tbad\t20\t84\tftp.sra.ebi.ac.uk/a.fastq.gz\t",
+            "ftp.sra.ebi.ac.uk/a.submitted.fastq.gz\tftp.sra.ebi.ac.uk/a.sra\n",
+        );
+
+        let Err(error) = parse_filereport_tsv(tsv, &query) else {
+            bail!("invalid scalar counts must fail");
+        };
+
+        assert!(error.to_string().contains("invalid base_count value"));
         Ok(())
     }
 }
