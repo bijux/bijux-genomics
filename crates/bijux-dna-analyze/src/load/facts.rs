@@ -140,7 +140,7 @@ pub fn load_facts_auto(path: &Path) -> std::result::Result<Vec<FactsRowV1>, Anal
 /// # Errors
 /// Returns an error if facts loading or validation fails.
 pub fn load_fact_table(path: &Path) -> std::result::Result<FactTable, AnalyzeError> {
-    let rows = load_facts(path)?;
+    let rows = load_facts_auto(path)?;
     FactTable::from_facts(&rows)
         .map_err(|err| AnalyzeError::InvalidJson { message: err.to_string() })
 }
