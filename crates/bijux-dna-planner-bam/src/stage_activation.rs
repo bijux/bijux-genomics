@@ -1,8 +1,9 @@
 use anyhow::{anyhow, Result};
 
 fn stage_status(stage_id: &str) -> Option<String> {
-    let cwd = std::env::current_dir().ok()?;
-    let path = bijux_dna_infra::configs_file(&cwd, "ci/stages/stages.toml");
+    let manifest_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));
+    let repo_root = manifest_dir.parent()?.parent()?;
+    let path = bijux_dna_infra::configs_file(repo_root, "ci/stages/stages.toml");
     let raw = std::fs::read_to_string(path).ok()?;
     let parsed = raw.parse::<toml::Value>().ok()?;
     let entries = parsed.get("stages")?.as_array()?;
