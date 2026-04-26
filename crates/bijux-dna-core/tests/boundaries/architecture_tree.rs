@@ -238,6 +238,7 @@ fn assert_test_layout(root: &Path) {
         dir_entries(&root.join("tests/boundaries")),
         entries([
             "architecture_tree.rs",
+            "command_inventory.rs",
             "core_scope_guardrail.rs",
             "dependency_graph.rs",
             "docs_layout.rs",

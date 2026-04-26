@@ -14,7 +14,7 @@ public-surface drift need explicit guardrails.
 - `tests/guardrails.rs` — crate-local guardrail smoke coverage.
 
 ## Intent directories
-- `tests/boundaries/` — dependency boundaries and layout contracts.
+- `tests/boundaries/` — dependency boundaries, command inventory, and layout contracts.
 - `tests/contracts/` — execution, identity, and surface behavior contracts.
 - `tests/fixtures/` — stable shared inputs for contract and schema coverage.
 - `tests/schemas/` — public API and docs locks.
@@ -24,6 +24,8 @@ public-surface drift need explicit guardrails.
 
 - `tests/boundaries/architecture_tree.rs` locks the crate root, docs allowance,
   source tree, public module tree, and named test-suite layout.
+- `tests/boundaries/command_inventory.rs` locks `docs/COMMANDS.md` as the
+  complete managed core operation inventory.
 - `tests/boundaries/dependency_graph.rs` locks normal dependencies to generic
   library crates and rejects workspace crates in `[dependencies]`.
 - `tests/boundaries/layering.rs` locks source layering between foundation and
