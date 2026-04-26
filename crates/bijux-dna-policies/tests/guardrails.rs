@@ -95,3 +95,15 @@ fn policy__root__guardrails__panic_expect_scan_rejects_unwrap() {
 
     assert!(err.to_string().contains("unwrap found"), "unexpected guardrail error: {err}");
 }
+
+#[test]
+fn policy__root__guardrails__stage_id_scan_ignores_comment_mentions() {
+    let paths = TestPaths::new("policies-stage-id-comments");
+    let crate_root = paths.child("crate");
+    write_source(&crate_root, "lib.rs", "// example: \"fastq.qc\"\npub fn ok() {}\n");
+
+    let mut config = GuardrailConfig::default();
+    config.forbid_stage_id_strings = true;
+
+    bijux_dna_policies::check(&crate_root, &config).expect("comment-only stage id is allowed");
+}
