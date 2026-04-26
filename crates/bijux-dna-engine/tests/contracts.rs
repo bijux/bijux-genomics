@@ -1,8 +1,6 @@
 // Auto-generated test aggregator for contracts
 #[path = "contracts/architecture.rs"]
 mod mod_contracts_architecture_rs;
-#[path = "contracts/command_inventory.rs"]
-mod mod_contracts_command_inventory_rs;
 #[path = "contracts/execution_orchestration_contracts.rs"]
 mod mod_contracts_execution_orchestration_contracts_rs;
 #[path = "contracts/params_hash.rs"]
