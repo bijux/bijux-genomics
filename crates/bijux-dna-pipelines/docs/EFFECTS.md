@@ -1,19 +1,22 @@
 # Effects
 
-## What
-Defines what effects `bijux-dna-pipelines` is allowed to use.
+`bijux-dna-pipelines` is a pure contract crate.
 
-## Why
-Preserves architectural purity and reproducibility.
+## Allowed
+- Deterministic profile construction.
+- Deterministic serialization and hashing.
+- Reading crate-owned docs, tests, and fixtures during tests.
+- Writing Cargo build and test artifacts under `artifacts/` through normal test execution.
 
-## Non-goals
-- Granting permissions not required by the crate.
+## Forbidden
+- Process spawning.
+- Network access.
+- Runtime tool discovery.
+- Product execution.
+- Undeclared file writes.
+- CLI argument parsing or command routing.
 
-## Contracts
-- Effects allowed/forbidden are enforced by policy tests.
-
-## Examples
-- Runner crates may spawn processes; most others may not.
-
-## Failure modes
-- Using forbidden effects fails policy checks.
+## Enforcement
+- Repository policy guardrails run through `tests/boundaries.rs`.
+- Command ownership is locked by `tests/boundaries/command_inventory.rs`.
+- Source-tree shape is locked by `tests/boundaries/architecture_tree.rs`.

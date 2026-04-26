@@ -1,15 +1,18 @@
 # bijux-dna-pipelines
 
+Workspace policy: apply `/Users/bijan/bijux/README.md` and `/Users/bijan/bijux/CODEX.md` before changing this crate.
+
 ## What this crate does
-Defines canonical pipeline profiles, defaults ledgers, and registry lookups for FASTQ, BAM, VCF, and cross-domain handoffs.
+Defines canonical pipeline profiles, defaults ledgers, manifests, and registry lookups for FASTQ, BAM, VCF, and cross-domain handoffs.
 
 Pipeline IDs:
-- fastq-only: `fastq-to-fastq__default__v1`, `fastq-to-fastq__minimal__v1`, `fastq-to-fastq__adna__v1`
+- fastq-only: `fastq-to-fastq__adna__v1`, `fastq-to-fastq__default__v1`, `fastq-to-fastq__minimal__v1`, `fastq-to-fastq__reference_adna__v1`
 - fastq → bam: `fastq-to-bam__default__v1`, `fastq-to-bam__adna_shotgun__v1`
-- bam-only: `bam-to-bam__default__v1`, `bam-to-bam__adna_shotgun__v1`, `bam-to-bam__adna_capture__v1`
+- bam-only: `bam-to-bam__adna_capture__v1`, `bam-to-bam__adna_shotgun__v1`, `bam-to-bam__default__v1`, `bam-to-bam__reference_adna__v1`
+- vcf-only: `vcf-to-vcf__minimal__v1`, `vcf-to-vcf__reference_basic__v1`
 
 ## Allowed dependencies
-Pipelines may depend on domain + planner contracts, but must not depend on engine/runner execution machinery.
+Pipelines may depend on core and domain contracts. Planner, engine, runner, command, stage implementation, database, environment, analysis application, and science orchestration crates stay downstream.
 
 ## Profiles
 A profile selects a pipeline ID + defaults and may override specific values. Overrides are explicit and
@@ -25,49 +28,54 @@ The defaults ledger records effective defaults, tool selections, and provenance 
 Changes are guarded by snapshot tests; update only when the contract changes intentionally.
 
 ## Registry authority
-Pipeline IDs are validated through `src/registry/pipeline_id.rs`, profile families are assembled under `src/registry/families/`, and the stable queryable registry lives under `src/registry/catalog/queries/`.
+Pipeline IDs are validated through `src/registry/pipeline_id.rs`, profile families are assembled under `src/registry/families/`, and stable query behavior lives under `src/registry/catalog/`.
 
 ## What it must not do (boundaries)
-No execution or runtime tool discovery; this crate only declares canonical stage-to-tool assignments.
+No command routing, execution, process spawning, network access, or runtime tool discovery. This crate declares deterministic contract data only.
 
 ## Role in the stack
-Upstream: domain contracts. Downstream: planners/analyze.
+Upstream: core and domain contracts. Downstream: planners, analysis, API, CLI, engine, runner, and runtime consumers.
 
 ## Public API / entrypoints
-See `crates/bijux-dna-pipelines/docs/INDEX.md`, `crates/bijux-dna-pipelines/docs/PIPELINES.md`, `crates/bijux-dna-pipelines/docs/PIPELINE_MODEL.md`, `crates/bijux-dna-pipelines/docs/DEFAULTS_LEDGER.md`,
-`crates/bijux-dna-pipelines/docs/PIPELINE_VERSIONING.md`, `crates/bijux-dna-pipelines/docs/CHANGE_RULES.md`.
+See `docs/INDEX.md`, `docs/PUBLIC_API.md`, `docs/PIPELINES.md`, `docs/DEFAULTS_LEDGER.md`, `docs/DEPENDENCIES.md`, and `docs/COMMANDS.md`.
 
 ## Key contracts it owns/consumes
-Defaults ledger and profile snapshots.
+Owns profile contracts, defaults ledgers, manifests, deterministic registry ordering, and stable public reexports. Consumes core IDs and domain vocabulary.
 
 ## Artifacts / Contracts
-See `crates/bijux-dna-pipelines/docs/DEFAULTS_LEDGER.md`, registry snapshots in `tests/snapshots/`, and `crates/bijux-dna-pipelines/docs/PIPELINE_MODEL.md`.
+See `docs/DEFAULTS_LEDGER.md`, `docs/PIPELINES.md`, registry snapshots in `tests/snapshots/`, and source-tree guards in `tests/boundaries/`.
 
 ## Effects & determinism guarantees
-Pure data only; deterministic ordering. See `crates/bijux-dna-pipelines/docs/EFFECTS.md` and the golden tests below.
+Pure data only; deterministic ordering and deterministic hashing. See `docs/EFFECTS.md` and the contract tests below.
 
 ## How to run its tests
-See `crates/bijux-dna-pipelines/docs/TESTS.md`. Entry points:
+See `docs/TESTS.md`. Standard command:
+
+```bash
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-pipelines --no-default-features
+```
+
+Entry points:
 - `tests/boundaries.rs`
 - `tests/contracts.rs`
 - `tests/guardrails.rs`
 - `tests/invariant_fast.rs`
 
 ## Where the docs live
-Start at `crates/bijux-dna-pipelines/docs/INDEX.md` and follow the crate docs listed above.
+Start at `docs/INDEX.md`. The crate root intentionally keeps only this `README.md`; all other Markdown docs belong under `docs/`.
 
 ## Start here in code
 - `src/public_api/` for the curated stable surface.
 - `src/contract/` for pipeline profile and invariant contracts.
 - `src/defaults/` for defaults ledgers, parameter envelopes, and override merging.
-- `src/fastq/defaults/` for preprocess vs analysis defaults, rationale assembly, and preset overrides.
-- `src/fastq/profiles/` for baseline and ancient-DNA FASTQ profile families.
-- `src/fastq/invariants/` for required rules, typed stage-param access, and preset-specific FASTQ invariants.
+- `src/fastq/` for FASTQ defaults, profiles, and invariants.
+- `src/bam/` for BAM profile families and invariants.
+- `src/vcf/` for VCF profile families and invariants.
 - `src/registry/` for pipeline id validation, profile families, registry catalog assembly, and query behavior.
-- `src/cross/fastq_to_bam/profiles/` for the cross-domain handoff profile families.
+- `src/cross/fastq_to_bam/` for cross-domain handoff profile families.
 
 ## Failure modes
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `crates/bijux-dna-pipelines/docs/CHANGE_RULES.md`.
+Contract and behavior changes follow `docs/PIPELINES.md` and `docs/DEFAULTS_LEDGER.md`.

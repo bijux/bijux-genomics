@@ -1,22 +1,27 @@
 # Tests
 
-## What
-Maps the stable test entrypoints and intent directories for bijux-dna-pipelines.
+Pipeline profiles are consumed across the stack, so registry drift, defaults drift, dependency drift, and layout drift need explicit locks.
 
-## Why
-Pipeline profiles are consumed across the stack, so registry drift and layout drift need explicit locks.
-
-## Entry points
-- `tests/boundaries.rs` — boundary and source-tree contract coverage.
-- `tests/contracts.rs` — defaults, profiles, and registry contract coverage.
+## Entry Points
+- `tests/boundaries.rs` — source-tree, docs, dependency, command, effects, and policy guardrails.
+- `tests/contracts.rs` — defaults, profile, registry, and snapshot contract coverage.
 - `tests/guardrails.rs` — crate-local guardrail smoke coverage.
 - `tests/invariant_fast.rs` — fast FASTQ invariant checks.
 
-## Intent directories
-- `tests/boundaries/` — architecture and guardrail coverage.
+## Intent Directories
+- `tests/boundaries/` — architecture and boundary coverage.
 - `tests/contracts/` — defaults, profile, and registry contracts.
-- `tests/determinism/` — reserved determinism notes and future reproducibility coverage.
-- `tests/schemas/` — reserved docs and public-surface lock coverage.
+- `tests/snapshots/` — checked-in snapshot contracts.
 
-## Source-tree contract
-- `tests/boundaries/architecture_tree.rs` locks the documented `pipelines` namespace layout, including the split `fastq/{defaults,profiles,invariants}` trees and `registry/catalog/queries/`.
+## Source-Tree Contract
+`tests/boundaries/architecture_tree.rs` locks the documented source layout, including the split `fastq/{defaults,profiles,invariants}` trees and the `registry/{catalog,families,profile_lookup}` partitions.
+
+## Command Contract
+`tests/boundaries/command_inventory.rs` locks that this crate owns no runtime commands and has no `src/bin/` entrypoints.
+
+## Standard Command
+Run:
+
+```bash
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-pipelines --no-default-features
+```

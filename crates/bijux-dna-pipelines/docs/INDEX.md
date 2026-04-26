@@ -1,19 +1,16 @@
 # bijux-dna-pipelines Docs Index
 
-## Public surface
-Public modules are `bam`, `contract`, `cross`, `defaults`, `fastq`, `public_api`, `registry`, and `vcf`.
+This directory is the documentation home for `bijux-dna-pipelines`. The crate root keeps only `README.md`; all other Markdown documentation belongs here.
 
-## Scope
-See `SCOPE.md` for what belongs here.
+## Start Here
+- `ARCHITECTURE.md` — source tree, module ownership, and data flow.
+- `BOUNDARY.md` — allowed inputs, forbidden dependencies, and forbidden effects.
+- `COMMANDS.md` — command inventory and command ownership boundary.
+- `DEPENDENCIES.md` — runtime and test dependency policy.
+- `PIPELINES.md` — authoritative pipeline IDs, profile model, versioning, and add-profile checklist.
 
-## Effects
-See `EFFECTS.md` for allowed effects.
-
-## Boundaries
-See `ARCHITECTURE.md` for internal boundaries.
-
-## Extension Points
-See `CHANGE_RULES.md` for safe extension guidelines.
-
-## How to Test
-See `TESTS.md` for test mapping and fixtures.
+## Contracts
+- `DEFAULTS_LEDGER.md` — defaults ledger contents, override precedence, and change rules.
+- `PUBLIC_API.md` — public modules and root reexports.
+- `EFFECTS.md` — allowed and forbidden effects.
+- `TESTS.md` — test entrypoints and coverage map.
