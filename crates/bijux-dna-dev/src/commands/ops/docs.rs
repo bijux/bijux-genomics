@@ -5,6 +5,7 @@ use super::{
     success_line, temp_subdir, trim_quoted, write_utf8, BTreeMap, BTreeSet, Context,
     OpsCommandOutcome, Regex, Result, WalkDir, Workspace,
 };
+use std::path::Path;
 
 fn docs_graph_exempt(rel: &str) -> bool {
     rel.starts_with("docs/30-operations/benchmark/")
@@ -417,6 +418,7 @@ pub(super) fn docs_check_domain_doc_references(
         .into_iter()
         .filter_map(std::result::Result::ok)
         .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| is_docs_reference_text_file(entry.path()))
     {
         let raw = read_utf8(entry.path())?;
         for capture in docs_stage_re.captures_iter(&raw) {
@@ -436,6 +438,13 @@ pub(super) fn docs_check_domain_doc_references(
         return success_line("docs stage/tool references validated");
     }
     failure_lines("docs reference unknown stage/tool ids", &errors)
+}
+
+fn is_docs_reference_text_file(path: &Path) -> bool {
+    matches!(
+        path.extension().and_then(|extension| extension.to_str()),
+        Some("csv" | "json" | "md" | "toml" | "txt")
+    )
 }
 
 pub(super) fn docs_check_generated_docs(
