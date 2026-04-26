@@ -180,7 +180,10 @@ pub(super) fn explicit_report_qc_inputs(
                 ],
             )?;
             ensure_governed_qc_artifact(input)?;
-            Ok(super::report_qc_input_artifact(&input.source_stage_node_id, &input.artifact, None))
+            Ok(super::qc_inputs::report_qc_input_artifact(
+                &input.source_stage_node_id,
+                &input.artifact,
+            ))
         })
         .collect::<Result<Vec<_>>>()?;
     if qc_inputs.is_empty() {

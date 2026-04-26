@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::prelude::{ArtifactRef, ContainerImageRefV1, StepId};
+use bijux_dna_core::prelude::{ContainerImageRefV1, StepId};
 use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::stages::ids::{
     STAGE_INDEX_REFERENCE, STAGE_PROFILE_OVERREPRESENTED_SEQUENCES, STAGE_PROFILE_READ_LENGTHS,
@@ -22,12 +22,13 @@ use crate::{
 mod input_resolution;
 mod lineage;
 mod models;
+mod qc_inputs;
 mod stage_params;
 
 use input_resolution::{
     explicit_abundance_table, explicit_reads_input_path, explicit_reference_index_state,
     explicit_report_qc_inputs, has_explicit_input, resolved_stage_input_artifacts,
-    stage_node_id_for_binding, stage_node_id_for_plan,
+    stage_node_id_for_binding,
 };
 use lineage::{
     inherited_lineage, lineage_input_artifacts_for_stage, merge_lineage_input_artifacts,
@@ -37,6 +38,7 @@ pub use models::{
     StageArtifactInputBinding, StageArtifactInputPolicy, StageDependencyPolicy,
     SyntheticStageArtifactPolicy,
 };
+use qc_inputs::qc_input_artifacts_for_stage;
 use stage_params::{
     cluster_otus_params, correct_errors_params, deplete_host_params,
     deplete_reference_contaminants_params, deplete_rrna_params, detect_adapters_params,
@@ -712,44 +714,6 @@ where
         latest_lineage_node_id = Some(stage_node_id);
     }
     Ok(plans)
-}
-
-fn qc_input_artifacts_for_stage(stage_id: &str, plan: &StagePlanV1) -> Vec<ArtifactRef> {
-    if stage_id == STAGE_REPORT_QC.as_str() {
-        return Vec::new();
-    }
-    let governed_output_ids = governed_qc_output_ids_for_stage(stage_id);
-    if governed_output_ids.is_empty() {
-        return Vec::new();
-    }
-    plan.io
-        .outputs
-        .iter()
-        .filter(|artifact| {
-            governed_output_ids.iter().any(|artifact_id| artifact.name.as_str() == artifact_id)
-        })
-        .map(|artifact| report_qc_input_artifact(stage_node_id_for_plan(plan), artifact, None))
-        .collect()
-}
-
-fn report_qc_input_artifact(
-    source_stage_node_id: &str,
-    artifact: &ArtifactRef,
-    explicit_name: Option<&str>,
-) -> ArtifactRef {
-    ArtifactRef {
-        name: bijux_dna_core::prelude::ArtifactId::new(match explicit_name {
-            Some(name) => name.to_string(),
-            None => format!("{}.{}", source_stage_node_id, artifact.name.as_str()),
-        }),
-        path: artifact.path.clone(),
-        role: artifact.role,
-        optional: artifact.optional,
-    }
-}
-
-fn governed_qc_output_ids_for_stage(stage_id: &str) -> Vec<String> {
-    crate::qc_contract::governed_qc_output_ids_for_stage(stage_id)
 }
 
 fn ensure_reference_index_backend(
