@@ -344,6 +344,7 @@ fn dna_tree_matches_architecture_contract() {
     let boundary_test_entries = dir_entries(&root.join("tests/boundaries"));
     let expected_boundary_tests: BTreeSet<_> = [
         "architecture_tree.rs",
+        "command_inventory.rs",
         "dependency_graph.rs",
         "docs_layout.rs",
         "guardrails/",

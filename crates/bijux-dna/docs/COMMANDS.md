@@ -201,4 +201,8 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test contracts
 ```
 
 - Help text changes: update and review `tests/snapshots/*.txt`.
-- Command inventory changes: run the docs and boundary policy checks.
+- Command inventory changes:
+
+```text
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test boundaries --no-default-features
+```
