@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
+use std::sync::{Mutex, MutexGuard};
 
 use bijux_dna_environment::resolve::{
     apptainer_sif_path, cache_dir, docker_image_exists, load_image_catalog, load_platform,
@@ -8,6 +9,12 @@ use bijux_dna_environment::resolve::{
     ImageRef, PlatformSpec, ResolvedImage, RuntimeKind, ToolImageSpec,
 };
 use bijux_dna_environment::runtime_spec::{is_platform_runner_compatible, RuntimeSpec};
+
+static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+fn env_lock() -> MutexGuard<'static, ()> {
+    ENV_LOCK.lock().unwrap_or_else(|err| panic!("environment lock poisoned: {err}"))
+}
 
 struct CurrentDirGuard {
     previous: PathBuf,
@@ -198,6 +205,7 @@ fn validate_images_for_stage_reports_missing_tools() {
 
 #[test]
 fn load_platform_prefers_cache_root_for_apptainer_platforms() -> anyhow::Result<()> {
+    let _env = env_lock();
     let temp = bijux_dna_testkit::tempdir_for("environment-platform-cache-root");
     let _cwd = CurrentDirGuard::change_to(temp.path())?;
     let _cache_root = EnvVarGuard::capture("BIJUX_CACHE_ROOT");
@@ -228,6 +236,7 @@ arch = "amd64"
 
 #[test]
 fn load_platform_keeps_relative_apptainer_dir_without_cache_env() -> anyhow::Result<()> {
+    let _env = env_lock();
     let temp = bijux_dna_testkit::tempdir_for("environment-platform-relative-apptainer");
     let _cwd = CurrentDirGuard::change_to(temp.path())?;
     let _cache_root = EnvVarGuard::capture("BIJUX_CACHE_ROOT");
