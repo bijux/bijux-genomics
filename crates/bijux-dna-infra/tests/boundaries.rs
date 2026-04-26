@@ -9,7 +9,5 @@ mod mod_boundaries_guardrails_docs_layout_rs;
 mod mod_boundaries_guardrails_no_generic_helpers_rs;
 #[path = "boundaries/guardrails/policies.rs"]
 mod mod_boundaries_guardrails_policies_rs;
-#[path = "boundaries/guardrails/public_surface.rs"]
-mod mod_boundaries_guardrails_public_surface_rs;
 #[path = "boundaries/guardrails.rs"]
 mod mod_boundaries_guardrails_rs;
