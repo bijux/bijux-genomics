@@ -14,7 +14,10 @@ pub(crate) fn check_empty_modules(files: &[PathBuf]) -> Result<()> {
             if trimmed.is_empty() || trimmed.starts_with("//") {
                 continue;
             }
-            if trimmed.starts_with("pub mod ") || trimmed.starts_with("mod ") {
+            if trimmed.starts_with("#[") || trimmed.starts_with("#![") {
+                continue;
+            }
+            if is_module_declaration(trimmed) {
                 continue;
             }
             meaningful += 1;
@@ -44,7 +47,7 @@ pub(crate) fn check_mod_reexports_only(files: &[PathBuf]) -> Result<()> {
             if trimmed.starts_with("#[") {
                 continue;
             }
-            if trimmed.starts_with("pub mod ") || trimmed.starts_with("mod ") {
+            if is_module_declaration(trimmed) {
                 continue;
             }
             meaningful += 1;
@@ -54,4 +57,8 @@ pub(crate) fn check_mod_reexports_only(files: &[PathBuf]) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn is_module_declaration(line: &str) -> bool {
+    line.starts_with("mod ") || line.starts_with("pub mod ") || line.starts_with("pub(")
 }
