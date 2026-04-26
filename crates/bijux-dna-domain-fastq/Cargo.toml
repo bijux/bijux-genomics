@@ -18,7 +18,7 @@ bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
 schemars.workspace = true
 
 [dev-dependencies]
-bijux-dna-policies = { path = "../bijux-dna-policies" }
+bijux-dna-policies.workspace = true
 insta = { workspace = true, features = ["json"] }
 walkdir.workspace = true
 
