@@ -107,3 +107,16 @@ fn fact_table_uses_auto_loader_for_parquet_paths() -> anyhow::Result<()> {
     assert!(matches!(err, AnalyzeError::UnsupportedParquet { .. }));
     Ok(())
 }
+
+#[cfg(not(feature = "parquet"))]
+#[test]
+fn fact_table_detects_uppercase_parquet_extension() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let path = dir.path().join("facts.PARQUET");
+    bijux_dna_infra::write_bytes(&path, b"not jsonl")?;
+
+    let err = load_fact_table(&path).expect_err("uppercase parquet should use parquet loader");
+
+    assert!(matches!(err, AnalyzeError::UnsupportedParquet { .. }));
+    Ok(())
+}
