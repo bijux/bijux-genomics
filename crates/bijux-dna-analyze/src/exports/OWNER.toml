@@ -1,1 +1,4 @@
 owner = "bijux-dna-analyze"
+responsibility = "dashboard facts, run summary, and stage summary artifact writers"
+may_depend_on = ["runtime facts", "infra atomic writers", "report access helpers"]
+must_not_depend_on = ["pipeline orchestration", "decision ranking"]

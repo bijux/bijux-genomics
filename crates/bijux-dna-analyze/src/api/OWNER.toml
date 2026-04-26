@@ -1,1 +1,4 @@
 owner = "bijux-dna-analyze"
+responsibility = "typed analyze request, response, render option, and metric id models"
+may_depend_on = ["core ids", "core metric ids"]
+must_not_depend_on = ["pipeline", "report rendering", "filesystem io"]

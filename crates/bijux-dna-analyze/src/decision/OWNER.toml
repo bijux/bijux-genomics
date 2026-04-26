@@ -1,1 +1,4 @@
 owner = "bijux-dna-analyze"
+responsibility = "comparison, scoring, ranking, tie policy, and decision traces"
+may_depend_on = ["core objective contracts", "runtime facts", "metric semantics"]
+must_not_depend_on = ["load", "report", "pipeline", "filesystem io"]

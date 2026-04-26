@@ -1,1 +1,4 @@
 owner = "bijux-dna-analyze"
+responsibility = "canonical typed analysis records and JSON boundary wrappers"
+may_depend_on = ["runtime facts", "core metric schemas", "serde"]
+must_not_depend_on = ["load", "decision", "report", "pipeline", "filesystem io"]

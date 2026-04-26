@@ -1,1 +1,4 @@
 owner = "bijux-dna-analyze"
+responsibility = "versioned analyze contract handshake"
+may_depend_on = ["serde"]
+must_not_depend_on = ["load", "decision", "report", "pipeline"]
