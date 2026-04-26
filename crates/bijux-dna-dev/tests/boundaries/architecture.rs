@@ -146,12 +146,19 @@ fn dev_tree_matches_architecture_contract() {
     );
 
     let test_entries = dir_entries(&root.join("tests"));
-    let expected_tests: BTreeSet<_> =
-        ["boundaries/", "boundaries.rs", "guardrails.rs", "workspace_paths.rs"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_tests: BTreeSet<_> = ["boundaries/", "boundaries.rs", "guardrails.rs", "support/"]
+        .into_iter()
+        .map(str::to_string)
+        .collect();
     assert_eq!(test_entries, expected_tests, "dev test tree must match the documented taxonomy");
+
+    let support_entries = dir_entries(&root.join("tests/support"));
+    let expected_support: BTreeSet<_> =
+        ["workspace_paths.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        support_entries, expected_support,
+        "dev test support must keep shared helpers out of suite roots"
+    );
 
     let boundary_entries = dir_entries(&root.join("tests/boundaries"));
     let expected_boundaries: BTreeSet<_> = [

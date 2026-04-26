@@ -9,5 +9,5 @@ mod mod_boundaries_dependencies_rs;
 mod mod_boundaries_docs_layout_rs;
 #[path = "boundaries/guardrails.rs"]
 mod mod_boundaries_guardrails_rs;
-#[path = "workspace_paths.rs"]
+#[path = "support/workspace_paths.rs"]
 mod support;

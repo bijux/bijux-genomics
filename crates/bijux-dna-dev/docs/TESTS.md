@@ -7,6 +7,7 @@
 - `tests/boundaries/command_inventory.rs` keeps `docs/COMMANDS.md` synchronized with `src/catalog`.
 - `tests/boundaries/dependencies.rs` locks the direct dependency shape documented in [DEPENDENCIES.md](DEPENDENCIES.md).
 - `tests/boundaries/guardrails.rs` checks the crate guardrail profile and boundary ownership.
+- `tests/support/workspace_paths.rs` owns repository and crate path resolution for integration tests.
 - `src/commands/repo_checks.rs` is the curated repository-check facade; detailed contracts live under `src/commands/repo_checks/`.
 - `src/commands/containers/runtime/frontend_proofs.rs` owns Apptainer frontend proof and report checks.
 - `src/commands/automation_boundary.rs` validates the allowed automation invocation surface.
