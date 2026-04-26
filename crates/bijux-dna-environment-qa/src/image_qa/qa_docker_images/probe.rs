@@ -55,6 +55,7 @@ pub(super) fn run_container_command(
     }
     let args = ["docker", "run", "--rm", image, "sh", "-c", cmd];
     let output = runner.run(&args)?;
-    let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-    Ok(ProbeResult { exit_code: output.status.code().unwrap_or(1), output: stdout })
+    let mut probe_output = String::from_utf8_lossy(&output.stdout).to_string();
+    probe_output.push_str(&String::from_utf8_lossy(&output.stderr));
+    Ok(ProbeResult { exit_code: output.status.code().unwrap_or(1), output: probe_output })
 }
