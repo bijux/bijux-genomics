@@ -18,7 +18,6 @@ bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
-sha2.workspace = true
 parquet = { version = "58", optional = true, features = ["json"] }
 
 [features]
@@ -28,9 +27,7 @@ sqlite = ["dep:rusqlite"]
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
-uuid = { workspace = true }
 tempfile.workspace = true
-bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 insta = { version = "1", features = ["json"] }
 bijux-dna-planner-fastq = { path = "../bijux-dna-planner-fastq" }
 bijux-dna-planner-bam = { path = "../bijux-dna-planner-bam" }
