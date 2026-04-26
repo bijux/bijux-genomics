@@ -23,7 +23,8 @@ fn parse_dependency_names(manifest: &Path) -> Vec<String> {
             continue;
         }
         if let Some((name, _rest)) = line.split_once('=') {
-            let name = name.trim().trim_matches('"').to_string();
+            let raw_name = name.trim().trim_matches('"');
+            let name = raw_name.strip_suffix(".workspace").unwrap_or(raw_name).to_string();
             if !name.is_empty() {
                 deps.push(name);
             }
