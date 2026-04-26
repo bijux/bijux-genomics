@@ -1,5 +1,7 @@
 #![allow(clippy::too_many_lines)]
 
+use std::fmt::Write as _;
+
 use super::{
     anyhow, apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
     command_hostname, docker_tool_ids, failure_lines, fs, is_non_bijux_apptainer_source,
@@ -35,11 +37,11 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
     let tool_status = tool_status_manifest(workspace)?;
     let required_labels = canonical_container_label_keys();
     let mut errors = Vec::new();
-    let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)").expect("regex");
-    let from_re = Regex::new(r"(?m)^\s*From:\s+(.+?)\s*$").expect("regex");
-    let interactive_re = Regex::new(r"\b(read -p|select |dialog|whiptail)\b").expect("regex");
-    let umask_re = Regex::new(r"(?m)^\s*umask\s+0?22\s*$").expect("regex");
-    let allowed_from_re = Regex::new(r"^(ubuntu|debian|python|quay\.io/)").expect("regex");
+    let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)")?;
+    let from_re = Regex::new(r"(?m)^\s*From:\s+(.+?)\s*$")?;
+    let interactive_re = Regex::new(r"\b(read -p|select |dialog|whiptail)\b")?;
+    let umask_re = Regex::new(r"(?m)^\s*umask\s+0?22\s*$")?;
+    let allowed_from_re = Regex::new(r"^(ubuntu|debian|python|quay\.io/)")?;
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
         let tool_id = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default();
@@ -211,9 +213,8 @@ pub(super) fn check_apptainer_post_pins(workspace: &Workspace) -> Result<Contain
         |
         /(?:archive/refs/heads/)?main(?:[/.]|$)
         ",
-    )
-    .expect("regex");
-    let download_re = Regex::new(r"\b(curl|wget)\b").expect("regex");
+    )?;
+    let download_re = Regex::new(r"\b(curl|wget)\b")?;
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
         let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
@@ -263,8 +264,7 @@ pub(super) fn check_apptainer_version_label_sync(
     }
     let versions = tool_versions(workspace)?;
     let mut errors = Vec::new();
-    let version_re =
-        Regex::new(r"org\.opencontainers\.image\.version\s+([^\n\r]+)").expect("regex");
+    let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\n\r]+)")?;
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
         let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
@@ -433,8 +433,7 @@ pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<Container
     let text = read_utf8(&sources_doc)?;
     let row_re = Regex::new(
         r"\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|\s*(\S+)\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|",
-    )
-    .expect("regex");
+    )?;
     let mut rows = BTreeMap::new();
     for line in text.lines() {
         let Some(captures) = row_re.captures(line) else {
@@ -452,7 +451,7 @@ pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<Container
             ),
         );
     }
-    let checksum_re = Regex::new(r"^[0-9a-f]{64}$").expect("regex");
+    let checksum_re = Regex::new(r"^[0-9a-f]{64}$")?;
     let mut errors = Vec::new();
     for tool_id in &defs {
         let Some((def_path, why_non_bijux, upstream, license_field, checksum, patching_rules)) =
@@ -928,7 +927,7 @@ pub(super) fn compare_apptainer_smoke_modes(root: &Path) -> Result<ContainerComm
         left.keys().filter(|tool| !right.contains_key(*tool)).cloned().collect::<Vec<_>>();
     let mismatch = left
         .keys()
-        .filter(|tool| right.get(*tool).is_some() && right.get(*tool) != left.get(*tool))
+        .filter(|tool| right.contains_key(*tool) && right.get(*tool) != left.get(*tool))
         .map(|tool| {
             format!(
                 "{tool}:{}!={}",
@@ -945,13 +944,13 @@ pub(super) fn compare_apptainer_smoke_modes(root: &Path) -> Result<ContainerComm
     }
     let mut stdout = String::from("smoke mode mismatch detected\n");
     if !missing_left.is_empty() {
-        stdout.push_str(&format!("missing in bijux-run: {}\n", missing_left.join(",")));
+        let _ = writeln!(stdout, "missing in bijux-run: {}", missing_left.join(","));
     }
     if !missing_right.is_empty() {
-        stdout.push_str(&format!("missing in apptainer-run: {}\n", missing_right.join(",")));
+        let _ = writeln!(stdout, "missing in apptainer-run: {}", missing_right.join(","));
     }
     if !mismatch.is_empty() {
-        stdout.push_str(&format!("status mismatch: {}\n", mismatch.join(",")));
+        let _ = writeln!(stdout, "status mismatch: {}", mismatch.join(","));
     }
     Ok(ContainerCommandOutcome::failure(stdout))
 }
@@ -991,13 +990,7 @@ pub(super) fn write_ensure_images_plan_report(workspace: &Workspace) -> Result<(
         .with_context(|| format!("read {}", lock_sha_file.display()))?
         .trim()
         .to_string();
-    let combined_sha = {
-        use sha2::{Digest, Sha256};
-        Sha256::digest(format!("{images_sha}\n{lock_sha}\n").as_bytes())
-            .iter()
-            .map(|byte| format!("{byte:02x}"))
-            .collect::<String>()
-    };
+    let combined_sha = sha256_hex(format!("{images_sha}\n{lock_sha}\n").as_bytes());
     let images: toml::Value = toml::from_str(&std::fs::read_to_string(&images_toml)?)?;
     let naming: toml::Value = toml::from_str(&std::fs::read_to_string(&hpc_naming_toml)?)?;
     let prefix = naming
