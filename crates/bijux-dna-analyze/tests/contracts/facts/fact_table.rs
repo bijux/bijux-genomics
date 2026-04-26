@@ -1,3 +1,4 @@
+use bijux_dna_analyze::load::{load_fact_table, AnalyzeError};
 use bijux_dna_analyze::model::FactTable;
 use bijux_dna_runtime::*;
 
@@ -92,4 +93,17 @@ fn fact_table_rejects_unknown_stage() {
         artifacts: serde_json::json!({}),
     };
     assert!(FactTable::from_facts(&[row]).is_err());
+}
+
+#[cfg(not(feature = "parquet"))]
+#[test]
+fn fact_table_uses_auto_loader_for_parquet_paths() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let path = dir.path().join("facts.parquet");
+    bijux_dna_infra::write_bytes(&path, b"not parquet")?;
+
+    let err = load_fact_table(&path).expect_err("parquet feature should be required");
+
+    assert!(matches!(err, AnalyzeError::UnsupportedParquet { .. }));
+    Ok(())
 }
