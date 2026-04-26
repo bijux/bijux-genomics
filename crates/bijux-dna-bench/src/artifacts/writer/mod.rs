@@ -285,4 +285,21 @@ mod tests {
         assert!(reloaded.iter().any(|obs| obs.lineage_id.as_deref() == Some("branch-b")));
         Ok(())
     }
+
+    #[test]
+    fn observation_reader_rejects_invalid_confounded_rows() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let path = temp.path().join("observations.jsonl");
+        let mut invalid = sample_observation("run-1", "r1");
+        invalid.dataset_class.clear();
+        let line = serde_json::to_string(&invalid)?;
+        bijux_dna_runtime::recording::write_atomic_bytes(&path, line.as_bytes())?;
+
+        let result = read_observations_jsonl(&path);
+
+        assert!(result.is_err());
+        let message = result.err().map(|err| err.to_string()).unwrap_or_default();
+        assert!(message.contains("validate observation"));
+        Ok(())
+    }
 }
