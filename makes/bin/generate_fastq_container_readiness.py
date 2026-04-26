@@ -22,6 +22,7 @@ VERSION_LOCK = Path("containers/versions/lock.json")
 LICENSE_DIR = Path("containers/licenses")
 DOWNLOAD_BACKLOG = Path("science/generated/current/evidence/fastq_download_backlog.tsv")
 OUT_DIR = Path("science/docs/upstream/fastq/container")
+QA_COVERAGE_BLOCKERS = Path("science/docs/upstream/fastq/QA_COVERAGE_BLOCKERS.tsv")
 PROOF_ROOT = Path("artifacts/containers")
 PLANNER_SNAPSHOT_DIR = Path("crates/bijux-dna-planner-fastq/tests/snapshots")
 
@@ -173,6 +174,20 @@ def load_download_backlog(root: Path) -> dict[str, dict[str, str]]:
             for row in csv.DictReader(handle, delimiter="\t")
             if row.get("tool_id")
         }
+
+
+def load_qa_coverage_blockers(root: Path) -> dict[str, list[str]]:
+    path = root / QA_COVERAGE_BLOCKERS
+    if not path.exists():
+        return {}
+    blockers: dict[str, list[str]] = {}
+    with path.open(encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle, delimiter="\t"):
+            stage_id = row.get("stage_id", "")
+            blocker = row.get("blocker", "")
+            if stage_id and blocker:
+                blockers.setdefault(stage_id, []).append(blocker)
+    return blockers
 
 
 def load_version_lock(root: Path) -> dict[str, dict[str, object]]:
@@ -337,6 +352,63 @@ def evidence_readiness(evidence: dict[str, str]) -> str:
     return "ready" if archive_status == "present" and paper_status else "needs_evidence"
 
 
+def evidence_kind(evidence: dict[str, str]) -> str:
+    citation = evidence.get("citation", "")
+    paper_status = evidence.get("paper_status", "")
+    if citation.startswith("software:") or paper_status == "software_citation_only":
+        return "software_citation"
+    if citation.startswith("paper:") or paper_status == "mapped":
+        return "paper"
+    return "missing_evidence"
+
+
+def payload_access_status(evidence: dict[str, str]) -> str:
+    archive_status = evidence.get("archive_status", "missing_backlog_row")
+    paper_status = evidence.get("paper_status", "missing_backlog_row")
+    if archive_status == "present" and paper_status in {"mapped", "software_citation_only"}:
+        return "ready"
+    return f"archive:{archive_status};paper:{paper_status}"
+
+
+def qa_status(stage_id: str, qa_blockers: dict[str, list[str]]) -> str:
+    blockers = qa_blockers.get(stage_id, [])
+    return "ready" if not blockers else ";".join(sorted(blockers))
+
+
+def runtime_surface_status(registry_row: dict[str, str]) -> str:
+    findings = []
+    if registry_row.get("status") != "production":
+        findings.append("registry_not_production")
+    if not registry_row.get("container_ref"):
+        findings.append("missing_container_ref")
+    if not registry_row.get("dockerfile"):
+        findings.append("missing_dockerfile")
+    if not registry_row.get("apptainer_def"):
+        findings.append("missing_apptainer_def")
+    return ";".join(findings) if findings else "ready"
+
+
+def proof_status_by_kind(root: Path, tool_id: str) -> dict[str, str]:
+    statuses = {}
+    for proof_kind, candidates in proof_candidates(tool_id):
+        statuses[proof_kind] = proof_status(root, candidates)[0]
+    return statuses
+
+
+def production_owner(blockers: list[str]) -> str:
+    if any(blocker.startswith("payload_access_status:") for blocker in blockers):
+        return "bijux-science"
+    if any(blocker.startswith("reference_asset_status:") for blocker in blockers):
+        return "bijux-domain"
+    if any(blocker.startswith("license_status:") for blocker in blockers):
+        return "bijux-runtime"
+    if any(blocker.startswith("planner_digest_status:") for blocker in blockers):
+        return "bijux-planner"
+    if any(blocker.startswith("behavioral_qa_status:") for blocker in blockers):
+        return "bijux-environment-qa"
+    return "bijux-runtime"
+
+
 def main() -> int:
     args = parse_args()
     root = args.repo_root.resolve()
@@ -345,6 +417,7 @@ def main() -> int:
     tools = load_tool_containers(root)
     registry = load_registry(root)
     backlog = load_download_backlog(root)
+    qa_blockers = load_qa_coverage_blockers(root)
     version_lock = load_version_lock(root)
     licenses = load_licenses(root)
     planner_snapshots = load_planner_snapshots(root)
@@ -608,6 +681,7 @@ def main() -> int:
     )
     planner_status_by_stage = {row[0]: row[5] for row in planner_rows}
     closure_rows = []
+    production_rows = []
     for row in execution_defaults(root):
         blockers = []
         stage = stages.get(row.stage_id, {})
@@ -670,6 +744,70 @@ def main() -> int:
             if hook != "none" and hook not in producers:
                 asset_blockers.append(hook)
         blockers.extend("asset:" + item for item in asset_blockers)
+        evidence = backlog.get(row.default_tool, {})
+        lock_item = version_lock.get(row.default_tool, {})
+        registry_row = registry.get(row.default_tool, {})
+        proof_statuses = proof_status_by_kind(root, row.default_tool)
+        reference_asset_status = ";".join(asset_blockers) if asset_blockers else "ready"
+        container_ref_status = digest
+        runtime_status = runtime_surface_status(registry_row)
+        planner_digest = planner_finding
+        sbom_status = ";".join(
+            sorted(
+                f"{kind}:{status}"
+                for kind, status in proof_statuses.items()
+                if kind.endswith("_sbom") and status != "present"
+            )
+        ) or "ready"
+        smoke_status = proof_statuses.get("smoke_manifest", "missing_from_snapshot")
+        behavioral_status = qa_status(row.stage_id, qa_blockers)
+        production_blockers = []
+        for field, value in [
+            ("payload_access_status", payload_access_status(evidence)),
+            ("reference_asset_status", reference_asset_status),
+            ("container_ref_status", container_ref_status),
+            ("license_status", license_finding),
+            ("runtime_surface_status", runtime_status),
+            ("planner_digest_status", planner_digest),
+            ("sbom_status", sbom_status),
+            ("smoke_status", smoke_status),
+            ("behavioral_qa_status", behavioral_status),
+            ("registry_status", registry_row.get("status", "missing_registry_row")),
+        ]:
+            if value not in {"ready", "immutable", "production"}:
+                production_blockers.append(f"{field}:{value}")
+        resolved_image_digest = str(lock_item.get("resolved_image_digest", ""))
+        resolved_sif_sha256 = str(lock_item.get("resolved_sif_sha256", ""))
+        if lock_field_status(resolved_image_digest) != "present":
+            production_blockers.append("resolved_image_digest:missing")
+        if lock_field_status(resolved_sif_sha256) != "present":
+            production_blockers.append("resolved_sif_sha256:missing")
+        production_rows.append(
+            [
+                row.stage_id,
+                row.default_tool,
+                evidence_kind(evidence),
+                evidence.get("locator", ""),
+                evidence.get("citation", ""),
+                evidence.get("archive_path", ""),
+                payload_access_status(evidence),
+                reference_asset_status,
+                container_ref_status,
+                resolved_image_digest,
+                resolved_sif_sha256,
+                license_finding,
+                runtime_status,
+                planner_digest,
+                sbom_status,
+                smoke_status,
+                behavioral_status,
+                registry_row.get("status", "missing_registry_row"),
+                "closed" if not production_blockers else "blocked",
+                ";".join(production_blockers),
+                production_owner(production_blockers),
+                "not_recorded",
+            ]
+        )
         closure_rows.append(
             [
                 row.stage_id,
@@ -706,6 +844,34 @@ def main() -> int:
         ],
         closure_rows,
     )
+    write_tsv(
+        out_dir / "FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv",
+        [
+            "stage_id",
+            "tool_id",
+            "evidence_kind",
+            "primary_locator",
+            "supporting_locators",
+            "local_payload_path",
+            "payload_access_status",
+            "reference_asset_status",
+            "container_ref_status",
+            "resolved_image_digest",
+            "resolved_sif_sha256",
+            "license_status",
+            "runtime_surface_status",
+            "planner_digest_status",
+            "sbom_status",
+            "smoke_status",
+            "behavioral_qa_status",
+            "registry_status",
+            "closure_status",
+            "blocking_reason",
+            "owner",
+            "last_verified_utc",
+        ],
+        production_rows,
+    )
     print(
         json.dumps(
             {
@@ -720,6 +886,7 @@ def main() -> int:
                     str(out_dir / "FASTQ_CONTAINER_PACKAGE_PARITY.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_PLANNER_GAPS.tsv"),
                     str(out_dir / "FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv"),
+                    str(out_dir / "FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv"),
                 ]
             }
         )

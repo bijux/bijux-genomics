@@ -28,6 +28,7 @@ upstream/fastq/container/*
 !upstream/fastq/container/FASTQ_CONTAINER_PACKAGE_PARITY.tsv
 !upstream/fastq/container/FASTQ_CONTAINER_PLANNER_GAPS.tsv
 !upstream/fastq/container/FASTQ_CONTAINER_PROOF_GAPS.tsv
+!upstream/fastq/container/FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv
 !upstream/fastq/tools/
 upstream/fastq/tools/*
 !upstream/fastq/tools/README.md
