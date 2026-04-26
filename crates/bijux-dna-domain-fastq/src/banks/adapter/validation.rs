@@ -48,6 +48,9 @@ pub(super) fn validate_adapter_presets(
     let mut names = BTreeSet::new();
     let bank_ids: BTreeSet<String> = bank.adapters.iter().map(|a| a.id.clone()).collect();
     for preset in &presets.presets {
+        if preset.name.trim().is_empty() {
+            return Err(anyhow!("adapter preset missing name"));
+        }
         if !names.insert(preset.name.clone()) {
             return Err(anyhow!("duplicate preset name {}", preset.name));
         }
@@ -65,7 +68,18 @@ pub(super) fn validate_adapter_presets(
                 return Err(anyhow!("unknown preset tag {tag}"));
             }
         }
+        let mut preset_adapter_ids = BTreeSet::new();
         for adapter_id in &preset.adapter_ids {
+            if adapter_id.trim().is_empty() {
+                return Err(anyhow!("preset {} has empty adapter id", preset.name));
+            }
+            if !preset_adapter_ids.insert(adapter_id.clone()) {
+                return Err(anyhow!(
+                    "preset {} repeats adapter id {}",
+                    preset.name,
+                    adapter_id
+                ));
+            }
             if !bank_ids.contains(adapter_id) {
                 return Err(anyhow!(
                     "preset {} references unknown adapter {}",
@@ -123,7 +137,7 @@ fn ensure_sequence_alphabet(sequence: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::banks::adapter::{AdapterEntryV1, ReadScope};
+    use crate::banks::adapter::{AdapterEntryV1, AdapterPresetV1, ReadScope};
 
     fn valid_bank_with(adapter: AdapterEntryV1) -> AdapterBankV1 {
         AdapterBankV1 {
@@ -169,5 +183,55 @@ mod tests {
             .expect_err("blank adapter sequences must be invalid");
 
         assert!(err.to_string().contains("sequence cannot be empty"));
+    }
+
+    fn valid_presets_with(preset: AdapterPresetV1) -> AdapterPresetsV1 {
+        AdapterPresetsV1 {
+            schema_version: "bijux.fastq.adapter_presets.v1".to_string(),
+            presets: vec![preset],
+        }
+    }
+
+    fn valid_preset() -> AdapterPresetV1 {
+        let sequences = vec!["AGATCGGAAGAG".to_string()];
+        AdapterPresetV1 {
+            name: "truseq".to_string(),
+            description: None,
+            tags: vec!["truseq".to_string()],
+            adapter_ids: Vec::new(),
+            sequences: sequences.clone(),
+            rationale: "default Illumina preset".to_string(),
+            references: Vec::new(),
+            notes: Vec::new(),
+            hash: hash_preset_sequences(&sequences),
+        }
+    }
+
+    #[test]
+    fn adapter_presets_reject_blank_name() {
+        let bank = valid_bank_with(valid_adapter());
+        let mut preset = valid_preset();
+        preset.name = " ".to_string();
+
+        let err = validate_adapter_presets(&valid_presets_with(preset), &bank)
+            .expect_err("blank adapter preset names must be invalid");
+
+        assert!(err.to_string().contains("missing name"));
+    }
+
+    #[test]
+    fn adapter_presets_reject_repeated_adapter_ids() {
+        let bank = valid_bank_with(valid_adapter());
+        let mut preset = valid_preset();
+        preset.tags.clear();
+        preset.adapter_ids = vec![
+            "illumina-universal".to_string(),
+            "illumina-universal".to_string(),
+        ];
+
+        let err = validate_adapter_presets(&valid_presets_with(preset), &bank)
+            .expect_err("repeated adapter ids must be invalid");
+
+        assert!(err.to_string().contains("repeats adapter id"));
     }
 }
