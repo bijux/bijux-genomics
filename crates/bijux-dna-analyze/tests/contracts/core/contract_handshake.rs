@@ -15,9 +15,15 @@ fn fixture_root() -> PathBuf {
 
 #[test]
 fn analyze_accepts_runtime_manifest_and_matches_report_schema() -> Result<()> {
-    let root = fixture_root();
-    let facts_path = root.join("facts.jsonl");
+    let fixture_root = fixture_root();
+    let facts_path = fixture_root.join("facts.jsonl");
+    let temp = tempfile::tempdir()?;
+    let root = temp.path();
+    std::fs::copy(fixture_root.join("defaults_ledger.json"), root.join("defaults_ledger.json"))?;
     let manifest_path = root.join("run_manifest.json");
+    if fixture_root.join("run_manifest.json").exists() {
+        std::fs::copy(fixture_root.join("run_manifest.json"), &manifest_path)?;
+    }
 
     if !manifest_path.exists() {
         let manifest = serde_json::json!({
@@ -35,7 +41,7 @@ fn analyze_accepts_runtime_manifest_and_matches_report_schema() -> Result<()> {
     }
 
     let facts = load_facts(&facts_path).map_err(|err| anyhow::anyhow!(err.to_string()))?;
-    let report_path = write_run_report_from_facts(&root, &facts)?;
+    let report_path = write_run_report_from_facts(root, &facts)?;
     let report_raw = std::fs::read_to_string(report_path)?;
     let _report: ReportSchemaV1 = serde_json::from_str(&report_raw)?;
     Ok(())
