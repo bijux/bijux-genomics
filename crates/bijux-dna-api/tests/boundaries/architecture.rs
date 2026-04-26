@@ -136,6 +136,22 @@ fn assert_v1_tree(root: &std::path::Path) {
         "api v1 front door must stay isolated in its own namespace",
     );
     assert_dir_entries(
+        &root.join("src/v1/bam"),
+        &["feature_flags.rs", "mod.rs", "plan.rs", "stage_planning/"],
+        "api v1 bam tree must separate planning internals from the public namespace",
+    );
+    assert_dir_entries(
+        &root.join("src/v1/bam/stage_planning"),
+        &[
+            "alignment_qc.rs",
+            "damage_recalibration.rs",
+            "downstream.rs",
+            "mod.rs",
+            "stage_arguments.rs",
+        ],
+        "api v1 bam stage planning tree must stay explicit",
+    );
+    assert_dir_entries(
         &root.join("src/v1/bench"),
         &["exports.rs", "mod.rs"],
         "api v1 benchmark tree must stay isolated in its own namespace",
