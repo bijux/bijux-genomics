@@ -8,6 +8,8 @@ This file is the single source of truth for commands owned by the
 The binary is `bijux-dna-science`. Every command accepts `--workspace-root <path>`,
 which defaults to the current directory.
 
+`src/main.rs` is the only Cargo binary entrypoint owned by this crate.
+
 ## Managed Commands
 
 | Command | Writes files | Purpose |
@@ -43,3 +45,10 @@ from these roots:
 This crate does not own workflow execution, pipeline planning, stage execution,
 container launching, benchmarking, or runtime replay commands. Those commands must
 remain in planner, runtime, engine, runner, or environment crates.
+
+## Forbidden Command Surfaces
+
+- No bioinformatics tool execution.
+- No container, scheduler, runtime, or runner orchestration.
+- No network clients.
+- No writes outside `science/generated/**` or `artifacts/science-releases/**`.
