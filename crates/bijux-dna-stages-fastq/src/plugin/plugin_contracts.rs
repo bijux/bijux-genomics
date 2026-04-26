@@ -107,6 +107,32 @@ fn fastq_stage_plugin_rejects_empty_command_templates() {
 }
 
 #[test]
+fn fastq_stage_plugin_input_fingerprint_is_stable_for_reordered_inputs() -> anyhow::Result<()> {
+    let plugin = FastqStagePlugin;
+    let temp = bijux_dna_infra::temp_dir("bijux-fastq-plugin-input-order")?;
+    let input_a = temp.path().join("a.fastq");
+    let input_b = temp.path().join("b.fastq");
+    bijux_dna_infra::write_bytes(&input_a, b"@a\nAC\n+\n##\n")?;
+    bijux_dna_infra::write_bytes(&input_b, b"@b\nGT\n+\n##\n")?;
+
+    let input_ref_a =
+        ArtifactRef::required(ArtifactId::new("reads_a"), input_a, ArtifactRole::Reads);
+    let input_ref_b =
+        ArtifactRef::required(ArtifactId::new("reads_b"), input_b, ArtifactRole::Reads);
+    let mut first_plan = plan("fastq.detect_adapters");
+    first_plan.io.inputs = vec![input_ref_a.clone(), input_ref_b.clone()];
+    let mut second_plan = plan("fastq.detect_adapters");
+    second_plan.io.inputs = vec![input_ref_b, input_ref_a];
+
+    let first = plugin.parse_outputs(&first_plan, &[])?;
+    let second = plugin.parse_outputs(&second_plan, &[])?;
+
+    assert_eq!(first.metrics.input_hashes, second.metrics.input_hashes);
+    assert_eq!(first.metrics.input_fingerprint, second.metrics.input_fingerprint);
+    Ok(())
+}
+
+#[test]
 fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.detect_adapters");
