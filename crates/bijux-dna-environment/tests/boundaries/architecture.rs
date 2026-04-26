@@ -115,6 +115,7 @@ fn environment_tree_matches_architecture_contract() {
             "determinism.rs",
             "fixtures/",
             "guardrails.rs",
+            "public_api_docs.rs",
             "schemas/",
             "schemas.rs",
         ]),
