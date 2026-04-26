@@ -3,6 +3,7 @@
 ## Coverage
 - `tests/boundaries.rs` is the integration-test entrypoint for boundary-oriented coverage.
 - `tests/boundaries/architecture.rs` enforces the documented crate tree and layout contract.
+- `tests/boundaries/architecture.rs` also rejects Markdown files outside the root `README.md` and `docs/`.
 - `tests/boundaries/guardrails.rs` checks the crate guardrail profile and boundary ownership.
 - `src/commands/repo_checks.rs` is the curated repository-check facade; detailed contracts live under `src/commands/repo_checks/`.
 - `src/commands/containers/runtime/frontend_proofs.rs` owns Apptainer frontend proof and report checks.

@@ -162,6 +162,21 @@ fn dev_tree_matches_architecture_contract() {
     );
 }
 
+#[test]
+fn dev_markdown_docs_stay_in_root_readme_or_docs_dir() {
+    let root = crate::support::crate_root("bijux-dna-dev")
+        .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
+
+    let mut offenders = Vec::new();
+    collect_markdown_outside_docs(&root, &root, &mut offenders);
+
+    assert!(
+        offenders.is_empty(),
+        "crate markdown must be root README.md or live under docs/: {}",
+        offenders.join(", ")
+    );
+}
+
 fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
     std::fs::read_dir(path)
         .unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
@@ -176,4 +191,35 @@ fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
             }
         })
         .collect()
+}
+
+fn collect_markdown_outside_docs(
+    root: &std::path::Path,
+    path: &std::path::Path,
+    offenders: &mut Vec<String>,
+) {
+    for entry in
+        std::fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
+    {
+        let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
+        let path = entry.path();
+        let rel = path.strip_prefix(root).unwrap_or_else(|err| {
+            panic!("strip {} from {}: {err}", root.display(), path.display())
+        });
+        let rel_text = rel.to_string_lossy().replace('\\', "/");
+
+        if path.is_dir() {
+            if rel_text != "docs" {
+                collect_markdown_outside_docs(root, &path, offenders);
+            }
+            continue;
+        }
+
+        if path.extension().is_some_and(|extension| extension == "md")
+            && rel_text != "README.md"
+            && !rel_text.starts_with("docs/")
+        {
+            offenders.push(rel_text);
+        }
+    }
 }
