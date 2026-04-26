@@ -55,7 +55,6 @@ pub fn default_shotgun_preprocess_stage_order() -> Vec<StageId> {
         StageId::from_static("fastq.profile_read_lengths"),
         StageId::from_static("fastq.detect_adapters"),
         StageId::from_static("fastq.trim_polyg_tails"),
-        StageId::from_static("fastq.trim_terminal_damage"),
         StageId::from_static("fastq.trim_reads"),
         StageId::from_static("fastq.filter_reads"),
         StageId::from_static("fastq.profile_reads"),
