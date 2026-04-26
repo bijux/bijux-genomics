@@ -190,9 +190,17 @@ fn score_for_objective(
     let runtime = runtime.unwrap_or(f64::INFINITY);
     let memory = memory.unwrap_or(f64::INFINITY);
     let retention = retention.unwrap_or(0.0);
-    (runtime * objective.weights.runtime)
-        + (memory * objective.weights.memory)
-        + (retention * objective.weights.retention)
+    weighted_component(runtime, objective.weights.runtime)
+        + weighted_component(memory, objective.weights.memory)
+        + weighted_component(retention, objective.weights.retention)
+}
+
+fn weighted_component(value: f64, weight: f64) -> f64 {
+    if weight == 0.0 {
+        0.0
+    } else {
+        value * weight
+    }
 }
 
 fn compare_score(left: f64, right: f64) -> Ordering {
@@ -217,4 +225,43 @@ fn read_retention(record: &BenchResultRecord) -> Option<f64> {
     let metrics = record.metrics.as_ref()?;
     let retention = metrics.get("retention")?;
     retention.get("value").and_then(serde_json::Value::as_f64).or_else(|| retention.as_f64())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        objective_spec, select_stage, BenchResultRecord, BenchResultStatus, Objective, ToolScore,
+    };
+    use crate::ids::StageId;
+
+    fn successful_record(runtime_s: Option<f64>, memory_mb: Option<f64>) -> BenchResultRecord {
+        BenchResultRecord {
+            dataset_id: "dataset-1".to_string(),
+            tool: "tool".to_string(),
+            runtime_s,
+            memory_mb,
+            exit_code: Some(0),
+            metrics: None,
+            status: BenchResultStatus::Success,
+        }
+    }
+
+    fn score_for(scores: &[ToolScore], tool: &str) -> Option<f64> {
+        scores.iter().find(|score| score.tool == tool).map(|score| score.score)
+    }
+
+    #[test]
+    fn zero_weighted_missing_metrics_do_not_produce_nan_scores() {
+        let stage = StageId::new("fastq.trim_reads");
+        let records = vec![
+            ("fast".to_string(), vec![successful_record(Some(1.0), None)]),
+            ("slow".to_string(), vec![successful_record(Some(2.0), None)]),
+        ];
+
+        let selection = select_stage(&stage, &records, &objective_spec(Objective::Speed), false);
+
+        assert_eq!(selection.selected.as_deref(), Some("fast"));
+        assert!(score_for(&selection.scores, "fast").is_some_and(f64::is_finite));
+        assert!(score_for(&selection.scores, "slow").is_some_and(f64::is_finite));
+    }
 }
