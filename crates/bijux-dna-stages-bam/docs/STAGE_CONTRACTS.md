@@ -60,6 +60,7 @@ in sync with `bijux-dna-domain-bam` when adding, renaming, or removing stages.
 - `damage.profiler.json`, `damageprofiler.json`
 - `contamination.json`
 - `sex.json`
+- `CASE.json`
 
 ## Fixture Inventory
 
