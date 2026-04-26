@@ -32,6 +32,13 @@ library can manage when callers invoke the matching API.
 - Product execution belongs in runner/stage/API layers, not here.
 - CLI command names belong in the CLI crate; this file lists library-managed host commands only.
 
+## Process Ownership Files
+
+- `src/resolve/commands.rs`: runner probes, Docker image inspection, and reference-index command
+  execution helper.
+- `src/resolve/shell.rs`: explicit shell capture for caller-provided diagnostics.
+- `src/resolve/smoke.rs`: environment smoke handoff through the developer control plane.
+
 ## Verification
 
 Use:
