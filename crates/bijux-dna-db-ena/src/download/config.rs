@@ -1,4 +1,5 @@
 use crate::model::{EnaFileSource, EnaSourcePreference};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -26,5 +27,15 @@ impl DownloadConfig {
             preference: EnaSourcePreference::Ftp,
             dry_run: false,
         }
+    }
+
+    pub fn validate(&self) -> Result<()> {
+        if self.output_dir.as_os_str().is_empty() {
+            anyhow::bail!("output_dir must not be empty");
+        }
+        if self.jobs == 0 {
+            anyhow::bail!("jobs must be greater than zero");
+        }
+        Ok(())
     }
 }
