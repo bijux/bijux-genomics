@@ -18,7 +18,6 @@
 - `bijux-dna-policies` — shared guardrail checks.
 - `bijux-dna-testkit` — snapshot helpers and fixtures.
 - `insta` — snapshot contracts.
-- `serde_json` — test payload construction.
 
 ## Forbidden Dependency Direction
 This crate must not depend on runner, engine, CLI, API, database, environment, science orchestration, or analysis application crates. Those crates may consume planner output; the planner must not consume them.
