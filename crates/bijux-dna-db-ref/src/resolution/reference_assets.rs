@@ -97,6 +97,7 @@ pub fn resolve_reference_bundle(species: &str, build: &str) -> Result<ReferenceB
         fai: bundle.fai.clone(),
         dict: bundle.dict.clone(),
         contig_set_digest: bundle.contig_set_digest.clone(),
+        contigs: bundle.contigs.iter().map(|contig| contig.name.clone()).collect(),
         mask_bed: bundle.mask_bed.clone(),
         regions_bed: bundle.regions_bed.clone(),
         source_lock_sha256: bundle.source_lock_sha256.clone(),
@@ -191,5 +192,14 @@ mod tests {
         };
 
         assert!(error.to_string().contains("contig_set_digest"));
+    }
+
+    #[test]
+    fn resolve_reference_bundle_preserves_declared_contigs() {
+        let bundle = super::resolve_reference_bundle("Homo sapiens", "GRCh38")
+            .unwrap_or_else(|error| panic!("resolve reference bundle: {error}"));
+
+        assert!(bundle.contigs.iter().any(|contig| contig == "1"));
+        assert!(bundle.contigs.iter().any(|contig| contig == "X"));
     }
 }
