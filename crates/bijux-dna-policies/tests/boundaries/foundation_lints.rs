@@ -31,6 +31,25 @@ fn policy__boundaries__foundation_lints__foundation_crates_apply_workspace_lints
     }
 }
 
+#[test]
+fn policy__boundaries__foundation_lints__shared_test_crates_use_workspace_catalog() {
+    let workspace = workspace_root();
+
+    for crate_name in FOUNDATION_CRATES {
+        let manifest_path = workspace.join("crates").join(crate_name).join("Cargo.toml");
+        let manifest = std::fs::read_to_string(&manifest_path)
+            .unwrap_or_else(|err| panic!("read {}: {err}", manifest_path.display()));
+
+        for crate_dependency in ["bijux-dna-policies", "bijux-dna-testkit"] {
+            let ad_hoc_path_prefix = format!("{crate_dependency} = {{ path = ");
+            assert!(
+                !manifest.contains(&ad_hoc_path_prefix),
+                "{crate_name} must use {crate_dependency}.workspace = true instead of an ad hoc path dependency"
+            );
+        }
+    }
+}
+
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
