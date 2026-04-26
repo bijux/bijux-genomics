@@ -13,27 +13,14 @@ bijux-dna-infra = { path = "../bijux-dna-infra" }
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
-tracing-subscriber = { workspace = true, optional = true }
-tracing-appender.workspace = true
-sha2.workspace = true
 thiserror.workspace = true
-walkdir.workspace = true
-uuid.workspace = true
 chrono.workspace = true
-flate2 = "1"
-opentelemetry = { workspace = true, optional = true }
-opentelemetry_sdk = { workspace = true, optional = true }
 
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
-bijux-dna-infra = { path = "../bijux-dna-infra" }
-assert_cmd = "2"
 tempfile.workspace = true
 cargo_metadata = "0.18"
-
-[features]
-otel = ["opentelemetry", "opentelemetry_sdk"]
-tracing = ["dep:tracing-subscriber"]
+walkdir.workspace = true
 
 [lints]
 workspace = true
