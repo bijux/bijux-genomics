@@ -36,13 +36,14 @@ fn assert_docs_layout(root: &Path) {
             "CHANGE_RULES.md",
             "COMMANDS.md",
             "CONTRACT.md",
+            "DEPENDENCIES.md",
             "EFFECTS.md",
             "EXAMPLE_PLAN.json",
             "INDEX.md",
             "PUBLIC_API.md",
             "TESTS.md",
         ]),
-        "docs must stay at the 10-document allowance"
+        "docs must stay at the 10 Markdown document allowance plus the example plan fixture"
     );
 }
 
