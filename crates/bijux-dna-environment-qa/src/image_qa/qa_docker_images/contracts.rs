@@ -1,9 +1,12 @@
 use std::process::{ExitStatus, Output};
 use std::sync::{Mutex, MutexGuard};
 
+use bijux_dna_environment::build::DockerToolSpec;
+use bijux_dna_environment::resolve::{PlatformSpec, RuntimeKind};
+
 use super::args::parse_run_options;
 use super::models::{ImageFailureReason, ImagePlan, ImageTestOutcome};
-use super::planning::filter_tools;
+use super::planning::{build_image_plans, filter_tools};
 use super::probe::{image_exists, run_container_command, run_image_test};
 use super::runtime::{CommandRunner, LogLevel, Logger, RealRunner};
 
@@ -185,6 +188,29 @@ fn tool_filter_rejects_unknown_entries() {
         .err()
         .unwrap_or_else(|| panic!("expected unknown tool filter rejection"));
     assert!(error.to_string().contains("definitely_missing"));
+}
+
+#[test]
+fn image_plan_build_rejects_empty_probe_exit_contracts() {
+    let platform = PlatformSpec {
+        name: "docker-test".to_string(),
+        runner: RuntimeKind::Docker,
+        container_dir: std::path::PathBuf::from("containers"),
+        image_prefix: "bijuxdna".to_string(),
+        arch: "amd64".to_string(),
+    };
+    let tool = DockerToolSpec {
+        name: "fastp".to_string(),
+        executable: Some("fastp".to_string()),
+        version_cmd: "fastp --version".to_string(),
+        help_cmd: None,
+        probe_cmd: Some("fastp --version".to_string()),
+        probe_expected_exit: Vec::new(),
+    };
+    let error = build_image_plans(&platform, &[tool])
+        .err()
+        .unwrap_or_else(|| panic!("expected empty probe exit contract rejection"));
+    assert!(error.to_string().contains("probe expected exits are empty"));
 }
 
 #[test]
