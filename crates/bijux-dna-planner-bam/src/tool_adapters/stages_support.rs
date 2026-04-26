@@ -80,7 +80,7 @@ pub fn ensure_reference_assets(
     require_dict: bool,
 ) -> Result<ReferenceAssets> {
     let fasta = reference.to_path_buf();
-    let fai = reference.with_extension("fai");
+    let fai = reference_fai_path(reference);
     let dict = reference.with_extension("dict");
     if !build_indices {
         if !fai.exists() {
@@ -91,4 +91,10 @@ pub fn ensure_reference_assets(
         }
     }
     Ok(ReferenceAssets { fasta, fai, dict })
+}
+
+fn reference_fai_path(reference: &Path) -> std::path::PathBuf {
+    let mut path = reference.as_os_str().to_os_string();
+    path.push(".fai");
+    path.into()
 }

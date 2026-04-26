@@ -244,3 +244,19 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn reference_assets_use_fasta_fai_sidecar() -> Result<()> {
+    let temp = bijux_dna_infra::temp_dir("bam-reference-assets")?;
+    let reference = temp.path().join("reference.fasta");
+    std::fs::write(&reference, b">chrM\nACGT\n")?;
+    std::fs::write(temp.path().join("reference.fasta.fai"), b"chrM\t4\t6\t4\t5\n")?;
+    std::fs::write(temp.path().join("reference.dict"), b"@SQ\tSN:chrM\tLN:4\n")?;
+
+    let assets = bijux_dna_planner_bam::tool_adapters::stages_support::ensure_reference_assets(
+        &reference, false, true,
+    )?;
+    assert!(assets.fai.ends_with("reference.fasta.fai"));
+    assert!(assets.dict.ends_with("reference.dict"));
+    Ok(())
+}
