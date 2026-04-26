@@ -14,6 +14,7 @@ pub(crate) fn parse_lock_ref(lock_ref: &str) -> Result<(&str, &str)> {
         bail!("invalid lock_ref `{lock_ref}`: empty path or key");
     }
     validate_lock_path(path, lock_ref)?;
+    validate_lock_key(key, lock_ref)?;
     Ok((path, key))
 }
 
@@ -24,6 +25,14 @@ fn validate_lock_path(path: &str, lock_ref: &str) -> Result<()> {
         bail!("invalid lock_ref `{lock_ref}`: lock path must be relative and stay within catalog");
     }
     Ok(())
+}
+
+fn validate_lock_key(key: &str, lock_ref: &str) -> Result<()> {
+    if key.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '_' | '-' | '.')) {
+        return Ok(());
+    }
+
+    bail!("invalid lock_ref `{lock_ref}`: lock key contains unsupported characters");
 }
 
 pub(crate) fn validate_sha256(value: &str, name: &str) -> Result<()> {
@@ -54,6 +63,15 @@ mod tests {
         };
 
         assert!(error.to_string().contains("stay within catalog"));
+    }
+
+    #[test]
+    fn parse_lock_ref_rejects_unsupported_key_characters() {
+        let Err(error) = parse_lock_ref("locks/panel_locks.toml#locks.panel/key") else {
+            panic!("unsupported lock key must fail");
+        };
+
+        assert!(error.to_string().contains("unsupported characters"));
     }
 
     #[test]
