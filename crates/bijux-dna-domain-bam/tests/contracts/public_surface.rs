@@ -1,6 +1,8 @@
 use std::fs;
 use std::path::PathBuf;
 
+use bijux_dna_domain_bam::{BamStage, BAM_PARAMS_CATALOG};
+
 #[test]
 fn public_surface_is_constrained() -> anyhow::Result<()> {
     let lib_path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src").join("lib.rs");
@@ -40,4 +42,19 @@ fn public_surface_is_constrained() -> anyhow::Result<()> {
         );
     }
     Ok(())
+}
+
+#[test]
+fn params_catalog_covers_every_stage_once() {
+    let expected: Vec<String> = BamStage::all()
+        .iter()
+        .map(|stage| {
+            stage
+                .as_str()
+                .strip_prefix("bam.")
+                .unwrap_or_else(|| panic!("bad stage id {}", stage.as_str()))
+        })
+        .map(|suffix| format!("bijux.bam.params.{suffix}.v1"))
+        .collect();
+    assert_eq!(BAM_PARAMS_CATALOG, expected.as_slice());
 }

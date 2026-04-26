@@ -53,10 +53,29 @@ pub const BAM_STAGE_ID_CATALOG: &[&str] = &[
 
 pub const BAM_PARAMS_CATALOG: &[&str] = &[
     "bijux.bam.params.align.v1",
+    "bijux.bam.params.validate.v1",
+    "bijux.bam.params.qc_pre.v1",
+    "bijux.bam.params.mapping_summary.v1",
     "bijux.bam.params.filter.v1",
+    "bijux.bam.params.mapq_filter.v1",
+    "bijux.bam.params.length_filter.v1",
     "bijux.bam.params.markdup.v1",
+    "bijux.bam.params.duplication_metrics.v1",
+    "bijux.bam.params.complexity.v1",
     "bijux.bam.params.coverage.v1",
+    "bijux.bam.params.insert_size.v1",
+    "bijux.bam.params.gc_bias.v1",
+    "bijux.bam.params.endogenous_content.v1",
+    "bijux.bam.params.overlap_correction.v1",
     "bijux.bam.params.damage.v1",
+    "bijux.bam.params.authenticity.v1",
+    "bijux.bam.params.contamination.v1",
+    "bijux.bam.params.sex.v1",
+    "bijux.bam.params.bias_mitigation.v1",
+    "bijux.bam.params.recalibration.v1",
+    "bijux.bam.params.haplogroups.v1",
+    "bijux.bam.params.genotyping.v1",
+    "bijux.bam.params.kinship.v1",
 ];
 
 pub const BAM_METRICS_CATALOG: &[&str] = &[
