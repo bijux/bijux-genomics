@@ -1,20 +1,57 @@
 # Architecture
 
-This document is intentionally short. It records the stable crate map and points to the docs that carry the detailed BAM stage contract.
+`bijux-dna-stages-bam` is a stage-contract library. It exposes BAM stage IDs and
+stage-plugin behavior without owning planning, runtime scheduling, tool
+selection, or command execution.
 
-## Layout
-- `lib.rs` and `surface.rs` expose the public stage surface.
-- `stage_specs.rs` owns planner-facing stage and domain re-exports.
-- `plugin/` owns invocation materialization and output envelope construction.
-- `observer.rs` owns observer-facing parser exports.
-- `metrics/` owns BAM metrics grouped by enduring concerns such as alignment, coverage, quality, damage, and contamination.
+## Source Layout
+
+```text
+src/
+├── lib.rs
+├── metrics/
+│   ├── alignment.rs
+│   ├── contamination.rs
+│   ├── coverage.rs
+│   ├── damage.rs
+│   ├── discovery.rs
+│   ├── mod.rs
+│   └── quality.rs
+├── observer.rs
+├── plugin/
+│   ├── invocation.rs
+│   ├── mod.rs
+│   └── output/
+│       ├── collected_metrics.rs
+│       ├── envelope.rs
+│       └── mod.rs
+├── stage_specs.rs
+└── surface.rs
+```
+
+## Ownership
+
+- `surface.rs` owns stable crate-root aliases and registry functions.
+- `stage_specs.rs` re-exports BAM domain vocabulary for planner-facing stage code.
+- `observer.rs` re-exports BAM parser functions owned by the BAM domain crate.
+- `metrics/` discovers known output files in a stage output directory and folds them into
+  `BamMetricsV1`.
+- `plugin/` checks BAM stage support, materializes the planned invocation, parses existing
+  outputs, and builds a metrics envelope.
+
+## Stage Phases
+
+- Pre stages validate, align, and summarize initial BAM quality.
+- Core stages filter, mark duplicates, measure complexity, coverage, insert size, GC bias,
+  and endogenous content.
+- Downstream stages cover damage, authenticity, contamination, sex inference, bias mitigation,
+  recalibration, haplogroups, genotyping, and kinship when enabled by upstream planning.
 
 ## Change rules
-- Add root files only for enduring crate-level concerns.
-- Prefer explicit submodules over growing `mod.rs` files into catch-all hubs.
-- Update this map and the boundary architecture test together when the layout changes intentionally.
 
-## Pointers
-- `INDEX.md` for the documentation map.
-- `STAGE_CONTRACTS.md`, `STAGE_LIST.md`, and `OBSERVERS.md` for crate behavior.
-- `CHANGE_RULES.md`, `TOOL_ROSTER.md`, and `TESTS.md` for maintenance policy.
+- Add root files only for enduring crate-level concerns.
+- Keep metric parsing grouped by BAM metric concern.
+- Keep plugin responsibilities separated between invocation, metric collection, and envelope
+  construction.
+- Update this file and `tests/boundaries/architecture.rs` together when the layout changes
+  intentionally.

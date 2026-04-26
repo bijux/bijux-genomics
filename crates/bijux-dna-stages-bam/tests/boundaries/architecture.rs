@@ -11,6 +11,23 @@ fn stages_bam_tree_matches_architecture_contract() {
     );
 
     assert_eq!(
+        dir_entries(&root.join("docs")),
+        btree_set(&[
+            "ARCHITECTURE.md",
+            "BOUNDARY.md",
+            "CHANGE_RULES.md",
+            "COMMANDS.md",
+            "DEPENDENCIES.md",
+            "EFFECTS.md",
+            "INDEX.md",
+            "PUBLIC_API.md",
+            "STAGE_CONTRACTS.md",
+            "TESTS.md",
+        ]),
+        "docs must stay at the 10-document allowance and live under docs/"
+    );
+
+    assert_eq!(
         dir_entries(&root.join("src")),
         btree_set(&[
             "lib.rs",
@@ -41,6 +58,29 @@ fn stages_bam_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/plugin")),
         btree_set(&["invocation.rs", "mod.rs", "output/"]),
         "plugin tree must remain decomposed by plugin responsibility"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/plugin/output")),
+        btree_set(&["collected_metrics.rs", "envelope.rs", "mod.rs"]),
+        "plugin output tree must separate collection from envelope construction"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests")),
+        btree_set(&[
+            "boundaries/",
+            "boundaries.rs",
+            "contracts/",
+            "contracts.rs",
+            "determinism/",
+            "determinism.rs",
+            "fixtures/",
+            "guardrails.rs",
+            "semantics/",
+            "semantics.rs",
+        ]),
+        "test tree must stay organized by enduring contract intent"
     );
 }
 

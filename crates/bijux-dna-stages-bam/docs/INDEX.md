@@ -1,32 +1,14 @@
-# bijux-dna-stages-bam Docs Index
+# Documentation Index
 
-## Scope
-See `SCOPE.md` for what belongs here.
+Read these files from the crate root when changing BAM stage contracts,
+observers, metrics, or plugin behavior.
 
-## Effects
-See `EFFECTS.md` for allowed effects.
-
-## Boundaries
-See `BOUNDARY.md` for crate ownership and forbidden dependencies.
-
-## Commands
-See `COMMANDS.md` for the command inventory SSOT. This crate owns no CLI
-commands.
-
-## Dependencies
-See `DEPENDENCIES.md` for the dependency graph and forbidden upstream layers.
-
-## Observers
-See `OBSERVERS.md` for parsing rules and determinism.
-
-## Fixtures
-See `FIXTURES.md` for fixture inventory and intent.
-
-## Tool coverage
-See `TOOL_COVERAGE.md` for supported outputs and planned gaps.
-
-## Extension Points
-See `CHANGE_RULES.md` for safe extension guidelines.
-
-## How to Test
-See `TESTS.md` for test mapping and fixtures.
+1. `ARCHITECTURE.md` - source and test layout, stage phases, and ownership map.
+2. `BOUNDARY.md` - responsibilities, allowed effects, and forbidden layers.
+3. `CHANGE_RULES.md` - compatibility rules and observer/stage extension checklist.
+4. `COMMANDS.md` - SSOT for operations managed by this crate.
+5. `DEPENDENCIES.md` - direct dependency graph and forbidden edges.
+6. `EFFECTS.md` - filesystem, parsing, and determinism effect policy.
+7. `PUBLIC_API.md` - crate-root exports and compatibility expectations.
+8. `STAGE_CONTRACTS.md` - stage registry, observer coverage, fixtures, and tool references.
+9. `TESTS.md` - suite ownership, fixture use, and verification commands.

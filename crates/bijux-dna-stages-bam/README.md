@@ -1,44 +1,53 @@
 # bijux-dna-stages-bam
 
-## What this crate does
-BAM stage specs + observers only, organized by pre/core/downstream phases.
+`bijux-dna-stages-bam` owns BAM stage contract exports, observer parser exports,
+and deterministic metrics-envelope materialization for already-planned BAM
+stages.
 
-## What it must not do (boundaries)
-No command assembly or tool selection.
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read those files before editing this child
+repository and before committing.
 
-## Role in the stack
-Upstream: domain contracts. Downstream: planners/analyze.
+## Boundary
 
-## Public API / entrypoints
-See `crates/bijux-dna-stages-bam/docs/INDEX.md`, `crates/bijux-dna-stages-bam/docs/PHASES.md`, `crates/bijux-dna-stages-bam/docs/STAGE_LIST.md`, `crates/bijux-dna-stages-bam/docs/STAGE_CONTRACTS.md`, `crates/bijux-dna-stages-bam/docs/OBSERVERS.md`, `crates/bijux-dna-stages-bam/docs/CHANGE_RULES.md`.
+This crate does not plan workflows, choose tools, assemble shell commands,
+execute processes, manage environments, or expose CLI commands. Planners and
+runtime crates call into this crate; this crate must not call back into those
+layers.
 
-## Phases and observer responsibilities
-- **Pre**: validation + alignment QC outputs.
-- **Core**: core BAM processing metrics (markdup, coverage, depth).
-- **Downstream**: aDNA and population analyses (damage, contamination, sex).
+## Public Surface
 
-Observers parse only documented tool outputs, ignore unknown fields, and require contract fields.
+- `BamStagePlugin`: stage plugin implementation for registered BAM stage IDs.
+- `StagePlanJson`: public JSON stage-plan shape from `bijux-dna-stage-contract`.
+- `implemented_stages()`: ordered BAM stage registry mirrored from
+  `bijux-dna-domain-bam`.
+- `metrics`: deterministic BAM metric discovery from existing output files.
+- `observer`: parser re-exports for supported BAM tool output formats.
+- `stage_specs`: planner-facing BAM domain vocabulary re-exports.
 
-## Key contracts it owns/consumes
-Stage report/metrics shape snapshots.
+`docs/COMMANDS.md` is the SSOT for callable operations managed by this crate.
 
-## Artifacts / Contracts
-See `crates/bijux-dna-stages-bam/docs/STAGE_CONTRACTS.md`, `crates/bijux-dna-stages-bam/docs/OBSERVERS.md`, and contract snapshots under `tests/contracts/`.
+## Documentation
 
-## Effects & determinism guarantees
-Pure parsing; deterministic snapshots. See `crates/bijux-dna-stages-bam/docs/EFFECTS.md` and the golden tests below.
+The crate root intentionally has only this `README.md`. All other docs live
+under `docs/`, with a 10-document allowance:
 
-## How to run its tests
-See `crates/bijux-dna-stages-bam/docs/TESTS.md`. Golden tests: `tests/contracts/contract_snapshots.rs`, `tests/contracts/observer/observer_determinism.rs`, `tests/semantics/metrics/metrics_completeness.rs`, `tests/contracts/structure_contract.rs`.
+- `docs/ARCHITECTURE.md`
+- `docs/BOUNDARY.md`
+- `docs/CHANGE_RULES.md`
+- `docs/COMMANDS.md`
+- `docs/DEPENDENCIES.md`
+- `docs/EFFECTS.md`
+- `docs/INDEX.md`
+- `docs/PUBLIC_API.md`
+- `docs/STAGE_CONTRACTS.md`
+- `docs/TESTS.md`
 
-## Where the docs live
-Start at `crates/bijux-dna-stages-bam/docs/INDEX.md` and follow the crate docs listed above.
+## Tests
 
-## Start here in code
-`src/stage_specs.rs` → `src/observer.rs` → `src/plugin/`.
+Run from the `bijux-genomics` repository root:
 
-## Failure modes
-Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
-
-## Stability
-Contract and behavior changes follow `crates/bijux-dna-stages-bam/docs/CHANGE_RULES.md`.
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-stages-bam --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-bam --no-default-features
+```
