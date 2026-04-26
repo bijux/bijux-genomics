@@ -58,6 +58,15 @@ fn plan(stage_id: &'static str) -> bijux_dna_stage_contract::StagePlanV1 {
 }
 
 #[test]
+fn fastq_stage_plugin_handles_only_registered_fastq_stage_ids() {
+    let plugin = FastqStagePlugin;
+
+    assert!(plugin.handles_stage("fastq.detect_adapters"));
+    assert!(!plugin.handles_stage("fastq.not_registered"));
+    assert!(!plugin.handles_stage("bam.align"));
+}
+
+#[test]
 fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.detect_adapters");
