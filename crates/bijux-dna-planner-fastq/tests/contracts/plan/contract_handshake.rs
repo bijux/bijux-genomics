@@ -329,3 +329,48 @@ fn compose_rejects_reads_artifact_bound_as_qc_input() -> anyhow::Result<()> {
     assert!(error.to_string().contains("has role trimmed_reads"));
     Ok(())
 }
+
+#[test]
+fn compose_rejects_single_end_input_for_paired_only_tool() -> anyhow::Result<()> {
+    let bindings = vec![FastqStageBinding {
+        stage_id: "fastq.remove_duplicates".to_string(),
+        stage_instance_id: None,
+        tool: ToolExecutionSpecV1 {
+            tool_id: ToolId::new("fastuniq"),
+            tool_version: "99.99.99+fixture".to_string(),
+            image: ContainerImageRefV1 { image: "bijux/dummy:latest".to_string(), digest: None },
+            command: CommandSpecV1 { template: vec!["fastuniq".to_string()] },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 1,
+            },
+        },
+        reason: None,
+        params: None,
+    }];
+    let temp = bijux_dna_infra::temp_dir("fastq-plan-layout")?;
+    let r1 = temp.path().join("reads_R1.fastq");
+    std::fs::write(&r1, b"@r1\nA\n+\n#\n")?;
+
+    let error = compose_fastq_stage_bindings(
+        &bindings,
+        &BTreeMap::new(),
+        None,
+        None,
+        None,
+        false,
+        &r1,
+        None,
+        None,
+        None,
+        |binding, _r1, _r2| {
+            Ok(temp.path().join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
+        },
+    )
+    .expect_err("paired-only tools must reject single-end inputs");
+
+    assert!(error.to_string().contains("does not support single-end inputs"));
+    Ok(())
+}
