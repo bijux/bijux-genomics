@@ -33,14 +33,14 @@ mod contracts {
     use bijux_dna_stages_vcf::stage_specs::{supported_vcf_stages, vcf_stage_catalog};
     use bijux_dna_stages_vcf::wrappers::verify_tool_wrapper;
 
-    include!("contracts_suite/core_pipeline_tests.rs");
-    include!("contracts_suite/qc_and_invariants_tests.rs");
-    include!("contracts_suite/vcf_io_real_tools_tests.rs");
-    include!("contracts_suite/panel_and_phasing_tests.rs");
-    include!("contracts_suite/imputation_tests.rs");
-    include!("contracts_suite/postprocess_population_and_ibd_tests.rs");
-    include!("contracts_suite/command_inventory_tests.rs");
-    include!("contracts_suite/public_api_tests.rs");
-    include!("contracts_suite/stage_contract_docs_tests.rs");
-    include!("contracts_suite/stage_catalog_tests.rs");
+    include!("contracts/core_pipeline_tests.rs");
+    include!("contracts/qc_and_invariants_tests.rs");
+    include!("contracts/vcf_io_real_tools_tests.rs");
+    include!("contracts/panel_and_phasing_tests.rs");
+    include!("contracts/imputation_tests.rs");
+    include!("contracts/postprocess_population_and_ibd_tests.rs");
+    include!("contracts/command_inventory_tests.rs");
+    include!("contracts/public_api_tests.rs");
+    include!("contracts/stage_contract_docs_tests.rs");
+    include!("contracts/stage_catalog_tests.rs");
 }
