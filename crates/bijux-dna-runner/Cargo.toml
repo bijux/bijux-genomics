@@ -23,7 +23,7 @@ walkdir.workspace = true
 bijux-dna-policies.workspace = true
 assert_cmd = "2"
 tempfile.workspace = true
-cargo_metadata = "0.18"
+cargo_metadata.workspace = true
 toml.workspace = true
 
 [features]
