@@ -7,23 +7,15 @@
     },
     {
       "from": "vcf.damage_filter",
-      "to": "vcf.gl_propagation"
-    },
-    {
-      "from": "vcf.demography",
-      "to": "vcf.stats"
-    },
-    {
-      "from": "vcf.filter",
-      "to": "vcf.impute"
-    },
-    {
-      "from": "vcf.gl_propagation",
       "to": "vcf.filter"
     },
     {
-      "from": "vcf.ibd",
-      "to": "vcf.demography"
+      "from": "vcf.filter",
+      "to": "vcf.gl_propagation"
+    },
+    {
+      "from": "vcf.gl_propagation",
+      "to": "vcf.impute"
     },
     {
       "from": "vcf.impute",
@@ -31,7 +23,7 @@
     },
     {
       "from": "vcf.population_structure",
-      "to": "vcf.ibd"
+      "to": "vcf.stats"
     },
     {
       "from": "vcf.postprocess",
@@ -309,6 +301,83 @@
       "command": {
         "template": [
           "bcftools",
+          "--help"
+        ]
+      },
+      "effective_params": {
+        "coverage_regime": "low_cov_gl",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "image": {
+        "digest": null,
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
+      },
+      "io": {
+        "inputs": [
+          {
+            "name": "vcf",
+            "optional": false,
+            "path": "out/damage_filtered_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ],
+        "outputs": [
+          {
+            "name": "filtered_vcf",
+            "optional": false,
+            "path": "out/filtered_vcf.vcf.gz",
+            "role": "reads"
+          }
+        ]
+      },
+      "out_dir": "out/vcf_filter",
+      "params": {
+        "coverage_regime": "low_cov_gl",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "reason": {
+        "details": {
+          "coverage_regime": "low_cov_gl",
+          "selection_rule": "coverage_regime_default",
+          "stage_kind": "qc"
+        },
+        "kind": "input_assessed",
+        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.filter (coverage_regime_default)"
+      },
+      "resources": {
+        "mem_gb": 4,
+        "runtime": "docker",
+        "threads": 2,
+        "tmp_gb": 8
+      },
+      "stage_id": "vcf.filter",
+      "stage_version": 2,
+      "tool_id": "bcftools",
+      "tool_version": "1.0"
+    },
+    {
+      "aux_images": {},
+      "command": {
+        "template": [
+          "bcftools",
           "annotate",
           "--retain",
           "GL,PL,GP"
@@ -341,7 +410,7 @@
           {
             "name": "vcf",
             "optional": false,
-            "path": "out/damage_filtered_vcf.vcf.gz",
+            "path": "out/filtered_vcf.vcf.gz",
             "role": "reads"
           }
         ],
@@ -389,83 +458,6 @@
         "tmp_gb": 8
       },
       "stage_id": "vcf.gl_propagation",
-      "stage_version": 2,
-      "tool_id": "bcftools",
-      "tool_version": "1.0"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "bcftools",
-          "--help"
-        ]
-      },
-      "effective_params": {
-        "coverage_regime": "low_cov_gl",
-        "reference_provenance": {
-          "build_id": "GRCh38",
-          "bundle_id": "hsapiens_grch38_primary",
-          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
-          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
-          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
-          "species_id": "Homo sapiens"
-        },
-        "schema_version": "bijux.vcf.stage.params.v1",
-        "tool": "bcftools"
-      },
-      "image": {
-        "digest": null,
-        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "vcf",
-            "optional": false,
-            "path": "out/gl_propagated_vcf.vcf.gz",
-            "role": "reads"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "filtered_vcf",
-            "optional": false,
-            "path": "out/filtered_vcf.vcf.gz",
-            "role": "reads"
-          }
-        ]
-      },
-      "out_dir": "out/vcf_filter",
-      "params": {
-        "coverage_regime": "low_cov_gl",
-        "reference_provenance": {
-          "build_id": "GRCh38",
-          "bundle_id": "hsapiens_grch38_primary",
-          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
-          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
-          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
-          "species_id": "Homo sapiens"
-        },
-        "schema_version": "bijux.vcf.stage.params.v1",
-        "tool": "bcftools"
-      },
-      "reason": {
-        "details": {
-          "coverage_regime": "low_cov_gl",
-          "selection_rule": "coverage_regime_default",
-          "stage_kind": "qc"
-        },
-        "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool bcftools for vcf.filter (coverage_regime_default)"
-      },
-      "resources": {
-        "mem_gb": 4,
-        "runtime": "docker",
-        "threads": 2,
-        "tmp_gb": 8
-      },
-      "stage_id": "vcf.filter",
       "stage_version": 2,
       "tool_id": "bcftools",
       "tool_version": "1.0"
@@ -1119,7 +1111,7 @@
           {
             "name": "vcf",
             "optional": false,
-            "path": "out/filtered_vcf.vcf.gz",
+            "path": "out/gl_propagated_vcf.vcf.gz",
             "role": "reads"
           }
         ],
@@ -1948,175 +1940,6 @@
       "stage_id": "vcf.population_structure",
       "stage_version": 2,
       "tool_id": "plink2",
-      "tool_version": "1.0"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "germline",
-          "ibd",
-          "--min-seg",
-          "3.0"
-        ]
-      },
-      "effective_params": {
-        "min_samples": 2,
-        "min_segment_cm": 3.0,
-        "reference_provenance": {
-          "build_id": "GRCh38",
-          "bundle_id": "hsapiens_grch38_primary",
-          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
-          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
-          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
-          "species_id": "Homo sapiens"
-        },
-        "sample_constraints": {
-          "allow_related": true,
-          "max_missing": 0.05
-        },
-        "schema_version": "bijux.vcf.ibd.params.v1",
-        "tool": "germline"
-      },
-      "image": {
-        "digest": null,
-        "image": "quay.io/biocontainers/germline:1.5.3--hdfd78af_0"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "vcf",
-            "optional": false,
-            "path": "out/postprocess_vcf.vcf.gz",
-            "role": "reads"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "ibd_segments",
-            "optional": false,
-            "path": "out/ibd_segments.json",
-            "role": "metrics_json"
-          }
-        ]
-      },
-      "out_dir": "out/vcf_ibd",
-      "params": {
-        "min_samples": 2,
-        "min_segment_cm": 3.0,
-        "reference_provenance": {
-          "build_id": "GRCh38",
-          "bundle_id": "hsapiens_grch38_primary",
-          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
-          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
-          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
-          "species_id": "Homo sapiens"
-        },
-        "sample_constraints": {
-          "allow_related": true,
-          "max_missing": 0.05
-        },
-        "schema_version": "bijux.vcf.ibd.params.v1",
-        "tool": "germline"
-      },
-      "reason": {
-        "details": {
-          "coverage_regime": "low_cov_gl",
-          "selection_rule": "coverage_regime_default",
-          "stage_kind": "ibd"
-        },
-        "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool germline for vcf.ibd (coverage_regime_default)"
-      },
-      "resources": {
-        "mem_gb": 4,
-        "runtime": "docker",
-        "threads": 2,
-        "tmp_gb": 8
-      },
-      "stage_id": "vcf.ibd",
-      "stage_version": 2,
-      "tool_id": "germline",
-      "tool_version": "1.0"
-    },
-    {
-      "aux_images": {},
-      "command": {
-        "template": [
-          "ibdne",
-          "estimate-ne",
-          "--from-ibd"
-        ]
-      },
-      "effective_params": {
-        "generation_time_years": 29,
-        "reference_provenance": {
-          "build_id": "GRCh38",
-          "bundle_id": "hsapiens_grch38_primary",
-          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
-          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
-          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
-          "species_id": "Homo sapiens"
-        },
-        "requires_ibd_input": true,
-        "schema_version": "bijux.vcf.demography.params.v1",
-        "tool": "ibdne"
-      },
-      "image": {
-        "digest": null,
-        "image": "quay.io/biocontainers/ibdne:23.05.23.ae9f5b3--hdfd78af_0"
-      },
-      "io": {
-        "inputs": [
-          {
-            "name": "vcf",
-            "optional": false,
-            "path": "out/ibd_segments.json",
-            "role": "metrics_json"
-          }
-        ],
-        "outputs": [
-          {
-            "name": "demography_report",
-            "optional": false,
-            "path": "out/demography_report.json",
-            "role": "metrics_json"
-          }
-        ]
-      },
-      "out_dir": "out/vcf_demography",
-      "params": {
-        "generation_time_years": 29,
-        "reference_provenance": {
-          "build_id": "GRCh38",
-          "bundle_id": "hsapiens_grch38_primary",
-          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
-          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
-          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
-          "species_id": "Homo sapiens"
-        },
-        "requires_ibd_input": true,
-        "schema_version": "bijux.vcf.demography.params.v1",
-        "tool": "ibdne"
-      },
-      "reason": {
-        "details": {
-          "coverage_regime": "low_cov_gl",
-          "selection_rule": "coverage_regime_default",
-          "stage_kind": "demography"
-        },
-        "kind": "input_assessed",
-        "summary": "coverage regime LowCovGl selected tool ibdne for vcf.demography (coverage_regime_default)"
-      },
-      "resources": {
-        "mem_gb": 4,
-        "runtime": "docker",
-        "threads": 2,
-        "tmp_gb": 8
-      },
-      "stage_id": "vcf.demography",
-      "stage_version": 2,
-      "tool_id": "ibdne",
       "tool_version": "1.0"
     },
     {
