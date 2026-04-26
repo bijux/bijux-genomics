@@ -25,7 +25,6 @@ bijux-dna-stage-contract = { path = "../bijux-dna-stage-contract" }
 bijux-dna-engine = { path = "../bijux-dna-engine" }
 bijux-dna-environment = { path = "../bijux-dna-environment" }
 bijux-dna-analyze = { path = "../bijux-dna-analyze", features = ["sqlite"] }
-bijux-dna-bench = { path = "../bijux-dna-bench" }
 bijux-dna-planner-fastq = { path = "../bijux-dna-planner-fastq" }
 bijux-dna-planner-bam = { path = "../bijux-dna-planner-bam" }
 bijux-dna-runner = { path = "../bijux-dna-runner" }
@@ -44,8 +43,6 @@ default = []
 
 [dev-dependencies]
 insta = { version = "1", features = ["json"] }
-walkdir = { workspace = true }
-bijux-dna-policies = { path = "../bijux-dna-policies" }
 tempfile = { workspace = true }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 
