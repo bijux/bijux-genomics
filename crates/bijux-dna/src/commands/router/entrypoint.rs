@@ -1,8 +1,6 @@
 use std::path::{Component, Path, PathBuf};
 
-#[cfg(debug_assertions)]
-use anyhow::Context;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir};
 use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
 
@@ -342,7 +340,7 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         let run_dir = temp.path().join("run-001");
         let out = temp.path().join("run-001.tar");
-        std::fs::create_dir_all(&run_dir).expect("run dir");
+        bijux_dna_infra::ensure_dir(&run_dir).expect("run dir");
 
         let err = write_observability_log_pack(&run_dir, &out).expect_err("empty pack should fail");
 
@@ -357,8 +355,8 @@ mod tests {
         let manifest = run_dir.join("run_manifest.json");
         let first_out = temp.path().join("first.tar");
         let second_out = temp.path().join("second.tar");
-        std::fs::create_dir_all(&run_dir).expect("run dir");
-        std::fs::write(&manifest, b"{\"run\":\"run-001\"}\n").expect("manifest");
+        bijux_dna_infra::ensure_dir(&run_dir).expect("run dir");
+        bijux_dna_infra::write_bytes(&manifest, b"{\"run\":\"run-001\"}\n").expect("manifest");
 
         filetime::set_file_mtime(&manifest, filetime::FileTime::from_unix_time(10, 0))
             .expect("old mtime");
