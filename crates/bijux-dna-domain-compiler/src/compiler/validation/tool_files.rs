@@ -17,16 +17,7 @@ pub(super) fn validate_tool_files(
     if !tool_glob.exists() {
         return Ok(());
     }
-    for entry in
-        std::fs::read_dir(&tool_glob).with_context(|| format!("read {}", tool_glob.display()))?
-    {
-        let path = entry?.path();
-        if path.extension().and_then(|value| value.to_str()) != Some("yaml") {
-            continue;
-        }
-        if path.file_name().and_then(|value| value.to_str()) == Some("_schema.yaml") {
-            continue;
-        }
+    for path in super::collect_yaml_files(&tool_glob)? {
         let tool: DomainToolLoose = read_yaml(&path)?;
         let tool_raw =
             std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
