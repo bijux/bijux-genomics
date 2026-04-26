@@ -26,13 +26,17 @@ pub(crate) fn enforce_input_layout(
     tool_id: &ToolId,
     paired_end: bool,
 ) -> Result<()> {
-    if matches!(stage_id, "fastq.index_reference" | "fastq.normalize_abundance") {
+    if paired_end {
         return Ok(());
     }
-    let stage_id = StageId::new(stage_id.to_string());
-    if crate::stage_api::tool_supports_input_layout(&stage_id, tool_id, paired_end) {
+    let paired_required = matches!(
+        (stage_id, tool_id.as_str()),
+        ("fastq.merge_pairs", _)
+            | ("fastq.extract_umis", _)
+            | ("fastq.remove_duplicates", "fastuniq")
+    );
+    if !paired_required {
         return Ok(());
     }
-    let layout = if paired_end { "paired-end" } else { "single-end" };
-    Err(anyhow!("{} does not support {layout} inputs for {}", tool_id.as_str(), stage_id.as_str()))
+    Err(anyhow!("{} does not support single-end inputs for {}", tool_id.as_str(), stage_id))
 }
