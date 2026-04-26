@@ -71,17 +71,17 @@ arch = "x86_64"
     }
 }
 
-fn run_cli(workspace: &CliWorkspace, args: &[&str]) -> anyhow::Result<()> {
+fn run_cli(workspace: &CliWorkspace, cli_args: &[&str]) -> anyhow::Result<()> {
     let _cwd_guard = crate::support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = crate::support::EnvGuard::new().expect("capture env");
     std::env::set_var("HOME", &workspace.home);
     std::env::set_var("BIJUX_SKIP_QA", "1");
     std::env::set_var("BIJUX_ALLOW_SILVER", "1");
     std::env::set_var("BIJUX_SKIP_IMAGE_CHECK", "1");
-    let mut argv = Vec::with_capacity(args.len() + 1);
-    argv.push("bijux");
-    argv.extend_from_slice(args);
-    run_with_args(&argv, workspace.path())
+    let mut full_argv = Vec::with_capacity(cli_args.len() + 1);
+    full_argv.push("bijux");
+    full_argv.extend_from_slice(cli_args);
+    run_with_args(&full_argv, workspace.path())
 }
 
 fn assert_removed_subcommand(workspace: &CliWorkspace, args: &[&str], name: &str) {
