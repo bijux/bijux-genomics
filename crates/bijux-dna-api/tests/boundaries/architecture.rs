@@ -10,6 +10,7 @@ fn api_tree_matches_architecture_contract() {
     assert_runtime_tree(&root);
     assert_support_tree(&root);
     assert_v1_tree(&root);
+    assert_test_tree(&root);
 }
 
 #[test]
@@ -239,6 +240,64 @@ fn assert_v1_tree(root: &std::path::Path) {
         &root.join("src/v1/report"),
         &["analysis_exports.rs", "html_bundle.rs", "mod.rs", "request_contracts.rs"],
         "api v1 report tree must separate html rendering from report entrypoints",
+    );
+}
+
+fn assert_test_tree(root: &std::path::Path) {
+    assert_dir_entries(
+        &root.join("tests"),
+        &[
+            "boundaries/",
+            "boundaries.rs",
+            "contracts/",
+            "contracts.rs",
+            "guardrails.rs",
+            "schemas/",
+            "schemas.rs",
+            "snapshots/",
+            "support/",
+        ],
+        "api tests tree must stay grouped by enduring test intent",
+    );
+    assert_dir_entries(
+        &root.join("tests/support"),
+        &["workspace_paths.rs"],
+        "api test support must keep shared helpers out of suite roots",
+    );
+    assert_dir_entries(
+        &root.join("tests/boundaries"),
+        &[
+            "architecture.rs",
+            "dependency_graph.rs",
+            "docs_layout.rs",
+            "guardrails/",
+            "guardrails.rs",
+            "v1_cross_guardrails.rs",
+        ],
+        "api boundary tests must cover architecture, docs, dependencies, and v1 guardrails",
+    );
+    assert_dir_entries(
+        &root.join("tests/contracts"),
+        &[
+            "fastq_amplicon_governance_contract.rs",
+            "v1_cross_contract_spine.rs",
+            "v1_cross_explain_roundtrip.rs",
+            "v1_cross_public_contract.rs",
+            "v1_dry_run_manifest.rs",
+            "v1_fastq_small_integration.rs",
+        ],
+        "api contract tests must stay split by public v1 behavior",
+    );
+    assert_dir_entries(
+        &root.join("tests/schemas"),
+        &[
+            "v1_cross_api_stability.rs",
+            "v1_cross_contract_handshake.rs",
+            "v1_cross_docs_schema_snapshots.rs",
+            "v1_cross_public_surface.rs",
+            "v1_operator_failure_contract.rs",
+        ],
+        "api schema tests must stay split by stable schema surface",
     );
 }
 

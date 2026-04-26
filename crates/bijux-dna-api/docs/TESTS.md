@@ -16,7 +16,8 @@ README files are intentionally not allowed under `tests/`.
 ## Boundary Tests
 
 - `tests/boundaries/architecture.rs` protects the crate root shape, 10-docs
-  allowance, absence of test READMEs, source tree layout, and v1 namespace tree.
+  allowance, absence of test READMEs, source tree layout, v1 namespace tree,
+  and integration-test taxonomy.
 - `tests/boundaries/guardrails.rs` runs the shared guardrail harness.
 - `tests/boundaries/guardrails/args_module.rs` forbids vague `args.rs` modules.
 - `tests/boundaries/guardrails/policies.rs` applies shared policy checks.
