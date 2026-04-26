@@ -9,13 +9,6 @@ use bijux_dna_domain_fastq::{
     STAGE_SCREEN_TAXONOMY,
 };
 
-pub(crate) fn required_id_catalog() -> Vec<String> {
-    default_shotgun_preprocess_stage_order()
-        .into_iter()
-        .map(|stage| stage.as_str().to_string())
-        .collect()
-}
-
 pub(crate) fn pipeline_spec_from_stage_catalog(
     stages: Vec<String>,
     mode: FastqPipelineMode,

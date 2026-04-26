@@ -21,8 +21,8 @@ pub use bijux_dna_domain_fastq::{
 };
 
 pub use crate::compose::{StageArtifactInputBinding, StageArtifactInputPolicy};
+pub(crate) use crate::pipeline_defaults::pipeline_spec_from_stage_catalog;
 pub use crate::pipeline_defaults::{default_pipeline_spec, DefaultPipelineOptions};
-pub(crate) use crate::pipeline_defaults::{pipeline_spec_from_stage_catalog, required_id_catalog};
 pub use crate::planner::*;
 pub use crate::preprocess::{apply_preprocess_policy, PreprocessPolicyDecision};
 pub use crate::preprocess::{
