@@ -15,7 +15,9 @@ or the configured default build.
 Reference bank records define reference FASTA metadata, checksums, licenses, and
 required index names. Reference bundles define the concrete FASTA, FAI, dict,
 contig set digest, lock digests, declared contigs, optional BED files, and
-contig normalization policy used by planners.
+contig normalization policy used by planners. Reference provenance is derived
+from the resolved bundle identity so callers cannot create species/build
+provenance that disagrees with the bundle.
 
 ## Contig Contracts
 
