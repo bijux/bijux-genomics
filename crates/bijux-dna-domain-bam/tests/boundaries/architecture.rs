@@ -48,7 +48,7 @@ fn crate_tree_matches_domain_boundary() {
     assert_eq!(dir_entries(&root.join("src")), expected_src, "source tree changed");
 
     let expected_boundaries: BTreeSet<_> =
-        ["architecture.rs", "commands.rs", "guardrails.rs", "purity.rs"]
+        ["architecture.rs", "commands.rs", "dependencies.rs", "guardrails.rs", "purity.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();
