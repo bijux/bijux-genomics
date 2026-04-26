@@ -23,5 +23,19 @@ pub fn temp_dir_in(base: &Path, prefix: &str) -> Result<tempfile::TempDir, IoErr
 }
 
 fn test_tmp_dir() -> Option<PathBuf> {
-    std::env::var_os("TEST_TMP_DIR").filter(|value| !value.is_empty()).map(PathBuf::from)
+    std::env::var_os("TEST_TMP_DIR")
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+        .map(anchor_relative_test_tmp_dir)
+}
+
+fn anchor_relative_test_tmp_dir(path: PathBuf) -> PathBuf {
+    if path.is_absolute() {
+        return path;
+    }
+    option_env!("CARGO_MANIFEST_DIR")
+        .map(Path::new)
+        .and_then(|manifest_dir| manifest_dir.parent())
+        .and_then(|crates_dir| crates_dir.parent())
+        .map_or(path.clone(), |workspace_root| workspace_root.join(path))
 }
