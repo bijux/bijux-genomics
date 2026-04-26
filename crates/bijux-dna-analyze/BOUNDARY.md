@@ -1,15 +1,24 @@
 # bijux-dna-analyze Boundary Contract
 
+Owner: Analyze
+Scope: Report, analytics, provenance, and benchmark-result interpretation over produced artifacts
+Allowed inputs: run manifests, stage reports, benchmark reports, deterministic fixture data
+Forbidden dependencies: runner backends, engine internals, CLI adapters, planner selection logic
+Forbidden effects: product execution, generated config mutation, network access
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-analyze --no-default-features`
+
 ## Why this crate exists
-Defines a focused layer in the bijux-dna architecture with explicit boundaries.
+Turns completed run and benchmark artifacts into deterministic reports, summaries, rankings, and
+contract diagnostics.
 
 ## Allowed dependencies
-- Workspace crates required for this layer only.
-- No reverse-layer coupling (enforced by policy tests).
+- Core, runtime, pipeline, domain, benchmark, policy, infra, and testkit contracts needed to read
+  and validate produced artifacts.
+- No execution-layer ownership.
 
 ## Allowed effects
-- Pure data/model crates: no runtime side effects.
-- Runtime/CLI/runner crates: controlled filesystem/process/network effects only.
+- Read produced artifacts and fixtures.
+- Write declared report outputs only.
 
 ## Notes
-Boundary invariants are enforced by bijux-dna-policies contract tests.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
