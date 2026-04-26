@@ -36,9 +36,9 @@ default = []
 [dev-dependencies]
 bijux-dna-policies.workspace = true
 tempfile.workspace = true
-predicates = "3"
+predicates.workspace = true
 insta = { workspace = true }
-filetime = "0.2"
+filetime.workspace = true
 
 [lints]
 workspace = true
