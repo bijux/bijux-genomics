@@ -68,6 +68,7 @@ smoke_version_cmd = "angsd 2>&1 | head -n 1"
 smoke_help_cmd = "angsd -h"
 smoke_minimal_cmd = "angsd -h"
 smoke_minimal_exit_code = 0
+smoke_minimal_rationale = "no-run-possible: planned wrapper image exposes help/version only until low-coverage GL fixtures and governed minimal runs are committed."
 expected_version_regex = "angsd|ANGSD"
 healthcheck_cmd = "angsd -h"
 expected_bin = "angsd"
