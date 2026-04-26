@@ -216,3 +216,39 @@ fn owner_files_document_responsibility_and_boundaries() -> anyhow::Result<()> {
     assert!(offenders.is_empty(), "OWNER.toml files need durable metadata: {offenders:?}");
     Ok(())
 }
+
+#[test]
+fn cargo_manifest_keeps_dependency_boundaries() -> anyhow::Result<()> {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let cargo_toml = manifest_dir.join("Cargo.toml");
+    let raw = fs::read_to_string(cargo_toml)?;
+    let value: toml::Value = toml::from_str(&raw)?;
+    let dependencies = value
+        .get("dependencies")
+        .and_then(toml::Value::as_table)
+        .ok_or_else(|| anyhow::anyhow!("missing dependencies table"))?;
+    let dev_dependencies = value
+        .get("dev-dependencies")
+        .and_then(toml::Value::as_table)
+        .ok_or_else(|| anyhow::anyhow!("missing dev-dependencies table"))?;
+
+    for forbidden in ["bijux-dna-runner", "bijux-dna-engine", "bijux-dna-bench"] {
+        assert!(
+            !dependencies.contains_key(forbidden),
+            "{forbidden} must not be a normal dependency of bijux-dna-analyze"
+        );
+    }
+
+    let duplicates: Vec<_> =
+        dependencies.keys().filter(|name| dev_dependencies.contains_key(*name)).collect();
+    assert!(
+        duplicates.is_empty(),
+        "normal dependencies must not be duplicated as dev-dependencies: {duplicates:?}"
+    );
+
+    assert!(
+        dev_dependencies.contains_key("bijux-dna-bench"),
+        "benchmark integration belongs in dev-dependencies only"
+    );
+    Ok(())
+}
