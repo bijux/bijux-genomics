@@ -1,27 +1,17 @@
-# bijux-dna-policies Docs Index
+# Documentation Index
 
-## Scope
-Defines the policy suite that governs architecture, purity, and documentation placement.
+## Core
+- `ARCHITECTURE.md` — source tree, test tree, data flow, and naming.
+- `BOUNDARY.md` — allowed inputs, forbidden dependencies, forbidden effects, and ownership limits.
+- `PUBLIC_API.md` — public modules, root exports, and stability rules.
 
-## Entry points
-- `ENFORCEMENT.md` — how to run policy gates.
-- `TESTS.md` — mapping of tests to intent.
-- `POLICY_MATRIX.md` — authoritative registry of policy tests.
-- `POLICY_DIAGNOSTICS.md` — WHAT/WHY/HOW/MORE diagnostics format.
-- `CHANGE_RULES.md` — breaking vs non-breaking policy changes.
+## Contracts
+- `COMMANDS.md` — SSOT for policy commands and package test commands.
+- `DEPENDENCIES.md` — allowed runtime and dev dependency graph.
+- `DETERMINISM.md` — stable input, output, and snapshot rules.
+- `EFFECTS.md` — allowed reads and forbidden runtime effects.
+- `ENFORCEMENT.md` — gates, diagnostics, snapshots, and policy change rules.
+- `TESTS.md` — policy suites, intent directories, and verification commands.
 
-## Effects
-No runtime effects; policies only inspect source/layout.
-
-## Extension Points
-Add new policies in `tests/surface`, `tests/deps`, `tests/data`, or `tests/tooling` and document them in `TESTS.md` and `POLICY_MATRIX.md`.
-Style policies must also be listed in `docs/40-policies/POLICY_MATRIX.md`.
-
-## Boundaries
-Policies enforce architectural boundaries across crates and ensure documentation and snapshots stay consistent.
-
-## How to Test
-Run `make guardrails`, `make policies`, and `make structure-check` as documented in `ENFORCEMENT.md`.
-
-## Policy modules
-Use the test file list in `TESTS.md` as the authoritative index.
+## Documentation Rule
+This crate keeps one root `README.md` and exactly ten files in `docs/`.

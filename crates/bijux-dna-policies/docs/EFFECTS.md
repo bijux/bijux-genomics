@@ -1,30 +1,22 @@
 # Effects
 
-## What
-Defines the effects that `bijux-dna-policies` is allowed to use.
+`bijux-dna-policies` is a read-only policy crate in production source.
 
-## Why
-Policies must be deterministic and side‑effect free.
+## Allowed Production Effects
+- Read repository files through deterministic traversal.
+- Parse manifests, docs, source files, fixtures, and governed config files.
+- Return diagnostics through `anyhow` and policy assertion messages.
 
-## Non-goals
-- Running tools or modifying workspace state.
-
-## Contracts
-Allowed:
-- Filesystem read access to inspect workspace state.
-
-Forbidden:
+## Forbidden Production Effects
 - Process execution.
 - Network access.
-- Docker or container APIs.
-- Randomness or time‑dependent behavior in policy logic.
+- Container or Docker APIs.
+- File creation, deletion, or mutation.
+- Snapshot blessing or generated-output rewrites.
+- Runtime tool discovery.
 
-## Examples
-- Reading `Cargo.toml` to verify dependencies.
+## Test Effects
+Tests may run Cargo metadata inspection and read fixtures, snapshots, and workspace files. Tests must still avoid mutating repository state except when a developer intentionally updates governed snapshots as part of a reviewed change.
 
-## Failure modes
-- Any effectful API usage fails policy scans.
-
-## Proof
-- Policies are implemented as deterministic tests with file inspection only.
-- CI enforces dependency budgets and effect boundaries.
+## Enforcement
+Effect boundaries are locked by source scans, dependency graph checks, and `docs/DEPENDENCIES.md`.
