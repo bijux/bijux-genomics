@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Suite validation orchestration entrypoint.
+
 use crate::contract::suite::{
     declared_graph_nodes, validate_suite_analysis_requirements, validate_suite_dag,
     validate_suite_diversity,

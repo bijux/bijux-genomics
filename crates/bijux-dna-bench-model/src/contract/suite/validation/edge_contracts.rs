@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Suite edge validation contracts.
+
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkGraphNode, BenchmarkStageEdge, BenchmarkStageSpec, BenchmarkSuiteSpec,

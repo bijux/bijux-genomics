@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Benchmark decision model (versioned).
 //! Owns choice outputs and rationale trace.
 //! Must not perform IO or depend on compare/gate logic.

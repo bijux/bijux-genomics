@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Outlier detection policies using MAD (median absolute deviation).
 //! MAD is robust to skew and heavy tails, so it is preferred over z-score thresholds.
 //! Must not perform IO or depend on compare/gate logic.

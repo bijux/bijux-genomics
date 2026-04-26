@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Benchmark suite specification (versioned).
 //! Owns suite-level inputs for bench orchestration.
 //! Must not perform IO or depend on compare/gate logic.

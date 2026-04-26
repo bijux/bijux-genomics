@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Stable crate-root re-exports.
+
 pub use crate::compare;
 pub use crate::contract;
 pub use crate::diagnostics::BenchError;

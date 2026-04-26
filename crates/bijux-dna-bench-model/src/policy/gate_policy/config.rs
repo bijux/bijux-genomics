@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Gate policy configuration contracts.
+
 use std::collections::BTreeMap;
 
 use bijux_dna_analyze::MetricDirection;

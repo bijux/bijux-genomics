@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Gate policy evaluation rules.
+
 use std::collections::BTreeMap;
 
 use bijux_dna_analyze::{metric_semantics, MetricDirection};

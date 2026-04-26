@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Stage and tool governance checks for benchmark suites.
 
 use crate::diagnostics::BenchError;

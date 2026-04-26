@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Typed diffs and effect sizes between runs.
 //! Must not perform IO.
 

@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Replicate policy contract for benchmark suites.
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

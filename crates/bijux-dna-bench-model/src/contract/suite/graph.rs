@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Graph support for benchmark suite contract validation.
 
 use crate::diagnostics::BenchError;

@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Edge and port validation for benchmark suite graphs.
 
 use crate::diagnostics::BenchError;

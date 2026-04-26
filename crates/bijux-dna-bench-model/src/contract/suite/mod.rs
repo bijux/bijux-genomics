@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Suite validation rule families.
+
 mod analysis;
 mod diversity;
 mod edge_ports;

@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Typed metrics envelope for benchmark observations.
+
 use std::collections::BTreeMap;
 
 use serde::{Deserialize, Serialize};

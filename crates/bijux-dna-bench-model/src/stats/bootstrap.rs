@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Deterministic bootstrap confidence intervals using seeded resampling.
 //! We prefer bootstrap CIs to preserve distribution shape without assuming normality.
 //! Must not perform IO or depend on compare/gate logic.

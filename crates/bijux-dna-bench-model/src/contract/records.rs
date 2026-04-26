@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Validation for non-suite benchmark contract records.
 
 use crate::diagnostics::BenchError;

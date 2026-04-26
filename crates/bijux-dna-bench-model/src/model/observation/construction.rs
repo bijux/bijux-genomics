@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Benchmark observation constructors.
+
 use super::{BenchmarkObservation, MetricsEnvelope};
 
 impl BenchmarkObservation {

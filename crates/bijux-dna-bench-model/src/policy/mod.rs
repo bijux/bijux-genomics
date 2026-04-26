@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Policy engine for bench gating.
 
 pub mod gate_policy;

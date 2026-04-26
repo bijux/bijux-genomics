@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Statistics utilities for bench (robust stats + bootstrap + outliers).
 
 pub mod bootstrap;

@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Benchmark suite graph expansion helpers.
+
 use crate::model::graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind};
 
 use super::{BenchmarkStageSpec, BenchmarkSuiteSpec};
