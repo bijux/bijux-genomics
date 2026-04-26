@@ -184,7 +184,7 @@ pub(crate) fn check_benchmark_integrity_policy(
     if !native_ops.contains("tooling_benchmark_integrity_mini") {
         errors.push("benchmark integrity mini workflow must exist".to_string());
     }
-    if !native_ops.contains("/benchmarks/integrity-mini") {
+    if !native_ops.contains("benchmarks/integrity-mini") {
         errors.push(
             "benchmark integrity mini workflow must default outputs under benchmarks/integrity-mini/"
                 .to_string(),

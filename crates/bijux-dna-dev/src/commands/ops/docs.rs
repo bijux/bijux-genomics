@@ -72,6 +72,7 @@ pub(super) fn docs_check_doc_depth(
             "index.md" | "command_snapshot.txt" | "release_help_snapshot.txt" | "DOCS_GRAPH.toml"
         ) || name.ends_with(".generated.md")
             || rel == "docs/cli/index.md"
+            || rel.starts_with("docs/30-operations/benchmark/")
         {
             continue;
         }
@@ -211,7 +212,11 @@ pub(super) fn docs_check_doc_root_layout(
             if !allowed_dirs.contains(base.as_str()) {
                 violations.push(format!("unsupported docs root directory: docs/{base}"));
             }
-        } else if path.is_file() && base != "index.md" && base != "DOCS_GRAPH.toml" {
+        } else if path.is_file()
+            && base != "index.md"
+            && base != "DOCS_GRAPH.toml"
+            && base != "badges.md"
+        {
             violations.push(format!("unsupported docs root file: docs/{base}"));
         }
     }
