@@ -24,17 +24,13 @@ fn parse_toml(path: &Path) -> Value {
 
 #[test]
 fn command_inventory_points_to_stage_authority() {
-    let doc =
-        read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("COMMANDS.md"));
+    let doc = read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("COMMANDS.md"));
     assert!(
         doc.contains("## Runtime Commands\nNone."),
         "COMMANDS.md must state that the planner exposes no runtime commands",
     );
     for authority in ["bijux_dna_domain_fastq::STAGES", "src/tool_adapters/"] {
-        assert!(
-            doc.contains(authority),
-            "COMMANDS.md must point to command authority {authority}",
-        );
+        assert!(doc.contains(authority), "COMMANDS.md must point to command authority {authority}",);
     }
 }
 
@@ -94,8 +90,7 @@ fn ci_tool_registry_excludes_unpublished_fastq_tools() {
 
 #[test]
 fn stage_mapping_documents_declared_only_infer_asvs() {
-    let doc =
-        read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("COMMANDS.md"));
+    let doc = read_doc(&PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("docs").join("COMMANDS.md"));
     assert!(
         doc.contains("`fastq.infer_asvs`"),
         "COMMANDS.md must list admitted FASTQ stages including infer_asvs",

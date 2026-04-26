@@ -32,14 +32,7 @@ fn production_source_does_not_mutate_filesystem_outputs() {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let findings = forbidden_source_tokens(
         &root.join("src"),
-        &[
-            "std::fs::write",
-            "fs::write",
-            "File::create",
-            "create_dir",
-            "remove_file",
-            "remove_dir",
-        ],
+        &["std::fs::write", "fs::write", "File::create", "create_dir", "remove_file", "remove_dir"],
     );
 
     assert!(
@@ -64,7 +57,9 @@ fn source_files(root: &Path) -> Vec<PathBuf> {
 }
 
 fn collect_source_files(path: &Path, files: &mut Vec<PathBuf>) {
-    for entry in std::fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display())) {
+    for entry in
+        std::fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
+    {
         let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
         let path = entry.path();
         if path.is_dir() {
@@ -76,15 +71,15 @@ fn collect_source_files(path: &Path, files: &mut Vec<PathBuf>) {
 }
 
 fn findings_in_file(path: &Path, forbidden_tokens: &[&str]) -> Vec<String> {
-    let content = std::fs::read_to_string(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+    let content = std::fs::read_to_string(path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
     content
         .lines()
         .enumerate()
         .flat_map(|(line_index, line)| {
-            forbidden_tokens
-                .iter()
-                .filter(move |token| line.contains(**token))
-                .map(move |token| format!("{}:{} contains `{token}`", path.display(), line_index + 1))
+            forbidden_tokens.iter().filter(move |token| line.contains(**token)).map(move |token| {
+                format!("{}:{} contains `{token}`", path.display(), line_index + 1)
+            })
         })
         .collect()
 }

@@ -4,8 +4,8 @@ use std::path::Path;
 #[test]
 fn public_api_docs_match_curated_exports() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let docs = std::fs::read_to_string(root.join("docs/PUBLIC_API.md"))
-        .expect("read docs/PUBLIC_API.md");
+    let docs =
+        std::fs::read_to_string(root.join("docs/PUBLIC_API.md")).expect("read docs/PUBLIC_API.md");
 
     assert_eq!(
         markdown_list_after_heading(&docs, "## Public Modules"),
@@ -95,9 +95,12 @@ fn documented_root_exports_remain_compilable() {
         FastqPlanner::plan_stage_benchmark_cohort;
     let _: fn(&FastqPipelineInputs, DefaultPipelineOptions) -> Result<ExecutionGraph> =
         bijux_dna_planner_fastq::plan_fastq_to_fastq__default__v1;
-    let _: fn(Vec<bijux_dna_stage_contract::StagePlanV1>, bijux_dna_core::contract::PlanPolicy) -> Result<ExecutionGraph> =
-        bijux_dna_planner_fastq::plan_fastq_to_bam__default__v1;
-    let _: fn(DefaultPipelineOptions) -> PipelineSpec = bijux_dna_planner_fastq::default_pipeline_spec;
+    let _: fn(
+        Vec<bijux_dna_stage_contract::StagePlanV1>,
+        bijux_dna_core::contract::PlanPolicy,
+    ) -> Result<ExecutionGraph> = bijux_dna_planner_fastq::plan_fastq_to_bam__default__v1;
+    let _: fn(DefaultPipelineOptions) -> PipelineSpec =
+        bijux_dna_planner_fastq::default_pipeline_spec;
     let _: fn(&str) -> Vec<String> = bijux_dna_planner_fastq::cross_fastq_to_bam_id_catalog;
     let _: fn(&ToolExecutionSpecV1, usize) -> ToolExecutionSpecV1 =
         bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
@@ -129,7 +132,10 @@ fn documented_stage_api_exports_remain_compilable() {
     let _: Option<bijux_dna_planner_fastq::stage_api::StagePlanJson> = None;
     let _: fn(&StageId, bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode) -> Vec<ToolId> =
         bijux_dna_planner_fastq::stage_api::toolset_for_stage;
-    let _: fn(&StageId, &ToolId) -> Option<bijux_dna_planner_fastq::stage_api::StageToolMaturityLevel> =
+    let _: fn(
+        &StageId,
+        &ToolId,
+    ) -> Option<bijux_dna_planner_fastq::stage_api::StageToolMaturityLevel> =
         bijux_dna_planner_fastq::stage_api::stage_tool_maturity;
     let _: fn(&StageId) -> Vec<bijux_dna_planner_fastq::stage_api::BenchmarkCohort> =
         bijux_dna_planner_fastq::stage_api::benchmark_cohorts_for_stage;

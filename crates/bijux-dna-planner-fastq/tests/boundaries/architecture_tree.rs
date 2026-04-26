@@ -71,7 +71,8 @@ fn child_entries(path: &Path) -> BTreeSet<String> {
     fs::read_dir(path)
         .unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
         .map(|entry| {
-            let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
+            let entry =
+                entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
             let file_name = entry.file_name().to_string_lossy().into_owned();
             if entry.path().is_dir() {
                 format!("{file_name}/")
