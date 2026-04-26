@@ -54,6 +54,7 @@ fn policy__boundaries__architecture_tree__policies_tree_matches_architecture_con
             "failure_policy.rs",
             "mod.rs",
             "module_files.rs",
+            "path_match.rs",
             "public_surface.rs",
             "stable_surface.rs",
             "stage_id_literals.rs",

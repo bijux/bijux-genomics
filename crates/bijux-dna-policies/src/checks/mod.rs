@@ -7,3 +7,6 @@ mod stable_surface;
 pub(crate) mod stage_id_literals;
 
 pub(crate) use stable_surface::*;
+
+#[allow(dead_code)]
+const CHECK_MODULE_REGISTRY: &str = "policy_check_rule_families";
