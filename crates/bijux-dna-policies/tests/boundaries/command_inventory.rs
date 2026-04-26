@@ -16,6 +16,10 @@ fn policy__boundaries__command_inventory__documents_policy_commands_without_runt
         "COMMANDS.md must make the runtime command ownership boundary explicit"
     );
     assert!(
+        content.contains("## Managed Command Inventory"),
+        "COMMANDS.md must provide a managed command inventory section"
+    );
+    assert!(
         !root.join("src").join("bin").exists(),
         "bijux-dna-policies must not define src/bin runtime command entrypoints"
     );
@@ -27,12 +31,17 @@ fn policy__boundaries__command_inventory__documents_policy_commands_without_runt
             "make policies",
             "make structure-check",
             "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --no-default-features",
-            "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test boundaries",
-            "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test contracts",
-            "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test determinism",
-            "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test guardrails",
+            "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test boundaries --no-default-features",
+            "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test contracts --no-default-features",
+            "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test determinism --no-default-features",
+            "CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test guardrails --no-default-features",
         ]),
         "COMMANDS.md must stay the SSOT for policy commands this crate manages"
+    );
+
+    assert!(
+        !content.contains("cargo test -p bijux-dna-policies --test boundaries`"),
+        "focused policy test commands must include --no-default-features"
     );
 }
 

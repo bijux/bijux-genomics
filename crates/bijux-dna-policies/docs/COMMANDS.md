@@ -5,7 +5,9 @@
 ## Runtime Commands
 None.
 
-## Managed Policy Commands
+## Managed Command Inventory
+
+### Policy Gates
 These repository commands are the policy gates this crate defines, documents, or validates:
 
 - `make guardrails`
@@ -16,10 +18,10 @@ These repository commands are the policy gates this crate defines, documents, or
 Use these when changing this crate:
 
 - `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --no-default-features`
-- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test boundaries`
-- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test contracts`
-- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test determinism`
-- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test guardrails`
+- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test boundaries --no-default-features`
+- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test contracts --no-default-features`
+- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test determinism --no-default-features`
+- `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test guardrails --no-default-features`
 
 ## Ownership Rules
 - Keep runtime command execution in CLI, runner, runtime, or environment crates.
