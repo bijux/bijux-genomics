@@ -76,7 +76,7 @@ fn runtime_kind_from_str_parses_known_runners() -> Result<(), EnvError> {
     assert_eq!(RuntimeKind::from_str("docker")?, RuntimeKind::Docker);
     assert_eq!(RuntimeKind::from_str("singularity")?, RuntimeKind::Singularity);
     assert_eq!(RuntimeKind::from_str("apptainer")?, RuntimeKind::Apptainer);
-    assert_eq!(RuntimeKind::from_str(" Docker ")? , RuntimeKind::Docker);
+    assert_eq!(RuntimeKind::from_str(" Docker ")?, RuntimeKind::Docker);
     Ok(())
 }
 
@@ -369,9 +369,8 @@ fn load_image_catalog_rejects_tool_key_mismatch() -> anyhow::Result<()> {
         b"[fastp]\ntool = \"fastqc\"\nversion = \"0.23.4\"\n",
         b"",
     )?;
-    let err = load_image_catalog()
-        .err()
-        .unwrap_or_else(|| panic!("expected image catalog key mismatch"));
+    let err =
+        load_image_catalog().err().unwrap_or_else(|| panic!("expected image catalog key mismatch"));
     assert!(err.to_string().contains("does not match catalog key fastp"));
     Ok(())
 }
