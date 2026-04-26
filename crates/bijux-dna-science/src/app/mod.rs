@@ -28,9 +28,14 @@ pub fn run(cli: ScienceCli) -> Result<()> {
         }
         ScienceCommand::Build => {
             let compiled = build_workspace(&cli.workspace_root)?;
+            let summary = &compiled.index.fastq_closure_summary;
             println!(
-                "science outputs refreshed: {} fastq environment rows",
-                compiled.fastq_environment_rows.len()
+                "science outputs refreshed: {} fastq environment rows; defaults={} world_class_closed={} declared_closed_with_gaps={} not_closed={}",
+                compiled.fastq_environment_rows.len(),
+                summary.default_rows,
+                summary.world_class_closed_rows,
+                summary.declared_closed_with_gaps_rows,
+                summary.not_closed_rows,
             );
         }
         ScienceCommand::Trace { stage, tool } => {
