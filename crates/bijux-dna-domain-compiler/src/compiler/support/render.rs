@@ -1,7 +1,11 @@
 use super::{BTreeMap, ThresholdBand};
 
+fn toml_string(value: &str) -> String {
+    format!("{value:?}")
+}
+
 pub(crate) fn toml_array(values: &[String]) -> String {
-    let joined = values.iter().map(|value| format!("\"{value}\"")).collect::<Vec<_>>().join(", ");
+    let joined = values.iter().map(|value| toml_string(value)).collect::<Vec<_>>().join(", ");
     format!("[{joined}]")
 }
 
@@ -24,4 +28,24 @@ pub(crate) fn generated_header(source: &str, source_commit: &str) -> String {
     format!(
         "# GENERATED - DO NOT EDIT - source: {source}\n# source_commit: {source_commit}\n# domain_schema_version: bijux.domain.v1\n# Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs\n# schema_version = 1\n# owner = bijux-dna-domain-compiler\n# purpose = Contract config generated from domain/** sources\n# authority = bijux-dna-domain-compiler\n# stability = stable\n# last_updated = 2026-02-14\n\n"
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::toml_array;
+
+    #[test]
+    fn toml_array_escapes_string_values() {
+        let values = vec![
+            "plain".to_string(),
+            "quote\"value".to_string(),
+            "path\\value".to_string(),
+            "line\nvalue".to_string(),
+        ];
+
+        assert_eq!(
+            toml_array(&values),
+            r#"["plain", "quote\"value", "path\\value", "line\nvalue"]"#
+        );
+    }
 }
