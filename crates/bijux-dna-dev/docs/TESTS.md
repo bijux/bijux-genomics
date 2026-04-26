@@ -13,6 +13,12 @@
 - `cargo test -p bijux-dna-dev --test boundaries`
 - `cargo test -p bijux-dna-policies policy__boundaries__docs_spine__crate_docs_contract -- --nocapture`
 
+## Lint Gates
+- `cargo fmt -p bijux-dna-dev -- --check`
+- `cargo clippy -p bijux-dna-dev --all-targets -- -D warnings`
+- Keep the crate-level lint profile strict for unsafe code, debug output, direct printing, and panic-prone unwrap/expect usage.
+- Use narrow lint allowances only for style-heavy Clippy groups where the current command implementation intentionally favors explicit control flow.
+
 ## Notes
 - Prefer targeted boundary tests when changing tree layout or ownership.
 - Prefer targeted command-module tests when changing one automation surface.
