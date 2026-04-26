@@ -5,8 +5,16 @@ catalogs, parsers, and validation helpers, but it owns no executable command sur
 
 ## Managed command inventory
 
-There are no crate-managed CLI commands, process entrypoints, background jobs, network clients, or
-repository mutation commands in this crate.
+There are no crate-managed CLI commands, Cargo binary targets, process
+entrypoints, background jobs, network clients, or repository mutation commands
+in this crate.
+
+## Forbidden Command Surfaces
+
+- No Cargo binary targets or `src/bin` command modules.
+- No `src/main.rs`.
+- No CLI parser ownership.
+- No process spawning or runtime command execution.
 
 ## Boundary
 
