@@ -25,6 +25,14 @@ fn dependency_graph_matches_science_boundary() {
         "docs/DEPENDENCIES.md must document the guardrail dev-dependency"
     );
     assert!(
+        cargo_toml.contains("bijux-dna-infra = { workspace = true"),
+        "bijux-dna-infra must come from the workspace catalog"
+    );
+    assert!(
+        !cargo_toml.contains("path = \"../bijux-dna-"),
+        "science crate must not declare ad hoc internal path dependencies"
+    );
+    assert!(
         dependencies_doc.contains("`thiserror`") && !cargo_toml.contains("thiserror"),
         "docs/DEPENDENCIES.md must explain why direct thiserror is absent"
     );
