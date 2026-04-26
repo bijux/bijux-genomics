@@ -22,6 +22,9 @@ pub(super) fn validate_adapter_bank(bank: &AdapterBankV1) -> Result<()> {
     }
     let mut ids = BTreeSet::new();
     for adapter in &bank.adapters {
+        if adapter.id.trim().is_empty() {
+            return Err(anyhow!("adapter entry missing id"));
+        }
         if !ids.insert(adapter.id.clone()) {
             return Err(anyhow!("duplicate adapter id {}", adapter.id));
         }
@@ -98,6 +101,9 @@ pub(super) fn validate_adapter_presets(
 }
 
 fn ensure_sequence_alphabet(sequence: &str) -> Result<()> {
+    if sequence.trim().is_empty() {
+        return Err(anyhow!("sequence cannot be empty"));
+    }
     let mut invalid = Vec::new();
     for ch in sequence.chars() {
         let upper = ch.to_ascii_uppercase();
@@ -112,4 +118,56 @@ fn ensure_sequence_alphabet(sequence: &str) -> Result<()> {
         ));
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::banks::adapter::{AdapterEntryV1, ReadScope};
+
+    fn valid_bank_with(adapter: AdapterEntryV1) -> AdapterBankV1 {
+        AdapterBankV1 {
+            schema_version: "bijux.fastq.adapter_bank.v1".to_string(),
+            bank_id: "adapter-bank".to_string(),
+            version: "2026-01-01".to_string(),
+            provenance_status: "complete".to_string(),
+            adapters: vec![adapter],
+        }
+    }
+
+    fn valid_adapter() -> AdapterEntryV1 {
+        AdapterEntryV1 {
+            id: "illumina-universal".to_string(),
+            tags: vec!["truseq".to_string()],
+            name: "Illumina universal".to_string(),
+            sequence: "AGATCGGAAGAG".to_string(),
+            read_scope: ReadScope::Both,
+            enabled_by_default: true,
+            rationale: "standard Illumina adapter".to_string(),
+            source: "vendor".to_string(),
+            notes: String::new(),
+        }
+    }
+
+    #[test]
+    fn adapter_bank_rejects_blank_adapter_id() {
+        let mut adapter = valid_adapter();
+        adapter.id = " ".to_string();
+
+        let err = validate_adapter_bank(&valid_bank_with(adapter))
+            .expect_err("blank adapter ids must be invalid");
+
+        assert!(err.to_string().contains("missing id"));
+    }
+
+    #[test]
+    fn adapter_bank_rejects_blank_adapter_sequence() {
+        let mut adapter = valid_adapter();
+        adapter.sequence = " ".to_string();
+
+        let err = validate_adapter_bank(&valid_bank_with(adapter))
+            .expect_err("blank adapter sequences must be invalid");
+
+        assert!(err.to_string().contains("sequence cannot be empty"));
+    }
 }
