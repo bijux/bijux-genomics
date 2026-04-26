@@ -35,6 +35,12 @@ impl StagePlugin for FastqStagePlugin {
         if !self.handles_stage(plan.stage_id.as_str()) {
             return Err(anyhow!("unsupported FASTQ stage {}", plan.stage_id.as_str()));
         }
+        if plan.command.template.is_empty() {
+            return Err(anyhow!(
+                "FASTQ stage {} has empty command template",
+                plan.stage_id.as_str()
+            ));
+        }
         Ok(StageInvocationV1 {
             command: plan.command.template.clone(),
             env: std::collections::BTreeMap::new(),
