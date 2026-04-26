@@ -85,8 +85,8 @@ arch = "x86_64"
     std::os::unix::fs::symlink(ws_root.join("assets"), root.join("assets"))
         .expect("symlink assets");
 
-    let _env_guard = crate::support::EnvGuard::new().expect("capture env");
     let _cwd_guard = crate::support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = crate::support::EnvGuard::new().expect("capture env");
     std::env::set_var("BIJUX_REPO_ROOT", root);
     let args = [
         "bijux",

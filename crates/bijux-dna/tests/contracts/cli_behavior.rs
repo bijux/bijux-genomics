@@ -103,8 +103,8 @@ fn assert_removed_subcommand(workspace: &CliWorkspace, args: &[&str], name: &str
 fn public_api_run_restores_cli_environment() {
     let workspace = CliWorkspace::new();
     workspace.setup_configs();
-    let _env_guard = crate::support::EnvGuard::new().expect("capture env");
     let _cwd_guard = crate::support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = crate::support::EnvGuard::new().expect("capture env");
     std::env::set_var("BIJUX_OUTPUT_JSON", "outer-json");
     std::env::remove_var("BIJUX_VERBOSE");
 

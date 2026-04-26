@@ -86,8 +86,8 @@ arch = "x86_64"
     )
     .expect("write root defaults ledger");
 
-    let _env_guard = crate::support::EnvGuard::new().expect("capture env");
     let _cwd_guard = crate::support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = crate::support::EnvGuard::new().expect("capture env");
     std::env::set_var("BIJUX_SKIP_QA", "1");
     std::env::set_var("BIJUX_ALLOW_SILVER", "1");
     std::env::set_var("BIJUX_SKIP_IMAGE_CHECK", "1");

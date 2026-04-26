@@ -42,13 +42,9 @@ pub fn with_repo_root<F, T>(f: F) -> Result<T>
 where
     F: FnOnce() -> Result<T>,
 {
-    let env_guard = EnvGuard::new()?;
     let _guard = CWD_LOCK.lock().map_err(|err| anyhow!("cwd lock: {err}"))?;
+    let _env_guard = EnvGuard::new()?;
     let repo_root = test_support::repo_root()?;
-    let prev_dir = std::env::current_dir()?;
     std::env::set_current_dir(&repo_root)?;
-    let result = f();
-    std::env::set_current_dir(prev_dir)?;
-    drop(env_guard);
-    result
+    f()
 }
