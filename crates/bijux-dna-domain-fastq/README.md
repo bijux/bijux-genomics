@@ -1,65 +1,53 @@
 # bijux-dna-domain-fastq
 
-## What this crate does
-FASTQ domain truth: IDs, params, metric semantics, and invariant verdicts.
+`bijux-dna-domain-fastq` is the FASTQ domain contract crate. It owns typed FASTQ stage truth,
+artifacts, parameters, metrics, invariants, banks, observer semantics, and benchmark metadata.
 
-## What it must not do (boundaries)
-No selection or execution.
+## Responsibilities
 
-## Role in the stack
-Upstream: core IDs. Downstream: planners/stages/analyze.
+- Expose stable FASTQ stage IDs, stage contracts, stage IO, semantics, and canonical ordering.
+- Define typed report/manifest schemas for governed FASTQ stage outputs.
+- Define parameter descriptors, defaults, canonical parsing, metric types, and invariant rules.
+- Own adapter, contaminant, and polyX bank models, presets, selection, and provenance.
+- Expose observer parser contracts and stage/tool governance metadata without executing tools.
+- Provide FASTQ input discovery and benchmark corpus descriptors as domain metadata.
 
-## Public API / entrypoints
-See `docs/INDEX.md`, `docs/DOMAIN_MODEL.md`, and `docs/PUBLIC_API.md`.
-Command inventory is authoritative in `docs/COMMANDS.md`.
+## Boundaries
 
-## Domain truth set (SSOT)
-The FASTQ domain defines:
-- IDs: stage IDs, tool IDs, and bank IDs (see `docs/DOMAIN_MODEL.md`).
-- Params: canonical JSON shapes and defaults (see `docs/DOMAIN_MODEL.md`).
-- Metric semantics: meaning + ordering rules (see `docs/DOMAIN_MODEL.md`).
-- Invariants: verdict rules and thresholds (see `docs/DOMAIN_MODEL.md`).
+This crate must not execute pipelines, spawn tools, launch containers, schedule work, open network
+connections, write generated configs, or own planner/runtime behavior. It is consumed by planners,
+stages, analyzers, API layers, and benchmark tooling; those layers must not be dependencies here.
 
-## Key contracts it owns/consumes
-Owns FASTQ IDs, params, metrics semantics, and invariant verdicts.
+## Command Surface
 
-## Artifacts / Contracts
-See `docs/DOMAIN_MODEL.md` and fixtures under `tests/fixtures/`.
+This is a library crate with no executable command surface. `docs/COMMANDS.md` is the SSOT for that
+boundary.
 
-## Retention semantics (must be explicit)
-Retention is always a stage-boundary ratio with explicit numerator/denominator scope.
-"Naked retention" (a bare percentage without scope) is forbidden.
-See `tests/semantics/retention_truth_table.rs` and `docs/DOMAIN_MODEL.md`.
+## Start In Code
 
-## Banks
-FASTQ banks live under `src/banks/*` and are SSOT for adapter/contaminant/polyX lists.
-Selection rules live in `src/banks/selection.rs` and must not be overridden elsewhere.
-Provenance + versioning rules are in `docs/DOMAIN_MODEL.md`.
+- `src/stages/` for stage IDs, semantics, IO, contracts, and ordering.
+- `src/params/`, `src/metrics/`, and `src/invariants/` for typed domain behavior.
+- `src/banks/` for adapter, contaminant, and polyX bank contracts.
+- `src/observer/` for parser contracts and semantic surfaces.
+- `src/stage_tool_governance/` and `src/integration_matrix/` for stage/tool compatibility.
+- `src/lib.rs` for the public facade and compatibility re-exports.
 
-## Effects & determinism guarantees
-Pure data/validation. See `docs/EFFECTS.md` and the golden tests below.
+## Verification
 
-## How to run its tests
-See `docs/TESTS.md`. Golden tests: `tests/semantics/retention_semantics.rs`,
-`tests/semantics/params_canonical.rs`, `tests/semantics/retention_truth_table.rs`,
-`tests/purity/determinism.rs`.
+```bash
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-fastq --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo clippy -p bijux-dna-domain-fastq --all-targets --no-default-features -- -D warnings
+```
 
-## Where the docs live
-Start at `docs/INDEX.md` and follow the crate docs listed above.
+## Documentation
 
-## Start here in code
-`src/stages/ids.rs` → `src/params/` → `src/metrics/` → `src/invariants/`.
-
-## Module layout
-- `src/artifacts/` owns governed stage report and manifest types.
-- `src/observer/` owns parser behavior and observer specialization contracts.
-- `src/pipeline_contract/` owns pipeline ordering and graph assembly.
-- `src/execution_support/` and `src/stage_tool_governance/` own manifest-backed readiness catalogs.
-- `src/bench/` owns benchmark query metadata and repository interfaces.
-
-## Failure modes
-Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
-
-## Stability
-Contract and behavior changes follow `docs/CONTRACTS.md`; dependency boundaries are documented in
-`docs/DEPENDENCIES.md`.
+- [docs/INDEX.md](docs/INDEX.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/BOUNDARY.md](docs/BOUNDARY.md)
+- [docs/COMMANDS.md](docs/COMMANDS.md)
+- [docs/CONTRACTS.md](docs/CONTRACTS.md)
+- [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)
+- [docs/DOMAIN_MODEL.md](docs/DOMAIN_MODEL.md)
+- [docs/EFFECTS.md](docs/EFFECTS.md)
+- [docs/PUBLIC_API.md](docs/PUBLIC_API.md)
+- [docs/TESTS.md](docs/TESTS.md)

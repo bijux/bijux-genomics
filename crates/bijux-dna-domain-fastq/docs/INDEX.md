@@ -1,28 +1,20 @@
 # bijux-dna-domain-fastq Docs Index
 
-## Scope
-See `SCOPE.md` for what belongs here.
+## Start Here
 
-## Effects
-See `EFFECTS.md` for allowed effects.
+- [ARCHITECTURE.md](ARCHITECTURE.md): source tree, ownership, and data flow.
+- [DOMAIN_MODEL.md](DOMAIN_MODEL.md): FASTQ stage, parameter, metric, invariant, bank, observer,
+  and benchmark domain truth.
+- [PUBLIC_API.md](PUBLIC_API.md): public modules, major export groups, and stability rules.
 
 ## Boundaries
-See `ARCHITECTURE.md` for internal boundaries.
-- `BOUNDARY.md`
-- `COMMANDS.md`
-- `CONTRACTS.md`
-- `DEPENDENCIES.md`
-- `PUBLIC_API.md`
 
-## Domain truth
-- `DOMAIN_MODEL.md`
-- `METRICS.md`
-- `PARAMS.md`
-- `STAGES.md`
-- `BANKS.md`
+- [BOUNDARY.md](BOUNDARY.md): allowed inputs, dependencies, effects, and non-goals.
+- [COMMANDS.md](COMMANDS.md): command-free library surface SSOT.
+- [CONTRACTS.md](CONTRACTS.md): owned contracts, change rules, and failure patterns.
+- [DEPENDENCIES.md](DEPENDENCIES.md): allowed and forbidden dependency graph.
+- [EFFECTS.md](EFFECTS.md): allowed reads, forbidden effects, and determinism expectations.
 
-## Extension Points
-See `CHANGE_RULES.md` for safe extension guidelines.
+## Verification
 
-## How to Test
-See `TESTS.md` for test mapping and fixtures.
+- [TESTS.md](TESTS.md): test map, commands, and artifact discipline.
