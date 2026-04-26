@@ -6,16 +6,35 @@ metadata explicit.
 
 ## Source Tree
 
-- `stage_plan/` owns stage-plan models, JSON projections, decision reasons, and
-  execution-step projections.
-- `execution_plan/` owns plan models, artifact-bound edges, canonicalization
-  helpers, hashing, and validation.
-- `executor_registry/` owns executor vocabulary, catalog entries, readiness
-  badges, and lookup helpers.
-- `plan_run/` owns run-plan assembly, artifact schema mapping, and
-  planner-contract views.
-- `stage_plugin.rs` owns the focused stage plugin invocation and output
-  contracts.
+```text
+src/
+├── execution_plan/
+│   ├── edge.rs             # artifact-bound plan edges
+│   ├── mod.rs              # execution-plan public module surface
+│   ├── model.rs            # execution-plan data model
+│   ├── support.rs          # canonicalization and hashing support
+│   └── validation.rs       # execution-plan structural validation
+├── executor_registry/
+│   ├── catalog/
+│   │   ├── executors.rs    # executor labels and metadata entries
+│   │   └── mod.rs          # catalog module surface
+│   ├── lookup.rs           # registry lookup helpers
+│   ├── mod.rs              # executor-registry public module surface
+│   └── types.rs            # executor vocabulary and readiness types
+├── plan_run/
+│   ├── artifact_catalog.rs # artifact schema mapping
+│   ├── mod.rs              # run-plan public module surface
+│   ├── planner_contract.rs # planner-facing projections
+│   └── stage_builder.rs    # run-plan stage assembly
+├── stage_plan/
+│   ├── contract.rs         # stage-plan contract model
+│   ├── execution_step.rs   # execution-step projections
+│   ├── json.rs             # JSON projections
+│   ├── mod.rs              # stage-plan public module surface
+│   └── reason.rs           # decision reason vocabulary
+├── lib.rs                  # crate public exports
+└── stage_plugin.rs         # stage-plugin invocation and output contracts
+```
 
 ## Data flow
 
