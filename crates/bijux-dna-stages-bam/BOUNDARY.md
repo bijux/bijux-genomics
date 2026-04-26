@@ -1,15 +1,21 @@
 # bijux-dna-stages-bam Boundary Contract
 
+Owner: Stages
+Scope: BAM stage invocation builders, output contracts, and observer parsers
+Allowed inputs: BAM domain contracts, shared stage contracts, fixture observations
+Forbidden dependencies: CLI adapters, API orchestration, engine internals, planner orchestration
+Forbidden effects: product execution outside declared fixture tests, network access, generated config writes
+Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-bam --no-default-features`
+
 ## Why this crate exists
-Defines a focused layer in the bijux-dna architecture with explicit boundaries.
+Owns BAM stage-level invocation and parsing contracts consumed by planners/runtime.
 
 ## Allowed dependencies
-- Workspace crates required for this layer only.
-- No reverse-layer coupling (enforced by policy tests).
+- Core, BAM domain, infra, stage-contract, policy, and testkit support.
+- No command-surface or orchestration ownership.
 
 ## Allowed effects
-- Pure data/model crates: no runtime side effects.
-- Runtime/CLI/runner crates: controlled filesystem/process/network effects only.
+- Pure invocation/observer contract construction and fixture-backed parsing.
 
 ## Notes
-Boundary invariants are enforced by bijux-dna-policies contract tests.
+The family-level contract is indexed in `docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md`.
