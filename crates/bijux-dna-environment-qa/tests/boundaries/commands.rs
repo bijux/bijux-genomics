@@ -63,8 +63,7 @@ fn documented_binary_names(commands_doc: &str) -> BTreeSet<String> {
         if !in_inventory {
             continue;
         }
-        if let Some(name) =
-            line.trim().strip_prefix("- `").and_then(|value| value.split_once('`'))
+        if let Some(name) = line.trim().strip_prefix("- `").and_then(|value| value.split_once('`'))
         {
             binaries.insert(name.0.to_string());
         }
@@ -76,7 +75,9 @@ fn documented_process_files(commands_doc: &str) -> BTreeSet<PathBuf> {
     commands_doc
         .lines()
         .filter_map(|line| line.trim().strip_prefix("- `src/"))
-        .filter_map(|value| value.split_once('`').map(|(path, _rest)| PathBuf::from("src").join(path)))
+        .filter_map(|value| {
+            value.split_once('`').map(|(path, _rest)| PathBuf::from("src").join(path))
+        })
         .collect()
 }
 
