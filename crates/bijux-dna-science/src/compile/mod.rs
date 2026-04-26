@@ -186,7 +186,7 @@ pub fn load_specs(root: &Path) -> Result<LoadedSpecs> {
 
     errors.extend(validate_cross_references(&loaded));
     if !errors.is_empty() {
-        return Err(validation_error(errors));
+        return Err(validation_error(&errors));
     }
     Ok(loaded)
 }
@@ -229,7 +229,7 @@ pub fn compile_loaded(root: &Path, loaded: LoadedSpecs) -> Result<CompiledScienc
         build_fastq_default_binding_risk_rows(&fastq_closure_gate_rows);
     let unresolved_refs = validate_cross_references(&loaded);
     if !unresolved_refs.is_empty() {
-        return Err(validation_error(unresolved_refs));
+        return Err(validation_error(&unresolved_refs));
     }
     let index = ScienceIndex {
         sources: loaded.sources.len(),
