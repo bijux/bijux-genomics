@@ -14,6 +14,7 @@ src/
 │   ├── execution/
 │   ├── run/
 │   ├── tooling/
+│   │   └── selection/
 │   └── version.rs
 ├── foundation/
 │   ├── cache.rs
@@ -36,6 +37,11 @@ src/
 ├── metrics/
 ├── prelude/
 └── public_api/
+    ├── catalog/
+    ├── contracts/
+    ├── ergonomics/
+    ├── identity/
+    └── metrics/
 ```
 
 ## Module Roles
@@ -53,7 +59,8 @@ src/
 - `metrics/` owns metric ids, derived metric parsing, schema lookup, registry
   constants, and metric payload contracts.
 - `prelude/` groups imports by source area and exposes the stable ergonomic
-  surface through `stable_surface.rs`.
+  surface through `stable_surface.rs`; it is the intended broad import path for
+  downstream crates that consume core contracts.
 - `public_api/` mirrors the stable public modules through explicit namespaces:
   `contracts`, `catalog`, `identity`, `metrics`, and `ergonomics`.
 
@@ -86,9 +93,10 @@ Normal dependencies must stay low-level and contract-facing:
 
 - `serde`, `serde_json`, `thiserror`, `sha2`, and `regex` support stable
   contract serialization, errors, hashing, and validation.
-- `chrono` and `walkdir` support input assessment records.
-- `tempfile` supports the local temp-file rename used by input assessment
-  persistence.
+- `chrono` records assessment creation time.
+- `walkdir` supports deterministic FASTQ discovery during input assessment.
+- `tempfile` is dev-only and supports tests that need isolated filesystem
+  fixtures.
 
 This crate must not depend on API, CLI, planner, runner, engine, runtime,
 environment, domain, stage, analyze, or benchmark crates. Any dependency that
