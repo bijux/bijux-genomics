@@ -20,8 +20,8 @@ operator-facing exit behavior.
   inventory, and help/documentation contracts.
 - `tests/contracts.rs` checks CLI behavior and dry-run output contracts.
 - `tests/guardrails.rs` runs shared policy guardrails for the crate.
-- `tests/workspace_paths.rs` is intentionally present for workspace-path
-  contract coverage when tests are selected by name.
+- `tests/support/workspace_paths.rs` contains workspace-root helpers shared by
+  integration suites without making support code look like a standalone suite.
 - `tests/contracts/` and `tests/snapshots/` hold focused contract fixtures and
   rendered help snapshots.
 
