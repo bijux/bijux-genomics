@@ -48,10 +48,7 @@ fn minimal_graph(run_dir: &Path) -> Result<ExecutionGraph> {
 }
 
 fn docker_contracts_enabled() -> bool {
-    matches!(
-        std::env::var("BIJUX_DNA_DOCKER_CONTRACTS").as_deref(),
-        Ok("1") | Ok("true") | Ok("yes")
-    )
+    matches!(std::env::var("BIJUX_DNA_DOCKER_CONTRACTS").as_deref(), Ok("1" | "true" | "yes"))
 }
 
 #[test]
