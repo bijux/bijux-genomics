@@ -1,6 +1,7 @@
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_domain_fastq::params::parse_effective_params;
 use bijux_dna_pipelines::registry::PipelineRegistry;
+use bijux_dna_pipelines::DefaultParams;
 
 fn bam_stage_from_id(stage_id: &str) -> Option<BamStage> {
     BamStage::all().iter().copied().find(|stage| stage.as_str() == stage_id)
@@ -44,4 +45,24 @@ fn defaults_compile_against_domain_params() {
             panic!("unknown stage namespace in defaults: {stage_id_str}");
         }
     }
+}
+
+#[test]
+fn default_params_deserialization_rejects_unknown_non_empty_payloads() {
+    let payload = serde_json::json!({
+        "schema_version": "bijux.unknown.params.v1",
+        "unexpected": true
+    });
+    let err = serde_json::from_value::<DefaultParams>(payload).expect_err("unknown payload");
+    assert!(
+        err.to_string().contains("unrecognized non-empty default params payload"),
+        "unexpected error: {err}"
+    );
+}
+
+#[test]
+fn empty_default_params_deserialization_remains_supported() {
+    let parsed = serde_json::from_value::<DefaultParams>(serde_json::json!({}))
+        .expect("empty cross/core params must deserialize");
+    assert!(matches!(parsed, DefaultParams::Empty(_)));
 }

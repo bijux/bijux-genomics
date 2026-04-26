@@ -19,6 +19,9 @@ use bijux_dna_domain_vcf::params::VcfEffectiveParams;
 use crate::{DefaultParams, EmptyParams};
 
 pub(super) fn from_json(value: serde_json::Value) -> anyhow::Result<DefaultParams> {
+    if value.as_object().is_some_and(serde_json::Map::is_empty) {
+        return Ok(DefaultParams::Empty(EmptyParams {}));
+    }
     if let Ok(parsed) = serde_json::from_value::<BamEffectiveParams>(value.clone()) {
         return Ok(DefaultParams::Bam(parsed));
     }
@@ -70,5 +73,5 @@ pub(super) fn from_json(value: serde_json::Value) -> anyhow::Result<DefaultParam
     if let Ok(parsed) = serde_json::from_value::<ScreenEffectiveParams>(value.clone()) {
         return Ok(DefaultParams::FastqScreen(parsed));
     }
-    Ok(DefaultParams::Empty(EmptyParams {}))
+    Err(anyhow::anyhow!("unrecognized non-empty default params payload"))
 }
