@@ -252,3 +252,27 @@ fn retry_attempts_emit_step_start_events() {
         .collect::<Vec<_>>();
     assert_eq!(starts, vec![0, 1]);
 }
+
+#[test]
+fn exhausted_retries_emit_failure_end_event() {
+    let plan = build_graph(vec![plan_for("A")], Vec::new())
+        .with_retry_policy(RetryPolicy { max_attempts: 1, retry_on_exit_codes: vec![1] });
+    let hooks = RecordingHooks::default();
+    let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
+
+    let err = Engine::default()
+        .execute(&plan, &ScenarioRunner::new(Mode::FailOnceThenSuccess), &layout, Some(&hooks), None)
+        .err()
+        .unwrap_or_else(|| panic!("expected exhausted retry failure"));
+    assert!(err.to_string().contains("step failed after retries"));
+
+    let end_events = hooks
+        .events()
+        .into_iter()
+        .filter_map(|event| match event {
+            EngineEvent::StepEnd { attempt, success, .. } => Some((attempt, success)),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(end_events, vec![(0, false)]);
+}

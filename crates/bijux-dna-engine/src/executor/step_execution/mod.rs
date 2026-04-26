@@ -87,6 +87,13 @@ fn execute_step(
         let retry_policy = graph.retry_policy();
         let allow_retry = retry_policy.retry_on_exit_codes.contains(&outcome.exit_code);
         if !allow_retry || attempt + 1 >= retry_policy.max_attempts {
+            if let Some(hooks) = hooks {
+                hooks.on_event(EngineEvent::StepEnd {
+                    step_id: step.step_id.clone(),
+                    attempt,
+                    success: false,
+                });
+            }
             let step_id = step.step_id.to_string();
             return Err(anyhow!("step failed after retries: {step_id}"));
         }
