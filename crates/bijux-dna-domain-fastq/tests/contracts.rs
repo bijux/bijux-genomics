@@ -27,6 +27,8 @@ mod mod_contracts_pipeline_ordering_rs;
 mod mod_contracts_planned_tool_bindings_rs;
 #[path = "contracts/preflight_inputs.rs"]
 mod mod_contracts_preflight_inputs_rs;
+#[path = "contracts/public_api_docs.rs"]
+mod mod_contracts_public_api_docs_rs;
 #[path = "contracts/public_surface.rs"]
 mod mod_contracts_public_surface_rs;
 #[path = "contracts/remove_duplicates_manifest.rs"]
