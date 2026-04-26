@@ -5,7 +5,7 @@ policy, and options used for a run.
 
 ## Reproduce A Benchmark Summary
 
-1. Load the suite TOML from `bench/suites/`.
+1. Load the suite TOML from `crates/bijux-dna-bench/bench/suites/`.
 2. Collect the governed `BenchmarkObservation` records for the run.
 3. Use the same `BenchRunOptions`, including output directory and resume setting.
 4. Call `summarize`.

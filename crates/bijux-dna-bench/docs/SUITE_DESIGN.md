@@ -1,6 +1,6 @@
 # Suite Design
 
-Checked-in benchmark suites live under `bench/suites/`.
+Checked-in benchmark suites live under `crates/bijux-dna-bench/bench/suites/`.
 
 ## Suite Rules
 
@@ -23,7 +23,7 @@ Checked-in benchmark suites live under `bench/suites/`.
 
 ## Adding A Suite
 
-1. Add a TOML file under `bench/suites/` with a durable suite id.
+1. Add a TOML file under `crates/bijux-dna-bench/bench/suites/` with a durable suite id.
 2. Validate it through `BenchmarkSuiteSpec`.
 3. Ensure stage ids, tool ids, and parameter bindings are governed.
 4. Add fixtures or snapshots when the suite introduces a new artifact shape or

@@ -42,7 +42,7 @@ The SSOT for callable operations is `docs/COMMANDS.md`.
   and suite artifact persistence.
 - `src/repo/` owns workspace path policy and read-only run artifact loading.
 - `src/artifacts/` owns deterministic artifact serialization.
-- `bench/suites/` contains the checked-in benchmark suite catalog.
+- `crates/bijux-dna-bench/bench/suites/` contains the checked-in benchmark suite catalog.
 
 See `docs/ARCHITECTURE.md`, `docs/BOUNDARY.md`, and `docs/PUBLIC_API.md` for the
 full contract.
