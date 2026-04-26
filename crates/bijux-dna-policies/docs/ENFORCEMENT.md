@@ -1,19 +1,25 @@
 # Enforcement Workflow
 
-## Golden workflow
-Run all policy gates together:
+## Policy Gates
+- `make guardrails` checks per-crate guardrail configs and source-surface constraints.
+- `make policies` runs workspace boundary, ownership, docs, dependency, and tooling policies.
+- `make structure-check` verifies tree shape, docs spine, and layout contracts.
 
-`make guardrails && make policies && make structure-check`
+## Package Commands
+Use `docs/COMMANDS.md` as the SSOT for commands this crate manages.
 
-## What each gate covers
-- `make guardrails`: per-crate guardrail configs (public surface, module counts, etc.).
-- `make policies`: workspace boundary, ownership, and doc policies.
-- `make structure-check`: tree shape, docs spine, and layout contracts.
+## Diagnostics Format
+Policy failures should explain:
 
-## How to debug failures
-- Use the WHAT/WHY/HOW/MORE message to identify the rule and fix.
-- Open the test file referenced in the failure message.
-- Check `docs/TESTS.md` for the intent of the rule.
+- WHAT failed.
+- WHY the rule exists.
+- HOW to repair the violation.
+- MORE context, usually a crate doc or policy test path.
 
-## Snapshot updates
-Only bless snapshots when the policy change is intentional. See `docs/BLESS_WORKFLOW.md`.
+## Snapshot Changes
+Snapshots are contracts. Update them only when the policy, fixture, or documentation contract intentionally changes, and keep the snapshot update in the same reviewable change as the cause.
+
+## Policy Changes
+- Adding a stricter policy is allowed when it has clear ownership and documentation.
+- Weakening or deleting a policy requires an explicit boundary reason in the change.
+- New allowlists must include a narrow reason and owner in code or docs.
