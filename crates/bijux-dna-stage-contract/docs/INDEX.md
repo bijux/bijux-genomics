@@ -13,6 +13,9 @@ See `PUBLIC_API.md` for exported types, schema examples, and snapshots.
 ## Contract
 See `CONTRACT.md` for versioning, terminology, and the example-plan field map.
 
+## Dependencies
+See `DEPENDENCIES.md` for the runtime and dev dependency boundary.
+
 ## Commands
 See `COMMANDS.md` for the SSOT of pure callable operations owned by this crate.
 
