@@ -4,6 +4,7 @@ use super::identity::{
 };
 use super::inputs::container_input_mapping;
 use super::observer::build_observer_command_args;
+use super::runtime_policy::stage_workdir_for_value;
 use super::{build_apptainer_exec_args, container_command_template, hash_inputs};
 use anyhow::anyhow;
 use bijux_dna_core::contract::ExecutionStep;
@@ -57,6 +58,21 @@ fn runtime_platform_identity_defaults_to_runner_name() {
     assert_eq!(runtime_platform_identity(RuntimeKind::Docker), "docker");
     assert_eq!(runtime_platform_identity(RuntimeKind::Apptainer), "apptainer");
     assert_eq!(runtime_platform_identity(RuntimeKind::Singularity), "singularity");
+}
+
+#[test]
+fn stage_workdir_rejects_paths_that_escape_output_root() {
+    let out_dir = Path::new("/artifacts/runtime/out");
+
+    assert_eq!(
+        stage_workdir_for_value(out_dir, "/artifacts/runtime/out/nested/work"),
+        "/data/output/nested/work"
+    );
+    assert_eq!(
+        stage_workdir_for_value(out_dir, "/artifacts/runtime/out/../outside"),
+        "/data/output"
+    );
+    assert_eq!(stage_workdir_for_value(out_dir, "/artifacts/runtime/outside/work"), "/data/output");
 }
 
 #[test]
