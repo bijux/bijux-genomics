@@ -33,7 +33,9 @@ pub fn validate_execution_outputs(contract: &ExecutionContract, out_dir: &Path) 
 
     if contract.forbid_unexpected_outputs {
         for output in &outputs {
-            if !contract.expected_outputs.iter().any(|pattern| matches_pattern(output, pattern)) {
+            let expected = contract.expected_outputs.iter().any(|pattern| matches_pattern(output, pattern));
+            let optional = contract.optional_outputs.iter().any(|pattern| matches_pattern(output, pattern));
+            if !expected && !optional {
                 return Err(anyhow!("unexpected output produced: {output}"));
             }
         }
