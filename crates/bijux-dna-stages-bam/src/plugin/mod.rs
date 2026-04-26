@@ -20,6 +20,9 @@ impl StagePlugin for BamStagePlugin {
         if !self.handles_stage(plan.stage_id.as_str()) {
             return Err(anyhow!("unsupported BAM stage {}", plan.stage_id.as_str()));
         }
+        if plan.command.template.is_empty() {
+            return Err(anyhow!("BAM stage {} has empty command template", plan.stage_id.as_str()));
+        }
         Ok(invocation::materialize_stage_invocation(plan))
     }
 
