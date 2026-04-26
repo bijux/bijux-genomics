@@ -20,4 +20,4 @@
 ## Enforcement
 - Shared policy guardrails run through `tests/guardrails.rs`.
 - Planned command ownership is documented in `docs/COMMANDS.md`.
-- Source-effect boundary tests should reject process, network, and filesystem mutation primitives in production source.
+- Production source effect checks live in `tests/boundaries/source_effects.rs`.
