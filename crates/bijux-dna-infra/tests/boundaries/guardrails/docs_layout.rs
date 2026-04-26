@@ -7,8 +7,8 @@ fn crate_root() -> PathBuf {
 
 #[test]
 fn public_api_lists_the_curated_root_surface() {
-    let content = fs::read_to_string(crate_root().join("PUBLIC_API.md"))
-        .unwrap_or_else(|err| panic!("read PUBLIC_API.md: {err}"));
+    let content = fs::read_to_string(crate_root().join("docs/PUBLIC_API.md"))
+        .unwrap_or_else(|err| panic!("read docs/PUBLIC_API.md: {err}"));
     for expected in ["hash_file_sha256", "IoError", "RetryPolicy", "RunLayoutContract", "temp_dir"]
     {
         assert!(content.contains(expected), "PUBLIC_API.md must mention {expected}");
