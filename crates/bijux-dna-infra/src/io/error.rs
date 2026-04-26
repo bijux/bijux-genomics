@@ -42,9 +42,11 @@ pub fn classify_io_error(err: &std::io::Error) -> IoErrorKind {
         ErrorKind::TimedOut | ErrorKind::WouldBlock | ErrorKind::Interrupted => {
             IoErrorKind::Transient
         }
-        ErrorKind::InvalidData | ErrorKind::InvalidInput | ErrorKind::UnexpectedEof => {
-            IoErrorKind::Corruption
-        }
+        ErrorKind::AlreadyExists
+        | ErrorKind::InvalidData
+        | ErrorKind::InvalidInput
+        | ErrorKind::NotADirectory
+        | ErrorKind::UnexpectedEof => IoErrorKind::Corruption,
         _ => IoErrorKind::Other,
     }
 }
