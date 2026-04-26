@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::{
     ExecutionGraph, ExecutionStep, RunRecordV1, StageExecutionRecordV1,
@@ -64,7 +66,7 @@ fn execute_step(
         )?;
         let success = outcome.exit_code == 0;
         if let Some(timeout_s) = graph.step_timeout_s() {
-            if duration.as_secs() > timeout_s {
+            if duration > Duration::from_secs(timeout_s) {
                 return Err(anyhow!("step {} exceeded timeout {}s", step.step_id.0, timeout_s));
             }
         }

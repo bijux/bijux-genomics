@@ -12,6 +12,7 @@ use crate::support::{build_graph, execution_setup, plan_for};
 enum Mode {
     Success,
     FailOnceThenSuccess,
+    JustOverTimeout,
     Timeout,
 }
 
@@ -71,6 +72,7 @@ impl Runner for ScenarioRunner {
                 let code = i32::from(invocation.attempt == 0);
                 (code, Duration::from_millis(1))
             }
+            Mode::JustOverTimeout => (0, Duration::from_millis(1_100)),
             Mode::Timeout => (0, Duration::from_secs(2)),
         };
 
@@ -150,6 +152,18 @@ fn execute_plan_reports_timeout_and_contract_errors() {
         }
         build_graph(vec![step], Vec::new())
     };
+
+    let graph = make_graph(false);
+    let fractional_timeout_err = Engine::new(EngineConfig {
+        step_timeout_s: Some(1),
+        deterministic_scheduler: true,
+        retry_policy: None,
+        max_parallelism: None,
+    })
+    .execute(&graph, &ScenarioRunner::new(Mode::JustOverTimeout), &layout, None, None)
+    .err()
+    .unwrap_or_else(|| panic!("expected fractional timeout error"));
+    assert!(fractional_timeout_err.to_string().contains("exceeded timeout"));
 
     let graph = make_graph(false);
     let timeout_err = Engine::new(EngineConfig {
