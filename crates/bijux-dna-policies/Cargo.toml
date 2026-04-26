@@ -23,3 +23,6 @@ bijux-dna-pipelines = { path = "../bijux-dna-pipelines" }
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-stage-contract = { path = "../bijux-dna-stage-contract" }
+
+[lints]
+workspace = true
