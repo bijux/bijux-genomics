@@ -14,6 +14,7 @@ pub(super) fn apply(
     }
     for (stage, params) in &overrides.params {
         super::validation::ensure_stage_known(profile, stage, "params override")?;
+        super::validation::ensure_params_match_stage(stage, params, "params override")?;
         merged.params.insert(stage.clone(), params.clone());
         merged.rationales.insert(stage.clone(), rationale.to_string());
     }
