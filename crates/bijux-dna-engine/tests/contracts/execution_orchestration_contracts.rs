@@ -247,8 +247,9 @@ fn metrics_envelope_schema_must_match_declared_schema_ids() {
     step.metrics_schema_ids = vec!["schema.v1".to_string()];
     let graph = build_graph(vec![step], Vec::new());
     let mut runner = ScenarioRunner::new(Mode::Success);
-    runner.metrics_envelope_payload =
-        Some(r#"{"metrics":{"metrics_schema":"other.v1"},"schema_version":"bijux.metrics_envelope.v2"}"#);
+    runner.metrics_envelope_payload = Some(
+        r#"{"metrics":{"metrics_schema":"other.v1"},"schema_version":"bijux.metrics_envelope.v2"}"#,
+    );
 
     let err = Engine::default()
         .execute(&graph, &runner, &layout, None, None)
@@ -332,7 +333,13 @@ fn retry_attempts_emit_step_start_events() {
     let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
 
     Engine::default()
-        .execute(&plan, &ScenarioRunner::new(Mode::FailOnceThenSuccess), &layout, Some(&hooks), None)
+        .execute(
+            &plan,
+            &ScenarioRunner::new(Mode::FailOnceThenSuccess),
+            &layout,
+            Some(&hooks),
+            None,
+        )
         .unwrap_or_else(|err| panic!("run: {err}"));
 
     let starts = hooks
@@ -378,7 +385,13 @@ fn exhausted_retries_emit_failure_end_event() {
     let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
 
     let err = Engine::default()
-        .execute(&plan, &ScenarioRunner::new(Mode::FailOnceThenSuccess), &layout, Some(&hooks), None)
+        .execute(
+            &plan,
+            &ScenarioRunner::new(Mode::FailOnceThenSuccess),
+            &layout,
+            Some(&hooks),
+            None,
+        )
         .err()
         .unwrap_or_else(|| panic!("expected exhausted retry failure"));
     assert!(err.to_string().contains("step failed after retries"));
