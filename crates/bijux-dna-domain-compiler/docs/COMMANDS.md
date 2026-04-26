@@ -1,0 +1,26 @@
+# bijux-dna-domain-compiler Commands
+
+`bijux-dna-domain-compiler` owns the domain compilation and domain validation command
+surface for generated CI config views.
+
+## Managed command inventory
+
+| Command | Binary | Purpose | Owned options |
+| --- | --- | --- | --- |
+| `compile_domain_configs` | `src/bin/compile_domain_configs.rs` | Compile authored `domain/` YAML into governed generated config files under `configs/ci/`. | `--domain-dir <path>`, `--configs-dir <path>`, `--scope <scope>` |
+| `domain_validate` | `src/bin/domain_validate.rs` | Validate authored domain YAML, reference catalogs, stage/tool indexes, and cross-domain coverage. | `--domain-dir <path>` |
+
+The default compile scope is `pre_hpc_pre_vcf`. That scope emits FASTQ/BAM runtime config
+views and keeps VCF config views separated into explicit generated VCF files.
+
+## Boundary
+
+- These commands may read authored domain files and write declared generated config outputs.
+- These commands must not execute bioinformatics tools, launch containers, call network services,
+  schedule pipelines, or mutate runtime state.
+- New command flags must be documented here in the same change that adds the CLI behavior.
+
+## Verification
+
+Use `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-compiler --no-default-features --test boundaries`
+to verify that the command inventory matches the binary tree.

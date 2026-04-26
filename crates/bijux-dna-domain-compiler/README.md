@@ -16,6 +16,7 @@ Outputs are written as generated artifacts and are safe to overwrite.
 - Library: `compile_domain_configs`, `validate_domain`
 - Library: `domain_coverage_report`
 - Binaries: `compile_domain_configs`, `domain_validate`
+- Command SSOT: [docs/COMMANDS.md](docs/COMMANDS.md)
 
 ## Key contracts it owns/consumes
 - Owns generated config contract headers and structure.
@@ -47,5 +48,6 @@ Primary test files:
 ## Where the docs live
 - [docs/INDEX.md](docs/INDEX.md)
 - [docs/BOUNDARY.md](docs/BOUNDARY.md)
+- [docs/COMMANDS.md](docs/COMMANDS.md)
 - [docs/PUBLIC_API.md](docs/PUBLIC_API.md)
 - [docs/TESTS.md](docs/TESTS.md)
