@@ -1,6 +1,7 @@
-# bijux-dna-db-ref Architecture
+# Architecture
 
-`bijux-dna-db-ref` is a deterministic metadata resolver. Its ideal tree is a small root over focused namespaces:
+`bijux-dna-db-ref` is a deterministic metadata resolver. Its tree is a small
+root over focused namespaces:
 
 ```text
 src/
@@ -13,7 +14,7 @@ src/
 └── runtime_config/
 ```
 
-Responsibilities:
+## Responsibilities
 
 - `lib.rs` owns only the curated crate surface.
 - `public_api/` is the explicit namespace for stable exports.
@@ -24,3 +25,16 @@ Responsibilities:
 - `runtime_config/` owns workspace path discovery, TOML loading, and config DTOs grouped by concern.
 
 This boundary keeps runtime loading, data contracts, and lookup behavior from collapsing back into broad root files.
+
+## Test Tree
+
+```text
+tests/
+├── boundaries.rs
+├── boundaries/
+│   └── architecture_tree.rs
+├── contracts.rs
+├── contracts/
+│   └── runtime_provider.rs
+└── guardrails.rs
+```

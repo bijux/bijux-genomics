@@ -1,40 +1,65 @@
 # bijux-dna-db-ref
 
-## What this crate does
-Owns deterministic species/build reference resolution for VCF planning (`resolve_species_context`, `resolve_reference_bundle`) and runtime authority lookups (`species.toml`, `reference_bank.toml`).
-Also owns genetic map bank lookups, sex/PAR policy, organellar policy, and default reference-set selection APIs.
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read those files before editing this child
+repository and before committing.
 
-## What it must not do (boundaries)
-Must not execute tools, spawn processes, or perform runtime orchestration; it only resolves lock-backed metadata.
+## Scope
 
-## Effects & determinism guarantees
-Pure lookup behavior over checked-in config/lock material; no hidden side effects and deterministic outputs for identical inputs.
+`bijux-dna-db-ref` owns deterministic species/build reference resolution for
+VCF planning and runtime provenance. It resolves species contexts, reference
+bundles, reference banks, genetic maps, panels, sex/PAR policy, organellar
+policy, and default reference sets from checked-in config and lock material.
 
-## Public API / entrypoints
-Start with `PUBLIC_API.md`, `docs/ARCHITECTURE.md`, and `docs/TESTS.md`. The public surface is curated through `src/public_api/`, while runtime loading, models, providers, and lookup behavior live in dedicated namespaces under `src/`.
+This crate does not execute tools, spawn processes, perform network access, or
+own runtime orchestration.
 
-## Key contracts it owns/consumes
-Owns reference governance contracts and consumes `bijux-dna-domain-vcf` species/reference types.
+## Managed Operations
 
-## Artifacts / Contracts
-- [docs/INDEX.md](docs/INDEX.md)
-- [docs/SCOPE.md](docs/SCOPE.md)
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/TESTS.md](docs/TESTS.md)
+`docs/COMMANDS.md` is the SSOT for callable resolver operations, including:
 
-## Failure modes
-- Unknown species/build alias.
-- Missing/invalid reference bundle lock metadata.
-- Missing species/reference authority metadata.
-- Contig/build mismatch at resolution time.
+- `resolve-species-alias`
+- `resolve-species-context`
+- `resolve-reference-bundle`
+- `resolve-panel`
+- `resolve-map`
+- `validate-imputation-tool-compatibility`
+- `ref-service`
 
-## How to run its tests
-- `cargo test -p bijux-dna-db-ref`
-- `cargo test -p bijux-dna-db-ref --test boundaries`
-- `cargo test -p bijux-dna-db-ref --test contracts`
-- `tests/guardrails.rs`
-- `tests/boundaries.rs`
-- `tests/contracts.rs`
+## Architecture
 
-## Where the docs live
-All crate docs are in [`docs/`](docs/INDEX.md), with test guidance in [`docs/TESTS.md`](docs/TESTS.md).
+- `src/catalog/` owns panel/map catalog records, lock records, and compatibility
+  policy.
+- `src/model/` owns species authority and reference asset contracts.
+- `src/providers/` owns runtime-facing provider traits and the default runtime
+  implementation.
+- `src/resolution/` owns pure lookup behavior, lock validation, contig
+  normalization, and compatibility checks.
+- `src/runtime_config/` owns repository path discovery, TOML loading, and config
+  DTOs.
+- `src/public_api/` owns stable re-exports.
+
+## Documentation
+
+The crate root intentionally has only this `README.md`. All other crate docs
+live under `docs/`, with a 10-document allowance enforced by boundary tests:
+
+- `docs/ARCHITECTURE.md`
+- `docs/BOUNDARY.md`
+- `docs/CHANGE_RULES.md`
+- `docs/COMMANDS.md`
+- `docs/CONTRACTS.md`
+- `docs/DEPENDENCIES.md`
+- `docs/INDEX.md`
+- `docs/PUBLIC_API.md`
+- `docs/SCOPE.md`
+- `docs/TESTS.md`
+
+## Verification
+
+Run from the `bijux-genomics` repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-db-ref --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-db-ref --no-default-features
+```
