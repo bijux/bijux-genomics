@@ -12,9 +12,9 @@ serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
 toml.workspace = true
-bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
-bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
-bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
+bijux-dna-infra = { workspace = true, features = ["yaml"] }
+bijux-dna-domain-fastq.workspace = true
+bijux-dna-domain-bam.workspace = true
 
 [dev-dependencies]
 bijux-dna-policies.workspace = true
