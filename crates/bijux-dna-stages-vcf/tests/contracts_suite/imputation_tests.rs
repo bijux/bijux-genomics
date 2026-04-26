@@ -213,8 +213,8 @@
             build_id: "GRCh38".to_string(),
             contig_set_digest: "x".repeat(64),
             contigs: vec![
-                ContigSpec { name: "chr1".to_string(), length_bp: 1000 },
-                ContigSpec { name: "chr2".to_string(), length_bp: 1000 },
+                ContigSpec { name: "1".to_string(), length_bp: 1000 },
+                ContigSpec { name: "2".to_string(), length_bp: 1000 },
             ],
             sex_system: "xy".to_string(),
             par_policy: "grch38_par".to_string(),
@@ -442,8 +442,8 @@
             build_id: "GRCh38".to_string(),
             contig_set_digest: "x".repeat(64),
             contigs: vec![
-                ContigSpec { name: "chr1".to_string(), length_bp: 1000 },
-                ContigSpec { name: "chr2".to_string(), length_bp: 1000 },
+                ContigSpec { name: "1".to_string(), length_bp: 1000 },
+                ContigSpec { name: "2".to_string(), length_bp: 1000 },
             ],
             sex_system: "xy".to_string(),
             par_policy: "grch38_par".to_string(),

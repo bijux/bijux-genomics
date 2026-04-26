@@ -93,7 +93,7 @@
         let panel = panel_raw.join("panel.vcf.gz");
         std::fs::write(
             &panel,
-            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t101\t.\tA\tC\t60\tPASS\tDP=8\tGT\t0/1\n",
+            "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t101\t.\tA\tC\t60\tPASS\tDP=8\tGT\t0/1\n",
         )
         .unwrap_or_else(|err| panic!("write panel mismatch fixture: {err}"));
         let species = SpeciesContext {
