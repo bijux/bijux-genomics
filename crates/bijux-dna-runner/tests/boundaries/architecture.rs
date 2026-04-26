@@ -168,12 +168,20 @@ fn runner_tree_matches_architecture_contract() {
         "schemas.rs",
         "semantics/",
         "semantics.rs",
-        "workspace_paths.rs",
+        "support/",
     ]
     .into_iter()
     .map(str::to_string)
     .collect();
     assert_eq!(tests_entries, expected_tests, "runner tests tree must stay grouped by intent");
+
+    let support_entries = dir_entries(&root.join("tests/support"));
+    let expected_support_tests: BTreeSet<_> =
+        ["workspace_paths.rs"].into_iter().map(str::to_string).collect();
+    assert_eq!(
+        support_entries, expected_support_tests,
+        "runner support tests must stay under tests/support"
+    );
 
     let boundary_test_entries = dir_entries(&root.join("tests/boundaries"));
     let expected_boundary_tests: BTreeSet<_> = [
