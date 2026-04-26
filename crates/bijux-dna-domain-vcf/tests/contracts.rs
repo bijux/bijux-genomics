@@ -11,7 +11,8 @@ mod contracts {
         },
         coverage::domain_coverage_report,
         param_registry_toml, required_tools_toml, validate_downstream_transition, CoverageRegime,
-        VcfDomainStage, VcfStage, VCF_PARAMS_CATALOG, VCF_STAGE_ORDER_DOWNSTREAM,
+        VcfDomainStage, VcfStage, VCF_METRICS_CATALOG, VCF_PARAMS_CATALOG,
+        VCF_STAGE_ORDER_DOWNSTREAM,
     };
 
     #[test]
@@ -221,6 +222,18 @@ mod contracts {
                 "bijux.vcf.call_pseudohaploid.params",
                 "bijux.vcf.damage_filter.params",
                 "bijux.vcf.gl_propagation.params",
+            ]
+        );
+    }
+
+    #[test]
+    fn public_metrics_catalog_matches_exported_vcf_metrics() {
+        assert_eq!(
+            VCF_METRICS_CATALOG,
+            [
+                "bijux.vcf.call_summary.v1",
+                "bijux.vcf.filter_breakdown.v1",
+                "bijux.vcf.stats.v1",
             ]
         );
     }
