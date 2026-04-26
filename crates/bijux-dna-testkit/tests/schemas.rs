@@ -3,6 +3,8 @@
 mod mod_schemas_docs_lightweight_rs;
 #[path = "schemas/public_api_docs.rs"]
 mod mod_schemas_public_api_docs_rs;
+#[path = "schemas/public_api_mirror.rs"]
+mod mod_schemas_public_api_mirror_rs;
 #[path = "schemas/public_api_snapshot.rs"]
 mod mod_schemas_public_api_snapshot_rs;
 #[path = "schemas/public_api_surface.rs"]
