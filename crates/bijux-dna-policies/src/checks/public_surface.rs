@@ -25,7 +25,7 @@ pub(crate) fn check_pub_items(files: &[PathBuf], config: &GuardrailConfig) -> Re
 }
 
 pub(crate) fn check_pub_use_spam(files: &[PathBuf], config: &GuardrailConfig) -> Result<()> {
-    let pub_use_re = Regex::new(r"^\s*pub\s+use\b")?;
+    let pub_use_re = Regex::new(r"^\s*pub(?:\s*\([^)]*\))?\s+use\b")?;
     for path in files {
         let content = fs::read_to_string(path)?;
         let count = content.lines().filter(|line| pub_use_re.is_match(line)).count();
