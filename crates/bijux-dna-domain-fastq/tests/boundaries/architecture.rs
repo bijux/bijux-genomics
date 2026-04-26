@@ -147,6 +147,44 @@ fn crate_tree_matches_domain_fastq_boundary() {
         "trim parameters must keep terminal damage and tool-profile policy separated"
     );
 
+    assert_eq!(
+        dir_entries(&root.join("src/observer")),
+        entries(["contracts/", "parse/"]),
+        "observer/ must stay split between contract catalog and parser implementation"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/observer/contracts")),
+        entries(["amplicon.rs", "catalog.rs", "core.rs", "mod.rs", "queries.rs", "transform.rs"]),
+        "observer contracts must stay split by contract family and query surface"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/observer/parse")),
+        entries([
+            "adapter_taxonomy.rs",
+            "correct_errors.rs",
+            "depletion/",
+            "duplicates.rs",
+            "filtering.rs",
+            "mod.rs",
+            "parser_contracts/",
+            "profiles/",
+            "reports.rs",
+            "sequence.rs",
+            "tool_metrics.rs",
+        ]),
+        "observer parsers must stay grouped by report family"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/observer/parse/depletion")),
+        entries(["host.rs", "mod.rs", "reference_contaminants.rs", "rrna.rs"]),
+        "depletion parsers must stay split by depletion target"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/observer/parse/profiles")),
+        entries(["mod.rs", "overrepresented.rs", "read_lengths.rs", "reads.rs"]),
+        "profile parsers must stay split by profile output family"
+    );
+
     let expected_stages: BTreeSet<_> = [
         "contract.rs",
         "contract/",
