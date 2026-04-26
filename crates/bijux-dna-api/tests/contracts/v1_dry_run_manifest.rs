@@ -11,76 +11,7 @@ use bijux_dna_core::prelude::{
     ArtifactRole, ArtifactSpec, CommandSpecV1, ContainerImageRefV1, StageIO, ToolConstraints,
 };
 
-#[test]
-fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
-    let temp = tempfile::tempdir()?;
-    let graph = ExecutionGraph::new(
-        "fastq-to-fastq__default__v1",
-        "test-planner",
-        PlanPolicy::PreferAccuracy,
-        Vec::new(),
-        Vec::new(),
-    )?;
-    let request = DryRunRequest {
-        graph,
-        run_dir: temp.path().to_path_buf(),
-        profile_id: "fastq-to-fastq__default__v1".to_string(),
-    };
-    let response = dry_run(&request)?;
-    assert!(response.graph_path.exists());
-    assert!(response.manifest_path.exists());
-    assert!(temp.path().join("run_summary.json").exists());
-    Ok(())
-}
-
-#[test]
-fn dry_run_creates_missing_run_dir() -> Result<()> {
-    let temp = tempfile::tempdir()?;
-    let run_dir = temp.path().join("runs").join("dry-run");
-    let graph = ExecutionGraph::new(
-        "fastq-to-fastq__default__v1",
-        "test-planner",
-        PlanPolicy::PreferAccuracy,
-        Vec::new(),
-        Vec::new(),
-    )?;
-    let request = DryRunRequest {
-        graph,
-        run_dir: run_dir.clone(),
-        profile_id: "fastq-to-fastq__default__v1".to_string(),
-    };
-
-    let response = dry_run(&request)?;
-
-    assert!(run_dir.is_dir());
-    assert!(response.graph_path.exists());
-    assert!(response.manifest_path.exists());
-    Ok(())
-}
-
-#[test]
-fn dry_run_manifest_verifies_output_artifacts() -> Result<()> {
-    let temp = tempfile::tempdir()?;
-    let graph = ExecutionGraph::new(
-        "fastq-to-fastq__default__v1",
-        "test-planner",
-        PlanPolicy::PreferAccuracy,
-        Vec::new(),
-        Vec::new(),
-    )?;
-    let request = DryRunRequest {
-        graph,
-        run_dir: temp.path().to_path_buf(),
-        profile_id: "fastq-to-fastq__default__v1".to_string(),
-    };
-    let response = dry_run(&request)?;
-
-    replay_manifest(&response.manifest_path, true)
-}
-
-#[test]
-fn dry_run_manifest_records_planned_stages() -> Result<()> {
-    let temp = tempfile::tempdir()?;
+fn minimal_graph() -> Result<ExecutionGraph> {
     let step = ExecutionStep {
         step_id: StepId::new("fastq.validate_reads"),
         stage_id: StageId::new("fastq.validate_reads"),
@@ -107,13 +38,77 @@ fn dry_run_manifest_records_planned_stages() -> Result<()> {
         expected_artifact_ids: Vec::new(),
         metrics_schema_ids: Vec::new(),
     };
-    let graph = ExecutionGraph::new(
+    Ok(ExecutionGraph::new(
         "fastq-to-fastq__default__v1",
         "test-planner",
         PlanPolicy::PreferAccuracy,
         vec![step],
         Vec::new(),
-    )?;
+    )?)
+}
+
+fn docker_available() -> bool {
+    std::process::Command::new("docker")
+        .arg("version")
+        .arg("--format")
+        .arg("{{.Server.Version}}")
+        .status()
+        .map_or(false, |status| status.success())
+}
+
+#[test]
+fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let graph = minimal_graph()?;
+    let request = DryRunRequest {
+        graph,
+        run_dir: temp.path().to_path_buf(),
+        profile_id: "fastq-to-fastq__default__v1".to_string(),
+    };
+    let response = dry_run(&request)?;
+    assert!(response.graph_path.exists());
+    assert!(response.manifest_path.exists());
+    assert!(temp.path().join("run_summary.json").exists());
+    Ok(())
+}
+
+#[test]
+fn dry_run_creates_missing_run_dir() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let run_dir = temp.path().join("runs").join("dry-run");
+    let graph = minimal_graph()?;
+    let request = DryRunRequest {
+        graph,
+        run_dir: run_dir.clone(),
+        profile_id: "fastq-to-fastq__default__v1".to_string(),
+    };
+
+    let response = dry_run(&request)?;
+
+    assert!(run_dir.is_dir());
+    assert!(response.graph_path.exists());
+    assert!(response.manifest_path.exists());
+    Ok(())
+}
+
+#[test]
+fn dry_run_manifest_verifies_output_artifacts() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let graph = minimal_graph()?;
+    let request = DryRunRequest {
+        graph,
+        run_dir: temp.path().to_path_buf(),
+        profile_id: "fastq-to-fastq__default__v1".to_string(),
+    };
+    let response = dry_run(&request)?;
+
+    replay_manifest(&response.manifest_path, true)
+}
+
+#[test]
+fn dry_run_manifest_records_planned_stages() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let graph = minimal_graph()?;
     let request = DryRunRequest {
         graph,
         run_dir: temp.path().to_path_buf(),
@@ -130,14 +125,12 @@ fn dry_run_manifest_records_planned_stages() -> Result<()> {
 
 #[test]
 fn execute_emits_run_summary_artifact() -> Result<()> {
+    if !docker_available() {
+        return Ok(());
+    }
+
     let temp = tempfile::tempdir()?;
-    let graph = ExecutionGraph::new(
-        "fastq-to-fastq__default__v1",
-        "test-planner",
-        PlanPolicy::PreferAccuracy,
-        Vec::new(),
-        Vec::new(),
-    )?;
+    let graph = minimal_graph()?;
     let response = execute(&ExecuteRequest {
         graph,
         runner: RuntimeKind::Docker,
