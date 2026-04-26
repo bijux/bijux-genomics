@@ -33,6 +33,12 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
         if stage.io.outputs.is_empty() {
             return Err(anyhow!("stage {} missing declared outputs", stage.stage_id.0));
         }
+        ensure_unique_stage_artifacts(stage, "input", stage.io.inputs.iter().map(|artifact| {
+            artifact.name.as_str()
+        }))?;
+        ensure_unique_stage_artifacts(stage, "output", stage.io.outputs.iter().map(|artifact| {
+            artifact.name.as_str()
+        }))?;
         if stage.resources.mem_gb == 0 || stage.resources.threads == 0 {
             return Err(anyhow!("stage {} missing resource hints", stage.stage_id.0));
         }
@@ -115,6 +121,23 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
         edges.push((edge.from().to_string(), edge.to().to_string()));
     }
     ensure_plan_is_dag(&id_catalog, &edges)?;
+    Ok(())
+}
+
+fn ensure_unique_stage_artifacts<'a>(
+    stage: &StagePlanV1,
+    direction: &str,
+    artifact_names: impl Iterator<Item = &'a str>,
+) -> Result<()> {
+    let mut seen = HashSet::new();
+    for artifact_name in artifact_names {
+        if !seen.insert(artifact_name) {
+            return Err(anyhow!(
+                "stage {} has duplicate {direction} artifact {artifact_name}",
+                stage.stage_id.0
+            ));
+        }
+    }
     Ok(())
 }
 
