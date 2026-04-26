@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/command_inventory.rs"]
+mod mod_contracts_command_inventory_rs;
 #[path = "contracts/contract_snapshots.rs"]
 mod mod_contracts_contract_snapshots_rs;
 #[path = "contracts/docs.rs"]
