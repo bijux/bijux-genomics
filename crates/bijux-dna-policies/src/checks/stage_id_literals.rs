@@ -8,6 +8,7 @@ use crate::GuardrailConfig;
 
 pub(crate) fn check_stage_id_strings(files: &[PathBuf], config: &GuardrailConfig) -> Result<()> {
     let stage_re = Regex::new(r#"\"(fastq|bam|vcf)\.[^\"]+\""#)?;
+    let raw_stage_re = Regex::new(r##"r#*"(fastq|bam|vcf)\.[^"]+"#*"##)?;
     for path in files {
         if path_has_allowed_suffix(path, &config.allow_stage_id_paths) {
             continue;
@@ -17,7 +18,7 @@ pub(crate) fn check_stage_id_strings(files: &[PathBuf], config: &GuardrailConfig
             if line.trim_start().starts_with("//") {
                 continue;
             }
-            if stage_re.is_match(line) {
+            if stage_re.is_match(line) || raw_stage_re.is_match(line) {
                 anyhow::bail!("stage id literal found in {}:{}", path.display(), idx + 1);
             }
         }
