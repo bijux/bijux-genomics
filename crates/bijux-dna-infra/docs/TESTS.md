@@ -37,8 +37,10 @@ artifact root instead of the OS temp root.
   low-level dependency boundary.
 - `tests/boundaries/guardrails/no_generic_helpers.rs` — no generic helper-y API creep.
 - `tests/boundaries/guardrails/policies.rs` — shared policy guardrails.
-- `tests/boundaries/guardrails/public_surface.rs` — public API surface snapshot.
 - `tests/boundaries/guardrails/docs_layout.rs` — docs must stay aligned with the current crate tree.
+
+## Schemas
+- `tests/schemas/public_surface.rs` — public API surface snapshot.
 
 ## Testkit patterns
 See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
