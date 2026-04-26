@@ -1,7 +1,7 @@
 use anyhow::Result;
 use bijux_dna_core::contract::{ExecutionGraph, ExecutionStep};
 
-use crate::executor::topology;
+mod topology;
 
 pub(super) struct PreparedExecutionGraph {
     pub(super) graph: ExecutionGraph,

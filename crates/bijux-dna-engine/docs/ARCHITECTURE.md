@@ -26,11 +26,17 @@ crates/bijux-dna-engine/
 ```text
 src/executor/
 ├── contracts/     # output, metrics, and run-artifact verification
+├── facade.rs      # public executor entrypoint
 ├── graph/         # graph normalization and ordering preparation
-├── mod.rs         # executor facade
+├── mod.rs         # module declarations and facade re-export
 ├── recording/     # execution-record payload and persistence
-├── step_execution/ # runner lifecycle and execution-record shaping
-└── topology.rs
+└── step_execution/ # runner lifecycle and execution-record shaping
+```
+
+```text
+src/executor/graph/
+├── mod.rs         # graph normalization
+└── topology.rs    # deterministic topological ordering
 ```
 
 ## Dependency direction
