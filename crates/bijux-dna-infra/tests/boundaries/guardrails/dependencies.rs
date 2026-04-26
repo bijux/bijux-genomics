@@ -71,6 +71,29 @@ fn infra_does_not_depend_on_higher_level_workspace_crates() {
     }
 }
 
+#[test]
+fn dev_dependencies_match_documented_test_boundary() {
+    let manifest = fs::read_to_string(crate_root().join("Cargo.toml"))
+        .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
+    let dependencies = manifest_section_keys(&manifest, "[dev-dependencies]");
+    let expected = BTreeSet::from([
+        "anyhow",
+        "bijux-dna-policies",
+        "bijux-dna-testkit",
+        "insta",
+        "regex",
+        "walkdir",
+    ]);
+
+    assert_eq!(dependencies, expected, "infra dev dependency boundary changed");
+
+    let docs = fs::read_to_string(crate_root().join("docs/DEPENDENCIES.md"))
+        .unwrap_or_else(|err| panic!("read docs/DEPENDENCIES.md: {err}"));
+    for dependency in expected {
+        assert!(docs.contains(dependency), "docs/DEPENDENCIES.md must mention {dependency}");
+    }
+}
+
 fn manifest_section_keys<'manifest>(
     manifest: &'manifest str,
     section: &str,
