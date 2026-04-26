@@ -61,4 +61,5 @@ Start at `docs/INDEX.md` and follow the crate docs listed above.
 Primary failures surface as snapshot or contract violations; inspect the golden tests and referenced docs.
 
 ## Stability
-Contract and behavior changes follow `docs/CONTRACTS.md`.
+Contract and behavior changes follow `docs/CONTRACTS.md`; dependency boundaries are documented in
+`docs/DEPENDENCIES.md`.
