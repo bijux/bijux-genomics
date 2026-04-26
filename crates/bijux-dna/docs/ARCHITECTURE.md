@@ -47,12 +47,12 @@ src/
 - `commands/planning/`: run-plan and dry-run planning entrypoints.
 - `commands/status/`: runtime and repository status inspection.
 - `commands/corpus/`: curated corpus materialization, normalization, validation, listing, and diff.
-- `commands/benchmark/`: benchmark config, workspace, publication, corpus, suite, and FASTQ/BAM
-  benchmark flows.
+- `commands/benchmark/`: benchmark config, workspace, publication, corpus, suite, schema, and
+  FASTQ/BAM benchmark flows.
 - `commands/fastq/`: FASTQ meta-command dispatch and API mediation.
 - `commands/bam/`, `commands/vcf/`: domain-facing CLI adapters only.
-- `commands/ena/`, `commands/hpc/`, `commands/example.rs`: focused operator helpers that do not
-  belong in router or support.
+- `commands/ena/`, `commands/hpc/`, `commands/example.rs`, `commands/example/`: focused operator
+  helpers that do not belong in router or support.
 - `commands/support/`: shared command helpers with no command ownership.
 
 ## Test Tree
@@ -68,8 +68,10 @@ tests/
 └── workspace_paths.rs
 ```
 
-- `boundaries.rs` aggregates layout, dependency, public-surface, and process-spawn checks.
+- `boundaries.rs` aggregates layout, docs placement, dependency, public-surface, and process-spawn
+  checks.
 - `contracts.rs` aggregates command behavior, dry-run, bank, and HPC layout contracts.
+- `guardrails.rs` runs the shared crate guardrail config.
 - `snapshots/` stores help and serialized public-surface locks.
 - `workspace_paths.rs` centralizes repo/crate root resolution for integration tests.
 
@@ -79,8 +81,8 @@ executable tests or governed snapshots.
 ## Dependency Direction
 
 The CLI may depend on `bijux-dna-api` and minimal support crates needed for parsing, rendering, and
-declared filesystem effects. Domain semantics, stage execution, runner behavior, and planner policy
-must live behind API or domain-owned boundaries.
+declared filesystem effects. Domain semantics, stage execution, runner behavior, runtime telemetry,
+and planner policy must live behind API or domain-owned boundaries.
 
 ## Enforcement
 

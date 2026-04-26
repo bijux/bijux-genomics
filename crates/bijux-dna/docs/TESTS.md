@@ -1,19 +1,52 @@
 # bijux-dna Tests
 
-## Coverage
-- `tests/boundaries.rs` is the integration-test entrypoint for boundary coverage.
-- `tests/boundaries/architecture_tree.rs` enforces the documented CLI control-plane tree, including `commands/support/`, `commands/planning/`, `commands/status/`, `commands/corpus/`, `commands/benchmark/workspace/`, `commands/fastq/meta/`, `commands/cli/env/`, and `commands/cli/parse/bench/fastq/`.
-- `tests/boundaries/guardrails/` checks dependency, policy, process-spawn, and public-surface boundaries.
-- `tests/contracts/` checks CLI behavior, dry-run contracts, bank contracts, and HPC layout behavior.
-- `tests/determinism/` is reserved for reproducibility and stable-output checks.
-- `tests/snapshots/help/` locks help output contracts.
+## Test Layout
+`tests/` should contain executable integration test entrypoints, owned test modules, snapshots, and
+shared path helpers. It should not contain README placeholder files or empty taxonomy directories.
 
-## How to run
-- `cargo test -p bijux-dna`
-- `cargo test -p bijux-dna --test boundaries`
-- `cargo test -p bijux-dna --test contracts`
+```text
+tests/
+├── boundaries.rs
+├── boundaries/
+├── contracts.rs
+├── contracts/
+├── guardrails.rs
+├── snapshots/
+└── workspace_paths.rs
+```
 
-## Notes
-- Prefer `boundaries` when changing module layout, public surface, or dependency rules.
-- Prefer `contracts` when changing command behavior, dry-run planning, or CLI-visible outputs.
-- Re-run snapshot coverage after changing help text or dry-run formatting.
+## Coverage Map
+- `tests/boundaries.rs`: layout, docs placement, dependency, public-surface, no-process-spawn, and
+  guardrail checks.
+- `tests/boundaries/architecture_tree.rs`: root, docs, source, command, and public API tree
+  contract.
+- `tests/contracts.rs`: command behavior, bank, dry-run, and HPC layout contracts.
+- `tests/contracts/dry_run.rs`: dry-run command families and VCF toy execution coverage.
+- `tests/guardrails.rs`: shared policy guardrail smoke for this crate.
+- `tests/snapshots/`: help output and public API snapshots.
+- `src/process_exit.rs` unit tests: operator error and exit-code behavior.
+
+Markdown files under `tests/` are not allowed; test taxonomy belongs here.
+
+## Commands
+- Fast layout/dependency check:
+
+```text
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test boundaries --no-default-features
+```
+
+- Command behavior contracts:
+
+```text
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test contracts --no-default-features
+```
+
+- Full crate:
+
+```text
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --no-default-features
+```
+
+## Snapshot Rules
+Update snapshots only when the command surface, output format, or public export intentionally
+changes. Snapshot diffs must be reviewed as contract changes, not accepted mechanically.
