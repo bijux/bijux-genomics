@@ -614,7 +614,7 @@ pub mod overlap_correction {
         out_dir: &Path,
         params: &FilterEffectiveParams,
     ) -> anyhow::Result<StagePlanV1> {
-        let outputs = crate::tool_adapters::stages_support::audit_outputs(
+        let mut outputs = crate::tool_adapters::stages_support::audit_outputs(
             bijux_dna_domain_bam::BamStage::OverlapCorrection,
             out_dir,
         );
@@ -624,6 +624,28 @@ pub mod overlap_correction {
         let idxstats_before = out_dir.join("idxstats.before.txt");
         let idxstats_after = out_dir.join("idxstats.after.txt");
         let summary = out_dir.join("overlap_correction.summary.json");
+        outputs.extend([
+            bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("flagstat_before"),
+                flagstat_before.clone(),
+                ArtifactRole::ReportJson,
+            ),
+            bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("flagstat_after"),
+                flagstat_after.clone(),
+                ArtifactRole::ReportJson,
+            ),
+            bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("idxstats_before"),
+                idxstats_before.clone(),
+                ArtifactRole::ReportJson,
+            ),
+            bijux_dna_stage_contract::ArtifactRef::required(
+                ArtifactId::from_static("idxstats_after"),
+                idxstats_after.clone(),
+                ArtifactRole::ReportJson,
+            ),
+        ]);
         let command = match tool.tool_id.as_str() {
             "bamutil" => {
                 crate::tool_adapters::tools::pre::bamutil::overlap_correction_args_with_audit(

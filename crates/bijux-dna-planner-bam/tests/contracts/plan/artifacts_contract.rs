@@ -105,6 +105,14 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     )?;
     assert_audit_outputs(BamStage::LengthFilter, &length_filter);
 
+    let overlap_correction = bijux_dna_planner_bam::tool_adapters::bam::overlap_correction::plan(
+        &dummy_tool("samtools"),
+        bam,
+        out,
+        &filter_params,
+    )?;
+    assert_audit_outputs(BamStage::OverlapCorrection, &overlap_correction);
+
     let mapping_summary = bijux_dna_planner_bam::tool_adapters::bam::mapping_summary::plan(
         &dummy_tool("samtools"),
         bam,
