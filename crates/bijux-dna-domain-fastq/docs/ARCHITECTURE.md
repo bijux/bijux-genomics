@@ -31,9 +31,14 @@ src/
     processing/           typed processing and transform parameter models
     quality/              typed quality, screen, trim, and validation parameter models
   pipeline_contract/      pipeline ordering, transitions, and dependency graph
+    catalog/              criticality, modes, ordering, and transitions
+    graph/                assembly, dependencies, and edge construction
   run/                    FASTQ input discovery and benchmark corpus helpers
   stage_tool_governance/  tool layout, readiness, maturity, and input layout policy
   stages/                 stage IDs, specs, ports, semantics, and contract JSON
+    contract/             contract catalog, export helpers, and runtime policy
+    ports/                governed manifest ports and query helpers
+    semantics/            semantic catalog and query helpers
   types/                  shared FASTQ domain value types
   lib.rs                  public facade and compatibility re-exports
 ```
