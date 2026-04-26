@@ -1,8 +1,5 @@
 # Documentation Index
 
-## Scope
-- [SCOPE.md](SCOPE.md)
-
 ## Effects
 - [EFFECTS.md](EFFECTS.md)
 
