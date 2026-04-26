@@ -233,6 +233,88 @@ fn assert_test_layout(root: &Path) {
         ]),
         "test tree must stay organized by enduring intent"
     );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/boundaries")),
+        entries([
+            "architecture_tree.rs",
+            "core_scope_guardrail.rs",
+            "dependency_graph.rs",
+            "execution_graph_purity.rs",
+            "guardrails.rs",
+            "layering.rs",
+        ]),
+        "boundary tests must stay partitioned by architecture concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/contracts")),
+        entries(["contracts.rs", "execution/", "identity/", "surface/"]),
+        "contract tests must stay partitioned by execution, identity, and surface concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/contracts/execution")),
+        entries([
+            "execution_contract_validation_contracts.rs",
+            "execution_graph_validate.rs",
+            "execution_plan_contract.rs",
+        ]),
+        "execution contract tests must stay focused on graph and output contracts"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/contracts/identity")),
+        entries([
+            "hashing_identity.rs",
+            "prelude_snapshot.rs",
+            "reproducibility_identity.rs",
+            "run_index.rs",
+            "run_metadata.rs",
+        ]),
+        "identity contract tests must stay focused on stable identity surfaces"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/contracts/surface")),
+        entries([
+            "canonicalization.rs",
+            "contract_surface_semantics_contracts.rs",
+            "metrics_ids_selection_contracts.rs",
+            "sanity.rs",
+        ]),
+        "surface contract tests must stay focused on public contract behavior"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/schemas")),
+        entries([
+            "docs_public_api.rs",
+            "public_api_lock.rs",
+            "public_module_tree.rs",
+            "public_surface.rs",
+            "public_surface_lock.rs",
+        ]),
+        "schema tests must stay focused on docs and public-surface locks"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/semantics")),
+        entries(["ids/", "ids.rs", "input_assessment.rs", "metrics/", "metrics.rs"]),
+        "semantic tests must stay partitioned by core model concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/semantics/ids")),
+        entries(["catalogs.rs", "conversions.rs", "smoke.rs"]),
+        "identifier semantic tests must stay partitioned by catalog and conversion concern"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/semantics/metrics")),
+        entries(["registry.rs"]),
+        "metric semantic tests must stay focused on registry behavior"
+    );
 }
 
 fn dir_entries(path: &Path) -> BTreeSet<String> {
