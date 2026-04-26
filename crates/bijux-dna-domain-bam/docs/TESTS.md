@@ -13,13 +13,16 @@ Tests should explain the contract they enforce.
 - Each test file should be referenced here.
 
 ## Suite map
-- `tests/parsers/*` → parsing fixtures under `tests/fixtures/bam/*`.
-- `tests/contracts/*` → stage contracts, public surface, and docs checks.
-- `tests/invariants/*` → invariant specs and phase semantics.
-- `tests/reference_suite/*` → reference suite coverage.
+- `tests/contracts/parsers/*` → parsing fixtures under `tests/fixtures/bam/default/*` and `tests/fixtures/tool_metrics/default/*`.
+- `tests/contracts/*` → stage contracts, public surface, canonical serialization, and docs checks.
+- `tests/semantics/invariants/*` → invariant specs and stage semantics.
+- `tests/contracts/reference_suite/*` → reference suite coverage.
+- `tests/determinism/*` → fixture and snapshot stability.
+- `tests/boundaries/*` → purity and guardrail enforcement.
 
 ## Examples
-- `tests/parsers/bam_parsers.rs` → fixture parsing assertions.
+- `tests/contracts/parsers/bam_parsers.rs` → fixture parsing assertions.
+- `tests/contracts/stage_contract_snapshots.rs` → reviewed JSON contract snapshots.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
