@@ -119,6 +119,17 @@ fn engine_tree_matches_architecture_contract() {
         ]),
         "test tree must stay organized by enduring intent"
     );
+
+    assert_eq!(
+        dir_entries(&root.join("tests/boundaries")),
+        entries([
+            "architecture_tree.rs",
+            "dependency_graph.rs",
+            "effect_boundary.rs",
+            "guardrails.rs",
+        ]),
+        "boundary tests must stay partitioned by architecture concern"
+    );
 }
 
 fn dir_entries(path: &Path) -> BTreeSet<String> {
