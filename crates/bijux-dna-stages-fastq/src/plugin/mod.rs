@@ -58,8 +58,9 @@ impl StagePlugin for FastqStagePlugin {
         }
         let input_paths: Vec<std::path::PathBuf> =
             plan.io.inputs.iter().map(|input| input.path.clone()).collect();
+        let output_refs = if outputs.is_empty() { &plan.io.outputs } else { outputs };
         let output_paths: Vec<std::path::PathBuf> =
-            plan.io.outputs.iter().map(|output| output.path.clone()).collect();
+            output_refs.iter().map(|output| output.path.clone()).collect();
         let envelope = metrics::build_metrics_envelope(plan, &input_paths, &output_paths)?;
         let context = observation_context::observation_context(plan, outputs);
         let expected_artifact_names = plan

@@ -153,6 +153,37 @@ fn fastq_stage_plugin_trims_tool_version_in_metrics_envelope() -> anyhow::Result
 }
 
 #[test]
+fn fastq_stage_plugin_uses_reported_outputs_for_metrics() -> anyhow::Result<()> {
+    let plugin = FastqStagePlugin;
+    let temp = bijux_dna_infra::temp_dir("bijux-fastq-plugin-output-metrics")?;
+    let input_path = temp.path().join("input.fastq");
+    let actual_output_path = temp.path().join("actual-output.fastq");
+    bijux_dna_infra::write_bytes(&input_path, b"@a\nACGT\n+\n####\n")?;
+    bijux_dna_infra::write_bytes(&actual_output_path, b"@a\nAC\n+\n##\n")?;
+
+    let mut plan = plan("fastq.trim_reads");
+    plan.io.inputs =
+        vec![ArtifactRef::required(ArtifactId::new("reads_r1"), input_path, ArtifactRole::Reads)];
+    plan.io.outputs = vec![ArtifactRef::required(
+        ArtifactId::new("trimmed_reads_r1"),
+        temp.path().join("planned-output.fastq"),
+        ArtifactRole::Reads,
+    )];
+    let outputs = vec![ArtifactRef::required(
+        ArtifactId::new("trimmed_reads_r1"),
+        actual_output_path,
+        ArtifactRole::Reads,
+    )];
+
+    let output = plugin.parse_outputs(&plan, &outputs)?;
+
+    assert_eq!(output.metrics.metrics["reads_in"], 1);
+    assert_eq!(output.metrics.metrics["reads_out"], 1);
+    assert_eq!(output.artifacts, outputs);
+    Ok(())
+}
+
+#[test]
 fn parse_outputs_emits_artifacts_report_parts_and_event_hints() {
     let plugin = FastqStagePlugin;
     let plan = plan("fastq.detect_adapters");
