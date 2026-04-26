@@ -52,6 +52,8 @@ mod mod_boundaries_policies_dependency_graph_rs;
 mod mod_boundaries_public_api_docs_rs;
 #[path = "boundaries/snapshot_policy.rs"]
 mod mod_boundaries_snapshot_policy_rs;
+#[path = "boundaries/source_effects.rs"]
+mod mod_boundaries_source_effects_rs;
 #[path = "boundaries/surface/structure_layout/api_boundaries.rs"]
 mod mod_boundaries_surface_api_boundaries_rs;
 #[path = "boundaries/surface/policy/architecture_pointer_policy.rs"]
