@@ -155,6 +155,35 @@ fn manifest_dependency_graph_matches_boundary_contract() {
     }
 }
 
+#[test]
+fn commands_doc_lists_managed_benchmark_operations() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let commands_doc = root.join("docs/COMMANDS.md");
+    let content = std::fs::read_to_string(&commands_doc)
+        .unwrap_or_else(|err| panic!("read {}: {err}", commands_doc.display()));
+
+    for command in [
+        "load-suite",
+        "summarize",
+        "compare",
+        "gate",
+        "bench-data-dir",
+        "bench-suites-dir",
+    ] {
+        assert!(
+            content.contains(command),
+            "docs/COMMANDS.md must list `{command}` as a managed benchmark operation",
+        );
+    }
+
+    for artifact in ["observations.jsonl", "summary.json", "decision.json", "decisions.json"] {
+        assert!(
+            content.contains(artifact),
+            "docs/COMMANDS.md must list managed benchmark artifact `{artifact}`",
+        );
+    }
+}
+
 fn assert_docs_tree(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("docs")),
