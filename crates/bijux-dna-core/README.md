@@ -1,77 +1,96 @@
 # bijux-dna-core
 
-## What this crate does
-Defines the canonical contracts, identifiers, metrics types, and deterministic foundation rules for the entire workspace.
+`bijux-dna-core` owns the shared contract, identifier, metric, canonicalization,
+hashing, and foundation types used across `bijux-genomics`.
 
-## Canonical entry
-Start at `crates/bijux-dna-core/docs/INDEX.md`. The three most important docs are:
-- `crates/bijux-dna-core/docs/CONTRACT_MAP.md`
-- `crates/bijux-dna-core/docs/CONTRACT_VERSIONING.md`
-- `crates/bijux-dna-core/docs/BOUNDARIES.md`
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read those files before editing this child
+repository and before committing.
 
-## Contract map (authoritative)
-`crates/bijux-dna-core/docs/CONTRACT_MAP.md` is the single authoritative map of all core contracts and their locations.
+## Scope
 
-## What is SSOT here
-`bijux-dna-core` is the single source of truth for contract JSON shapes, canonical bytes, and their hashing inputs.
-Core owns IDs + canonicalization + contract schema; nobody else defines IDs.
+This crate owns:
 
-## Hashing & canonicalization guarantees
-- Canonical JSON serialization is stable and deterministic.
-- Hashes are defined over canonical bytes, not raw inputs.
-- Ordering for canonicalization is explicit and enforced by tests.
+- Canonical contract types for execution graphs, run records, run metadata,
+  provenance, tooling, and selection.
+- Canonical JSON and deterministic hashing helpers.
+- Typed identifiers and identifier parsing rules.
+- Canonical pipeline, stage, and tool identifier catalogs.
+- Shared metric identifiers, schemas, registry semantics, and metric envelopes.
+- Stable public API mirrors and prelude ergonomics.
+- FASTQ input assessment contracts and deterministic assessment helpers.
 
-## What it must not do (boundaries)
-No planning, execution, or IO side effects beyond pure serialization helpers.
+This crate does not own CLI parsing, workflow planning, runner execution,
+product APIs, report rendering, environment provisioning, or stage-specific
+business logic.
 
-## What MUST NOT exist here (effects)
-- No tool selection or command assembly.
-- No filesystem effects beyond pure serialization helpers.
-- No runtime execution, scheduling, or IO side effects.
+## Managed Operations
 
-## Start here in code
-- `src/public_api/` for the curated stable surface.
-- `src/contract/` for contract families and canonical serialization.
-- `src/id_catalog/` for canonical identifier families partitioned into `pipeline/`, `stage/`, and `tool/`.
-- `src/ids/` for typed identities and validators partitioned into `typed/` and `parsing/`.
-- `src/prelude/` for stable import ergonomics grouped by contract, catalog, identity, foundation, and metrics source areas.
+`docs/COMMANDS.md` is the SSOT for callable core operations, including:
 
-## Role in the stack
-Upstream: none. Downstream: runtime, engine, planners, stages, analyze, benchmarks.
+- `canonicalize-json`
+- `canonical-json-bytes`
+- `params-hash`
+- `parameters-fingerprint`
+- `input-fingerprint`
+- `discover-fastq-files`
+- `assess-input-dir`
+- `write-input-assessment`
+- `validate-execution-graph`
+- `validate-execution-outputs`
+- `select-stage`
+- `query-run-index`
+- `parse-pipeline-id`
+- `parse-stage-id`
+- `parse-tool-id`
+- `validate-metric-id`
+- `metrics-schema-for-stage`
+
+## Architecture
+
+- `src/contract/` owns serialized contract families and validation rules.
+- `src/foundation/` owns crate-local canonicalization, hashing, command specs,
+  errors, invariants, measurement, and input assessment helpers.
+- `src/id_catalog/` owns canonical pipeline, stage, and tool constants.
+- `src/ids/` owns typed identifiers, parsing, and domain models.
+- `src/metrics/` owns metric ids, schemas, registry lookup, and metric payloads.
+- `src/prelude/` owns grouped import ergonomics.
+- `src/public_api/` owns curated stable surface mirrors.
 
 ## Allowed `pub` modules
+
 - `contract`
 - `foundation`
 - `id_catalog`
 - `ids`
 - `metrics`
-- `public_api`
 - `prelude`
+- `public_api`
 
-## Public API / entrypoints
-See `crates/bijux-dna-core/docs/INDEX.md`, `crates/bijux-dna-core/docs/CONTRACTS.md`, `crates/bijux-dna-core/docs/PUBLIC_API.md`, `crates/bijux-dna-core/docs/INVARIANTS.md`, `crates/bijux-dna-core/docs/SERIALIZATION.md`, `crates/bijux-dna-core/docs/SSOT.md`, `crates/bijux-dna-core/docs/CONTRACT_VERSIONING.md`.
+## Documentation
 
-## Effects & determinism guarantees
-Canonicalization and hashing are deterministic and enforced by snapshot tests.
+The crate root intentionally has only this `README.md`. All other crate docs live
+under `docs/`, with a 10-document allowance enforced by boundary tests:
 
-## Key contracts it owns/consumes
-Owns IDs, canonical JSON rules, and all core contract schemas.
+- `docs/ARCHITECTURE.md`
+- `docs/BOUNDARY.md`
+- `docs/CHANGE_RULES.md`
+- `docs/COMMANDS.md`
+- `docs/CONTRACTS.md`
+- `docs/CONTRACT_MAP.md`
+- `docs/INVARIANTS.md`
+- `docs/PUBLIC_API.md`
+- `docs/SERIALIZATION.md`
+- `docs/TESTS.md`
 
-## Artifacts / Contracts
-See `crates/bijux-dna-core/docs/CONTRACT_MAP.md` and schema snapshots under `tests/snapshots/`.
+## Verification
 
-## How to run its tests
-See `crates/bijux-dna-core/docs/TESTS.md` for the canonical test map. Key tests:
-- `tests/boundaries.rs`
-- `tests/contracts.rs`
-- `tests/schemas.rs`
-- `tests/semantics.rs`
+Run from the `bijux-genomics` repository root:
 
-## Failure modes
-Primary failures surface as contract snapshot mismatches or invariant violations.
-
-## Where the docs live
-Start at `crates/bijux-dna-core/docs/INDEX.md` and follow the core docs listed above.
-
-## Stability
-Contract and behavior changes follow `crates/bijux-dna-core/docs/CONTRACT_VERSIONING.md`.
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-core --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-core --test boundaries --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-core --test contracts --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-core --test schemas --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-core --test semantics --no-default-features
+```
