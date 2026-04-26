@@ -18,20 +18,23 @@ Top-level workspace paths only.
 
 | Path | Kind | Owner | Purpose |
 |---|---|---|---|
+| `science-docs` | `dir` | `-` | - |
 | `Cargo.toml` | `file` | `-` | - |
 | `artifacts` | `dir` | `-` | - |
 | `crates` | `dir` | `-` | - |
 | `mkdocs.yml` | `file` | `-` | - |
+| `rustfmt.toml` | `file` | `-` | - |
 | `LICENSE` | `file` | `-` | - |
 | `Makefile` | `file` | `-` | - |
+| `science` | `dir` | `-` | - |
 | `Cargo.lock` | `file` | `-` | - |
 | `docs` | `dir` | `-` | - |
+| `NOTICE` | `file` | `-` | - |
 | `README.md` | `file` | `-` | - |
 | `audit-allowlist.toml` | `file` | `-` | - |
 | `examples` | `dir` | `-` | - |
 | `makes` | `dir` | `-` | - |
 | `configs` | `dir` | `-` | - |
-| `scripts` | `dir` | `-` | strict index of supported script areas and allowed usage. |
 | `containers` | `dir` | `-` | - |
 | `rust-toolchain.toml` | `file` | `-` | - |
 | `assets` | `dir` | `-` | - |
@@ -40,5 +43,5 @@ Top-level workspace paths only.
 ## Automation Intent
 | Control Plane Path | Purpose |
 |---|---|
-| `bijux-dna-dev` | native control-plane automation entrypoint for repository workflows. |
-| `makes` | user-facing orchestration surface delegating to `bijux-dna-dev`. |
+| `crates/bijux-dna-dev` | - |
+| `makes` | - |
