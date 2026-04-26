@@ -3,14 +3,14 @@ use regex::Regex;
 use std::fs;
 use std::path::PathBuf;
 
+use crate::checks::path_match::path_has_allowed_suffix;
 use crate::GuardrailConfig;
 
 pub(crate) fn check_panic_expect(files: &[PathBuf], config: &GuardrailConfig) -> Result<()> {
     let panic_re = Regex::new(r"\bpanic!\(")?;
     let expect_re = Regex::new(r"\.expect\(")?;
     for path in files {
-        let path_str = path.to_string_lossy();
-        if config.allow_panic_expect_paths.iter().any(|allowed| path_str.contains(allowed)) {
+        if path_has_allowed_suffix(path, &config.allow_panic_expect_paths) {
             continue;
         }
         let content = fs::read_to_string(path)?;

@@ -1,6 +1,7 @@
 pub(crate) mod directory_layout;
 pub(crate) mod failure_policy;
 pub(crate) mod module_files;
+pub(crate) mod path_match;
 pub(crate) mod public_surface;
 mod stable_surface;
 pub(crate) mod stage_id_literals;
