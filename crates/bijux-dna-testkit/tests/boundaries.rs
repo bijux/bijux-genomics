@@ -7,5 +7,7 @@ mod mod_boundaries_dependency_graph_rs;
 mod mod_boundaries_dev_dep_boundary_rs;
 #[path = "boundaries/docs_layout.rs"]
 mod mod_boundaries_docs_layout_rs;
+#[path = "boundaries/effect_boundary.rs"]
+mod mod_boundaries_effect_boundary_rs;
 #[path = "boundaries/guardrails.rs"]
 mod mod_boundaries_guardrails_rs;
