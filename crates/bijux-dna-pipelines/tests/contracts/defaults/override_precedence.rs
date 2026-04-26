@@ -52,3 +52,27 @@ fn override_precedence_is_stable() {
     let json = serde_json::to_value(&snapshot).expect("serialize defaults");
     insta::assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
 }
+
+#[test]
+fn override_rejects_invalid_tool_ids() {
+    let mut base_tools = BTreeMap::new();
+    base_tools.insert(StageId::from_static("fastq.trim_reads"), ToolId::from_static("fastp"));
+
+    let mut override_tools = BTreeMap::new();
+    override_tools.insert(StageId::from_static("fastq.trim_reads"), ToolId::new("_bad"));
+
+    let base = EffectiveDefaults {
+        tools: base_tools,
+        params: BTreeMap::new(),
+        rationales: BTreeMap::new(),
+    };
+    let overrides = EffectiveDefaults {
+        tools: override_tools,
+        params: BTreeMap::new(),
+        rationales: BTreeMap::new(),
+    };
+
+    let err = merge_effective_defaults(&base, Some(&overrides), None, None)
+        .expect_err("invalid tool id must fail");
+    assert!(err.to_string().contains("invalid tool id"), "unexpected error: {err}");
+}
