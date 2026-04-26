@@ -743,7 +743,6 @@ dependencies = [
  "bijux-dna-domain-fastq",
  "bijux-dna-infra",
  "bijux-dna-policies",
- "bijux-dna-runtime",
  "bijux-dna-stage-contract",
  "bijux-dna-testkit",
  "flate2",
