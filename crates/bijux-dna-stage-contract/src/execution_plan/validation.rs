@@ -33,21 +33,22 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
         if stage.io.outputs.is_empty() {
             return Err(anyhow!("stage {} missing declared outputs", stage.stage_id.0));
         }
-        ensure_unique_stage_artifacts(stage, "input", stage.io.inputs.iter().map(|artifact| {
-            artifact.name.as_str()
-        }))?;
-        ensure_unique_stage_artifacts(stage, "output", stage.io.outputs.iter().map(|artifact| {
-            artifact.name.as_str()
-        }))?;
+        ensure_unique_stage_artifacts(
+            stage,
+            "input",
+            stage.io.inputs.iter().map(|artifact| artifact.name.as_str()),
+        )?;
+        ensure_unique_stage_artifacts(
+            stage,
+            "output",
+            stage.io.outputs.iter().map(|artifact| artifact.name.as_str()),
+        )?;
         if stage.resources.mem_gb == 0 || stage.resources.threads == 0 {
             return Err(anyhow!("stage {} missing resource hints", stage.stage_id.0));
         }
     }
-    let stage_by_node_id = plan
-        .stages()
-        .iter()
-        .map(|stage| (stage_node_id(stage), stage))
-        .collect::<BTreeMap<_, _>>();
+    let stage_by_node_id =
+        plan.stages().iter().map(|stage| (stage_node_id(stage), stage)).collect::<BTreeMap<_, _>>();
     let mut edges = Vec::new();
     for edge in plan.edges() {
         if edge.from().trim().is_empty() || edge.to().trim().is_empty() {
