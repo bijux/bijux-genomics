@@ -55,6 +55,27 @@ fn validate_execution_outputs_enforces_contract() -> Result<(), Box<dyn std::err
 }
 
 #[test]
+fn validate_execution_outputs_allows_optional_outputs_in_strict_mode(
+) -> Result<(), Box<dyn std::error::Error>> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let out_dir = dir.path();
+    bijux_dna_infra::write_bytes(&out_dir.join("out.fastq.gz"), "data")?;
+    bijux_dna_infra::write_bytes(&out_dir.join("metrics.json"), "{}")?;
+
+    let contract = ExecutionContract {
+        required_inputs: vec![],
+        optional_inputs: vec![],
+        expected_outputs: vec!["out.fastq.gz".to_string()],
+        optional_outputs: vec!["metrics.json".to_string()],
+        forbidden_outputs: vec![],
+        forbid_unexpected_outputs: true,
+    };
+
+    validate_execution_outputs(&contract, out_dir)?;
+    Ok(())
+}
+
+#[test]
 fn runner_selection_falls_back_in_stable_order() -> Result<(), Box<dyn std::error::Error>> {
     let preferred = RuntimeKind::Docker;
     let selected = select_best_runner(preferred, &[RuntimeKind::Singularity, RuntimeKind::Docker])?;
