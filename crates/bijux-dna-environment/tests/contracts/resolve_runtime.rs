@@ -341,6 +341,24 @@ container_ref = "bijuxdna/fastqc@sha256:abc123"
 }
 
 #[test]
+fn load_image_catalog_ignores_empty_registry_digests() -> anyhow::Result<()> {
+    let _env = env_lock();
+    let temp = bijux_dna_testkit::tempdir_for("environment-image-catalog-empty-digest");
+    let _cwd = CurrentDirGuard::change_to(temp.path())?;
+    write_image_catalog_fixture(
+        temp.path(),
+        b"[fastqc]\nversion = \"latest-pinned\"\n",
+        br#"[[tools]]
+id = "fastqc"
+container_ref = "bijuxdna/fastqc@sha256:"
+"#,
+    )?;
+    let catalog = load_image_catalog()?;
+    assert_eq!(catalog.get("fastqc").and_then(|spec| spec.digest.as_deref()), None);
+    Ok(())
+}
+
+#[test]
 fn load_image_catalog_rejects_tool_key_mismatch() -> anyhow::Result<()> {
     let _env = env_lock();
     let temp = bijux_dna_testkit::tempdir_for("environment-image-catalog-key-mismatch");
