@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 
 pub const DEFAULT_CONTAMINANT_PRESET: &str = "illumina_default";
 
@@ -46,11 +46,10 @@ pub fn resolve_effective_contaminants(
     )
 }
 
-#[must_use]
 pub fn contaminant_bank_provenance_json(
     selection: &ContaminantSelection,
     effective: &crate::EffectiveContaminantSet,
-) -> serde_json::Value {
+) -> Result<serde_json::Value> {
     let enabled_entries: Vec<serde_json::Value> = effective
         .motifs
         .iter()
@@ -69,20 +68,21 @@ pub fn contaminant_bank_provenance_json(
         .iter()
         .map(|reference| {
             let path = references_dir.join(&reference.file);
-            let fasta = std::fs::read_to_string(&path).unwrap_or_default();
-            let hash =
-                bijux_dna_infra::hash_file_sha256(&path).unwrap_or_else(|_| "unknown".to_string());
-            serde_json::json!({
+            let fasta =
+                std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+            let hash = bijux_dna_infra::hash_file_sha256(&path)
+                .with_context(|| format!("hash {}", path.display()))?;
+            Ok(serde_json::json!({
                 "id": reference.id,
                 "file": reference.file,
                 "sha256": hash,
                 "rationale": reference.rationale,
                 "source": reference.source,
                 "fasta": fasta,
-            })
+            }))
         })
-        .collect();
-    serde_json::json!({
+        .collect::<Result<_>>()?;
+    Ok(serde_json::json!({
         "bank_id": selection.motifs.bank_id,
         "bank_version": selection.motifs.version,
         "bank_hash": selection.motifs_checksum,
@@ -91,7 +91,7 @@ pub fn contaminant_bank_provenance_json(
         "preset_hash": effective.preset_hash,
         "enabled_entries": enabled_entries,
         "references": references,
-    })
+    }))
 }
 
 /// Build contaminant bank provenance for a run.
@@ -103,5 +103,54 @@ pub fn contaminant_bank_context(
 ) -> Result<Option<serde_json::Value>> {
     let selection = resolve_contaminant_selection(contaminant_preset)?;
     let effective = resolve_effective_contaminants(&selection)?;
-    Ok(Some(contaminant_bank_provenance_json(&selection, &effective)))
+    Ok(Some(contaminant_bank_provenance_json(&selection, &effective)?))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn selection() -> ContaminantSelection {
+        ContaminantSelection {
+            motifs: crate::ContaminantMotifBankV1 {
+                schema_version: "bijux.fastq.contaminants.v1".to_string(),
+                bank_id: "contaminants".to_string(),
+                version: "2026-01-01".to_string(),
+                motifs: Vec::new(),
+            },
+            presets: crate::ContaminantPresetsV1 {
+                schema_version: "bijux.fastq.contaminant_presets.v1".to_string(),
+                presets: Vec::new(),
+            },
+            preset_name: "test".to_string(),
+            motifs_checksum: "motifs-sha256".to_string(),
+            presets_checksum: "presets-sha256".to_string(),
+        }
+    }
+
+    fn effective_with_missing_reference() -> crate::EffectiveContaminantSet {
+        crate::EffectiveContaminantSet {
+            preset: "test".to_string(),
+            preset_hash: "preset-sha256".to_string(),
+            rationale: "test".to_string(),
+            notes: Vec::new(),
+            motifs: Vec::new(),
+            enabled_ids: Vec::new(),
+            references: vec![crate::ContaminantReferenceSpecV1 {
+                id: "missing-reference".to_string(),
+                file: "missing-reference.fa".to_string(),
+                rationale: "test missing reference handling".to_string(),
+                source: "test".to_string(),
+                notes: Vec::new(),
+            }],
+        }
+    }
+
+    #[test]
+    fn contaminant_provenance_rejects_missing_reference_files() {
+        let err = contaminant_bank_provenance_json(&selection(), &effective_with_missing_reference())
+            .expect_err("missing contaminant references must fail provenance generation");
+
+        assert!(err.to_string().contains("missing-reference.fa"));
+    }
 }
