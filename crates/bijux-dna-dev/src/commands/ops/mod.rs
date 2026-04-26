@@ -562,7 +562,17 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
 }
 
 fn generate_compatibility_matrix(workspace: &Workspace, out: &Path) -> Result<()> {
-    let catalog = read_utf8(&workspace.path("crates/bijux-dna-core/src/id_catalog.rs"))?;
+    let catalog_root = workspace.path("crates/bijux-dna-core/src/id_catalog/pipeline");
+    let mut catalog = String::new();
+    for entry in WalkDir::new(&catalog_root).into_iter().filter_map(std::result::Result::ok).filter(
+        |entry| {
+            entry.file_type().is_file()
+                && entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs")
+        },
+    ) {
+        catalog.push_str(&read_utf8(entry.path())?);
+        catalog.push('\n');
+    }
     let profile_re = Regex::new(r#"pub const PIPELINE_[A-Z0-9_]+: &str = "([^"]+)";"#)?;
     let profiles = profile_re
         .captures_iter(&catalog)
@@ -591,7 +601,7 @@ fn generate_compatibility_matrix(workspace: &Workspace, out: &Path) -> Result<()
         String::new(),
         "## Scope".to_string(),
         format!(
-            "Profiles sourced from `crates/bijux-dna-core/src/id_catalog.rs`; registries include {tool_count} tool entries."
+            "Profiles sourced from `crates/bijux-dna-core/src/id_catalog/pipeline/`; registries include {tool_count} tool entries."
         ),
         String::new(),
         "## Non-goals".to_string(),
