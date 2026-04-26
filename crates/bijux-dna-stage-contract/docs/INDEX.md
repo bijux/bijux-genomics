@@ -1,7 +1,8 @@
 # bijux-dna-stage-contract Docs Index
 
-## Scope
-See `SCOPE.md` for what belongs here.
+## Boundary
+See `BOUNDARY.md` for what belongs here, what is forbidden, and which
+dependencies are allowed.
 
 ## Effects
 See `EFFECTS.md` for allowed effects.
@@ -12,8 +13,8 @@ See `PUBLIC_API.md` for exported types and snapshots.
 ## Contract
 See `CONTRACT.md` for versioning, terminology, and examples.
 
-## Boundaries
-See `ARCHITECTURE.md` for internal boundaries.
+## Architecture
+See `ARCHITECTURE.md` for internal module boundaries.
 
 ## Extension Points
 See `CHANGE_RULES.md` for safe extension guidelines.
