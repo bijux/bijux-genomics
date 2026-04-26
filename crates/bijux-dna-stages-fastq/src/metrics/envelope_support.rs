@@ -27,13 +27,14 @@ pub(crate) fn build_metrics_envelope(
     let parameters_fingerprint = parameters_fingerprint(&plan.params)?;
     let parameters_json_normalized = parameters_json_canonicalization(&plan.params);
     let image_digest = plan.image.digest.clone().unwrap_or_else(|| plan.image.image.clone());
+    let tool_version = plan.tool_version.trim().to_string();
     Ok(MetricsEnvelope {
         schema_version: "bijux.metrics_envelope.v2".to_string(),
         contract_version: ContractVersion::v1(),
         stage_id: plan.stage_id.0.to_string(),
         stage_version: plan.stage_version.0,
         tool_id: plan.tool_id.0.to_string(),
-        tool_version: plan.tool_version.clone(),
+        tool_version: tool_version.clone(),
         image_digest,
         parameters_fingerprint: parameters_fingerprint.clone(),
         input_fingerprint,
@@ -43,7 +44,7 @@ pub(crate) fn build_metrics_envelope(
             run_id: "standalone".to_string(),
             stage_id: plan.stage_id.0.to_string(),
             tool_id: plan.tool_id.0.to_string(),
-            tool_version: plan.tool_version.clone(),
+            tool_version,
             params_hash: parameters_fingerprint.clone(),
             input_artifact_hashes: input_hashes.clone(),
             manifest_hash: None,
