@@ -1,4 +1,3 @@
-use bijux_dna_analyze::load::{load_fact_table, AnalyzeError};
 use bijux_dna_analyze::model::FactTable;
 use bijux_dna_runtime::*;
 
@@ -102,9 +101,10 @@ fn fact_table_uses_auto_loader_for_parquet_paths() -> anyhow::Result<()> {
     let path = dir.path().join("facts.parquet");
     bijux_dna_infra::write_bytes(&path, b"not parquet")?;
 
-    let err = load_fact_table(&path).expect_err("parquet feature should be required");
+    let err = bijux_dna_analyze::load::load_fact_table(&path)
+        .expect_err("parquet feature should be required");
 
-    assert!(matches!(err, AnalyzeError::UnsupportedParquet { .. }));
+    assert!(matches!(err, bijux_dna_analyze::load::AnalyzeError::UnsupportedParquet { .. }));
     Ok(())
 }
 
@@ -115,8 +115,9 @@ fn fact_table_detects_uppercase_parquet_extension() -> anyhow::Result<()> {
     let path = dir.path().join("facts.PARQUET");
     bijux_dna_infra::write_bytes(&path, b"not jsonl")?;
 
-    let err = load_fact_table(&path).expect_err("uppercase parquet should use parquet loader");
+    let err = bijux_dna_analyze::load::load_fact_table(&path)
+        .expect_err("uppercase parquet should use parquet loader");
 
-    assert!(matches!(err, AnalyzeError::UnsupportedParquet { .. }));
+    assert!(matches!(err, bijux_dna_analyze::load::AnalyzeError::UnsupportedParquet { .. }));
     Ok(())
 }
