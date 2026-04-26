@@ -7,15 +7,7 @@ fn testkit_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(root),
-        entries([
-            "BOUNDARY.md",
-            "Cargo.toml",
-            "PUBLIC_API.md",
-            "README.md",
-            "docs/",
-            "src/",
-            "tests/",
-        ]),
+        entries(["Cargo.toml", "README.md", "docs/", "src/", "tests/"]),
         "crate root must stay minimal and intentional"
     );
 
@@ -93,12 +85,10 @@ fn testkit_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("tests")),
         entries([
-            "README.md",
             "boundaries/",
             "boundaries.rs",
             "contracts/",
             "contracts.rs",
-            "determinism/",
             "determinism.rs",
             "guardrails.rs",
             "schemas/",

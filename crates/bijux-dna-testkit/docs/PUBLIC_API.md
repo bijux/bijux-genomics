@@ -1,13 +1,47 @@
-# PUBLIC_API
+# Public API
 
-This crate must stay deliberate and partitioned by support concern.
+The crate root exports a stable test-helper surface from `src/lib.rs`.
+`src/public_api/surface.rs` mirrors that surface for callers that prefer an
+explicit namespace.
 
-## Exported surface
-- `determinism` — deterministic clocks, seeded RNG, timestamp-field stripping, and deterministic assertions.
-- `fixtures` — fixture readers and JSON shape assertions.
-- `public_api` — curated mirror of the stable root surface.
-- `snapshots` — snapshot naming, environment setup, and normalization.
-- `temp` — temp directory allocation and path helpers.
-- `workspace_support` — workspace-root and policy-text helpers.
+## Public Modules
 
-Stable root helpers are documented in the crate-level `PUBLIC_API.md`. Any new surface must update both docs and the public API snapshot.
+- `determinism`
+- `fixtures`
+- `public_api`
+- `snapshots`
+- `temp`
+- `workspace_support`
+
+## Stable Root Exports
+
+- `FixedClock`
+- `fixed_rng`
+- `assert_json_stable`
+- `assert_stable_ordering`
+- `strip_timestamp_fields`
+- `assert_json_schema_like`
+- `load_fixture_json`
+- `load_fixture_text`
+- `install_snapshot_env`
+- `sanitize_snapshot_json`
+- `sanitize_snapshot_text`
+- `snapshot_name`
+- `snapshot_normalize_json`
+- `snapshot_normalize_text`
+- `stable_json`
+- `resolve_under`
+- `sorted_read_dir_paths`
+- `temp_path_for`
+- `tempdir_for`
+- `TestPaths`
+- `read_policy_text`
+- `workspace_root_from_manifest`
+
+## Compatibility Rules
+
+- Removing or renaming a stable root export is breaking.
+- Changing snapshot normalization semantics is breaking unless covered by
+  explicit snapshot updates and release notes.
+- Adding a public helper requires `docs/COMMANDS.md`, this file, public API
+  tests, and snapshot updates.

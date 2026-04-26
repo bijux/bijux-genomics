@@ -1,23 +1,23 @@
 # bijux-dna-testkit Docs Index
 
 This crate exists for shared fixtures and lightweight test helpers.
-Its source tree is partitioned into deterministic support, fixtures, snapshots, temp paths, and workspace support.
+Its source tree is partitioned into deterministic support, fixtures, snapshots,
+temp paths, and workspace support.
 
-## Scope
-See `SCOPE.md` for what belongs here.
+## Core
 
-## Effects
-See `EFFECTS.md` for allowed effects.
+- [ARCHITECTURE.md](ARCHITECTURE.md): source layout and module responsibilities.
+- [BOUNDARY.md](BOUNDARY.md): ownership and forbidden surfaces.
+- [CHANGE_RULES.md](CHANGE_RULES.md): rules for changing this crate.
+- [COMMANDS.md](COMMANDS.md): SSOT for callable testkit operations.
+- [DEPENDENCIES.md](DEPENDENCIES.md): dependency graph contract.
+- [EFFECTS.md](EFFECTS.md): allowed and forbidden effects.
+- [PUBLIC_API.md](PUBLIC_API.md): public module and export contract.
+- [SNAPSHOT_POLICY.md](SNAPSHOT_POLICY.md): fixture and snapshot stability rules.
+- [TESTS.md](TESTS.md): local verification commands.
 
-## Boundaries
-See `ARCHITECTURE.md` for internal boundaries.
+## Documentation Shape
 
-## Fixtures
-- `FIXTURE_STANDARDS.md`
-- `ADD_FIXTURE.md`
-
-## Extension Points
-See `CHANGE_RULES.md` for safe extension guidelines.
-
-## How to Test
-See `TESTS.md` for test mapping and fixtures.
+This crate keeps only this root `README.md` outside `docs/`. The `docs/`
+directory is capped at 10 Markdown files so command, boundary, dependency,
+public API, and verification contracts stay discoverable.
