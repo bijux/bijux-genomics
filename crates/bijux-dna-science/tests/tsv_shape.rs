@@ -53,6 +53,7 @@ fn governed_science_tsvs_are_rectangular() {
 
     collect_directory_tsvs(&root.join("science/generated/current/evidence"), &mut paths);
     collect_directory_tsvs(&root.join("science-docs/upstream/fastq"), &mut paths);
+    collect_directory_tsvs(&root.join("science-docs/upstream/fastq/container"), &mut paths);
     collect_directory_tsvs(&root.join("science-docs/upstream/fastq/tools"), &mut paths);
     collect_directory_tsvs(&root.join("science-docs/upstream/papers"), &mut paths);
     paths.push(root.join("science-docs/upstream/github-repos/MANIFEST.tsv"));
