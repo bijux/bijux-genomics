@@ -2,7 +2,7 @@
 //! Validation for non-suite benchmark contract records.
 
 use crate::diagnostics::BenchError;
-use crate::model::{BenchmarkObservation, BenchmarkSummary, SummaryRow};
+use crate::model::{BenchmarkObservation, BenchmarkSummary, MetricSummary, SummaryRow};
 use crate::policy::GateDecision;
 
 use super::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
@@ -62,6 +62,55 @@ fn validate_summary_row(row: &SummaryRow) -> Result<(), BenchError> {
             row.n_effective, row.runtime.n
         )));
     }
+    validate_metric_summary(&row.runtime)?;
+    validate_metric_summary(&row.memory)?;
+    for metric in &row.metrics {
+        validate_metric_summary(metric)?;
+    }
+    Ok(())
+}
+
+fn validate_metric_summary(metric: &MetricSummary) -> Result<(), BenchError> {
+    required_text(&metric.metric_id, "summary metric_id")?;
+    if metric.stats.n != metric.n {
+        return Err(BenchError::InvalidPolicy(format!(
+            "summary metric {} stats n {} does not match n {}",
+            metric.metric_id, metric.stats.n, metric.n
+        )));
+    }
+    finite_value(metric.stats.median, "summary metric median")?;
+    finite_value(metric.stats.mad, "summary metric mad")?;
+    finite_value(metric.stats.iqr, "summary metric iqr")?;
+    finite_value(metric.stats.trimmed_mean, "summary metric trimmed_mean")?;
+    if let Some(ci_low) = metric.ci_low {
+        finite_value(ci_low, "summary metric ci_low")?;
+    }
+    if let Some(ci_high) = metric.ci_high {
+        finite_value(ci_high, "summary metric ci_high")?;
+    }
+    if let (Some(ci_low), Some(ci_high)) = (metric.ci_low, metric.ci_high) {
+        if ci_low > ci_high {
+            return Err(BenchError::InvalidPolicy(format!(
+                "summary metric {} ci_low exceeds ci_high",
+                metric.metric_id
+            )));
+        }
+    }
+    if metric.outlier_count != metric.outlier_replicates.len() {
+        return Err(BenchError::InvalidPolicy(format!(
+            "summary metric {} outlier_count does not match outlier_replicates",
+            metric.metric_id
+        )));
+    }
+    if let Some(threshold) = metric.practical_threshold {
+        finite_value(threshold, "summary metric practical_threshold")?;
+        if threshold < 0.0 {
+            return Err(BenchError::InvalidPolicy(format!(
+                "summary metric {} practical_threshold must be non-negative",
+                metric.metric_id
+            )));
+        }
+    }
     Ok(())
 }
 
@@ -78,6 +127,13 @@ fn finite_ratio(value: f64, field: &str) -> Result<(), BenchError> {
     }
     if !(0.0..=1.0).contains(&value) {
         return Err(BenchError::InvalidPolicy(format!("{field} must be between 0 and 1")));
+    }
+    Ok(())
+}
+
+fn finite_value(value: f64, field: &str) -> Result<(), BenchError> {
+    if !value.is_finite() {
+        return Err(BenchError::InvalidPolicy(format!("{field} must be finite")));
     }
     Ok(())
 }
@@ -170,6 +226,46 @@ mod tests {
         };
 
         assert!(err.to_string().contains("n_effective 4 exceeds runtime n 3"));
+        Ok(())
+    }
+
+    #[test]
+    fn summary_rejects_metric_count_mismatch() -> anyhow::Result<()> {
+        let mut summary = valid_summary();
+        summary.rows[0].runtime.stats.n = 2;
+
+        let Err(err) = validate_summary(&summary) else {
+            bail!("summary with mismatched metric count should fail");
+        };
+
+        assert!(err.to_string().contains("stats n 2 does not match n 3"));
+        Ok(())
+    }
+
+    #[test]
+    fn summary_rejects_unordered_metric_ci() -> anyhow::Result<()> {
+        let mut summary = valid_summary();
+        summary.rows[0].memory.ci_low = Some(2.0);
+        summary.rows[0].memory.ci_high = Some(1.0);
+
+        let Err(err) = validate_summary(&summary) else {
+            bail!("summary with unordered CI should fail");
+        };
+
+        assert!(err.to_string().contains("ci_low exceeds ci_high"));
+        Ok(())
+    }
+
+    #[test]
+    fn summary_rejects_outlier_metadata_mismatch() -> anyhow::Result<()> {
+        let mut summary = valid_summary();
+        summary.rows[0].runtime.outlier_count = 1;
+
+        let Err(err) = validate_summary(&summary) else {
+            bail!("summary with mismatched outlier metadata should fail");
+        };
+
+        assert!(err.to_string().contains("outlier_count does not match"));
         Ok(())
     }
 }
