@@ -147,13 +147,13 @@ pub fn normalize_contig_name(bundle: &ReferenceBundle, contig: &str) -> Result<S
 
 #[must_use]
 pub fn reference_provenance(
-    species: &str,
-    build: &str,
+    _species: &str,
+    _build: &str,
     bundle: &ReferenceBundle,
 ) -> ReferenceProvenance {
     ReferenceProvenance {
-        species_id: species.to_string(),
-        build_id: build.to_string(),
+        species_id: bundle.species_id.clone(),
+        build_id: bundle.build_id.clone(),
         bundle_id: bundle.bundle_id.clone(),
         contig_set_digest: bundle.contig_set_digest.clone(),
         source_lock_sha256: bundle.source_lock_sha256.clone(),
@@ -231,5 +231,16 @@ mod tests {
         };
 
         assert!(error.to_string().contains("not declared"));
+    }
+
+    #[test]
+    fn reference_provenance_uses_resolved_bundle_identity() {
+        let bundle = super::resolve_reference_bundle("Homo sapiens", "GRCh38")
+            .unwrap_or_else(|error| panic!("resolve reference bundle: {error}"));
+
+        let provenance = super::reference_provenance("wrong species", "wrong build", &bundle);
+
+        assert_eq!(provenance.species_id, bundle.species_id);
+        assert_eq!(provenance.build_id, bundle.build_id);
     }
 }
