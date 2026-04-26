@@ -13,6 +13,9 @@ See `BOUNDARY.md` for crate ownership and forbidden dependencies.
 See `COMMANDS.md` for the command inventory SSOT. This crate owns no CLI
 commands.
 
+## Dependencies
+See `DEPENDENCIES.md` for the dependency graph and forbidden upstream layers.
+
 ## Observers
 See `OBSERVERS.md` for parsing rules and determinism.
 
