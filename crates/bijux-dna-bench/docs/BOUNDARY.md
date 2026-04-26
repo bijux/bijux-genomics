@@ -8,7 +8,7 @@ finished runtime/analyze artifacts.
 
 ## Allowed Inputs
 
-- Benchmark suite TOML files from `bench/suites/`.
+- Benchmark suite TOML files from `crates/bijux-dna-bench/bench/suites/`.
 - `BenchmarkObservation` streams from governed runtime/analyze outputs.
 - `summary.json`, `decision.json`, `decisions.json`, and `observations.jsonl`
   fixtures or prior benchmark artifacts.

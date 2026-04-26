@@ -7,7 +7,7 @@ gating, and deterministic artifact persistence.
 
 ## Inputs
 
-- `BenchmarkSuiteSpec` from checked-in TOML files under `bench/suites/`.
+- `BenchmarkSuiteSpec` from checked-in TOML files under `crates/bijux-dna-bench/bench/suites/`.
 - `BenchmarkObservation` records from runtime/analyze benchmark runs.
 - Optional existing `observations.jsonl` when `BenchRunOptions.resume` is true.
 - Runtime manifests and metric payloads that have already been produced by other

@@ -9,7 +9,7 @@ product workflows.
 
 - `Cargo.toml` defines the crate dependency graph.
 - `README.md` is the only root documentation file.
-- `bench/suites/` contains checked-in benchmark suite TOML files.
+- `crates/bijux-dna-bench/bench/suites/` contains checked-in benchmark suite TOML files.
 - `docs/` contains the 10 authoritative crate docs.
 - `src/` contains the library implementation.
 - `tests/` contains boundary, contract, determinism, semantic, fixture, and
