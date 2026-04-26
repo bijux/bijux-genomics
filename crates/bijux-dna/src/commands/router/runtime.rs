@@ -42,6 +42,7 @@ pub(crate) fn capture_cli_env() -> ProcessEnvGuard {
         "BIJUX_EXPERIMENTAL_TOOLS",
         "BIJUX_HPC_SITE",
         "BIJUX_OUTPUT_JSON",
+        "BIJUX_PLATFORM",
         "BIJUX_POLICY_CLEAN_REPORT_JSON",
         "BIJUX_PROFILE_HASH",
         "BIJUX_QUIET",
@@ -86,6 +87,10 @@ pub(crate) fn configure_process_cli_env(cli: &cli::Cli, cwd: &Path) {
     if let Some(level) = &cli.log_level {
         std::env::set_var("RUST_LOG", level);
     }
+    if let Some(platform) = cli.platform.as_deref().map(str::trim).filter(|value| !value.is_empty())
+    {
+        std::env::set_var("BIJUX_PLATFORM", platform);
+    }
 }
 
 /// # Errors
@@ -101,8 +106,18 @@ where
     if cli.profile.eq_ignore_ascii_case("hpc") {
         std::env::set_var("BIJUX_RUN_CONTEXT", "hpc");
         if std::env::var("BIJUX_HPC_SITE").ok().is_none_or(|value| value.trim().is_empty()) {
-            if let Some(platform) =
-                std::env::var("BIJUX_PLATFORM").ok().filter(|value| !value.trim().is_empty())
+            if let Some(platform) = cli
+                .platform
+                .as_deref()
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .map(ToOwned::to_owned)
+                .or_else(|| {
+                    std::env::var("BIJUX_PLATFORM")
+                        .ok()
+                        .map(|value| value.trim().to_string())
+                        .filter(|value| !value.is_empty())
+                })
             {
                 std::env::set_var("BIJUX_HPC_SITE", platform);
             }
@@ -111,4 +126,53 @@ where
         std::env::set_var("BIJUX_RUN_CONTEXT", "local");
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::expect_used)]
+
+    use std::sync::Mutex;
+
+    use clap::Parser;
+
+    use super::{capture_cli_env, configure_process_cli_env, configure_run_context_env};
+    use crate::commands::cli;
+
+    static ENV_LOCK: Mutex<()> = Mutex::new(());
+
+    fn parse_cli(args: &[&str]) -> cli::Cli {
+        cli::Cli::parse_from(std::iter::once("bijux-dna").chain(args.iter().copied()))
+    }
+
+    #[test]
+    fn configure_process_cli_env_sets_and_restores_platform() {
+        let _lock = ENV_LOCK.lock().expect("env lock");
+        std::env::set_var("BIJUX_PLATFORM", "outer-platform");
+        {
+            let _guard = capture_cli_env();
+            let cli = parse_cli(&["--platform", "inner-platform", "env", "list"]);
+
+            configure_process_cli_env(&cli, std::path::Path::new("."));
+
+            assert_eq!(std::env::var("BIJUX_PLATFORM").as_deref(), Ok("inner-platform"));
+        }
+
+        assert_eq!(std::env::var("BIJUX_PLATFORM").as_deref(), Ok("outer-platform"));
+    }
+
+    #[test]
+    fn hpc_run_context_prefers_cli_platform_for_site_identity() {
+        let _lock = ENV_LOCK.lock().expect("env lock");
+        let _guard = capture_cli_env();
+        std::env::remove_var("BIJUX_HPC_SITE");
+        std::env::set_var("BIJUX_PLATFORM", "env-platform");
+        let cli = parse_cli(&["--profile", "hpc", "--platform", "cli-platform", "env", "list"]);
+
+        configure_run_context_env(&cli, &serde_json::json!({"profile": "hpc"}))
+            .expect("configure run context");
+
+        assert_eq!(std::env::var("BIJUX_RUN_CONTEXT").as_deref(), Ok("hpc"));
+        assert_eq!(std::env::var("BIJUX_HPC_SITE").as_deref(), Ok("cli-platform"));
+    }
 }
