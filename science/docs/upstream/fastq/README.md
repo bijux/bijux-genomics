@@ -39,6 +39,11 @@ upstream evidence packets.
 - `QA_COVERAGE_BLOCKERS.tsv`
   tracked blocker registry for admitted FASTQ execution-support stages that do
   not yet have behavioral environment-QA coverage
+- `container/FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv`
+  generated production-closure ledger for every FASTQ execution default; this is
+  the single conservative rollup for release closure and must stay blocked while
+  any evidence, asset, container, license, planner, SBOM, smoke, QA, or registry
+  prerequisite is missing
 - `tools/<tool-id>/**`
   untracked local payloads placed at the archive paths recorded in the science
   backlog and evidence map
