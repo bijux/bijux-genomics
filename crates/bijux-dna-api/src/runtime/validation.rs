@@ -31,8 +31,8 @@ pub fn validate_bgzip_tabix(input: &Path) -> Result<()> {
         }
     }
     if has_extension(input, "bcf") {
-        let csi = input.with_extension("bcf.csi");
-        if !csi.exists() {
+        let index_candidates = [input.with_extension("bcf.csi"), input.with_extension("csi")];
+        if !index_candidates.iter().any(|path| path.exists()) {
             bail!("input contract violation: missing BCF index (.csi) for {}", input.display());
         }
     }
@@ -109,7 +109,7 @@ mod tests {
     use flate2::write::GzEncoder;
     use flate2::Compression;
 
-    use super::{validate_bam_index, validate_fastq_format};
+    use super::{validate_bam_index, validate_bgzip_tabix, validate_fastq_format};
 
     #[test]
     fn validate_fastq_format_accepts_gzipped_fastq() -> anyhow::Result<()> {
@@ -140,5 +140,15 @@ mod tests {
         bijux_dna_infra::write_bytes(temp.path().join("sample.crai"), b"index")?;
 
         validate_bam_index(&cram)
+    }
+
+    #[test]
+    fn validate_bgzip_tabix_accepts_sibling_bcf_csi() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let bcf = temp.path().join("sample.bcf");
+        bijux_dna_infra::write_bytes(&bcf, b"bcf")?;
+        bijux_dna_infra::write_bytes(temp.path().join("sample.csi"), b"index")?;
+
+        validate_bgzip_tabix(&bcf)
     }
 }
