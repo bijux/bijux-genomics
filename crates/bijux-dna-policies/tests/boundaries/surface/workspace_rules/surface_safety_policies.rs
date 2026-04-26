@@ -30,6 +30,7 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna-db-ena/src/download/execute.rs",
         "crates/bijux-dna-db-ena/src/download.rs",
         "crates/bijux-dna-db-ena/src/main.rs",
+        "crates/bijux-dna-core/src/foundation/input_assessment.rs",
         "crates/bijux-dna-dev/src/commands/ops/mod.rs",
         "crates/bijux-dna-stages-vcf/src/pipeline.rs",
         "crates/bijux-dna-stages-vcf/src/pipeline/calling/mod.rs",
