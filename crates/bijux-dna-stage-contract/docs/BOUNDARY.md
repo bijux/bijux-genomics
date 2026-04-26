@@ -27,8 +27,8 @@ Normal dependencies stay limited to:
 - `anyhow`, `serde`, `serde_json`, and `sha2` for contract validation,
   serialization, and deterministic plan hashing.
 
-Dev dependencies may use `bijux-dna-policies`, `bijux-dna-testkit`, and
-`walkdir` for guardrails, fixtures, and source scans.
+Dev dependencies may use `bijux-dna-policies`, `bijux-dna-testkit`, `toml`, and
+`walkdir` for guardrails, fixtures, manifest checks, and source scans.
 
 ## Validation
 
