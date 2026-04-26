@@ -1,78 +1,77 @@
-# CONTRACTS
+# Contracts
 
-## Contract Atlas
-Each contract type includes purpose, stability tier, versioning rules, canonical JSON example, and compatibility breaks.
+`bijux-dna-core` owns serialized contracts and pure validation helpers that
+downstream crates consume without redefining contract shape.
 
-### ExecutionGraph
-- Purpose: declarative execution plan for the engine.
-- Stability tier: **A** (strict stability).
-- Versioning: additive fields => minor; breaking changes => major.
-- Canonical JSON example:
-```json
-{
-  "schema_version": "bijux.execution_graph.v1",
-  "contract_version": {"major": 1, "minor": 0},
-  "pipeline_id": "fastq.default.v1",
-  "planner_version": "planner.v1",
-  "policy": {"mode": "strict"},
-  "steps": [],
-  "edges": []
-}
+## Execution Contracts
+
+`contract::execution` owns:
+
+- `ExecutionGraph`, `ExecutionStep`, `ExecutionEdge`, and graph validation.
+- `ExecutionContract` and `validate_execution_outputs`.
+- `ExecutionManifest` and stage execution records.
+- `PlanPolicy`, `RetryPolicy`, `ToolConstraints`, `StageIO`, `ArtifactSpec`,
+  `ArtifactRole`, and path/port records.
+
+Execution graphs are declarative. They may contain command templates and
+container image refs as data, but they must not contain runtime execution state,
+stage planner internals, or runner-specific behavior.
+
+## Run Contracts
+
+`contract::run` owns:
+
+- `RunRecordV1`, `RunSpec`, and run index line/query helpers.
+- `RunMetadataV1`, `StageMetadataV1`, `ToolExecutionMetadataV1`, and
+  `ToolInvocationMetadataV1`.
+- `ScientificProvenanceV1` and `ToolProvenanceV1`.
+- Pipeline domain/spec records used by planners and APIs.
+
+Run index helpers can read and query typed index files, but this crate does not
+own runtime publish workflows or report persistence.
+
+## Tooling Contracts
+
+`contract::tooling` owns:
+
+- `StageSpec`, `ToolManifest`, `ToolRegistry`, `ToolExecutionSpecV1`, and
+  `ToolInvocationV1`.
+- `Objective`, `ObjectiveSpec`, `ObjectiveWeights`, `ToolScore`,
+  `Disqualification`, `StageSelection`, and `select_stage`.
+
+Selection is pure scoring over typed candidate data. It does not execute tools
+or choose runtime backends.
+
+## Identifier Contracts
+
+`ids` owns typed wrappers and parsing for pipeline, stage, tool, artifact, run,
+step, and profile ids. `id_catalog` owns canonical constants for shared ids.
+New shared id families belong here only when they are cross-crate contracts.
+
+## Metrics Contracts
+
+`metrics` owns metric ids, derived metric parsing, metrics schema ids, stage
+metrics records, registry constants, and tool invocation metric payloads.
+Domain-specific metric interpretation can live downstream, but shared metric
+shape and id validation live here.
+
+## Foundation Contracts
+
+`foundation` owns shared model helpers exported through the prelude:
+
+- command specs and container image refs
+- cache and reproducibility identity records
+- canonicalization and hashing helpers
+- error and invariant records
+- FASTQ input assessment records and helpers
+
+Foundation helpers must stay generic and must not import orchestration,
+planning, runtime, or product API behavior.
+
+## Verification
+
+Run from the repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-core --test contracts --no-default-features
 ```
-- Breaks compatibility: renaming fields, changing step/edge semantics, removing required fields.
-
-### RunManifest
-- Purpose: canonical record of what ran and what artifacts exist.
-- Stability tier: **A**.
-- Versioning: additive optional fields => minor; breaking fields => major.
-- Canonical JSON example:
-```json
-{
-  "schema_version": "bijux.run_manifest.v1",
-  "contract_version": {"major": 1, "minor": 0},
-  "graph_hash": "sha256:...",
-  "artifacts": []
-}
-```
-- Breaks compatibility: changes to artifact list semantics or tool identity fields.
-
-### ToolInvocation
-- Purpose: exact tool identity + params + input hashes.
-- Stability tier: **A**.
-- Versioning: additive fields => minor.
-- Canonical JSON example:
-```json
-{
-  "tool_id": "fastp",
-  "tool_version": "0.23.2",
-  "image_digest": "sha256:...",
-  "params_hash": "sha256:...",
-  "input_hash": "sha256:..."
-}
-```
-- Breaks compatibility: changing hashing inputs or identity fields.
-
-### MetricsEnvelope
-- Purpose: strongly typed metrics container.
-- Stability tier: **B** (semantics stable, fields additive).
-- Versioning: new metrics => minor.
-- Canonical JSON example:
-```json
-{
-  "tool_id": "fastp",
-  "metrics": {}
-}
-```
-- Breaks compatibility: changing required metric meanings or units.
-
-## Non-goals
-- Tool execution, process spawning, or filesystem effects.
-- Domain-specific selection logic.
-
-## Identifier catalog
-Canonical identifier constants live in `id_catalog` and are referenced by planners, pipelines, and APIs.
-
-## See also
-- `docs/SERIALIZATION.md`
-- `docs/INVARIANTS.md`
-- `docs/PUBLIC_API.md`
