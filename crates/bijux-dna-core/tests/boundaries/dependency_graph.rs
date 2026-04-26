@@ -52,6 +52,23 @@ fn core_manifest_rejects_downstream_crate_dependencies() {
     }
 }
 
+#[test]
+fn normal_dependencies_reject_workspace_crates() {
+    let manifest =
+        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
+            .expect("read Cargo.toml");
+    let dependencies = dependency_names(&manifest, "dependencies");
+    let workspace_dependencies = dependencies
+        .iter()
+        .filter(|dependency| dependency.starts_with("bijux-"))
+        .collect::<Vec<_>>();
+
+    assert!(
+        workspace_dependencies.is_empty(),
+        "bijux-dna-core normal dependencies must not include workspace crates: {workspace_dependencies:?}"
+    );
+}
+
 fn dependency_names(manifest: &str, section: &str) -> BTreeSet<String> {
     let section_header = format!("[{section}]");
     let mut names = BTreeSet::new();
