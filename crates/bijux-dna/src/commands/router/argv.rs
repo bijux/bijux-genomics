@@ -46,15 +46,15 @@ fn normalize_cli_argv(argv: &[String]) -> Vec<String> {
         let token = raw[index].as_str();
         if let Some(value_arity) = global_option_value_arity(token) {
             normalized.push(raw[index].clone());
-            if !token.contains('=') {
+            if token.contains('=') {
+                index += 1;
+            } else {
                 for offset in 1..=value_arity {
                     if let Some(value) = raw.get(index + offset) {
                         normalized.push(value.clone());
                     }
                 }
                 index = (index + 1 + value_arity).min(raw.len());
-            } else {
-                index += 1;
             }
             continue;
         }

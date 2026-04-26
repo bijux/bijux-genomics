@@ -307,6 +307,8 @@ fn ensure_observability_run_id(run_id: &str) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::expect_used)]
+
     use super::{observability_run_dir, write_observability_log_pack};
 
     #[test]
