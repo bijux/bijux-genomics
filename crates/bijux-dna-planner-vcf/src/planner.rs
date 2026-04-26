@@ -4,7 +4,9 @@ use anyhow::{anyhow, bail, Result};
 use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_core::prelude::ArtifactRole;
 use bijux_dna_domain_vcf::contracts::refuse_unsupported_regime_transition;
-use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
+use bijux_dna_domain_vcf::taxonomy::{
+    validate_downstream_transition, CoverageRegime, VcfDomainStage,
+};
 use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::api::VcfPipelineInputs;
@@ -33,6 +35,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
     validate_stage_tool_override_keys(inputs, &stages)?;
     validate_stage_param_override_keys(inputs, &stages)?;
     validate_stage_coverage_support(&stages, resolved_coverage)?;
+    validate_stage_ordering(&stages)?;
 
     if stages.contains(&VcfDomainStage::Demography) && !stages.contains(&VcfDomainStage::Ibd) {
         bail!("vcf.demography requires vcf.ibd in requested/default stage set");
@@ -154,6 +157,13 @@ fn validate_stage_coverage_support(
                 coverage
             );
         }
+    }
+    Ok(())
+}
+
+fn validate_stage_ordering(stages: &[VcfDomainStage]) -> Result<()> {
+    for pair in stages.windows(2) {
+        validate_downstream_transition(pair[0], pair[1])?;
     }
     Ok(())
 }
