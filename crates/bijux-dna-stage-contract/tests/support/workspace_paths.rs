@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use anyhow::{anyhow, Result};
 use std::path::{Path, PathBuf};
 
@@ -21,8 +19,4 @@ pub fn repo_root() -> Result<PathBuf> {
 
 pub fn crate_root(crate_name: &str) -> Result<PathBuf> {
     Ok(repo_root()?.join("crates").join(crate_name))
-}
-
-pub fn crate_src(crate_name: &str) -> Result<PathBuf> {
-    Ok(crate_root(crate_name)?.join("src"))
 }
