@@ -2,15 +2,17 @@
 
 Canonical examples index.
 
-## Example IDs
-- `template`: `examples/_template/README.md`
-- `fastq_qc_pre_bench`: `examples/fastq/qc-pre-bench/README.md`
-- `fastq_validate_reads_bench`: `examples/fastq/validate-reads-bench/README.md`
-- `fastq_edna_mini`: `examples/fastq/edna-mini/README.md`
-- `vcf_imputation_mini`: `examples/vcf/imputation-mini/README.md`
-- `vcf_downstream_demography_mini`: `examples/vcf/downstream-demography-mini/README.md`
-- `corpus_01_mini`: `examples/data/corpus-01-mini/README.md`
-- `corpus_01`: `examples/data/corpus-01/README.md`
+## Runnable Example Inventory
+- `examples/index.yaml`
+- `examples/README.md`
+
+Runnable example IDs are generated in `examples/index.yaml`. This document must not duplicate
+that list manually.
+
+## Non-Runnable Example Surfaces
+- `examples/_template/README.md`
+- `examples/data/corpus-01/README.md`
+- `examples/data/corpus-01-mini/README.md`
 
 ## Recipe-Only Benchmark Docs
 - `examples/fastq/index-reference-bench/README.md`
@@ -32,5 +34,6 @@ Applies to the `examples/` tree, the generated example index, and the docs that 
 
 ## Contracts
 - `examples/index.yaml` is the SSOT for runnable example IDs only.
+- `examples/_template/` and `examples/data/**` are navigable docs, not runnable example IDs.
 - Recipe-only benchmark docs are intentionally excluded from `examples/index.yaml` until they grow an executable example contract.
 - `examples/data/` holds corpora inputs and can appear in navigation docs without being treated as runnable examples.
