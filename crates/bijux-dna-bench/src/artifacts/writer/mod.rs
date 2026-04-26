@@ -59,11 +59,15 @@ pub fn write_decision_json(path: &Path, decision: &GateDecision) -> Result<()> {
     structured_writer::write_decision_json(path, decision)
 }
 
+pub fn write_decisions_json(path: &Path, decisions: &[GateDecision]) -> Result<()> {
+    structured_writer::write_decisions_json(path, decisions)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        read_observations_jsonl, write_decision_json, write_observations_jsonl, write_summary_json,
-        WriteMode,
+        read_observations_jsonl, write_decision_json, write_decisions_json,
+        write_observations_jsonl, write_summary_json, WriteMode,
     };
     use std::collections::BTreeMap;
 
@@ -217,10 +221,12 @@ mod tests {
             rationale_trace: Vec::new(),
         };
         write_decision_json(&out_dir.join("decision.json"), &decision)?;
+        write_decisions_json(&out_dir.join("decisions.json"), &[decision.clone()])?;
 
         let observations_text = std::fs::read_to_string(out_dir.join("observations.jsonl"))?;
         let summary_text = std::fs::read_to_string(out_dir.join("summary.json"))?;
         let decision_text = std::fs::read_to_string(out_dir.join("decision.json"))?;
+        let decisions_text = std::fs::read_to_string(out_dir.join("decisions.json"))?;
 
         let expected_observation = {
             let json = serde_json::to_value(&observations[0])?;
@@ -242,6 +248,8 @@ mod tests {
             serde_json::to_string_pretty(&canonical)?
         };
         assert_eq!(decision_text.trim(), expected_decision.trim());
+        let decisions_value: serde_json::Value = serde_json::from_str(&decisions_text)?;
+        assert_eq!(decisions_value.as_array().map(Vec::len), Some(1));
 
         let reloaded = read_observations_jsonl(&out_dir.join("observations.jsonl"))?;
         assert_eq!(reloaded.len(), 1);
