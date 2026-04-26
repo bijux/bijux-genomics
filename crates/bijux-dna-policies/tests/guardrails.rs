@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use anyhow::Result;
 use bijux_dna_policies::GuardrailConfig;
 use bijux_dna_testkit::TestPaths;
 use std::fs;
@@ -11,8 +12,32 @@ pub fn guardrails() {
 
 fn write_source(crate_root: &Path, rel: &str, content: &str) {
     let path = crate_root.join("src").join(rel);
-    fs::create_dir_all(path.parent().expect("source parent")).expect("create source parent");
-    fs::write(path, content).expect("write source");
+    let parent = path
+        .parent()
+        .unwrap_or_else(|| panic!("source path must have a parent: {}", path.display()));
+    fs::create_dir_all(parent)
+        .unwrap_or_else(|err| panic!("create source parent {} failed: {err}", parent.display()));
+    fs::write(&path, content)
+        .unwrap_or_else(|err| panic!("write source {} failed: {err}", path.display()));
+}
+
+fn create_dir(path: impl AsRef<Path>) {
+    let path = path.as_ref();
+    fs::create_dir_all(path)
+        .unwrap_or_else(|err| panic!("create directory {} failed: {err}", path.display()));
+}
+
+fn must_pass(result: Result<()>, context: &str) {
+    if let Err(err) = result {
+        panic!("{context}: {err}");
+    }
+}
+
+fn must_fail(result: Result<()>, context: &str) -> anyhow::Error {
+    match result {
+        Ok(()) => panic!("{context}"),
+        Err(err) => err,
+    }
 }
 
 #[test]
@@ -24,10 +49,10 @@ fn policy__root__guardrails__guardrails_smoke() {
 fn policy__root__guardrails__empty_source_tree_is_rejected() {
     let paths = TestPaths::new("policies-empty-source-tree");
     let crate_root = paths.child("empty-crate");
-    fs::create_dir_all(crate_root.join("src")).expect("create src");
+    create_dir(crate_root.join("src"));
 
     let err =
-        bijux_dna_policies::check(&crate_root, &GuardrailConfig::default()).expect_err("empty src");
+        must_fail(bijux_dna_policies::check(&crate_root, &GuardrailConfig::default()), "empty src");
 
     assert!(
         err.to_string().contains("at least one Rust source"),
@@ -39,10 +64,10 @@ fn policy__root__guardrails__empty_source_tree_is_rejected() {
 fn policy__root__guardrails__missing_source_tree_is_rejected() {
     let paths = TestPaths::new("policies-missing-source-tree");
     let crate_root = paths.child("missing-src-crate");
-    fs::create_dir_all(&crate_root).expect("create crate root");
+    create_dir(&crate_root);
 
     let err =
-        bijux_dna_policies::check(&crate_root, &GuardrailConfig::default()).expect_err("no src");
+        must_fail(bijux_dna_policies::check(&crate_root, &GuardrailConfig::default()), "no src");
 
     assert!(
         err.to_string().contains("No such file") || err.to_string().contains("os error"),
@@ -62,8 +87,10 @@ fn policy__root__guardrails__allow_paths_match_exact_suffixes() {
         ..Default::default()
     };
 
-    let err = bijux_dna_policies::check(&crate_root, &config)
-        .expect_err("substring allowlist must not suppress failure");
+    let err = must_fail(
+        bijux_dna_policies::check(&crate_root, &config),
+        "substring allowlist must not suppress failure",
+    );
 
     assert!(
         err.to_string().contains("panic/expect/unwrap found"),
@@ -83,7 +110,7 @@ fn policy__root__guardrails__panic_expect_scan_ignores_comment_mentions() {
 
     let config = GuardrailConfig { forbid_panic_expect: true, ..Default::default() };
 
-    bijux_dna_policies::check(&crate_root, &config).expect("comment-only expect is allowed");
+    must_pass(bijux_dna_policies::check(&crate_root, &config), "comment-only expect is allowed");
 }
 
 #[test]
@@ -94,7 +121,7 @@ fn policy__root__guardrails__panic_expect_scan_rejects_unwrap() {
 
     let config = GuardrailConfig { forbid_panic_expect: true, ..Default::default() };
 
-    let err = bijux_dna_policies::check(&crate_root, &config).expect_err("unwrap must fail");
+    let err = must_fail(bijux_dna_policies::check(&crate_root, &config), "unwrap must fail");
 
     assert!(err.to_string().contains("unwrap found"), "unexpected guardrail error: {err}");
 }
@@ -107,7 +134,7 @@ fn policy__root__guardrails__stage_id_scan_ignores_comment_mentions() {
 
     let config = GuardrailConfig { forbid_stage_id_strings: true, ..Default::default() };
 
-    bijux_dna_policies::check(&crate_root, &config).expect("comment-only stage id is allowed");
+    must_pass(bijux_dna_policies::check(&crate_root, &config), "comment-only stage id is allowed");
 }
 
 #[test]
@@ -118,7 +145,7 @@ fn policy__root__guardrails__stage_id_scan_rejects_raw_strings() {
 
     let config = GuardrailConfig { forbid_stage_id_strings: true, ..Default::default() };
 
-    let err = bijux_dna_policies::check(&crate_root, &config).expect_err("raw stage id must fail");
+    let err = must_fail(bijux_dna_policies::check(&crate_root, &config), "raw stage id must fail");
 
     assert!(err.to_string().contains("stage id literal"), "unexpected guardrail error: {err}");
 }
@@ -131,7 +158,7 @@ fn policy__root__guardrails__pub_item_budget_counts_scoped_visibility() {
 
     let config = GuardrailConfig { max_pub_items_per_file: 0, ..Default::default() };
 
-    let err = bijux_dna_policies::check(&crate_root, &config).expect_err("scoped pub must count");
+    let err = must_fail(bijux_dna_policies::check(&crate_root, &config), "scoped pub must count");
 
     assert!(err.to_string().contains("pub items"), "unexpected guardrail error: {err}");
 }
@@ -149,7 +176,7 @@ fn policy__root__guardrails__pub_use_budget_counts_scoped_reexports() {
     };
 
     let err =
-        bijux_dna_policies::check(&crate_root, &config).expect_err("scoped pub use must count");
+        must_fail(bijux_dna_policies::check(&crate_root, &config), "scoped pub use must count");
 
     assert!(err.to_string().contains("pub use re-exports"), "unexpected guardrail error: {err}");
 }
@@ -161,8 +188,10 @@ fn policy__root__guardrails__empty_module_scan_ignores_attributes_and_scoped_mod
     write_source(&crate_root, "mod.rs", "#![allow(dead_code)]\npub(crate) mod inner;\n");
     write_source(&crate_root, "inner.rs", "pub fn real() {}\n");
 
-    let err = bijux_dna_policies::check(&crate_root, &GuardrailConfig::default())
-        .expect_err("attribute-only module shell must fail");
+    let err = must_fail(
+        bijux_dna_policies::check(&crate_root, &GuardrailConfig::default()),
+        "attribute-only module shell must fail",
+    );
 
     assert!(err.to_string().contains("empty module file"), "unexpected guardrail error: {err}");
 }
@@ -183,5 +212,8 @@ fn policy__root__guardrails__literal_scans_ignore_block_comments() {
         ..Default::default()
     };
 
-    bijux_dna_policies::check(&crate_root, &config).expect("block-comment mentions are allowed");
+    must_pass(
+        bijux_dna_policies::check(&crate_root, &config),
+        "block-comment mentions are allowed",
+    );
 }
