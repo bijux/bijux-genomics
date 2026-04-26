@@ -36,8 +36,8 @@ fn test_docs_match_runtime_test_tree() {
 
 #[test]
 fn public_api_doc_matches_root_modules() {
-    let public_api = fs::read_to_string(crate_root().join("PUBLIC_API.md"))
-        .unwrap_or_else(|err| panic!("read PUBLIC_API.md: {err}"));
+    let public_api = fs::read_to_string(crate_root().join("docs/PUBLIC_API.md"))
+        .unwrap_or_else(|err| panic!("read docs/PUBLIC_API.md: {err}"));
     for module_name in [
         "environment",
         "manifests",
@@ -51,11 +51,11 @@ fn public_api_doc_matches_root_modules() {
     ] {
         assert!(
             public_api.contains(&format!("`{module_name}`")),
-            "PUBLIC_API.md must list `{module_name}`"
+            "docs/PUBLIC_API.md must list `{module_name}`"
         );
     }
     assert!(
         !public_api.contains("stage_runner_contract"),
-        "PUBLIC_API.md must not reference removed pseudo-modules"
+        "docs/PUBLIC_API.md must not reference removed pseudo-modules"
     );
 }
