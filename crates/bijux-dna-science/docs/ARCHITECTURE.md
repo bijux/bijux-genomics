@@ -7,15 +7,24 @@ compilers, renderers, and release writers.
 
 ## Module Layout
 
-- `app` coordinates CLI commands and write destinations.
-- `cli` defines command-line arguments.
-- `compile` loads authored YAML specs and derives evidence tables.
-- `domain` owns science data structures and typed science identifiers.
-- `errors` formats validation failures.
-- `io` provides deterministic UTF-8 file IO helpers.
-- `release` writes immutable release bundles under `artifacts/`.
-- `render` converts compiled science rows to stable TSV and JSON.
-- `schema` declares accepted authored spec versions.
+```text
+src/
+├── app/
+│   └── mod.rs       # CLI command coordination and governed write destinations
+├── cli.rs           # command-line arguments and subcommands
+├── compile.rs       # authored YAML loading, cross-reference checks, and evidence derivation
+├── domain/
+│   └── mod.rs       # science data structures and typed science identifiers
+├── errors.rs        # validation error formatting
+├── io.rs            # deterministic UTF-8 file IO helpers
+├── lib.rs           # library exports
+├── main.rs          # binary shell
+├── release.rs       # immutable release bundle writer under artifacts/
+├── render/
+│   └── mod.rs       # stable TSV and JSON rendering
+└── schema/
+    └── mod.rs       # accepted authored spec versions
+```
 
 ## Data Flow
 
