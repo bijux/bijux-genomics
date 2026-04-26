@@ -1,20 +1,14 @@
-use std::path::Path;
-
 use bijux_dna_domain_compiler::{compile_domain_configs, CompileOptions};
 
-fn repo_root() -> std::path::PathBuf {
-    let Some(root) = Path::new(env!("CARGO_MANIFEST_DIR")).parent().and_then(|p| p.parent()) else {
-        panic!("repo root");
-    };
-    root.to_path_buf()
-}
+#[path = "support/mod.rs"]
+mod support;
 
 #[test]
 fn compiler_outputs_are_stable_across_repeated_runs() -> anyhow::Result<()> {
-    let root = repo_root();
+    let root = support::repo_root();
     let domain_dir = root.join("domain");
-    let out_a = tempfile::tempdir()?;
-    let out_b = tempfile::tempdir()?;
+    let out_a = support::artifact_output_dir("determinism-a-")?;
+    let out_b = support::artifact_output_dir("determinism-b-")?;
     let opts_a = CompileOptions {
         domain_dir: domain_dir.clone(),
         configs_dir: out_a.path().to_path_buf(),
