@@ -69,6 +69,19 @@ fn policy__boundaries__foundation_docs__foundation_readmes_expose_workspace_poli
     }
 }
 
+#[test]
+fn policy__boundaries__foundation_docs__foundation_crates_do_not_keep_empty_bench_dirs() {
+    let workspace = workspace_root();
+
+    for crate_name in FOUNDATION_CRATES {
+        let bench_dir = workspace.join("crates").join(crate_name).join("bench");
+        assert!(
+            !bench_dir.exists(),
+            "{crate_name} must not keep a crate-local bench/ directory unless benchmark ownership is documented and tested"
+        );
+    }
+}
+
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
