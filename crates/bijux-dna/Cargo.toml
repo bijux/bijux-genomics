@@ -23,8 +23,8 @@ serde = { workspace = true }
 regex = { workspace = true }
 toml = { workspace = true }
 sha2 = { workspace = true }
-tar = "0.4"
-flate2 = "1"
+tar.workspace = true
+flate2.workspace = true
 
 [features]
 bam_downstream = ["bijux-dna-api/bam_downstream"]
