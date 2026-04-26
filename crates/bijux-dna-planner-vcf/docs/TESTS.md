@@ -1,21 +1,25 @@
 # Tests
 
-## What
-Lists core test entrypoints for bijux-dna-planner-vcf.
+VCF planner tests protect deterministic stage plans, graph topology, explain payloads, coverage-regime behavior, tool overrides, planner refusals, and boundary rules.
 
-## Why
-Ensures contract, boundary, and regression coverage is visible.
+## Entry Points
+- `tests/contracts.rs` — snapshot contracts and planner refusal coverage.
+- `tests/guardrails.rs` — crate-local guardrail smoke coverage.
 
-## Non-goals
-- Full workspace orchestration instructions.
+## Contract Coverage
+- Default downstream plans for diploid, low-coverage GL, and pseudohaploid regimes.
+- Tool override behavior for diploid downstream planning.
+- Requested stage subset planning with panel context.
+- Duplicate, unknown, coverage-incompatible, and out-of-order stage refusals.
+- eDNA and pollen domain refusals.
+- Stage parameter override validation.
 
-## Contracts
-- tests/contracts.rs
-- tests/guardrails.rs
+## Snapshots
+Snapshot files live under `tests/snapshots/`. Snapshot changes require review of stage order, graph edges, command specs, reference context, panel locks, or explain contract intent.
 
-## Examples
-- cargo test -p bijux-dna-planner-vcf --test contracts
-- cargo test -p bijux-dna-planner-vcf --test guardrails
+## Standard Command
+Run:
 
-## Failure modes
-Missing tests or stale fixtures fail policy checks.
+```bash
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-planner-vcf --no-default-features
+```
