@@ -1,19 +1,38 @@
-# BENCH_CONTRACT
+# Benchmark Contract
 
-## Contract scope
-Benchmark inputs are analyze outputs + runtime records.
-Outputs are decisions and summaries compatible with analyze/runtime.
+`bijux-dna-bench` consumes benchmark suite specs and benchmark observations, then
+emits summaries and gate decisions. Contract structs live in
+`bijux-dna-bench-model`; this crate owns loading, summarization, comparison,
+gating, and deterministic artifact persistence.
 
 ## Inputs
-- `decision.json` from analyze (per-run decisions + rationale).
-- `observations.jsonl` from runtime/analyze (metric stream).
-- Optional run metadata for reproducibility (see `docs/REPRODUCIBILITY.md`).
 
-## Output meaning
-- decision: the selected tool or pipeline variant with justification.
-- summary: aggregated comparison results used by CI or report layers.
+- `BenchmarkSuiteSpec` from checked-in TOML files under `bench/suites/`.
+- `BenchmarkObservation` records from runtime/analyze benchmark runs.
+- Optional existing `observations.jsonl` when `BenchRunOptions.resume` is true.
+- Runtime manifests and metric payloads that have already been produced by other
+  crates.
 
-## Reproducing a benchmark
-1. Collect the input artifacts for a run pair.
-2. Run the benchmark comparison (see `docs/REPRODUCIBILITY.md`).
-3. Compare emitted `summary.json` and `decision.json` to fixtures.
+## Outputs
+
+- `BenchmarkSummary` for aggregated benchmark rows.
+- `GateDecision` values for policy evaluation.
+- `CompareReport` for summary-to-summary comparisons.
+- Persisted artifacts documented in `docs/BENCH_FORMAT.md`.
+
+## Required Invariants
+
+- Suite specs must validate against `bijux.bench.suite.v1`.
+- Observations must validate before summarization.
+- Summary and decision artifacts must validate before being written.
+- Output ordering must be deterministic.
+- Gate decisions must include rationale and metric evidence.
+- Benchmark operations must not execute tools or product workflows.
+
+## Failure Modes
+
+- Invalid suite schema or stage/tool ids.
+- Missing or malformed observations.
+- Missing required stratification metadata.
+- Unknown metrics in gate policies.
+- Contract validation failures before artifact persistence.
