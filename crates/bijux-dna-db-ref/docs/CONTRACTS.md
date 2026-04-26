@@ -17,7 +17,8 @@ required index names. Reference bundles define the concrete FASTA, FAI, dict,
 contig set digest, lock digests, declared contigs, optional BED files, and
 contig normalization policy used by planners. Reference provenance is derived
 from the resolved bundle identity so callers cannot create species/build
-provenance that disagrees with the bundle.
+provenance that disagrees with the bundle. Resolved bundles must declare at
+least one contig, each with a non-empty name and positive length.
 
 ## Contig Contracts
 
