@@ -12,9 +12,12 @@ fn observation_key(obs: &BenchmarkObservation) -> ObservationKey {
     (
         obs.dataset_id.clone(),
         obs.stage_id.clone(),
+        obs.stage_instance_id.clone(),
+        obs.lineage_id.clone(),
         obs.tool_id.clone(),
         obs.params_hash.clone(),
         obs.replicate_id.clone(),
+        obs.replicate_index,
     )
 }
 

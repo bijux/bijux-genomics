@@ -4,7 +4,8 @@ use anyhow::Result;
 
 use bijux_dna_bench_model::BenchmarkObservation;
 
-pub(super) type ObservationKey = (String, String, String, String, String);
+pub(super) type ObservationKey =
+    (String, String, Option<String>, Option<String>, String, String, String, u32);
 
 pub(super) fn read_observations_jsonl(path: &Path) -> Result<Vec<BenchmarkObservation>> {
     if !path.exists() {
