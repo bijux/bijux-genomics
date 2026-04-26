@@ -10,8 +10,9 @@ minimal, and appropriate for helper code used by other crates' tests.
 - Create temporary directories through `tempfile`.
 - Derive contained paths below `TEST_TMP_DIR` or the process temp directory.
 - Read environment variables used only for deterministic snapshot redaction:
-  `CARGO_MANIFEST_DIR`, `COMPUTERNAME`, `HOME`, `HOSTNAME`, `LC_ALL`, `LOGNAME`,
-  `TEMP`, `TEST_TMP_DIR`, `TMP`, `TMPDIR`, `TZ`, and `USER`.
+  `CARGO_MANIFEST_DIR`, `CARGO_PKG_NAME`, `COMPUTERNAME`, `HOME`, `HOSTNAME`,
+  `LC_ALL`, `LOGNAME`, `TEMP`, `TEST_TMP_DIR`, `TMP`, `TMPDIR`, `TZ`, and
+  `USER`.
 - Set `TZ=UTC` and `LC_ALL=C` through `install_snapshot_env` for tests.
 
 ## Forbidden Effects
