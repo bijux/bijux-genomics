@@ -85,6 +85,11 @@ pub(super) fn build_summary_row(
     for metric_id in metric_ids {
         let values: Vec<f64> =
             group.iter().filter_map(|obs| obs.metrics.values.get(&metric_id).copied()).collect();
+        let replicate_ids: Vec<String> = group
+            .iter()
+            .filter(|obs| obs.metrics.values.contains_key(&metric_id))
+            .map(|obs| obs.replicate_id.clone())
+            .collect();
         let stats = robust_stats(&values);
         let outliers = mad_outliers(&values, 3.5);
         let ci = bootstrap_if_enabled(
@@ -105,7 +110,11 @@ pub(super) fn build_summary_row(
             ci_low: ci.map(|c| c.0),
             ci_high: ci.map(|c| c.1),
             outlier_count: outliers.outlier_count,
-            outlier_replicates: indices_to_replicates(&outliers.outlier_indices, &group),
+            outlier_replicates: outliers
+                .outlier_indices
+                .iter()
+                .filter_map(|idx| replicate_ids.get(*idx).cloned())
+                .collect(),
             practical_threshold: Some(0.05),
             power_warning: values.len() < 5,
         });
@@ -146,4 +155,118 @@ pub(super) fn build_summary_row(
         },
         warnings,
     )))
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeMap;
+
+    use bijux_dna_bench_model::{
+        AnalysisRequirements, BenchmarkObservation, BenchmarkSuiteSpec, DatasetSpec,
+        DiversityRequirements, MetricsEnvelope, ReplicatePolicy, StratificationRequirement,
+    };
+
+    use super::{build_summary_row, BenchRunOptions};
+
+    fn suite() -> BenchmarkSuiteSpec {
+        BenchmarkSuiteSpec::v1(
+            "suite-1".to_string(),
+            vec![DatasetSpec {
+                id: "dataset-1".to_string(),
+                hash: "hash-1".to_string(),
+                size: 100,
+                origin: "synthetic".to_string(),
+                class_label: "trueseq".to_string(),
+                read_layout: "paired".to_string(),
+            }],
+            &["fastq.trim_reads".to_string()],
+            &["fastp".to_string()],
+            &["params-a".to_string()],
+            ReplicatePolicy { count: 5, warmup: 0, seeds: vec![1, 2, 3, 4, 5] },
+            DiversityRequirements { min_dataset_count: 1, min_classes: 1, min_read_layouts: 1 },
+            vec![StratificationRequirement {
+                key: "dataset_class".to_string(),
+                required_values: vec!["trueseq".to_string()],
+            }],
+            AnalysisRequirements {
+                require_bootstrap: false,
+                require_outlier_detection: true,
+                min_replicates_for_bootstrap: 5,
+            },
+        )
+    }
+
+    fn observation(replicate_id: &str, metric_value: Option<f64>) -> BenchmarkObservation {
+        let mut values = BTreeMap::new();
+        if let Some(metric_value) = metric_value {
+            values.insert("custom_signal".to_string(), metric_value);
+        }
+        BenchmarkObservation {
+            schema_version: "bijux.bench.observation.v1".to_string(),
+            run_id: replicate_id.to_string(),
+            dataset_id: "dataset-1".to_string(),
+            dataset_class: "trueseq".to_string(),
+            read_layout: "paired".to_string(),
+            stage_id: "fastq.trim_reads".to_string(),
+            stage_instance_id: None,
+            lineage_id: None,
+            tool_id: "fastp".to_string(),
+            tool_version: "0.23.4".to_string(),
+            image_digest: "sha256:abc".to_string(),
+            container_digest: "sha256:abc".to_string(),
+            params_hash: "params-a".to_string(),
+            input_hash: "input".to_string(),
+            runtime_s: 1.0,
+            memory_mb: 100.0,
+            exit_code: 0,
+            failure_kind: None,
+            metrics: MetricsEnvelope {
+                stage_id: "fastq.trim_reads".to_string(),
+                schema_version: "metrics.v1".to_string(),
+                values,
+            },
+            replicate_id: replicate_id.to_string(),
+            replicate_index: 0,
+            warmup_policy: "none".to_string(),
+            seed_policy: "default".to_string(),
+            runner: "docker".to_string(),
+            platform: "linux".to_string(),
+            cpu: "x86_64".to_string(),
+            threads: 4,
+            io_mode: "local".to_string(),
+        }
+    }
+
+    #[test]
+    fn metric_outliers_map_to_metric_bearing_replicates() -> anyhow::Result<()> {
+        let observations = [
+            observation("r1", None),
+            observation("r2", Some(1.0)),
+            observation("r3", Some(1.1)),
+            observation("r4", Some(0.9)),
+            observation("r5", Some(10.0)),
+        ];
+        let group = observations.iter().collect::<Vec<_>>();
+        let Some((row, _warnings)) = build_summary_row(
+            &suite(),
+            &BenchRunOptions::default(),
+            "dataset-1".to_string(),
+            "fastq.trim_reads".to_string(),
+            None,
+            None,
+            "fastp".to_string(),
+            "params-a".to_string(),
+            group,
+        )?
+        else {
+            return Err(anyhow::anyhow!("summary row should be built"));
+        };
+        let Some(metric) = row.metrics.iter().find(|metric| metric.metric_id == "custom_signal")
+        else {
+            return Err(anyhow::anyhow!("custom metric should be summarized"));
+        };
+
+        assert_eq!(metric.outlier_replicates, vec!["r5".to_string()]);
+        Ok(())
+    }
 }
