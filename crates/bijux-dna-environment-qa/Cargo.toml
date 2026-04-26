@@ -15,9 +15,9 @@ sha2.workspace = true
 tracing.workspace = true
 uuid.workspace = true
 clap.workspace = true
-rusqlite = { version = "0.31", optional = true }
+rusqlite = "0.31"
 bijux-dna-environment = { path = "../bijux-dna-environment" }
-bijux-dna-analyze = { path = "../bijux-dna-analyze" }
+bijux-dna-analyze = { path = "../bijux-dna-analyze", features = ["sqlite"] }
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
@@ -32,5 +32,5 @@ bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 workspace = true
 
 [features]
-default = ["sqlite"]
-sqlite = ["dep:rusqlite", "bijux-dna-analyze/sqlite"]
+default = []
+sqlite = []
