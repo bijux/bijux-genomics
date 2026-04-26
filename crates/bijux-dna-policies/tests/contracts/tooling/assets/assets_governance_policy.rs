@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
@@ -10,6 +11,43 @@ fn repo_root() -> PathBuf {
         .and_then(|p| p.parent())
         .expect("resolve repo root")
         .to_path_buf()
+}
+
+fn tsv_records(path: &str) -> Vec<BTreeMap<String, String>> {
+    let root = repo_root();
+    let raw =
+        std::fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let mut lines = raw.lines();
+    let header = lines
+        .next()
+        .unwrap_or_else(|| panic!("{path} must not be empty"))
+        .split('\t')
+        .map(str::to_string)
+        .collect::<Vec<_>>();
+    lines
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| {
+            let row = line.split('\t').map(str::to_string).collect::<Vec<_>>();
+            assert_eq!(
+                row.len(),
+                header.len(),
+                "{path} row has {} columns but header has {}",
+                row.len(),
+                header.len()
+            );
+            header.iter().cloned().zip(row).collect()
+        })
+        .collect()
+}
+
+fn checksum_paths(path: &str) -> BTreeSet<String> {
+    let root = repo_root();
+    std::fs::read_to_string(root.join(path))
+        .unwrap_or_else(|err| panic!("read {path}: {err}"))
+        .lines()
+        .filter_map(|line| line.split_whitespace().nth(1))
+        .map(str::to_string)
+        .collect()
 }
 
 #[test]
@@ -34,6 +72,83 @@ fn policy__contracts__assets_governance_policy__assets_root_uses_taxonomy_dirs_o
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
         "assets root must contain only taxonomy dirs + index.md:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__assets_governance_policy__contaminant_references_publish_status_rows() {
+    let rows = tsv_records("assets/reference/contaminants/references/REFERENCE_STATUS.tsv");
+    let by_asset =
+        rows.iter().map(|row| (row["asset_id"].as_str(), row)).collect::<BTreeMap<_, _>>();
+    let checksums = checksum_paths("assets/reference/contaminants/references/CHECKSUMS.sha256");
+    let mut offenders = Vec::new();
+
+    for asset_id in ["phix174", "univec"] {
+        let Some(row) = by_asset.get(asset_id) else {
+            offenders.push(format!("missing contaminant reference status row for {asset_id}"));
+            continue;
+        };
+        if row["current_status"] != "sentinel" {
+            offenders.push(format!(
+                "{asset_id} must stay marked sentinel until replaced, found {}",
+                row["current_status"]
+            ));
+        }
+        if row["production_use"] != "blocked_for_production" {
+            offenders.push(format!(
+                "{asset_id} must block production use, found {}",
+                row["production_use"]
+            ));
+        }
+        if row["source_locator"].trim().is_empty() || row["expected_replacement"].trim().is_empty()
+        {
+            offenders.push(format!("{asset_id} status row must name source and replacement"));
+        }
+        let rel_path = row["path"].strip_prefix("assets/reference/contaminants/references/");
+        if rel_path.is_none_or(|path| !checksums.contains(path)) {
+            offenders.push(format!("{} missing from CHECKSUMS.sha256", row["path"]));
+        }
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "contaminant reference status violations:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__assets_governance_policy__sentinel_contaminants_stay_tiny_and_blocked() {
+    let root = repo_root();
+    let rows = tsv_records("assets/reference/contaminants/references/REFERENCE_STATUS.tsv");
+    let blocked_paths = rows
+        .iter()
+        .filter(|row| row["production_use"] == "blocked_for_production")
+        .map(|row| row["path"].clone())
+        .collect::<BTreeSet<_>>();
+    let mut offenders = Vec::new();
+
+    for (path, max_len) in [
+        ("assets/reference/contaminants/references/phix174.fasta", 128_u64),
+        ("assets/reference/contaminants/references/univec.fasta", 128_u64),
+    ] {
+        if !blocked_paths.contains(path) {
+            offenders.push(format!("{path} must be blocked_for_production in status table"));
+        }
+        let len = std::fs::metadata(root.join(path))
+            .unwrap_or_else(|err| panic!("stat {path}: {err}"))
+            .len();
+        if len > max_len {
+            offenders.push(format!(
+                "{path} is no longer sentinel-sized ({len} bytes); update status before release"
+            ));
+        }
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "sentinel contaminant reference policy violations:\n{}",
         offenders.join("\n")
     );
 }
