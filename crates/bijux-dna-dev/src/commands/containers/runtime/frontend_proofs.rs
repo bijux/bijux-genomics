@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 use super::{
     anyhow, apptainer_def_paths, command_exists, env_or_default, env_or_empty, failure_lines, fs,
     iso_root_path, iso_run_id, load_toml, lock_items_by_tool, lock_json_path, path_from_arg,
