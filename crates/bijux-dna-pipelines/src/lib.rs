@@ -1,6 +1,5 @@
-//! Pipeline profiles across FASTQ, BAM, and cross-domain workflows.
-
-//! Canonical pipeline profiles and defaults ledger for all domains.
+//! Canonical pipeline profiles, defaults ledgers, manifests, and registry lookups
+//! for FASTQ, BAM, VCF, and cross-domain workflows.
 
 pub mod bam;
 pub mod contract;
