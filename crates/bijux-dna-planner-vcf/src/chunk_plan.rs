@@ -83,5 +83,8 @@ pub fn plan_region_chunks(
             .then(left.end.cmp(&right.end))
             .then(left.chunk_id.cmp(&right.chunk_id))
     });
+    if chunks.is_empty() {
+        bail!("chunk filters produced no region chunks");
+    }
     Ok(chunks)
 }
