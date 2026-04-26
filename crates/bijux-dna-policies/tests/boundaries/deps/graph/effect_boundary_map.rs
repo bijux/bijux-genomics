@@ -10,6 +10,10 @@ const ALLOWLIST: &[(&str, &str)] = &[
     ("/crates/bijux-dna/", "cli entrypoints"),
     ("/crates/bijux-dna-environment/", "runtime resolution probes"),
     ("/crates/bijux-dna-infra/", "filesystem helpers"),
+    (
+        "/crates/bijux-dna-core/src/foundation/input_assessment.rs",
+        "documented FASTQ input assessment contract",
+    ),
     ("/crates/bijux-dna-api/src/run.rs", "root CLI orchestration bridge"),
     (
         "/crates/bijux-dna-stages-vcf/",
