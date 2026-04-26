@@ -13,7 +13,8 @@ invokes them. It must stay offline by default and must not gain process or netwo
 
 - Caller-provided output paths through IO helpers.
 - Temporary files created beside atomic-write targets.
-- Temporary directories through `temp_dir` and `temp_dir_in`.
+- Temporary directories through `temp_dir` and `temp_dir_in`; tests should set `TEST_TMP_DIR` so
+  `temp_dir` stays under repository `artifacts/`.
 - Caller-provided log files when `init_logging` is used with the `tracing` feature.
 
 ## Allowed Processes

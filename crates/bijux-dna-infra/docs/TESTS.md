@@ -13,6 +13,17 @@ Tests should explain the contract they enforce.
 - `tests/contracts/io.rs` — IO guarantees for atomic writes, bounded reads, temp dirs, and removal semantics.
 - `tests/contracts/run_layout.rs` — run-layout path, lock, and publish contracts.
 
+## Commands
+
+Use artifact-rooted target and temp directories:
+
+```sh
+TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-infra --no-default-features
+```
+
+`temp_dir` honors `TEST_TMP_DIR`, so local test runs keep temporary directories under the repository
+artifact root instead of the OS temp root.
+
 ## Failure modes
 - Missing test documentation causes drift and confusion.
 
