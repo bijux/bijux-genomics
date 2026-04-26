@@ -1,32 +1,45 @@
 # Tests
 
-## What
-Maps tests in this crate to their purpose and failure meaning.
+This file maps runtime tests to their contract purpose. Directory-local README files are intentionally not used; this document is the test taxonomy for the crate.
 
-## Why
-Tests should explain the contract they enforce.
+## Suite Entrypoints
+- `tests/boundaries.rs` loads boundary and dependency guardrails.
+- `tests/contracts.rs` loads runtime behavior and documentation contracts.
+- `tests/determinism.rs` loads fixture stability checks.
+- `tests/schemas.rs` loads schema snapshot checks.
+- `tests/guardrails.rs` keeps the root guardrail smoke test visible.
 
-## Non-goals
-- Full test implementation detail.
+## Boundaries Suite
+- `tests/boundaries/command_inventory.rs` checks `docs/COMMANDS.md`.
+- `tests/boundaries/dependency_graph.rs` checks dependency boundaries.
+- `tests/boundaries/guardrails.rs` checks policy guardrails.
 
-## Contracts suite (`tests/contracts/*`)
-- `tests/boundaries/guardrails.rs` → privacy boundaries and crate guardrails.
-- `tests/contracts/manifest_integrity.rs` → manifest integrity and required fields.
-- `tests/contracts/run_layout_contract.rs` → run layout invariants.
-- `tests/contracts/canonical_writer.rs` → canonical JSON writer enforced for runtime emits.
-- `tests/contracts/docs_layout.rs` → documentation and API map stay aligned with the crate tree.
+## Contracts Suite
+- `tests/contracts/canonical_writer.rs` checks canonical JSON writer usage.
+- `tests/contracts/docs_layout.rs` checks README, test docs, and public API docs.
+- `tests/contracts/experimental_registry_alias.rs` checks governed registry aliases.
+- `tests/contracts/manifest_integrity.rs` checks manifest integrity, artifact checksums, profile/lock manifests, and path safety.
+- `tests/contracts/run_layout_contract.rs` checks run-layout invariants.
+- `tests/contracts/stage_runner_contract.rs` checks runner support contracts.
+- `tests/contracts/telemetry_contract.rs` checks telemetry schema, redaction, event taxonomy, and validation.
+- `tests/contracts/telemetry_golden.rs` checks telemetry JSONL fixture stability.
 
-## Schema suite (`tests/schemas/*`)
-- `tests/schemas/schema/runtime_schema_snapshots.rs` → schema stability snapshots.
-
-## Reference suite (`tests/contracts/reference/*`)
+## Reference Suite
 - `tests/contracts/reference/reference_example.rs` → end-to-end reference story.
 - `tests/contracts/reference/docs_reference_example.rs` → documentation coverage for the reference story.
 
-## Stability, integrity, privacy coverage
-- Stability: `runtime_schema_snapshots.rs`, `canonical_writer.rs`.
-- Integrity: `manifest_integrity.rs`, `run_layout_contract.rs`.
-- Privacy boundaries: `guardrails.rs`.
+## Determinism and Schema Suites
+- `tests/determinism/fixture_stability.rs` checks stable fixture canonicalization.
+- `tests/schemas/schema/runtime_schema_snapshots.rs` checks schema fixture snapshots.
+
+## Main Command
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-runtime --no-default-features
+```
 
 ## Failure modes
-- Missing test documentation causes drift and confusion.
+- Boundary failures mean ownership or dependency shape changed without updating contracts.
+- Contract failures mean runtime writer, layout, telemetry, or manifest behavior drifted.
+- Schema failures mean stable artifact shape changed and needs an explicit versioned review.
+- Determinism failures mean fixture canonicalization changed.
