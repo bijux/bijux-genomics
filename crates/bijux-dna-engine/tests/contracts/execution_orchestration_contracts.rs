@@ -305,6 +305,20 @@ fn unsupported_parallelism_config_is_rejected() {
 }
 
 #[test]
+fn execute_rejects_missing_run_layout_before_runner_invocation() {
+    let (_dir, mut layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
+    layout.run_dir = layout.run_dir.join("missing-run-dir");
+    let graph = build_graph(vec![plan_for("A")], Vec::new());
+
+    let err = Engine::default()
+        .execute(&graph, &ScenarioRunner::new(Mode::Success), &layout, None, None)
+        .err()
+        .unwrap_or_else(|| panic!("expected missing run layout failure"));
+
+    assert!(err.to_string().contains("run layout run_dir must exist"));
+}
+
+#[test]
 fn report_json_outputs_must_be_parseable_json() {
     let (_dir, layout) = execution_setup().unwrap_or_else(|err| panic!("layout: {err}"));
     let mut step = plan_for("A");
