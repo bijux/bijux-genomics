@@ -27,7 +27,7 @@ pub fn pipeline_run_dir(
 
 #[must_use]
 pub fn run_layout_paths(base_dir: &Path, run_id: &str) -> RunLayoutPaths {
-    let run_dir = base_dir.join(RUN_LAYOUT_CONTRACT.runs_dir).join(run_id);
+    let run_dir = base_dir.join(RUN_LAYOUT_CONTRACT.runs_dir).join(path_segment(run_id));
     RunLayoutPaths {
         artifacts_dir: run_dir.join(RUN_LAYOUT_CONTRACT.artifacts_dir),
         logs_dir: run_dir.join(RUN_LAYOUT_CONTRACT.logs_dir),

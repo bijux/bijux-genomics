@@ -35,6 +35,14 @@ fn run_layout_is_stable() {
 }
 
 #[test]
+fn run_layout_paths_confine_run_id() {
+    let base = Path::new("/tmp/bijux");
+    let layout = bijux_dna_infra::run_layout_paths(base, "../run/123");
+    assert_eq!(layout.run_dir, base.join("runs").join("run_123"));
+    assert_eq!(layout.artifacts_dir, base.join("runs").join("run_123").join("artifacts"));
+}
+
+#[test]
 fn run_layout_contract_is_enforced() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux")?;
     let layout = bijux_dna_infra::run_layout_paths(dir.path(), "run-1");
