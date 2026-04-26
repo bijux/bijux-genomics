@@ -320,3 +320,17 @@ fn vcf_planner_refuses_zero_parallel_chunk_setting() {
         "unexpected planner refusal: {err}"
     );
 }
+
+#[test]
+fn vcf_planner_refuses_conflicting_chunk_contig_filters() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.chunking.chr_include = vec!["1".to_string()];
+    input.chunking.chr_exclude = vec!["1".to_string()];
+
+    let err = plan_vcf_stage_plans(&input).expect_err("conflicting chunk filters must fail");
+
+    assert!(
+        err.to_string().contains("both chr_include and chr_exclude"),
+        "unexpected planner refusal: {err}"
+    );
+}
