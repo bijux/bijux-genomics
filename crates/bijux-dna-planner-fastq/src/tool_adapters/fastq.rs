@@ -31,9 +31,7 @@ pub use crate::tool_adapters::stages::transform::trim_terminal_damage;
 #[derive(Debug, Clone)]
 pub struct StageInfo {
     id: StageId,
-    #[allow(dead_code)]
     version: StageVersion,
-    #[allow(dead_code)]
     affects_read_counts: bool,
 }
 
@@ -41,6 +39,16 @@ impl StageInfo {
     #[must_use]
     pub fn id(&self) -> &StageId {
         &self.id
+    }
+
+    #[must_use]
+    pub fn version(&self) -> StageVersion {
+        self.version
+    }
+
+    #[must_use]
+    pub fn affects_read_counts(&self) -> bool {
+        self.affects_read_counts
     }
 }
 

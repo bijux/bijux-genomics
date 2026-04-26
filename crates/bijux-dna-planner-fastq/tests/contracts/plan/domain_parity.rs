@@ -63,6 +63,32 @@ fn fastq_planner_registry_covers_new_amplicon_stages() {
 }
 
 #[test]
+fn fastq_planner_registry_exposes_stage_semantics() {
+    let stages = bijux_dna_planner_fastq::stage_api::fastq::registry();
+    assert!(
+        stages.iter().all(|stage| stage.version().0 > 0),
+        "registered stages must expose nonzero contract versions"
+    );
+    let mut read_count_mutating = stages
+        .iter()
+        .filter(|stage| stage.affects_read_counts())
+        .map(|stage| stage.id().to_string())
+        .collect::<BTreeSet<_>>();
+    for required in [
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.merge_pairs",
+        "fastq.remove_duplicates",
+        "fastq.extract_umis",
+    ] {
+        assert!(
+            read_count_mutating.remove(required),
+            "planner registry must mark {required} as read-count affecting"
+        );
+    }
+}
+
+#[test]
 fn amplicon_mode_pipeline_emits_amplicon_stages() {
     let spec = default_pipeline_spec(DefaultPipelineOptions {
         paired: false,
