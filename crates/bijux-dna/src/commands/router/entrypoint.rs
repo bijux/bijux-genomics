@@ -231,28 +231,42 @@ fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> R
                 .out
                 .clone()
                 .unwrap_or_else(|| run_dir.join(format!("{}-log-pack.tar", args.run)));
-            let file = bijux_dna_infra::create_file(&out)
-                .with_context(|| format!("create {}", out.display()))?;
-            let mut archive = tar::Builder::new(file);
-            for rel in [
-                "run_manifest.json",
-                "run_manifest.lock.json",
-                "run_artifacts/telemetry.jsonl",
-                "logs/stderr.log",
-            ] {
-                let path = run_dir.join(rel);
-                if path.exists() {
-                    archive
-                        .append_path_with_name(&path, rel)
-                        .with_context(|| format!("add {} to log-pack", path.display()))?;
-                }
-            }
-            archive.finish().context("finalize log-pack tar")?;
+            write_observability_log_pack(&run_dir, &out)?;
             println!("{}", out.display());
             Ok(true)
         }
         _ => Ok(false),
     }
+}
+
+const OBSERVABILITY_LOG_PACK_FILES: [&str; 4] = [
+    "run_manifest.json",
+    "run_manifest.lock.json",
+    "run_artifacts/telemetry.jsonl",
+    "logs/stderr.log",
+];
+
+fn existing_observability_log_pack_files(run_dir: &Path) -> Vec<&'static str> {
+    OBSERVABILITY_LOG_PACK_FILES.into_iter().filter(|rel| run_dir.join(rel).is_file()).collect()
+}
+
+fn write_observability_log_pack(run_dir: &Path, out: &Path) -> Result<()> {
+    let entries = existing_observability_log_pack_files(run_dir);
+    if entries.is_empty() {
+        return Err(anyhow!("no observability artifacts found in {}", run_dir.display()));
+    }
+
+    let file =
+        bijux_dna_infra::create_file(out).with_context(|| format!("create {}", out.display()))?;
+    let mut archive = tar::Builder::new(file);
+    for rel in entries {
+        let path = run_dir.join(rel);
+        archive
+            .append_path_with_name(&path, rel)
+            .with_context(|| format!("add {} to log-pack", path.display()))?;
+    }
+    archive.finish().context("finalize log-pack tar")?;
+    Ok(())
 }
 
 fn observability_run_dir(cwd: &Path, search_root: &Path, run_id: &str) -> Result<PathBuf> {
@@ -276,7 +290,7 @@ fn ensure_observability_run_id(run_id: &str) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::observability_run_dir;
+    use super::{observability_run_dir, write_observability_log_pack};
 
     #[test]
     fn observability_run_dir_accepts_single_segment_run_ids() {
@@ -302,5 +316,18 @@ mod tests {
 
             assert!(err.to_string().contains("observability run id"));
         }
+    }
+
+    #[test]
+    fn write_observability_log_pack_rejects_empty_runs_without_creating_archive() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        let run_dir = temp.path().join("run-001");
+        let out = temp.path().join("run-001.tar");
+        std::fs::create_dir_all(&run_dir).expect("run dir");
+
+        let err = write_observability_log_pack(&run_dir, &out).expect_err("empty pack should fail");
+
+        assert!(err.to_string().contains("no observability artifacts found"));
+        assert!(!out.exists());
     }
 }
