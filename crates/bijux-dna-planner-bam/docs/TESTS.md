@@ -1,40 +1,34 @@
 # Tests
 
-## What
-Maps tests in this crate to their purpose and failure meaning.
+Planner tests protect deterministic plan output, graph topology, command specs, explain payloads, and boundary rules.
 
-## Why
-Tests should explain the contract they enforce.
+## Entry Points
+- `tests/boundaries.rs` — shared guardrails and planner boundary checks.
+- `tests/contracts.rs` — plan, graph, explain, command, and fixture contracts.
+- `tests/determinism.rs` — deterministic plan ordering and stable graph behavior.
+- `tests/guardrails.rs` — crate-local guardrail smoke coverage.
 
-## Non-goals
-- Full test implementation detail.
+## Contract Modules
+- `tests/contracts/graph/graph_snapshots.rs` — execution graph snapshots.
+- `tests/contracts/graph/docs_graph_snapshots.rs` — docs anchor coverage for graph contracts.
+- `tests/contracts/plan/plan_json.rs` — plan JSON schema and command payload behavior.
+- `tests/contracts/plan/plan_snapshots.rs` — stage and BAM plan snapshots.
+- `tests/contracts/plan/plan_integration.rs` — integration wiring.
+- `tests/contracts/plan/pipeline_plan_snapshot.rs` — pipeline helper snapshots.
+- `tests/contracts/plan/artifacts_contract.rs` — stage artifact contracts.
+- `tests/contracts/plan/params_complete.rs` — params coverage.
+- `tests/contracts/plan/contract_handshake.rs` — stage contract handoff.
+- `tests/contracts/plan/no_parsing_execution.rs` — planner purity.
+- `tests/contracts/explain/explainability.rs` — explain payload contract.
 
-## Contracts
-- `tests/determinism/*` → deterministic plan ordering and stable hashes (docs/DETERMINISM.md).
-- `tests/contracts/graph/*` → graph topology and stage wiring snapshots (docs/STAGE_MAPPING.md).
-- `tests/contracts/plan/*` → plan JSON schema + configuration contracts (docs/PLANNER_MODEL.md).
-- `tests/contracts/explain/*` → explain payload shape (docs/EXPLAIN_OUTPUT.md).
+## Fixtures and Snapshots
+- Fixtures live under `tests/fixtures/`.
+- Snapshots live under `tests/snapshots/`.
+- Snapshot changes require review of plan, graph, command, or explain contract intent.
 
-## Plan JSON stability
-Plan JSON snapshots live under `tests/contracts/plan/snapshots/*` and enforce stable ordering.
+## Standard Command
+Run:
 
-## Mapping
-- `tests/determinism/determinism.rs` → stable ordering/hashes.
-- `tests/contracts/graph/graph_snapshots.rs` → graph snapshot contract.
-- `tests/contracts/graph/docs_graph_snapshots.rs` → docs anchor coverage.
-- `tests/contracts/plan/plan_json.rs` → plan JSON schema contract.
-- `tests/contracts/plan/plan_snapshots.rs` → plan snapshot contract.
-- `tests/contracts/plan/plan_integration.rs` → plan integration wiring.
-- `tests/contracts/plan/pipeline_plan_snapshot.rs` → pipeline plan snapshot.
-- `tests/contracts/plan/artifacts_contract.rs` → stage artifact contract.
-- `tests/contracts/plan/params_complete.rs` → param completeness contract.
-- `tests/contracts/plan/contract_handshake.rs` → plan handshake fixtures.
-- `tests/contracts/plan/guardrails.rs` → policy guardrails.
-- `tests/contracts/plan/no_parsing_execution.rs` → planner purity (no parsing/execution).
-- `tests/contracts/explain/explainability.rs` → explain output contract.
-
-## Failure modes
-- Missing test documentation causes drift and confusion.
-
-## Testkit patterns
-See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+```bash
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-planner-bam --no-default-features
+```
