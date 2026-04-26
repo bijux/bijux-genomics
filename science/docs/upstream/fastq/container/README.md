@@ -20,5 +20,11 @@ The generator is `makes/bin/generate_fastq_container_readiness.py`. Do not hand-
 - `FASTQ_CONTAINER_PACKAGE_PARITY.tsv`: package-name parity between compiled registry references and domain tool container images.
 - `FASTQ_CONTAINER_PLANNER_GAPS.tsv`: planner snapshot parity with execution defaults and planner image digest presence.
 - `FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv`: per-stage rollup of the blockers above.
+- `FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv`: SSOT release-gate ledger for each FASTQ
+  execution default. A row can be `closed` only when citation or software
+  evidence, payload access, reference assets, immutable container references,
+  resolved image and SIF digests, license assertions, runtime surfaces, planner
+  digests, SBOMs, smoke manifests, environment-QA coverage, and registry status
+  are all complete.
 
 The reports are intentionally conservative. A stage is not closure-ready while external SIF proof, SBOMs, smoke manifests, immutable digests, license assertions, planner digests, or external asset authorities are absent.
