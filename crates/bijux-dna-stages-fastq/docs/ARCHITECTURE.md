@@ -17,14 +17,42 @@ src/
 │   ├── filters.rs
 │   ├── mod.rs
 │   └── stage_metrics/
+│       ├── analysis.rs
+│       ├── analysis_feature_tables.rs
+│       ├── analysis_screening.rs
+│       ├── mod.rs
+│       ├── reporting.rs
+│       ├── transform.rs
+│       ├── transform_filtering.rs
+│       └── transform_pairing.rs
 ├── observer/
+│   ├── artifacts.rs
+│   ├── commands.rs
+│   └── mod.rs
 ├── plugin/
 │   ├── observation_context.rs
 │   ├── output_contract.rs
 │   ├── plugin_contracts.rs
 │   └── semantic/
+│       ├── feature_tables.rs
+│       ├── mod.rs
+│       ├── processing.rs
+│       ├── processing_cleanup.rs
+│       ├── processing_read_preparation.rs
+│       ├── processing_trimming.rs
+│       ├── profiling.rs
+│       ├── quality.rs
+│       ├── quality_qc.rs
+│       ├── quality_read_flow.rs
+│       ├── taxonomy.rs
+│       └── validation_semantics.rs
 ├── runtime/
+│   ├── interpretation.rs
+│   └── mod.rs
 ├── stage_specs/
+│   ├── artifacts.rs
+│   ├── catalog.rs
+│   └── mod.rs
 └── surface.rs
 ```
 
