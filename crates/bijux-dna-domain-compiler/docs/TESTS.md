@@ -25,8 +25,8 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo clippy -p bijux-dna-domain-compile
 
 ## Artifact Discipline
 
-Tests that generate compiler output should place temporary directories beneath
-`artifacts/domain-compiler-tests/` through the shared test support helper. Rust build products
+Tests that generate compiler output should place run directories beneath
+`artifacts/domain-compiler-test-runs/` through the shared test support helper. Rust build products
 should use `CARGO_TARGET_DIR=artifacts/cargo-target`.
 
 ## Failure Modes Covered

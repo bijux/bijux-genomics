@@ -1,19 +1,13 @@
-use std::path::Path;
-
 use anyhow::Result;
 use bijux_dna_domain_compiler::{compile_domain_configs, CompileOptions};
 
-fn repo_root() -> std::path::PathBuf {
-    let Some(root) = Path::new(env!("CARGO_MANIFEST_DIR")).parent().and_then(|p| p.parent()) else {
-        panic!("repo root");
-    };
-    root.to_path_buf()
-}
+#[path = "support/mod.rs"]
+mod support;
 
 #[test]
 fn compiler_keeps_planned_fastq_tools_out_of_governed_registry() -> Result<()> {
-    let root = repo_root();
-    let out_dir = tempfile::tempdir()?;
+    let root = support::repo_root();
+    let out_dir = support::artifact_output_dir("planned-tools-")?;
     compile_domain_configs(&CompileOptions {
         domain_dir: root.join("domain"),
         configs_dir: out_dir.path().to_path_buf(),
