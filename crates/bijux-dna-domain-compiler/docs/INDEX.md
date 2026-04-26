@@ -11,6 +11,8 @@
 - Must not embed planner-specific behavior.
 - [BOUNDARY.md](BOUNDARY.md)
 - [COMMANDS.md](COMMANDS.md)
+- [CONTRACTS.md](CONTRACTS.md)
+- [DEPENDENCIES.md](DEPENDENCIES.md)
 - [PUBLIC_API.md](PUBLIC_API.md)
 
 ## Extension Points

@@ -49,5 +49,7 @@ Primary test files:
 - [docs/INDEX.md](docs/INDEX.md)
 - [docs/BOUNDARY.md](docs/BOUNDARY.md)
 - [docs/COMMANDS.md](docs/COMMANDS.md)
+- [docs/CONTRACTS.md](docs/CONTRACTS.md)
+- [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)
 - [docs/PUBLIC_API.md](docs/PUBLIC_API.md)
 - [docs/TESTS.md](docs/TESTS.md)
