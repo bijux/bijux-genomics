@@ -81,3 +81,17 @@ fn policy__root__guardrails__panic_expect_scan_ignores_comment_mentions() {
 
     bijux_dna_policies::check(&crate_root, &config).expect("comment-only expect is allowed");
 }
+
+#[test]
+fn policy__root__guardrails__panic_expect_scan_rejects_unwrap() {
+    let paths = TestPaths::new("policies-unwrap-scan");
+    let crate_root = paths.child("crate");
+    write_source(&crate_root, "lib.rs", "pub fn fail() { Some(1).unwrap(); }\n");
+
+    let mut config = GuardrailConfig::default();
+    config.forbid_panic_expect = true;
+
+    let err = bijux_dna_policies::check(&crate_root, &config).expect_err("unwrap must fail");
+
+    assert!(err.to_string().contains("unwrap found"), "unexpected guardrail error: {err}");
+}
