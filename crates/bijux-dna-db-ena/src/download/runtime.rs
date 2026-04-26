@@ -14,6 +14,10 @@ pub(super) fn download_tasks(
     tasks: &[DownloadTask],
     config: &DownloadConfig,
 ) -> Result<DownloadReport> {
+    if config.jobs == 0 {
+        anyhow::bail!("jobs must be greater than zero");
+    }
+
     if config.dry_run {
         return Ok(DownloadReport {
             attempted: tasks.len(),
@@ -21,10 +25,6 @@ pub(super) fn download_tasks(
             failed: 0,
             failed_outputs: Vec::new(),
         });
-    }
-
-    if config.jobs == 0 {
-        anyhow::bail!("jobs must be greater than zero");
     }
 
     let pool = rayon::ThreadPoolBuilder::new()
