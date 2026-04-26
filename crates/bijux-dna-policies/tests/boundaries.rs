@@ -44,12 +44,12 @@ mod mod_boundaries_hashmap_policy_rs;
 mod mod_boundaries_ignored_tests_policy_rs;
 #[path = "boundaries/no_duplicate_policy_checks.rs"]
 mod mod_boundaries_no_duplicate_policy_checks_rs;
-#[path = "boundaries/purity_scans.rs"]
-mod mod_boundaries_purity_scans_rs;
 #[path = "boundaries/policies_dependency_graph.rs"]
 mod mod_boundaries_policies_dependency_graph_rs;
 #[path = "boundaries/public_api_docs.rs"]
 mod mod_boundaries_public_api_docs_rs;
+#[path = "boundaries/purity_scans.rs"]
+mod mod_boundaries_purity_scans_rs;
 #[path = "boundaries/snapshot_policy.rs"]
 mod mod_boundaries_snapshot_policy_rs;
 #[path = "boundaries/source_effects.rs"]
