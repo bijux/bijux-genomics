@@ -179,7 +179,7 @@
           {
             "name": "vcf",
             "optional": false,
-            "path": "out/prepared_panel.vcf.gz",
+            "path": "sample.vcf.gz",
             "role": "reads"
           }
         ],
@@ -3218,7 +3218,7 @@
           {
             "name": "vcf",
             "optional": false,
-            "path": "out/population_structure_report.json",
+            "path": "out/postprocess_vcf.vcf.gz",
             "role": "reads"
           }
         ],
@@ -3304,7 +3304,7 @@
           {
             "name": "vcf",
             "optional": false,
-            "path": "out/roh_report.json",
+            "path": "out/postprocess_vcf.vcf.gz",
             "role": "reads"
           }
         ],
@@ -3466,7 +3466,7 @@
           {
             "name": "vcf",
             "optional": false,
-            "path": "out/demography_report.json",
+            "path": "out/postprocess_vcf.vcf.gz",
             "role": "reads"
           }
         ],

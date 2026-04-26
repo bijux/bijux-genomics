@@ -2,6 +2,7 @@ use std::collections::BTreeSet;
 
 use anyhow::{anyhow, bail, Result};
 use bijux_dna_core::contract::ExecutionGraph;
+use bijux_dna_core::prelude::ArtifactRole;
 use bijux_dna_domain_vcf::contracts::refuse_unsupported_regime_transition;
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 use bijux_dna_stage_contract::StagePlanV1;
@@ -93,7 +94,13 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             &chunks,
             &selection_rule,
         )?;
-        if let Some(out) = plan.io.outputs.first() {
+        if let Some(out) = plan
+            .io
+            .outputs
+            .iter()
+            .find(|output| output.role == ArtifactRole::Reads)
+            .filter(|_| stage != VcfDomainStage::PrepareReferencePanel)
+        {
             current_vcf = out.path.clone();
         }
         plans.push(plan);

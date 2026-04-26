@@ -159,7 +159,7 @@
           {
             "name": "vcf",
             "optional": false,
-            "path": "out/prepared_panel.vcf.gz",
+            "path": "sample.vcf.gz",
             "role": "reads"
           }
         ],
@@ -1807,7 +1807,7 @@
           {
             "name": "vcf",
             "optional": false,
-            "path": "out/demography_report.json",
+            "path": "out/imputed_vcf.vcf.gz",
             "role": "reads"
           }
         ],

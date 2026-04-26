@@ -370,7 +370,7 @@
           {
             "name": "vcf",
             "optional": false,
-            "path": "out/roh_report.json",
+            "path": "out/filtered_vcf.vcf.gz",
             "role": "reads"
           }
         ],
