@@ -20,6 +20,7 @@ configs/ci/registry/domains.toml
 configs/ci/registry/index.md
 configs/ci/registry/reference_service_boundary_allowlist.toml
 configs/ci/registry/tool_registry.toml
+configs/ci/registry/tool_registry_container_experimental.toml
 configs/ci/registry/tool_registry_experimental.toml
 configs/ci/registry/tool_registry_lock.sha256
 configs/ci/registry/tool_registry_vcf.toml
@@ -52,8 +53,8 @@ configs/docs/requirements.txt
 configs/domain/external_tools.toml
 configs/domain/index.md
 configs/domain/shared_tools.toml
-configs/hpc/index.md
 configs/hpc/benchmark_sync_profiles.toml
+configs/hpc/index.md
 configs/hpc/rsync/index.md
 configs/hpc/rsync/pull-full-excludes.txt
 configs/hpc/rsync/pull-results-includes.txt
@@ -63,7 +64,10 @@ configs/lab/config_example.toml
 configs/lab/index.md
 configs/logging/index.md
 configs/logging/runtime.toml
+configs/runtime/asset_hydration.toml
+configs/runtime/asset_locks.toml
 configs/runtime/cargo_build.toml
+configs/runtime/corpora/corpus-01.toml
 configs/runtime/coverage_regimes.toml
 configs/runtime/execution_kernel.toml
 configs/runtime/genetic_map_bank.toml
@@ -85,6 +89,8 @@ configs/runtime/references/locks/lock.json.sha256
 configs/runtime/species.toml
 configs/runtime/species_aliases.toml
 configs/rust/clippy.toml
+configs/rust/deny.baseline.toml
+configs/rust/deny.deviations.toml
 configs/rust/deny.toml
 configs/rust/nextest.toml
 configs/schema/CONFIG_SCHEMA_RULES.md
