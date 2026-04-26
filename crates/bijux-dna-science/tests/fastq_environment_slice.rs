@@ -1,6 +1,9 @@
+use std::fs;
 use std::path::{Path, PathBuf};
 
+use anyhow::{Context, Result};
 use bijux_dna_science::compile::compile_workspace;
+use bijux_dna_science::domain::CompiledScience;
 use bijux_dna_science::render::{
     binding_resolution_tsv, claim_evidence_tsv, decision_reasoning_tsv,
     fastq_container_reference_tsv, fastq_download_backlog_tsv, fastq_environment_tsv,
@@ -8,19 +11,25 @@ use bijux_dna_science::render::{
     to_pretty_json,
 };
 
-fn repo_root() -> PathBuf {
+fn repo_root() -> Result<PathBuf> {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
-        .and_then(|path| path.parent())
-        .expect("repo root")
-        .to_path_buf()
+        .and_then(Path::parent)
+        .map(Path::to_path_buf)
+        .context("resolve repository root from crate manifest")
 }
 
 #[test]
-fn fastq_environment_slice_matches_committed_outputs() {
-    let root = repo_root();
-    let compiled = compile_workspace(&root).expect("compile science workspace");
+fn fastq_environment_slice_matches_committed_outputs() -> Result<()> {
+    let root = repo_root()?;
+    let compiled = compile_workspace(&root)?;
 
+    assert_fastq_slice_rows(&compiled);
+    assert_committed_outputs_match(&root, &compiled)?;
+    Ok(())
+}
+
+fn assert_fastq_slice_rows(compiled: &CompiledScience) {
     assert!(compiled.fastq_environment_rows.iter().any(|row| {
         row.stage_id == "fastq.trim_reads" && row.tool_id == "fastp" && row.is_default
     }));
@@ -60,80 +69,70 @@ fn fastq_environment_slice_matches_committed_outputs() {
             && row.paper_id == "paper.fastq.atropos.didion-2017"
             && row.paper_status == "mapped"
     }));
+}
 
-    assert_eq!(
-        std::fs::read_to_string(
-            root.join("science/generated/current/evidence/source_inventory.tsv")
-        )
-        .expect("read committed source inventory"),
-        source_inventory_tsv(&compiled.source_inventory)
-    );
-    assert_eq!(
-        std::fs::read_to_string(
-            root.join("science/generated/current/evidence/source_archive_gaps.tsv")
-        )
-        .expect("read committed source archive gaps"),
-        source_archive_gaps_tsv(&compiled.source_archive_gaps)
-    );
-    assert_eq!(
-        std::fs::read_to_string(
-            root.join("science/generated/current/evidence/fastq_container_reference_matrix.tsv")
-        )
-        .expect("read committed fastq container matrix"),
-        fastq_container_reference_tsv(&compiled.fastq_container_reference_rows)
-    );
-    assert_eq!(
-        std::fs::read_to_string(
-            root.join("science/generated/current/evidence/fastq_download_backlog.tsv")
-        )
-        .expect("read committed fastq download backlog"),
-        fastq_download_backlog_tsv(&compiled.fastq_download_backlog_rows)
-    );
-    assert_eq!(
-        std::fs::read_to_string(
-            root.join("science/generated/current/evidence/fastq_paper_archive_matrix.tsv")
-        )
-        .expect("read committed fastq paper archive matrix"),
-        fastq_paper_archive_tsv(&compiled.fastq_paper_archive_rows)
-    );
-    assert_eq!(
-        std::fs::read_to_string(
-            root.join("science/generated/current/evidence/claim_evidence_map.tsv")
-        )
-        .expect("read committed claim map"),
-        claim_evidence_tsv(&compiled.claim_evidence_map)
-    );
-    assert_eq!(
-        std::fs::read_to_string(
-            root.join("science/generated/current/evidence/decision_reasoning_map.tsv")
-        )
-        .expect("read committed decision map"),
-        decision_reasoning_tsv(&compiled.decision_reasoning_map)
-    );
-    assert_eq!(
-        std::fs::read_to_string(
-            root.join("science/generated/current/evidence/binding_resolution.tsv")
-        )
-        .expect("read committed binding map"),
-        binding_resolution_tsv(&compiled.binding_resolution)
-    );
-    assert_eq!(
-        std::fs::read_to_string(
-            root.join("science/generated/current/evidence/fastq_stage_tool_environment_matrix.tsv"),
-        )
-        .expect("read committed fastq matrix"),
-        fastq_environment_tsv(&compiled.fastq_environment_rows)
-    );
-    assert_eq!(
-        std::fs::read_to_string(
-            root.join("science/generated/current/evidence/unresolved_refs.json")
-        )
-        .expect("read committed unresolved refs"),
-        to_pretty_json(&compiled.unresolved_refs).expect("render unresolved refs")
-    );
-    assert_eq!(
-        std::fs::read_to_string(root.join("science/generated/indexes/science_index.json"))
-            .expect("read committed science index"),
-        index_json(&compiled.index).expect("render science index")
-    );
+fn assert_committed_outputs_match(root: &Path, compiled: &CompiledScience) -> Result<()> {
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/source_inventory.tsv",
+        &source_inventory_tsv(&compiled.source_inventory),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/source_archive_gaps.tsv",
+        &source_archive_gaps_tsv(&compiled.source_archive_gaps),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/fastq_container_reference_matrix.tsv",
+        &fastq_container_reference_tsv(&compiled.fastq_container_reference_rows),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/fastq_download_backlog.tsv",
+        &fastq_download_backlog_tsv(&compiled.fastq_download_backlog_rows),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/fastq_paper_archive_matrix.tsv",
+        &fastq_paper_archive_tsv(&compiled.fastq_paper_archive_rows),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/claim_evidence_map.tsv",
+        &claim_evidence_tsv(&compiled.claim_evidence_map),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/decision_reasoning_map.tsv",
+        &decision_reasoning_tsv(&compiled.decision_reasoning_map),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/binding_resolution.tsv",
+        &binding_resolution_tsv(&compiled.binding_resolution),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/fastq_stage_tool_environment_matrix.tsv",
+        &fastq_environment_tsv(&compiled.fastq_environment_rows),
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/current/evidence/unresolved_refs.json",
+        &to_pretty_json(&compiled.unresolved_refs)?,
+    )?;
+    assert_rendered(
+        root,
+        "science/generated/indexes/science_index.json",
+        &index_json(&compiled.index)?,
+    )?;
+    Ok(())
+}
+
+fn assert_rendered(root: &Path, rel_path: &str, expected: &str) -> Result<()> {
+    let path = root.join(rel_path);
+    let actual = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    assert_eq!(actual, expected, "generated output drifted at {rel_path}");
+    Ok(())
 }
