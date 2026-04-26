@@ -1,3 +1,6 @@
+use bijux_dna_core::ids::StageId;
+use bijux_dna_core::prelude::id_catalog;
+use bijux_dna_pipelines::cross::{fastq_to_bam_adna_shotgun_profile, fastq_to_bam_default_profile};
 use bijux_dna_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles, vcf_profiles};
 use bijux_dna_pipelines::{fastq::fastq_default_profile, Domain, PipelineProfile};
 
@@ -169,5 +172,39 @@ fn default_fastq_pipeline_declares_required_metrics_objects() {
     assert!(
         profile.capabilities.required_metrics.contains(&"fastq.metrics"),
         "default FASTQ profile must require fastq.metrics bundle"
+    );
+}
+
+#[test]
+fn default_cross_pipeline_uses_modern_source_defaults() {
+    let profile = fastq_to_bam_default_profile();
+    let trim_stage = StageId::from_static(id_catalog::FASTQ_TRIM);
+    let terminal_damage_stage = StageId::from_static(id_catalog::FASTQ_TRIM_TERMINAL_DAMAGE);
+
+    assert_eq!(
+        profile.defaults.tools.get(&trim_stage).map(|tool| tool.as_str()),
+        Some(id_catalog::TOOL_FASTP),
+        "default FASTQ-to-BAM must inherit the modern FASTQ trim tool"
+    );
+    assert!(
+        !profile.defaults.tools.contains_key(&terminal_damage_stage),
+        "default FASTQ-to-BAM must not inherit aDNA terminal-damage trimming"
+    );
+}
+
+#[test]
+fn adna_cross_pipeline_keeps_adna_source_defaults() {
+    let profile = fastq_to_bam_adna_shotgun_profile();
+    let trim_stage = StageId::from_static(id_catalog::FASTQ_TRIM);
+    let terminal_damage_stage = StageId::from_static(id_catalog::FASTQ_TRIM_TERMINAL_DAMAGE);
+
+    assert_eq!(
+        profile.defaults.tools.get(&trim_stage).map(|tool| tool.as_str()),
+        Some(id_catalog::TOOL_ADAPTERREMOVAL),
+        "aDNA FASTQ-to-BAM must keep the aDNA trim tool"
+    );
+    assert!(
+        profile.defaults.tools.contains_key(&terminal_damage_stage),
+        "aDNA FASTQ-to-BAM must keep terminal-damage trimming"
     );
 }

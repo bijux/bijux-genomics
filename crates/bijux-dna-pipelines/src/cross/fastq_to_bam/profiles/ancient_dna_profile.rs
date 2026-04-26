@@ -5,7 +5,7 @@ use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::adna_shotgun_params_json;
 use bijux_dna_domain_bam::BamStage;
 
-use crate::cross::fastq_to_bam::merged_defaults::base_defaults;
+use crate::cross::fastq_to_bam::merged_defaults::adna_base_defaults;
 use crate::cross::fastq_to_bam::required_stages::required_cross_stages;
 use crate::{
     ArtifactType, DefaultParams, Domain, EmptyParams, InvariantsPreset, MetricsBundle,
@@ -14,7 +14,7 @@ use crate::{
 
 #[must_use]
 pub fn fastq_to_bam_adna_shotgun_profile() -> PipelineProfile {
-    let (fastq_profile, _bam_profile, mut defaults) = base_defaults();
+    let (fastq_profile, _bam_profile, mut defaults) = adna_base_defaults();
     let required_stages = required_cross_stages(&fastq_profile);
     defaults.tools.insert(
         StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
