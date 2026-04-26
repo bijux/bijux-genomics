@@ -1,6 +1,8 @@
-use std::collections::BTreeMap;
+//! Owner: bijux-dna-bench
+//! Deterministic grouping keys for benchmark observations.
 
 use bijux_dna_bench_model::BenchmarkObservation;
+use std::collections::BTreeMap;
 
 use crate::workflow::summary_scope::SummaryGroupKey;
 

@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench
+//! Loader for finished benchmark metric payloads.
+
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 

@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench
+//! Loader for finished runtime execution manifests.
+
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};

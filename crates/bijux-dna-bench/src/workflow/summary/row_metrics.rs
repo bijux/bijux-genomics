@@ -1,6 +1,8 @@
-use std::collections::BTreeSet;
+//! Owner: bijux-dna-bench
+//! Row-level metric aggregation for benchmark summaries.
 
 use anyhow::Result;
+use std::collections::BTreeSet;
 
 use bijux_dna_bench_model::stats::{mad_outliers, robust_stats};
 use bijux_dna_bench_model::{BenchmarkObservation, BenchmarkSuiteSpec, MetricSummary, SummaryRow};

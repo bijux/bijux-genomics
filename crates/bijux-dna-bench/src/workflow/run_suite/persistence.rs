@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench
+//! Persistence for suite summary and decision artifacts.
+
 use anyhow::Result;
 
 use crate::artifacts::{

@@ -1,28 +1,12 @@
 use std::fs;
 
 #[test]
-fn top_level_modules_have_owner() {
+fn source_modules_have_owner() {
     let src_dir = crate::support::crate_root("bijux-dna-bench")
         .unwrap_or_else(|err| panic!("resolve benchmark crate root: {err}"))
         .join("src");
     let mut modules = Vec::new();
-    let Ok(entries) = fs::read_dir(&src_dir) else {
-        return;
-    };
-    for entry in entries.flatten() {
-        let path = entry.path();
-        if path.file_name().and_then(|n| n.to_str()) == Some("lib.rs") {
-            continue;
-        }
-        if path.is_dir() {
-            let mod_rs = path.join("mod.rs");
-            if mod_rs.exists() {
-                modules.push(mod_rs);
-            }
-        } else if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
-            modules.push(path);
-        }
-    }
+    collect_rs_files(&src_dir, &mut modules);
 
     let mut offenders = Vec::new();
     for module in modules {
@@ -45,4 +29,18 @@ fn top_level_modules_have_owner() {
     }
 
     assert!(offenders.is_empty(), "missing module owner doc comments: {offenders:?}");
+}
+
+fn collect_rs_files(root: &std::path::Path, files: &mut Vec<std::path::PathBuf>) {
+    let Ok(entries) = fs::read_dir(root) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.is_dir() {
+            collect_rs_files(&path, files);
+        } else if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
+            files.push(path);
+        }
+    }
 }

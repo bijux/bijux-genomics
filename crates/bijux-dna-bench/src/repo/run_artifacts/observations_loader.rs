@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench
+//! Loader for finished benchmark observation streams.
+
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
