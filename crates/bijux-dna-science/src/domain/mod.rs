@@ -30,6 +30,12 @@ macro_rules! typed_id {
         pub struct $name(String);
 
         impl $name {
+            /// Parse a typed science identifier.
+            ///
+            /// # Errors
+            ///
+            /// Returns an error when the value is missing the required prefix, has no durable
+            /// suffix, contains empty path segments, or uses unsupported characters.
             pub fn parse(value: impl Into<String>) -> Result<Self, String> {
                 let value = value.into();
                 validate_typed_id($prefix, &value)?;
