@@ -1,16 +1,16 @@
 use std::path::Path;
 
 use anyhow::{Context, Result};
-use uuid::Uuid;
 
 use super::RunLayout;
+use crate::run::new_run_id;
 
 /// Create the canonical run layout under the base directory.
 ///
 /// # Errors
 /// Returns an error if directories cannot be created.
 pub fn create_run_layout(base_dir: &Path) -> Result<(String, RunLayout)> {
-    let run_id = Uuid::new_v4().to_string();
+    let run_id = new_run_id().0;
     let run_dir = bijux_dna_infra::run_layout_paths(base_dir, &run_id).run_dir;
     let stages_dir = run_dir.join("stages");
     let summary_dir = run_dir.join("summary");
