@@ -29,4 +29,4 @@ This crate must not depend on runner, engine, CLI, API, database, environment, s
 - Keep execution and output parsing downstream.
 - Keep FASTQ vocabulary and governance upstream in domain/stage/pipeline crates.
 - Keep cross BAM coupling limited to stage ID catalog projection.
-- Prefer workspace dependency declarations when the dependency is already listed at the workspace root.
+- Declare every internal `bijux-dna-*` dependency through the workspace catalog. Do not add ad hoc `path = "../..."` internal edges in this crate.

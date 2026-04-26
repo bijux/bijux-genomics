@@ -32,6 +32,10 @@ crate must not import them or couple command behavior to execution backends.
 
 ## Dependency Review Notes
 
+Internal `bijux-dna-*` dependencies must be declared through the workspace catalog. The science
+crate currently has one internal runtime edge, `bijux-dna-infra`, and boundary tests require it to
+stay cataloged.
+
 The crate previously declared `thiserror` without using it. That direct dependency
 is intentionally absent; error handling currently uses `anyhow` because failures
 are reported as command/compiler diagnostics rather than a public custom error enum.

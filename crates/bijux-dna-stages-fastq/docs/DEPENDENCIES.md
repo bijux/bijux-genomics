@@ -46,6 +46,10 @@ below planner, runner, engine, API, CLI, pipeline, and environment layers.
 
 ## Verification
 
+Internal `bijux-dna-*` dependencies must come from the workspace catalog. Do not
+add local `path = "../..."` declarations for core, domain, infra, or contract
+crates; the boundary tests reject that shape.
+
 ```sh
 CARGO_TARGET_DIR=artifacts/cargo-target cargo tree -p bijux-dna-stages-fastq --no-default-features --edges normal,dev
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-fastq --test boundaries --no-default-features
