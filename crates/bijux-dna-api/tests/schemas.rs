@@ -9,5 +9,5 @@ mod mod_schemas_v1_cross_docs_schema_snapshots_rs;
 mod mod_schemas_v1_cross_public_surface_rs;
 #[path = "schemas/v1_operator_failure_contract.rs"]
 mod mod_schemas_v1_operator_failure_contract_rs;
-#[path = "workspace_paths.rs"]
+#[path = "support/workspace_paths.rs"]
 mod support;

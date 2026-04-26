@@ -10,7 +10,7 @@ README files are intentionally not allowed under `tests/`.
   alignment tests.
 - `tests/contracts.rs` loads public behavior and integration contract tests.
 - `tests/guardrails.rs` runs the shared crate guardrail policy from the root.
-- `tests/workspace_paths.rs` provides repository path helpers for integration
+- `tests/support/workspace_paths.rs` provides repository path helpers for integration
   tests and boundary aggregators.
 
 ## Boundary Tests

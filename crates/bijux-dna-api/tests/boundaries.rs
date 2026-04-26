@@ -13,5 +13,5 @@ mod mod_boundaries_guardrails_policies_rs;
 mod mod_boundaries_guardrails_rs;
 #[path = "boundaries/v1_cross_guardrails.rs"]
 mod mod_boundaries_v1_cross_guardrails_rs;
-#[path = "workspace_paths.rs"]
+#[path = "support/workspace_paths.rs"]
 mod support;
