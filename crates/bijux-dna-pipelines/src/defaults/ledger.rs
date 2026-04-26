@@ -40,10 +40,38 @@ impl DefaultsLedgerV1 {
     /// # Errors
     /// Returns an error when required provenance fields are missing.
     pub fn validate_strict(&self) -> Result<()> {
+        for stage_id in self.tools.keys() {
+            if !self.tool_provenance.contains_key(stage_id) {
+                return Err(anyhow!(
+                    "defaults ledger tool_provenance is missing stage {}",
+                    stage_id.as_str()
+                ));
+            }
+        }
+        for stage_id in self.params.keys() {
+            if !self.param_provenance.contains_key(stage_id) {
+                return Err(anyhow!(
+                    "defaults ledger param_provenance is missing stage {}",
+                    stage_id.as_str()
+                ));
+            }
+        }
         for (stage_id, prov) in &self.tool_provenance {
+            if !self.tools.contains_key(stage_id) {
+                return Err(anyhow!(
+                    "defaults ledger tool_provenance has orphan stage {}",
+                    stage_id.as_str()
+                ));
+            }
             validate_default_provenance(stage_id.as_str(), "tool_provenance", prov)?;
         }
         for (stage_id, prov) in &self.param_provenance {
+            if !self.params.contains_key(stage_id) {
+                return Err(anyhow!(
+                    "defaults ledger param_provenance has orphan stage {}",
+                    stage_id.as_str()
+                ));
+            }
             validate_default_provenance(stage_id.as_str(), "param_provenance", prov)?;
         }
         Ok(())

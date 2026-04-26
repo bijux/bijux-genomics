@@ -1,7 +1,11 @@
 /// Snapshot intent: verifies stable, reviewed output for this contract.
 use std::path::PathBuf;
 
+use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles};
+use bijux_dna_pipelines::{
+    DefaultParams, DefaultProvenanceV1, DefaultsLedgerV1, EmptyParams, PipelineId,
+};
 use bijux_dna_testkit::snapshot_name;
 
 fn prune_bam_downstream(value: &mut serde_json::Value) {
@@ -45,4 +49,56 @@ fn defaults_ledger_snapshots_are_stable() {
         prune_bam_downstream(&mut json);
         insta::assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
     }
+}
+
+fn complete_provenance() -> DefaultProvenanceV1 {
+    DefaultProvenanceV1 {
+        rationale: "test default".to_string(),
+        assumptions: vec!["test assumption".to_string()],
+        comparability_implications: vec!["test comparability".to_string()],
+        citations: vec!["test citation".to_string()],
+    }
+}
+
+#[test]
+fn strict_defaults_ledger_rejects_missing_provenance() {
+    let stage = StageId::from_static("core.prepare_reference");
+    let mut ledger = DefaultsLedgerV1 {
+        pipeline_id: PipelineId::from_static("fastq-to-bam__default__v1"),
+        tools: [(stage.clone(), ToolId::from_static("samtools"))].into(),
+        params: [(stage, DefaultParams::Empty(EmptyParams::default()))].into(),
+        thresholds: Default::default(),
+        tool_provenance: Default::default(),
+        param_provenance: Default::default(),
+        assumptions: Default::default(),
+        citations: Default::default(),
+    };
+
+    let err = ledger.validate_strict().expect_err("missing provenance must fail");
+    assert!(err.to_string().contains("tool_provenance is missing stage"));
+
+    let stage = StageId::from_static("core.prepare_reference");
+    ledger.tool_provenance.insert(stage, complete_provenance());
+    let err = ledger.validate_strict().expect_err("missing param provenance must fail");
+    assert!(err.to_string().contains("param_provenance is missing stage"));
+}
+
+#[test]
+fn strict_defaults_ledger_rejects_orphan_provenance() {
+    let stage = StageId::from_static("core.prepare_reference");
+    let orphan = StageId::from_static("core.orphan");
+    let ledger = DefaultsLedgerV1 {
+        pipeline_id: PipelineId::from_static("fastq-to-bam__default__v1"),
+        tools: [(stage.clone(), ToolId::from_static("samtools"))].into(),
+        params: [(stage.clone(), DefaultParams::Empty(EmptyParams::default()))].into(),
+        thresholds: Default::default(),
+        tool_provenance: [(stage.clone(), complete_provenance()), (orphan, complete_provenance())]
+            .into(),
+        param_provenance: [(stage, complete_provenance())].into(),
+        assumptions: Default::default(),
+        citations: Default::default(),
+    };
+
+    let err = ledger.validate_strict().expect_err("orphan provenance must fail");
+    assert!(err.to_string().contains("tool_provenance has orphan stage"));
 }
