@@ -1,36 +1,32 @@
 # bijux-dna-planner-vcf
 
-## What this crate does
-Owns VCF plan graph assembly from domain stages and typed params.
+`bijux-dna-planner-vcf` builds deterministic VCF stage plans, execution graphs, and explain payloads from VCF domain contracts, reference catalog context, tool registry declarations, and typed planner inputs.
 
-## What it must not do (boundaries)
-Must not execute tools, parse runtime metrics files, or own stage invocation internals.
+## Ownership
+This crate owns VCF planning only. It chooses stage order, validates requested stages and tools against VCF domain and registry contracts, resolves reference/panel context, materializes stage plans, builds execution graphs, and explains the plan.
 
-## Effects & determinism guarantees
-Plan output ordering is deterministic and idempotent for identical inputs.
+It must not execute tools, parse runtime metrics, route CLI commands, discover tools from the environment, mutate generated configuration, or own runtime orchestration.
 
-## Public API / entrypoints
-- `src/lib.rs`
+## Public Surface
+The public API is the root export surface from `src/lib.rs`:
 
-## Key contracts it owns/consumes
-Consumes domain-vcf stage/params contracts and emits planner-level contracts for API use.
+- `VcfPipelineInputs`, `VcfPanelLock`, and `ChunkPlanSettings`
+- `RegionChunkPlan`
+- `PlannerExplainV1` and `PlannerExplainStage`
+- `plan_vcf_stage_plans`, `plan_vcf_pipeline`, `plan_vcf_minimal`
+- `explain_vcf_plan`
+- `PLANNER_VERSION`
 
-## Artifacts / Contracts
+## Documentation
 - [docs/INDEX.md](docs/INDEX.md)
-- [docs/SCOPE.md](docs/SCOPE.md)
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/COMMANDS.md](docs/COMMANDS.md)
+- [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md)
+- [docs/PUBLIC_API.md](docs/PUBLIC_API.md)
 - [docs/TESTS.md](docs/TESTS.md)
 
-## Failure modes
-Missing required stages or unstable graph ordering breaks planner contracts.
+## Tests
+Run:
 
-## How to run its tests
-- `cargo test -p bijux-dna-planner-vcf --test contracts`
-- `cargo test -p bijux-dna-planner-vcf --test guardrails`
-- `cargo test -p bijux-dna-planner-vcf`
-- `tests/contracts.rs`
-- `tests/guardrails.rs`
-- `src/lib.rs`
-
-## Where the docs live
-All crate docs live under `docs/`, indexed by [docs/INDEX.md](docs/INDEX.md).
+```bash
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-planner-vcf --no-default-features
+```

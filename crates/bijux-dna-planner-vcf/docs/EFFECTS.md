@@ -1,19 +1,23 @@
 # Effects
 
-## What
-This crate keeps effects explicit and deterministic.
+`bijux-dna-planner-vcf` is a planning crate. Its output may contain command specs, but this crate must not execute them.
 
-## Why
-Ensures reproducibility and stable contracts.
+## Allowed
+- Pure plan construction.
+- Reading repository-owned registry files under `configs/ci/`.
+- Reading reference catalog views through DB-ref APIs.
+- Deterministic serialization and snapshot generation during tests.
 
-## Non-goals
-- Hidden I/O or network side effects.
+## Forbidden
+- Process spawning.
+- Runtime tool discovery.
+- Network access.
+- Product execution.
+- CLI parsing or command routing.
+- Tool-output parsing.
+- Generated configuration mutation.
 
-## Contracts
-Effects are constrained by workspace guardrail and policy tests.
-
-## Examples
-Run crate contract tests.
-
-## Failure modes
-Undeclared effects trigger policy failures.
+## Enforcement
+- Shared policy guardrails run through `tests/guardrails.rs`.
+- Planned command ownership is documented in `docs/COMMANDS.md`.
+- Source-effect boundary tests should reject process, network, and filesystem mutation primitives in production source.
