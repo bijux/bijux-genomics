@@ -379,3 +379,26 @@ fn execution_plan_rejects_duplicate_stage_output_artifacts() {
 
     assert!(error.to_string().contains("duplicate output artifact trimmed_reads_fastp"));
 }
+
+#[test]
+fn strict_validation_rejects_missing_command_template() {
+    let mut stage = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_fastp");
+    stage.command.template.clear();
+    let plan = ExecutionPlan::new(
+        "fastq-to-fastq__trim_reads_qc__v1",
+        "planner-v1",
+        PlanPolicy::default(),
+        vec![stage],
+        Vec::new(),
+    )
+    .expect("non-strict plan construction allows incomplete command metadata");
+
+    let error = plan
+        .validate_strict(&bijux_dna_stage_contract::PlanValidationContext {
+            allowed_id_catalog: None,
+            allowed_tool_ids: None,
+        })
+        .expect_err("strict validation must require a command template");
+
+    assert!(error.to_string().contains("missing command template"));
+}
