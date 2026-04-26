@@ -6,50 +6,70 @@ use super::{
 
 use super::set_assets_readonly;
 
+fn with_assets_writable<F>(workspace: &Workspace, action: F) -> Result<OpsCommandOutcome>
+where
+    F: FnOnce() -> Result<OpsCommandOutcome>,
+{
+    set_assets_readonly(workspace, false)?;
+    let result = action();
+    let restore = set_assets_readonly(workspace, true);
+    match (result, restore) {
+        (Ok(outcome), Ok(())) => Ok(outcome),
+        (Err(error), Ok(())) => Err(error),
+        (Ok(_), Err(error)) => Err(error),
+        (Err(error), Err(restore_error)) => Err(error.context(format!(
+            "also failed to restore assets read-only permissions: {restore_error}"
+        ))),
+    }
+}
+
 pub(super) fn assets_refresh_golden(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("refresh-golden", args)?;
-    let out_dir = workspace.path("artifacts/assets-refresh/golden/toy-runs-v1");
-    let target_dir = workspace.path("assets/golden/toy-runs-v1");
-    let report_path = workspace.path("artifacts/assets-refresh/golden/report.json");
+    with_assets_writable(workspace, || {
+        let out_dir = workspace.path("artifacts/assets-refresh/golden/toy-runs-v1");
+        let target_dir = workspace.path("assets/golden/toy-runs-v1");
+        let report_path = workspace.path("artifacts/assets-refresh/golden/report.json");
 
-    if out_dir.exists() {
-        fs::remove_dir_all(&out_dir).with_context(|| format!("remove {}", out_dir.display()))?;
-    }
-    if let Some(parent) = out_dir.parent() {
-        bijux_dna_infra::ensure_dir(parent)
-            .with_context(|| format!("create {}", parent.display()))?;
-    }
-    if let Some(parent) = report_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)
-            .with_context(|| format!("create {}", parent.display()))?;
-    }
-
-    let outcome = test_toy_runs(
-        workspace,
-        &[
-            "refresh".to_string(),
-            "--accept".to_string(),
-            "--profile".to_string(),
-            "all".to_string(),
-            "--out".to_string(),
-            out_dir.display().to_string(),
-        ],
-    )?;
-    if !outcome.is_success() {
-        return Ok(outcome);
-    }
-
-    for entry in fs::read_dir(&out_dir).with_context(|| format!("read {}", out_dir.display()))? {
-        let bundle = entry?.path();
-        if !bundle.is_dir() {
-            continue;
+        if out_dir.exists() {
+            fs::remove_dir_all(&out_dir).with_context(|| format!("remove {}", out_dir.display()))?;
         }
-        write_utf8(
-            &bundle.join("GENERATE.md"),
-            r"# GENERATE
+        if let Some(parent) = out_dir.parent() {
+            bijux_dna_infra::ensure_dir(parent)
+                .with_context(|| format!("create {}", parent.display()))?;
+        }
+        if let Some(parent) = report_path.parent() {
+            bijux_dna_infra::ensure_dir(parent)
+                .with_context(|| format!("create {}", parent.display()))?;
+        }
+
+        let outcome = test_toy_runs(
+            workspace,
+            &[
+                "refresh".to_string(),
+                "--accept".to_string(),
+                "--profile".to_string(),
+                "all".to_string(),
+                "--out".to_string(),
+                out_dir.display().to_string(),
+            ],
+        )?;
+        if !outcome.is_success() {
+            return Ok(outcome);
+        }
+
+        for entry in
+            fs::read_dir(&out_dir).with_context(|| format!("read {}", out_dir.display()))?
+        {
+            let bundle = entry?.path();
+            if !bundle.is_dir() {
+                continue;
+            }
+            write_utf8(
+                &bundle.join("GENERATE.md"),
+                r"# GENERATE
 
 ## Command(s)
 Generated via `cargo run -p bijux-dna-dev -- assets run refresh-golden`.
@@ -67,27 +87,28 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-golden`.
 - `report.html`
 - `CHECKSUMS.sha256`
 ",
-        )?;
-        write_checksum_manifest(
-            &bundle.join("CHECKSUMS.sha256"),
-            &[
-                "artifact_checksums.json",
-                "manifest.json",
-                "metrics.json",
-                "report.html",
-                "GENERATE.md",
-            ],
-        )?;
-    }
+            )?;
+            write_checksum_manifest(
+                &bundle.join("CHECKSUMS.sha256"),
+                &[
+                    "artifact_checksums.json",
+                    "manifest.json",
+                    "metrics.json",
+                    "report.html",
+                    "GENERATE.md",
+                ],
+            )?;
+        }
 
-    write_refresh_report(
-        &out_dir,
-        &report_path,
-        "golden/toy-runs-v1",
-        "cargo run -p bijux-dna-dev -- assets run refresh-golden",
-    )?;
-    replace_dir(&out_dir, &target_dir)?;
-    success_line(format!("golden refresh: wrote {}", target_dir.display()))
+        write_refresh_report(
+            &out_dir,
+            &report_path,
+            "golden/toy-runs-v1",
+            "cargo run -p bijux-dna-dev -- assets run refresh-golden",
+        )?;
+        replace_dir(&out_dir, &target_dir)?;
+        success_line(format!("golden refresh: wrote {}", target_dir.display()))
+    })
 }
 
 pub(super) fn assets_refresh_reference(
@@ -95,17 +116,10 @@ pub(super) fn assets_refresh_reference(
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("refresh-reference", args)?;
-    set_assets_readonly(workspace, false)?;
-    let result = write_reference_asset_docs(workspace);
-    let restore = set_assets_readonly(workspace, true);
-    match (result, restore) {
-        (Ok(()), Ok(())) => success_line("reference refresh: wrote assets/reference docs"),
-        (Err(error), Ok(())) => Err(error),
-        (Ok(()), Err(error)) => Err(error),
-        (Err(error), Err(restore_error)) => Err(error.context(format!(
-            "also failed to restore assets read-only permissions: {restore_error}"
-        ))),
-    }
+    with_assets_writable(workspace, || {
+        write_reference_asset_docs(workspace)?;
+        success_line("reference refresh: wrote assets/reference docs")
+    })
 }
 
 pub(super) fn assets_refresh_toy(
@@ -113,56 +127,57 @@ pub(super) fn assets_refresh_toy(
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("refresh-toy", args)?;
-    let stage_dir = workspace.path("artifacts/assets-refresh/toy/core-v1");
-    let target_dir = workspace.path("assets/toy/core-v1");
-    let report_path = workspace.path("artifacts/assets-refresh/toy/report.json");
+    with_assets_writable(workspace, || {
+        let stage_dir = workspace.path("artifacts/assets-refresh/toy/core-v1");
+        let target_dir = workspace.path("assets/toy/core-v1");
+        let report_path = workspace.path("artifacts/assets-refresh/toy/report.json");
 
-    if stage_dir.exists() {
-        fs::remove_dir_all(&stage_dir)
-            .with_context(|| format!("remove {}", stage_dir.display()))?;
-    }
-    bijux_dna_infra::ensure_dir(stage_dir.join("fastq"))
-        .with_context(|| format!("create {}", stage_dir.join("fastq").display()))?;
-    bijux_dna_infra::ensure_dir(stage_dir.join("bam"))
-        .with_context(|| format!("create {}", stage_dir.join("bam").display()))?;
-    bijux_dna_infra::ensure_dir(stage_dir.join("vcf"))
-        .with_context(|| format!("create {}", stage_dir.join("vcf").display()))?;
-    if let Some(parent) = report_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)
-            .with_context(|| format!("create {}", parent.display()))?;
-    }
+        if stage_dir.exists() {
+            fs::remove_dir_all(&stage_dir)
+                .with_context(|| format!("remove {}", stage_dir.display()))?;
+        }
+        bijux_dna_infra::ensure_dir(stage_dir.join("fastq"))
+            .with_context(|| format!("create {}", stage_dir.join("fastq").display()))?;
+        bijux_dna_infra::ensure_dir(stage_dir.join("bam"))
+            .with_context(|| format!("create {}", stage_dir.join("bam").display()))?;
+        bijux_dna_infra::ensure_dir(stage_dir.join("vcf"))
+            .with_context(|| format!("create {}", stage_dir.join("vcf").display()))?;
+        if let Some(parent) = report_path.parent() {
+            bijux_dna_infra::ensure_dir(parent)
+                .with_context(|| format!("create {}", parent.display()))?;
+        }
 
-    write_utf8(
-        &stage_dir.join("fastq/reads_1.fastq"),
-        "@read1/1\nACGTTGCAACGT\n+\nFFFFFFFFFFFF\n@read2/1\nTGCATGCATGCA\n+\nFFFFFFFFFFFF\n",
-    )?;
-    write_utf8(
-        &stage_dir.join("fastq/reads_2.fastq"),
-        "@read1/2\nACGTTGCAACGT\n+\nFFFFFFFFFFFF\n@read2/2\nTGCATGCATGCA\n+\nFFFFFFFFFFFF\n",
-    )?;
-    write_utf8(
-        &stage_dir.join("bam/toy.sam"),
-        "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:1000\nread1\t0\tchr1\t1\t60\t12M\t*\t0\t0\tACGTTGCAACGT\tFFFFFFFFFFFF\nread2\t0\tchr1\t50\t60\t12M\t*\t0\t0\tTGCATGCATGCA\tFFFFFFFFFFFF\n",
-    )?;
-    write_utf8(
-        &stage_dir.join("vcf/toy.vcf"),
-        "##fileformat=VCFv4.2\n##contig=<ID=chr1,length=1000>\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\nchr1\t10\t.\tA\tG\t60\tPASS\t.\n",
-    )?;
+        write_utf8(
+            &stage_dir.join("fastq/reads_1.fastq"),
+            "@read1/1\nACGTTGCAACGT\n+\nFFFFFFFFFFFF\n@read2/1\nTGCATGCATGCA\n+\nFFFFFFFFFFFF\n",
+        )?;
+        write_utf8(
+            &stage_dir.join("fastq/reads_2.fastq"),
+            "@read1/2\nACGTTGCAACGT\n+\nFFFFFFFFFFFF\n@read2/2\nTGCATGCATGCA\n+\nFFFFFFFFFFFF\n",
+        )?;
+        write_utf8(
+            &stage_dir.join("bam/toy.sam"),
+            "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:1000\nread1\t0\tchr1\t1\t60\t12M\t*\t0\t0\tACGTTGCAACGT\tFFFFFFFFFFFF\nread2\t0\tchr1\t50\t60\t12M\t*\t0\t0\tTGCATGCATGCA\tFFFFFFFFFFFF\n",
+        )?;
+        write_utf8(
+            &stage_dir.join("vcf/toy.vcf"),
+            "##fileformat=VCFv4.2\n##contig=<ID=chr1,length=1000>\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\nchr1\t10\t.\tA\tG\t60\tPASS\t.\n",
+        )?;
 
-    write_checksum_manifest(
-        &stage_dir.join("CHECKSUMS.sha256"),
-        &["bam/toy.sam", "fastq/reads_1.fastq", "fastq/reads_2.fastq", "vcf/toy.vcf"],
-    )?;
-    write_checksum_manifest(&stage_dir.join("bam/CHECKSUMS.sha256"), &["toy.sam"])?;
-    write_checksum_manifest(
-        &stage_dir.join("fastq/CHECKSUMS.sha256"),
-        &["reads_1.fastq", "reads_2.fastq"],
-    )?;
-    write_checksum_manifest(&stage_dir.join("vcf/CHECKSUMS.sha256"), &["toy.vcf"])?;
+        write_checksum_manifest(
+            &stage_dir.join("CHECKSUMS.sha256"),
+            &["bam/toy.sam", "fastq/reads_1.fastq", "fastq/reads_2.fastq", "vcf/toy.vcf"],
+        )?;
+        write_checksum_manifest(&stage_dir.join("bam/CHECKSUMS.sha256"), &["toy.sam"])?;
+        write_checksum_manifest(
+            &stage_dir.join("fastq/CHECKSUMS.sha256"),
+            &["reads_1.fastq", "reads_2.fastq"],
+        )?;
+        write_checksum_manifest(&stage_dir.join("vcf/CHECKSUMS.sha256"), &["toy.vcf"])?;
 
-    write_utf8(
-        &stage_dir.join("GENERATE.md"),
-        r"# GENERATE
+        write_utf8(
+            &stage_dir.join("GENERATE.md"),
+            r"# GENERATE
 
 ## Command(s)
 Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
@@ -180,16 +195,17 @@ Generated via `cargo run -p bijux-dna-dev -- assets run refresh-toy`.
 - `vcf/toy.vcf`
 - `CHECKSUMS.sha256`
 ",
-    )?;
+        )?;
 
-    write_refresh_report(
-        &stage_dir,
-        &report_path,
-        "toy/core-v1",
-        "cargo run -p bijux-dna-dev -- assets run refresh-toy",
-    )?;
-    replace_dir(&stage_dir, &target_dir)?;
-    success_line(format!("toy refresh: wrote {}", target_dir.display()))
+        write_refresh_report(
+            &stage_dir,
+            &report_path,
+            "toy/core-v1",
+            "cargo run -p bijux-dna-dev -- assets run refresh-toy",
+        )?;
+        replace_dir(&stage_dir, &target_dir)?;
+        success_line(format!("toy refresh: wrote {}", target_dir.display()))
+    })
 }
 
 fn write_reference_asset_docs(workspace: &Workspace) -> Result<()> {
