@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Benchmark observation validation rules.
+
 use crate::diagnostics::BenchError;
 
 use super::BenchmarkObservation;

@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Graph nodes and edges for benchmark suite execution topology.
 //! Must not perform IO or depend on compare/gate logic.
 

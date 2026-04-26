@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Benchmark suite constructors.
+
 use super::{
     AnalysisRequirements, BenchmarkStageSpec, BenchmarkSuiteSpec, DatasetSpec,
     DiversityRequirements, ReplicatePolicy, StratificationRequirement,

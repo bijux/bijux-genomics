@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Benchmark summary model (versioned).
 //! Owns aggregate stats and completeness for observations.
 //! Must not perform IO or depend on compare/gate logic.

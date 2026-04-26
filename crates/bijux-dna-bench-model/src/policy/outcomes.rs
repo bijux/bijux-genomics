@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Gate decision outputs.
 
 #[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]

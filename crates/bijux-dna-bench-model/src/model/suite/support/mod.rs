@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Benchmark suite support contract exports.
+
 mod analysis_requirements;
 mod dataset_spec;
 mod diversity_requirements;

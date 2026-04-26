@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Contract schema versions for benchmark artifacts.
 
 pub const SUITE_SCHEMA_V1: &str = "bijux.bench.suite.v1";

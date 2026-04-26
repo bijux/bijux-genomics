@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Benchmark suite contract validation entrypoint.
 
 mod declared_stage_nodes;

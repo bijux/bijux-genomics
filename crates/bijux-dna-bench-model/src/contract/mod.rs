@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Schema versions and contract validators.
 //! Owns validation for bench artifacts and inputs.
 //! Must not perform IO.

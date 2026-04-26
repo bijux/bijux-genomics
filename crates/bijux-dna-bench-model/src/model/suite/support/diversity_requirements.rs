@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Diversity requirements for benchmark suites.
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

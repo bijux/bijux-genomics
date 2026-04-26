@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Suite stage validation contracts.
+
 use super::DeclaredStageNodes;
 use crate::contract::suite::{
     ensure_supported_stage, planner_owned_graph_stage, validate_stage_param_bindings,

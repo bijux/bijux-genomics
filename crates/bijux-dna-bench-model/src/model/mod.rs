@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Typed models for bench (suite, observation, summary, decision).
 //! Must not perform IO or depend on repo/policy/compare logic.
 

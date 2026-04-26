@@ -8,6 +8,7 @@ fn bench_model_tree_matches_architecture_contract() {
     assert_docs_tree(root);
     assert_commands_doc(root);
     assert_dependency_graph(root);
+    assert_source_owners(root);
     assert_eq!(
         dir_entries(root),
         entries(["Cargo.toml", "README.md", "docs/", "src/", "tests/"]),
@@ -165,6 +166,30 @@ fn assert_commands_doc(root: &Path) {
     }
 }
 
+fn assert_source_owners(root: &Path) {
+    let source_root = root.join("src");
+    let mut files = Vec::new();
+    collect_rs_files(&source_root, &mut files);
+    let mut missing_owner = Vec::new();
+    for file in files {
+        let content = std::fs::read_to_string(&file)
+            .unwrap_or_else(|err| panic!("read {}: {err}", file.display()));
+        let header = content.lines().take(12).collect::<Vec<_>>().join("\n");
+        if !header.contains("Owner: bijux-dna-bench-model") {
+            missing_owner.push(file.display().to_string());
+        }
+        assert!(
+            !header.contains("Owner: bijux-dna-bench\n"),
+            "{} must use the bench-model owner, not the bench crate owner",
+            file.display(),
+        );
+    }
+    assert!(
+        missing_owner.is_empty(),
+        "source files must declare Owner: bijux-dna-bench-model in the first 12 lines: {missing_owner:?}",
+    );
+}
+
 fn assert_dependency_graph(root: &Path) {
     let cargo_toml_path = root.join("Cargo.toml");
     let cargo_toml = std::fs::read_to_string(&cargo_toml_path)
@@ -274,6 +299,20 @@ fn collect_markdown_files(root: &Path, path: &Path, files: &mut Vec<String>) {
             && !path.starts_with(root.join("docs"))
         {
             files.push(path.display().to_string());
+        }
+    }
+}
+
+fn collect_rs_files(path: &Path, files: &mut Vec<std::path::PathBuf>) {
+    let entries =
+        std::fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+    for entry in entries {
+        let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
+        let path = entry.path();
+        if path.is_dir() {
+            collect_rs_files(&path, files);
+        } else if path.extension().is_some_and(|ext| ext == "rs") {
+            files.push(path);
         }
     }
 }

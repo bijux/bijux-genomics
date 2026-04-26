@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Robust statistics: median, MAD, IQR, and trimmed mean.
 //! These estimators reduce sensitivity to outliers compared to mean/stddev.
 //! Must not perform IO or depend on compare/gate logic.

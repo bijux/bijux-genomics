@@ -1,3 +1,6 @@
+//! Owner: bijux-dna-bench-model
+//! Benchmark suite catalog helpers.
+
 use super::BenchmarkSuiteSpec;
 
 impl BenchmarkSuiteSpec {

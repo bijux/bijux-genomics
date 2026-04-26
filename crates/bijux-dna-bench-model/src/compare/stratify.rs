@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench
+//! Owner: bijux-dna-bench-model
 //! Stratification helpers for comparisons.
 
 #[derive(Debug, Clone, serde::Serialize)]
