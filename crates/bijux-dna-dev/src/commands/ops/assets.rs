@@ -238,7 +238,7 @@ Those sizes are incompatible with complete upstream PhiX174 or UniVec reference 
 - Record upstream URL, retrieval date, checksum, sequence count, and total bases.
 - Diff sequence headers and lengths before replacing a tracked reference.
 - Recompute affected `CHECKSUMS.sha256` files in the same change.
-- Add uncertain source or missing production payload questions to `/Users/bijan/bijux/NEEDED.md`.
+- Add uncertain source or missing production payload questions to the workspace-level `NEEDED.md` handoff.
 ";
 
 const REFERENCE_LOCK_MD: &str = r"# Reference Source Lock
