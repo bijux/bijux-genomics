@@ -74,6 +74,13 @@ pub fn lint_execution_plan(plan: &ExecutionPlan) -> Result<()> {
             )?;
         match (edge.from_output_id(), edge.to_input_id()) {
             (Some(from_output_id), Some(to_input_id)) => {
+                if from_output_id.trim().is_empty() || to_input_id.trim().is_empty() {
+                    return Err(anyhow!(
+                        "plan edge {} -> {} has empty artifact binding",
+                        edge.from(),
+                        edge.to()
+                    ));
+                }
                 if !from_stage
                     .io
                     .outputs
