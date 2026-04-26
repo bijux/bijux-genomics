@@ -29,6 +29,14 @@ fn cli_dna_fastq_help_snapshot() {
 }
 
 #[test]
+fn cli_dna_run_help_examples_use_public_command_prefix() {
+    let help = help_for(&["run", "filter", "--help"]);
+
+    assert!(help.contains("bijux-dna run filter"));
+    assert!(!help.contains("bijux-dna fastq filter"));
+}
+
+#[test]
 fn cli_dna_bam_help_snapshot() {
     let help = help_for(&["bam", "--help"]);
     assert!(help.contains("Usage: bijux-dna bam [OPTIONS] <COMMAND>"));
