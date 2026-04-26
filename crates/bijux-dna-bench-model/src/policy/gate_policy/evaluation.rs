@@ -91,8 +91,7 @@ fn record_missing_required_metrics(
 ) {
     for metric_id in required_metrics {
         if !metrics.contains_key(metric_id) {
-            missing_metrics.push(metric_id.clone());
-            rationale_trace.push(format!("missing_required:{metric_id}"));
+            record_missing_metric(metric_id, "missing_required", missing_metrics, rationale_trace);
         }
     }
 }
@@ -107,13 +106,11 @@ fn evaluate_thresholds(
 ) {
     for (metric_id, threshold) in thresholds {
         let Some(semantics) = resolve_metric_direction(metric_id, semantics_overrides) else {
-            missing_metrics.push(metric_id.clone());
-            rationale_trace.push(format!("missing_semantics:{metric_id}"));
+            record_missing_metric(metric_id, "missing_semantics", missing_metrics, rationale_trace);
             continue;
         };
         let Some(observed) = metrics.get(metric_id) else {
-            missing_metrics.push(metric_id.clone());
-            rationale_trace.push(format!("missing_metric:{metric_id}"));
+            record_missing_metric(metric_id, "missing_metric", missing_metrics, rationale_trace);
             continue;
         };
         let passes = match semantics {
@@ -142,13 +139,11 @@ fn evaluate_regression_windows(
 ) {
     for (metric_id, window) in allowed_regressions {
         let Some(semantics) = resolve_metric_direction(metric_id, semantics_overrides) else {
-            missing_metrics.push(metric_id.clone());
-            rationale_trace.push(format!("missing_semantics:{metric_id}"));
+            record_missing_metric(metric_id, "missing_semantics", missing_metrics, rationale_trace);
             continue;
         };
         let Some(observed) = metrics.get(metric_id) else {
-            missing_metrics.push(metric_id.clone());
-            rationale_trace.push(format!("missing_metric:{metric_id}"));
+            record_missing_metric(metric_id, "missing_metric", missing_metrics, rationale_trace);
             continue;
         };
         let passes = match semantics {
@@ -175,10 +170,27 @@ fn record_missing_regression_guards(
 ) {
     for metric_id in must_not_regress {
         if !metrics.contains_key(metric_id) {
-            missing_metrics.push(metric_id.clone());
-            rationale_trace.push(format!("missing_must_not_regress:{metric_id}"));
+            record_missing_metric(
+                metric_id,
+                "missing_must_not_regress",
+                missing_metrics,
+                rationale_trace,
+            );
         }
     }
+}
+
+fn record_missing_metric(
+    metric_id: &str,
+    reason: &str,
+    missing_metrics: &mut Vec<String>,
+    rationale_trace: &mut Vec<String>,
+) {
+    if missing_metrics.iter().any(|missing_metric| missing_metric == metric_id) {
+        return;
+    }
+    missing_metrics.push(metric_id.to_string());
+    rationale_trace.push(format!("{reason}:{metric_id}"));
 }
 
 fn resolve_metric_direction(
@@ -198,4 +210,36 @@ fn completeness_score(required_metrics: &[String], missing_metrics: &[String]) -
     let missing = f64::from(u32::try_from(missing_metrics.len()).unwrap_or(u32::MAX));
     let total = f64::from(u32::try_from(required_metrics.len()).unwrap_or(u32::MAX));
     (1.0 - (missing / total)).clamp(0.0, 1.0)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::{BTreeMap, HashSet};
+
+    use crate::policy::GatePolicy;
+
+    #[test]
+    fn missing_metrics_are_reported_once() {
+        let mut thresholds = BTreeMap::new();
+        thresholds.insert("runtime_s".to_string(), 1.0);
+        let mut allowed_regressions = BTreeMap::new();
+        allowed_regressions.insert("runtime_s".to_string(), 0.1);
+        let policy = GatePolicy {
+            objective: "runtime".to_string(),
+            required_metrics: vec!["runtime_s".to_string()],
+            thresholds,
+            allowed_regressions,
+            must_not_regress: vec!["runtime_s".to_string()],
+            semantics_overrides: BTreeMap::new(),
+            stage_overrides: BTreeMap::new(),
+        };
+
+        let decision =
+            policy.decide("dataset-1", "fastq.trim_reads", "fastp", "params-a", &BTreeMap::new());
+        let unique_missing: HashSet<&str> =
+            decision.missing_metrics.iter().map(String::as_str).collect();
+
+        assert_eq!(decision.missing_metrics, vec!["runtime_s"]);
+        assert_eq!(unique_missing.len(), decision.missing_metrics.len());
+    }
 }
