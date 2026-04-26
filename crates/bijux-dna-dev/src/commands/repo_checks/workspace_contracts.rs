@@ -1,10 +1,9 @@
 use std::collections::BTreeSet;
 
 use anyhow::{Context, Result};
-use regex::Regex;
 use walkdir::WalkDir;
 
-use crate::commands::command_support::{fail, pass, read, run_command};
+use crate::commands::command_support::{fail, has_extension, pass, read, regex, run_command};
 use crate::commands::run_native_ops_command;
 use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::model::ops::NativeOpsCommandKey;
@@ -16,19 +15,19 @@ pub(crate) fn check_cargo_config_policy(
 ) -> Result<CheckOutcome> {
     let config = read(&workspace.path(".cargo/config.toml"))?;
     let mut violations = Vec::new();
-    if Regex::new(r"(?m)^\[target\.").expect("regex").is_match(&config) {
+    if regex(r"(?m)^\[target\.")?.is_match(&config) {
         violations.push(".cargo/config.toml must not contain [target.*] blocks".to_string());
     }
-    if Regex::new(r"(?m)^jobs\s*=").expect("regex").is_match(&config) {
+    if regex(r"(?m)^jobs\s*=")?.is_match(&config) {
         violations.push(".cargo/config.toml must not set machine-specific build.jobs".to_string());
     }
-    if Regex::new(r"(?m)^rustflags\s*=").expect("regex").is_match(&config) {
+    if regex(r"(?m)^rustflags\s*=")?.is_match(&config) {
         violations.push(
             ".cargo/config.toml must not set rustflags; use configs/runtime/cargo_build.toml"
                 .to_string(),
         );
     }
-    if !Regex::new(r"(?m)^\[alias\]").expect("regex").is_match(&config) {
+    if !regex(r"(?m)^\[alias\]")?.is_match(&config) {
         violations.push(".cargo/config.toml must keep alias definitions".to_string());
     }
     if violations.is_empty() {
@@ -112,8 +111,8 @@ pub(crate) fn check_docs_requirements_lock(
     let lock = workspace.path("configs/docs/requirements.lock.txt");
     let raw = read(&req)?;
     let lock_raw = read(&lock)?;
-    let exact_pin = Regex::new(r"^[A-Za-z0-9_.-]+==[0-9][A-Za-z0-9_.-]*$").expect("regex");
-    let floating_pin = Regex::new(r"(^|[^=<>!~])[A-Za-z0-9_.-]+\s*(>=|<=|>|<|~=)").expect("regex");
+    let exact_pin = regex(r"^[A-Za-z0-9_.-]+==[0-9][A-Za-z0-9_.-]*$")?;
+    let floating_pin = regex(r"(^|[^=<>!~])[A-Za-z0-9_.-]+\s*(>=|<=|>|<|~=)")?;
     let mut violations = Vec::new();
     let req_lines = raw
         .lines()
@@ -382,7 +381,7 @@ pub(crate) fn check_hpc_rsync_docs_parity(
             .with_context(|| format!("read {}", rsync_dir.display()))?
         {
             let path = entry?.path();
-            if path.extension().and_then(|ext| ext.to_str()) != Some("txt") {
+            if !has_extension(&path, "txt") {
                 continue;
             }
             let name = path
@@ -457,10 +456,7 @@ pub(crate) fn check_logging_contract(
         errors.push("configs/logging/index.md must reference runtime.toml".to_string());
     }
     for key in ["default_level", "default_format", "json_fields"] {
-        if !Regex::new(&format!(r"(?m)^{}\s*=", regex::escape(key)))
-            .expect("regex")
-            .is_match(&runtime)
-        {
+        if !regex(&format!(r"(?m)^{}\s*=", regex::escape(key)))?.is_match(&runtime) {
             errors.push(format!("configs/logging/runtime.toml missing key `{key}`"));
         }
     }
@@ -474,7 +470,7 @@ pub(crate) fn check_no_target_paths_in_tests(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let target_re = Regex::new(r"(^|[^A-Za-z0-9_./-])target/").expect("regex");
+    let target_re = regex(r"(^|[^A-Za-z0-9_./-])target/")?;
     let excluded: [&str; 0] = [];
     let mut offenders = Vec::new();
     for root in [workspace.path("crates"), workspace.path("makes")] {
@@ -483,9 +479,7 @@ pub(crate) fn check_no_target_paths_in_tests(
                 continue;
             }
             let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
-            if rel.contains("/__pycache__/")
-                || entry.path().extension().and_then(|ext| ext.to_str()) == Some("pyc")
-            {
+            if rel.contains("/__pycache__/") || has_extension(entry.path(), "pyc") {
                 continue;
             }
             if rel.starts_with("crates/bijux-dna-dev/src/commands/repo_checks/") {
@@ -513,7 +507,7 @@ pub(crate) fn check_no_user_path_literals(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let user_path_re = Regex::new(r"/Users/|[A-Za-z]:\\\\Users\\\\").expect("regex");
+    let user_path_re = regex(r"/Users/|[A-Za-z]:\\\\Users\\\\")?;
     let mut offenders = Vec::new();
     for root in [workspace.path("crates"), workspace.path("makes")] {
         for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
@@ -521,15 +515,13 @@ pub(crate) fn check_no_user_path_literals(
                 continue;
             }
             let rel = workspace.rel(entry.path()).to_string_lossy().to_string();
-            if rel.contains("/__pycache__/")
-                || entry.path().extension().and_then(|ext| ext.to_str()) == Some("pyc")
-            {
+            if rel.contains("/__pycache__/") || has_extension(entry.path(), "pyc") {
                 continue;
             }
             if rel.starts_with("crates/bijux-dna-dev/src/commands/repo_checks/") {
                 continue;
             }
-            if rel.starts_with("examples/") || rel.ends_with(".md") {
+            if rel.starts_with("examples/") || has_extension(&rel, "md") {
                 continue;
             }
             let raw = read(entry.path())?;
@@ -549,10 +541,9 @@ pub(crate) fn check_readme_links(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let code_link_re =
-        Regex::new(r"`((configs|artifacts|containers|docs|domain|makes|crates)/[^` ]+)`")
-            .expect("regex");
+        regex(r"`((configs|artifacts|containers|docs|domain|makes|crates)/[^` ]+)`")?;
     let mut missing = Vec::new();
-    for rel in repo_readme_paths(workspace)? {
+    for rel in repo_readme_paths(workspace) {
         let raw = read(&workspace.path(&rel))?;
         for capture in code_link_re.captures_iter(&raw) {
             let path = workspace.path(&capture[1]);
@@ -651,7 +642,7 @@ pub(crate) fn check_runtime_execution_kernel_config(
     if let Some(patterns) = cfg.get("heavy_stage_patterns").and_then(toml::Value::as_array) {
         if patterns
             .iter()
-            .any(|value| value.as_str().map_or(true, |pattern| pattern.trim().is_empty()))
+            .any(|value| value.as_str().is_none_or(|pattern| pattern.trim().is_empty()))
         {
             errors.push("heavy_stage_patterns must contain non-empty strings".to_string());
         }
@@ -780,7 +771,7 @@ fn public_make_targets(readme: &str) -> BTreeSet<String> {
     targets
 }
 
-fn repo_readme_paths(workspace: &Workspace) -> Result<Vec<String>> {
+fn repo_readme_paths(workspace: &Workspace) -> Vec<String> {
     let mut paths = Vec::new();
     for entry in WalkDir::new(&workspace.root).into_iter().filter_map(std::result::Result::ok) {
         let rel = workspace.rel(entry.path()).display().to_string();
@@ -792,24 +783,24 @@ fn repo_readme_paths(workspace: &Workspace) -> Result<Vec<String>> {
         }
     }
     paths.sort();
-    Ok(paths)
+    paths
 }
 
 fn scan_for_rustflags(rel: &str) -> bool {
     rel == "Makefile"
-        || rel.ends_with(".sh")
-        || rel.ends_with(".mk")
-        || rel.ends_with(".toml")
-        || rel.ends_with(".py")
+        || has_extension(rel, "sh")
+        || has_extension(rel, "mk")
+        || has_extension(rel, "toml")
+        || has_extension(rel, "py")
 }
 
 fn source_like_scan_path(rel: &str) -> bool {
     rel == "Makefile"
-        || rel.ends_with(".rs")
-        || rel.ends_with(".sh")
-        || rel.ends_with(".py")
-        || rel.ends_with(".mk")
-        || rel.ends_with(".toml")
-        || rel.ends_with(".yaml")
-        || rel.ends_with(".yml")
+        || has_extension(rel, "rs")
+        || has_extension(rel, "sh")
+        || has_extension(rel, "py")
+        || has_extension(rel, "mk")
+        || has_extension(rel, "toml")
+        || has_extension(rel, "yaml")
+        || has_extension(rel, "yml")
 }
