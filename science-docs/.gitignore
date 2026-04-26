@@ -15,6 +15,9 @@ upstream/fastq/*
 !upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv
 !upstream/fastq/TAG_ONLY_CONTAINER_BLOCKERS.tsv
 !upstream/fastq/TOOL_RISK_REGISTRY.tsv
+!upstream/fastq/container/
+upstream/fastq/container/*
+!upstream/fastq/container/FASTQ_CONTAINER_DEFAULT_MATRIX.tsv
 !upstream/fastq/tools/
 upstream/fastq/tools/*
 !upstream/fastq/tools/README.md
