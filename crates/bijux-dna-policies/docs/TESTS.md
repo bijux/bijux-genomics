@@ -13,7 +13,7 @@
 - `tests/support/` — shared filesystem helpers used across policy suites.
 - `tests/fixtures/` — sample inputs referenced by policy tests.
 - `tests/snapshots/` — locked snapshots for guardrail defaults and documentation contracts.
-- `tests/schemas/` — reserved for schema-specific policy artifacts.
+- Schema-style policy snapshots stay under `tests/snapshots/` until a materialized schemas suite exists.
 
 ## Naming
 - Policy tests use `policy__<suite>__<file>__<rule>` for stable search and failure triage.
