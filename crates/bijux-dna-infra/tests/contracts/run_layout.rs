@@ -14,6 +14,17 @@ fn lock_acquisition_times_out() -> anyhow::Result<()> {
 }
 
 #[test]
+fn file_lock_creates_parent_directory() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let lock_path = dir.path().join("nested").join("lockfile");
+
+    let _lock = bijux_dna_infra::FileLock::acquire(&lock_path, Duration::from_millis(50))?;
+
+    assert!(lock_path.exists());
+    Ok(())
+}
+
+#[test]
 fn run_layout_is_stable() {
     let base = Path::new("/tmp/bijux");
     let layout = bijux_dna_infra::run_layout_paths(base, "run-123");

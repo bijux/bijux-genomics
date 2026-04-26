@@ -3,7 +3,7 @@ use std::fs::{File, OpenOptions};
 use std::path::Path;
 use std::time::{Duration, Instant};
 
-use crate::{IoError, IoErrorKind};
+use crate::{ensure_dir, IoError, IoErrorKind};
 
 #[derive(Debug)]
 pub struct FileLock {
@@ -16,6 +16,9 @@ impl FileLock {
     /// # Errors
     /// Returns a lock timeout error or IO error on failure.
     pub fn acquire(path: &Path, timeout: Duration) -> Result<Self, IoError> {
+        if let Some(parent) = path.parent().filter(|parent| !parent.as_os_str().is_empty()) {
+            ensure_dir(parent)?;
+        }
         let file = OpenOptions::new()
             .read(true)
             .write(true)
