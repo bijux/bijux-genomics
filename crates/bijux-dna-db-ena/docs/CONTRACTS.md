@@ -34,9 +34,10 @@ effects and must stay under the requested manifest path.
 
 `download::build_download_tasks` maps records to deterministic output paths under
 `DownloadConfig::output_dir`. The task list is sorted by output path and
-deduplicates repeated output destinations. `download::download_tasks` either
-dry-runs the task set or transfers files with the configured job count and retry
-count.
+deduplicates repeated output destinations. `DownloadConfig::validate` rejects
+empty output roots and zero-job execution before dry-run or transfer work.
+`download::download_tasks` either dry-runs the task set or transfers files with
+the configured job count and retry count.
 
 ## Verification
 

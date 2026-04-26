@@ -127,4 +127,23 @@ mod tests {
         assert!(error.to_string().contains("jobs must be greater than zero"));
         Ok(())
     }
+
+    #[test]
+    fn download_tasks_rejects_empty_output_dir_for_dry_run() -> anyhow::Result<()> {
+        let cfg = DownloadConfig {
+            output_dir: PathBuf::new(),
+            jobs: 1,
+            retries: 0,
+            source: EnaFileSource::FastqFtp,
+            preference: EnaSourcePreference::Ftp,
+            dry_run: true,
+        };
+
+        let Err(error) = download_tasks(&[], &cfg) else {
+            bail!("empty output dirs must fail");
+        };
+
+        assert!(error.to_string().contains("output_dir must not be empty"));
+        Ok(())
+    }
 }
