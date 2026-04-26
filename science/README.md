@@ -27,6 +27,20 @@ This control surface does not replace `domain/**`, `configs/**`, `containers/**`
 `crates/bijux-dna-environment/**`. It traces and compiles the claims that explain how those
 surfaces are used.
 
+## Generated Index
+
+`science/generated/indexes/science_index.json` is the top-level operator entrypoint for the
+generated FASTQ science slice.
+
+- Row counts show the size of each governed evidence surface.
+- `fastq_closure_summary` shows how many FASTQ bindings are world-class closed, declared closed
+  with gaps, or still not closed, plus the rolled-up blocker and warning reasons.
+- `fastq_evidence_summary` shows the distribution of backlog, paper archive, prerequisite, risk,
+  and truth-delta categories without reopening every TSV.
+
+Use the index to decide which evidence table to inspect next, then use the TSV files under
+`science/generated/current/evidence/` for the stage- and tool-level detail.
+
 ## Local Evidence Archive
 
 `science/docs/` is intentionally separate from `science/`.
