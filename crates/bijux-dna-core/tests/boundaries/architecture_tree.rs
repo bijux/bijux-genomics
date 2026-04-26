@@ -5,6 +5,7 @@ use std::path::Path;
 fn core_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     assert_top_level_layout(root);
+    assert_docs_layout(root);
     assert_contract_layout(root);
     assert_identity_layout(root);
     assert_api_layout(root);
@@ -15,15 +16,7 @@ fn core_tree_matches_architecture_contract() {
 fn assert_top_level_layout(root: &Path) {
     assert_eq!(
         dir_entries(root),
-        entries([
-            "BOUNDARY.md",
-            "Cargo.toml",
-            "PUBLIC_API.md",
-            "README.md",
-            "docs/",
-            "src/",
-            "tests/",
-        ]),
+        entries(["Cargo.toml", "README.md", "docs/", "src/", "tests/"]),
         "crate root must stay minimal and intentional"
     );
     assert_eq!(
@@ -39,6 +32,31 @@ fn assert_top_level_layout(root: &Path) {
             "public_api/",
         ]),
         "src tree must match the documented core layout"
+    );
+}
+
+fn assert_docs_layout(root: &Path) {
+    assert_eq!(
+        dir_entries(&root.join("docs")),
+        entries([
+            "ARCHITECTURE.md",
+            "BOUNDARY.md",
+            "CHANGE_RULES.md",
+            "COMMANDS.md",
+            "CONTRACTS.md",
+            "CONTRACT_MAP.md",
+            "INVARIANTS.md",
+            "PUBLIC_API.md",
+            "SERIALIZATION.md",
+            "TESTS.md",
+        ]),
+        "core docs must stay at the 10-document allowance and live under docs/"
+    );
+
+    let misplaced_docs = markdown_files_outside_docs(root);
+    assert!(
+        misplaced_docs.is_empty(),
+        "crate markdown outside docs/ must be limited to root README.md: {misplaced_docs:?}",
     );
 }
 
@@ -201,7 +219,6 @@ fn assert_test_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("tests")),
         entries([
-            "README.md",
             "boundaries/",
             "boundaries.rs",
             "contracts/",
@@ -237,4 +254,29 @@ fn dir_entries(path: &Path) -> BTreeSet<String> {
 
 fn entries<const N: usize>(items: [&str; N]) -> BTreeSet<String> {
     items.into_iter().map(str::to_string).collect()
+}
+
+fn markdown_files_outside_docs(root: &Path) -> Vec<String> {
+    let mut files = Vec::new();
+    collect_markdown_files(root, root, &mut files);
+    files
+}
+
+fn collect_markdown_files(root: &Path, path: &Path, files: &mut Vec<String>) {
+    let entries =
+        std::fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+    for entry in entries {
+        let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
+        let path = entry.path();
+        if path.is_dir() {
+            collect_markdown_files(root, &path, files);
+            continue;
+        }
+        if path.extension().is_some_and(|ext| ext == "md")
+            && path != root.join("README.md")
+            && !path.starts_with(root.join("docs"))
+        {
+            files.push(path.display().to_string());
+        }
+    }
 }
