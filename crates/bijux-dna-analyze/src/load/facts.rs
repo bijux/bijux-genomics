@@ -21,7 +21,9 @@ pub fn load_facts(path: &Path) -> std::result::Result<Vec<FactsRowV1>, AnalyzeEr
     let reader = BufReader::new(file);
     let mut rows = Vec::new();
     for (idx, line) in reader.lines().enumerate() {
-        let line = line.map_err(|err| AnalyzeError::InvalidJson { message: err.to_string() })?;
+        let line = line.map_err(|err| AnalyzeError::InvalidJson {
+            message: format!("read {} line {}: {err}", path.display(), idx + 1),
+        })?;
         if line.trim().is_empty() {
             continue;
         }
