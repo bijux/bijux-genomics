@@ -1,24 +1,31 @@
 # Tests
 
-## What
-Maps the stable test entrypoints and intent directories for the testkit crate.
+## Standard Verification
 
-## Why
-The crate is small, so the test tree should be explicit and durable.
+Run from the `bijux-genomics` repository root:
 
-## Entry points
-- `tests/boundaries.rs` — boundary and source-tree guardrails.
-- `tests/contracts.rs` — reserved contract-suite entrypoint for future test-support contracts.
-- `tests/determinism.rs` — reserved determinism-suite entrypoint for future reproducibility checks.
-- `tests/guardrails.rs` — crate-local guardrail smoke test.
-- `tests/schemas.rs` — public API, docs, and snapshot normalization checks.
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --no-default-features
+```
 
-## Intent directories
-- `tests/boundaries/` — dependency and layout boundaries.
-- `tests/contracts/` — contract-oriented tests and fixtures.
-- `tests/determinism/` — determinism-focused tests and notes.
-- `tests/schemas/` — public API and normalization contracts.
-- `tests/snapshots/` — locked snapshots for public surface checks.
+## Focused Checks
 
-## Source-tree contract
-- `tests/boundaries/architecture_tree.rs` locks the crate tree to the documented namespace layout.
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --test boundaries --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --test contracts --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --test determinism --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --test schemas --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --test guardrails --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-testkit --no-default-features
+```
+
+## Test Layout
+
+- `tests/boundaries.rs` locks source layout, docs placement, dependency shape,
+  dev-dependency usage, and effect boundaries.
+- `tests/contracts.rs` locks helper contracts such as fixture error reporting.
+- `tests/determinism.rs` locks deterministic clock, RNG, ordering, and timestamp
+  behavior.
+- `tests/schemas.rs` locks public API and snapshot normalization behavior.
+- `tests/guardrails.rs` runs the workspace guardrail policy.
+- `tests/snapshots/` stores public surface snapshots.

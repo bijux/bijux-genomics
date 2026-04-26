@@ -1,19 +1,31 @@
 # Change Rules
 
-## What
-Defines breaking vs non‑breaking changes for `bijux-dna-testkit`.
+Use these rules when changing `bijux-dna-testkit`.
 
-## Why
-Prevents silent contract drift.
+## Public API
 
-## Non-goals
-- Automatic versioning.
+- Removing, renaming, or changing the behavior of a root re-export is breaking.
+- Adding a public helper requires docs, tests, and public API snapshot updates.
+- Keep `src/public_api/surface.rs` aligned with `src/lib.rs` root re-exports.
 
-## Contracts
-- Breaking changes require explicit approval and snapshot updates.
+## Test Helpers
 
-## Examples
-- Changing a public contract field is breaking.
+- Helpers must stay domain-neutral and reusable across crates.
+- Path helpers must reject absolute paths and parent traversal when deriving
+  contained test paths.
+- Snapshot helpers must normalize unstable host, temp, user, timestamp, and
+  duration values deterministically.
+- Fixture helpers must report failing paths in panic messages.
 
-## Failure modes
-- Unversioned breaking changes are rejected in CI.
+## Documentation
+
+- Keep one root `README.md`.
+- Keep all other crate docs in `docs/`.
+- Keep `docs/COMMANDS.md` as the SSOT for callable operations.
+- Keep `docs/` at 10 Markdown files or fewer.
+
+## Dependencies
+
+- Do not add production workspace crate dependencies.
+- Keep `bijux-dna-policies` as a dev dependency only.
+- Add dependency-boundary tests with any dependency graph change.
