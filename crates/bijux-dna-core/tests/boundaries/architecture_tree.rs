@@ -4,7 +4,15 @@ use std::path::Path;
 #[test]
 fn core_tree_matches_architecture_contract() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    assert_top_level_layout(root);
+    assert_contract_layout(root);
+    assert_identity_layout(root);
+    assert_api_layout(root);
+    assert_catalog_layout(root);
+    assert_test_layout(root);
+}
 
+fn assert_top_level_layout(root: &Path) {
     assert_eq!(
         dir_entries(root),
         entries([
@@ -18,7 +26,6 @@ fn core_tree_matches_architecture_contract() {
         ]),
         "crate root must stay minimal and intentional"
     );
-
     assert_eq!(
         dir_entries(&root.join("src")),
         entries([
@@ -33,7 +40,9 @@ fn core_tree_matches_architecture_contract() {
         ]),
         "src tree must match the documented core layout"
     );
+}
 
+fn assert_contract_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src/contract/execution")),
         entries([
@@ -62,117 +71,19 @@ fn core_tree_matches_architecture_contract() {
         ]),
         "run contracts must stay partitioned by run concern"
     );
-
-    assert_eq!(
-        dir_entries(&root.join("src/id_catalog")),
-        entries(["OWNER.toml", "mod.rs", "pipeline/", "stage/", "tool/"]),
-        "identifier catalog must stay partitioned by catalog concern"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/ids")),
-        entries(["OWNER.toml", "domain_model.rs", "mod.rs", "parsing/", "typed/"]),
-        "ids tree must keep typed ids, parsing, and semantic models separated"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/prelude")),
-        entries([
-            "OWNER.toml",
-            "catalog_surface.rs",
-            "contract_surface.rs",
-            "foundation_surface.rs",
-            "identity_surface.rs",
-            "metric_surface.rs",
-            "mod.rs",
-            "stable_surface.rs",
-        ]),
-        "prelude tree must stay grouped by source area"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/public_api")),
-        entries([
-            "OWNER.toml",
-            "catalog/",
-            "contracts/",
-            "ergonomics/",
-            "identity/",
-            "metrics/",
-            "mod.rs",
-        ]),
-        "public api tree must stay curated"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/public_api/contracts")),
-        entries(["mod.rs"]),
-        "public api contracts tree must stay focused"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/public_api/catalog")),
-        entries(["mod.rs"]),
-        "public api catalog tree must stay focused"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/public_api/identity")),
-        entries(["mod.rs"]),
-        "public api identity tree must stay focused"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/public_api/metrics")),
-        entries(["mod.rs"]),
-        "public api metrics tree must stay focused"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/public_api/ergonomics")),
-        entries(["mod.rs"]),
-        "public api ergonomics tree must stay focused"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/foundation/command")),
-        entries(["command_spec.rs", "container_image_ref.rs", "mod.rs"]),
-        "foundation command tree must separate command templates from container image contracts"
-    );
-
     assert_eq!(
         dir_entries(&root.join("src/contract/tooling/selection")),
         entries(["mod.rs"]),
         "tooling selection tree must stay focused on selection policy"
     );
+}
 
+fn assert_identity_layout(root: &Path) {
     assert_eq!(
-        dir_entries(&root.join("src/id_catalog/pipeline")),
-        entries(["OWNER.toml", "bam.rs", "fastq.rs", "fastq_to_bam.rs", "mod.rs", "vcf.rs"]),
-        "pipeline catalog must stay partitioned by graph concern"
+        dir_entries(&root.join("src/ids")),
+        entries(["OWNER.toml", "domain_model.rs", "mod.rs", "parsing/", "typed/"]),
+        "ids tree must keep typed ids, parsing, and semantic models separated"
     );
-
-    assert_eq!(
-        dir_entries(&root.join("src/id_catalog/stage")),
-        entries([
-            "OWNER.toml",
-            "bam.rs",
-            "core.rs",
-            "fastq.rs",
-            "mod.rs",
-            "prefixes.rs",
-            "report.rs",
-            "vcf.rs",
-        ]),
-        "stage catalog must stay partitioned by domain and shared concern"
-    );
-
-    assert_eq!(
-        dir_entries(&root.join("src/id_catalog/tool")),
-        entries(["OWNER.toml", "bam.rs", "fastq.rs", "mod.rs", "shared.rs", "vcf.rs"]),
-        "tool catalog must stay partitioned by workflow concern"
-    );
-
     assert_eq!(
         dir_entries(&root.join("src/ids/parsing")),
         entries(["OWNER.toml", "mod.rs", "pipeline.rs", "stage.rs", "symbolic.rs", "tool.rs"]),
@@ -192,7 +103,101 @@ fn core_tree_matches_architecture_contract() {
         ]),
         "typed id tree must stay partitioned by identifier family"
     );
+}
 
+fn assert_api_layout(root: &Path) {
+    assert_eq!(
+        dir_entries(&root.join("src/prelude")),
+        entries([
+            "OWNER.toml",
+            "catalog_surface.rs",
+            "contract_surface.rs",
+            "foundation_surface.rs",
+            "identity_surface.rs",
+            "metric_surface.rs",
+            "mod.rs",
+            "stable_surface.rs",
+        ]),
+        "prelude tree must stay grouped by source area"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/public_api")),
+        entries([
+            "OWNER.toml",
+            "catalog/",
+            "contracts/",
+            "ergonomics/",
+            "identity/",
+            "metrics/",
+            "mod.rs",
+        ]),
+        "public api tree must stay curated"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/public_api/contracts")),
+        entries(["mod.rs"]),
+        "public api contracts tree must stay focused"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/public_api/catalog")),
+        entries(["mod.rs"]),
+        "public api catalog tree must stay focused"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/public_api/identity")),
+        entries(["mod.rs"]),
+        "public api identity tree must stay focused"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/public_api/metrics")),
+        entries(["mod.rs"]),
+        "public api metrics tree must stay focused"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/public_api/ergonomics")),
+        entries(["mod.rs"]),
+        "public api ergonomics tree must stay focused"
+    );
+}
+
+fn assert_catalog_layout(root: &Path) {
+    assert_eq!(
+        dir_entries(&root.join("src/foundation/command")),
+        entries(["command_spec.rs", "container_image_ref.rs", "mod.rs"]),
+        "foundation command tree must separate command templates from container image contracts"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/id_catalog")),
+        entries(["OWNER.toml", "mod.rs", "pipeline/", "stage/", "tool/"]),
+        "identifier catalog must stay partitioned by catalog concern"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/id_catalog/pipeline")),
+        entries(["OWNER.toml", "bam.rs", "fastq.rs", "fastq_to_bam.rs", "mod.rs", "vcf.rs"]),
+        "pipeline catalog must stay partitioned by graph concern"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/id_catalog/stage")),
+        entries([
+            "OWNER.toml",
+            "bam.rs",
+            "core.rs",
+            "fastq.rs",
+            "mod.rs",
+            "prefixes.rs",
+            "report.rs",
+            "vcf.rs",
+        ]),
+        "stage catalog must stay partitioned by domain and shared concern"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/id_catalog/tool")),
+        entries(["OWNER.toml", "bam.rs", "fastq.rs", "mod.rs", "shared.rs", "vcf.rs"]),
+        "tool catalog must stay partitioned by workflow concern"
+    );
+}
+
+fn assert_test_layout(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("tests")),
         entries([
