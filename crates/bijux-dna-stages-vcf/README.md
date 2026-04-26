@@ -10,6 +10,17 @@ the current VCF crate owns product stage execution helpers and writes stage
 artifacts. Command-line routing, API request handling, planner policy, runtime
 scheduling, and environment provisioning still belong outside this crate.
 
+## What this crate does
+
+This crate owns the VCF stage execution surface, typed stage runners, VCF IO
+helpers, preflight invariants, metrics parsers, wrapper checks, and dispatch for
+VCF stage plans.
+
+## Boundaries
+
+This crate does not own CLI routing, API request handling, planner policy,
+runtime scheduling, or environment provisioning.
+
 ## Public Surface
 
 - `engine`: dispatch request/result types and `run_vcf_pipeline`.
@@ -32,7 +43,7 @@ Key docs:
 - [docs/STAGE_CONTRACTS.md](docs/STAGE_CONTRACTS.md): VCF stage coverage.
 - [docs/TESTS.md](docs/TESTS.md): local verification commands.
 
-## Verification
+## Tests
 
 ```sh
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-stages-vcf --no-default-features

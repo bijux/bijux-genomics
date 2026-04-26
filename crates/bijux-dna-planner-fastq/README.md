@@ -19,7 +19,7 @@ This crate is governed by `/Users/bijan/bijux/README.md` and `/Users/bijan/bijux
 - `src/tool_adapters/` builds stage-specific command specs.
 
 ## Documentation
-Start with `docs/INDEX.md`. Public API, architecture, command inventory, dependency boundaries, effects, determinism, explain output, and test contracts are documented under `docs/`.
+Start with `docs/INDEX.md`. Public API, architecture, command inventory, dependency boundaries, effects, determinism, explain output, and test contracts are documented under `docs/`, including `docs/TESTS.md`.
 
 ## Validation
 Run:
