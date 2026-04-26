@@ -1,6 +1,7 @@
 stage_id	tool_id	prerequisite	severity	detail
 fastq.build_contaminant_db	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_contaminant_db until missing_benchmark_support is resolved
 fastq.build_contaminant_db	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_contaminant_db until missing_container_ref is resolved
+fastq.build_contaminant_db	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_contaminant_db until missing_environment_qa_stage is resolved
 fastq.build_contaminant_db	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_contaminant_db until missing_paper_archive is resolved
 fastq.build_contaminant_db	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_contaminant_db until missing_runtime_surface is resolved
 fastq.build_contaminant_db	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_contaminant_db until missing_upstream_archive is resolved
@@ -8,6 +9,7 @@ fastq.build_contaminant_db	bijux_dna	registry_not_production	advisory	bijux_dna 
 fastq.build_contaminant_db	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_contaminant_db until stage_not_marked_closed is resolved
 fastq.build_rrna_db	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_rrna_db until missing_benchmark_support is resolved
 fastq.build_rrna_db	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_rrna_db until missing_container_ref is resolved
+fastq.build_rrna_db	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_rrna_db until missing_environment_qa_stage is resolved
 fastq.build_rrna_db	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_rrna_db until missing_paper_archive is resolved
 fastq.build_rrna_db	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_rrna_db until missing_runtime_surface is resolved
 fastq.build_rrna_db	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_rrna_db until missing_upstream_archive is resolved
@@ -15,6 +17,7 @@ fastq.build_rrna_db	bijux_dna	registry_not_production	advisory	bijux_dna cannot 
 fastq.build_rrna_db	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_rrna_db until stage_not_marked_closed is resolved
 fastq.build_taxonomy_db	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_taxonomy_db until missing_benchmark_support is resolved
 fastq.build_taxonomy_db	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_taxonomy_db until missing_container_ref is resolved
+fastq.build_taxonomy_db	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_taxonomy_db until missing_environment_qa_stage is resolved
 fastq.build_taxonomy_db	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_taxonomy_db until missing_paper_archive is resolved
 fastq.build_taxonomy_db	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_taxonomy_db until missing_runtime_surface is resolved
 fastq.build_taxonomy_db	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_taxonomy_db until missing_upstream_archive is resolved
@@ -22,6 +25,7 @@ fastq.build_taxonomy_db	bijux_dna	registry_not_production	advisory	bijux_dna can
 fastq.build_taxonomy_db	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.build_taxonomy_db until stage_not_marked_closed is resolved
 fastq.capture_provenance_snapshot	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.capture_provenance_snapshot until missing_benchmark_support is resolved
 fastq.capture_provenance_snapshot	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.capture_provenance_snapshot until missing_container_ref is resolved
+fastq.capture_provenance_snapshot	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.capture_provenance_snapshot until missing_environment_qa_stage is resolved
 fastq.capture_provenance_snapshot	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.capture_provenance_snapshot until missing_paper_archive is resolved
 fastq.capture_provenance_snapshot	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.capture_provenance_snapshot until missing_runtime_surface is resolved
 fastq.capture_provenance_snapshot	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.capture_provenance_snapshot until missing_upstream_archive is resolved
@@ -29,6 +33,7 @@ fastq.capture_provenance_snapshot	bijux_dna	registry_not_production	advisory	bij
 fastq.capture_provenance_snapshot	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.capture_provenance_snapshot until stage_not_marked_closed is resolved
 fastq.classify_layout	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.classify_layout until missing_benchmark_support is resolved
 fastq.classify_layout	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.classify_layout until missing_container_ref is resolved
+fastq.classify_layout	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.classify_layout until missing_environment_qa_stage is resolved
 fastq.classify_layout	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.classify_layout until missing_paper_archive is resolved
 fastq.classify_layout	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.classify_layout until missing_runtime_surface is resolved
 fastq.classify_layout	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.classify_layout until missing_upstream_archive is resolved
@@ -37,6 +42,7 @@ fastq.classify_layout	bijux_dna	stage_not_marked_closed	advisory	bijux_dna canno
 fastq.cluster_otus	vsearch	missing_environment_qa_stage	blocking	vsearch cannot be treated as world-class closed for fastq.cluster_otus until missing_environment_qa_stage is resolved
 fastq.concatenate_lanes	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.concatenate_lanes until missing_benchmark_support is resolved
 fastq.concatenate_lanes	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.concatenate_lanes until missing_container_ref is resolved
+fastq.concatenate_lanes	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.concatenate_lanes until missing_environment_qa_stage is resolved
 fastq.concatenate_lanes	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.concatenate_lanes until missing_paper_archive is resolved
 fastq.concatenate_lanes	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.concatenate_lanes until missing_runtime_surface is resolved
 fastq.concatenate_lanes	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.concatenate_lanes until missing_upstream_archive is resolved
@@ -44,6 +50,7 @@ fastq.concatenate_lanes	bijux_dna	registry_not_production	advisory	bijux_dna can
 fastq.concatenate_lanes	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.concatenate_lanes until stage_not_marked_closed is resolved
 fastq.deinterleave_reads	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.deinterleave_reads until missing_benchmark_support is resolved
 fastq.deinterleave_reads	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.deinterleave_reads until missing_container_ref is resolved
+fastq.deinterleave_reads	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.deinterleave_reads until missing_environment_qa_stage is resolved
 fastq.deinterleave_reads	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.deinterleave_reads until missing_paper_archive is resolved
 fastq.deinterleave_reads	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.deinterleave_reads until missing_runtime_surface is resolved
 fastq.deinterleave_reads	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.deinterleave_reads until missing_upstream_archive is resolved
@@ -51,6 +58,7 @@ fastq.deinterleave_reads	bijux_dna	registry_not_production	advisory	bijux_dna ca
 fastq.deinterleave_reads	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.deinterleave_reads until stage_not_marked_closed is resolved
 fastq.demultiplex_reads	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.demultiplex_reads until missing_benchmark_support is resolved
 fastq.demultiplex_reads	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.demultiplex_reads until missing_container_ref is resolved
+fastq.demultiplex_reads	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.demultiplex_reads until missing_environment_qa_stage is resolved
 fastq.demultiplex_reads	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.demultiplex_reads until missing_paper_archive is resolved
 fastq.demultiplex_reads	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.demultiplex_reads until missing_runtime_surface is resolved
 fastq.demultiplex_reads	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.demultiplex_reads until missing_upstream_archive is resolved
@@ -62,6 +70,7 @@ fastq.deplete_rrna	sortmerna	missing_environment_qa_stage	blocking	sortmerna can
 fastq.detect_adapters	fastqc	missing_environment_qa_stage	blocking	fastqc cannot be treated as world-class closed for fastq.detect_adapters until missing_environment_qa_stage is resolved
 fastq.detect_duplicates_premerge	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_duplicates_premerge until missing_benchmark_support is resolved
 fastq.detect_duplicates_premerge	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_duplicates_premerge until missing_container_ref is resolved
+fastq.detect_duplicates_premerge	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_duplicates_premerge until missing_environment_qa_stage is resolved
 fastq.detect_duplicates_premerge	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_duplicates_premerge until missing_paper_archive is resolved
 fastq.detect_duplicates_premerge	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_duplicates_premerge until missing_runtime_surface is resolved
 fastq.detect_duplicates_premerge	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_duplicates_premerge until missing_upstream_archive is resolved
@@ -69,6 +78,7 @@ fastq.detect_duplicates_premerge	bijux_dna	registry_not_production	advisory	biju
 fastq.detect_duplicates_premerge	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_duplicates_premerge until stage_not_marked_closed is resolved
 fastq.detect_instrument_artifacts	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_instrument_artifacts until missing_benchmark_support is resolved
 fastq.detect_instrument_artifacts	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_instrument_artifacts until missing_container_ref is resolved
+fastq.detect_instrument_artifacts	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_instrument_artifacts until missing_environment_qa_stage is resolved
 fastq.detect_instrument_artifacts	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_instrument_artifacts until missing_paper_archive is resolved
 fastq.detect_instrument_artifacts	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_instrument_artifacts until missing_runtime_surface is resolved
 fastq.detect_instrument_artifacts	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_instrument_artifacts until missing_upstream_archive is resolved
@@ -76,6 +86,7 @@ fastq.detect_instrument_artifacts	bijux_dna	registry_not_production	advisory	bij
 fastq.detect_instrument_artifacts	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.detect_instrument_artifacts until stage_not_marked_closed is resolved
 fastq.estimate_library_complexity_prealign	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.estimate_library_complexity_prealign until missing_benchmark_support is resolved
 fastq.estimate_library_complexity_prealign	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.estimate_library_complexity_prealign until missing_container_ref is resolved
+fastq.estimate_library_complexity_prealign	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.estimate_library_complexity_prealign until missing_environment_qa_stage is resolved
 fastq.estimate_library_complexity_prealign	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.estimate_library_complexity_prealign until missing_paper_archive is resolved
 fastq.estimate_library_complexity_prealign	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.estimate_library_complexity_prealign until missing_runtime_surface is resolved
 fastq.estimate_library_complexity_prealign	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.estimate_library_complexity_prealign until missing_upstream_archive is resolved
@@ -93,6 +104,7 @@ fastq.index_reference	star	missing_paper_archive	advisory	star cannot be treated
 fastq.infer_asvs	dada2	missing_environment_qa_stage	blocking	dada2 cannot be treated as world-class closed for fastq.infer_asvs until missing_environment_qa_stage is resolved
 fastq.interleave_reads	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.interleave_reads until missing_benchmark_support is resolved
 fastq.interleave_reads	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.interleave_reads until missing_container_ref is resolved
+fastq.interleave_reads	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.interleave_reads until missing_environment_qa_stage is resolved
 fastq.interleave_reads	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.interleave_reads until missing_paper_archive is resolved
 fastq.interleave_reads	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.interleave_reads until missing_runtime_surface is resolved
 fastq.interleave_reads	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.interleave_reads until missing_upstream_archive is resolved
@@ -100,6 +112,7 @@ fastq.interleave_reads	bijux_dna	registry_not_production	advisory	bijux_dna cann
 fastq.interleave_reads	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.interleave_reads until stage_not_marked_closed is resolved
 fastq.materialize_qc_manifest	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.materialize_qc_manifest until missing_benchmark_support is resolved
 fastq.materialize_qc_manifest	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.materialize_qc_manifest until missing_container_ref is resolved
+fastq.materialize_qc_manifest	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.materialize_qc_manifest until missing_environment_qa_stage is resolved
 fastq.materialize_qc_manifest	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.materialize_qc_manifest until missing_paper_archive is resolved
 fastq.materialize_qc_manifest	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.materialize_qc_manifest until missing_runtime_surface is resolved
 fastq.materialize_qc_manifest	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.materialize_qc_manifest until missing_upstream_archive is resolved
@@ -113,6 +126,7 @@ fastq.normalize_abundance	seqkit	missing_environment_qa_stage	blocking	seqkit ca
 fastq.normalize_primers	cutadapt	missing_environment_qa_stage	blocking	cutadapt cannot be treated as world-class closed for fastq.normalize_primers until missing_environment_qa_stage is resolved
 fastq.normalize_read_names	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.normalize_read_names until missing_benchmark_support is resolved
 fastq.normalize_read_names	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.normalize_read_names until missing_container_ref is resolved
+fastq.normalize_read_names	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.normalize_read_names until missing_environment_qa_stage is resolved
 fastq.normalize_read_names	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.normalize_read_names until missing_paper_archive is resolved
 fastq.normalize_read_names	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.normalize_read_names until missing_runtime_surface is resolved
 fastq.normalize_read_names	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.normalize_read_names until missing_upstream_archive is resolved
@@ -120,6 +134,7 @@ fastq.normalize_read_names	bijux_dna	registry_not_production	advisory	bijux_dna 
 fastq.normalize_read_names	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.normalize_read_names until stage_not_marked_closed is resolved
 fastq.prepare_adapter_bank	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_adapter_bank until missing_benchmark_support is resolved
 fastq.prepare_adapter_bank	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_adapter_bank until missing_container_ref is resolved
+fastq.prepare_adapter_bank	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_adapter_bank until missing_environment_qa_stage is resolved
 fastq.prepare_adapter_bank	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_adapter_bank until missing_paper_archive is resolved
 fastq.prepare_adapter_bank	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_adapter_bank until missing_runtime_surface is resolved
 fastq.prepare_adapter_bank	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_adapter_bank until missing_upstream_archive is resolved
@@ -127,6 +142,7 @@ fastq.prepare_adapter_bank	bijux_dna	registry_not_production	advisory	bijux_dna 
 fastq.prepare_adapter_bank	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_adapter_bank until stage_not_marked_closed is resolved
 fastq.prepare_host_reference_bundle	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_host_reference_bundle until missing_benchmark_support is resolved
 fastq.prepare_host_reference_bundle	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_host_reference_bundle until missing_container_ref is resolved
+fastq.prepare_host_reference_bundle	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_host_reference_bundle until missing_environment_qa_stage is resolved
 fastq.prepare_host_reference_bundle	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_host_reference_bundle until missing_paper_archive is resolved
 fastq.prepare_host_reference_bundle	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_host_reference_bundle until missing_runtime_surface is resolved
 fastq.prepare_host_reference_bundle	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_host_reference_bundle until missing_upstream_archive is resolved
@@ -134,6 +150,7 @@ fastq.prepare_host_reference_bundle	bijux_dna	registry_not_production	advisory	b
 fastq.prepare_host_reference_bundle	bijux_dna	stage_not_marked_closed	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_host_reference_bundle until stage_not_marked_closed is resolved
 fastq.prepare_primer_bank	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_primer_bank until missing_benchmark_support is resolved
 fastq.prepare_primer_bank	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_primer_bank until missing_container_ref is resolved
+fastq.prepare_primer_bank	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_primer_bank until missing_environment_qa_stage is resolved
 fastq.prepare_primer_bank	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_primer_bank until missing_paper_archive is resolved
 fastq.prepare_primer_bank	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_primer_bank until missing_runtime_surface is resolved
 fastq.prepare_primer_bank	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.prepare_primer_bank until missing_upstream_archive is resolved
@@ -154,6 +171,7 @@ fastq.remove_duplicates	clumpify	missing_environment_qa_stage	blocking	clumpify 
 fastq.remove_duplicates	fastuniq	missing_environment_qa_stage	advisory	fastuniq cannot be treated as world-class closed for fastq.remove_duplicates until missing_environment_qa_stage is resolved
 fastq.repair_pairs	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.repair_pairs until missing_benchmark_support is resolved
 fastq.repair_pairs	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.repair_pairs until missing_container_ref is resolved
+fastq.repair_pairs	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.repair_pairs until missing_environment_qa_stage is resolved
 fastq.repair_pairs	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.repair_pairs until missing_paper_archive is resolved
 fastq.repair_pairs	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.repair_pairs until missing_runtime_surface is resolved
 fastq.repair_pairs	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.repair_pairs until missing_upstream_archive is resolved
@@ -164,6 +182,7 @@ fastq.screen_taxonomy	diamond	missing_runtime_surface	advisory	diamond cannot be
 fastq.screen_taxonomy	diamond	registry_not_production	advisory	diamond cannot be treated as world-class closed for fastq.screen_taxonomy until registry_not_production is resolved
 fastq.subsample_reads	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.subsample_reads until missing_benchmark_support is resolved
 fastq.subsample_reads	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.subsample_reads until missing_container_ref is resolved
+fastq.subsample_reads	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.subsample_reads until missing_environment_qa_stage is resolved
 fastq.subsample_reads	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.subsample_reads until missing_paper_archive is resolved
 fastq.subsample_reads	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.subsample_reads until missing_runtime_surface is resolved
 fastq.subsample_reads	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.subsample_reads until missing_upstream_archive is resolved
@@ -179,6 +198,7 @@ fastq.trim_terminal_damage	cutadapt	missing_environment_qa_stage	blocking	cutada
 fastq.trim_terminal_damage	seqkit	missing_environment_qa_stage	advisory	seqkit cannot be treated as world-class closed for fastq.trim_terminal_damage until missing_environment_qa_stage is resolved
 fastq.verify_assets	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.verify_assets until missing_benchmark_support is resolved
 fastq.verify_assets	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.verify_assets until missing_container_ref is resolved
+fastq.verify_assets	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.verify_assets until missing_environment_qa_stage is resolved
 fastq.verify_assets	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.verify_assets until missing_paper_archive is resolved
 fastq.verify_assets	bijux_dna	missing_runtime_surface	advisory	bijux_dna cannot be treated as world-class closed for fastq.verify_assets until missing_runtime_surface is resolved
 fastq.verify_assets	bijux_dna	missing_upstream_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.verify_assets until missing_upstream_archive is resolved
