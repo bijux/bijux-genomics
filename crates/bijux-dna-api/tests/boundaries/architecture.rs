@@ -37,34 +37,6 @@ fn manifest_dependency_graph_has_no_duplicate_edges() {
     );
 }
 
-#[test]
-fn commands_doc_lists_managed_api_operations() {
-    let root = crate::support::crate_root("bijux-dna-api")
-        .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
-    let commands_doc = root.join("docs/COMMANDS.md");
-    let content = std::fs::read_to_string(&commands_doc)
-        .unwrap_or_else(|err| panic!("read {}: {err}", commands_doc.display()));
-
-    for command in [
-        "plan",
-        "execute",
-        "execute-and-report",
-        "dry-run",
-        "status",
-        "explain",
-        "policy-audit",
-        "render-report",
-        "render-report-html",
-        "workspace-edges",
-        "write-workspace-audit",
-    ] {
-        assert!(
-            content.contains(command),
-            "docs/COMMANDS.md must list `{command}` as a managed API operation",
-        );
-    }
-}
-
 fn assert_root_tree(root: &std::path::Path) {
     assert_dir_entries(
         root,
@@ -268,6 +240,7 @@ fn assert_test_tree(root: &std::path::Path) {
         &root.join("tests/boundaries"),
         &[
             "architecture.rs",
+            "command_inventory.rs",
             "dependency_graph.rs",
             "docs_layout.rs",
             "guardrails/",
