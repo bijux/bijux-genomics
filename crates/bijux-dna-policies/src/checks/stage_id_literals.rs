@@ -13,8 +13,13 @@ pub(crate) fn check_stage_id_strings(files: &[PathBuf], config: &GuardrailConfig
             continue;
         }
         let content = fs::read_to_string(path)?;
-        if stage_re.is_match(&content) {
-            anyhow::bail!("stage id literal found in {}", path.display());
+        for (idx, line) in content.lines().enumerate() {
+            if line.trim_start().starts_with("//") {
+                continue;
+            }
+            if stage_re.is_match(line) {
+                anyhow::bail!("stage id literal found in {}:{}", path.display(), idx + 1);
+            }
         }
     }
     Ok(())
