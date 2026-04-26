@@ -18,6 +18,12 @@ pub fn repo_root() -> Result<PathBuf> {
             return Ok(candidate.to_path_buf());
         }
     }
+    let manifest_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    for candidate in manifest_dir.ancestors() {
+        if looks_like_repo_root(candidate) {
+            return Ok(candidate.to_path_buf());
+        }
+    }
     Err(anyhow!("unable to resolve repository root from {}", cwd.display()))
 }
 
