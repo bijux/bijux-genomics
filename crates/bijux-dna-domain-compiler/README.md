@@ -39,6 +39,11 @@ Outputs are written as generated artifacts and are safe to overwrite.
 - `cargo test -p bijux-dna-domain-compiler --test planned_tool_registry_boundaries`
 - `cargo clippy -p bijux-dna-domain-compiler --all-targets -- -D warnings`
 
+Primary test files:
+- `tests/guardrails.rs`
+- `tests/determinism_generated_outputs.rs`
+- `tests/planned_tool_registry_boundaries.rs`
+
 ## Where the docs live
 - [docs/INDEX.md](docs/INDEX.md)
 - [docs/TESTS.md](docs/TESTS.md)
