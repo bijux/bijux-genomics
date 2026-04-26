@@ -154,6 +154,71 @@ fn policy__contracts__assets_governance_policy__sentinel_contaminants_stay_tiny_
 }
 
 #[test]
+fn policy__contracts__assets_governance_policy__primer_evidence_covers_primer_bank() {
+    let rows = tsv_records("assets/reference/primers/PRIMER_EVIDENCE.tsv");
+    let evidence_ids = rows.iter().map(|row| row["primer_set"].clone()).collect::<BTreeSet<_>>();
+    let checksums = checksum_paths("assets/reference/primers/CHECKSUMS.sha256");
+    let expected_ids = ["16S_universal_v1", "COI_folmer_v1", "ITS2_plant_v1"]
+        .into_iter()
+        .map(str::to_string)
+        .collect::<BTreeSet<_>>();
+    let mut offenders = Vec::new();
+
+    if evidence_ids != expected_ids {
+        offenders.push(format!("primer evidence ids {evidence_ids:?} != {expected_ids:?}"));
+    }
+    if !checksums.contains("assets/reference/primers/PRIMER_EVIDENCE.tsv") {
+        offenders.push("PRIMER_EVIDENCE.tsv missing from primer checksums".to_string());
+    }
+    for row in rows {
+        if row["primary_locator"].trim().is_empty()
+            || row["doi_status"].trim().is_empty()
+            || row["review_note"].trim().is_empty()
+        {
+            offenders.push(format!("{} has incomplete evidence metadata", row["primer_set"]));
+        }
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "primer evidence coverage violations:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__assets_governance_policy__primer_doi_status_matches_authority() {
+    let rows = tsv_records("assets/reference/primers/PRIMER_EVIDENCE.tsv");
+    let by_set =
+        rows.iter().map(|row| (row["primer_set"].as_str(), row)).collect::<BTreeMap<_, _>>();
+    let mut offenders = Vec::new();
+
+    for (primer_set, locator) in [
+        ("16S_universal_v1", "https://doi.org/10.1128/jb.173.2.697-703.1991"),
+        ("ITS2_plant_v1", "https://doi.org/10.1371/journal.pone.0008613"),
+    ] {
+        let row = by_set.get(primer_set).unwrap_or_else(|| panic!("missing {primer_set}"));
+        if row["doi_status"] != "doi_verified" || row["primary_locator"] != locator {
+            offenders.push(format!("{primer_set} must use verified DOI locator {locator}"));
+        }
+    }
+
+    let folmer = by_set.get("COI_folmer_v1").expect("missing COI_folmer_v1");
+    if folmer["doi_status"] != "doi_unverified"
+        || !folmer["primary_locator"].contains("pubmed.ncbi.nlm.nih.gov/7881515")
+    {
+        offenders
+            .push("COI_folmer_v1 must stay PubMed-backed with doi_unverified status".to_string());
+    }
+
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "primer DOI authority violations:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
 #[ignore = "TODO: align publication manifest requirements with current assets/publications contract"]
 fn policy__contracts__assets_governance_policy__publication_dirs_require_manifest_toml() {
     let root = repo_root();

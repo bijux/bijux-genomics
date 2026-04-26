@@ -1,0 +1,4 @@
+primer_set	marker	primary_locator	doi_status	review_note
+16S_universal_v1	bacterial 16S rRNA	https://doi.org/10.1128/jb.173.2.697-703.1991	doi_verified	Weisburg et al. 1991 is the governed citation for the 27F and 1492R primer pair.
+COI_folmer_v1	mitochondrial COI barcode	https://pubmed.ncbi.nlm.nih.gov/7881515/	doi_unverified	Folmer et al. 1994 is the governed citation for LCO1490 and HCO2198; do not add a DOI until it is verified from a primary source.
+ITS2_plant_v1	plant ITS2	https://doi.org/10.1371/journal.pone.0008613	doi_verified	Chen et al. 2010 is the governed citation for the ITS2 plant marker primer set.
