@@ -204,6 +204,15 @@ fn temp_dir_in_creates_base_directory() -> anyhow::Result<()> {
     Ok(())
 }
 
+#[test]
+fn logging_without_tracing_feature_returns_io_error() {
+    let err = bijux_dna_infra::init_logging(Path::new("logs/bijux.log"))
+        .err()
+        .unwrap_or_else(|| panic!("expected logging setup to require tracing feature"));
+    assert_eq!(err.kind, bijux_dna_infra::IoErrorKind::Other);
+    assert!(err.message.contains("tracing feature"));
+}
+
 #[cfg(unix)]
 #[test]
 fn remove_path_if_exists_removes_broken_symlink() -> anyhow::Result<()> {

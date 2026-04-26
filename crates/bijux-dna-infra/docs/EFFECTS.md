@@ -24,8 +24,10 @@ None. The full command inventory is intentionally empty; see `COMMANDS.md`.
 ## Logging Contract
 
 - Logging setup writes to the caller-provided path and returns a `WorkerGuard`.
+- The `tracing` feature installs JSON formatting with ANSI disabled.
 - Structured fields such as `event`, `component`, and `step_id` should remain stable when callers
   emit them.
+- Subscriber installation failures are returned as `IoError` instead of panicking.
 - Logs must not include secrets or PII.
 
 ## Forbidden Effects

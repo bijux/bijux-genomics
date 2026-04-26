@@ -20,9 +20,12 @@ pub(super) fn rolling_writer(
 }
 
 #[cfg(feature = "tracing")]
-pub(super) fn install(writer: tracing_appender::non_blocking::NonBlocking) {
+pub(super) fn install(writer: tracing_appender::non_blocking::NonBlocking) -> Result<(), IoError> {
     tracing_subscriber::registry()
-        .with(fmt::layer().with_writer(writer).with_ansi(false).compact())
+        .with(fmt::layer().with_writer(writer).with_ansi(false).json())
         .with(EnvFilter::from_default_env())
-        .init();
+        .try_init()
+        .map_err(|err| {
+            IoError::new(IoErrorKind::Other, format!("install tracing subscriber: {err}"))
+        })
 }

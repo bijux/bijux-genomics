@@ -19,7 +19,7 @@ pub fn init_logging(
     {
         let writer = subscriber::rolling_writer(log_path)?;
         let (non_blocking, guard) = tracing_appender::non_blocking(writer);
-        subscriber::install(non_blocking);
+        subscriber::install(non_blocking)?;
         Ok(guard)
     }
 }
