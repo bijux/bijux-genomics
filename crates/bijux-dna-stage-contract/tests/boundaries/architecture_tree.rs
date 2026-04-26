@@ -111,7 +111,13 @@ fn assert_test_layout(root: &Path) {
     );
     assert_eq!(
         dir_entries(&root.join("tests/boundaries")),
-        entries(["architecture_tree.rs", "dependency_graph.rs", "guardrails/", "guardrails.rs"]),
+        entries([
+            "architecture_tree.rs",
+            "command_inventory.rs",
+            "dependency_graph.rs",
+            "guardrails/",
+            "guardrails.rs",
+        ]),
         "boundary tests must stay explicit"
     );
 }
