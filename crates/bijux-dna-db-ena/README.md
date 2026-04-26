@@ -1,18 +1,32 @@
 # bijux-dna-db-ena
 
-## What this crate does
-Owns typed ENA query contracts, filereport decoding, and deterministic download planning and
-execution for ENA-sourced corpus inputs.
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read those files before editing this child
+repository and before committing.
 
-## What it must not do (boundaries)
-This crate does not plan pipelines, execute workflow stages, or own workspace path policy outside
-caller-provided output roots.
+## Scope
 
-## Effects & determinism guarantees
-This crate deterministically resolves ENA metadata and download manifests from explicit query
-inputs and declared output roots.
+`bijux-dna-db-ena` owns typed ENA query contracts, ENA filereport decoding,
+deterministic download planning, ENA file transfer helpers, and a small helper
+binary for direct query/download workflows.
+
+This crate does not plan pipelines, execute workflow stages, own corpus command
+UX in `bijux-dna`, or manage workspace path policy outside caller-provided
+output and manifest paths.
+
+## Managed Commands
+
+`docs/COMMANDS.md` is the SSOT for callable operations. The helper binary owns:
+
+- `query`
+- `download`
+
+The library surface also owns ENA filereport parsing, query validation, record
+URL selection, download task planning, and task execution helpers documented in
+`docs/COMMANDS.md`.
 
 ## Internal layout
+
 - `src/public_api/`: curated stable surface
 - `src/cli_entrypoint.rs`: binary launcher handoff
 - `src/cli/`: binary-only argument parsing and command assembly
@@ -21,32 +35,27 @@ inputs and declared output roots.
 - `src/download/`: download planning, runtime setup, task contracts, and file transfer logic
 - `src/model/`: ENA query, manifest, record, and source-selection contracts
 
-## Public API / entrypoints
-Start with `PUBLIC_API.md` and `docs/ARCHITECTURE.md`. The library root keeps compatibility
-exports while routing the stable surface through `src/public_api/mod.rs`.
+## Documentation
 
-## Key contracts it owns/consumes
-- crate scope: `docs/SCOPE.md`
-- architecture: `docs/ARCHITECTURE.md`
-- test map: `docs/TESTS.md`
-- doc index: `docs/INDEX.md`
+The crate root intentionally has only this `README.md`. All other crate docs
+live under `docs/`, with a 10-document allowance enforced by boundary tests:
 
-## Artifacts / Contracts
-Manifest schemas and download planning contracts are documented in `docs/ARCHITECTURE.md`,
-`docs/SCOPE.md`, and `docs/INDEX.md`.
+- `docs/ARCHITECTURE.md`
+- `docs/BOUNDARY.md`
+- `docs/CHANGE_RULES.md`
+- `docs/COMMANDS.md`
+- `docs/CONTRACTS.md`
+- `docs/DEPENDENCIES.md`
+- `docs/INDEX.md`
+- `docs/PUBLIC_API.md`
+- `docs/SCOPE.md`
+- `docs/TESTS.md`
 
-## Failure modes
-- invalid ENA query descriptors or malformed filereport payloads
-- manifest persistence failures at caller-provided output roots
-- download transfer integrity and resume-policy violations
+## Verification
 
-## How to run its tests
-See `docs/TESTS.md` for the full map. The test tree is organized by enduring intent:
-- `tests/boundaries.rs`: source-tree guardrails
-- `tests/contracts/`: reserved for future ENA contract coverage beyond unit tests
-- `tests/determinism/`: reserved for future reproducibility assertions
-- `tests/schemas/`: reserved for future public-surface or persisted-schema checks
-- `tests/guardrails.rs`: repository policy entrypoint
+Run from the `bijux-genomics` repository root:
 
-## Where the docs live
-Primary docs live in `docs/INDEX.md`; test coverage maps live in `docs/TESTS.md`.
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-db-ena --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-db-ena --no-default-features
+```
