@@ -205,3 +205,30 @@ fn vcf_planner_resolves_coverage_regime_from_mean_depth() {
     let explain = explain_vcf_plan(&input, &plans);
     assert_eq!(explain.resolved_coverage_regime, CoverageRegime::LowCovGl);
 }
+
+#[test]
+fn vcf_planner_keeps_sample_vcf_after_reference_panel_preparation() {
+    let input = base_inputs(CoverageRegime::LowCovGl);
+    let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans: {err}"));
+    let call_gl = plans
+        .iter()
+        .find(|plan| plan.stage_id.to_string() == "vcf.call_gl")
+        .expect("call_gl stage plan");
+
+    assert_eq!(call_gl.io.inputs[0].path, PathBuf::from("sample.vcf.gz"));
+}
+
+#[test]
+fn vcf_planner_keeps_variant_stream_after_report_stages() {
+    let input = base_inputs(CoverageRegime::Diploid);
+    let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans: {err}"));
+    let roh =
+        plans.iter().find(|plan| plan.stage_id.to_string() == "vcf.roh").expect("roh stage plan");
+    let stats = plans
+        .iter()
+        .find(|plan| plan.stage_id.to_string() == "vcf.stats")
+        .expect("stats stage plan");
+
+    assert_eq!(roh.io.inputs[0].path, PathBuf::from("out/postprocess_vcf.vcf.gz"));
+    assert_eq!(stats.io.inputs[0].path, PathBuf::from("out/postprocess_vcf.vcf.gz"));
+}
