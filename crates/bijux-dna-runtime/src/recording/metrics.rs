@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 
 use bijux_dna_core::contract::ContractVersion;
 use bijux_dna_core::metrics::{MetricEnvelope, MetricsEnvelope, StageMetricsV1, ToolInvocationV1};
@@ -100,10 +100,26 @@ pub fn write_tool_invocation_json(
     stage_id: &str,
     invocation: &ToolInvocationV1,
 ) -> Result<PathBuf> {
+    validate_file_stem("stage_id", stage_id)?;
     let invocations_dir = run_artifacts_dir.join("invocations");
     bijux_dna_infra::ensure_dir(&invocations_dir).context("create invocations dir")?;
     let file_name = format!("{stage_id}.tool_invocation.json");
     let path = invocations_dir.join(file_name);
     write_canonical_json(&path, invocation).context("write tool_invocation.json")?;
     Ok(path)
+}
+
+fn validate_file_stem(label: &str, value: &str) -> Result<()> {
+    if value.trim().is_empty() {
+        return Err(anyhow!("{label} file stem must not be empty"));
+    }
+    if value.contains(std::path::MAIN_SEPARATOR)
+        || value.contains('/')
+        || value.contains('\\')
+        || value == "."
+        || value == ".."
+    {
+        return Err(anyhow!("{label} file stem must not contain path separators"));
+    }
+    Ok(())
 }
