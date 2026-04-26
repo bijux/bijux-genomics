@@ -1,4 +1,4 @@
-#[path = "../workspace_paths.rs"]
+#[path = "../support/workspace_paths.rs"]
 mod support;
 
 use std::fs;
