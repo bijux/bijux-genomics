@@ -15,16 +15,7 @@ pub(super) fn validate_stage_files(
     if !stage_glob.exists() {
         return Ok(());
     }
-    for entry in
-        std::fs::read_dir(&stage_glob).with_context(|| format!("read {}", stage_glob.display()))?
-    {
-        let path = entry?.path();
-        if path.extension().and_then(|value| value.to_str()) != Some("yaml") {
-            continue;
-        }
-        if path.file_name().and_then(|value| value.to_str()) == Some("_schema.yaml") {
-            continue;
-        }
+    for path in super::collect_yaml_files(&stage_glob)? {
         let stage: DomainStage = read_yaml(&path)?;
         let stage_raw =
             std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
@@ -54,10 +45,7 @@ pub(super) fn validate_stage_files(
             if stage.compatible_tools.is_empty()
                 && (stage.status == "supported" || stage.planned_out_of_scope.is_empty())
             {
-                bail!(
-                    "{} missing compatible_tools or planned_out_of_scope",
-                    path.display()
-                );
+                bail!("{} missing compatible_tools or planned_out_of_scope", path.display());
             }
             if stage.invariants.is_empty() {
                 bail!("{} missing invariants", path.display());
