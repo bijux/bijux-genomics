@@ -269,13 +269,24 @@ fn hash_path_supports_directory_symlinks() -> anyhow::Result<()> {
 }
 
 #[test]
-fn hash_inputs_ignores_missing_paths_and_hashes_directories() -> anyhow::Result<()> {
+fn hash_inputs_rejects_missing_paths() -> anyhow::Result<()> {
+    let temp = tempdir()?;
+    let missing = temp.path().join("missing.txt");
+
+    let err = hash_inputs(&[missing]).expect_err("missing input must fail");
+
+    assert!(err.to_string().contains("declared input path does not exist"));
+    Ok(())
+}
+
+#[test]
+fn hash_inputs_hashes_directories() -> anyhow::Result<()> {
     let temp = tempdir()?;
     let root = temp.path().join("summary_bundle");
     bijux_dna_infra::ensure_dir(&root)?;
     bijux_dna_infra::write_bytes(root.join("summary.txt"), b"bundle-summary")?;
 
-    let hashes = hash_inputs(&[root, temp.path().join("missing.txt")])?;
+    let hashes = hash_inputs(&[root])?;
 
     assert_eq!(hashes.len(), 1);
     assert_eq!(hashes[0].len(), 64);

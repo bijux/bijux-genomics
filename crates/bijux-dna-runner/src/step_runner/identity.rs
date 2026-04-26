@@ -13,9 +13,10 @@ pub(super) fn hash_inputs(inputs: &[PathBuf]) -> Result<Vec<String>> {
     }
     let mut hashes = Vec::with_capacity(inputs.len());
     for path in inputs {
-        if path.exists() {
-            hashes.push(hash_path(path)?);
+        if !path.exists() {
+            return Err(anyhow!("declared input path does not exist: {}", path.display()));
         }
+        hashes.push(hash_path(path)?);
     }
     Ok(hashes)
 }
