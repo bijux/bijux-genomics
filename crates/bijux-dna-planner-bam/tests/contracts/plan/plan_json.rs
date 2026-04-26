@@ -270,3 +270,29 @@ fn mapping_summary_preserves_regions_override() -> Result<()> {
     assert_eq!(plan.effective_params["regions"], "targets.bed");
     Ok(())
 }
+
+#[test]
+fn contamination_policy_checks_default_reference_panels() {
+    let fixtures = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("fixtures")
+        .join("plan_inputs")
+        .join("default");
+    let tool = dummy_tool("verifybamid2");
+    let result = plan_stage(StagePlanRequest {
+        stage_id: BamStage::Contamination.as_str(),
+        tool: &tool,
+        out_dir: fixtures.join("out").as_path(),
+        bam: Some(&fixtures.join("sample.bam")),
+        bam_index: Some(&fixtures.join("sample.bam.bai")),
+        r1: None,
+        r2: None,
+        reference: Some(&fixtures.join("reference.fasta")),
+        sample_id: Some("sample"),
+        params: None,
+    });
+    assert!(
+        result.is_err_and(|error| error.to_string().contains("reference_panels")),
+        "verifybamid2 without reference panels should fail even when params come from defaults"
+    );
+}
