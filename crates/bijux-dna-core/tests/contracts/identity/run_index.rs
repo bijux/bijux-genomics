@@ -37,7 +37,7 @@ fn write_stage_row(path: &std::path::Path, row: &StageIndexRow) -> anyhow::Resul
 
 #[test]
 fn run_index_insert_and_query() -> anyhow::Result<()> {
-    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let dir = tempfile::tempdir()?;
     let index_path = dir.path().join("index.jsonl");
 
     let run = RunIndexEntry {
@@ -85,7 +85,7 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
 
 #[test]
 fn run_index_latest_run_is_deterministic() -> anyhow::Result<()> {
-    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let dir = tempfile::tempdir()?;
     let index_path = dir.path().join("index.jsonl");
 
     for run_id in ["run-2", "run-1", "run-3"] {
@@ -113,7 +113,7 @@ fn run_index_latest_run_is_deterministic() -> anyhow::Result<()> {
 
 #[test]
 fn run_index_query_by_stage_and_tool() -> anyhow::Result<()> {
-    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let dir = tempfile::tempdir()?;
     let index_path = dir.path().join("index.jsonl");
 
     write_stage_row(

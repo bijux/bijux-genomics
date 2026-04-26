@@ -87,8 +87,8 @@ Normal dependencies must stay low-level and contract-facing:
 - `serde`, `serde_json`, `thiserror`, `sha2`, and `regex` support stable
   contract serialization, errors, hashing, and validation.
 - `chrono` and `walkdir` support input assessment records.
-- `tempfile` is used only where core-owned persistence helpers require atomic
-  local writes.
+- `tempfile` supports the local temp-file rename used by input assessment
+  persistence.
 
 This crate must not depend on API, CLI, planner, runner, engine, runtime,
 environment, domain, stage, analyze, or benchmark crates. Any dependency that

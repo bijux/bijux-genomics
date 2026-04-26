@@ -1,21 +1,19 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::input_assessment::{
     assess_input_dir, discover_fastq_files, is_fastq_path, is_gzip_path, FastqLayout,
 };
 
-fn temp_dir() -> Result<PathBuf> {
-    let base = tempfile::Builder::new().prefix("bijux-dna-core-test-").tempdir()?.keep();
-    bijux_dna_infra::ensure_dir(&base)?;
-    Ok(base)
+fn temp_dir() -> Result<tempfile::TempDir> {
+    Ok(tempfile::Builder::new().prefix("bijux-dna-core-test-").tempdir()?)
 }
 
 fn write_file(path: &Path, contents: &[u8]) -> Result<()> {
     if let Some(parent) = path.parent() {
-        bijux_dna_infra::ensure_dir(parent)?;
+        std::fs::create_dir_all(parent)?;
     }
-    bijux_dna_infra::write_bytes(path, contents)?;
+    std::fs::write(path, contents)?;
     Ok(())
 }
 
@@ -44,11 +42,12 @@ fn gzip_detection_is_extension_based() {
 
 #[test]
 fn discover_fastq_files_finds_nested_inputs() -> Result<()> {
-    let root = temp_dir()?;
+    let dir = temp_dir()?;
+    let root = dir.path();
     write_file(&root.join("a.fastq"), b"@r1\nACGT\n+\n!!!!\n")?;
     write_file(&root.join("nested").join("b.fq.gz"), b"dummy")?;
     write_file(&root.join("notes.txt"), b"ignore")?;
-    let files = discover_fastq_files(&root);
+    let files = discover_fastq_files(root);
     let expected = vec![root.join("a.fastq"), root.join("nested").join("b.fq.gz")];
     assert_eq!(files, expected);
     Ok(())
@@ -56,10 +55,11 @@ fn discover_fastq_files_finds_nested_inputs() -> Result<()> {
 
 #[test]
 fn assess_input_dir_groups_pairs() -> Result<()> {
-    let root = temp_dir()?;
+    let dir = temp_dir()?;
+    let root = dir.path();
     write_file(&root.join("sample_R1.fastq.gz"), b"r1")?;
     write_file(&root.join("sample_R2.fastq.gz"), b"r2")?;
-    let assessment = assess_input_dir(&root)?;
+    let assessment = assess_input_dir(root)?;
     assert_eq!(assessment.schema_version, 1);
     let sample = assessment
         .samples
@@ -74,9 +74,10 @@ fn assess_input_dir_groups_pairs() -> Result<()> {
 
 #[test]
 fn assess_input_dir_marks_single_end() -> Result<()> {
-    let root = temp_dir()?;
+    let dir = temp_dir()?;
+    let root = dir.path();
     write_file(&root.join("solo.fastq.gz"), b"r1")?;
-    let assessment = assess_input_dir(&root)?;
+    let assessment = assess_input_dir(root)?;
     assert_eq!(assessment.samples.len(), 1);
     let sample = &assessment.samples[0];
     assert_eq!(sample.id.layout, FastqLayout::SingleEnd);
@@ -86,11 +87,12 @@ fn assess_input_dir_marks_single_end() -> Result<()> {
 
 #[test]
 fn assess_input_dir_tracks_orphan_r2_files() -> Result<()> {
-    let root = temp_dir()?;
+    let dir = temp_dir()?;
+    let root = dir.path();
     let orphan = root.join("sample_R2.fastq.gz");
     write_file(&orphan, b"r2")?;
 
-    let assessment = assess_input_dir(&root)?;
+    let assessment = assess_input_dir(root)?;
 
     assert!(assessment.samples.is_empty());
     assert_eq!(assessment.unpaired_files, vec![orphan]);
@@ -100,7 +102,8 @@ fn assess_input_dir_tracks_orphan_r2_files() -> Result<()> {
 
 #[test]
 fn assess_input_dir_keeps_first_duplicate_read_candidate() -> Result<()> {
-    let root = temp_dir()?;
+    let dir = temp_dir()?;
+    let root = dir.path();
     let preferred_r1 = root.join("sample_R1.fastq.gz");
     let duplicate_r1 = root.join("sample_R1.fq.gz");
     let r2 = root.join("sample_R2.fastq.gz");
@@ -108,7 +111,7 @@ fn assess_input_dir_keeps_first_duplicate_read_candidate() -> Result<()> {
     write_file(&duplicate_r1, b"r1-dup")?;
     write_file(&r2, b"r2")?;
 
-    let assessment = assess_input_dir(&root)?;
+    let assessment = assess_input_dir(root)?;
     let sample = assessment
         .samples
         .iter()
