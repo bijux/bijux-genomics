@@ -19,5 +19,6 @@
 
 ## Enforcement
 - Shared policy guardrails run through `tests/boundaries.rs`.
+- Production source effect checks live in `tests/boundaries/source_effects.rs`.
 - Planner-specific purity checks live under `tests/contracts/plan/no_parsing.rs`.
 - `docs/COMMANDS.md` records that this crate owns planned command specs, not runtime commands.
