@@ -55,11 +55,8 @@ pub fn append_line(path: &Path, line: &str) -> Result<(), IoError> {
     if let Some(parent) = non_empty_parent(path) {
         ensure_dir(parent)?;
     }
-    let mut file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(path)
-        .map_err(IoError::from_io)?;
+    let mut file =
+        OpenOptions::new().create(true).append(true).open(path).map_err(IoError::from_io)?;
     writeln!(file, "{line}").map_err(IoError::from_io)
 }
 
