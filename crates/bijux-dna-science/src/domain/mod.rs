@@ -423,6 +423,27 @@ pub struct FastqDefaultBindingRiskRow {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct FastqClosureSummary {
+    pub total_rows: usize,
+    pub default_rows: usize,
+    pub world_class_closed_rows: usize,
+    pub declared_closed_with_gaps_rows: usize,
+    pub not_closed_rows: usize,
+    pub blocking_reason_counts: BTreeMap<String, usize>,
+    pub warning_reason_counts: BTreeMap<String, usize>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct FastqEvidenceSummary {
+    pub backlog_status_counts: BTreeMap<String, usize>,
+    pub paper_status_counts: BTreeMap<String, usize>,
+    pub paper_archive_status_counts: BTreeMap<String, usize>,
+    pub prerequisite_counts: BTreeMap<String, usize>,
+    pub default_risk_counts: BTreeMap<String, usize>,
+    pub truth_delta_reason_counts: BTreeMap<String, usize>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct ScienceIndex {
     pub sources: usize,
     pub source_inventory_rows: usize,
@@ -442,6 +463,8 @@ pub struct ScienceIndex {
     pub fastq_truth_delta_rows: usize,
     pub fastq_missing_closure_prerequisite_rows: usize,
     pub fastq_default_binding_risk_rows: usize,
+    pub fastq_closure_summary: FastqClosureSummary,
+    pub fastq_evidence_summary: FastqEvidenceSummary,
 }
 
 #[derive(Clone, Debug, Serialize)]
