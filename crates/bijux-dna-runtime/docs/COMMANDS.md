@@ -5,10 +5,12 @@
 ## Runtime Commands
 None.
 
-## Managed Command Families
+## Managed Command Inventory
+
+### Command Families
 None.
 
-## Runtime Entry Points
+### Runtime Entry Points
 These are library functions, not shell commands:
 
 - `create_run_layout`
@@ -23,3 +25,14 @@ These are library functions, not shell commands:
 - Tool selection and stage planning belong outside this crate.
 - Backend process execution belongs to runner crates.
 - Runtime may write declared run-layout artifacts through typed APIs only.
+
+## Local Verification Commands
+
+Run from the `bijux-genomics` repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-runtime --test boundaries --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-runtime --test contracts --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-runtime --test schemas --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-runtime --no-default-features
+```
