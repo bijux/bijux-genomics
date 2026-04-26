@@ -56,6 +56,7 @@ pub fn parse_filereport_tsv(tsv: &str, query: &EnaQuery) -> Result<Vec<EnaRecord
 mod tests {
     use super::*;
     use crate::model::EnaQuery;
+    use anyhow::bail;
 
     #[test]
     fn build_filereport_url_contains_expected_query() {
@@ -76,7 +77,7 @@ mod tests {
     }
 
     #[test]
-    fn parse_filereport_tsv_filters_by_sample() {
+    fn parse_filereport_tsv_filters_by_sample() -> anyhow::Result<()> {
         let query = EnaQuery {
             projects: vec!["PRJEBX".to_string()],
             samples: vec!["SAMEA1".to_string()],
@@ -95,13 +96,14 @@ mod tests {
             "Illumina NovaSeq 6000\t200\t20\t84\tftp.sra.ebi.ac.uk/b.fastq.gz\t",
             "ftp.sra.ebi.ac.uk/b.submitted.fastq.gz\tftp.sra.ebi.ac.uk/b.sra\n",
         );
-        let rows = parse_filereport_tsv(tsv, &query).expect("parse filtered rows");
+        let rows = parse_filereport_tsv(tsv, &query)?;
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].run_accession.as_deref(), Some("ERR1"));
+        Ok(())
     }
 
     #[test]
-    fn parse_filereport_tsv_rejects_missing_required_columns() {
+    fn parse_filereport_tsv_rejects_missing_required_columns() -> anyhow::Result<()> {
         let query = EnaQuery {
             projects: vec!["PRJEBX".to_string()],
             samples: Vec::new(),
@@ -110,7 +112,10 @@ mod tests {
         };
         let tsv = "study_accession\trun_accession\nPRJEBX\tERR1\n";
 
-        let error = parse_filereport_tsv(tsv, &query).expect_err("missing columns must fail");
+        let Err(error) = parse_filereport_tsv(tsv, &query) else {
+            bail!("missing columns must fail");
+        };
         assert!(error.to_string().contains("missing required columns: sample_accession"));
+        Ok(())
     }
 }
