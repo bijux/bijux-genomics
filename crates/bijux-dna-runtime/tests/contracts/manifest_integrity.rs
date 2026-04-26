@@ -146,6 +146,29 @@ fn prepare_tool_run_dirs_rejects_path_traversal_segments() {
 }
 
 #[test]
+fn stage_plan_writer_rejects_paths_outside_plans_dir() {
+    let base = std::env::temp_dir().join("runtime_stage_plan_path_contract");
+    let _ = std::fs::remove_dir_all(&base);
+    std::fs::create_dir_all(&base).unwrap_or_else(|e| panic!("create base dir: {e}"));
+    let run_dirs = prepare_tool_run_dirs(&base, "fastp", "run-1")
+        .unwrap_or_else(|e| panic!("prepare run dirs: {e}"));
+
+    for file_name in ["../escape.json", "/tmp/escape.json"] {
+        let err = bijux_dna_runtime::recording::write_stage_plan_json(
+            &run_dirs,
+            file_name,
+            &serde_json::json!({"ok": true}),
+        )
+        .err()
+        .unwrap_or_else(|| panic!("expected invalid stage plan path for {file_name:?}"));
+        assert!(
+            err.to_string().contains("relative path inside run_artifacts"),
+            "unexpected stage plan path error: {err}"
+        );
+    }
+}
+
+#[test]
 fn run_manifest_writes_reproducibility_report_artifact() {
     let base = std::env::var("TEST_TMP_DIR")
         .map_or_else(|_| std::env::temp_dir(), PathBuf::from)
