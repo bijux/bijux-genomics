@@ -252,6 +252,21 @@ fn atomic_writer_preserves_existing_tmp_sibling_files() {
 }
 
 #[test]
+fn jsonl_append_creates_nested_parent_directories() {
+    let dir = std::env::temp_dir().join("runtime_jsonl_parent_contract");
+    let _ = std::fs::remove_dir_all(&dir);
+    let path = dir.join("run_artifacts").join("telemetry").join("events.jsonl");
+
+    bijux_dna_runtime::recording::append_jsonl_line(&path, "{\"event\":\"started\"}")
+        .unwrap_or_else(|e| panic!("append jsonl: {e}"));
+
+    assert_eq!(
+        std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read jsonl: {e}")),
+        "{\"event\":\"started\"}\n"
+    );
+}
+
+#[test]
 fn run_artifact_envelope_has_required_keys() {
     let dir = std::env::temp_dir().join("runtime_envelope_contract");
     let _ = std::fs::remove_dir_all(&dir);

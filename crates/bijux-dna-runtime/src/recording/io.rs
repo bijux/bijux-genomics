@@ -12,6 +12,9 @@ use sha2::Digest;
 /// # Errors
 /// Returns an error if the file cannot be opened or written.
 pub fn append_jsonl_line(path: &Path, line: &str) -> std::io::Result<()> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(parent)?;
+    }
     let mut file = OpenOptions::new().create(true).append(true).open(path)?;
     writeln!(file, "{line}")?;
     Ok(())
