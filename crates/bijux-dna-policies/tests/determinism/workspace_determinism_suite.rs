@@ -8,7 +8,7 @@ fn workspace_root() -> std::path::PathBuf {
 #[test]
 fn policy__determinism__workspace_determinism_suite__tests_layout_by_intent_is_complete() {
     let root = workspace_root();
-    let required = ["boundaries", "contracts", "determinism", "schemas"];
+    let suite_buckets = ["boundaries", "contracts", "determinism", "schemas"];
     let mut offenders = Vec::new();
 
     for entry in std::fs::read_dir(root.join("crates")).expect("read crates") {
@@ -24,19 +24,33 @@ fn policy__determinism__workspace_determinism_suite__tests_layout_by_intent_is_c
         if !tests.exists() {
             continue;
         }
-        if !tests.join("README.md").exists() {
-            offenders.push(format!("{}: missing tests/README.md", crate_dir.display()));
+        if !crate_dir.join("docs/TESTS.md").exists() {
+            offenders.push(format!("{}: missing docs/TESTS.md", crate_dir.display()));
         }
-        for req in required {
-            if !tests.join(req).exists() {
-                offenders.push(format!("{}: missing tests/{req}", crate_dir.display()));
+        if tests.join("README.md").exists() {
+            offenders.push(format!(
+                "{}: test taxonomy belongs in docs/TESTS.md, not tests/README.md",
+                crate_dir.display()
+            ));
+        }
+        for bucket in suite_buckets {
+            let suite_dir = tests.join(bucket);
+            if !suite_dir.exists() {
+                continue;
+            }
+            let entrypoint = tests.join(format!("{bucket}.rs"));
+            if !entrypoint.exists() {
+                offenders.push(format!(
+                    "{}: tests/{bucket}/ exists without tests/{bucket}.rs suite entrypoint",
+                    crate_dir.display()
+                ));
             }
         }
     }
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "workspace test taxonomy must be complete:\n{}",
+        "workspace test taxonomy must use docs/TESTS.md and materialized suite entrypoints:\n{}",
         offenders.join("\n")
     );
 }
