@@ -6,13 +6,7 @@ pub(super) fn collect_vcf_image_versions(domain_dir: &Path) -> Result<BTreeMap<S
     if !vcf_tools_dir.exists() {
         return Ok(out);
     }
-    for entry in std::fs::read_dir(&vcf_tools_dir)
-        .with_context(|| format!("read {}", vcf_tools_dir.display()))?
-    {
-        let path = entry?.path();
-        if path.extension().and_then(|v| v.to_str()) != Some("yaml") {
-            continue;
-        }
+    for path in collect_yaml_files(&vcf_tools_dir)? {
         let tool: DomainToolLoose = read_yaml(&path)?;
         if tool.tool_id.trim().is_empty() || tool.status == "out_of_scope" {
             continue;
