@@ -89,7 +89,7 @@ pub fn write_stage_summary_csv(path: &Path, rows: &[FactsRowV1]) -> Result<()> {
 }
 
 fn csv_escape(value: &str) -> String {
-    if value.contains(',') || value.contains('"') || value.contains('\n') {
+    if value.contains(',') || value.contains('"') || value.contains('\n') || value.contains('\r') {
         let escaped = value.replace('"', "\"\"");
         format!("\"{escaped}\"")
     } else {
