@@ -19,15 +19,12 @@ fn manifest_dependency_graph_has_no_duplicate_edges() {
     let manifest = root.join("Cargo.toml");
     let content = std::fs::read_to_string(&manifest)
         .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
-    let parsed: toml::Value =
-        toml::from_str(&content).unwrap_or_else(|err| panic!("parse {}: {err}", manifest.display()));
+    let parsed: toml::Value = toml::from_str(&content)
+        .unwrap_or_else(|err| panic!("parse {}: {err}", manifest.display()));
 
     let dependencies = dependency_names(&parsed, "dependencies");
     let dev_dependencies = dependency_names(&parsed, "dev-dependencies");
-    let duplicates = dependencies
-        .intersection(&dev_dependencies)
-        .cloned()
-        .collect::<Vec<_>>();
+    let duplicates = dependencies.intersection(&dev_dependencies).cloned().collect::<Vec<_>>();
 
     assert!(
         duplicates.is_empty(),
