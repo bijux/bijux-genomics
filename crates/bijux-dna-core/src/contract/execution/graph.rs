@@ -310,6 +310,9 @@ fn validate_graph_identity(graph: &ExecutionGraph) -> Result<()> {
 }
 
 fn validate_graph_steps(graph: &ExecutionGraph) -> Result<BTreeMap<&str, &ExecutionStep>> {
+    if graph.steps.is_empty() {
+        return Err(BijuxError::validation("execution graph must contain at least one step"));
+    }
     let mut step_ids = HashSet::new();
     let mut by_id: BTreeMap<&str, &ExecutionStep> = BTreeMap::new();
     for step in &graph.steps {
@@ -574,5 +577,20 @@ mod tests {
             Err(error) => error,
         };
         assert!(error.to_string().contains("edge references unknown step: trim -> report"));
+    }
+
+    #[test]
+    fn execution_graph_rejects_empty_step_list() {
+        let error = ExecutionGraph::new(
+            "fastq-to-fastq__graph__v1",
+            "planner",
+            PlanPolicy::PreferAccuracy,
+            Vec::new(),
+            Vec::new(),
+        );
+
+        assert!(error.is_err_and(|err| err
+            .to_string()
+            .contains("execution graph must contain at least one step")));
     }
 }
