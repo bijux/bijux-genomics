@@ -116,6 +116,21 @@ fn run_container_command_captures_stdout() -> Result<(), Box<dyn std::error::Err
 }
 
 #[test]
+fn run_container_command_captures_stderr() -> Result<(), Box<dyn std::error::Error>> {
+    let runner = FakeRunner {
+        output: Output {
+            status: exit_status(0),
+            stdout: Vec::new(),
+            stderr: b"version 1.2.3".to_vec(),
+        },
+    };
+    let result = run_container_command(&runner, "image", "tool --version")?;
+    assert_eq!(result.exit_code, 0);
+    assert!(result.output.contains("version 1.2.3"));
+    Ok(())
+}
+
+#[test]
 fn run_container_command_rejects_empty_probe_commands() {
     let runner = FakeRunner {
         output: Output { status: exit_status(0), stdout: Vec::new(), stderr: Vec::new() },
