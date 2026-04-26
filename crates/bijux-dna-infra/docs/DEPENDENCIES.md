@@ -17,6 +17,9 @@ planner, runner, API, database, analysis, benchmark, or environment ownership.
 - `tracing-subscriber` with the `tracing` feature: subscriber installation and environment filters.
 - `serde_yaml` with the `yaml` feature: YAML config compatibility.
 
+Runtime dependencies intentionally exclude generic application error crates. Infra errors should use
+the crate-local `IoError` taxonomy so callers can wrap them at their own boundary.
+
 ## Test Dependencies
 
 - `bijux-dna-policies`: workspace guardrails.
