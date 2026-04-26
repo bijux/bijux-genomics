@@ -43,6 +43,16 @@ fn run_layout_paths_confine_run_id() {
 }
 
 #[test]
+fn run_stage_dir_confines_stage_and_tool() {
+    let base = Path::new("/tmp/bijux");
+    let path = bijux_dna_infra::run_stage_dir(base, "run-1", "../stage/a", "/tool/b");
+    assert_eq!(
+        path,
+        base.join("runs").join("run-1").join("stage_a").join("tool_b")
+    );
+}
+
+#[test]
 fn run_layout_contract_is_enforced() -> anyhow::Result<()> {
     let dir = bijux_dna_infra::temp_dir("bijux")?;
     let layout = bijux_dna_infra::run_layout_paths(dir.path(), "run-1");
