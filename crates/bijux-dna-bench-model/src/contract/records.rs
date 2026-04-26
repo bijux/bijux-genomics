@@ -3,7 +3,7 @@
 
 use crate::diagnostics::BenchError;
 use crate::model::{BenchmarkObservation, BenchmarkSummary, MetricSummary, SummaryRow};
-use crate::policy::GateDecision;
+use crate::policy::{GateDecision, GateViolation};
 
 use super::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
 
@@ -55,6 +55,20 @@ pub fn validate_decision(decision: &GateDecision) -> Result<(), BenchError> {
             "decision passes must match violations and missing_metrics".to_string(),
         ));
     }
+    for violation in &decision.violations {
+        validate_gate_violation(violation)?;
+    }
+    for metric_id in &decision.missing_metrics {
+        required_text(metric_id, "decision missing metric_id")?;
+    }
+    Ok(())
+}
+
+fn validate_gate_violation(violation: &GateViolation) -> Result<(), BenchError> {
+    required_text(&violation.metric_id, "decision violation metric_id")?;
+    required_text(&violation.direction, "decision violation direction")?;
+    finite_value(violation.observed, "decision violation observed")?;
+    finite_value(violation.threshold, "decision violation threshold")?;
     Ok(())
 }
 
@@ -155,7 +169,7 @@ mod tests {
 
     use crate::contract::{DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
     use crate::model::{BenchmarkSummary, MetricSummary, SummaryRow};
-    use crate::policy::GateDecision;
+    use crate::policy::{GateDecision, GateViolation};
     use crate::stats::robust_estimators::RobustStats;
 
     use super::{validate_decision, validate_summary};
@@ -332,6 +346,39 @@ mod tests {
         };
 
         assert!(err.to_string().contains("passes must match"));
+        Ok(())
+    }
+
+    #[test]
+    fn decision_rejects_invalid_violation_value() -> anyhow::Result<()> {
+        let mut decision = valid_decision();
+        decision.passes = false;
+        decision.violations.push(GateViolation {
+            metric_id: "retention_reads".to_string(),
+            observed: f64::INFINITY,
+            threshold: 0.95,
+            direction: "HigherBetter".to_string(),
+        });
+
+        let Err(err) = validate_decision(&decision) else {
+            bail!("decision with invalid violation value should fail");
+        };
+
+        assert!(err.to_string().contains("decision violation observed must be finite"));
+        Ok(())
+    }
+
+    #[test]
+    fn decision_rejects_blank_missing_metric_id() -> anyhow::Result<()> {
+        let mut decision = valid_decision();
+        decision.passes = false;
+        decision.missing_metrics.push(" ".to_string());
+
+        let Err(err) = validate_decision(&decision) else {
+            bail!("decision with blank missing metric should fail");
+        };
+
+        assert!(err.to_string().contains("missing decision missing metric_id"));
         Ok(())
     }
 }
