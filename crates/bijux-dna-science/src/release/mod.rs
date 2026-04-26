@@ -12,6 +12,12 @@ use crate::render::{
     to_pretty_json,
 };
 
+/// Cut a science release bundle from a compiled workspace.
+///
+/// # Errors
+///
+/// Returns an error when the release manifest is missing, the destination already exists, science
+/// compilation fails, or release files cannot be written.
 pub fn cut_release(root: &Path, release_id: &str) -> Result<()> {
     let loaded = load_specs(root)?;
     let manifest = loaded
