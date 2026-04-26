@@ -48,4 +48,5 @@ contract, and schema changes.
 - Schema failures mean the public contract shape or snapshots changed.
 
 ## Testkit Patterns
-See `crates/bijux-dna-testkit/docs/USAGE.md` for shared fixture and snapshot helpers.
+See `crates/bijux-dna-testkit/docs/PUBLIC_API.md` for shared helper exports and
+`crates/bijux-dna-testkit/docs/SNAPSHOT_POLICY.md` for snapshot stability rules.
