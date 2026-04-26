@@ -5,6 +5,7 @@ use bijux_dna_core::contract::{
     list_runs, query_latest_runs, query_run, query_stage_rows, ContractVersion, RunIndexEntry,
     RunIndexLine, StageIndexRow,
 };
+use bijux_dna_core::id_catalog::PIPELINE_FASTQ_DEFAULT;
 use bijux_dna_core::ids::{PipelineId, RunId, StageId, ToolId};
 
 fn append_line(path: &std::path::Path, line: &str) -> anyhow::Result<()> {
@@ -43,7 +44,7 @@ fn run_index_insert_and_query() -> anyhow::Result<()> {
     let run = RunIndexEntry {
         run_id: RunId("run-1".to_string()),
         domain: "fastq".to_string(),
-        pipeline: PipelineId::new("fastq.trim_reads"),
+        pipeline: PipelineId::new(PIPELINE_FASTQ_DEFAULT),
         stages: vec![StageId::new("fastq.trim_reads")],
         tools: vec![ToolId::new("fastp")],
         objective: None,
@@ -94,7 +95,7 @@ fn run_index_latest_run_is_deterministic() -> anyhow::Result<()> {
             &RunIndexEntry {
                 run_id: RunId(run_id.to_string()),
                 domain: "fastq".to_string(),
-                pipeline: PipelineId::new("fastq.trim_reads"),
+                pipeline: PipelineId::new(PIPELINE_FASTQ_DEFAULT),
                 stages: vec![StageId::new("fastq.trim_reads")],
                 tools: vec![ToolId::new("fastp")],
                 objective: None,
