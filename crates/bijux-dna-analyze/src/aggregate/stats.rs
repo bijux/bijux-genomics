@@ -52,7 +52,8 @@ fn trimmed_mean(sorted: &[f64], trim_ratio: f64) -> f64 {
 
 #[must_use]
 pub fn robust_summary(values: &[f64]) -> RobustSummary {
-    if values.is_empty() {
+    let mut sorted: Vec<f64> = values.iter().copied().filter(|value| value.is_finite()).collect();
+    if sorted.is_empty() {
         return RobustSummary {
             n: 0,
             median: 0.0,
@@ -63,7 +64,6 @@ pub fn robust_summary(values: &[f64]) -> RobustSummary {
             high_variance: false,
         };
     }
-    let mut sorted = values.to_vec();
     sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
     let median_value = median(&sorted);
     let mut deviations: Vec<f64> = sorted.iter().map(|v| (v - median_value).abs()).collect();
