@@ -1,6 +1,6 @@
 use super::{
-    anyhow, read_yaml, BTreeMap, Context, DomainIndex, DomainStage, DomainToolLoose, Path, PathBuf,
-    Result,
+    anyhow, collect_yaml_files, read_yaml, BTreeMap, DomainIndex, DomainStage, DomainToolLoose,
+    Path, PathBuf, Result,
 };
 
 /// # Errors
@@ -37,15 +37,7 @@ pub fn domain_coverage_report(domain_dir: &Path) -> Result<serde_json::Value> {
 
         let tool_dir = domain_dir.join(dom).join("tools");
         let mut tool_path_by_id: BTreeMap<String, PathBuf> = BTreeMap::new();
-        for entry in
-            std::fs::read_dir(&tool_dir).with_context(|| format!("read {}", tool_dir.display()))?
-        {
-            let path = entry?.path();
-            if path.extension().and_then(|v| v.to_str()) != Some("yaml")
-                || path.file_name().and_then(|v| v.to_str()) == Some("_schema.yaml")
-            {
-                continue;
-            }
+        for path in collect_yaml_files(&tool_dir)? {
             let tool: DomainToolLoose = read_yaml(&path)?;
             if !tool.tool_id.is_empty() {
                 tool_path_by_id.insert(tool.tool_id, path);
@@ -59,15 +51,7 @@ pub fn domain_coverage_report(domain_dir: &Path) -> Result<serde_json::Value> {
             if !other_tool_dir.exists() {
                 continue;
             }
-            for entry in std::fs::read_dir(&other_tool_dir)
-                .with_context(|| format!("read {}", other_tool_dir.display()))?
-            {
-                let path = entry?.path();
-                if path.extension().and_then(|v| v.to_str()) != Some("yaml")
-                    || path.file_name().and_then(|v| v.to_str()) == Some("_schema.yaml")
-                {
-                    continue;
-                }
+            for path in collect_yaml_files(&other_tool_dir)? {
                 let tool: DomainToolLoose = read_yaml(&path)?;
                 if !tool.tool_id.is_empty() {
                     tool_path_by_id.entry(tool.tool_id).or_insert(path);
