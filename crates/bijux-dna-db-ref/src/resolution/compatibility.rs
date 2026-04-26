@@ -9,6 +9,17 @@ pub fn validate_imputation_tool_compatibility(
     panel: &PanelCatalogEntry,
     map: &MapCatalogEntry,
 ) -> Result<()> {
+    if panel.species_id != map.species_id || panel.build_id != map.build_id {
+        bail!(
+            "panel {} ({}/{}) is not compatible with map {} ({}/{})",
+            panel.id,
+            panel.species_id,
+            panel.build_id,
+            map.id,
+            map.species_id,
+            map.build_id
+        );
+    }
     if !panel.compatibility.tool_tags.iter().any(|tag| tag == tool_id) {
         bail!("panel {} not compatible with tool {}", panel.id, tool_id);
     }
@@ -42,4 +53,62 @@ pub fn validate_imputation_tool_compatibility(
         bail!("beagle requires panel compatibility with GL input");
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::validate_imputation_tool_compatibility;
+    use crate::{
+        CatalogCompatibility, CatalogFileEntry, MapCatalogEntry, MapCompatibility,
+        PanelCatalogEntry,
+    };
+
+    #[test]
+    fn validate_imputation_tool_compatibility_rejects_panel_map_build_mismatch() {
+        let panel = PanelCatalogEntry {
+            id: "panel".to_string(),
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            status: "production".to_string(),
+            version: "1.0.0".to_string(),
+            license: "CC-BY-4.0".to_string(),
+            lock_ref: "locks/panel_locks.toml#locks.panel".to_string(),
+            citation: None,
+            files: vec![CatalogFileEntry {
+                name: "panel_m3vcf".to_string(),
+                path: "panel.m3vcf.gz".to_string(),
+                format: "m3vcf.gz".to_string(),
+                url: "https://example.org/panel.m3vcf.gz".to_string(),
+                checksum_sha256: "a".repeat(64),
+                required: true,
+            }],
+            compatibility: CatalogCompatibility {
+                tool_tags: vec!["minimac4".to_string()],
+                requires_phased: true,
+                supports_gl_input: true,
+                supports_minimac_m3vcf: true,
+                glimpse_reference_format: "bcf+sites".to_string(),
+            },
+        };
+        let map = MapCatalogEntry {
+            id: "map".to_string(),
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh37".to_string(),
+            status: "production".to_string(),
+            version: "1.0.0".to_string(),
+            lock_ref: "locks/map_locks.toml#locks.map".to_string(),
+            citation: None,
+            files: Vec::new(),
+            compatibility: MapCompatibility {
+                tool_tags: vec!["minimac4".to_string()],
+                coordinate_system: "bp".to_string(),
+            },
+        };
+
+        let Err(error) = validate_imputation_tool_compatibility("minimac4", &panel, &map) else {
+            panic!("panel/map build mismatch must fail");
+        };
+
+        assert!(error.to_string().contains("not compatible with map"));
+    }
 }
