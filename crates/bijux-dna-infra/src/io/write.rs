@@ -99,6 +99,9 @@ fn existing_or_default_permissions(path: &Path) -> Option<std::fs::Permissions> 
 /// # Errors
 /// Returns an IO error if the rename fails.
 pub fn rename(src: &Path, dst: &Path) -> Result<(), IoError> {
+    if let Some(parent) = non_empty_parent(dst) {
+        ensure_dir(parent)?;
+    }
     std::fs::rename(src, dst).map_err(IoError::from_io)
 }
 
