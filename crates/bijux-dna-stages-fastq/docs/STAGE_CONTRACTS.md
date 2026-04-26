@@ -48,6 +48,42 @@ Legend:
 | `fastq.profile_overrepresented_sequences` | Optional | FASTQ | sequence report | flagged sequence counts |
 | `fastq.report_qc` | Optional | upstream QC reports | governed aggregation report and MultiQC bundle | contributor lineage, aggregation scope, QC summary |
 
+## Declared Contract Stages
+
+The FASTQ domain also publishes declared contract stages that may be
+planner-facing, preparation-facing, or generic-envelope only. They remain part
+of `contract_stage_ids()` even when this crate has narrower observer
+specialization for a subset.
+
+- `fastq.build_contaminant_db`
+- `fastq.build_rrna_db`
+- `fastq.build_taxonomy_db`
+- `fastq.capture_provenance_snapshot`
+- `fastq.classify_layout`
+- `fastq.cluster_otus`
+- `fastq.concatenate_lanes`
+- `fastq.deplete_reference_contaminants`
+- `fastq.deinterleave_reads`
+- `fastq.demultiplex_reads`
+- `fastq.detect_duplicates_premerge`
+- `fastq.detect_instrument_artifacts`
+- `fastq.estimate_library_complexity_prealign`
+- `fastq.index_reference`
+- `fastq.infer_asvs`
+- `fastq.interleave_reads`
+- `fastq.materialize_qc_manifest`
+- `fastq.normalize_abundance`
+- `fastq.normalize_primers`
+- `fastq.normalize_read_names`
+- `fastq.prepare_adapter_bank`
+- `fastq.prepare_host_reference_bundle`
+- `fastq.prepare_primer_bank`
+- `fastq.repair_pairs`
+- `fastq.remove_chimeras`
+- `fastq.subsample_reads`
+- `fastq.trim_terminal_damage`
+- `fastq.verify_assets`
+
 ## Observer Coverage
 
 - `fastq.validate_reads`
@@ -91,6 +127,9 @@ hash, executed tool identity, and all available input artifact hashes.
 ## Fixture Inventory
 
 - `tests/fixtures/fastqvalidator/default/*`: FASTQ validation fixtures.
+- `tests/fixtures/deduplicate/default/*`: duplicate-removal parser fixtures.
+- `tests/fixtures/low_complexity/default/*`: low-complexity filter parser fixtures.
+- `tests/fixtures/screen/default/*`: taxonomy screen parser fixtures.
 - `tests/fixtures/seqkit/default/*`: seqkit text fixtures.
 - `tests/fixtures/seqkit_stats/default/*`: canonical seqkit stats snapshots.
 - `tests/fixtures/stage_contracts/default/*`: stage contract snapshots.
