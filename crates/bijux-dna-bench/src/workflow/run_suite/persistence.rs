@@ -1,7 +1,8 @@
 use anyhow::Result;
 
 use crate::artifacts::{
-    write_decision_json, write_observations_jsonl, write_summary_json, WriteMode,
+    write_decision_json, write_decisions_json, write_observations_jsonl, write_summary_json,
+    WriteMode,
 };
 use bijux_dna_bench_model::policy::GateDecision;
 use bijux_dna_bench_model::{BenchError, BenchmarkObservation, BenchmarkSummary};
@@ -33,5 +34,7 @@ pub(super) fn write_suite_artifacts(
         write_decision_json(&out_dir.join("decision.json"), decision)
             .map_err(|err: anyhow::Error| BenchError::ArtifactWriteError(err.to_string()))?;
     }
+    write_decisions_json(&out_dir.join("decisions.json"), decisions)
+        .map_err(|err: anyhow::Error| BenchError::ArtifactWriteError(err.to_string()))?;
     Ok(())
 }

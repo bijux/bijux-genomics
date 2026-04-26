@@ -154,6 +154,7 @@ mod tests {
         assert!(out_dir.join("observations.jsonl").exists());
         assert!(out_dir.join("summary.json").exists());
         assert!(out_dir.join("decision.json").exists());
+        assert!(out_dir.join("decisions.json").exists());
         Ok(())
     }
 
