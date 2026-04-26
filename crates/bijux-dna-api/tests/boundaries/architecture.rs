@@ -6,6 +6,7 @@ fn api_tree_matches_architecture_contract() {
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
 
     assert_root_tree(&root);
+    assert_docs_tree(&root);
     assert_runtime_tree(&root);
     assert_support_tree(&root);
     assert_v1_tree(&root);
@@ -26,6 +27,31 @@ fn assert_root_tree(root: &std::path::Path) {
         &root.join("src/surface"),
         &["explain.rs", "mod.rs", "request_contracts.rs"],
         "api surface tree must stay focused on stable contracts",
+    );
+}
+
+fn assert_docs_tree(root: &std::path::Path) {
+    assert_dir_entries(
+        &root.join("docs"),
+        &[
+            "API.md",
+            "ARCHITECTURE.md",
+            "BOUNDARY.md",
+            "CHANGE_RULES.md",
+            "COMMANDS.md",
+            "FEATURES.md",
+            "PUBLIC_API.md",
+            "REQUEST_FLOW.md",
+            "SECURITY.md",
+            "TESTS.md",
+        ],
+        "api docs must stay at the 10-document allowance and live under docs/",
+    );
+
+    let misplaced_docs = markdown_files_below(&root.join("tests"));
+    assert!(
+        misplaced_docs.is_empty(),
+        "test documentation belongs in docs/TESTS.md, found: {misplaced_docs:?}",
     );
 }
 
@@ -167,5 +193,15 @@ fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
                 name
             }
         })
+        .collect()
+}
+
+fn markdown_files_below(path: &std::path::Path) -> Vec<String> {
+    walkdir::WalkDir::new(path)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.path().extension().is_some_and(|extension| extension == "md"))
+        .map(|entry| entry.path().display().to_string())
         .collect()
 }
