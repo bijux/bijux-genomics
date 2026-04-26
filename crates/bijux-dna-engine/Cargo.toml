@@ -20,7 +20,7 @@ chrono.workspace = true
 [dev-dependencies]
 bijux-dna-policies.workspace = true
 tempfile.workspace = true
-cargo_metadata = "0.18"
+cargo_metadata.workspace = true
 walkdir.workspace = true
 
 [lints]

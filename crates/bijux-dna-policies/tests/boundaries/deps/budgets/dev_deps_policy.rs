@@ -67,6 +67,7 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "bijux-dna-testkit",
         "bijux-dna-testkit.workspace",
         "cargo_metadata",
+        "cargo_metadata.workspace",
         "filetime",
         "flate2",
         "gag",

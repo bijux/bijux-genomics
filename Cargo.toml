@@ -58,6 +58,7 @@ tempfile = "3"
 rand = "0.8"
 schemars = { version = "0.8", features = ["derive"] }
 toml = "0.8"
+cargo_metadata = "0.18"
 opentelemetry = "0.24"
 opentelemetry_sdk = "0.24"
 insta = "1"
