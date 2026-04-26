@@ -30,6 +30,9 @@ This crate must not depend on API, engine, environment, planner, runner,
 runtime, stage implementation, science, database, or CLI crates. Those layers
 consume the shared contract; the contract crate must not consume their behavior.
 
+Internal `bijux-dna-*` dependencies must be declared through the workspace catalog. The only
+runtime internal edge is `bijux-dna-core`, and boundary tests require it to stay cataloged.
+
 ## Verification
 
 ```sh

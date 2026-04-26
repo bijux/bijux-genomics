@@ -27,6 +27,10 @@ This crate must not depend on API, benchmark runner, database, developer-control
 environment, planner, runner, runtime, stage execution, or command crates. Those layers consume
 FASTQ domain truth; they do not define it.
 
+Internal `bijux-dna-*` dependencies must be declared through the workspace catalog. Direct
+`path = "../..."` declarations hide dependency drift from the shared graph and are rejected by the
+boundary tests.
+
 ## Verification
 
 Use `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-fastq --no-default-features --test boundaries`

@@ -24,6 +24,10 @@ The compiler must not depend on runtime, runner, engine, planner, stage executio
 database, or developer-control-plane crates. Those layers may consume generated compiler outputs,
 but the compiler must remain upstream of execution.
 
+Internal `bijux-dna-*` dependencies must be declared through the workspace catalog. Direct
+`path = "../..."` declarations bypass the shared dependency graph and are rejected by the boundary
+tests.
+
 ## Verification
 
 Use `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-domain-compiler --no-default-features --test boundaries`
