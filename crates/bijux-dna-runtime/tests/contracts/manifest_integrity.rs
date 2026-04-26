@@ -233,6 +233,25 @@ fn artifact_checksums_emit_deterministic_sha256_ledger() {
 }
 
 #[test]
+fn atomic_writer_preserves_existing_tmp_sibling_files() {
+    let dir = std::env::temp_dir().join("runtime_atomic_tmp_contract");
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
+    let target = dir.join("result.json");
+    let sibling = dir.join("result.tmp");
+    std::fs::write(&sibling, b"keep-me").unwrap_or_else(|e| panic!("write sibling: {e}"));
+
+    bijux_dna_runtime::recording::write_atomic_bytes(&target, b"{\"ok\":true}")
+        .unwrap_or_else(|e| panic!("write target: {e}"));
+
+    assert_eq!(std::fs::read(&sibling).unwrap_or_else(|e| panic!("read sibling: {e}")), b"keep-me");
+    assert_eq!(
+        std::fs::read(&target).unwrap_or_else(|e| panic!("read target: {e}")),
+        b"{\"ok\":true}"
+    );
+}
+
+#[test]
 fn run_artifact_envelope_has_required_keys() {
     let dir = std::env::temp_dir().join("runtime_envelope_contract");
     let _ = std::fs::remove_dir_all(&dir);

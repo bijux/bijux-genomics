@@ -24,8 +24,9 @@ pub fn append_jsonl_line(path: &Path, line: &str) -> std::io::Result<()> {
 pub fn write_atomic_bytes(path: &Path, bytes: &[u8]) -> Result<()> {
     let dir = path.parent().ok_or_else(|| anyhow!("missing parent for {}", path.display()))?;
     bijux_dna_infra::ensure_dir(dir)?;
-    let mut temp = PathBuf::from(path);
-    temp.set_extension("tmp");
+    let file_name =
+        path.file_name().ok_or_else(|| anyhow!("missing file name for {}", path.display()))?;
+    let temp = dir.join(format!(".{}.{}.tmp", file_name.to_string_lossy(), uuid::Uuid::new_v4()));
     let mut file = std::fs::File::create(&temp)?;
     file.write_all(bytes)?;
     file.sync_all()?;
