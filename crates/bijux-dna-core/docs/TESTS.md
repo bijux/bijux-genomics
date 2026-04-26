@@ -20,6 +20,26 @@ public-surface drift need explicit guardrails.
 - `tests/schemas/` — public API and docs locks.
 - `tests/semantics/` — semantic behavior checks for IDs, metrics, and input assessment.
 
+## Layout ownership
+
+- `tests/boundaries/architecture_tree.rs` locks the crate root, docs allowance,
+  source tree, public module tree, and named test-suite layout.
+- `tests/boundaries/dependency_graph.rs` locks normal dependencies to generic
+  library crates and rejects workspace crates in `[dependencies]`.
+- `tests/boundaries/layering.rs` locks source layering between foundation and
+  contract modules.
+- `tests/contracts/execution/` owns execution graph, execution output, and
+  canonical execution-plan behavior.
+- `tests/contracts/identity/` owns hashing, reproducibility identity, run index,
+  run metadata, and prelude export contracts.
+- `tests/contracts/surface/` owns canonicalization, ID, metric, stage-selection,
+  and public contract behavior.
+- `tests/schemas/` owns docs-to-code locks and public surface snapshots.
+- `tests/semantics/ids/` owns catalog and typed-id conversion semantics.
+- `tests/semantics/metrics/` owns metrics registry semantics.
+- `tests/semantics/input_assessment.rs` owns FASTQ discovery, assessment, and
+  persistence behavior.
+
 ## Source-tree contract
 
 - `tests/boundaries/architecture_tree.rs` locks the documented `core` namespace
