@@ -13,6 +13,10 @@ Tests should explain the contract they enforce.
 - Each test file should be referenced here.
 
 ## Suite map
+- `tests/boundaries.rs` → boundary suite aggregator for ownership guardrails and purity.
+- `tests/contracts.rs` → contract suite aggregator for serialized API, stage contracts, parsers, docs, snapshots, and public surface.
+- `tests/determinism.rs` → determinism suite aggregator for fixture and snapshot stability.
+- `tests/semantics.rs` → semantic suite aggregator for invariant behavior.
 - `tests/contracts/parsers/*` → parsing fixtures under `tests/fixtures/bam/default/*` and `tests/fixtures/tool_metrics/default/*`.
 - `tests/contracts/*` → stage contracts, public surface, canonical serialization, and docs checks.
 - `tests/semantics/invariants/*` → invariant specs and stage semantics.
@@ -20,6 +24,8 @@ Tests should explain the contract they enforce.
 - `tests/determinism/*` → fixture and snapshot stability.
 - `tests/boundaries/*` → purity and guardrail enforcement.
 - `tests/support/mod.rs` → crate-local test helpers; shared helpers belong in `bijux-dna-testkit`.
+- `tests/snapshots/*` → reviewed stage contract snapshots.
+- `tests/fixtures/*` → small deterministic BAM/reference/tool-metric fixtures.
 
 ## Examples
 - `tests/contracts/parsers/bam_parsers.rs` → fixture parsing assertions.
@@ -27,6 +33,7 @@ Tests should explain the contract they enforce.
 
 ## Failure modes
 - Missing test documentation causes drift and confusion.
+- Markdown documentation under `tests/` is forbidden; test taxonomy belongs here.
 
 ## Testkit patterns
 Use `bijux-dna-testkit` for shared fixture and snapshot helpers. Keep crate-local support helpers small and focused.
