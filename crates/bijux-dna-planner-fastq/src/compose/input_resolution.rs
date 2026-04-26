@@ -174,6 +174,7 @@ pub(super) fn explicit_report_qc_inputs(
                     ArtifactRole::StageReport,
                     ArtifactRole::SummaryJson,
                     ArtifactRole::SummaryTsv,
+                    ArtifactRole::Index,
                 ],
             )?;
             Ok(super::report_qc_input_artifact(&input.source_stage_node_id, &input.artifact, None))
