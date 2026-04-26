@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use std::io::Write as _;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard};
@@ -130,6 +131,15 @@ fn path_shape_io_errors_are_corruption() {
         )),
         bijux_dna_infra::IoErrorKind::Corruption
     );
+}
+
+#[test]
+fn json_serialization_errors_are_not_input_corruption() {
+    let value = BTreeMap::from([((1_u8, 2_u8), "not-a-json-object-key")]);
+    let err = bijux_dna_infra::atomic_write_json(Path::new("unused.json"), &value)
+        .err()
+        .unwrap_or_else(|| panic!("expected JSON serialization failure"));
+    assert_eq!(err.kind, bijux_dna_infra::IoErrorKind::Other);
 }
 
 #[test]
