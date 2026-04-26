@@ -188,6 +188,7 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
+#[cfg(not(feature = "tracing"))]
 fn logging_without_tracing_feature_returns_io_error() {
     let err = bijux_dna_infra::init_logging(Path::new("logs/bijux.log"))
         .err()
