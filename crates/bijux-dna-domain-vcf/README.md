@@ -18,8 +18,9 @@ Owns VCF param typing contracts and consumes workspace ID/catalog contracts.
 
 ## Artifacts / Contracts
 - [docs/INDEX.md](docs/INDEX.md)
-- [docs/SCOPE.md](docs/SCOPE.md)
+- [docs/BOUNDARY.md](docs/BOUNDARY.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/PUBLIC_API.md](docs/PUBLIC_API.md)
 - [docs/TESTS.md](docs/TESTS.md)
 
 ## Failure modes
