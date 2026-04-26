@@ -2,8 +2,6 @@ use std::collections::BTreeMap;
 
 use anyhow::{anyhow, Result};
 
-use crate::required_id_catalog;
-
 pub fn select_trim_tools(tools: &[String], _allow_experimental: bool) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_TRIM_READS);
@@ -238,5 +236,5 @@ pub fn fastq_pipeline_id_catalog(profile_id: &str) -> Vec<String> {
             .map(|stage| (*stage).to_string())
             .collect();
     }
-    required_id_catalog()
+    Vec::new()
 }

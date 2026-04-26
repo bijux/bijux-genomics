@@ -140,3 +140,12 @@ fn report_qc_aux_tools_come_from_observer_contributors() {
         "report_qc aux tools must describe upstream QC contributors, not the aggregation tool itself",
     );
 }
+
+#[test]
+fn pipeline_id_catalog_does_not_fallback_for_unknown_profile() {
+    assert!(
+        bijux_dna_planner_fastq::fastq_pipeline_id_catalog("fastq-profile-does-not-exist")
+            .is_empty(),
+        "unknown FASTQ pipeline profiles must not silently expand to the default stage catalog",
+    );
+}
