@@ -43,7 +43,9 @@ Canonicalization lives in bijux-dna-core only. Infra must not re-implement it.
 See `crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_duplicate_canonicalizers.rs`.
 
 ## How to run its tests
-See `crates/bijux-dna-infra/docs/TESTS.md`. Key tests: `tests/contracts/io.rs`, `tests/contracts/run_layout.rs`, `tests/determinism/hash.rs`, `tests/determinism/retry.rs`, `tests/boundaries/guardrails/public_surface.rs`.
+See `crates/bijux-dna-infra/docs/TESTS.md`. Key tests: `tests/contracts/io.rs`,
+`tests/contracts/run_layout.rs`, `tests/determinism/hash.rs`,
+`tests/determinism/retry.rs`, and `tests/schemas/public_surface.rs`.
 
 ## Where the docs live
 Root docs are limited to this `README.md`. All other crate docs live in `docs/`; start at
