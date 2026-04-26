@@ -5,6 +5,8 @@ mod mod_boundaries_architecture_tree_rs;
 mod mod_boundaries_core_scope_guardrail_rs;
 #[path = "boundaries/dependency_graph.rs"]
 mod mod_boundaries_dependency_graph_rs;
+#[path = "boundaries/docs_layout.rs"]
+mod mod_boundaries_docs_layout_rs;
 #[path = "boundaries/execution_graph_purity.rs"]
 mod mod_boundaries_execution_graph_purity_rs;
 #[path = "boundaries/guardrails.rs"]
