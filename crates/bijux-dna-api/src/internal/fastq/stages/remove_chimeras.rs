@@ -88,12 +88,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         let outputs = resolve_remove_chimeras_outputs(&tool_plan.plan)?;
         let observation =
             observe_remove_chimeras_outputs(catalog, platform, args, &setup, &outputs)?;
-        let reads_in = setup.input_stats_r1.reads
-            + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
-        let reads_out = observation.output_stats_r1.reads;
-        let chimeras_removed = reads_in.saturating_sub(reads_out);
-        let chimera_fraction =
-            if reads_in == 0 { 0.0 } else { u64_to_f64(chimeras_removed) / u64_to_f64(reads_in) };
+        let measurements = remove_chimeras_measurements(&setup, &observation);
         let effective_params: ChimeraDetectionEffectiveParams =
             serde_json::from_value(tool_plan.plan.effective_params.clone())
                 .map_err(|error| anyhow!("parse remove_chimeras effective params: {error}"))?;
@@ -105,10 +100,10 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             chimera_metrics_json: &outputs.metrics_json,
             chimeras_fasta: outputs.chimeras_fasta.as_deref(),
             uchime_report_tsv: outputs.uchime_report_tsv.as_deref(),
-            reads_in,
-            reads_out,
-            chimeras_removed,
-            chimera_fraction,
+            reads_in: measurements.reads_in,
+            reads_out: measurements.reads_out,
+            chimeras_removed: measurements.chimeras_removed,
+            chimera_fraction: measurements.chimera_fraction,
             used_fallback: observation.used_fallback,
             runtime_s: execution.runtime_s,
             memory_mb: execution.memory_mb,
@@ -120,8 +115,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             &outputs.metrics_json,
             &compatibility_metrics_from_report(&report),
         )?;
-        let metrics =
-            FastqChimeraMetrics { reads_in, reads_out, chimeras_removed, chimera_fraction };
+        let metrics = measurements.metrics();
         let metric_set = metric_set(metrics);
         bijux_dna_infra::atomic_write_json(
             &tool_plan.out_dir.join("metrics.json"),
@@ -188,6 +182,24 @@ struct RemoveChimerasOutputs {
 struct RemoveChimerasObservation {
     output_stats_r1: SeqkitMetrics,
     used_fallback: bool,
+}
+
+struct RemoveChimerasMeasurements {
+    reads_in: u64,
+    reads_out: u64,
+    chimeras_removed: u64,
+    chimera_fraction: f64,
+}
+
+impl RemoveChimerasMeasurements {
+    fn metrics(&self) -> FastqChimeraMetrics {
+        FastqChimeraMetrics {
+            reads_in: self.reads_in,
+            reads_out: self.reads_out,
+            chimeras_removed: self.chimeras_removed,
+            chimera_fraction: self.chimera_fraction,
+        }
+    }
 }
 
 struct RemoveChimerasCacheIdentity<'a> {
@@ -368,6 +380,19 @@ fn observe_remove_chimeras_outputs<S: ::std::hash::BuildHasher>(
     let output_stats_r1 =
         observe_fastq_stats(catalog, platform, setup.runner, &outputs.filtered_reads)?;
     Ok(RemoveChimerasObservation { output_stats_r1, used_fallback })
+}
+
+fn remove_chimeras_measurements(
+    setup: &RemoveChimerasBenchmarkSetup,
+    observation: &RemoveChimerasObservation,
+) -> RemoveChimerasMeasurements {
+    let reads_in =
+        setup.input_stats_r1.reads + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+    let reads_out = observation.output_stats_r1.reads;
+    let chimeras_removed = reads_in.saturating_sub(reads_out);
+    let chimera_fraction =
+        if reads_in == 0 { 0.0 } else { u64_to_f64(chimeras_removed) / u64_to_f64(reads_in) };
+    RemoveChimerasMeasurements { reads_in, reads_out, chimeras_removed, chimera_fraction }
 }
 
 fn required_remove_chimeras_output(plan: &StagePlanV1, name: &str) -> Result<PathBuf> {
