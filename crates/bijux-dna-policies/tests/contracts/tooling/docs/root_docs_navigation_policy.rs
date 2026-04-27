@@ -116,3 +116,22 @@ fn policy__contracts__root_docs_navigation_policy__refusals_links_governed_surfa
         "docs/00-intro/REFUSALS.md must link the governed refusal authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__doc_promises_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "index.md".to_string(),
+        "../10-architecture/index.md".to_string(),
+        "../20-science/index.md".to_string(),
+        "../30-operations/index.md".to_string(),
+        "../40-policies/index.md".to_string(),
+        "../50-reference/index.md".to_string(),
+        "../40-policies/POLICY_INDEX.md".to_string(),
+        "../10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/00-intro/DOC_PROMISES.md");
+    assert_eq!(
+        expected, documented,
+        "docs/00-intro/DOC_PROMISES.md must link the governed promise authorities exactly"
+    );
+}
