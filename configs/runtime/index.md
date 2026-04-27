@@ -19,6 +19,27 @@ Fields:
 - `platforms.<id>.default`: optional boolean; at most one platform can be marked default.
 - `platforms.<id>.notes`: optional human-readable rationale for platform selection constraints.
 
+## Asset Lock Contract
+- File: `configs/runtime/asset_locks.toml`
+- Purpose: define lock families and comparability boundaries for governed runtime assets such as host-depletion indexes, taxonomy databases, primer banks, and adapter banks.
+- Invariant: each `lock_family.id` is stable and names the exact asset class the runtime must verify.
+- Invariant: `required_fields` is the minimum evidence payload that must travel with a materialized asset before downstream FASTQ outputs are considered comparable.
+- Invariant: changing a lock-family digest boundary requires a reviewed contract update, not an ad hoc runtime override.
+
+## Asset Hydration Contract
+- File: `configs/runtime/asset_hydration.toml`
+- Purpose: map governed runtime bundles onto stage families, route requirements, and materialization roots under `artifacts/runtime-assets/`.
+- Invariant: every `asset_bundle.lock_family` must resolve to `configs/runtime/asset_locks.toml`.
+- Invariant: every bundle must declare deterministic verification and hydration commands plus an offline replay source.
+- Invariant: route requirements here must stay aligned with FASTQ route policies and planner-required assets.
+
+## corpora/ Layout
+- Path: `configs/runtime/corpora/<corpus-id>.toml`
+- Purpose: define benchmark corpus selection, cohort balance, and preferred materialization roots for governed datasets such as `corpus-01`.
+- Invariant: `corpus_id` matches the filename stem and the benchmark/publication wiring that references it.
+- Invariant: sample rows remain reviewable and explain why each accession belongs in the governed cohort.
+- Contract note: `configs/runtime/corpora/corpus-01.toml` is the current human FASTQ benchmark corpus authority used by the benchmark publication surfaces.
+
 ## Files
 - `configs/runtime/platforms.toml`
 - `configs/runtime/coverage_regimes.toml`
@@ -37,6 +58,7 @@ Fields:
 - `configs/runtime/cargo_build.toml`
 - `configs/runtime/profiles/index.md`
 - `configs/runtime/execution_kernel.toml`
+- `configs/runtime/corpora/corpus-01.toml`
 
 ## profiles/ Layout
 - Path: `configs/runtime/profiles/<profile>.toml`
