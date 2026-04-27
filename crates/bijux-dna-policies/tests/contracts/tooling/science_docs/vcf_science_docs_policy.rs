@@ -135,6 +135,22 @@ fn vcf_stage_specs() -> BTreeMap<String, VcfStageDocSpec> {
     specs
 }
 
+fn vcf_stage_catalog_ids() -> BTreeSet<String> {
+    let root = support::workspace_root();
+    let raw = fs::read_to_string(root.join("docs/20-science/vcf/STAGE_CATALOG.md"))
+        .expect("read docs/20-science/vcf/STAGE_CATALOG.md");
+    raw.lines()
+        .filter_map(|line| {
+            let trimmed = line.trim();
+            trimmed
+                .strip_prefix("### ")
+                .and_then(|rest| rest.split_whitespace().next())
+                .filter(|stage_id| stage_id.starts_with("vcf."))
+                .map(ToOwned::to_owned)
+        })
+        .collect()
+}
+
 #[test]
 fn policy__contracts__vcf_science_docs_policy__index_covers_vcf_science_docs_exactly() {
     let expected = vcf_science_doc_targets();
@@ -142,5 +158,20 @@ fn policy__contracts__vcf_science_docs_policy__index_covers_vcf_science_docs_exa
     assert_eq!(
         expected, documented,
         "VCF science index must link every VCF science doc exactly once"
+    );
+}
+
+#[test]
+fn policy__contracts__vcf_science_docs_policy__stage_catalog_covers_supported_stage_catalog() {
+    let expected = vcf_stage_specs()
+        .into_iter()
+        .filter_map(|(stage_id, spec)| (spec.status == "supported").then_some(stage_id))
+        .collect::<BTreeSet<_>>();
+    let documented = vcf_stage_catalog_ids();
+    let missing = expected.difference(&documented).cloned().collect::<Vec<_>>();
+    assert!(
+        missing.is_empty(),
+        "VCF stage catalog is missing supported stages:\n{}",
+        missing.join("\n")
     );
 }

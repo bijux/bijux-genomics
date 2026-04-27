@@ -24,3 +24,4 @@ Documents under `docs/20-science/vcf/`.
 - [Reference Governance](REFERENCE_GOVERNANCE.md)
 - [Roadmap](ROADMAP.md)
 - [Runs of Homozygosity](ROH.md)
+- [Stage Catalog](STAGE_CATALOG.md)
