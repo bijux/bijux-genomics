@@ -101,24 +101,16 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             execution: &execution,
         });
         write_overrepresented_artifacts(&tool_plan, &observation, &report, &metric_set)?;
-        let record = BenchmarkRecord {
-            context: build_benchmark_context(
-                tool,
-                tool_plan.tool_spec.tool_version.clone(),
-                tool_plan.image_digest,
-                setup.runner,
+        let record = build_overrepresented_record(
+            &OverrepresentedRecordInputs {
                 platform,
-                setup.input_hash.clone(),
-                tool_plan.plan.params.clone(),
-            ),
-            execution: ExecutionMetrics {
-                runtime_s: execution.result.runtime_s,
-                memory_mb: execution.result.memory_mb,
-                exit_code: execution.result.exit_code,
+                setup: &setup,
+                tool,
+                tool_plan: &tool_plan,
+                execution: &execution,
             },
-            metrics: metric_set,
-        };
-        record.validate()?;
+            metric_set,
+        )?;
         append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
         insert_fastq_overrepresented_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
@@ -209,6 +201,14 @@ struct OverrepresentedReportInputs<'a> {
     artifacts: &'a OverrepresentedArtifacts,
     effective_params: &'a FastqOverrepresentedProfileParams,
     payload: OverrepresentedPayload,
+    execution: &'a OverrepresentedToolExecution,
+}
+
+struct OverrepresentedRecordInputs<'a> {
+    platform: &'a PlatformSpec,
+    setup: &'a OverrepresentedBenchmarkSetup,
+    tool: &'a str,
+    tool_plan: &'a OverrepresentedToolPlan,
     execution: &'a OverrepresentedToolExecution,
 }
 
@@ -426,6 +426,31 @@ fn write_overrepresented_artifacts(
 ) -> Result<()> {
     write_overrepresented_report(&observation.artifacts.report_json, report)?;
     write_overrepresented_metrics(&tool_plan.out_dir, metric_set)
+}
+
+fn build_overrepresented_record(
+    inputs: &OverrepresentedRecordInputs<'_>,
+    metric_set: MetricSet<FastqOverrepresentedMetrics>,
+) -> Result<BenchmarkRecord<FastqOverrepresentedMetrics>> {
+    let record = BenchmarkRecord {
+        context: build_benchmark_context(
+            inputs.tool,
+            inputs.tool_plan.tool_spec.tool_version.clone(),
+            inputs.tool_plan.image_digest.clone(),
+            inputs.setup.runner,
+            inputs.platform,
+            inputs.setup.input_hash.clone(),
+            inputs.tool_plan.plan.params.clone(),
+        ),
+        execution: ExecutionMetrics {
+            runtime_s: inputs.execution.result.runtime_s,
+            memory_mb: inputs.execution.result.memory_mb,
+            exit_code: inputs.execution.result.exit_code,
+        },
+        metrics: metric_set,
+    };
+    record.validate()?;
+    Ok(record)
 }
 
 fn materialize_overrepresented_outputs(
