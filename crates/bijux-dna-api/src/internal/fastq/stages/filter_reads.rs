@@ -87,8 +87,8 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             records.push(record);
             continue;
         }
-        let execution = execute_filter_tool(&tool_plan, setup.bench_inputs.runner, jobs, tool)?;
-        if let Some(failure) = filter_tool_failure(tool, execution.exit_code) {
+        let execution = execute_filter_tool(&tool_plan, setup.bench_inputs.runner, jobs)?;
+        if let Some(failure) = filter_tool_failure(&tool_plan, execution.result.exit_code) {
             failures.push(failure);
             continue;
         }
@@ -155,6 +155,10 @@ struct FilterPlanOutputs {
     reads_r2: Option<PathBuf>,
 }
 
+struct FilterToolExecution {
+    result: StageResultV1,
+}
+
 struct FilterCacheIdentity {
     tool: String,
     tool_version: String,
@@ -194,7 +198,7 @@ struct FilterRecordInputs<'a, S: ::std::hash::BuildHasher> {
     params: &'a serde_json::Value,
     output_reads: &'a Path,
     output_reads_r2: Option<&'a Path>,
-    execution: &'a StageResultV1,
+    execution: &'a FilterToolExecution,
 }
 
 struct FilterReportBuildInputs<'a> {
@@ -207,7 +211,7 @@ struct FilterReportBuildInputs<'a> {
     report_path: &'a Path,
     accounting: &'a FilterReadAccounting,
     output_stats_r1: &'a SeqkitMetrics,
-    execution: &'a StageResultV1,
+    execution: &'a FilterToolExecution,
 }
 
 struct FilterBenchmarkRecordInputs<'a> {
@@ -217,7 +221,7 @@ struct FilterBenchmarkRecordInputs<'a> {
     tool_spec: &'a ToolExecutionSpecV1,
     input_hash: &'a str,
     params: &'a serde_json::Value,
-    execution: &'a StageResultV1,
+    execution: &'a FilterToolExecution,
 }
 
 struct FilterReadAccounting {
@@ -476,23 +480,23 @@ fn execute_filter_tool(
     tool_plan: &FilterToolPlan,
     runner: RuntimeKind,
     jobs: usize,
-    tool: &str,
-) -> Result<StageResultV1> {
-    execute_plans_with_jobs(
+) -> Result<FilterToolExecution> {
+    let result = execute_plans_with_jobs(
         vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
         runner,
         jobs,
     )?
     .into_iter()
     .next()
-    .ok_or_else(|| anyhow!("missing execution result for {tool}"))
+    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
+    Ok(FilterToolExecution { result })
 }
 
-fn filter_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
+fn filter_tool_failure(tool_plan: &FilterToolPlan, exit_code: i32) -> Option<RawFailure> {
     (exit_code != 0).then(|| RawFailure {
         stage: STAGE_FILTER_READS.as_str().to_string(),
-        tool: tool.to_string(),
-        reason: format!("tool {tool} failed with status {exit_code}"),
+        tool: tool_plan.tool.clone(),
+        reason: format!("tool {} failed with status {exit_code}", tool_plan.tool),
         category: ErrorCategory::ToolError,
     })
 }
@@ -566,9 +570,9 @@ fn build_filter_benchmark_record(
     let record = BenchmarkRecord {
         context,
         execution: ExecutionMetrics {
-            runtime_s: inputs.execution.runtime_s,
-            memory_mb: inputs.execution.memory_mb,
-            exit_code: inputs.execution.exit_code,
+            runtime_s: inputs.execution.result.runtime_s,
+            memory_mb: inputs.execution.result.memory_mb,
+            exit_code: inputs.execution.result.exit_code,
         },
         metrics: metric_set,
     };
@@ -621,9 +625,9 @@ fn build_filter_report(inputs: &FilterReportBuildInputs<'_>) -> FilterReadsRepor
         pairs_out: report_measurements.pairs_out,
         mean_q_before: inputs.bench_inputs.input_stats.mean_q,
         mean_q_after: inputs.output_stats_r1.mean_q,
-        runtime_s: Some(inputs.execution.runtime_s),
-        memory_mb: Some(inputs.execution.memory_mb),
-        exit_code: Some(inputs.execution.exit_code),
+        runtime_s: Some(inputs.execution.result.runtime_s),
+        memory_mb: Some(inputs.execution.result.memory_mb),
+        exit_code: Some(inputs.execution.result.exit_code),
         raw_backend_report: backend_report.raw_backend_report,
         raw_backend_report_format: backend_report.raw_backend_report_format,
         backend_metrics: backend_report.metrics,
@@ -689,7 +693,8 @@ fn filter_metrics_from_report(
 fn observe_filter_outputs<S: ::std::hash::BuildHasher>(
     inputs: &FilterRecordInputs<'_, S>,
 ) -> Result<FilterObservedOutputs> {
-    let output_stats_r1 = if inputs.execution.exit_code == 0 && inputs.output_reads.exists() {
+    let output_stats_r1 = if inputs.execution.result.exit_code == 0 && inputs.output_reads.exists()
+    {
         observe_fastq_stats(
             inputs.catalog,
             inputs.platform,
@@ -700,7 +705,7 @@ fn observe_filter_outputs<S: ::std::hash::BuildHasher>(
         inputs.bench_inputs.input_stats
     };
     let output_stats_r2 = if let Some(output_reads_r2) = inputs.output_reads_r2 {
-        if inputs.execution.exit_code == 0 && output_reads_r2.exists() {
+        if inputs.execution.result.exit_code == 0 && output_reads_r2.exists() {
             Some(observe_fastq_stats(
                 inputs.catalog,
                 inputs.platform,
