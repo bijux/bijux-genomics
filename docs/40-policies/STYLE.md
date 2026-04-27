@@ -10,10 +10,12 @@ Consistency reduces review time and errors.
 - Enforcing personal formatting preferences.
 
 ## Contracts
-- Docs placement contract.
+- Docs placement contract is defined in [DOCS_STYLE.md](DOCS_STYLE.md) and enforced by
+  [boundary_docs_policy.rs](../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs).
 
 ## Examples
-- Crate docs live in crates/<crate>/docs/.
+- Crate docs live under the boundary surfaces enforced by
+  [boundary_docs_policy.rs](../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs).
 
 ## Failure modes
 - Misplaced docs fail policies.
