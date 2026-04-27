@@ -15,7 +15,6 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
 }
 
 #[test]
-#[ignore = "TODO: update decision-record policy for current binding metadata"]
 fn policy__contracts__binding_decision_record_policy__complex_binding_changes_require_decision_record(
 ) {
     let root = support::workspace_root();
@@ -63,10 +62,9 @@ fn policy__contracts__binding_decision_record_policy__complex_binding_changes_re
         }
     }
 
-    if !offenders.is_empty() {
-        eprintln!(
-            "binding decision record drift (non-fatal during migration):\n{}",
-            offenders.join("\n")
-        );
-    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "binding decision record drift:\n{}",
+        offenders.join("\n")
+    );
 }
