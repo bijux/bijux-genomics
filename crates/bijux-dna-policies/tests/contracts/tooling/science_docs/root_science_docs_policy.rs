@@ -44,3 +44,19 @@ fn policy__contracts__root_science_docs_policy__science_index_links_root_docs_ex
         "The root science index must link the governed root docs and domain landing pages exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_science_docs_policy__scientific_decisions_link_governed_surfaces() {
+    let expected = BTreeSet::from([
+        "../../assets/publications/adna-methods-2024/index.md".to_string(),
+        "PUBLICATION_ASSETS.md".to_string(),
+        "fastq/SCIENTIFIC_SPEC.md".to_string(),
+        "bam/METHODOLOGICAL_INTENT.md".to_string(),
+        "vcf/index.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/SCIENTIFIC_DECISIONS.md");
+    assert_eq!(
+        expected, documented,
+        "Scientific decisions must link the governed publication asset surface and domain science authorities exactly"
+    );
+}
