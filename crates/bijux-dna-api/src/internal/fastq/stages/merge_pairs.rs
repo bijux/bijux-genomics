@@ -400,7 +400,9 @@ fn write_merge_artifacts(
     let metrics_json = serde_json::to_value(metric_set)?;
     bijux_dna_infra::atomic_write_json(&metrics_path, &metrics_json)
         .context("write merge metrics")?;
-    prune_merge_tool_payload(out_dir, report_path, &metrics_path, report)
+    validate_merge_pre_prune_artifacts(report_path, &metrics_path, report)?;
+    prune_merge_tool_payload(out_dir, report_path, &metrics_path, report)?;
+    validate_merge_retained_artifacts(report_path, &metrics_path, report)
 }
 
 fn merge_metrics_from_report(
@@ -579,6 +581,49 @@ fn validate_merge_report_metrics(
             metrics.merge_rate,
             report.merge_rate
         ));
+    }
+    Ok(())
+}
+
+fn validate_merge_pre_prune_artifacts(
+    report_path: &Path,
+    metrics_path: &Path,
+    report: &MergePairsReportV1,
+) -> Result<()> {
+    validate_merge_nonempty_artifact(report_path)?;
+    validate_merge_nonempty_artifact(metrics_path)?;
+    if report.reads_merged > 0 {
+        validate_merge_nonempty_artifact(Path::new(&report.merged_reads))?;
+    }
+    if let Some(raw_backend_report) = report.raw_backend_report.as_ref() {
+        validate_merge_artifact_exists(Path::new(raw_backend_report))?;
+    }
+    Ok(())
+}
+
+fn validate_merge_retained_artifacts(
+    report_path: &Path,
+    metrics_path: &Path,
+    report: &MergePairsReportV1,
+) -> Result<()> {
+    validate_merge_nonempty_artifact(report_path)?;
+    validate_merge_nonempty_artifact(metrics_path)?;
+    if let Some(raw_backend_report) = report.raw_backend_report.as_ref() {
+        validate_merge_artifact_exists(Path::new(raw_backend_report))?;
+    }
+    Ok(())
+}
+
+fn validate_merge_artifact_exists(path: &Path) -> Result<()> {
+    fs::metadata(path).with_context(|| format!("read merge artifact {}", path.display()))?;
+    Ok(())
+}
+
+fn validate_merge_nonempty_artifact(path: &Path) -> Result<()> {
+    let metadata =
+        fs::metadata(path).with_context(|| format!("read merge artifact {}", path.display()))?;
+    if metadata.len() == 0 {
+        return Err(anyhow!("merge artifact is empty: {}", path.display()));
     }
     Ok(())
 }
