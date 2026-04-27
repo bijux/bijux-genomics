@@ -99,7 +99,7 @@ expected_artifacts = ["phased_vcf", "imputed_vcf"]
 metrics_schema = "bijux.vcf.phasing.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
 dockerfile = "containers/docker/arm64/Dockerfile.beagle"
-apptainer_def = "containers/apptainer/lunarc/beagle.def"
+apptainer_def = "containers/apptainer/shared/beagle.def"
 require_labels = true
 
 [[tools]]
@@ -161,7 +161,7 @@ expected_artifacts = ["pca_report", "population_structure_report", "metrics.json
 metrics_schema = "bijux.vcf.population_structure.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
 dockerfile = "containers/docker/arm64/Dockerfile.eigensoft"
-apptainer_def = "containers/apptainer/lunarc/eigensoft.def"
+apptainer_def = "containers/apptainer/shared/eigensoft.def"
 require_labels = true
 
 [[tools]]
@@ -192,7 +192,7 @@ expected_artifacts = ["ibd_segments", "metrics.json"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
 dockerfile = "containers/docker/arm64/Dockerfile.germline"
-apptainer_def = "containers/apptainer/lunarc/germline.def"
+apptainer_def = "containers/apptainer/shared/germline.def"
 require_labels = true
 
 [[tools]]
@@ -254,7 +254,7 @@ expected_artifacts = ["ibd_segments", "ibd_haplotype_report", "metrics.json"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
 dockerfile = "containers/docker/arm64/Dockerfile.ibdhap"
-apptainer_def = "containers/apptainer/lunarc/ibdhap.def"
+apptainer_def = "containers/apptainer/shared/ibdhap.def"
 require_labels = true
 
 [[tools]]
@@ -285,7 +285,7 @@ expected_artifacts = ["demography_report", "metrics.json"]
 metrics_schema = "bijux.vcf.ibd.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
 dockerfile = "containers/docker/arm64/Dockerfile.ibdne"
-apptainer_def = "containers/apptainer/lunarc/ibdne.def"
+apptainer_def = "containers/apptainer/shared/ibdne.def"
 require_labels = true
 
 [[tools]]
