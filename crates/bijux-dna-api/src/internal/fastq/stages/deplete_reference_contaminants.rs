@@ -123,6 +123,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         validate_reference_contaminants_report_metrics(&report, &metric_set.metrics)?;
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         write_reference_contaminants_metrics(&tool_plan, &metric_set)?;
+        validate_reference_contaminants_written_artifacts(&tool_plan, &report)?;
 
         let record = build_reference_contaminants_record(
             platform, &setup, &tool_plan, &execution, metric_set,
@@ -292,6 +293,35 @@ fn write_reference_contaminants_report(
 ) -> Result<()> {
     bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.report_json), report)
         .context("write reference contaminant depletion report")
+}
+
+fn validate_reference_contaminants_written_artifacts(
+    tool_plan: &ReferenceContaminantsToolPlan,
+    report: &DepleteReferenceContaminantsReportV1,
+) -> Result<()> {
+    for path in [report.output_r1.as_str(), report.report_json.as_str()] {
+        validate_reference_contaminants_nonempty_artifact(std::path::Path::new(path))?;
+    }
+    if let Some(path) = report.output_r2.as_deref() {
+        validate_reference_contaminants_nonempty_artifact(std::path::Path::new(path))?;
+    }
+    if let Some(path) = report.raw_backend_report.as_deref() {
+        validate_reference_contaminants_nonempty_artifact(std::path::Path::new(path))?;
+    }
+    validate_reference_contaminants_nonempty_artifact(&tool_plan.plan.out_dir.join("metrics.json"))
+}
+
+fn validate_reference_contaminants_nonempty_artifact(path: &std::path::Path) -> Result<()> {
+    let metadata = std::fs::metadata(path).with_context(|| {
+        format!("read reference contaminant depletion artifact {}", path.display())
+    })?;
+    if metadata.len() == 0 {
+        return Err(anyhow!(
+            "reference contaminant depletion artifact is empty: {}",
+            path.display()
+        ));
+    }
+    Ok(())
 }
 
 fn prepare_reference_contaminants_benchmark_setup<S: ::std::hash::BuildHasher>(
