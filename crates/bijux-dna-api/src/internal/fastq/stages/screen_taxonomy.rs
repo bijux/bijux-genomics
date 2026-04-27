@@ -15,6 +15,7 @@ use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
+use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::{
     ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
 };
@@ -399,6 +400,7 @@ fn build_screen_record(
     };
     validate_screen_report_identity(inputs.tool, &governed_report)?;
     validate_screen_report_execution(&governed_report, inputs.execution)?;
+    validate_screen_report_paired_mode(inputs.bench_inputs.r2.is_some(), &governed_report)?;
     bijux_dna_infra::atomic_write_json(&report_paths.classification_json, &governed_report)
         .context("write governed screen taxonomy report")?;
     let metrics =
@@ -563,6 +565,18 @@ fn validate_screen_report_execution(
             "screen taxonomy report memory mismatch: expected {}, observed {:?}",
             execution.memory_mb,
             report.memory_mb
+        ));
+    }
+    Ok(())
+}
+
+fn validate_screen_report_paired_mode(has_r2: bool, report: &ScreenTaxonomyReportV1) -> Result<()> {
+    let expected = if has_r2 { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
+    if report.paired_mode != expected {
+        return Err(anyhow!(
+            "screen taxonomy report paired mode mismatch: expected {:?}, observed {:?}",
+            expected,
+            report.paired_mode
         ));
     }
     Ok(())
