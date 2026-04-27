@@ -96,6 +96,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             tool: &tool_plan.tool,
             execution: &execution,
         })?;
+        validate_rrna_report_identity(&tool_plan.tool, &report)?;
         write_rrna_report(&report)?;
         let metrics = rrna_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -381,6 +382,32 @@ fn rrna_metrics_from_report(report: &DepleteRrnaReportV1) -> FastqDepleteRrnaMet
         })
         .into(),
     }
+}
+
+fn validate_rrna_report_identity(tool: &str, report: &DepleteRrnaReportV1) -> Result<()> {
+    if report.schema_version != DEPLETE_RRNA_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "rrna depletion report schema mismatch: expected {}, observed {}",
+            DEPLETE_RRNA_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_DEPLETE_RRNA.as_str() || report.stage_id != STAGE_DEPLETE_RRNA.as_str()
+    {
+        return Err(anyhow!(
+            "rrna depletion report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool {
+        return Err(anyhow!(
+            "rrna depletion report tool mismatch: expected {}, observed {}",
+            tool,
+            report.tool_id
+        ));
+    }
+    Ok(())
 }
 
 fn write_rrna_metrics(
