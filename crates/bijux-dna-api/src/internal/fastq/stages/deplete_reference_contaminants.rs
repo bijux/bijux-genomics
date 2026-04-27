@@ -108,6 +108,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
                 tool: &tool_plan.tool,
                 execution: &execution,
             })?;
+        validate_reference_contaminants_report_identity(&tool_plan.tool, &report)?;
         write_reference_contaminants_report(&report)?;
         let metrics = reference_contaminants_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -477,6 +478,36 @@ fn reference_contaminants_metrics_from_report(
         })
         .into(),
     }
+}
+
+fn validate_reference_contaminants_report_identity(
+    tool: &str,
+    report: &DepleteReferenceContaminantsReportV1,
+) -> Result<()> {
+    if report.schema_version != DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "reference contaminant depletion report schema mismatch: expected {}, observed {}",
+            DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str()
+        || report.stage_id != STAGE_DEPLETE_REFERENCE_CONTAMINANTS.as_str()
+    {
+        return Err(anyhow!(
+            "reference contaminant depletion report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool {
+        return Err(anyhow!(
+            "reference contaminant depletion report tool mismatch: expected {}, observed {}",
+            tool,
+            report.tool_id
+        ));
+    }
+    Ok(())
 }
 
 fn u64_to_f64(value: u64) -> f64 {
