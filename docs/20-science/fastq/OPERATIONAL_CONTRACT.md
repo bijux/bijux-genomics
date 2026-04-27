@@ -10,7 +10,12 @@ Makes expected outputs explicit for validation.
 - Scientific interpretation (see METHODOLOGICAL_INTENT.md).
 
 ## Contracts
-Stage contracts in `crates/bijux-dna-stages-fastq`.
+- Governed artifact IDs live in
+  [domain/fastq/artifacts.yaml](../../../domain/fastq/artifacts.yaml).
+- Governed metric IDs live in
+  [domain/fastq/metrics.yaml](../../../domain/fastq/metrics.yaml).
+- Stage-by-stage inputs and outputs are summarized in
+  [STAGE_CATALOG.md](STAGE_CATALOG.md).
 
 ## Examples
 - fastq.trim_reads -> metrics.json + stage_report.json
