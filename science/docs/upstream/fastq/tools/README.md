@@ -7,8 +7,10 @@ packets.
 
 - reserve durable archive paths under `science/docs/upstream/fastq/tools/<tool-id>/`
 - track the primary upstream and supplemental evidence locators for review
-- complement [../README.md](../README.md) and the operator backlog in
-  `science/docs/TODO_DOWNLOAD.md` with tool-specific acquisition notes
+- complement [../README.md](../README.md),
+  [../../README.md](../../README.md), and the operator backlog in
+  [../../../TODO_DOWNLOAD.md](../../../TODO_DOWNLOAD.md) with tool-specific
+  acquisition notes
 
 ## Canonical Files
 
