@@ -13,6 +13,7 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqChimeraM
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{
     params::edna::ChimeraDetectionEffectiveParams, PairedMode, RemoveChimerasReportV1,
@@ -306,9 +307,12 @@ fn remove_chimeras_input_hash(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
 ) -> Result<String> {
     if let Some(r2) = args.r2.as_deref() {
-        return Ok(format!("{}+{}", hash_file_sha256(&args.r1)?, hash_file_sha256(r2)?));
+        let r1_hash = hash_file_sha256(&args.r1).context("hash remove_chimeras input r1")?;
+        let r2_hash = hash_file_sha256(r2).context("hash remove_chimeras input r2")?;
+        return params_hash(&serde_json::json!({ "r1": r1_hash, "r2": r2_hash }))
+            .context("combine paired remove_chimeras input hashes");
     }
-    Ok(hash_file_sha256(&args.r1)?)
+    hash_file_sha256(&args.r1).context("hash remove_chimeras input")
 }
 
 fn write_remove_chimeras_explain(setup: &RemoveChimerasBenchmarkSetup) -> Result<()> {
