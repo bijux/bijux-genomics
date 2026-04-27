@@ -444,6 +444,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
         &output_stats_r1,
         &output_stats_r2,
     )?;
+    validate_umi_report_read_semantics(&report)?;
     validate_umi_report_metrics(&report, &metric_set.metrics)?;
     write_umi_report(&artifacts.report_json, &report)?;
     write_umi_metrics(inputs.out_dir, &metric_set)?;
@@ -663,6 +664,24 @@ fn validate_umi_report_observed_counts(
             "extract_umis report pairs_out observed mismatch: expected {:?}, observed {:?}",
             pairs_out,
             report.pairs_out
+        ));
+    }
+    Ok(())
+}
+
+fn validate_umi_report_read_semantics(report: &ExtractUmisReportV1) -> Result<()> {
+    if report.reads_with_umi != report.reads_out {
+        return Err(anyhow!(
+            "extract_umis report reads_with_umi mismatch: expected {}, observed {}",
+            report.reads_out,
+            report.reads_with_umi
+        ));
+    }
+    if report.reads_out > report.reads_in {
+        return Err(anyhow!(
+            "extract_umis report reads_out exceeds reads_in: reads_in={} reads_out={}",
+            report.reads_in,
+            report.reads_out
         ));
     }
     Ok(())
