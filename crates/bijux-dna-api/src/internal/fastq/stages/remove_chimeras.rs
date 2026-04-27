@@ -766,9 +766,7 @@ fn validate_remove_chimeras_report_path(
     let expected = expected.display().to_string();
     if observed != expected {
         return Err(anyhow!(
-            "remove_chimeras report {label} path mismatch: expected {}, observed {}",
-            expected,
-            observed
+            "remove_chimeras report {label} path mismatch: expected {expected}, observed {observed}"
         ));
     }
     Ok(())
@@ -847,9 +845,7 @@ fn validate_remove_chimeras_report_backend_metrics(report: &RemoveChimerasReport
             let flagged_records = remove_chimeras_backend_metric_u64(metrics, "flagged_records")?;
             if flagged_records > parsed_records {
                 return Err(anyhow!(
-                    "remove_chimeras backend metrics impossible counts: flagged_records={} parsed_records={}",
-                    flagged_records,
-                    parsed_records
+                    "remove_chimeras backend metrics impossible counts: flagged_records={flagged_records} parsed_records={parsed_records}"
                 ));
             }
             Ok(())
