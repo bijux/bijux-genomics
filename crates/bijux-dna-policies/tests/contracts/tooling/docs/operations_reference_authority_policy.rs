@@ -50,6 +50,17 @@ fn policy__contracts__operations_reference_authority_policy__ci_links_governed_s
 }
 
 #[test]
+fn policy__contracts__operations_reference_authority_policy__benchmark_variance_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from(["../../configs/bench/knobs.toml".to_string()]);
+    let documented = markdown_link_targets("docs/30-operations/BENCHMARK_VARIANCE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/BENCHMARK_VARIANCE.md must link the governed variance authority exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([

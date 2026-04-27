@@ -18,7 +18,7 @@ This policy does not define domain-science correctness thresholds.
 - Metrics numeric precision must be stable (no excessive floating-point noise).
 
 Source of truth:
-- `configs/bench/knobs.toml` `[variance]` section.
+- [configs/bench/knobs.toml](../../configs/bench/knobs.toml) `[variance]` section.
 
 Failure modes:
 - If thresholds are exceeded, treat as non-deterministic run conditions and investigate host load, container/image drift, or input changes.
