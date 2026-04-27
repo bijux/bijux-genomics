@@ -20,6 +20,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
+use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::screen::ReferenceContaminantEffectiveParams;
 use bijux_dna_domain_fastq::{
@@ -27,6 +28,7 @@ use bijux_dna_domain_fastq::{
     DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_infra::hash_file_sha256;
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_deplete_reference_contaminants_tools;
 use bijux_dna_planner_fastq::stage_api::{
@@ -306,11 +308,7 @@ fn prepare_reference_contaminants_benchmark_setup<S: ::std::hash::BuildHasher>(
         &args.r1,
         &STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
     )?;
-    let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
-    } else {
-        bench_inputs.input_hash.clone()
-    };
+    let input_hash = reference_contaminants_input_hash(&bench_inputs, args)?;
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
         Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
     } else {
@@ -323,6 +321,21 @@ fn prepare_reference_contaminants_benchmark_setup<S: ::std::hash::BuildHasher>(
         input_hash,
         input_stats_r2,
     })
+}
+
+fn reference_contaminants_input_hash(
+    bench_inputs: &TrimBenchInputs,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteReferenceContaminantsArgs,
+) -> Result<String> {
+    if let Some(r2) = args.r2.as_ref() {
+        let r2_hash = hash_file_sha256(r2).context("hash reference contaminant input r2")?;
+        return params_hash(&serde_json::json!({
+            "r1": bench_inputs.input_hash,
+            "r2": r2_hash,
+        }))
+        .context("combine reference contaminant paired input hashes");
+    }
+    Ok(bench_inputs.input_hash.clone())
 }
 
 fn write_reference_contaminants_benchmark_explain(
