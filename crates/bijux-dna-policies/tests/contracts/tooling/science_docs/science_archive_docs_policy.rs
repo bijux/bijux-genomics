@@ -177,8 +177,11 @@ fn policy__contracts__science_archive_docs_policy__science_upstream_readme_links
 #[test]
 fn policy__contracts__science_archive_docs_policy__paper_archive_readme_links_contracts_exactly() {
     let expected = BTreeSet::from([
+        "../README.md".to_string(),
         "TODO_DOWNLOAD.md".to_string(),
         "TOOL_PAPER_MAP.tsv".to_string(),
+        "<paper-id>/original/".to_string(),
+        "<paper-id>/notes/".to_string(),
     ]);
     let documented = markdown_link_targets("science/docs/upstream/papers/README.md");
     assert_eq!(

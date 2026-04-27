@@ -3,6 +3,9 @@
 `science/docs/upstream/papers/` is the tracked contract surface for local paper
 roots that anchor tool evidence packets to publications.
 
+[../README.md](../README.md) defines the broader upstream archive boundary that
+this paper packet surface specializes.
+
 ## Purpose
 
 - give each cited tool paper a durable local root under `science/docs/`
@@ -21,8 +24,8 @@ roots that anchor tool evidence packets to publications.
 Keep paper payloads untracked. For each `paper_root`, place downloaded material
 under the matching directory, for example:
 
-- `science/docs/upstream/papers/<paper-id>/original/`
-- `science/docs/upstream/papers/<paper-id>/notes/`
+- [<paper-id>/original/](<paper-id>/original/)
+- [<paper-id>/notes/](<paper-id>/notes/)
 
 Use the paper root even when the paper is not yet downloaded or requires
 licensed access. The root itself is part of the contract.
