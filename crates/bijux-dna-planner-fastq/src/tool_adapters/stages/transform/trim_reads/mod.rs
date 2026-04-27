@@ -312,7 +312,8 @@ fn trim_command_template(
         ));
     }
     if tool.tool_id.as_str() == "cutadapt" {
-        return cutadapt_command_template(
+        return adapter_oriented_trim_command_template(
+            tool.tool_id.as_str(),
             r1,
             r2,
             output_r1,
@@ -324,7 +325,8 @@ fn trim_command_template(
         );
     }
     if tool.tool_id.as_str() == "atropos" {
-        return atropos_command_template(
+        return adapter_oriented_trim_command_template(
+            tool.tool_id.as_str(),
             r1,
             r2,
             output_r1,
@@ -348,7 +350,8 @@ fn trim_command_template(
         );
     }
     if tool.tool_id.as_str() == "adapterremoval" {
-        return adapterremoval_command_template(
+        return adapter_oriented_trim_command_template(
+            tool.tool_id.as_str(),
             r1,
             r2,
             output_r1,
@@ -360,7 +363,8 @@ fn trim_command_template(
         );
     }
     if tool.tool_id.as_str() == "alientrimmer" {
-        return alientrimmer_command_template(
+        return adapter_oriented_trim_command_template(
+            tool.tool_id.as_str(),
             r1,
             r2,
             output_r1,
@@ -372,7 +376,8 @@ fn trim_command_template(
         );
     }
     if tool.tool_id.as_str() == "fastx_clipper" {
-        return fastx_clipper_command_template(
+        return adapter_oriented_trim_command_template(
+            tool.tool_id.as_str(),
             r1,
             r2,
             output_r1,
@@ -384,7 +389,8 @@ fn trim_command_template(
         );
     }
     if tool.tool_id.as_str() == "skewer" {
-        return skewer_trim_command_template(
+        return adapter_oriented_trim_command_template(
+            tool.tool_id.as_str(),
             r1,
             r2,
             output_r1,
@@ -396,7 +402,8 @@ fn trim_command_template(
         );
     }
     if tool.tool_id.as_str() == "leehom" {
-        return leehom_trim_command_template(
+        return adapter_oriented_trim_command_template(
+            tool.tool_id.as_str(),
             r1,
             r2,
             output_r1,
@@ -419,7 +426,8 @@ fn trim_command_template(
         );
     }
     if tool.tool_id.as_str() == "trim_galore" {
-        return trim_galore_command_template(
+        return adapter_oriented_trim_command_template(
+            tool.tool_id.as_str(),
             r1,
             r2,
             output_r1,
@@ -476,6 +484,102 @@ fn trim_command_template(
         contaminant_bank,
         options,
     )
+}
+
+fn adapter_oriented_trim_command_template(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    effective_threads: u32,
+    adapter_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    match tool_id {
+        "cutadapt" => cutadapt_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        ),
+        "atropos" => atropos_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        ),
+        "adapterremoval" => adapterremoval_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        ),
+        "alientrimmer" => alientrimmer_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        ),
+        "fastx_clipper" => fastx_clipper_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        ),
+        "skewer" => skewer_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        ),
+        "leehom" => leehom_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        ),
+        "trim_galore" => trim_galore_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            adapter_bank,
+            options,
+        ),
+        _ => Err(anyhow!("unsupported adapter-oriented trim tool: {tool_id}")),
+    }
 }
 
 fn generic_trim_command_template(
