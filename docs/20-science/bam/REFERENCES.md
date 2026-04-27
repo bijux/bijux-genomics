@@ -1,27 +1,58 @@
-# REFERENCES (BAM)
+# BAM References
 
 ## What
-Primary citations that back BAM-related metrics, stages, and decision logic.
+Governed reference and citation ledger for BAM-stage tools, metrics, and downstream interpretation surfaces.
 
 ## Why
-References make assumptions explicit and keep scientific claims auditable.
+The BAM domain is not reviewable if tool admission, stage claims, and citation closure are mixed together. This file keeps the admitted tool surface explicit while showing where paper closure still has not been completed.
 
 ## Non-goals
-- Exhaustive literature surveys.
-- Replacing protocol-level documentation.
+- Exhaustive archaeological-genomics literature review.
+- Replacing tool manuals or domain manifests.
+- Pretending that `citation: pending:tool-publication` means the science backlog is closed.
 
 ## Contracts
-- References must map to a stage, metric, or decision explained in docs.
+- Every governed BAM tool must map to the exact `stage_ids` declared in `domain/bam/tools/*.yaml`.
+- `Primary locator` may point to an upstream project page when no locally governed paper locator exists yet, but the backlog must stay explicit.
+- Planned tools remain visible here when they are already in the BAM tool manifest so reference closure work can be tracked before runtime promotion.
 
-## Examples
-### alignment
-- BWA: Li & Durbin 2009
+## Alignment, Validation, and Filtering
+| Tool | Applies to | Reference status | Primary locator |
+| --- | --- | --- | --- |
+| bwa | `bam.align` | upstream software locator captured; paper mapping still pending | https://github.com/lh3/bwa |
+| bowtie2 | `bam.align` | upstream software locator captured; paper mapping still pending | https://github.com/BenLangmead/bowtie2 |
+| samtools | `bam.validate`, `bam.qc_pre`, `bam.mapping_summary`, `bam.filter`, `bam.mapq_filter`, `bam.length_filter`, `bam.markdup`, `bam.duplication_metrics`, `bam.coverage`, `bam.endogenous_content` | upstream software locator captured; paper mapping still pending | https://github.com/samtools/samtools |
+| bedtools | `bam.validate`, `bam.filter` | upstream software locator captured; paper mapping still pending | https://github.com/arq5x/bedtools2 |
+| bamtools | `bam.validate`, `bam.filter`, `bam.mapq_filter` | upstream software locator captured; paper mapping still pending | https://github.com/pezmaster31/bamtools |
+| mosdepth | `bam.coverage` | upstream software locator captured; paper mapping still pending | https://github.com/brentp/mosdepth |
+| picard | `bam.markdup`, `bam.length_filter`, `bam.duplication_metrics`, `bam.insert_size`, `bam.gc_bias` | upstream software locator captured; paper mapping still pending | https://github.com/broadinstitute/picard |
 
-### damage
-- mapDamage2: Jónsson et al. 2013
+## Damage, Authenticity, Contamination, and Inference
+| Tool | Applies to | Reference status | Primary locator |
+| --- | --- | --- | --- |
+| mapdamage2 | `bam.damage` | upstream software locator captured; paper mapping still pending | https://github.com/ginolhac/mapDamage |
+| pydamage | `bam.damage` | upstream software locator captured; paper mapping still pending | https://github.com/maxibor/pydamage |
+| damageprofiler | `bam.damage`, `bam.authenticity` | upstream software locator captured; paper mapping still pending | https://github.com/Integrative-Transcriptomics/DamageProfiler |
+| pmdtools | `bam.damage`, `bam.authenticity` | upstream software locator captured; paper mapping still pending | https://github.com/pontussk/PMDtools |
+| addeam | `bam.damage` | upstream software locator captured; paper mapping still pending | https://github.com/LouisPwr/AdDeam |
+| authenticct | `bam.authenticity` | upstream software locator captured; paper mapping still pending | https://github.com/StephanePeyregne/AuthentiCT |
+| schmutzi | `bam.contamination` | upstream software locator captured; paper mapping still pending | https://github.com/grenaud/schmutzi |
+| verifybamid2 | `bam.contamination` | upstream software locator captured; paper mapping still pending | https://github.com/Griffan/VerifyBamID |
+| contammix | `bam.contamination` | package/software locator captured; paper mapping still pending | https://bioconductor.org/packages/contamMix |
+| rxy | `bam.sex` | governed tool contract still points to a local placeholder; external citation locator still needed | https://github.com/bijux/bijux-genomics |
+| yleaf | `bam.sex`, `bam.haplogroups` | upstream software locator captured; paper mapping still pending | https://github.com/genid/Yleaf |
+| angsd | `bam.sex`, `bam.kinship` | upstream software locator captured; paper mapping still pending | https://github.com/ANGSD/angsd |
+| king | `bam.kinship` | upstream software locator captured; paper mapping still pending | https://www.kingrelatedness.com/ |
 
-### contamination/authenticity
-- pydamage: relevant method references
+## Planned Expansion and Open Citation Backlog
+| Tool | Applies to | Reference status | Primary locator |
+| --- | --- | --- | --- |
+| preseq | `bam.complexity` | upstream software locator captured; paper mapping still pending | https://github.com/smithlabcode/preseq |
+| bamutil | `bam.overlap_correction` | upstream software locator captured; paper mapping still pending | https://github.com/statgen/bamUtil |
+| gatk | `bam.recalibration` | upstream software locator captured; paper mapping still pending | https://github.com/broadinstitute/gatk |
+| ngsbriggs | `bam.damage` | upstream locator unresolved in the governed tool contract; citation closure still needed | unknown |
 
 ## Failure modes
-- Missing or stale citations undermine review and reproducibility.
+- A tool listed against the wrong stage creates fake scientific support for a runtime boundary we do not actually govern.
+- Replacing an explicit backlog with hand-wavy prose hides citation debt instead of making it reviewable.
+- Placeholder upstream locators such as `rxy` and unresolved locators such as `ngsbriggs` must stay visible until they are repaired in the governed tool catalog and science evidence backlog.

@@ -124,6 +124,54 @@ fn bam_stage_specs() -> BTreeMap<String, BamStageDocSpec> {
     specs
 }
 
+fn bam_tool_stage_specs() -> BTreeMap<String, BTreeSet<String>> {
+    let root = support::workspace_root();
+    let mut specs = BTreeMap::new();
+    for entry in fs::read_dir(root.join("domain/bam/tools")).expect("read bam tools") {
+        let path = entry.expect("tool entry").path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let raw = fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read bam tool manifest {}: {err}", path.display()));
+        let tool_id = raw
+            .lines()
+            .find_map(|line| line.strip_prefix("tool_id: "))
+            .map(|value| value.trim_matches('"').to_string())
+            .unwrap_or_else(|| panic!("missing tool_id in {}", path.display()));
+        let mut stage_ids = BTreeSet::new();
+        let mut in_stage_ids = false;
+        for line in raw.lines() {
+            let trimmed = line.trim();
+            if let Some(value) = trimmed.strip_prefix("stage_ids: [") {
+                for stage_id in value.trim_end_matches(']').split(',') {
+                    let stage_id = stage_id.trim().trim_matches('"');
+                    if !stage_id.is_empty() {
+                        stage_ids.insert(stage_id.to_string());
+                    }
+                }
+                continue;
+            }
+            if trimmed == "stage_ids:" {
+                in_stage_ids = true;
+                continue;
+            }
+            if in_stage_ids {
+                if let Some(stage_id) = trimmed.strip_prefix("- ") {
+                    stage_ids.insert(stage_id.trim_matches('"').to_string());
+                    continue;
+                }
+                in_stage_ids = false;
+            }
+        }
+        specs.insert(tool_id, stage_ids);
+    }
+    specs
+}
+
 fn bam_stage_assumption_rows() -> Vec<String> {
     let root = support::workspace_root();
     let raw = fs::read_to_string(root.join("docs/20-science/bam/STAGE_ASSUMPTIONS.md"))
@@ -228,6 +276,33 @@ fn assert_bam_tools_roster_matches(stage_ids: &[&str], label: &str) {
     assert!(
         offenders.is_empty(),
         "BAM tools roster drift for {label}:\n{}",
+        offenders.join("\n")
+    );
+}
+
+fn assert_bam_reference_rows_match(tool_ids: &[&str], label: &str) {
+    let expected = bam_tool_stage_specs();
+    let documented = bam_reference_stage_rows();
+    let mut offenders = Vec::new();
+
+    for tool_id in tool_ids {
+        let expected_stages = expected
+            .get(*tool_id)
+            .unwrap_or_else(|| panic!("missing BAM tool manifest for {tool_id}"));
+        let documented_stages = documented
+            .get(*tool_id)
+            .unwrap_or_else(|| panic!("missing BAM references row for {tool_id}"));
+        if documented_stages != expected_stages {
+            offenders.push(format!(
+                "{tool_id}: expected {:?}, found {:?}",
+                expected_stages, documented_stages
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "BAM reference applicability drift for {label}:\n{}",
         offenders.join("\n")
     );
 }
@@ -340,5 +415,21 @@ fn policy__contracts__bam_science_docs_policy__tools_roster_matches_damage_and_i
             "bam.kinship",
         ],
         "damage and inference stages",
+    );
+}
+
+#[test]
+fn policy__contracts__bam_science_docs_policy__references_cover_alignment_and_filter_tools() {
+    assert_bam_reference_rows_match(
+        &[
+            "bwa",
+            "bowtie2",
+            "samtools",
+            "bedtools",
+            "bamtools",
+            "mosdepth",
+            "picard",
+        ],
+        "alignment and filtering tools",
     );
 }
