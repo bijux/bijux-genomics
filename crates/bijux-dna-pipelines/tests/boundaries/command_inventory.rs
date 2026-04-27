@@ -12,10 +12,7 @@ fn command_inventory_documents_no_runtime_commands() {
         content.contains("This crate owns no runtime CLI commands."),
         "COMMANDS.md must make the command ownership boundary explicit"
     );
-    assert!(
-        content.contains("None."),
-        "COMMANDS.md must list the managed command set as empty"
-    );
+    assert!(content.contains("None."), "COMMANDS.md must list the managed command set as empty");
     assert!(
         !root.join("src").join("bin").exists(),
         "bijux-dna-pipelines must remain a library crate without src/bin command entrypoints"
