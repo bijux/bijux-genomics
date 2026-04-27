@@ -115,3 +115,24 @@ fn policy__contracts__science_boundary_docs_policy__container_license_readme_lin
         "containers/licenses/README.md must link the governed container license-review surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_root_readme_links_governed_entrypoints_exactly(
+) {
+    let expected = BTreeSet::from([
+        "index.md".to_string(),
+        "docs/index.md".to_string(),
+        "docs/TOOL_LIFECYCLE.md".to_string(),
+        "docs/VERSION_AUTHORITY.md".to_string(),
+        "docs/SCIENCE_EVIDENCE_BOUNDARY.md".to_string(),
+        "licenses/README.md".to_string(),
+        "docs/GHCR_PUBLISH.md".to_string(),
+        "docs/SMOKE_CONTRACT.md".to_string(),
+        "docs/PROMOTION_POLICY.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/README.md");
+    assert_eq!(
+        expected, documented,
+        "containers/README.md must link the governed container entrypoints exactly"
+    );
+}
