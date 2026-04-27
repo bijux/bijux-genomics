@@ -102,6 +102,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         validate_rrna_report_paired_mode(args.r2.is_some(), &report)?;
         validate_rrna_report_paths(&tool_plan.plan, &report)?;
         validate_rrna_report_counts(&setup, &report)?;
+        validate_rrna_report_fraction(&report)?;
         write_rrna_report(&report)?;
         let metrics = rrna_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -569,6 +570,18 @@ fn validate_rrna_removed_count(label: &str, input: u64, output: u64, removed: u6
     if removed != expected {
         return Err(anyhow!(
             "rrna depletion report removed {label} mismatch: expected {expected}, observed {removed}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_rrna_report_fraction(report: &DepleteRrnaReportV1) -> Result<()> {
+    let expected = ratio_u64(report.reads_removed, report.reads_in);
+    if (report.rrna_fraction_removed - expected).abs() > f64::EPSILON {
+        return Err(anyhow!(
+            "rrna depletion report fraction mismatch: expected {}, observed {}",
+            expected,
+            report.rrna_fraction_removed
         ));
     }
     Ok(())
