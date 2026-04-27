@@ -334,15 +334,7 @@ fn build_detect_record(
 
     write_detect_adapters_artifacts(&inputs.tool_plan.plan.out_dir, &report, &metric_set)?;
 
-    let context = build_benchmark_context(
-        &inputs.tool_plan.tool,
-        inputs.tool_plan.tool_spec.tool_version.clone(),
-        inputs.tool_plan.image_digest.clone(),
-        inputs.bench_inputs.runner,
-        inputs.platform,
-        inputs.input_hash.to_string(),
-        inputs.tool_plan.plan.params.clone(),
-    );
+    let context = build_detect_adapters_context(inputs);
     let record = BenchmarkRecord {
         context,
         execution: ExecutionMetrics {
@@ -383,6 +375,20 @@ fn write_detect_adapters_artifacts(
     let metrics_json = serde_json::to_value(metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write adapter metrics")
+}
+
+fn build_detect_adapters_context(
+    inputs: &DetectRecordInputs<'_>,
+) -> bijux_dna_analyze::BenchmarkContext {
+    build_benchmark_context(
+        &inputs.tool_plan.tool,
+        inputs.tool_plan.tool_spec.tool_version.clone(),
+        inputs.tool_plan.image_digest.clone(),
+        inputs.bench_inputs.runner,
+        inputs.platform,
+        inputs.input_hash.to_string(),
+        inputs.tool_plan.plan.params.clone(),
+    )
 }
 
 fn build_detect_report(
