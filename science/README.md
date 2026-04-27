@@ -21,11 +21,17 @@
 
 The first implemented slice is the FASTQ environment and container support surface:
 
-- which repo files are authoritative for admitted FASTQ stage tools
-- which tool is the governed default for each FASTQ stage
-- which planned tools remain outside the closed runtime surface
-- which container and runtime references back each admitted tool
-- which upstream source packets and paper roots back each reviewed FASTQ tool
+- [domain/fastq/execution_support.yaml](../domain/fastq/execution_support.yaml)
+  records the admitted FASTQ stage-tool surface.
+- [FASTQ_CONTAINER_DEFAULT_MATRIX.tsv](docs/upstream/fastq/container/FASTQ_CONTAINER_DEFAULT_MATRIX.tsv)
+  materializes the governed default tool for each admitted FASTQ stage.
+- [PLANNED_RUNTIME_BLOCKERS.tsv](docs/upstream/fastq/PLANNED_RUNTIME_BLOCKERS.tsv)
+  tracks planned tools that remain outside the closed runtime surface.
+- [FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv](docs/upstream/fastq/container/FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv)
+  rolls up the container and runtime references that back each admitted default.
+- [EVIDENCE_MAP.tsv](docs/upstream/fastq/tools/EVIDENCE_MAP.tsv) and
+  [TOOL_PAPER_MAP.tsv](docs/upstream/papers/TOOL_PAPER_MAP.tsv) track the
+  upstream source packets and paper roots behind reviewed FASTQ tools.
 
 This control surface does not replace FASTQ domain manifests such as
 [domain/fastq/execution_support.yaml](../domain/fastq/execution_support.yaml),

@@ -209,3 +209,28 @@ fn policy__contracts__science_authored_specs_policy__science_root_links_adjacent
         "science/README.md must link the adjacent repo surfaces it complements exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_authored_specs_policy__science_root_links_fastq_operator_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../domain/fastq/execution_support.yaml".to_string(),
+        "docs/upstream/fastq/container/FASTQ_CONTAINER_DEFAULT_MATRIX.tsv".to_string(),
+        "docs/upstream/fastq/PLANNED_RUNTIME_BLOCKERS.tsv".to_string(),
+        "docs/upstream/fastq/container/FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv".to_string(),
+        "docs/upstream/fastq/tools/EVIDENCE_MAP.tsv".to_string(),
+        "docs/upstream/papers/TOOL_PAPER_MAP.tsv".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/README.md")
+        .into_iter()
+        .filter(|target| {
+            target == "../domain/fastq/execution_support.yaml"
+                || target.starts_with("docs/upstream/fastq/")
+                || target == "docs/upstream/papers/TOOL_PAPER_MAP.tsv"
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "science/README.md must link the FASTQ operator surfaces exactly"
+    );
+}
