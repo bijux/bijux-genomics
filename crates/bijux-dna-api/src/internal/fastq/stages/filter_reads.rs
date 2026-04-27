@@ -505,9 +505,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
         output_stats_r1: &output_stats_r1,
         execution,
     });
-    let metrics = filter_metrics_from_report(&report, &bench_inputs.input_stats, &output_stats_r1);
-    let metric_set = metric_set(metrics.clone());
-    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    let metric_set = build_filter_metric_set(&report, &bench_inputs.input_stats, &output_stats_r1)?;
     write_filter_artifacts(out_dir, &report_path, &report, &metric_set)?;
 
     let context = build_benchmark_context(
@@ -604,6 +602,17 @@ fn write_filter_artifacts(
     let metrics_json = serde_json::to_value(metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write filter metrics")
+}
+
+fn build_filter_metric_set(
+    report: &FilterReadsReportV1,
+    input_stats_r1: &SeqkitMetrics,
+    output_stats_r1: &SeqkitMetrics,
+) -> Result<MetricSet<FastqFilterMetrics>> {
+    let metrics = filter_metrics_from_report(report, input_stats_r1, output_stats_r1);
+    let metric_set = metric_set(metrics.clone());
+    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    Ok(metric_set)
 }
 
 fn filter_metrics_from_report(
