@@ -289,11 +289,16 @@ fn policy__contracts__science_archive_docs_policy__paper_download_backlog_pdf_fo
 
 #[test]
 fn policy__contracts__science_archive_docs_policy__github_repo_archive_readme_links_manifest() {
-    let expected = BTreeSet::from(["MANIFEST.tsv".to_string()]);
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "MANIFEST.tsv".to_string(),
+        "mirrors/<owner>/<repo>.git".to_string(),
+        "archives/<owner>--<repo>.tar.gz".to_string(),
+    ]);
     let documented = markdown_link_targets("science/docs/upstream/github-repos/README.md");
     assert_eq!(
         expected, documented,
-        "science/docs/upstream/github-repos/README.md must link the governed repository manifest exactly"
+        "science/docs/upstream/github-repos/README.md must link the governed repository-archive contracts exactly"
     );
 }
 
