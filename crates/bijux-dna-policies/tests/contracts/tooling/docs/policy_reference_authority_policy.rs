@@ -184,3 +184,18 @@ fn policy__contracts__policy_reference_authority_policy__design_authority_links_
         "docs/50-reference/DESIGN_AUTHORITY.md must link the governed design authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__policies_explained_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "POLICY_INDEX.md".to_string(),
+        "POLICY_MATRIX.md".to_string(),
+        "FAILURE_PLAYBOOKS.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/40-policies/POLICIES_EXPLAINED.md");
+    assert_eq!(
+        expected, documented,
+        "docs/40-policies/POLICIES_EXPLAINED.md must link the governed policy-explainer authorities exactly"
+    );
+}
