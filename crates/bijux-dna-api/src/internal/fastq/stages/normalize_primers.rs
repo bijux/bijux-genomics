@@ -102,65 +102,16 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             &outputs,
         )?;
         let measurements = project_normalize_primers_measurements(&setup, &observation);
-        let report = NormalizePrimersReportV1 {
-            schema_version: NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION.to_string(),
-            stage: STAGE_ID.to_string(),
-            stage_id: STAGE_ID.to_string(),
-            tool_id: tool.clone(),
-            paired_mode: PairedMode::from_has_r2(args.r2.is_some()),
-            primer_set_id: setup.primer_governance.primer_set_id.clone(),
-            marker_id: Some(setup.primer_governance.marker_id.clone()),
-            primer_fasta: Some(setup.primer_governance.primer_fasta.display().to_string()),
-            orientation_policy: tool_plan
-                .plan
-                .effective_params
-                .get("orientation_policy")
-                .and_then(serde_json::Value::as_str)
-                .unwrap_or("normalize_to_forward_primer")
-                .to_string(),
-            max_mismatch_rate: tool_plan
-                .plan
-                .effective_params
-                .get("max_mismatch_rate")
-                .and_then(serde_json::Value::as_f64)
-                .unwrap_or(0.10),
-            min_overlap_bp: tool_plan
-                .plan
-                .effective_params
-                .get("min_overlap_bp")
-                .and_then(serde_json::Value::as_u64)
-                .and_then(|value| u32::try_from(value).ok())
-                .unwrap_or(10),
-            input_r1: args.r1.display().to_string(),
-            input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
-            output_r1: outputs.output_r1.display().to_string(),
-            output_r2: outputs.output_r2.as_ref().map(|path| path.display().to_string()),
-            reads_in: Some(measurements.reads_in_total),
-            reads_out: Some(measurements.reads_out_total),
-            bases_in: Some(measurements.bases_in),
-            bases_out: Some(measurements.bases_out),
-            pairs_in: measurements.pairs_in,
-            pairs_out: measurements.pairs_out,
-            primer_trimmed_reads: measurements.primer_trimmed_reads,
-            primer_trimmed_fraction: measurements.primer_trimmed_fraction,
-            orientation_forward_fraction: measurements.orientation_forward_fraction,
-            primer_orientation_report: outputs.orientation_report.display().to_string(),
-            primer_stats_json: outputs.primer_stats_json.display().to_string(),
-            raw_backend_report: Some(outputs.primer_stats_json.display().to_string()),
-            raw_backend_report_format: match tool.as_str() {
-                "cutadapt" => Some("cutadapt_json".to_string()),
-                "seqkit" => Some("seqkit_grep".to_string()),
-                _ => None,
-            },
-            runtime_s: Some(tool_execution.result.runtime_s),
-            memory_mb: Some(tool_execution.result.memory_mb),
-            used_fallback: observation
-                .payload
-                .get("used_fallback")
-                .and_then(serde_json::Value::as_bool)
-                .unwrap_or(false),
-            backend_metrics: Some(observation.payload.clone()),
-        };
+        let report = build_normalize_primers_report(&NormalizePrimersReportInputs {
+            args,
+            setup: &setup,
+            tool,
+            tool_plan: &tool_plan,
+            outputs: &outputs,
+            observation: &observation,
+            measurements: &measurements,
+            tool_execution: &tool_execution,
+        });
         let metrics = FastqNormalizePrimersMetrics {
             reads_in: measurements.reads_in_total,
             reads_out: measurements.reads_out_total,
@@ -253,6 +204,17 @@ struct NormalizePrimersMeasurements {
     primer_trimmed_fraction: Option<f64>,
     orientation_forward_fraction: Option<f64>,
     primer_trimmed_reads: Option<u64>,
+}
+
+struct NormalizePrimersReportInputs<'a> {
+    args: &'a bijux_dna_planner_fastq::stage_api::args::BenchFastqNormalizePrimersArgs,
+    setup: &'a NormalizePrimersBenchmarkSetup,
+    tool: &'a str,
+    tool_plan: &'a NormalizePrimersToolPlan,
+    outputs: &'a NormalizePrimersOutputs,
+    observation: &'a NormalizePrimersObservation,
+    measurements: &'a NormalizePrimersMeasurements,
+    tool_execution: &'a NormalizePrimersToolExecution,
 }
 
 struct NormalizePrimersCacheIdentity<'a> {
@@ -496,6 +458,74 @@ fn project_normalize_primers_measurements(
         primer_trimmed_fraction,
         orientation_forward_fraction,
         primer_trimmed_reads,
+    }
+}
+
+fn build_normalize_primers_report(
+    inputs: &NormalizePrimersReportInputs<'_>,
+) -> NormalizePrimersReportV1 {
+    NormalizePrimersReportV1 {
+        schema_version: NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_ID.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        tool_id: inputs.tool.to_string(),
+        paired_mode: PairedMode::from_has_r2(inputs.args.r2.is_some()),
+        primer_set_id: inputs.setup.primer_governance.primer_set_id.clone(),
+        marker_id: Some(inputs.setup.primer_governance.marker_id.clone()),
+        primer_fasta: Some(inputs.setup.primer_governance.primer_fasta.display().to_string()),
+        orientation_policy: inputs
+            .tool_plan
+            .plan
+            .effective_params
+            .get("orientation_policy")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or("normalize_to_forward_primer")
+            .to_string(),
+        max_mismatch_rate: inputs
+            .tool_plan
+            .plan
+            .effective_params
+            .get("max_mismatch_rate")
+            .and_then(serde_json::Value::as_f64)
+            .unwrap_or(0.10),
+        min_overlap_bp: inputs
+            .tool_plan
+            .plan
+            .effective_params
+            .get("min_overlap_bp")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|value| u32::try_from(value).ok())
+            .unwrap_or(10),
+        input_r1: inputs.args.r1.display().to_string(),
+        input_r2: inputs.args.r2.as_ref().map(|path| path.display().to_string()),
+        output_r1: inputs.outputs.output_r1.display().to_string(),
+        output_r2: inputs.outputs.output_r2.as_ref().map(|path| path.display().to_string()),
+        reads_in: Some(inputs.measurements.reads_in_total),
+        reads_out: Some(inputs.measurements.reads_out_total),
+        bases_in: Some(inputs.measurements.bases_in),
+        bases_out: Some(inputs.measurements.bases_out),
+        pairs_in: inputs.measurements.pairs_in,
+        pairs_out: inputs.measurements.pairs_out,
+        primer_trimmed_reads: inputs.measurements.primer_trimmed_reads,
+        primer_trimmed_fraction: inputs.measurements.primer_trimmed_fraction,
+        orientation_forward_fraction: inputs.measurements.orientation_forward_fraction,
+        primer_orientation_report: inputs.outputs.orientation_report.display().to_string(),
+        primer_stats_json: inputs.outputs.primer_stats_json.display().to_string(),
+        raw_backend_report: Some(inputs.outputs.primer_stats_json.display().to_string()),
+        raw_backend_report_format: match inputs.tool {
+            "cutadapt" => Some("cutadapt_json".to_string()),
+            "seqkit" => Some("seqkit_grep".to_string()),
+            _ => None,
+        },
+        runtime_s: Some(inputs.tool_execution.result.runtime_s),
+        memory_mb: Some(inputs.tool_execution.result.memory_mb),
+        used_fallback: inputs
+            .observation
+            .payload
+            .get("used_fallback")
+            .and_then(serde_json::Value::as_bool)
+            .unwrap_or(false),
+        backend_metrics: Some(inputs.observation.payload.clone()),
     }
 }
 
