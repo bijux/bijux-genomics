@@ -24,6 +24,21 @@ fn markdown_link_targets(path: &str) -> BTreeSet<String> {
     targets
 }
 
+fn directory_file_names(path: &str) -> BTreeSet<String> {
+    let root = support::workspace_root();
+    fs::read_dir(root.join(path))
+        .unwrap_or_else(|err| panic!("read {path}: {err}"))
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.is_file())
+        .filter_map(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .map(str::to_string)
+        })
+        .collect()
+}
+
 #[test]
 fn policy__contracts__science_generated_docs_policy__generated_root_readme_links_governed_subsurfaces_exactly(
 ) {
@@ -65,6 +80,14 @@ fn policy__contracts__science_generated_docs_policy__generated_evidence_readme_l
         "binding_resolution.tsv".to_string(),
         "claim_evidence_map.tsv".to_string(),
         "decision_reasoning_map.tsv".to_string(),
+        "fastq_closure_gate.tsv".to_string(),
+        "fastq_container_reference_matrix.tsv".to_string(),
+        "fastq_default_binding_risk_ledger.tsv".to_string(),
+        "fastq_download_backlog.tsv".to_string(),
+        "fastq_missing_closure_prerequisites.tsv".to_string(),
+        "fastq_paper_archive_matrix.tsv".to_string(),
+        "fastq_stage_tool_environment_matrix.tsv".to_string(),
+        "fastq_truth_delta.tsv".to_string(),
         "source_inventory.tsv".to_string(),
         "source_archive_gaps.tsv".to_string(),
         "unresolved_refs.json".to_string(),
@@ -73,5 +96,22 @@ fn policy__contracts__science_generated_docs_policy__generated_evidence_readme_l
     assert_eq!(
         expected, documented,
         "science/generated/current/evidence/README.md must link the governed traceability and source ledgers exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__science_generated_docs_policy__generated_evidence_readme_lists_all_emitted_ledgers_exactly(
+) {
+    let expected = directory_file_names("science/generated/current/evidence")
+        .into_iter()
+        .filter(|name| name != "README.md")
+        .collect::<BTreeSet<_>>();
+    let documented = markdown_link_targets("science/generated/current/evidence/README.md")
+        .into_iter()
+        .filter(|target| !target.contains('/'))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "science/generated/current/evidence/README.md must inventory every emitted ledger in science/generated/current/evidence/"
     );
 }
