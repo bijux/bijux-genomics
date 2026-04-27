@@ -14,7 +14,7 @@ fn policy__boundaries__ignored_tests_policy__ignored_tests_documented() {
         }
         for entry in WalkDir::new(&tests_root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_file())
             .filter(|entry| entry.path().extension().and_then(|e| e.to_str()) == Some("rs"))
         {

@@ -29,7 +29,7 @@ const DIR_BANS: &[&str] = &["helpers", "util", "utils", "misc"];
 fn policy__boundaries__no_helpers_policy__ban_helpers_and_utils_names() {
     let mut offenders = Vec::new();
     for crate_root in support::crate_roots() {
-        for entry in WalkDir::new(crate_root).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(crate_root).into_iter().filter_map(Result::ok) {
             let name = entry.file_name().to_string_lossy();
             if entry.file_type().is_file() && FILE_BANS.contains(&name.as_ref()) {
                 let path_str = entry.path().to_string_lossy();

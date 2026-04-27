@@ -4,6 +4,20 @@ mod support;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
+use std::path::PathBuf;
+
+fn workspace_file(path: &str) -> String {
+    let root = support::workspace_root();
+    fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"))
+}
+
+fn workspace_dir_paths(path: &str) -> Vec<PathBuf> {
+    let root = support::workspace_root();
+    fs::read_dir(root.join(path))
+        .unwrap_or_else(|err| panic!("read {path}: {err}"))
+        .map(|entry| entry.unwrap_or_else(|err| panic!("read {path} entry: {err}")).path())
+        .collect()
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct VcfStageDocSpec {
@@ -12,9 +26,7 @@ struct VcfStageDocSpec {
 }
 
 fn markdown_link_targets(path: &str) -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     let mut targets = BTreeSet::new();
     for line in raw.lines() {
         let trimmed = line.trim();
@@ -31,9 +43,7 @@ fn markdown_link_targets(path: &str) -> BTreeSet<String> {
 }
 
 fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     let mut rows = Vec::new();
     let mut in_table = false;
     for line in raw.lines() {
@@ -65,9 +75,7 @@ fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
 }
 
 fn markdown_table_rows_all(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     let mut rows = Vec::new();
     let mut in_table = false;
     for line in raw.lines() {
@@ -115,10 +123,8 @@ fn vcf_doc_stage_mentions(path: &str) -> BTreeSet<String> {
 }
 
 fn vcf_tool_stage_specs() -> BTreeMap<String, BTreeSet<String>> {
-    let root = support::workspace_root();
     let mut specs = BTreeMap::new();
-    for entry in fs::read_dir(root.join("domain/vcf/tools")).expect("read vcf tools") {
-        let path = entry.expect("tool entry").path();
+    for path in workspace_dir_paths("domain/vcf/tools") {
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
             continue;
         }
@@ -127,11 +133,10 @@ fn vcf_tool_stage_specs() -> BTreeMap<String, BTreeSet<String>> {
         }
         let raw = fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read VCF tool manifest {}: {err}", path.display()));
-        let tool_id = raw
-            .lines()
-            .find_map(|line| line.strip_prefix("tool_id: "))
-            .map(|value| value.trim_matches('"').to_string())
-            .unwrap_or_else(|| panic!("missing tool_id in {}", path.display()));
+        let tool_id = raw.lines().find_map(|line| line.strip_prefix("tool_id: ")).map_or_else(
+            || panic!("missing tool_id in {}", path.display()),
+            |value| value.trim_matches('"').to_string(),
+        );
         let mut stage_ids = BTreeSet::new();
         let mut in_stage_ids = false;
         for line in raw.lines() {
@@ -163,11 +168,8 @@ fn vcf_tool_stage_specs() -> BTreeMap<String, BTreeSet<String>> {
 }
 
 fn vcf_science_doc_targets() -> BTreeSet<String> {
-    let root = support::workspace_root();
-    fs::read_dir(root.join("docs/20-science/vcf"))
-        .expect("read docs/20-science/vcf")
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
+    workspace_dir_paths("docs/20-science/vcf")
+        .into_iter()
         .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("md"))
         .filter(|path| path.file_name().and_then(|name| name.to_str()) != Some("index.md"))
         .map(|path| {
@@ -180,10 +182,8 @@ fn vcf_science_doc_targets() -> BTreeSet<String> {
 }
 
 fn vcf_stage_specs() -> BTreeMap<String, VcfStageDocSpec> {
-    let root = support::workspace_root();
     let mut specs = BTreeMap::new();
-    for entry in fs::read_dir(root.join("domain/vcf/stages")).expect("read vcf stages") {
-        let path = entry.expect("stage entry").path();
+    for path in workspace_dir_paths("domain/vcf/stages") {
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
             continue;
         }
@@ -192,16 +192,14 @@ fn vcf_stage_specs() -> BTreeMap<String, VcfStageDocSpec> {
         }
         let raw = fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read VCF stage manifest {}: {err}", path.display()));
-        let stage_id = raw
-            .lines()
-            .find_map(|line| line.strip_prefix("stage_id: "))
-            .map(|value| value.trim_matches('"').to_string())
-            .unwrap_or_else(|| panic!("missing stage_id in {}", path.display()));
-        let status = raw
-            .lines()
-            .find_map(|line| line.strip_prefix("status: "))
-            .map(|value| value.trim_matches('"').to_string())
-            .unwrap_or_else(|| panic!("missing status in {}", path.display()));
+        let stage_id = raw.lines().find_map(|line| line.strip_prefix("stage_id: ")).map_or_else(
+            || panic!("missing stage_id in {}", path.display()),
+            |value| value.trim_matches('"').to_string(),
+        );
+        let status = raw.lines().find_map(|line| line.strip_prefix("status: ")).map_or_else(
+            || panic!("missing status in {}", path.display()),
+            |value| value.trim_matches('"').to_string(),
+        );
         let mut compatible_tools = BTreeSet::new();
         let mut in_tools = false;
         for line in raw.lines() {
@@ -233,9 +231,7 @@ fn vcf_stage_specs() -> BTreeMap<String, VcfStageDocSpec> {
 }
 
 fn vcf_index_active_defaults() -> BTreeMap<String, String> {
-    let root = support::workspace_root();
-    let raw = fs::read_to_string(root.join("domain/vcf/index.yaml"))
-        .expect("read domain/vcf/index.yaml");
+    let raw = workspace_file("domain/vcf/index.yaml");
     let mut defaults = BTreeMap::new();
     let mut in_defaults = false;
 
@@ -262,9 +258,7 @@ fn vcf_index_active_defaults() -> BTreeMap<String, String> {
 }
 
 fn vcf_stage_catalog_ids() -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw = fs::read_to_string(root.join("docs/20-science/vcf/STAGE_CATALOG.md"))
-        .expect("read docs/20-science/vcf/STAGE_CATALOG.md");
+    let raw = workspace_file("docs/20-science/vcf/STAGE_CATALOG.md");
     raw.lines()
         .filter_map(|line| {
             let trimmed = line.trim();
@@ -296,21 +290,13 @@ fn vcf_tools_roster_rows() -> BTreeMap<String, VcfStageDocSpec> {
                     .map(ToOwned::to_owned)
                     .collect()
             };
-            (
-                stage_id,
-                VcfStageDocSpec {
-                    status: row[1].to_string(),
-                    compatible_tools,
-                },
-            )
+            (stage_id, VcfStageDocSpec { status: row[1].to_string(), compatible_tools })
         })
         .collect()
 }
 
 fn vcf_default_settings_rows() -> BTreeMap<String, String> {
-    let root = support::workspace_root();
-    let raw = fs::read_to_string(root.join("domain/vcf/docs/DEFAULT_SETTINGS.md"))
-        .expect("read domain/vcf/docs/DEFAULT_SETTINGS.md");
+    let raw = workspace_file("domain/vcf/docs/DEFAULT_SETTINGS.md");
     raw.lines()
         .filter_map(|line| {
             let trimmed = line.trim();
@@ -351,17 +337,12 @@ fn assert_vcf_tools_roster_matches(stage_ids: &[&str], label: &str) {
             .compatible_tools;
         if documented_tools != expected_tools {
             offenders.push(format!(
-                "{stage_id}: expected {:?}, found {:?}",
-                expected_tools, documented_tools
+                "{stage_id}: expected {expected_tools:?}, found {documented_tools:?}"
             ));
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "VCF tools roster drift for {label}:\n{}",
-        offenders.join("\n")
-    );
+    assert!(offenders.is_empty(), "VCF tools roster drift for {label}:\n{}", offenders.join("\n"));
 }
 
 fn vcf_reference_stage_rows() -> BTreeMap<String, BTreeSet<String>> {
@@ -391,8 +372,7 @@ fn assert_vcf_reference_rows_match(tool_ids: &[&str], label: &str) {
             .unwrap_or_else(|| panic!("missing VCF references row for {tool_id}"));
         if documented_stages != expected_stages {
             offenders.push(format!(
-                "{tool_id}: expected {:?}, found {:?}",
-                expected_stages, documented_stages
+                "{tool_id}: expected {expected_stages:?}, found {documented_stages:?}"
             ));
         }
     }
@@ -418,10 +398,7 @@ fn policy__contracts__vcf_science_docs_policy__index_covers_vcf_science_docs_exa
 fn policy__contracts__vcf_science_docs_policy__stage_catalog_covers_supported_stage_catalog() {
     let expected = vcf_stage_specs().into_keys().collect::<BTreeSet<_>>();
     let documented = vcf_stage_catalog_ids();
-    assert_eq!(
-        expected, documented,
-        "VCF stage catalog must cover the VCF stage manifest exactly"
-    );
+    assert_eq!(expected, documented, "VCF stage catalog must cover the VCF stage manifest exactly");
 }
 
 #[test]
@@ -437,8 +414,9 @@ fn policy__contracts__vcf_science_docs_policy__tools_roster_covers_stage_catalog
 
     let mut offenders = Vec::new();
     for (stage_id, expected_spec) in expected {
-        let documented_spec =
-            documented.get(&stage_id).unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"));
+        let documented_spec = documented
+            .get(&stage_id)
+            .unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"));
         if documented_spec.status != expected_spec.status {
             offenders.push(format!(
                 "{stage_id}: expected status {}, found {}",
@@ -447,11 +425,7 @@ fn policy__contracts__vcf_science_docs_policy__tools_roster_covers_stage_catalog
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "VCF tools roster status drift:\n{}",
-        offenders.join("\n")
-    );
+    assert!(offenders.is_empty(), "VCF tools roster status drift:\n{}", offenders.join("\n"));
 }
 
 #[test]
@@ -559,8 +533,8 @@ fn policy__contracts__vcf_science_docs_policy__demography_doc_covers_demography_
 }
 
 #[test]
-fn policy__contracts__vcf_science_docs_policy__imputation_scope_doc_covers_imputation_stage_family(
-) {
+fn policy__contracts__vcf_science_docs_policy__imputation_scope_doc_covers_imputation_stage_family()
+{
     let expected = BTreeSet::from([
         "vcf.prepare_reference_panel".to_string(),
         "vcf.phasing".to_string(),
@@ -593,7 +567,8 @@ fn policy__contracts__vcf_science_docs_policy__imputation_methods_doc_covers_exe
 }
 
 #[test]
-fn policy__contracts__vcf_science_docs_policy__reference_governance_doc_covers_panel_bound_family() {
+fn policy__contracts__vcf_science_docs_policy__reference_governance_doc_covers_panel_bound_family()
+{
     let expected = BTreeSet::from([
         "vcf.prepare_reference_panel".to_string(),
         "vcf.phasing".to_string(),
@@ -677,11 +652,7 @@ fn policy__contracts__vcf_science_docs_policy__default_settings_use_admitted_too
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "VCF default-settings drift:\n{}",
-        offenders.join("\n")
-    );
+    assert!(offenders.is_empty(), "VCF default-settings drift:\n{}", offenders.join("\n"));
 }
 
 #[test]
@@ -708,9 +679,5 @@ fn policy__contracts__vcf_science_docs_policy__domain_stage_taxonomy_covers_vcf_
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "VCF stage taxonomy status drift:\n{}",
-        offenders.join("\n")
-    );
+    assert!(offenders.is_empty(), "VCF stage taxonomy status drift:\n{}", offenders.join("\n"));
 }

@@ -121,10 +121,7 @@ fn fastq_paper_archive_matrix() -> Vec<Vec<String>> {
 }
 
 fn source_ids(path: &str) -> BTreeSet<String> {
-    tsv_records(path)
-        .into_iter()
-        .filter_map(|row| row.first().cloned())
-        .collect()
+    tsv_records(path).into_iter().filter_map(|row| row.first().cloned()).collect()
 }
 
 #[test]
@@ -221,10 +218,7 @@ fn policy__contracts__science_archive_docs_policy__paper_download_backlog_curren
             } else {
                 "PDF archived"
             };
-            format!(
-                "{}|{}|{}|{}|{}",
-                row[1], row[0], local_status, row[5], row[6]
-            )
+            format!("{}|{}|{}|{}|{}", row[1], row[0], local_status, row[5], row[6])
         })
         .collect::<BTreeSet<_>>();
     let documented = markdown_table_rows("science/docs/upstream/papers/TODO_DOWNLOAD.md", "| Tool | Paper ID | Local Status | Access | Primary Locator |")
@@ -466,8 +460,7 @@ fn policy__contracts__science_archive_docs_policy__fastq_tool_evidence_map_conte
         .find(|row| row[1] == "fastq_screen")
         .expect("science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv must keep the fastq_screen contextual packet");
     assert_eq!(
-        fastq_screen_row[3],
-        "science/docs/upstream/papers/paper.fastq.fastq-screen.wingett-2018",
+        fastq_screen_row[3], "science/docs/upstream/papers/paper.fastq.fastq-screen.wingett-2018",
         "fastq_screen contextual packet must stay tied to the governed FastQ Screen paper root"
     );
 

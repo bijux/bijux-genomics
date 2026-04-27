@@ -392,7 +392,6 @@ fn is_excluded(path: &std::path::Path) -> bool {
         component
             .as_os_str()
             .to_str()
-            .map(|name| EXCLUDE_DIRS.contains(&name))
-            .unwrap_or(false)
+            .is_some_and(|name| EXCLUDE_DIRS.contains(&name))
     })
 }

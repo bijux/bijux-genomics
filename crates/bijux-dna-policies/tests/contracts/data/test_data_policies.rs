@@ -1,12 +1,12 @@
 #![allow(non_snake_case)]
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use walkdir::WalkDir;
 
 const MAX_TEST_DATA_BYTES: u64 = 128 * 1024;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 #[test]
@@ -30,9 +30,8 @@ fn policy__contracts__test_data_policies__large_binary_test_data_is_forbidden() 
             if !is_root_tests && !is_crate_fixture {
                 continue;
             }
-            let metadata = match std::fs::metadata(path) {
-                Ok(metadata) => metadata,
-                Err(_) => continue,
+            let Ok(metadata) = std::fs::metadata(path) else {
+                continue;
             };
             if metadata.len() > MAX_TEST_DATA_BYTES {
                 offenders.push(format!("{} ({} bytes)", path.display(), metadata.len()));

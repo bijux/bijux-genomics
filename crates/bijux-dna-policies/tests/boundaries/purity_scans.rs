@@ -5,11 +5,7 @@ use regex::Regex;
 use walkdir::WalkDir;
 
 fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("resolve repo root")
-        .to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
@@ -24,7 +20,9 @@ fn collect_rs_files(root: &Path) -> Vec<PathBuf> {
 
 fn contains_tool_id_token(content: &str, tool_id: &str) -> bool {
     let pattern = format!(r"(^|[^a-z0-9_]){}([^a-z0-9_]|$)", regex::escape(tool_id));
-    Regex::new(&pattern).expect("compile tool-id token matcher").is_match(content)
+    Regex::new(&pattern)
+        .unwrap_or_else(|err| panic!("compile tool-id token matcher `{pattern}`: {err}"))
+        .is_match(content)
 }
 
 fn strip_rust_test_modules(raw: &str) -> String {

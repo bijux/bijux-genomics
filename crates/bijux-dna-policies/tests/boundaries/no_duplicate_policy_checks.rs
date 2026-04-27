@@ -28,7 +28,7 @@ fn policy__boundaries__no_duplicate_policy_checks__no_duplicate_policy_checks() 
         }
         for entry in WalkDir::new(&tests_root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_file())
             .filter(|entry| entry.path().extension().and_then(|e| e.to_str()) == Some("rs"))
         {

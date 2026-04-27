@@ -27,7 +27,7 @@ fn markdown_link_targets(path: &str) -> BTreeSet<String> {
 fn publication_index_targets() -> BTreeSet<String> {
     let root = support::workspace_root();
     fs::read_dir(root.join("assets/publications"))
-        .expect("read assets/publications")
+        .unwrap_or_else(|err| panic!("read assets/publications: {err}"))
         .filter_map(Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.is_dir())
@@ -131,7 +131,8 @@ fn policy__contracts__root_science_docs_policy__tool_stage_citations_link_govern
 }
 
 #[test]
-fn policy__contracts__root_science_docs_policy__publication_assets_list_publication_indexes_exactly() {
+fn policy__contracts__root_science_docs_policy__publication_assets_list_publication_indexes_exactly(
+) {
     let expected = publication_index_targets();
     let documented = markdown_link_targets("docs/20-science/PUBLICATION_ASSETS.md")
         .into_iter()

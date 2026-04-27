@@ -12,10 +12,7 @@ fn policy__contracts__apptainer_purge_policy__no_purge_or_autoremove_in_defs() {
     let mut offenders = Vec::new();
 
     for entry in WalkDir::new(&root) {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(_) => continue,
-        };
+        let Ok(entry) = entry else { continue };
         let path = entry.path();
         if !entry.file_type().is_file() {
             continue;
@@ -23,9 +20,8 @@ fn policy__contracts__apptainer_purge_policy__no_purge_or_autoremove_in_defs() {
         if path.extension().and_then(|ext| ext.to_str()) != Some("def") {
             continue;
         }
-        let content = match std::fs::read_to_string(path) {
-            Ok(content) => content,
-            Err(_) => continue,
+        let Ok(content) = std::fs::read_to_string(path) else {
+            continue;
         };
         for (idx, line) in content.lines().enumerate() {
             let lowered = line.to_ascii_lowercase();

@@ -11,26 +11,26 @@ fn policy__determinism__workspace_determinism_suite__tests_layout_by_intent_is_c
     let suite_buckets = ["boundaries", "contracts", "determinism", "schemas"];
     let mut offenders = Vec::new();
 
-    for entry in std::fs::read_dir(root.join("crates")).expect("read crates") {
-        let entry = match entry {
-            Ok(e) => e,
-            Err(_) => continue,
-        };
-        let crate_dir = entry.path();
-        if !crate_dir.is_dir() {
+    let crates_dir = root.join("crates");
+    for entry in std::fs::read_dir(&crates_dir)
+        .unwrap_or_else(|err| panic!("read {}: {err}", crates_dir.display()))
+    {
+        let Ok(entry) = entry else { continue };
+        let member_dir = entry.path();
+        if !member_dir.is_dir() {
             continue;
         }
-        let tests = crate_dir.join("tests");
+        let tests = member_dir.join("tests");
         if !tests.exists() {
             continue;
         }
-        if !crate_dir.join("docs/TESTS.md").exists() {
-            offenders.push(format!("{}: missing docs/TESTS.md", crate_dir.display()));
+        if !member_dir.join("docs/TESTS.md").exists() {
+            offenders.push(format!("{}: missing docs/TESTS.md", member_dir.display()));
         }
         if tests.join("README.md").exists() {
             offenders.push(format!(
                 "{}: test taxonomy belongs in docs/TESTS.md, not tests/README.md",
-                crate_dir.display()
+                member_dir.display()
             ));
         }
         for bucket in suite_buckets {
@@ -42,7 +42,7 @@ fn policy__determinism__workspace_determinism_suite__tests_layout_by_intent_is_c
             if !entrypoint.exists() {
                 offenders.push(format!(
                     "{}: tests/{bucket}/ exists without tests/{bucket}.rs suite entrypoint",
-                    crate_dir.display()
+                    member_dir.display()
                 ));
             }
         }
@@ -86,7 +86,8 @@ fn policy__determinism__workspace_determinism_suite__policy_tests_use_repo_relat
 fn policy__determinism__workspace_determinism_suite__six_flake_snapshot_tests_remain_explicit() {
     let root = workspace_root();
     let file = root.join("crates/bijux-dna-analyze/tests/contracts/pipeline/pipeline_e2e.rs");
-    let raw = std::fs::read_to_string(&file).expect("read pipeline_e2e");
+    let raw = std::fs::read_to_string(&file)
+        .unwrap_or_else(|err| panic!("read {}: {err}", file.display()));
     let required = [
         "pipeline_fastq_to_bam_default_report_snapshot",
         "pipeline_bam_shotgun_report_snapshot",

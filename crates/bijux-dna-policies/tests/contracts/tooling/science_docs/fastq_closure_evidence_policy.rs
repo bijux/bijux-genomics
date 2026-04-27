@@ -3,6 +3,20 @@
 mod support;
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::PathBuf;
+
+fn workspace_file(path: &str) -> String {
+    let root = support::workspace_root();
+    std::fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"))
+}
+
+fn workspace_dir_paths(path: &str) -> Vec<PathBuf> {
+    let root = support::workspace_root();
+    std::fs::read_dir(root.join(path))
+        .unwrap_or_else(|err| panic!("read {path}: {err}"))
+        .map(|entry| entry.unwrap_or_else(|err| panic!("read {path} entry: {err}")).path())
+        .collect()
+}
 
 fn yaml_scalar(raw: &str, key: &str) -> Option<String> {
     raw.lines()
@@ -11,9 +25,7 @@ fn yaml_scalar(raw: &str, key: &str) -> Option<String> {
 }
 
 fn tsv_rows(path: &str) -> Vec<Vec<String>> {
-    let root = support::workspace_root();
-    let raw =
-        std::fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     raw.lines()
         .enumerate()
         .filter(|(index, line)| *index > 0 && !line.trim().is_empty())
@@ -22,9 +34,7 @@ fn tsv_rows(path: &str) -> Vec<Vec<String>> {
 }
 
 fn tsv_header(path: &str) -> Vec<String> {
-    let root = support::workspace_root();
-    let raw =
-        std::fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     raw.lines()
         .next()
         .unwrap_or_else(|| panic!("{path} must not be empty"))
@@ -51,11 +61,8 @@ fn tsv_records(path: &str) -> Vec<BTreeMap<String, String>> {
 }
 
 fn fastq_manifest_ids(dir: &str, key: &str) -> BTreeSet<String> {
-    let root = support::workspace_root();
     let mut ids = BTreeSet::new();
-    for entry in std::fs::read_dir(root.join(dir)).unwrap_or_else(|err| panic!("read {dir}: {err}"))
-    {
-        let path = entry.expect("manifest entry").path();
+    for path in workspace_dir_paths(dir) {
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml")
             || path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml")
         {
@@ -71,11 +78,9 @@ fn fastq_manifest_ids(dir: &str, key: &str) -> BTreeSet<String> {
 }
 
 fn placeholder_digest_tools() -> BTreeSet<String> {
-    let root = support::workspace_root();
     let mut tools = BTreeSet::new();
     let zero = "sha256:0000000000000000000000000000000000000000000000000000000000000000";
-    for entry in std::fs::read_dir(root.join("domain/fastq/tools")).expect("read fastq tools") {
-        let path = entry.expect("tool entry").path();
+    for path in workspace_dir_paths("domain/fastq/tools") {
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
             continue;
         }
@@ -96,10 +101,9 @@ fn placeholder_digest_tools() -> BTreeSet<String> {
 }
 
 fn production_fastq_tag_only_container_tools() -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
-        .expect("read production tool registry");
-    let parsed: toml::Value = raw.parse().expect("parse production tool registry");
+    let raw = workspace_file("configs/ci/registry/tool_registry.toml");
+    let parsed: toml::Value =
+        raw.parse().unwrap_or_else(|err| panic!("parse production tool registry: {err}"));
     parsed
         .get("tools")
         .and_then(toml::Value::as_array)
@@ -140,9 +144,7 @@ fn production_fastq_tag_only_container_tools() -> BTreeSet<String> {
 }
 
 fn execution_default_bindings() -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw = std::fs::read_to_string(root.join("domain/fastq/execution_support.yaml"))
-        .expect("read FASTQ execution support");
+    let raw = workspace_file("domain/fastq/execution_support.yaml");
     let mut bindings = BTreeSet::new();
     let mut stage_id = String::new();
     let mut default_tool = String::new();
@@ -472,8 +474,7 @@ fn policy__contracts__fastq_closure_evidence_policy__production_ledger_matches_p
     {
         let expected = planner_by_stage
             .get(&row["stage_id"])
-            .map(String::as_str)
-            .unwrap_or("missing_planner_snapshot");
+            .map_or("missing_planner_snapshot", String::as_str);
         if row["planner_digest_status"] != expected {
             offenders.push(format!(
                 "{}:{} ledger planner_digest_status={} but planner gaps report has {expected}",
@@ -512,10 +513,8 @@ fn policy__contracts__fastq_closure_evidence_policy__production_ledger_matches_p
         expected_sbom.sort();
         let expected_sbom =
             if expected_sbom.is_empty() { "ready".to_string() } else { expected_sbom.join(";") };
-        let expected_smoke = smoke_by_stage
-            .get(&row["stage_id"])
-            .map(String::as_str)
-            .unwrap_or("missing_from_snapshot");
+        let expected_smoke =
+            smoke_by_stage.get(&row["stage_id"]).map_or("missing_from_snapshot", String::as_str);
         if row["sbom_status"] != expected_sbom {
             offenders.push(format!(
                 "{}:{} ledger sbom_status={} but proof gaps report has {expected_sbom}",
@@ -549,10 +548,8 @@ fn policy__contracts__fastq_closure_evidence_policy__production_ledger_matches_l
     for row in
         tsv_records("science/docs/upstream/fastq/container/FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv")
     {
-        let expected = license_by_tool
-            .get(&row["tool_id"])
-            .map(String::as_str)
-            .unwrap_or("missing_license_file");
+        let expected =
+            license_by_tool.get(&row["tool_id"]).map_or("missing_license_file", String::as_str);
         if row["license_status"] != expected {
             offenders.push(format!(
                 "{}:{} ledger license_status={} but license gaps report has {expected}",

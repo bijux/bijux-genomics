@@ -10,7 +10,7 @@ pub fn workspace_root() -> PathBuf {
 pub fn crate_roots() -> Vec<PathBuf> {
     let root = workspace_root().join("crates");
     let mut crates = Vec::new();
-    for entry in WalkDir::new(root).max_depth(2).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(root).max_depth(2).into_iter().filter_map(Result::ok) {
         if entry.file_type().is_file() && entry.file_name() == "Cargo.toml" {
             if let Some(parent) = entry.path().parent() {
                 crates.push(parent.to_path_buf());

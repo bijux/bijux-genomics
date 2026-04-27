@@ -33,12 +33,11 @@ fn policy__contracts__smoke_probe_policy__production_tools_define_valid_probe_co
             tool.get("smoke_require_help").and_then(toml::Value::as_bool).unwrap_or(true);
 
         if version_cmd.is_empty() {
-            offenders.push(format!("tool={} missing smoke version probe", id));
+            offenders.push(format!("tool={id} missing smoke version probe"));
         }
         if require_help && help_cmd.is_empty() {
             offenders.push(format!(
-                "tool={} requires help probe but no smoke_help_cmd/help_cmd defined",
-                id
+                "tool={id} requires help probe but no smoke_help_cmd/help_cmd defined"
             ));
         }
     }

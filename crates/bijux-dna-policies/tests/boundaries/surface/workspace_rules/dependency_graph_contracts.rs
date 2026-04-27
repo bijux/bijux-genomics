@@ -422,7 +422,7 @@ fn parse_dependency_section(
     known: &BTreeSet<String>,
     section: &str,
 ) -> BTreeSet<String> {
-    let content = std::fs::read_to_string(manifest).expect("read Cargo.toml");
+    let content = bijux_dna_testkit::read_policy_text(manifest);
     let header = format!("[{section}]");
     let mut deps = BTreeSet::new();
     let mut in_section = false;

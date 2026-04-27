@@ -1,15 +1,11 @@
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap()
-        .parent()
-        .unwrap()
-        .to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn parse_workspace_members(root: &Path) -> Vec<String> {
     let manifest = root.join("Cargo.toml");
-    let content = std::fs::read_to_string(&manifest).expect("read workspace Cargo.toml");
+    let content = std::fs::read_to_string(&manifest)
+        .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
     let mut members = Vec::new();
     let mut in_members = false;
     for line in content.lines() {
@@ -37,8 +33,11 @@ fn crate_dirs() -> Vec<PathBuf> {
     let root = workspace_root();
     let crates_dir = root.join("crates");
     let mut dirs = Vec::new();
-    for entry in std::fs::read_dir(&crates_dir).expect("read crates dir") {
-        let entry = entry.expect("crate entry");
+    for entry in std::fs::read_dir(&crates_dir)
+        .unwrap_or_else(|err| panic!("read {}: {err}", crates_dir.display()))
+    {
+        let entry =
+            entry.unwrap_or_else(|err| panic!("read entry under {}: {err}", crates_dir.display()));
         let path = entry.path();
         if !path.is_dir() {
             continue;
@@ -52,14 +51,14 @@ fn crate_dirs() -> Vec<PathBuf> {
 }
 
 fn read_package_name(manifest: &Path) -> String {
-    let content = std::fs::read_to_string(manifest).expect("read Cargo.toml");
+    let content = std::fs::read_to_string(manifest)
+        .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
     for line in content.lines() {
         let line = line.trim();
         if line.starts_with("name") && line.contains('=') {
             let name = line
                 .split_once('=')
-                .map(|(_, value)| value.trim().trim_matches('"'))
-                .unwrap_or("");
+                .map_or("", |(_, value)| value.trim().trim_matches('"'));
             if !name.is_empty() {
                 return name.to_string();
             }
@@ -84,7 +83,8 @@ fn collect_workspace_crates() -> BTreeMap<String, PathBuf> {
 }
 
 fn parse_dependencies(manifest: &Path, known: &BTreeSet<String>) -> BTreeSet<String> {
-    let content = std::fs::read_to_string(manifest).expect("read Cargo.toml");
+    let content = std::fs::read_to_string(manifest)
+        .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
     let mut deps = BTreeSet::new();
     let mut in_deps = false;
     for line in content.lines() {
@@ -116,7 +116,8 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
         .join("docs")
         .join("10-architecture")
         .join("BOUNDARY_MAP.md");
-    let content = std::fs::read_to_string(&path).expect("read boundaries.md");
+    let content =
+        std::fs::read_to_string(&path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
     let mut lines = Vec::new();
     let mut in_block = false;
     for line in content.lines() {
@@ -147,7 +148,7 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
         let deps = deps
             .split_whitespace()
             .filter(|dep| !dep.is_empty())
-            .map(|dep| dep.to_string())
+            .map(std::string::ToString::to_string)
             .collect::<BTreeSet<_>>();
         map.insert(name.trim().to_string(), deps);
     }
@@ -157,10 +158,10 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
 fn rs_files_under(path: &Path) -> Vec<PathBuf> {
     WalkDir::new(path)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
-        .map(|entry| entry.into_path())
+        .map(walkdir::DirEntry::into_path)
         .collect()
 }
 
@@ -186,7 +187,8 @@ fn assert_no_domain_terms(crate_root: &Path, denylist: &[&str]) {
     let src = crate_root.join("src");
     let files = rs_files_under(&src);
     for file in files {
-        let content = std::fs::read_to_string(&file).expect("read source file");
+        let content = std::fs::read_to_string(&file)
+            .unwrap_or_else(|err| panic!("read {}: {err}", file.display()));
         let lowered = content.to_lowercase();
         for term in denylist {
             if contains_term(&lowered, term) {

@@ -5,14 +5,15 @@ mod support;
 use std::process::Command;
 
 fn normalized_json(input: &str) -> String {
-    let value: serde_json::Value = serde_json::from_str(input).expect("valid json");
-    serde_json::to_string_pretty(&value).expect("pretty json")
+    let value: serde_json::Value =
+        serde_json::from_str(input).unwrap_or_else(|err| panic!("parse manifest json: {err}"));
+    serde_json::to_string_pretty(&value)
+        .unwrap_or_else(|err| panic!("pretty-print manifest json: {err}"))
 }
 
 fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
     std::env::var_os("CARGO_TARGET_DIR")
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| root.join("artifacts/rust/target"))
+        .map_or_else(|| root.join("artifacts/rust/target"), std::path::PathBuf::from)
 }
 
 #[test]

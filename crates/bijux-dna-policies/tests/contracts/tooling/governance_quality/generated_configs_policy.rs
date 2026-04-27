@@ -37,10 +37,8 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
             .iter()
             .find(|line| line.starts_with("# GENERATED - DO NOT EDIT - source: "))
             .copied();
-        let source_commit_line = header_lines
-            .iter()
-            .find(|line| line.starts_with("# source_commit: "))
-            .copied();
+        let source_commit_line =
+            header_lines.iter().find(|line| line.starts_with("# source_commit: ")).copied();
         let domain_schema_line = header_lines
             .iter()
             .find(|line| **line == "# domain_schema_version: bijux.domain.v1")

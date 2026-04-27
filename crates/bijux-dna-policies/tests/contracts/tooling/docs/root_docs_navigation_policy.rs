@@ -183,8 +183,7 @@ fn policy__contracts__root_docs_navigation_policy__architecture_overview_links_g
     let expected = BTreeSet::from([
         "../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs"
             .to_string(),
-        "../../crates/bijux-dna-policies/tests/contracts/data/contract_handshake.rs"
-            .to_string(),
+        "../../crates/bijux-dna-policies/tests/contracts/data/contract_handshake.rs".to_string(),
         "BOUNDARY_DIAGRAM.md".to_string(),
         "CONTRACT_SPINE.md".to_string(),
     ]);
@@ -250,8 +249,8 @@ fn policy__contracts__root_docs_navigation_policy__anti_patterns_links_governed_
 }
 
 #[test]
-fn policy__contracts__root_docs_navigation_policy__boundary_diagram_links_governed_surfaces_exactly()
-{
+fn policy__contracts__root_docs_navigation_policy__boundary_diagram_links_governed_surfaces_exactly(
+) {
     let expected = BTreeSet::from([
         "BOUNDARY_MAP.md".to_string(),
         "../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs"
@@ -336,8 +335,7 @@ fn policy__contracts__root_docs_navigation_policy__generated_files_contract_link
 fn policy__contracts__root_docs_navigation_policy__snapshot_golden_contract_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
-        "../../crates/bijux-dna-policies/tests/contracts/snapshots/snapshot_hygiene.rs"
-            .to_string(),
+        "../../crates/bijux-dna-policies/tests/contracts/snapshots/snapshot_hygiene.rs".to_string(),
         "../30-operations/TEST_FAILURE_TRIAGE.md".to_string(),
     ]);
     let documented = markdown_link_targets("docs/10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md");
@@ -383,7 +381,8 @@ fn policy__contracts__root_docs_navigation_policy__contract_authority_links_gove
 }
 
 #[test]
-fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed_surfaces_exactly() {
+fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed_surfaces_exactly()
+{
     let expected = BTreeSet::from([
         "../index.md".to_string(),
         "POLICY_INDEX.md".to_string(),
@@ -441,7 +440,8 @@ fn policy__contracts__root_docs_navigation_policy__operations_index_links_govern
 }
 
 #[test]
-fn policy__contracts__root_docs_navigation_policy__reference_index_links_governed_surfaces_exactly() {
+fn policy__contracts__root_docs_navigation_policy__reference_index_links_governed_surfaces_exactly()
+{
     let expected = BTreeSet::from([
         "../index.md".to_string(),
         "REFERENCE_INDEX.md".to_string(),
@@ -556,7 +556,8 @@ fn policy__contracts__root_docs_navigation_policy__crate_authority_map_links_gov
 }
 
 #[test]
-fn policy__contracts__root_docs_navigation_policy__contract_index_links_governed_surfaces_exactly() {
+fn policy__contracts__root_docs_navigation_policy__contract_index_links_governed_surfaces_exactly()
+{
     let expected = BTreeSet::from([
         "ARCHITECTURE_CONTRACT.md".to_string(),
         "CRATE_BOUNDARY_CONTRACTS.md".to_string(),

@@ -15,7 +15,8 @@ fn policy_files() -> BTreeSet<String> {
             continue;
         }
         for entry in WalkDir::new(&root) {
-            let entry = entry.expect("walk");
+            let entry =
+                entry.unwrap_or_else(|err| panic!("walk docs under {}: {err}", root.display()));
             if !entry.file_type().is_file() {
                 continue;
             }

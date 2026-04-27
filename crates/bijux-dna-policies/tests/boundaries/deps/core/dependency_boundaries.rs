@@ -2,15 +2,12 @@
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("resolve repo root")
-        .to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn parse_dependency_names(manifest: &Path) -> Vec<String> {
-    let content = std::fs::read_to_string(manifest).expect("read Cargo.toml");
+    let content = std::fs::read_to_string(manifest)
+        .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
     let mut deps = Vec::new();
     let mut in_deps = false;
     for line in content.lines() {
@@ -237,7 +234,9 @@ fn policy__boundaries__dependency_boundaries__environment_has_no_engine_or_runne
 #[test]
 fn policy__boundaries__dependency_boundaries__production_crates_do_not_depend_on_environment_qa() {
     let root = repo_root();
-    let crate_dirs = std::fs::read_dir(root.join("crates")).expect("read crates dir");
+    let crates_dir = root.join("crates");
+    let crate_dirs = std::fs::read_dir(&crates_dir)
+        .unwrap_or_else(|err| panic!("read {}: {err}", crates_dir.display()));
     let mut offenders = Vec::new();
     for entry in crate_dirs.flatten() {
         let path = entry.path().join("Cargo.toml");

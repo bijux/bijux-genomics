@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 #[test]
@@ -15,7 +15,7 @@ fn policy__contracts__makefile_policies__only_root_makefile_exists() {
     if root_makefile.exists() {
         offenders.push(root_makefile.display().to_string());
     }
-    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if entry.file_type().is_file() && entry.file_name() == "Makefile.toml" {
             offenders.push(entry.path().display().to_string());
         }

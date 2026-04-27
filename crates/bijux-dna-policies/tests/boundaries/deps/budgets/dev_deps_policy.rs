@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn crate_dirs() -> Vec<PathBuf> {
@@ -23,7 +23,8 @@ fn crate_dirs() -> Vec<PathBuf> {
 }
 
 fn parse_dev_dependencies(manifest: &Path) -> Vec<String> {
-    let content = std::fs::read_to_string(manifest).expect("read Cargo.toml");
+    let content = std::fs::read_to_string(manifest)
+        .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
     let mut deps = Vec::new();
     let mut in_dev = false;
     for line in content.lines() {

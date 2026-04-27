@@ -10,7 +10,7 @@ const EXCLUDE_DIRS: &[&str] = &[".git", "target", "artifacts", "site", "node_mod
 
 fn is_excluded(path: &std::path::Path) -> bool {
     path.components().any(|component| {
-        component.as_os_str().to_str().map(|name| EXCLUDE_DIRS.contains(&name)).unwrap_or(false)
+        component.as_os_str().to_str().is_some_and(|name| EXCLUDE_DIRS.contains(&name))
     })
 }
 
@@ -20,9 +20,8 @@ fn slow__policy__contracts__no_appledouble__no_appledouble_artifacts() {
     let mut offenders = Vec::new();
 
     for entry in WalkDir::new(&root) {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(_) => continue,
+        let Ok(entry) = entry else {
+            continue;
         };
         let path = entry.path();
         if is_excluded(path) {
@@ -31,9 +30,8 @@ fn slow__policy__contracts__no_appledouble__no_appledouble_artifacts() {
         if !entry.file_type().is_file() {
             continue;
         }
-        let name = match path.file_name().and_then(|n| n.to_str()) {
-            Some(name) => name,
-            None => continue,
+        let Some(name) = path.file_name().and_then(|n| n.to_str()) else {
+            continue;
         };
         if name.starts_with("._") {
             offenders.push(path.display().to_string());

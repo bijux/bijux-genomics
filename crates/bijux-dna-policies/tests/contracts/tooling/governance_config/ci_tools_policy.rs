@@ -1,11 +1,11 @@
 #![allow(non_snake_case)]
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 #[test]
@@ -19,7 +19,7 @@ fn policy__contracts__ci_tools_policy__workflows_use_make_only() {
         ".github/workflows/labeler.yml",
     ];
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(workflows_dir).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(workflows_dir).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -62,7 +62,7 @@ fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
     let root = workspace_root();
     let allowed = ["bijux-dna-infra", "bijux-dna-policies"];
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if entry.file_name() != "Cargo.toml" {
             continue;
         }
@@ -186,13 +186,12 @@ fn policy__contracts__ci_tools_policy__no_bijux_namespace_in_docs_or_scripts() {
         if !scan_root.exists() {
             continue;
         }
-        for entry in WalkDir::new(scan_root).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(scan_root).into_iter().filter_map(Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
-            let content = match std::fs::read_to_string(entry.path()) {
-                Ok(content) => content,
-                Err(_) => continue,
+            let Ok(content) = std::fs::read_to_string(entry.path()) else {
+                continue;
             };
             if content.contains("bijux::") {
                 offenders.push(entry.path().display().to_string());

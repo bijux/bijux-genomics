@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn is_allowed_writer_path(path: &Path) -> bool {
@@ -36,7 +36,7 @@ fn policy__boundaries__path_policies__src_bin_requires_bin_targets() {
 
     for entry in WalkDir::new(root.join("crates"))
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_dir())
     {
         if entry.file_name() != "src" {
@@ -49,7 +49,7 @@ fn policy__boundaries__path_policies__src_bin_requires_bin_targets() {
         }
         let has_bins = std::fs::read_dir(&src_bin)
             .map(|entries| {
-                entries.filter_map(|entry| entry.ok()).any(|entry| {
+                entries.filter_map(Result::ok).any(|entry| {
                     entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs")
                 })
             })
@@ -71,7 +71,7 @@ fn policy__boundaries__path_policies__src_does_not_contain_test_paths() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 
-    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() && !entry.file_type().is_dir() {
             continue;
         }
@@ -107,7 +107,7 @@ fn policy__boundaries__path_policies__run_artifacts_paths_use_runtime_helpers() 
         root.join("../../../../bijux-dna-stages-bam/src"),
     ];
     for target in targets {
-        for entry in WalkDir::new(target).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(target).into_iter().filter_map(Result::ok) {
             if !entry.file_type().is_file() {
                 continue;
             }
@@ -133,7 +133,7 @@ fn policy__boundaries__path_policies__write_locations_are_confined_to_runtime_an
     let mut offenders = Vec::new();
     let patterns = ["std::fs::OpenOptions", "std::fs::write", "File::create("];
 
-    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
@@ -166,14 +166,13 @@ fn policy__boundaries__path_policies__crates_do_not_reference_removed_fastq_test
     let needles = ["tests/data/fastq/"];
     let exts = ["rs", "toml", "md"];
 
-    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
         let path = entry.path();
-        let ext = match path.extension().and_then(|ext| ext.to_str()) {
-            Some(ext) => ext,
-            None => continue,
+        let Some(ext) = path.extension().and_then(|ext| ext.to_str()) else {
+            continue;
         };
         if !exts.contains(&ext) {
             continue;

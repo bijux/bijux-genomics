@@ -51,9 +51,8 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
         let stages_raw = std::fs::read_to_string(root.join(stages_rel))
             .unwrap_or_else(|err| panic!("read {stages_rel}: {err}"));
 
-        let tool_registry: toml::Value = tool_registry_raw
-            .parse()
-            .unwrap_or_else(|err| panic!("parse {registry_rel}: {err}"));
+        let tool_registry: toml::Value =
+            tool_registry_raw.parse().unwrap_or_else(|err| panic!("parse {registry_rel}: {err}"));
         let stages: toml::Value =
             stages_raw.parse().unwrap_or_else(|err| panic!("parse {stages_rel}: {err}"));
 
@@ -84,7 +83,8 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
                 offenders.push(format!("{registry_rel}: stage row missing id"));
                 continue;
             };
-            let status = stage_status.get(stage_id).map_or("supported", std::string::String::as_str);
+            let status =
+                stage_status.get(stage_id).map_or("supported", std::string::String::as_str);
             if status != "supported" {
                 continue;
             }

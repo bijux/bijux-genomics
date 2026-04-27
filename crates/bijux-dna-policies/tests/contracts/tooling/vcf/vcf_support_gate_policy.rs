@@ -3,7 +3,10 @@ use std::fs;
 use std::path::Path;
 
 fn repo_root() -> std::path::PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize().expect("canonical repo root")
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../..")
+        .canonicalize()
+        .unwrap_or_else(|err| panic!("canonical repo root: {err}"))
 }
 
 #[test]
@@ -50,7 +53,10 @@ fn policy__contracts__vcf_support_gate_policy__production_vcf_tools_must_be_pinn
         assert!(!pin.is_empty(), "production VCF tool {id} must be pinned");
         assert!(schema != "bijux.unknown.v1", "production VCF tool {id} cannot use unknown schema");
         assert!(!smoke_help.is_empty(), "production VCF tool {id} must define smoke_help_cmd");
-        assert!(!smoke_version.is_empty(), "production VCF tool {id} must define smoke_version_cmd");
+        assert!(
+            !smoke_version.is_empty(),
+            "production VCF tool {id} must define smoke_version_cmd"
+        );
     }
 }
 

@@ -108,8 +108,7 @@ fn apptainer_defs() -> BTreeSet<String> {
         if path.extension().and_then(|v| v.to_str()) != Some("def") {
             continue;
         }
-        let rel =
-            path.strip_prefix(&root).unwrap_or(path).to_string_lossy().replace('\\', "/");
+        let rel = path.strip_prefix(&root).unwrap_or(path).to_string_lossy().replace('\\', "/");
         defs.insert(rel);
     }
     defs

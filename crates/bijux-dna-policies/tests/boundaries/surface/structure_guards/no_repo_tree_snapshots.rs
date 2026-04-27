@@ -1,9 +1,9 @@
 #![allow(non_snake_case)]
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 #[test]

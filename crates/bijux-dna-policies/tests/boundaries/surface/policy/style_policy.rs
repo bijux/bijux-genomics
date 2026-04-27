@@ -16,7 +16,7 @@ fn policy__boundaries__style_policy__style_policy_entrypoint_lists_checks() {
     let mut missing = Vec::new();
     for check in STYLE_CHECKS {
         if !matrix.contains(check) {
-            missing.push(check.to_string());
+            missing.push((*check).to_string());
         }
     }
 

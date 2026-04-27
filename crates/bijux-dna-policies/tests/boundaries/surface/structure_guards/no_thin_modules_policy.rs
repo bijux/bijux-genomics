@@ -62,7 +62,7 @@ fn policy__boundaries__no_thin_modules_policy__no_thin_module_directories() {
         }
         for entry in WalkDir::new(&src_dir)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_dir())
         {
             let dir = entry.path();

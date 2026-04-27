@@ -27,9 +27,11 @@ fn policy__contracts__benchmark_suite_support_policy__production_benchmark_tools
         .expect("read bench suite directory")
         .filter_map(|entry| entry.ok().map(|row| row.path()))
         .filter(|path| {
-            path.file_name()
-                .and_then(|name| name.to_str())
-                .is_some_and(|name| name.ends_with(".toml"))
+            path.file_name().and_then(|name| name.to_str()).is_some_and(|name| {
+                std::path::Path::new(name)
+                    .extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("toml"))
+            })
         })
         .collect::<Vec<_>>();
 
@@ -90,7 +92,7 @@ fn policy__contracts__benchmark_suite_support_policy__production_benchmark_tools
             };
             let status =
                 tool_row.get("status").and_then(toml::Value::as_str).unwrap_or("supported");
-            if support::registry_status_is_production(&status) {
+            if support::registry_status_is_production(status) {
                 required_tools.insert(tool_id);
             }
         }
@@ -100,8 +102,7 @@ fn policy__contracts__benchmark_suite_support_policy__production_benchmark_tools
     for tool_id in &required_tools {
         if !suite_tools.contains(tool_id) {
             offenders.push(format!(
-                "production benchmark tool {} missing from bench suite crates/bijux-dna-bench/bench/suites/*.toml",
-                tool_id
+                "production benchmark tool {tool_id} missing from bench suite crates/bijux-dna-bench/bench/suites/*.toml"
             ));
         }
     }
@@ -115,8 +116,7 @@ fn policy__contracts__benchmark_suite_support_policy__production_benchmark_tools
         let help_cmd = tool_row.get("help_cmd").and_then(toml::Value::as_str).unwrap_or("").trim();
         if version_cmd.is_empty() || help_cmd.is_empty() {
             offenders.push(format!(
-                "production benchmark tool {} has smoke warning: missing version/help command",
-                tool_id
+                "production benchmark tool {tool_id} has smoke warning: missing version/help command"
             ));
         }
         if let Some(smoke_status) = tool_row.get("smoke_status").and_then(toml::Value::as_str) {
@@ -124,8 +124,7 @@ fn policy__contracts__benchmark_suite_support_policy__production_benchmark_tools
                 || smoke_status.eq_ignore_ascii_case("error")
             {
                 offenders.push(format!(
-                    "production benchmark tool {} has smoke_status={} and cannot be production-ready",
-                    tool_id, smoke_status
+                    "production benchmark tool {tool_id} has smoke_status={smoke_status} and cannot be production-ready"
                 ));
             }
         }

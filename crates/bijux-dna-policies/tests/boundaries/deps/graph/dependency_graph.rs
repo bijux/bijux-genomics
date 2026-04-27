@@ -1,17 +1,18 @@
 #![allow(non_snake_case)]
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use cargo_metadata::{DependencyKind, MetadataCommand};
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
     let root = workspace_root();
     let path = root.join("docs").join("10-architecture").join("BOUNDARY_MAP.md");
-    let content = std::fs::read_to_string(&path).expect("read BOUNDARY_MAP.md");
+    let content = std::fs::read_to_string(&path)
+        .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
     let mut lines = Vec::new();
     let mut in_block = false;
     for line in content.lines() {
@@ -42,7 +43,7 @@ fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
         let deps = deps
             .split_whitespace()
             .filter(|dep| !dep.is_empty())
-            .map(|dep| dep.to_string())
+            .map(std::string::ToString::to_string)
             .collect::<BTreeSet<_>>();
         map.insert(name.trim().to_string(), deps);
     }
@@ -120,8 +121,8 @@ fn policy__boundaries__dependency_graph__runner_has_no_engine_edge() {
     bijux_dna_policies::policy_assert!(
         !has_edge,
         "{} must not depend on {}",
-        id_to_name.get(&runner_id).map(String::as_str).unwrap_or("bijux-dna-runner"),
-        id_to_name.get(&engine_id).map(String::as_str).unwrap_or("bijux-dna-engine")
+        id_to_name.get(&runner_id).map_or("bijux-dna-runner", String::as_str),
+        id_to_name.get(&engine_id).map_or("bijux-dna-engine", String::as_str)
     );
 }
 
@@ -155,8 +156,7 @@ fn policy__boundaries__dependency_graph__engine_has_no_domain_or_planner_edges()
             .packages
             .iter()
             .find(|pkg| pkg.id == dep.pkg)
-            .map(|pkg| pkg.name.as_str())
-            .unwrap_or("");
+            .map_or("", |pkg| pkg.name.as_str());
         bijux_dna_policies::policy_assert!(
             !denylist.contains(&dep_name),
             "bijux-dna-engine must not depend on {dep_name}"

@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 #[test]
@@ -20,12 +20,9 @@ fn policy__boundaries__empty_tests_dirs__no_empty_tests_dirs() {
             let mut has_files = false;
             if let Ok(mut entries) = std::fs::read_dir(entry.path()) {
                 has_files = entries.any(|child| {
-                    child
-                        .ok()
-                        .map(|c| {
-                            c.file_type().ok().map(|t| t.is_dir() || t.is_file()).unwrap_or(false)
-                        })
-                        .unwrap_or(false)
+                    child.ok().is_some_and(|c| {
+                        c.file_type().ok().is_some_and(|t| t.is_dir() || t.is_file())
+                    })
                 });
             }
             if !has_files {

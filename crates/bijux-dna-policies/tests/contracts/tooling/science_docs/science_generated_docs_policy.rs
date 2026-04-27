@@ -31,11 +31,7 @@ fn directory_file_names(path: &str) -> BTreeSet<String> {
         .filter_map(Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.is_file())
-        .filter_map(|path| {
-            path.file_name()
-                .and_then(|name| name.to_str())
-                .map(str::to_string)
-        })
+        .filter_map(|path| path.file_name().and_then(|name| name.to_str()).map(str::to_string))
         .collect()
 }
 

@@ -128,8 +128,8 @@ fn policy__contracts__policy_reference_authority_policy__bijux_contract_links_go
 }
 
 #[test]
-fn policy__contracts__policy_reference_authority_policy__pipelines_links_governed_surfaces_exactly(
-) {
+fn policy__contracts__policy_reference_authority_policy__pipelines_links_governed_surfaces_exactly()
+{
     let expected = BTreeSet::from([
         "../20-science/SCIENTIFIC_DEFAULTS.md".to_string(),
         "../../crates/bijux-dna-core/src/id_catalog/pipeline/".to_string(),
@@ -145,10 +145,8 @@ fn policy__contracts__policy_reference_authority_policy__pipelines_links_governe
 #[test]
 fn policy__contracts__policy_reference_authority_policy__contract_versioning_links_governed_surfaces_exactly(
 ) {
-    let expected = BTreeSet::from([
-        "SCHEMAS_INDEX.md".to_string(),
-        "COMPATIBILITY_MATRIX.md".to_string(),
-    ]);
+    let expected =
+        BTreeSet::from(["SCHEMAS_INDEX.md".to_string(), "COMPATIBILITY_MATRIX.md".to_string()]);
     let documented = markdown_link_targets("docs/50-reference/CONTRACT_VERSIONING.md");
     assert_eq!(
         expected, documented,
@@ -274,8 +272,8 @@ fn policy__contracts__policy_reference_authority_policy__tests_style_links_gover
 }
 
 #[test]
-fn policy__contracts__policy_reference_authority_policy__crate_map_links_governed_surfaces_exactly(
-) {
+fn policy__contracts__policy_reference_authority_policy__crate_map_links_governed_surfaces_exactly()
+{
     let expected = BTreeSet::from([
         "../10-architecture/CRATE_AUTHORITY_MAP.md".to_string(),
         "../10-architecture/BOUNDARY_MAP.md".to_string(),

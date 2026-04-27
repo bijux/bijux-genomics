@@ -6,16 +6,16 @@ use toml::Value as TomlValue;
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn rs_files_under(path: &Path) -> Vec<PathBuf> {
     WalkDir::new(path)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| entry.path().extension().and_then(|s| s.to_str()) == Some("rs"))
-        .map(|entry| entry.into_path())
+        .map(walkdir::DirEntry::into_path)
         .collect()
 }
 
@@ -29,7 +29,7 @@ fn crate_dependencies(root: &Path, crate_name: &str) -> BTreeSet<String> {
 
     let mut collect_from = |table: Option<&TomlValue>| {
         if let Some(TomlValue::Table(entries)) = table {
-            for (name, _) in entries.iter() {
+            for (name, _) in entries {
                 deps.insert(name.to_string());
             }
         }
@@ -109,7 +109,7 @@ fn policy__contracts__policies__prelude_exports_only() {
 fn policy__contracts__policies__error_category_is_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }

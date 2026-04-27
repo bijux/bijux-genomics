@@ -5,8 +5,7 @@ fn layout_is_excluded(path: &std::path::Path) -> bool {
         component
             .as_os_str()
             .to_str()
-            .map(|name| LAYOUT_EXCLUDE_DIRS.contains(&name))
-            .unwrap_or(false)
+            .is_some_and(|name| LAYOUT_EXCLUDE_DIRS.contains(&name))
     })
 }
 
@@ -16,7 +15,7 @@ fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() {
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&root)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(Result::ok)
     {
         if layout_is_excluded(entry.path()) {
             continue;
