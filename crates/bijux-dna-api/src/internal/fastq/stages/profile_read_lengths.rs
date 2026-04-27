@@ -390,8 +390,19 @@ fn observe_read_lengths_tool(
     plan: &StagePlanV1,
 ) -> Result<ReadLengthsObservation> {
     let lengths = observe_read_lengths(args)?;
+    validate_read_lengths_observation(&lengths)?;
     let artifacts = prepare_read_lengths_artifacts(args, plan, &lengths)?;
     Ok(ReadLengthsObservation { lengths, artifacts })
+}
+
+fn validate_read_lengths_observation(lengths: &[usize]) -> Result<()> {
+    if lengths.is_empty() {
+        return Err(anyhow!("profile_read_lengths observation has no reads"));
+    }
+    if lengths.iter().any(|length| *length == 0) {
+        return Err(anyhow!("profile_read_lengths observation contains zero-length reads"));
+    }
+    Ok(())
 }
 
 fn project_read_lengths_histogram(
