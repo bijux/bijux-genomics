@@ -351,6 +351,21 @@ fn policy__contracts__fastq_science_docs_policy__primer_assumptions_link_governe
 }
 
 #[test]
+fn policy__contracts__fastq_science_docs_policy__chimera_semantics_link_governed_chimera_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../../domain/fastq/stages/remove_chimeras.yaml".to_string(),
+        "../../../domain/fastq/docs/DEFAULT_SETTINGS.md".to_string(),
+        "REFERENCE_GOVERNANCE.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/fastq/CHIMERA_SEMANTICS.md");
+    assert_eq!(
+        expected, documented,
+        "docs/20-science/fastq/CHIMERA_SEMANTICS.md must link the governed chimera surfaces exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__fastq_science_docs_policy__software_citation_tools_do_not_claim_papers() {
     let rows = tsv_records("science/docs/upstream/papers/TOOL_PAPER_MAP.tsv");
     let expected = BTreeMap::from([
