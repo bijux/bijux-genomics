@@ -99,6 +99,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         validate_rrna_report_identity(&tool_plan.tool, &report)?;
         validate_rrna_report_execution(&report, &execution)?;
         validate_rrna_report_paired_mode(args.r2.is_some(), &report)?;
+        validate_rrna_report_paths(&tool_plan.plan, &report)?;
         write_rrna_report(&report)?;
         let metrics = rrna_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -454,6 +455,69 @@ fn validate_rrna_report_paired_mode(has_r2: bool, report: &DepleteRrnaReportV1) 
     Ok(())
 }
 
+fn validate_rrna_report_paths(plan: &StagePlanV1, report: &DepleteRrnaReportV1) -> Result<()> {
+    validate_rrna_report_path(
+        "input r1",
+        &required_rrna_input_path(plan, "reads_r1")?,
+        &report.input_r1,
+    )?;
+    validate_rrna_optional_report_path(
+        "input r2",
+        artifact_input_path(plan, "reads_r2").as_deref(),
+        report.input_r2.as_deref(),
+    )?;
+    validate_rrna_report_path(
+        "output r1",
+        &required_rrna_output_path(plan, "rrna_filtered_reads_r1")?,
+        &report.output_r1,
+    )?;
+    validate_rrna_optional_report_path(
+        "output r2",
+        artifact_output_path(plan, "rrna_filtered_reads_r2").as_deref(),
+        report.output_r2.as_deref(),
+    )?;
+    validate_rrna_report_path(
+        "report tsv",
+        &required_rrna_output_path(plan, "rrna_report_tsv")?,
+        &report.rrna_report_tsv,
+    )?;
+    validate_rrna_report_path(
+        "report json",
+        &required_rrna_output_path(plan, "rrna_report_json")?,
+        &report.rrna_report_json,
+    )
+}
+
+fn validate_rrna_optional_report_path(
+    label: &str,
+    expected: Option<&std::path::Path>,
+    observed: Option<&str>,
+) -> Result<()> {
+    match (expected, observed) {
+        (Some(expected), Some(observed)) => validate_rrna_report_path(label, expected, observed),
+        (None, None) => Ok(()),
+        _ => Err(anyhow!(
+            "rrna depletion report {label} path mismatch: expected {:?}, observed {:?}",
+            expected.map(|path| path.display().to_string()),
+            observed
+        )),
+    }
+}
+
+fn validate_rrna_report_path(
+    label: &str,
+    expected: &std::path::Path,
+    observed: &str,
+) -> Result<()> {
+    let expected = expected.display().to_string();
+    if observed != expected {
+        return Err(anyhow!(
+            "rrna depletion report {label} path mismatch: expected {expected}, observed {observed}"
+        ));
+    }
+    Ok(())
+}
+
 fn write_rrna_metrics(
     tool_plan: &RrnaToolPlan,
     metrics: &bijux_dna_analyze::MetricSet<FastqDepleteRrnaMetrics>,
@@ -520,6 +584,14 @@ fn required_rrna_output_path(
 ) -> Result<std::path::PathBuf> {
     artifact_output_path(plan, artifact_id)
         .ok_or_else(|| anyhow!("rrna depletion plan missing output artifact {artifact_id}"))
+}
+
+fn required_rrna_input_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_id: &str,
+) -> Result<std::path::PathBuf> {
+    artifact_input_path(plan, artifact_id)
+        .ok_or_else(|| anyhow!("rrna depletion plan missing input artifact {artifact_id}"))
 }
 
 fn artifact_input_path(
