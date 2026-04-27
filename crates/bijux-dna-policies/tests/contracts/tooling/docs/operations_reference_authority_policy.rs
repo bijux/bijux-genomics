@@ -97,3 +97,18 @@ fn policy__contracts__operations_reference_authority_policy__mkdocs_build_redire
         "docs/30-operations/MKDOCS_BUILD.md must link the governed docs build authority exactly"
     );
 }
+
+#[test]
+fn policy__contracts__operations_reference_authority_policy__docs_build_reproducible_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../configs/docs/requirements.txt".to_string(),
+        "../../configs/docs/mkdocs.toml".to_string(),
+        "../../mkdocs.yml".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/DOCS_BUILD_REPRODUCIBLE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/DOCS_BUILD_REPRODUCIBLE.md must link the governed docs build inputs exactly"
+    );
+}
