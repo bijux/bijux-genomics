@@ -11,11 +11,14 @@ Describe OTU clustering versus ASV inference contracts for FASTQ ecology workflo
 - Converting historical OTU studies into ASV outputs automatically.
 
 ## Contracts
-- OTU and ASV outputs are treated as non-comparable result families.
-- Identity threshold (OTU) and denoiser model assumptions (ASV) are explicit.
-- Reports must state whether downstream metrics are OTU- or ASV-derived.
-- Current policy: ASV is not implemented in pre-HPC baseline; OTU is the primary supported ecological quantification path.
-- OTU outputs must use stable identifier generation and reproducible clustering parameters.
+- OTU-stage artifacts, parameters, and clustering assumptions live in
+  [domain/fastq/stages/cluster_otus.yaml](../../../domain/fastq/stages/cluster_otus.yaml).
+- ASV-stage artifacts, parameters, and denoising assumptions live in
+  [domain/fastq/stages/infer_asvs.yaml](../../../domain/fastq/stages/infer_asvs.yaml).
+- The pinned default backends for both stages live in
+  [domain/fastq/docs/DEFAULT_SETTINGS.md](../../../domain/fastq/docs/DEFAULT_SETTINGS.md).
+- Route-level comparability and amplicon-only admission boundaries live in
+  [domain/fastq/route_policies.toml](../../../domain/fastq/route_policies.toml).
 
 ## Examples
 - OTU at 97% identity for broad comparability.
