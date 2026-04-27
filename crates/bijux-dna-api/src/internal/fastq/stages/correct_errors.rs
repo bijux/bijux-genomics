@@ -94,14 +94,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             records.push(record);
             continue;
         }
-        let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
-            setup.bench_inputs.runner,
-            jobs,
-        )?
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+        let execution = execute_correct_tool(&tool_plan, setup.bench_inputs.runner, jobs, tool)?;
         let record = build_correct_record(
             platform,
             &setup.bench_inputs,
@@ -113,14 +106,8 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         )?;
         append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
         insert_fastq_correct_v1(&conn, &record).context("insert bench sqlite")?;
-        if execution.exit_code != 0 {
-            let tool_name = tool.clone();
-            failures.push(RawFailure {
-                stage: STAGE_CORRECT_ERRORS.as_str().to_string(),
-                tool: tool.clone(),
-                reason: format!("tool {tool_name} failed with status {}", execution.exit_code),
-                category: ErrorCategory::ToolError,
-            });
+        if let Some(failure) = correct_tool_failure(tool, execution.exit_code) {
+            failures.push(failure);
         }
         records.push(record);
     }
@@ -308,6 +295,31 @@ fn correct_plan_options(
         max_memory_gb: args.max_memory_gb,
         trusted_kmer_artifact: args.trusted_kmer_artifact.clone(),
         conservative_mode: args.conservative_mode.unwrap_or(false),
+    })
+}
+
+fn execute_correct_tool(
+    tool_plan: &CorrectToolPlan,
+    runner: RuntimeKind,
+    jobs: usize,
+    tool: &str,
+) -> Result<StageResultV1> {
+    execute_plans_with_jobs(
+        vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
+        runner,
+        jobs,
+    )?
+    .into_iter()
+    .next()
+    .ok_or_else(|| anyhow!("missing execution result for {tool}"))
+}
+
+fn correct_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
+    (exit_code != 0).then(|| RawFailure {
+        stage: STAGE_CORRECT_ERRORS.as_str().to_string(),
+        tool: tool.to_string(),
+        reason: format!("tool {tool} failed with status {exit_code}"),
+        category: ErrorCategory::ToolError,
     })
 }
 
