@@ -366,6 +366,22 @@ fn policy__contracts__fastq_science_docs_policy__chimera_semantics_link_governed
 }
 
 #[test]
+fn policy__contracts__fastq_science_docs_policy__otu_vs_asv_semantics_link_governed_quantification_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../../domain/fastq/stages/cluster_otus.yaml".to_string(),
+        "../../../domain/fastq/stages/infer_asvs.yaml".to_string(),
+        "../../../domain/fastq/docs/DEFAULT_SETTINGS.md".to_string(),
+        "../../../domain/fastq/route_policies.toml".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/fastq/OTU_VS_ASV_SEMANTICS.md");
+    assert_eq!(
+        expected, documented,
+        "docs/20-science/fastq/OTU_VS_ASV_SEMANTICS.md must link the governed quantification surfaces exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__fastq_science_docs_policy__software_citation_tools_do_not_claim_papers() {
     let rows = tsv_records("science/docs/upstream/papers/TOOL_PAPER_MAP.tsv");
     let expected = BTreeMap::from([
