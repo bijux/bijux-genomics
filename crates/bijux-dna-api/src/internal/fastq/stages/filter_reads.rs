@@ -3,8 +3,7 @@ use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
-    benchmark_image_identity, build_benchmark_context, derive_trim_delta, observe_fastq_stats,
-    prepare_trim_bench,
+    build_benchmark_context, derive_trim_delta, observe_fastq_stats, prepare_trim_bench,
 };
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
@@ -209,10 +208,8 @@ struct FilterReportBuildInputs<'a> {
 struct FilterBenchmarkRecordInputs<'a> {
     platform: &'a PlatformSpec,
     bench_inputs: &'a TrimBenchInputs,
-    tool: &'a str,
-    tool_spec: &'a ToolExecutionSpecV1,
     input_hash: &'a str,
-    params: &'a serde_json::Value,
+    tool_plan: &'a FilterToolPlan,
     execution: &'a FilterToolExecution,
 }
 
@@ -535,15 +532,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     write_filter_artifacts(out_dir, &report_path, &report, &metric_set)?;
 
     build_filter_benchmark_record(
-        &FilterBenchmarkRecordInputs {
-            platform,
-            bench_inputs,
-            tool: &tool_plan.tool,
-            tool_spec: &tool_plan.tool_spec,
-            input_hash,
-            params,
-            execution,
-        },
+        &FilterBenchmarkRecordInputs { platform, bench_inputs, input_hash, tool_plan, execution },
         metric_set,
     )
 }
@@ -574,13 +563,13 @@ fn build_filter_context(
     inputs: &FilterBenchmarkRecordInputs<'_>,
 ) -> bijux_dna_analyze::BenchmarkContext {
     build_benchmark_context(
-        inputs.tool,
-        inputs.tool_spec.tool_version.clone(),
-        benchmark_image_identity(inputs.tool_spec),
+        &inputs.tool_plan.tool,
+        inputs.tool_plan.tool_spec.tool_version.clone(),
+        inputs.tool_plan.image_digest.clone(),
         inputs.bench_inputs.runner,
         inputs.platform,
         inputs.input_hash.to_string(),
-        inputs.params.clone(),
+        inputs.tool_plan.plan.params.clone(),
     )
 }
 
