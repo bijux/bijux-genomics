@@ -49,6 +49,14 @@ fn artifact_output_path(
         .map(|artifact| artifact.path.clone())
 }
 
+fn required_host_output_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    name: &str,
+) -> Result<std::path::PathBuf> {
+    artifact_output_path(plan, name)
+        .ok_or_else(|| anyhow!("host depletion plan missing output artifact {name}"))
+}
+
 fn artifact_input_path(
     plan: &bijux_dna_stage_contract::StagePlanV1,
     name: &str,
@@ -326,14 +334,11 @@ fn build_deplete_host_report<S: ::std::hash::BuildHasher>(
     let effective_params: HostDepletionEffectiveParams =
         serde_json::from_value(inputs.plan.effective_params.clone())
             .context("decode host depletion effective params")?;
-    let output_r1 = artifact_output_path(inputs.plan, "host_depleted_reads_r1")
-        .unwrap_or_else(|| inputs.plan.out_dir.join("host_depleted.fastq.gz"));
+    let output_r1 = required_host_output_path(inputs.plan, "host_depleted_reads_r1")?;
     let output_r2 = artifact_output_path(inputs.plan, "host_depleted_reads_r2");
-    let removed_host_r1 = artifact_output_path(inputs.plan, "removed_host_reads_r1")
-        .unwrap_or_else(|| inputs.plan.out_dir.join("removed_host.fastq.gz"));
+    let removed_host_r1 = required_host_output_path(inputs.plan, "removed_host_reads_r1")?;
     let removed_host_r2 = artifact_output_path(inputs.plan, "removed_host_reads_r2");
-    let report_json = artifact_output_path(inputs.plan, "host_depletion_report_json")
-        .unwrap_or_else(|| inputs.plan.out_dir.join("host_depletion_report.json"));
+    let report_json = required_host_output_path(inputs.plan, "host_depletion_report_json")?;
     let output_stats_r1 =
         observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, &output_r1)?;
     let output_stats_r2 = if let Some(path) = output_r2.as_deref() {
