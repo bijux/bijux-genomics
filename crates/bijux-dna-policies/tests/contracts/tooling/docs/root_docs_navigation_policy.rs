@@ -348,6 +348,21 @@ fn policy__contracts__root_docs_navigation_policy__snapshot_golden_contract_link
 }
 
 #[test]
+fn policy__contracts__root_docs_navigation_policy__crate_boundary_contracts_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "BOUNDARY_MAP.md".to_string(),
+        "../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs"
+            .to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md must link the governed crate-boundary authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from([
         "../index.md".to_string(),

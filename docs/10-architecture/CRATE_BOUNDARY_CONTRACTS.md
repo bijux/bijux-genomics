@@ -35,6 +35,6 @@ Every crate root `BOUNDARY.md` must declare:
 | `bijux-dna-policies` | Policies | repository files, docs, configs, fixtures | product execution crates as required runtime dependencies | mutating source, generated configs, snapshots, or network state | `cargo test -p bijux-dna-policies --no-default-features` |
 
 ## Enforcement
-- Dependency edges are enforced by `docs/10-architecture/BOUNDARY_MAP.md`.
+- Dependency edges are enforced by [BOUNDARY_MAP.md](BOUNDARY_MAP.md).
 - Required crate `BOUNDARY.md` fields are enforced by
-  `crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs`.
+  [../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs](../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs).
