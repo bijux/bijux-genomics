@@ -96,12 +96,10 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
     let setup = prepare_remove_duplicates_setup(platform, runner_override, args, &selected_tools)?;
 
     if args.explain {
-        write_explain_md(&setup.bench_dir, STAGE_ID, &setup.tools, &[], None)?;
-        write_explain_plan_json(&setup.bench_dir, STAGE_ID, &setup.tools, &setup.registry, None)?;
+        write_remove_duplicates_explain(&setup)?;
     }
 
-    ensure_image_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
+    ensure_remove_duplicates_qa(catalog, platform, &setup.tools)?;
 
     let sqlite_path = setup.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path)?;
@@ -285,6 +283,20 @@ fn prepare_remove_duplicates_setup(
         tools_root,
         options,
     })
+}
+
+fn write_remove_duplicates_explain(setup: &RemoveDuplicatesBenchmarkSetup) -> Result<()> {
+    write_explain_md(&setup.bench_dir, STAGE_ID, &setup.tools, &[], None)?;
+    write_explain_plan_json(&setup.bench_dir, STAGE_ID, &setup.tools, &setup.registry, None)
+}
+
+fn ensure_remove_duplicates_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_ID, tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_ID, tools, platform, catalog)
 }
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
