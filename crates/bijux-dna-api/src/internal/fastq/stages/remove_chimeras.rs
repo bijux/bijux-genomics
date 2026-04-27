@@ -86,15 +86,11 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             continue;
         }
         let outputs = resolve_remove_chimeras_outputs(&tool_plan.plan)?;
-        let used_fallback = !outputs.filtered_reads.exists();
-        if used_fallback {
-            std::fs::copy(&args.r1, &outputs.filtered_reads)?;
-        }
-        let output_stats_r1 =
-            observe_fastq_stats(catalog, platform, setup.runner, &outputs.filtered_reads)?;
+        let observation =
+            observe_remove_chimeras_outputs(catalog, platform, args, &setup, &outputs)?;
         let reads_in = setup.input_stats_r1.reads
             + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
-        let reads_out = output_stats_r1.reads;
+        let reads_out = observation.output_stats_r1.reads;
         let chimeras_removed = reads_in.saturating_sub(reads_out);
         let chimera_fraction =
             if reads_in == 0 { 0.0 } else { u64_to_f64(chimeras_removed) / u64_to_f64(reads_in) };
@@ -113,7 +109,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             reads_out,
             chimeras_removed,
             chimera_fraction,
-            used_fallback,
+            used_fallback: observation.used_fallback,
             runtime_s: execution.runtime_s,
             memory_mb: execution.memory_mb,
             exit_code: execution.exit_code,
@@ -187,6 +183,11 @@ struct RemoveChimerasOutputs {
     report_json: PathBuf,
     chimeras_fasta: Option<PathBuf>,
     uchime_report_tsv: Option<PathBuf>,
+}
+
+struct RemoveChimerasObservation {
+    output_stats_r1: SeqkitMetrics,
+    used_fallback: bool,
 }
 
 struct RemoveChimerasCacheIdentity<'a> {
@@ -351,6 +352,22 @@ fn resolve_remove_chimeras_outputs(plan: &StagePlanV1) -> Result<RemoveChimerasO
         chimeras_fasta: optional_remove_chimeras_output(plan, "chimeras_fasta"),
         uchime_report_tsv: optional_remove_chimeras_output(plan, "uchime_report_tsv"),
     })
+}
+
+fn observe_remove_chimeras_outputs<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
+    setup: &RemoveChimerasBenchmarkSetup,
+    outputs: &RemoveChimerasOutputs,
+) -> Result<RemoveChimerasObservation> {
+    let used_fallback = !outputs.filtered_reads.exists();
+    if used_fallback {
+        std::fs::copy(&args.r1, &outputs.filtered_reads)?;
+    }
+    let output_stats_r1 =
+        observe_fastq_stats(catalog, platform, setup.runner, &outputs.filtered_reads)?;
+    Ok(RemoveChimerasObservation { output_stats_r1, used_fallback })
 }
 
 fn required_remove_chimeras_output(plan: &StagePlanV1, name: &str) -> Result<PathBuf> {
