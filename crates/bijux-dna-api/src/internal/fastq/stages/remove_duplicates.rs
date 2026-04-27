@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -19,6 +20,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
@@ -29,6 +31,7 @@ use bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::{
     dedup_mode_from_literal, plan_deduplicate_with_options, RemoveDuplicatesPlanOptions,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_stage_contract::StagePlanV1;
 
 const STAGE_ID: &str = "fastq.remove_duplicates";
 const DEDUP_RATE_EPSILON: f64 = 1e-9;
@@ -109,40 +112,22 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
     let mut records = Vec::new();
 
     for tool in &setup.tools {
-        let out_dir = setup.tools_root.join(tool);
-        bijux_dna_infra::ensure_dir(&out_dir)?;
-        let tool_spec =
-            build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
-        let plan = plan_deduplicate_with_options(
-            &tool_spec,
-            &args.r1,
-            args.r2.as_deref(),
-            &out_dir,
-            &setup.options,
-        )?;
-        let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
-        let params_hash = stable_params_hash(&bench_params);
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let tool_plan = prepare_remove_duplicates_tool_plan(catalog, platform, args, &setup, tool)?;
         if let Ok(Some(record)) = fetch_fastq_duplicates_v1(
             &conn,
             tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &setup.runner.to_string(),
             &platform.name,
             &setup.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             setup.runner,
             jobs,
         )?
@@ -158,10 +143,11 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             });
             continue;
         }
-        let report_path = required_plan_output_path(&plan, "report_json")?;
-        let duplicate_classes_tsv = required_plan_output_path(&plan, "duplicate_classes_tsv")?;
+        let report_path = required_plan_output_path(&tool_plan.plan, "report_json")?;
+        let duplicate_classes_tsv =
+            required_plan_output_path(&tool_plan.plan, "duplicate_classes_tsv")?;
         let duplicate_provenance_json =
-            required_plan_output_path(&plan, "duplicate_provenance_json")?;
+            required_plan_output_path(&tool_plan.plan, "duplicate_provenance_json")?;
         let report_path = require_existing_benchmark_output(&report_path, "report_json")?;
         let _duplicate_classes_tsv =
             require_existing_benchmark_output(&duplicate_classes_tsv, "duplicate_classes_tsv")?;
@@ -186,18 +172,18 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         };
         let metric_set = metric_set(metrics);
         bijux_dna_infra::atomic_write_json(
-            &out_dir.join("metrics.json"),
+            &tool_plan.out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
         )?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
-                tool_spec.tool_version.clone(),
-                image_digest,
+                tool_plan.tool_spec.tool_version.clone(),
+                tool_plan.image_digest.clone(),
                 setup.runner,
                 platform,
                 setup.input_hash.clone(),
-                bench_params.clone(),
+                tool_plan.bench_params.clone(),
             ),
             execution: ExecutionMetrics {
                 runtime_s: execution.runtime_s,
@@ -223,6 +209,15 @@ struct RemoveDuplicatesBenchmarkSetup {
     bench_dir: std::path::PathBuf,
     tools_root: std::path::PathBuf,
     options: RemoveDuplicatesPlanOptions,
+}
+
+struct RemoveDuplicatesToolPlan {
+    out_dir: PathBuf,
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    bench_params: serde_json::Value,
+    params_hash: String,
+    image_digest: String,
 }
 
 fn select_remove_duplicates_benchmark_tools(
@@ -297,6 +292,42 @@ fn ensure_remove_duplicates_qa<S: ::std::hash::BuildHasher>(
 ) -> Result<()> {
     ensure_image_qa_passed(STAGE_ID, tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_ID, tools, platform, catalog)
+}
+
+fn prepare_remove_duplicates_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveDuplicatesArgs,
+    setup: &RemoveDuplicatesBenchmarkSetup,
+    tool: &str,
+) -> Result<RemoveDuplicatesToolPlan> {
+    let out_dir = setup.tools_root.join(tool);
+    bijux_dna_infra::ensure_dir(&out_dir)?;
+    let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
+    let plan = plan_deduplicate_with_options(
+        &tool_spec,
+        &args.r1,
+        args.r2.as_deref(),
+        &out_dir,
+        &setup.options,
+    )?;
+    let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
+    let params_hash = stable_params_hash(&bench_params);
+    let image_digest = tool_spec
+        .image
+        .digest
+        .as_ref()
+        .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
+        .clone();
+
+    Ok(RemoveDuplicatesToolPlan {
+        out_dir,
+        tool_spec,
+        plan,
+        bench_params,
+        params_hash,
+        image_digest,
+    })
 }
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
