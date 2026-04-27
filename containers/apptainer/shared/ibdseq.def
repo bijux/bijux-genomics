@@ -1,0 +1,55 @@
+# VERSION_SOURCE: containers/versions/versions.toml
+Bootstrap: docker
+From: ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+# Tool ID: ibdseq
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+
+    org.opencontainers.image.source https://faculty.washington.edu/browning/ibdseq.shtml
+    org.opencontainers.image.revision planned-3.0
+    org.opencontainers.image.created 2026-02-13T00:00:00Z
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 3.0-planned
+    org.opencontainers.image.tool ibdseq
+    org.opencontainers.image.title ibdseq
+
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq
+    apt-get install -y --no-install-recommends ca-certificates
+    cat >/usr/local/bin/ibdseq <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "--version" ]]; then
+  echo "ibdseq 3.0-planned"
+  exit 0
+fi
+if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
+  echo "ibdseq planned wrapper image. Upstream: https://faculty.washington.edu/browning/ibdseq.shtml"
+  exit 0
+fi
+echo "error: ibdseq runtime payload is not bundled in this planned wrapper image" >&2
+exit 2
+SH
+    chmod 0755 /usr/local/bin/ibdseq
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    exec ibdseq "$@"
+
+%help
+    Bijux Apptainer wrapper for planned IBDSeq admission.
