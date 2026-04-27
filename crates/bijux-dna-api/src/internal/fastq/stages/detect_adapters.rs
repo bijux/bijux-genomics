@@ -18,7 +18,9 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_detect_adapters_v1, insert_fastq_detect_adapters_v1,
 };
-use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDetectAdaptersMetrics};
+use bijux_dna_analyze::{
+    append_jsonl, metric_set, BenchmarkRecord, FastqDetectAdaptersMetrics, MetricSet,
+};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
@@ -328,17 +330,7 @@ fn build_detect_record(
         &inputs.tool_plan.plan.out_dir,
         &inputs.execution.result,
     )?;
-    let metrics = FastqDetectAdaptersMetrics {
-        reads_in: report.reads_in,
-        reads_out: report.reads_out,
-        bases_in: report.bases_in,
-        bases_out: report.bases_out,
-        mean_q: report.mean_q,
-        candidate_adapter_count: report.candidate_adapter_count,
-        adapter_trimmed_fraction: report.adapter_trimmed_fraction,
-    };
-    let metric_set = metric_set(metrics.clone());
-    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    let metric_set = build_detect_adapters_metric_set(&report)?;
 
     bijux_dna_infra::atomic_write_json(
         &inputs.tool_plan.plan.out_dir.join("adapter_report.json"),
@@ -372,6 +364,23 @@ fn build_detect_record(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn build_detect_adapters_metric_set(
+    report: &DetectAdaptersReportV1,
+) -> Result<MetricSet<FastqDetectAdaptersMetrics>> {
+    let metrics = FastqDetectAdaptersMetrics {
+        reads_in: report.reads_in,
+        reads_out: report.reads_out,
+        bases_in: report.bases_in,
+        bases_out: report.bases_out,
+        mean_q: report.mean_q,
+        candidate_adapter_count: report.candidate_adapter_count,
+        adapter_trimmed_fraction: report.adapter_trimmed_fraction,
+    };
+    let metric_set = metric_set(metrics.clone());
+    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    Ok(metric_set)
 }
 
 fn build_detect_report(
