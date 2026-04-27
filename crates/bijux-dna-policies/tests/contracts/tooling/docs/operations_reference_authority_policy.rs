@@ -77,6 +77,23 @@ fn policy__contracts__operations_reference_authority_policy__hpc_lunarc_layout_l
 }
 
 #[test]
+fn policy__contracts__operations_reference_authority_policy__reproducibility_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "RUN_ARTIFACTS.md".to_string(),
+        "../../configs/vcf/panels/panels.toml".to_string(),
+        "../../configs/vcf/panels/locks/lock.json".to_string(),
+        "../../configs/vcf/panels/locks/lock.json.sha256".to_string(),
+        "../../crates/bijux-dna-bench/bench/suites/".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/REPRODUCIBILITY.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/REPRODUCIBILITY.md must link the governed reproducibility authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
