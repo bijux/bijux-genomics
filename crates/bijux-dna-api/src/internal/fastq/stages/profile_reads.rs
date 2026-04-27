@@ -301,6 +301,7 @@ fn observe_profile_reads(
     let backend_rows = parse_seqkit_stats_rows(&execution.result.stdout).unwrap_or_else(|_| {
         fallback_seqkit_rows(&bench_inputs.input_stats, bench_inputs.input_stats_r2.as_ref())
     });
+    validate_profile_reads_observation_inputs(&backend_rows, &length_histogram)?;
     materialize_profile_reads_outputs(
         &tool_plan.plan,
         &backend_rows,
@@ -349,6 +350,25 @@ fn validate_profile_reads_report_identity(
             tool_plan.tool,
             report.tool_id
         ));
+    }
+    Ok(())
+}
+
+fn validate_profile_reads_observation_inputs(
+    mate_summaries: &[ProfileReadsMateSummaryV1],
+    length_histogram: &[LengthHistogramBin],
+) -> Result<()> {
+    if mate_summaries.is_empty() {
+        return Err(anyhow!("profile_reads observation has no mate summaries"));
+    }
+    if mate_summaries.iter().all(|summary| summary.reads == 0) {
+        return Err(anyhow!("profile_reads observation has no read evidence"));
+    }
+    if length_histogram.is_empty() {
+        return Err(anyhow!("profile_reads observation has no length histogram"));
+    }
+    if length_histogram.iter().all(|bin| bin.count == 0) {
+        return Err(anyhow!("profile_reads observation has empty length histogram evidence"));
     }
     Ok(())
 }
