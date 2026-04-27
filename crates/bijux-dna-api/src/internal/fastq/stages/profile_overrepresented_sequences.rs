@@ -57,8 +57,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
         write_overrepresented_benchmark_explain(&setup)?;
     }
 
-    ensure_image_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
+    ensure_overrepresented_benchmark_qa(catalog, platform, &setup.tools)?;
 
     let sqlite_path = setup.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -246,6 +245,15 @@ fn prepare_overrepresented_benchmark_setup(
 fn write_overrepresented_benchmark_explain(setup: &OverrepresentedBenchmarkSetup) -> Result<()> {
     write_explain_md(&setup.bench_dir, STAGE_ID, &setup.tools, &[], None)?;
     write_explain_plan_json(&setup.bench_dir, STAGE_ID, &setup.tools, &setup.registry, None)
+}
+
+fn ensure_overrepresented_benchmark_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_ID, tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_ID, tools, platform, catalog)
 }
 
 fn materialize_overrepresented_outputs(
