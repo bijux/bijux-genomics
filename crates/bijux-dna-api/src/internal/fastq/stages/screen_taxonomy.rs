@@ -398,6 +398,7 @@ fn build_screen_record(
         memory_mb: Some(inputs.execution.memory_mb),
     };
     validate_screen_report_identity(inputs.tool, &governed_report)?;
+    validate_screen_report_execution(&governed_report, inputs.execution)?;
     bijux_dna_infra::atomic_write_json(&report_paths.classification_json, &governed_report)
         .context("write governed screen taxonomy report")?;
     let metrics =
@@ -539,6 +540,29 @@ fn validate_screen_report_identity(tool: &str, report: &ScreenTaxonomyReportV1) 
             "screen taxonomy report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_screen_report_execution(
+    report: &ScreenTaxonomyReportV1,
+    execution: &StageResultV1,
+) -> Result<()> {
+    if report.runtime_s.is_none_or(|observed| (observed - execution.runtime_s).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "screen taxonomy report runtime mismatch: expected {}, observed {:?}",
+            execution.runtime_s,
+            report.runtime_s
+        ));
+    }
+    if report.memory_mb.is_none_or(|observed| (observed - execution.memory_mb).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "screen taxonomy report memory mismatch: expected {}, observed {:?}",
+            execution.memory_mb,
+            report.memory_mb
         ));
     }
     Ok(())
