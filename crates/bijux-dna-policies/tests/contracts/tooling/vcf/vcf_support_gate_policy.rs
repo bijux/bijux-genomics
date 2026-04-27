@@ -55,7 +55,7 @@ fn policy__contracts__vcf_support_gate_policy__production_vcf_tools_must_be_pinn
 }
 
 #[test]
-fn policy__contracts__vcf_support_gate_policy__supported_stage_requires_planner_stages_and_tool_binding(
+fn policy__contracts__vcf_support_gate_policy__supported_stage_requires_planner_stages_and_production_tool_binding(
 ) {
     let root = repo_root();
     let stages_raw = fs::read_to_string(root.join("configs/ci/stages/stages_vcf.toml"))
@@ -70,6 +70,10 @@ fn policy__contracts__vcf_support_gate_policy__supported_stage_requires_planner_
     let tools = tool_doc.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let mut bound_stage_ids = std::collections::BTreeSet::new();
     for tool in tools {
+        let status = tool.get("status").and_then(toml::Value::as_str).unwrap_or_default();
+        if status != "production" {
+            continue;
+        }
         for stage in
             tool.get("stage_ids").and_then(toml::Value::as_array).cloned().unwrap_or_default()
         {
@@ -89,7 +93,7 @@ fn policy__contracts__vcf_support_gate_policy__supported_stage_requires_planner_
         }
         assert!(
             bound_stage_ids.contains(id),
-            "supported VCF stage {id} must have at least one tool binding in tool_registry_vcf.toml"
+            "supported VCF stage {id} must have at least one production tool binding in tool_registry_vcf.toml"
         );
         assert!(
             stages_source.contains("implemented_stages"),
