@@ -24,21 +24,21 @@ Applies to stage/tool/param/profile/metrics authority and migration policy.
 
 ## Stages
 - Authoritative source:
-  - `configs/ci/stages/stages.toml` (FASTQ/BAM)
-  - `configs/ci/stages/stages_vcf.toml` (VCF)
+  - [../../configs/ci/stages/stages.toml](../../configs/ci/stages/stages.toml) (FASTQ/BAM)
+  - [../../configs/ci/stages/stages_vcf.toml](../../configs/ci/stages/stages_vcf.toml) (VCF)
 - Generated from domain SSOT through the domain compiler.
 
 ## Tools
 - Authoritative source:
-  - `configs/ci/registry/tool_registry.toml` (production FASTQ/BAM)
-  - `configs/ci/registry/tool_registry_vcf.toml` (VCF)
-  - `configs/ci/registry/tool_registry_experimental.toml` (experimental-only tools)
+  - [../../configs/ci/registry/tool_registry.toml](../../configs/ci/registry/tool_registry.toml) (production FASTQ/BAM)
+  - [../../configs/ci/registry/tool_registry_vcf.toml](../../configs/ci/registry/tool_registry_vcf.toml) (VCF)
+  - [../../configs/ci/registry/tool_registry_experimental.toml](../../configs/ci/registry/tool_registry_experimental.toml) (experimental-only tools)
 - Generated from domain SSOT through the domain compiler.
 
 ## Params
 - Authoritative source:
-  - `configs/ci/params/param_registry.toml`
-  - `configs/ci/params/param_registry_vcf.toml`
+  - [../../configs/ci/params/param_registry.toml](../../configs/ci/params/param_registry.toml)
+  - [../../configs/ci/params/param_registry_vcf.toml](../../configs/ci/params/param_registry_vcf.toml)
 - Code must not hardcode param schema IDs outside domain/config generation code.
 
 ## Metrics
@@ -48,8 +48,8 @@ Applies to stage/tool/param/profile/metrics authority and migration policy.
 
 ## Profiles
 - Authoritative source:
-  - pipeline profile constructors in `crates/bijux-dna-pipelines`
-  - profile manifest produced by `PipelineProfile::profile_manifest`
+  - pipeline profile constructors in `bijux-dna-pipelines`
+  - profile manifest produced by [../../crates/bijux-dna-pipelines/src/contract/profile_manifest.rs](../../crates/bijux-dna-pipelines/src/contract/profile_manifest.rs)
 - Profile hash authority:
   - hash is derived from canonicalized profile manifest only.
 

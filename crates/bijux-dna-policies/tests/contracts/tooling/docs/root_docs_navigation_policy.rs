@@ -363,6 +363,26 @@ fn policy__contracts__root_docs_navigation_policy__crate_boundary_contracts_link
 }
 
 #[test]
+fn policy__contracts__root_docs_navigation_policy__contract_authority_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../configs/ci/stages/stages.toml".to_string(),
+        "../../configs/ci/stages/stages_vcf.toml".to_string(),
+        "../../configs/ci/registry/tool_registry.toml".to_string(),
+        "../../configs/ci/registry/tool_registry_vcf.toml".to_string(),
+        "../../configs/ci/registry/tool_registry_experimental.toml".to_string(),
+        "../../configs/ci/params/param_registry.toml".to_string(),
+        "../../configs/ci/params/param_registry_vcf.toml".to_string(),
+        "../../crates/bijux-dna-pipelines/src/contract/profile_manifest.rs".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/CONTRACT_AUTHORITY.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/CONTRACT_AUTHORITY.md must link the governed contract authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from([
         "../index.md".to_string(),
