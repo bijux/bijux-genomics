@@ -89,46 +89,53 @@ fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
 }
 
 #[test]
-#[ignore = "TODO: refresh coverage command policy to current make/cargo flags"]
 fn policy__contracts__ci_tools_policy__coverage_command_policy_is_stable() {
     let root = workspace_root();
     let cargo_mk = root.join("makes").join("cargo.mk");
-    let content = std::fs::read_to_string(&cargo_mk).expect("read cargo.mk");
+    let cargo_mk_content = std::fs::read_to_string(&cargo_mk).expect("read cargo.mk");
+    let rust_gate = root.join("makes").join("bin").join("rust_gate.sh");
+    let rust_gate_content = std::fs::read_to_string(&rust_gate).expect("read rust_gate.sh");
 
-    let required = [
-        "cargo nextest run",
-        "--config-file configs/rust/nextest.toml",
+    let cargo_mk_required = [
+        "coverage-workspace: ## Run the governed coverage control-plane lane.",
+        "_coverage:",
+        "NEXTEST_CONFIG=\"$(NEXTEST_CONFIG)\"",
+        "TEST_FEATURES=\"$(TEST_FEATURES)\"",
+        "NEXTEST_PROFILE=\"$(NEXTEST_PROFILE)\"",
+        "NEXTEST_TEST_THREADS=\"$(NEXTEST_TEST_THREADS)\"",
+        "RUN_IGNORED=\"$(RUN_IGNORED)\"",
+        "COVERAGE_OUT=\"$(COVERAGE_OUT)\"",
+        "COVERAGE_BASELINE=\"$(COVERAGE_BASELINE)\"",
+        "COVERAGE_THRESHOLDS=\"$(COVERAGE_THRESHOLDS)\"",
+        "cargo run -q -p bijux-dna-dev -- tooling run ci-coverage",
+        "coverage-rs: ## Run Rust coverage with llvm-cov and emit reports.",
+        "\"$(RUST_GATE_BIN)\" coverage",
+    ];
+    let rust_gate_required = [
+        "cargo llvm-cov nextest",
         "--workspace",
         "--all-features",
-        "--profile $(NEXTEST_PROFILE)",
         "--run-ignored all",
-        "cargo llvm-cov nextest",
-        "--no-report",
-        "--no-cfg-coverage",
-        "cargo llvm-cov report",
-        "--json",
-        "--html",
+        "--config-file \"${nextest_config_file}\"",
+        "--profile \"${nextest_profile_all}\"",
+        "cargo llvm-cov report --summary-only",
     ];
 
     let mut missing = Vec::new();
-    for needle in required {
-        if !content.contains(needle) {
-            missing.push(needle);
+    for needle in cargo_mk_required {
+        if !cargo_mk_content.contains(needle) {
+            missing.push(format!("cargo.mk missing `{needle}`"));
         }
     }
-    missing.retain(|needle| {
-        if *needle == "--config-file configs/rust/nextest.toml" {
-            !(content.contains("$(NEXTEST_CONFIG)") || content.contains("NEXTEST_CONFIG ?="))
-        } else {
-            true
+    for needle in rust_gate_required {
+        if !rust_gate_content.contains(needle) {
+            missing.push(format!("rust_gate.sh missing `{needle}`"));
         }
-    });
-
-    if !missing.is_empty() {
-        eprintln!(
-            "coverage command policy drift (non-fatal during migration). Missing: {missing:?}"
-        );
     }
+    bijux_dna_policies::policy_assert!(
+        missing.is_empty(),
+        "coverage command policy drift: {missing:?}"
+    );
 }
 
 #[test]
