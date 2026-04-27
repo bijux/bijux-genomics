@@ -10,18 +10,19 @@ Applies to: repository root, workspace crates, generated configs, policy tests
 Define the machine-checkable contract for repository architecture authority.
 
 ## Allowed inputs
-- Workspace membership from `Cargo.toml`.
-- Dependency edges from crate `Cargo.toml` files.
-- Boundary authority from `docs/10-architecture/BOUNDARY_MAP.md`.
-- Responsibility authority from `docs/10-architecture/CRATE_AUTHORITY_MAP.md`.
-- Contract artifact authority from `docs/10-architecture/CONTRACT_SPINE.md`.
+- Workspace membership from [Cargo.toml](../../Cargo.toml).
+- Dependency edges from crate [Cargo.toml](../../Cargo.toml) files.
+- Boundary authority from [docs/10-architecture/BOUNDARY_MAP.md](BOUNDARY_MAP.md).
+- Responsibility authority from [docs/10-architecture/CRATE_AUTHORITY_MAP.md](CRATE_AUTHORITY_MAP.md).
+- Contract artifact authority from [docs/10-architecture/CONTRACT_SPINE.md](CONTRACT_SPINE.md).
 
 ## Forbidden dependencies
 - Crate dependency edges not listed in the executable `boundaries` block in
-  `docs/10-architecture/BOUNDARY_MAP.md`.
+  [docs/10-architecture/BOUNDARY_MAP.md](BOUNDARY_MAP.md).
 - Domain, stage, planner, runtime, runner, API, CLI, and analyzer concerns owned by a different
-  crate family in `docs/10-architecture/CRATE_AUTHORITY_MAP.md`.
-- Parallel contract authorities outside the files listed in `docs/10-architecture/CONTRACT_INDEX.md`.
+  crate family in [docs/10-architecture/CRATE_AUTHORITY_MAP.md](CRATE_AUTHORITY_MAP.md).
+- Parallel contract authorities outside the files listed in
+  [docs/10-architecture/CONTRACT_INDEX.md](CONTRACT_INDEX.md).
 
 ## Forbidden effects
 - Architecture validation must not run product pipelines, spawn external tools, use network access,
