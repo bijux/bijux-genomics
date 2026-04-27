@@ -26,7 +26,7 @@ fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
         if !in_table {
             continue;
         }
-        if trimmed.starts_with("|---") {
+        if trimmed.starts_with("|---") || trimmed.starts_with("| ---") {
             continue;
         }
         if trimmed.starts_with('#') || trimmed.is_empty() {
@@ -60,7 +60,7 @@ fn markdown_table_rows_all(path: &str, header_prefix: &str) -> Vec<Vec<String>> 
         if !in_table {
             continue;
         }
-        if trimmed.starts_with("|---") {
+        if trimmed.starts_with("|---") || trimmed.starts_with("| ---") {
             continue;
         }
         if trimmed.starts_with('#') || trimmed.is_empty() {
@@ -220,5 +220,35 @@ fn policy__contracts__bam_science_docs_policy__stage_assumptions_cover_supported
         documented_rows.len(),
         documented.len(),
         "BAM stage assumptions must list each supported stage exactly once"
+    );
+}
+
+#[test]
+fn policy__contracts__bam_science_docs_policy__tools_roster_covers_stage_catalog_with_statuses() {
+    let expected = bam_stage_specs();
+    let documented = bam_tools_roster_rows();
+
+    assert_eq!(
+        expected.keys().cloned().collect::<BTreeSet<_>>(),
+        documented.keys().cloned().collect::<BTreeSet<_>>(),
+        "BAM tools roster must cover the BAM stage catalog exactly"
+    );
+
+    let mut offenders = Vec::new();
+    for (stage_id, expected_spec) in expected {
+        let documented_spec =
+            documented.get(&stage_id).unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"));
+        if documented_spec.status != expected_spec.status {
+            offenders.push(format!(
+                "{stage_id}: expected status {}, found {}",
+                expected_spec.status, documented_spec.status
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "BAM tools roster status drift:\n{}",
+        offenders.join("\n")
     );
 }
