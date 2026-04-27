@@ -5,6 +5,11 @@
 !upstream/
 upstream/*
 !upstream/README.md
+!upstream/PRODUCTION_CLOSURE_INDEX.tsv
+!upstream/bam/
+upstream/bam/*
+!upstream/bam/README.md
+!upstream/bam/BAM_PRODUCTION_CLOSURE_LEDGER.tsv
 !upstream/fastq/
 upstream/fastq/*
 !upstream/fastq/README.md
@@ -38,6 +43,10 @@ upstream/papers/*
 !upstream/papers/README.md
 !upstream/papers/TODO_DOWNLOAD.md
 !upstream/papers/TOOL_PAPER_MAP.tsv
+!upstream/vcf/
+upstream/vcf/*
+!upstream/vcf/README.md
+!upstream/vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv
 !upstream/github-repos/
 upstream/github-repos/*
 !upstream/github-repos/README.md
