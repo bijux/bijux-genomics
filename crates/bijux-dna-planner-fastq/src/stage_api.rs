@@ -39,9 +39,19 @@ pub struct StageToolCapability {
     pub execution_status: Option<bijux_dna_domain_fastq::ExecutionStatus>,
     pub runtime_interpretation: RuntimeInterpretationLevel,
     pub benchmark_scenarios: Vec<String>,
+    pub execution: StageToolExecutionCapability,
+    pub normalization: StageToolNormalizationCapability,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StageToolExecutionCapability {
     pub declared: bool,
     pub plannable: bool,
     pub runnable: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct StageToolNormalizationCapability {
     pub parse_normalized: bool,
     pub benchmark_normalized: bool,
     pub comparable: bool,
@@ -138,12 +148,16 @@ pub fn stage_tool_capability(stage_id: &StageId, tool_id: &ToolId) -> Option<Sta
         execution_status: capability.execution_status,
         runtime_interpretation,
         benchmark_scenarios: capability.benchmark_scenario_ids,
-        declared: capability.declared,
-        plannable: capability.plannable,
-        runnable: capability.runnable,
-        parse_normalized: capability.parse_normalized,
-        benchmark_normalized: capability.benchmark_normalized,
-        comparable: capability.comparable,
+        execution: StageToolExecutionCapability {
+            declared: capability.declared,
+            plannable: capability.plannable,
+            runnable: capability.runnable,
+        },
+        normalization: StageToolNormalizationCapability {
+            parse_normalized: capability.parse_normalized,
+            benchmark_normalized: capability.benchmark_normalized,
+            comparable: capability.comparable,
+        },
     })
 }
 
@@ -284,7 +298,7 @@ pub fn toolset_for_stage(stage_id: &StageId, mode: ToolsetExecutionMode) -> Vec<
         }
         ToolsetExecutionMode::GovernedExecution => stage_tool_capabilities_for_stage(stage_id)
             .into_iter()
-            .filter(|capability| capability.runnable)
+            .filter(|capability| capability.execution.runnable)
             .map(|capability| capability.tool_id)
             .collect(),
         ToolsetExecutionMode::BenchmarkCohort => benchmark_default_scenario_toolset(stage_id),

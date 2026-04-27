@@ -101,32 +101,32 @@ fn stage_tool_capabilities_distinguish_declared_runnable_and_comparable_bindings
         &ToolId::from_static("dada2"),
     )
     .expect("infer_asvs capability");
-    assert!(infer_capability.declared);
-    assert!(infer_capability.plannable);
-    assert!(infer_capability.runnable);
-    assert!(infer_capability.parse_normalized);
-    assert!(!infer_capability.benchmark_normalized);
-    assert!(!infer_capability.comparable);
+    assert!(infer_capability.execution.declared);
+    assert!(infer_capability.execution.plannable);
+    assert!(infer_capability.execution.runnable);
+    assert!(infer_capability.normalization.parse_normalized);
+    assert!(!infer_capability.normalization.benchmark_normalized);
+    assert!(!infer_capability.normalization.comparable);
 
     let trim_capability = bijux_dna_planner_fastq::stage_api::stage_tool_capability(
         &StageId::from_static("fastq.trim_reads"),
         &ToolId::from_static("fastp"),
     )
     .expect("trim capability");
-    assert!(trim_capability.runnable);
-    assert!(trim_capability.parse_normalized);
-    assert!(trim_capability.benchmark_normalized);
-    assert!(!trim_capability.comparable);
+    assert!(trim_capability.execution.runnable);
+    assert!(trim_capability.normalization.parse_normalized);
+    assert!(trim_capability.normalization.benchmark_normalized);
+    assert!(!trim_capability.normalization.comparable);
 
     let detect_capability = bijux_dna_planner_fastq::stage_api::stage_tool_capability(
         &StageId::from_static("fastq.detect_adapters"),
         &ToolId::from_static("fastqc"),
     )
     .expect("detect capability");
-    assert!(detect_capability.runnable);
-    assert!(detect_capability.parse_normalized);
-    assert!(detect_capability.benchmark_normalized);
-    assert!(detect_capability.comparable);
+    assert!(detect_capability.execution.runnable);
+    assert!(detect_capability.normalization.parse_normalized);
+    assert!(detect_capability.normalization.benchmark_normalized);
+    assert!(detect_capability.normalization.comparable);
 }
 
 #[test]
