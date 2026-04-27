@@ -651,6 +651,19 @@ fn build_filter_metric_set(
 }
 
 fn validate_filter_removal_evidence(report: &FilterReadsReportV1) -> Result<()> {
+    if let Some(passed_filter_reads) = report
+        .backend_metrics
+        .as_ref()
+        .and_then(|metrics| metrics.get("passed_filter_reads"))
+        .and_then(serde_json::Value::as_u64)
+    {
+        if passed_filter_reads > report.reads_in {
+            return Err(anyhow!(
+                "filter backend passed_filter_reads {passed_filter_reads} exceeds reads_in {}",
+                report.reads_in
+            ));
+        }
+    }
     for (name, value) in [
         ("reads_removed_by_n", report.reads_removed_by_n),
         ("reads_removed_by_entropy", report.reads_removed_by_entropy),
