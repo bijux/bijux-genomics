@@ -22,6 +22,12 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub type CorrectPlanOptions = crate::CorrectErrorsStageParams;
 const DEFAULT_CORRECT_ERRORS_THREADS: u32 = 1;
 
+struct CorrectPlanPaths {
+    output_r1: std::path::PathBuf,
+    output_r2: Option<std::path::PathBuf>,
+    report_json: std::path::PathBuf,
+}
+
 /// # Errors
 /// Returns an error if any requested correction tool is not admitted for `fastq.correct_errors`.
 pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
@@ -91,15 +97,79 @@ pub fn plan_correct_with_options(
     normalize_correct_tool_list(std::slice::from_ref(&tool_id))?;
     validate_correct_options(&tool_id, options)?;
     let effective_threads = options.threads.unwrap_or(DEFAULT_CORRECT_ERRORS_THREADS).max(1);
-    let output_r1 = out_dir.join("reads_r1.fastq.gz");
-    let output_r2 = r2.map(|_| out_dir.join("reads_r2.fastq.gz"));
-    let report_json = out_dir.join("correct_report.json");
+    let paths = correct_plan_paths(r2.is_some(), out_dir);
     let correction_engine = correction_engine_for_tool(&tool.tool_id.0)?;
-    let effective_params = FastqCorrectParams {
+    let effective_params = correct_effective_params(
+        r2.is_some(),
+        effective_threads,
+        options,
+        correction_engine.clone(),
+    );
+    let inputs = correct_inputs(r1, r2, options);
+    let outputs = correct_outputs(&paths);
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_threads;
+    Ok(StagePlanV1 {
+        stage_id: STAGE_ID.clone(),
+        stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
+            &STAGE_ID,
+            &tool.tool_id,
+        )),
+        stage_version: STAGE_VERSION,
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: bijux_dna_core::prelude::CommandSpecV1 {
+            template: correct_command_template(
+                &tool.tool_id.0,
+                r1,
+                r2,
+                &paths.output_r1,
+                paths.output_r2.as_deref(),
+                &paths.report_json,
+                effective_threads,
+                options,
+                &correction_engine,
+            )?,
+        },
+        resources,
+        io: StageIO { inputs, outputs },
+        out_dir: out_dir.to_path_buf(),
+        params: correct_plan_params(
+            &tool.tool_id.0,
+            r1,
+            r2,
+            out_dir,
+            &paths,
+            effective_threads,
+            options,
+        ),
+        effective_params: serde_json::to_value(&effective_params)
+            .map_err(|error| anyhow!("serialize correct effective params: {error}"))?,
+        aux_images: std::collections::BTreeMap::new(),
+        reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+    })
+}
+
+fn correct_plan_paths(paired: bool, out_dir: &Path) -> CorrectPlanPaths {
+    CorrectPlanPaths {
+        output_r1: out_dir.join("reads_r1.fastq.gz"),
+        output_r2: paired.then(|| out_dir.join("reads_r2.fastq.gz")),
+        report_json: out_dir.join("correct_report.json"),
+    }
+}
+
+fn correct_effective_params(
+    paired: bool,
+    effective_threads: u32,
+    options: &CorrectPlanOptions,
+    correction_engine: CorrectionEngine,
+) -> FastqCorrectParams {
+    FastqCorrectParams {
         schema_version: CORRECT_SCHEMA_VERSION.to_string(),
-        paired_mode: PairedMode::from_has_r2(r2.is_some()),
+        paired_mode: PairedMode::from_has_r2(paired),
         threads: effective_threads,
-        correction_engine: correction_engine.clone(),
+        correction_engine,
         quality_encoding: options.quality_encoding.clone(),
         kmer_size: options.kmer_size,
         musket_kmer_budget: options.musket_kmer_budget,
@@ -107,7 +177,10 @@ pub fn plan_correct_with_options(
         max_memory_gb: options.max_memory_gb,
         trusted_kmer_artifact: options.trusted_kmer_artifact.clone(),
         conservative_mode: options.conservative_mode,
-    };
+    }
+}
+
+fn correct_inputs(r1: &Path, r2: Option<&Path>, options: &CorrectPlanOptions) -> Vec<ArtifactRef> {
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -127,74 +200,57 @@ pub fn plan_correct_with_options(
             ArtifactRole::Index,
         ));
     }
+    inputs
+}
+
+fn correct_outputs(paths: &CorrectPlanPaths) -> Vec<ArtifactRef> {
     let mut outputs = vec![
         ArtifactRef::required(
             ArtifactId::from_static("corrected_reads_r1"),
-            output_r1.clone(),
+            paths.output_r1.clone(),
             ArtifactRole::Reads,
         ),
         ArtifactRef::required(
             ArtifactId::from_static("report_json"),
-            report_json.clone(),
+            paths.report_json.clone(),
             ArtifactRole::ReportJson,
         ),
     ];
-    if let Some(output_r2) = &output_r2 {
+    if let Some(output_r2) = &paths.output_r2 {
         outputs.push(ArtifactRef::required(
             ArtifactId::from_static("corrected_reads_r2"),
             output_r2.clone(),
             ArtifactRole::Reads,
         ));
     }
-    let mut resources = tool.resources.clone();
-    resources.threads = effective_threads;
-    Ok(StagePlanV1 {
-        stage_id: STAGE_ID.clone(),
-        stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
-            &STAGE_ID,
-            &tool.tool_id,
-        )),
-        stage_version: STAGE_VERSION,
-        tool_id: tool.tool_id.clone(),
-        tool_version: tool.tool_version.clone(),
-        image: tool.image.clone(),
-        command: bijux_dna_core::prelude::CommandSpecV1 {
-            template: correct_command_template(
-                &tool.tool_id.0,
-                r1,
-                r2,
-                &output_r1,
-                output_r2.as_deref(),
-                &report_json,
-                effective_threads,
-                options,
-                &correction_engine,
-            )?,
-        },
-        resources,
-        io: StageIO { inputs, outputs },
-        out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({
-            "tool": tool.tool_id.0,
-            "input_r1": r1,
-            "input_r2": r2,
-            "out_dir": out_dir,
-            "output_r1": output_r1,
-            "output_r2": output_r2,
-            "report_json": report_json,
-            "threads": effective_threads,
-            "quality_encoding": options.quality_encoding,
-            "kmer_size": options.kmer_size,
-            "musket_kmer_budget": options.musket_kmer_budget,
-            "genome_size": options.genome_size,
-            "max_memory_gb": options.max_memory_gb,
-            "trusted_kmer_artifact": options.trusted_kmer_artifact,
-            "conservative_mode": options.conservative_mode,
-        }),
-        effective_params: serde_json::to_value(&effective_params)
-            .map_err(|error| anyhow!("serialize correct effective params: {error}"))?,
-        aux_images: std::collections::BTreeMap::new(),
-        reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+    outputs
+}
+
+fn correct_plan_params(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    paths: &CorrectPlanPaths,
+    effective_threads: u32,
+    options: &CorrectPlanOptions,
+) -> serde_json::Value {
+    serde_json::json!({
+        "tool": tool_id,
+        "input_r1": r1,
+        "input_r2": r2,
+        "out_dir": out_dir,
+        "output_r1": paths.output_r1,
+        "output_r2": paths.output_r2,
+        "report_json": paths.report_json,
+        "threads": effective_threads,
+        "quality_encoding": options.quality_encoding,
+        "kmer_size": options.kmer_size,
+        "musket_kmer_budget": options.musket_kmer_budget,
+        "genome_size": options.genome_size,
+        "max_memory_gb": options.max_memory_gb,
+        "trusted_kmer_artifact": options.trusted_kmer_artifact,
+        "conservative_mode": options.conservative_mode,
     })
 }
 
