@@ -97,12 +97,8 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             platform,
             bench_inputs: &setup.bench_inputs,
             input_stats_r2: setup.input_stats_r2.as_ref(),
-            tool,
-            tool_spec: &tool_plan.tool_spec,
             input_hash: &setup.input_hash,
-            params: &tool_plan.plan.params,
-            output_reads: &tool_plan.outputs.reads,
-            output_reads_r2: tool_plan.outputs.reads_r2.as_deref(),
+            tool_plan: &tool_plan,
             execution: &execution,
         })?;
         append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
@@ -192,12 +188,8 @@ struct FilterRecordInputs<'a, S: ::std::hash::BuildHasher> {
     platform: &'a PlatformSpec,
     bench_inputs: &'a TrimBenchInputs,
     input_stats_r2: Option<&'a SeqkitMetrics>,
-    tool: &'a str,
-    tool_spec: &'a ToolExecutionSpecV1,
     input_hash: &'a str,
-    params: &'a serde_json::Value,
-    output_reads: &'a Path,
-    output_reads_r2: Option<&'a Path>,
+    tool_plan: &'a FilterToolPlan,
     execution: &'a FilterToolExecution,
 }
 
@@ -507,12 +499,11 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let platform = inputs.platform;
     let bench_inputs = inputs.bench_inputs;
     let input_stats_r2 = inputs.input_stats_r2;
-    let tool = inputs.tool;
-    let tool_spec = inputs.tool_spec;
     let input_hash = inputs.input_hash;
-    let params = inputs.params;
-    let output_reads = inputs.output_reads;
-    let output_reads_r2 = inputs.output_reads_r2;
+    let tool_plan = inputs.tool_plan;
+    let params = &tool_plan.plan.params;
+    let output_reads = tool_plan.outputs.reads.as_path();
+    let output_reads_r2 = tool_plan.outputs.reads_r2.as_deref();
     let execution = inputs.execution;
     let output_stats = observe_filter_outputs(inputs)?;
     let output_stats_r1 = output_stats.r1;
@@ -526,8 +517,8 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let out_dir = output_reads.parent().ok_or_else(|| anyhow!("filter output has no parent"))?;
     let report_path = out_dir.join("filter_report.json");
     let report = build_filter_report(&FilterReportBuildInputs {
-        tool,
-        threads: tool_spec.resources.threads,
+        tool: &tool_plan.tool,
+        threads: tool_plan.tool_spec.resources.threads,
         params,
         bench_inputs,
         output_reads,
@@ -544,8 +535,8 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
         &FilterBenchmarkRecordInputs {
             platform,
             bench_inputs,
-            tool,
-            tool_spec,
+            tool: &tool_plan.tool,
+            tool_spec: &tool_plan.tool_spec,
             input_hash,
             params,
             execution,
@@ -693,31 +684,32 @@ fn filter_metrics_from_report(
 fn observe_filter_outputs<S: ::std::hash::BuildHasher>(
     inputs: &FilterRecordInputs<'_, S>,
 ) -> Result<FilterObservedOutputs> {
-    let output_stats_r1 = if inputs.execution.result.exit_code == 0 && inputs.output_reads.exists()
-    {
+    let output_reads = inputs.tool_plan.outputs.reads.as_path();
+    let output_stats_r1 = if inputs.execution.result.exit_code == 0 && output_reads.exists() {
         observe_fastq_stats(
             inputs.catalog,
             inputs.platform,
             inputs.bench_inputs.runner,
-            inputs.output_reads,
+            output_reads,
         )?
     } else {
         inputs.bench_inputs.input_stats
     };
-    let output_stats_r2 = if let Some(output_reads_r2) = inputs.output_reads_r2 {
-        if inputs.execution.result.exit_code == 0 && output_reads_r2.exists() {
-            Some(observe_fastq_stats(
-                inputs.catalog,
-                inputs.platform,
-                inputs.bench_inputs.runner,
-                output_reads_r2,
-            )?)
+    let output_stats_r2 =
+        if let Some(output_reads_r2) = inputs.tool_plan.outputs.reads_r2.as_deref() {
+            if inputs.execution.result.exit_code == 0 && output_reads_r2.exists() {
+                Some(observe_fastq_stats(
+                    inputs.catalog,
+                    inputs.platform,
+                    inputs.bench_inputs.runner,
+                    output_reads_r2,
+                )?)
+            } else {
+                inputs.input_stats_r2.copied()
+            }
         } else {
-            inputs.input_stats_r2.copied()
-        }
-    } else {
-        None
-    };
+            None
+        };
 
     Ok(FilterObservedOutputs { r1: output_stats_r1, r2: output_stats_r2 })
 }
