@@ -46,6 +46,8 @@ impl Default for NormalizePrimersPlanOptions {
     }
 }
 
+/// # Errors
+/// Returns an error if primer normalization cannot be planned for the requested tool.
 pub fn plan(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -55,6 +57,9 @@ pub fn plan(
     plan_with_options(tool, r1, r2, out_dir, &NormalizePrimersPlanOptions::default())
 }
 
+/// # Errors
+/// Returns an error if the requested primer-normalization options are unsupported or the stage
+/// plan cannot be built.
 pub fn plan_with_options(
     tool: &ToolExecutionSpecV1,
     r1: &Path,

@@ -25,6 +25,9 @@ impl LowComplexityPlanOptions {
     }
 }
 
+/// # Errors
+/// Returns an error if any requested low-complexity filter tool is not admitted for
+/// `fastq.filter_low_complexity`.
 pub fn normalize_low_complexity_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();

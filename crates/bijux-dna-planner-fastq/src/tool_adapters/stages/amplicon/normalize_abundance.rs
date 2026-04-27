@@ -27,6 +27,8 @@ impl Default for NormalizeAbundancePlanOptions {
     }
 }
 
+/// # Errors
+/// Returns an error if abundance normalization cannot be planned for the requested tool.
 pub fn plan(
     tool: &ToolExecutionSpecV1,
     abundance_table: &Path,
@@ -35,6 +37,9 @@ pub fn plan(
     plan_with_options(tool, abundance_table, out_dir, &NormalizeAbundancePlanOptions::default())
 }
 
+/// # Errors
+/// Returns an error if the requested abundance-normalization method is unsupported or the stage
+/// plan cannot be built.
 pub fn plan_with_options(
     tool: &ToolExecutionSpecV1,
     abundance_table: &Path,

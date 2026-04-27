@@ -789,6 +789,8 @@ pub fn cross_fastq_to_bam_id_catalog(profile_id: &str) -> Vec<String> {
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+/// # Errors
+/// Returns an error if any stage binding cannot be composed into a governed stage plan.
 pub fn compose_fastq_stage_bindings<F>(
     stage_bindings: &[FastqStageBinding],
     aux_images: &BTreeMap<String, ContainerImageRefV1>,

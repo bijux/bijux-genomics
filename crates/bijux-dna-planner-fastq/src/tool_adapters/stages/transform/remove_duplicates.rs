@@ -34,6 +34,9 @@ impl Default for RemoveDuplicatesPlanOptions {
     }
 }
 
+/// # Errors
+/// Returns an error if any requested deduplication tool is not admitted for
+/// `fastq.remove_duplicates`.
 pub fn normalize_deduplicate_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
@@ -378,6 +381,8 @@ fn validate_deduplicate_options(
     Ok(())
 }
 
+/// # Errors
+/// Returns an error if the deduplication mode literal is not supported.
 pub fn dedup_mode_from_literal(value: &str) -> Result<DedupMode> {
     match value {
         "exact" => Ok(DedupMode::Exact),

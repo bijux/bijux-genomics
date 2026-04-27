@@ -13,6 +13,8 @@ use bijux_dna_stage_contract::{
 pub const STAGE_ID: StageId = STAGE_REMOVE_CHIMERAS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
+/// # Errors
+/// Returns an error if chimera removal cannot be planned for the requested tool or input layout.
 pub fn plan(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -23,6 +25,9 @@ pub fn plan(
     plan_with_effective_params(tool, r1, r2, out_dir, &effective_params)
 }
 
+/// # Errors
+/// Returns an error if the requested chimera-detection parameters are unsupported or the stage
+/// plan cannot be built.
 pub fn plan_with_effective_params(
     tool: &ToolExecutionSpecV1,
     r1: &Path,

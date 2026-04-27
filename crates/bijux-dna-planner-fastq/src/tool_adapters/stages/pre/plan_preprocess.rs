@@ -21,6 +21,8 @@ pub struct PreprocessPlan {
     pub pipeline_mode: FastqPipelineMode,
 }
 
+/// # Errors
+/// Returns an error if the synthetic preprocess summary plan cannot be materialized.
 pub fn plan_preprocess_stage(
     plan: &PreprocessPlan,
     tool: &ToolExecutionSpecV1,

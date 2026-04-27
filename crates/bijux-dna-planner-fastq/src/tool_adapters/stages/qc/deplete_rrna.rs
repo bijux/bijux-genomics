@@ -33,6 +33,9 @@ fn rrna_database_artifact_id(rrna_db: &str) -> String {
     rrna_db.to_string()
 }
 
+/// # Errors
+/// Returns an error if any requested rRNA depletion tool is not admitted for
+/// `fastq.deplete_rrna`.
 pub fn normalize_rrna_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();

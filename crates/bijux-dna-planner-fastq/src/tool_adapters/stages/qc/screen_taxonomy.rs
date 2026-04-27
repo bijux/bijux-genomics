@@ -29,6 +29,9 @@ pub struct ScreenPlanOptions {
     pub threads: Option<u32>,
 }
 
+/// # Errors
+/// Returns an error if any requested taxonomy-screening tool is not admitted for
+/// `fastq.screen_taxonomy`.
 pub fn normalize_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     normalize_tools_with_allowlist(tools, &allowlist)

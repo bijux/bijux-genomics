@@ -22,6 +22,8 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub type CorrectPlanOptions = crate::CorrectErrorsStageParams;
 const DEFAULT_CORRECT_ERRORS_THREADS: u32 = 1;
 
+/// # Errors
+/// Returns an error if any requested correction tool is not admitted for `fastq.correct_errors`.
 pub fn normalize_correct_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     normalize_tools_with_allowlist(tools, &allowlist)

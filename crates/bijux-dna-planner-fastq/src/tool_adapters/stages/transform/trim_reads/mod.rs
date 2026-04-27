@@ -58,6 +58,9 @@ pub fn plan(
     )
 }
 
+/// # Errors
+/// Returns an error if the requested trim backend or options are unsupported, or if the stage plan
+/// cannot be built.
 pub fn plan_with_options(
     tool: &ToolExecutionSpecV1,
     r1: &Path,

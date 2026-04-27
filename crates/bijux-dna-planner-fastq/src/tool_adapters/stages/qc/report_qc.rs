@@ -46,6 +46,8 @@ struct GovernedQcInputsManifest {
     lineage_hash: Option<String>,
 }
 
+/// # Errors
+/// Returns an error if any requested QC aggregation tool is not admitted for `fastq.report_qc`.
 pub fn normalize_qc_post_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     normalize_tools_with_allowlist(tools, &allowlist)
