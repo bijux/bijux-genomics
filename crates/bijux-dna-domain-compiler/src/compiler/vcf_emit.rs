@@ -23,13 +23,17 @@ fn vcf_stage_default_rationale(index: &DomainIndex, stage: &DomainStage) -> Stri
 }
 
 fn vcf_apptainer_def(tool: &DomainToolLoose) -> String {
+    let shared = format!("containers/apptainer/shared/{}.def", tool.tool_id);
+    if Path::new(&shared).exists() {
+        return shared;
+    }
     if let Some(container) = tool.container.as_ref() {
         let image = container.image.trim();
         if image.ends_with(".def") && Path::new(image).exists() {
             return image.to_string();
         }
     }
-    format!("containers/apptainer/shared/{}.def", tool.tool_id)
+    shared
 }
 
 fn vcf_dockerfile(tool: &DomainToolLoose) -> String {
