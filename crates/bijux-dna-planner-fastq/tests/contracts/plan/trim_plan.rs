@@ -244,7 +244,7 @@ fn plan_trim_prinseq_maps_n_drop_filtering() -> Result<()> {
 
     let script = &plan.command.template[2];
     assert!(script.contains("-ns_max_n"));
-    assert!(script.contains("0"));
+    assert!(script.contains('0'));
     Ok(())
 }
 

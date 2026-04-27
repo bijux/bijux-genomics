@@ -1,5 +1,8 @@
 use anyhow::{anyhow, Result};
 
+/// # Errors
+/// Returns an error when the rendered command still contains unresolved
+/// placeholder tokens after applying the provided bindings.
 pub fn render_command_template(
     template: &[String],
     bindings: &[(&str, Option<String>)],

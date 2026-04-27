@@ -42,7 +42,7 @@ fn benchmark_toolsets_can_be_requested_per_fairness_scenario() {
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::BenchmarkCohort,
     );
     assert_eq!(
-        default_benchmark_tools.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
+        default_benchmark_tools.iter().map(bijux_dna_core::ids::ToolId::as_str).collect::<Vec<_>>(),
         vec!["clumpify", "fastuniq"]
     );
 
@@ -51,7 +51,7 @@ fn benchmark_toolsets_can_be_requested_per_fairness_scenario() {
         "dedup_fairness",
     );
     assert_eq!(
-        dedup_tools.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
+        dedup_tools.iter().map(bijux_dna_core::ids::ToolId::as_str).collect::<Vec<_>>(),
         vec!["clumpify", "fastuniq"]
     );
 
@@ -71,7 +71,7 @@ fn toolset_modes_publish_governed_infer_asvs_runtime_tools() {
         bijux_dna_planner_fastq::stage_api::ToolsetExecutionMode::GovernedExecution,
     );
     assert_eq!(
-        governed_tools.iter().map(|tool_id| tool_id.as_str()).collect::<Vec<_>>(),
+        governed_tools.iter().map(bijux_dna_core::ids::ToolId::as_str).collect::<Vec<_>>(),
         vec!["dada2"]
     );
 

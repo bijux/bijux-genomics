@@ -16,7 +16,7 @@ fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(Path::parent)
-        .expect("workspace root")
+        .unwrap_or_else(|| panic!("workspace root"))
         .to_path_buf()
 }
 
@@ -24,7 +24,7 @@ fn tool_registry() -> &'static bijux_dna_core::contract::ToolRegistry {
     static REGISTRY: OnceLock<bijux_dna_core::contract::ToolRegistry> = OnceLock::new();
     REGISTRY.get_or_init(|| {
         tool_registry_support::load_domain_tool_registry(&workspace_root())
-            .expect("load domain tool registry")
+            .unwrap_or_else(|error| panic!("load domain tool registry: {error}"))
     })
 }
 

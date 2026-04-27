@@ -1,4 +1,9 @@
-#![allow(clippy::too_many_arguments)]
+#![allow(
+    clippy::format_push_string,
+    clippy::too_many_arguments,
+    clippy::uninlined_format_args,
+    clippy::unnecessary_wraps
+)]
 
 use std::path::{Path, PathBuf};
 
@@ -286,7 +291,7 @@ fn trim_command_template(
         }
         return Ok(wrap_trim_command_with_report(
             "fastp",
-            command,
+            &command,
             r1,
             r2,
             output_r1,
@@ -472,7 +477,7 @@ fn trim_command_template(
     )?;
     Ok(wrap_trim_command_with_report(
         &tool.tool_id.0,
-        rendered,
+        &rendered,
         r1,
         r2,
         output_r1,
@@ -559,7 +564,7 @@ fn seqpurge_trim_command_template(
     }
     Ok(wrap_trim_command_with_report(
         "seqpurge",
-        command,
+        &command,
         r1,
         r2,
         output_r1,
@@ -625,7 +630,7 @@ fn prinseq_trim_command_template(
     }
     Ok(wrap_trim_command_with_report(
         "prinseq",
-        command,
+        &command,
         r1,
         r2,
         output_r1,
@@ -685,7 +690,7 @@ fn cutadapt_command_template(
     }
     Ok(wrap_trim_command_with_report(
         "cutadapt",
-        command,
+        &command,
         r1,
         r2,
         output_r1,
@@ -744,7 +749,7 @@ fn bbduk_trim_command_template(
     }
     let wrapped = wrap_trim_command_with_report(
         "bbduk",
-        command,
+        &command,
         r1,
         r2,
         output_r1,
@@ -871,7 +876,7 @@ fn atropos_command_template(
     }
     Ok(wrap_trim_command_with_report(
         "atropos",
-        command,
+        &command,
         r1,
         r2,
         output_r1,
@@ -928,7 +933,7 @@ fn fastx_clipper_command_template(
         None,
         None,
     ));
-    Ok(wrap_trim_shell_script_with_report(script, output_r1, output_r2, report_json, None))
+    Ok(wrap_trim_shell_script_with_report(&script, output_r1, output_r2, report_json, None))
 }
 
 fn fastx_clipper_single_command(
@@ -1137,7 +1142,7 @@ fn leehom_trim_command_template(
         None,
     ));
     Ok(wrap_trim_shell_script_with_report(
-        script,
+        &script,
         output_r1,
         output_r2,
         report_json,
@@ -1194,7 +1199,7 @@ fn adapterremoval_command_template(
     }
     Ok(wrap_trim_command_with_report(
         "adapterremoval",
-        command,
+        &command,
         r1,
         r2,
         output_r1,
@@ -1326,7 +1331,7 @@ fn trimmomatic_command_template(
     }
     Ok(wrap_trim_command_with_report(
         "trimmomatic",
-        command,
+        &command,
         r1,
         r2,
         output_r1,

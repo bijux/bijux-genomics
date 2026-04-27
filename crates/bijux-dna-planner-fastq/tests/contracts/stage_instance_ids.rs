@@ -1,5 +1,5 @@
 use bijux_dna_core::prelude::{
-    CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
+    CommandSpecV1, ContainerImageRefV1, StepId, ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 
 fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -30,7 +30,7 @@ fn preprocess_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Resul
         temp.path(),
     )?;
     assert_eq!(
-        validate_plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        validate_plan.stage_instance_id.as_ref().map(StepId::as_str),
         Some("fastq.validate_reads.tool.fastqvalidator")
     );
 
@@ -41,7 +41,7 @@ fn preprocess_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Resul
         temp.path(),
     )?;
     assert_eq!(
-        detect_plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        detect_plan.stage_instance_id.as_ref().map(StepId::as_str),
         Some("fastq.detect_adapters.tool.fastqc")
     );
 
@@ -66,7 +66,7 @@ fn transform_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result
         None,
     )?;
     assert_eq!(
-        trim_plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        trim_plan.stage_instance_id.as_ref().map(StepId::as_str),
         Some("fastq.trim_reads.tool.fastp")
     );
 
@@ -77,7 +77,7 @@ fn transform_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result
         temp.path(),
     )?;
     assert_eq!(
-        merge_plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        merge_plan.stage_instance_id.as_ref().map(StepId::as_str),
         Some("fastq.merge_pairs.tool.pear")
     );
 
@@ -98,7 +98,7 @@ fn qc_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<()> {
             temp.path(),
         )?;
     assert_eq!(
-        profile_plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        profile_plan.stage_instance_id.as_ref().map(StepId::as_str),
         Some("fastq.profile_reads.tool.seqkit_stats")
     );
 
@@ -121,7 +121,7 @@ fn qc_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<()> {
             None,
         )?;
     assert_eq!(
-        report_plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        report_plan.stage_instance_id.as_ref().map(StepId::as_str),
         Some("fastq.report_qc.tool.multiqc")
     );
 
@@ -145,7 +145,7 @@ fn reference_aware_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::
             temp.path(),
         )?;
     assert_eq!(
-        host_plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        host_plan.stage_instance_id.as_ref().map(StepId::as_str),
         Some("fastq.deplete_host.tool.bowtie2")
     );
 
@@ -157,7 +157,7 @@ fn reference_aware_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::
         temp.path(),
     )?;
     assert_eq!(
-        contaminant_plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        contaminant_plan.stage_instance_id.as_ref().map(StepId::as_str),
         Some("fastq.deplete_reference_contaminants.tool.bowtie2")
     );
 
@@ -177,7 +177,7 @@ fn amplicon_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<
         temp.path(),
     )?;
     assert_eq!(
-        otu_plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        otu_plan.stage_instance_id.as_ref().map(StepId::as_str),
         Some("fastq.cluster_otus.tool.vsearch")
     );
 
@@ -189,7 +189,7 @@ fn amplicon_stage_plans_emit_tool_scoped_stage_instance_ids() -> anyhow::Result<
         temp.path(),
     )?;
     assert_eq!(
-        abundance_plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()),
+        abundance_plan.stage_instance_id.as_ref().map(StepId::as_str),
         Some("fastq.normalize_abundance.tool.seqkit")
     );
 

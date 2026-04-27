@@ -1,4 +1,5 @@
 use std::collections::BTreeSet;
+use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use bijux_dna_core::prelude::{ArtifactId, ArtifactRole};
@@ -132,7 +133,7 @@ pub(super) fn write_trim_report_script(
 
 pub(super) fn wrap_trim_command_with_report(
     tool_id: &str,
-    command: Vec<String>,
+    command: &[String],
     r1: &Path,
     r2: Option<&Path>,
     output_r1: &Path,
@@ -146,7 +147,7 @@ pub(super) fn wrap_trim_command_with_report(
     raw_backend_report: Option<&Path>,
     raw_backend_report_format: Option<&str>,
 ) -> Vec<String> {
-    let mut script = format!("set -eu\n{}\n", shell_join(&command));
+    let mut script = format!("set -eu\n{}\n", shell_join(command));
     script.push_str(&write_trim_report_script(
         tool_id,
         r1,
@@ -163,7 +164,7 @@ pub(super) fn wrap_trim_command_with_report(
         raw_backend_report_format,
     ));
     wrap_trim_shell_script_with_report(
-        script,
+        &script,
         output_r1,
         output_r2,
         report_json,
@@ -172,7 +173,7 @@ pub(super) fn wrap_trim_command_with_report(
 }
 
 pub(super) fn wrap_trim_shell_script_with_report(
-    script: String,
+    script: &str,
     output_r1: &Path,
     output_r2: Option<&Path>,
     report_json: &Path,
@@ -195,7 +196,7 @@ pub(super) fn wrap_trim_shell_script_with_report(
         }
         wrapped.push('\n');
     }
-    wrapped.push_str(script.strip_prefix("set -eu\n").unwrap_or(&script));
+    wrapped.push_str(script.strip_prefix("set -eu\n").unwrap_or(script));
     vec!["sh".to_string(), "-lc".to_string(), wrapped]
 }
 
@@ -206,16 +207,20 @@ pub(super) fn move_first_existing_output_script(
 ) -> String {
     let mut script = String::from("trim_output_moved=0\n");
     for candidate in candidates {
-        script.push_str(&format!(
-            "if [ -f {} ]; then mv {} {}; trim_output_moved=1; fi\n",
-            shell_quote_path(candidate),
-            shell_quote_path(candidate),
-            shell_quote_path(output_path),
-        ));
+        script
+            .write_fmt(format_args!(
+                "if [ -f {} ]; then mv {} {}; trim_output_moved=1; fi\n",
+                shell_quote_path(candidate),
+                shell_quote_path(candidate),
+                shell_quote_path(output_path),
+            ))
+            .unwrap_or_else(|_| unreachable!("writing to String cannot fail"));
     }
-    script.push_str(&format!(
-        "[ \"$trim_output_moved\" = 1 ] || {{ echo '{}' >&2; exit 1; }}\n",
-        label.replace('\'', "\"")
-    ));
+    script
+        .write_fmt(format_args!(
+            "[ \"$trim_output_moved\" = 1 ] || {{ echo '{}' >&2; exit 1; }}\n",
+            label.replace('\'', "\"")
+        ))
+        .unwrap_or_else(|_| unreachable!("writing to String cannot fail"));
     script
 }

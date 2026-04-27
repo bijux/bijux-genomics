@@ -285,13 +285,9 @@ fn merge_command_template(
         input_r1 = shell_quote_path(r1),
         input_r2 = shell_quote_path(r2),
         merged_reads = shell_quote_path(&outputs.merged_reads),
-        emit_unmerged = if effective_params.unmerged_read_policy
-            == UnmergedReadPolicy::EmitUnmergedPairs
-        {
-            1
-        } else {
-            0
-        },
+        emit_unmerged = i32::from(
+            effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs
+        ),
         unmerged_r1_shell = outputs
             .unmerged_reads_r1
             .as_ref()
@@ -553,13 +549,14 @@ fn base_merge_command(
 }
 
 fn option_json_u32(value: Option<u32>) -> String {
-    value.map(|value| value.to_string()).unwrap_or_else(|| "null".to_string())
+    value.map_or_else(|| "null".to_string(), |value| value.to_string())
 }
 
 fn option_json_string(value: Option<&str>) -> String {
-    value
-        .map(|value| serde_json::to_string(value).unwrap_or_else(|_| "null".to_string()))
-        .unwrap_or_else(|| "null".to_string())
+    value.map_or_else(
+        || "null".to_string(),
+        |value| serde_json::to_string(value).unwrap_or_else(|_| "null".to_string()),
+    )
 }
 
 fn merge_raw_backend_report_format(tool: &str) -> Option<&'static str> {

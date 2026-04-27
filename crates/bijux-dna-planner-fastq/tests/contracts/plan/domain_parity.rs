@@ -35,7 +35,10 @@ fn domain_fastq_stage_ids() -> Result<BTreeSet<String>> {
 #[test]
 fn fastq_domain_yaml_matches_rust_stage_catalog() -> Result<()> {
     let yaml = domain_fastq_stage_ids()?;
-    let rust = FASTQ_STAGE_ID_CATALOG.iter().map(|s| s.to_string()).collect::<BTreeSet<_>>();
+    let rust = FASTQ_STAGE_ID_CATALOG
+        .iter()
+        .map(|stage_id| (*stage_id).to_string())
+        .collect::<BTreeSet<_>>();
     assert_eq!(yaml, rust, "domain fastq stage IDs drifted from Rust catalog");
     Ok(())
 }

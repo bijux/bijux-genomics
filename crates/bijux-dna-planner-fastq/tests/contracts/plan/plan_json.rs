@@ -5,7 +5,7 @@ use std::sync::OnceLock;
 
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRef, ArtifactRole, CommandSpecV1, ContainerImageRefV1, StageId,
-    ToolExecutionSpecV1, ToolId,
+    ToolConstraints, ToolExecutionSpecV1, ToolId,
 };
 use bijux_dna_domain_fastq::FastqPipelineMode;
 use bijux_dna_domain_fastq::{STAGE_TRIM_READS, STAGE_VALIDATE_READS};
@@ -23,7 +23,7 @@ fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(Path::parent)
-        .expect("workspace root")
+        .unwrap_or_else(|| panic!("workspace root"))
         .to_path_buf()
 }
 
@@ -31,7 +31,7 @@ fn tool_registry() -> &'static bijux_dna_core::contract::ToolRegistry {
     static REGISTRY: OnceLock<bijux_dna_core::contract::ToolRegistry> = OnceLock::new();
     REGISTRY.get_or_init(|| {
         tool_registry_support::load_domain_tool_registry(&workspace_root())
-            .expect("load domain tool registry")
+            .unwrap_or_else(|error| panic!("load domain tool registry: {error}"))
     })
 }
 
@@ -294,7 +294,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
                 command: CommandSpecV1 {
                     template: vec!["planner".to_string()],
                 },
-                resources: Default::default(),
+                resources: ToolConstraints::default(),
             },
         )?;
     assert_snapshot("internal__fastq__preprocess_summary", &plan)?;
@@ -401,7 +401,7 @@ fn stage_plan_snapshots_are_stable() -> Result<()> {
             command: CommandSpecV1 {
                 template: vec!["Rscript".to_string(), "run_dada2.R".to_string()],
             },
-            resources: Default::default(),
+            resources: ToolConstraints::default(),
         },
         r1,
         Some(r2),

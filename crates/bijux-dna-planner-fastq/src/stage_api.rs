@@ -319,6 +319,7 @@ pub fn stage_tool_maturity(stage_id: &StageId, tool_id: &ToolId) -> Option<Stage
     )
 }
 
+#[must_use]
 pub fn adapter_bank_path() -> std::path::PathBuf {
     bijux_dna_domain_fastq::adapter_bank_path()
 }

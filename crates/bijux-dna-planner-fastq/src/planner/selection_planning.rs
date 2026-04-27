@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args, clippy::wildcard_imports)]
+
 use super::*;
 
 /// # Errors

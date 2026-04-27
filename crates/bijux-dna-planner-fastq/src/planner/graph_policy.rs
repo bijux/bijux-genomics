@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args, clippy::unnecessary_wraps, clippy::wildcard_imports)]
+
 use super::*;
 
 pub(super) fn validate_select_stage_nodes(
@@ -150,13 +152,13 @@ pub(super) fn validate_reference_index_bindings(
                     &explicit_stage_inputs,
                     &binding_by_node_id,
                 )?
-                .map(|binding| binding.tool.tool_id.as_str());
+                .map(|upstream_binding| upstream_binding.tool.tool_id.as_str());
                 let dependency_backend = dependency_reference_index_binding(
                     binding,
                     &dependency_policy,
                     &binding_by_node_id,
                 )?
-                .map(|binding| binding.tool.tool_id.as_str());
+                .map(|upstream_binding| upstream_binding.tool.tool_id.as_str());
                 let Some(index_backend) =
                     explicit_backend.or(dependency_backend).or(current_index_backend)
                 else {
@@ -413,10 +415,10 @@ fn execution_edge_from_pipeline_edge(
 pub(super) fn ensure_unique_stage_binding_nodes(bindings: &[FastqStageBinding]) -> Result<()> {
     let mut seen_nodes = std::collections::BTreeSet::new();
     for binding in bindings {
-        let node_id =
-            binding.stage_instance_id.as_deref().map(str::to_string).unwrap_or_else(|| {
-                format!("{}.tool.{}", binding.stage_id, binding.tool.tool_id.as_str())
-            });
+        let node_id = binding.stage_instance_id.as_deref().map_or_else(
+            || format!("{}.tool.{}", binding.stage_id, binding.tool.tool_id.as_str()),
+            str::to_string,
+        );
         if !seen_nodes.insert(node_id.clone()) {
             return Err(anyhow!(
                 "duplicate FASTQ stage node binding {}; repeated stage/tool bindings must set distinct stage_instance_id values",
@@ -441,8 +443,8 @@ pub(crate) fn stage_status(stage_id: &str) -> Option<String> {
 pub(super) fn enforce_stage_status(stage_id: &str, allow_planned: bool) -> Result<()> {
     match stage_status(stage_id).as_deref() {
         Some("supported") | None => Ok(()),
-        Some("planned") | Some("out_of_scope") if allow_planned => Ok(()),
-        Some("planned") | Some("out_of_scope") => Err(anyhow!(
+        Some("planned" | "out_of_scope") if allow_planned => Ok(()),
+        Some("planned" | "out_of_scope") => Err(anyhow!(
             "stage {stage_id} is not active in current scope; re-run with --allow-planned to override"
         )),
         Some(other) => Err(anyhow!("stage {stage_id} has unknown status {other}")),

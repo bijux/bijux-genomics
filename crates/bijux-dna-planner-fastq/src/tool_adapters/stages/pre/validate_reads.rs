@@ -1,3 +1,5 @@
+#![allow(clippy::format_push_string, clippy::uninlined_format_args)]
+
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
@@ -149,6 +151,7 @@ pub fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
     normalize_tools_with_allowlist(tools, &allowlist)
 }
 
+#[must_use]
 pub fn resolve_config(user: ValidateReadsUserConfig) -> ValidateReadsEffectiveConfig {
     ValidateReadsEffectiveConfig {
         tool: user.tool,

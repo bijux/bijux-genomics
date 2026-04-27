@@ -69,6 +69,7 @@ pub struct TrimEffectiveConfig {
     pub contaminant_bank: Option<serde_json::Value>,
 }
 
+#[must_use]
 pub fn trim_output_name(tool: &str) -> Option<&'static str> {
     match tool {
         "fastp" => Some("fastp.fastq.gz"),
@@ -89,6 +90,7 @@ pub fn trim_output_name(tool: &str) -> Option<&'static str> {
     }
 }
 
+#[must_use]
 pub fn resolve_config(user: TrimUserConfig) -> TrimEffectiveConfig {
     TrimEffectiveConfig {
         tool: user.tool,
@@ -131,11 +133,7 @@ pub(super) fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOption
     if let Some(policy) = options.n_policy.as_deref() {
         if !matches!(
             (policy, tool_id),
-            ("retain", _)
-                | ("drop", "fastp")
-                | ("drop", "cutadapt")
-                | ("drop", "prinseq")
-                | ("drop", "bbduk")
+            ("retain", _) | ("drop", "fastp" | "cutadapt" | "prinseq" | "bbduk")
         ) {
             return Err(anyhow!(
                 "trim planning does not yet support n_policy={policy} for {tool_id}"
@@ -187,10 +185,8 @@ pub(super) fn ensure_trim_option_support(tool_id: &str, options: &TrimPlanOption
     }
     match tool_id {
         "fastp" | "cutadapt" | "atropos" | "bbduk" | "adapterremoval" | "trimmomatic"
-        | "alientrimmer" | "trim_galore" | "skewer" => Ok(()),
-        "prinseq" => Ok(()),
-        "seqkit" if options.quality_cutoff.is_none() => Ok(()),
-        "seqpurge" if options.quality_cutoff.is_none() => Ok(()),
+        | "alientrimmer" | "trim_galore" | "skewer" | "prinseq" => Ok(()),
+        "seqkit" | "seqpurge" if options.quality_cutoff.is_none() => Ok(()),
         _ => Err(anyhow!("trim planning does not yet map min_length/quality_cutoff for {tool_id}")),
     }
 }

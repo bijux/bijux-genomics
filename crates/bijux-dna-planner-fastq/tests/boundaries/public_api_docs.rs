@@ -83,7 +83,7 @@ fn documented_root_exports_remain_compilable() {
         STAGE_REPORT_AGGREGATE, STAGE_SELECT_STAGE_TOOL, TOOL_SEQKIT,
     };
 
-    let _planner = FastqPlanner;
+    let _: FastqPlanner = FastqPlanner;
     let _: &str = PLANNER_VERSION;
     let _: &str = TOOL_SEQKIT;
     let _ = STAGE_PREPROCESS_SUMMARY;

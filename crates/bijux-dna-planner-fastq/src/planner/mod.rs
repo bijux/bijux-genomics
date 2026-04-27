@@ -304,8 +304,7 @@ fn normalize_stage_bindings(
         let pipeline_spec = config
             .pipeline_spec
             .clone()
-            .map(Ok)
-            .unwrap_or_else(|| implicit_pipeline_spec_from_bindings(&config.stage_bindings))?;
+            .map_or_else(|| implicit_pipeline_spec_from_bindings(&config.stage_bindings), Ok)?;
         return Ok((pipeline_spec, config.stage_bindings.clone()));
     }
 
@@ -318,8 +317,7 @@ fn normalize_stage_bindings(
         let base_pipeline = config
             .pipeline_spec
             .clone()
-            .map(Ok)
-            .unwrap_or_else(|| implicit_pipeline_spec_from_toolsets(&config.stage_toolsets))?;
+            .map_or_else(|| implicit_pipeline_spec_from_toolsets(&config.stage_toolsets), Ok)?;
         let toolsets = config
             .stage_toolsets
             .iter()
@@ -361,7 +359,7 @@ fn normalize_stage_bindings(
                 let toolset = source_toolset_for_expanded_selection(
                     &config.stage_toolsets,
                     &selection.stage_id,
-                    &selection.stage_instance_id,
+                    selection.stage_instance_id.as_deref(),
                 )
                 .ok_or_else(|| {
                     anyhow!(
@@ -462,14 +460,14 @@ fn implicit_pipeline_spec_from_nodes(
     Ok(PipelineSpec::graph(nodes, edges))
 }
 
-fn base_stage_instance_id(stage_instance_id: &Option<String>) -> Option<&str> {
-    stage_instance_id.as_deref().and_then(|value| value.split(".route.").next())
+fn base_stage_instance_id(stage_instance_id: Option<&str>) -> Option<&str> {
+    stage_instance_id.and_then(|value| value.split(".route.").next())
 }
 
 fn source_toolset_for_expanded_selection<'a>(
     toolsets: &'a [FastqStageToolsetBinding],
     stage_id: &str,
-    expanded_stage_instance_id: &Option<String>,
+    expanded_stage_instance_id: Option<&str>,
 ) -> Option<&'a FastqStageToolsetBinding> {
     let base_instance_id = base_stage_instance_id(expanded_stage_instance_id);
     toolsets.iter().find(|binding| {
@@ -746,11 +744,15 @@ pub fn plan_fastq_to_bam__default__v1(
     policy: PlanPolicy,
 ) -> Result<ExecutionGraph> {
     let edges = default_edges_for_stages(&stages);
+    let steps = stages
+        .into_iter()
+        .map(|stage| bijux_dna_stage_contract::execution_step_from_stage_plan(&stage))
+        .collect();
     let graph = ExecutionGraph::new(
         "fastq-to-bam__default__v1",
         PLANNER_VERSION,
         policy,
-        stages.iter().map(bijux_dna_stage_contract::execution_step_from_stage_plan).collect(),
+        steps,
         edges
             .into_iter()
             .map(|edge| {

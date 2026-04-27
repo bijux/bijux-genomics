@@ -120,7 +120,14 @@ pub fn preprocess_decisions(args: &BenchFastqPreprocessArgs) -> PreprocessDecisi
 
     let mut correct_decision = None;
     let mut enable_correct = args.enable_correct;
-    if !enable_correct {
+    if enable_correct {
+        correct_decision = Some(CorrectDecisionTrace {
+            enabled: true,
+            auto_enabled: false,
+            reason: "error correction enabled by user flag".to_string(),
+            mean_q_estimate: None,
+        });
+    } else {
         let thresholds = bijux_dna_domain_fastq::thresholds_from_env();
         if let Ok(mean_q) = estimate_mean_q(&args.r1, 256) {
             if mean_q < thresholds.mean_q_warn {
@@ -143,19 +150,12 @@ pub fn preprocess_decisions(args: &BenchFastqPreprocessArgs) -> PreprocessDecisi
                 });
             }
         }
-    } else {
-        correct_decision = Some(CorrectDecisionTrace {
-            enabled: true,
-            auto_enabled: false,
-            reason: "error correction enabled by user flag".to_string(),
-            mean_q_estimate: None,
-        });
     }
     PreprocessDecisions { enable_merge, enable_correct, merge_decision, correct_decision }
 }
 
 #[must_use]
-pub fn plan_preprocess(args: &BenchFastqPreprocessArgs, pipeline: PipelineSpec) -> PreprocessPlan {
+pub fn plan_preprocess(args: &BenchFastqPreprocessArgs, pipeline: &PipelineSpec) -> PreprocessPlan {
     PreprocessPlan {
         r1: args.r1.clone(),
         r2: args.r2.clone(),
@@ -163,6 +163,17 @@ pub fn plan_preprocess(args: &BenchFastqPreprocessArgs, pipeline: PipelineSpec) 
         enable_contaminant_removal: args.enable_contaminant_removal,
         pipeline_mode: args.mode.pipeline_mode(),
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+struct PipelineFilterOptions {
+    paired: bool,
+    shotgun_mode: bool,
+    enable_merge: bool,
+    enable_correct: bool,
+    enable_qc_post: bool,
+    enable_screen: bool,
+    enable_terminal_damage_trim: bool,
 }
 
 #[must_use]
@@ -189,7 +200,7 @@ pub fn resolve_preprocess_pipeline(
             profile_id,
         ) {
             Ok(profile) => filter_preprocess_pipeline(
-                pipeline_spec_from_stage_catalog(
+                &pipeline_spec_from_stage_catalog(
                     profile
                         .capabilities
                         .required_stages
@@ -199,24 +210,26 @@ pub fn resolve_preprocess_pipeline(
                         .collect(),
                     args.mode.pipeline_mode(),
                 ),
-                args.r2.is_some(),
-                shotgun_mode,
-                enable_merge,
-                enable_correct,
-                enable_qc_post,
-                enable_screen
-                    || profile
-                        .capabilities
-                        .required_stages
-                        .iter()
-                        .any(|stage| stage == STAGE_SCREEN_TAXONOMY.as_str()),
-                enable_terminal_damage_trim,
+                PipelineFilterOptions {
+                    paired: args.r2.is_some(),
+                    shotgun_mode,
+                    enable_merge,
+                    enable_correct,
+                    enable_qc_post,
+                    enable_screen: enable_screen
+                        || profile
+                            .capabilities
+                            .required_stages
+                            .iter()
+                            .any(|stage| stage == STAGE_SCREEN_TAXONOMY.as_str()),
+                    enable_terminal_damage_trim,
+                },
                 &amplicon_only,
             ),
             Err(err) => {
                 eprintln!("unknown fastq profile {profile_id}: {err}; using default pipeline");
                 filter_preprocess_pipeline(
-                    default_pipeline_spec(DefaultPipelineOptions {
+                    &default_pipeline_spec(DefaultPipelineOptions {
                         paired: args.r2.is_some(),
                         enable_merge,
                         enable_correct,
@@ -224,20 +237,22 @@ pub fn resolve_preprocess_pipeline(
                         enable_screen,
                         mode: args.mode.pipeline_mode(),
                     }),
-                    args.r2.is_some(),
-                    shotgun_mode,
-                    enable_merge,
-                    enable_correct,
-                    enable_qc_post,
-                    enable_screen,
-                    enable_terminal_damage_trim,
+                    PipelineFilterOptions {
+                        paired: args.r2.is_some(),
+                        shotgun_mode,
+                        enable_merge,
+                        enable_correct,
+                        enable_qc_post,
+                        enable_screen,
+                        enable_terminal_damage_trim,
+                    },
                     &amplicon_only,
                 )
             }
         }
     } else {
         filter_preprocess_pipeline(
-            default_pipeline_spec(DefaultPipelineOptions {
+            &default_pipeline_spec(DefaultPipelineOptions {
                 paired: args.r2.is_some(),
                 enable_merge,
                 enable_correct,
@@ -245,49 +260,45 @@ pub fn resolve_preprocess_pipeline(
                 enable_screen,
                 mode: args.mode.pipeline_mode(),
             }),
-            args.r2.is_some(),
-            shotgun_mode,
-            enable_merge,
-            enable_correct,
-            enable_qc_post,
-            enable_screen,
-            enable_terminal_damage_trim,
+            PipelineFilterOptions {
+                paired: args.r2.is_some(),
+                shotgun_mode,
+                enable_merge,
+                enable_correct,
+                enable_qc_post,
+                enable_screen,
+                enable_terminal_damage_trim,
+            },
             &amplicon_only,
         )
     }
 }
 
 fn filter_preprocess_pipeline(
-    spec: PipelineSpec,
-    paired: bool,
-    shotgun_mode: bool,
-    enable_merge: bool,
-    enable_correct: bool,
-    enable_qc_post: bool,
-    enable_screen: bool,
-    enable_terminal_damage_trim: bool,
+    spec: &PipelineSpec,
+    options: PipelineFilterOptions,
     amplicon_only: &[&str],
 ) -> PipelineSpec {
-    let mut allowed_stages = apply_layout_branching(spec.stage_catalog(), paired);
-    if !shotgun_mode {
+    let mut allowed_stages = apply_layout_branching(spec.stage_catalog(), options.paired);
+    if !options.shotgun_mode {
         allowed_stages.retain(|stage| stage != "fastq.trim_polyg_tails");
     }
-    if !enable_merge {
+    if !options.enable_merge {
         allowed_stages.retain(|stage| stage != STAGE_MERGE_PAIRS.as_str());
     }
-    if !enable_correct {
+    if !options.enable_correct {
         allowed_stages.retain(|stage| stage != STAGE_CORRECT_ERRORS.as_str());
     }
-    if !enable_qc_post {
+    if !options.enable_qc_post {
         allowed_stages.retain(|stage| stage != STAGE_REPORT_QC.as_str());
     }
-    if !enable_screen {
+    if !options.enable_screen {
         allowed_stages.retain(|stage| stage != STAGE_SCREEN_TAXONOMY.as_str());
     }
-    if !enable_terminal_damage_trim {
+    if !options.enable_terminal_damage_trim {
         allowed_stages.retain(|stage| stage != STAGE_TRIM_TERMINAL_DAMAGE.as_str());
     }
-    if shotgun_mode {
+    if options.shotgun_mode {
         allowed_stages.retain(|stage| !amplicon_only.contains(&stage.as_str()));
     }
     preprocess_pipeline_graph_for_stage_order(

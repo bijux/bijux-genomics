@@ -104,7 +104,7 @@ where
     F: FnMut(&FastqStageBinding, &std::path::Path, Option<&std::path::Path>) -> Result<PathBuf>,
 {
     let raw_r1 = r1.to_path_buf();
-    let raw_r2 = r2.map(|path| path.to_path_buf());
+    let raw_r2 = r2.map(std::path::Path::to_path_buf);
     let mut plans = Vec::new();
     let mut lineage_by_node_id = BTreeMap::<String, PlannedStageLineage>::new();
     let mut latest_lineage_node_id = None::<String>;

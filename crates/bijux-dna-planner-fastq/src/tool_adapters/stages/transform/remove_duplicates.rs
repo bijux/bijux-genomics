@@ -1,4 +1,4 @@
-#![allow(clippy::too_many_arguments)]
+#![allow(clippy::format_push_string, clippy::too_many_arguments, clippy::uninlined_format_args)]
 
 use std::path::Path;
 

@@ -30,7 +30,7 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
 
     let stage = bijux_dna_domain_fastq::STAGE_VALIDATE_READS.as_str().to_string();
     let contract_hash = bijux_dna_domain_fastq::stage_contract_hash(&stage)
-        .and_then(|hash| hash.ok())
+        .and_then(Result::ok)
         .unwrap_or_else(|| "missing".to_string());
     let reason = PlanDecisionReason {
         kind: PlanReasonKind::Default,
@@ -67,7 +67,7 @@ fn tool_reasons_carry_defaults_and_contract_hash() -> anyhow::Result<()> {
     let plan_reason = &plans[0].reason;
     assert_eq!(plan_reason.kind, reason.kind);
     assert_eq!(plan_reason.summary, reason.summary);
-    assert!(plan_reason.details.get("defaults_diff").is_some_and(|value| value.is_object()));
+    assert!(plan_reason.details.get("defaults_diff").is_some_and(serde_json::Value::is_object));
     assert!(plan_reason.details.get("contract_hash").is_some_and(|value| value.as_str().is_some()));
     Ok(())
 }
@@ -112,7 +112,7 @@ fn stage_reasons_are_deterministic_for_new_fastq_stage_set() -> anyhow::Result<(
                 details: serde_json::json!({
                     "defaults_diff": {},
                     "contract_hash": bijux_dna_domain_fastq::stage_contract_hash(stage_id)
-                        .and_then(|hash| hash.ok())
+                        .and_then(Result::ok)
                         .unwrap_or_else(|| "missing".to_string()),
                 }),
             }),

@@ -1,5 +1,6 @@
 #![allow(clippy::too_many_arguments)]
 
+use std::fmt::Write as _;
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
@@ -212,7 +213,7 @@ fn trim_polyg_command(
             }
             Ok(wrap_polyg_command_with_report(
                 tool_id,
-                command,
+                &command,
                 r1,
                 r2,
                 output_r1,
@@ -242,7 +243,7 @@ fn trim_polyg_command(
             }
             Ok(wrap_polyg_command_with_report(
                 tool_id,
-                command,
+                &command,
                 r1,
                 r2,
                 output_r1,
@@ -277,7 +278,7 @@ fn trim_polyg_raw_backend_output(tool_id: &str, raw_backend_report: &Path) -> Op
 
 fn wrap_polyg_command_with_report(
     tool_id: &str,
-    command: Vec<String>,
+    command: &[String],
     r1: &Path,
     r2: Option<&Path>,
     output_r1: &Path,
@@ -320,12 +321,16 @@ fn wrap_polyg_command_with_report(
         raw_backend_report_format: Some(raw_report_format.to_string()),
         backend_metrics: None,
     };
-    let mut script = format!("set -eu\n{}\n", shell_join(&command));
-    script.push_str(&format!(
-        "printf '%s\\n' {} > {}\n",
-        shell_quote_str(&serde_json::to_string(&payload).expect("serialize trim polyg report")),
-        shell_quote_path(report),
-    ));
+    let mut script = format!("set -eu\n{}\n", shell_join(command));
+    let payload_json = serde_json::to_string(&payload)
+        .unwrap_or_else(|_| unreachable!("serializing trim polyg report cannot fail"));
+    script
+        .write_fmt(format_args!(
+            "printf '%s\\n' {} > {}\n",
+            shell_quote_str(&payload_json),
+            shell_quote_path(report),
+        ))
+        .unwrap_or_else(|_| unreachable!("writing to String cannot fail"));
     vec!["sh".to_string(), "-lc".to_string(), script]
 }
 
