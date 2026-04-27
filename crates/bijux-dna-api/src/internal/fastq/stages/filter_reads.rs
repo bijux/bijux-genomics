@@ -162,6 +162,11 @@ struct FilterReadAccounting {
     pairs_out: Option<u64>,
 }
 
+struct FilterObservedOutputs {
+    r1: SeqkitMetrics,
+    r2: Option<SeqkitMetrics>,
+}
+
 fn select_filter_benchmark_tools(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterArgs,
 ) -> Result<Vec<String>> {
@@ -303,7 +308,6 @@ fn filter_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
 fn build_filter_record<S: ::std::hash::BuildHasher>(
     inputs: &FilterRecordInputs<'_, S>,
 ) -> Result<BenchmarkRecord<FastqFilterMetrics>> {
-    let catalog = inputs.catalog;
     let platform = inputs.platform;
     let bench_inputs = inputs.bench_inputs;
     let input_stats_r2 = inputs.input_stats_r2;
@@ -314,20 +318,9 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let output_reads = inputs.output_reads;
     let output_reads_r2 = inputs.output_reads_r2;
     let execution = inputs.execution;
-    let output_stats_r1 = if execution.exit_code == 0 && output_reads.exists() {
-        observe_fastq_stats(catalog, platform, bench_inputs.runner, output_reads)?
-    } else {
-        bench_inputs.input_stats
-    };
-    let output_stats_r2 = if let Some(output_reads_r2) = output_reads_r2 {
-        if execution.exit_code == 0 && output_reads_r2.exists() {
-            Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, output_reads_r2)?)
-        } else {
-            input_stats_r2.copied()
-        }
-    } else {
-        None
-    };
+    let output_stats = observe_filter_outputs(inputs)?;
+    let output_stats_r1 = output_stats.r1;
+    let output_stats_r2 = output_stats.r2;
     let accounting = filter_read_accounting(
         bench_inputs.input_stats,
         input_stats_r2,
@@ -462,6 +455,37 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn observe_filter_outputs<S: ::std::hash::BuildHasher>(
+    inputs: &FilterRecordInputs<'_, S>,
+) -> Result<FilterObservedOutputs> {
+    let output_stats_r1 = if inputs.execution.exit_code == 0 && inputs.output_reads.exists() {
+        observe_fastq_stats(
+            inputs.catalog,
+            inputs.platform,
+            inputs.bench_inputs.runner,
+            inputs.output_reads,
+        )?
+    } else {
+        inputs.bench_inputs.input_stats
+    };
+    let output_stats_r2 = if let Some(output_reads_r2) = inputs.output_reads_r2 {
+        if inputs.execution.exit_code == 0 && output_reads_r2.exists() {
+            Some(observe_fastq_stats(
+                inputs.catalog,
+                inputs.platform,
+                inputs.bench_inputs.runner,
+                output_reads_r2,
+            )?)
+        } else {
+            inputs.input_stats_r2.copied()
+        }
+    } else {
+        None
+    };
+
+    Ok(FilterObservedOutputs { r1: output_stats_r1, r2: output_stats_r2 })
 }
 
 fn filter_read_accounting(
