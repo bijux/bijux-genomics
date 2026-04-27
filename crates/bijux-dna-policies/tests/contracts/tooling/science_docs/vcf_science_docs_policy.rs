@@ -525,6 +525,20 @@ fn policy__contracts__vcf_science_docs_policy__population_structure_doc_covers_s
 }
 
 #[test]
+fn policy__contracts__vcf_science_docs_policy__ibd_doc_covers_relatedness_stage_family() {
+    let expected = BTreeSet::from([
+        "vcf.phasing".to_string(),
+        "vcf.ibd".to_string(),
+        "vcf.demography".to_string(),
+    ]);
+    let documented = vcf_doc_stage_mentions("docs/20-science/vcf/IBD.md");
+    assert_eq!(
+        expected, documented,
+        "VCF IBD doc must mention the governed relatedness stage family exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__vcf_science_docs_policy__damage_logic_covers_gl_damage_stage_family() {
     let expected = BTreeSet::from([
         "vcf.call_gl".to_string(),
