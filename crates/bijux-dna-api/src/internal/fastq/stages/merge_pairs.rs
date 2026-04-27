@@ -337,22 +337,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     let merged_stats = observe_merge_stats(catalog, platform, runner, merged_reads)?;
     let report = merge_report_with_execution(report_path, execution)?;
 
-    let pairs_in = report.reads_r1.min(report.reads_r2);
-    let reads_merged = report.reads_merged.min(pairs_in);
-    let reads_unmerged = report.reads_unmerged.min(pairs_in.saturating_sub(reads_merged));
-    let metrics = FastqMergeMetrics {
-        reads_in: report.reads_r1 + report.reads_r2,
-        reads_out: reads_merged,
-        bases_in: r1_stats.bases + r2_stats.bases,
-        bases_out: merged_stats.bases,
-        pairs_in,
-        pairs_out: reads_merged,
-        reads_r1: report.reads_r1,
-        reads_r2: report.reads_r2,
-        reads_merged,
-        reads_unmerged,
-        merge_rate: report.merge_rate,
-    };
+    let metrics = merge_metrics_from_report(&report, r1_stats, r2_stats, &merged_stats);
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     let out_dir = report_path.parent().ok_or_else(|| anyhow!("merge report has no parent"))?;
@@ -382,6 +367,31 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn merge_metrics_from_report(
+    report: &MergePairsReportV1,
+    r1_stats: &SeqkitMetrics,
+    r2_stats: &SeqkitMetrics,
+    merged_stats: &SeqkitMetrics,
+) -> FastqMergeMetrics {
+    let pairs_in = report.reads_r1.min(report.reads_r2);
+    let reads_merged = report.reads_merged.min(pairs_in);
+    let reads_unmerged = report.reads_unmerged.min(pairs_in.saturating_sub(reads_merged));
+
+    FastqMergeMetrics {
+        reads_in: report.reads_r1 + report.reads_r2,
+        reads_out: reads_merged,
+        bases_in: r1_stats.bases + r2_stats.bases,
+        bases_out: merged_stats.bases,
+        pairs_in,
+        pairs_out: reads_merged,
+        reads_r1: report.reads_r1,
+        reads_r2: report.reads_r2,
+        reads_merged,
+        reads_unmerged,
+        merge_rate: report.merge_rate,
+    }
 }
 
 fn merge_report_with_execution(
