@@ -6,7 +6,7 @@ use crate::support::workspace::load_workspace_registry;
 use crate::tool_selection::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_umi_v1, insert_fastq_umi_v1};
-use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqUmiMetrics};
+use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqUmiMetrics, MetricSet};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
@@ -331,9 +331,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
     write_umi_report(inputs.out_dir, &report)?;
-    let metrics_json = serde_json::to_value(&metric_set)?;
-    bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("metrics.json"), &metrics_json)
-        .context("write umi metrics")?;
+    write_umi_metrics(inputs.out_dir, &metric_set)?;
 
     let context = build_benchmark_context(
         inputs.tool,
@@ -433,6 +431,15 @@ fn umi_metrics_from_report(report: &ExtractUmisReportV1) -> FastqUmiMetrics {
 fn write_umi_report(out_dir: &std::path::Path, report: &ExtractUmisReportV1) -> Result<()> {
     bijux_dna_infra::atomic_write_json(&out_dir.join("umi_report.json"), report)
         .context("write umi report")
+}
+
+fn write_umi_metrics(
+    out_dir: &std::path::Path,
+    metric_set: &MetricSet<FastqUmiMetrics>,
+) -> Result<()> {
+    let metrics_json = serde_json::to_value(metric_set)?;
+    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+        .context("write umi metrics")
 }
 
 fn weighted_mean_q(
