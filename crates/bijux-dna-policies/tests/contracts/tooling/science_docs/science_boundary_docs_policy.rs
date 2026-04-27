@@ -308,3 +308,20 @@ fn policy__contracts__science_boundary_docs_policy__container_frontend_build_aut
         "containers/docs/FRONTEND_BUILD_AUTHORITY.md must link the governed frontend-build-authority surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__frontend_traceability_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../containers/docs/FRONTEND_BUILD_AUTHORITY.md".to_string(),
+        "../../containers/versions/LOCK.md".to_string(),
+        "../../containers/versions/lock.json".to_string(),
+        "../../configs/vcf/panels/panels.toml".to_string(),
+        "../../configs/vcf/panels/panel_lock.json".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/TRACEABILITY_PROOF_FRONTEND.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/TRACEABILITY_PROOF_FRONTEND.md must link the governed frontend-traceability surfaces exactly"
+    );
+}
