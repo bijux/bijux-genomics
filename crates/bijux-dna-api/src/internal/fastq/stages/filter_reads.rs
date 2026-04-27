@@ -198,6 +198,16 @@ struct FilterReportBuildInputs<'a> {
     execution: &'a StageResultV1,
 }
 
+struct FilterBenchmarkRecordInputs<'a> {
+    platform: &'a PlatformSpec,
+    bench_inputs: &'a TrimBenchInputs,
+    tool: &'a str,
+    tool_spec: &'a ToolExecutionSpecV1,
+    input_hash: &'a str,
+    params: &'a serde_json::Value,
+    execution: &'a StageResultV1,
+}
+
 struct FilterReadAccounting {
     reads_in: u64,
     reads_out: u64,
@@ -508,21 +518,39 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let metric_set = build_filter_metric_set(&report, &bench_inputs.input_stats, &output_stats_r1)?;
     write_filter_artifacts(out_dir, &report_path, &report, &metric_set)?;
 
+    build_filter_benchmark_record(
+        &FilterBenchmarkRecordInputs {
+            platform,
+            bench_inputs,
+            tool,
+            tool_spec,
+            input_hash,
+            params,
+            execution,
+        },
+        metric_set,
+    )
+}
+
+fn build_filter_benchmark_record(
+    inputs: &FilterBenchmarkRecordInputs<'_>,
+    metric_set: MetricSet<FastqFilterMetrics>,
+) -> Result<BenchmarkRecord<FastqFilterMetrics>> {
     let context = build_benchmark_context(
-        tool,
-        tool_spec.tool_version.clone(),
-        benchmark_image_identity(tool_spec),
-        bench_inputs.runner,
-        platform,
-        input_hash.to_string(),
-        params.clone(),
+        inputs.tool,
+        inputs.tool_spec.tool_version.clone(),
+        benchmark_image_identity(inputs.tool_spec),
+        inputs.bench_inputs.runner,
+        inputs.platform,
+        inputs.input_hash.to_string(),
+        inputs.params.clone(),
     );
     let record = BenchmarkRecord {
         context,
         execution: ExecutionMetrics {
-            runtime_s: execution.runtime_s,
-            memory_mb: execution.memory_mb,
-            exit_code: execution.exit_code,
+            runtime_s: inputs.execution.runtime_s,
+            memory_mb: inputs.execution.memory_mb,
+            exit_code: inputs.execution.exit_code,
         },
         metrics: metric_set,
     };
