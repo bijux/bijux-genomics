@@ -77,3 +77,21 @@ fn policy__contracts__root_science_docs_policy__scientific_defaults_link_governe
         "Scientific defaults must link the governed reference surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_science_docs_policy__validity_limits_link_domain_authorities() {
+    let expected = BTreeSet::from([
+        "SCIENTIFIC_DEFAULTS.md".to_string(),
+        "fastq/SCIENTIFIC_SPEC.md".to_string(),
+        "bam/METHODOLOGICAL_INTENT.md".to_string(),
+        "vcf/POPULATION_STRUCTURE.md".to_string(),
+        "vcf/ROH.md".to_string(),
+        "vcf/IBD.md".to_string(),
+        "vcf/DEMOGRAPHY.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/VALIDITY_LIMITS.md");
+    assert_eq!(
+        expected, documented,
+        "Scientific validity limits must link the governed domain authority docs exactly"
+    );
+}
