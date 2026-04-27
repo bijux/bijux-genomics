@@ -67,24 +67,10 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         prepare_correct_benchmark_setup(catalog, platform, runner_override, args, &selected_tools)?;
 
     if args.explain {
-        write_explain_md(
-            &setup.bench_inputs.bench_dir,
-            STAGE_CORRECT_ERRORS.as_str(),
-            &setup.tools,
-            &setup.excluded_tools,
-            None,
-        )?;
-        write_explain_plan_json(
-            &setup.bench_inputs.bench_dir,
-            STAGE_CORRECT_ERRORS.as_str(),
-            &setup.tools,
-            &setup.registry,
-            None,
-        )?;
+        write_correct_benchmark_explain(&setup)?;
     }
 
-    ensure_image_qa_passed(STAGE_CORRECT_ERRORS.as_str(), &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_CORRECT_ERRORS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_correct_benchmark_qa(catalog, platform, &setup.tools)?;
 
     let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -230,6 +216,32 @@ fn prepare_correct_benchmark_setup<S: ::std::hash::BuildHasher>(
         registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
     let excluded_tools = all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
     Ok(CorrectBenchmarkSetup { registry, tools, excluded_tools, bench_inputs })
+}
+
+fn write_correct_benchmark_explain(setup: &CorrectBenchmarkSetup) -> Result<()> {
+    write_explain_md(
+        &setup.bench_inputs.bench_dir,
+        STAGE_CORRECT_ERRORS.as_str(),
+        &setup.tools,
+        &setup.excluded_tools,
+        None,
+    )?;
+    write_explain_plan_json(
+        &setup.bench_inputs.bench_dir,
+        STAGE_CORRECT_ERRORS.as_str(),
+        &setup.tools,
+        &setup.registry,
+        None,
+    )
+}
+
+fn ensure_correct_benchmark_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_CORRECT_ERRORS.as_str(), tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_CORRECT_ERRORS.as_str(), tools, platform, catalog)
 }
 
 fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
