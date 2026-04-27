@@ -74,15 +74,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed(STAGE_ID, &tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_ID, &tools, platform, catalog)?;
 
-    let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!(
-            "{}+{}",
-            hash_file_sha256(&args.r1).context("hash overrepresented input r1")?,
-            hash_file_sha256(r2).context("hash overrepresented input r2")?
-        )
-    } else {
-        hash_file_sha256(&args.r1).context("hash overrepresented input")?
-    };
+    let input_hash = overrepresented_input_hash(args)?;
     let sqlite_path = bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
     let bench_path = bench_dir.join("bench.jsonl");
@@ -219,6 +211,19 @@ fn preflight_overrepresented_inputs(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_ID, &header);
     Ok(())
+}
+
+fn overrepresented_input_hash(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
+) -> Result<String> {
+    if let Some(r2) = args.r2.as_deref() {
+        return Ok(format!(
+            "{}+{}",
+            hash_file_sha256(&args.r1).context("hash overrepresented input r1")?,
+            hash_file_sha256(r2).context("hash overrepresented input r2")?
+        ));
+    }
+    hash_file_sha256(&args.r1).context("hash overrepresented input")
 }
 
 fn materialize_overrepresented_outputs(
