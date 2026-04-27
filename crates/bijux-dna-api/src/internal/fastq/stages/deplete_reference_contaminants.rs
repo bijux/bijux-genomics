@@ -113,6 +113,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         validate_reference_contaminants_report_execution(&report, &execution)?;
         validate_reference_contaminants_report_paired_mode(args.r2.is_some(), &report)?;
         validate_reference_contaminants_report_paths(&tool_plan.plan, &report)?;
+        validate_reference_contaminants_report_counts(&setup, &report)?;
         write_reference_contaminants_report(&report)?;
         let metrics = reference_contaminants_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -625,6 +626,76 @@ fn validate_reference_contaminants_report_path(
     if observed != expected {
         return Err(anyhow!(
             "reference contaminant depletion report {label} path mismatch: expected {expected}, observed {observed}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_reference_contaminants_report_counts(
+    setup: &ReferenceContaminantsBenchmarkSetup,
+    report: &DepleteReferenceContaminantsReportV1,
+) -> Result<()> {
+    let expected_reads_in =
+        setup.bench_inputs.input_stats.reads + setup.input_stats_r2.as_ref().map_or(0, |s| s.reads);
+    if report.reads_in != expected_reads_in {
+        return Err(anyhow!(
+            "reference contaminant depletion report reads_in mismatch: expected {}, observed {}",
+            expected_reads_in,
+            report.reads_in
+        ));
+    }
+    let expected_bases_in =
+        setup.bench_inputs.input_stats.bases + setup.input_stats_r2.as_ref().map_or(0, |s| s.bases);
+    if report.bases_in != expected_bases_in {
+        return Err(anyhow!(
+            "reference contaminant depletion report bases_in mismatch: expected {}, observed {}",
+            expected_bases_in,
+            report.bases_in
+        ));
+    }
+    validate_reference_contaminants_removed_count(
+        "reads",
+        report.reads_in,
+        report.reads_out,
+        report.reads_removed,
+    )?;
+    validate_reference_contaminants_removed_count(
+        "bases",
+        report.bases_in,
+        report.bases_out,
+        report.bases_removed,
+    )?;
+    let expected_pairs_in = setup
+        .input_stats_r2
+        .as_ref()
+        .map(|stats| setup.bench_inputs.input_stats.reads.min(stats.reads));
+    if report.pairs_in != expected_pairs_in {
+        return Err(anyhow!(
+            "reference contaminant depletion report pairs_in mismatch: expected {:?}, observed {:?}",
+            expected_pairs_in,
+            report.pairs_in
+        ));
+    }
+    if report.pairs_out.zip(report.pairs_in).is_some_and(|(out, input)| out > input) {
+        return Err(anyhow!(
+            "reference contaminant depletion report pairs_out exceeds pairs_in: pairs_out={:?} pairs_in={:?}",
+            report.pairs_out,
+            report.pairs_in
+        ));
+    }
+    Ok(())
+}
+
+fn validate_reference_contaminants_removed_count(
+    label: &str,
+    input: u64,
+    output: u64,
+    removed: u64,
+) -> Result<()> {
+    let expected = input.saturating_sub(output);
+    if removed != expected {
+        return Err(anyhow!(
+            "reference contaminant depletion report removed {label} mismatch: expected {expected}, observed {removed}"
         ));
     }
     Ok(())
