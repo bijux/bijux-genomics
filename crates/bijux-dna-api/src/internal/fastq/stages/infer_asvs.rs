@@ -335,11 +335,29 @@ fn output_path(
 fn resolve_infer_asvs_outputs(
     plan: &bijux_dna_stage_contract::StagePlanV1,
 ) -> Result<InferAsvsOutputs> {
-    Ok(InferAsvsOutputs {
+    let outputs = InferAsvsOutputs {
         asv_table_tsv: output_path(plan, "asv_table_tsv")?,
         asv_sequences_fasta: output_path(plan, "asv_sequences_fasta")?,
         taxonomy_reference_fasta: output_path(plan, "taxonomy_ready_fasta")?,
         taxonomy_reads_fastq: output_path(plan, "taxonomy_ready_fastq")?,
         report_json: output_path(plan, "report_json")?,
-    })
+    };
+    validate_infer_asvs_output_paths(&outputs)?;
+    Ok(outputs)
+}
+
+fn validate_infer_asvs_output_paths(outputs: &InferAsvsOutputs) -> Result<()> {
+    let mut paths = BTreeSet::new();
+    for path in [
+        outputs.asv_table_tsv.as_path(),
+        outputs.asv_sequences_fasta.as_path(),
+        outputs.taxonomy_reference_fasta.as_path(),
+        outputs.taxonomy_reads_fastq.as_path(),
+        outputs.report_json.as_path(),
+    ] {
+        if !paths.insert(path) {
+            return Err(anyhow!("infer_asvs output path reused: {}", path.display()));
+        }
+    }
+    Ok(())
 }
