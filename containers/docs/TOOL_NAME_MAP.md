@@ -3,6 +3,12 @@
 
 # Tool Name Mapping
 
+- Root contract: [containers/README.md](../README.md)
+- Container docs index: [containers/docs/index.md](index.md)
+- Tool ID manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt)
+- Tool ID contract: [containers/docs/TOOL_IDS_CONTRACT.md](TOOL_IDS_CONTRACT.md)
+- Tool docs index: [containers/docs/tools/index.md](tools/index.md)
+
 | Tool ID | Expected Binary | Status |
 |---|---|---|
 | `adapterremoval` | `adapterremoval` | `production` |

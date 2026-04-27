@@ -680,3 +680,20 @@ fn policy__contracts__science_boundary_docs_policy__container_docs_index_links_g
         "containers/docs/index.md must link the governed container-docs authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__tool_name_map_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "index.md".to_string(),
+        "../TOOL_IDS.txt".to_string(),
+        "TOOL_IDS_CONTRACT.md".to_string(),
+        "tools/index.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/TOOL_NAME_MAP.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/TOOL_NAME_MAP.md must link the governed tool-name-map authorities exactly"
+    );
+}
