@@ -9,8 +9,8 @@ use crate::domain::{
     BindingResolutionRow, BindingSpec, ClaimEvidenceRow, ClaimSpec, CompiledScience,
     DecisionReasoningRow, FastqClosureGateRow, FastqClosureSummary, FastqDefaultBindingRiskRow,
     FastqEnvironmentRow, FastqEvidenceSummary, FastqMissingClosurePrerequisiteRow,
-    FastqTruthDeltaRow, LoadedSpecs, ScienceIndex, SourceAccess, SourceArchiveGapRow, SourceId,
-    SourceInventoryRow, SourceKind, SourceSpec,
+    FastqTruthDeltaRow, LoadedSpecs, ScienceIndex, SourceAccess, SourceArchiveGapRow,
+    SourceArchiveSummary, SourceId, SourceInventoryRow, SourceKind, SourceSpec,
 };
 use crate::errors::validation_error;
 use crate::io::{list_yaml_files, read_utf8};
@@ -216,6 +216,8 @@ pub fn compile_workspace(root: &Path) -> Result<CompiledScience> {
 pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScience> {
     let source_inventory = build_source_inventory(root, loaded);
     let source_archive_gaps = build_source_archive_gaps(&source_inventory);
+    let source_archive_summary =
+        build_source_archive_summary(&source_inventory, &source_archive_gaps);
     let claim_evidence_map = build_claim_evidence_map(loaded);
     let decision_reasoning_map = build_decision_reasoning_map(loaded);
     let binding_resolution = build_binding_resolution(loaded);
@@ -260,6 +262,7 @@ pub fn compile_loaded(root: &Path, loaded: &LoadedSpecs) -> Result<CompiledScien
         sources: loaded.sources.len(),
         source_inventory_rows: source_inventory.len(),
         source_archive_gap_rows: source_archive_gaps.len(),
+        source_archive_summary,
         evidences: loaded.evidences.len(),
         claims: loaded.claims.len(),
         assumptions: loaded.assumptions.len(),
@@ -351,6 +354,33 @@ fn build_fastq_closure_summary(rows: &[FastqClosureGateRow]) -> FastqClosureSumm
             .count(),
         blocking_reason_counts,
         warning_reason_counts,
+    }
+}
+
+fn build_source_archive_summary(
+    inventory_rows: &[SourceInventoryRow],
+    gap_rows: &[SourceArchiveGapRow],
+) -> SourceArchiveSummary {
+    let mut kind_counts = BTreeMap::new();
+    let mut access_counts = BTreeMap::new();
+    let mut archive_status_counts = BTreeMap::new();
+    let mut missing_tool_counts = BTreeMap::new();
+
+    for row in inventory_rows {
+        increment_scalar_count(&mut kind_counts, &row.kind);
+        increment_scalar_count(&mut access_counts, &row.access);
+        increment_scalar_count(&mut archive_status_counts, &row.archive_status);
+    }
+
+    for row in gap_rows {
+        increment_compound_counts(&mut missing_tool_counts, &row.tool_ids);
+    }
+
+    SourceArchiveSummary {
+        kind_counts,
+        access_counts,
+        archive_status_counts,
+        missing_tool_counts,
     }
 }
 

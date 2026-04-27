@@ -444,10 +444,19 @@ pub struct FastqEvidenceSummary {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct SourceArchiveSummary {
+    pub kind_counts: BTreeMap<String, usize>,
+    pub access_counts: BTreeMap<String, usize>,
+    pub archive_status_counts: BTreeMap<String, usize>,
+    pub missing_tool_counts: BTreeMap<String, usize>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct ScienceIndex {
     pub sources: usize,
     pub source_inventory_rows: usize,
     pub source_archive_gap_rows: usize,
+    pub source_archive_summary: SourceArchiveSummary,
     pub evidences: usize,
     pub claims: usize,
     pub assumptions: usize,
