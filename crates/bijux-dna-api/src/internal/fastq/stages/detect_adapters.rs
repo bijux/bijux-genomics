@@ -332,17 +332,7 @@ fn build_detect_record(
     )?;
     let metric_set = build_detect_adapters_metric_set(&report)?;
 
-    bijux_dna_infra::atomic_write_json(
-        &inputs.tool_plan.plan.out_dir.join("adapter_report.json"),
-        &report,
-    )
-    .context("write adapter report")?;
-    let metrics_json = serde_json::to_value(&metric_set)?;
-    bijux_dna_infra::atomic_write_json(
-        &inputs.tool_plan.plan.out_dir.join("metrics.json"),
-        &metrics_json,
-    )
-    .context("write adapter metrics")?;
+    write_detect_adapters_artifacts(&inputs.tool_plan.plan.out_dir, &report, &metric_set)?;
 
     let context = build_benchmark_context(
         &inputs.tool_plan.tool,
@@ -381,6 +371,18 @@ fn build_detect_adapters_metric_set(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     Ok(metric_set)
+}
+
+fn write_detect_adapters_artifacts(
+    out_dir: &std::path::Path,
+    report: &DetectAdaptersReportV1,
+    metric_set: &MetricSet<FastqDetectAdaptersMetrics>,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(&out_dir.join("adapter_report.json"), report)
+        .context("write adapter report")?;
+    let metrics_json = serde_json::to_value(metric_set)?;
+    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+        .context("write adapter metrics")
 }
 
 fn build_detect_report(
