@@ -97,7 +97,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             artifacts: &observation.artifacts,
             effective_params: &observation.effective_params,
             payload: observation.payload.clone(),
-            execution: &execution,
+            execution_metrics: overrepresented_execution_metrics(&execution),
         });
         write_overrepresented_artifacts(&tool_plan, &observation, &report, &metric_set)?;
         let record = build_overrepresented_record(
@@ -200,7 +200,7 @@ struct OverrepresentedReportInputs<'a> {
     artifacts: &'a OverrepresentedArtifacts,
     effective_params: &'a FastqOverrepresentedProfileParams,
     payload: OverrepresentedPayload,
-    execution: &'a OverrepresentedToolExecution,
+    execution_metrics: ExecutionMetrics,
 }
 
 struct OverrepresentedRecordInputs<'a> {
@@ -340,6 +340,14 @@ fn overrepresented_tool_failure(
     })
 }
 
+fn overrepresented_execution_metrics(execution: &OverrepresentedToolExecution) -> ExecutionMetrics {
+    ExecutionMetrics {
+        runtime_s: execution.result.runtime_s,
+        memory_mb: execution.result.memory_mb,
+        exit_code: execution.result.exit_code,
+    }
+}
+
 fn prepare_overrepresented_artifacts(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
     plan: &StagePlanV1,
@@ -403,9 +411,9 @@ fn build_overrepresented_report(
         flagged_sequences: inputs.payload.metrics.flagged_sequences,
         top_fraction: inputs.payload.metrics.top_fraction,
         rows: inputs.payload.rows,
-        runtime_s: Some(inputs.execution.result.runtime_s),
-        memory_mb: Some(inputs.execution.result.memory_mb),
-        exit_code: Some(inputs.execution.result.exit_code),
+        runtime_s: Some(inputs.execution_metrics.runtime_s),
+        memory_mb: Some(inputs.execution_metrics.memory_mb),
+        exit_code: Some(inputs.execution_metrics.exit_code),
         raw_backend_report: None,
         raw_backend_report_format: None,
     }
@@ -451,11 +459,7 @@ fn build_overrepresented_record(
             inputs.setup.input_hash.clone(),
             inputs.tool_plan.plan.params.clone(),
         ),
-        execution: ExecutionMetrics {
-            runtime_s: inputs.execution.result.runtime_s,
-            memory_mb: inputs.execution.result.memory_mb,
-            exit_code: inputs.execution.result.exit_code,
-        },
+        execution: overrepresented_execution_metrics(inputs.execution),
         metrics: metric_set,
     };
     record.validate()?;
