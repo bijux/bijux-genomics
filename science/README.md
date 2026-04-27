@@ -60,10 +60,15 @@ for the stage- and tool-level detail.
 
 ## Local Evidence Archive
 
-`science/docs/` is intentionally separate from `science/`.
+[science/docs/README.md](docs/README.md) is intentionally separate from
+`science/`.
 
-- `science/specs/**` records authored identifiers, claims, and reviewable metadata
-- `science/docs/**` stores the local downloaded or cloned payloads that back those
-  identifiers when redistribution is not acceptable
-- the science compiler may report expected archive paths, but the archive contents
-  themselves stay outside Git
+- [science/specs/evidence/README.md](specs/evidence/README.md) records the
+  authored identifiers, claims, and reviewable metadata for the current slice.
+- [science/docs/TODO_DOWNLOAD.md](docs/TODO_DOWNLOAD.md) and
+  [science/docs/upstream/README.md](docs/upstream/README.md) describe the local
+  downloaded or cloned payloads that back those identifiers when redistribution
+  is not acceptable.
+- [science/generated/indexes/science_index.json](generated/indexes/science_index.json)
+  may report expected archive paths, but the archive contents themselves stay
+  outside Git.
