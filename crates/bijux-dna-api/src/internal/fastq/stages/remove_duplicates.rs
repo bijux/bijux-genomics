@@ -91,19 +91,10 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveDuplicatesArgs,
 ) -> Result<BenchOutcome<FastqDuplicateMetrics>> {
+    let selected_tools = select_remove_duplicates_benchmark_tools(args)?;
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = resolve_remove_duplicates_tools(
-        &args.tools,
-        args.tools_resolved_implicitly,
-        args.r2.is_some(),
-    )?;
-    let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
-    let artifact_kind =
-        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
-    preflight_stage(STAGE_ID, artifact_kind)?;
-    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
-    log_header_warnings(STAGE_ID, &header);
+    let tools = filter_tools_by_role(STAGE_ID, &selected_tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
     let input_hash = if let Some(r2) = args.r2.as_deref() {
         format!("{}+{}", hash_file_sha256(&args.r1)?, hash_file_sha256(r2)?)
@@ -246,6 +237,22 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
     }
 
     Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+}
+
+fn select_remove_duplicates_benchmark_tools(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveDuplicatesArgs,
+) -> Result<Vec<String>> {
+    let tools = resolve_remove_duplicates_tools(
+        &args.tools,
+        args.tools_resolved_implicitly,
+        args.r2.is_some(),
+    )?;
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
+    preflight_stage(STAGE_ID, artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_ID, &header);
+    Ok(tools)
 }
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
