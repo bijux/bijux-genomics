@@ -89,11 +89,10 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let lengths = observe_read_lengths(args)?;
-        let artifacts = prepare_read_lengths_artifacts(args, &tool_plan.plan, &lengths)?;
-        let metrics = metrics_from_lengths(&lengths)?;
+        let observation = observe_read_lengths_tool(args, &tool_plan.plan)?;
+        let metrics = metrics_from_lengths(&observation.lengths)?;
         let metric_set = metric_set(metrics);
-        let histogram = rebin_lengths(&lengths, artifacts.histogram_bins)
+        let histogram = rebin_lengths(&observation.lengths, observation.artifacts.histogram_bins)
             .into_iter()
             .map(|(read_length, count)| ProfileReadLengthBinV1 {
                 read_length: read_length as u64,
@@ -103,13 +102,13 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         let report = build_read_lengths_report(ReadLengthsReportInputs {
             tool,
             args,
-            artifacts: &artifacts,
+            artifacts: &observation.artifacts,
             metrics: &metric_set.metrics,
             histogram,
             threads: tool_plan.plan.resources.threads,
             execution: &execution,
         });
-        write_read_lengths_report(&artifacts.report_json, &report)?;
+        write_read_lengths_report(&observation.artifacts.report_json, &report)?;
         write_read_lengths_metrics(&tool_plan.out_dir, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
@@ -202,6 +201,11 @@ struct ReadLengthsArtifacts {
     length_tsv: PathBuf,
     length_json: PathBuf,
     histogram_bins: u32,
+}
+
+struct ReadLengthsObservation {
+    lengths: Vec<usize>,
+    artifacts: ReadLengthsArtifacts,
 }
 
 struct ReadLengthsReportInputs<'a> {
@@ -355,6 +359,15 @@ fn prepare_read_lengths_artifacts(
         write_length_outputs(&length_tsv, &length_json, lengths, histogram_bins)?;
     }
     Ok(ReadLengthsArtifacts { report_json, length_tsv, length_json, histogram_bins })
+}
+
+fn observe_read_lengths_tool(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
+    plan: &StagePlanV1,
+) -> Result<ReadLengthsObservation> {
+    let lengths = observe_read_lengths(args)?;
+    let artifacts = prepare_read_lengths_artifacts(args, plan, &lengths)?;
+    Ok(ReadLengthsObservation { lengths, artifacts })
 }
 
 fn build_read_lengths_report(inputs: ReadLengthsReportInputs<'_>) -> ProfileReadLengthsReportV1 {
