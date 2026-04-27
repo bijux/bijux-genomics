@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -95,6 +95,14 @@ pub(crate) struct ClusterOtusReportInputs<'a> {
     pub used_fallback: bool,
     pub raw_backend_report: Option<&'a std::path::Path>,
     pub backend_metrics: Option<serde_json::Value>,
+}
+
+struct ClusterOtusOutputs {
+    otu_table: std::path::PathBuf,
+    otu_representatives: std::path::PathBuf,
+    taxonomy_reference_fasta: std::path::PathBuf,
+    taxonomy_reads_fastq: std::path::PathBuf,
+    report_json: std::path::PathBuf,
 }
 
 pub(crate) fn canonical_cluster_otus_report(
@@ -228,13 +236,10 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
             continue;
         }
         let payload = materialize_amplicon_stage_outputs_for_bench(&out_dir, &step)?;
-        let otu_table = output_path(&plan, "otu_table")?;
-        let otu_representatives = output_path(&plan, "otu_representatives")?;
-        let taxonomy_reference_fasta = output_path(&plan, "taxonomy_ready_fasta")?;
-        let taxonomy_reads_fastq = output_path(&plan, "taxonomy_ready_fastq")?;
-        let report_json = output_path(&plan, "report_json")?;
-        let table_metrics = read_cluster_otus_table_metrics(&otu_table)?;
-        let representative_count = count_cluster_otus_representatives(&otu_representatives)?;
+        let outputs = resolve_cluster_otus_outputs(&plan)?;
+        let table_metrics = read_cluster_otus_table_metrics(&outputs.otu_table)?;
+        let representative_count =
+            count_cluster_otus_representatives(&outputs.otu_representatives)?;
         let metrics = FastqClusterOtusMetrics {
             otu_count: payload
                 .get("otu_count")
@@ -250,11 +255,11 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
         let report = canonical_cluster_otus_report(ClusterOtusReportInputs {
             tool_id: tool,
             input_reads: &args.r1,
-            otu_table: &otu_table,
-            otu_representatives: &otu_representatives,
-            taxonomy_reference_fasta: &taxonomy_reference_fasta,
-            taxonomy_reads_fastq: &taxonomy_reads_fastq,
-            report_json: &report_json,
+            otu_table: &outputs.otu_table,
+            otu_representatives: &outputs.otu_representatives,
+            taxonomy_reference_fasta: &outputs.taxonomy_reference_fasta,
+            taxonomy_reads_fastq: &outputs.taxonomy_reads_fastq,
+            report_json: &outputs.report_json,
             effective_params: &effective_params,
             table_metrics,
             representative_sequence_count: representative_count,
@@ -270,7 +275,7 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
                 "tool_payload": payload,
             })),
         });
-        bijux_dna_infra::atomic_write_json(&report_json, &report)?;
+        bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -299,6 +304,36 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
     }
 
     Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+}
+
+fn resolve_cluster_otus_outputs(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> Result<ClusterOtusOutputs> {
+    let outputs = ClusterOtusOutputs {
+        otu_table: output_path(plan, "otu_table")?,
+        otu_representatives: output_path(plan, "otu_representatives")?,
+        taxonomy_reference_fasta: output_path(plan, "taxonomy_ready_fasta")?,
+        taxonomy_reads_fastq: output_path(plan, "taxonomy_ready_fastq")?,
+        report_json: output_path(plan, "report_json")?,
+    };
+    validate_cluster_otus_output_paths(&outputs)?;
+    Ok(outputs)
+}
+
+fn validate_cluster_otus_output_paths(outputs: &ClusterOtusOutputs) -> Result<()> {
+    let mut paths = BTreeSet::new();
+    for path in [
+        outputs.otu_table.as_path(),
+        outputs.otu_representatives.as_path(),
+        outputs.taxonomy_reference_fasta.as_path(),
+        outputs.taxonomy_reads_fastq.as_path(),
+        outputs.report_json.as_path(),
+    ] {
+        if !paths.insert(path) {
+            return Err(anyhow!("cluster_otus output path reused: {}", path.display()));
+        }
+    }
+    Ok(())
 }
 
 fn output_path(
