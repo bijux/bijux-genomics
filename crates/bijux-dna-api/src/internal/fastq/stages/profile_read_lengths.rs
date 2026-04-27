@@ -102,24 +102,16 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             execution: &execution,
         });
         write_read_lengths_artifacts(&tool_plan, &observation, &report, &metric_set)?;
-        let record = BenchmarkRecord {
-            context: build_benchmark_context(
-                tool,
-                tool_plan.tool_spec.tool_version.clone(),
-                tool_plan.image_digest,
-                setup.runner,
+        let record = build_read_lengths_record(
+            &ReadLengthsRecordInputs {
                 platform,
-                setup.input_hash.clone(),
-                tool_plan.plan.params.clone(),
-            ),
-            execution: ExecutionMetrics {
-                runtime_s: execution.runtime_s,
-                memory_mb: execution.memory_mb,
-                exit_code: execution.exit_code,
+                setup: &setup,
+                tool,
+                tool_plan: &tool_plan,
+                execution: &execution,
             },
-            metrics: metric_set,
-        };
-        record.validate()?;
+            metric_set,
+        )?;
         append_jsonl(&store.jsonl_path, &record)?;
         insert_fastq_read_lengths_v1(&conn, &record)?;
         records.push(record);
@@ -207,6 +199,14 @@ struct ReadLengthsReportInputs<'a> {
     metrics: &'a FastqReadLengthMetrics,
     histogram: Vec<ProfileReadLengthBinV1>,
     threads: u32,
+    execution: &'a StageResultV1,
+}
+
+struct ReadLengthsRecordInputs<'a> {
+    platform: &'a PlatformSpec,
+    setup: &'a ReadLengthsBenchmarkSetup,
+    tool: &'a str,
+    tool_plan: &'a ReadLengthsToolPlan,
     execution: &'a StageResultV1,
 }
 
@@ -438,6 +438,31 @@ fn write_read_lengths_artifacts(
 ) -> Result<()> {
     write_read_lengths_report(&observation.artifacts.report_json, report)?;
     write_read_lengths_metrics(&tool_plan.out_dir, metric_set)
+}
+
+fn build_read_lengths_record(
+    inputs: &ReadLengthsRecordInputs<'_>,
+    metric_set: MetricSet<FastqReadLengthMetrics>,
+) -> Result<BenchmarkRecord<FastqReadLengthMetrics>> {
+    let record = BenchmarkRecord {
+        context: build_benchmark_context(
+            inputs.tool,
+            inputs.tool_plan.tool_spec.tool_version.clone(),
+            inputs.tool_plan.image_digest.clone(),
+            inputs.setup.runner,
+            inputs.platform,
+            inputs.setup.input_hash.clone(),
+            inputs.tool_plan.plan.params.clone(),
+        ),
+        execution: ExecutionMetrics {
+            runtime_s: inputs.execution.runtime_s,
+            memory_mb: inputs.execution.memory_mb,
+            exit_code: inputs.execution.exit_code,
+        },
+        metrics: metric_set,
+    };
+    record.validate()?;
+    Ok(record)
 }
 
 fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
