@@ -83,7 +83,8 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_detect_adapters_tool(&tool_plan, setup.bench_inputs.runner, jobs)?;
-        if let Some(failure) = detect_adapters_tool_failure(&tool_plan, execution.exit_code) {
+        if let Some(failure) = detect_adapters_tool_failure(&tool_plan, execution.result.exit_code)
+        {
             failures.push(failure);
             continue;
         }
@@ -97,7 +98,7 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
             input_hash: &setup.input_hash,
             params: &tool_plan.plan.params,
             out_dir: &tool_plan.plan.out_dir,
-            execution: &execution,
+            execution: &execution.result,
         })?;
         append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
         insert_fastq_detect_adapters_v1(&conn, &record).context("insert bench sqlite")?;
@@ -152,6 +153,10 @@ struct DetectAdaptersToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct DetectAdaptersToolExecution {
+    result: StageResultV1,
 }
 
 struct DetectAdaptersCacheIdentity {
@@ -232,15 +237,16 @@ fn execute_detect_adapters_tool(
     tool_plan: &DetectAdaptersToolPlan,
     runner: RuntimeKind,
     jobs: usize,
-) -> Result<StageResultV1> {
-    execute_plans_with_jobs(
+) -> Result<DetectAdaptersToolExecution> {
+    let result = execute_plans_with_jobs(
         vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
         runner,
         jobs,
     )?
     .into_iter()
     .next()
-    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))
+    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
+    Ok(DetectAdaptersToolExecution { result })
 }
 
 fn detect_adapters_tool_failure(
