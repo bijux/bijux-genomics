@@ -106,7 +106,7 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
             if let Some(tool_row) = tool_by_id.get(tool_id) {
                 let tool_status =
                     tool_row.get("status").and_then(toml::Value::as_str).unwrap_or("supported");
-                if tool_status == "supported" {
+                if support::registry_status_is_production(tool_status) {
                     has_supported_tool = true;
                 }
                 let metrics =
@@ -131,7 +131,7 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
 
     for (tool_id, tool_row) in &tool_by_id {
         let status = tool_row.get("status").and_then(toml::Value::as_str).unwrap_or("supported");
-        if status != "supported" {
+        if !support::registry_status_is_production(status) {
             continue;
         }
 
@@ -169,10 +169,9 @@ fn policy__contracts__registry_ssot_completeness_policy__supported_stages_and_to
         }
     }
 
-    if !offenders.is_empty() {
-        eprintln!(
-            "registry ssot completeness drift (non-fatal during migration):\n{}\n\nactionable summary:\n- Sync generated SSOT files via `make generate-configs`.\n- Then verify with `make domain-gates`.\n- Core files: configs/ci/stages/stages.toml, configs/ci/registry/tool_registry.toml, configs/ci/tools/images.toml, configs/ci/params/param_registry.toml, configs/ci/tools/required_tools.toml.",
-            offenders.join("\n")
-        );
-    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "registry ssot completeness drift:\n{}\n\nactionable summary:\n- Sync generated SSOT files via `make generate-configs`.\n- Then verify with `make domain-gates`.\n- Core files: configs/ci/stages/stages.toml, configs/ci/registry/tool_registry.toml, configs/ci/tools/images.toml, configs/ci/params/param_registry.toml, configs/ci/tools/required_tools.toml.",
+        offenders.join("\n")
+    );
 }
