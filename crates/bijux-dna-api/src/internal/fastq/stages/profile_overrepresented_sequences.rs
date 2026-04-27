@@ -531,10 +531,12 @@ fn accumulate_overrepresented_counts(
     counts: &mut BTreeMap<String, u64>,
 ) -> Result<()> {
     let lines = open_fastq_lines(path)?;
-    for (idx, line) in lines.into_iter().enumerate() {
-        if idx % 4 == 1 {
-            *counts.entry(line.trim().to_string()).or_insert(0) += 1;
-        }
+    let chunks = lines.chunks_exact(4);
+    if !chunks.remainder().is_empty() {
+        return Err(anyhow!("truncated FASTQ record in {}", path.display()));
+    }
+    for record in chunks {
+        *counts.entry(record[1].trim().to_string()).or_insert(0) += 1;
     }
     Ok(())
 }
