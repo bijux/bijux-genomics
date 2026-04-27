@@ -47,7 +47,6 @@ const STAGE_ID: &str = "fastq.profile_overrepresented_sequences";
 ///
 /// # Errors
 /// Returns an error if planning, execution, report parsing, or persistence fails.
-#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
