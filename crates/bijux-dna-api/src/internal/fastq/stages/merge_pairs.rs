@@ -10,8 +10,9 @@ use crate::tool_selection::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::quality::{fetch_fastq_merge_v1, insert_fastq_merge_v1};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqMergeMetrics};
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
-use bijux_dna_core::prelude::measure::ExecutionMetrics;
+use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy;
 use bijux_dna_domain_fastq::MergePairsReportV1;
@@ -94,52 +95,44 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqMergeArgs,
 ) -> Result<BenchOutcome<FastqMergeMetrics>> {
-    let tools = select_merge_benchmark_tools(args)?;
-
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_MERGE_PAIRS.as_str(), &tools, &registry, false)?;
-
-    let runner = ensure_bench_runner(platform, runner_override)?;
-    let bench_dir_name = bench_dir_name(&STAGE_MERGE_PAIRS)
-        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_MERGE_PAIRS.as_str()))?;
-    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
-    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
-    ensure_dir(&bench_dir).context("create bench output dir")?;
-    ensure_dir(&tools_root).context("create tools output dir")?;
+    let selected_tools = select_merge_benchmark_tools(args)?;
+    let setup =
+        prepare_merge_benchmark_setup(catalog, platform, runner_override, args, &selected_tools)?;
 
     if args.explain {
-        write_explain_md(&bench_dir, STAGE_MERGE_PAIRS.as_str(), &tools, &[], None)?;
-        write_explain_plan_json(&bench_dir, STAGE_MERGE_PAIRS.as_str(), &tools, &registry, None)?;
+        write_explain_md(&setup.bench_dir, STAGE_MERGE_PAIRS.as_str(), &setup.tools, &[], None)?;
+        write_explain_plan_json(
+            &setup.bench_dir,
+            STAGE_MERGE_PAIRS.as_str(),
+            &setup.tools,
+            &setup.registry,
+            None,
+        )?;
     }
 
-    ensure_image_qa_passed(STAGE_MERGE_PAIRS.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_MERGE_PAIRS.as_str(), &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_MERGE_PAIRS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_MERGE_PAIRS.as_str(), &setup.tools, platform, catalog)?;
 
-    let input_hash = merge_input_hash(&args.r1, &args.r2)?;
-    let r1_stats = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
-    let r2_stats = observe_fastq_stats(catalog, platform, runner, &args.r2)?;
-    let sqlite_path = bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
-    let merge_options = merge_plan_options(args)?;
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqMergeMetrics>>::new();
 
-    for tool in &tools {
-        let out_dir = tools_root.join(tool);
+    for tool in &setup.tools {
+        let out_dir = setup.tools_root.join(tool);
         ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec(
             STAGE_MERGE_PAIRS.as_str(),
             tool,
-            &registry,
+            &setup.registry,
             catalog,
             platform,
         )?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan =
-            plan_merge_with_options(&tool_spec, &args.r1, &args.r2, &out_dir, &merge_options)?;
+            plan_merge_with_options(&tool_spec, &args.r1, &args.r2, &out_dir, &setup.options)?;
         let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
         let image_digest = tool_spec
             .image
@@ -152,9 +145,9 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             tool,
             &tool_spec.tool_version,
             &image_digest,
-            &runner.to_string(),
+            &setup.runner.to_string(),
             &platform.name,
-            &input_hash,
+            &setup.input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -162,7 +155,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
         }
         let execution = execute_plans_with_jobs(
             vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
-            runner,
+            setup.runner,
             jobs,
         )?
         .into_iter()
@@ -182,10 +175,10 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
         let record = build_merge_record(
             catalog,
             platform,
-            runner,
-            &input_hash,
-            &r1_stats,
-            &r2_stats,
+            setup.runner,
+            &setup.input_hash,
+            &setup.r1_stats,
+            &setup.r2_stats,
             &tool_spec,
             &plan.params,
             merged_reads,
@@ -197,7 +190,19 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+    Ok(BenchOutcome { records, failures, bench_dir: setup.bench_dir, explain: args.explain })
+}
+
+struct MergeBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    runner: RuntimeKind,
+    bench_dir: std::path::PathBuf,
+    tools_root: std::path::PathBuf,
+    input_hash: String,
+    r1_stats: SeqkitMetrics,
+    r2_stats: SeqkitMetrics,
+    options: MergePlanOptions,
 }
 
 fn select_merge_benchmark_tools(
@@ -208,6 +213,41 @@ fn select_merge_benchmark_tools(
     let header = inspect_headers(&args.r1, Some(&args.r2), false)?;
     log_header_warnings(STAGE_MERGE_PAIRS.as_str(), &header);
     Ok(tools)
+}
+
+fn prepare_merge_benchmark_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqMergeArgs,
+    selected_tools: &[String],
+) -> Result<MergeBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role(STAGE_MERGE_PAIRS.as_str(), selected_tools, &registry, false)?;
+    let runner = ensure_bench_runner(platform, runner_override)?;
+    let bench_dir_name = bench_dir_name(&STAGE_MERGE_PAIRS)
+        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_MERGE_PAIRS.as_str()))?;
+    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
+    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
+    ensure_dir(&bench_dir).context("create bench output dir")?;
+    ensure_dir(&tools_root).context("create tools output dir")?;
+    let input_hash = merge_input_hash(&args.r1, &args.r2)?;
+    let r1_stats = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
+    let r2_stats = observe_fastq_stats(catalog, platform, runner, &args.r2)?;
+    let options = merge_plan_options(args)?;
+
+    Ok(MergeBenchmarkSetup {
+        registry,
+        tools,
+        runner,
+        bench_dir,
+        tools_root,
+        input_hash,
+        r1_stats,
+        r2_stats,
+        options,
+    })
 }
 
 #[allow(clippy::too_many_arguments)]
