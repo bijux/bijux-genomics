@@ -22,7 +22,7 @@ use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::screen::HostDepletionEffectiveParams;
 use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST;
-use bijux_dna_domain_fastq::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
+use bijux_dna_domain_fastq::{DepleteHostReportV1, PairedMode, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::hash_file_sha256;
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
@@ -133,6 +133,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         })?;
         validate_host_report_identity(&tool_plan.tool, &report)?;
         validate_host_report_execution(&report, &execution)?;
+        validate_host_report_paired_mode(args.r2.is_some(), &report)?;
         write_deplete_host_report(&report)?;
         let metrics = deplete_host_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -498,6 +499,18 @@ fn validate_host_report_execution(
             "host depletion report exit code mismatch: expected {}, observed {:?}",
             execution.exit_code,
             report.exit_code
+        ));
+    }
+    Ok(())
+}
+
+fn validate_host_report_paired_mode(has_r2: bool, report: &DepleteHostReportV1) -> Result<()> {
+    let expected = if has_r2 { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
+    if report.paired_mode != expected {
+        return Err(anyhow!(
+            "host depletion report paired mode mismatch: expected {:?}, observed {:?}",
+            expected,
+            report.paired_mode
         ));
     }
     Ok(())
