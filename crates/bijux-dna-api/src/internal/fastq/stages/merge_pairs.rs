@@ -96,7 +96,6 @@ fn resolve_merge_outputs(plan: &StagePlanV1) -> Result<MergePlanOutputs<'_>> {
 ///
 /// # Errors
 /// Returns an error if planning, execution, report parsing, or persistence fails.
-#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
