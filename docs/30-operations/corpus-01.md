@@ -13,7 +13,8 @@ This document covers corpus composition, materialization, and the committed corp
 - Describing ad hoc local corpora outside the governed `corpus-01` contract.
 
 ## Contracts
-- Corpus membership must stay aligned with `configs/runtime/corpora/corpus-01.toml`.
+- Corpus membership must stay aligned with
+  [configs/runtime/corpora/corpus-01.toml](../../configs/runtime/corpora/corpus-01.toml).
 - Materialized files must remain under the configured corpus root, not under source directories.
 
 It is intentionally curated instead of randomly sampled so the benchmark surface stays stable over time:
@@ -24,7 +25,8 @@ It is intentionally curated instead of randomly sampled so the benchmark surface
 - all samples are `Homo sapiens`
 - size variation spans compact, mid-size, and larger sub-gigabyte inputs
 
-The selection contract lives in `configs/runtime/corpora/corpus-01.toml`.
+The selection contract lives in
+[configs/runtime/corpora/corpus-01.toml](../../configs/runtime/corpora/corpus-01.toml).
 
 ## Composition
 
@@ -47,7 +49,8 @@ The corpus is materialized from ENA metadata and FASTQ URLs through the Bijux CL
 cargo run -q -p bijux-dna -- corpus materialize --spec configs/runtime/corpora/corpus-01.toml
 ```
 
-The materialization root comes from `--root` or from `preferred_root` in `configs/runtime/corpora/corpus-01.toml`.
+The materialization root comes from `--root` or from `preferred_root` in
+[configs/runtime/corpora/corpus-01.toml](../../configs/runtime/corpora/corpus-01.toml).
 The committed spec keeps that path machine-neutral through `${BIJUX_CORPUS_01_ROOT}`, so a new machine only needs to set that environment variable or pass `--root` explicitly.
 
 Materialization writes:
