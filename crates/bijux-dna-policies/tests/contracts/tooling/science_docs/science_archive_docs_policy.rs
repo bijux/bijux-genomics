@@ -45,3 +45,23 @@ fn policy__contracts__science_archive_docs_policy__science_docs_readme_links_arc
         "science/docs/README.md must link the governed archive contracts exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__science_upstream_readme_links_subsurfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "fastq/README.md".to_string(),
+        "fastq/tools/README.md".to_string(),
+        "fastq/tools/EVIDENCE_MAP.tsv".to_string(),
+        "papers/README.md".to_string(),
+        "papers/TODO_DOWNLOAD.md".to_string(),
+        "papers/TOOL_PAPER_MAP.tsv".to_string(),
+        "github-repos/README.md".to_string(),
+        "github-repos/MANIFEST.tsv".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/docs/upstream/README.md");
+    assert_eq!(
+        expected, documented,
+        "science/docs/upstream/README.md must link the governed upstream archive surfaces exactly"
+    );
+}
