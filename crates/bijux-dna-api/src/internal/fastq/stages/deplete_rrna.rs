@@ -85,16 +85,16 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let report = build_rrna_report(
-            &tool_plan.plan,
-            &setup.bench_inputs.input_stats,
-            setup.input_stats_r2.as_ref(),
+        let report = build_rrna_report(&RrnaReportInputs {
+            plan: &tool_plan.plan,
+            input_stats_r1: &setup.bench_inputs.input_stats,
+            input_stats_r2: setup.input_stats_r2.as_ref(),
             catalog,
             platform,
             runner,
-            &tool_plan.tool,
-            &execution,
-        )?;
+            tool: &tool_plan.tool,
+            execution: &execution,
+        })?;
         bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.rrna_report_json), &report)
             .context("write rrna depletion report")?;
         let metrics = FastqDepleteRrnaMetrics {
@@ -183,6 +183,17 @@ struct RrnaToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct RrnaReportInputs<'a, S: ::std::hash::BuildHasher> {
+    plan: &'a StagePlanV1,
+    input_stats_r1: &'a SeqkitMetrics,
+    input_stats_r2: Option<&'a SeqkitMetrics>,
+    catalog: &'a HashMap<String, ToolImageSpec, S>,
+    platform: &'a PlatformSpec,
+    runner: RuntimeKind,
+    tool: &'a str,
+    execution: &'a StageResultV1,
 }
 
 fn prepare_rrna_tool_plan<S: ::std::hash::BuildHasher>(
@@ -308,40 +319,35 @@ fn ensure_rrna_benchmark_qa<S: ::std::hash::BuildHasher>(
     ensure_tool_qa_passed(STAGE_DEPLETE_RRNA.as_str(), tools, platform, catalog)
 }
 
-#[allow(clippy::too_many_arguments)]
 fn build_rrna_report<S: ::std::hash::BuildHasher>(
-    plan: &bijux_dna_stage_contract::StagePlanV1,
-    input_stats_r1: &bijux_dna_core::prelude::measure::SeqkitMetrics,
-    input_stats_r2: Option<&bijux_dna_core::prelude::measure::SeqkitMetrics>,
-    catalog: &HashMap<String, ToolImageSpec, S>,
-    platform: &PlatformSpec,
-    runner: RuntimeKind,
-    tool: &str,
-    execution: &bijux_dna_runner::step_runner::StageResultV1,
+    inputs: &RrnaReportInputs<'_, S>,
 ) -> Result<DepleteRrnaReportV1> {
     let effective_params: RrnaEffectiveParams =
-        serde_json::from_value(plan.effective_params.clone())
+        serde_json::from_value(inputs.plan.effective_params.clone())
             .context("decode rrna effective params")?;
-    let output_r1 = artifact_output_path(plan, "rrna_filtered_reads_r1")
-        .unwrap_or_else(|| plan.out_dir.join("rrna_filtered.fastq.gz"));
-    let output_r2 = artifact_output_path(plan, "rrna_filtered_reads_r2");
-    let rrna_report_tsv = artifact_output_path(plan, "rrna_report_tsv")
-        .unwrap_or_else(|| plan.out_dir.join("rrna_report.tsv"));
-    let rrna_report_json = artifact_output_path(plan, "rrna_report_json")
-        .unwrap_or_else(|| plan.out_dir.join("rrna_report.json"));
-    let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
+    let output_r1 = artifact_output_path(inputs.plan, "rrna_filtered_reads_r1")
+        .unwrap_or_else(|| inputs.plan.out_dir.join("rrna_filtered.fastq.gz"));
+    let output_r2 = artifact_output_path(inputs.plan, "rrna_filtered_reads_r2");
+    let rrna_report_tsv = artifact_output_path(inputs.plan, "rrna_report_tsv")
+        .unwrap_or_else(|| inputs.plan.out_dir.join("rrna_report.tsv"));
+    let rrna_report_json = artifact_output_path(inputs.plan, "rrna_report_json")
+        .unwrap_or_else(|| inputs.plan.out_dir.join("rrna_report.json"));
+    let output_stats_r1 =
+        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, &output_r1)?;
     let output_stats_r2 = if let Some(path) = output_r2.as_deref() {
-        Some(observe_fastq_stats(catalog, platform, runner, path)?)
+        Some(observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, path)?)
     } else {
         None
     };
-    let reads_in = input_stats_r1.reads + input_stats_r2.map_or(0, |stats| stats.reads);
+    let reads_in =
+        inputs.input_stats_r1.reads + inputs.input_stats_r2.map_or(0, |stats| stats.reads);
     let reads_out = output_stats_r1.reads + output_stats_r2.map_or(0, |stats| stats.reads);
-    let bases_in = input_stats_r1.bases + input_stats_r2.map_or(0, |stats| stats.bases);
+    let bases_in =
+        inputs.input_stats_r1.bases + inputs.input_stats_r2.map_or(0, |stats| stats.bases);
     let bases_out = output_stats_r1.bases + output_stats_r2.map_or(0, |stats| stats.bases);
     let reads_removed = reads_in.saturating_sub(reads_out);
     let bases_removed = bases_in.saturating_sub(bases_out);
-    let pairs_in = input_stats_r2.map(|stats| input_stats_r1.reads.min(stats.reads));
+    let pairs_in = inputs.input_stats_r2.map(|stats| inputs.input_stats_r1.reads.min(stats.reads));
     let pairs_out = output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
     let rrna_fraction_removed =
         if reads_in == 0 { 0.0 } else { u64_to_f64(reads_removed) / u64_to_f64(reads_in) };
@@ -350,7 +356,7 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
         schema_version: DEPLETE_RRNA_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_DEPLETE_RRNA.as_str().to_string(),
         stage_id: STAGE_DEPLETE_RRNA.as_str().to_string(),
-        tool_id: tool.to_string(),
+        tool_id: inputs.tool.to_string(),
         paired_mode: effective_params.paired_mode,
         threads: effective_params.threads,
         rrna_db: effective_params.contaminant_db,
@@ -359,9 +365,10 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
         screening_engine: effective_params.screening_engine,
         report_format: effective_params.report_format,
         emit_removed_reads: effective_params.emit_removed_reads,
-        min_identity: plan.params.get("min_identity").and_then(serde_json::Value::as_f64),
-        input_r1: artifact_input_path_string(plan, "reads_r1"),
-        input_r2: artifact_input_path(plan, "reads_r2").map(|path| path.display().to_string()),
+        min_identity: inputs.plan.params.get("min_identity").and_then(serde_json::Value::as_f64),
+        input_r1: artifact_input_path_string(inputs.plan, "reads_r1"),
+        input_r2: artifact_input_path(inputs.plan, "reads_r2")
+            .map(|path| path.display().to_string()),
         output_r1: output_r1.display().to_string(),
         output_r2: output_r2.map(|path| path.display().to_string()),
         rrna_report_tsv: rrna_report_tsv.display().to_string(),
@@ -375,9 +382,9 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
         pairs_in,
         pairs_out,
         rrna_fraction_removed,
-        runtime_s: Some(execution.runtime_s),
-        memory_mb: Some(execution.memory_mb),
-        exit_code: Some(execution.exit_code),
+        runtime_s: Some(inputs.execution.runtime_s),
+        memory_mb: Some(inputs.execution.memory_mb),
+        exit_code: Some(inputs.execution.exit_code),
         raw_backend_report: None,
         raw_backend_report_format: None,
         backend_metrics: Some(serde_json::json!({
