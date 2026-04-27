@@ -100,7 +100,6 @@ fastq.filter_low_complexity	dustmasker	registry_not_production	advisory	dustmask
 fastq.filter_low_complexity	prinseq	missing_environment_qa_stage	advisory	prinseq cannot be treated as world-class closed for fastq.filter_low_complexity until missing_environment_qa_stage is resolved
 fastq.index_reference	bowtie2_build	missing_environment_qa_stage	blocking	bowtie2_build cannot be treated as world-class closed for fastq.index_reference until missing_environment_qa_stage is resolved
 fastq.index_reference	star	missing_environment_qa_stage	advisory	star cannot be treated as world-class closed for fastq.index_reference until missing_environment_qa_stage is resolved
-fastq.index_reference	star	missing_paper_archive	advisory	star cannot be treated as world-class closed for fastq.index_reference until missing_paper_archive is resolved
 fastq.infer_asvs	dada2	missing_environment_qa_stage	blocking	dada2 cannot be treated as world-class closed for fastq.infer_asvs until missing_environment_qa_stage is resolved
 fastq.interleave_reads	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.interleave_reads until missing_benchmark_support is resolved
 fastq.interleave_reads	bijux_dna	missing_container_ref	advisory	bijux_dna cannot be treated as world-class closed for fastq.interleave_reads until missing_container_ref is resolved

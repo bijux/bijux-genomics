@@ -27,7 +27,7 @@
   "fastq_environment_rows": 90,
   "fastq_closure_gate_rows": 90,
   "fastq_truth_delta_rows": 31,
-  "fastq_missing_closure_prerequisite_rows": 205,
+  "fastq_missing_closure_prerequisite_rows": 204,
   "fastq_default_binding_risk_rows": 25,
   "fastq_closure_summary": {
     "total_rows": 90,
@@ -39,7 +39,7 @@
       "missing_benchmark_support": 20,
       "missing_container_ref": 25,
       "missing_environment_qa_stage": 49,
-      "missing_paper_archive": 21,
+      "missing_paper_archive": 20,
       "missing_runtime_surface": 25,
       "missing_upstream_archive": 20,
       "registry_not_production": 25,
@@ -60,14 +60,14 @@
       "supporting_context": 1
     },
     "paper_archive_status_counts": {
-      "missing": 2,
-      "present": 45
+      "missing": 1,
+      "present": 46
     },
     "prerequisite_counts": {
       "missing_benchmark_support": 20,
       "missing_container_ref": 25,
       "missing_environment_qa_stage": 49,
-      "missing_paper_archive": 21,
+      "missing_paper_archive": 20,
       "missing_runtime_surface": 25,
       "missing_upstream_archive": 20,
       "registry_not_production": 25,
@@ -80,7 +80,6 @@
     "truth_delta_reason_counts": {
       "missing_container_ref": 5,
       "missing_environment_qa_stage": 29,
-      "missing_paper_archive": 1,
       "missing_runtime_surface": 5,
       "registry_not_production": 5
     }
