@@ -570,10 +570,9 @@ fn write_remove_chimeras_artifacts(
     metric_set: &bijux_dna_analyze::MetricSet<FastqChimeraMetrics>,
 ) -> Result<()> {
     bijux_dna_infra::atomic_write_json(&outputs.report_json, report)?;
-    bijux_dna_infra::atomic_write_json(
-        &outputs.metrics_json,
-        &compatibility_metrics_from_report(report),
-    )?;
+    let compatibility_metrics = compatibility_metrics_from_report(report);
+    validate_remove_chimeras_compatibility_metrics(report, &compatibility_metrics)?;
+    bijux_dna_infra::atomic_write_json(&outputs.metrics_json, &compatibility_metrics)?;
     bijux_dna_infra::atomic_write_json(
         &out_dir.join("metrics.json"),
         &serde_json::to_value(metric_set)?,
@@ -656,6 +655,63 @@ fn compatibility_metrics_from_report(report: &RemoveChimerasReportV1) -> serde_j
         "tool": report.tool_id,
         "used_fallback": report.used_fallback,
     })
+}
+
+fn validate_remove_chimeras_compatibility_metrics(
+    report: &RemoveChimerasReportV1,
+    metrics: &serde_json::Value,
+) -> Result<()> {
+    let schema_version = metrics.get("schema_version").and_then(serde_json::Value::as_str);
+    if schema_version != Some("bijux.fastq.remove_chimeras.v2") {
+        return Err(anyhow!(
+            "remove_chimeras compatibility metrics schema mismatch: observed {:?}",
+            schema_version
+        ));
+    }
+    let chimeras_removed = metrics.get("chimeras_removed").and_then(serde_json::Value::as_u64);
+    if chimeras_removed != report.chimeras_removed {
+        return Err(anyhow!(
+            "remove_chimeras compatibility removed count mismatch: expected {:?}, observed {:?}",
+            report.chimeras_removed,
+            chimeras_removed
+        ));
+    }
+    let non_chimera_reads = metrics.get("non_chimera_reads").and_then(serde_json::Value::as_u64);
+    if non_chimera_reads != report.reads_out {
+        return Err(anyhow!(
+            "remove_chimeras compatibility non-chimera reads mismatch: expected {:?}, observed {:?}",
+            report.reads_out,
+            non_chimera_reads
+        ));
+    }
+    let chimera_fraction = metrics.get("chimera_fraction").and_then(serde_json::Value::as_f64);
+    if match (chimera_fraction, report.chimera_fraction) {
+        (Some(observed), Some(expected)) => (observed - expected).abs() > f64::EPSILON,
+        _ => true,
+    } {
+        return Err(anyhow!(
+            "remove_chimeras compatibility fraction mismatch: expected {:?}, observed {:?}",
+            report.chimera_fraction,
+            chimera_fraction
+        ));
+    }
+    let tool = metrics.get("tool").and_then(serde_json::Value::as_str);
+    if tool != Some(report.tool_id.as_str()) {
+        return Err(anyhow!(
+            "remove_chimeras compatibility tool mismatch: expected {}, observed {:?}",
+            report.tool_id,
+            tool
+        ));
+    }
+    let used_fallback = metrics.get("used_fallback").and_then(serde_json::Value::as_bool);
+    if used_fallback != Some(report.used_fallback) {
+        return Err(anyhow!(
+            "remove_chimeras compatibility fallback mismatch: expected {}, observed {:?}",
+            report.used_fallback,
+            used_fallback
+        ));
+    }
+    Ok(())
 }
 
 fn governed_chimera_params(threads: u32) -> ChimeraDetectionEffectiveParams {
