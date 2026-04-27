@@ -92,7 +92,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             failures.push(normalize_primers_tool_failure(tool, &tool_execution.result));
             continue;
         }
-        let outputs = resolve_normalize_primers_outputs(&tool_plan.plan)?;
+        let outputs = resolve_normalize_primers_outputs(&tool_plan.plan, args.r2.is_some())?;
         let observation = observe_normalize_primers_tool(
             catalog,
             platform,
@@ -385,14 +385,32 @@ fn normalize_primers_tool_failure(tool: &str, result: &StageResultV1) -> RawFail
     }
 }
 
-fn resolve_normalize_primers_outputs(plan: &StagePlanV1) -> Result<NormalizePrimersOutputs> {
-    Ok(NormalizePrimersOutputs {
+fn resolve_normalize_primers_outputs(
+    plan: &StagePlanV1,
+    paired: bool,
+) -> Result<NormalizePrimersOutputs> {
+    let outputs = NormalizePrimersOutputs {
         output_r1: artifact_path(plan, "normalized_reads_r1")?,
         output_r2: artifact_path_optional(plan, "normalized_reads_r2"),
         report_json: artifact_path(plan, "report_json")?,
         orientation_report: artifact_path(plan, "primer_orientation_report")?,
         primer_stats_json: artifact_path(plan, "primer_stats_json")?,
-    })
+    };
+    validate_normalize_primers_paired_outputs(&outputs, paired)?;
+    Ok(outputs)
+}
+
+fn validate_normalize_primers_paired_outputs(
+    outputs: &NormalizePrimersOutputs,
+    paired: bool,
+) -> Result<()> {
+    match (paired, outputs.output_r2.as_ref()) {
+        (true, None) => Err(anyhow!("normalize primers paired plan missing normalized_reads_r2")),
+        (false, Some(path)) => {
+            Err(anyhow!("normalize primers single-end plan emitted r2: {}", path.display()))
+        }
+        _ => Ok(()),
+    }
 }
 
 fn observe_normalize_primers_tool<S: ::std::hash::BuildHasher>(
