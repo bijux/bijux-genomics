@@ -55,8 +55,7 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
         write_low_complexity_benchmark_explain(&setup)?;
     }
 
-    ensure_image_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &setup.tools, platform, catalog)?;
+    ensure_low_complexity_benchmark_qa(catalog, platform, &setup.tools)?;
 
     let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -228,6 +227,15 @@ fn write_low_complexity_benchmark_explain(setup: &LowComplexityBenchmarkSetup) -
         &setup.registry,
         None,
     )
+}
+
+fn ensure_low_complexity_benchmark_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), tools, platform, catalog)
 }
 
 #[allow(clippy::too_many_arguments)]
