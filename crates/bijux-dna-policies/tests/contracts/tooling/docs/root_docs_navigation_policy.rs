@@ -157,3 +157,22 @@ fn policy__contracts__root_docs_navigation_policy__docs_map_links_governed_surfa
         "docs/00-intro/DOCS_MAP.md must link the governed documentation map surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__architecture_index_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../index.md".to_string(),
+        "ARCHITECTURE_OVERVIEW.md".to_string(),
+        "ARCHITECTURE.md".to_string(),
+        "BOUNDARY_MAP.md".to_string(),
+        "CONTRACT_SPINE.md".to_string(),
+        "CONTRACT_AUTHORITY_LADDER.md".to_string(),
+        "SSOT.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/index.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/index.md must link the governed architecture entry surfaces exactly"
+    );
+}
