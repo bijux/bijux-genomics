@@ -397,6 +397,7 @@ fn build_screen_record(
         runtime_s: Some(inputs.execution.runtime_s),
         memory_mb: Some(inputs.execution.memory_mb),
     };
+    validate_screen_report_identity(inputs.tool, &governed_report)?;
     bijux_dna_infra::atomic_write_json(&report_paths.classification_json, &governed_report)
         .context("write governed screen taxonomy report")?;
     let metrics =
@@ -514,6 +515,33 @@ fn screen_metrics_from_summary(
             .context("serialize top taxonomy entries")?
             .into(),
     })
+}
+
+fn validate_screen_report_identity(tool: &str, report: &ScreenTaxonomyReportV1) -> Result<()> {
+    if report.schema_version != SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "screen taxonomy report schema mismatch: expected {}, observed {}",
+            SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_SCREEN_TAXONOMY.as_str()
+        || report.stage_id != STAGE_SCREEN_TAXONOMY.as_str()
+    {
+        return Err(anyhow!(
+            "screen taxonomy report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool {
+        return Err(anyhow!(
+            "screen taxonomy report tool mismatch: expected {}, observed {}",
+            tool,
+            report.tool_id
+        ));
+    }
+    Ok(())
 }
 
 fn find_unclassified_fraction(entries: &[TaxonomyScreenSummaryEntryV1]) -> Option<f64> {
