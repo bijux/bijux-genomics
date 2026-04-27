@@ -412,6 +412,21 @@ fn policy__contracts__fastq_science_docs_policy__gold_pipeline_spec_links_govern
 }
 
 #[test]
+fn policy__contracts__fastq_science_docs_policy__methodological_intent_links_governed_fastq_doc_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "SCIENTIFIC_SPEC.md".to_string(),
+        "STAGE_CATALOG.md".to_string(),
+        "STAGE_ASSUMPTIONS.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/fastq/METHODOLOGICAL_INTENT.md");
+    assert_eq!(
+        expected, documented,
+        "docs/20-science/fastq/METHODOLOGICAL_INTENT.md must link the governed FASTQ doc surfaces exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__fastq_science_docs_policy__software_citation_tools_do_not_claim_papers() {
     let rows = tsv_records("science/docs/upstream/papers/TOOL_PAPER_MAP.tsv");
     let expected = BTreeMap::from([

@@ -10,7 +10,9 @@ Separates scientific intent from operational contracts.
 - Tool execution details.
 
 ## Contracts
-Enforced by stage contracts and planner snapshots.
+- The cross-stage scientific contract lives in [SCIENTIFIC_SPEC.md](SCIENTIFIC_SPEC.md).
+- Stage-level purpose and inputs/outputs live in [STAGE_CATALOG.md](STAGE_CATALOG.md).
+- Per-stage interpretation limits live in [STAGE_ASSUMPTIONS.md](STAGE_ASSUMPTIONS.md).
 
 ## Examples
 - validate: ensures input is syntactically correct.
