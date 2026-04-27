@@ -120,6 +120,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         validate_remove_chimeras_report_execution(&report, &execution.result)?;
         validate_remove_chimeras_report_paired_mode(args, &report)?;
         validate_remove_chimeras_report_paths(args, &outputs, &report)?;
+        validate_remove_chimeras_report_observed_counts(&setup, &observation, &report)?;
         validate_remove_chimeras_report_metrics(&report, &metric_set.metrics)?;
         write_remove_chimeras_artifacts(&tool_plan.out_dir, &outputs, &report, &metric_set)?;
         let record = build_remove_chimeras_record(
@@ -746,6 +747,39 @@ fn validate_remove_chimeras_report_path(
             "remove_chimeras report {label} path mismatch: expected {}, observed {}",
             expected,
             observed
+        ));
+    }
+    Ok(())
+}
+
+fn validate_remove_chimeras_report_observed_counts(
+    setup: &RemoveChimerasBenchmarkSetup,
+    observation: &RemoveChimerasObservation,
+    report: &RemoveChimerasReportV1,
+) -> Result<()> {
+    let expected_reads_in =
+        setup.input_stats_r1.reads + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+    if report.reads_in != Some(expected_reads_in) {
+        return Err(anyhow!(
+            "remove_chimeras report reads_in does not match observed input reads: expected {}, observed {:?}",
+            expected_reads_in,
+            report.reads_in
+        ));
+    }
+    let expected_reads_out = observation.output_stats_r1.reads;
+    if report.reads_out != Some(expected_reads_out) {
+        return Err(anyhow!(
+            "remove_chimeras report reads_out does not match observed output reads: expected {}, observed {:?}",
+            expected_reads_out,
+            report.reads_out
+        ));
+    }
+    let expected_removed = expected_reads_in.saturating_sub(expected_reads_out);
+    if report.chimeras_removed != Some(expected_removed) {
+        return Err(anyhow!(
+            "remove_chimeras report removed count does not match observed reads: expected {}, observed {:?}",
+            expected_removed,
+            report.chimeras_removed
         ));
     }
     Ok(())
