@@ -21,7 +21,9 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
-use bijux_dna_domain_fastq::{FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION};
+use bijux_dna_domain_fastq::{
+    params::PairedMode, FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION,
+};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_filter_tools;
@@ -215,6 +217,24 @@ struct FilterReportParams {
     entropy_threshold: Option<f64>,
     polyx_policy: Option<String>,
     contaminant_db: Option<String>,
+}
+
+struct FilterReportOutputs {
+    paired_mode: PairedMode,
+    output_r1: String,
+    output_r2: Option<String>,
+    report_json: String,
+}
+
+impl FilterReportOutputs {
+    fn from_paths(output_reads: &Path, output_reads_r2: Option<&Path>, report_path: &Path) -> Self {
+        Self {
+            paired_mode: filter_paired_mode(output_reads_r2),
+            output_r1: output_reads.display().to_string(),
+            output_r2: output_reads_r2.map(|path| path.display().to_string()),
+            report_json: report_path.display().to_string(),
+        }
+    }
 }
 
 impl FilterReportParams {
@@ -423,22 +443,20 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let report_path = out_dir.join("filter_report.json");
     let backend_report = filter_backend_report(params);
     let report_params = FilterReportParams::from_params(params, &bench_inputs.r1);
+    let report_outputs =
+        FilterReportOutputs::from_paths(output_reads, output_reads_r2, &report_path);
     let report = FilterReadsReportV1 {
         schema_version: FILTER_READS_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_FILTER_READS.as_str().to_string(),
         stage_id: STAGE_FILTER_READS.as_str().to_string(),
         tool_id: tool.to_string(),
-        paired_mode: if output_reads_r2.is_some() {
-            bijux_dna_domain_fastq::params::PairedMode::PairedEnd
-        } else {
-            bijux_dna_domain_fastq::params::PairedMode::SingleEnd
-        },
+        paired_mode: report_outputs.paired_mode,
         threads: tool_spec.resources.threads,
         input_r1: report_params.input_r1,
         input_r2: report_params.input_r2,
-        output_r1: output_reads.display().to_string(),
-        output_r2: output_reads_r2.map(|path| path.display().to_string()),
-        report_json: report_path.display().to_string(),
+        output_r1: report_outputs.output_r1,
+        output_r2: report_outputs.output_r2,
+        report_json: report_outputs.report_json,
         max_n: report_params.max_n,
         max_n_fraction: report_params.max_n_fraction,
         max_n_count: report_params.max_n_count,
@@ -496,6 +514,14 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn filter_paired_mode(output_reads_r2: Option<&Path>) -> PairedMode {
+    if output_reads_r2.is_some() {
+        PairedMode::PairedEnd
+    } else {
+        PairedMode::SingleEnd
+    }
 }
 
 fn write_filter_artifacts(
