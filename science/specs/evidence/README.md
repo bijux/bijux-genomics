@@ -8,6 +8,9 @@ bindings.
 - The first seeded governed scope is the FASTQ evidence slice described by
   [STAGE_CLAIMS.tsv](../../docs/upstream/fastq/STAGE_CLAIMS.tsv) and
   [STAGE_LIBRARY_SUPPORT.tsv](../../docs/upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv).
-- Generated traceability outputs belong under
-  [claim_evidence_map.tsv](../../generated/current/evidence/claim_evidence_map.tsv), while the rolled-up
-  index remains [science_index.json](../../generated/indexes/science_index.json).
+- Compiled outputs stay downstream of this authored surface under
+  [../../generated/README.md](../../generated/README.md).
+- The row-level ledger inventory lives in
+  [../../generated/current/evidence/README.md](../../generated/current/evidence/README.md).
+- The rolled-up summary surface lives in
+  [../../generated/indexes/README.md](../../generated/indexes/README.md).
