@@ -7,7 +7,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use support::workspace_root;
 
 #[test]
-fn policy__contracts__tool_registry_stage_domain_policy__tool_bindings_are_explicit_and_domain_consistent(
+fn policy__contracts__tool_registry_stage_domain_policy__production_tool_bindings_are_explicit_and_domain_consistent(
 ) {
     let registry_path = workspace_root().join("configs/ci/registry/tool_registry.toml");
     let raw = std::fs::read_to_string(&registry_path)
@@ -69,7 +69,7 @@ fn policy__contracts__tool_registry_stage_domain_policy__tool_bindings_are_expli
         if binding_stage_ids.is_empty() {
             offenders.push(format!("tool={id}: missing non-empty `bindings`"));
         }
-        if status != "supported" {
+        if !support::registry_status_is_production(status) {
             continue;
         }
         if effective_stage_ids.is_empty() {
