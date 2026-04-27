@@ -92,25 +92,25 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             failures.push(normalize_primers_tool_failure(tool, tool_execution.result.exit_code));
             continue;
         }
-        let payload =
-            materialize_amplicon_stage_outputs_for_bench(&tool_plan.out_dir, &tool_execution.step)?;
-        enforce_amplicon_qc_thresholds_for_bench(&tool_plan.out_dir, STAGE_ID, &payload)?;
         let outputs = resolve_normalize_primers_outputs(&tool_plan.plan)?;
-        let output_stats_r1 =
-            observe_fastq_stats(catalog, platform, setup.runner, &outputs.output_r1)?;
-        let output_stats_r2 = if let Some(output_r2) = outputs.output_r2.as_deref() {
-            Some(observe_fastq_stats(catalog, platform, setup.runner, output_r2)?)
-        } else {
-            None
-        };
+        let observation = observe_normalize_primers_tool(
+            catalog,
+            platform,
+            &setup,
+            &tool_plan,
+            &tool_execution,
+            &outputs,
+        )?;
         let primer_trimmed_fraction =
-            payload.get("primer_trimmed_fraction").and_then(serde_json::Value::as_f64);
-        let orientation_forward_fraction =
-            payload.get("orientation_forward_fraction").and_then(serde_json::Value::as_f64);
+            observation.payload.get("primer_trimmed_fraction").and_then(serde_json::Value::as_f64);
+        let orientation_forward_fraction = observation
+            .payload
+            .get("orientation_forward_fraction")
+            .and_then(serde_json::Value::as_f64);
         let reads_in_total = setup.input_stats_r1.reads
             + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
-        let reads_out_total =
-            output_stats_r1.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let reads_out_total = observation.output_stats_r1.reads
+            + observation.output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
         let report = NormalizePrimersReportV1 {
             schema_version: NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION.to_string(),
             stage: STAGE_ID.to_string(),
@@ -151,7 +151,8 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
                     + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.bases),
             ),
             bases_out: Some(
-                output_stats_r1.bases + output_stats_r2.as_ref().map_or(0, |stats| stats.bases),
+                observation.output_stats_r1.bases
+                    + observation.output_stats_r2.as_ref().map_or(0, |stats| stats.bases),
             ),
             pairs_in: args.r2.as_ref().map(|_| {
                 setup
@@ -160,7 +161,10 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
                     .min(setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads))
             }),
             pairs_out: outputs.output_r2.as_ref().map(|_| {
-                output_stats_r1.reads.min(output_stats_r2.as_ref().map_or(0, |stats| stats.reads))
+                observation
+                    .output_stats_r1
+                    .reads
+                    .min(observation.output_stats_r2.as_ref().map_or(0, |stats| stats.reads))
             }),
             primer_trimmed_reads: primer_trimmed_fraction
                 .and_then(|fraction| rounded_fraction_count(fraction, reads_in_total)),
@@ -176,11 +180,12 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             },
             runtime_s: Some(tool_execution.result.runtime_s),
             memory_mb: Some(tool_execution.result.memory_mb),
-            used_fallback: payload
+            used_fallback: observation
+                .payload
                 .get("used_fallback")
                 .and_then(serde_json::Value::as_bool)
                 .unwrap_or(false),
-            backend_metrics: Some(payload.clone()),
+            backend_metrics: Some(observation.payload.clone()),
         };
         let metrics = FastqNormalizePrimersMetrics {
             reads_in: reads_in_total,
@@ -256,6 +261,12 @@ struct NormalizePrimersOutputs {
     report_json: PathBuf,
     orientation_report: PathBuf,
     primer_stats_json: PathBuf,
+}
+
+struct NormalizePrimersObservation {
+    payload: serde_json::Value,
+    output_stats_r1: SeqkitMetrics,
+    output_stats_r2: Option<SeqkitMetrics>,
 }
 
 struct NormalizePrimersCacheIdentity<'a> {
@@ -443,6 +454,26 @@ fn resolve_normalize_primers_outputs(plan: &StagePlanV1) -> Result<NormalizePrim
         orientation_report: artifact_path(plan, "primer_orientation_report")?,
         primer_stats_json: artifact_path(plan, "primer_stats_json")?,
     })
+}
+
+fn observe_normalize_primers_tool<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    setup: &NormalizePrimersBenchmarkSetup,
+    tool_plan: &NormalizePrimersToolPlan,
+    tool_execution: &NormalizePrimersToolExecution,
+    outputs: &NormalizePrimersOutputs,
+) -> Result<NormalizePrimersObservation> {
+    let payload =
+        materialize_amplicon_stage_outputs_for_bench(&tool_plan.out_dir, &tool_execution.step)?;
+    enforce_amplicon_qc_thresholds_for_bench(&tool_plan.out_dir, STAGE_ID, &payload)?;
+    let output_stats_r1 = observe_fastq_stats(catalog, platform, setup.runner, &outputs.output_r1)?;
+    let output_stats_r2 = if let Some(output_r2) = outputs.output_r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, setup.runner, output_r2)?)
+    } else {
+        None
+    };
+    Ok(NormalizePrimersObservation { payload, output_stats_r1, output_stats_r2 })
 }
 
 fn select_normalize_primers_benchmark_tools(
