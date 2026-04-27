@@ -52,7 +52,7 @@ mod stage_artifacts;
 mod stage_backend_policy;
 mod stage_contracts;
 
-pub(crate) use self::amplicon_governance::resolve_primer_set_governance;
+pub(crate) use self::amplicon_governance::{resolve_primer_set_governance, PrimerSetGovernance};
 pub use self::runtime_tail::{bench_fastq_preprocess, fastq_preprocess_run};
 
 use self::amplicon_governance::{
