@@ -146,6 +146,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         validate_host_report_paths(&tool_plan.plan, &report)?;
         validate_host_report_counts(&setup, &report)?;
         validate_host_report_fraction(&report)?;
+        validate_host_backend_metrics(&report)?;
         write_deplete_host_report(&report)?;
         let metrics = deplete_host_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -657,6 +658,35 @@ fn validate_host_report_fraction(report: &DepleteHostReportV1) -> Result<()> {
             "host depletion report fraction mismatch: expected {}, observed {}",
             expected,
             report.host_fraction_removed
+        ));
+    }
+    Ok(())
+}
+
+fn validate_host_backend_metrics(report: &DepleteHostReportV1) -> Result<()> {
+    if report.raw_backend_report.is_none() && report.raw_backend_report_format.is_some() {
+        return Err(anyhow!("host depletion report has backend format without raw backend report"));
+    }
+    let metrics = report
+        .backend_metrics
+        .as_ref()
+        .ok_or_else(|| anyhow!("host depletion report missing backend metrics"))?;
+    validate_host_backend_metric(metrics, "reads_removed", report.reads_removed)?;
+    validate_host_backend_metric(metrics, "bases_removed", report.bases_removed)
+}
+
+fn validate_host_backend_metric(
+    metrics: &serde_json::Value,
+    name: &str,
+    expected: u64,
+) -> Result<()> {
+    let observed = metrics
+        .get(name)
+        .and_then(serde_json::Value::as_u64)
+        .ok_or_else(|| anyhow!("host depletion backend metrics missing unsigned {name}"))?;
+    if observed != expected {
+        return Err(anyhow!(
+            "host depletion backend metric {name} mismatch: expected {expected}, observed {observed}"
         ));
     }
     Ok(())
