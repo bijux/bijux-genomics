@@ -12,7 +12,7 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 
 ## Contracts
 - Every documented stage entry must declare purpose, inputs/outputs, metrics, tools, defaults, and references.
-- This initial catalog covers the supported VCF runtime surface; planned stages stay visible elsewhere until their catalog entries are filled in.
+- Every VCF stage manifest must appear here exactly once, including planned downstream stages.
 
 ### vcf.call {#vcf-call}
 - Status: supported.
@@ -85,3 +85,111 @@ VCF stage names carry scientific meaning. This file keeps supported execution bo
 - Tools: bcftools.
 - Defaults: default `bcftools`; rationale lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 - References: `domain/vcf/stages/stats.yaml`, `domain/vcf/index.yaml`.
+
+### vcf.qc {#vcf-qc}
+- Status: planned.
+- Purpose: apply cohort-level QC summaries and threshold checks before downstream structure or imputation analysis.
+- Inputs/Outputs: filtered or stats-enriched VCF → QC report.
+- Metrics: missingness summaries, MAF guardrails, QC status.
+- Tools: plink, plink2.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/qc.yaml`, `domain/vcf/docs/IMPUTATION_CONTRACT.md`.
+
+### vcf.pca {#vcf-pca}
+- Status: planned.
+- Purpose: compute principal-component projections for population-structure interpretation.
+- Inputs/Outputs: LD-pruned VCF matrix → PCA report.
+- Metrics: explained variance, PC projections.
+- Tools: plink2, eigensoft.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/pca.yaml`, `docs/20-science/vcf/POPULATION_STRUCTURE.md`.
+
+### vcf.admixture {#vcf-admixture}
+- Status: planned.
+- Purpose: estimate ancestry-mixture style summaries from cohort-level variant matrices.
+- Inputs/Outputs: VCF matrix → admixture report.
+- Metrics: ancestry-component summaries, admixture status.
+- Tools: plink, plink2.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/admixture.yaml`, `docs/20-science/vcf/POPULATION_STRUCTURE.md`.
+
+### vcf.population_structure {#vcf-population-structure}
+- Status: planned.
+- Purpose: emit higher-level structure summaries that combine PCA- or clustering-oriented evidence.
+- Inputs/Outputs: filtered cohort VCF → population-structure report.
+- Metrics: PCA variance, cluster assignment summaries.
+- Tools: plink, plink2, eigensoft.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/population_structure.yaml`, `docs/20-science/vcf/POPULATION_STRUCTURE.md`.
+
+### vcf.phasing {#vcf-phasing}
+- Status: planned.
+- Purpose: phase cohort haplotypes before downstream imputation or IBD inference.
+- Inputs/Outputs: filtered VCF plus panel metadata → phasing report.
+- Metrics: phased sample count, switch-error-compatible status.
+- Tools: beagle, shapeit5, eagle.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/phasing.yaml`, `docs/20-science/vcf/IMPUTATION_SCOPE.md`.
+
+### vcf.prepare_reference_panel {#vcf-prepare-reference-panel}
+- Status: planned.
+- Purpose: normalize and prepare reference panels before phasing or imputation entry.
+- Inputs/Outputs: raw panel VCF/BCF → prepared panel report.
+- Metrics: panel normalization status, prepared variant count.
+- Tools: bcftools.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/prepare_reference_panel.yaml`, `docs/20-science/vcf/IMPUTATION_SCOPE.md`.
+
+### vcf.imputation {#vcf-imputation}
+- Status: planned.
+- Purpose: describe the multi-tool imputation family admitted for downstream panel-based inference.
+- Inputs/Outputs: phased VCF plus panel metadata → imputation report.
+- Metrics: imputation status, imputed variant count.
+- Tools: beagle, glimpse, impute5, minimac4.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/imputation.yaml`, `docs/20-science/vcf/IMPUTATION_METHODS.md`.
+
+### vcf.impute {#vcf-impute}
+- Status: planned.
+- Purpose: execute explicit imputation with a pinned panel-backed backend.
+- Inputs/Outputs: phased VCF plus panel metadata → imputed VCF and report.
+- Metrics: imputed site count, retained posterior or dosage summaries.
+- Tools: beagle, glimpse, impute5, minimac4.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/impute.yaml`, `docs/20-science/vcf/IMPUTATION_METHODS.md`.
+
+### vcf.postprocess {#vcf-postprocess}
+- Status: planned.
+- Purpose: normalize INFO, FILTER, and FORMAT surfaces after imputation or downstream transforms.
+- Inputs/Outputs: imputed VCF → postprocessed VCF and report.
+- Metrics: normalized record count, INFO/FILTER rewrite count.
+- Tools: bcftools.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/postprocess.yaml`, `domain/vcf/docs/IMPUTATION_CONTRACT.md`.
+
+### vcf.ibd {#vcf-ibd}
+- Status: planned.
+- Purpose: estimate pairwise IBD segments for relatedness and demographic downstreams.
+- Inputs/Outputs: cohort VCF → IBD segments and report.
+- Metrics: segment count, shared cM summaries.
+- Tools: germline, ibdhap.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/ibd.yaml`, `docs/20-science/vcf/IBD.md`.
+
+### vcf.roh {#vcf-roh}
+- Status: planned.
+- Purpose: estimate runs of homozygosity burden and segment distribution.
+- Inputs/Outputs: cohort VCF → ROH report.
+- Metrics: ROH count, total ROH length, length-bin summaries.
+- Tools: plink2.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/roh.yaml`, `docs/20-science/vcf/ROH.md`.
+
+### vcf.demography {#vcf-demography}
+- Status: planned.
+- Purpose: estimate recent Ne-style demography summaries from IBD-derived evidence.
+- Inputs/Outputs: IBD summaries → demography report.
+- Metrics: recent Ne, time-series summaries.
+- Tools: ibdne.
+- Defaults: planned default lives in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
+- References: `domain/vcf/stages/demography.yaml`, `docs/20-science/vcf/DEMOGRAPHY.md`.
