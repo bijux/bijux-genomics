@@ -112,3 +112,17 @@ fn policy__contracts__policy_reference_authority_policy__bijux_analyze_contract_
         "docs/50-reference/BIJUX_ANALYZE_CONTRACT.md must link the governed analyze authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__bijux_contract_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../30-operations/RUN_ARTIFACTS.md".to_string(),
+        "../30-operations/REPRODUCIBILITY.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/BIJUX_CONTRACT.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/BIJUX_CONTRACT.md must link the governed platform authorities exactly"
+    );
+}
