@@ -8,15 +8,27 @@ make _fastq-container-readiness
 
 The generator is `makes/bin/generate_fastq_container_readiness.py`. Do not hand-edit the TSV files; fix the source registry, domain, planner, license, or artifact data and regenerate.
 
+Use [../README.md](../README.md) for the broader FASTQ archive contract,
+[../../../../../domain/fastq/execution_support.yaml](../../../../../domain/fastq/execution_support.yaml)
+for the admitted FASTQ execution surface,
+[../../../../generated/current/evidence/README.md](../../../../generated/current/evidence/README.md)
+for the wider generated evidence inventory,
+[../../../../../containers/versions/LOCK.md](../../../../../containers/versions/LOCK.md)
+for container lock semantics,
+[../../../../../containers/licenses/README.md](../../../../../containers/licenses/README.md)
+for tracked license assertions, and
+[../../../../../docs/30-operations/ARTIFACT_EXPLORER.md](../../../../../docs/30-operations/ARTIFACT_EXPLORER.md)
+for the local artifact-root review conventions behind proof-gap outputs.
+
 ## Reports
 
-- [FASTQ_CONTAINER_DEFAULT_MATRIX.tsv](FASTQ_CONTAINER_DEFAULT_MATRIX.tsv): stage-to-default-tool matrix from `domain/fastq/execution_support.yaml`, compiled registry entries, and domain tool container declarations.
+- [FASTQ_CONTAINER_DEFAULT_MATRIX.tsv](FASTQ_CONTAINER_DEFAULT_MATRIX.tsv): stage-to-default-tool matrix from [domain/fastq/execution_support.yaml](../../../../../domain/fastq/execution_support.yaml), compiled registry entries, and domain tool container declarations.
 - [FASTQ_CONTAINER_DIGEST_CLASSES.tsv](FASTQ_CONTAINER_DIGEST_CLASSES.tsv): digest class for each default tool reference (`immutable`, `tag_only`, `pending`, `zero_placeholder`, or `missing`).
 - [FASTQ_CONTAINER_ASSET_HOOKS.tsv](FASTQ_CONTAINER_ASSET_HOOKS.tsv): stage asset hooks and whether each hook has an in-domain producer or still needs an external authority.
-- [FASTQ_CONTAINER_EVIDENCE_STATUS.tsv](FASTQ_CONTAINER_EVIDENCE_STATUS.tsv): repository/paper evidence coverage from `science/generated/current/evidence/fastq_download_backlog.tsv`.
-- [FASTQ_CONTAINER_PROOF_GAPS.tsv](FASTQ_CONTAINER_PROOF_GAPS.tsv): expected SBOM and smoke-test artifact locations under `artifacts/containers`.
-- [FASTQ_CONTAINER_LOCK_GAPS.tsv](FASTQ_CONTAINER_LOCK_GAPS.tsv): missing or placeholder fields in `containers/versions/lock.json`.
-- [FASTQ_CONTAINER_LICENSE_GAPS.tsv](FASTQ_CONTAINER_LICENSE_GAPS.tsv): license assertions from `containers/licenses/*.license.toml`, including `NOASSERTION` fields that still require legal/source review.
+- [FASTQ_CONTAINER_EVIDENCE_STATUS.tsv](FASTQ_CONTAINER_EVIDENCE_STATUS.tsv): repository/paper evidence coverage from [science/generated/current/evidence/fastq_download_backlog.tsv](../../../../generated/current/evidence/fastq_download_backlog.tsv).
+- [FASTQ_CONTAINER_PROOF_GAPS.tsv](FASTQ_CONTAINER_PROOF_GAPS.tsv): expected SBOM and smoke-test artifact locations reviewed through [docs/30-operations/ARTIFACT_EXPLORER.md](../../../../../docs/30-operations/ARTIFACT_EXPLORER.md).
+- [FASTQ_CONTAINER_LOCK_GAPS.tsv](FASTQ_CONTAINER_LOCK_GAPS.tsv): missing or placeholder fields in [containers/versions/LOCK.md](../../../../../containers/versions/LOCK.md) and the generated `lock.json` it governs.
+- [FASTQ_CONTAINER_LICENSE_GAPS.tsv](FASTQ_CONTAINER_LICENSE_GAPS.tsv): license assertions from [containers/licenses/README.md](../../../../../containers/licenses/README.md), including `NOASSERTION` fields that still require legal/source review.
 - [FASTQ_CONTAINER_PACKAGE_PARITY.tsv](FASTQ_CONTAINER_PACKAGE_PARITY.tsv): package-name parity between compiled registry references and domain tool container images.
 - [FASTQ_CONTAINER_PLANNER_GAPS.tsv](FASTQ_CONTAINER_PLANNER_GAPS.tsv): planner snapshot parity with execution defaults and planner image digest presence.
 - [FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv](FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv): per-stage rollup of the blockers above.
