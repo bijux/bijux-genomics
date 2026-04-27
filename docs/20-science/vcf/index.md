@@ -21,6 +21,7 @@ Documents under `docs/20-science/vcf/`.
 - [Imputation Methods](IMPUTATION_METHODS.md)
 - [Imputation Scope](IMPUTATION_SCOPE.md)
 - [Population Structure](POPULATION_STRUCTURE.md)
+- [References](REFERENCES.md)
 - [Reference Governance](REFERENCE_GOVERNANCE.md)
 - [Roadmap](ROADMAP.md)
 - [Runs of Homozygosity](ROH.md)
