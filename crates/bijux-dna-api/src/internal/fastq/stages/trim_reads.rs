@@ -77,13 +77,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimArgs,
 ) -> Result<BenchOutcome<FastqTrimMetrics>> {
-    let tools = select_trim_tools(&args.tools, false)?;
-    let artifact_kind =
-        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
-    preflight_stage(STAGE_TRIM_READS.as_str(), artifact_kind)?;
-    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
-    log_header_warnings(STAGE_TRIM_READS.as_str(), &header);
-
+    let tools = select_trim_benchmark_tools(args)?;
     let setup = prepare_trim_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
@@ -266,6 +260,18 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         bench_dir: setup.bench_inputs.bench_dir,
         explain: args.explain,
     })
+}
+
+fn select_trim_benchmark_tools(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimArgs,
+) -> Result<Vec<String>> {
+    let tools = select_trim_tools(&args.tools, false)?;
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
+    preflight_stage(STAGE_TRIM_READS.as_str(), artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_TRIM_READS.as_str(), &header);
+    Ok(tools)
 }
 
 struct TrimBenchmarkSetup {
