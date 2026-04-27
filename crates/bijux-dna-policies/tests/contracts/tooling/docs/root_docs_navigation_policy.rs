@@ -58,3 +58,16 @@ fn policy__contracts__root_docs_navigation_policy__what_is_bijux_links_governed_
         "docs/00-intro/WHAT_IS_BIJUX.md must link the governed identity surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__quickstart_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "../50-reference/PIPELINES.md".to_string(),
+        "../30-operations/RUN_ARTIFACTS.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/00-intro/QUICKSTART.md");
+    assert_eq!(
+        expected, documented,
+        "docs/00-intro/QUICKSTART.md must link the governed quickstart authorities exactly"
+    );
+}
