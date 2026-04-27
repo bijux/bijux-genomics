@@ -238,6 +238,7 @@ pub(super) fn benchmark_compare_steps_for_toolsets(
 
 type SelectStepPlan =
     (Vec<ExecutionStep>, Vec<ExecutionEdge>, std::collections::BTreeMap<String, StepId>);
+type PlanByNodeId<'a> = std::collections::BTreeMap<String, &'a StagePlanV1>;
 
 pub(super) fn benchmark_select_steps_for_pipeline(
     config: &FastqPlanConfig,
@@ -248,10 +249,7 @@ pub(super) fn benchmark_select_steps_for_pipeline(
         return Ok((Vec::new(), Vec::new(), std::collections::BTreeMap::new()));
     }
 
-    let plan_by_node_id = plans
-        .iter()
-        .map(|plan| (step_id_for_plan(plan).as_str().to_string(), plan))
-        .collect::<std::collections::BTreeMap<_, _>>();
+    let plan_by_node_id = plan_by_node_id(plans);
     let mut steps = Vec::new();
     let edges = Vec::new();
     let mut step_nodes = std::collections::BTreeMap::new();
@@ -267,115 +265,158 @@ pub(super) fn benchmark_select_steps_for_pipeline(
         if incoming_edges.is_empty() {
             continue;
         }
-        let source_plans = incoming_edges
-            .iter()
-            .map(|edge| {
-                plan_by_node_id.get(&edge.from).copied().ok_or_else(|| {
-                    anyhow!(
-                        "selection node {} references unknown upstream step {}",
-                        node_id,
-                        edge.from
-                    )
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
-        let source_stage_id = StageId::new(source_plans[0].stage_id.as_str().to_string());
-        if source_plans.iter().any(|plan| plan.stage_id.as_str() != source_stage_id.as_str()) {
-            return Err(anyhow!(
-                "selection node {} must join candidates from one stage family",
-                node_id
-            ));
-        }
+        let source_stage_id =
+            selection_source_stage_id(&node_id, &incoming_edges, &plan_by_node_id)?;
         let select_out_dir =
             config.out_dir.join(node_id.trim_start_matches(STAGE_PREFIX)).join("selected");
-        let output_artifact_ids = pipeline_spec
-            .edges
-            .iter()
-            .filter(|edge| edge.from == node_id)
-            .filter_map(|edge| edge.from_output_id.clone())
-            .collect::<std::collections::BTreeSet<_>>()
-            .into_iter()
-            .collect::<Vec<_>>();
-        let outputs = output_artifact_ids
-            .iter()
-            .map(|artifact_id| {
-                ArtifactRef::required(
-                    ArtifactId::new(artifact_id.clone()),
-                    select_out_dir.join(selection_artifact_file_name(artifact_id)),
-                    inferred_selection_artifact_role(artifact_id),
-                )
-            })
-            .collect::<Vec<_>>();
-        let mut inputs = Vec::new();
-        for edge in &incoming_edges {
-            let source_plan = plan_by_node_id.get(&edge.from).copied().ok_or_else(|| {
-                anyhow!(
-                    "selection node {} references unresolved source plan {}",
-                    node_id,
-                    edge.from
-                )
-            })?;
-            let source_output_id = edge.from_output_id.as_ref().ok_or_else(|| {
-                anyhow!(
-                    "selection node {} requires bound source output ids on incoming edges",
-                    node_id
-                )
-            })?;
-            let source_output = source_plan
-                .io
-                .outputs
-                .iter()
-                .find(|artifact| artifact.name.as_str() == source_output_id)
-                .ok_or_else(|| {
-                    anyhow!(
-                        "selection node {} references missing source artifact {} on {}",
-                        node_id,
-                        source_output_id,
-                        edge.from
-                    )
-                })?;
-            inputs.push(ArtifactRef::required(
-                ArtifactId::new(edge.to_input_id.clone().ok_or_else(|| {
-                    anyhow!(
-                        "selection node {} requires bound destination input ids on incoming edges",
-                        node_id
-                    )
-                })?),
-                source_output.path.clone(),
-                source_output.role,
-            ));
-        }
-        inputs.sort_by(|left, right| {
-            left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
-        });
-        inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+        let output_artifact_ids = selection_output_artifact_ids(pipeline_spec, &node_id);
+        let inputs = selection_inputs(&node_id, &incoming_edges, &plan_by_node_id)?;
+        let outputs = selection_outputs(&output_artifact_ids, &select_out_dir);
         let step_id = StepId::new(node_id.clone());
-        steps.push(ExecutionStep {
-            step_id: step_id.clone(),
-            stage_id: crate::STAGE_SELECT_STAGE_TOOL,
-            command: CommandSpecV1 {
-                template: selection_command_for_stage(
-                    &source_stage_id,
-                    &output_artifact_ids,
-                    config.selection_objective,
-                ),
-            },
-            image: ContainerImageRefV1 { image: "bijux-dna-select".to_string(), digest: None },
-            resources: ToolConstraints::default(),
-            io: StageIO { inputs, outputs },
-            out_dir: select_out_dir,
-            aux_images: BTreeMap::new(),
-            expected_artifact_ids: output_artifact_ids
-                .iter()
-                .cloned()
-                .map(ArtifactId::new)
-                .collect(),
-            metrics_schema_ids: Vec::new(),
-        });
+        steps.push(selection_step(
+            step_id.clone(),
+            &source_stage_id,
+            output_artifact_ids,
+            inputs,
+            outputs,
+            select_out_dir,
+            config.selection_objective,
+        ));
         step_nodes.insert(node_id, step_id);
     }
 
     Ok((steps, edges, step_nodes))
+}
+
+fn plan_by_node_id(plans: &[StagePlanV1]) -> PlanByNodeId<'_> {
+    plans.iter().map(|plan| (step_id_for_plan(plan).as_str().to_string(), plan)).collect()
+}
+
+fn selection_source_stage_id(
+    node_id: &str,
+    incoming_edges: &[&PipelineEdgeSpec],
+    plan_by_node_id: &PlanByNodeId<'_>,
+) -> Result<StageId> {
+    let source_plans = incoming_edges
+        .iter()
+        .map(|edge| {
+            plan_by_node_id.get(&edge.from).copied().ok_or_else(|| {
+                anyhow!("selection node {} references unknown upstream step {}", node_id, edge.from)
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let source_stage_id = StageId::new(source_plans[0].stage_id.as_str().to_string());
+    if source_plans.iter().any(|plan| plan.stage_id.as_str() != source_stage_id.as_str()) {
+        return Err(anyhow!(
+            "selection node {} must join candidates from one stage family",
+            node_id
+        ));
+    }
+    Ok(source_stage_id)
+}
+
+fn selection_output_artifact_ids(pipeline_spec: &PipelineSpec, node_id: &str) -> Vec<String> {
+    pipeline_spec
+        .edges
+        .iter()
+        .filter(|edge| edge.from == node_id)
+        .filter_map(|edge| edge.from_output_id.clone())
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .collect()
+}
+
+fn selection_outputs(
+    output_artifact_ids: &[String],
+    select_out_dir: &std::path::Path,
+) -> Vec<ArtifactRef> {
+    output_artifact_ids
+        .iter()
+        .map(|artifact_id| {
+            ArtifactRef::required(
+                ArtifactId::new(artifact_id.clone()),
+                select_out_dir.join(selection_artifact_file_name(artifact_id)),
+                inferred_selection_artifact_role(artifact_id),
+            )
+        })
+        .collect()
+}
+
+fn selection_inputs(
+    node_id: &str,
+    incoming_edges: &[&PipelineEdgeSpec],
+    plan_by_node_id: &PlanByNodeId<'_>,
+) -> Result<Vec<ArtifactRef>> {
+    let mut inputs = incoming_edges
+        .iter()
+        .map(|edge| selection_input_for_edge(node_id, edge, plan_by_node_id))
+        .collect::<Result<Vec<_>>>()?;
+    inputs.sort_by(|left, right| {
+        left.name.as_str().cmp(right.name.as_str()).then_with(|| left.path.cmp(&right.path))
+    });
+    inputs.dedup_by(|left, right| left.name == right.name && left.path == right.path);
+    Ok(inputs)
+}
+
+fn selection_input_for_edge(
+    node_id: &str,
+    edge: &PipelineEdgeSpec,
+    plan_by_node_id: &PlanByNodeId<'_>,
+) -> Result<ArtifactRef> {
+    let source_plan = plan_by_node_id.get(&edge.from).copied().ok_or_else(|| {
+        anyhow!("selection node {} references unresolved source plan {}", node_id, edge.from)
+    })?;
+    let source_output_id = edge.from_output_id.as_ref().ok_or_else(|| {
+        anyhow!("selection node {} requires bound source output ids on incoming edges", node_id)
+    })?;
+    let source_output = source_plan
+        .io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == source_output_id)
+        .ok_or_else(|| {
+            anyhow!(
+                "selection node {} references missing source artifact {} on {}",
+                node_id,
+                source_output_id,
+                edge.from
+            )
+        })?;
+    Ok(ArtifactRef::required(
+        ArtifactId::new(edge.to_input_id.clone().ok_or_else(|| {
+            anyhow!(
+                "selection node {} requires bound destination input ids on incoming edges",
+                node_id
+            )
+        })?),
+        source_output.path.clone(),
+        source_output.role,
+    ))
+}
+
+fn selection_step(
+    step_id: StepId,
+    source_stage_id: &StageId,
+    output_artifact_ids: Vec<String>,
+    inputs: Vec<ArtifactRef>,
+    outputs: Vec<ArtifactRef>,
+    select_out_dir: std::path::PathBuf,
+    objective: bijux_dna_core::contract::Objective,
+) -> ExecutionStep {
+    ExecutionStep {
+        step_id,
+        stage_id: crate::STAGE_SELECT_STAGE_TOOL,
+        command: CommandSpecV1 {
+            template: selection_command_for_stage(source_stage_id, &output_artifact_ids, objective),
+        },
+        image: ContainerImageRefV1 { image: "bijux-dna-select".to_string(), digest: None },
+        resources: ToolConstraints::default(),
+        io: StageIO { inputs, outputs },
+        out_dir: select_out_dir,
+        aux_images: BTreeMap::new(),
+        expected_artifact_ids: output_artifact_ids.into_iter().map(ArtifactId::new).collect(),
+        metrics_schema_ids: Vec::new(),
+    }
 }
 
 fn plan_originates_from_toolset(plan: &StagePlanV1, toolset: &FastqStageToolsetBinding) -> bool {
