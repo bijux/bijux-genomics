@@ -19,12 +19,13 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Missing metrics or outputs fail contract validation.
 
 ### bam.align {#bam-align}
-- Purpose: map reads to reference.
-- Inputs/Outputs: reads → align.bam/bai.
+- Status: supported.
+- Purpose: emit governed BAM alignment reports from already materialized BAM-domain inputs.
+- Inputs/Outputs: bam → align report.
 - Metrics: alignment rate, MAPQ.
 - Tools: bwa, bowtie2.
-- Defaults: align defaults.
-- References: BWA, Bowtie2.
+- Defaults: default `bwa`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
+- References: BWA and Bowtie2 aligner contracts.
 
 ### bam.validate {#bam-validate}
 - Status: supported.
@@ -38,10 +39,10 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 ### bam.qc_pre {#bam-qc-pre}
 - Status: planned.
 - Purpose: baseline QC before filtering.
-- Inputs/Outputs: bam → metrics_json.
+- Inputs/Outputs: bam → pre-QC report.
 - Metrics: pre‑QC summary.
 - Tools: samtools.
-- Defaults: qc defaults.
+- Defaults: default `samtools`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: SAMtools.
 
 ### bam.mapping_summary {#bam-mapping-summary}
@@ -56,10 +57,10 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 ### bam.filter {#bam-filter}
 - Status: supported.
 - Purpose: filter low‑quality alignments.
-- Inputs/Outputs: bam → filtered.bam/bai.
+- Inputs/Outputs: bam → filtered BAM and report.
 - Metrics: filtered counts.
 - Tools: samtools, bedtools, bamtools.
-- Defaults: filter defaults.
+- Defaults: default `samtools`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: SAMtools plus interval-aware BAM filtering helpers.
 
 ### bam.mapq_filter {#bam-mapq-filter}
@@ -83,10 +84,10 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 ### bam.markdup {#bam-markdup}
 - Status: planned.
 - Purpose: mark duplicates.
-- Inputs/Outputs: bam → markdup.bam/bai.
+- Inputs/Outputs: bam → duplicate-marking report.
 - Metrics: duplicate rate.
 - Tools: picard, samtools.
-- Defaults: markdup defaults.
+- Defaults: default `samtools`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: Picard and SAMtools duplicate-marking surfaces.
 
 ### bam.duplication_metrics {#bam-duplication-metrics}
@@ -101,10 +102,10 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 ### bam.complexity {#bam-complexity}
 - Status: planned.
 - Purpose: estimate library complexity.
-- Inputs/Outputs: bam → complexity metrics.
+- Inputs/Outputs: bam → complexity report.
 - Metrics: complexity curves.
 - Tools: preseq.
-- Defaults: complexity defaults.
+- Defaults: default `preseq`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: preseq.
 
 ### bam.coverage {#bam-coverage}
@@ -113,7 +114,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Inputs/Outputs: bam → coverage report.
 - Metrics: depth/breadth.
 - Tools: mosdepth, samtools.
-- Defaults: coverage defaults.
+- Defaults: default `mosdepth`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: mosdepth and SAMtools depth summaries.
 
 ### bam.endogenous_content {#bam-endogenous-content}
@@ -131,7 +132,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Inputs/Outputs: bam → damage metrics.
 - Metrics: misincorporation patterns.
 - Tools: mapdamage2, pydamage, damageprofiler, ngsbriggs, addeam, pmdtools.
-- Defaults: damage defaults.
+- Defaults: default `mapdamage2`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: mapDamage2, pyDamage, DamageProfiler, ngsBriggs, AdDeam, PMDtools.
 
 ### bam.authenticity {#bam-authenticity}
@@ -140,7 +141,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Inputs/Outputs: bam → authenticity metrics.
 - Metrics: cytosine deamination/authenticity.
 - Tools: authenticct, pmdtools, damageprofiler.
-- Defaults: authenticity defaults.
+- Defaults: default `authenticct`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: AuthentiCT, PMDtools, DamageProfiler.
 
 ### bam.contamination {#bam-contamination}
@@ -149,7 +150,7 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Inputs/Outputs: bam → contamination metrics.
 - Metrics: contamination rates.
 - Tools: schmutzi, verifybamid2, contammix.
-- Defaults: contamination defaults.
+- Defaults: default `schmutzi`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: Schmutzi, VerifyBamID2, ContamMix.
 
 ### bam.sex {#bam-sex}
@@ -158,40 +159,44 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Inputs/Outputs: bam → sex metrics.
 - Metrics: sex inference stats.
 - Tools: rxy, yleaf, angsd.
-- Defaults: sex defaults.
+- Defaults: default `rxy`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: RXY, Yleaf, ANGSD.
 
 ### bam.bias_mitigation {#bam-bias-mitigation}
-- Purpose: mitigate GC/length bias.
-- Inputs/Outputs: bam → bias metrics.
-- Metrics: bias measures.
-- Tools: in‑house.
-- Defaults: bias defaults.
-- References: internal.
+- Status: planned.
+- Purpose: record bias-mitigation decisions that should stay separate from pure bias observation.
+- Inputs/Outputs: bam → bias-mitigation report.
+- Metrics: bias-mitigation summary, operator notes.
+- Tools: samtools.
+- Defaults: default `samtools`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
+- References: SAMtools plus governed bias-mitigation policy notes.
 
 ### bam.recalibration {#bam-recalibration}
-- Purpose: BQSR.
-- Inputs/Outputs: bam → recal.bam/bai.
+- Status: planned.
+- Purpose: record recalibration decisions and reportability boundaries before BQSR promotion.
+- Inputs/Outputs: bam → recalibration report.
 - Metrics: recalibration stats.
-- Tools: GATK.
-- Defaults: recal defaults.
+- Tools: gatk.
+- Defaults: default `gatk`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: GATK.
 
 ### bam.haplogroups {#bam-haplogroups}
-- Purpose: haplogroup inference.
-- Inputs/Outputs: bam → haplogroup metrics.
+- Status: planned.
+- Purpose: infer haplogroups from BAM-aligned evidence once reference and acceptance rules are promoted.
+- Inputs/Outputs: bam → haplogroups report.
 - Metrics: haplogroup calls.
-- Tools: Yleaf.
-- Defaults: haplogroup defaults.
+- Tools: yleaf.
+- Defaults: default `yleaf`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: Yleaf.
 
 ### bam.genotyping {#bam-genotyping}
-- Purpose: genotype summary.
-- Inputs/Outputs: bam → genotyping metrics.
+- Status: planned.
+- Purpose: summarize genotyping from BAM evidence without yet promoting BAM-driven calling as a default runtime surface.
+- Inputs/Outputs: bam → genotyping report.
 - Metrics: variant summary.
-- Tools: toolchain‑specific.
-- Defaults: genotyping defaults.
-- References: toolchain docs.
+- Tools: gatk.
+- Defaults: default `gatk`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
+- References: GATK genotyping/reporting surfaces.
 
 ### bam.kinship {#bam-kinship}
 - Status: supported.
@@ -199,5 +204,32 @@ Defines expectations for artifacts, metrics, defaults, and tool coverage.
 - Inputs/Outputs: bam → kinship metrics.
 - Metrics: kinship coefficients.
 - Tools: king, angsd.
-- Defaults: kinship defaults.
+- Defaults: default `king`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
 - References: KING, ANGSD.
+
+### bam.insert_size {#bam-insert-size}
+- Status: planned.
+- Purpose: summarize insert-size distributions when paired-end metadata is available.
+- Inputs/Outputs: bam → insert-size report.
+- Metrics: insert-size mean, insert-size standard deviation.
+- Tools: picard.
+- Defaults: default `picard`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
+- References: Picard insert-size metrics.
+
+### bam.gc_bias {#bam-gc-bias}
+- Status: planned.
+- Purpose: report GC/AT dropout and other alignment-linked GC-bias summaries.
+- Inputs/Outputs: bam → GC-bias report.
+- Metrics: GC dropout, AT dropout.
+- Tools: picard.
+- Defaults: default `picard`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
+- References: Picard GC-bias metrics.
+
+### bam.overlap_correction {#bam-overlap-correction}
+- Status: planned.
+- Purpose: correct overlapping paired-read evidence when clip/consensus rules are explicitly requested.
+- Inputs/Outputs: bam → overlap-correction report.
+- Metrics: overlap-corrected read pairs.
+- Tools: bamutil.
+- Defaults: default `bamutil`; rationale lives in `domain/bam/docs/DEFAULT_SETTINGS.md`.
+- References: bamUtil overlap-clipping/correction surfaces.
