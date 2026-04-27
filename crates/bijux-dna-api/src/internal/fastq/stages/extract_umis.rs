@@ -54,11 +54,8 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqUmiArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqUmiMetrics>> {
-    let tools = select_umi_tools(&args.tools)?;
+    let tools = select_umi_benchmark_tools(args)?;
     let r2 = args.r2.as_path();
-    preflight_stage(STAGE_EXTRACT_UMIS.as_str(), FastqArtifactKind::PairedEnd)?;
-    let header = inspect_headers(&args.r1, Some(r2), false)?;
-    log_header_warnings(STAGE_EXTRACT_UMIS.as_str(), &header);
 
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
@@ -169,6 +166,17 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     }
 
     Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+}
+
+fn select_umi_benchmark_tools(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqUmiArgs,
+) -> Result<Vec<String>> {
+    let tools = select_umi_tools(&args.tools)?;
+    let r2 = args.r2.as_path();
+    preflight_stage(STAGE_EXTRACT_UMIS.as_str(), FastqArtifactKind::PairedEnd)?;
+    let header = inspect_headers(&args.r1, Some(r2), false)?;
+    log_header_warnings(STAGE_EXTRACT_UMIS.as_str(), &header);
+    Ok(tools)
 }
 
 #[allow(clippy::too_many_arguments)]
