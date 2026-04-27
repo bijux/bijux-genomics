@@ -31,6 +31,14 @@ pub struct NormalizePrimersPlanOptions {
     pub allow_iupac_codes: bool,
 }
 
+struct NormalizePrimersPaths {
+    output_r1: std::path::PathBuf,
+    output_r2: Option<std::path::PathBuf>,
+    report_json: std::path::PathBuf,
+    orientation_report: std::path::PathBuf,
+    primer_stats: std::path::PathBuf,
+}
+
 impl Default for NormalizePrimersPlanOptions {
     fn default() -> Self {
         Self {
@@ -67,15 +75,66 @@ pub fn plan_with_options(
     out_dir: &Path,
     options: &NormalizePrimersPlanOptions,
 ) -> Result<StagePlanV1> {
-    let output_r1 = if r2.is_some() {
+    let paths = normalize_primers_paths(r2.is_some(), out_dir);
+    let inputs = normalize_primers_inputs(r1, r2, options);
+    let outputs = normalize_primers_outputs(&paths);
+    let command_template = normalize_primers_command(
+        &tool.tool_id.0,
+        r1,
+        r2,
+        &paths.output_r1,
+        paths.output_r2.as_deref(),
+        &paths.report_json,
+        &paths.orientation_report,
+        &paths.primer_stats,
+        options,
+    )?;
+
+    Ok(StagePlanV1 {
+        stage_id: STAGE_ID.clone(),
+        stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
+            &STAGE_ID,
+            &tool.tool_id,
+        )),
+        stage_version: STAGE_VERSION,
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: CommandSpecV1 { template: command_template },
+        resources: tool.resources.clone(),
+        io: StageIO { inputs, outputs },
+        out_dir: out_dir.to_path_buf(),
+        params: normalize_primers_params(&tool.tool_id.0, r1, r2, &paths, options),
+        effective_params: serde_json::to_value(normalize_primers_effective_params(
+            tool,
+            r2.is_some(),
+            options,
+        ))?,
+        aux_images: std::collections::BTreeMap::new(),
+        reason: PlanDecisionReason::new(PlanReasonKind::Default, "amplicon primer normalization"),
+    })
+}
+
+fn normalize_primers_paths(paired: bool, out_dir: &Path) -> NormalizePrimersPaths {
+    let output_r1 = if paired {
         out_dir.join("R1.primer_normalized.fastq.gz")
     } else {
         out_dir.join("primer_normalized.fastq.gz")
     };
-    let output_r2 = r2.map(|_| out_dir.join("R2.primer_normalized.fastq.gz"));
-    let report_json = out_dir.join("normalize_primers_report.json");
-    let orientation_report = out_dir.join("primer_orientation.tsv");
-    let primer_stats = out_dir.join("primer_stats.json");
+    NormalizePrimersPaths {
+        output_r1,
+        output_r2: paired.then(|| out_dir.join("R2.primer_normalized.fastq.gz")),
+        report_json: out_dir.join("normalize_primers_report.json"),
+        orientation_report: out_dir.join("primer_orientation.tsv"),
+        primer_stats: out_dir.join("primer_stats.json"),
+    }
+}
+
+fn normalize_primers_inputs(
+    r1: &Path,
+    r2: Option<&Path>,
+    options: &NormalizePrimersPlanOptions,
+) -> Vec<ArtifactRef> {
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -95,12 +154,16 @@ pub fn plan_with_options(
             ArtifactRole::Reference,
         ));
     }
+    inputs
+}
+
+fn normalize_primers_outputs(paths: &NormalizePrimersPaths) -> Vec<ArtifactRef> {
     let mut outputs = vec![ArtifactRef::required(
         ArtifactId::from_static("normalized_reads_r1"),
-        output_r1.clone(),
+        paths.output_r1.clone(),
         ArtifactRole::Reads,
     )];
-    if let Some(output_r2) = &output_r2 {
+    if let Some(output_r2) = &paths.output_r2 {
         outputs.push(ArtifactRef::required(
             ArtifactId::from_static("normalized_reads_r2"),
             output_r2.clone(),
@@ -109,85 +172,72 @@ pub fn plan_with_options(
     }
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("report_json"),
-        report_json.clone(),
+        paths.report_json.clone(),
         ArtifactRole::ReportJson,
     ));
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("primer_orientation_report"),
-        orientation_report.clone(),
+        paths.orientation_report.clone(),
         ArtifactRole::SummaryTsv,
     ));
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("primer_stats_json"),
-        primer_stats.clone(),
+        paths.primer_stats.clone(),
         ArtifactRole::MetricsJson,
     ));
+    outputs
+}
 
-    Ok(StagePlanV1 {
-        stage_id: STAGE_ID.clone(),
-        stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
-            &STAGE_ID,
-            &tool.tool_id,
-        )),
-        stage_version: STAGE_VERSION,
-        tool_id: tool.tool_id.clone(),
-        tool_version: tool.tool_version.clone(),
-        image: tool.image.clone(),
-        command: CommandSpecV1 {
-            template: normalize_primers_command(
-                &tool.tool_id.0,
-                r1,
-                r2,
-                &output_r1,
-                output_r2.as_deref(),
-                &report_json,
-                &orientation_report,
-                &primer_stats,
-                options,
-            )?,
+fn normalize_primers_params(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    paths: &NormalizePrimersPaths,
+    options: &NormalizePrimersPlanOptions,
+) -> serde_json::Value {
+    serde_json::json!({
+        "tool": tool_id,
+        "input_r1": r1,
+        "input_r2": r2,
+        "output_r1": paths.output_r1,
+        "output_r2": paths.output_r2,
+        "report_json": paths.report_json,
+        "primer_orientation_report": paths.orientation_report,
+        "primer_stats_json": paths.primer_stats,
+        "primer_set_id": options.primer_set_id,
+        "marker_id": options.marker_id,
+        "primer_fasta": options.primer_fasta,
+        "orientation_policy": options.orientation_policy,
+        "max_mismatch_rate": options.max_mismatch_rate,
+        "min_overlap_bp": options.min_overlap_bp,
+        "strict_5p_anchor": options.strict_5p_anchor,
+        "allow_iupac_codes": options.allow_iupac_codes,
+        "raw_backend_report": paths.primer_stats,
+        "raw_backend_report_format": match tool_id {
+            "cutadapt" => Some("cutadapt_json"),
+            _ => None,
         },
-        resources: tool.resources.clone(),
-        io: StageIO { inputs, outputs },
-        out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({
-            "tool": tool.tool_id.0,
-            "input_r1": r1,
-            "input_r2": r2,
-            "output_r1": output_r1,
-            "output_r2": output_r2,
-            "report_json": report_json,
-            "primer_orientation_report": orientation_report,
-            "primer_stats_json": primer_stats,
-            "primer_set_id": options.primer_set_id,
-            "marker_id": options.marker_id,
-            "primer_fasta": options.primer_fasta,
-            "orientation_policy": options.orientation_policy,
-            "max_mismatch_rate": options.max_mismatch_rate,
-            "min_overlap_bp": options.min_overlap_bp,
-            "strict_5p_anchor": options.strict_5p_anchor,
-            "allow_iupac_codes": options.allow_iupac_codes,
-            "raw_backend_report": primer_stats,
-            "raw_backend_report_format": match &*tool.tool_id.0 {
-                "cutadapt" => Some("cutadapt_json"),
-                _ => None,
-            },
-        }),
-        effective_params: serde_json::to_value(PrimerNormalizationEffectiveParams {
-            schema_version: EDNA_SCHEMA_VERSION.to_string(),
-            paired_mode: PairedMode::from_has_r2(r2.is_some()),
-            threads: Some(tool.resources.threads),
-            orientation_policy: options.orientation_policy.clone(),
-            primer_set_id: options.primer_set_id.clone(),
-            marker_id: options.marker_id.clone(),
-            primer_fasta: options.primer_fasta.as_ref().map(|path| path.display().to_string()),
-            max_mismatch_rate: options.max_mismatch_rate,
-            min_overlap_bp: options.min_overlap_bp,
-            strict_5p_anchor: options.strict_5p_anchor,
-            allow_iupac_codes: options.allow_iupac_codes,
-        })?,
-        aux_images: std::collections::BTreeMap::new(),
-        reason: PlanDecisionReason::new(PlanReasonKind::Default, "amplicon primer normalization"),
     })
+}
+
+fn normalize_primers_effective_params(
+    tool: &ToolExecutionSpecV1,
+    paired: bool,
+    options: &NormalizePrimersPlanOptions,
+) -> PrimerNormalizationEffectiveParams {
+    PrimerNormalizationEffectiveParams {
+        schema_version: EDNA_SCHEMA_VERSION.to_string(),
+        paired_mode: PairedMode::from_has_r2(paired),
+        threads: Some(tool.resources.threads),
+        orientation_policy: options.orientation_policy.clone(),
+        primer_set_id: options.primer_set_id.clone(),
+        marker_id: options.marker_id.clone(),
+        primer_fasta: options.primer_fasta.as_ref().map(|path| path.display().to_string()),
+        max_mismatch_rate: options.max_mismatch_rate,
+        min_overlap_bp: options.min_overlap_bp,
+        strict_5p_anchor: options.strict_5p_anchor,
+        allow_iupac_codes: options.allow_iupac_codes,
+    }
 }
 
 fn normalize_primers_command(
