@@ -184,6 +184,12 @@ struct ScreenReportPaths {
     classification_json: std::path::PathBuf,
 }
 
+struct ScreenReadAccounting {
+    reads_in: u64,
+    bases_in: u64,
+    pairs: u64,
+}
+
 fn prepare_screen_tool_plan<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -341,15 +347,7 @@ fn build_screen_record(
         serde_json::from_value(inputs.plan.effective_params.clone())
             .context("decode screen taxonomy effective params")?;
     let report_paths = screen_report_paths(inputs.plan, inputs.out_dir);
-    let reads_in = inputs.bench_inputs.input_stats.reads
-        + inputs.bench_inputs.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
-    let bases_in = inputs.bench_inputs.input_stats.bases
-        + inputs.bench_inputs.input_stats_r2.as_ref().map_or(0, |stats| stats.bases);
-    let pairs = inputs
-        .bench_inputs
-        .input_stats_r2
-        .as_ref()
-        .map_or(0, |stats| inputs.bench_inputs.input_stats.reads.min(stats.reads));
+    let read_accounting = screen_read_accounting(inputs.bench_inputs);
     let summary_entries = load_screen_summary_entries(&report_paths.summary_tsv)?;
     let unclassified_fraction = find_unclassified_fraction(&summary_entries);
     let classified_fraction = unclassified_fraction.map(|value| (1.0 - value).max(0.0));
@@ -377,12 +375,12 @@ fn build_screen_record(
         input_r2: inputs.bench_inputs.r2.as_ref().map(|path| path.display().to_string()),
         screen_report_tsv: report_paths.summary_tsv.display().to_string(),
         classification_report_json: report_paths.classification_json.display().to_string(),
-        reads_in: Some(reads_in),
-        reads_out: Some(reads_in),
-        bases_in: Some(bases_in),
-        bases_out: Some(bases_in),
-        pairs_in: Some(pairs),
-        pairs_out: Some(pairs),
+        reads_in: Some(read_accounting.reads_in),
+        reads_out: Some(read_accounting.reads_in),
+        bases_in: Some(read_accounting.bases_in),
+        bases_out: Some(read_accounting.bases_in),
+        pairs_in: Some(read_accounting.pairs),
+        pairs_out: Some(read_accounting.pairs),
         contamination_rate: Some(contamination_rate),
         classified_fraction,
         unclassified_fraction,
@@ -394,12 +392,12 @@ fn build_screen_record(
     bijux_dna_infra::atomic_write_json(&report_paths.classification_json, &governed_report)
         .context("write governed screen taxonomy report")?;
     let metrics = FastqScreenMetrics {
-        reads_in,
-        reads_out: reads_in,
-        bases_in,
-        bases_out: bases_in,
-        pairs_in: pairs,
-        pairs_out: pairs,
+        reads_in: read_accounting.reads_in,
+        reads_out: read_accounting.reads_in,
+        bases_in: read_accounting.bases_in,
+        bases_out: read_accounting.bases_in,
+        pairs_in: read_accounting.pairs,
+        pairs_out: read_accounting.pairs,
         contamination_rate,
         classified_fraction,
         unclassified_fraction,
@@ -460,6 +458,18 @@ fn screen_report_paths(plan: &StagePlanV1, out_dir: &Path) -> ScreenReportPaths 
         .and_then(serde_json::Value::as_str)
         .map_or_else(|| out_dir.join("classification_report.json"), std::path::PathBuf::from);
     ScreenReportPaths { summary_tsv, classification_json }
+}
+
+fn screen_read_accounting(bench_inputs: &ScreenBenchInputs) -> ScreenReadAccounting {
+    let reads_in = bench_inputs.input_stats.reads
+        + bench_inputs.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+    let bases_in = bench_inputs.input_stats.bases
+        + bench_inputs.input_stats_r2.as_ref().map_or(0, |stats| stats.bases);
+    let pairs = bench_inputs
+        .input_stats_r2
+        .as_ref()
+        .map_or(0, |stats| bench_inputs.input_stats.reads.min(stats.reads));
+    ScreenReadAccounting { reads_in, bases_in, pairs }
 }
 
 fn find_unclassified_fraction(entries: &[TaxonomyScreenSummaryEntryV1]) -> Option<f64> {
