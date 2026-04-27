@@ -326,15 +326,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
         output_stats_r2: &output_stats_r2,
         execution: inputs.execution,
     });
-    let metrics = FastqUmiMetrics {
-        reads_in: report.reads_in,
-        reads_out: report.reads_out,
-        bases_in: report.bases_in,
-        bases_out: report.bases_out,
-        pairs_in: report.pairs_in,
-        pairs_out: report.pairs_out,
-        reads_with_umi: report.reads_with_umi,
-    };
+    let metrics = umi_metrics_from_report(&report);
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
@@ -424,6 +416,18 @@ fn build_umi_report(inputs: &UmiReportInputs<'_>) -> ExtractUmisReportV1 {
             "reads_with_umi_fraction": if reads_in == 0 { 0.0 } else { u64_to_f64(reads_with_umi) / u64_to_f64(reads_in) },
             "raw_backend_report_present": raw_backend_report.is_some(),
         })),
+    }
+}
+
+fn umi_metrics_from_report(report: &ExtractUmisReportV1) -> FastqUmiMetrics {
+    FastqUmiMetrics {
+        reads_in: report.reads_in,
+        reads_out: report.reads_out,
+        bases_in: report.bases_in,
+        bases_out: report.bases_out,
+        pairs_in: report.pairs_in,
+        pairs_out: report.pairs_out,
+        reads_with_umi: report.reads_with_umi,
     }
 }
 
