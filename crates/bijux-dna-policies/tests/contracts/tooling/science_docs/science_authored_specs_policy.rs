@@ -167,3 +167,20 @@ fn policy__contracts__science_authored_specs_policy__report_specs_contract_links
         "science/specs/reports/CONTRACT.md must link the report-spec boundaries exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_authored_specs_policy__release_specs_contract_links_boundaries_exactly(
+) {
+    let expected = BTreeSet::from([
+        "README.md".to_string(),
+        "../evidence/README.md".to_string(),
+        "../reports/README.md".to_string(),
+        "../results/README.md".to_string(),
+        "../../README.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/specs/releases/CONTRACT.md");
+    assert_eq!(
+        expected, documented,
+        "science/specs/releases/CONTRACT.md must link the release-spec boundaries exactly"
+    );
+}
