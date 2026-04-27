@@ -285,6 +285,30 @@ fn policy__contracts__fastq_science_docs_policy__fastq_evidence_closure_links_go
 }
 
 #[test]
+fn policy__contracts__fastq_science_docs_policy__fastq_references_link_generated_and_admission_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../../science/generated/current/evidence/README.md".to_string(),
+        "../../../science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv"
+            .to_string(),
+        "../../../science/generated/current/evidence/fastq_paper_archive_matrix.tsv".to_string(),
+        "../../../science/generated/current/evidence/fastq_download_backlog.tsv".to_string(),
+        "../../../domain/fastq/execution_support.yaml".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/fastq/REFERENCES.md")
+        .into_iter()
+        .filter(|target| {
+            target.starts_with("../../../science/generated/current/evidence/")
+                || target == "../../../domain/fastq/execution_support.yaml"
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "docs/20-science/fastq/REFERENCES.md must link the governed generated evidence and admission surfaces exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__fastq_science_docs_policy__stage_claims_cover_governed_stage_catalog() {
     let expected = fastq_stage_ids();
     let claim_stage_ids = tsv_ids("science/docs/upstream/fastq/STAGE_CLAIMS.tsv", 1);
