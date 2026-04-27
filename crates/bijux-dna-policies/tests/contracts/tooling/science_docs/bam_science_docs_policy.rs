@@ -397,6 +397,21 @@ fn policy__contracts__bam_science_docs_policy__metric_semantics_links_governed_b
     );
 }
 
+#[test]
+fn policy__contracts__bam_science_docs_policy__operational_contract_links_governed_bam_artifact_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../../domain/bam/artifacts.yaml".to_string(),
+        "METHODOLOGICAL_INTENT.md".to_string(),
+        "STAGE_CATALOG.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/bam/OPERATIONAL_CONTRACT.md");
+    assert_eq!(
+        documented, expected,
+        "docs/20-science/bam/OPERATIONAL_CONTRACT.md must link the governed BAM artifact surfaces exactly"
+    );
+}
+
 fn assert_bam_tools_roster_matches(stage_ids: &[&str], label: &str) {
     let expected = bam_stage_specs();
     let roster = bam_tools_roster_rows();
