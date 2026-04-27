@@ -87,24 +87,9 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     let setup = prepare_trim_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
-        write_explain_md(
-            &setup.bench_inputs.bench_dir,
-            STAGE_TRIM_READS.as_str(),
-            &setup.tools,
-            &setup.excluded_tools,
-            None,
-        )?;
-        write_explain_plan_json(
-            &setup.bench_inputs.bench_dir,
-            STAGE_TRIM_READS.as_str(),
-            &setup.tools,
-            &setup.registry,
-            None,
-        )?;
+        write_trim_benchmark_explain(&setup)?;
     }
-
-    ensure_image_qa_passed(STAGE_TRIM_READS.as_str(), &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_TRIM_READS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_trim_benchmark_qa(catalog, platform, &setup.tools)?;
 
     let adapter_policy =
         normalized_adapter_policy(args.adapter_policy.as_deref(), adapter_bank_requested(args))?;
@@ -377,6 +362,32 @@ fn excluded_trim_tools(registry: &ToolRegistry, selected_tools: &[String]) -> Ve
         .map(|tool| tool.tool_id.to_string())
         .filter(|tool| !selected_tools.contains(tool))
         .collect()
+}
+
+fn write_trim_benchmark_explain(setup: &TrimBenchmarkSetup) -> Result<()> {
+    write_explain_md(
+        &setup.bench_inputs.bench_dir,
+        STAGE_TRIM_READS.as_str(),
+        &setup.tools,
+        &setup.excluded_tools,
+        None,
+    )?;
+    write_explain_plan_json(
+        &setup.bench_inputs.bench_dir,
+        STAGE_TRIM_READS.as_str(),
+        &setup.tools,
+        &setup.registry,
+        None,
+    )
+}
+
+fn ensure_trim_benchmark_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_TRIM_READS.as_str(), tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_TRIM_READS.as_str(), tools, platform, catalog)
 }
 
 fn combine_seqkit_metrics(
