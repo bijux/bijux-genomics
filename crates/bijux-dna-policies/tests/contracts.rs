@@ -150,6 +150,8 @@ mod mod_contracts_tooling_root_pollution_policy_rs;
 mod mod_contracts_tooling_science_docs_fastq_closure_evidence_policy_rs;
 #[path = "contracts/tooling/science_docs/bam_science_docs_policy.rs"]
 mod mod_contracts_tooling_science_docs_bam_science_docs_policy_rs;
+#[path = "contracts/tooling/science_docs/science_archive_docs_policy.rs"]
+mod mod_contracts_tooling_science_docs_science_archive_docs_policy_rs;
 #[path = "contracts/tooling/science_docs/fastq_science_docs_policy.rs"]
 mod mod_contracts_tooling_science_docs_fastq_science_docs_policy_rs;
 #[path = "contracts/tooling/science_docs/root_science_docs_policy.rs"]
