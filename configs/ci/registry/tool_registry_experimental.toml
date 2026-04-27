@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 7eef690103ea79403f69e198e0a4c2753d3d371d
+# source_commit: 9bd8ba09557455d64952c709f7cb756b4aec3dc2
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -23,7 +23,7 @@ default_version = "latest-pinned"
 upstream = "https://github.com/LouisPwr/AdDeam"
 version_rule = "pinned"
 license = "GPL-3.0"
-citation = "upstream:https://github.com/LouisPwr/AdDeam"
+citation = "paper:https://academic.oup.com/bioinformatics/article/doi/10.1093/bioinformatics/btaf407/8205671"
 pinned_commit = "git:f1dd2a5e530975cab1df48e47a1d51ea76bf183a"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/addeam:latest-pinned"
@@ -57,7 +57,7 @@ default_version = "latest-pinned"
 upstream = "https://github.com/Integrative-Transcriptomics/DamageProfiler"
 version_rule = "pinned"
 license = "GPL-3.0"
-citation = "upstream:https://github.com/Integrative-Transcriptomics/DamageProfiler"
+citation = "paper:https://academic.oup.com/bioinformatics/article/37/20/3652/6247758"
 pinned_commit = "unresolved"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/damageprofiler:latest-pinned"
@@ -91,7 +91,7 @@ default_version = "latest-pinned"
 upstream = "https://github.com/genid/Yleaf"
 version_rule = "pinned"
 license = "GPL-3.0"
-citation = "upstream:https://github.com/genid/Yleaf"
+citation = "paper:https://academic.oup.com/mbe/article/35/5/1291/4922696"
 pinned_commit = "git:f3aae50653cb685a7c3d6e4c08aa170c47a85263"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/yleaf:latest-pinned"
