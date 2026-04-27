@@ -203,6 +203,35 @@ fn bam_reference_stage_rows() -> BTreeMap<String, BTreeSet<String>> {
         .collect()
 }
 
+fn assert_bam_tools_roster_matches(stage_ids: &[&str], label: &str) {
+    let expected = bam_stage_specs();
+    let roster = bam_tools_roster_rows();
+    let mut offenders = Vec::new();
+
+    for stage_id in stage_ids {
+        let expected_tools = &expected
+            .get(*stage_id)
+            .unwrap_or_else(|| panic!("missing BAM stage manifest for {stage_id}"))
+            .compatible_tools;
+        let documented_tools = &roster
+            .get(*stage_id)
+            .unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"))
+            .compatible_tools;
+        if documented_tools != expected_tools {
+            offenders.push(format!(
+                "{stage_id}: expected {:?}, found {:?}",
+                expected_tools, documented_tools
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "BAM tools roster drift for {label}:\n{}",
+        offenders.join("\n")
+    );
+}
+
 #[test]
 fn policy__contracts__bam_science_docs_policy__stage_assumptions_cover_supported_stage_catalog() {
     let expected = bam_stage_specs()
@@ -260,5 +289,23 @@ fn policy__contracts__bam_science_docs_policy__stage_catalog_covers_supported_st
     assert_eq!(
         expected, documented,
         "BAM stage catalog must cover the BAM stage manifest exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__bam_science_docs_policy__tools_roster_matches_alignment_and_filter_stages() {
+    assert_bam_tools_roster_matches(
+        &[
+            "bam.align",
+            "bam.validate",
+            "bam.mapping_summary",
+            "bam.filter",
+            "bam.mapq_filter",
+            "bam.length_filter",
+            "bam.duplication_metrics",
+            "bam.coverage",
+            "bam.endogenous_content",
+        ],
+        "alignment and filtering stages",
     );
 }
