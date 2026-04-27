@@ -349,3 +349,18 @@ fn policy__contracts__root_docs_navigation_policy__boundary_map_links_governed_s
         "docs/10-architecture/BOUNDARY_MAP.md must link the governed boundary authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__contract_authority_ladder_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../50-reference/TOOL_ADMISSION.md".to_string(),
+        "../20-science/TOOL_INDEX.md".to_string(),
+        "../../configs/ci/registry/tool_registry.toml".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md must link the governed ladder authorities exactly"
+    );
+}

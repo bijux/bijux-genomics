@@ -25,10 +25,12 @@ Applies to contract decisions for stage/tool/param/runtime/container/docs author
 - Stage/tool/param compatibility: `domain/**` -> generated `configs/ci/**`.
 - Required tools and image policy: `configs/ci/tools/*.toml`.
 - Build/runtime image realization: `containers/**`.
-- Admission and operations workflow: `docs/50-reference/TOOL_ADMISSION.md`.
+- Admission and operations workflow: [docs/50-reference/TOOL_ADMISSION.md](../50-reference/TOOL_ADMISSION.md).
 
 ## Examples
-- If `docs/20-science/TOOL_INDEX.md` and `configs/ci/registry/tool_registry.toml` differ, registry wins and docs are regenerated.
+- If [docs/20-science/TOOL_INDEX.md](../20-science/TOOL_INDEX.md) and
+  [configs/ci/registry/tool_registry.toml](../../configs/ci/registry/tool_registry.toml) differ,
+  registry wins and docs are regenerated.
 - If a container def exists without registry entry, registry policy check fails and def is invalid.
 
 ## Failure modes
