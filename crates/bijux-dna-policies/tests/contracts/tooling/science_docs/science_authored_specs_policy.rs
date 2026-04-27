@@ -41,3 +41,20 @@ fn policy__contracts__science_authored_specs_policy__science_root_links_authored
         "science/README.md must link the authored science surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_authored_specs_policy__science_root_links_generated_entrypoints_exactly(
+) {
+    let expected = BTreeSet::from([
+        "generated/indexes/science_index.json".to_string(),
+        "generated/current/evidence/".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/README.md")
+        .into_iter()
+        .filter(|target| target.starts_with("generated/"))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "science/README.md must link the generated science entrypoints exactly"
+    );
+}
