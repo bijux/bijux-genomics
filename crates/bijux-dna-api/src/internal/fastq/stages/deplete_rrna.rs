@@ -39,7 +39,6 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 
 /// # Errors
 /// Returns an error if planning or execution fails.
-#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
