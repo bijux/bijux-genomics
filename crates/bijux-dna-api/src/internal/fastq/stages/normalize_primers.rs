@@ -1,5 +1,5 @@
 use std::collections::{BTreeSet, HashMap};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -696,6 +696,53 @@ fn write_normalize_primers_artifacts(
         &tool_plan.out_dir.join("metrics.json"),
         &serde_json::to_value(metric_set)?,
     )?;
+    validate_normalize_primers_written_artifacts(&tool_plan.out_dir, outputs, report)
+}
+
+fn validate_normalize_primers_written_artifacts(
+    out_dir: &Path,
+    outputs: &NormalizePrimersOutputs,
+    report: &NormalizePrimersReportV1,
+) -> Result<()> {
+    let metrics_json = out_dir.join("metrics.json");
+    for path in [
+        Some(outputs.output_r1.as_path()),
+        outputs.output_r2.as_deref(),
+        Some(outputs.report_json.as_path()),
+        Some(outputs.orientation_report.as_path()),
+        Some(outputs.primer_stats_json.as_path()),
+        Some(metrics_json.as_path()),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        validate_normalize_primers_artifact_exists(path)?;
+    }
+    validate_normalize_primers_nonempty_artifact(&outputs.output_r1)?;
+    if let Some(output_r2) = outputs.output_r2.as_deref() {
+        validate_normalize_primers_nonempty_artifact(output_r2)?;
+    }
+    validate_normalize_primers_nonempty_artifact(&outputs.report_json)?;
+    validate_normalize_primers_nonempty_artifact(&metrics_json)?;
+    if report.primer_trimmed_reads.unwrap_or(0) > 0 {
+        validate_normalize_primers_nonempty_artifact(&outputs.orientation_report)?;
+        validate_normalize_primers_nonempty_artifact(&outputs.primer_stats_json)?;
+    }
+    Ok(())
+}
+
+fn validate_normalize_primers_artifact_exists(path: &Path) -> Result<()> {
+    std::fs::metadata(path)
+        .with_context(|| format!("read normalize primers artifact {}", path.display()))?;
+    Ok(())
+}
+
+fn validate_normalize_primers_nonempty_artifact(path: &Path) -> Result<()> {
+    let metadata = std::fs::metadata(path)
+        .with_context(|| format!("read normalize primers artifact {}", path.display()))?;
+    if metadata.len() == 0 {
+        return Err(anyhow!("normalize primers artifact is empty: {}", path.display()));
+    }
     Ok(())
 }
 
