@@ -193,12 +193,8 @@ struct FilterRecordInputs<'a, S: ::std::hash::BuildHasher> {
 }
 
 struct FilterReportBuildInputs<'a> {
-    tool: &'a str,
-    threads: u32,
-    params: &'a serde_json::Value,
     bench_inputs: &'a TrimBenchInputs,
-    output_reads: &'a Path,
-    output_reads_r2: Option<&'a Path>,
+    tool_plan: &'a FilterToolPlan,
     report_path: &'a Path,
     accounting: &'a FilterReadAccounting,
     output_stats_r1: &'a SeqkitMetrics,
@@ -501,9 +497,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let input_stats_r2 = inputs.input_stats_r2;
     let input_hash = inputs.input_hash;
     let tool_plan = inputs.tool_plan;
-    let params = &tool_plan.plan.params;
     let output_reads = tool_plan.outputs.reads.as_path();
-    let output_reads_r2 = tool_plan.outputs.reads_r2.as_deref();
     let execution = inputs.execution;
     let output_stats = observe_filter_outputs(inputs)?;
     let output_stats_r1 = output_stats.r1;
@@ -517,12 +511,8 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let out_dir = output_reads.parent().ok_or_else(|| anyhow!("filter output has no parent"))?;
     let report_path = out_dir.join("filter_report.json");
     let report = build_filter_report(&FilterReportBuildInputs {
-        tool: &tool_plan.tool,
-        threads: tool_plan.tool_spec.resources.threads,
-        params,
         bench_inputs,
-        output_reads,
-        output_reads_r2,
+        tool_plan,
         report_path: &report_path,
         accounting: &accounting,
         output_stats_r1: &output_stats_r1,
@@ -574,11 +564,12 @@ fn build_filter_context(
 }
 
 fn build_filter_report(inputs: &FilterReportBuildInputs<'_>) -> FilterReadsReportV1 {
-    let backend_report = filter_backend_report(inputs.params);
-    let report_params = FilterReportParams::from_params(inputs.params, &inputs.bench_inputs.r1);
+    let params = &inputs.tool_plan.plan.params;
+    let backend_report = filter_backend_report(params);
+    let report_params = FilterReportParams::from_params(params, &inputs.bench_inputs.r1);
     let report_outputs = FilterReportOutputs::from_paths(
-        inputs.output_reads,
-        inputs.output_reads_r2,
+        &inputs.tool_plan.outputs.reads,
+        inputs.tool_plan.outputs.reads_r2.as_deref(),
         inputs.report_path,
     );
     let report_measurements =
@@ -587,9 +578,9 @@ fn build_filter_report(inputs: &FilterReportBuildInputs<'_>) -> FilterReadsRepor
         schema_version: FILTER_READS_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_FILTER_READS.as_str().to_string(),
         stage_id: STAGE_FILTER_READS.as_str().to_string(),
-        tool_id: inputs.tool.to_string(),
+        tool_id: inputs.tool_plan.tool.clone(),
         paired_mode: report_outputs.paired_mode,
-        threads: inputs.threads,
+        threads: inputs.tool_plan.tool_spec.resources.threads,
         input_r1: report_params.input_r1,
         input_r2: report_params.input_r2,
         output_r1: report_outputs.output_r1,
