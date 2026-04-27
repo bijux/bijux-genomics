@@ -12,21 +12,21 @@ material used to support science, container, and provenance review in
 
 ## Layout
 
-- `fastq/README.md`
+- [fastq/README.md](fastq/README.md)
   contract for FASTQ upstream evidence packets
-- `fastq/tools/README.md`
+- [fastq/tools/README.md](fastq/tools/README.md)
   per-tool archive rules for FASTQ source material
-- `fastq/tools/EVIDENCE_MAP.tsv`
+- [fastq/tools/EVIDENCE_MAP.tsv](fastq/tools/EVIDENCE_MAP.tsv)
   tracked locator map for tool-specific manual archive packets
-- `papers/README.md`
+- [papers/README.md](papers/README.md)
   contract for local paper archive roots
-- `papers/TODO_DOWNLOAD.md`
+- [papers/TODO_DOWNLOAD.md](papers/TODO_DOWNLOAD.md)
   operator-facing paper archive worklist
-- `papers/TOOL_PAPER_MAP.tsv`
+- [papers/TOOL_PAPER_MAP.tsv](papers/TOOL_PAPER_MAP.tsv)
   tracked tool-to-paper root map
-- `github-repos/README.md`
+- [github-repos/README.md](github-repos/README.md)
   contract for GitHub repository evidence mirrors
-- `github-repos/MANIFEST.tsv`
+- [github-repos/MANIFEST.tsv](github-repos/MANIFEST.tsv)
   tracked repository target manifest
 - `github-repos/mirrors/**`
   untracked local bare clones
