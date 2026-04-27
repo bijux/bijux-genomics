@@ -157,6 +157,11 @@ struct LowComplexityToolExecution {
     result: StageResultV1,
 }
 
+struct LowComplexityOutputArtifacts<'a> {
+    r1: &'a std::path::Path,
+    r2: Option<&'a std::path::Path>,
+}
+
 struct LowComplexityCacheIdentity {
     tool: String,
     tool_version: String,
@@ -346,9 +351,10 @@ fn ensure_low_complexity_benchmark_qa<S: ::std::hash::BuildHasher>(
 fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     inputs: &LowComplexityRecordInputs<'_, S>,
 ) -> Result<BenchmarkRecord<FastqLowComplexityMetrics>> {
-    let output_reads = &inputs.tool_plan.plan.io.outputs[0].path;
-    let output_reads_r2 =
-        inputs.tool_plan.plan.io.outputs.get(1).map(|artifact| artifact.path.as_path());
+    let outputs =
+        low_complexity_output_artifacts(inputs.tool_plan, inputs.input_stats_r2.is_some())?;
+    let output_reads = outputs.r1;
+    let output_reads_r2 = outputs.r2;
     let output_stats_r1 = if inputs.execution.result.exit_code == 0 && output_reads.exists() {
         observe_fastq_stats(
             inputs.catalog,
@@ -390,10 +396,8 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     });
     let metric_set = build_low_complexity_metric_set(&report, &before_stats, &after_stats)?;
 
-    let out_dir = inputs.tool_plan.plan.io.outputs[0]
-        .path
-        .parent()
-        .ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
+    let out_dir =
+        output_reads.parent().ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
     write_low_complexity_artifacts(out_dir, &report, &metric_set)?;
 
     let context = build_low_complexity_context(inputs);
@@ -404,6 +408,24 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn low_complexity_output_artifacts<'a>(
+    tool_plan: &'a LowComplexityToolPlan,
+    paired_end: bool,
+) -> Result<LowComplexityOutputArtifacts<'a>> {
+    let r1 =
+        tool_plan.plan.io.outputs.first().map(|artifact| artifact.path.as_path()).ok_or_else(
+            || anyhow!("low-complexity plan for {} has no R1 output", tool_plan.tool),
+        )?;
+    let r2 = tool_plan.plan.io.outputs.get(1).map(|artifact| artifact.path.as_path());
+    if paired_end && r2.is_none() {
+        return Err(anyhow!(
+            "low-complexity paired-end plan for {} has no R2 output",
+            tool_plan.tool
+        ));
+    }
+    Ok(LowComplexityOutputArtifacts { r1, r2 })
 }
 
 fn build_low_complexity_context<S: ::std::hash::BuildHasher>(
