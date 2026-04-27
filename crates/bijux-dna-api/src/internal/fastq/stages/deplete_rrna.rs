@@ -18,12 +18,14 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
+use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::screen::RrnaEffectiveParams;
 use bijux_dna_domain_fastq::{
     DepleteRrnaReportV1, DEPLETE_RRNA_REPORT_SCHEMA_VERSION, STAGE_DEPLETE_RRNA,
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
+use bijux_dna_infra::hash_file_sha256;
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 use bijux_dna_planner_fastq::select_deplete_rrna_tools;
 use bijux_dna_planner_fastq::stage_api::{
@@ -236,17 +238,28 @@ fn prepare_rrna_benchmark_setup<S: ::std::hash::BuildHasher>(
         &args.r1,
         &STAGE_DEPLETE_RRNA,
     )?;
-    let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
-    } else {
-        bench_inputs.input_hash.clone()
-    };
+    let input_hash = rrna_input_hash(&bench_inputs, args)?;
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
         Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
     } else {
         None
     };
     Ok(RrnaBenchmarkSetup { registry, tools, bench_inputs, input_hash, input_stats_r2 })
+}
+
+fn rrna_input_hash(
+    bench_inputs: &TrimBenchInputs,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteRrnaArgs,
+) -> Result<String> {
+    if let Some(r2) = args.r2.as_deref() {
+        let r2_hash = hash_file_sha256(r2).context("hash rrna depletion input r2")?;
+        return params_hash(&serde_json::json!({
+            "r1": bench_inputs.input_hash,
+            "r2": r2_hash,
+        }))
+        .context("combine rrna paired input hashes");
+    }
+    Ok(bench_inputs.input_hash.clone())
 }
 
 fn write_rrna_benchmark_explain(setup: &RrnaBenchmarkSetup) -> Result<()> {
