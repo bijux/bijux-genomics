@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::support::benchmark_runtime::ensure_bench_runner;
 use crate::support::workspace::load_workspace_registry;
@@ -283,7 +284,7 @@ fn prepare_merge_tool_plan<S: ::std::hash::BuildHasher>(
     )?;
     let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
     let plan = plan_merge_with_options(&tool_spec, &args.r1, &args.r2, &out_dir, &setup.options)?;
-    let params_hash = params_hash(&plan.params).context("hash merge plan params")?;
+    let params_hash = stable_params_hash(&plan.params);
     let image_digest = tool_spec
         .image
         .digest
