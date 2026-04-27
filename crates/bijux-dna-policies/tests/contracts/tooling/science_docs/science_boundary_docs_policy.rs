@@ -162,3 +162,21 @@ fn policy__contracts__science_boundary_docs_policy__container_index_links_govern
         "containers/index.md must link the governed container control surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__operations_container_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../50-reference/TOOL_ADMISSION.md".to_string(),
+        "../../containers/index.md".to_string(),
+        "../../containers/docs/index.md".to_string(),
+        "../../containers/README.md".to_string(),
+        "../../containers/docs/RELEASE_CHECKLIST.md".to_string(),
+        "../../containers/docs/PLANNED.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/CONTAINERS.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/CONTAINERS.md must link the governed container operations surfaces exactly"
+    );
+}
