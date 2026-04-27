@@ -1091,6 +1091,11 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             .to_string(),
         "# Tool Docs Index".to_string(),
         String::new(),
+        "- Root contract: [containers/README.md](../../README.md)".to_string(),
+        "- Container docs index: [containers/docs/index.md](../index.md)".to_string(),
+        "- Tool name map: [containers/docs/TOOL_NAME_MAP.md](../TOOL_NAME_MAP.md)".to_string(),
+        "- Tool ID manifest: [containers/TOOL_IDS.txt](../../TOOL_IDS.txt)".to_string(),
+        String::new(),
     ];
     for (tool, version_row) in &versions {
         let license_row = licenses.get(tool).cloned().unwrap_or_default();
@@ -1149,7 +1154,7 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             lines.push(format!("- {limitation}"));
         }
         outputs.insert(format!("{tool}.md"), format!("{}\n", lines.join("\n")));
-        index_lines.push(format!("- `{tool}`: `containers/docs/tools/{tool}.md`"));
+        index_lines.push(format!("- [{tool}]({tool}.md)"));
     }
     outputs.insert("index.md".to_string(), format!("{}\n", index_lines.join("\n")));
     Ok(outputs)
