@@ -38,7 +38,7 @@ Defines required inputs and deterministic proof steps for frontend mini runs.
    - version outputs.
 5. If VCF downstream used panels, verify panel lock artifacts from:
    - [configs/vcf/panels/panels.toml](../../configs/vcf/panels/panels.toml)
-   - [configs/vcf/panels/panel_lock.json](../../configs/vcf/panels/panel_lock.json)
+   - [configs/vcf/panels/locks/lock.json](../../configs/vcf/panels/locks/lock.json)
 6. Confirm timestamps and status:
    - `start_utc`, `end_utc`, `exit_code`.
 

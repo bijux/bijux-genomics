@@ -317,7 +317,7 @@ fn policy__contracts__science_boundary_docs_policy__frontend_traceability_doc_li
         "../../containers/versions/LOCK.md".to_string(),
         "../../containers/versions/lock.json".to_string(),
         "../../configs/vcf/panels/panels.toml".to_string(),
-        "../../configs/vcf/panels/panel_lock.json".to_string(),
+        "../../configs/vcf/panels/locks/lock.json".to_string(),
     ]);
     let documented = markdown_link_targets("docs/30-operations/TRACEABILITY_PROOF_FRONTEND.md");
     assert_eq!(
