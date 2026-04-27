@@ -13,8 +13,8 @@ This file is the operator-facing worklist for local paper payloads under
 
 For each `paper_root`, place material under:
 
-- `science/docs/upstream/papers/<paper-id>/original/`
-- `science/docs/upstream/papers/<paper-id>/notes/`
+- [<paper-id>/original/](<paper-id>/original/)
+- [<paper-id>/notes/](<paper-id>/notes/)
 
 Use the same root for PDFs, supplementary files, homepage snapshots, README
 exports, and local notes about access constraints.
@@ -90,9 +90,10 @@ treat them as archived.
 
 ## Notes
 
-- `TOOL_PAPER_MAP.tsv` is the tracked machine-readable map.
-- `science/generated/current/evidence/fastq_paper_archive_matrix.tsv` is the
-  compiled review surface for current FASTQ paper roots and archive status.
+- [TOOL_PAPER_MAP.tsv](TOOL_PAPER_MAP.tsv) is the tracked machine-readable map.
+- [science/generated/current/evidence/fastq_paper_archive_matrix.tsv](../../generated/current/evidence/fastq_paper_archive_matrix.tsv)
+  is the compiled review surface for current FASTQ paper roots and archive
+  status.
 - Trim Galore, seqtk, fastx_clipper, and fastqvalidator are treated as
   software-citation roots because the governed evidence does not identify a
   dedicated peer-reviewed methods paper for those tool surfaces.

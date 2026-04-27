@@ -116,6 +116,10 @@ fn tsv_records(path: &str) -> Vec<Vec<String>> {
         .collect()
 }
 
+fn fastq_paper_archive_matrix() -> Vec<Vec<String>> {
+    tsv_records("science/generated/current/evidence/fastq_paper_archive_matrix.tsv")
+}
+
 #[test]
 fn policy__contracts__science_archive_docs_policy__science_docs_readme_links_archive_contracts_exactly(
 ) {
@@ -168,6 +172,106 @@ fn policy__contracts__science_archive_docs_policy__paper_archive_readme_links_co
     assert_eq!(
         expected, documented,
         "science/docs/upstream/papers/README.md must link the governed paper archive contracts exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__paper_download_backlog_links_contracts_exactly()
+{
+    let expected = BTreeSet::from([
+        "<paper-id>/original/".to_string(),
+        "<paper-id>/notes/".to_string(),
+        "TOOL_PAPER_MAP.tsv".to_string(),
+        "../../generated/current/evidence/fastq_paper_archive_matrix.tsv".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/docs/upstream/papers/TODO_DOWNLOAD.md");
+    assert_eq!(
+        expected, documented,
+        "science/docs/upstream/papers/TODO_DOWNLOAD.md must link the governed paper-backlog contracts exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__paper_download_backlog_current_archive_rows_match_generated_matrix(
+) {
+    let expected = fastq_paper_archive_matrix()
+        .into_iter()
+        .filter(|row| row[4] != "software_citation_only")
+        .filter(|row| row[8] == "present")
+        .map(|row| {
+            let local_status = if row[4] == "supporting_context" {
+                "supporting PDF archived"
+            } else {
+                "PDF archived"
+            };
+            format!(
+                "{}|{}|{}|{}|{}",
+                row[1], row[0], local_status, row[5], row[6]
+            )
+        })
+        .collect::<BTreeSet<_>>();
+    let documented = markdown_table_rows("science/docs/upstream/papers/TODO_DOWNLOAD.md", "| Tool | Paper ID | Local Status | Access | Primary Locator |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 5,
+                "science/docs/upstream/papers/TODO_DOWNLOAD.md current-archive rows must expose tool, paper id, local status, access, and primary locator"
+            );
+            format!("{}|{}|{}|{}|{}", row[0], row[1], row[2], row[3], row[4])
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "science/docs/upstream/papers/TODO_DOWNLOAD.md current local archive rows must match the generated paper matrix exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__paper_download_backlog_software_citation_rows_match_generated_matrix(
+) {
+    let expected = fastq_paper_archive_matrix()
+        .into_iter()
+        .filter(|row| row[4] == "software_citation_only")
+        .map(|row| format!("{}|{}|{}", row[1], row[0], row[6]))
+        .collect::<BTreeSet<_>>();
+    let documented = markdown_table_rows("science/docs/upstream/papers/TODO_DOWNLOAD.md", "| Tool | Paper ID | Local Status | Primary Locator |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 4,
+                "science/docs/upstream/papers/TODO_DOWNLOAD.md software-citation rows must expose tool, paper id, local status, and primary locator"
+            );
+            format!("{}|{}|{}", row[0], row[1], row[3])
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "science/docs/upstream/papers/TODO_DOWNLOAD.md software-citation rows must match the generated paper matrix exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__paper_download_backlog_pdf_follow_up_rows_match_generated_matrix(
+) {
+    let expected = fastq_paper_archive_matrix()
+        .into_iter()
+        .filter(|row| row[4] != "software_citation_only")
+        .filter(|row| row[8] == "missing")
+        .map(|row| format!("{}|{}|{}|{}", row[1], row[0], row[5], row[6]))
+        .collect::<BTreeSet<_>>();
+    let documented = markdown_table_rows("science/docs/upstream/papers/TODO_DOWNLOAD.md", "| Tool | Paper ID | Access | Primary Locator | Follow-up |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 5,
+                "science/docs/upstream/papers/TODO_DOWNLOAD.md PDF follow-up rows must expose tool, paper id, access, primary locator, and follow-up"
+            );
+            format!("{}|{}|{}|{}", row[0], row[1], row[2], row[3])
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "science/docs/upstream/papers/TODO_DOWNLOAD.md PDF follow-up rows must match the generated paper matrix exactly"
     );
 }
 
