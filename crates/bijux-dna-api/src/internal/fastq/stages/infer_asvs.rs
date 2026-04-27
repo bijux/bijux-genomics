@@ -233,10 +233,16 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             .next()
             .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
         if execution.exit_code != 0 {
+            let stderr = execution.stderr.trim();
+            let reason = if stderr.is_empty() {
+                format!("tool {tool} failed with status {}", execution.exit_code)
+            } else {
+                format!("tool {tool} failed with status {}: {stderr}", execution.exit_code)
+            };
             failures.push(RawFailure {
                 stage: STAGE_ID.to_string(),
                 tool: tool.clone(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+                reason,
                 category: ErrorCategory::ToolError,
             });
             continue;
