@@ -89,7 +89,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         }
         let tool_execution = execute_normalize_primers_tool(&tool_plan, setup.runner, jobs, tool)?;
         if tool_execution.result.exit_code != 0 {
-            failures.push(normalize_primers_tool_failure(tool, tool_execution.result.exit_code));
+            failures.push(normalize_primers_tool_failure(tool, &tool_execution.result));
             continue;
         }
         let outputs = resolve_normalize_primers_outputs(&tool_plan.plan)?;
@@ -370,11 +370,17 @@ fn execute_normalize_primers_tool(
     Ok(NormalizePrimersToolExecution { step, result })
 }
 
-fn normalize_primers_tool_failure(tool: &str, exit_code: i32) -> RawFailure {
+fn normalize_primers_tool_failure(tool: &str, result: &StageResultV1) -> RawFailure {
+    let stderr = result.stderr.trim();
+    let reason = if stderr.is_empty() {
+        format!("tool {tool} failed with status {}", result.exit_code)
+    } else {
+        format!("tool {tool} failed with status {}: {stderr}", result.exit_code)
+    };
     RawFailure {
         stage: STAGE_ID.to_string(),
         tool: tool.to_string(),
-        reason: format!("tool {tool} failed with status {exit_code}"),
+        reason,
         category: ErrorCategory::ToolError,
     }
 }
