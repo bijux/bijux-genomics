@@ -94,6 +94,21 @@ fn policy__contracts__operations_reference_authority_policy__reproducibility_lin
 }
 
 #[test]
+fn policy__contracts__operations_reference_authority_policy__vcf_reference_cache_policy_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../configs/vcf/panels/panels.toml".to_string(),
+        "../../configs/vcf/panels/locks/lock.json".to_string(),
+        "../../configs/runtime/profiles/vcf_downstream_local.toml".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/VCF_REFERENCE_CACHE_POLICY.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/VCF_REFERENCE_CACHE_POLICY.md must link the governed VCF cache authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
