@@ -115,3 +115,19 @@ fn policy__contracts__science_generated_docs_policy__generated_evidence_readme_l
         "science/generated/current/evidence/README.md must inventory every emitted ledger in science/generated/current/evidence/"
     );
 }
+
+#[test]
+fn policy__contracts__science_generated_docs_policy__generated_indexes_readme_links_index_surface_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../current/README.md".to_string(),
+        "../../specs/evidence/README.md".to_string(),
+        "science_index.json".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/generated/indexes/README.md");
+    assert_eq!(
+        expected, documented,
+        "science/generated/indexes/README.md must link the governed index surface exactly"
+    );
+}
