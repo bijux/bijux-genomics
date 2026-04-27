@@ -90,7 +90,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_umi_tool(&tool_plan, setup.runner, jobs)?;
-        if let Some(failure) = umi_tool_failure(&tool_plan, execution.exit_code) {
+        if let Some(failure) = umi_tool_failure(&tool_plan, &execution) {
             failures.push(failure);
             continue;
         }
@@ -267,14 +267,21 @@ fn execute_umi_tool(
     .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))
 }
 
-fn umi_tool_failure(tool_plan: &UmiToolPlan, exit_code: i32) -> Option<RawFailure> {
+fn umi_tool_failure(tool_plan: &UmiToolPlan, execution: &StageResultV1) -> Option<RawFailure> {
+    let exit_code = execution.exit_code;
     if exit_code == 0 {
         return None;
     }
+    let stderr = execution.stderr.trim();
+    let reason = if stderr.is_empty() {
+        format!("tool {} failed with status {exit_code}", tool_plan.tool)
+    } else {
+        format!("tool {} failed with status {exit_code}: {stderr}", tool_plan.tool)
+    };
     Some(RawFailure {
         stage: STAGE_EXTRACT_UMIS.as_str().to_string(),
         tool: tool_plan.tool.clone(),
-        reason: format!("tool {} failed with status {exit_code}", tool_plan.tool),
+        reason,
         category: ErrorCategory::ToolError,
     })
 }
