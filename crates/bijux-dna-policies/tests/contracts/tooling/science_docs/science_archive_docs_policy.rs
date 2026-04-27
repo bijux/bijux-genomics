@@ -484,6 +484,7 @@ fn policy__contracts__science_archive_docs_policy__fastq_tool_evidence_map_conte
 #[test]
 fn policy__contracts__science_archive_docs_policy__fastq_container_readme_links_reports_exactly() {
     let expected = BTreeSet::from([
+        "../README.md".to_string(),
         "FASTQ_CONTAINER_DEFAULT_MATRIX.tsv".to_string(),
         "FASTQ_CONTAINER_DIGEST_CLASSES.tsv".to_string(),
         "FASTQ_CONTAINER_ASSET_HOOKS.tsv".to_string(),
@@ -495,6 +496,12 @@ fn policy__contracts__science_archive_docs_policy__fastq_container_readme_links_
         "FASTQ_CONTAINER_PLANNER_GAPS.tsv".to_string(),
         "FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv".to_string(),
         "FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv".to_string(),
+        "../../../../generated/current/evidence/README.md".to_string(),
+        "../../../../generated/current/evidence/fastq_download_backlog.tsv".to_string(),
+        "../../../../../domain/fastq/execution_support.yaml".to_string(),
+        "../../../../../containers/versions/LOCK.md".to_string(),
+        "../../../../../containers/licenses/README.md".to_string(),
+        "../../../../../docs/30-operations/ARTIFACT_EXPLORER.md".to_string(),
     ]);
     let documented = markdown_link_targets("science/docs/upstream/fastq/container/README.md");
     assert_eq!(
