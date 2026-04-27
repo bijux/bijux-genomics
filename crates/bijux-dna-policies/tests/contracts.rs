@@ -152,6 +152,8 @@ mod mod_contracts_tooling_science_docs_fastq_closure_evidence_policy_rs;
 mod mod_contracts_tooling_science_docs_bam_science_docs_policy_rs;
 #[path = "contracts/tooling/science_docs/fastq_science_docs_policy.rs"]
 mod mod_contracts_tooling_science_docs_fastq_science_docs_policy_rs;
+#[path = "contracts/tooling/science_docs/vcf_science_docs_policy.rs"]
+mod mod_contracts_tooling_science_docs_vcf_science_docs_policy_rs;
 #[path = "contracts/tooling/governance_config/scripts_layout_policy.rs"]
 mod mod_contracts_tooling_scripts_layout_policy_rs;
 #[path = "contracts/tooling/governance_config/scripts_registry_wrapper_policy.rs"]
