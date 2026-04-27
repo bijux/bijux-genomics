@@ -73,10 +73,10 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     let mut records = Vec::<BenchmarkRecord<FastqFilterMetrics>>::new();
     for tool in &setup.tools {
         let tool_plan = prepare_filter_tool_plan(catalog, platform, args, &setup, jobs, tool)?;
-        let cache_identity = FilterCacheIdentity::from_plan(platform, &setup, tool, &tool_plan);
+        let cache_identity = FilterCacheIdentity::from_plan(platform, &setup, &tool_plan);
         if let Ok(Some(record)) = fetch_fastq_filter_v2(
             &conn,
-            cache_identity.tool,
+            &cache_identity.tool,
             &cache_identity.tool_version,
             &cache_identity.image_digest,
             &cache_identity.runner,
@@ -142,6 +142,7 @@ impl FilterBenchmarkStore {
 }
 
 struct FilterToolPlan {
+    tool: String,
     tool_spec: ToolExecutionSpecV1,
     plan: StagePlanV1,
     outputs: FilterPlanOutputs,
@@ -154,8 +155,8 @@ struct FilterPlanOutputs {
     reads_r2: Option<PathBuf>,
 }
 
-struct FilterCacheIdentity<'a> {
-    tool: &'a str,
+struct FilterCacheIdentity {
+    tool: String,
     tool_version: String,
     image_digest: String,
     runner: String,
@@ -164,15 +165,14 @@ struct FilterCacheIdentity<'a> {
     params_hash: String,
 }
 
-impl<'a> FilterCacheIdentity<'a> {
+impl FilterCacheIdentity {
     fn from_plan(
         platform: &PlatformSpec,
         setup: &FilterBenchmarkSetup,
-        tool: &'a str,
         tool_plan: &FilterToolPlan,
     ) -> Self {
         Self {
-            tool,
+            tool: tool_plan.tool.clone(),
             tool_version: tool_plan.tool_spec.tool_version.clone(),
             image_digest: tool_plan.image_digest.clone(),
             runner: setup.bench_inputs.runner.to_string(),
@@ -450,7 +450,14 @@ fn prepare_filter_tool_plan<S: ::std::hash::BuildHasher>(
         .as_ref()
         .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
         .clone();
-    Ok(FilterToolPlan { tool_spec, plan, outputs, params_hash, image_digest })
+    Ok(FilterToolPlan {
+        tool: tool.to_string(),
+        tool_spec,
+        plan,
+        outputs,
+        params_hash,
+        image_digest,
+    })
 }
 
 fn resolve_filter_outputs(plan: &StagePlanV1) -> Result<FilterPlanOutputs> {
