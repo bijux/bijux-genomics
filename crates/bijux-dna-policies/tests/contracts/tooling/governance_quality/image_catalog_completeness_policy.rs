@@ -5,7 +5,7 @@ mod support;
 use std::collections::BTreeSet;
 
 #[test]
-fn policy__contracts__image_catalog_completeness_policy__supported_tools_have_image_entries() {
+fn policy__contracts__image_catalog_completeness_policy__production_tools_have_image_entries() {
     let root = support::workspace_root();
     let registry_raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
         .expect("read configs/ci/registry/tool_registry.toml");
@@ -15,7 +15,7 @@ fn policy__contracts__image_catalog_completeness_policy__supported_tools_have_im
     let registry: toml::Value = registry_raw.parse().expect("parse tool_registry.toml");
     let images: toml::Value = images_raw.parse().expect("parse images.toml");
 
-    let supported_tools = registry
+    let production_tools = registry
         .get("tools")
         .and_then(toml::Value::as_array)
         .cloned()
@@ -24,7 +24,7 @@ fn policy__contracts__image_catalog_completeness_policy__supported_tools_have_im
         .filter(|tool| {
             tool.get("status")
                 .and_then(toml::Value::as_str)
-                .is_some_and(|status| status == "supported")
+                .is_some_and(support::registry_status_is_production)
         })
         .filter_map(|tool| tool.get("id").and_then(toml::Value::as_str).map(str::to_string))
         .collect::<BTreeSet<_>>();
@@ -35,11 +35,11 @@ fn policy__contracts__image_catalog_completeness_policy__supported_tools_have_im
         .unwrap_or_default();
 
     let mut offenders = Vec::new();
-    for tool in supported_tools {
+    for tool in production_tools {
         if !image_tools.contains(&tool) {
             offenders.push(tool);
         }
     }
 
-    assert!(offenders.is_empty(), "supported tools missing from image catalog: {:?}", offenders);
+    assert!(offenders.is_empty(), "production tools missing from image catalog: {:?}", offenders);
 }
