@@ -10,8 +10,9 @@ Single ownership avoids drift and conflicting guidance.
 - Describing policy implementation details.
 
 ## Contracts
-Policies live only in `bijux-dna-policies`.
-Other docs must link to policy IDs, not redefine them.
+Policies live only in [crates/bijux-dna-policies/README.md](../../crates/bijux-dna-policies/README.md).
+Other docs must link through [POLICY_INDEX.md](POLICY_INDEX.md) and the authority ledger in
+[CONTRACT_INDEX.md](../10-architecture/CONTRACT_INDEX.md), not redefine policy text locally.
 
 ## Examples
 - Use `policy__surface__docs_spine__...` in docs instead of rewriting rules.
