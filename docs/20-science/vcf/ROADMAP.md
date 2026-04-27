@@ -1,4 +1,4 @@
-# Damage-Aware Genotype Spec
+# VCF Damage-Aware Calling Spec
 
 ## Purpose
 Define a damage-aware genotype calling contract for VCF workflows, including GL-first and pseudohaploid regimes.

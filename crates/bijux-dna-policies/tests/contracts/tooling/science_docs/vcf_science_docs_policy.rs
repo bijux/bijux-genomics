@@ -64,6 +64,21 @@ fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
     rows
 }
 
+fn backticked_ids(raw: &str) -> BTreeSet<String> {
+    raw.split('`')
+        .enumerate()
+        .filter_map(|(index, chunk)| (index % 2 == 1).then_some(chunk.trim().to_string()))
+        .filter(|value| value.starts_with("vcf."))
+        .collect()
+}
+
+fn vcf_doc_stage_mentions(path: &str) -> BTreeSet<String> {
+    let root = support::workspace_root();
+    let raw =
+        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    backticked_ids(&raw)
+}
+
 fn vcf_science_doc_targets() -> BTreeSet<String> {
     let root = support::workspace_root();
     fs::read_dir(root.join("docs/20-science/vcf"))
@@ -294,5 +309,37 @@ fn policy__contracts__vcf_science_docs_policy__tools_roster_matches_planned_down
             "vcf.demography",
         ],
         "planned downstream stages",
+    );
+}
+
+#[test]
+fn policy__contracts__vcf_science_docs_policy__roadmap_covers_damage_aware_calling_stages() {
+    let expected = BTreeSet::from([
+        "vcf.call_gl".to_string(),
+        "vcf.call_diploid".to_string(),
+        "vcf.call_pseudohaploid".to_string(),
+        "vcf.damage_filter".to_string(),
+        "vcf.gl_propagation".to_string(),
+    ]);
+    let documented = vcf_doc_stage_mentions("docs/20-science/vcf/ROADMAP.md");
+    assert_eq!(
+        expected, documented,
+        "VCF roadmap must mention the governed damage-aware calling stage family exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__vcf_science_docs_policy__damage_logic_covers_gl_damage_stage_family() {
+    let expected = BTreeSet::from([
+        "vcf.call_gl".to_string(),
+        "vcf.call_pseudohaploid".to_string(),
+        "vcf.damage_filter".to_string(),
+        "vcf.gl_propagation".to_string(),
+        "vcf.impute".to_string(),
+    ]);
+    let documented = vcf_doc_stage_mentions("docs/20-science/vcf/DAMAGE_AWARE_GENOTYPE_LOGIC.md");
+    assert_eq!(
+        expected, documented,
+        "VCF damage-aware logic doc must mention the governed GL/damage stage family exactly"
     );
 }
