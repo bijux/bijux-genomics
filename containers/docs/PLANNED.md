@@ -39,7 +39,7 @@ For each tool below, promotion from `planned` to `experimental`/`production` req
 | Tool | Current Container Coverage | Open Gap |
 |---|---|---|
 | `angsd` | bijux apptainer + docker arm64 | keep status planned until aDNA calling smoke fixtures and scientific acceptance thresholds are committed |
-| `shapeit` | no container definitions yet | add planned wrapper definitions or record an explicit runtime exemption before promotion |
+| `shapeit` | bijux apptainer wrapper | keep apptainer-only wrapper status until phasing fixtures and scientific acceptance thresholds are governed |
 | `ibdseq` | no container definitions yet | decide packaging path or runtime exemption before promotion |
 | `ibdhap` | non-bijux apptainer + docker arm64 | confirm wrapper contract and scientific comparability before promotion |
 | `ibdne` | non-bijux apptainer + docker arm64 | confirm wrapper contract and demography-specific acceptance criteria before promotion |
