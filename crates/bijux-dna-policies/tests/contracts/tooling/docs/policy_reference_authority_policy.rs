@@ -98,3 +98,17 @@ fn policy__contracts__policy_reference_authority_policy__example_failure_triage_
         "docs/50-reference/EXAMPLE_FAILURE_TRIAGE.md must link the governed example-triage authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__bijux_analyze_contract_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../30-operations/REPORT_CONTRACT.md".to_string(),
+        "../30-operations/EXPLAINABILITY.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/BIJUX_ANALYZE_CONTRACT.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/BIJUX_ANALYZE_CONTRACT.md must link the governed analyze authorities exactly"
+    );
+}
