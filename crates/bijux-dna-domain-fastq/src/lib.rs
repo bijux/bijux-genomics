@@ -103,7 +103,8 @@ pub use id_catalog::{
 };
 pub use integration_matrix::{
     benchmark_scenarios, benchmark_scenarios_for_stage, is_reference_index_backend_compatible,
-    reference_index_backends_for_tool, stage_tool_binding, stage_tool_bindings,
+    governed_tool_ids_for_stage, planned_tool_ids_for_stage, reference_index_backends_for_tool,
+    registered_tool_ids_for_stage, stage_tool_binding, stage_tool_bindings,
     stage_tool_bindings_for_stage, BenchmarkScenario, StageToolBinding, ToolIntegrationLevel,
 };
 pub use invariants::{
