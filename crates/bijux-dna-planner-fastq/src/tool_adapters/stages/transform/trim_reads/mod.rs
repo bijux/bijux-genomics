@@ -294,182 +294,52 @@ fn trim_command_template(
         tool.tool_id.as_str(),
         options.resolved_threads(tool.resources.threads),
     );
-    if tool.tool_id.as_str() == "fastp" {
-        return Ok(fastp_trim_command_template(
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            adapter_bank,
-            polyx_bank,
-            contaminant_bank,
-            options,
-            &adapter_policy,
-            &adapter_sequences,
-            &polyx_policy,
-        ));
-    }
-    if tool.tool_id.as_str() == "cutadapt" {
-        return adapter_oriented_trim_command_template(
-            tool.tool_id.as_str(),
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            adapter_bank,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "atropos" {
-        return adapter_oriented_trim_command_template(
-            tool.tool_id.as_str(),
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            adapter_bank,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "bbduk" {
-        return bbduk_trim_command_template(
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            contaminant_bank,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "adapterremoval" {
-        return adapter_oriented_trim_command_template(
-            tool.tool_id.as_str(),
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            adapter_bank,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "alientrimmer" {
-        return adapter_oriented_trim_command_template(
-            tool.tool_id.as_str(),
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            adapter_bank,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "fastx_clipper" {
-        return adapter_oriented_trim_command_template(
-            tool.tool_id.as_str(),
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            adapter_bank,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "skewer" {
-        return adapter_oriented_trim_command_template(
-            tool.tool_id.as_str(),
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            adapter_bank,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "leehom" {
-        return adapter_oriented_trim_command_template(
-            tool.tool_id.as_str(),
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            adapter_bank,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "trimmomatic" {
-        return trimmomatic_command_template(
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "trim_galore" {
-        return adapter_oriented_trim_command_template(
-            tool.tool_id.as_str(),
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            adapter_bank,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "seqkit" {
-        return seqkit_trim_command_template(
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "seqpurge" {
-        return seqpurge_trim_command_template(
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            options,
-        );
-    }
-    if tool.tool_id.as_str() == "prinseq" {
-        return prinseq_trim_command_template(
-            r1,
-            r2,
-            output_r1,
-            output_r2,
-            report_json,
-            effective_threads,
-            options,
-        );
+    match tool.tool_id.as_str() {
+        "fastp" => {
+            return Ok(fastp_trim_command_template(
+                r1,
+                r2,
+                output_r1,
+                output_r2,
+                report_json,
+                effective_threads,
+                adapter_bank,
+                polyx_bank,
+                contaminant_bank,
+                options,
+                &adapter_policy,
+                &adapter_sequences,
+                &polyx_policy,
+            ));
+        }
+        "cutadapt" | "atropos" | "adapterremoval" | "alientrimmer" | "fastx_clipper" | "skewer"
+        | "leehom" | "trim_galore" => {
+            return adapter_oriented_trim_command_template(
+                tool.tool_id.as_str(),
+                r1,
+                r2,
+                output_r1,
+                output_r2,
+                report_json,
+                effective_threads,
+                adapter_bank,
+                options,
+            );
+        }
+        "bbduk" | "trimmomatic" | "seqkit" | "seqpurge" | "prinseq" => {
+            return policy_oriented_trim_command_template(
+                tool.tool_id.as_str(),
+                r1,
+                r2,
+                output_r1,
+                output_r2,
+                report_json,
+                effective_threads,
+                contaminant_bank,
+                options,
+            );
+        }
+        _ => {}
     }
     generic_trim_command_template(
         tool,
@@ -484,6 +354,68 @@ fn trim_command_template(
         contaminant_bank,
         options,
     )
+}
+
+fn policy_oriented_trim_command_template(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    effective_threads: u32,
+    contaminant_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
+    match tool_id {
+        "bbduk" => bbduk_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            contaminant_bank,
+            options,
+        ),
+        "trimmomatic" => trimmomatic_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            options,
+        ),
+        "seqkit" => seqkit_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            options,
+        ),
+        "seqpurge" => seqpurge_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            options,
+        ),
+        "prinseq" => prinseq_trim_command_template(
+            r1,
+            r2,
+            output_r1,
+            output_r2,
+            report_json,
+            effective_threads,
+            options,
+        ),
+        _ => Err(anyhow!("unsupported policy-oriented trim tool: {tool_id}")),
+    }
 }
 
 fn adapter_oriented_trim_command_template(
