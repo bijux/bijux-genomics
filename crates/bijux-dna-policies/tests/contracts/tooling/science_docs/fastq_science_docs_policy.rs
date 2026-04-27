@@ -39,7 +39,7 @@ fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
         if !in_table {
             continue;
         }
-        if trimmed.starts_with("|---") {
+        if trimmed.starts_with("|---") || trimmed.starts_with("| ---") {
             continue;
         }
         if trimmed.is_empty() {
@@ -73,7 +73,7 @@ fn markdown_table_rows_all(path: &str, header_prefix: &str) -> Vec<Vec<String>> 
         if !in_table {
             continue;
         }
-        if trimmed.starts_with("|---") {
+        if trimmed.starts_with("|---") || trimmed.starts_with("| ---") {
             continue;
         }
         if trimmed.starts_with('#') {
@@ -258,6 +258,69 @@ fn fastq_reference_stage_rows() -> BTreeMap<String, BTreeSet<String>> {
                 "FASTQ reference rows must expose at least tool and applies-to columns"
             );
             (row[0].to_string(), backticked_ids(&row[1]))
+        })
+        .collect()
+}
+
+fn fastq_reference_bank_hooks() -> BTreeMap<String, BTreeSet<String>> {
+    let root = support::workspace_root();
+    let mut specs = BTreeMap::new();
+    for entry in fs::read_dir(root.join("domain/fastq/stages")).expect("read fastq stages") {
+        let path = entry.expect("stage entry").path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let raw = fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read fastq stage manifest {}: {err}", path.display()));
+        let stage_id = raw
+            .lines()
+            .find_map(|line| line.strip_prefix("stage_id: "))
+            .map(|value| value.trim_matches('"').to_string())
+            .unwrap_or_else(|| panic!("missing stage_id in {}", path.display()));
+        let mut hooks = BTreeSet::new();
+        let mut in_hooks = false;
+        for line in raw.lines() {
+            let trimmed = line.trim();
+            if trimmed == "bank_hooks:" {
+                in_hooks = true;
+                continue;
+            }
+            if in_hooks {
+                if let Some(hook) = trimmed.strip_prefix("- ") {
+                    let hook = hook.trim_matches('"');
+                    if hook != "none" {
+                        hooks.insert(hook.to_string());
+                    }
+                    continue;
+                }
+                in_hooks = false;
+            }
+        }
+        if !hooks.is_empty() {
+            specs.insert(stage_id, hooks);
+        }
+    }
+    specs
+}
+
+fn fastq_reference_governance_rows() -> BTreeMap<String, BTreeSet<String>> {
+    markdown_table_rows("docs/20-science/fastq/REFERENCE_GOVERNANCE.md", "| Stage |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 2,
+                "FASTQ reference governance rows must expose stage and required-bank columns",
+            );
+            let hooks = row[1]
+                .split(',')
+                .map(str::trim)
+                .filter(|value| !value.is_empty() && *value != "none")
+                .map(ToOwned::to_owned)
+                .collect::<BTreeSet<_>>();
+            (row[0].to_string(), hooks)
         })
         .collect()
 }
@@ -484,6 +547,32 @@ fn policy__contracts__fastq_science_docs_policy__stage_taxonomy_links_governed_s
     assert_eq!(
         expected, documented,
         "docs/20-science/fastq/STAGE_TAXONOMY.md must link the governed stage taxonomy surfaces exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_science_docs_policy__reference_governance_links_governed_bank_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../../domain/fastq/stages/".to_string(),
+        "../../../domain/fastq/route_policies.toml".to_string(),
+        "../../../domain/fastq/docs/DEFAULT_SETTINGS.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/fastq/REFERENCE_GOVERNANCE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/20-science/fastq/REFERENCE_GOVERNANCE.md must link the governed bank surfaces exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_science_docs_policy__reference_governance_covers_nonempty_fastq_bank_hooks(
+) {
+    let expected = fastq_reference_bank_hooks();
+    let documented = fastq_reference_governance_rows();
+    assert_eq!(
+        expected, documented,
+        "FASTQ reference governance must cover exactly the stages with non-empty bank hooks"
     );
 }
 
