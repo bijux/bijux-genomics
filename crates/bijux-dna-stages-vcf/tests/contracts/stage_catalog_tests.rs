@@ -47,7 +47,10 @@ fn vcf_domain_stage_completeness_matches_supported_catalog_rows() {
 fn stage_catalog_entries_have_metric_schema_versions() {
     for spec in bijux_dna_stages_vcf::stage_specs::vcf_stage_catalog() {
         assert!(
-            spec.metrics_schema.starts_with("bijux.vcf.") && spec.metrics_schema.ends_with(".v1"),
+            spec.metrics_schema.starts_with("bijux.vcf.")
+                && std::path::Path::new(spec.metrics_schema)
+                    .extension()
+                    .is_some_and(|ext| ext.eq_ignore_ascii_case("v1")),
             "stage {} has invalid metrics schema {}",
             spec.stage_id,
             spec.metrics_schema
