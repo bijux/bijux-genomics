@@ -116,16 +116,16 @@ pub fn plan_host_depletion_with_index_backend(
     );
     let inputs = host_depletion_inputs(r1, r2, reference_index);
     let outputs = host_depletion_outputs(&paths);
-    let params = host_depletion_params(
-        &tool.tool_id.0,
+    let params = host_depletion_params(&HostDepletionParamContext {
+        tool_id: &tool.tool_id.0,
         r1,
         r2,
         reference_index,
         reference_index_backend,
         options,
         effective_threads,
-        &paths,
-    );
+        paths: &paths,
+    });
     let mut resources = tool.resources.clone();
     resources.threads = effective_threads;
     Ok(StagePlanV1 {
@@ -282,37 +282,39 @@ fn host_depletion_outputs(paths: &HostDepletionPaths) -> Vec<ArtifactRef> {
     outputs
 }
 
-fn host_depletion_params(
-    tool_id: &str,
-    r1: &Path,
-    r2: Option<&Path>,
-    reference_index: &Path,
-    reference_index_backend: &str,
-    options: &DepleteHostPlanOptions,
+struct HostDepletionParamContext<'a> {
+    tool_id: &'a str,
+    r1: &'a Path,
+    r2: Option<&'a Path>,
+    reference_index: &'a Path,
+    reference_index_backend: &'a str,
+    options: &'a DepleteHostPlanOptions,
     effective_threads: u32,
-    paths: &HostDepletionPaths,
-) -> serde_json::Value {
+    paths: &'a HostDepletionPaths,
+}
+
+fn host_depletion_params(context: &HostDepletionParamContext<'_>) -> serde_json::Value {
     let mut params = serde_json::json!({
-        "tool": tool_id,
-        "input_r1": r1,
-        "reference_index": reference_index,
-        "reference_index_backend": reference_index_backend,
-        "host_identity_threshold": options.host_identity_threshold,
-        "retain_unmapped_only": options.retain_unmapped_only,
-        "threads": effective_threads,
-        "report_json": paths.report,
-        "raw_backend_report": paths.raw_backend_report,
+        "tool": context.tool_id,
+        "input_r1": context.r1,
+        "reference_index": context.reference_index,
+        "reference_index_backend": context.reference_index_backend,
+        "host_identity_threshold": context.options.host_identity_threshold,
+        "retain_unmapped_only": context.options.retain_unmapped_only,
+        "threads": context.effective_threads,
+        "report_json": context.paths.report,
+        "raw_backend_report": context.paths.raw_backend_report,
         "raw_backend_report_format": "bowtie2_met_file",
     });
-    if let Some(r2) = r2 {
+    if let Some(r2) = context.r2 {
         params["input_r2"] = serde_json::json!(r2);
-        params["output_r1"] = serde_json::json!(paths.output_r1);
-        params["output_r2"] = serde_json::json!(paths.output_r2);
-        params["removed_host_r1"] = serde_json::json!(paths.removed_r1);
-        params["removed_host_r2"] = serde_json::json!(paths.removed_r2);
+        params["output_r1"] = serde_json::json!(context.paths.output_r1);
+        params["output_r2"] = serde_json::json!(context.paths.output_r2);
+        params["removed_host_r1"] = serde_json::json!(context.paths.removed_r1);
+        params["removed_host_r2"] = serde_json::json!(context.paths.removed_r2);
     } else {
-        params["output"] = serde_json::json!(paths.output_r1);
-        params["removed_host_reads"] = serde_json::json!(paths.removed_r1);
+        params["output"] = serde_json::json!(context.paths.output_r1);
+        params["removed_host_reads"] = serde_json::json!(context.paths.removed_r1);
     }
     params
 }
