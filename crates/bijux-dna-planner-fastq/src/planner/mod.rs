@@ -295,109 +295,144 @@ fn normalize_stage_bindings(
     config: &FastqPlanConfig,
 ) -> Result<(PipelineSpec, Vec<FastqStageBinding>)> {
     if !config.stage_bindings.is_empty() {
-        if !config.stage_toolsets.is_empty() {
-            return Err(anyhow!(
-                "FastqPlanConfig must use exactly one graph planning surface: stage_bindings or stage_toolsets"
-            ));
-        }
-        ensure_unique_stage_binding_nodes(&config.stage_bindings)?;
-        let pipeline_spec = config
-            .pipeline_spec
-            .clone()
-            .map_or_else(|| implicit_pipeline_spec_from_bindings(&config.stage_bindings), Ok)?;
-        return Ok((pipeline_spec, config.stage_bindings.clone()));
+        return normalize_explicit_stage_bindings(config);
     }
 
     if !config.stage_toolsets.is_empty() {
-        if !config.stage_bindings.is_empty() {
-            return Err(anyhow!(
-                "FastqPlanConfig must use exactly one graph planning surface: stage_bindings or stage_toolsets"
-            ));
-        }
-        let base_pipeline = config
-            .pipeline_spec
-            .clone()
-            .map_or_else(|| implicit_pipeline_spec_from_toolsets(&config.stage_toolsets), Ok)?;
-        let toolsets = config
-            .stage_toolsets
-            .iter()
-            .map(|binding| {
-                if binding.tools.is_empty() {
-                    return Err(anyhow!(
-                        "stage toolset {} must include at least one tool",
-                        binding.stage_id
-                    ));
-                }
-                Ok(ToolsetSelection {
-                    stage_id: binding.stage_id.clone(),
-                    stage_instance_id: binding.stage_instance_id.clone(),
-                    tool_ids: binding.tools.iter().map(|tool| tool.tool_id.to_string()).collect(),
-                    reason: binding.reason.clone().unwrap_or_default(),
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
-        if config.stage_toolsets.iter().all(|binding| binding.tools.len() == 1) {
-            let stage_bindings = config
-                .stage_toolsets
-                .iter()
-                .map(|binding| FastqStageBinding {
-                    stage_id: binding.stage_id.clone(),
-                    stage_instance_id: binding.stage_instance_id.clone(),
-                    tool: binding.tools[0].clone(),
-                    reason: binding.reason.clone(),
-                    params: binding.params.clone(),
-                })
-                .collect::<Vec<_>>();
-            ensure_unique_stage_binding_nodes(&stage_bindings)?;
-            return Ok((base_pipeline, stage_bindings));
-        }
-        let (expanded_pipeline, expanded_stage_tools) =
-            expand_pipeline_stage_tool_routes(&base_pipeline, &toolsets)?;
-        let stage_bindings = expanded_stage_tools
-            .into_iter()
-            .map(|selection| {
-                let toolset = source_toolset_for_expanded_selection(
-                    &config.stage_toolsets,
-                    &selection.stage_id,
-                    selection.stage_instance_id.as_deref(),
-                )
-                .ok_or_else(|| {
-                    anyhow!(
-                        "expanded route binding {} missing source toolset definition",
-                        PipelineSpec::stage_node_id(
-                            &selection.stage_id,
-                            selection.stage_instance_id.as_deref()
-                        )
-                    )
-                })?;
-                let tool = toolset
-                    .tools
-                    .iter()
-                    .find(|tool| tool.tool_id.as_str() == selection.tool_id)
-                    .cloned()
-                    .ok_or_else(|| {
-                        anyhow!(
-                            "expanded route binding {} references undeclared tool {}",
-                            selection.stage_id,
-                            selection.tool_id
-                        )
-                    })?;
-                Ok(FastqStageBinding {
-                    stage_id: selection.stage_id,
-                    stage_instance_id: selection.stage_instance_id,
-                    tool,
-                    reason: Some(selection.reason),
-                    params: toolset.params.clone(),
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
-        ensure_unique_stage_binding_nodes(&stage_bindings)?;
-        return Ok((expanded_pipeline, stage_bindings));
+        return normalize_stage_toolsets(config);
     }
 
     Err(anyhow!(
         "FastqPlanConfig requires a graph-backed planning surface via stage_bindings or stage_toolsets"
     ))
+}
+
+fn normalize_explicit_stage_bindings(
+    config: &FastqPlanConfig,
+) -> Result<(PipelineSpec, Vec<FastqStageBinding>)> {
+    if !config.stage_toolsets.is_empty() {
+        return Err(ambiguous_graph_surface_error());
+    }
+    ensure_unique_stage_binding_nodes(&config.stage_bindings)?;
+    let pipeline_spec = config
+        .pipeline_spec
+        .clone()
+        .map_or_else(|| implicit_pipeline_spec_from_bindings(&config.stage_bindings), Ok)?;
+    Ok((pipeline_spec, config.stage_bindings.clone()))
+}
+
+fn normalize_stage_toolsets(
+    config: &FastqPlanConfig,
+) -> Result<(PipelineSpec, Vec<FastqStageBinding>)> {
+    if !config.stage_bindings.is_empty() {
+        return Err(ambiguous_graph_surface_error());
+    }
+    let base_pipeline = config
+        .pipeline_spec
+        .clone()
+        .map_or_else(|| implicit_pipeline_spec_from_toolsets(&config.stage_toolsets), Ok)?;
+    let toolsets = toolset_selections_from_bindings(&config.stage_toolsets)?;
+    if config.stage_toolsets.iter().all(|binding| binding.tools.len() == 1) {
+        let stage_bindings = single_tool_stage_bindings(&config.stage_toolsets);
+        ensure_unique_stage_binding_nodes(&stage_bindings)?;
+        return Ok((base_pipeline, stage_bindings));
+    }
+    normalize_expanded_stage_toolsets(config, &base_pipeline, &toolsets)
+}
+
+fn ambiguous_graph_surface_error() -> anyhow::Error {
+    anyhow!(
+        "FastqPlanConfig must use exactly one graph planning surface: stage_bindings or stage_toolsets"
+    )
+}
+
+fn toolset_selections_from_bindings(
+    bindings: &[FastqStageToolsetBinding],
+) -> Result<Vec<ToolsetSelection>> {
+    bindings
+        .iter()
+        .map(|binding| {
+            if binding.tools.is_empty() {
+                return Err(anyhow!(
+                    "stage toolset {} must include at least one tool",
+                    binding.stage_id
+                ));
+            }
+            Ok(ToolsetSelection {
+                stage_id: binding.stage_id.clone(),
+                stage_instance_id: binding.stage_instance_id.clone(),
+                tool_ids: binding.tools.iter().map(|tool| tool.tool_id.to_string()).collect(),
+                reason: binding.reason.clone().unwrap_or_default(),
+            })
+        })
+        .collect()
+}
+
+fn single_tool_stage_bindings(bindings: &[FastqStageToolsetBinding]) -> Vec<FastqStageBinding> {
+    bindings
+        .iter()
+        .map(|binding| FastqStageBinding {
+            stage_id: binding.stage_id.clone(),
+            stage_instance_id: binding.stage_instance_id.clone(),
+            tool: binding.tools[0].clone(),
+            reason: binding.reason.clone(),
+            params: binding.params.clone(),
+        })
+        .collect()
+}
+
+fn normalize_expanded_stage_toolsets(
+    config: &FastqPlanConfig,
+    base_pipeline: &PipelineSpec,
+    toolsets: &[ToolsetSelection],
+) -> Result<(PipelineSpec, Vec<FastqStageBinding>)> {
+    let (expanded_pipeline, expanded_stage_tools) =
+        expand_pipeline_stage_tool_routes(base_pipeline, toolsets)?;
+    let stage_bindings = expanded_stage_tools
+        .into_iter()
+        .map(|selection| expanded_stage_binding(config, selection))
+        .collect::<Result<Vec<_>>>()?;
+    ensure_unique_stage_binding_nodes(&stage_bindings)?;
+    Ok((expanded_pipeline, stage_bindings))
+}
+
+fn expanded_stage_binding(
+    config: &FastqPlanConfig,
+    selection: StageToolSelection,
+) -> Result<FastqStageBinding> {
+    let toolset = source_toolset_for_expanded_selection(
+        &config.stage_toolsets,
+        &selection.stage_id,
+        selection.stage_instance_id.as_deref(),
+    )
+    .ok_or_else(|| {
+        anyhow!(
+            "expanded route binding {} missing source toolset definition",
+            PipelineSpec::stage_node_id(
+                &selection.stage_id,
+                selection.stage_instance_id.as_deref()
+            )
+        )
+    })?;
+    let tool = toolset
+        .tools
+        .iter()
+        .find(|tool| tool.tool_id.as_str() == selection.tool_id)
+        .cloned()
+        .ok_or_else(|| {
+            anyhow!(
+                "expanded route binding {} references undeclared tool {}",
+                selection.stage_id,
+                selection.tool_id
+            )
+        })?;
+    Ok(FastqStageBinding {
+        stage_id: selection.stage_id,
+        stage_instance_id: selection.stage_instance_id,
+        tool,
+        reason: Some(selection.reason),
+        params: toolset.params.clone(),
+    })
 }
 
 fn implicit_pipeline_spec_from_bindings(bindings: &[FastqStageBinding]) -> Result<PipelineSpec> {
