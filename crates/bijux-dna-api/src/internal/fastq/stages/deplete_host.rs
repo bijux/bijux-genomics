@@ -150,6 +150,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         write_deplete_host_report(&report)?;
         let metrics = deplete_host_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
+        validate_host_report_metrics(&report, &metric_set.metrics)?;
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         write_deplete_host_metrics(&tool_plan, &metric_set)?;
         validate_host_written_artifacts(&tool_plan, &report)?;
@@ -688,6 +689,65 @@ fn validate_host_backend_metric(
     if observed != expected {
         return Err(anyhow!(
             "host depletion backend metric {name} mismatch: expected {expected}, observed {observed}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_host_report_metrics(
+    report: &DepleteHostReportV1,
+    metrics: &FastqDepleteHostMetrics,
+) -> Result<()> {
+    if metrics.reads_in != report.reads_in {
+        return Err(anyhow!(
+            "host depletion metrics reads_in mismatch: expected {}, observed {}",
+            report.reads_in,
+            metrics.reads_in
+        ));
+    }
+    if metrics.reads_out != report.reads_out {
+        return Err(anyhow!(
+            "host depletion metrics reads_out mismatch: expected {}, observed {}",
+            report.reads_out,
+            metrics.reads_out
+        ));
+    }
+    if metrics.bases_in != report.bases_in {
+        return Err(anyhow!(
+            "host depletion metrics bases_in mismatch: expected {}, observed {}",
+            report.bases_in,
+            metrics.bases_in
+        ));
+    }
+    if metrics.bases_out != report.bases_out {
+        return Err(anyhow!(
+            "host depletion metrics bases_out mismatch: expected {}, observed {}",
+            report.bases_out,
+            metrics.bases_out
+        ));
+    }
+    validate_host_metrics_pair_count("pairs_in", report.pairs_in, metrics.pairs_in)?;
+    validate_host_metrics_pair_count("pairs_out", report.pairs_out, metrics.pairs_out)?;
+    let expected_fraction = report.host_fraction_removed.clamp(0.0, 1.0);
+    if (metrics.host_fraction_removed - expected_fraction).abs() > f64::EPSILON {
+        return Err(anyhow!(
+            "host depletion metrics fraction mismatch: expected {}, observed {}",
+            expected_fraction,
+            metrics.host_fraction_removed
+        ));
+    }
+    Ok(())
+}
+
+fn validate_host_metrics_pair_count(
+    name: &str,
+    expected: Option<u64>,
+    observed: u64,
+) -> Result<()> {
+    let expected = expected.unwrap_or(0);
+    if observed != expected {
+        return Err(anyhow!(
+            "host depletion metrics {name} mismatch: expected {expected}, observed {observed}"
         ));
     }
     Ok(())
