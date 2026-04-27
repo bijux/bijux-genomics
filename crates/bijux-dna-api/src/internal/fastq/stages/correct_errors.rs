@@ -426,8 +426,7 @@ fn build_correct_record(
         observation.output_stats_r2.as_ref(),
         observation.outputs_changed,
     );
-    let metric_set = metric_set(metrics.clone());
-    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    let metric_set = correct_metric_set(metrics.clone())?;
 
     let report = build_correction_report(
         tool,
@@ -500,6 +499,14 @@ fn observe_correct_outputs(
         outputs.output_r2.as_deref(),
     )?;
     Ok(CorrectOutputObservation { output_stats_r1, output_stats_r2, outputs_changed })
+}
+
+fn correct_metric_set(
+    metrics: FastqCorrectMetrics,
+) -> Result<bijux_dna_analyze::MetricSet<FastqCorrectMetrics>> {
+    let metric_set = metric_set(metrics);
+    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    Ok(metric_set)
 }
 
 #[cfg(test)]
