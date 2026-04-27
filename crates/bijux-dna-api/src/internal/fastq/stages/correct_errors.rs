@@ -178,6 +178,15 @@ struct CorrectOutputObservation {
     outputs_changed: bool,
 }
 
+struct CorrectRecordContextInputs<'a> {
+    platform: &'a PlatformSpec,
+    bench_inputs: &'a CorrectBenchInputs,
+    tool: &'a str,
+    tool_spec: &'a ToolExecutionSpecV1,
+    params: &'a serde_json::Value,
+    execution: &'a StageResultV1,
+}
+
 struct CorrectCacheIdentity<'a> {
     tool: &'a str,
     tool_version: String,
@@ -442,21 +451,31 @@ fn build_correct_record(
     )?;
     write_correct_artifacts(out_dir, &outputs, &report, &metric_set)?;
 
+    build_correct_benchmark_record(
+        &CorrectRecordContextInputs { platform, bench_inputs, tool, tool_spec, params, execution },
+        metric_set,
+    )
+}
+
+fn build_correct_benchmark_record(
+    inputs: &CorrectRecordContextInputs<'_>,
+    metric_set: bijux_dna_analyze::MetricSet<FastqCorrectMetrics>,
+) -> Result<BenchmarkRecord<FastqCorrectMetrics>> {
     let context = BenchmarkContext {
-        tool: tool.to_string(),
-        tool_version: tool_spec.tool_version.clone(),
-        image_digest: benchmark_image_identity(tool_spec),
-        runner: bench_inputs.runner.to_string(),
-        platform: platform.name.clone(),
-        input_hash: bench_inputs.input_hash.clone(),
-        parameters: params.clone().into(),
+        tool: inputs.tool.to_string(),
+        tool_version: inputs.tool_spec.tool_version.clone(),
+        image_digest: benchmark_image_identity(inputs.tool_spec),
+        runner: inputs.bench_inputs.runner.to_string(),
+        platform: inputs.platform.name.clone(),
+        input_hash: inputs.bench_inputs.input_hash.clone(),
+        parameters: inputs.params.clone().into(),
     };
     let record = BenchmarkRecord {
         context,
         execution: ExecutionMetrics {
-            runtime_s: execution.runtime_s,
-            memory_mb: execution.memory_mb,
-            exit_code: execution.exit_code,
+            runtime_s: inputs.execution.runtime_s,
+            memory_mb: inputs.execution.memory_mb,
+            exit_code: inputs.execution.exit_code,
         },
         metrics: metric_set,
     };
