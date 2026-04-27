@@ -471,3 +471,24 @@ fn policy__contracts__vcf_science_docs_policy__damage_logic_covers_gl_damage_sta
 fn policy__contracts__vcf_science_docs_policy__references_cover_supported_vcf_tools() {
     assert_vcf_reference_rows_match(&["bcftools", "angsd"], "supported VCF tools");
 }
+
+#[test]
+fn policy__contracts__vcf_science_docs_policy__references_cover_planned_vcf_tools() {
+    assert_vcf_reference_rows_match(
+        &[
+            "beagle",
+            "eagle",
+            "eigensoft",
+            "germline",
+            "glimpse",
+            "ibdhap",
+            "ibdne",
+            "impute5",
+            "minimac4",
+            "plink",
+            "plink2",
+            "shapeit5",
+        ],
+        "planned VCF tools",
+    );
+}
