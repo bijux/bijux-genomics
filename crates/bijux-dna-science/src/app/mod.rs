@@ -34,16 +34,9 @@ pub fn run(cli: ScienceCli) -> Result<()> {
                 source_summary.archive_status_counts.get("present").copied().unwrap_or_default();
             let missing_archives =
                 source_summary.archive_status_counts.get("missing").copied().unwrap_or_default();
-            let manual_archives = source_summary
-                .access_counts
-                .get("manual_download")
-                .copied()
-                .unwrap_or_default()
-                + source_summary
-                    .access_counts
-                    .get("manual_clone")
-                    .copied()
-                    .unwrap_or_default();
+            let manual_archives =
+                source_summary.access_counts.get("manual_download").copied().unwrap_or_default()
+                    + source_summary.access_counts.get("manual_clone").copied().unwrap_or_default();
             println!(
                 "science outputs refreshed: {} fastq environment rows; defaults={} world_class_closed={} declared_closed_with_gaps={} not_closed={}; source_archives_present={} source_archives_missing={} source_archives_manual={}",
                 compiled.fastq_environment_rows.len(),
