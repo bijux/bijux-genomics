@@ -117,6 +117,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         let metrics = measurements.metrics();
         let metric_set = metric_set(metrics);
         validate_remove_chimeras_report_identity(tool, &report)?;
+        validate_remove_chimeras_report_metrics(&report, &metric_set.metrics)?;
         write_remove_chimeras_artifacts(&tool_plan.out_dir, &outputs, &report, &metric_set)?;
         let record = build_remove_chimeras_record(
             &RemoveChimerasRecordInputs {
@@ -603,6 +604,44 @@ fn validate_remove_chimeras_report_identity(
             "remove_chimeras report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_remove_chimeras_report_metrics(
+    report: &RemoveChimerasReportV1,
+    metrics: &FastqChimeraMetrics,
+) -> Result<()> {
+    if report.reads_in != Some(metrics.reads_in) {
+        return Err(anyhow!(
+            "remove_chimeras report reads_in mismatch: expected {}, observed {:?}",
+            metrics.reads_in,
+            report.reads_in
+        ));
+    }
+    if report.reads_out != Some(metrics.reads_out) {
+        return Err(anyhow!(
+            "remove_chimeras report reads_out mismatch: expected {}, observed {:?}",
+            metrics.reads_out,
+            report.reads_out
+        ));
+    }
+    if report.chimeras_removed != Some(metrics.chimeras_removed) {
+        return Err(anyhow!(
+            "remove_chimeras report removed count mismatch: expected {}, observed {:?}",
+            metrics.chimeras_removed,
+            report.chimeras_removed
+        ));
+    }
+    if report
+        .chimera_fraction
+        .is_none_or(|observed| (observed - metrics.chimera_fraction).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "remove_chimeras report fraction mismatch: expected {}, observed {:?}",
+            metrics.chimera_fraction,
+            report.chimera_fraction
         ));
     }
     Ok(())
