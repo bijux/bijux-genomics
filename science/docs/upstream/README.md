@@ -4,6 +4,10 @@
 material used to support science, container, and provenance review in
 `bijux-genomics`.
 
+[../README.md](../README.md) defines the broader local archive boundary, and
+[../TODO_DOWNLOAD.md](../TODO_DOWNLOAD.md) remains the operator-facing backlog
+for manual acquisition outside the GitHub mirror workflow.
+
 ## Scope
 
 - GitHub repository mirrors
