@@ -9,7 +9,7 @@ use crate::support::workspace::load_workspace_registry;
 use crate::tool_selection::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::quality::{fetch_fastq_merge_v1, insert_fastq_merge_v1};
-use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqMergeMetrics};
+use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqMergeMetrics, MetricSet};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
@@ -341,11 +341,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     let out_dir = report_path.parent().ok_or_else(|| anyhow!("merge report has no parent"))?;
-    let metrics_path = out_dir.join("metrics.json");
-    let metrics_json = serde_json::to_value(&metric_set)?;
-    bijux_dna_infra::atomic_write_json(&metrics_path, &metrics_json)
-        .context("write merge metrics")?;
-    prune_merge_tool_payload(out_dir, report_path, &metrics_path, &report)?;
+    write_merge_artifacts(out_dir, report_path, &report, &metric_set)?;
 
     let context = build_benchmark_context(
         &report.tool_id,
@@ -367,6 +363,19 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn write_merge_artifacts(
+    out_dir: &Path,
+    report_path: &Path,
+    report: &MergePairsReportV1,
+    metric_set: &MetricSet<FastqMergeMetrics>,
+) -> Result<()> {
+    let metrics_path = out_dir.join("metrics.json");
+    let metrics_json = serde_json::to_value(metric_set)?;
+    bijux_dna_infra::atomic_write_json(&metrics_path, &metrics_json)
+        .context("write merge metrics")?;
+    prune_merge_tool_payload(out_dir, report_path, &metrics_path, report)
 }
 
 fn merge_metrics_from_report(
