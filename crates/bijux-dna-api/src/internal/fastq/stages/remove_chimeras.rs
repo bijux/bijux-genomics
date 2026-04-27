@@ -80,7 +80,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_remove_chimeras_tool(&tool_plan, setup.runner, jobs, tool)?;
-        if let Some(failure) = remove_chimeras_tool_failure(tool, execution.exit_code) {
+        if let Some(failure) = remove_chimeras_tool_failure(tool, execution.result.exit_code) {
             failures.push(failure);
             continue;
         }
@@ -104,9 +104,9 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             chimeras_removed: measurements.chimeras_removed,
             chimera_fraction: measurements.chimera_fraction,
             used_fallback: observation.used_fallback,
-            runtime_s: execution.runtime_s,
-            memory_mb: execution.memory_mb,
-            exit_code: execution.exit_code,
+            runtime_s: execution.result.runtime_s,
+            memory_mb: execution.result.memory_mb,
+            exit_code: execution.result.exit_code,
         };
         let report = build_remove_chimeras_report(&report_inputs);
         let metrics = measurements.metrics();
@@ -154,6 +154,10 @@ struct RemoveChimerasToolPlan {
     image_digest: String,
 }
 
+struct RemoveChimerasToolExecution {
+    result: StageResultV1,
+}
+
 struct RemoveChimerasOutputs {
     filtered_reads: PathBuf,
     metrics_json: PathBuf,
@@ -179,7 +183,7 @@ struct RemoveChimerasRecordInputs<'a> {
     setup: &'a RemoveChimerasBenchmarkSetup,
     tool: &'a str,
     tool_plan: &'a RemoveChimerasToolPlan,
-    execution: &'a StageResultV1,
+    execution: &'a RemoveChimerasToolExecution,
 }
 
 impl RemoveChimerasMeasurements {
@@ -207,11 +211,7 @@ fn build_remove_chimeras_record(
             inputs.setup.input_hash.clone(),
             inputs.tool_plan.plan.params.clone(),
         ),
-        execution: ExecutionMetrics {
-            runtime_s: inputs.execution.runtime_s,
-            memory_mb: inputs.execution.memory_mb,
-            exit_code: inputs.execution.exit_code,
-        },
+        execution: remove_chimeras_execution_metrics(inputs.execution),
         metrics: metric_set,
     };
     record.validate()?;
@@ -347,15 +347,24 @@ fn execute_remove_chimeras_tool(
     runner: RuntimeKind,
     jobs: usize,
     tool: &str,
-) -> Result<StageResultV1> {
-    execute_plans_with_jobs(
+) -> Result<RemoveChimerasToolExecution> {
+    let result = execute_plans_with_jobs(
         vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
         runner,
         jobs,
     )?
     .into_iter()
     .next()
-    .ok_or_else(|| anyhow!("missing execution result for {tool}"))
+    .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+    Ok(RemoveChimerasToolExecution { result })
+}
+
+fn remove_chimeras_execution_metrics(execution: &RemoveChimerasToolExecution) -> ExecutionMetrics {
+    ExecutionMetrics {
+        runtime_s: execution.result.runtime_s,
+        memory_mb: execution.result.memory_mb,
+        exit_code: execution.result.exit_code,
+    }
 }
 
 fn remove_chimeras_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
