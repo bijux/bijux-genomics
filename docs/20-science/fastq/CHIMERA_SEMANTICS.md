@@ -11,11 +11,12 @@ Define chimera detection semantics for ecological FASTQ analysis.
 - Replacing manual ecological interpretation.
 
 ## Contracts
-- Mode (de-novo/reference) is explicit in run metadata.
-- Chimera-filtered and flagged outputs are distinguishable.
-- Threshold changes are reflected in report artifacts.
-- Reference mode must record chimera database id/version/checksum from governed config inputs.
-- De-novo and reference runs must be labeled separately in `metrics.json`.
+- Chimera-stage inputs, outputs, invariants, and mode assumptions live in
+  [domain/fastq/stages/remove_chimeras.yaml](../../../domain/fastq/stages/remove_chimeras.yaml).
+- The pinned default backend and baseline invocation policy live in
+  [domain/fastq/docs/DEFAULT_SETTINGS.md](../../../domain/fastq/docs/DEFAULT_SETTINGS.md).
+- Reference-backed database and provenance expectations live in
+  [REFERENCE_GOVERNANCE.md](REFERENCE_GOVERNANCE.md).
 
 ## Examples
 - De-novo mode for unsupported markers.
