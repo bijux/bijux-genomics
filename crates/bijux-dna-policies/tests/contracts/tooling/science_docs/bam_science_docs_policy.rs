@@ -472,6 +472,21 @@ fn policy__contracts__bam_science_docs_policy__tools_roster_links_governed_bam_t
     );
 }
 
+#[test]
+fn policy__contracts__bam_science_docs_policy__references_link_governed_bam_evidence_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../../domain/bam/tools/".to_string(),
+        "../../../science/docs/upstream/github-repos/README.md".to_string(),
+        "../../../science/docs/upstream/papers/TOOL_PAPER_MAP.tsv".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/bam/REFERENCES.md");
+    assert_eq!(
+        documented, expected,
+        "docs/20-science/bam/REFERENCES.md must link the governed BAM evidence surfaces exactly"
+    );
+}
+
 fn assert_bam_tools_roster_matches(stage_ids: &[&str], label: &str) {
     let expected = bam_stage_specs();
     let roster = bam_tools_roster_rows();
