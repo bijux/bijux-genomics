@@ -223,6 +223,11 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
         );
         validate_normalize_abundance_report_identity(tool, &report)?;
         validate_normalize_abundance_report_metrics(&report, &metric_set.metrics)?;
+        validate_normalize_abundance_report_execution(
+            &report,
+            execution.runtime_s,
+            execution.memory_mb,
+        )?;
         bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
@@ -341,6 +346,28 @@ fn validate_normalize_abundance_report_metrics(
             "normalize_abundance report method mismatch: expected {}, observed {}",
             metrics.normalization_method,
             report.method
+        ));
+    }
+    Ok(())
+}
+
+fn validate_normalize_abundance_report_execution(
+    report: &NormalizeAbundanceReportV1,
+    runtime_s: f64,
+    memory_mb: f64,
+) -> Result<()> {
+    if report.runtime_s.is_none_or(|observed| (observed - runtime_s).abs() > f64::EPSILON) {
+        return Err(anyhow!(
+            "normalize_abundance report runtime mismatch: expected {}, observed {:?}",
+            runtime_s,
+            report.runtime_s
+        ));
+    }
+    if report.memory_mb.is_none_or(|observed| (observed - memory_mb).abs() > f64::EPSILON) {
+        return Err(anyhow!(
+            "normalize_abundance report memory mismatch: expected {}, observed {:?}",
+            memory_mb,
+            report.memory_mb
         ));
     }
     Ok(())
