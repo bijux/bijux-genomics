@@ -24,6 +24,7 @@ use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
+use bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::NormalizePrimersPlanOptions;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_stage_contract::StagePlanV1;
 use uuid::Uuid;
@@ -340,24 +341,13 @@ fn prepare_normalize_primers_tool_plan<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&out_dir)?;
     let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
     let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+    let options = normalize_primers_plan_options(args, &setup.primer_governance);
     let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::plan_with_options(
         &tool_spec,
         &args.r1,
         args.r2.as_deref(),
         &out_dir,
-        &bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::NormalizePrimersPlanOptions {
-            primer_set_id: setup.primer_governance.primer_set_id.clone(),
-            marker_id: Some(setup.primer_governance.marker_id.clone()),
-            primer_fasta: Some(setup.primer_governance.primer_fasta.clone()),
-            orientation_policy: args
-                .orientation_policy
-                .clone()
-                .unwrap_or_else(|| "normalize_to_forward_primer".to_string()),
-            max_mismatch_rate: args.max_mismatch_rate.unwrap_or(0.10),
-            min_overlap_bp: args.min_overlap_bp.unwrap_or(10),
-            strict_5p_anchor: args.strict_5p_anchor.unwrap_or(true),
-            allow_iupac_codes: args.allow_iupac_codes.unwrap_or(true),
-        },
+        &options,
     )?;
     let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
     let image_digest = tool_spec
@@ -367,6 +357,25 @@ fn prepare_normalize_primers_tool_plan<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
         .clone();
     Ok(NormalizePrimersToolPlan { out_dir, tool_spec, plan, params_hash, image_digest })
+}
+
+fn normalize_primers_plan_options(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqNormalizePrimersArgs,
+    primer_governance: &PrimerSetGovernance,
+) -> NormalizePrimersPlanOptions {
+    NormalizePrimersPlanOptions {
+        primer_set_id: primer_governance.primer_set_id.clone(),
+        marker_id: Some(primer_governance.marker_id.clone()),
+        primer_fasta: Some(primer_governance.primer_fasta.clone()),
+        orientation_policy: args
+            .orientation_policy
+            .clone()
+            .unwrap_or_else(|| "normalize_to_forward_primer".to_string()),
+        max_mismatch_rate: args.max_mismatch_rate.unwrap_or(0.10),
+        min_overlap_bp: args.min_overlap_bp.unwrap_or(10),
+        strict_5p_anchor: args.strict_5p_anchor.unwrap_or(true),
+        allow_iupac_codes: args.allow_iupac_codes.unwrap_or(true),
+    }
 }
 
 fn select_normalize_primers_benchmark_tools(
