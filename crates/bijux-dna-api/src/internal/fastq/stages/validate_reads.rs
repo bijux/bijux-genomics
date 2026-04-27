@@ -10,6 +10,7 @@ use bijux_dna_analyze::core_other::{fetch_fastq_validate_v1, insert_fastq_valida
 use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkContext, BenchmarkRecord, FastqValidateMetrics,
 };
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
@@ -59,51 +60,42 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_VALIDATE_READS.as_str(), &header);
 
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_VALIDATE_READS.as_str(), &tools, &registry, false)?;
-    let bench_inputs = prepare_validate_bench(catalog, platform, runner_override, args)?;
-
-    let stage_id = bijux_dna_core::ids::StageId::new(STAGE_VALIDATE_READS.as_str());
-    let all_tools: Vec<String> =
-        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
-    let excluded: Vec<String> =
-        all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
+    let setup = prepare_validate_benchmark_setup(catalog, platform, runner_override, args, tools)?;
 
     if args.explain {
         write_explain_md(
-            &bench_inputs.bench_dir,
+            &setup.bench_inputs.bench_dir,
             STAGE_VALIDATE_READS.as_str(),
-            &tools,
-            &excluded,
+            &setup.tools,
+            &setup.excluded_tools,
             None,
         )?;
         write_explain_plan_json(
-            &bench_inputs.bench_dir,
+            &setup.bench_inputs.bench_dir,
             STAGE_VALIDATE_READS.as_str(),
-            &tools,
-            &registry,
+            &setup.tools,
+            &setup.registry,
             None,
         )?;
     }
 
-    ensure_image_qa_passed(STAGE_VALIDATE_READS.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_VALIDATE_READS.as_str(), &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_VALIDATE_READS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_VALIDATE_READS.as_str(), &setup.tools, platform, catalog)?;
 
-    let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = bench_inputs.bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_inputs.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
     let mut records = Vec::<BenchmarkRecord<FastqValidateMetrics>>::new();
     let mut failures = Vec::<RawFailure>::new();
 
-    for tool in tools {
-        let out_dir = bench_inputs.tools_root.join(&tool);
+    for tool in setup.tools {
+        let out_dir = setup.bench_inputs.tools_root.join(&tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec(
             STAGE_VALIDATE_READS.as_str(),
             &tool,
-            &registry,
+            &setup.registry,
             catalog,
             platform,
         )?;
@@ -111,7 +103,7 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
         let plan_options = validate_plan_options(args)?;
         let plan = plan_validate_reads(
             &tool_spec,
-            &bench_inputs.r1,
+            &setup.bench_inputs.r1,
             args.r2.as_deref(),
             &out_dir,
             &plan_options,
@@ -125,9 +117,9 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
             &tool,
             &tool_spec.tool_version,
             &image_digest,
-            &bench_inputs.runner.to_string(),
+            &setup.bench_inputs.runner.to_string(),
             &platform.name,
-            &bench_inputs.input_hash,
+            &setup.bench_inputs.input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -136,7 +128,7 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
 
         let execution = execute_plans_with_jobs(
             vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
-            bench_inputs.runner,
+            setup.bench_inputs.runner,
             jobs,
         )?
         .into_iter()
@@ -145,7 +137,7 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
 
         let record = build_validate_record(
             platform,
-            &bench_inputs,
+            &setup.bench_inputs,
             &tool,
             &tool_spec,
             &bench_params,
@@ -169,7 +161,44 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir: setup.bench_inputs.bench_dir,
+        explain: args.explain,
+    })
+}
+
+struct ValidateBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    excluded_tools: Vec<String>,
+    bench_inputs: ValidateBenchInputs,
+}
+
+fn prepare_validate_benchmark_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs,
+    tools: Vec<String>,
+) -> Result<ValidateBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role(STAGE_VALIDATE_READS.as_str(), &tools, &registry, false)?;
+    let bench_inputs = prepare_validate_bench(catalog, platform, runner_override, args)?;
+    let excluded_tools = excluded_validate_tools(&registry, &tools);
+    Ok(ValidateBenchmarkSetup { registry, tools, excluded_tools, bench_inputs })
+}
+
+fn excluded_validate_tools(registry: &ToolRegistry, selected_tools: &[String]) -> Vec<String> {
+    let stage_id = bijux_dna_core::ids::StageId::new(STAGE_VALIDATE_READS.as_str());
+    registry
+        .tools_for_stage(&stage_id)
+        .iter()
+        .map(|tool| tool.tool_id.to_string())
+        .filter(|tool| !selected_tools.contains(tool))
+        .collect()
 }
 
 #[derive(Debug, Clone)]
