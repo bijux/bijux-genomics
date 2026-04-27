@@ -438,7 +438,7 @@ fn prepare_filter_tool_plan<S: ::std::hash::BuildHasher>(
     let tool_spec = apply_thread_override(&tool_spec, args.threads);
     let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
     let plan = plan_filter(&tool_spec, &args.r1, args.r2.as_deref(), &out_dir, &setup.options)?;
-    let outputs = resolve_filter_outputs(&plan)?;
+    let outputs = resolve_filter_outputs(&plan, args.r2.is_some())?;
     let params_hash = stable_params_hash(&plan.params);
     let image_digest = tool_spec
         .image
@@ -456,7 +456,7 @@ fn prepare_filter_tool_plan<S: ::std::hash::BuildHasher>(
     })
 }
 
-fn resolve_filter_outputs(plan: &StagePlanV1) -> Result<FilterPlanOutputs> {
+fn resolve_filter_outputs(plan: &StagePlanV1, paired_end: bool) -> Result<FilterPlanOutputs> {
     let reads = plan
         .io
         .outputs
@@ -465,6 +465,9 @@ fn resolve_filter_outputs(plan: &StagePlanV1) -> Result<FilterPlanOutputs> {
         .path
         .clone();
     let reads_r2 = plan.io.outputs.get(1).map(|artifact| artifact.path.clone());
+    if paired_end && reads_r2.is_none() {
+        return Err(anyhow!("filter paired-end plan missing R2 reads output"));
+    }
     Ok(FilterPlanOutputs { reads, reads_r2 })
 }
 
