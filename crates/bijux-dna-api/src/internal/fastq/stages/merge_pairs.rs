@@ -94,10 +94,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqMergeArgs,
 ) -> Result<BenchOutcome<FastqMergeMetrics>> {
-    let tools = select_merge_tools(&args.tools)?;
-    preflight_stage(STAGE_MERGE_PAIRS.as_str(), FastqArtifactKind::PairedEnd)?;
-    let header = inspect_headers(&args.r1, Some(&args.r2), false)?;
-    log_header_warnings(STAGE_MERGE_PAIRS.as_str(), &header);
+    let tools = select_merge_benchmark_tools(args)?;
 
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
@@ -201,6 +198,16 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     }
 
     Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+}
+
+fn select_merge_benchmark_tools(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqMergeArgs,
+) -> Result<Vec<String>> {
+    let tools = select_merge_tools(&args.tools)?;
+    preflight_stage(STAGE_MERGE_PAIRS.as_str(), FastqArtifactKind::PairedEnd)?;
+    let header = inspect_headers(&args.r1, Some(&args.r2), false)?;
+    log_header_warnings(STAGE_MERGE_PAIRS.as_str(), &header);
+    Ok(tools)
 }
 
 #[allow(clippy::too_many_arguments)]
