@@ -112,3 +112,14 @@ fn policy__contracts__operations_reference_authority_policy__docs_build_reproduc
         "docs/30-operations/DOCS_BUILD_REPRODUCIBLE.md must link the governed docs build inputs exactly"
     );
 }
+
+#[test]
+fn policy__contracts__operations_reference_authority_policy__developer_workflow_redirect_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from(["../30-operations/DEVELOPER_WORKFLOW.md".to_string()]);
+    let documented = markdown_link_targets("docs/40-policies/DEVELOPER_WORKFLOW.md");
+    assert_eq!(
+        expected, documented,
+        "docs/40-policies/DEVELOPER_WORKFLOW.md must link the governed workflow authority exactly"
+    );
+}
