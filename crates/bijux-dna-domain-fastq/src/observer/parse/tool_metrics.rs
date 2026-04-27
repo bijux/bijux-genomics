@@ -34,6 +34,7 @@ pub fn parse_fastp_metrics(report_json: &str) -> Result<FastpToolMetricsV1> {
 }
 
 /// Parse `AdapterRemoval` output into canonical merge metrics.
+#[must_use]
 pub fn parse_adapterremoval_metrics(stdout: &str) -> AdapterRemovalToolMetricsV1 {
     let pairs_processed = parse_prefix_u64(stdout, "Total number of read pairs");
     let pairs_merged = parse_prefix_u64(stdout, "Number of fully overlapping pairs");
@@ -64,6 +65,7 @@ pub fn parse_seqkit_tool_metrics(output: &str) -> Result<SeqkitToolMetricsV1> {
 }
 
 /// Parse `samtools flagstat` output into canonical alignment metrics.
+#[must_use]
 pub fn parse_samtools_flagstat_metrics(stdout: &str) -> SamtoolsFlagstatMetricsV1 {
     let total_reads = parse_prefix_u64(stdout, "in total");
     let mapped_reads = parse_prefix_u64(stdout, "mapped (");
@@ -78,6 +80,7 @@ pub fn parse_samtools_flagstat_metrics(stdout: &str) -> SamtoolsFlagstatMetricsV
 }
 
 /// Parse `FastQC` summary text into canonical summary metrics.
+#[must_use]
 pub fn parse_fastqc_summary_metrics(summary_txt: &str) -> FastqcToolMetricsV1 {
     let mut total_sequences = 0;
     let mut gc_percent = 0.0;
