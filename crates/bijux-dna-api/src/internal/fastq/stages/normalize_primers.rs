@@ -95,13 +95,10 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         let payload =
             materialize_amplicon_stage_outputs_for_bench(&tool_plan.out_dir, &tool_execution.step)?;
         enforce_amplicon_qc_thresholds_for_bench(&tool_plan.out_dir, STAGE_ID, &payload)?;
-        let output_r1 = artifact_path(&tool_plan.plan, "normalized_reads_r1")?;
-        let output_r2 = artifact_path_optional(&tool_plan.plan, "normalized_reads_r2");
-        let report_json = artifact_path(&tool_plan.plan, "report_json")?;
-        let orientation_report = artifact_path(&tool_plan.plan, "primer_orientation_report")?;
-        let primer_stats_json = artifact_path(&tool_plan.plan, "primer_stats_json")?;
-        let output_stats_r1 = observe_fastq_stats(catalog, platform, setup.runner, &output_r1)?;
-        let output_stats_r2 = if let Some(output_r2) = output_r2.as_deref() {
+        let outputs = resolve_normalize_primers_outputs(&tool_plan.plan)?;
+        let output_stats_r1 =
+            observe_fastq_stats(catalog, platform, setup.runner, &outputs.output_r1)?;
+        let output_stats_r2 = if let Some(output_r2) = outputs.output_r2.as_deref() {
             Some(observe_fastq_stats(catalog, platform, setup.runner, output_r2)?)
         } else {
             None
@@ -145,8 +142,8 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
                 .unwrap_or(10),
             input_r1: args.r1.display().to_string(),
             input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
-            output_r1: output_r1.display().to_string(),
-            output_r2: output_r2.as_ref().map(|path| path.display().to_string()),
+            output_r1: outputs.output_r1.display().to_string(),
+            output_r2: outputs.output_r2.as_ref().map(|path| path.display().to_string()),
             reads_in: Some(reads_in_total),
             reads_out: Some(reads_out_total),
             bases_in: Some(
@@ -162,16 +159,16 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
                     .reads
                     .min(setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads))
             }),
-            pairs_out: output_r2.as_ref().map(|_| {
+            pairs_out: outputs.output_r2.as_ref().map(|_| {
                 output_stats_r1.reads.min(output_stats_r2.as_ref().map_or(0, |stats| stats.reads))
             }),
             primer_trimmed_reads: primer_trimmed_fraction
                 .and_then(|fraction| rounded_fraction_count(fraction, reads_in_total)),
             primer_trimmed_fraction,
             orientation_forward_fraction,
-            primer_orientation_report: orientation_report.display().to_string(),
-            primer_stats_json: primer_stats_json.display().to_string(),
-            raw_backend_report: Some(primer_stats_json.display().to_string()),
+            primer_orientation_report: outputs.orientation_report.display().to_string(),
+            primer_stats_json: outputs.primer_stats_json.display().to_string(),
+            raw_backend_report: Some(outputs.primer_stats_json.display().to_string()),
             raw_backend_report_format: match tool.as_str() {
                 "cutadapt" => Some("cutadapt_json".to_string()),
                 "seqkit" => Some("seqkit_grep".to_string()),
@@ -192,7 +189,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             orientation_forward_fraction: report.orientation_forward_fraction.unwrap_or(0.0),
         };
         let metric_set = metric_set(metrics);
-        bijux_dna_infra::atomic_write_json(&report_json, &report)?;
+        bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &tool_plan.out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -251,6 +248,14 @@ struct NormalizePrimersToolPlan {
 struct NormalizePrimersToolExecution {
     step: ExecutionStep,
     result: StageResultV1,
+}
+
+struct NormalizePrimersOutputs {
+    output_r1: PathBuf,
+    output_r2: Option<PathBuf>,
+    report_json: PathBuf,
+    orientation_report: PathBuf,
+    primer_stats_json: PathBuf,
 }
 
 struct NormalizePrimersCacheIdentity<'a> {
@@ -428,6 +433,16 @@ fn normalize_primers_tool_failure(tool: &str, exit_code: i32) -> RawFailure {
         reason: format!("tool {tool} failed with status {exit_code}"),
         category: ErrorCategory::ToolError,
     }
+}
+
+fn resolve_normalize_primers_outputs(plan: &StagePlanV1) -> Result<NormalizePrimersOutputs> {
+    Ok(NormalizePrimersOutputs {
+        output_r1: artifact_path(plan, "normalized_reads_r1")?,
+        output_r2: artifact_path_optional(plan, "normalized_reads_r2"),
+        report_json: artifact_path(plan, "report_json")?,
+        orientation_report: artifact_path(plan, "primer_orientation_report")?,
+        primer_stats_json: artifact_path(plan, "primer_stats_json")?,
+    })
 }
 
 fn select_normalize_primers_benchmark_tools(
