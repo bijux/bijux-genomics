@@ -45,25 +45,11 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
     let setup = prepare_rrna_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
-        write_explain_md(
-            &setup.bench_inputs.bench_dir,
-            STAGE_DEPLETE_RRNA.as_str(),
-            &setup.tools,
-            &[],
-            None,
-        )?;
-        write_explain_plan_json(
-            &setup.bench_inputs.bench_dir,
-            STAGE_DEPLETE_RRNA.as_str(),
-            &setup.tools,
-            &setup.registry,
-            None,
-        )?;
+        write_rrna_benchmark_explain(&setup)?;
     }
 
     let runner = setup.bench_inputs.runner;
-    ensure_image_qa_passed(STAGE_DEPLETE_RRNA.as_str(), &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_DEPLETE_RRNA.as_str(), &setup.tools, platform, catalog)?;
+    ensure_rrna_benchmark_qa(catalog, platform, &setup.tools)?;
 
     let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -259,6 +245,32 @@ fn prepare_rrna_benchmark_setup<S: ::std::hash::BuildHasher>(
         None
     };
     Ok(RrnaBenchmarkSetup { registry, tools, bench_inputs, input_hash, input_stats_r2 })
+}
+
+fn write_rrna_benchmark_explain(setup: &RrnaBenchmarkSetup) -> Result<()> {
+    write_explain_md(
+        &setup.bench_inputs.bench_dir,
+        STAGE_DEPLETE_RRNA.as_str(),
+        &setup.tools,
+        &[],
+        None,
+    )?;
+    write_explain_plan_json(
+        &setup.bench_inputs.bench_dir,
+        STAGE_DEPLETE_RRNA.as_str(),
+        &setup.tools,
+        &setup.registry,
+        None,
+    )
+}
+
+fn ensure_rrna_benchmark_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_DEPLETE_RRNA.as_str(), tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_DEPLETE_RRNA.as_str(), tools, platform, catalog)
 }
 
 #[allow(clippy::too_many_arguments)]
