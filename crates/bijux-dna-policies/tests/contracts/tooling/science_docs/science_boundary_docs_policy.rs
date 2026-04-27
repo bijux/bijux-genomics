@@ -409,3 +409,20 @@ fn policy__contracts__science_boundary_docs_policy__apptainer_frontend_security_
         "containers/docs/APPTAINTER_FRONTEND_SECURITY.md must link the governed frontend-security surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__apptainer_frontend_reproducibility_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "FRONTEND_BUILD_AUTHORITY.md".to_string(),
+        "../../docs/30-operations/HPC_FRONTEND_RUNBOOK.md".to_string(),
+        "APPTAINTER_FRONTEND_REPRODUCIBILITY_REPORT.md".to_string(),
+        "../../configs/ci/tools/hpc_frontend_build_policy.toml".to_string(),
+        "../../configs/ci/tools/apptainer_reproducibility_policy.toml".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY.md must link the governed frontend-reproducibility surfaces exactly"
+    );
+}
