@@ -148,6 +148,8 @@ mod mod_contracts_tooling_root_migration_guard_policy_rs;
 mod mod_contracts_tooling_root_pollution_policy_rs;
 #[path = "contracts/tooling/science_docs/fastq_closure_evidence_policy.rs"]
 mod mod_contracts_tooling_science_docs_fastq_closure_evidence_policy_rs;
+#[path = "contracts/tooling/science_docs/bam_science_docs_policy.rs"]
+mod mod_contracts_tooling_science_docs_bam_science_docs_policy_rs;
 #[path = "contracts/tooling/science_docs/fastq_science_docs_policy.rs"]
 mod mod_contracts_tooling_science_docs_fastq_science_docs_policy_rs;
 #[path = "contracts/tooling/governance_config/scripts_layout_policy.rs"]

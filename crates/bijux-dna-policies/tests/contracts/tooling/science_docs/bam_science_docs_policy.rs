@@ -1,0 +1,224 @@
+#![allow(dead_code, non_snake_case)]
+#[path = "../../../support/fs.rs"]
+mod support;
+
+use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct BamStageDocSpec {
+    status: String,
+    compatible_tools: BTreeSet<String>,
+}
+
+fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
+    let root = support::workspace_root();
+    let raw =
+        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let mut rows = Vec::new();
+    let mut in_table = false;
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(header_prefix) {
+            in_table = true;
+            continue;
+        }
+        if !in_table {
+            continue;
+        }
+        if trimmed.starts_with("|---") {
+            continue;
+        }
+        if trimmed.starts_with('#') || trimmed.is_empty() {
+            break;
+        }
+        if trimmed.starts_with('|') {
+            rows.push(
+                trimmed
+                    .trim_matches('|')
+                    .split('|')
+                    .map(|value| value.trim().to_string())
+                    .collect(),
+            );
+        }
+    }
+    rows
+}
+
+fn markdown_table_rows_all(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
+    let root = support::workspace_root();
+    let raw =
+        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let mut rows = Vec::new();
+    let mut in_table = false;
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(header_prefix) {
+            in_table = true;
+            continue;
+        }
+        if !in_table {
+            continue;
+        }
+        if trimmed.starts_with("|---") {
+            continue;
+        }
+        if trimmed.starts_with('#') || trimmed.is_empty() {
+            in_table = false;
+            continue;
+        }
+        if trimmed.starts_with('|') {
+            rows.push(
+                trimmed
+                    .trim_matches('|')
+                    .split('|')
+                    .map(|value| value.trim().to_string())
+                    .collect(),
+            );
+        }
+    }
+    rows
+}
+
+fn bam_stage_specs() -> BTreeMap<String, BamStageDocSpec> {
+    let root = support::workspace_root();
+    let mut specs = BTreeMap::new();
+    for entry in fs::read_dir(root.join("domain/bam/stages")).expect("read bam stages") {
+        let path = entry.expect("stage entry").path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let raw = fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read bam stage manifest {}: {err}", path.display()));
+        let stage_id = raw
+            .lines()
+            .find_map(|line| line.strip_prefix("stage_id: "))
+            .map(|value| value.trim_matches('"').to_string())
+            .unwrap_or_else(|| panic!("missing stage_id in {}", path.display()));
+        let status = raw
+            .lines()
+            .find_map(|line| line.strip_prefix("status: "))
+            .map(|value| value.trim_matches('"').to_string())
+            .unwrap_or_else(|| panic!("missing status in {}", path.display()));
+        let mut compatible_tools = BTreeSet::new();
+        let mut in_tools = false;
+        for line in raw.lines() {
+            let trimmed = line.trim();
+            if trimmed == "compatible_tools:" {
+                in_tools = true;
+                continue;
+            }
+            if in_tools {
+                if let Some(tool_id) = trimmed.strip_prefix("- ") {
+                    compatible_tools.insert(tool_id.trim_matches('"').to_string());
+                    continue;
+                }
+                in_tools = false;
+            }
+        }
+        specs.insert(stage_id, BamStageDocSpec { status, compatible_tools });
+    }
+    specs
+}
+
+fn bam_stage_assumption_rows() -> Vec<String> {
+    let root = support::workspace_root();
+    let raw = fs::read_to_string(root.join("docs/20-science/bam/STAGE_ASSUMPTIONS.md"))
+        .expect("read docs/20-science/bam/STAGE_ASSUMPTIONS.md");
+    raw.lines()
+        .filter_map(|line| {
+            let trimmed = line.trim();
+            trimmed
+                .strip_prefix("- `")
+                .and_then(|rest| rest.split_once("`"))
+                .map(|(stage_id, _)| stage_id.to_string())
+        })
+        .collect()
+}
+
+fn bam_stage_catalog_ids() -> BTreeSet<String> {
+    let root = support::workspace_root();
+    let raw = fs::read_to_string(root.join("docs/20-science/bam/STAGE_CATALOG.md"))
+        .expect("read docs/20-science/bam/STAGE_CATALOG.md");
+    raw.lines()
+        .filter_map(|line| {
+            let trimmed = line.trim();
+            trimmed
+                .strip_prefix("### ")
+                .and_then(|rest| rest.split_whitespace().next())
+                .filter(|stage_id| stage_id.starts_with("bam."))
+                .map(ToOwned::to_owned)
+        })
+        .collect()
+}
+
+fn bam_tools_roster_rows() -> BTreeMap<String, BamStageDocSpec> {
+    markdown_table_rows("docs/20-science/bam/TOOLS_ROSTER.md", "| Stage |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 4,
+                "BAM tools roster rows must expose stage, status, tools, and rationale columns",
+            );
+            let stage_id = row[0].to_string();
+            let compatible_tools = if row[2] == "none" {
+                BTreeSet::new()
+            } else {
+                row[2]
+                    .split(',')
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                    .map(ToOwned::to_owned)
+                    .collect()
+            };
+            (
+                stage_id,
+                BamStageDocSpec { status: row[1].to_string(), compatible_tools },
+            )
+        })
+        .collect()
+}
+
+fn backticked_ids(raw: &str) -> BTreeSet<String> {
+    raw.split('`')
+        .enumerate()
+        .filter_map(|(index, chunk)| (index % 2 == 1).then_some(chunk.trim().to_string()))
+        .filter(|value| !value.is_empty())
+        .collect()
+}
+
+fn bam_reference_stage_rows() -> BTreeMap<String, BTreeSet<String>> {
+    markdown_table_rows_all("docs/20-science/bam/REFERENCES.md", "| Tool | Applies to |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 2,
+                "BAM reference rows must expose at least tool and applies-to columns",
+            );
+            (row[0].to_string(), backticked_ids(&row[1]))
+        })
+        .collect()
+}
+
+#[test]
+fn policy__contracts__bam_science_docs_policy__stage_assumptions_cover_supported_stage_catalog() {
+    let expected = bam_stage_specs()
+        .into_iter()
+        .filter_map(|(stage_id, spec)| (spec.status == "supported").then_some(stage_id))
+        .collect::<BTreeSet<_>>();
+    let documented_rows = bam_stage_assumption_rows();
+    let documented = documented_rows.iter().cloned().collect::<BTreeSet<_>>();
+
+    assert_eq!(
+        expected, documented,
+        "BAM stage assumptions must cover the supported stage catalog exactly"
+    );
+    assert_eq!(
+        documented_rows.len(),
+        documented.len(),
+        "BAM stage assumptions must list each supported stage exactly once"
+    );
+}
