@@ -118,6 +118,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         let metric_set = metric_set(metrics);
         validate_remove_chimeras_report_identity(tool, &report)?;
         validate_remove_chimeras_report_execution(&report, &execution.result)?;
+        validate_remove_chimeras_report_paths(args, &outputs, &report)?;
         validate_remove_chimeras_report_metrics(&report, &metric_set.metrics)?;
         write_remove_chimeras_artifacts(&tool_plan.out_dir, &outputs, &report, &metric_set)?;
         let record = build_remove_chimeras_record(
@@ -667,6 +668,68 @@ fn validate_remove_chimeras_report_execution(
             "remove_chimeras report exit code mismatch: expected {}, observed {:?}",
             execution.exit_code,
             report.exit_code
+        ));
+    }
+    Ok(())
+}
+
+fn validate_remove_chimeras_report_paths(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
+    outputs: &RemoveChimerasOutputs,
+    report: &RemoveChimerasReportV1,
+) -> Result<()> {
+    validate_remove_chimeras_report_path("input reads", &args.r1, &report.input_reads)?;
+    validate_remove_chimeras_report_path(
+        "output reads",
+        &outputs.filtered_reads,
+        &report.output_reads,
+    )?;
+    validate_remove_chimeras_report_path(
+        "metrics json",
+        &outputs.metrics_json,
+        &report.chimera_metrics_json,
+    )?;
+    validate_remove_chimeras_optional_report_path(
+        "chimeras fasta",
+        outputs.chimeras_fasta.as_deref(),
+        report.chimeras_fasta.as_deref(),
+    )?;
+    validate_remove_chimeras_optional_report_path(
+        "uchime report tsv",
+        outputs.uchime_report_tsv.as_deref(),
+        report.uchime_report_tsv.as_deref(),
+    )
+}
+
+fn validate_remove_chimeras_optional_report_path(
+    label: &str,
+    expected: Option<&std::path::Path>,
+    observed: Option<&str>,
+) -> Result<()> {
+    match (expected, observed) {
+        (Some(expected), Some(observed)) => {
+            validate_remove_chimeras_report_path(label, expected, observed)
+        }
+        (None, None) => Ok(()),
+        _ => Err(anyhow!(
+            "remove_chimeras report {label} path mismatch: expected {:?}, observed {:?}",
+            expected.map(|path| path.display().to_string()),
+            observed
+        )),
+    }
+}
+
+fn validate_remove_chimeras_report_path(
+    label: &str,
+    expected: &std::path::Path,
+    observed: &str,
+) -> Result<()> {
+    let expected = expected.display().to_string();
+    if observed != expected {
+        return Err(anyhow!(
+            "remove_chimeras report {label} path mismatch: expected {}, observed {}",
+            expected,
+            observed
         ));
     }
     Ok(())
