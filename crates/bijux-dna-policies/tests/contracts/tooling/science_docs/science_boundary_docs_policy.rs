@@ -462,3 +462,21 @@ fn policy__contracts__science_boundary_docs_policy__slurm_phase_entry_doc_links_
         "docs/30-operations/SLURM_PHASE_ENTRY_CRITERIA.md must link the governed Slurm-entry surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_style_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "../docker/NONROOT_EXCEPTIONS.md".to_string(),
+        "../docker/ENTRYPOINT_EXCEPTIONS.md".to_string(),
+        "../apptainer/shared/NON_BIJUX_SOURCES.md".to_string(),
+        "../apptainer/shared/TEMPLATE.def.inc".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/STYLE.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/STYLE.md must link the governed style authorities exactly"
+    );
+}
