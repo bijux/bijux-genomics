@@ -86,8 +86,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             continue;
         }
         let outputs = resolve_remove_chimeras_outputs(&tool_plan.plan)?;
-        let observation =
-            observe_remove_chimeras_outputs(catalog, platform, args, &setup, &outputs)?;
+        let observation = observe_remove_chimeras_outputs(catalog, platform, &setup, &outputs)?;
         let measurements = remove_chimeras_measurements(&setup, &observation);
         let effective_params: ChimeraDetectionEffectiveParams =
             serde_json::from_value(tool_plan.plan.effective_params.clone())
@@ -447,17 +446,15 @@ fn validate_remove_chimeras_output_paths(outputs: &RemoveChimerasOutputs) -> Res
 fn observe_remove_chimeras_outputs<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
-    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
     setup: &RemoveChimerasBenchmarkSetup,
     outputs: &RemoveChimerasOutputs,
 ) -> Result<RemoveChimerasObservation> {
-    let used_fallback = !outputs.filtered_reads.exists();
-    if used_fallback {
-        std::fs::copy(&args.r1, &outputs.filtered_reads)?;
-    }
     let output_stats_r1 =
-        observe_fastq_stats(catalog, platform, setup.runner, &outputs.filtered_reads)?;
-    Ok(RemoveChimerasObservation { output_stats_r1, used_fallback })
+        observe_fastq_stats(catalog, platform, setup.runner, &outputs.filtered_reads)
+            .with_context(|| {
+                format!("observe remove_chimeras output {}", outputs.filtered_reads.display())
+            })?;
+    Ok(RemoveChimerasObservation { output_stats_r1, used_fallback: false })
 }
 
 fn remove_chimeras_measurements(
