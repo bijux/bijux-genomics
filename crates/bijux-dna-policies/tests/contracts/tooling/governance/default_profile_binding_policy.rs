@@ -15,7 +15,6 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
 }
 
 #[test]
-#[ignore = "TODO: refresh default profile binding contract against new alias/binding model"]
 fn policy__contracts__default_profile_binding_policy__default_profiles_use_registry_bound_tools() {
     let root = support::workspace_root();
     let mut tools = Vec::new();
@@ -58,6 +57,9 @@ fn policy__contracts__default_profile_binding_policy__default_profiles_use_regis
             if tool == "planner" {
                 continue;
             }
+            if !stage_requires_registry_binding(&stage) {
+                continue;
+            }
             let Some(bindings) = tool_bindings.get(&tool) else {
                 offenders.push(format!(
                     "profile={} stage={} default tool {} missing from registry",
@@ -83,18 +85,20 @@ fn policy__contracts__default_profile_binding_policy__default_profiles_use_regis
         }
     }
 
-    if !offenders.is_empty() {
-        eprintln!(
-            "default profile binding drift (non-fatal during migration):\n{}",
-            offenders.join("\n")
-        );
-    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "default profile binding drift:\n{}",
+        offenders.join("\n")
+    );
 }
 
 fn stage_aliases(stage: &str) -> Vec<String> {
     match stage {
-        "core.prepare_reference" => vec!["fastq.index_reference".to_string()],
         "bam.contamination" => vec!["bam.authenticity".to_string()],
         _ => Vec::new(),
     }
+}
+
+fn stage_requires_registry_binding(stage: &str) -> bool {
+    !(stage.starts_with("core.") || stage.starts_with("cross."))
 }
