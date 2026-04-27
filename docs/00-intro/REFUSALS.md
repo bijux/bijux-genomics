@@ -11,7 +11,8 @@ Refusals prevent accidental scope creep and keep policies enforceable.
 - Accepting untyped identifiers in contracts.
 
 ## Contracts
-- Effect boundary policy.
+- [../10-architecture/BOUNDARY_MAP.md](../10-architecture/BOUNDARY_MAP.md)
+- [../../domain/fastq/route_policies.toml](../../domain/fastq/route_policies.toml)
 
 ## Examples
 - Stages never build command lines.
@@ -21,7 +22,7 @@ Refusals prevent accidental scope creep and keep policies enforceable.
 
 ## Stage Refusals
 - `fastq.infer_asvs`
-  - reason_code: `FASTQ_ASV_OUT_OF_SCOPE`
-  - status: out_of_scope
-  - issue: `FASTQ-3B-66`
-  - policy: not admitted until deterministic/containerized ASV execution is certified.
+  - route_scope: `shotgun_standard`, `shotgun_adna`, `host_associated_metagenome`
+  - status: refused for governed shotgun-family routes
+  - authority: [../../domain/fastq/route_policies.toml](../../domain/fastq/route_policies.toml)
+  - context: [../20-science/fastq/STAGE_CATALOG.md](../20-science/fastq/STAGE_CATALOG.md)

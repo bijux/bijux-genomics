@@ -102,3 +102,17 @@ fn policy__contracts__root_docs_navigation_policy__glossary_links_governed_surfa
         "docs/00-intro/GLOSSARY.md must link the governed glossary authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__refusals_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "../10-architecture/BOUNDARY_MAP.md".to_string(),
+        "../../domain/fastq/route_policies.toml".to_string(),
+        "../20-science/fastq/STAGE_CATALOG.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/00-intro/REFUSALS.md");
+    assert_eq!(
+        expected, documented,
+        "docs/00-intro/REFUSALS.md must link the governed refusal authorities exactly"
+    );
+}
