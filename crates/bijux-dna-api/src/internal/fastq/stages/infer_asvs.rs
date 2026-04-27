@@ -295,11 +295,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             execution.memory_mb,
             execution.exit_code,
         )?;
-        bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
-        bijux_dna_infra::atomic_write_json(
-            &out_dir.join("metrics.json"),
-            &serde_json::to_value(&metric_set)?,
-        )?;
+        write_infer_asvs_artifacts(&out_dir, &outputs, &report, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
@@ -447,6 +443,62 @@ fn validate_infer_asvs_report_execution(
             exit_code,
             report.exit_code
         ));
+    }
+    Ok(())
+}
+
+fn write_infer_asvs_artifacts(
+    out_dir: &Path,
+    outputs: &InferAsvsOutputs,
+    report: &InferAsvsReportV1,
+    metric_set: &bijux_dna_analyze::MetricSet<FastqInferAsvsMetrics>,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(&outputs.report_json, report)?;
+    bijux_dna_infra::atomic_write_json(
+        &out_dir.join("metrics.json"),
+        &serde_json::to_value(metric_set)?,
+    )?;
+    validate_infer_asvs_written_artifacts(out_dir, outputs, report)
+}
+
+fn validate_infer_asvs_written_artifacts(
+    out_dir: &Path,
+    outputs: &InferAsvsOutputs,
+    report: &InferAsvsReportV1,
+) -> Result<()> {
+    let metrics_json = out_dir.join("metrics.json");
+    for path in [
+        outputs.asv_table_tsv.as_path(),
+        outputs.asv_sequences_fasta.as_path(),
+        outputs.taxonomy_reference_fasta.as_path(),
+        outputs.taxonomy_reads_fastq.as_path(),
+        outputs.report_json.as_path(),
+        metrics_json.as_path(),
+    ] {
+        validate_infer_asvs_artifact_exists(path)?;
+    }
+    validate_infer_asvs_nonempty_artifact(&outputs.asv_table_tsv)?;
+    validate_infer_asvs_nonempty_artifact(&outputs.report_json)?;
+    validate_infer_asvs_nonempty_artifact(&metrics_json)?;
+    if report.representative_sequence_count > 0 {
+        validate_infer_asvs_nonempty_artifact(&outputs.asv_sequences_fasta)?;
+        validate_infer_asvs_nonempty_artifact(&outputs.taxonomy_reference_fasta)?;
+        validate_infer_asvs_nonempty_artifact(&outputs.taxonomy_reads_fastq)?;
+    }
+    Ok(())
+}
+
+fn validate_infer_asvs_artifact_exists(path: &Path) -> Result<()> {
+    std::fs::metadata(path)
+        .with_context(|| format!("read infer_asvs artifact {}", path.display()))?;
+    Ok(())
+}
+
+fn validate_infer_asvs_nonempty_artifact(path: &Path) -> Result<()> {
+    let metadata = std::fs::metadata(path)
+        .with_context(|| format!("read infer_asvs artifact {}", path.display()))?;
+    if metadata.len() == 0 {
+        return Err(anyhow!("infer_asvs artifact is empty: {}", path.display()));
     }
     Ok(())
 }
