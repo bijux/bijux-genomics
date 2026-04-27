@@ -225,6 +225,7 @@ struct UmiReportInputs<'a> {
     r2: &'a std::path::Path,
     output_r1: &'a std::path::Path,
     output_r2: &'a std::path::Path,
+    report_json: &'a std::path::Path,
     input_stats_r1: &'a SeqkitMetrics,
     input_stats_r2: &'a SeqkitMetrics,
     output_stats_r1: &'a SeqkitMetrics,
@@ -436,6 +437,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
         r2: inputs.r2,
         output_r1: &artifacts.output_r1,
         output_r2: &artifacts.output_r2,
+        report_json: &artifacts.report_json,
         input_stats_r1: inputs.input_stats_r1,
         input_stats_r2: inputs.input_stats_r2,
         output_stats_r1: &output_stats_r1,
@@ -497,12 +499,7 @@ fn build_umi_report(inputs: &UmiReportInputs<'_>) -> ExtractUmisReportV1 {
         input_r2: Some(inputs.r2.display().to_string()),
         output_r1: inputs.output_r1.display().to_string(),
         output_r2: Some(inputs.output_r2.display().to_string()),
-        report_json: inputs
-            .params
-            .get("report_json")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or("umi_report.json")
-            .to_string(),
+        report_json: inputs.report_json.display().to_string(),
         reads_in,
         reads_out,
         bases_in,
