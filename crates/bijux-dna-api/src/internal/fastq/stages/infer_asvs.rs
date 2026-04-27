@@ -287,6 +287,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             used_fallback,
             backend_metrics: Some(payload),
         });
+        validate_infer_asvs_report_identity(tool, &report)?;
         bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
@@ -365,4 +366,29 @@ fn infer_asvs_used_fallback(payload: &serde_json::Value) -> Result<bool> {
         .get("used_fallback")
         .and_then(serde_json::Value::as_bool)
         .ok_or_else(|| anyhow!("infer_asvs payload missing boolean used_fallback"))
+}
+
+fn validate_infer_asvs_report_identity(tool: &str, report: &InferAsvsReportV1) -> Result<()> {
+    if report.schema_version != INFER_ASVS_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "infer_asvs report schema mismatch: expected {}, observed {}",
+            INFER_ASVS_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_ID || report.stage_id != STAGE_ID {
+        return Err(anyhow!(
+            "infer_asvs report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool {
+        return Err(anyhow!(
+            "infer_asvs report tool mismatch: expected {}, observed {}",
+            tool,
+            report.tool_id
+        ));
+    }
+    Ok(())
 }
