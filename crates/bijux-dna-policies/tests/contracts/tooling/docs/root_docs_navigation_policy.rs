@@ -302,6 +302,20 @@ fn policy__contracts__root_docs_navigation_policy__dataflow_links_governed_surfa
 }
 
 #[test]
+fn policy__contracts__root_docs_navigation_policy__dry_run_effects_contract_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../crates/bijux-dna/tests/contracts/dry_run.rs".to_string(),
+        "../30-operations/RUN_ARTIFACTS.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/DRY_RUN_EFFECTS_CONTRACT.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/DRY_RUN_EFFECTS_CONTRACT.md must link the governed dry-run authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from([
         "../index.md".to_string(),
