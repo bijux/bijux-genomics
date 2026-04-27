@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -58,9 +59,8 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
 
     ensure_detect_adapters_benchmark_qa(catalog, platform, &setup.tools)?;
 
-    let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
-    let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = setup.bench_inputs.bench_dir.join("bench.jsonl");
+    let store = DetectAdaptersBenchmarkStore::from_bench_inputs(&setup.bench_inputs);
+    let conn = bijux_dna_analyze::open_sqlite(&store.sqlite_path).context("open bench sqlite")?;
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqDetectAdaptersMetrics>>::new();
@@ -97,7 +97,7 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
             out_dir: &tool_plan.plan.out_dir,
             execution: &execution,
         })?;
-        append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
+        append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
         insert_fastq_detect_adapters_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
     }
@@ -128,6 +128,20 @@ struct DetectAdaptersBenchmarkSetup {
     bench_inputs: TrimBenchInputs,
     input_hash: String,
     input_stats_r2: Option<SeqkitMetrics>,
+}
+
+struct DetectAdaptersBenchmarkStore {
+    sqlite_path: PathBuf,
+    jsonl_path: PathBuf,
+}
+
+impl DetectAdaptersBenchmarkStore {
+    fn from_bench_inputs(bench_inputs: &TrimBenchInputs) -> Self {
+        Self {
+            sqlite_path: bench_inputs.bench_dir.join("bench.sqlite"),
+            jsonl_path: bench_inputs.bench_dir.join("bench.jsonl"),
+        }
+    }
 }
 
 struct DetectAdaptersToolPlan {
