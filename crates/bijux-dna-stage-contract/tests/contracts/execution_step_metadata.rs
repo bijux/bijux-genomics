@@ -54,7 +54,7 @@ fn execution_steps_inherit_expected_artifacts_and_metrics_schema() {
     assert_eq!(
         step.expected_artifact_ids
             .iter()
-            .map(|artifact_id| artifact_id.as_str())
+            .map(bijux_dna_core::contract::ArtifactId::as_str)
             .collect::<Vec<_>>(),
         vec!["trimmed_reads_r1", "trimmed_reads_r2"]
     );

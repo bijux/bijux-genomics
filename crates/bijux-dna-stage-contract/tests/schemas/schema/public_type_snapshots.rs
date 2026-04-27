@@ -38,10 +38,10 @@ fn stage_plan() -> StagePlanV1 {
 }
 
 fn write_snapshot(path: &str, value: &serde_json::Value) {
-    let actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(value).expect("canonical"),
-    )
-    .expect("utf8");
+    let canonical = bijux_dna_core::contract::canonical::to_canonical_json_bytes(value)
+        .unwrap_or_else(|err| panic!("canonicalize {path}: {err}"));
+    let actual =
+        String::from_utf8(canonical).unwrap_or_else(|err| panic!("decode {path} as utf8: {err}"));
     let expected = include_str!("../../fixtures/public_types/default/stage_plan.json");
     if path.ends_with("stage_plan.json") {
         assert_eq!(actual, expected);
@@ -74,7 +74,10 @@ fn write_snapshot(path: &str, value: &serde_json::Value) {
 #[test]
 fn stage_plan_snapshot() {
     let plan = stage_plan();
-    write_snapshot("stage_plan.json", &serde_json::to_value(plan).expect("stage plan"));
+    write_snapshot(
+        "stage_plan.json",
+        &serde_json::to_value(plan).unwrap_or_else(|err| panic!("serialize stage plan: {err}")),
+    );
 }
 
 #[test]
@@ -87,10 +90,11 @@ fn execution_plan_snapshot() {
         vec![plan.clone()],
         Vec::new(),
     )
-    .expect("execution plan");
+    .unwrap_or_else(|err| panic!("build execution plan: {err}"));
     write_snapshot(
         "execution_plan.json",
-        &serde_json::to_value(execution).expect("execution plan"),
+        &serde_json::to_value(execution)
+            .unwrap_or_else(|err| panic!("serialize execution plan: {err}")),
     );
 }
 
@@ -101,7 +105,11 @@ fn stage_invocation_snapshot() {
         env: BTreeMap::new(),
         expected_outputs: Vec::new(),
     };
-    write_snapshot("stage_invocation.json", &serde_json::to_value(invocation).expect("invocation"));
+    write_snapshot(
+        "stage_invocation.json",
+        &serde_json::to_value(invocation)
+            .unwrap_or_else(|err| panic!("serialize invocation: {err}")),
+    );
 }
 
 #[test]
@@ -129,7 +137,10 @@ fn stage_plugin_output_snapshot() {
         verdict: None,
         event_hints: Vec::new(),
     };
-    write_snapshot("stage_plugin_output.json", &serde_json::to_value(output).expect("output"));
+    write_snapshot(
+        "stage_plugin_output.json",
+        &serde_json::to_value(output).unwrap_or_else(|err| panic!("serialize output: {err}")),
+    );
 }
 
 #[test]
@@ -159,5 +170,8 @@ fn run_execution_plan_snapshot() {
             resources: bijux_dna_core::contract::ToolConstraints::default(),
         },
     };
-    write_snapshot("run_execution_plan.json", &serde_json::to_value(run_plan).expect("run plan"));
+    write_snapshot(
+        "run_execution_plan.json",
+        &serde_json::to_value(run_plan).unwrap_or_else(|err| panic!("serialize run plan: {err}")),
+    );
 }
