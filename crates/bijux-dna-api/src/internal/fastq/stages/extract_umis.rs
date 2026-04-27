@@ -95,20 +95,20 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             failures.push(failure);
             continue;
         }
-        let record = build_umi_record(
+        let record = build_umi_record(&UmiRecordInputs {
             catalog,
             platform,
-            &setup.input_hash,
-            &args.r1,
+            input_hash: &setup.input_hash,
+            r1: &args.r1,
             r2,
-            &setup.input_stats_r1,
-            &setup.input_stats_r2,
-            &tool_plan.tool,
-            &tool_plan.tool_spec,
-            &tool_plan.plan.params,
-            &tool_plan.plan.out_dir,
-            &execution,
-        )?;
+            input_stats_r1: &setup.input_stats_r1,
+            input_stats_r2: &setup.input_stats_r2,
+            tool: &tool_plan.tool,
+            tool_spec: &tool_plan.tool_spec,
+            params: &tool_plan.plan.params,
+            out_dir: &tool_plan.plan.out_dir,
+            execution: &execution,
+        })?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_umi_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
@@ -145,6 +145,21 @@ struct UmiToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct UmiRecordInputs<'a, S: ::std::hash::BuildHasher> {
+    catalog: &'a HashMap<String, ToolImageSpec, S>,
+    platform: &'a PlatformSpec,
+    input_hash: &'a str,
+    r1: &'a std::path::Path,
+    r2: &'a std::path::Path,
+    input_stats_r1: &'a SeqkitMetrics,
+    input_stats_r2: &'a SeqkitMetrics,
+    tool: &'a str,
+    tool_spec: &'a ToolExecutionSpecV1,
+    params: &'a serde_json::Value,
+    out_dir: &'a std::path::Path,
+    execution: &'a StageResultV1,
 }
 
 fn prepare_umi_tool_plan<S: ::std::hash::BuildHasher>(
@@ -267,46 +282,34 @@ fn ensure_umi_benchmark_qa<S: ::std::hash::BuildHasher>(
     ensure_umi_headers(&args.r1, Some(args.r2.as_path()))
 }
 
-#[allow(clippy::too_many_arguments)]
 fn build_umi_record<S: ::std::hash::BuildHasher>(
-    catalog: &HashMap<String, ToolImageSpec, S>,
-    platform: &PlatformSpec,
-    input_hash: &str,
-    r1: &std::path::Path,
-    r2: &std::path::Path,
-    input_stats: &bijux_dna_core::prelude::measure::SeqkitMetrics,
-    input_stats_r2: &bijux_dna_core::prelude::measure::SeqkitMetrics,
-    tool: &str,
-    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
-    params: &serde_json::Value,
-    out_dir: &std::path::Path,
-    execution: &StageResultV1,
+    inputs: &UmiRecordInputs<'_, S>,
 ) -> Result<BenchmarkRecord<FastqUmiMetrics>> {
-    let output_r1 = out_dir.join("umi_tools.r1.fastq.gz");
-    let output_r2 = out_dir.join("umi_tools.r2.fastq.gz");
-    let output_stats_r1 = if execution.exit_code == 0 && output_r1.exists() {
-        observe_fastq_stats(catalog, platform, platform.runner, &output_r1)?
+    let output_r1 = inputs.out_dir.join("umi_tools.r1.fastq.gz");
+    let output_r2 = inputs.out_dir.join("umi_tools.r2.fastq.gz");
+    let output_stats_r1 = if inputs.execution.exit_code == 0 && output_r1.exists() {
+        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.platform.runner, &output_r1)?
     } else {
-        *input_stats
+        *inputs.input_stats_r1
     };
-    let output_stats_r2 = if execution.exit_code == 0 && output_r2.exists() {
-        observe_fastq_stats(catalog, platform, platform.runner, &output_r2)?
+    let output_stats_r2 = if inputs.execution.exit_code == 0 && output_r2.exists() {
+        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.platform.runner, &output_r2)?
     } else {
-        *input_stats_r2
+        *inputs.input_stats_r2
     };
     let report = build_umi_report(
-        tool,
-        tool_spec.resources.threads,
-        params,
-        r1,
-        r2,
+        inputs.tool,
+        inputs.tool_spec.resources.threads,
+        inputs.params,
+        inputs.r1,
+        inputs.r2,
         &output_r1,
         &output_r2,
-        input_stats,
-        input_stats_r2,
+        inputs.input_stats_r1,
+        inputs.input_stats_r2,
         &output_stats_r1,
         &output_stats_r2,
-        execution,
+        inputs.execution,
     );
     let metrics = FastqUmiMetrics {
         reads_in: report.reads_in,
@@ -320,27 +323,27 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    bijux_dna_infra::atomic_write_json(&out_dir.join("umi_report.json"), &report)
+    bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("umi_report.json"), &report)
         .context("write umi report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
-    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+    bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("metrics.json"), &metrics_json)
         .context("write umi metrics")?;
 
     let context = build_benchmark_context(
-        tool,
-        tool_spec.tool_version.clone(),
-        benchmark_image_identity(tool_spec),
-        platform.runner,
-        platform,
-        input_hash.to_string(),
-        params.clone(),
+        inputs.tool,
+        inputs.tool_spec.tool_version.clone(),
+        benchmark_image_identity(inputs.tool_spec),
+        inputs.platform.runner,
+        inputs.platform,
+        inputs.input_hash.to_string(),
+        inputs.params.clone(),
     );
     let record = BenchmarkRecord {
         context,
         execution: ExecutionMetrics {
-            runtime_s: execution.runtime_s,
-            memory_mb: execution.memory_mb,
-            exit_code: execution.exit_code,
+            runtime_s: inputs.execution.runtime_s,
+            memory_mb: inputs.execution.memory_mb,
+            exit_code: inputs.execution.exit_code,
         },
         metrics: metric_set,
     };
