@@ -172,6 +172,12 @@ struct CorrectRecordOutputs {
     report_path: PathBuf,
 }
 
+struct CorrectOutputObservation {
+    output_stats_r1: SeqkitMetrics,
+    output_stats_r2: Option<SeqkitMetrics>,
+    outputs_changed: bool,
+}
+
 struct CorrectCacheIdentity<'a> {
     tool: &'a str,
     tool_version: String,
@@ -412,25 +418,13 @@ fn build_correct_record(
 ) -> Result<BenchmarkRecord<FastqCorrectMetrics>> {
     let out_dir = &plan.out_dir;
     let outputs = resolve_correct_record_outputs(plan)?;
-    let output_stats_r1 =
-        observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, &outputs.output_r1)?;
-    let output_stats_r2 = outputs
-        .output_r2
-        .as_deref()
-        .map(|path| observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, path))
-        .transpose()?;
-    let outputs_changed = input_output_content_changed(
-        &bench_inputs.r1,
-        bench_inputs.r2.as_deref(),
-        &outputs.output_r1,
-        outputs.output_r2.as_deref(),
-    )?;
+    let observation = observe_correct_outputs(bench_inputs, &outputs)?;
     let metrics = correct_metrics_from_observed_stats(
         &bench_inputs.input_stats_r1,
         bench_inputs.input_stats_r2.as_ref(),
-        &output_stats_r1,
-        output_stats_r2.as_ref(),
-        outputs_changed,
+        &observation.output_stats_r1,
+        observation.output_stats_r2.as_ref(),
+        observation.outputs_changed,
     );
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -445,7 +439,7 @@ fn build_correct_record(
         &plan.effective_params,
         &metrics,
         execution,
-        outputs_changed,
+        observation.outputs_changed,
     )?;
     bijux_dna_infra::atomic_write_json(&outputs.report_path, &report)
         .context("write correction report")?;
@@ -486,6 +480,26 @@ fn resolve_correct_record_outputs(plan: &StagePlanV1) -> Result<CorrectRecordOut
         .transpose()?;
     let report_path = required_plan_output_path(plan, "report_json")?;
     Ok(CorrectRecordOutputs { output_r1: output_r1.to_path_buf(), output_r2, report_path })
+}
+
+fn observe_correct_outputs(
+    bench_inputs: &CorrectBenchInputs,
+    outputs: &CorrectRecordOutputs,
+) -> Result<CorrectOutputObservation> {
+    let output_stats_r1 =
+        observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, &outputs.output_r1)?;
+    let output_stats_r2 = outputs
+        .output_r2
+        .as_deref()
+        .map(|path| observe_fastq_stats(&bench_inputs.seqkit_image, bench_inputs.runner, path))
+        .transpose()?;
+    let outputs_changed = input_output_content_changed(
+        &bench_inputs.r1,
+        bench_inputs.r2.as_deref(),
+        &outputs.output_r1,
+        outputs.output_r2.as_deref(),
+    )?;
+    Ok(CorrectOutputObservation { output_stats_r1, output_stats_r2, outputs_changed })
 }
 
 #[cfg(test)]
