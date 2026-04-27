@@ -116,24 +116,16 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         });
         let metric_set = build_normalize_primers_metric_set(&measurements, &report)?;
         write_normalize_primers_artifacts(&tool_plan, &outputs, &report, &metric_set)?;
-        let record = BenchmarkRecord {
-            context: build_benchmark_context(
-                tool,
-                tool_plan.tool_spec.tool_version.clone(),
-                tool_plan.image_digest,
-                setup.runner,
+        let record = build_normalize_primers_record(
+            &NormalizePrimersRecordInputs {
                 platform,
-                setup.input_hash.clone(),
-                tool_plan.plan.params.clone(),
-            ),
-            execution: ExecutionMetrics {
-                runtime_s: tool_execution.result.runtime_s,
-                memory_mb: tool_execution.result.memory_mb,
-                exit_code: tool_execution.result.exit_code,
+                setup: &setup,
+                tool,
+                tool_plan: &tool_plan,
+                tool_execution: &tool_execution,
             },
-            metrics: metric_set,
-        };
-        record.validate()?;
+            metric_set,
+        )?;
         append_jsonl(&store.jsonl_path, &record)?;
         insert_fastq_normalize_primers_v1(&conn, &record)?;
         records.push(record);
@@ -206,6 +198,14 @@ struct NormalizePrimersReportInputs<'a> {
     outputs: &'a NormalizePrimersOutputs,
     observation: &'a NormalizePrimersObservation,
     measurements: &'a NormalizePrimersMeasurements,
+    tool_execution: &'a NormalizePrimersToolExecution,
+}
+
+struct NormalizePrimersRecordInputs<'a> {
+    platform: &'a PlatformSpec,
+    setup: &'a NormalizePrimersBenchmarkSetup,
+    tool: &'a str,
+    tool_plan: &'a NormalizePrimersToolPlan,
     tool_execution: &'a NormalizePrimersToolExecution,
 }
 
@@ -548,6 +548,31 @@ fn write_normalize_primers_artifacts(
         &serde_json::to_value(metric_set)?,
     )?;
     Ok(())
+}
+
+fn build_normalize_primers_record(
+    inputs: &NormalizePrimersRecordInputs<'_>,
+    metric_set: MetricSet<FastqNormalizePrimersMetrics>,
+) -> Result<BenchmarkRecord<FastqNormalizePrimersMetrics>> {
+    let record = BenchmarkRecord {
+        context: build_benchmark_context(
+            inputs.tool,
+            inputs.tool_plan.tool_spec.tool_version.clone(),
+            inputs.tool_plan.image_digest.clone(),
+            inputs.setup.runner,
+            inputs.platform,
+            inputs.setup.input_hash.clone(),
+            inputs.tool_plan.plan.params.clone(),
+        ),
+        execution: ExecutionMetrics {
+            runtime_s: inputs.tool_execution.result.runtime_s,
+            memory_mb: inputs.tool_execution.result.memory_mb,
+            exit_code: inputs.tool_execution.result.exit_code,
+        },
+        metrics: metric_set,
+    };
+    record.validate()?;
+    Ok(record)
 }
 
 fn select_normalize_primers_benchmark_tools(
