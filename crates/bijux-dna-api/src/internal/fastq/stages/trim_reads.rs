@@ -141,25 +141,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             &governed_report,
         )?;
 
-        let context = build_benchmark_context(
-            &tool_plan.tool,
-            tool_plan.tool_spec.tool_version.clone(),
-            tool_plan.image_digest,
-            setup.bench_inputs.runner,
-            platform,
-            setup.input_hash.clone(),
-            tool_plan.bench_params.clone(),
-        );
-        let record = BenchmarkRecord {
-            context,
-            execution: ExecutionMetrics {
-                runtime_s: execution.runtime_s,
-                memory_mb: execution.memory_mb,
-                exit_code: execution.exit_code,
-            },
-            metrics: metric_set,
-        };
-        record.validate()?;
+        let record = build_trim_record(platform, &setup, &tool_plan, &execution, metric_set)?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_trim_v2(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
@@ -300,6 +282,35 @@ fn paired_mode_label(report: &TrimReadsReportV1) -> &'static str {
         bijux_dna_domain_fastq::PairedMode::PairedEnd => "paired_end",
         bijux_dna_domain_fastq::PairedMode::Unknown => "not_declared",
     }
+}
+
+fn build_trim_record(
+    platform: &PlatformSpec,
+    setup: &TrimBenchmarkSetup,
+    tool_plan: &TrimToolPlan,
+    execution: &StageResultV1,
+    metrics: bijux_dna_analyze::MetricSet<FastqTrimMetrics>,
+) -> Result<BenchmarkRecord<FastqTrimMetrics>> {
+    let context = build_benchmark_context(
+        &tool_plan.tool,
+        tool_plan.tool_spec.tool_version.clone(),
+        tool_plan.image_digest.clone(),
+        setup.bench_inputs.runner,
+        platform,
+        setup.input_hash.clone(),
+        tool_plan.bench_params.clone(),
+    );
+    let record = BenchmarkRecord {
+        context,
+        execution: ExecutionMetrics {
+            runtime_s: execution.runtime_s,
+            memory_mb: execution.memory_mb,
+            exit_code: execution.exit_code,
+        },
+        metrics,
+    };
+    record.validate()?;
+    Ok(record)
 }
 
 fn prepare_trim_tool_plan<S: ::std::hash::BuildHasher>(
