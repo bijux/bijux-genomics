@@ -10,7 +10,7 @@ use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_normalize_primers_v1, insert_fastq_normalize_primers_v1,
 };
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqNormalizePrimersMetrics};
-use bijux_dna_core::contract::ToolRegistry;
+use bijux_dna_core::contract::{ExecutionStep, ToolRegistry};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
@@ -26,6 +26,7 @@ use bijux_dna_planner_fastq::stage_api::{
 };
 use bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::NormalizePrimersPlanOptions;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
 use uuid::Uuid;
 
@@ -86,21 +87,13 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             records.push(record);
             continue;
         }
-        let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan);
-        let execution = execute_plans_with_jobs(vec![step.clone()], setup.runner, jobs)?
-            .into_iter()
-            .next()
-            .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
-        if execution.exit_code != 0 {
-            failures.push(RawFailure {
-                stage: STAGE_ID.to_string(),
-                tool: tool.clone(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
-                category: ErrorCategory::ToolError,
-            });
+        let tool_execution = execute_normalize_primers_tool(&tool_plan, setup.runner, jobs, tool)?;
+        if tool_execution.result.exit_code != 0 {
+            failures.push(normalize_primers_tool_failure(tool, tool_execution.result.exit_code));
             continue;
         }
-        let payload = materialize_amplicon_stage_outputs_for_bench(&tool_plan.out_dir, &step)?;
+        let payload =
+            materialize_amplicon_stage_outputs_for_bench(&tool_plan.out_dir, &tool_execution.step)?;
         enforce_amplicon_qc_thresholds_for_bench(&tool_plan.out_dir, STAGE_ID, &payload)?;
         let output_r1 = artifact_path(&tool_plan.plan, "normalized_reads_r1")?;
         let output_r2 = artifact_path_optional(&tool_plan.plan, "normalized_reads_r2");
@@ -184,8 +177,8 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
                 "seqkit" => Some("seqkit_grep".to_string()),
                 _ => None,
             },
-            runtime_s: Some(execution.runtime_s),
-            memory_mb: Some(execution.memory_mb),
+            runtime_s: Some(tool_execution.result.runtime_s),
+            memory_mb: Some(tool_execution.result.memory_mb),
             used_fallback: payload
                 .get("used_fallback")
                 .and_then(serde_json::Value::as_bool)
@@ -215,9 +208,9 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
                 tool_plan.plan.params.clone(),
             ),
             execution: ExecutionMetrics {
-                runtime_s: execution.runtime_s,
-                memory_mb: execution.memory_mb,
-                exit_code: execution.exit_code,
+                runtime_s: tool_execution.result.runtime_s,
+                memory_mb: tool_execution.result.memory_mb,
+                exit_code: tool_execution.result.exit_code,
             },
             metrics: metric_set,
         };
@@ -253,6 +246,11 @@ struct NormalizePrimersToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct NormalizePrimersToolExecution {
+    step: ExecutionStep,
+    result: StageResultV1,
 }
 
 struct NormalizePrimersCacheIdentity<'a> {
@@ -406,6 +404,29 @@ fn normalize_primers_plan_options(
         min_overlap_bp: args.min_overlap_bp.unwrap_or(10),
         strict_5p_anchor: args.strict_5p_anchor.unwrap_or(true),
         allow_iupac_codes: args.allow_iupac_codes.unwrap_or(true),
+    }
+}
+
+fn execute_normalize_primers_tool(
+    tool_plan: &NormalizePrimersToolPlan,
+    runner: RuntimeKind,
+    jobs: usize,
+    tool: &str,
+) -> Result<NormalizePrimersToolExecution> {
+    let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan);
+    let result = execute_plans_with_jobs(vec![step.clone()], runner, jobs)?
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+    Ok(NormalizePrimersToolExecution { step, result })
+}
+
+fn normalize_primers_tool_failure(tool: &str, exit_code: i32) -> RawFailure {
+    RawFailure {
+        stage: STAGE_ID.to_string(),
+        tool: tool.to_string(),
+        reason: format!("tool {tool} failed with status {exit_code}"),
+        category: ErrorCategory::ToolError,
     }
 }
 
