@@ -6,10 +6,11 @@ fn public_type_snapshots_have_doc_anchors() {
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"))
         .join("docs")
         .join("PUBLIC_API.md");
-    let content = fs::read_to_string(&doc).expect("read PUBLIC_API.md");
+    let content =
+        fs::read_to_string(&doc).unwrap_or_else(|err| panic!("read {}: {err}", doc.display()));
 
     for anchor in ["StagePlanV1", "ExecutionPlanV1", "StagePluginOutputV1"] {
-        assert!(content.contains(anchor), "PUBLIC_API.md must include example for {}", anchor);
+        assert!(content.contains(anchor), "PUBLIC_API.md must include example for {anchor}");
     }
 }
 
@@ -19,7 +20,8 @@ fn public_api_doc_uses_current_root_type_names() {
         .unwrap_or_else(|err| panic!("resolve crate root: {err}"))
         .join("docs")
         .join("PUBLIC_API.md");
-    let content = fs::read_to_string(&doc).expect("read PUBLIC_API.md");
+    let content =
+        fs::read_to_string(&doc).unwrap_or_else(|err| panic!("read {}: {err}", doc.display()));
 
     for current_type in [
         "ExecutionPlan",

@@ -31,7 +31,7 @@ fn stage_contract_schema_snapshot() {
         out_dir: "out/fastq.trim_reads".into(),
         params: serde_json::json!({"quality": 20}),
         effective_params: serde_json::json!({"quality": 20}),
-        aux_images: Default::default(),
+        aux_images: std::collections::BTreeMap::default(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     };
     let execution = ExecutionPlan::new(
@@ -41,7 +41,7 @@ fn stage_contract_schema_snapshot() {
         vec![plan.clone()],
         Vec::new(),
     )
-    .expect("execution plan");
+    .unwrap_or_else(|err| panic!("build execution plan: {err}"));
     let invocation = StageInvocationV1 {
         command: vec!["fastp".to_string()],
         env: std::collections::BTreeMap::new(),
@@ -80,8 +80,9 @@ fn stage_contract_schema_snapshot() {
         "output": output,
     });
     let actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&payload).expect("canonical"),
+        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&payload)
+            .unwrap_or_else(|err| panic!("canonicalize schema payload: {err}")),
     )
-    .expect("utf8");
+    .unwrap_or_else(|err| panic!("decode schema payload as utf8: {err}"));
     assert_eq!(actual, expected);
 }
