@@ -53,8 +53,9 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
 ) -> Result<BenchOutcome<FastqOverrepresentedMetrics>> {
-    preflight_overrepresented_inputs(args)?;
-    let setup = prepare_overrepresented_benchmark_setup(platform, runner_override, args)?;
+    let selected_tools = select_overrepresented_benchmark_tools(args)?;
+    let setup =
+        prepare_overrepresented_benchmark_setup(platform, runner_override, args, &selected_tools)?;
 
     if args.explain {
         write_overrepresented_benchmark_explain(&setup)?;
@@ -165,15 +166,16 @@ struct OverrepresentedReportInputs<'a> {
     execution: &'a StageResultV1,
 }
 
-fn preflight_overrepresented_inputs(
+fn select_overrepresented_benchmark_tools(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
-) -> Result<()> {
+) -> Result<Vec<String>> {
+    let tools = bijux_dna_planner_fastq::select_profile_overrepresented_tools(&args.tools)?;
     let artifact_kind =
         if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
     preflight_stage(STAGE_ID, artifact_kind)?;
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_ID, &header);
-    Ok(())
+    Ok(tools)
 }
 
 fn overrepresented_input_hash(
@@ -193,11 +195,11 @@ fn prepare_overrepresented_benchmark_setup(
     platform: &PlatformSpec,
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
+    selected_tools: &[String],
 ) -> Result<OverrepresentedBenchmarkSetup> {
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = bijux_dna_planner_fastq::select_profile_overrepresented_tools(&args.tools)?;
-    let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
+    let tools = filter_tools_by_role(STAGE_ID, selected_tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
     let bench_dir_name = bench_dir_name(
         &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
