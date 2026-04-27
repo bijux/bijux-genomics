@@ -92,60 +92,12 @@ pub fn plan_screen_with_effective_params(
     let tool_id = tool.tool_id.to_string();
     normalize_screen_tool_list(std::slice::from_ref(&tool_id))?;
     let outputs = taxonomy_outputs(&tool.tool_id.0, out_dir)?;
-    let (classifier, report_format, assignment_format) = classifier_contract(&tool.tool_id.0)?;
-    let paired_mode = if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
-    let mut effective_params = effective_params.clone();
-    if effective_params.schema_version.trim().is_empty() {
-        effective_params.schema_version = SCREEN_TAXONOMY_SCHEMA_VERSION.to_string();
-    }
-    effective_params.threads = effective_params.threads.max(1);
-    if effective_params.paired_mode != paired_mode {
-        return Err(anyhow!(
-            "screen taxonomy paired_mode {:?} does not match input layout {:?}",
-            effective_params.paired_mode,
-            paired_mode
-        ));
-    }
-    if effective_params.classifier != classifier {
-        return Err(anyhow!(
-            "screen taxonomy classifier {:?} is incompatible with tool {}",
-            effective_params.classifier,
-            tool.tool_id
-        ));
-    }
-    if effective_params.report_format != report_format {
-        return Err(anyhow!(
-            "screen taxonomy report format {:?} is incompatible with tool {}",
-            effective_params.report_format,
-            tool.tool_id
-        ));
-    }
-    if effective_params.assignment_format != assignment_format {
-        return Err(anyhow!(
-            "screen taxonomy assignment format {:?} is incompatible with tool {}",
-            effective_params.assignment_format,
-            tool.tool_id
-        ));
-    }
-    let mut inputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("reads_r1"),
-        r1.to_path_buf(),
-        ArtifactRole::Reads,
-    )];
-    if let Some(database_root) = effective_params.contaminant_db.as_ref() {
-        inputs.push(ArtifactRef::required(
-            ArtifactId::from_static("taxonomy_database_root"),
-            std::path::PathBuf::from(database_root),
-            ArtifactRole::Reference,
-        ));
-    }
-    if let Some(r2) = r2 {
-        inputs.push(ArtifactRef::required(
-            ArtifactId::from_static("reads_r2"),
-            r2.to_path_buf(),
-            ArtifactRole::Reads,
-        ));
-    }
+    let effective_params =
+        normalized_screen_effective_params(tool.tool_id.as_str(), r2.is_some(), effective_params)?;
+    let inputs = screen_inputs(r1, r2, &effective_params);
+    let io_outputs = screen_outputs(&outputs);
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_params.threads;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -166,53 +118,150 @@ pub fn plan_screen_with_effective_params(
                 &effective_params,
             )?,
         },
-        resources: {
-            let mut resources = tool.resources.clone();
-            resources.threads = effective_params.threads;
-            resources
-        },
-        io: StageIO {
-            inputs,
-            outputs: vec![
-                ArtifactRef::required(
-                    ArtifactId::from_static("screen_report_tsv"),
-                    outputs.report.clone(),
-                    ArtifactRole::SummaryTsv,
-                ),
-                ArtifactRef::required(
-                    ArtifactId::from_static("classification_report_json"),
-                    outputs.assignments.clone(),
-                    ArtifactRole::ReportJson,
-                ),
-            ],
-        },
+        resources,
+        io: StageIO { inputs, outputs: io_outputs },
         out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({
-            "tool": tool.tool_id.0,
-            "input_r1": r1,
-            "input_r2": r2,
-            "out_dir": out_dir,
-            "report": outputs.report,
-            "assignments": outputs.assignments,
-            "threads": effective_params.threads,
-            "contaminant_db": effective_params.contaminant_db,
-            "database_root": effective_params.contaminant_db,
-            "database_catalog_id": effective_params.database_catalog_id,
-            "database_artifact_id": effective_params.database_artifact_id,
-            "database_build_id": effective_params.database_build_id,
-            "database_digest": effective_params.database_digest,
-            "database_namespace": effective_params.database_namespace,
-            "database_scope": effective_params.database_scope,
-            "classifier": effective_params.classifier,
-            "report_format": effective_params.report_format,
-            "assignment_format": effective_params.assignment_format,
-            "minimum_confidence": effective_params.minimum_confidence,
-            "emit_unclassified": effective_params.emit_unclassified,
-        }),
+        params: screen_plan_params(&tool.tool_id.0, r1, r2, out_dir, &outputs, &effective_params),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize screen effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+    })
+}
+
+fn normalized_screen_effective_params(
+    tool_id: &str,
+    paired: bool,
+    effective_params: &ScreenEffectiveParams,
+) -> Result<ScreenEffectiveParams> {
+    let (classifier, report_format, assignment_format) = classifier_contract(tool_id)?;
+    let paired_mode = if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
+    let mut effective_params = effective_params.clone();
+    if effective_params.schema_version.trim().is_empty() {
+        effective_params.schema_version = SCREEN_TAXONOMY_SCHEMA_VERSION.to_string();
+    }
+    effective_params.threads = effective_params.threads.max(1);
+    ensure_screen_contract(
+        tool_id,
+        &effective_params,
+        paired_mode,
+        &classifier,
+        &report_format,
+        &assignment_format,
+    )?;
+    Ok(effective_params)
+}
+
+fn ensure_screen_contract(
+    tool_id: &str,
+    effective_params: &ScreenEffectiveParams,
+    paired_mode: PairedMode,
+    classifier: &TaxonomyClassifier,
+    report_format: &TaxonomyReportFormat,
+    assignment_format: &TaxonomyAssignmentFormat,
+) -> Result<()> {
+    if effective_params.paired_mode != paired_mode {
+        return Err(anyhow!(
+            "screen taxonomy paired_mode {:?} does not match input layout {:?}",
+            effective_params.paired_mode,
+            paired_mode
+        ));
+    }
+    if effective_params.classifier != *classifier {
+        return Err(anyhow!(
+            "screen taxonomy classifier {:?} is incompatible with tool {}",
+            effective_params.classifier,
+            tool_id
+        ));
+    }
+    if effective_params.report_format != *report_format {
+        return Err(anyhow!(
+            "screen taxonomy report format {:?} is incompatible with tool {}",
+            effective_params.report_format,
+            tool_id
+        ));
+    }
+    if effective_params.assignment_format != *assignment_format {
+        return Err(anyhow!(
+            "screen taxonomy assignment format {:?} is incompatible with tool {}",
+            effective_params.assignment_format,
+            tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn screen_inputs(
+    r1: &Path,
+    r2: Option<&Path>,
+    effective_params: &ScreenEffectiveParams,
+) -> Vec<ArtifactRef> {
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(database_root) = effective_params.contaminant_db.as_ref() {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("taxonomy_database_root"),
+            std::path::PathBuf::from(database_root),
+            ArtifactRole::Reference,
+        ));
+    }
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
+    inputs
+}
+
+fn screen_outputs(outputs: &TaxonomyOutputs) -> Vec<ArtifactRef> {
+    vec![
+        ArtifactRef::required(
+            ArtifactId::from_static("screen_report_tsv"),
+            outputs.report.clone(),
+            ArtifactRole::SummaryTsv,
+        ),
+        ArtifactRef::required(
+            ArtifactId::from_static("classification_report_json"),
+            outputs.assignments.clone(),
+            ArtifactRole::ReportJson,
+        ),
+    ]
+}
+
+fn screen_plan_params(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    outputs: &TaxonomyOutputs,
+    effective_params: &ScreenEffectiveParams,
+) -> serde_json::Value {
+    serde_json::json!({
+        "tool": tool_id,
+        "input_r1": r1,
+        "input_r2": r2,
+        "out_dir": out_dir,
+        "report": outputs.report,
+        "assignments": outputs.assignments,
+        "threads": effective_params.threads,
+        "contaminant_db": effective_params.contaminant_db,
+        "database_root": effective_params.contaminant_db,
+        "database_catalog_id": effective_params.database_catalog_id,
+        "database_artifact_id": effective_params.database_artifact_id,
+        "database_build_id": effective_params.database_build_id,
+        "database_digest": effective_params.database_digest,
+        "database_namespace": effective_params.database_namespace,
+        "database_scope": effective_params.database_scope,
+        "classifier": effective_params.classifier,
+        "report_format": effective_params.report_format,
+        "assignment_format": effective_params.assignment_format,
+        "minimum_confidence": effective_params.minimum_confidence,
+        "emit_unclassified": effective_params.emit_unclassified,
     })
 }
 
