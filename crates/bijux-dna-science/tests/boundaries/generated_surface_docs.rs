@@ -43,6 +43,87 @@ fn boundary_doc_links_owned_science_surfaces_exactly() {
     );
 }
 
+#[test]
+fn commands_doc_links_science_io_surfaces_exactly() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let expected = entries([
+        "../../../science/specs/evidence/README.md",
+        "../../../science/specs/releases/README.md",
+        "../../../science/docs/upstream/README.md",
+        "../../../science/generated/README.md",
+        "../../../science/generated/current/evidence/README.md",
+        "../../../science/generated/indexes/README.md",
+        "../../../science/generated/indexes/science_index.json",
+    ]);
+    let documented = markdown_link_targets(root.join("docs/COMMANDS.md"))
+        .into_iter()
+        .filter(|target| target.starts_with("../../../science/"))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "docs/COMMANDS.md must link the governed science IO surfaces exactly"
+    );
+}
+
+#[test]
+fn contract_doc_links_science_io_surfaces_exactly() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let expected = entries([
+        "../../../science/specs/evidence/README.md",
+        "../../../science/docs/upstream/README.md",
+        "../../../science/generated/current/evidence/README.md",
+        "../../../science/generated/indexes/README.md",
+        "../../../science/generated/indexes/science_index.json",
+    ]);
+    let documented = markdown_link_targets(root.join("docs/CONTRACT.md"))
+        .into_iter()
+        .filter(|target| target.starts_with("../../../science/"))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "docs/CONTRACT.md must link the governed science IO surfaces exactly"
+    );
+}
+
+#[test]
+fn schemas_doc_links_science_schema_surfaces_exactly() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let expected = entries([
+        "../../../science/specs/evidence/README.md",
+        "../../../science/specs/releases/README.md",
+        "../../../science/generated/README.md",
+        "../../../science/generated/current/evidence/README.md",
+        "../../../science/generated/indexes/README.md",
+    ]);
+    let documented = markdown_link_targets(root.join("docs/SCHEMAS.md"))
+        .into_iter()
+        .filter(|target| target.starts_with("../../../science/"))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "docs/SCHEMAS.md must link the governed schema and generated surfaces exactly"
+    );
+}
+
+#[test]
+fn versioning_doc_links_release_and_generated_surfaces_exactly() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let expected = entries([
+        "../../../science/specs/releases/README.md",
+        "../../../science/generated/current/README.md",
+        "../../../science/generated/current/evidence/README.md",
+        "../../../science/generated/indexes/README.md",
+    ]);
+    let documented = markdown_link_targets(root.join("docs/VERSIONING.md"))
+        .into_iter()
+        .filter(|target| target.starts_with("../../../science/"))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "docs/VERSIONING.md must link the governed release and generated science surfaces exactly"
+    );
+}
+
 fn markdown_link_targets(path: impl AsRef<Path>) -> BTreeSet<String> {
     let path = path.as_ref();
     let raw =

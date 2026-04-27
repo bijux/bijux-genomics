@@ -25,16 +25,18 @@ which defaults to the current directory.
 Commands resolve workspace-relative authored specs and governed upstream evidence
 from these roots:
 
-- `science/specs/evidence/**`
-- `science/specs/releases/manifests/**`
-- `science/docs/upstream/**`
+- [science/specs/evidence/README.md](../../../science/specs/evidence/README.md)
+- [science/specs/releases/README.md](../../../science/specs/releases/README.md)
+- [science/docs/upstream/README.md](../../../science/docs/upstream/README.md)
 
 ## Outputs
 
 `build` writes deterministic governed outputs under:
 
-- `science/generated/current/evidence/**`
-- `science/generated/indexes/science_index.json`
+- [science/generated/README.md](../../../science/generated/README.md)
+- [science/generated/current/evidence/README.md](../../../science/generated/current/evidence/README.md)
+- [science/generated/indexes/README.md](../../../science/generated/indexes/README.md)
+- [science/generated/indexes/science_index.json](../../../science/generated/indexes/science_index.json)
 
 The generated index now includes row counts plus rolled-up source-archive, FASTQ closure,
 and FASTQ evidence summaries so operators can spot closure debt before opening the detailed

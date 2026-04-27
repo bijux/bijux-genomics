@@ -6,10 +6,11 @@ traceability outputs, and cuts immutable science release bundles.
 
 ## Inputs and Outputs
 
-- Authored input: `science/specs/**`
-- Governed upstream evidence input: `science/docs/upstream/**`
-- Generated output: `science/generated/current/evidence/**`
-- Generated index: `science/generated/indexes/science_index.json`
+- Authored input: [science/specs/evidence/README.md](../../../science/specs/evidence/README.md)
+- Governed upstream evidence input: [science/docs/upstream/README.md](../../../science/docs/upstream/README.md)
+- Generated output: [science/generated/current/evidence/README.md](../../../science/generated/current/evidence/README.md)
+- Generated index: [science/generated/indexes/README.md](../../../science/generated/indexes/README.md)
+- Machine-readable index entrypoint: [science/generated/indexes/science_index.json](../../../science/generated/indexes/science_index.json)
 - Release output: `artifacts/science-releases/**`
 
 ## Generated Evidence Contract
@@ -23,8 +24,11 @@ The generated FASTQ evidence set includes the environment matrix, container
 reference matrix, download backlog, paper archive matrix, closure gate, truth
 delta, missing closure prerequisites, and default binding risk ledger.
 
-`science/generated/indexes/science_index.json` is not just an inventory counter.
-It must also summarize the source-archive and FASTQ closure surfaces through:
+[science/generated/indexes/science_index.json](../../../science/generated/indexes/science_index.json)
+is not just an inventory counter. The wider generated output surface is
+documented by [science/generated/current/evidence/README.md](../../../science/generated/current/evidence/README.md)
+and [science/generated/indexes/README.md](../../../science/generated/indexes/README.md).
+The index must also summarize the source-archive and FASTQ closure surfaces through:
 
 - `source_archive_summary` for source kind, access mode, archive status, and missing-tool rollups
 
