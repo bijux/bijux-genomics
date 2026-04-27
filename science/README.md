@@ -33,8 +33,8 @@ surfaces are used.
 
 ## Generated Index
 
-`science/generated/indexes/science_index.json` is the top-level operator entrypoint for the
-generated FASTQ science slice.
+[science/generated/indexes/science_index.json](generated/indexes/science_index.json)
+is the top-level operator entrypoint for the generated FASTQ science slice.
 
 - Row counts show the size of each governed evidence surface.
 - `source_archive_summary` shows which kinds of sources are present, which access modes they use,
@@ -44,8 +44,9 @@ generated FASTQ science slice.
 - `fastq_evidence_summary` shows the distribution of backlog, paper archive, prerequisite, risk,
   and truth-delta categories without reopening every TSV.
 
-Use the index to decide which evidence table to inspect next, then use the TSV files under
-`science/generated/current/evidence/` for the stage- and tool-level detail.
+Use the index to decide which evidence table to inspect next, then use the TSV
+files under [science/generated/current/evidence/](generated/current/evidence/)
+for the stage- and tool-level detail.
 
 ## Local Evidence Archive
 
