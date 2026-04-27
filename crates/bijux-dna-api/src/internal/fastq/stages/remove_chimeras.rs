@@ -12,6 +12,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{
     params::edna::ChimeraDetectionEffectiveParams, PairedMode, RemoveChimerasReportV1,
     REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
@@ -23,6 +24,7 @@ use bijux_dna_planner_fastq::stage_api::{
     RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_stage_contract::StagePlanV1;
 use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -61,41 +63,22 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
     let mut records = Vec::new();
 
     for tool in &setup.tools {
-        let out_dir = setup.tools_root.join(tool);
-        bijux_dna_infra::ensure_dir(&out_dir)?;
-        let tool_spec =
-            build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
-        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan_with_effective_params(
-            &tool_spec,
-            &args.r1,
-            args.r2.as_deref(),
-            &out_dir,
-            &governed_chimera_params(
-                args.threads.unwrap_or(tool_spec.resources.threads).max(1),
-            ),
-        )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let tool_plan = prepare_remove_chimeras_tool_plan(catalog, platform, args, &setup, tool)?;
         if let Ok(Some(record)) = fetch_fastq_chimeras_v1(
             &conn,
             tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &setup.runner.to_string(),
             &platform.name,
             &setup.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             setup.runner,
             jobs,
         )?
@@ -111,31 +94,36 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             });
             continue;
         }
-        let filtered_reads = plan
+        let filtered_reads = tool_plan
+            .plan
             .io
             .outputs
             .iter()
             .find(|artifact| artifact.name.as_str() == "chimera_filtered_reads")
             .ok_or_else(|| anyhow!("remove_chimeras plan missing chimera_filtered_reads"))?;
-        let metrics_output = plan
+        let metrics_output = tool_plan
+            .plan
             .io
             .outputs
             .iter()
             .find(|artifact| artifact.name.as_str() == "chimera_metrics_json")
             .ok_or_else(|| anyhow!("remove_chimeras plan missing chimera_metrics_json"))?;
-        let report_output = plan
+        let report_output = tool_plan
+            .plan
             .io
             .outputs
             .iter()
             .find(|artifact| artifact.name.as_str() == "report_json")
             .ok_or_else(|| anyhow!("remove_chimeras plan missing report_json"))?;
-        let chimeras_fasta = plan
+        let chimeras_fasta = tool_plan
+            .plan
             .io
             .outputs
             .iter()
             .find(|artifact| artifact.name.as_str() == "chimeras_fasta")
             .map(|artifact| artifact.path.clone());
-        let uchime_report_tsv = plan
+        let uchime_report_tsv = tool_plan
+            .plan
             .io
             .outputs
             .iter()
@@ -154,7 +142,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         let chimera_fraction =
             if reads_in == 0 { 0.0 } else { u64_to_f64(chimeras_removed) / u64_to_f64(reads_in) };
         let effective_params: ChimeraDetectionEffectiveParams =
-            serde_json::from_value(plan.effective_params.clone())
+            serde_json::from_value(tool_plan.plan.effective_params.clone())
                 .map_err(|error| anyhow!("parse remove_chimeras effective params: {error}"))?;
         let report_inputs = RemoveChimerasReportInputs {
             tool_id: tool,
@@ -183,18 +171,18 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             FastqChimeraMetrics { reads_in, reads_out, chimeras_removed, chimera_fraction };
         let metric_set = metric_set(metrics);
         bijux_dna_infra::atomic_write_json(
-            &out_dir.join("metrics.json"),
+            &tool_plan.out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
         )?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
-                tool_spec.tool_version.clone(),
-                image_digest,
+                tool_plan.tool_spec.tool_version.clone(),
+                tool_plan.image_digest,
                 setup.runner,
                 platform,
                 setup.input_hash.clone(),
-                plan.params.clone(),
+                tool_plan.plan.params.clone(),
             ),
             execution: ExecutionMetrics {
                 runtime_s: execution.runtime_s,
@@ -226,6 +214,14 @@ struct RemoveChimerasBenchmarkSetup {
 struct RemoveChimerasBenchmarkStore {
     sqlite_path: PathBuf,
     jsonl_path: PathBuf,
+}
+
+struct RemoveChimerasToolPlan {
+    out_dir: PathBuf,
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    params_hash: String,
+    image_digest: String,
 }
 
 impl RemoveChimerasBenchmarkStore {
@@ -296,6 +292,36 @@ fn ensure_remove_chimeras_qa<S: ::std::hash::BuildHasher>(
 ) -> Result<()> {
     ensure_image_qa_passed(STAGE_ID, tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_ID, tools, platform, catalog)
+}
+
+fn prepare_remove_chimeras_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
+    setup: &RemoveChimerasBenchmarkSetup,
+    tool: &str,
+) -> Result<RemoveChimerasToolPlan> {
+    let out_dir = setup.tools_root.join(tool);
+    bijux_dna_infra::ensure_dir(&out_dir)?;
+    let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
+    let effective_params =
+        governed_chimera_params(args.threads.unwrap_or(tool_spec.resources.threads).max(1));
+    let plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan_with_effective_params(
+            &tool_spec,
+            &args.r1,
+            args.r2.as_deref(),
+            &out_dir,
+            &effective_params,
+        )?;
+    let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let image_digest = tool_spec
+        .image
+        .digest
+        .as_ref()
+        .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
+        .clone();
+    Ok(RemoveChimerasToolPlan { out_dir, tool_spec, plan, params_hash, image_digest })
 }
 
 fn select_remove_chimeras_benchmark_tools(
