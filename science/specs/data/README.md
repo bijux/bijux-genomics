@@ -2,4 +2,7 @@
 
 Authored data-plane specifications live here.
 
-No data-plane science specs are seeded yet for the FASTQ environment slice.
+- [CONTRACT.md](CONTRACT.md) defines what may be authored here.
+- [../evidence/README.md](../evidence/README.md) is the current authoritative
+  authored surface for the FASTQ science slice while no data-plane specs are
+  seeded yet.
