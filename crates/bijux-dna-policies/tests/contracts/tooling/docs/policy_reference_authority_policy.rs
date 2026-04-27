@@ -228,3 +228,17 @@ fn policy__contracts__policy_reference_authority_policy__policy_stability_links_
         "docs/40-policies/POLICY_STABILITY.md must link the governed policy-stability authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__policy_matrix_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "POLICY_INDEX.md".to_string(),
+        "../../crates/bijux-dna-policies/tests/".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/40-policies/POLICY_MATRIX.md");
+    assert_eq!(
+        expected, documented,
+        "docs/40-policies/POLICY_MATRIX.md must link the governed policy-matrix authorities exactly"
+    );
+}
