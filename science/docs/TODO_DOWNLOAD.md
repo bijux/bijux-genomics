@@ -21,12 +21,17 @@ The canonical machine-readable backlog is
 This markdown file is the operator-facing view of that FASTQ backlog.
 
 GitHub repository evidence is governed separately through
+[science/docs/upstream/README.md](upstream/README.md),
+[science/docs/upstream/github-repos/README.md](upstream/github-repos/README.md),
+and
 [science/docs/upstream/github-repos/MANIFEST.tsv](upstream/github-repos/MANIFEST.tsv).
 
 That manifest is the durable target list for local repository mirrors under
 `science/docs/upstream/github-repos/mirrors/`.
 
 Paper payloads are governed separately through
+[science/docs/upstream/papers/README.md](upstream/papers/README.md)
+and
 [science/docs/upstream/papers/TODO_DOWNLOAD.md](upstream/papers/TODO_DOWNLOAD.md).
 
 ## Ready for Manual Clone

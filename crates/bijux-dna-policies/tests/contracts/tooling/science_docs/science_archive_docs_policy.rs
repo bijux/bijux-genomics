@@ -336,7 +336,10 @@ fn policy__contracts__science_archive_docs_policy__science_download_backlog_link
 ) {
     let expected = BTreeSet::from([
         "../generated/current/evidence/fastq_download_backlog.tsv".to_string(),
+        "upstream/README.md".to_string(),
+        "upstream/github-repos/README.md".to_string(),
         "upstream/github-repos/MANIFEST.tsv".to_string(),
+        "upstream/papers/README.md".to_string(),
         "upstream/papers/TODO_DOWNLOAD.md".to_string(),
     ]);
     let documented = markdown_link_targets("science/docs/TODO_DOWNLOAD.md");
