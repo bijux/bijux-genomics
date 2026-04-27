@@ -7,7 +7,7 @@ use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::support::benchmark_runtime::ensure_bench_runner;
 use crate::support::workspace::load_workspace_registry;
 use crate::tool_selection::filter_tools_by_role;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_chimeras_v1, insert_fastq_chimeras_v1};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqChimeraMetrics};
 use bijux_dna_core::contract::ToolRegistry;
@@ -122,8 +122,9 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             },
             metric_set,
         )?;
-        append_jsonl(&store.jsonl_path, &record)?;
-        insert_fastq_chimeras_v1(&conn, &record)?;
+        persist_remove_chimeras_record(&store, &record, |record| {
+            insert_fastq_chimeras_v1(&conn, record).context("insert bench sqlite")
+        })?;
         records.push(record);
     }
 
@@ -365,6 +366,15 @@ fn remove_chimeras_execution_metrics(execution: &RemoveChimerasToolExecution) ->
         memory_mb: execution.result.memory_mb,
         exit_code: execution.result.exit_code,
     }
+}
+
+fn persist_remove_chimeras_record(
+    store: &RemoveChimerasBenchmarkStore,
+    record: &BenchmarkRecord<FastqChimeraMetrics>,
+    insert_record: impl FnOnce(&BenchmarkRecord<FastqChimeraMetrics>) -> Result<()>,
+) -> Result<()> {
+    append_jsonl(&store.jsonl_path, record).context("write bench.jsonl")?;
+    insert_record(record)
 }
 
 fn remove_chimeras_tool_failure(
