@@ -24,7 +24,7 @@ compatible_tools: ["angsd", "bcftools"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "Likelihood-based calling is used for low-coverage contexts."
-  - "ANGSD-style GL defaults are locked (GL model, mapQ/baseQ, and depth filters)."
+  - "GL caller defaults are locked (calling model, mapQ/baseQ, and depth filters)."
   - "GL calling emits provenance with parameter values and source references."
 bank_hooks: ["none"]
 invariants:
