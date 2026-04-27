@@ -86,18 +86,18 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
             failures.push(failure);
             continue;
         }
-        let record = build_detect_record(
+        let record = build_detect_record(&DetectRecordInputs {
             platform,
-            &setup.bench_inputs,
-            args.r2.as_deref(),
-            setup.input_stats_r2.as_ref(),
-            &tool_plan.tool,
-            &tool_plan.tool_spec,
-            &setup.input_hash,
-            &tool_plan.plan.params,
-            &tool_plan.plan.out_dir,
-            &execution,
-        )?;
+            bench_inputs: &setup.bench_inputs,
+            input_r2_path: args.r2.as_deref(),
+            input_stats_r2: setup.input_stats_r2.as_ref(),
+            tool: &tool_plan.tool,
+            tool_spec: &tool_plan.tool_spec,
+            input_hash: &setup.input_hash,
+            params: &tool_plan.plan.params,
+            out_dir: &tool_plan.plan.out_dir,
+            execution: &execution,
+        })?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_detect_adapters_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
@@ -137,6 +137,19 @@ struct DetectAdaptersToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct DetectRecordInputs<'a> {
+    platform: &'a PlatformSpec,
+    bench_inputs: &'a TrimBenchInputs,
+    input_r2_path: Option<&'a std::path::Path>,
+    input_stats_r2: Option<&'a SeqkitMetrics>,
+    tool: &'a str,
+    tool_spec: &'a ToolExecutionSpecV1,
+    input_hash: &'a str,
+    params: &'a serde_json::Value,
+    out_dir: &'a std::path::Path,
+    execution: &'a StageResultV1,
 }
 
 fn prepare_detect_adapters_tool_plan<S: ::std::hash::BuildHasher>(
@@ -260,27 +273,17 @@ fn ensure_detect_adapters_benchmark_qa<S: ::std::hash::BuildHasher>(
     ensure_tool_qa_passed(STAGE_DETECT_ADAPTERS.as_str(), tools, platform, catalog)
 }
 
-#[allow(clippy::too_many_arguments)]
 fn build_detect_record(
-    platform: &PlatformSpec,
-    bench_inputs: &crate::internal::fastq::stages::trim_bench_common::TrimBenchInputs,
-    input_r2_path: Option<&std::path::Path>,
-    input_stats_r2: Option<&SeqkitMetrics>,
-    tool: &str,
-    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
-    input_hash: &str,
-    params: &serde_json::Value,
-    out_dir: &std::path::Path,
-    execution: &StageResultV1,
+    inputs: &DetectRecordInputs<'_>,
 ) -> Result<BenchmarkRecord<FastqDetectAdaptersMetrics>> {
     let report = build_detect_report(
-        bench_inputs,
-        input_r2_path,
-        input_stats_r2,
-        tool,
-        tool_spec,
-        out_dir,
-        execution,
+        inputs.bench_inputs,
+        inputs.input_r2_path,
+        inputs.input_stats_r2,
+        inputs.tool,
+        inputs.tool_spec,
+        inputs.out_dir,
+        inputs.execution,
     )?;
     let metrics = FastqDetectAdaptersMetrics {
         reads_in: report.reads_in,
@@ -294,27 +297,27 @@ fn build_detect_record(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    bijux_dna_infra::atomic_write_json(&out_dir.join("adapter_report.json"), &report)
+    bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("adapter_report.json"), &report)
         .context("write adapter report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
-    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+    bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("metrics.json"), &metrics_json)
         .context("write adapter metrics")?;
 
     let context = build_benchmark_context(
-        tool,
-        tool_spec.tool_version.clone(),
-        benchmark_image_identity(tool_spec),
-        bench_inputs.runner,
-        platform,
-        input_hash.to_string(),
-        params.clone(),
+        inputs.tool,
+        inputs.tool_spec.tool_version.clone(),
+        benchmark_image_identity(inputs.tool_spec),
+        inputs.bench_inputs.runner,
+        inputs.platform,
+        inputs.input_hash.to_string(),
+        inputs.params.clone(),
     );
     let record = BenchmarkRecord {
         context,
         execution: ExecutionMetrics {
-            runtime_s: execution.runtime_s,
-            memory_mb: execution.memory_mb,
-            exit_code: execution.exit_code,
+            runtime_s: inputs.execution.runtime_s,
+            memory_mb: inputs.execution.memory_mb,
+            exit_code: inputs.execution.exit_code,
         },
         metrics: metric_set,
     };
