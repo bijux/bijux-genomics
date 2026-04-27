@@ -85,47 +85,13 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             failures.push(failure);
             continue;
         }
-        let filtered_reads = tool_plan
-            .plan
-            .io
-            .outputs
-            .iter()
-            .find(|artifact| artifact.name.as_str() == "chimera_filtered_reads")
-            .ok_or_else(|| anyhow!("remove_chimeras plan missing chimera_filtered_reads"))?;
-        let metrics_output = tool_plan
-            .plan
-            .io
-            .outputs
-            .iter()
-            .find(|artifact| artifact.name.as_str() == "chimera_metrics_json")
-            .ok_or_else(|| anyhow!("remove_chimeras plan missing chimera_metrics_json"))?;
-        let report_output = tool_plan
-            .plan
-            .io
-            .outputs
-            .iter()
-            .find(|artifact| artifact.name.as_str() == "report_json")
-            .ok_or_else(|| anyhow!("remove_chimeras plan missing report_json"))?;
-        let chimeras_fasta = tool_plan
-            .plan
-            .io
-            .outputs
-            .iter()
-            .find(|artifact| artifact.name.as_str() == "chimeras_fasta")
-            .map(|artifact| artifact.path.clone());
-        let uchime_report_tsv = tool_plan
-            .plan
-            .io
-            .outputs
-            .iter()
-            .find(|artifact| artifact.name.as_str() == "uchime_report_tsv")
-            .map(|artifact| artifact.path.clone());
-        let used_fallback = !filtered_reads.path.exists();
+        let outputs = resolve_remove_chimeras_outputs(&tool_plan.plan)?;
+        let used_fallback = !outputs.filtered_reads.exists();
         if used_fallback {
-            std::fs::copy(&args.r1, &filtered_reads.path)?;
+            std::fs::copy(&args.r1, &outputs.filtered_reads)?;
         }
         let output_stats_r1 =
-            observe_fastq_stats(catalog, platform, setup.runner, &filtered_reads.path)?;
+            observe_fastq_stats(catalog, platform, setup.runner, &outputs.filtered_reads)?;
         let reads_in = setup.input_stats_r1.reads
             + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
         let reads_out = output_stats_r1.reads;
@@ -139,10 +105,10 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             tool_id: tool,
             effective_params: &effective_params,
             input_reads: &args.r1,
-            output_reads: &filtered_reads.path,
-            chimera_metrics_json: &metrics_output.path,
-            chimeras_fasta: chimeras_fasta.as_deref(),
-            uchime_report_tsv: uchime_report_tsv.as_deref(),
+            output_reads: &outputs.filtered_reads,
+            chimera_metrics_json: &outputs.metrics_json,
+            chimeras_fasta: outputs.chimeras_fasta.as_deref(),
+            uchime_report_tsv: outputs.uchime_report_tsv.as_deref(),
             reads_in,
             reads_out,
             chimeras_removed,
@@ -153,9 +119,9 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             exit_code: execution.exit_code,
         };
         let report = build_remove_chimeras_report(&report_inputs);
-        bijux_dna_infra::atomic_write_json(&report_output.path, &report)?;
+        bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
-            &metrics_output.path,
+            &outputs.metrics_json,
             &compatibility_metrics_from_report(&report),
         )?;
         let metrics =
@@ -213,6 +179,14 @@ struct RemoveChimerasToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct RemoveChimerasOutputs {
+    filtered_reads: PathBuf,
+    metrics_json: PathBuf,
+    report_json: PathBuf,
+    chimeras_fasta: Option<PathBuf>,
+    uchime_report_tsv: Option<PathBuf>,
 }
 
 struct RemoveChimerasCacheIdentity<'a> {
@@ -367,6 +341,33 @@ fn remove_chimeras_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure
         reason: format!("tool {tool} failed with status {exit_code}"),
         category: ErrorCategory::ToolError,
     })
+}
+
+fn resolve_remove_chimeras_outputs(plan: &StagePlanV1) -> Result<RemoveChimerasOutputs> {
+    Ok(RemoveChimerasOutputs {
+        filtered_reads: required_remove_chimeras_output(plan, "chimera_filtered_reads")?,
+        metrics_json: required_remove_chimeras_output(plan, "chimera_metrics_json")?,
+        report_json: required_remove_chimeras_output(plan, "report_json")?,
+        chimeras_fasta: optional_remove_chimeras_output(plan, "chimeras_fasta"),
+        uchime_report_tsv: optional_remove_chimeras_output(plan, "uchime_report_tsv"),
+    })
+}
+
+fn required_remove_chimeras_output(plan: &StagePlanV1, name: &str) -> Result<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == name)
+        .map(|artifact| artifact.path.clone())
+        .ok_or_else(|| anyhow!("remove_chimeras plan missing {name}"))
+}
+
+fn optional_remove_chimeras_output(plan: &StagePlanV1, name: &str) -> Option<PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == name)
+        .map(|artifact| artifact.path.clone())
 }
 
 fn select_remove_chimeras_benchmark_tools(
