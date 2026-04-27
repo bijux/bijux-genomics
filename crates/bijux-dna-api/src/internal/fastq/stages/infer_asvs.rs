@@ -1,5 +1,5 @@
 use std::collections::{BTreeSet, HashMap};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -108,6 +108,14 @@ pub(crate) struct InferAsvsReportInputs<'a> {
     pub exit_code: Option<i32>,
     pub used_fallback: bool,
     pub backend_metrics: Option<serde_json::Value>,
+}
+
+struct InferAsvsOutputs {
+    asv_table_tsv: PathBuf,
+    asv_sequences_fasta: PathBuf,
+    taxonomy_reference_fasta: PathBuf,
+    taxonomy_reads_fastq: PathBuf,
+    report_json: PathBuf,
 }
 
 pub(crate) fn canonical_infer_asvs_report(inputs: InferAsvsReportInputs<'_>) -> InferAsvsReportV1 {
@@ -249,13 +257,9 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
         }
         let payload = materialize_amplicon_stage_outputs_for_bench(&out_dir, &step)?;
         enforce_amplicon_qc_thresholds_for_bench(&out_dir, STAGE_ID, &payload)?;
-        let asv_table_tsv = output_path(&plan, "asv_table_tsv")?;
-        let asv_sequences_fasta = output_path(&plan, "asv_sequences_fasta")?;
-        let taxonomy_ref_path = output_path(&plan, "taxonomy_ready_fasta")?;
-        let taxonomy_reads_path = output_path(&plan, "taxonomy_ready_fastq")?;
-        let report_json = output_path(&plan, "report_json")?;
-        let table_metrics = read_infer_asvs_table_metrics(&asv_table_tsv)?;
-        let representative_sequence_count = count_fasta_records(&asv_sequences_fasta)?;
+        let outputs = resolve_infer_asvs_outputs(&plan)?;
+        let table_metrics = read_infer_asvs_table_metrics(&outputs.asv_table_tsv)?;
+        let representative_sequence_count = count_fasta_records(&outputs.asv_sequences_fasta)?;
         let metrics = FastqInferAsvsMetrics {
             asv_count: table_metrics.asv_count,
             sample_count: table_metrics.sample_count,
@@ -268,11 +272,11 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             tool_id: tool,
             input_r1: &args.r1,
             input_r2: args.r2.as_deref(),
-            asv_table_tsv: &asv_table_tsv,
-            asv_sequences_fasta: &asv_sequences_fasta,
-            taxonomy_reference_fasta: &taxonomy_ref_path,
-            taxonomy_reads_fastq: &taxonomy_reads_path,
-            report_json: &report_json,
+            asv_table_tsv: &outputs.asv_table_tsv,
+            asv_sequences_fasta: &outputs.asv_sequences_fasta,
+            taxonomy_reference_fasta: &outputs.taxonomy_reference_fasta,
+            taxonomy_reads_fastq: &outputs.taxonomy_reads_fastq,
+            report_json: &outputs.report_json,
             effective_params: &effective_params,
             table_metrics,
             representative_sequence_count,
@@ -285,7 +289,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
                 .unwrap_or(false),
             backend_metrics: Some(payload),
         });
-        bijux_dna_infra::atomic_write_json(&report_json, &report)?;
+        bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -319,11 +323,23 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
 fn output_path(
     plan: &bijux_dna_stage_contract::StagePlanV1,
     artifact_name: &str,
-) -> Result<std::path::PathBuf> {
+) -> Result<PathBuf> {
     plan.io
         .outputs
         .iter()
         .find(|artifact| artifact.name.as_str() == artifact_name)
         .map(|artifact| artifact.path.clone())
         .ok_or_else(|| anyhow!("infer_asvs plan missing output artifact `{artifact_name}`"))
+}
+
+fn resolve_infer_asvs_outputs(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> Result<InferAsvsOutputs> {
+    Ok(InferAsvsOutputs {
+        asv_table_tsv: output_path(plan, "asv_table_tsv")?,
+        asv_sequences_fasta: output_path(plan, "asv_sequences_fasta")?,
+        taxonomy_reference_fasta: output_path(plan, "taxonomy_ready_fasta")?,
+        taxonomy_reads_fastq: output_path(plan, "taxonomy_ready_fastq")?,
+        report_json: output_path(plan, "report_json")?,
+    })
 }
