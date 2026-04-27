@@ -127,8 +127,8 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             },
             metric_set,
         )?;
-        append_jsonl(&store.jsonl_path, &record)?;
-        insert_fastq_normalize_primers_v1(&conn, &record)?;
+        append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
+        insert_fastq_normalize_primers_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
     }
 
