@@ -85,13 +85,9 @@ roots intentionally use homepage or repository snapshots rather than paper PDFs.
 
 ## PDF Follow-Up
 
-These mapped paper roots still need local payloads under
-`science/docs/upstream/papers/<paper-id>/original/` before closure reports can
-treat them as archived.
-
-| Tool | Paper ID | Access | Primary Locator | Follow-up |
-| --- | --- | --- | --- | --- |
-| `star` | `paper.fastq.star.dobin-2013` | `free_pmc_not_open_access` | https://academic.oup.com/bioinformatics/article-abstract/29/1/15/272537 | Archive an access-compliant Bioinformatics article/PDF or allowed PMC payload. Do not use `nmeth.1923`; that is the Bowtie 2 paper. |
+There are no remaining mapped FASTQ paper roots waiting on a local payload at
+this time. Keep this section empty until a compiled closure report shows a new
+paper root with `archive_status = missing`.
 
 ## Notes
 
