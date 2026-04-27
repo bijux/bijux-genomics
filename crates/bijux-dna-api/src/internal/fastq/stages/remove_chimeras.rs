@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
+use crate::internal::fastq::stages::trim_bench_common::benchmark_image_identity;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::support::benchmark_runtime::ensure_bench_runner;
 use crate::support::workspace::load_workspace_registry;
@@ -337,12 +338,7 @@ fn prepare_remove_chimeras_tool_plan<S: ::std::hash::BuildHasher>(
             &effective_params,
         )?;
     let params_hash = stable_params_hash(&plan.params);
-    let image_digest = tool_spec
-        .image
-        .digest
-        .as_ref()
-        .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-        .clone();
+    let image_digest = benchmark_image_identity(&tool_spec);
     Ok(RemoveChimerasToolPlan { out_dir, tool_spec, plan, params_hash, image_digest })
 }
 
