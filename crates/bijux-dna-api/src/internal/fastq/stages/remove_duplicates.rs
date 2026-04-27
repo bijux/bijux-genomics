@@ -139,24 +139,9 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         let metrics = duplicate_metrics_from_counts(&counts);
         let metric_set = metric_set(metrics);
         write_remove_duplicates_metrics(&tool_plan.out_dir, &metric_set)?;
-        let record = BenchmarkRecord {
-            context: build_benchmark_context(
-                tool,
-                tool_plan.tool_spec.tool_version.clone(),
-                tool_plan.image_digest.clone(),
-                setup.runner,
-                platform,
-                setup.input_hash.clone(),
-                tool_plan.bench_params.clone(),
-            ),
-            execution: ExecutionMetrics {
-                runtime_s: execution.runtime_s,
-                memory_mb: execution.memory_mb,
-                exit_code: execution.exit_code,
-            },
-            metrics: metric_set,
-        };
-        record.validate()?;
+        let record = build_remove_duplicates_record(
+            tool, platform, &setup, &tool_plan, &execution, metric_set,
+        )?;
         append_jsonl(&bench_path, &record)?;
         insert_fastq_duplicates_v1(&conn, &record)?;
         records.push(record);
@@ -361,6 +346,35 @@ fn write_remove_duplicates_metrics(
         &out_dir.join("metrics.json"),
         &serde_json::to_value(metric_set)?,
     )?)
+}
+
+fn build_remove_duplicates_record(
+    tool: &str,
+    platform: &PlatformSpec,
+    setup: &RemoveDuplicatesBenchmarkSetup,
+    tool_plan: &RemoveDuplicatesToolPlan,
+    execution: &StageResultV1,
+    metric_set: MetricSet<FastqDuplicateMetrics>,
+) -> Result<BenchmarkRecord<FastqDuplicateMetrics>> {
+    let record = BenchmarkRecord {
+        context: build_benchmark_context(
+            tool,
+            tool_plan.tool_spec.tool_version.clone(),
+            tool_plan.image_digest.clone(),
+            setup.runner,
+            platform,
+            setup.input_hash.clone(),
+            tool_plan.bench_params.clone(),
+        ),
+        execution: ExecutionMetrics {
+            runtime_s: execution.runtime_s,
+            memory_mb: execution.memory_mb,
+            exit_code: execution.exit_code,
+        },
+        metrics: metric_set,
+    };
+    record.validate()?;
+    Ok(record)
 }
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
