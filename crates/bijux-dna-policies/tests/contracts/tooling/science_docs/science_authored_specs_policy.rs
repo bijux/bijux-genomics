@@ -122,7 +122,10 @@ fn policy__contracts__science_authored_specs_policy__result_specs_docs_link_cont
     let expected = BTreeSet::from([
         "CONTRACT.md".to_string(),
         "../evidence/README.md".to_string(),
+        "../reports/README.md".to_string(),
         "../../README.md".to_string(),
+        "../../CONTRACT.md".to_string(),
+        "../../generated/README.md".to_string(),
     ]);
     let documented = markdown_link_targets("science/specs/results/README.md");
     assert_eq!(
@@ -155,7 +158,10 @@ fn policy__contracts__science_authored_specs_policy__result_specs_contract_links
         "README.md".to_string(),
         "../evidence/README.md".to_string(),
         "../reports/README.md".to_string(),
+        "../releases/README.md".to_string(),
         "../../README.md".to_string(),
+        "../../CONTRACT.md".to_string(),
+        "../../generated/README.md".to_string(),
     ]);
     let documented = markdown_link_targets("science/specs/results/CONTRACT.md");
     assert_eq!(
