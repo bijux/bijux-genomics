@@ -40,12 +40,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteRrnaArgs,
 ) -> Result<BenchOutcome<FastqDepleteRrnaMetrics>> {
-    let tools = select_deplete_rrna_tools(&args.tools)?;
-    let artifact_kind =
-        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
-    preflight_stage(STAGE_DEPLETE_RRNA.as_str(), artifact_kind)?;
-    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
-    log_header_warnings(STAGE_DEPLETE_RRNA.as_str(), &header);
+    let tools = select_rrna_benchmark_tools(args)?;
 
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
@@ -222,6 +217,18 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
     }
 
     Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
+}
+
+fn select_rrna_benchmark_tools(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteRrnaArgs,
+) -> Result<Vec<String>> {
+    let tools = select_deplete_rrna_tools(&args.tools)?;
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
+    preflight_stage(STAGE_DEPLETE_RRNA.as_str(), artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_DEPLETE_RRNA.as_str(), &header);
+    Ok(tools)
 }
 
 #[allow(clippy::too_many_arguments)]
