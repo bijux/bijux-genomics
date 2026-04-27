@@ -98,7 +98,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             metrics: &metric_set.metrics,
             histogram,
             threads: tool_plan.plan.resources.threads,
-            execution: &execution,
+            execution_metrics: read_lengths_execution_metrics(&execution),
         });
         write_read_lengths_artifacts(&tool_plan, &observation, &report, &metric_set)?;
         let record = build_read_lengths_record(
@@ -202,7 +202,7 @@ struct ReadLengthsReportInputs<'a> {
     metrics: &'a FastqReadLengthMetrics,
     histogram: Vec<ProfileReadLengthBinV1>,
     threads: u32,
-    execution: &'a ReadLengthsToolExecution,
+    execution_metrics: ExecutionMetrics,
 }
 
 struct ReadLengthsRecordInputs<'a> {
@@ -342,6 +342,14 @@ fn read_lengths_tool_failure(
     })
 }
 
+fn read_lengths_execution_metrics(execution: &ReadLengthsToolExecution) -> ExecutionMetrics {
+    ExecutionMetrics {
+        runtime_s: execution.result.runtime_s,
+        memory_mb: execution.result.memory_mb,
+        exit_code: execution.result.exit_code,
+    }
+}
+
 fn observe_read_lengths(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
 ) -> Result<Vec<usize>> {
@@ -420,9 +428,9 @@ fn build_read_lengths_report(inputs: ReadLengthsReportInputs<'_>) -> ProfileRead
         max_read_length: inputs.metrics.max_read_length,
         distinct_lengths: inputs.metrics.distinct_lengths,
         histogram: inputs.histogram,
-        runtime_s: Some(inputs.execution.result.runtime_s),
-        memory_mb: Some(inputs.execution.result.memory_mb),
-        exit_code: Some(inputs.execution.result.exit_code),
+        runtime_s: Some(inputs.execution_metrics.runtime_s),
+        memory_mb: Some(inputs.execution_metrics.memory_mb),
+        exit_code: Some(inputs.execution_metrics.exit_code),
         raw_backend_report: Some(inputs.artifacts.length_tsv.display().to_string()),
         raw_backend_report_format: Some("seqkit_fx2tab_tsv".to_string()),
     }
@@ -468,11 +476,7 @@ fn build_read_lengths_record(
             inputs.setup.input_hash.clone(),
             inputs.tool_plan.plan.params.clone(),
         ),
-        execution: ExecutionMetrics {
-            runtime_s: inputs.execution.result.runtime_s,
-            memory_mb: inputs.execution.result.memory_mb,
-            exit_code: inputs.execution.result.exit_code,
-        },
+        execution: read_lengths_execution_metrics(inputs.execution),
         metrics: metric_set,
     };
     record.validate()?;
