@@ -4,7 +4,8 @@
 Define the required structure for runnable example READMEs.
 
 ## Scope
-Applies only to example READMEs in directories that ship an `example.toml`.
+Applies only to example READMEs in directories that ship an
+[example.toml](../../examples/_template/example.toml).
 
 ## Non-goals
 - Replacing per-example scientific interpretation details.
@@ -13,7 +14,10 @@ Applies only to example READMEs in directories that ship an `example.toml`.
 ## Contracts
 - Every example README must include Step 1 through Step 4 sections in order.
 - Output and interpretation sections are mandatory.
-- Recipe-only benchmark docs listed in `examples/RECIPE_ONLY.txt` are intentionally out of scope.
+- Runnable example governance is defined in [examples/POLICY.md](../../examples/POLICY.md).
+- Recipe-only benchmark docs listed in [examples/RECIPE_ONLY.txt](../../examples/RECIPE_ONLY.txt)
+  are intentionally out of scope.
+- Output expectations are governed by [EXAMPLE_RUNNER_CONTRACT.md](EXAMPLE_RUNNER_CONTRACT.md).
 
 ## Required Step Pattern
 1. **Step 1: Containers Ready**

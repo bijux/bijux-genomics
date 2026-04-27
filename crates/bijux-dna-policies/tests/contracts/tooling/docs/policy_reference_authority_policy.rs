@@ -51,3 +51,19 @@ fn policy__contracts__policy_reference_authority_policy__style_links_governed_su
         "docs/40-policies/STYLE.md must link the governed style authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__example_template_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../examples/_template/example.toml".to_string(),
+        "../../examples/POLICY.md".to_string(),
+        "../../examples/RECIPE_ONLY.txt".to_string(),
+        "EXAMPLE_RUNNER_CONTRACT.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/EXAMPLE_TEMPLATE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/EXAMPLE_TEMPLATE.md must link the governed example-template authorities exactly"
+    );
+}
