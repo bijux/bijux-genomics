@@ -19,7 +19,8 @@ local-archive boundary for the full science control surface.
 - [science/specs/reports/README.md](specs/reports/README.md) is the authored report-intent surface
 - [science/specs/results/README.md](specs/results/README.md) is the authored result-plane surface
 - [science/generated/README.md](generated/README.md) is the committed compiler output surface
-- `artifacts/science-releases/**` is release output
+- [science/specs/releases/README.md](specs/releases/README.md) owns release
+  output cuts under `artifacts/science-releases/**`
 - [science/docs/README.md](docs/README.md) is the local manual archive for non-shareable evidence payloads
 
 The first implemented slice is the FASTQ environment and container support surface:
