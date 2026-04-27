@@ -12,10 +12,7 @@ pub(super) fn stage_node_id_for_binding(binding: &FastqStageBinding) -> String {
 }
 
 pub(super) fn stage_node_id_for_plan(plan: &StagePlanV1) -> &str {
-    plan.stage_instance_id
-        .as_ref()
-        .map(|step_id| step_id.as_str())
-        .unwrap_or(plan.stage_id.as_str())
+    plan.stage_instance_id.as_ref().map_or(plan.stage_id.as_str(), |step_id| step_id.as_str())
 }
 
 pub(super) fn resolved_stage_input_artifacts(
@@ -112,8 +109,7 @@ fn unique_resolved_input_artifact<'a>(
     let second = matches.next();
     match (first, second) {
         (Some(_), Some(_)) => Err(anyhow!(
-            "stage input {} received multiple explicit artifact bindings; provide exactly one binding for singular inputs",
-            input_id
+            "stage input {input_id} received multiple explicit artifact bindings; provide exactly one binding for singular inputs"
         )),
         (Some(input), None) => Ok(Some(input)),
         (None, None) => Ok(None),

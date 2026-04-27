@@ -1,5 +1,6 @@
 #![allow(clippy::too_many_arguments)]
 
+use std::fmt::Write as _;
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
@@ -196,8 +197,9 @@ fn qc_post_command(
                 qc_inputs.iter().map(|artifact| artifact.path.clone()).collect::<Vec<_>>();
             multiqc_inputs.sort();
             multiqc_inputs.dedup();
-            let manifest = serde_json::to_string(&governed_qc_inputs_manifest_payload(qc_inputs)?)
-                .map_err(|error| anyhow!("serialize governed QC inputs manifest: {error}"))?;
+            let manifest =
+                serde_json::to_string(&governed_qc_inputs_manifest_payload(qc_inputs))
+                    .map_err(|error| anyhow!("serialize governed QC inputs manifest: {error}"))?;
             let report = serde_json::to_string(&governed_report_qc_report(
                 tool_id,
                 effective_params,
@@ -205,7 +207,7 @@ fn qc_post_command(
                 multiqc_data,
                 &out_dir_multiqc_report(multiqc_data),
                 governed_qc_manifest,
-            )?)
+            ))
             .map_err(|error| anyhow!("serialize governed report_qc report: {error}"))?;
             let mut script = format!(
                 "set -eu\nprintf '%s\\n' {} > {}\nmultiqc -o {} -n multiqc_report.html",
@@ -217,11 +219,13 @@ fn qc_post_command(
                 script.push(' ');
                 script.push_str(&shell_quote_str(&input.display().to_string()));
             }
-            script.push_str(&format!(
-                "\nprintf '%s\\n' {} > {}\n",
-                shell_quote_str(&report),
-                shell_quote_path(report_json),
-            ));
+            script
+                .write_fmt(format_args!(
+                    "\nprintf '%s\\n' {} > {}\n",
+                    shell_quote_str(&report),
+                    shell_quote_path(report_json),
+                ))
+                .unwrap_or_else(|_| unreachable!("writing to String cannot fail"));
             Ok(vec!["sh".to_string(), "-lc".to_string(), script])
         }
         _ => Err(anyhow!("unsupported report_qc tool: {tool_id}")),
@@ -265,17 +269,15 @@ fn qc_contributor_stage_ids(qc_inputs: &[ArtifactRef]) -> Vec<String> {
     stage_ids
 }
 
-fn governed_qc_inputs_manifest_payload(
-    qc_inputs: &[ArtifactRef],
-) -> Result<GovernedQcInputsManifest> {
+fn governed_qc_inputs_manifest_payload(qc_inputs: &[ArtifactRef]) -> GovernedQcInputsManifest {
     let contributors = governed_qc_contributors(qc_inputs);
-    Ok(GovernedQcInputsManifest {
+    GovernedQcInputsManifest {
         schema_version: GOVERNED_QC_INPUTS_SCHEMA_VERSION.to_string(),
         qc_inputs: qc_inputs.to_vec(),
         raw_fastqc_dir: None,
         lineage_hash: derived_governed_qc_lineage_hash(&contributors),
         contributors,
-    })
+    }
 }
 
 fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContributor> {
@@ -346,7 +348,7 @@ fn governed_report_qc_report(
     multiqc_data: &Path,
     multiqc_report: &Path,
     governed_qc_manifest: &Path,
-) -> Result<ReportQcReportV1> {
+) -> ReportQcReportV1 {
     let contributors = governed_qc_contributors(qc_inputs);
     let governed_contributors = contributors
         .iter()
@@ -371,7 +373,7 @@ fn governed_report_qc_report(
         .collect::<Vec<_>>();
     contributor_tool_ids.sort();
     contributor_tool_ids.dedup();
-    Ok(ReportQcReportV1 {
+    ReportQcReportV1 {
         schema_version: REPORT_QC_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_ID.as_str().to_string(),
         stage_id: STAGE_ID.as_str().to_string(),
@@ -408,7 +410,7 @@ fn governed_report_qc_report(
         runtime_s: None,
         memory_mb: None,
         exit_code: None,
-    })
+    }
 }
 
 fn out_dir_multiqc_report(multiqc_data: &Path) -> std::path::PathBuf {
@@ -525,8 +527,7 @@ mod tests {
                 PathBuf::from("validate/lineage.json"),
                 ArtifactRole::StageReport,
             ),
-        ])
-        .expect("manifest");
+        ]);
 
         assert_eq!(manifest.contributors.len(), 2);
         assert_eq!(manifest.contributors[0].stage_id, "fastq.trim_reads");

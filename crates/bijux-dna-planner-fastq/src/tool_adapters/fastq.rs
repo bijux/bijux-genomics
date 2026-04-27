@@ -52,6 +52,7 @@ impl StageInfo {
     }
 }
 
+#[must_use]
 pub fn registry() -> Vec<StageInfo> {
     let stages = vec![
         StageInfo {

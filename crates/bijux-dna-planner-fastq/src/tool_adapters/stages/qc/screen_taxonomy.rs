@@ -1,5 +1,6 @@
 #![allow(clippy::too_many_arguments)]
 
+use std::fmt::Write as _;
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
@@ -421,11 +422,13 @@ fn centrifuge_screen_script(
     let mut cleanup = Vec::new();
     let r1_input = if is_gzip_input(r1) {
         let inflated = native_assignments_path.with_file_name("centrifuge.reads_r1.fastq");
-        prelude.push_str(&format!(
-            "gzip -cd {} > {}\n",
-            shell_quote_path(r1),
-            shell_quote_path(&inflated),
-        ));
+        prelude
+            .write_fmt(format_args!(
+                "gzip -cd {} > {}\n",
+                shell_quote_path(r1),
+                shell_quote_path(&inflated),
+            ))
+            .unwrap_or_else(|_| unreachable!("writing to String cannot fail"));
         cleanup.push(shell_quote_path(&inflated));
         inflated
     } else {
@@ -434,11 +437,13 @@ fn centrifuge_screen_script(
     let r2_input = if let Some(r2) = r2 {
         if is_gzip_input(r2) {
             let inflated = native_assignments_path.with_file_name("centrifuge.reads_r2.fastq");
-            prelude.push_str(&format!(
-                "gzip -cd {} > {}\n",
-                shell_quote_path(r2),
-                shell_quote_path(&inflated),
-            ));
+            prelude
+                .write_fmt(format_args!(
+                    "gzip -cd {} > {}\n",
+                    shell_quote_path(r2),
+                    shell_quote_path(&inflated),
+                ))
+                .unwrap_or_else(|_| unreachable!("writing to String cannot fail"));
             cleanup.push(shell_quote_path(&inflated));
             Some(inflated)
         } else {
@@ -448,7 +453,9 @@ fn centrifuge_screen_script(
         None
     };
     let reads_clause = if r2.is_some() {
-        let r2_input = r2_input.expect("paired centrifuge input must be present");
+        let Some(r2_input) = r2_input else {
+            unreachable!("paired centrifuge input must be present");
+        };
         format!("-1 {} -2 {}", shell_quote_path(&r1_input), shell_quote_path(&r2_input),)
     } else {
         format!("-U {}", shell_quote_path(&r1_input))
@@ -594,7 +601,9 @@ fn shell_quote_str(value: &str) -> String {
 }
 
 fn is_gzip_input(path: &Path) -> bool {
-    path.file_name().and_then(|name| name.to_str()).is_some_and(|name| name.ends_with(".gz"))
+    path.extension()
+        .and_then(|extension| extension.to_str())
+        .is_some_and(|extension| extension.eq_ignore_ascii_case("gz"))
 }
 
 #[cfg(test)]

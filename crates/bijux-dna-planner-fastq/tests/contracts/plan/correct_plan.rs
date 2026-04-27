@@ -88,9 +88,15 @@ fn parse_fastq_text(text: &str) -> Vec<FastqRecord> {
         let Some(header) = lines.next() else {
             break;
         };
-        let sequence = lines.next().expect("FASTQ sequence line");
-        let plus = lines.next().expect("FASTQ plus line");
-        let quality = lines.next().expect("FASTQ quality line");
+        let Some(sequence) = lines.next() else {
+            panic!("FASTQ sequence line");
+        };
+        let Some(plus) = lines.next() else {
+            panic!("FASTQ plus line");
+        };
+        let Some(quality) = lines.next() else {
+            panic!("FASTQ quality line");
+        };
         records.push((
             header.to_string(),
             sequence.to_string(),
@@ -121,7 +127,7 @@ fn read_key(record: &FastqRecord) -> String {
         .0
         .split_whitespace()
         .next()
-        .expect("FASTQ header token")
+        .unwrap_or_else(|| panic!("FASTQ header token"))
         .trim_start_matches('@')
         .to_string();
     if token.ends_with("/1") || token.ends_with("/2") {

@@ -17,7 +17,11 @@ pub(crate) fn enforce_stage_tool(stage_id: &str, tool_id: &ToolId) -> Result<()>
         "{} is not admitted for {}; allowed tools: {}",
         tool_id.as_str(),
         stage_id.as_str(),
-        allowed_tools.iter().map(|tool| tool.as_str()).collect::<Vec<_>>().join(", ")
+        allowed_tools
+            .iter()
+            .map(bijux_dna_core::contract::ToolId::as_str)
+            .collect::<Vec<_>>()
+            .join(", ")
     ))
 }
 
@@ -31,9 +35,7 @@ pub(crate) fn enforce_input_layout(
     }
     let paired_required = matches!(
         (stage_id, tool_id.as_str()),
-        ("fastq.merge_pairs", _)
-            | ("fastq.extract_umis", _)
-            | ("fastq.remove_duplicates", "fastuniq")
+        ("fastq.merge_pairs" | "fastq.extract_umis", _) | ("fastq.remove_duplicates", "fastuniq")
     );
     if !paired_required {
         return Ok(());

@@ -8,7 +8,7 @@ fn preprocess_policy_keeps_filter_stage_when_trim_and_filter_share_fastp() {
     );
 
     assert_eq!(
-        decision.pipeline_stages.iter().map(|stage| stage.as_str()).collect::<Vec<_>>(),
+        decision.pipeline_stages.iter().map(StageId::as_str).collect::<Vec<_>>(),
         vec!["fastq.trim_reads", "fastq.filter_reads"]
     );
     assert!(

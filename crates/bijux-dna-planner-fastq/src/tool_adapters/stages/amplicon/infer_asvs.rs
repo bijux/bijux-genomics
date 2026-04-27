@@ -58,8 +58,8 @@ pub fn plan_with_options(
     }
     let asv_table = out_dir.join("asv_abundance.tsv");
     let asv_sequences = out_dir.join("asv_sequences.fasta");
-    let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
-    let taxonomy_ready_fastq = out_dir.join("taxonomy_ready.fastq");
+    let taxonomy_ready_fasta_path = out_dir.join("taxonomy_ready.fasta");
+    let taxonomy_ready_fastq_path = out_dir.join("taxonomy_ready.fastq");
     let report_json = out_dir.join("infer_asvs_report.json");
     let threads = options.threads.unwrap_or(DEFAULT_INFER_ASVS_THREADS).max(1);
     let mut resources = tool.resources.clone();
@@ -94,8 +94,8 @@ pub fn plan_with_options(
                 r2,
                 &asv_table,
                 &asv_sequences,
-                &taxonomy_ready_fasta,
-                &taxonomy_ready_fastq,
+                &taxonomy_ready_fasta_path,
+                &taxonomy_ready_fastq_path,
                 &report_json,
                 threads,
                 options,
@@ -107,8 +107,8 @@ pub fn plan_with_options(
             outputs: infer_asvs_output_refs(
                 &asv_table,
                 &asv_sequences,
-                &taxonomy_ready_fasta,
-                &taxonomy_ready_fastq,
+                &taxonomy_ready_fasta_path,
+                &taxonomy_ready_fastq_path,
                 &report_json,
             ),
         },
@@ -149,8 +149,8 @@ fn validate_infer_asvs_options(tool_id: &str, options: &InferAsvsPlanOptions) ->
 fn infer_asvs_output_refs(
     asv_table: &Path,
     asv_sequences: &Path,
-    taxonomy_ready_fasta: &Path,
-    taxonomy_ready_fastq: &Path,
+    taxonomy_ready_fasta_path: &Path,
+    taxonomy_ready_fastq_path: &Path,
     report_json: &Path,
 ) -> Vec<ArtifactRef> {
     vec![
@@ -166,12 +166,12 @@ fn infer_asvs_output_refs(
         ),
         ArtifactRef::required(
             ArtifactId::from_static("taxonomy_ready_fasta"),
-            taxonomy_ready_fasta.to_path_buf(),
+            taxonomy_ready_fasta_path.to_path_buf(),
             ArtifactRole::Reference,
         ),
         ArtifactRef::required(
             ArtifactId::from_static("taxonomy_ready_fastq"),
-            taxonomy_ready_fastq.to_path_buf(),
+            taxonomy_ready_fastq_path.to_path_buf(),
             ArtifactRole::Reference,
         ),
         ArtifactRef::required(
@@ -188,8 +188,8 @@ fn infer_asvs_command(
     r2: Option<&Path>,
     asv_table: &Path,
     asv_sequences: &Path,
-    taxonomy_ready_fasta: &Path,
-    taxonomy_ready_fastq: &Path,
+    taxonomy_ready_fasta_path: &Path,
+    taxonomy_ready_fastq_path: &Path,
     report_json: &Path,
     threads: u32,
     options: &InferAsvsPlanOptions,
@@ -212,9 +212,9 @@ fn infer_asvs_command(
                 "--asv-fasta".to_string(),
                 asv_sequences.display().to_string(),
                 "--taxonomy-ready-fasta".to_string(),
-                taxonomy_ready_fasta.display().to_string(),
+                taxonomy_ready_fasta_path.display().to_string(),
                 "--taxonomy-ready-fastq".to_string(),
-                taxonomy_ready_fastq.display().to_string(),
+                taxonomy_ready_fastq_path.display().to_string(),
                 "--report-json".to_string(),
                 report_json.display().to_string(),
                 "--denoising-method".to_string(),

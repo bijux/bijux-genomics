@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args, clippy::wildcard_imports)]
+
 use super::*;
 
 #[derive(Debug, Clone)]
@@ -70,6 +72,9 @@ pub fn select_preprocess_toolsets(
     Ok(selections)
 }
 
+/// # Errors
+/// Returns an error when toolset selections do not align with the pipeline or
+/// when route expansion would create invalid or excessive route-specific graphs.
 pub fn expand_pipeline_stage_tool_routes(
     pipeline: &PipelineSpec,
     toolsets: &[ToolsetSelection],

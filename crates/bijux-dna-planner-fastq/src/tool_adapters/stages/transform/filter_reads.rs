@@ -248,6 +248,7 @@ fn ensure_filter_option_support(tool_id: &str, options: &FilterPlanOptions) -> R
     Ok(())
 }
 
+#[must_use]
 pub fn default_kmer_ref() -> Option<PathBuf> {
     let dir = bijux_dna_domain_fastq::contaminant_references_dir();
     let entries = std::fs::read_dir(dir).ok()?;

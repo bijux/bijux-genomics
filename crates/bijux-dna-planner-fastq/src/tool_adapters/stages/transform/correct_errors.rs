@@ -1,5 +1,6 @@
 #![allow(clippy::too_many_arguments)]
 
+use std::fmt::Write as _;
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
@@ -266,15 +267,21 @@ fn correct_command_template(
     match tool_id {
         "rcorrector" => {
             script.push_str("run_rcorrector.pl");
-            script.push_str(&format!(" -t {threads} -od {}", shell_quote_path(&work_dir)));
+            push_script(
+                &mut script,
+                format_args!(" -t {threads} -od {}", shell_quote_path(&work_dir)),
+            );
             if let Some(input_r2) = input_r2 {
-                script.push_str(&format!(
-                    " -1 {} -2 {}",
-                    shell_quote_path(input_r1),
-                    shell_quote_path(input_r2),
-                ));
+                push_script(
+                    &mut script,
+                    format_args!(
+                        " -1 {} -2 {}",
+                        shell_quote_path(input_r1),
+                        shell_quote_path(input_r2),
+                    ),
+                );
             } else {
-                script.push_str(&format!(" -s {}", shell_quote_path(input_r1)));
+                push_script(&mut script, format_args!(" -s {}", shell_quote_path(input_r1)));
             }
             script.push('\n');
             script.push_str(&move_corrected_outputs_script(&work_dir, output_r1, output_r2, true));
@@ -285,80 +292,101 @@ fn correct_command_template(
                 .musket_kmer_budget
                 .ok_or_else(|| anyhow!("musket requires musket_kmer_budget"))?;
             let prefix = work_dir.join("corrected");
-            script.push_str(&format!("musket -p {threads} -k {kmer_size} {musket_kmer_budget}"));
+            push_script(
+                &mut script,
+                format_args!("musket -p {threads} -k {kmer_size} {musket_kmer_budget}"),
+            );
             if let Some(input_r2) = input_r2 {
-                script.push_str(&format!(
-                    " -omulti {} -inorder {} {}",
-                    shell_quote_path(&prefix),
-                    shell_quote_path(input_r1),
-                    shell_quote_path(input_r2),
-                ));
+                push_script(
+                    &mut script,
+                    format_args!(
+                        " -omulti {} -inorder {} {}",
+                        shell_quote_path(&prefix),
+                        shell_quote_path(input_r1),
+                        shell_quote_path(input_r2),
+                    ),
+                );
             } else {
-                script.push_str(&format!(
-                    " -o {} {}",
-                    shell_quote_path(&prefix),
-                    shell_quote_path(input_r1),
-                ));
+                push_script(
+                    &mut script,
+                    format_args!(
+                        " -o {} {}",
+                        shell_quote_path(&prefix),
+                        shell_quote_path(input_r1),
+                    ),
+                );
             }
             script.push('\n');
             if let Some(output_r2) = output_r2 {
-                script.push_str(&format!(
-                    "normalize_fastq_output {} {}\nnormalize_fastq_output {} {}\n",
-                    shell_quote_path(&prefix.with_extension("0")),
-                    shell_quote_path(output_r1),
-                    shell_quote_path(&prefix.with_extension("1")),
-                    shell_quote_path(output_r2),
-                ));
+                push_script(
+                    &mut script,
+                    format_args!(
+                        "normalize_fastq_output {} {}\nnormalize_fastq_output {} {}\n",
+                        shell_quote_path(&prefix.with_extension("0")),
+                        shell_quote_path(output_r1),
+                        shell_quote_path(&prefix.with_extension("1")),
+                        shell_quote_path(output_r2),
+                    ),
+                );
             } else {
-                script.push_str(&format!(
-                    "normalize_fastq_output {} {}\n",
-                    shell_quote_path(&prefix),
-                    shell_quote_path(output_r1),
-                ));
+                push_script(
+                    &mut script,
+                    format_args!(
+                        "normalize_fastq_output {} {}\n",
+                        shell_quote_path(&prefix),
+                        shell_quote_path(output_r1),
+                    ),
+                );
             }
         }
         "lighter" => {
             let kmer_size = options.kmer_size.unwrap_or(21);
             let genome_size =
                 options.genome_size.ok_or_else(|| anyhow!("lighter requires genome_size"))?;
-            script.push_str(&format!(
-                "lighter -K {kmer_size} {genome_size} -t {threads} -od {} -r {}",
-                shell_quote_path(&work_dir),
-                shell_quote_path(input_r1),
-            ));
+            push_script(
+                &mut script,
+                format_args!(
+                    "lighter -K {kmer_size} {genome_size} -t {threads} -od {} -r {}",
+                    shell_quote_path(&work_dir),
+                    shell_quote_path(input_r1),
+                ),
+            );
             if let Some(input_r2) = input_r2 {
-                script.push_str(&format!(" -r {}", shell_quote_path(input_r2)));
+                push_script(&mut script, format_args!(" -r {}", shell_quote_path(input_r2)));
             }
             if let Some(trusted_kmer_artifact) = options.trusted_kmer_artifact.as_ref() {
-                script.push_str(&format!(
-                    " -loadTrustedKmers {}",
-                    shell_quote_path(trusted_kmer_artifact),
-                ));
+                push_script(
+                    &mut script,
+                    format_args!(" -loadTrustedKmers {}", shell_quote_path(trusted_kmer_artifact)),
+                );
             }
             script.push('\n');
             script.push_str(&move_corrected_outputs_script(&work_dir, output_r1, output_r2, false));
         }
         "bayeshammer" => {
             script.push_str("bayeshammer");
-            script.push_str(&format!(" --threads {threads}"));
+            push_script(&mut script, format_args!(" --threads {threads}"));
             let phred_offset = match options.quality_encoding {
                 QualityEncoding::Phred33 => 33,
                 QualityEncoding::Phred64 => 64,
             };
-            script.push_str(&format!(" --phred-offset {phred_offset}"));
+            push_script(&mut script, format_args!(" --phred-offset {phred_offset}"));
             if let Some(max_memory_gb) = options.max_memory_gb {
-                script.push_str(&format!(" -m {max_memory_gb}"));
+                push_script(&mut script, format_args!(" -m {max_memory_gb}"));
             }
             if let Some(input_r2) = input_r2 {
-                script.push_str(&format!(
-                    " -1 {} -2 {}",
-                    shell_quote_path(input_r1),
-                    shell_quote_path(input_r2),
-                ));
+                push_script(
+                    &mut script,
+                    format_args!(
+                        " -1 {} -2 {}",
+                        shell_quote_path(input_r1),
+                        shell_quote_path(input_r2),
+                    ),
+                );
             } else {
-                script.push_str(&format!(" -s {}", shell_quote_path(input_r1)));
+                push_script(&mut script, format_args!(" -s {}", shell_quote_path(input_r1)));
             }
-            script.push_str(&format!(" -o {}\n", shell_quote_path(&work_dir)));
+            push_script(&mut script, format_args!(" -o {}\n", shell_quote_path(&work_dir)));
             script.push_str(&move_bayeshammer_outputs_script(
                 &work_dir.join("corrected"),
                 input_r1,
@@ -413,11 +441,14 @@ fn move_corrected_outputs_script(
         shell_quote_path(output_r1),
     );
     if let Some(output_r2) = output_r2 {
-        script.push_str(&format!(
-            "normalize_fastq_output \"$(sed -n '2p' {})\" {}\n",
-            shell_quote_path(&list_path),
-            shell_quote_path(output_r2),
-        ));
+        push_script(
+            &mut script,
+            format_args!(
+                "normalize_fastq_output \"$(sed -n '2p' {})\" {}\n",
+                shell_quote_path(&list_path),
+                shell_quote_path(output_r2),
+            ),
+        );
     }
     script
 }
@@ -440,6 +471,9 @@ fn move_bayeshammer_outputs_script(
         shell_quote_path(&unsorted_list_path),
     );
     if let Some(output_r2) = output_r2 {
+        let Some(input_r2) = input_r2 else {
+            unreachable!("paired BayesHammer reconstruction requires R2 input");
+        };
         let reconstruction_python = r#"import gzip
 import os
 
@@ -539,37 +573,47 @@ for original_r1_record, original_r2_record in zip(original_r1, original_r2):
 write_fastq(output_r1, reconstructed_r1)
 write_fastq(output_r2, reconstructed_r2)
 "#;
-        script.push_str(&format!(
-            "r1_output=$(grep '/[^/]*R1[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
+        push_script(
+            &mut script,
+            format_args!(
+                "r1_output=$(grep '/[^/]*R1[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
 r2_output=$(grep '/[^/]*R2[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
 unpaired_output=$(grep '/[^/]*R_unpaired[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
 if [ -z \"$r1_output\" ] || [ -z \"$r2_output\" ]; then echo \"expected BayesHammer paired corrected outputs in {}\" >&2; cat {} >&2; exit 64; fi\n\
 INPUT_R1={} INPUT_R2={} PAIRED_R1=\"$r1_output\" PAIRED_R2=\"$r2_output\" UNPAIRED_PATH=\"$unpaired_output\" OUTPUT_R1={} OUTPUT_R2={} python3 - <<'PY'\n\
 {}\
 PY\n",
-            shell_quote_path(&list_path),
-            shell_quote_path(&list_path),
-            shell_quote_path(&list_path),
-            shell_quote_path(search_dir),
-            shell_quote_path(&list_path),
-            shell_quote_path(input_r1),
-            shell_quote_path(input_r2.expect("paired BayesHammer reconstruction requires R2 input")),
-            shell_quote_path(output_r1),
-            shell_quote_path(output_r2),
-            reconstruction_python,
-        ));
+                shell_quote_path(&list_path),
+                shell_quote_path(&list_path),
+                shell_quote_path(&list_path),
+                shell_quote_path(search_dir),
+                shell_quote_path(&list_path),
+                shell_quote_path(input_r1),
+                shell_quote_path(input_r2),
+                shell_quote_path(output_r1),
+                shell_quote_path(output_r2),
+                reconstruction_python,
+            ),
+        );
     } else {
-        script.push_str(&format!(
-            "actual_outputs=$(wc -l < {} | tr -d '[:space:]')\n\
+        push_script(
+            &mut script,
+            format_args!(
+                "actual_outputs=$(wc -l < {} | tr -d '[:space:]')\n\
 if [ \"$actual_outputs\" -ne 1 ]; then echo \"expected 1 corrected output in {} but found $actual_outputs\" >&2; exit 64; fi\n\
 normalize_fastq_output \"$(sed -n '1p' {})\" {}\n",
-            shell_quote_path(&list_path),
-            shell_quote_path(search_dir),
-            shell_quote_path(&list_path),
-            shell_quote_path(output_r1),
-        ));
+                shell_quote_path(&list_path),
+                shell_quote_path(search_dir),
+                shell_quote_path(&list_path),
+                shell_quote_path(output_r1),
+            ),
+        );
     }
     script
+}
+
+fn push_script(target: &mut String, args: std::fmt::Arguments<'_>) {
+    target.write_fmt(args).unwrap_or_else(|_| unreachable!("writing to String cannot fail"));
 }
 
 fn write_correction_report_script(

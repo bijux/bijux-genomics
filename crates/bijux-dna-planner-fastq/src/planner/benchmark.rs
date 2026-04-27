@@ -1,3 +1,5 @@
+#![allow(clippy::uninlined_format_args, clippy::wildcard_imports)]
+
 use super::*;
 
 pub(super) fn project_benchmark_stage_params_for_tool(
@@ -384,15 +386,15 @@ fn plan_originates_from_toolset(plan: &StagePlanV1, toolset: &FastqStageToolsetB
     source_toolset_for_expanded_selection(
         std::slice::from_ref(toolset),
         plan.stage_id.as_str(),
-        &plan_stage_instance_id,
+        plan_stage_instance_id.as_deref(),
     )
     .is_some()
 }
 
 fn compare_context_key_for_plan(plan: &StagePlanV1, stage_node_id: &str) -> String {
-    let Some(assignments) =
-        expanded_route_assignments(plan.stage_instance_id.as_ref().map(|step_id| step_id.as_str()))
-    else {
+    let Some(assignments) = expanded_route_assignments(
+        plan.stage_instance_id.as_ref().map(bijux_dna_core::contract::StepId::as_str),
+    ) else {
         return String::new();
     };
     assignments
@@ -440,7 +442,6 @@ fn compare_out_dir_for_context(
 
 fn step_id_for_plan(plan: &StagePlanV1) -> StepId {
     plan.stage_instance_id
-        .as_ref()
-        .cloned()
+        .clone()
         .unwrap_or_else(|| StepId::new(plan.stage_id.as_str().to_string()))
 }

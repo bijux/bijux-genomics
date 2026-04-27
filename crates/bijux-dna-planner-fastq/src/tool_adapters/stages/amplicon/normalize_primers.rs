@@ -1,4 +1,4 @@
-#![allow(clippy::too_many_arguments)]
+#![allow(clippy::format_push_string, clippy::too_many_arguments, clippy::uninlined_format_args)]
 
 use std::path::Path;
 
@@ -208,11 +208,10 @@ fn normalize_primers_command(
     )?;
     match tool_id {
         "cutadapt" => {
-            let primer_arg = options
-                .primer_fasta
-                .as_ref()
-                .map(|path| format!("file:{}", path.display()))
-                .unwrap_or_else(|| "file:primers.fa".to_string());
+            let primer_arg = options.primer_fasta.as_ref().map_or_else(
+                || "file:primers.fa".to_string(),
+                |path| format!("file:{}", path.display()),
+            );
             let mut script = format!(
                 "set -euo pipefail\ncutadapt -g {} --overlap {} --error-rate {} --revcomp --info-file {} --json {} -o {}",
                 shell_quote_str(&primer_arg),

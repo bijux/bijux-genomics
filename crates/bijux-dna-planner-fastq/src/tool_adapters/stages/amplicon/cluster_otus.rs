@@ -44,8 +44,8 @@ pub fn plan_with_options(
     )];
     let otu_table = out_dir.join("otu_abundance.tsv");
     let otu_representatives = out_dir.join("otu_representatives.fasta");
-    let taxonomy_ready_fasta = out_dir.join("taxonomy_ready.fasta");
-    let taxonomy_ready_fastq = out_dir.join("taxonomy_ready.fastq");
+    let taxonomy_ready_fasta_path = out_dir.join("taxonomy_ready.fasta");
+    let taxonomy_ready_fastq_path = out_dir.join("taxonomy_ready.fastq");
     let report_json = out_dir.join("cluster_otus_report.json");
     let otu_clusters_uc = out_dir.join("otu_clusters.uc");
     let threads = options.threads.unwrap_or(DEFAULT_CLUSTER_OTUS_THREADS).max(1);
@@ -97,12 +97,12 @@ pub fn plan_with_options(
                 ),
                 ArtifactRef::required(
                     ArtifactId::from_static("taxonomy_ready_fasta"),
-                    taxonomy_ready_fasta.clone(),
+                    taxonomy_ready_fasta_path.clone(),
                     ArtifactRole::Reference,
                 ),
                 ArtifactRef::required(
                     ArtifactId::from_static("taxonomy_ready_fastq"),
-                    taxonomy_ready_fastq.clone(),
+                    taxonomy_ready_fastq_path.clone(),
                     ArtifactRole::Reference,
                 ),
                 ArtifactRef::required(

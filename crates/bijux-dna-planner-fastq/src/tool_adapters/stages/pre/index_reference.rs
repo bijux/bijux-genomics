@@ -110,7 +110,6 @@ pub fn plan_with_options(
 fn reference_index_prefix(tool_id: &str) -> Option<&'static str> {
     match tool_id {
         "bowtie2_build" => Some("reference"),
-        "star" => None,
         _ => None,
     }
 }

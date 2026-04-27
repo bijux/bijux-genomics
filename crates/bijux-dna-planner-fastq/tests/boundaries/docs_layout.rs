@@ -37,7 +37,8 @@ fn visit(root: &Path, path: &Path, files: &mut BTreeSet<String>) {
         if path.is_dir() {
             visit(root, &path, files);
         } else if path.extension().and_then(|ext| ext.to_str()) == Some("md") {
-            let relative = path.strip_prefix(root).expect("path under crate root");
+            let relative =
+                path.strip_prefix(root).unwrap_or_else(|_| panic!("path under crate root"));
             files.insert(relative.to_string_lossy().replace('\\', "/"));
         }
     }
