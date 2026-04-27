@@ -416,6 +416,7 @@ fn build_screen_record(
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("metrics.json"), &metrics_json)
         .context("write screen taxonomy metrics")?;
+    validate_screen_written_artifacts(&report_paths, inputs.out_dir)?;
 
     let context = build_benchmark_context(
         inputs.tool,
@@ -443,6 +444,24 @@ fn load_screen_summary_entries(path: &Path) -> Result<Vec<TaxonomyScreenSummaryE
     let raw = std::fs::read_to_string(path)
         .with_context(|| format!("screen report missing: {}", path.display()))?;
     parse_screen_summary_tsv(&raw)
+}
+
+fn validate_screen_written_artifacts(
+    report_paths: &ScreenReportPaths,
+    out_dir: &Path,
+) -> Result<()> {
+    validate_screen_nonempty_artifact(&report_paths.summary_tsv)?;
+    validate_screen_nonempty_artifact(&report_paths.classification_json)?;
+    validate_screen_nonempty_artifact(&out_dir.join("metrics.json"))
+}
+
+fn validate_screen_nonempty_artifact(path: &Path) -> Result<()> {
+    let metadata = std::fs::metadata(path)
+        .with_context(|| format!("read screen taxonomy artifact {}", path.display()))?;
+    if metadata.len() == 0 {
+        return Err(anyhow!("screen taxonomy artifact is empty: {}", path.display()));
+    }
+    Ok(())
 }
 
 fn screen_report_paths(plan: &StagePlanV1) -> Result<ScreenReportPaths> {
