@@ -1,5 +1,5 @@
-use std::collections::HashMap;
-use std::path::PathBuf;
+use std::collections::{BTreeSet, HashMap};
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -105,6 +105,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             tool: &tool_plan.tool,
             tool_spec: &tool_plan.tool_spec,
             params: &tool_plan.plan.params,
+            plan: &tool_plan.plan,
             out_dir: &tool_plan.out_dir,
             execution: &execution,
         })?;
@@ -194,6 +195,12 @@ impl UmiCacheIdentity {
     }
 }
 
+struct UmiArtifacts {
+    output_r1: PathBuf,
+    output_r2: PathBuf,
+    report_json: PathBuf,
+}
+
 struct UmiRecordInputs<'a, S: ::std::hash::BuildHasher> {
     catalog: &'a HashMap<String, ToolImageSpec, S>,
     platform: &'a PlatformSpec,
@@ -205,6 +212,7 @@ struct UmiRecordInputs<'a, S: ::std::hash::BuildHasher> {
     tool: &'a str,
     tool_spec: &'a ToolExecutionSpecV1,
     params: &'a serde_json::Value,
+    plan: &'a StagePlanV1,
     out_dir: &'a std::path::Path,
     execution: &'a UmiToolExecution,
 }
@@ -310,6 +318,31 @@ fn persist_umi_record(
     insert_record(record)
 }
 
+fn prepare_umi_artifacts(plan: &StagePlanV1) -> Result<UmiArtifacts> {
+    let output_r1 = required_output_path(plan, "umi_reads_r1")?.to_path_buf();
+    let output_r2 = required_output_path(plan, "umi_reads_r2")?.to_path_buf();
+    let report_json = required_output_path(plan, "report_json")?.to_path_buf();
+    validate_umi_artifact_paths(&output_r1, &output_r2, &report_json)?;
+    Ok(UmiArtifacts { output_r1, output_r2, report_json })
+}
+
+fn validate_umi_artifact_paths(
+    output_r1: &Path,
+    output_r2: &Path,
+    report_json: &Path,
+) -> Result<()> {
+    let mut paths = BTreeSet::new();
+    for path in [output_r1, output_r2, report_json] {
+        if !paths.insert(path) {
+            return Err(anyhow!(
+                "extract_umis output path reused by multiple artifacts: {}",
+                path.display()
+            ));
+        }
+    }
+    Ok(())
+}
+
 fn prepare_umi_benchmark_setup<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -372,15 +405,26 @@ fn ensure_umi_benchmark_qa<S: ::std::hash::BuildHasher>(
 fn build_umi_record<S: ::std::hash::BuildHasher>(
     inputs: &UmiRecordInputs<'_, S>,
 ) -> Result<BenchmarkRecord<FastqUmiMetrics>> {
-    let output_r1 = inputs.out_dir.join("umi_tools.r1.fastq.gz");
-    let output_r2 = inputs.out_dir.join("umi_tools.r2.fastq.gz");
-    let output_stats_r1 = if inputs.execution.result.exit_code == 0 && output_r1.exists() {
-        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.platform.runner, &output_r1)?
+    let artifacts = prepare_umi_artifacts(inputs.plan)?;
+    let output_stats_r1 = if inputs.execution.result.exit_code == 0 && artifacts.output_r1.exists()
+    {
+        observe_fastq_stats(
+            inputs.catalog,
+            inputs.platform,
+            inputs.platform.runner,
+            &artifacts.output_r1,
+        )?
     } else {
         *inputs.input_stats_r1
     };
-    let output_stats_r2 = if inputs.execution.result.exit_code == 0 && output_r2.exists() {
-        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.platform.runner, &output_r2)?
+    let output_stats_r2 = if inputs.execution.result.exit_code == 0 && artifacts.output_r2.exists()
+    {
+        observe_fastq_stats(
+            inputs.catalog,
+            inputs.platform,
+            inputs.platform.runner,
+            &artifacts.output_r2,
+        )?
     } else {
         *inputs.input_stats_r2
     };
@@ -390,8 +434,8 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
         params: inputs.params,
         r1: inputs.r1,
         r2: inputs.r2,
-        output_r1: &output_r1,
-        output_r2: &output_r2,
+        output_r1: &artifacts.output_r1,
+        output_r2: &artifacts.output_r2,
         input_stats_r1: inputs.input_stats_r1,
         input_stats_r2: inputs.input_stats_r2,
         output_stats_r1: &output_stats_r1,
@@ -402,7 +446,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    write_umi_report(inputs.out_dir, &report)?;
+    write_umi_report(&artifacts.report_json, &report)?;
     write_umi_metrics(inputs.out_dir, &metric_set)?;
 
     let context = build_benchmark_context(
@@ -496,9 +540,8 @@ fn umi_metrics_from_report(report: &ExtractUmisReportV1) -> FastqUmiMetrics {
     }
 }
 
-fn write_umi_report(out_dir: &std::path::Path, report: &ExtractUmisReportV1) -> Result<()> {
-    bijux_dna_infra::atomic_write_json(&out_dir.join("umi_report.json"), report)
-        .context("write umi report")
+fn write_umi_report(report_json: &Path, report: &ExtractUmisReportV1) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(report_json, report).context("write umi report")
 }
 
 fn write_umi_metrics(
@@ -525,4 +568,13 @@ fn weighted_mean_q(
 
 fn u64_to_f64(value: u64) -> f64 {
     value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn required_output_path<'a>(plan: &'a StagePlanV1, artifact_name: &str) -> Result<&'a Path> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_name)
+        .map(|artifact| artifact.path.as_path())
+        .ok_or_else(|| anyhow!("extract_umis plan missing `{artifact_name}` output"))
 }
