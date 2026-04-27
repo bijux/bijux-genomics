@@ -91,40 +91,15 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
-            setup.bench_inputs.runner,
-            jobs,
-        )?
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
+        let tool_execution =
+            execute_validate_tool(platform, &setup.bench_inputs, &tool_plan, jobs)?;
 
-        let record = build_validate_record(
-            platform,
-            &setup.bench_inputs,
-            &tool_plan.tool,
-            &tool_plan.tool_spec,
-            &tool_plan.bench_params,
-            &tool_plan.plan,
-            &execution,
-        )?;
-
-        append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
-        insert_fastq_validate_v1(&conn, &record).context("insert bench sqlite")?;
-        if execution.exit_code != 0 && validation_failures_are_fatal(args, &tool_plan.plan_options)
-        {
-            failures.push(RawFailure {
-                stage: STAGE_VALIDATE_READS.as_str().to_string(),
-                tool: tool_plan.tool.clone(),
-                reason: format!(
-                    "validator `{}` failed strict validation with status {}",
-                    tool_plan.tool, execution.exit_code
-                ),
-                category: ErrorCategory::ToolError,
-            });
+        append_jsonl(&bench_path, &tool_execution.record).context("write bench.jsonl")?;
+        insert_fastq_validate_v1(&conn, &tool_execution.record).context("insert bench sqlite")?;
+        if let Some(failure) = validate_tool_failure(args, &tool_plan, tool_execution.exit_code) {
+            failures.push(failure);
         }
-        records.push(record);
+        records.push(tool_execution.record);
     }
 
     Ok(BenchOutcome {
@@ -150,6 +125,11 @@ struct ValidateToolPlan {
     bench_params: serde_json::Value,
     params_hash: String,
     image_digest: String,
+}
+
+struct ValidateToolExecution {
+    record: BenchmarkRecord<FastqValidateMetrics>,
+    exit_code: i32,
 }
 
 fn prepare_validate_benchmark_setup<S: ::std::hash::BuildHasher>(
@@ -205,6 +185,52 @@ fn prepare_validate_tool_plan<S: ::std::hash::BuildHasher>(
         bench_params,
         params_hash,
         image_digest,
+    })
+}
+
+fn execute_validate_tool(
+    platform: &PlatformSpec,
+    bench_inputs: &ValidateBenchInputs,
+    tool_plan: &ValidateToolPlan,
+    jobs: usize,
+) -> Result<ValidateToolExecution> {
+    let execution = execute_plans_with_jobs(
+        vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
+        bench_inputs.runner,
+        jobs,
+    )?
+    .into_iter()
+    .next()
+    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
+
+    let record = build_validate_record(
+        platform,
+        bench_inputs,
+        &tool_plan.tool,
+        &tool_plan.tool_spec,
+        &tool_plan.bench_params,
+        &tool_plan.plan,
+        &execution,
+    )?;
+    Ok(ValidateToolExecution { record, exit_code: execution.exit_code })
+}
+
+fn validate_tool_failure(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs,
+    tool_plan: &ValidateToolPlan,
+    exit_code: i32,
+) -> Option<RawFailure> {
+    if exit_code == 0 || !validation_failures_are_fatal(args, &tool_plan.plan_options) {
+        return None;
+    }
+    Some(RawFailure {
+        stage: STAGE_VALIDATE_READS.as_str().to_string(),
+        tool: tool_plan.tool.clone(),
+        reason: format!(
+            "validator `{}` failed strict validation with status {exit_code}",
+            tool_plan.tool
+        ),
+        category: ErrorCategory::ToolError,
     })
 }
 
