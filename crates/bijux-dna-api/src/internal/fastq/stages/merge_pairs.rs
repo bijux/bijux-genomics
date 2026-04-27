@@ -100,18 +100,10 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
         prepare_merge_benchmark_setup(catalog, platform, runner_override, args, &selected_tools)?;
 
     if args.explain {
-        write_explain_md(&setup.bench_dir, STAGE_MERGE_PAIRS.as_str(), &setup.tools, &[], None)?;
-        write_explain_plan_json(
-            &setup.bench_dir,
-            STAGE_MERGE_PAIRS.as_str(),
-            &setup.tools,
-            &setup.registry,
-            None,
-        )?;
+        write_merge_benchmark_explain(&setup)?;
     }
 
-    ensure_image_qa_passed(STAGE_MERGE_PAIRS.as_str(), &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_MERGE_PAIRS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_merge_benchmark_qa(catalog, platform, &setup.tools)?;
 
     let sqlite_path = setup.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -248,6 +240,26 @@ fn prepare_merge_benchmark_setup<S: ::std::hash::BuildHasher>(
         r2_stats,
         options,
     })
+}
+
+fn write_merge_benchmark_explain(setup: &MergeBenchmarkSetup) -> Result<()> {
+    write_explain_md(&setup.bench_dir, STAGE_MERGE_PAIRS.as_str(), &setup.tools, &[], None)?;
+    write_explain_plan_json(
+        &setup.bench_dir,
+        STAGE_MERGE_PAIRS.as_str(),
+        &setup.tools,
+        &setup.registry,
+        None,
+    )
+}
+
+fn ensure_merge_benchmark_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_MERGE_PAIRS.as_str(), tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_MERGE_PAIRS.as_str(), tools, platform, catalog)
 }
 
 #[allow(clippy::too_many_arguments)]
