@@ -583,12 +583,13 @@ fn write_remove_chimeras_artifacts(
         &out_dir.join("metrics.json"),
         &serde_json::to_value(metric_set)?,
     )?;
-    validate_remove_chimeras_written_artifacts(out_dir, outputs)
+    validate_remove_chimeras_written_artifacts(out_dir, outputs, report)
 }
 
 fn validate_remove_chimeras_written_artifacts(
     out_dir: &std::path::Path,
     outputs: &RemoveChimerasOutputs,
+    report: &RemoveChimerasReportV1,
 ) -> Result<()> {
     let metrics_json = out_dir.join("metrics.json");
     for path in [
@@ -605,6 +606,25 @@ fn validate_remove_chimeras_written_artifacts(
         .filter(|path| path.exists())
     {
         validate_remove_chimeras_nonempty_artifact(path)?;
+    }
+    validate_remove_chimeras_raw_backend_artifact(outputs, report)?;
+    Ok(())
+}
+
+fn validate_remove_chimeras_raw_backend_artifact(
+    outputs: &RemoveChimerasOutputs,
+    report: &RemoveChimerasReportV1,
+) -> Result<()> {
+    let expected = outputs.uchime_report_tsv.as_ref().map(|path| path.display().to_string());
+    if report.raw_backend_report != expected {
+        return Err(anyhow!(
+            "remove_chimeras raw backend report mismatch: expected {:?}, observed {:?}",
+            expected,
+            report.raw_backend_report
+        ));
+    }
+    if let Some(path) = report.raw_backend_report.as_deref() {
+        validate_remove_chimeras_nonempty_artifact(std::path::Path::new(path))?;
     }
     Ok(())
 }
