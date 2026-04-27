@@ -55,3 +55,23 @@ fn policy__contracts__science_generated_docs_policy__generated_current_readme_li
         "science/generated/current/README.md must link the governed current-snapshot boundaries exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_generated_docs_policy__generated_evidence_readme_links_traceability_and_source_ledgers_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../../indexes/README.md".to_string(),
+        "binding_resolution.tsv".to_string(),
+        "claim_evidence_map.tsv".to_string(),
+        "decision_reasoning_map.tsv".to_string(),
+        "source_inventory.tsv".to_string(),
+        "source_archive_gaps.tsv".to_string(),
+        "unresolved_refs.json".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/generated/current/evidence/README.md");
+    assert_eq!(
+        expected, documented,
+        "science/generated/current/evidence/README.md must link the governed traceability and source ledgers exactly"
+    );
+}
