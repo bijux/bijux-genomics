@@ -51,12 +51,12 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.filter` default: `bcftools`. rationale: stable filtering semantics for regression comparability.
 - `vcf.stats` default: `bcftools`. rationale: minimal required metrics for quality gating.
 - `vcf.qc` default: `bcftools` (planned). rationale: keep planned stage deterministic until downstream tools are promoted.
-- `vcf.pca` default: `bcftools` (planned placeholder). rationale: placeholder baseline while `plink/plink2/eigensoft` admission is in progress.
-- `vcf.admixture` default: `bcftools` (planned placeholder). rationale: preserves deterministic contract while candidate tools are evaluated.
-- `vcf.ibd` default: `bcftools` (planned placeholder). rationale: placeholder contract baseline before `germline/ibdseq/ibdhap/ibdne` promotion.
-- `vcf.phasing` default: `bcftools` (planned placeholder). rationale: deterministic staging until `beagle/shapeit` policy promotion.
-- `vcf.imputation` default: `bcftools` (planned placeholder). rationale: deterministic staging until imputation toolchain is admitted.
-- `vcf.impute` default: `beagle` (planned). rationale: first pinned planned imputation baseline while alternative tools are externally tracked.
+- `vcf.pca` default: `plink2` (planned). rationale: current planned PCA baseline stays aligned with the governed population-structure tooling family.
+- `vcf.admixture` default: `admixture` (planned). rationale: current planned admixture baseline names the intended model-fitting tool rather than a generic placeholder.
+- `vcf.ibd` default: `germline` (planned). rationale: current planned IBD baseline names the intended segment caller while alternative tools stay comparative.
+- `vcf.phasing` default: `shapeit5` (planned). rationale: current planned phasing baseline tracks the intended modern phasing backend instead of a placeholder.
+- `vcf.imputation` default: `glimpse` (planned). rationale: current planned imputation baseline tracks the intended low-coverage-first backend while alternatives remain comparative.
+- `vcf.impute` default: `glimpse` (planned). rationale: current planned impute baseline stays aligned with the crate catalog and downstream compatibility matrices.
 - `vcf.postprocess` default: `bcftools` (planned). rationale: deterministic normalization/filter baseline.
 - `vcf.prepare_reference_panel` default: `bcftools` (planned). rationale: deterministic reference panel prep baseline.
 - `vcf.call_gl` default: `bcftools`. rationale: current governed production default keeps GL emission runnable while `angsd` remains a planned low-coverage alternative.
