@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::support::benchmark_runtime::ensure_bench_runner;
@@ -7,8 +8,9 @@ use crate::tool_selection::filter_tools_by_role;
 use anyhow::{anyhow, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_chimeras_v1, insert_fastq_chimeras_v1};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqChimeraMetrics};
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
-use bijux_dna_core::prelude::measure::ExecutionMetrics;
+use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::{
     params::edna::ChimeraDetectionEffectiveParams, PairedMode, RemoveChimerasReportV1,
@@ -42,49 +44,30 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
 ) -> Result<BenchOutcome<FastqChimeraMetrics>> {
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = select_remove_chimeras_benchmark_tools(args)?;
-    let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
-    let runner = ensure_bench_runner(platform, runner_override)?;
-    let input_stats_r1 = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
-    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(catalog, platform, runner, r2)?)
-    } else {
-        None
-    };
-    let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!("{}+{}", hash_file_sha256(&args.r1)?, hash_file_sha256(r2)?)
-    } else {
-        hash_file_sha256(&args.r1)?
-    };
-    let bench_dir_name =
-        bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_CHIMERAS)
-            .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
-    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
-    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
-    bijux_dna_infra::ensure_dir(&bench_dir)?;
-    bijux_dna_infra::ensure_dir(&tools_root)?;
+    let selected_tools = select_remove_chimeras_benchmark_tools(args)?;
+    let setup =
+        prepare_remove_chimeras_setup(catalog, platform, runner_override, args, &selected_tools)?;
 
     if args.explain {
-        write_explain_md(&bench_dir, STAGE_ID, &tools, &[], None)?;
-        write_explain_plan_json(&bench_dir, STAGE_ID, &tools, &registry, None)?;
+        write_explain_md(&setup.bench_dir, STAGE_ID, &setup.tools, &[], None)?;
+        write_explain_plan_json(&setup.bench_dir, STAGE_ID, &setup.tools, &setup.registry, None)?;
     }
 
-    ensure_image_qa_passed(STAGE_ID, &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_ID, &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
 
-    let sqlite_path = bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path)?;
-    let bench_path = bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::new();
 
-    for tool in &tools {
-        let out_dir = tools_root.join(tool);
+    for tool in &setup.tools {
+        let out_dir = setup.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
-        let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
+        let tool_spec =
+            build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
         let plan = bijux_dna_planner_fastq::tool_adapters::fastq::remove_chimeras::plan_with_effective_params(
             &tool_spec,
             &args.r1,
@@ -106,9 +89,9 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             tool,
             &tool_spec.tool_version,
             &image_digest,
-            &runner.to_string(),
+            &setup.runner.to_string(),
             &platform.name,
-            &input_hash,
+            &setup.input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -116,7 +99,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         }
         let execution = execute_plans_with_jobs(
             vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
-            runner,
+            setup.runner,
             jobs,
         )?
         .into_iter()
@@ -165,9 +148,10 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         if used_fallback {
             std::fs::copy(&args.r1, &filtered_reads.path)?;
         }
-        let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &filtered_reads.path)?;
-        let reads_in =
-            input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let output_stats_r1 =
+            observe_fastq_stats(catalog, platform, setup.runner, &filtered_reads.path)?;
+        let reads_in = setup.input_stats_r1.reads
+            + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
         let reads_out = output_stats_r1.reads;
         let chimeras_removed = reads_in.saturating_sub(reads_out);
         let chimera_fraction =
@@ -210,9 +194,9 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
                 tool,
                 tool_spec.tool_version.clone(),
                 image_digest,
-                runner,
+                setup.runner,
                 platform,
-                input_hash.clone(),
+                setup.input_hash.clone(),
                 plan.params.clone(),
             ),
             execution: ExecutionMetrics {
@@ -228,7 +212,65 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+    Ok(BenchOutcome { records, failures, bench_dir: setup.bench_dir, explain: args.explain })
+}
+
+struct RemoveChimerasBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    runner: RuntimeKind,
+    input_stats_r1: SeqkitMetrics,
+    input_stats_r2: Option<SeqkitMetrics>,
+    input_hash: String,
+    bench_dir: PathBuf,
+    tools_root: PathBuf,
+}
+
+fn prepare_remove_chimeras_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
+    selected_tools: &[String],
+) -> Result<RemoveChimerasBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role(STAGE_ID, selected_tools, &registry, false)?;
+    let runner = ensure_bench_runner(platform, runner_override)?;
+    let input_stats_r1 = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, runner, r2)?)
+    } else {
+        None
+    };
+    let input_hash = remove_chimeras_input_hash(args)?;
+    let bench_dir_name =
+        bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_CHIMERAS)
+            .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
+    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
+    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
+    bijux_dna_infra::ensure_dir(&bench_dir)?;
+    bijux_dna_infra::ensure_dir(&tools_root)?;
+
+    Ok(RemoveChimerasBenchmarkSetup {
+        registry,
+        tools,
+        runner,
+        input_stats_r1,
+        input_stats_r2,
+        input_hash,
+        bench_dir,
+        tools_root,
+    })
+}
+
+fn remove_chimeras_input_hash(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
+) -> Result<String> {
+    if let Some(r2) = args.r2.as_deref() {
+        return Ok(format!("{}+{}", hash_file_sha256(&args.r1)?, hash_file_sha256(r2)?));
+    }
+    Ok(hash_file_sha256(&args.r1)?)
 }
 
 fn select_remove_chimeras_benchmark_tools(
