@@ -15,19 +15,19 @@ ones when the evidence set evolves.
 
 ## Status
 
-The canonical machine-readable backlog is:
-`science/generated/current/evidence/fastq_download_backlog.tsv`
+The canonical machine-readable backlog is
+[science/generated/current/evidence/fastq_download_backlog.tsv](../generated/current/evidence/fastq_download_backlog.tsv).
 
 This markdown file is the operator-facing view of that FASTQ backlog.
 
-GitHub repository evidence is governed separately through:
-`science/docs/upstream/github-repos/MANIFEST.tsv`
+GitHub repository evidence is governed separately through
+[science/docs/upstream/github-repos/MANIFEST.tsv](upstream/github-repos/MANIFEST.tsv).
 
 That manifest is the durable target list for local repository mirrors under
 `science/docs/upstream/github-repos/mirrors/`.
 
-Paper payloads are governed separately through:
-`science/docs/upstream/papers/TODO_DOWNLOAD.md`
+Paper payloads are governed separately through
+[science/docs/upstream/papers/TODO_DOWNLOAD.md](upstream/papers/TODO_DOWNLOAD.md).
 
 ## Ready for Manual Clone
 
@@ -57,14 +57,13 @@ Paper payloads are governed separately through:
 | `source.fastq.tool.leehom.upstream` | `leehom` | `fastq.merge_pairs,fastq.trim_reads` | `science/docs/upstream/fastq/tools/leehom/repo` | https://github.com/grenaud/leeHom |
 | `source.fastq.tool.lighter.upstream` | `lighter` | `fastq.correct_errors` | `science/docs/upstream/fastq/tools/lighter/repo` | https://github.com/mourisl/Lighter |
 | `source.fastq.tool.multiqc.upstream` | `multiqc` | `fastq.report_qc` | `science/docs/upstream/fastq/tools/multiqc/repo` | https://github.com/multiqc/multiqc |
-| `source.fastq.tool.pear.upstream` | `pear` | `fastq.merge_pairs` | `science/docs/upstream/fastq/tools/pear/download` | https://cme.h-its.org/exelixis/web/software/pear/ |
 | `source.fastq.tool.prinseq.upstream` | `prinseq` | `fastq.filter_low_complexity,fastq.filter_reads,fastq.profile_read_lengths,fastq.trim_reads` | `science/docs/upstream/fastq/tools/prinseq/repo` | https://github.com/Adrian-Cantu/PRINSEQ-plus-plus |
 | `source.fastq.tool.rcorrector.upstream` | `rcorrector` | `fastq.correct_errors` | `science/docs/upstream/fastq/tools/rcorrector/repo` | https://github.com/mourisl/Rcorrector |
 | `source.fastq.tool.seqfu.upstream` | `seqfu` | `fastq.normalize_abundance,fastq.profile_read_lengths` | `science/docs/upstream/fastq/tools/seqfu/repo` | https://github.com/telatin/seqfu2 |
 | `source.fastq.tool.seqkit.upstream` | `seqkit` | `fastq.filter_reads,fastq.normalize_abundance,fastq.profile_overrepresented_sequences,fastq.trim_reads,fastq.trim_terminal_damage` | `science/docs/upstream/fastq/tools/seqkit/repo` | https://github.com/shenwei356/seqkit |
 | `source.fastq.tool.seqkit_stats.upstream` | `seqkit_stats` | `fastq.profile_read_lengths,fastq.profile_reads` | `science/docs/upstream/fastq/tools/seqkit_stats/repo` | https://github.com/shenwei356/seqkit |
 | `source.fastq.tool.seqpurge.upstream` | `seqpurge` | `fastq.trim_reads` | `science/docs/upstream/fastq/tools/seqpurge/repo` | https://github.com/imgag/ngs-bits |
-| `source.fastq.tool.seqtk.upstream` | `seqtk` | `fastq.validate_reads` | `science/docs/upstream/fastq/tools/seqtk/repo` | https://github.com/lh3/seqtk.git |
+| `source.fastq.tool.seqtk.upstream` | `seqtk` | `fastq.validate_reads` | `science/docs/upstream/fastq/tools/seqtk/repo` | https://github.com/lh3/seqtk |
 | `source.fastq.tool.skewer.upstream` | `skewer` | `fastq.trim_reads` | `science/docs/upstream/fastq/tools/skewer/repo` | https://github.com/relipmoc/skewer |
 | `source.fastq.tool.sortmerna.upstream` | `sortmerna` | `fastq.deplete_rrna` | `science/docs/upstream/fastq/tools/sortmerna/repo` | https://github.com/biocore/sortmerna |
 | `source.fastq.tool.star.upstream` | `star` | `fastq.index_reference` | `science/docs/upstream/fastq/tools/star/repo` | https://github.com/alexdobin/STAR |
@@ -76,15 +75,17 @@ Paper payloads are governed separately through:
 
 | Source ID | Tool | FASTQ Stages | Archive Path | Upstream |
 | --- | --- | --- | --- | --- |
-| `source.fastq.tool.bbduk.upstream` | `bbduk` | `fastq.filter_low_complexity,fastq.filter_reads,fastq.trim_polyg_tails,fastq.trim_reads` | `science/docs/upstream/fastq/tools/bbduk/download` | https://sourceforge.net/projects/bbmap/ |
-| `source.fastq.tool.bbmerge.upstream` | `bbmerge` | `fastq.merge_pairs` | `science/docs/upstream/fastq/tools/bbmerge/download` | https://sourceforge.net/projects/bbmap/ |
-| `source.fastq.tool.clumpify.upstream` | `clumpify` | `fastq.remove_duplicates` | `science/docs/upstream/fastq/tools/clumpify/download` | https://jgi.doe.gov/data-and-tools/software-tools/bbtools/ |
+| `source.fastq.tool.bbduk.upstream` | `bbduk` | `fastq.filter_low_complexity,fastq.filter_reads,fastq.trim_polyg_tails,fastq.trim_reads` | `science/docs/upstream/fastq/tools/bbduk/download` | https://bbmap.org/tools/bbduk |
+| `source.fastq.tool.bbmerge.upstream` | `bbmerge` | `fastq.merge_pairs` | `science/docs/upstream/fastq/tools/bbmerge/download` | https://bbmap.org/tools/bbmerge |
+| `source.fastq.tool.clumpify.upstream` | `clumpify` | `fastq.remove_duplicates` | `science/docs/upstream/fastq/tools/clumpify/download` | https://bbmap.org/tools/clumpify |
 | `source.fastq.tool.dustmasker.upstream` | `dustmasker` | `fastq.filter_low_complexity` | `science/docs/upstream/fastq/tools/dustmasker/download` | https://www.ncbi.nlm.nih.gov/IEB/ToolBox/CPP_DOC/lxr/source/src/app/dustmasker/ |
 | `source.fastq.tool.fastuniq.upstream` | `fastuniq` | `fastq.remove_duplicates` | `science/docs/upstream/fastq/tools/fastuniq/download` | https://sourceforge.net/projects/fastuniq/ |
 | `source.fastq.tool.musket.upstream` | `musket` | `fastq.correct_errors` | `science/docs/upstream/fastq/tools/musket/download` | https://sourceforge.net/projects/musket/ |
-| `source.fastq.tool.trimmomatic.upstream` | `trimmomatic` | `fastq.trim_reads` | `science/docs/upstream/fastq/tools/trimmomatic/download` | http://www.usadellab.org/cms/?page=trimmomatic |
+| `source.fastq.tool.pear.upstream` | `pear` | `fastq.merge_pairs` | `science/docs/upstream/fastq/tools/pear/download` | https://cme.h-its.org/exelixis/web/software/pear/ |
+| `source.fastq.tool.trimmomatic.upstream` | `trimmomatic` | `fastq.trim_reads` | `science/docs/upstream/fastq/tools/trimmomatic/download` | https://www.usadellab.org/cms/?page=trimmomatic |
 
 ## Paper Archive Worklist
 
-Use `science/docs/upstream/papers/TODO_DOWNLOAD.md` for the paired publication or
-software-citation packets behind these tool source archives.
+Use [science/docs/upstream/papers/TODO_DOWNLOAD.md](upstream/papers/TODO_DOWNLOAD.md)
+for the paired publication or software-citation packets behind these tool
+source archives.
