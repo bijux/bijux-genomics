@@ -17,6 +17,7 @@ Documentation section graph and entry points.
 - [docs/cli/index.md](../cli/index.md)
 - [containers/index.md](../../containers/index.md) (container docs hub)
 - [docs/decisions/TOOL_BINDING_DECISIONS.md](../decisions/TOOL_BINDING_DECISIONS.md)
+- [REPO_ROOT_MAP.generated.md](REPO_ROOT_MAP.generated.md)
 
 Crate-specific docs live under `crates/<crate>/docs/`.
 

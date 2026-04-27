@@ -135,3 +135,25 @@ fn policy__contracts__root_docs_navigation_policy__doc_promises_links_governed_s
         "docs/00-intro/DOC_PROMISES.md must link the governed promise authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__docs_map_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "../index.md".to_string(),
+        "index.md".to_string(),
+        "../10-architecture/index.md".to_string(),
+        "../20-science/index.md".to_string(),
+        "../30-operations/index.md".to_string(),
+        "../40-policies/index.md".to_string(),
+        "../50-reference/index.md".to_string(),
+        "../cli/index.md".to_string(),
+        "../../containers/index.md".to_string(),
+        "../decisions/TOOL_BINDING_DECISIONS.md".to_string(),
+        "REPO_ROOT_MAP.generated.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/00-intro/DOCS_MAP.md");
+    assert_eq!(
+        expected, documented,
+        "docs/00-intro/DOCS_MAP.md must link the governed documentation map surfaces exactly"
+    );
+}
