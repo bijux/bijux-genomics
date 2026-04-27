@@ -91,45 +91,8 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     }
     ensure_trim_benchmark_qa(catalog, platform, &setup.tools)?;
 
-    let adapter_policy =
-        normalized_adapter_policy(args.adapter_policy.as_deref(), adapter_bank_requested(args))?;
-    let adapter_context = if adapter_policy_uses_bank(adapter_policy.as_deref()) {
-        adapter_bank_context(
-            args.adapter_bank_preset.as_deref(),
-            args.adapter_bank.as_deref(),
-            args.adapter_bank_file.as_deref(),
-            &args.enable_adapters,
-            &args.disable_adapters,
-        )?
-    } else {
-        None
-    };
-    let polyx_policy =
-        normalized_polyx_policy(args.polyx_policy.as_deref(), args.polyx_preset.is_some())?;
-    let polyx_context = if polyx_policy_uses_bank(polyx_policy.as_deref()) {
-        polyx_bank_context(args.polyx_preset.as_deref())?
-    } else {
-        None
-    };
-    let contaminant_policy = normalized_contaminant_policy(
-        args.contaminant_policy.as_deref(),
-        args.contaminant_preset.is_some(),
-    )?;
-    let contaminant_context = if contaminant_policy_uses_bank(contaminant_policy.as_deref()) {
-        contaminant_bank_context(args.contaminant_preset.as_deref())?
-    } else {
-        None
-    };
-    let trim_options = TrimPlanOptions {
-        threads: args.threads,
-        min_length: args.min_length,
-        quality_cutoff: args.quality_cutoff,
-        n_policy: args.n_policy.clone(),
-        adapter_policy: adapter_policy.clone(),
-        polyx_policy: polyx_policy.clone(),
-        contaminant_policy: contaminant_policy.clone(),
-    };
-    validate_trim_toolset_support(&setup.tools, args.r2.is_some(), &trim_options)?;
+    let policy = resolve_trim_policy_context(args)?;
+    validate_trim_toolset_support(&setup.tools, args.r2.is_some(), &policy.trim_options)?;
 
     let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -155,15 +118,15 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             &setup.bench_inputs.r1,
             args.r2.as_deref(),
             &out_dir,
-            adapter_context.as_ref(),
-            polyx_context.as_ref(),
-            contaminant_context.as_ref(),
-            &trim_options,
+            policy.adapter_context.as_ref(),
+            policy.polyx_context.as_ref(),
+            policy.contaminant_context.as_ref(),
+            &policy.trim_options,
         )?;
         let bench_params = benchmark_query_context(
-            adapter_context.as_ref(),
-            polyx_context.as_ref(),
-            contaminant_context.as_ref(),
+            policy.adapter_context.as_ref(),
+            policy.polyx_context.as_ref(),
+            policy.contaminant_context.as_ref(),
         )?
         .embed_in_parameters(&plan.params);
         let params_hash = stable_params_hash(&bench_params);
@@ -312,6 +275,57 @@ struct TrimBenchmarkSetup {
     bench_inputs: TrimBenchInputs,
     input_hash: String,
     input_stats_r2: Option<SeqkitMetrics>,
+}
+
+struct TrimPolicyContext {
+    trim_options: TrimPlanOptions,
+    adapter_context: Option<serde_json::Value>,
+    polyx_context: Option<serde_json::Value>,
+    contaminant_context: Option<serde_json::Value>,
+}
+
+fn resolve_trim_policy_context(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimArgs,
+) -> Result<TrimPolicyContext> {
+    let adapter_policy =
+        normalized_adapter_policy(args.adapter_policy.as_deref(), adapter_bank_requested(args))?;
+    let adapter_context = if adapter_policy_uses_bank(adapter_policy.as_deref()) {
+        adapter_bank_context(
+            args.adapter_bank_preset.as_deref(),
+            args.adapter_bank.as_deref(),
+            args.adapter_bank_file.as_deref(),
+            &args.enable_adapters,
+            &args.disable_adapters,
+        )?
+    } else {
+        None
+    };
+    let polyx_policy =
+        normalized_polyx_policy(args.polyx_policy.as_deref(), args.polyx_preset.is_some())?;
+    let polyx_context = if polyx_policy_uses_bank(polyx_policy.as_deref()) {
+        polyx_bank_context(args.polyx_preset.as_deref())?
+    } else {
+        None
+    };
+    let contaminant_policy = normalized_contaminant_policy(
+        args.contaminant_policy.as_deref(),
+        args.contaminant_preset.is_some(),
+    )?;
+    let contaminant_context = if contaminant_policy_uses_bank(contaminant_policy.as_deref()) {
+        contaminant_bank_context(args.contaminant_preset.as_deref())?
+    } else {
+        None
+    };
+    let trim_options = TrimPlanOptions {
+        threads: args.threads,
+        min_length: args.min_length,
+        quality_cutoff: args.quality_cutoff,
+        n_policy: args.n_policy.clone(),
+        adapter_policy,
+        polyx_policy,
+        contaminant_policy,
+    };
+    Ok(TrimPolicyContext { trim_options, adapter_context, polyx_context, contaminant_context })
 }
 
 fn prepare_trim_benchmark_setup<S: ::std::hash::BuildHasher>(
