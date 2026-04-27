@@ -346,6 +346,36 @@ fn build_profile_reads_context(
     }
 }
 
+fn build_profile_reads_observability_context(
+    platform: &PlatformSpec,
+    bench_inputs: &StatsBenchInputs,
+    tool_plan: &StatsToolPlan,
+    params: &serde_json::Value,
+    parameters_json_normalized: serde_json::Value,
+) -> StageObservabilityContextV1 {
+    StageObservabilityContextV1 {
+        stage_id: STAGE_PROFILE_READS.as_str().to_string(),
+        stage_version: tool_plan.plan.stage_version.0,
+        tool_id: tool_plan.tool.clone(),
+        tool_version: tool_plan.tool_spec.tool_version.clone(),
+        input_fingerprint: bench_inputs.input_hash.clone(),
+        parameters_fingerprint: tool_plan.params_hash.clone(),
+        parameters_json: params.clone(),
+        parameters_json_normalized,
+        metric_context: MetricContextV1 {
+            tool_id: tool_plan.tool.clone(),
+            tool_version: tool_plan.tool_spec.tool_version.clone(),
+            image_digest: Some(tool_plan.image_digest.clone()),
+            runner: bench_inputs.runner.to_string(),
+            platform: platform.name.clone(),
+            input_hash: bench_inputs.input_hash.clone(),
+            params_hash: tool_plan.params_hash.clone(),
+            presets: std::collections::BTreeMap::new(),
+            banks: std::collections::BTreeMap::new(),
+        },
+    }
+}
+
 fn prepare_stats_benchmark_setup<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -508,27 +538,13 @@ fn run_stats_tool(
     let metrics_json = serde_json::to_value(&observation.metric_set)?;
     let parameters_json_normalized =
         bijux_dna_core::contract::canonical::parameters_json_canonicalization(&params);
-    let stage_ctx = StageObservabilityContextV1 {
-        stage_id: STAGE_PROFILE_READS.as_str().to_string(),
-        stage_version: plan.stage_version.0,
-        tool_id: tool.to_string(),
-        tool_version: tool_plan.tool_spec.tool_version.clone(),
-        input_fingerprint: bench_inputs.input_hash.clone(),
-        parameters_fingerprint: param_hash.clone(),
-        parameters_json: params.clone(),
+    let stage_ctx = build_profile_reads_observability_context(
+        platform,
+        bench_inputs,
+        tool_plan,
+        &params,
         parameters_json_normalized,
-        metric_context: MetricContextV1 {
-            tool_id: tool.to_string(),
-            tool_version: tool_plan.tool_spec.tool_version.clone(),
-            image_digest: Some(image_digest.clone()),
-            runner: bench_inputs.runner.to_string(),
-            platform: platform.name.clone(),
-            input_hash: bench_inputs.input_hash.clone(),
-            params_hash: param_hash.clone(),
-            presets: std::collections::BTreeMap::new(),
-            banks: std::collections::BTreeMap::new(),
-        },
-    };
+    );
     let _metrics_envelope_path = write_metrics_envelope(
         &bijux_dna_runtime::recording::run_artifacts_dir_for_out(&out_dir),
         &stage_ctx,
