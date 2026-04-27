@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::path::PathBuf;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
@@ -405,13 +405,37 @@ fn remove_chimeras_tool_failure(
 }
 
 fn resolve_remove_chimeras_outputs(plan: &StagePlanV1) -> Result<RemoveChimerasOutputs> {
-    Ok(RemoveChimerasOutputs {
+    let outputs = RemoveChimerasOutputs {
         filtered_reads: required_remove_chimeras_output(plan, "chimera_filtered_reads")?,
         metrics_json: required_remove_chimeras_output(plan, "chimera_metrics_json")?,
         report_json: required_remove_chimeras_output(plan, "report_json")?,
         chimeras_fasta: optional_remove_chimeras_output(plan, "chimeras_fasta"),
         uchime_report_tsv: optional_remove_chimeras_output(plan, "uchime_report_tsv"),
-    })
+    };
+    validate_remove_chimeras_output_paths(&outputs)?;
+    Ok(outputs)
+}
+
+fn validate_remove_chimeras_output_paths(outputs: &RemoveChimerasOutputs) -> Result<()> {
+    let mut paths = BTreeSet::new();
+    for path in [
+        Some(outputs.filtered_reads.as_path()),
+        Some(outputs.metrics_json.as_path()),
+        Some(outputs.report_json.as_path()),
+        outputs.chimeras_fasta.as_deref(),
+        outputs.uchime_report_tsv.as_deref(),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if !paths.insert(path) {
+            return Err(anyhow!(
+                "remove_chimeras output path reused by multiple artifacts: {}",
+                path.display()
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn observe_remove_chimeras_outputs<S: ::std::hash::BuildHasher>(
