@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::path::PathBuf;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
@@ -397,6 +397,7 @@ fn resolve_normalize_primers_outputs(
         primer_stats_json: artifact_path(plan, "primer_stats_json")?,
     };
     validate_normalize_primers_paired_outputs(&outputs, paired)?;
+    validate_normalize_primers_output_paths(&outputs)?;
     Ok(outputs)
 }
 
@@ -411,6 +412,25 @@ fn validate_normalize_primers_paired_outputs(
         }
         _ => Ok(()),
     }
+}
+
+fn validate_normalize_primers_output_paths(outputs: &NormalizePrimersOutputs) -> Result<()> {
+    let mut paths = BTreeSet::new();
+    for path in [
+        Some(outputs.output_r1.as_path()),
+        outputs.output_r2.as_deref(),
+        Some(outputs.report_json.as_path()),
+        Some(outputs.orientation_report.as_path()),
+        Some(outputs.primer_stats_json.as_path()),
+    ]
+    .into_iter()
+    .flatten()
+    {
+        if !paths.insert(path) {
+            return Err(anyhow!("normalize primers output path reused: {}", path.display()));
+        }
+    }
+    Ok(())
 }
 
 fn observe_normalize_primers_tool<S: ::std::hash::BuildHasher>(
