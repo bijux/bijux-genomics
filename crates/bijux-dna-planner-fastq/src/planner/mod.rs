@@ -146,140 +146,35 @@ impl FastqPlanner {
             ));
         }
 
-        let declared_bindings = crate::stage_api::toolset_for_stage(
-            &stage_id,
-            crate::stage_api::ToolsetExecutionMode::AllBindings,
-        );
+        let declared_bindings = stage_benchmark_declared_bindings(&stage_id);
         let comparison_input_artifact_ids =
             bijux_dna_domain_fastq::comparison_input_artifact_ids_for_stage(&stage_id);
         let mut steps = Vec::new();
         let mut comparison_inputs = Vec::new();
         for tool in &config.tools {
-            if !declared_bindings.iter().any(|declared| declared == &tool.tool_id) {
-                return Err(anyhow!(
-                    "{} is not a declared binding for {}",
-                    tool.tool_id.as_str(),
-                    stage_id.as_str()
-                ));
-            }
-            let maturity = crate::stage_api::stage_tool_maturity(&stage_id, &tool.tool_id)
-                .ok_or_else(|| {
-                    anyhow!(
-                        "missing stage-tool maturity for {} / {}",
-                        stage_id.as_str(),
-                        tool.tool_id.as_str()
-                    )
-                })?;
-            if maturity == crate::stage_api::StageToolMaturityLevel::PlannedBinding
-                && !config.allow_planned
-            {
-                return Err(anyhow!(
-                    "{} is a planned-only binding for {}; rerun with allow_planned to fan out planned tools",
-                    tool.tool_id.as_str(),
-                    stage_id.as_str()
-                ));
-            }
-            let stage_bindings = [FastqStageBinding {
-                stage_id: config.stage_id.clone(),
-                stage_instance_id: None,
-                tool: tool.clone(),
-                reason: None,
-                params: project_benchmark_stage_params_for_tool(
-                    &stage_id,
-                    &tool.tool_id,
-                    config.params.as_ref(),
-                ),
-            }];
-            let stage_plans = compose_fastq_stage_bindings(
-                &stage_bindings,
-                &config.aux_images,
-                config.adapter_bank.as_ref(),
-                config.polyx_bank.as_ref(),
-                config.contaminant_bank.as_ref(),
-                config.enable_contaminant_removal,
-                &config.r1,
-                config.r2.as_deref(),
-                config.reference_fasta.as_deref(),
-                None,
-                |binding, _r1, _r2| {
-                    let stage_dir = binding.stage_id.trim_start_matches(STAGE_PREFIX);
-                    Ok(config.out_dir.join(stage_dir).join(binding.tool.tool_id.as_str()))
-                },
-            )?;
-            let Some(plan) = stage_plans.into_iter().next() else {
-                return Err(anyhow!(
-                    "benchmark stage planner produced no stage plan for {} / {}",
-                    stage_id.as_str(),
-                    tool.tool_id.as_str()
-                ));
-            };
-            for output in &plan.io.outputs {
-                if !comparison_input_artifact_ids.is_empty()
-                    && !comparison_input_artifact_ids
-                        .iter()
-                        .any(|artifact_id| *artifact_id == output.name.as_str())
-                {
-                    continue;
-                }
-                comparison_inputs.push(ArtifactRef::required(
-                    ArtifactId::new(format!("{}__{}", tool.tool_id.as_str(), output.name.as_str())),
-                    output.path.clone(),
-                    output.role,
-                ));
-            }
+            ensure_stage_benchmark_tool(config, &stage_id, &declared_bindings, tool)?;
+            let plan = stage_benchmark_plan_for_tool(config, &stage_id, tool)?;
+            comparison_inputs.extend(stage_benchmark_comparison_inputs(
+                tool,
+                &plan,
+                &comparison_input_artifact_ids,
+            ));
             steps.push(bijux_dna_stage_contract::execution_step_from_stage_plan_with_step_id(
                 &plan,
                 StepId::new(format!("{}.tool.{}", stage_id.as_str(), tool.tool_id.as_str())),
             ));
         }
 
-        let comparison_artifact_ids =
-            bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(&stage_id);
-        if !comparison_artifact_ids.is_empty() {
-            let compare_step_id = StepId::new(format!("{}.compare", stage_id.as_str()));
-            let compare_out_dir = config
-                .out_dir
-                .join(stage_id.as_str().trim_start_matches(STAGE_PREFIX))
-                .join("compare");
-            let comparison_command =
-                comparison_command_for_stage(&stage_id, &comparison_artifact_ids)?;
-            let comparison_outputs = comparison_artifact_ids
-                .iter()
-                .map(|artifact_id| {
-                    ArtifactRef::required(
-                        ArtifactId::new(artifact_id.clone()),
-                        compare_out_dir.join(comparison_artifact_file_name(artifact_id)),
-                        ArtifactRole::SummaryJson,
-                    )
-                })
-                .collect::<Vec<_>>();
-            steps.push(ExecutionStep {
-                step_id: compare_step_id,
-                stage_id: crate::STAGE_COMPARE_STAGE_TOOLS,
-                command: CommandSpecV1 { template: comparison_command },
-                image: ContainerImageRefV1 { image: "bijux-dna-compare".to_string(), digest: None },
-                resources: ToolConstraints::default(),
-                io: StageIO { inputs: comparison_inputs, outputs: comparison_outputs },
-                out_dir: compare_out_dir,
-                aux_images: BTreeMap::new(),
-                expected_artifact_ids: comparison_artifact_ids
-                    .iter()
-                    .map(|artifact_id| ArtifactId::new(artifact_id.clone()))
-                    .collect(),
-                metrics_schema_ids: Vec::new(),
-            });
-        }
-
         let compare_step_id = StepId::new(format!("{}.compare", stage_id.as_str()));
-        let edges = if steps.iter().any(|step| step.step_id == compare_step_id) {
-            steps
-                .iter()
-                .filter(|step| step.step_id != compare_step_id)
-                .map(|step| ExecutionEdge::new(step.step_id.clone(), compare_step_id.clone()))
-                .collect()
-        } else {
-            Vec::new()
-        };
+        if let Some(compare_step) = stage_benchmark_comparison_step(
+            config,
+            &stage_id,
+            compare_step_id.clone(),
+            comparison_inputs,
+        )? {
+            steps.push(compare_step);
+        }
+        let edges = stage_benchmark_comparison_edges(&steps, &compare_step_id);
 
         Ok(ExecutionGraph::new(
             config.pipeline_id.clone(),
@@ -289,6 +184,163 @@ impl FastqPlanner {
             edges,
         )?)
     }
+}
+
+fn stage_benchmark_declared_bindings(stage_id: &StageId) -> Vec<bijux_dna_core::ids::ToolId> {
+    crate::stage_api::toolset_for_stage(
+        stage_id,
+        crate::stage_api::ToolsetExecutionMode::AllBindings,
+    )
+}
+
+fn ensure_stage_benchmark_tool(
+    config: &FastqStageBenchmarkConfig,
+    stage_id: &StageId,
+    declared_bindings: &[bijux_dna_core::ids::ToolId],
+    tool: &ToolExecutionSpecV1,
+) -> Result<()> {
+    if !declared_bindings.iter().any(|declared| declared == &tool.tool_id) {
+        return Err(anyhow!(
+            "{} is not a declared binding for {}",
+            tool.tool_id.as_str(),
+            stage_id.as_str()
+        ));
+    }
+    let maturity =
+        crate::stage_api::stage_tool_maturity(stage_id, &tool.tool_id).ok_or_else(|| {
+            anyhow!(
+                "missing stage-tool maturity for {} / {}",
+                stage_id.as_str(),
+                tool.tool_id.as_str()
+            )
+        })?;
+    if maturity == crate::stage_api::StageToolMaturityLevel::PlannedBinding && !config.allow_planned
+    {
+        return Err(anyhow!(
+            "{} is a planned-only binding for {}; rerun with allow_planned to fan out planned tools",
+            tool.tool_id.as_str(),
+            stage_id.as_str()
+        ));
+    }
+    Ok(())
+}
+
+fn stage_benchmark_plan_for_tool(
+    config: &FastqStageBenchmarkConfig,
+    stage_id: &StageId,
+    tool: &ToolExecutionSpecV1,
+) -> Result<StagePlanV1> {
+    let stage_bindings = [FastqStageBinding {
+        stage_id: config.stage_id.clone(),
+        stage_instance_id: None,
+        tool: tool.clone(),
+        reason: None,
+        params: project_benchmark_stage_params_for_tool(
+            stage_id,
+            &tool.tool_id,
+            config.params.as_ref(),
+        ),
+    }];
+    let stage_plans = compose_fastq_stage_bindings(
+        &stage_bindings,
+        &config.aux_images,
+        config.adapter_bank.as_ref(),
+        config.polyx_bank.as_ref(),
+        config.contaminant_bank.as_ref(),
+        config.enable_contaminant_removal,
+        &config.r1,
+        config.r2.as_deref(),
+        config.reference_fasta.as_deref(),
+        None,
+        |binding, _r1, _r2| {
+            let stage_dir = binding.stage_id.trim_start_matches(STAGE_PREFIX);
+            Ok(config.out_dir.join(stage_dir).join(binding.tool.tool_id.as_str()))
+        },
+    )?;
+    stage_plans.into_iter().next().ok_or_else(|| {
+        anyhow!(
+            "benchmark stage planner produced no stage plan for {} / {}",
+            stage_id.as_str(),
+            tool.tool_id.as_str()
+        )
+    })
+}
+
+fn stage_benchmark_comparison_inputs(
+    tool: &ToolExecutionSpecV1,
+    plan: &StagePlanV1,
+    comparison_input_artifact_ids: &[String],
+) -> Vec<ArtifactRef> {
+    plan.io
+        .outputs
+        .iter()
+        .filter(|output| {
+            comparison_input_artifact_ids.is_empty()
+                || comparison_input_artifact_ids
+                    .iter()
+                    .any(|artifact_id| *artifact_id == output.name.as_str())
+        })
+        .map(|output| {
+            ArtifactRef::required(
+                ArtifactId::new(format!("{}__{}", tool.tool_id.as_str(), output.name.as_str())),
+                output.path.clone(),
+                output.role,
+            )
+        })
+        .collect()
+}
+
+fn stage_benchmark_comparison_step(
+    config: &FastqStageBenchmarkConfig,
+    stage_id: &StageId,
+    compare_step_id: StepId,
+    comparison_inputs: Vec<ArtifactRef>,
+) -> Result<Option<ExecutionStep>> {
+    let comparison_artifact_ids =
+        bijux_dna_domain_fastq::comparison_artifact_ids_for_stage(stage_id);
+    if comparison_artifact_ids.is_empty() {
+        return Ok(None);
+    }
+    let compare_out_dir =
+        config.out_dir.join(stage_id.as_str().trim_start_matches(STAGE_PREFIX)).join("compare");
+    let comparison_outputs = comparison_artifact_ids
+        .iter()
+        .map(|artifact_id| {
+            ArtifactRef::required(
+                ArtifactId::new(artifact_id.clone()),
+                compare_out_dir.join(comparison_artifact_file_name(artifact_id)),
+                ArtifactRole::SummaryJson,
+            )
+        })
+        .collect::<Vec<_>>();
+    Ok(Some(ExecutionStep {
+        step_id: compare_step_id,
+        stage_id: crate::STAGE_COMPARE_STAGE_TOOLS,
+        command: CommandSpecV1 {
+            template: comparison_command_for_stage(stage_id, &comparison_artifact_ids)?,
+        },
+        image: ContainerImageRefV1 { image: "bijux-dna-compare".to_string(), digest: None },
+        resources: ToolConstraints::default(),
+        io: StageIO { inputs: comparison_inputs, outputs: comparison_outputs },
+        out_dir: compare_out_dir,
+        aux_images: BTreeMap::new(),
+        expected_artifact_ids: comparison_artifact_ids.into_iter().map(ArtifactId::new).collect(),
+        metrics_schema_ids: Vec::new(),
+    }))
+}
+
+fn stage_benchmark_comparison_edges(
+    steps: &[ExecutionStep],
+    compare_step_id: &StepId,
+) -> Vec<ExecutionEdge> {
+    if !steps.iter().any(|step| &step.step_id == compare_step_id) {
+        return Vec::new();
+    }
+    steps
+        .iter()
+        .filter(|step| &step.step_id != compare_step_id)
+        .map(|step| ExecutionEdge::new(step.step_id.clone(), compare_step_id.clone()))
+        .collect()
 }
 
 fn normalize_stage_bindings(
