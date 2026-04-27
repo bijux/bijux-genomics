@@ -424,10 +424,10 @@ fn observe_low_complexity_outputs<S: ::std::hash::BuildHasher>(
     Ok(LowComplexityObservedStats { output_stats_r1, output_stats_r2 })
 }
 
-fn low_complexity_output_artifacts<'a>(
-    tool_plan: &'a LowComplexityToolPlan,
+fn low_complexity_output_artifacts(
+    tool_plan: &LowComplexityToolPlan,
     paired_end: bool,
-) -> Result<LowComplexityOutputArtifacts<'a>> {
+) -> Result<LowComplexityOutputArtifacts<'_>> {
     let r1 =
         tool_plan.plan.io.outputs.first().map(|artifact| artifact.path.as_path()).ok_or_else(
             || anyhow!("low-complexity plan for {} has no R1 output", tool_plan.tool),
