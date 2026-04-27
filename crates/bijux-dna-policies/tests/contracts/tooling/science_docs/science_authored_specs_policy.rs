@@ -49,8 +49,11 @@ fn policy__contracts__science_authored_specs_policy__science_root_links_authored
 fn policy__contracts__science_authored_specs_policy__science_root_links_generated_entrypoints_exactly(
 ) {
     let expected = BTreeSet::from([
+        "generated/README.md".to_string(),
+        "generated/current/README.md".to_string(),
+        "generated/current/evidence/README.md".to_string(),
+        "generated/indexes/README.md".to_string(),
         "generated/indexes/science_index.json".to_string(),
-        "generated/current/evidence/".to_string(),
     ]);
     let documented = markdown_link_targets("science/README.md")
         .into_iter()
