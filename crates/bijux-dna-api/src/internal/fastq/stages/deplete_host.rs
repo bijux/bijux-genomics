@@ -65,20 +65,13 @@ fn artifact_input_path_string(plan: &bijux_dna_stage_contract::StagePlanV1, name
 
 /// # Errors
 /// Returns an error if planning or execution fails.
-#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteHostArgs,
 ) -> Result<BenchOutcome<FastqDepleteHostMetrics>> {
-    let tools = select_deplete_host_tools(&args.tools)?;
-    let artifact_kind =
-        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
-    preflight_stage(STAGE_DEPLETE_HOST.as_str(), artifact_kind)?;
-    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
-    log_header_warnings(STAGE_DEPLETE_HOST.as_str(), &header);
-
+    let tools = select_deplete_host_benchmark_tools(args)?;
     let setup =
         prepare_deplete_host_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
@@ -185,6 +178,18 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         bench_dir: setup.bench_inputs.bench_dir,
         explain: args.explain,
     })
+}
+
+fn select_deplete_host_benchmark_tools(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteHostArgs,
+) -> Result<Vec<String>> {
+    let tools = select_deplete_host_tools(&args.tools)?;
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
+    preflight_stage(STAGE_DEPLETE_HOST.as_str(), artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_DEPLETE_HOST.as_str(), &header);
+    Ok(tools)
 }
 
 struct DepleteHostBenchmarkSetup {
