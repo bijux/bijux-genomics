@@ -18,7 +18,7 @@ use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy;
-use bijux_dna_domain_fastq::MergePairsReportV1;
+use bijux_dna_domain_fastq::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, ensure_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
@@ -355,6 +355,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     let execution = inputs.execution;
     let merged_stats = observe_merge_stats(catalog, platform, runner, merged_reads)?;
     let report = merge_report_with_execution(report_path, execution)?;
+    validate_merge_report_identity(&tool_spec.tool_id.0, &report)?;
 
     let metrics = merge_metrics_from_report(&report, r1_stats, r2_stats, &merged_stats);
     let metric_set = metric_set(metrics.clone());
@@ -431,6 +432,31 @@ fn merge_report_with_execution(
     report.memory_mb = Some(execution.memory_mb);
     write_governed_merge_report(report_path, &report)?;
     Ok(report)
+}
+
+fn validate_merge_report_identity(tool: &str, report: &MergePairsReportV1) -> Result<()> {
+    if report.schema_version != MERGE_PAIRS_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "merge_pairs report schema mismatch: expected {}, observed {}",
+            MERGE_PAIRS_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_MERGE_PAIRS.as_str() || report.stage_id != STAGE_MERGE_PAIRS.as_str() {
+        return Err(anyhow!(
+            "merge_pairs report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool {
+        return Err(anyhow!(
+            "merge_pairs report tool mismatch: expected {}, observed {}",
+            tool,
+            report.tool_id
+        ));
+    }
+    Ok(())
 }
 
 fn prune_merge_tool_payload(
