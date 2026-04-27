@@ -112,6 +112,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         validate_reference_contaminants_report_identity(&tool_plan.tool, &report)?;
         validate_reference_contaminants_report_execution(&report, &execution)?;
         validate_reference_contaminants_report_paired_mode(args.r2.is_some(), &report)?;
+        validate_reference_contaminants_report_paths(&tool_plan.plan, &report)?;
         write_reference_contaminants_report(&report)?;
         let metrics = reference_contaminants_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -558,6 +559,77 @@ fn validate_reference_contaminants_report_paired_mode(
     Ok(())
 }
 
+fn validate_reference_contaminants_report_paths(
+    plan: &StagePlanV1,
+    report: &DepleteReferenceContaminantsReportV1,
+) -> Result<()> {
+    validate_reference_contaminants_report_path(
+        "input r1",
+        &required_reference_contaminants_input_path(plan, "reads_r1")?,
+        &report.input_r1,
+    )?;
+    validate_reference_contaminants_optional_report_path(
+        "input r2",
+        artifact_input_path(plan, "reads_r2").as_deref(),
+        report.input_r2.as_deref(),
+    )?;
+    validate_reference_contaminants_report_path(
+        "output r1",
+        &required_reference_contaminants_output_path(plan, "contaminant_screened_reads_r1")?,
+        &report.output_r1,
+    )?;
+    validate_reference_contaminants_optional_report_path(
+        "output r2",
+        artifact_output_path(plan, "contaminant_screened_reads_r2").as_deref(),
+        report.output_r2.as_deref(),
+    )?;
+    validate_reference_contaminants_report_path(
+        "report json",
+        &required_reference_contaminants_output_path(plan, "contaminant_screen_report_json")?,
+        &report.report_json,
+    )?;
+    if report.index_artifact != "reference_index" {
+        return Err(anyhow!(
+            "reference contaminant depletion report index artifact mismatch: expected reference_index, observed {}",
+            report.index_artifact
+        ));
+    }
+    required_reference_contaminants_input_path(plan, "reference_index")?;
+    Ok(())
+}
+
+fn validate_reference_contaminants_optional_report_path(
+    label: &str,
+    expected: Option<&std::path::Path>,
+    observed: Option<&str>,
+) -> Result<()> {
+    match (expected, observed) {
+        (Some(expected), Some(observed)) => {
+            validate_reference_contaminants_report_path(label, expected, observed)
+        }
+        (None, None) => Ok(()),
+        _ => Err(anyhow!(
+            "reference contaminant depletion report {label} path mismatch: expected {:?}, observed {:?}",
+            expected.map(|path| path.display().to_string()),
+            observed
+        )),
+    }
+}
+
+fn validate_reference_contaminants_report_path(
+    label: &str,
+    expected: &std::path::Path,
+    observed: &str,
+) -> Result<()> {
+    let expected = expected.display().to_string();
+    if observed != expected {
+        return Err(anyhow!(
+            "reference contaminant depletion report {label} path mismatch: expected {expected}, observed {observed}"
+        ));
+    }
+    Ok(())
+}
+
 fn u64_to_f64(value: u64) -> f64 {
     value.to_string().parse::<f64>().unwrap_or(0.0)
 }
@@ -579,6 +651,15 @@ fn required_reference_contaminants_output_path(
 ) -> Result<std::path::PathBuf> {
     artifact_output_path(plan, artifact_id).ok_or_else(|| {
         anyhow!("reference contaminant depletion plan missing output artifact {artifact_id}")
+    })
+}
+
+fn required_reference_contaminants_input_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_id: &str,
+) -> Result<std::path::PathBuf> {
+    artifact_input_path(plan, artifact_id).ok_or_else(|| {
+        anyhow!("reference contaminant depletion plan missing input artifact {artifact_id}")
     })
 }
 
