@@ -16,6 +16,7 @@ use crate::tool_selection::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::quality::{fetch_fastq_filter_v2, insert_fastq_filter_v2};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqFilterMetrics};
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_domain_fastq::{FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION};
@@ -28,6 +29,8 @@ use bijux_dna_planner_fastq::stage_api::{
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
+
+use crate::internal::fastq::stages::trim_bench_common::TrimBenchInputs;
 
 fn apply_thread_override(
     tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
@@ -49,76 +52,49 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqFilterMetrics>> {
-    let tools = select_filter_benchmark_tools(args)?;
-
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_FILTER_READS.as_str(), &tools, &registry, false)?;
-    let bench_inputs = prepare_trim_bench(
-        catalog,
-        platform,
-        runner_override,
-        &args.sample_id,
-        &args.out,
-        &args.r1,
-        &STAGE_FILTER_READS,
-    )?;
-    let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
-    } else {
-        bench_inputs.input_hash.clone()
-    };
-    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
-    } else {
-        None
-    };
+    let selected_tools = select_filter_benchmark_tools(args)?;
+    let setup =
+        prepare_filter_benchmark_setup(catalog, platform, runner_override, args, &selected_tools)?;
 
     if args.explain {
-        write_explain_md(&bench_inputs.bench_dir, STAGE_FILTER_READS.as_str(), &tools, &[], None)?;
-        write_explain_plan_json(
-            &bench_inputs.bench_dir,
+        write_explain_md(
+            &setup.bench_inputs.bench_dir,
             STAGE_FILTER_READS.as_str(),
-            &tools,
-            &registry,
+            &setup.tools,
+            &[],
+            None,
+        )?;
+        write_explain_plan_json(
+            &setup.bench_inputs.bench_dir,
+            STAGE_FILTER_READS.as_str(),
+            &setup.tools,
+            &setup.registry,
             None,
         )?;
     }
 
-    ensure_image_qa_passed(STAGE_FILTER_READS.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_FILTER_READS.as_str(), &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_FILTER_READS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_FILTER_READS.as_str(), &setup.tools, platform, catalog)?;
 
-    let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = bench_inputs.bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_inputs.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
-    let filter_options = FilterPlanOptions {
-        threads: args.threads,
-        max_n: args.max_n,
-        max_n_fraction: args.max_n_fraction,
-        max_n_count: args.max_n_count,
-        low_complexity_threshold: args.low_complexity_threshold,
-        entropy_threshold: args.entropy_threshold,
-        kmer_ref: args.kmer_ref.clone(),
-        redundant_filters: Vec::new(),
-        polyx_policy: args.polyx_policy.clone(),
-    };
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqFilterMetrics>>::new();
-    for tool in &tools {
-        let out_dir = bench_inputs.tools_root.join(tool);
+    for tool in &setup.tools {
+        let out_dir = setup.bench_inputs.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec(
             STAGE_FILTER_READS.as_str(),
             tool,
-            &registry,
+            &setup.registry,
             catalog,
             platform,
         )?;
         let tool_spec = apply_thread_override(&tool_spec, args.threads);
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan =
-            plan_filter(&tool_spec, &args.r1, args.r2.as_deref(), &out_dir, &filter_options)?;
+        let plan = plan_filter(&tool_spec, &args.r1, args.r2.as_deref(), &out_dir, &setup.options)?;
         let params_hash = stable_params_hash(&plan.params);
         let image_digest = tool_spec
             .image
@@ -131,9 +107,9 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             tool,
             &tool_spec.tool_version,
             &image_digest,
-            &bench_inputs.runner.to_string(),
+            &setup.bench_inputs.runner.to_string(),
             &platform.name,
-            &input_hash,
+            &setup.input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -141,7 +117,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         }
         let execution = execute_plans_with_jobs(
             vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
-            bench_inputs.runner,
+            setup.bench_inputs.runner,
             jobs,
         )?
         .into_iter()
@@ -150,11 +126,11 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         let record = build_filter_record(
             catalog,
             platform,
-            &bench_inputs,
-            input_stats_r2.as_ref(),
+            &setup.bench_inputs,
+            setup.input_stats_r2.as_ref(),
             tool,
             &tool_spec,
-            &input_hash,
+            &setup.input_hash,
             &plan.params,
             &plan.io.outputs[0].path,
             plan.io.outputs.get(1).map(|artifact| artifact.path.as_path()),
@@ -174,7 +150,21 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir: setup.bench_inputs.bench_dir,
+        explain: args.explain,
+    })
+}
+
+struct FilterBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    bench_inputs: TrimBenchInputs,
+    input_hash: String,
+    input_stats_r2: Option<SeqkitMetrics>,
+    options: FilterPlanOptions,
 }
 
 fn select_filter_benchmark_tools(
@@ -187,6 +177,50 @@ fn select_filter_benchmark_tools(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_FILTER_READS.as_str(), &header);
     Ok(tools)
+}
+
+fn prepare_filter_benchmark_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterArgs,
+    selected_tools: &[String],
+) -> Result<FilterBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools =
+        filter_tools_by_role(STAGE_FILTER_READS.as_str(), selected_tools, &registry, false)?;
+    let bench_inputs = prepare_trim_bench(
+        catalog,
+        platform,
+        runner_override,
+        &args.sample_id,
+        &args.out,
+        &args.r1,
+        &STAGE_FILTER_READS,
+    )?;
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
+    } else {
+        bench_inputs.input_hash.clone()
+    };
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
+    } else {
+        None
+    };
+    let options = FilterPlanOptions {
+        threads: args.threads,
+        max_n: args.max_n,
+        max_n_fraction: args.max_n_fraction,
+        max_n_count: args.max_n_count,
+        low_complexity_threshold: args.low_complexity_threshold,
+        entropy_threshold: args.entropy_threshold,
+        kmer_ref: args.kmer_ref.clone(),
+        redundant_filters: Vec::new(),
+        polyx_policy: args.polyx_policy.clone(),
+    };
+    Ok(FilterBenchmarkSetup { registry, tools, bench_inputs, input_hash, input_stats_r2, options })
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
