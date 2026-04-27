@@ -15,7 +15,6 @@ fn list(table: &toml::Value, key: &str) -> Vec<String> {
 }
 
 #[test]
-#[ignore = "TODO: reconcile stage required_tool_roles with current registry tool_role taxonomy"]
 fn policy__contracts__tool_role_capability_policy__stage_tools_match_required_roles() {
     let root = support::workspace_root();
     let raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
@@ -62,12 +61,11 @@ fn policy__contracts__tool_role_capability_policy__stage_tools_match_required_ro
         }
     }
 
-    if !offenders.is_empty() {
-        eprintln!(
-            "tool role/stage role drift (non-fatal during migration):\n{}",
-            offenders.join("\n")
-        );
-    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "tool role/stage role drift:\n{}",
+        offenders.join("\n")
+    );
 }
 
 #[test]
