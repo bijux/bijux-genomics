@@ -87,7 +87,6 @@ fn policy__contracts__contract_authority_policy__param_schema_ids_are_not_hardco
 }
 
 #[test]
-#[ignore = "TODO: refresh stage completeness policy for current registry/image governance"]
 fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_per_domain_policy() {
     let root = support::workspace_root();
     let domains = parse_toml(&root.join("configs/ci/registry/domains.toml"));
@@ -196,12 +195,11 @@ fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_pe
         }
     }
 
-    if !offenders.is_empty() {
-        eprintln!(
-            "contract authority completeness drift (non-fatal during migration):\n{}",
-            offenders.join("\n")
-        );
-    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "domain stage contracts must remain complete per authority policy:\n{}",
+        offenders.join("\n")
+    );
 }
 
 #[test]
