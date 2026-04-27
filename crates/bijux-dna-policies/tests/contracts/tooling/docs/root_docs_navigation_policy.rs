@@ -232,3 +232,18 @@ fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed
         "docs/40-policies/index.md must link the governed policy entry surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__docs_style_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "../index.md".to_string(),
+        "../00-intro/DOCS_MAP.md".to_string(),
+        "../DOCS_GRAPH.toml".to_string(),
+        "../10-architecture/CONTRACT_AUTHORITY_LADDER.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/40-policies/DOCS_STYLE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/40-policies/DOCS_STYLE.md must link the governed docs-style authorities exactly"
+    );
+}

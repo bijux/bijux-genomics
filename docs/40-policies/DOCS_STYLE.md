@@ -2,9 +2,10 @@
 
 ## Index Rules
 - Every major docs section must have an index file: `docs/<section>/index.md`.
-- Root docs index is `docs/index.md`.
-- Section graph is maintained in `docs/00-intro/DOCS_MAP.md`.
-- Executable graph contract is maintained in `docs/DOCS_GRAPH.toml` and enforced by docs checks.
+- Root docs index is [docs/index.md](../index.md).
+- Section graph is maintained in [docs/00-intro/DOCS_MAP.md](../00-intro/DOCS_MAP.md).
+- Executable graph contract is maintained in [docs/DOCS_GRAPH.toml](../DOCS_GRAPH.toml) and
+  enforced by docs checks.
 
 ## Naming Conventions
 - Use UPPER_SNAKE_CASE for top-level policy/reference docs where already established.
@@ -33,7 +34,8 @@
   - `docs/50-reference/*`: canonical contracts and workflow checklists.
 
 ## Contract Authority Ladder
-- See `docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md` for authoritative precedence.
+- See [docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md](../10-architecture/CONTRACT_AUTHORITY_LADDER.md)
+  for authoritative precedence.
 - Docs are normative for process, but generated/config/domain/container sources remain authoritative for executable contracts.
 
 ## Purpose
