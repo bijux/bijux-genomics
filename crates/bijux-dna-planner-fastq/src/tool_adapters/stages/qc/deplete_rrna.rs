@@ -260,121 +260,210 @@ fn rrna_command(
     options: &DepleteRrnaPlanOptions,
 ) -> Result<Vec<String>> {
     match tool_id {
-        "sortmerna" => {
-            let work_dir = out_dir.join("sortmerna_workdir");
-            let idx_dir = work_dir.join("idx");
-            let kvdb_dir = work_dir.join("kvdb");
-            let readb_dir = work_dir.join("readb");
-            let out_subdir = work_dir.join("out");
-            let other_prefix = out_subdir.join("other");
-            let mut command = vec![
-                "sortmerna".to_string(),
-                "--ref".to_string(),
-                options.rrna_db.clone(),
-                "--reads".to_string(),
-                r1.display().to_string(),
-                "--workdir".to_string(),
-                format!("{}/", work_dir.display()),
-                "--idx-dir".to_string(),
-                idx_dir.display().to_string(),
-                "--kvdb".to_string(),
-                kvdb_dir.display().to_string(),
-                "--readb".to_string(),
-                readb_dir.display().to_string(),
-                "--threads".to_string(),
-                threads.to_string(),
-                "--fastx".to_string(),
-                "--zip-out".to_string(),
-                "yes".to_string(),
-            ];
-            if let Some(r2) = r2 {
-                command.push("--reads".to_string());
-                command.push(r2.display().to_string());
-            }
-            let single_output_globs = format!(
-                "{} {} {} {}",
-                shell_quote_str(&format!("{}*.fastq.gz", other_prefix.display())),
-                shell_quote_str(&format!("{}*.fq.gz", other_prefix.display())),
-                shell_quote_str(&format!("{}*.fastq", other_prefix.display())),
-                shell_quote_str(&format!("{}*.fq", other_prefix.display())),
-            );
-            let paired_fwd_globs = format!(
-                "{} {} {} {} {} {} {} {} {} {} {} {}",
-                shell_quote_str(&format!("{}*paired*fwd*.fastq.gz", other_prefix.display())),
-                shell_quote_str(&format!("{}*paired*fwd*.fq.gz", other_prefix.display())),
-                shell_quote_str(&format!("{}*paired*fwd*.fastq", other_prefix.display())),
-                shell_quote_str(&format!("{}*paired*fwd*.fq", other_prefix.display())),
-                shell_quote_str(&format!("{}*fwd*.fastq.gz", other_prefix.display())),
-                shell_quote_str(&format!("{}*fwd*.fq.gz", other_prefix.display())),
-                shell_quote_str(&format!("{}*fwd*.fastq", other_prefix.display())),
-                shell_quote_str(&format!("{}*fwd*.fq", other_prefix.display())),
-                shell_quote_str(&format!("{}/fwd_*.fastq.gz", readb_dir.display())),
-                shell_quote_str(&format!("{}/fwd_*.fq.gz", readb_dir.display())),
-                shell_quote_str(&format!("{}/fwd_*.fastq", readb_dir.display())),
-                shell_quote_str(&format!("{}/fwd_*.fq", readb_dir.display())),
-            );
-            let paired_rev_globs = format!(
-                "{} {} {} {} {} {} {} {} {} {} {} {}",
-                shell_quote_str(&format!("{}*paired*rev*.fastq.gz", other_prefix.display())),
-                shell_quote_str(&format!("{}*paired*rev*.fq.gz", other_prefix.display())),
-                shell_quote_str(&format!("{}*paired*rev*.fastq", other_prefix.display())),
-                shell_quote_str(&format!("{}*paired*rev*.fq", other_prefix.display())),
-                shell_quote_str(&format!("{}*rev*.fastq.gz", other_prefix.display())),
-                shell_quote_str(&format!("{}*rev*.fq.gz", other_prefix.display())),
-                shell_quote_str(&format!("{}*rev*.fastq", other_prefix.display())),
-                shell_quote_str(&format!("{}*rev*.fq", other_prefix.display())),
-                shell_quote_str(&format!("{}/rev_*.fastq.gz", readb_dir.display())),
-                shell_quote_str(&format!("{}/rev_*.fq.gz", readb_dir.display())),
-                shell_quote_str(&format!("{}/rev_*.fastq", readb_dir.display())),
-                shell_quote_str(&format!("{}/rev_*.fq", readb_dir.display())),
-            );
-            let readb_single_globs = format!(
-                "{} {} {} {}",
-                shell_quote_str(&format!("{}/fwd_*.fastq.gz", readb_dir.display())),
-                shell_quote_str(&format!("{}/fwd_*.fq.gz", readb_dir.display())),
-                shell_quote_str(&format!("{}/fwd_*.fastq", readb_dir.display())),
-                shell_quote_str(&format!("{}/fwd_*.fq", readb_dir.display())),
-            );
-            let script = format!(
-                "set -euo pipefail\nshopt -s nullglob\ncollect_output_from_globs() {{ dest=\"$1\"; shift; local pattern candidate matches=(); local -a inputs=(); for pattern in \"$@\"; do matches=( $pattern ); for candidate in \"${{matches[@]}}\"; do if [ -f \"$candidate\" ]; then inputs+=( \"$candidate\" ); fi; done; done; if [ \"${{#inputs[@]}}\" -eq 0 ]; then printf 'missing expected SortMeRNA output for %s\\n' \"$dest\" >&2; return 1; fi; {{ for candidate in \"${{inputs[@]}}\"; do case \"$candidate\" in *.gz) gzip -cd -- \"$candidate\" ;; *) cat -- \"$candidate\" ;; esac; done; }} | gzip -c > \"$dest\"; }}\nrm -rf {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p {work_dir} {idx_dir} {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p \"$(dirname {filtered_reads_r1})\" \"$(dirname {report_tsv})\" \"$(dirname {report_json})\"\nrm -f {filtered_reads_r1} {filtered_reads_r2_cleanup} {report_tsv} {report_json}\n{sortmerna_command}\n",
-                kvdb_dir = shell_quote_path(&kvdb_dir),
-                readb_dir = shell_quote_path(&readb_dir),
-                out_subdir = shell_quote_path(&out_subdir),
-                work_dir = shell_quote_path(&work_dir),
-                idx_dir = shell_quote_path(&idx_dir),
-                filtered_reads_r1 = shell_quote_path(filtered_reads_r1),
-                filtered_reads_r2_cleanup = filtered_reads_r2
-                    .map_or_else(|| "''".to_string(), shell_quote_path),
-                report_tsv = shell_quote_path(report_tsv),
-                report_json = shell_quote_path(report_json),
-                sortmerna_command = shell_join(&command),
-            );
-            let script = if let Some(filtered_reads_r2) = filtered_reads_r2 {
-                format!(
-                    "{script}collect_output_from_globs {filtered_reads_r1} {paired_fwd_globs}\ncollect_output_from_globs {filtered_reads_r2} {paired_rev_globs}\n",
-                    filtered_reads_r1 = shell_quote_path(filtered_reads_r1),
-                    paired_fwd_globs = paired_fwd_globs,
-                    filtered_reads_r2 = shell_quote_path(filtered_reads_r2),
-                    paired_rev_globs = paired_rev_globs,
-                )
-            } else {
-                format!(
-                    "{script}collect_output_from_globs {filtered_reads_r1} {single_output_globs} {readb_single_globs}\n",
-                    filtered_reads_r1 = shell_quote_path(filtered_reads_r1),
-                    single_output_globs = single_output_globs,
-                    readb_single_globs = readb_single_globs,
-                )
-            };
-            let script = format!(
-                "{script}if [ -f {aligned_log} ]; then cp -- {aligned_log} {report_tsv}; else : > {report_tsv}; fi\nprintf '{{}}\\n' > {report_json}\n",
-                aligned_log = shell_quote_path(&out_subdir.join("aligned.log")),
-                report_tsv = shell_quote_path(report_tsv),
-                report_json = shell_quote_path(report_json),
-            );
-            Ok(vec!["bash".to_string(), "-lc".to_string(), script])
-        }
+        "sortmerna" => Ok(sortmerna_rrna_command(
+            r1,
+            r2,
+            out_dir,
+            filtered_reads_r1,
+            filtered_reads_r2,
+            report_tsv,
+            report_json,
+            threads,
+            options,
+        )),
         _ => Err(anyhow!("unsupported tool {tool_id}")),
     }
+}
+
+struct SortmernaWorkPaths {
+    work_dir: std::path::PathBuf,
+    idx_dir: std::path::PathBuf,
+    kvdb_dir: std::path::PathBuf,
+    readb_dir: std::path::PathBuf,
+    out_subdir: std::path::PathBuf,
+    other_prefix: std::path::PathBuf,
+}
+
+struct SortmernaOutputGlobs {
+    single_output: String,
+    readb_single: String,
+    paired_fwd: String,
+    paired_rev: String,
+}
+
+fn sortmerna_rrna_command(
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    filtered_reads_r1: &Path,
+    filtered_reads_r2: Option<&Path>,
+    report_tsv: &Path,
+    report_json: &Path,
+    threads: u32,
+    options: &DepleteRrnaPlanOptions,
+) -> Vec<String> {
+    let paths = sortmerna_work_paths(out_dir);
+    let command = sortmerna_command_tokens(r1, r2, threads, options, &paths);
+    let globs = sortmerna_output_globs(&paths);
+    let mut script = sortmerna_setup_script(
+        &paths,
+        filtered_reads_r1,
+        filtered_reads_r2,
+        report_tsv,
+        report_json,
+        &command,
+    );
+    script.push_str(&sortmerna_collect_script(filtered_reads_r1, filtered_reads_r2, &globs));
+    script.push_str(&sortmerna_finalize_script(&paths, report_tsv, report_json));
+    vec!["bash".to_string(), "-lc".to_string(), script]
+}
+
+fn sortmerna_work_paths(out_dir: &Path) -> SortmernaWorkPaths {
+    let work_dir = out_dir.join("sortmerna_workdir");
+    let idx_dir = work_dir.join("idx");
+    let kvdb_dir = work_dir.join("kvdb");
+    let readb_dir = work_dir.join("readb");
+    let out_subdir = work_dir.join("out");
+    let other_prefix = out_subdir.join("other");
+    SortmernaWorkPaths { work_dir, idx_dir, kvdb_dir, readb_dir, out_subdir, other_prefix }
+}
+
+fn sortmerna_command_tokens(
+    r1: &Path,
+    r2: Option<&Path>,
+    threads: u32,
+    options: &DepleteRrnaPlanOptions,
+    paths: &SortmernaWorkPaths,
+) -> Vec<String> {
+    let mut command = vec![
+        "sortmerna".to_string(),
+        "--ref".to_string(),
+        options.rrna_db.clone(),
+        "--reads".to_string(),
+        r1.display().to_string(),
+        "--workdir".to_string(),
+        format!("{}/", paths.work_dir.display()),
+        "--idx-dir".to_string(),
+        paths.idx_dir.display().to_string(),
+        "--kvdb".to_string(),
+        paths.kvdb_dir.display().to_string(),
+        "--readb".to_string(),
+        paths.readb_dir.display().to_string(),
+        "--threads".to_string(),
+        threads.to_string(),
+        "--fastx".to_string(),
+        "--zip-out".to_string(),
+        "yes".to_string(),
+    ];
+    if let Some(r2) = r2 {
+        command.push("--reads".to_string());
+        command.push(r2.display().to_string());
+    }
+    command
+}
+
+fn sortmerna_output_globs(paths: &SortmernaWorkPaths) -> SortmernaOutputGlobs {
+    SortmernaOutputGlobs {
+        single_output: quoted_globs(&[
+            format!("{}*.fastq.gz", paths.other_prefix.display()),
+            format!("{}*.fq.gz", paths.other_prefix.display()),
+            format!("{}*.fastq", paths.other_prefix.display()),
+            format!("{}*.fq", paths.other_prefix.display()),
+        ]),
+        readb_single: readb_globs(&paths.readb_dir, "fwd"),
+        paired_fwd: paired_globs(&paths.other_prefix, &paths.readb_dir, "fwd"),
+        paired_rev: paired_globs(&paths.other_prefix, &paths.readb_dir, "rev"),
+    }
+}
+
+fn paired_globs(other_prefix: &Path, readb_dir: &Path, mate: &str) -> String {
+    quoted_globs(&[
+        format!("{}*paired*{mate}*.fastq.gz", other_prefix.display()),
+        format!("{}*paired*{mate}*.fq.gz", other_prefix.display()),
+        format!("{}*paired*{mate}*.fastq", other_prefix.display()),
+        format!("{}*paired*{mate}*.fq", other_prefix.display()),
+        format!("{}*{mate}*.fastq.gz", other_prefix.display()),
+        format!("{}*{mate}*.fq.gz", other_prefix.display()),
+        format!("{}*{mate}*.fastq", other_prefix.display()),
+        format!("{}*{mate}*.fq", other_prefix.display()),
+        format!("{}/{mate}_*.fastq.gz", readb_dir.display()),
+        format!("{}/{mate}_*.fq.gz", readb_dir.display()),
+        format!("{}/{mate}_*.fastq", readb_dir.display()),
+        format!("{}/{mate}_*.fq", readb_dir.display()),
+    ])
+}
+
+fn readb_globs(readb_dir: &Path, mate: &str) -> String {
+    quoted_globs(&[
+        format!("{}/{mate}_*.fastq.gz", readb_dir.display()),
+        format!("{}/{mate}_*.fq.gz", readb_dir.display()),
+        format!("{}/{mate}_*.fastq", readb_dir.display()),
+        format!("{}/{mate}_*.fq", readb_dir.display()),
+    ])
+}
+
+fn quoted_globs(patterns: &[String]) -> String {
+    patterns.iter().map(|pattern| shell_quote_str(pattern)).collect::<Vec<_>>().join(" ")
+}
+
+fn sortmerna_setup_script(
+    paths: &SortmernaWorkPaths,
+    filtered_reads_r1: &Path,
+    filtered_reads_r2: Option<&Path>,
+    report_tsv: &Path,
+    report_json: &Path,
+    command: &[String],
+) -> String {
+    format!(
+        "set -euo pipefail\nshopt -s nullglob\ncollect_output_from_globs() {{ dest=\"$1\"; shift; local pattern candidate matches=(); local -a inputs=(); for pattern in \"$@\"; do matches=( $pattern ); for candidate in \"${{matches[@]}}\"; do if [ -f \"$candidate\" ]; then inputs+=( \"$candidate\" ); fi; done; done; if [ \"${{#inputs[@]}}\" -eq 0 ]; then printf 'missing expected SortMeRNA output for %s\\n' \"$dest\" >&2; return 1; fi; {{ for candidate in \"${{inputs[@]}}\"; do case \"$candidate\" in *.gz) gzip -cd -- \"$candidate\" ;; *) cat -- \"$candidate\" ;; esac; done; }} | gzip -c > \"$dest\"; }}\nrm -rf {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p {work_dir} {idx_dir} {kvdb_dir} {readb_dir} {out_subdir}\nmkdir -p \"$(dirname {filtered_reads_r1})\" \"$(dirname {report_tsv})\" \"$(dirname {report_json})\"\nrm -f {filtered_reads_r1} {filtered_reads_r2_cleanup} {report_tsv} {report_json}\n{sortmerna_command}\n",
+        kvdb_dir = shell_quote_path(&paths.kvdb_dir),
+        readb_dir = shell_quote_path(&paths.readb_dir),
+        out_subdir = shell_quote_path(&paths.out_subdir),
+        work_dir = shell_quote_path(&paths.work_dir),
+        idx_dir = shell_quote_path(&paths.idx_dir),
+        filtered_reads_r1 = shell_quote_path(filtered_reads_r1),
+        filtered_reads_r2_cleanup =
+            filtered_reads_r2.map_or_else(|| "''".to_string(), shell_quote_path),
+        report_tsv = shell_quote_path(report_tsv),
+        report_json = shell_quote_path(report_json),
+        sortmerna_command = shell_join(command),
+    )
+}
+
+fn sortmerna_collect_script(
+    filtered_reads_r1: &Path,
+    filtered_reads_r2: Option<&Path>,
+    globs: &SortmernaOutputGlobs,
+) -> String {
+    if let Some(filtered_reads_r2) = filtered_reads_r2 {
+        format!(
+            "collect_output_from_globs {filtered_reads_r1} {paired_fwd_globs}\ncollect_output_from_globs {filtered_reads_r2} {paired_rev_globs}\n",
+            filtered_reads_r1 = shell_quote_path(filtered_reads_r1),
+            paired_fwd_globs = globs.paired_fwd,
+            filtered_reads_r2 = shell_quote_path(filtered_reads_r2),
+            paired_rev_globs = globs.paired_rev,
+        )
+    } else {
+        format!(
+            "collect_output_from_globs {filtered_reads_r1} {single_output_globs} {readb_single_globs}\n",
+            filtered_reads_r1 = shell_quote_path(filtered_reads_r1),
+            single_output_globs = globs.single_output,
+            readb_single_globs = globs.readb_single,
+        )
+    }
+}
+
+fn sortmerna_finalize_script(
+    paths: &SortmernaWorkPaths,
+    report_tsv: &Path,
+    report_json: &Path,
+) -> String {
+    format!(
+        "if [ -f {aligned_log} ]; then cp -- {aligned_log} {report_tsv}; else : > {report_tsv}; fi\nprintf '{{}}\\n' > {report_json}\n",
+        aligned_log = shell_quote_path(&paths.out_subdir.join("aligned.log")),
+        report_tsv = shell_quote_path(report_tsv),
+        report_json = shell_quote_path(report_json),
+    )
 }
 
 fn shell_join(command: &[String]) -> String {
