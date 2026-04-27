@@ -396,29 +396,8 @@ fn build_screen_record(
     };
     bijux_dna_infra::atomic_write_json(&report_paths.classification_json, &governed_report)
         .context("write governed screen taxonomy report")?;
-    let metrics = FastqScreenMetrics {
-        reads_in: read_accounting.reads_in,
-        reads_out: read_accounting.reads_in,
-        bases_in: read_accounting.bases_in,
-        bases_out: read_accounting.bases_in,
-        pairs_in: read_accounting.pairs,
-        pairs_out: read_accounting.pairs,
-        contamination_rate: classification_summary.contamination_rate,
-        classified_fraction: classification_summary.classified_fraction,
-        unclassified_fraction: classification_summary.unclassified_fraction,
-        classifier: Some(enum_json_name(&effective_params.classifier)?),
-        report_format: Some(enum_json_name(&effective_params.report_format)?),
-        database_catalog_id: Some(effective_params.database_catalog_id.clone()),
-        database_artifact_id: Some(effective_params.database_artifact_id.clone()),
-        minimum_confidence: effective_params.minimum_confidence.map(f64::from),
-        emit_unclassified: Some(effective_params.emit_unclassified),
-        contamination_summary: serde_json::to_value(&classification_summary.entries)
-            .context("serialize taxonomy summary entries")?
-            .into(),
-        top_taxa: serde_json::to_value(&classification_summary.top_taxa)
-            .context("serialize top taxonomy entries")?
-            .into(),
-    };
+    let metrics =
+        screen_metrics_from_summary(&read_accounting, &classification_summary, &effective_params)?;
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     let metrics_json = serde_json::to_value(&metric_set)?;
@@ -493,6 +472,36 @@ fn screen_classification_summary(
         contamination_rate,
         top_taxa,
     }
+}
+
+fn screen_metrics_from_summary(
+    read_accounting: &ScreenReadAccounting,
+    classification_summary: &ScreenClassificationSummary,
+    effective_params: &ScreenEffectiveParams,
+) -> Result<FastqScreenMetrics> {
+    Ok(FastqScreenMetrics {
+        reads_in: read_accounting.reads_in,
+        reads_out: read_accounting.reads_in,
+        bases_in: read_accounting.bases_in,
+        bases_out: read_accounting.bases_in,
+        pairs_in: read_accounting.pairs,
+        pairs_out: read_accounting.pairs,
+        contamination_rate: classification_summary.contamination_rate,
+        classified_fraction: classification_summary.classified_fraction,
+        unclassified_fraction: classification_summary.unclassified_fraction,
+        classifier: Some(enum_json_name(&effective_params.classifier)?),
+        report_format: Some(enum_json_name(&effective_params.report_format)?),
+        database_catalog_id: Some(effective_params.database_catalog_id.clone()),
+        database_artifact_id: Some(effective_params.database_artifact_id.clone()),
+        minimum_confidence: effective_params.minimum_confidence.map(f64::from),
+        emit_unclassified: Some(effective_params.emit_unclassified),
+        contamination_summary: serde_json::to_value(&classification_summary.entries)
+            .context("serialize taxonomy summary entries")?
+            .into(),
+        top_taxa: serde_json::to_value(&classification_summary.top_taxa)
+            .context("serialize top taxonomy entries")?
+            .into(),
+    })
 }
 
 fn find_unclassified_fraction(entries: &[TaxonomyScreenSummaryEntryV1]) -> Option<f64> {
