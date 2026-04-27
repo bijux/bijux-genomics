@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
     benchmark_image_identity, build_benchmark_context, observe_fastq_stats, prepare_trim_bench,
     TrimBenchInputs,
@@ -17,7 +18,6 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
-use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::screen::RrnaEffectiveParams;
 use bijux_dna_domain_fastq::{
@@ -185,8 +185,7 @@ fn prepare_rrna_tool_plan<S: ::std::hash::BuildHasher>(
             threads: args.threads,
         },
     )?;
-    let params_hash =
-        params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
+    let params_hash = stable_params_hash(&plan.params);
     let image_digest = benchmark_image_identity(&tool_spec);
     Ok(RrnaToolPlan { tool, tool_spec, plan, params_hash, image_digest })
 }
