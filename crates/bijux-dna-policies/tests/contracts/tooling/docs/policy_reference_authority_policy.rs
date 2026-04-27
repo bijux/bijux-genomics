@@ -141,3 +141,17 @@ fn policy__contracts__policy_reference_authority_policy__pipelines_links_governe
         "docs/50-reference/PIPELINES.md must link the governed pipeline authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__contract_versioning_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "SCHEMAS_INDEX.md".to_string(),
+        "COMPATIBILITY_MATRIX.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/CONTRACT_VERSIONING.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/CONTRACT_VERSIONING.md must link the governed contract-versioning authorities exactly"
+    );
+}
