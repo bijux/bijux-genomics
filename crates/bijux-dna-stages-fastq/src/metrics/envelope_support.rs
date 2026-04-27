@@ -1,5 +1,18 @@
+use std::collections::VecDeque;
+use std::io::{BufRead, BufReader};
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
+
+use anyhow::{anyhow, Context, Result};
+use bijux_dna_core::contract::canonical::parameters_json_canonicalization;
+use bijux_dna_core::contract::{ContractVersion, MetricProvenanceV1};
+use bijux_dna_core::metrics::MetricsEnvelope;
+use bijux_dna_core::prelude::hashing::{input_fingerprint, parameters_fingerprint};
+use bijux_dna_domain_fastq::parse_effective_params;
+use bijux_dna_stage_contract::StagePlanV1;
+use flate2::read::GzDecoder;
+
 use super::stage_metrics::stage_metrics_for_plan;
-use super::*;
 use crate::metrics::filters::{
     filter_removals_from_bbduk_stats, filter_removals_from_fastp, FilterRemovalCounts,
 };
@@ -244,11 +257,12 @@ pub(super) fn distributions_for_path(path: Option<&Path>) -> Result<LengthGcDist
         let seq = lines.next().ok_or_else(|| anyhow!("fastq missing sequence line"))??;
         let _plus = lines.next().ok_or_else(|| anyhow!("fastq missing plus line"))??;
         let _qual = lines.next().ok_or_else(|| anyhow!("fastq missing quality line"))??;
-        let len = seq.len() as u64;
+        let len = u64_from_usize(seq.len());
         *length_hist.entry(len).or_insert(0) += 1;
-        let gc =
-            seq.bytes().filter(|base| matches!(base, b'G' | b'g' | b'C' | b'c')).count() as f64;
-        let gc_pct = if len > 0 { ((gc / len as f64) * 100.0).round() as u8 } else { 0 };
+        let gc = u64_from_usize(
+            seq.bytes().filter(|base| matches!(base, b'G' | b'g' | b'C' | b'c')).count(),
+        );
+        let gc_pct = rounded_percent(gc, len);
         *gc_hist.entry(gc_pct).or_insert(0) += 1;
     }
     Ok((length_hist.into_iter().collect(), gc_hist.into_iter().collect()))
@@ -291,6 +305,25 @@ fn observer_jobs() -> usize {
         .map_or(2, |value| value.clamp(1, 32))
 }
 
+fn u64_from_usize(value: usize) -> u64 {
+    match u64::try_from(value) {
+        Ok(value) => value,
+        Err(error) => panic!("usize must fit into u64 on supported targets: {error}"),
+    }
+}
+
+fn rounded_percent(numerator: u64, denominator: u64) -> u8 {
+    if denominator == 0 {
+        return 0;
+    }
+    let rounded = numerator.saturating_mul(100).saturating_add(denominator / 2) / denominator;
+    match u8::try_from(rounded) {
+        Ok(value) => value,
+        Err(error) => panic!("rounded percent must fit into u8: {error}"),
+    }
+}
+
+#[allow(clippy::cast_precision_loss)]
 pub(crate) fn f64_from_u64(value: u64) -> f64 {
     value as f64
 }
@@ -321,7 +354,7 @@ fn fastq_stats(path: &Path) -> Result<bijux_dna_core::prelude::measure::SeqkitMe
         let qual = lines.next().ok_or_else(|| anyhow!("fastq missing quality line"))??;
         reads += 1;
         let seq_bytes = seq.as_bytes();
-        bases += seq_bytes.len() as u64;
+        bases += u64_from_usize(seq_bytes.len());
         for base in seq_bytes {
             match base {
                 b'G' | b'g' | b'C' | b'c' => gc += 1,
@@ -334,8 +367,8 @@ fn fastq_stats(path: &Path) -> Result<bijux_dna_core::prelude::measure::SeqkitMe
             }
         }
     }
-    let mean_q = if reads > 0 { q_sum as f64 / reads as f64 } else { 0.0 };
-    let gc_percent = if bases > 0 { (gc as f64 / bases as f64) * 100.0 } else { 0.0 };
+    let mean_q = if reads > 0 { f64_from_u64(q_sum) / f64_from_u64(reads) } else { 0.0 };
+    let gc_percent = if bases > 0 { (f64_from_u64(gc) / f64_from_u64(bases)) * 100.0 } else { 0.0 };
     Ok(bijux_dna_core::prelude::measure::SeqkitMetrics { reads, bases, mean_q, gc_percent })
 }
 

@@ -1,9 +1,8 @@
-use anyhow::Result;
 use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::metrics::envelope_support::path_from_params;
 
-pub(super) fn normalize_abundance_metrics(plan: &StagePlanV1) -> Result<serde_json::Value> {
+pub(super) fn normalize_abundance_metrics(plan: &StagePlanV1) -> serde_json::Value {
     let report_path = path_from_params(&plan.params, "report_json")
         .or_else(|| {
             plan.io
@@ -19,7 +18,7 @@ pub(super) fn normalize_abundance_metrics(plan: &StagePlanV1) -> Result<serde_js
     let governed_report = report_path
         .and_then(|path| std::fs::read_to_string(&path).ok())
         .and_then(|raw| crate::observer::parse_normalize_abundance_report(&raw).ok());
-    Ok(if let Some(report) = governed_report {
+    if let Some(report) = governed_report {
         serde_json::json!({
             "table_rows": report.table_rows,
             "sample_count": report.sample_count,
@@ -34,10 +33,10 @@ pub(super) fn normalize_abundance_metrics(plan: &StagePlanV1) -> Result<serde_js
         })
     } else {
         serde_json::json!({})
-    })
+    }
 }
 
-pub(super) fn infer_asvs_metrics(plan: &StagePlanV1) -> Result<serde_json::Value> {
+pub(super) fn infer_asvs_metrics(plan: &StagePlanV1) -> serde_json::Value {
     let report_path = path_from_params(&plan.params, "report_json")
         .or_else(|| {
             plan.io
@@ -53,7 +52,7 @@ pub(super) fn infer_asvs_metrics(plan: &StagePlanV1) -> Result<serde_json::Value
     let governed_report = report_path
         .and_then(|path| std::fs::read_to_string(&path).ok())
         .and_then(|raw| crate::observer::parse_infer_asvs_report(&raw).ok());
-    Ok(if let Some(report) = governed_report {
+    if let Some(report) = governed_report {
         serde_json::json!({
             "asv_count": report.asv_count,
             "sample_count": report.sample_count,
@@ -68,10 +67,10 @@ pub(super) fn infer_asvs_metrics(plan: &StagePlanV1) -> Result<serde_json::Value
         })
     } else {
         serde_json::json!({})
-    })
+    }
 }
 
-pub(super) fn cluster_otus_metrics(plan: &StagePlanV1) -> Result<serde_json::Value> {
+pub(super) fn cluster_otus_metrics(plan: &StagePlanV1) -> serde_json::Value {
     let report_path = path_from_params(&plan.params, "report_json")
         .or_else(|| {
             plan.io
@@ -87,7 +86,7 @@ pub(super) fn cluster_otus_metrics(plan: &StagePlanV1) -> Result<serde_json::Val
     let governed_report = report_path
         .and_then(|path| std::fs::read_to_string(&path).ok())
         .and_then(|raw| crate::observer::parse_cluster_otus_report(&raw).ok());
-    Ok(if let Some(report) = governed_report {
+    if let Some(report) = governed_report {
         serde_json::json!({
             "otu_identity": report.otu_identity,
             "threads": report.threads,
@@ -100,10 +99,10 @@ pub(super) fn cluster_otus_metrics(plan: &StagePlanV1) -> Result<serde_json::Val
         })
     } else {
         serde_json::json!({})
-    })
+    }
 }
 
-pub(super) fn index_reference_metrics(plan: &StagePlanV1) -> Result<serde_json::Value> {
+pub(super) fn index_reference_metrics(plan: &StagePlanV1) -> serde_json::Value {
     let report_path = path_from_params(&plan.params, "report_json")
         .or_else(|| {
             plan.io
@@ -119,7 +118,7 @@ pub(super) fn index_reference_metrics(plan: &StagePlanV1) -> Result<serde_json::
     let governed_report = report_path
         .and_then(|path| std::fs::read_to_string(&path).ok())
         .and_then(|raw| crate::observer::parse_index_reference_report(&raw).ok());
-    Ok(if let Some(report) = governed_report {
+    if let Some(report) = governed_report {
         serde_json::json!({
             "threads": report.threads,
             "index_format": report.index_format,
@@ -130,5 +129,5 @@ pub(super) fn index_reference_metrics(plan: &StagePlanV1) -> Result<serde_json::
         })
     } else {
         serde_json::json!({})
-    })
+    }
 }

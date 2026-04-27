@@ -8,12 +8,12 @@ use bijux_dna_domain_fastq::metrics::{
 
 #[derive(Debug, Default, Clone)]
 pub(super) struct FilterRemovalCounts {
-    pub by_n: u64,
-    pub by_entropy: u64,
-    pub by_low_complexity: u64,
-    pub by_kmer: u64,
-    pub by_contaminant_kmer: u64,
-    pub by_length: u64,
+    pub n: u64,
+    pub entropy: u64,
+    pub low_complexity: u64,
+    pub kmer: u64,
+    pub contaminant_kmer: u64,
+    pub length: u64,
 }
 
 pub(super) fn filter_removals_from_fastp(path: &Path) -> Option<FilterRemovalCounts> {
@@ -27,12 +27,12 @@ pub(super) fn filter_removals_from_fastp(path: &Path) -> Option<FilterRemovalCou
         filtering.get("too_short_reads").and_then(serde_json::Value::as_u64).unwrap_or(0)
             + filtering.get("too_long_reads").and_then(serde_json::Value::as_u64).unwrap_or(0);
     Some(FilterRemovalCounts {
-        by_n,
-        by_entropy,
-        by_low_complexity: by_entropy,
-        by_kmer: 0,
-        by_contaminant_kmer: 0,
-        by_length,
+        n: by_n,
+        entropy: by_entropy,
+        low_complexity: by_entropy,
+        kmer: 0,
+        contaminant_kmer: 0,
+        length: by_length,
     })
 }
 
@@ -61,12 +61,12 @@ pub(super) fn filter_removals_from_bbduk_stats(
     }
     let removed = removed?;
     Some(FilterRemovalCounts {
-        by_n: 0,
-        by_entropy: 0,
-        by_low_complexity: 0,
-        by_kmer: if kmer_ref_used { removed } else { 0 },
-        by_contaminant_kmer: if kmer_ref_used { removed } else { 0 },
-        by_length: 0,
+        n: 0,
+        entropy: 0,
+        low_complexity: 0,
+        kmer: if kmer_ref_used { removed } else { 0 },
+        contaminant_kmer: if kmer_ref_used { removed } else { 0 },
+        length: 0,
     })
 }
 
@@ -115,12 +115,12 @@ pub(super) fn filter_metrics_with_removals(
         reads_in: input.reads,
         reads_out: output.reads,
         reads_dropped: input.reads.saturating_sub(output.reads),
-        reads_removed_by_n: removals.by_n,
-        reads_removed_by_entropy: removals.by_entropy,
-        reads_removed_low_complexity: removals.by_low_complexity,
-        reads_removed_by_kmer: removals.by_kmer,
-        reads_removed_contaminant_kmer: removals.by_contaminant_kmer,
-        reads_removed_by_length: removals.by_length,
+        reads_removed_by_n: removals.n,
+        reads_removed_by_entropy: removals.entropy,
+        reads_removed_low_complexity: removals.low_complexity,
+        reads_removed_by_kmer: removals.kmer,
+        reads_removed_contaminant_kmer: removals.contaminant_kmer,
+        reads_removed_by_length: removals.length,
         bases_in: input.bases,
         bases_out: output.bases,
         pairs_in,
