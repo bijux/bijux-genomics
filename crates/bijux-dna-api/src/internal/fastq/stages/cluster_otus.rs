@@ -270,6 +270,12 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
         });
         validate_cluster_otus_report_identity(tool, &report)?;
         validate_cluster_otus_report_metrics(&report, &metric_set.metrics)?;
+        validate_cluster_otus_report_execution(
+            &report,
+            execution.runtime_s,
+            execution.memory_mb,
+            execution.exit_code,
+        )?;
         write_cluster_otus_artifacts(&out_dir, &outputs, &report, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
@@ -368,6 +374,36 @@ fn validate_cluster_otus_report_metrics(
             "cluster_otus report representative count mismatch: expected {}, observed {}",
             metrics.representative_count,
             report.representative_sequence_count
+        ));
+    }
+    Ok(())
+}
+
+fn validate_cluster_otus_report_execution(
+    report: &ClusterOtusReportV1,
+    runtime_s: f64,
+    memory_mb: f64,
+    exit_code: i32,
+) -> Result<()> {
+    if report.runtime_s.is_none_or(|observed| (observed - runtime_s).abs() > f64::EPSILON) {
+        return Err(anyhow!(
+            "cluster_otus report runtime mismatch: expected {}, observed {:?}",
+            runtime_s,
+            report.runtime_s
+        ));
+    }
+    if report.memory_mb.is_none_or(|observed| (observed - memory_mb).abs() > f64::EPSILON) {
+        return Err(anyhow!(
+            "cluster_otus report memory mismatch: expected {}, observed {:?}",
+            memory_mb,
+            report.memory_mb
+        ));
+    }
+    if report.exit_code != Some(exit_code) {
+        return Err(anyhow!(
+            "cluster_otus report exit code mismatch: expected {}, observed {:?}",
+            exit_code,
+            report.exit_code
         ));
     }
     Ok(())
