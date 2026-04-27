@@ -37,3 +37,32 @@ fn policy__contracts__science_boundary_docs_policy__science_root_readme_links_co
         "science/README.md must link the root science contract surface exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__science_contract_links_boundary_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "README.md".to_string(),
+        "specs/data/README.md".to_string(),
+        "specs/evidence/README.md".to_string(),
+        "specs/results/README.md".to_string(),
+        "specs/reports/README.md".to_string(),
+        "specs/releases/README.md".to_string(),
+        "generated/README.md".to_string(),
+        "generated/current/README.md".to_string(),
+        "generated/current/evidence/README.md".to_string(),
+        "generated/indexes/README.md".to_string(),
+        "docs/README.md".to_string(),
+        "../domain/fastq/execution_support.yaml".to_string(),
+        "../domain/fastq/docs/DEFAULT_SETTINGS.md".to_string(),
+        "../configs/ci/registry/tool_registry.toml".to_string(),
+        "../crates/bijux-dna-environment/docs/ENV_REFERENCE.md".to_string(),
+        "docs/upstream/fastq/tools/EVIDENCE_MAP.tsv".to_string(),
+        "docs/upstream/papers/TOOL_PAPER_MAP.tsv".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/CONTRACT.md");
+    assert_eq!(
+        expected, documented,
+        "science/CONTRACT.md must link the governed boundary surfaces exactly"
+    );
+}
