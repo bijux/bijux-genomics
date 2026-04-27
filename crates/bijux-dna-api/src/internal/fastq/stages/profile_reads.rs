@@ -94,8 +94,8 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     ensure_image_qa_passed(STAGE_PROFILE_READS.as_str(), &setup.tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_PROFILE_READS.as_str(), &setup.tools, platform, catalog)?;
 
-    let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
-    let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
+    let store = StatsBenchmarkStore::from_bench_inputs(&setup.bench_inputs);
+    let conn = bijux_dna_analyze::open_sqlite(&store.sqlite_path).context("open bench sqlite")?;
     let mut records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
     let mut new_records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
     let mut failures: Vec<RawFailure> = Vec::new();
@@ -147,9 +147,8 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
 
     records.extend(new_records.iter().cloned());
 
-    let bench_path = setup.bench_inputs.bench_dir.join("bench.jsonl");
     for record in &new_records {
-        append_jsonl(&bench_path, record).context("write bench.jsonl")?;
+        append_jsonl(&store.jsonl_path, record).context("write bench.jsonl")?;
     }
 
     for record in &new_records {
@@ -193,6 +192,20 @@ struct StatsBenchmarkSetup {
     registry: ToolRegistry,
     tools: Vec<String>,
     bench_inputs: StatsBenchInputs,
+}
+
+struct StatsBenchmarkStore {
+    sqlite_path: PathBuf,
+    jsonl_path: PathBuf,
+}
+
+impl StatsBenchmarkStore {
+    fn from_bench_inputs(bench_inputs: &StatsBenchInputs) -> Self {
+        Self {
+            sqlite_path: bench_inputs.bench_dir.join("bench.sqlite"),
+            jsonl_path: bench_inputs.bench_dir.join("bench.jsonl"),
+        }
+    }
 }
 
 fn prepare_stats_benchmark_setup<S: ::std::hash::BuildHasher>(
