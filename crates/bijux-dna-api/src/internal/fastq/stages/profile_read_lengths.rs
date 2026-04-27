@@ -446,9 +446,7 @@ fn validate_read_lengths_histogram(
     let observed_read_count = histogram.iter().map(|bin| bin.count).sum::<u64>();
     if observed_read_count != expected_read_count {
         return Err(anyhow!(
-            "profile_read_lengths histogram count mismatch: expected {}, observed {}",
-            expected_read_count,
-            observed_read_count
+            "profile_read_lengths histogram count mismatch: expected {expected_read_count}, observed {observed_read_count}"
         ));
     }
     Ok(())
