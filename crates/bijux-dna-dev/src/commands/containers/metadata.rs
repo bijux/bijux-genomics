@@ -75,6 +75,13 @@ fn generate_tool_name_map_content(workspace: &Workspace) -> Result<String> {
         String::new(),
         "# Tool Name Mapping".to_string(),
         String::new(),
+        "- Root contract: [containers/README.md](../README.md)".to_string(),
+        "- Container docs index: [containers/docs/index.md](index.md)".to_string(),
+        "- Tool ID manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt)".to_string(),
+        "- Tool ID contract: [containers/docs/TOOL_IDS_CONTRACT.md](TOOL_IDS_CONTRACT.md)"
+            .to_string(),
+        "- Tool docs index: [containers/docs/tools/index.md](tools/index.md)".to_string(),
+        String::new(),
         "| Tool ID | Expected Binary | Status |".to_string(),
         "|---|---|---|".to_string(),
     ];
