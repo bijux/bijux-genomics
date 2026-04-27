@@ -81,3 +81,21 @@ fn policy__contracts__science_boundary_docs_policy__release_manifest_inventory_l
         "science/specs/releases/manifests/README.md must link the governed release-manifest files exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_science_boundary_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../domain/fastq/execution_support.yaml".to_string(),
+        "../../docs/20-science/fastq/REFERENCES.md".to_string(),
+        "../../domain/fastq/docs/EVIDENCE_CLOSURE.md".to_string(),
+        "../../science/generated/current/evidence/README.md".to_string(),
+        "SMOKE_CONTRACT.md".to_string(),
+        "PROMOTION_POLICY.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/SCIENCE_EVIDENCE_BOUNDARY.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/SCIENCE_EVIDENCE_BOUNDARY.md must link the governed science and container review surfaces exactly"
+    );
+}
