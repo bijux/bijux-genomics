@@ -252,3 +252,22 @@ fn policy__contracts__science_boundary_docs_policy__container_version_lock_doc_l
         "containers/versions/LOCK.md must link the governed lock-authority surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_promotion_policy_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "VERSION_AUTHORITY.md".to_string(),
+        "../apptainer/shared/NON_BIJUX_SOURCES.md".to_string(),
+        "../versions/versions.toml".to_string(),
+        "../versions/LOCK.md".to_string(),
+        "../OWNERS.toml".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/PROMOTION_POLICY.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/PROMOTION_POLICY.md must link the governed promotion-policy surfaces exactly"
+    );
+}

@@ -2,6 +2,10 @@
 
 Purpose: Define required gates for status transitions (`planned` -> `experimental` -> `stable`) and demotion.
 
+[../README.md](../README.md), [../index.md](../index.md), and
+[VERSION_AUTHORITY.md](VERSION_AUTHORITY.md) define the adjacent container
+surfaces this promotion policy depends on.
+
 ## Promotion Gates
 0. Ownership/provenance classification:
    - `bijux` means Bijux owns and maintains the container recipe in this repo.
@@ -9,12 +13,14 @@ Purpose: Define required gates for status transitions (`planned` -> `experimenta
    - Classification is about recipe ownership/provenance, not license type.
 1. License clarity:
    - Registry entry has a known license.
-   - Non-bijux tools are present in `containers/apptainer/shared/NON_BIJUX_SOURCES.md`.
+   - Non-bijux tools are present in
+     [containers/apptainer/shared/NON_BIJUX_SOURCES.md](../apptainer/shared/NON_BIJUX_SOURCES.md).
 2. Provenance:
    - Upstream source URL and checksum are recorded.
-   - Version row exists in `containers/versions/versions.toml`.
+   - Version row exists in [containers/versions/versions.toml](../versions/versions.toml).
 3. Reproducibility:
-   - `containers/versions/lock.json` is regenerated and matches.
+   - [containers/versions/LOCK.md](../versions/LOCK.md) is regenerated and its
+     governed `lock.json` matches.
    - Container lint and lock checks pass.
 4. Smoke quality:
    - `--help` and `--version` smoke checks pass.
@@ -30,5 +36,5 @@ Implementation note:
 - Manual edits to registry status fields are forbidden; use native lifecycle commands only.
 
 ## Ownership
-- Tool ownership is tracked in `containers/OWNERS.toml`.
+- Tool ownership is tracked in [containers/OWNERS.toml](../OWNERS.toml).
 - Owner must review promotions and demotions.
