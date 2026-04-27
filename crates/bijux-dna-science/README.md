@@ -33,6 +33,19 @@ row shape, governed generated science output parity, and science release bundle
 contracts. Consumes repository science specs and governed upstream evidence tables.
 It does not own runtime pipeline contracts.
 
+## Governed Science Surfaces
+
+- [science/specs/evidence/README.md](../../science/specs/evidence/README.md)
+  is the authored evidence input surface
+- [science/specs/releases/README.md](../../science/specs/releases/README.md)
+  is the authored release-manifest input surface
+- [science/generated/README.md](../../science/generated/README.md) is the
+  committed generated-output boundary
+- [science/generated/current/evidence/README.md](../../science/generated/current/evidence/README.md)
+  inventories the row-level outputs refreshed by `build`
+- [science/generated/indexes/README.md](../../science/generated/indexes/README.md)
+  inventories the rolled-up index outputs refreshed by `build`
+
 ## Effects & determinism guarantees
 
 `build` and `release` write deterministic outputs from authored specs and governed
