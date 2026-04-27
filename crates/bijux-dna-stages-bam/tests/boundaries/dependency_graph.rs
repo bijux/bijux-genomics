@@ -3,9 +3,7 @@ use std::path::Path;
 
 #[test]
 fn normal_dependency_graph_matches_stages_bam_boundary() {
-    let manifest =
-        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
-            .expect("read Cargo.toml");
+    let manifest = manifest();
     let dependencies = dependency_names(&manifest, "dependencies");
     let expected = entries([
         "anyhow",
@@ -25,9 +23,7 @@ fn normal_dependency_graph_matches_stages_bam_boundary() {
 
 #[test]
 fn dev_dependency_graph_stays_test_facing() {
-    let manifest =
-        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
-            .expect("read Cargo.toml");
+    let manifest = manifest();
     let dependencies = dependency_names(&manifest, "dev-dependencies");
     let expected = entries(["bijux-dna-policies", "bijux-dna-testkit", "walkdir"]);
 
@@ -36,9 +32,7 @@ fn dev_dependency_graph_stays_test_facing() {
 
 #[test]
 fn stages_bam_rejects_planner_runtime_runner_api_and_environment_edges() {
-    let manifest =
-        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
-            .expect("read Cargo.toml");
+    let manifest = manifest();
     let dependencies = dependency_names(&manifest, "dependencies");
     let forbidden = [
         "bijux-dna",
@@ -61,6 +55,11 @@ fn stages_bam_rejects_planner_runtime_runner_api_and_environment_edges() {
             "bijux-dna-stages-bam must not depend on `{dependency}`"
         );
     }
+}
+
+fn manifest() -> String {
+    std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
+        .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"))
 }
 
 fn dependency_names(manifest: &str, section: &str) -> BTreeSet<String> {
