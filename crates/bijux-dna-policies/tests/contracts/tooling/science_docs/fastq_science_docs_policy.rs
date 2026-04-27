@@ -457,6 +457,22 @@ fn policy__contracts__fastq_science_docs_policy__operational_contract_links_gove
 }
 
 #[test]
+fn policy__contracts__fastq_science_docs_policy__scientific_spec_links_governed_fastq_science_hub_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "METHODOLOGICAL_INTENT.md".to_string(),
+        "STAGE_CATALOG.md".to_string(),
+        "METRIC_SEMANTICS.md".to_string(),
+        "REFERENCES.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/fastq/SCIENTIFIC_SPEC.md");
+    assert_eq!(
+        expected, documented,
+        "docs/20-science/fastq/SCIENTIFIC_SPEC.md must link the governed FASTQ science hub surfaces exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__fastq_science_docs_policy__software_citation_tools_do_not_claim_papers() {
     let rows = tsv_records("science/docs/upstream/papers/TOOL_PAPER_MAP.tsv");
     let expected = BTreeMap::from([
