@@ -24,7 +24,7 @@ repositories, supplementary documents, and local notes tied to licensed access.
 - review-authored science SSOT under `science/specs/**`
 - generated compiler outputs under [science/generated/README.md](../generated/README.md)
 - release bundles owned by [science/specs/releases/README.md](../specs/releases/README.md)
-  and written under `artifacts/science-releases/**`
+  and cut under `artifacts/science-releases/**`
 
 ## Handling Rules
 
@@ -58,11 +58,9 @@ repositories, supplementary documents, and local notes tied to licensed access.
   contract for GitHub repository evidence mirrors
 - [science/docs/upstream/github-repos/MANIFEST.tsv](upstream/github-repos/MANIFEST.tsv)
   tracked manifest of GitHub repository evidence targets
-- `science/docs/upstream/github-repos/mirrors/**`
-  untracked local bare clones used as the canonical GitHub repo archive
-- `science/docs/upstream/github-repos/archives/**`
-  optional untracked compressed exports created when a smaller portable snapshot
-  is needed
+- [science/docs/upstream/github-repos/README.md](upstream/github-repos/README.md)
+  governs the untracked local bare clones used as the canonical GitHub repo archive
+  plus optional compressed exports when a smaller portable snapshot is needed
 
 Do not treat `science/docs/github-repos/` at the archive root as the canonical
 shape going forward. The governed location for GitHub repository evidence is
