@@ -448,7 +448,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     validate_umi_report_metrics(&report, &metric_set.metrics)?;
     write_umi_report(&artifacts.report_json, &report)?;
     write_umi_metrics(inputs.out_dir, &metric_set)?;
-    validate_umi_written_artifacts(&artifacts, inputs.out_dir)?;
+    validate_umi_written_artifacts(&artifacts, inputs.out_dir, &report)?;
 
     let context = build_benchmark_context(
         inputs.tool,
@@ -775,7 +775,11 @@ fn validate_umi_path_field(label: &str, expected: &Path, observed: &Path) -> Res
     Ok(())
 }
 
-fn validate_umi_written_artifacts(artifacts: &UmiArtifacts, out_dir: &Path) -> Result<()> {
+fn validate_umi_written_artifacts(
+    artifacts: &UmiArtifacts,
+    out_dir: &Path,
+    report: &ExtractUmisReportV1,
+) -> Result<()> {
     let metrics_json = out_dir.join("metrics.json");
     for path in [
         artifacts.output_r1.as_path(),
@@ -783,11 +787,19 @@ fn validate_umi_written_artifacts(artifacts: &UmiArtifacts, out_dir: &Path) -> R
         artifacts.report_json.as_path(),
         metrics_json.as_path(),
     ] {
-        let metadata = std::fs::metadata(path)
-            .with_context(|| format!("read extract_umis artifact {}", path.display()))?;
-        if metadata.len() == 0 {
-            return Err(anyhow!("extract_umis artifact is empty: {}", path.display()));
-        }
+        validate_umi_nonempty_artifact(path)?;
+    }
+    if let Some(raw_backend_report) = report.raw_backend_report.as_ref() {
+        validate_umi_nonempty_artifact(Path::new(raw_backend_report))?;
+    }
+    Ok(())
+}
+
+fn validate_umi_nonempty_artifact(path: &Path) -> Result<()> {
+    let metadata = std::fs::metadata(path)
+        .with_context(|| format!("read extract_umis artifact {}", path.display()))?;
+    if metadata.len() == 0 {
+        return Err(anyhow!("extract_umis artifact is empty: {}", path.display()));
     }
     Ok(())
 }
