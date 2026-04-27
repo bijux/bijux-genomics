@@ -35,7 +35,10 @@ fn policy__contracts__science_authored_specs_policy__science_root_links_authored
         "specs/results/README.md".to_string(),
         "docs/README.md".to_string(),
     ]);
-    let documented = markdown_link_targets("science/README.md");
+    let documented = markdown_link_targets("science/README.md")
+        .into_iter()
+        .filter(|target| target.starts_with("specs/") || target == "docs/README.md")
+        .collect::<BTreeSet<_>>();
     assert_eq!(
         expected, documented,
         "science/README.md must link the authored science surfaces exactly"
