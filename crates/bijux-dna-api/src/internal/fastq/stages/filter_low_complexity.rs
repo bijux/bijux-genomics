@@ -394,8 +394,7 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
         .path
         .parent()
         .ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
-    write_low_complexity_report(out_dir, &report)?;
-    write_low_complexity_metrics(out_dir, &metric_set)?;
+    write_low_complexity_artifacts(out_dir, &report, &metric_set)?;
 
     let context = build_benchmark_context(
         &inputs.tool_plan.tool,
@@ -533,6 +532,15 @@ fn write_low_complexity_report(
 ) -> Result<()> {
     bijux_dna_infra::atomic_write_json(&out_dir.join("low_complexity_report.json"), report)
         .context("write low-complexity report")
+}
+
+fn write_low_complexity_artifacts(
+    out_dir: &std::path::Path,
+    report: &FilterLowComplexityReportV1,
+    metric_set: &MetricSet<FastqLowComplexityMetrics>,
+) -> Result<()> {
+    write_low_complexity_report(out_dir, report)?;
+    write_low_complexity_metrics(out_dir, metric_set)
 }
 
 fn write_low_complexity_metrics(
