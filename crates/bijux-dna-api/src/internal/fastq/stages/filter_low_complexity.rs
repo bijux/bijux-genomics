@@ -388,9 +388,7 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
         output_reads_r2,
         execution: inputs.execution,
     });
-    let metrics = low_complexity_metrics_from_report(&report, &before_stats, &after_stats);
-    let metric_set = metric_set(metrics.clone());
-    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    let metric_set = build_low_complexity_metric_set(&report, &before_stats, &after_stats)?;
 
     let out_dir = inputs.tool_plan.plan.io.outputs[0]
         .path
@@ -419,6 +417,17 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn build_low_complexity_metric_set(
+    report: &FilterLowComplexityReportV1,
+    before_stats: &SeqkitMetrics,
+    after_stats: &SeqkitMetrics,
+) -> Result<MetricSet<FastqLowComplexityMetrics>> {
+    let metrics = low_complexity_metrics_from_report(report, before_stats, after_stats);
+    let metric_set = metric_set(metrics.clone());
+    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    Ok(metric_set)
 }
 
 fn build_low_complexity_report(
