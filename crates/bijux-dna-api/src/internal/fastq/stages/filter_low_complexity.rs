@@ -44,7 +44,6 @@ use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
 
 /// # Errors
 /// Returns an error if planning, execution, metrics derivation, or persistence fails.
-#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
