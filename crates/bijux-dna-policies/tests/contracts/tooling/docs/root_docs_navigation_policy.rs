@@ -370,7 +370,7 @@ fn policy__contracts__root_docs_navigation_policy__crate_authority_map_links_gov
 ) {
     let expected = BTreeSet::from([
         "BOUNDARY_MAP.md".to_string(),
-        "../../crates/bijux-dna-policies/docs/POLICY_DIAGNOSTICS.md".to_string(),
+        "../../crates/bijux-dna-policies/docs/ENFORCEMENT.md".to_string(),
         "../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs"
             .to_string(),
         "../../crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs"
