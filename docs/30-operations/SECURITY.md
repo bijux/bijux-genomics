@@ -14,7 +14,7 @@ Limits untrusted execution and data exposure.
 - Replay is non-executing.
 
 ## Examples
-See `THREAT_MODEL.md` for explicit guarantees.
+See [THREAT_MODEL.md](THREAT_MODEL.md) for explicit guarantees.
 
 ## Failure modes
 Security violations trigger policy failures.
