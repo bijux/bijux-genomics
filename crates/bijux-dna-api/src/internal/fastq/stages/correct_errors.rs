@@ -252,19 +252,7 @@ fn prepare_correct_tool_plan<S: ::std::hash::BuildHasher>(
     let tool_spec = apply_thread_override(&tool_spec, args.threads);
     let tool_spec = apply_memory_override(&tool_spec, args.max_memory_gb);
     let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-    let projected_options = project_correct_options_for_tool(
-        tool,
-        &CorrectPlanOptions {
-            threads: args.threads,
-            quality_encoding: parse_quality_encoding(args.quality_encoding.as_deref())?,
-            kmer_size: args.kmer_size,
-            musket_kmer_budget: args.musket_kmer_budget,
-            genome_size: args.genome_size,
-            max_memory_gb: args.max_memory_gb,
-            trusted_kmer_artifact: args.trusted_kmer_artifact.clone(),
-            conservative_mode: args.conservative_mode.unwrap_or(false),
-        },
-    );
+    let projected_options = project_correct_options_for_tool(tool, &correct_plan_options(args)?);
     let plan = plan_correct_with_options(
         &tool_spec,
         &setup.bench_inputs.r1,
@@ -276,6 +264,21 @@ fn prepare_correct_tool_plan<S: ::std::hash::BuildHasher>(
     let params_hash = stable_params_hash(&bench_params);
     let image_digest = benchmark_image_identity(&tool_spec);
     Ok(CorrectToolPlan { tool_spec, plan, bench_params, params_hash, image_digest })
+}
+
+fn correct_plan_options(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqCorrectArgs,
+) -> Result<CorrectPlanOptions> {
+    Ok(CorrectPlanOptions {
+        threads: args.threads,
+        quality_encoding: parse_quality_encoding(args.quality_encoding.as_deref())?,
+        kmer_size: args.kmer_size,
+        musket_kmer_budget: args.musket_kmer_budget,
+        genome_size: args.genome_size,
+        max_memory_gb: args.max_memory_gb,
+        trusted_kmer_artifact: args.trusted_kmer_artifact.clone(),
+        conservative_mode: args.conservative_mode.unwrap_or(false),
+    })
 }
 
 fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
