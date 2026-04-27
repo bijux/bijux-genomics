@@ -10,7 +10,9 @@ Artifacts are the source of truth for reproducibility.
 - Tool-specific debugging.
 
 ## Contracts
-Run artifacts are defined in `RUN_ARTIFACTS.md` and enforced by runtime tests.
+Run artifacts are defined in [RUN_ARTIFACTS.md](RUN_ARTIFACTS.md), aligned to the exact
+runtime handoff in [../10-architecture/DATAFLOW.md](../10-architecture/DATAFLOW.md), and the
+report bundle contract in [REPORT_CONTRACT.md](REPORT_CONTRACT.md).
 
 ## Examples
 Run layout:
