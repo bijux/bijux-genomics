@@ -44,6 +44,7 @@ fn planned_stage_tool_bindings() -> Vec<StageToolBinding> {
         include_str!("../../../../domain/fastq/tools/bayeshammer.yaml"),
         include_str!("../../../../domain/fastq/tools/bbduk.yaml"),
         include_str!("../../../../domain/fastq/tools/bbmerge.yaml"),
+        include_str!("../../../../domain/fastq/tools/bijux_dna.yaml"),
         include_str!("../../../../domain/fastq/tools/bowtie2.yaml"),
         include_str!("../../../../domain/fastq/tools/bowtie2_build.yaml"),
         include_str!("../../../../domain/fastq/tools/centrifuge.yaml"),
@@ -100,6 +101,36 @@ fn planned_stage_tool_bindings() -> Vec<StageToolBinding> {
 #[must_use]
 pub fn stage_tool_bindings_for_stage(stage_id: &StageId) -> Vec<StageToolBinding> {
     stage_tool_bindings().into_iter().filter(|binding| binding.stage_id == *stage_id).collect()
+}
+
+#[must_use]
+pub fn registered_tool_ids_for_stage(stage_id: &StageId) -> Vec<ToolId> {
+    tool_ids_for_stage_by_level(stage_id, None)
+}
+
+#[must_use]
+pub fn governed_tool_ids_for_stage(stage_id: &StageId) -> Vec<ToolId> {
+    tool_ids_for_stage_by_level(stage_id, Some(ToolIntegrationLevel::GovernedContract))
+}
+
+#[must_use]
+pub fn planned_tool_ids_for_stage(stage_id: &StageId) -> Vec<ToolId> {
+    tool_ids_for_stage_by_level(stage_id, Some(ToolIntegrationLevel::PlannedContract))
+}
+
+fn tool_ids_for_stage_by_level(
+    stage_id: &StageId,
+    level: Option<ToolIntegrationLevel>,
+) -> Vec<ToolId> {
+    let mut tools = stage_tool_bindings()
+        .into_iter()
+        .filter(|binding| binding.stage_id == *stage_id)
+        .filter(|binding| level.is_none_or(|level| binding.integration_level == level))
+        .map(|binding| binding.tool_id)
+        .collect::<Vec<_>>();
+    tools.sort();
+    tools.dedup();
+    tools
 }
 
 #[must_use]

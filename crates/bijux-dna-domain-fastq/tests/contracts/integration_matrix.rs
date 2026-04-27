@@ -14,9 +14,10 @@ fn integration_matrix_covers_indexed_stage_tool_bindings() {
             )
         })
         .collect::<BTreeSet<_>>();
-    let from_stage_api = bijux_dna_domain_fastq::STAGES
+    let from_stage_api = bijux_dna_domain_fastq::FASTQ_STAGE_ID_CATALOG
         .iter()
-        .flat_map(bijux_dna_domain_fastq::stage_tool_bindings_for_stage)
+        .map(|stage_id| StageId::from_static(stage_id))
+        .flat_map(|stage_id| bijux_dna_domain_fastq::stage_tool_bindings_for_stage(&stage_id))
         .map(|binding| {
             (
                 binding.stage_id.as_str().to_string(),
@@ -222,6 +223,28 @@ fn integration_matrix_distinguishes_governed_and_planned_bindings() {
         trim_binding.integration_level,
         bijux_dna_domain_fastq::ToolIntegrationLevel::GovernedContract
     );
+}
+
+#[test]
+fn stage_tool_registration_queries_keep_planned_tools_visible_but_not_runnable() {
+    let trim_stage = StageId::from_static("fastq.trim_reads");
+
+    assert!(bijux_dna_domain_fastq::registered_tool_ids_for_stage(&trim_stage)
+        .contains(&ToolId::from_static("seqpurge")));
+    assert!(bijux_dna_domain_fastq::planned_tool_ids_for_stage(&trim_stage)
+        .contains(&ToolId::from_static("seqpurge")));
+    assert!(!bijux_dna_domain_fastq::governed_tool_ids_for_stage(&trim_stage)
+        .contains(&ToolId::from_static("seqpurge")));
+    assert!(!bijux_dna_domain_fastq::admitted_execution_tools_for_stage(&trim_stage)
+        .contains(&ToolId::from_static("seqpurge")));
+
+    let declared_stage = StageId::from_static("fastq.build_contaminant_db");
+    assert_eq!(
+        bijux_dna_domain_fastq::registered_tool_ids_for_stage(&declared_stage),
+        vec![ToolId::from_static("bijux_dna")]
+    );
+    assert!(bijux_dna_domain_fastq::governed_tool_ids_for_stage(&declared_stage).is_empty());
+    assert!(bijux_dna_domain_fastq::admitted_execution_tools_for_stage(&declared_stage).is_empty());
 }
 
 #[test]
