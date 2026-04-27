@@ -360,6 +360,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
 
     let metrics = merge_metrics_from_report(&report, r1_stats, r2_stats, &merged_stats);
     let metric_set = metric_set(metrics.clone());
+    validate_merge_report_metrics(&report, &metrics)?;
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     let out_dir = report_path.parent().ok_or_else(|| anyhow!("merge report has no parent"))?;
     write_merge_artifacts(out_dir, report_path, &report, &metric_set)?;
@@ -467,6 +468,48 @@ fn validate_merge_report_paths(report: &MergePairsReportV1, merged_reads: &Path)
             "merge_pairs report merged_reads mismatch: expected {}, observed {}",
             merged_reads.display(),
             report_merged_reads.display()
+        ));
+    }
+    Ok(())
+}
+
+fn validate_merge_report_metrics(
+    report: &MergePairsReportV1,
+    metrics: &FastqMergeMetrics,
+) -> Result<()> {
+    if report.reads_r1 != metrics.reads_r1 {
+        return Err(anyhow!(
+            "merge_pairs report reads_r1 mismatch: expected {}, observed {}",
+            metrics.reads_r1,
+            report.reads_r1
+        ));
+    }
+    if report.reads_r2 != metrics.reads_r2 {
+        return Err(anyhow!(
+            "merge_pairs report reads_r2 mismatch: expected {}, observed {}",
+            metrics.reads_r2,
+            report.reads_r2
+        ));
+    }
+    if report.reads_merged != metrics.reads_merged {
+        return Err(anyhow!(
+            "merge_pairs report reads_merged mismatch: expected {}, observed {}",
+            metrics.reads_merged,
+            report.reads_merged
+        ));
+    }
+    if report.reads_unmerged != metrics.reads_unmerged {
+        return Err(anyhow!(
+            "merge_pairs report reads_unmerged mismatch: expected {}, observed {}",
+            metrics.reads_unmerged,
+            report.reads_unmerged
+        ));
+    }
+    if (report.merge_rate - metrics.merge_rate).abs() > f64::EPSILON {
+        return Err(anyhow!(
+            "merge_pairs report merge_rate mismatch: expected {}, observed {}",
+            metrics.merge_rate,
+            report.merge_rate
         ));
     }
     Ok(())
