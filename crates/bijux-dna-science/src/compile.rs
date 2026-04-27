@@ -376,12 +376,7 @@ fn build_source_archive_summary(
         increment_compound_counts(&mut missing_tool_counts, &row.tool_ids);
     }
 
-    SourceArchiveSummary {
-        kind_counts,
-        access_counts,
-        archive_status_counts,
-        missing_tool_counts,
-    }
+    SourceArchiveSummary { kind_counts, access_counts, archive_status_counts, missing_tool_counts }
 }
 
 fn build_fastq_evidence_summary(

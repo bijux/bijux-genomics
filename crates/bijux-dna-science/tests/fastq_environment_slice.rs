@@ -72,14 +72,8 @@ fn assert_fastq_slice_rows(compiled: &CompiledScience) {
             && row.paper_id == "paper.fastq.atropos.didion-2017"
             && row.paper_status == "mapped"
     }));
-    assert_eq!(
-        compiled.index.source_inventory_rows,
-        compiled.source_inventory.len()
-    );
-    assert_eq!(
-        compiled.index.source_archive_gap_rows,
-        compiled.source_archive_gaps.len()
-    );
+    assert_eq!(compiled.index.source_inventory_rows, compiled.source_inventory.len());
+    assert_eq!(compiled.index.source_archive_gap_rows, compiled.source_archive_gaps.len());
     assert_eq!(
         compiled
             .index
@@ -88,11 +82,7 @@ fn assert_fastq_slice_rows(compiled: &CompiledScience) {
             .get("present")
             .copied()
             .unwrap_or_default(),
-        compiled
-            .source_inventory
-            .iter()
-            .filter(|row| row.archive_status == "present")
-            .count()
+        compiled.source_inventory.iter().filter(|row| row.archive_status == "present").count()
     );
     assert_eq!(
         compiled
@@ -102,20 +92,9 @@ fn assert_fastq_slice_rows(compiled: &CompiledScience) {
             .get("missing")
             .copied()
             .unwrap_or_default(),
-        compiled
-            .source_inventory
-            .iter()
-            .filter(|row| row.archive_status == "missing")
-            .count()
+        compiled.source_inventory.iter().filter(|row| row.archive_status == "missing").count()
     );
-    assert_eq!(
-        compiled
-            .index
-            .source_archive_summary
-            .missing_tool_counts
-            .len(),
-        0
-    );
+    assert_eq!(compiled.index.source_archive_summary.missing_tool_counts.len(), 0);
     assert_eq!(
         compiled.index.fastq_closure_summary.total_rows,
         compiled.fastq_closure_gate_rows.len()
@@ -124,27 +103,21 @@ fn assert_fastq_slice_rows(compiled: &CompiledScience) {
         compiled.index.fastq_closure_summary.default_rows,
         compiled.fastq_closure_gate_rows.iter().filter(|row| row.is_default).count()
     );
-    assert!(
-        compiled
-            .index
-            .fastq_closure_summary
-            .blocking_reason_counts
-            .contains_key("missing_environment_qa_stage")
-    );
-    assert!(
-        compiled
-            .index
-            .fastq_evidence_summary
-            .prerequisite_counts
-            .contains_key("missing_environment_qa_stage")
-    );
-    assert!(
-        compiled
-            .index
-            .fastq_evidence_summary
-            .default_risk_counts
-            .contains_key("closure_prerequisite_blocked")
-    );
+    assert!(compiled
+        .index
+        .fastq_closure_summary
+        .blocking_reason_counts
+        .contains_key("missing_environment_qa_stage"));
+    assert!(compiled
+        .index
+        .fastq_evidence_summary
+        .prerequisite_counts
+        .contains_key("missing_environment_qa_stage"));
+    assert!(compiled
+        .index
+        .fastq_evidence_summary
+        .default_risk_counts
+        .contains_key("closure_prerequisite_blocked"));
 }
 
 fn assert_committed_outputs_match(root: &Path, compiled: &CompiledScience) -> Result<()> {
