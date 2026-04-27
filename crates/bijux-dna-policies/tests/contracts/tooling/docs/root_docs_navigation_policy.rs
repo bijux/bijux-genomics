@@ -315,3 +315,20 @@ fn policy__contracts__root_docs_navigation_policy__reference_contract_index_link
         "docs/50-reference/REFERENCE_INDEX.md must link the governed reference authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__architecture_contract_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../Cargo.toml".to_string(),
+        "BOUNDARY_MAP.md".to_string(),
+        "CRATE_AUTHORITY_MAP.md".to_string(),
+        "CONTRACT_SPINE.md".to_string(),
+        "CONTRACT_INDEX.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/ARCHITECTURE_CONTRACT.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/ARCHITECTURE_CONTRACT.md must link the governed architecture contract authorities exactly"
+    );
+}
