@@ -31,8 +31,9 @@ fn policy__contracts__science_evidence_specs_policy__evidence_readme_links_gover
         "CONTRACT.md".to_string(),
         "../../docs/upstream/fastq/STAGE_CLAIMS.tsv".to_string(),
         "../../docs/upstream/fastq/STAGE_LIBRARY_SUPPORT.tsv".to_string(),
-        "../../generated/current/evidence/claim_evidence_map.tsv".to_string(),
-        "../../generated/indexes/science_index.json".to_string(),
+        "../../generated/README.md".to_string(),
+        "../../generated/current/evidence/README.md".to_string(),
+        "../../generated/indexes/README.md".to_string(),
     ]);
     let documented = markdown_link_targets("science/specs/evidence/README.md");
     assert_eq!(
