@@ -125,6 +125,23 @@ fn policy__contracts__operations_reference_authority_policy__vcf_downstream_read
 }
 
 #[test]
+fn policy__contracts__operations_reference_authority_policy__frontend_mini_stack_validation_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../examples/index.yaml".to_string(),
+        "../50-reference/EXAMPLE_RUNNER_CONTRACT.md".to_string(),
+        "EXPLAINABILITY.md".to_string(),
+        "REPORT_CONTRACT.md".to_string(),
+    ]);
+    let documented =
+        markdown_link_targets("docs/30-operations/FRONTEND_MINI_STACK_VALIDATION.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/FRONTEND_MINI_STACK_VALIDATION.md must link the governed frontend-mini authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
