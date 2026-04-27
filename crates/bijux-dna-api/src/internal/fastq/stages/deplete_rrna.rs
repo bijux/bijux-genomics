@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, observe_fastq_stats, prepare_trim_bench, TrimBenchInputs,
+    benchmark_image_identity, build_benchmark_context, observe_fastq_stats, prepare_trim_bench,
+    TrimBenchInputs,
 };
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -17,6 +18,7 @@ use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::screen::RrnaEffectiveParams;
 use bijux_dna_domain_fastq::{
     DepleteRrnaReportV1, DEPLETE_RRNA_REPORT_SCHEMA_VERSION, STAGE_DEPLETE_RRNA,
@@ -28,7 +30,9 @@ use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_planner_fastq::tool_adapters::stages::qc::deplete_rrna::plan_rrna_with_options;
+use bijux_dna_planner_fastq::DepleteRrnaStageParams;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 
@@ -59,78 +63,50 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
     let mut records = Vec::<BenchmarkRecord<FastqDepleteRrnaMetrics>>::new();
 
     for tool in setup.tools.clone() {
-        let out_dir = setup.bench_inputs.tools_root.join(&tool);
-        bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec = build_tool_execution_spec(
-            STAGE_DEPLETE_RRNA.as_str(),
-            &tool,
-            &setup.registry,
-            catalog,
-            platform,
-        )?;
-        let mut tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        if let Some(threads) = args.threads {
-            tool_spec.resources.threads = threads.max(1);
-        }
-        let plan = plan_rrna_with_options(
-            &tool_spec,
-            &setup.bench_inputs.r1,
-            args.r2.as_deref(),
-            &out_dir,
-            &bijux_dna_planner_fastq::DepleteRrnaStageParams {
-                rrna_db: args.rrna_db.clone().unwrap_or_else(|| "rrna_reference".to_string()),
-                min_identity: args.min_identity.unwrap_or(0.95),
-                threads: args.threads,
-            },
-        )?;
-        let params_hash =
-            params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let tool_plan = prepare_rrna_tool_plan(catalog, platform, args, &setup, jobs, tool)?;
         if let Ok(Some(record)) = fetch_fastq_deplete_rrna_v1(
             &conn,
-            &tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &runner.to_string(),
             &platform.name,
             &setup.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             runner,
             jobs,
         )?
         .into_iter()
         .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+        .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: STAGE_DEPLETE_RRNA.as_str().to_string(),
-                tool: tool.clone(),
-                reason: format!("tool `{tool}` failed with status {}", execution.exit_code),
+                tool: tool_plan.tool.clone(),
+                reason: format!(
+                    "tool `{}` failed with status {}",
+                    tool_plan.tool, execution.exit_code
+                ),
                 category: ErrorCategory::ToolError,
             });
             continue;
         }
 
         let report = build_rrna_report(
-            &plan,
+            &tool_plan.plan,
             &setup.bench_inputs.input_stats,
             setup.input_stats_r2.as_ref(),
             catalog,
             platform,
             runner,
-            &tool,
+            &tool_plan.tool,
             &execution,
         )?;
         bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.rrna_report_json), &report)
@@ -158,19 +134,19 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         bijux_dna_infra::atomic_write_json(
-            &out_dir.join("metrics.json"),
+            &tool_plan.plan.out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
         )
         .context("write rrna depletion metrics")?;
 
         let context = build_benchmark_context(
-            &tool,
-            tool_spec.tool_version.clone(),
-            image_digest,
+            &tool_plan.tool,
+            tool_plan.tool_spec.tool_version.clone(),
+            tool_plan.image_digest,
             runner,
             platform,
             setup.input_hash.clone(),
-            plan.params.clone(),
+            tool_plan.plan.params.clone(),
         );
         let record = BenchmarkRecord {
             context,
@@ -213,6 +189,52 @@ struct RrnaBenchmarkSetup {
     bench_inputs: TrimBenchInputs,
     input_hash: String,
     input_stats_r2: Option<SeqkitMetrics>,
+}
+
+struct RrnaToolPlan {
+    tool: String,
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    params_hash: String,
+    image_digest: String,
+}
+
+fn prepare_rrna_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteRrnaArgs,
+    setup: &RrnaBenchmarkSetup,
+    jobs: usize,
+    tool: String,
+) -> Result<RrnaToolPlan> {
+    let out_dir = setup.bench_inputs.tools_root.join(&tool);
+    bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
+    let tool_spec = build_tool_execution_spec(
+        STAGE_DEPLETE_RRNA.as_str(),
+        &tool,
+        &setup.registry,
+        catalog,
+        platform,
+    )?;
+    let mut tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+    if let Some(threads) = args.threads {
+        tool_spec.resources.threads = threads.max(1);
+    }
+    let plan = plan_rrna_with_options(
+        &tool_spec,
+        &setup.bench_inputs.r1,
+        args.r2.as_deref(),
+        &out_dir,
+        &DepleteRrnaStageParams {
+            rrna_db: args.rrna_db.clone().unwrap_or_else(|| "rrna_reference".to_string()),
+            min_identity: args.min_identity.unwrap_or(0.95),
+            threads: args.threads,
+        },
+    )?;
+    let params_hash =
+        params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
+    let image_digest = benchmark_image_identity(&tool_spec);
+    Ok(RrnaToolPlan { tool, tool_spec, plan, params_hash, image_digest })
 }
 
 fn prepare_rrna_benchmark_setup<S: ::std::hash::BuildHasher>(
