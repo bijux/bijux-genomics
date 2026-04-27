@@ -352,194 +352,12 @@ fn base_merge_command(
     effective_params: &MergeEffectiveParams,
 ) -> Result<String> {
     let command = match tool {
-        "adapterremoval" => {
-            let unmerged_r1 =
-                if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
-                    outputs
-                        .unmerged_reads_r1
-                        .as_ref()
-                        .ok_or_else(|| {
-                            anyhow!("adapterremoval merge requires unmerged_reads_r1 output")
-                        })?
-                        .display()
-                        .to_string()
-                } else {
-                    "/dev/null".to_string()
-                };
-            let unmerged_r2 =
-                if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
-                    outputs
-                        .unmerged_reads_r2
-                        .as_ref()
-                        .ok_or_else(|| {
-                            anyhow!("adapterremoval merge requires unmerged_reads_r2 output")
-                        })?
-                        .display()
-                        .to_string()
-                } else {
-                    "/dev/null".to_string()
-                };
-            let mut command = vec![
-                "adapterremoval".to_string(),
-                "--threads".to_string(),
-                effective_params.threads.to_string(),
-                "--file1".to_string(),
-                r1.display().to_string(),
-                "--file2".to_string(),
-                r2.display().to_string(),
-                "--collapse-deterministic".to_string(),
-                "--gzip".to_string(),
-                "--output1".to_string(),
-                unmerged_r1,
-                "--output2".to_string(),
-                unmerged_r2,
-                "--outputcollapsed".to_string(),
-                outputs.merged_reads.display().to_string(),
-                "--outputcollapsedtruncated".to_string(),
-                "/dev/null".to_string(),
-                "--settings".to_string(),
-                outputs
-                    .raw_backend_report_txt
-                    .as_ref()
-                    .ok_or_else(|| {
-                        anyhow!("adapterremoval merge requires raw backend settings output")
-                    })?
-                    .display()
-                    .to_string(),
-                "--singleton".to_string(),
-                "/dev/null".to_string(),
-                "--discarded".to_string(),
-                "/dev/null".to_string(),
-            ];
-            if let Some(merge_overlap) = effective_params.merge_overlap {
-                command.extend(["--minalignmentlength".to_string(), merge_overlap.to_string()]);
-            }
-            if let Some(min_len) = effective_params.min_len {
-                command.extend(["--minlength".to_string(), min_len.to_string()]);
-            }
-            command
-        }
-        "pear" => {
-            let prefix = out_dir.join("pear");
-            let mut command = vec![
-                "pear".to_string(),
-                "-f".to_string(),
-                r1.display().to_string(),
-                "-r".to_string(),
-                r2.display().to_string(),
-                "-o".to_string(),
-                prefix.display().to_string(),
-                "-j".to_string(),
-                effective_params.threads.to_string(),
-            ];
-            if let Some(merge_overlap) = effective_params.merge_overlap {
-                command.extend(["-v".to_string(), merge_overlap.to_string()]);
-            }
-            if let Some(min_len) = effective_params.min_len {
-                command.extend(["-n".to_string(), min_len.to_string()]);
-            }
-            command
-        }
-        "vsearch" => {
-            let mut command = vec![
-                "vsearch".to_string(),
-                "--fastq_mergepairs".to_string(),
-                r1.display().to_string(),
-                "--reverse".to_string(),
-                r2.display().to_string(),
-                "--fastqout".to_string(),
-                outputs.merged_reads.display().to_string(),
-                "--threads".to_string(),
-                effective_params.threads.to_string(),
-            ];
-            if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
-                command.extend([
-                    "--fastqout_notmerged_fwd".to_string(),
-                    outputs
-                        .unmerged_reads_r1
-                        .as_ref()
-                        .ok_or_else(|| anyhow!("vsearch merge requires unmerged_reads_r1 output"))?
-                        .display()
-                        .to_string(),
-                    "--fastqout_notmerged_rev".to_string(),
-                    outputs
-                        .unmerged_reads_r2
-                        .as_ref()
-                        .ok_or_else(|| anyhow!("vsearch merge requires unmerged_reads_r2 output"))?
-                        .display()
-                        .to_string(),
-                ]);
-            }
-            if let Some(merge_overlap) = effective_params.merge_overlap {
-                command.extend(["--fastq_minovlen".to_string(), merge_overlap.to_string()]);
-            }
-            if let Some(min_len) = effective_params.min_len {
-                command.extend(["--fastq_minmergelen".to_string(), min_len.to_string()]);
-            }
-            command
-        }
-        "bbmerge" => {
-            let mut command = vec![
-                "bbmerge".to_string(),
-                format!("in1={}", r1.display()),
-                format!("in2={}", r2.display()),
-                format!("out={}", outputs.merged_reads.display()),
-                format!("threads={}", effective_params.threads),
-            ];
-            if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
-                command.push(format!(
-                    "outu1={}",
-                    outputs
-                        .unmerged_reads_r1
-                        .as_ref()
-                        .ok_or_else(|| anyhow!("bbmerge merge requires unmerged_reads_r1 output"))?
-                        .display()
-                ));
-                command.push(format!(
-                    "outu2={}",
-                    outputs
-                        .unmerged_reads_r2
-                        .as_ref()
-                        .ok_or_else(|| anyhow!("bbmerge merge requires unmerged_reads_r2 output"))?
-                        .display()
-                ));
-            }
-            if let Some(merge_overlap) = effective_params.merge_overlap {
-                command.push(format!("minoverlap={merge_overlap}"));
-            }
-            if let Some(min_len) = effective_params.min_len {
-                command.push(format!("mininsert={min_len}"));
-            }
-            command
-        }
-        "flash2" => {
-            let mut command = vec![
-                "flash2".to_string(),
-                "-o".to_string(),
-                "flash2".to_string(),
-                "-d".to_string(),
-                out_dir.display().to_string(),
-                "-t".to_string(),
-                effective_params.threads.to_string(),
-                r1.display().to_string(),
-                r2.display().to_string(),
-            ];
-            if let Some(merge_overlap) = effective_params.merge_overlap {
-                command.extend(["-m".to_string(), merge_overlap.to_string()]);
-            }
-            command
-        }
-        "leehom" => vec![
-            "leehom".to_string(),
-            "-fq1".to_string(),
-            r1.display().to_string(),
-            "-fq2".to_string(),
-            r2.display().to_string(),
-            "-fqo".to_string(),
-            out_dir.join("leehom").display().to_string(),
-            "-t".to_string(),
-            effective_params.threads.to_string(),
-        ],
+        "adapterremoval" => adapterremoval_merge_command(r1, r2, outputs, effective_params)?,
+        "pear" => pear_merge_command(r1, r2, out_dir, effective_params),
+        "vsearch" => vsearch_merge_command(r1, r2, outputs, effective_params)?,
+        "bbmerge" => bbmerge_merge_command(r1, r2, outputs, effective_params)?,
+        "flash2" => flash2_merge_command(r1, r2, out_dir, effective_params),
+        "leehom" => leehom_merge_command(r1, r2, out_dir, effective_params),
         _ => return Err(anyhow!("unsupported merge tool")),
     };
     let command =
@@ -551,6 +369,224 @@ fn base_merge_command(
         .raw_backend_report_txt
         .as_ref()
         .map_or(command.clone(), |path| format!("{command} > {} 2>&1", shell_quote_path(path))))
+}
+
+fn adapterremoval_merge_command(
+    r1: &Path,
+    r2: &Path,
+    outputs: &MergeOutputs,
+    effective_params: &MergeEffectiveParams,
+) -> Result<Vec<String>> {
+    let mut command = vec![
+        "adapterremoval".to_string(),
+        "--threads".to_string(),
+        effective_params.threads.to_string(),
+        "--file1".to_string(),
+        r1.display().to_string(),
+        "--file2".to_string(),
+        r2.display().to_string(),
+        "--collapse-deterministic".to_string(),
+        "--gzip".to_string(),
+        "--output1".to_string(),
+        unmerged_output_or_null(
+            "adapterremoval",
+            "unmerged_reads_r1",
+            outputs,
+            true,
+            effective_params,
+        )?,
+        "--output2".to_string(),
+        unmerged_output_or_null(
+            "adapterremoval",
+            "unmerged_reads_r2",
+            outputs,
+            false,
+            effective_params,
+        )?,
+        "--outputcollapsed".to_string(),
+        outputs.merged_reads.display().to_string(),
+        "--outputcollapsedtruncated".to_string(),
+        "/dev/null".to_string(),
+        "--settings".to_string(),
+        outputs
+            .raw_backend_report_txt
+            .as_ref()
+            .ok_or_else(|| anyhow!("adapterremoval merge requires raw backend settings output"))?
+            .display()
+            .to_string(),
+        "--singleton".to_string(),
+        "/dev/null".to_string(),
+        "--discarded".to_string(),
+        "/dev/null".to_string(),
+    ];
+    if let Some(merge_overlap) = effective_params.merge_overlap {
+        command.extend(["--minalignmentlength".to_string(), merge_overlap.to_string()]);
+    }
+    if let Some(min_len) = effective_params.min_len {
+        command.extend(["--minlength".to_string(), min_len.to_string()]);
+    }
+    Ok(command)
+}
+
+fn pear_merge_command(
+    r1: &Path,
+    r2: &Path,
+    out_dir: &Path,
+    effective_params: &MergeEffectiveParams,
+) -> Vec<String> {
+    let prefix = out_dir.join("pear");
+    let mut command = vec![
+        "pear".to_string(),
+        "-f".to_string(),
+        r1.display().to_string(),
+        "-r".to_string(),
+        r2.display().to_string(),
+        "-o".to_string(),
+        prefix.display().to_string(),
+        "-j".to_string(),
+        effective_params.threads.to_string(),
+    ];
+    if let Some(merge_overlap) = effective_params.merge_overlap {
+        command.extend(["-v".to_string(), merge_overlap.to_string()]);
+    }
+    if let Some(min_len) = effective_params.min_len {
+        command.extend(["-n".to_string(), min_len.to_string()]);
+    }
+    command
+}
+
+fn vsearch_merge_command(
+    r1: &Path,
+    r2: &Path,
+    outputs: &MergeOutputs,
+    effective_params: &MergeEffectiveParams,
+) -> Result<Vec<String>> {
+    let mut command = vec![
+        "vsearch".to_string(),
+        "--fastq_mergepairs".to_string(),
+        r1.display().to_string(),
+        "--reverse".to_string(),
+        r2.display().to_string(),
+        "--fastqout".to_string(),
+        outputs.merged_reads.display().to_string(),
+        "--threads".to_string(),
+        effective_params.threads.to_string(),
+    ];
+    if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
+        command.extend([
+            "--fastqout_notmerged_fwd".to_string(),
+            required_unmerged_output("vsearch", "unmerged_reads_r1", outputs, true)?,
+            "--fastqout_notmerged_rev".to_string(),
+            required_unmerged_output("vsearch", "unmerged_reads_r2", outputs, false)?,
+        ]);
+    }
+    if let Some(merge_overlap) = effective_params.merge_overlap {
+        command.extend(["--fastq_minovlen".to_string(), merge_overlap.to_string()]);
+    }
+    if let Some(min_len) = effective_params.min_len {
+        command.extend(["--fastq_minmergelen".to_string(), min_len.to_string()]);
+    }
+    Ok(command)
+}
+
+fn bbmerge_merge_command(
+    r1: &Path,
+    r2: &Path,
+    outputs: &MergeOutputs,
+    effective_params: &MergeEffectiveParams,
+) -> Result<Vec<String>> {
+    let mut command = vec![
+        "bbmerge".to_string(),
+        format!("in1={}", r1.display()),
+        format!("in2={}", r2.display()),
+        format!("out={}", outputs.merged_reads.display()),
+        format!("threads={}", effective_params.threads),
+    ];
+    if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
+        command.push(format!(
+            "outu1={}",
+            required_unmerged_output("bbmerge", "unmerged_reads_r1", outputs, true)?
+        ));
+        command.push(format!(
+            "outu2={}",
+            required_unmerged_output("bbmerge", "unmerged_reads_r2", outputs, false)?
+        ));
+    }
+    if let Some(merge_overlap) = effective_params.merge_overlap {
+        command.push(format!("minoverlap={merge_overlap}"));
+    }
+    if let Some(min_len) = effective_params.min_len {
+        command.push(format!("mininsert={min_len}"));
+    }
+    Ok(command)
+}
+
+fn flash2_merge_command(
+    r1: &Path,
+    r2: &Path,
+    out_dir: &Path,
+    effective_params: &MergeEffectiveParams,
+) -> Vec<String> {
+    let mut command = vec![
+        "flash2".to_string(),
+        "-o".to_string(),
+        "flash2".to_string(),
+        "-d".to_string(),
+        out_dir.display().to_string(),
+        "-t".to_string(),
+        effective_params.threads.to_string(),
+        r1.display().to_string(),
+        r2.display().to_string(),
+    ];
+    if let Some(merge_overlap) = effective_params.merge_overlap {
+        command.extend(["-m".to_string(), merge_overlap.to_string()]);
+    }
+    command
+}
+
+fn leehom_merge_command(
+    r1: &Path,
+    r2: &Path,
+    out_dir: &Path,
+    effective_params: &MergeEffectiveParams,
+) -> Vec<String> {
+    vec![
+        "leehom".to_string(),
+        "-fq1".to_string(),
+        r1.display().to_string(),
+        "-fq2".to_string(),
+        r2.display().to_string(),
+        "-fqo".to_string(),
+        out_dir.join("leehom").display().to_string(),
+        "-t".to_string(),
+        effective_params.threads.to_string(),
+    ]
+}
+
+fn unmerged_output_or_null(
+    tool: &str,
+    label: &str,
+    outputs: &MergeOutputs,
+    first_mate: bool,
+    effective_params: &MergeEffectiveParams,
+) -> Result<String> {
+    if effective_params.unmerged_read_policy == UnmergedReadPolicy::EmitUnmergedPairs {
+        required_unmerged_output(tool, label, outputs, first_mate)
+    } else {
+        Ok("/dev/null".to_string())
+    }
+}
+
+fn required_unmerged_output(
+    tool: &str,
+    label: &str,
+    outputs: &MergeOutputs,
+    first_mate: bool,
+) -> Result<String> {
+    let path = if first_mate { &outputs.unmerged_reads_r1 } else { &outputs.unmerged_reads_r2 };
+    path.as_ref()
+        .ok_or_else(|| anyhow!("{tool} merge requires {label} output"))
+        .map(|path| path.display().to_string())
 }
 
 fn option_json_u32(value: Option<u32>) -> String {
