@@ -158,6 +158,11 @@ struct DetectAdaptersToolExecution {
     result: StageResultV1,
 }
 
+struct DetectAdapterEvidenceSummary {
+    candidate_adapter_count: u64,
+    adapter_trimmed_fraction: Option<f64>,
+}
+
 struct DetectAdaptersCacheIdentity {
     tool: String,
     tool_version: String,
@@ -404,7 +409,7 @@ fn build_detect_report(
     out_dir: &std::path::Path,
     execution: &StageResultV1,
 ) -> Result<DetectAdaptersReportV1> {
-    let (candidate_adapter_count, adapter_trimmed_fraction) = detect_adapter_summary(out_dir)?;
+    let adapter_evidence = detect_adapter_summary(out_dir)?;
     let reads_in = bench_inputs.input_stats.reads + input_stats_r2.map_or(0, |stats| stats.reads);
     let bases_in = bench_inputs.input_stats.bases + input_stats_r2.map_or(0, |stats| stats.bases);
     let mean_q = if bases_in == 0 {
@@ -444,8 +449,8 @@ fn build_detect_report(
         pairs_in,
         pairs_out,
         mean_q,
-        candidate_adapter_count,
-        adapter_trimmed_fraction,
+        candidate_adapter_count: adapter_evidence.candidate_adapter_count,
+        adapter_trimmed_fraction: adapter_evidence.adapter_trimmed_fraction,
         adapter_content_max: None,
         adapter_content_mean: None,
         duplication_rate: None,
@@ -460,7 +465,7 @@ fn build_detect_report(
     })
 }
 
-fn detect_adapter_summary(out_dir: &std::path::Path) -> Result<(u64, Option<f64>)> {
+fn detect_adapter_summary(out_dir: &std::path::Path) -> Result<DetectAdapterEvidenceSummary> {
     let fastp_json = out_dir.join("fastp.json");
     if fastp_json.exists() {
         let raw = std::fs::read_to_string(&fastp_json)
@@ -481,9 +486,15 @@ fn detect_adapter_summary(out_dir: &std::path::Path) -> Result<(u64, Option<f64>
             None
         };
         let count = u64::from(adapter_trimmed_reads > 0);
-        return Ok((count, fraction));
+        return Ok(DetectAdapterEvidenceSummary {
+            candidate_adapter_count: count,
+            adapter_trimmed_fraction: fraction,
+        });
     }
-    Ok((u64::from(out_dir.join("fastqc").exists()), None))
+    Ok(DetectAdapterEvidenceSummary {
+        candidate_adapter_count: u64::from(out_dir.join("fastqc").exists()),
+        adapter_trimmed_fraction: None,
+    })
 }
 
 fn u64_to_f64(value: u64) -> f64 {
