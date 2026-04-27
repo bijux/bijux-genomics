@@ -199,3 +199,20 @@ fn policy__contracts__science_boundary_docs_policy__container_versions_index_lin
         "containers/versions/index.md must link the governed version-control surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_version_authority_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../versions/index.md".to_string(),
+        "../versions/versions.toml".to_string(),
+        "../versions/lock.json".to_string(),
+        "../versions/LOCK.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/VERSION_AUTHORITY.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/VERSION_AUTHORITY.md must link the governed version-authority surfaces exactly"
+    );
+}
