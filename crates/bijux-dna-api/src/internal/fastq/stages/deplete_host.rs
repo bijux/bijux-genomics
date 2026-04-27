@@ -32,6 +32,7 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_planner_fastq::tool_adapters::stages::transform::deplete_host::plan_host_depletion_with_options;
 use bijux_dna_planner_fastq::DepleteHostStageParams;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
@@ -133,16 +134,16 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let report = build_deplete_host_report(
-            &tool_plan.plan,
-            &setup.bench_inputs.input_stats,
-            setup.input_stats_r2.as_ref(),
+        let report = build_deplete_host_report(&DepleteHostReportInputs {
+            plan: &tool_plan.plan,
+            input_stats_r1: &setup.bench_inputs.input_stats,
+            input_stats_r2: setup.input_stats_r2.as_ref(),
             catalog,
             platform,
             runner,
-            &tool_plan.tool,
-            &execution,
-        )?;
+            tool: &tool_plan.tool,
+            execution: &execution,
+        })?;
         bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.report_json), &report)
             .context("write host depletion report")?;
         let metrics = FastqDepleteHostMetrics {
@@ -222,6 +223,17 @@ struct DepleteHostToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct DepleteHostReportInputs<'a, S: ::std::hash::BuildHasher> {
+    plan: &'a StagePlanV1,
+    input_stats_r1: &'a SeqkitMetrics,
+    input_stats_r2: Option<&'a SeqkitMetrics>,
+    catalog: &'a HashMap<String, ToolImageSpec, S>,
+    platform: &'a PlatformSpec,
+    runner: RuntimeKind,
+    tool: &'a str,
+    execution: &'a StageResultV1,
 }
 
 fn prepare_deplete_host_benchmark_setup<S: ::std::hash::BuildHasher>(
@@ -321,41 +333,36 @@ fn ensure_deplete_host_benchmark_qa<S: ::std::hash::BuildHasher>(
     ensure_tool_qa_passed(STAGE_DEPLETE_HOST.as_str(), tools, platform, catalog)
 }
 
-#[allow(clippy::too_many_arguments)]
 fn build_deplete_host_report<S: ::std::hash::BuildHasher>(
-    plan: &bijux_dna_stage_contract::StagePlanV1,
-    input_stats_r1: &bijux_dna_core::prelude::measure::SeqkitMetrics,
-    input_stats_r2: Option<&bijux_dna_core::prelude::measure::SeqkitMetrics>,
-    catalog: &HashMap<String, ToolImageSpec, S>,
-    platform: &PlatformSpec,
-    runner: RuntimeKind,
-    tool: &str,
-    execution: &bijux_dna_runner::step_runner::StageResultV1,
+    inputs: &DepleteHostReportInputs<'_, S>,
 ) -> Result<DepleteHostReportV1> {
     let effective_params: HostDepletionEffectiveParams =
-        serde_json::from_value(plan.effective_params.clone())
+        serde_json::from_value(inputs.plan.effective_params.clone())
             .context("decode host depletion effective params")?;
-    let output_r1 = artifact_output_path(plan, "host_depleted_reads_r1")
-        .unwrap_or_else(|| plan.out_dir.join("host_depleted.fastq.gz"));
-    let output_r2 = artifact_output_path(plan, "host_depleted_reads_r2");
-    let removed_host_r1 = artifact_output_path(plan, "removed_host_reads_r1")
-        .unwrap_or_else(|| plan.out_dir.join("removed_host.fastq.gz"));
-    let removed_host_r2 = artifact_output_path(plan, "removed_host_reads_r2");
-    let report_json = artifact_output_path(plan, "host_depletion_report_json")
-        .unwrap_or_else(|| plan.out_dir.join("host_depletion_report.json"));
-    let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
+    let output_r1 = artifact_output_path(inputs.plan, "host_depleted_reads_r1")
+        .unwrap_or_else(|| inputs.plan.out_dir.join("host_depleted.fastq.gz"));
+    let output_r2 = artifact_output_path(inputs.plan, "host_depleted_reads_r2");
+    let removed_host_r1 = artifact_output_path(inputs.plan, "removed_host_reads_r1")
+        .unwrap_or_else(|| inputs.plan.out_dir.join("removed_host.fastq.gz"));
+    let removed_host_r2 = artifact_output_path(inputs.plan, "removed_host_reads_r2");
+    let report_json = artifact_output_path(inputs.plan, "host_depletion_report_json")
+        .unwrap_or_else(|| inputs.plan.out_dir.join("host_depletion_report.json"));
+    let output_stats_r1 =
+        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, &output_r1)?;
     let output_stats_r2 = if let Some(path) = output_r2.as_deref() {
-        Some(observe_fastq_stats(catalog, platform, runner, path)?)
+        Some(observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, path)?)
     } else {
         None
     };
-    let reads_in = input_stats_r1.reads + input_stats_r2.map_or(0, |stats| stats.reads);
+    let reads_in =
+        inputs.input_stats_r1.reads + inputs.input_stats_r2.map_or(0, |stats| stats.reads);
     let reads_out = output_stats_r1.reads + output_stats_r2.map_or(0, |stats| stats.reads);
-    let bases_in = input_stats_r1.bases + input_stats_r2.map_or(0, |stats| stats.bases);
+    let bases_in =
+        inputs.input_stats_r1.bases + inputs.input_stats_r2.map_or(0, |stats| stats.bases);
     let bases_out = output_stats_r1.bases + output_stats_r2.map_or(0, |stats| stats.bases);
     let reads_removed = reads_in.saturating_sub(reads_out);
     let bases_removed = bases_in.saturating_sub(bases_out);
-    let pairs_in = input_stats_r2.map(|stats| input_stats_r1.reads.min(stats.reads));
+    let pairs_in = inputs.input_stats_r2.map(|stats| inputs.input_stats_r1.reads.min(stats.reads));
     let pairs_out = output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
     let host_fraction_removed =
         if reads_in == 0 { 0.0 } else { u64_to_f64(reads_removed) / u64_to_f64(reads_in) };
@@ -364,7 +371,7 @@ fn build_deplete_host_report<S: ::std::hash::BuildHasher>(
         schema_version: DEPLETE_HOST_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_DEPLETE_HOST.as_str().to_string(),
         stage_id: STAGE_DEPLETE_HOST.as_str().to_string(),
-        tool_id: tool.to_string(),
+        tool_id: inputs.tool.to_string(),
         paired_mode: effective_params.paired_mode,
         threads: effective_params.threads,
         reference_scope: effective_params.reference_scope,
@@ -381,8 +388,9 @@ fn build_deplete_host_report<S: ::std::hash::BuildHasher>(
         emit_removed_reads: effective_params.emit_removed_reads,
         report_format: effective_params.report_format,
         retain_unmapped_pairs: effective_params.retain_unmapped_pairs,
-        input_r1: artifact_input_path_string(plan, "reads_r1"),
-        input_r2: artifact_input_path(plan, "reads_r2").map(|path| path.display().to_string()),
+        input_r1: artifact_input_path_string(inputs.plan, "reads_r1"),
+        input_r2: artifact_input_path(inputs.plan, "reads_r2")
+            .map(|path| path.display().to_string()),
         output_r1: output_r1.display().to_string(),
         output_r2: output_r2.map(|path| path.display().to_string()),
         removed_host_r1: removed_host_r1.display().to_string(),
@@ -397,15 +405,17 @@ fn build_deplete_host_report<S: ::std::hash::BuildHasher>(
         pairs_in,
         pairs_out,
         host_fraction_removed,
-        runtime_s: Some(execution.runtime_s),
-        memory_mb: Some(execution.memory_mb),
-        exit_code: Some(execution.exit_code),
-        raw_backend_report: plan
+        runtime_s: Some(inputs.execution.runtime_s),
+        memory_mb: Some(inputs.execution.memory_mb),
+        exit_code: Some(inputs.execution.exit_code),
+        raw_backend_report: inputs
+            .plan
             .params
             .get("raw_backend_report")
             .and_then(serde_json::Value::as_str)
             .map(ToOwned::to_owned),
-        raw_backend_report_format: plan
+        raw_backend_report_format: inputs
+            .plan
             .params
             .get("raw_backend_report_format")
             .and_then(serde_json::Value::as_str)
