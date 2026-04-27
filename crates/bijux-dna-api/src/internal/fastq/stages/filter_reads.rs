@@ -73,15 +73,16 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
     let mut records = Vec::<BenchmarkRecord<FastqFilterMetrics>>::new();
     for tool in &setup.tools {
         let tool_plan = prepare_filter_tool_plan(catalog, platform, args, &setup, jobs, tool)?;
+        let cache_identity = FilterCacheIdentity::from_plan(platform, &setup, tool, &tool_plan);
         if let Ok(Some(record)) = fetch_fastq_filter_v2(
             &conn,
-            tool,
-            &tool_plan.tool_spec.tool_version,
-            &tool_plan.image_digest,
-            &setup.bench_inputs.runner.to_string(),
-            &platform.name,
-            &setup.input_hash,
-            &tool_plan.params_hash,
+            cache_identity.tool,
+            &cache_identity.tool_version,
+            &cache_identity.image_digest,
+            &cache_identity.runner,
+            &cache_identity.platform,
+            &cache_identity.input_hash,
+            &cache_identity.params_hash,
         ) {
             records.push(record);
             continue;
@@ -137,6 +138,35 @@ struct FilterToolPlan {
 struct FilterPlanOutputs {
     reads: PathBuf,
     reads_r2: Option<PathBuf>,
+}
+
+struct FilterCacheIdentity<'a> {
+    tool: &'a str,
+    tool_version: String,
+    image_digest: String,
+    runner: String,
+    platform: String,
+    input_hash: String,
+    params_hash: String,
+}
+
+impl<'a> FilterCacheIdentity<'a> {
+    fn from_plan(
+        platform: &PlatformSpec,
+        setup: &FilterBenchmarkSetup,
+        tool: &'a str,
+        tool_plan: &FilterToolPlan,
+    ) -> Self {
+        Self {
+            tool,
+            tool_version: tool_plan.tool_spec.tool_version.clone(),
+            image_digest: tool_plan.image_digest.clone(),
+            runner: setup.bench_inputs.runner.to_string(),
+            platform: platform.name.clone(),
+            input_hash: setup.input_hash.clone(),
+            params_hash: tool_plan.params_hash.clone(),
+        }
+    }
 }
 
 struct FilterRecordInputs<'a, S: ::std::hash::BuildHasher> {
