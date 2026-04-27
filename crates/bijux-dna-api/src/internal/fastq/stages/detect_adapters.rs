@@ -21,6 +21,7 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDetectAd
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{
     params::{
         detect_adapters::{AdapterEvidenceFormat, AdapterEvidenceScope, AdapterInspectionMode},
@@ -37,6 +38,7 @@ use bijux_dna_planner_fastq::stage_api::{
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
+use bijux_dna_stage_contract::StagePlanV1;
 
 /// # Errors
 /// Returns an error if planning, execution, report parsing, or persistence fails.
@@ -64,53 +66,39 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqDetectAdaptersMetrics>>::new();
     for tool in &setup.tools {
-        let out_dir = setup.bench_inputs.tools_root.join(tool);
-        bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let mut tool_spec = build_tool_execution_spec(
-            STAGE_DETECT_ADAPTERS.as_str(),
-            tool,
-            &setup.registry,
-            catalog,
-            platform,
-        )?;
-        if let Some(threads) = args.threads {
-            tool_spec.resources.threads = threads;
-        }
-        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan(&tool_spec, &setup.bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
-        let params_hash = stable_params_hash(&plan.params);
-        let image_digest = benchmark_image_identity(&tool_spec);
+        let tool_plan =
+            prepare_detect_adapters_tool_plan(catalog, platform, args, &setup, jobs, tool)?;
         if let Ok(Some(record)) = fetch_fastq_detect_adapters_v1(
             &conn,
-            tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &setup.bench_inputs.runner.to_string(),
             &platform.name,
             &setup.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             setup.bench_inputs.runner,
             jobs,
         )?
         .into_iter()
         .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+        .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
         let record = build_detect_record(
             platform,
             &setup.bench_inputs,
             args.r2.as_deref(),
             setup.input_stats_r2.as_ref(),
-            tool,
-            &tool_spec,
+            &tool_plan.tool,
+            &tool_plan.tool_spec,
             &setup.input_hash,
-            &plan.params,
-            &out_dir,
+            &tool_plan.plan.params,
+            &tool_plan.plan.out_dir,
             &execution,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -118,8 +106,11 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: STAGE_DETECT_ADAPTERS.as_str().to_string(),
-                tool: tool.clone(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+                tool: tool_plan.tool.clone(),
+                reason: format!(
+                    "tool {} failed with status {}",
+                    tool_plan.tool, execution.exit_code
+                ),
                 category: ErrorCategory::ToolError,
             });
         }
@@ -152,6 +143,47 @@ struct DetectAdaptersBenchmarkSetup {
     bench_inputs: TrimBenchInputs,
     input_hash: String,
     input_stats_r2: Option<SeqkitMetrics>,
+}
+
+struct DetectAdaptersToolPlan {
+    tool: String,
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    params_hash: String,
+    image_digest: String,
+}
+
+fn prepare_detect_adapters_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDetectAdaptersArgs,
+    setup: &DetectAdaptersBenchmarkSetup,
+    jobs: usize,
+    tool: &str,
+) -> Result<DetectAdaptersToolPlan> {
+    let out_dir = setup.bench_inputs.tools_root.join(tool);
+    bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
+    let mut tool_spec = build_tool_execution_spec(
+        STAGE_DETECT_ADAPTERS.as_str(),
+        tool,
+        &setup.registry,
+        catalog,
+        platform,
+    )?;
+    if let Some(threads) = args.threads {
+        tool_spec.resources.threads = threads;
+    }
+    let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+    let plan = plan(&tool_spec, &setup.bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
+    let params_hash = stable_params_hash(&plan.params);
+    let image_digest = benchmark_image_identity(&tool_spec);
+    Ok(DetectAdaptersToolPlan {
+        tool: tool.to_string(),
+        tool_spec,
+        plan,
+        params_hash,
+        image_digest,
+    })
 }
 
 fn prepare_detect_adapters_benchmark_setup<S: ::std::hash::BuildHasher>(
