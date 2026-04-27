@@ -35,5 +35,5 @@ fn stage_contract_docs_list_observer_fixture_files() {
 fn stage_contract_docs() -> String {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     std::fs::read_to_string(root.join("docs/STAGE_CONTRACTS.md"))
-        .expect("read docs/STAGE_CONTRACTS.md")
+        .unwrap_or_else(|err| panic!("read docs/STAGE_CONTRACTS.md: {err}"))
 }
