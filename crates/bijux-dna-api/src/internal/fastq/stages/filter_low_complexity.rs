@@ -357,8 +357,7 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
         .output_reads
         .parent()
         .ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
-    bijux_dna_infra::atomic_write_json(&out_dir.join("low_complexity_report.json"), &report)
-        .context("write low-complexity report")?;
+    write_low_complexity_report(out_dir, &report)?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write low-complexity metrics")?;
@@ -480,6 +479,14 @@ fn low_complexity_metrics_from_report(
         mean_q_after: report.mean_q_after,
         delta_metrics: derive_trim_delta(before_stats, after_stats),
     }
+}
+
+fn write_low_complexity_report(
+    out_dir: &std::path::Path,
+    report: &FilterLowComplexityReportV1,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(&out_dir.join("low_complexity_report.json"), report)
+        .context("write low-complexity report")
 }
 
 fn low_complexity_backend_metrics(
