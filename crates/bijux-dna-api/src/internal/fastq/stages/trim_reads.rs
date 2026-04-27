@@ -124,17 +124,8 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
 
         let observed_stats = observe_trim_tool_stats(catalog, platform, args, &setup, &tool_plan)?;
         let report_path = tool_plan.plan.out_dir.join("trim_report.json");
-        let mut governed_report = load_governed_trim_report(&report_path)?;
-        governed_report.reads_in = Some(observed_stats.before.reads);
-        governed_report.reads_out = Some(observed_stats.after.reads);
-        governed_report.bases_in = Some(observed_stats.before.bases);
-        governed_report.bases_out = Some(observed_stats.after.bases);
-        governed_report.pairs_in = observed_stats.pairs_in;
-        governed_report.pairs_out = observed_stats.pairs_out;
-        governed_report.mean_q_before = Some(observed_stats.before.mean_q);
-        governed_report.mean_q_after = Some(observed_stats.after.mean_q);
-        governed_report.runtime_s = Some(execution.runtime_s);
-        governed_report.memory_mb = Some(execution.memory_mb);
+        let governed_report =
+            enrich_governed_trim_report(&report_path, &observed_stats, &execution)?;
         write_governed_trim_report(&report_path, &governed_report)?;
         let metrics = FastqTrimMetrics {
             reads_in: observed_stats.before.reads,
@@ -282,6 +273,25 @@ fn observe_trim_tool_stats<S: ::std::hash::BuildHasher>(
         .map(|stats| setup.bench_inputs.input_stats.reads.min(stats.reads));
     let pairs_out = output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
     Ok(TrimObservedStats { before, after, pairs_in, pairs_out })
+}
+
+fn enrich_governed_trim_report(
+    report_path: &Path,
+    observed_stats: &TrimObservedStats,
+    execution: &StageResultV1,
+) -> Result<TrimReadsReportV1> {
+    let mut report = load_governed_trim_report(report_path)?;
+    report.reads_in = Some(observed_stats.before.reads);
+    report.reads_out = Some(observed_stats.after.reads);
+    report.bases_in = Some(observed_stats.before.bases);
+    report.bases_out = Some(observed_stats.after.bases);
+    report.pairs_in = observed_stats.pairs_in;
+    report.pairs_out = observed_stats.pairs_out;
+    report.mean_q_before = Some(observed_stats.before.mean_q);
+    report.mean_q_after = Some(observed_stats.after.mean_q);
+    report.runtime_s = Some(execution.runtime_s);
+    report.memory_mb = Some(execution.memory_mb);
+    Ok(report)
 }
 
 fn prepare_trim_tool_plan<S: ::std::hash::BuildHasher>(
