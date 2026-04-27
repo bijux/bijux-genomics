@@ -290,45 +290,7 @@ fn validation_command(
         "if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi"
             .to_string(),
     );
-    if let Some(r2) = r2 {
-        commands.push(format!("validated_reads_r2=$(count_fastq_reads {})", shell_quote(r2),));
-        commands.push("validated_pairs=$validated_reads_r1".to_string());
-        if effective_params.pair_sync_policy == PairSyncPolicy::RequireHeaderSync {
-            let pair_sync_r1 = out_dir.join("validation_r1.headers.txt");
-            let pair_sync_r2 = out_dir.join("validation_r2.headers.txt");
-            commands.push("pair_sync_checked=true".to_string());
-            commands.push("pair_sync_pass=true".to_string());
-            commands.push("pair_count_match=true".to_string());
-            commands.push(format!(
-                "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }}' > {}",
-                shell_quote(r1),
-                shell_quote(&pair_sync_r1),
-            ));
-            commands.push(format!(
-                "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }}' > {}",
-                shell_quote(r2),
-                shell_quote(&pair_sync_r2),
-            ));
-            commands.push(format!(
-                "validated_reads_r2=$(wc -l < {} | tr -d '[:space:]')",
-                shell_quote(&pair_sync_r2),
-            ));
-            commands.push("validated_pairs=$validated_reads_r1".to_string());
-            commands.push(
-                "if [ \"$validated_reads_r1\" -ne \"$validated_reads_r2\" ]; then pair_count_match=false; pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=96; fi; fi".to_string(),
-            );
-            commands.push(format!(
-                "if ! cmp -s {} {}; then pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=97; fi; fi",
-                shell_quote(&pair_sync_r1),
-                shell_quote(&pair_sync_r2),
-            ));
-            commands.push(format!(
-                "rm -f {} {}",
-                shell_quote(&pair_sync_r1),
-                shell_quote(&pair_sync_r2),
-            ));
-        }
-    }
+    append_pair_validation_commands(&mut commands, r1, r2, out_dir, effective_params);
     if effective_params.validation_mode == ValidationMode::ReportOnly {
         commands.push("exit_code=0".to_string());
     }
@@ -389,6 +351,55 @@ fn validation_command(
     ));
     commands.push("exit \"$exit_code\"".to_string());
     Ok(vec!["sh".to_string(), "-lc".to_string(), commands.join(" && ")])
+}
+
+fn append_pair_validation_commands(
+    commands: &mut Vec<String>,
+    r1: &Path,
+    r2: Option<&Path>,
+    out_dir: &Path,
+    effective_params: &ValidateEffectiveParams,
+) {
+    let Some(r2) = r2 else {
+        return;
+    };
+    commands.push(format!("validated_reads_r2=$(count_fastq_reads {})", shell_quote(r2),));
+    commands.push("validated_pairs=$validated_reads_r1".to_string());
+    if effective_params.pair_sync_policy == PairSyncPolicy::RequireHeaderSync {
+        append_header_sync_commands(commands, r1, r2, out_dir);
+    }
+}
+
+fn append_header_sync_commands(commands: &mut Vec<String>, r1: &Path, r2: &Path, out_dir: &Path) {
+    let pair_sync_r1 = out_dir.join("validation_r1.headers.txt");
+    let pair_sync_r2 = out_dir.join("validation_r2.headers.txt");
+    commands.push("pair_sync_checked=true".to_string());
+    commands.push("pair_sync_pass=true".to_string());
+    commands.push("pair_count_match=true".to_string());
+    commands.push(normalized_fastq_headers_command(r1, &pair_sync_r1));
+    commands.push(normalized_fastq_headers_command(r2, &pair_sync_r2));
+    commands.push(format!(
+        "validated_reads_r2=$(wc -l < {} | tr -d '[:space:]')",
+        shell_quote(&pair_sync_r2),
+    ));
+    commands.push("validated_pairs=$validated_reads_r1".to_string());
+    commands.push(
+        "if [ \"$validated_reads_r1\" -ne \"$validated_reads_r2\" ]; then pair_count_match=false; pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=96; fi; fi".to_string(),
+    );
+    commands.push(format!(
+        "if ! cmp -s {} {}; then pair_sync_pass=false; strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=97; fi; fi",
+        shell_quote(&pair_sync_r1),
+        shell_quote(&pair_sync_r2),
+    ));
+    commands.push(format!("rm -f {} {}", shell_quote(&pair_sync_r1), shell_quote(&pair_sync_r2),));
+}
+
+fn normalized_fastq_headers_command(reads: &Path, headers_path: &Path) -> String {
+    format!(
+        "cat_fastq {} | awk 'NR % 4 == 1 {{ header = substr($0, 2); sub(/[[:space:]].*$/, \"\", header); sub(/\\/[12]$/, \"\", header); sub(/([._-]R?[12])$/, \"\", header); print header }}' > {}",
+        shell_quote(reads),
+        shell_quote(headers_path),
+    )
 }
 
 fn validation_stream_command(
