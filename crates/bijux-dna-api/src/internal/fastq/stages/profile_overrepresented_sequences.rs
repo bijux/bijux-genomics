@@ -90,22 +90,18 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             failures.push(failure);
             continue;
         }
-        let artifacts = prepare_overrepresented_artifacts(args, &tool_plan.plan)?;
-        let effective_params: FastqOverrepresentedProfileParams =
-            serde_json::from_value(tool_plan.plan.effective_params.clone())
-                .context("parse overrepresented effective params")?;
-        let payload = read_overrepresented_payload(&artifacts.output_json)?;
-        let metrics = payload.metrics.clone();
+        let observation = observe_overrepresented_tool(args, &tool_plan.plan)?;
+        let metrics = observation.payload.metrics.clone();
         let metric_set = metric_set(metrics);
         let report = build_overrepresented_report(OverrepresentedReportInputs {
             tool,
             args,
-            artifacts: &artifacts,
-            effective_params: &effective_params,
-            payload,
+            artifacts: &observation.artifacts,
+            effective_params: &observation.effective_params,
+            payload: observation.payload.clone(),
             execution: &execution,
         });
-        write_overrepresented_report(&artifacts.report_json, &report)?;
+        write_overrepresented_report(&observation.artifacts.report_json, &report)?;
         write_overrepresented_metrics(&tool_plan.out_dir, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
@@ -201,6 +197,12 @@ struct OverrepresentedArtifacts {
     output_tsv: PathBuf,
     output_json: PathBuf,
     report_json: PathBuf,
+}
+
+struct OverrepresentedObservation {
+    artifacts: OverrepresentedArtifacts,
+    effective_params: FastqOverrepresentedProfileParams,
+    payload: OverrepresentedPayload,
 }
 
 struct OverrepresentedReportInputs<'a> {
@@ -348,6 +350,18 @@ fn prepare_overrepresented_artifacts(
         )?;
     }
     Ok(OverrepresentedArtifacts { output_tsv, output_json, report_json })
+}
+
+fn observe_overrepresented_tool(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
+    plan: &StagePlanV1,
+) -> Result<OverrepresentedObservation> {
+    let artifacts = prepare_overrepresented_artifacts(args, plan)?;
+    let effective_params: FastqOverrepresentedProfileParams =
+        serde_json::from_value(plan.effective_params.clone())
+            .context("parse overrepresented effective params")?;
+    let payload = read_overrepresented_payload(&artifacts.output_json)?;
+    Ok(OverrepresentedObservation { artifacts, effective_params, payload })
 }
 
 fn build_overrepresented_report(
