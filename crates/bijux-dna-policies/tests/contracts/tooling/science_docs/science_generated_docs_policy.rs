@@ -39,3 +39,19 @@ fn policy__contracts__science_generated_docs_policy__generated_root_readme_links
         "science/generated/README.md must link the governed generated-science subsurfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_generated_docs_policy__generated_current_readme_links_current_snapshot_boundaries_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../../specs/evidence/README.md".to_string(),
+        "../indexes/README.md".to_string(),
+        "evidence/README.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/generated/current/README.md");
+    assert_eq!(
+        expected, documented,
+        "science/generated/current/README.md must link the governed current-snapshot boundaries exactly"
+    );
+}
