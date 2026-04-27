@@ -11,8 +11,11 @@ Clarifies tool coverage and rationale.
 
 ## Contracts
 - Every BAM stage must appear exactly once.
-- `status` must mirror `domain/bam/stages/*.yaml`.
-- `supported tools` must stay within each stage manifest's `compatible_tools`.
+- `status` must mirror [domain/bam/stages/](../../../domain/bam/stages/).
+- `supported tools` must stay within the governed stage/tool manifests under
+  [domain/bam/stages/](../../../domain/bam/stages/) and [domain/bam/tools/](../../../domain/bam/tools/).
+- Default-tool rationale stays pinned in
+  [../../../domain/bam/docs/DEFAULT_SETTINGS.md](../../../domain/bam/docs/DEFAULT_SETTINGS.md).
 
 ## Examples
 - `bam.align` admits `bwa, bowtie2`.

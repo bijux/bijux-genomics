@@ -457,6 +457,21 @@ fn policy__contracts__bam_science_docs_policy__stage_taxonomy_links_governed_bam
     );
 }
 
+#[test]
+fn policy__contracts__bam_science_docs_policy__tools_roster_links_governed_bam_tool_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../../domain/bam/docs/DEFAULT_SETTINGS.md".to_string(),
+        "../../../domain/bam/stages/".to_string(),
+        "../../../domain/bam/tools/".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/bam/TOOLS_ROSTER.md");
+    assert_eq!(
+        documented, expected,
+        "docs/20-science/bam/TOOLS_ROSTER.md must link the governed BAM tool surfaces exactly"
+    );
+}
+
 fn assert_bam_tools_roster_matches(stage_ids: &[&str], label: &str) {
     let expected = bam_stage_specs();
     let roster = bam_tools_roster_rows();
