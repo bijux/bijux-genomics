@@ -36,7 +36,7 @@ use crate::internal::fastq::stages::preprocess::{
     resolve_primer_set_governance, PrimerSetGovernance,
 };
 use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, observe_fastq_stats,
+    benchmark_image_identity, build_benchmark_context, observe_fastq_stats,
 };
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
@@ -333,12 +333,7 @@ fn prepare_normalize_primers_tool_plan<S: ::std::hash::BuildHasher>(
         &options,
     )?;
     let params_hash = stable_params_hash(&plan.params);
-    let image_digest = tool_spec
-        .image
-        .digest
-        .as_ref()
-        .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-        .clone();
+    let image_digest = benchmark_image_identity(&tool_spec);
     Ok(NormalizePrimersToolPlan { out_dir, tool_spec, plan, params_hash, image_digest })
 }
 
