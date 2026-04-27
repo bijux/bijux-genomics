@@ -226,6 +226,45 @@ struct FilterReportOutputs {
     report_json: String,
 }
 
+struct FilterReportMeasurements {
+    reads_in: u64,
+    reads_out: u64,
+    reads_dropped: u64,
+    reads_removed_by_n: u64,
+    reads_removed_by_entropy: u64,
+    reads_removed_low_complexity: u64,
+    reads_removed_by_kmer: u64,
+    reads_removed_contaminant_kmer: u64,
+    reads_removed_by_length: u64,
+    bases_in: u64,
+    bases_out: u64,
+    pairs_in: Option<u64>,
+    pairs_out: Option<u64>,
+}
+
+impl FilterReportMeasurements {
+    fn from_accounting(
+        accounting: &FilterReadAccounting,
+        removal_counts: FilterRemovalCounts,
+    ) -> Self {
+        Self {
+            reads_in: accounting.reads_in,
+            reads_out: accounting.reads_out,
+            reads_dropped: accounting.reads_dropped,
+            reads_removed_by_n: removal_counts.reads_removed_by_n,
+            reads_removed_by_entropy: removal_counts.reads_removed_by_entropy,
+            reads_removed_low_complexity: removal_counts.reads_removed_low_complexity,
+            reads_removed_by_kmer: removal_counts.reads_removed_by_kmer,
+            reads_removed_contaminant_kmer: removal_counts.reads_removed_contaminant_kmer,
+            reads_removed_by_length: removal_counts.reads_removed_by_length,
+            bases_in: accounting.bases_in,
+            bases_out: accounting.bases_out,
+            pairs_in: accounting.pairs_in,
+            pairs_out: accounting.pairs_out,
+        }
+    }
+}
+
 impl FilterReportOutputs {
     fn from_paths(output_reads: &Path, output_reads_r2: Option<&Path>, report_path: &Path) -> Self {
         Self {
@@ -445,6 +484,8 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let report_params = FilterReportParams::from_params(params, &bench_inputs.r1);
     let report_outputs =
         FilterReportOutputs::from_paths(output_reads, output_reads_r2, &report_path);
+    let report_measurements =
+        FilterReportMeasurements::from_accounting(&accounting, backend_report.removal_counts);
     let report = FilterReadsReportV1 {
         schema_version: FILTER_READS_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_FILTER_READS.as_str().to_string(),
@@ -465,21 +506,19 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
         n_policy: Some("drop".to_string()),
         polyx_policy: report_params.polyx_policy,
         contaminant_db: report_params.contaminant_db,
-        reads_in: accounting.reads_in,
-        reads_out: accounting.reads_out,
-        reads_dropped: accounting.reads_dropped,
-        reads_removed_by_n: backend_report.removal_counts.reads_removed_by_n,
-        reads_removed_by_entropy: backend_report.removal_counts.reads_removed_by_entropy,
-        reads_removed_low_complexity: backend_report.removal_counts.reads_removed_low_complexity,
-        reads_removed_by_kmer: backend_report.removal_counts.reads_removed_by_kmer,
-        reads_removed_contaminant_kmer: backend_report
-            .removal_counts
-            .reads_removed_contaminant_kmer,
-        reads_removed_by_length: backend_report.removal_counts.reads_removed_by_length,
-        bases_in: accounting.bases_in,
-        bases_out: accounting.bases_out,
-        pairs_in: accounting.pairs_in,
-        pairs_out: accounting.pairs_out,
+        reads_in: report_measurements.reads_in,
+        reads_out: report_measurements.reads_out,
+        reads_dropped: report_measurements.reads_dropped,
+        reads_removed_by_n: report_measurements.reads_removed_by_n,
+        reads_removed_by_entropy: report_measurements.reads_removed_by_entropy,
+        reads_removed_low_complexity: report_measurements.reads_removed_low_complexity,
+        reads_removed_by_kmer: report_measurements.reads_removed_by_kmer,
+        reads_removed_contaminant_kmer: report_measurements.reads_removed_contaminant_kmer,
+        reads_removed_by_length: report_measurements.reads_removed_by_length,
+        bases_in: report_measurements.bases_in,
+        bases_out: report_measurements.bases_out,
+        pairs_in: report_measurements.pairs_in,
+        pairs_out: report_measurements.pairs_out,
         mean_q_before: bench_inputs.input_stats.mean_q,
         mean_q_after: output_stats_r1.mean_q,
         runtime_s: Some(execution.runtime_s),
