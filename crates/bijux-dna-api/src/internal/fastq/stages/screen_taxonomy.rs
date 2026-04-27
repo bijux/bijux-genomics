@@ -411,6 +411,7 @@ fn build_screen_record(
     let metrics =
         screen_metrics_from_summary(&read_accounting, &classification_summary, &effective_params)?;
     let metric_set = metric_set(metrics.clone());
+    validate_screen_report_metrics(&governed_report, &metric_set.metrics)?;
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("metrics.json"), &metrics_json)
@@ -789,6 +790,124 @@ fn validate_screen_optional_fraction(
                 "screen taxonomy report {name} must be within [0, 1]: observed {observed}"
             ));
         }
+    }
+    Ok(())
+}
+
+fn validate_screen_report_metrics(
+    report: &ScreenTaxonomyReportV1,
+    metrics: &FastqScreenMetrics,
+) -> Result<()> {
+    validate_screen_metric_count("reads_in", report.reads_in, metrics.reads_in)?;
+    validate_screen_metric_count("reads_out", report.reads_out, metrics.reads_out)?;
+    validate_screen_metric_count("bases_in", report.bases_in, metrics.bases_in)?;
+    validate_screen_metric_count("bases_out", report.bases_out, metrics.bases_out)?;
+    validate_screen_metric_count("pairs_in", report.pairs_in, metrics.pairs_in)?;
+    validate_screen_metric_count("pairs_out", report.pairs_out, metrics.pairs_out)?;
+    validate_screen_metric_fraction(
+        "contamination_rate",
+        report.contamination_rate,
+        metrics.contamination_rate,
+    )?;
+    validate_screen_metric_optional_fraction(
+        "classified_fraction",
+        report.classified_fraction,
+        metrics.classified_fraction,
+    )?;
+    validate_screen_metric_optional_fraction(
+        "unclassified_fraction",
+        report.unclassified_fraction,
+        metrics.unclassified_fraction,
+    )?;
+    validate_screen_metric_string(
+        "classifier",
+        Some(enum_json_name(&report.classifier)?),
+        &metrics.classifier,
+    )?;
+    validate_screen_metric_string(
+        "report_format",
+        Some(enum_json_name(&report.report_format)?),
+        &metrics.report_format,
+    )?;
+    validate_screen_metric_string(
+        "database_catalog_id",
+        Some(report.database_catalog_id.clone()),
+        &metrics.database_catalog_id,
+    )?;
+    validate_screen_metric_string(
+        "database_artifact_id",
+        Some(report.database_artifact_id.clone()),
+        &metrics.database_artifact_id,
+    )?;
+    if metrics.minimum_confidence != report.minimum_confidence.map(f64::from) {
+        return Err(anyhow!(
+            "screen taxonomy metrics minimum_confidence mismatch: expected {:?}, observed {:?}",
+            report.minimum_confidence.map(f64::from),
+            metrics.minimum_confidence
+        ));
+    }
+    if metrics.emit_unclassified != Some(report.emit_unclassified) {
+        return Err(anyhow!(
+            "screen taxonomy metrics emit_unclassified mismatch: expected {}, observed {:?}",
+            report.emit_unclassified,
+            metrics.emit_unclassified
+        ));
+    }
+    if *metrics.contamination_summary.as_value() != serde_json::to_value(&report.summary_entries)? {
+        return Err(anyhow!("screen taxonomy metrics contamination summary mismatch"));
+    }
+    if *metrics.top_taxa.as_value() != serde_json::to_value(&report.top_taxa)? {
+        return Err(anyhow!("screen taxonomy metrics top taxa mismatch"));
+    }
+    Ok(())
+}
+
+fn validate_screen_metric_count(name: &str, expected: Option<u64>, observed: u64) -> Result<()> {
+    let expected = expected.unwrap_or(0);
+    if observed != expected {
+        return Err(anyhow!(
+            "screen taxonomy metrics {name} mismatch: expected {expected}, observed {observed}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_screen_metric_fraction(name: &str, expected: Option<f64>, observed: f64) -> Result<()> {
+    let expected = expected.unwrap_or(0.0);
+    if (observed - expected).abs() > f64::EPSILON {
+        return Err(anyhow!(
+            "screen taxonomy metrics {name} mismatch: expected {expected}, observed {observed}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_screen_metric_optional_fraction(
+    name: &str,
+    expected: Option<f64>,
+    observed: Option<f64>,
+) -> Result<()> {
+    if observed != expected {
+        return Err(anyhow!(
+            "screen taxonomy metrics {name} mismatch: expected {:?}, observed {:?}",
+            expected,
+            observed
+        ));
+    }
+    Ok(())
+}
+
+fn validate_screen_metric_string(
+    name: &str,
+    expected: Option<String>,
+    observed: &Option<String>,
+) -> Result<()> {
+    if observed != &expected {
+        return Err(anyhow!(
+            "screen taxonomy metrics {name} mismatch: expected {:?}, observed {:?}",
+            expected,
+            observed
+        ));
     }
     Ok(())
 }
