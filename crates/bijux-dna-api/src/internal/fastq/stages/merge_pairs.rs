@@ -14,6 +14,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy;
 use bijux_dna_domain_fastq::MergePairsReportV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
@@ -30,6 +31,7 @@ use bijux_dna_planner_fastq::stage_api::{
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
+use bijux_dna_stage_contract::StagePlanV1;
 use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -113,40 +115,22 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
     let mut records = Vec::<BenchmarkRecord<FastqMergeMetrics>>::new();
 
     for tool in &setup.tools {
-        let out_dir = setup.tools_root.join(tool);
-        ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec = build_tool_execution_spec(
-            STAGE_MERGE_PAIRS.as_str(),
-            tool,
-            &setup.registry,
-            catalog,
-            platform,
-        )?;
-        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan =
-            plan_merge_with_options(&tool_spec, &args.r1, &args.r2, &out_dir, &setup.options)?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let tool_plan = prepare_merge_tool_plan(catalog, platform, args, &setup, jobs, tool)?;
         if let Ok(Some(record)) = fetch_fastq_merge_v1(
             &conn,
             tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &setup.runner.to_string(),
             &platform.name,
             &setup.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             setup.runner,
             jobs,
         )?
@@ -162,8 +146,8 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             });
             continue;
         }
-        let merged_reads = required_plan_output_path(&plan, "merged_reads")?;
-        let report_json = required_plan_output_path(&plan, "report_json")?;
+        let merged_reads = required_plan_output_path(&tool_plan.plan, "merged_reads")?;
+        let report_json = required_plan_output_path(&tool_plan.plan, "report_json")?;
         let record = build_merge_record(
             catalog,
             platform,
@@ -171,8 +155,8 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             &setup.input_hash,
             &setup.r1_stats,
             &setup.r2_stats,
-            &tool_spec,
-            &plan.params,
+            &tool_plan.tool_spec,
+            &tool_plan.plan.params,
             merged_reads,
             report_json,
             &execution,
@@ -195,6 +179,13 @@ struct MergeBenchmarkSetup {
     r1_stats: SeqkitMetrics,
     r2_stats: SeqkitMetrics,
     options: MergePlanOptions,
+}
+
+struct MergeToolPlan {
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    params_hash: String,
+    image_digest: String,
 }
 
 fn select_merge_benchmark_tools(
@@ -260,6 +251,36 @@ fn ensure_merge_benchmark_qa<S: ::std::hash::BuildHasher>(
 ) -> Result<()> {
     ensure_image_qa_passed(STAGE_MERGE_PAIRS.as_str(), tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_MERGE_PAIRS.as_str(), tools, platform, catalog)
+}
+
+fn prepare_merge_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqMergeArgs,
+    setup: &MergeBenchmarkSetup,
+    jobs: usize,
+    tool: &str,
+) -> Result<MergeToolPlan> {
+    let out_dir = setup.tools_root.join(tool);
+    ensure_dir(&out_dir).context("create tool output dir")?;
+    let tool_spec = build_tool_execution_spec(
+        STAGE_MERGE_PAIRS.as_str(),
+        tool,
+        &setup.registry,
+        catalog,
+        platform,
+    )?;
+    let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+    let plan = plan_merge_with_options(&tool_spec, &args.r1, &args.r2, &out_dir, &setup.options)?;
+    let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let image_digest = tool_spec
+        .image
+        .digest
+        .as_ref()
+        .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
+        .clone();
+
+    Ok(MergeToolPlan { tool_spec, plan, params_hash, image_digest })
 }
 
 #[allow(clippy::too_many_arguments)]
