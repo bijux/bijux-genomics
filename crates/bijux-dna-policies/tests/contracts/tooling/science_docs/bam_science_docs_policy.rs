@@ -309,3 +309,22 @@ fn policy__contracts__bam_science_docs_policy__tools_roster_matches_alignment_an
         "alignment and filtering stages",
     );
 }
+
+#[test]
+fn policy__contracts__bam_science_docs_policy__tools_roster_matches_planned_qc_and_mutation_stages() {
+    assert_bam_tools_roster_matches(
+        &[
+            "bam.qc_pre",
+            "bam.markdup",
+            "bam.complexity",
+            "bam.insert_size",
+            "bam.gc_bias",
+            "bam.overlap_correction",
+            "bam.bias_mitigation",
+            "bam.recalibration",
+            "bam.haplogroups",
+            "bam.genotyping",
+        ],
+        "planned QC and mutation stages",
+    );
+}
