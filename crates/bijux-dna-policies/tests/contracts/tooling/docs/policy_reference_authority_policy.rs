@@ -272,3 +272,18 @@ fn policy__contracts__policy_reference_authority_policy__tests_style_links_gover
         "docs/40-policies/TESTS_STYLE.md must link the governed test-style authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__crate_map_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../10-architecture/CRATE_AUTHORITY_MAP.md".to_string(),
+        "../10-architecture/BOUNDARY_MAP.md".to_string(),
+        "../40-policies/MATURITY_LADDER.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/CRATE_MAP.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/CRATE_MAP.md must link the governed crate-map authorities exactly"
+    );
+}
