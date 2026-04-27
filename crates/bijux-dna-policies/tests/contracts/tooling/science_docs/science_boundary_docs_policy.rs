@@ -342,3 +342,21 @@ fn policy__contracts__science_boundary_docs_policy__container_tool_lifecycle_lin
         "containers/docs/TOOL_LIFECYCLE.md must link the governed lifecycle surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_planned_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "TOOL_LIFECYCLE.md".to_string(),
+        "../../configs/ci/registry/tool_registry_vcf_downstream.toml".to_string(),
+        "../../configs/ci/tools/images.toml".to_string(),
+        "../versions/versions.toml".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/PLANNED.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/PLANNED.md must link the governed planned-tool surfaces exactly"
+    );
+}
