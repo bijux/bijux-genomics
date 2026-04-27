@@ -34,7 +34,8 @@ pub(super) fn assets_refresh_golden(
         let report_path = workspace.path("artifacts/assets-refresh/golden/report.json");
 
         if out_dir.exists() {
-            fs::remove_dir_all(&out_dir).with_context(|| format!("remove {}", out_dir.display()))?;
+            fs::remove_dir_all(&out_dir)
+                .with_context(|| format!("remove {}", out_dir.display()))?;
         }
         if let Some(parent) = out_dir.parent() {
             bijux_dna_infra::ensure_dir(parent)

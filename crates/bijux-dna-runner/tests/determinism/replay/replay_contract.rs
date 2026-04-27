@@ -68,7 +68,10 @@ fn replay_rejects_changed_input_hashes() -> Result<()> {
     bijux_dna_infra::atomic_write_json(&out_dir.join("manifest.json"), &manifest)?;
     bijux_dna_infra::write_bytes(&input, "TGCA")?;
 
-    let err = replay_run("run-1", root).expect_err("changed input hash must fail replay");
+    let err = match replay_run("run-1", root) {
+        Ok(()) => panic!("changed input hash must fail replay"),
+        Err(error) => error,
+    };
     assert!(err.to_string().contains("replay input hash mismatch"));
     Ok(())
 }

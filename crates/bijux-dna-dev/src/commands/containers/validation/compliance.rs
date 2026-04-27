@@ -609,14 +609,14 @@ fn container_index_rows_by_tool(text: &str) -> BTreeMap<String, (String, String,
 fn planned_coverage_label(apptainer_source: &str, docker_source: &str) -> String {
     match (apptainer_source, docker_source) {
         ("bijux", "none") => "bijux apptainer wrapper".to_string(),
-        ("bijux", "arm64") | ("bijux", "arm64+amd64") => {
+        ("bijux", "arm64" | "arm64+amd64") => {
             "bijux apptainer + docker arm64".to_string()
         }
-        ("non-bijux", "arm64") | ("non-bijux", "arm64+amd64") => {
+        ("non-bijux", "arm64" | "arm64+amd64") => {
             "non-bijux apptainer + docker arm64".to_string()
         }
         ("non-bijux", "none") => "non-bijux apptainer wrapper".to_string(),
-        ("none", "arm64") | ("none", "arm64+amd64") => "docker arm64 only".to_string(),
+        ("none", "arm64" | "arm64+amd64") => "docker arm64 only".to_string(),
         _ => {
             format!("apptainer={apptainer_source}, docker={docker_source}")
         }
