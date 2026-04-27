@@ -760,7 +760,7 @@ fn governed_chimera_params(threads: u32) -> ChimeraDetectionEffectiveParams {
         chimera_removed_definition:
             "reads flagged as de_novo chimeras are excluded from downstream abundance tables"
                 .to_string(),
-        fallback_behavior: "copy_input_reads_and_mark_report".to_string(),
+        fallback_behavior: "require_filtered_output_reads".to_string(),
     }
 }
 
