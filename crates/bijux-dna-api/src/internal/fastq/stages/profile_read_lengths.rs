@@ -89,10 +89,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let mut lengths = read_fastq_lengths(&args.r1)?;
-        if let Some(r2) = args.r2.as_deref() {
-            lengths.extend(read_fastq_lengths(r2)?);
-        }
+        let lengths = observe_read_lengths(args)?;
         let report_json_path = required_output_path(&tool_plan.plan, "report_json")?;
         let length_tsv_path = required_output_path(&tool_plan.plan, "length_distribution_tsv")?;
         let length_json_path = required_output_path(&tool_plan.plan, "length_distribution_json")?;
@@ -305,6 +302,16 @@ fn read_lengths_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
         reason: format!("tool {tool} failed with status {exit_code}"),
         category: ErrorCategory::ToolError,
     })
+}
+
+fn observe_read_lengths(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
+) -> Result<Vec<usize>> {
+    let mut lengths = read_fastq_lengths(&args.r1)?;
+    if let Some(r2) = args.r2.as_deref() {
+        lengths.extend(read_fastq_lengths(r2)?);
+    }
+    Ok(lengths)
 }
 
 fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
