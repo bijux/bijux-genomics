@@ -162,6 +162,11 @@ struct LowComplexityOutputArtifacts<'a> {
     r2: Option<&'a std::path::Path>,
 }
 
+struct LowComplexityObservedStats {
+    output_stats_r1: SeqkitMetrics,
+    output_stats_r2: Option<SeqkitMetrics>,
+}
+
 struct LowComplexityCacheIdentity {
     tool: String,
     tool_version: String,
@@ -353,51 +358,29 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
 ) -> Result<BenchmarkRecord<FastqLowComplexityMetrics>> {
     let outputs =
         low_complexity_output_artifacts(inputs.tool_plan, inputs.input_stats_r2.is_some())?;
-    let output_reads = outputs.r1;
-    let output_reads_r2 = outputs.r2;
-    let output_stats_r1 = if inputs.execution.result.exit_code == 0 && output_reads.exists() {
-        observe_fastq_stats(
-            inputs.catalog,
-            inputs.platform,
-            inputs.bench_inputs.runner,
-            output_reads,
-        )?
-    } else {
-        inputs.bench_inputs.input_stats
-    };
-    let output_stats_r2 = if let Some(output_reads_r2_path) = output_reads_r2 {
-        if inputs.execution.result.exit_code == 0 && output_reads_r2_path.exists() {
-            Some(observe_fastq_stats(
-                inputs.catalog,
-                inputs.platform,
-                inputs.bench_inputs.runner,
-                output_reads_r2_path,
-            )?)
-        } else {
-            inputs.input_stats_r2.copied()
-        }
-    } else {
-        None
-    };
+    let observed_stats = observe_low_complexity_outputs(inputs, &outputs)?;
     let before_stats =
         combine_seqkit_metrics(&inputs.bench_inputs.input_stats, inputs.input_stats_r2);
-    let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
+    let after_stats = combine_seqkit_metrics(
+        &observed_stats.output_stats_r1,
+        observed_stats.output_stats_r2.as_ref(),
+    );
     let report = build_low_complexity_report(&LowComplexityReportInputs {
         tool: &inputs.tool_plan.tool,
         threads: inputs.tool_plan.tool_spec.resources.threads,
         params: &inputs.tool_plan.plan.params,
         before_stats: &before_stats,
         after_stats: &after_stats,
-        output_stats_r2: output_stats_r2.as_ref(),
+        output_stats_r2: observed_stats.output_stats_r2.as_ref(),
         input_stats_r2: inputs.input_stats_r2,
-        output_reads,
-        output_reads_r2,
+        output_reads: outputs.r1,
+        output_reads_r2: outputs.r2,
         execution: inputs.execution,
     });
     let metric_set = build_low_complexity_metric_set(&report, &before_stats, &after_stats)?;
 
     let out_dir =
-        output_reads.parent().ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
+        outputs.r1.parent().ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
     write_low_complexity_artifacts(out_dir, &report, &metric_set)?;
 
     let context = build_low_complexity_context(inputs);
@@ -408,6 +391,37 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn observe_low_complexity_outputs<S: ::std::hash::BuildHasher>(
+    inputs: &LowComplexityRecordInputs<'_, S>,
+    outputs: &LowComplexityOutputArtifacts<'_>,
+) -> Result<LowComplexityObservedStats> {
+    let output_stats_r1 = if inputs.execution.result.exit_code == 0 && outputs.r1.exists() {
+        observe_fastq_stats(
+            inputs.catalog,
+            inputs.platform,
+            inputs.bench_inputs.runner,
+            outputs.r1,
+        )?
+    } else {
+        inputs.bench_inputs.input_stats
+    };
+    let output_stats_r2 = if let Some(output_reads_r2) = outputs.r2 {
+        if inputs.execution.result.exit_code == 0 && output_reads_r2.exists() {
+            Some(observe_fastq_stats(
+                inputs.catalog,
+                inputs.platform,
+                inputs.bench_inputs.runner,
+                output_reads_r2,
+            )?)
+        } else {
+            inputs.input_stats_r2.copied()
+        }
+    } else {
+        None
+    };
+    Ok(LowComplexityObservedStats { output_stats_r1, output_stats_r2 })
 }
 
 fn low_complexity_output_artifacts<'a>(
