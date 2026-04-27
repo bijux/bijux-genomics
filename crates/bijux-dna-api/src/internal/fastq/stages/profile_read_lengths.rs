@@ -21,8 +21,10 @@ use bijux_dna_domain_fastq::{
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
-use bijux_dna_planner_fastq::stage_api::bench_dir_name;
-use bijux_dna_planner_fastq::stage_api::RawFailure;
+use bijux_dna_planner_fastq::stage_api::{
+    bench_dir_name, inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind,
+    RawFailure,
+};
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use uuid::Uuid;
 
@@ -45,6 +47,8 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
 ) -> Result<BenchOutcome<FastqReadLengthMetrics>> {
+    preflight_read_lengths_inputs(args)?;
+
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = bijux_dna_planner_fastq::select_profile_read_lengths_tools(&args.tools)?;
@@ -211,6 +215,17 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
     }
 
     Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+}
+
+fn preflight_read_lengths_inputs(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
+) -> Result<()> {
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
+    preflight_stage(STAGE_ID, artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_ID, &header);
+    Ok(())
 }
 
 fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
