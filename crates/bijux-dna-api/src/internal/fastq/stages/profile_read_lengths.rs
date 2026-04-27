@@ -55,8 +55,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         write_read_lengths_benchmark_explain(&setup)?;
     }
 
-    ensure_image_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
+    ensure_read_lengths_benchmark_qa(catalog, platform, &setup.tools)?;
 
     let sqlite_path = setup.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path)?;
@@ -253,6 +252,15 @@ fn prepare_read_lengths_benchmark_setup(
 fn write_read_lengths_benchmark_explain(setup: &ReadLengthsBenchmarkSetup) -> Result<()> {
     write_explain_md(&setup.bench_dir, STAGE_ID, &setup.tools, &[], None)?;
     write_explain_plan_json(&setup.bench_dir, STAGE_ID, &setup.tools, &setup.registry, None)
+}
+
+fn ensure_read_lengths_benchmark_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_ID, tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_ID, tools, platform, catalog)
 }
 
 fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
