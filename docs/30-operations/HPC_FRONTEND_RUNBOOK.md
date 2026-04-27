@@ -14,6 +14,11 @@ Defines required paths, permissions, frontend-only constraints, and the canonica
 - Frontend validation must not use Slurm in this phase.
 - Validation evidence must be written under documented artifact paths.
 
+[../../containers/docs/FRONTEND_BUILD_AUTHORITY.md](../../containers/docs/FRONTEND_BUILD_AUTHORITY.md),
+[TRACEABILITY_PROOF_FRONTEND.md](TRACEABILITY_PROOF_FRONTEND.md), and
+[SLURM_PHASE_ENTRY_CRITERIA.md](SLURM_PHASE_ENTRY_CRITERIA.md) define the
+adjacent control and proof surfaces for this frontend-only runbook.
+
 ## Paths
 - SIF root: `${BIJUX_HPC_ROOT:-$HOME/bijux}/bijux-dna-containers/apptainer`
 - Apptainer cache: `${BIJUX_HPC_ROOT:-$HOME/bijux}/bijux-dna-containers/cache`
@@ -29,7 +34,8 @@ Defines required paths, permissions, frontend-only constraints, and the canonica
 ## Frontend-Only Rules
 - Do not build on compute hosts.
 - Do not use Slurm for mini validation in this phase.
-- Enforce host policy via `configs/ci/tools/hpc_frontend_build_policy.toml`.
+- Enforce host policy via
+  [configs/ci/tools/hpc_frontend_build_policy.toml](../../configs/ci/tools/hpc_frontend_build_policy.toml).
 
 ## Validation Commands
 1. `cargo run -q -p bijux-dna-dev -- hpc run validate-frontend-constraints --confirm`
@@ -43,5 +49,5 @@ Defines required paths, permissions, frontend-only constraints, and the canonica
 - Frontend smoke: `artifacts/containers/hpc/frontend-smoke/`
 - Frontend mini E2E: `artifacts/hpc/frontend-mini-e2e/<run-id>/`
 - Security/repro summaries:
-  - `containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md`
-  - `containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md`
+  - [containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md](../../containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md)
+  - [containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md](../../containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md)
