@@ -86,7 +86,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_overrepresented_tool(&tool_plan, setup.runner, jobs)?;
-        if let Some(failure) = overrepresented_tool_failure(tool, execution.exit_code) {
+        if let Some(failure) = overrepresented_tool_failure(tool, execution.result.exit_code) {
             failures.push(failure);
             continue;
         }
@@ -118,9 +118,9 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
                 tool_plan.plan.params.clone(),
             ),
             execution: ExecutionMetrics {
-                runtime_s: execution.runtime_s,
-                memory_mb: execution.memory_mb,
-                exit_code: execution.exit_code,
+                runtime_s: execution.result.runtime_s,
+                memory_mb: execution.result.memory_mb,
+                exit_code: execution.result.exit_code,
             },
             metrics: metric_set,
         };
@@ -165,6 +165,10 @@ struct OverrepresentedToolPlan {
     image_digest: String,
 }
 
+struct OverrepresentedToolExecution {
+    result: StageResultV1,
+}
+
 struct OverrepresentedCacheIdentity {
     tool: String,
     tool_version: String,
@@ -205,7 +209,7 @@ struct OverrepresentedReportInputs<'a> {
     artifacts: &'a OverrepresentedArtifacts,
     effective_params: &'a FastqOverrepresentedProfileParams,
     payload: OverrepresentedPayload,
-    execution: &'a StageResultV1,
+    execution: &'a OverrepresentedToolExecution,
 }
 
 fn select_overrepresented_benchmark_tools(
@@ -303,15 +307,16 @@ fn execute_overrepresented_tool(
     tool_plan: &OverrepresentedToolPlan,
     runner: RuntimeKind,
     jobs: usize,
-) -> Result<StageResultV1> {
-    execute_plans_with_jobs(
+) -> Result<OverrepresentedToolExecution> {
+    let result = execute_plans_with_jobs(
         vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
         runner,
         jobs,
     )?
     .into_iter()
     .next()
-    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))
+    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
+    Ok(OverrepresentedToolExecution { result })
 }
 
 fn overrepresented_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
@@ -369,9 +374,9 @@ fn build_overrepresented_report(
         flagged_sequences: inputs.payload.metrics.flagged_sequences,
         top_fraction: inputs.payload.metrics.top_fraction,
         rows: inputs.payload.rows,
-        runtime_s: Some(inputs.execution.runtime_s),
-        memory_mb: Some(inputs.execution.memory_mb),
-        exit_code: Some(inputs.execution.exit_code),
+        runtime_s: Some(inputs.execution.result.runtime_s),
+        memory_mb: Some(inputs.execution.result.memory_mb),
+        exit_code: Some(inputs.execution.result.exit_code),
         raw_backend_report: None,
         raw_backend_report_format: None,
     }
