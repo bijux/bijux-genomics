@@ -54,15 +54,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
     let tools = bijux_dna_planner_fastq::select_profile_read_lengths_tools(&args.tools)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!(
-            "{}+{}",
-            hash_file_sha256(&args.r1).context("hash read-length input r1")?,
-            hash_file_sha256(r2).context("hash read-length input r2")?
-        )
-    } else {
-        hash_file_sha256(&args.r1).context("hash read-length input")?
-    };
+    let input_hash = read_lengths_input_hash(args)?;
 
     let bench_dir_name =
         bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS)
@@ -226,6 +218,19 @@ fn preflight_read_lengths_inputs(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_ID, &header);
     Ok(())
+}
+
+fn read_lengths_input_hash(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
+) -> Result<String> {
+    if let Some(r2) = args.r2.as_deref() {
+        return Ok(format!(
+            "{}+{}",
+            hash_file_sha256(&args.r1).context("hash read-length input r1")?,
+            hash_file_sha256(r2).context("hash read-length input r2")?
+        ));
+    }
+    hash_file_sha256(&args.r1).context("hash read-length input")
 }
 
 fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
