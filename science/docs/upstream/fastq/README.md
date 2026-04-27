@@ -3,6 +3,10 @@
 `science/docs/upstream/fastq/` is the tracked contract surface for FASTQ-specific
 upstream evidence packets.
 
+[../README.md](../README.md) defines the broader upstream archive boundary, and
+[container/README.md](container/README.md) explains the generated FASTQ
+container evidence reports that roll these local packets into closure review.
+
 ## Scope
 
 - tool source repositories used to validate FASTQ tool provenance

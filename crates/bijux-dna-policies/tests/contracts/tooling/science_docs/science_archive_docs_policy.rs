@@ -310,6 +310,7 @@ fn policy__contracts__science_archive_docs_policy__github_repo_archive_readme_li
 #[test]
 fn policy__contracts__science_archive_docs_policy__fastq_upstream_readme_links_contracts_exactly() {
     let expected = BTreeSet::from([
+        "../README.md".to_string(),
         "tools/README.md".to_string(),
         "tools/EVIDENCE_MAP.tsv".to_string(),
         "STAGE_CLAIMS.tsv".to_string(),
@@ -319,6 +320,7 @@ fn policy__contracts__science_archive_docs_policy__fastq_upstream_readme_links_c
         "TAG_ONLY_CONTAINER_BLOCKERS.tsv".to_string(),
         "PLANNED_RUNTIME_BLOCKERS.tsv".to_string(),
         "QA_COVERAGE_BLOCKERS.tsv".to_string(),
+        "container/README.md".to_string(),
         "container/FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv".to_string(),
         "../papers/README.md".to_string(),
     ]);
