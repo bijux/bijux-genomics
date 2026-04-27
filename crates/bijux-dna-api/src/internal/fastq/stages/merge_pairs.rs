@@ -136,7 +136,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_merge_tool(&tool_plan, setup.runner, jobs, tool)?;
-        if let Some(failure) = merge_tool_failure(tool, execution.exit_code) {
+        if let Some(failure) = merge_tool_failure(tool, &execution) {
             failures.push(failure);
             continue;
         }
@@ -306,12 +306,20 @@ fn execute_merge_tool(
     .ok_or_else(|| anyhow!("missing execution result for {tool}"))
 }
 
-fn merge_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
-    (exit_code != 0).then(|| RawFailure {
-        stage: STAGE_MERGE_PAIRS.as_str().to_string(),
-        tool: tool.to_string(),
-        reason: format!("tool {tool} failed with status {exit_code}"),
-        category: ErrorCategory::ToolError,
+fn merge_tool_failure(tool: &str, execution: &StageResultV1) -> Option<RawFailure> {
+    (execution.exit_code != 0).then(|| {
+        let stderr = execution.stderr.trim();
+        let reason = if stderr.is_empty() {
+            format!("tool {tool} failed with status {}", execution.exit_code)
+        } else {
+            format!("tool {tool} failed with status {}: {stderr}", execution.exit_code)
+        };
+        RawFailure {
+            stage: STAGE_MERGE_PAIRS.as_str().to_string(),
+            tool: tool.to_string(),
+            reason,
+            category: ErrorCategory::ToolError,
+        }
     })
 }
 
