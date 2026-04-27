@@ -10,7 +10,8 @@ Applies to workflow guidance duplicated across docs sections.
 - Duplicating operational command guidance.
 
 ## Contracts
-- Authoritative source: `docs/30-operations/DEVELOPER_WORKFLOW.md`.
+- Authoritative source:
+  [docs/30-operations/DEVELOPER_WORKFLOW.md](../30-operations/DEVELOPER_WORKFLOW.md).
 - This redirect file remains one page and must not diverge from the authority doc.
 
 See: [Operations Developer Workflow](../30-operations/DEVELOPER_WORKFLOW.md)
