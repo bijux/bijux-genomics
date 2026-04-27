@@ -306,6 +306,65 @@ fn validation_command(
         "if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ]; then failure_class=header_sync_mismatch; fi"
             .to_string(),
     );
+    commands.push(validation_lineage_command(
+        tool,
+        r1,
+        r2,
+        report_path,
+        validated_reads_manifest,
+        effective_params,
+    )?);
+    commands.push(validation_report_command(
+        tool,
+        r1,
+        r2,
+        &r1_log,
+        r2_log.as_deref(),
+        report_path,
+        effective_params,
+    )?);
+    commands.push("exit \"$exit_code\"".to_string());
+    Ok(vec!["sh".to_string(), "-lc".to_string(), commands.join(" && ")])
+}
+
+fn validation_lineage_command(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    report_path: &Path,
+    validated_reads_manifest: &Path,
+    effective_params: &ValidateEffectiveParams,
+) -> Result<String> {
+    let lineage_format = format!(
+        "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"validation_mode\":{},\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
+        json_string_literal(STAGE_ID.as_str())?,
+        json_string_literal(tool.tool_id.as_str())?,
+        serde_json::to_string(&effective_params.validation_mode)
+            .map_err(|error| anyhow!("serialize validation_mode for lineage: {error}"))?,
+        serde_json::to_string(&effective_params.pair_sync_policy)
+            .map_err(|error| anyhow!("serialize pair_sync_policy for lineage: {error}"))?,
+        json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
+        validated_stream_ids_json(r2.is_some()),
+    );
+    Ok(format!(
+        "printf '{}' {} {} {} \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > {}",
+        escape_printf_format(&lineage_format),
+        shell_quote_str(&json_path_token(r1)?),
+        shell_quote_str(&json_optional_path_token(r2)?),
+        shell_quote_str(&json_path_token(report_path)?),
+        shell_quote(validated_reads_manifest),
+    ))
+}
+
+fn validation_report_command(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    r1_log: &Path,
+    r2_log: Option<&Path>,
+    report_path: &Path,
+    effective_params: &ValidateEffectiveParams,
+) -> Result<String> {
     let report_format = format!(
         "{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":{},\"stage_id\":{},\"tool_id\":{},\"validation_mode\":{},\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_log_r1\":%s,\"validation_log_r2\":%s,\"validated_inputs\":{},\"validated_reads_r1\":%s,\"validated_reads_r2\":%s,\"validated_pairs\":%s,\"status_r1\":%s,\"status_r2\":%s,\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"pair_count_match\":%s,\"failure_class\":%s,\"strict_pass\":%s,\"exit_code\":%s}}",
         json_string_literal(STAGE_ID.as_str())?,
@@ -317,40 +376,23 @@ fn validation_command(
             .map_err(|error| anyhow!("serialize pair_sync_policy for report: {error}"))?,
         if r2.is_some() { 2 } else { 1 },
     );
-    let lineage_format = format!(
-        "{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":{},\"tool_id\":{},\"validation_mode\":{},\"pair_sync_policy\":{},\"input_r1\":%s,\"input_r2\":%s,\"validation_report\":%s,\"paired_mode\":{},\"validated_stream_ids\":{},\"pair_sync_checked\":%s,\"pair_sync_pass\":%s,\"validated_pairs\":%s}}",
-        json_string_literal(STAGE_ID.as_str())?,
-        json_string_literal(tool.tool_id.as_str())?,
-        serde_json::to_string(&effective_params.validation_mode)
-            .map_err(|error| anyhow!("serialize validation_mode for lineage: {error}"))?,
-        serde_json::to_string(&effective_params.pair_sync_policy)
-            .map_err(|error| anyhow!("serialize pair_sync_policy for lineage: {error}"))?,
-        json_string_literal(if r2.is_some() { "paired_end" } else { "single_end" })?,
-        if r2.is_some() {
-            "[\"reads_r1\",\"reads_r2\"]".to_string()
-        } else {
-            "[\"reads_r1\"]".to_string()
-        },
-    );
-    commands.push(format!(
-        "printf '{}' {} {} {} \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > {}",
-        escape_printf_format(&lineage_format),
-        shell_quote_str(&json_path_token(r1)?),
-        shell_quote_str(&json_optional_path_token(r2)?),
-        shell_quote_str(&json_path_token(report_path)?),
-        shell_quote(validated_reads_manifest),
-    ));
-    commands.push(format!(
+    Ok(format!(
         "printf '{}' {} {} {} {} \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > {}",
         escape_printf_format(&report_format),
         shell_quote_str(&json_path_token(r1)?),
         shell_quote_str(&json_optional_path_token(r2)?),
-        shell_quote_str(&json_path_token(&r1_log)?),
-        shell_quote_str(&json_optional_path_token(r2_log.as_deref())?),
+        shell_quote_str(&json_path_token(r1_log)?),
+        shell_quote_str(&json_optional_path_token(r2_log)?),
         shell_quote(report_path),
-    ));
-    commands.push("exit \"$exit_code\"".to_string());
-    Ok(vec!["sh".to_string(), "-lc".to_string(), commands.join(" && ")])
+    ))
+}
+
+fn validated_stream_ids_json(paired: bool) -> String {
+    if paired {
+        "[\"reads_r1\",\"reads_r2\"]".to_string()
+    } else {
+        "[\"reads_r1\"]".to_string()
+    }
 }
 
 fn append_pair_validation_commands(
