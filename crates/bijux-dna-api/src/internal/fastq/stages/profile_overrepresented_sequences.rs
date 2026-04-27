@@ -96,33 +96,14 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
         let payload = read_overrepresented_payload(&artifacts.output_json)?;
         let metrics = payload.metrics.clone();
         let metric_set = metric_set(metrics);
-        let report = ProfileOverrepresentedReportV1 {
-            schema_version: PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION.to_string(),
-            stage: STAGE_ID.to_string(),
-            stage_id: STAGE_ID.to_string(),
-            tool_id: tool.clone(),
-            paired_mode: if args.r2.is_some() {
-                PairedMode::PairedEnd
-            } else {
-                PairedMode::SingleEnd
-            },
-            threads: effective_params.threads,
-            top_k: effective_params.top_k,
-            input_r1: args.r1.display().to_string(),
-            input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
-            overrepresented_sequences_tsv: artifacts.output_tsv.display().to_string(),
-            overrepresented_sequences_json: artifacts.output_json.display().to_string(),
-            report_json: artifacts.report_json.display().to_string(),
-            sequence_count: payload.metrics.sequence_count,
-            flagged_sequences: payload.metrics.flagged_sequences,
-            top_fraction: payload.metrics.top_fraction,
-            rows: payload.rows,
-            runtime_s: Some(execution.runtime_s),
-            memory_mb: Some(execution.memory_mb),
-            exit_code: Some(execution.exit_code),
-            raw_backend_report: None,
-            raw_backend_report_format: None,
-        };
+        let report = build_overrepresented_report(OverrepresentedReportInputs {
+            tool,
+            args,
+            artifacts: &artifacts,
+            effective_params: &effective_params,
+            payload,
+            execution: &execution,
+        });
         bijux_dna_infra::atomic_write_json(&artifacts.report_json, &report)
             .context("write overrepresented report")?;
         let metrics_json = serde_json::to_value(&metric_set)?;
@@ -176,6 +157,15 @@ struct OverrepresentedArtifacts {
     output_tsv: PathBuf,
     output_json: PathBuf,
     report_json: PathBuf,
+}
+
+struct OverrepresentedReportInputs<'a> {
+    tool: &'a str,
+    args: &'a bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
+    artifacts: &'a OverrepresentedArtifacts,
+    effective_params: &'a FastqOverrepresentedProfileParams,
+    payload: OverrepresentedPayload,
+    execution: &'a StageResultV1,
 }
 
 fn preflight_overrepresented_inputs(
@@ -312,6 +302,38 @@ fn prepare_overrepresented_artifacts(
         )?;
     }
     Ok(OverrepresentedArtifacts { output_tsv, output_json, report_json })
+}
+
+fn build_overrepresented_report(
+    inputs: OverrepresentedReportInputs<'_>,
+) -> ProfileOverrepresentedReportV1 {
+    ProfileOverrepresentedReportV1 {
+        schema_version: PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_ID.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        tool_id: inputs.tool.to_string(),
+        paired_mode: if inputs.args.r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
+        threads: inputs.effective_params.threads,
+        top_k: inputs.effective_params.top_k,
+        input_r1: inputs.args.r1.display().to_string(),
+        input_r2: inputs.args.r2.as_ref().map(|path| path.display().to_string()),
+        overrepresented_sequences_tsv: inputs.artifacts.output_tsv.display().to_string(),
+        overrepresented_sequences_json: inputs.artifacts.output_json.display().to_string(),
+        report_json: inputs.artifacts.report_json.display().to_string(),
+        sequence_count: inputs.payload.metrics.sequence_count,
+        flagged_sequences: inputs.payload.metrics.flagged_sequences,
+        top_fraction: inputs.payload.metrics.top_fraction,
+        rows: inputs.payload.rows,
+        runtime_s: Some(inputs.execution.runtime_s),
+        memory_mb: Some(inputs.execution.memory_mb),
+        exit_code: Some(inputs.execution.exit_code),
+        raw_backend_report: None,
+        raw_backend_report_format: None,
+    }
 }
 
 fn materialize_overrepresented_outputs(
