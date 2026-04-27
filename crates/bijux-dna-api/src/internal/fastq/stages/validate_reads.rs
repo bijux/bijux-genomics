@@ -14,6 +14,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::observer::parse_validation_report;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
@@ -74,71 +75,51 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
     let mut records = Vec::<BenchmarkRecord<FastqValidateMetrics>>::new();
     let mut failures = Vec::<RawFailure>::new();
 
-    for tool in setup.tools {
-        let out_dir = setup.bench_inputs.tools_root.join(&tool);
-        bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec = build_tool_execution_spec(
-            STAGE_VALIDATE_READS.as_str(),
-            &tool,
-            &setup.registry,
-            catalog,
-            platform,
-        )?;
-        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan_options = validate_plan_options(args)?;
-        let plan = plan_validate_reads(
-            &tool_spec,
-            &setup.bench_inputs.r1,
-            args.r2.as_deref(),
-            &out_dir,
-            &plan_options,
-        )?;
-        let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
-        let params_hash = stable_params_hash(&bench_params);
-        let image_digest =
-            tool_spec.image.digest.clone().unwrap_or_else(|| tool_spec.image.image.clone());
+    for tool in setup.tools.clone() {
+        let tool_plan = prepare_validate_tool_plan(catalog, platform, args, &setup, jobs, tool)?;
         if let Ok(Some(record)) = fetch_fastq_validate_v1(
             &conn,
-            &tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &setup.bench_inputs.runner.to_string(),
             &platform.name,
             &setup.bench_inputs.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             setup.bench_inputs.runner,
             jobs,
         )?
         .into_iter()
         .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+        .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
 
         let record = build_validate_record(
             platform,
             &setup.bench_inputs,
-            &tool,
-            &tool_spec,
-            &bench_params,
-            &plan,
+            &tool_plan.tool,
+            &tool_plan.tool_spec,
+            &tool_plan.bench_params,
+            &tool_plan.plan,
             &execution,
         )?;
 
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_validate_v1(&conn, &record).context("insert bench sqlite")?;
-        if execution.exit_code != 0 && validation_failures_are_fatal(args, &plan_options) {
+        if execution.exit_code != 0 && validation_failures_are_fatal(args, &tool_plan.plan_options)
+        {
             failures.push(RawFailure {
                 stage: STAGE_VALIDATE_READS.as_str().to_string(),
-                tool: tool.clone(),
+                tool: tool_plan.tool.clone(),
                 reason: format!(
-                    "validator `{tool}` failed strict validation with status {}",
-                    execution.exit_code
+                    "validator `{}` failed strict validation with status {}",
+                    tool_plan.tool, execution.exit_code
                 ),
                 category: ErrorCategory::ToolError,
             });
@@ -161,6 +142,16 @@ struct ValidateBenchmarkSetup {
     bench_inputs: ValidateBenchInputs,
 }
 
+struct ValidateToolPlan {
+    tool: String,
+    tool_spec: ToolExecutionSpecV1,
+    plan_options: ValidateReadsPlanOptions,
+    plan: StagePlanV1,
+    bench_params: serde_json::Value,
+    params_hash: String,
+    image_digest: String,
+}
+
 fn prepare_validate_benchmark_setup<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -174,6 +165,47 @@ fn prepare_validate_benchmark_setup<S: ::std::hash::BuildHasher>(
     let bench_inputs = prepare_validate_bench(catalog, platform, runner_override, args)?;
     let excluded_tools = excluded_validate_tools(&registry, &tools);
     Ok(ValidateBenchmarkSetup { registry, tools, excluded_tools, bench_inputs })
+}
+
+fn prepare_validate_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs,
+    setup: &ValidateBenchmarkSetup,
+    jobs: usize,
+    tool: String,
+) -> Result<ValidateToolPlan> {
+    let out_dir = setup.bench_inputs.tools_root.join(&tool);
+    bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
+    let tool_spec = build_tool_execution_spec(
+        STAGE_VALIDATE_READS.as_str(),
+        &tool,
+        &setup.registry,
+        catalog,
+        platform,
+    )?;
+    let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+    let plan_options = validate_plan_options(args)?;
+    let plan = plan_validate_reads(
+        &tool_spec,
+        &setup.bench_inputs.r1,
+        args.r2.as_deref(),
+        &out_dir,
+        &plan_options,
+    )?;
+    let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
+    let params_hash = stable_params_hash(&bench_params);
+    let image_digest =
+        tool_spec.image.digest.clone().unwrap_or_else(|| tool_spec.image.image.clone());
+    Ok(ValidateToolPlan {
+        tool,
+        tool_spec,
+        plan_options,
+        plan,
+        bench_params,
+        params_hash,
+        image_digest,
+    })
 }
 
 fn excluded_validate_tools(registry: &ToolRegistry, selected_tools: &[String]) -> Vec<String> {
