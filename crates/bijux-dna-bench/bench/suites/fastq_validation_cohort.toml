@@ -31,4 +31,4 @@ min_replicates_for_bootstrap = 5
 [[stages]]
 stage = "fastq.validate_reads"
 stage_instance_id = "fastq.validate_reads.validation_cohort"
-tools = ["fastqvalidator", "seqtk", "fqtools"]
+tools = ["fastqvalidator", "fastq_scan", "seqtk", "fqtools"]
