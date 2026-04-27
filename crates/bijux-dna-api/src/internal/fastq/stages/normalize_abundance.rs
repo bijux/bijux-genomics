@@ -228,6 +228,7 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
             execution.runtime_s,
             execution.memory_mb,
         )?;
+        validate_normalize_abundance_report_composition(&report)?;
         bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
@@ -369,6 +370,37 @@ fn validate_normalize_abundance_report_execution(
             memory_mb,
             report.memory_mb
         ));
+    }
+    Ok(())
+}
+
+fn validate_normalize_abundance_report_composition(
+    report: &NormalizeAbundanceReportV1,
+) -> Result<()> {
+    if report.per_sample_sums.len() as u64 != report.sample_count {
+        return Err(anyhow!(
+            "normalize_abundance report sample sum count mismatch: expected {}, observed {}",
+            report.sample_count,
+            report.per_sample_sums.len()
+        ));
+    }
+    let expected_sum = report.scale_factor.unwrap_or(1.0);
+    for (sample_id, sum) in &report.per_sample_sums {
+        if !sum.is_finite() || *sum < 0.0 {
+            return Err(anyhow!(
+                "normalize_abundance report invalid sample sum for {}: {}",
+                sample_id,
+                sum
+            ));
+        }
+        if *sum > 0.0 && (*sum - expected_sum).abs() > 1e-3 {
+            return Err(anyhow!(
+                "normalize_abundance report sample sum mismatch for {}: expected {}, observed {}",
+                sample_id,
+                expected_sum,
+                sum
+            ));
+        }
     }
     Ok(())
 }
