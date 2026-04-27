@@ -160,6 +160,19 @@ struct LowComplexityRecordInputs<'a, S: ::std::hash::BuildHasher> {
     execution: &'a StageResultV1,
 }
 
+struct LowComplexityReportInputs<'a> {
+    tool: &'a str,
+    threads: u32,
+    params: &'a serde_json::Value,
+    before_stats: &'a SeqkitMetrics,
+    after_stats: &'a SeqkitMetrics,
+    output_stats_r2: Option<&'a SeqkitMetrics>,
+    input_stats_r2: Option<&'a SeqkitMetrics>,
+    output_reads: &'a std::path::Path,
+    output_reads_r2: Option<&'a std::path::Path>,
+    execution: &'a StageResultV1,
+}
+
 fn prepare_low_complexity_tool_plan<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -324,18 +337,18 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     let before_stats =
         combine_seqkit_metrics(&inputs.bench_inputs.input_stats, inputs.input_stats_r2);
     let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
-    let report = build_low_complexity_report(
-        inputs.tool,
-        inputs.tool_spec.resources.threads,
-        inputs.params,
-        &before_stats,
-        &after_stats,
-        output_stats_r2.as_ref(),
-        inputs.input_stats_r2,
-        inputs.output_reads,
-        inputs.output_reads_r2,
-        inputs.execution,
-    );
+    let report = build_low_complexity_report(&LowComplexityReportInputs {
+        tool: inputs.tool,
+        threads: inputs.tool_spec.resources.threads,
+        params: inputs.params,
+        before_stats: &before_stats,
+        after_stats: &after_stats,
+        output_stats_r2: output_stats_r2.as_ref(),
+        input_stats_r2: inputs.input_stats_r2,
+        output_reads: inputs.output_reads,
+        output_reads_r2: inputs.output_reads_r2,
+        execution: inputs.execution,
+    });
     let metrics = FastqLowComplexityMetrics {
         reads_in: report.reads_in,
         reads_out: report.reads_out,
@@ -381,24 +394,16 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     Ok(record)
 }
 
-#[allow(clippy::too_many_arguments)]
 fn build_low_complexity_report(
-    tool: &str,
-    threads: u32,
-    params: &serde_json::Value,
-    before_stats: &SeqkitMetrics,
-    after_stats: &SeqkitMetrics,
-    output_stats_r2: Option<&SeqkitMetrics>,
-    input_stats_r2: Option<&SeqkitMetrics>,
-    output_reads: &std::path::Path,
-    output_reads_r2: Option<&std::path::Path>,
-    execution: &StageResultV1,
+    inputs: &LowComplexityReportInputs<'_>,
 ) -> FilterLowComplexityReportV1 {
-    let raw_backend_report = params
+    let raw_backend_report = inputs
+        .params
         .get("raw_backend_report")
         .and_then(serde_json::Value::as_str)
         .map(ToString::to_string);
-    let raw_backend_report_format = params
+    let raw_backend_report_format = inputs
+        .params
         .get("raw_backend_report_format")
         .and_then(serde_json::Value::as_str)
         .map(ToString::to_string);
@@ -406,48 +411,60 @@ fn build_low_complexity_report(
         schema_version: FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_FILTER_LOW_COMPLEXITY.as_str().to_string(),
         stage_id: STAGE_FILTER_LOW_COMPLEXITY.as_str().to_string(),
-        tool_id: tool.to_string(),
-        paired_mode: if input_stats_r2.is_some() {
+        tool_id: inputs.tool.to_string(),
+        paired_mode: if inputs.input_stats_r2.is_some() {
             PairedMode::PairedEnd
         } else {
             PairedMode::SingleEnd
         },
-        threads,
-        input_r1: params
+        threads: inputs.threads,
+        input_r1: inputs
+            .params
             .get("input_r1")
             .and_then(serde_json::Value::as_str)
             .unwrap_or_default()
             .to_string(),
-        input_r2: params
+        input_r2: inputs
+            .params
             .get("input_r2")
             .and_then(serde_json::Value::as_str)
             .map(ToString::to_string),
-        output_r1: output_reads.display().to_string(),
-        output_r2: output_reads_r2.map(|path| path.display().to_string()),
-        report_json: params
+        output_r1: inputs.output_reads.display().to_string(),
+        output_r2: inputs.output_reads_r2.map(|path| path.display().to_string()),
+        report_json: inputs
+            .params
             .get("report_json")
             .and_then(serde_json::Value::as_str)
             .unwrap_or("low_complexity_report.json")
             .to_string(),
-        entropy_threshold: params.get("entropy_threshold").and_then(serde_json::Value::as_f64),
-        polyx_threshold: params
+        entropy_threshold: inputs
+            .params
+            .get("entropy_threshold")
+            .and_then(serde_json::Value::as_f64),
+        polyx_threshold: inputs
+            .params
             .get("polyx_threshold")
             .and_then(serde_json::Value::as_u64)
             .and_then(|value| u32::try_from(value).ok()),
-        reads_in: before_stats.reads,
-        reads_out: after_stats.reads,
-        reads_removed_low_complexity: before_stats.reads.saturating_sub(after_stats.reads),
-        bases_in: before_stats.bases,
-        bases_out: after_stats.bases,
-        pairs_in: input_stats_r2
-            .map(|r2| before_stats.reads.saturating_sub(r2.reads).min(r2.reads)),
-        pairs_out: output_stats_r2
-            .map(|r2| after_stats.reads.saturating_sub(r2.reads).min(r2.reads)),
-        mean_q_before: before_stats.mean_q,
-        mean_q_after: after_stats.mean_q,
-        runtime_s: Some(execution.runtime_s),
-        memory_mb: Some(execution.memory_mb),
-        exit_code: Some(execution.exit_code),
+        reads_in: inputs.before_stats.reads,
+        reads_out: inputs.after_stats.reads,
+        reads_removed_low_complexity: inputs
+            .before_stats
+            .reads
+            .saturating_sub(inputs.after_stats.reads),
+        bases_in: inputs.before_stats.bases,
+        bases_out: inputs.after_stats.bases,
+        pairs_in: inputs
+            .input_stats_r2
+            .map(|r2| inputs.before_stats.reads.saturating_sub(r2.reads).min(r2.reads)),
+        pairs_out: inputs
+            .output_stats_r2
+            .map(|r2| inputs.after_stats.reads.saturating_sub(r2.reads).min(r2.reads)),
+        mean_q_before: inputs.before_stats.mean_q,
+        mean_q_after: inputs.after_stats.mean_q,
+        runtime_s: Some(inputs.execution.runtime_s),
+        memory_mb: Some(inputs.execution.memory_mb),
+        exit_code: Some(inputs.execution.exit_code),
         raw_backend_report: raw_backend_report.clone(),
         raw_backend_report_format: raw_backend_report_format.clone(),
         backend_metrics: low_complexity_backend_metrics(
