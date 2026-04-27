@@ -59,7 +59,7 @@ pub fn plan_filter(
     let paths = filter_plan_paths(&tool.tool_id.0, output_name, r2.is_some(), out_dir);
     let kmer_ref = options.kmer_ref.clone().map(|path| path.display().to_string());
     let effective_params =
-        filter_effective_params(options, r2.is_some(), effective_threads, &kmer_ref);
+        filter_effective_params(options, r2.is_some(), effective_threads, kmer_ref.as_ref());
     let inputs = filter_inputs(r1, r2);
     let outputs = filter_outputs(&paths);
     let command_template = filter_command_template(
@@ -96,7 +96,7 @@ pub fn plan_filter(
             &paths,
             options,
             effective_threads,
-            &kmer_ref,
+            kmer_ref.as_ref(),
         ),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize filter effective params: {error}"))?,
@@ -128,7 +128,7 @@ fn filter_effective_params(
     options: &FilterPlanOptions,
     paired: bool,
     effective_threads: u32,
-    kmer_ref: &Option<String>,
+    kmer_ref: Option<&String>,
 ) -> FilterEffectiveParams {
     FilterEffectiveParams {
         paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
@@ -138,7 +138,7 @@ fn filter_effective_params(
         max_n_count: options.max_n_count.or(options.max_n),
         low_complexity_threshold: options.low_complexity_threshold,
         entropy_threshold: options.entropy_threshold,
-        contaminant_db: kmer_ref.clone(),
+        contaminant_db: kmer_ref.cloned(),
         n_policy: None,
         polyx_policy: options.polyx_policy.clone(),
         damage_mode: None,
@@ -189,7 +189,7 @@ fn filter_plan_params(
     paths: &FilterPlanPaths,
     options: &FilterPlanOptions,
     effective_threads: u32,
-    kmer_ref: &Option<String>,
+    kmer_ref: Option<&String>,
 ) -> serde_json::Value {
     serde_json::json!({
         "tool": tool_id,
