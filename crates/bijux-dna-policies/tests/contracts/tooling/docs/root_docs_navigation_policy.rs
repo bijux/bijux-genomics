@@ -273,3 +273,25 @@ fn policy__contracts__root_docs_navigation_policy__operations_index_links_govern
         "docs/30-operations/index.md must link the governed operations entry surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__reference_index_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "../index.md".to_string(),
+        "REFERENCE_INDEX.md".to_string(),
+        "EXAMPLES.md".to_string(),
+        "EXAMPLE_FAILURE_TRIAGE.md".to_string(),
+        "EXAMPLE_TEMPLATE.md".to_string(),
+        "TOOL_ADMISSION.md".to_string(),
+        "LICENSING.md".to_string(),
+        "PIPELINES.md".to_string(),
+        "CRATE_MAP.md".to_string(),
+        "PANEL_COMPATIBILITY_MATRIX.md".to_string(),
+        "VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/index.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/index.md must link the governed reference entry surfaces exactly"
+    );
+}
