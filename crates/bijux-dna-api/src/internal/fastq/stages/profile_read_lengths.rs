@@ -517,6 +517,7 @@ fn write_read_lengths_artifacts(
     metric_set: &MetricSet<FastqReadLengthMetrics>,
 ) -> Result<()> {
     validate_read_lengths_report_identity(tool_plan, report)?;
+    validate_read_lengths_report_metrics(report, &metric_set.metrics)?;
     write_read_lengths_report(&observation.artifacts.report_json, report)?;
     write_read_lengths_metrics(&tool_plan.out_dir, metric_set)
 }
@@ -547,6 +548,27 @@ fn validate_read_lengths_report_identity(
         ));
     }
     Ok(())
+}
+
+fn validate_read_lengths_report_metrics(
+    report: &ProfileReadLengthsReportV1,
+    metrics: &FastqReadLengthMetrics,
+) -> Result<()> {
+    if report.read_count != metrics.read_count {
+        return Err(anyhow!(
+            "profile_read_lengths report read count mismatch: expected {}, observed {}",
+            metrics.read_count,
+            report.read_count
+        ));
+    }
+    if report.max_read_length != metrics.max_read_length {
+        return Err(anyhow!(
+            "profile_read_lengths report max length mismatch: expected {}, observed {}",
+            metrics.max_read_length,
+            report.max_read_length
+        ));
+    }
+    validate_read_lengths_histogram(&report.histogram, metrics.read_count)
 }
 
 fn build_read_lengths_record(
