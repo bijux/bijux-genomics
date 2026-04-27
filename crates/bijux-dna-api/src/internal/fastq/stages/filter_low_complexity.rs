@@ -469,10 +469,29 @@ fn build_low_complexity_metric_set(
     before_stats: &SeqkitMetrics,
     after_stats: &SeqkitMetrics,
 ) -> Result<MetricSet<FastqLowComplexityMetrics>> {
+    validate_low_complexity_backend_evidence(report)?;
     let metrics = low_complexity_metrics_from_report(report, before_stats, after_stats);
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     Ok(metric_set)
+}
+
+fn validate_low_complexity_backend_evidence(report: &FilterLowComplexityReportV1) -> Result<()> {
+    let Some(backend_metrics) = &report.backend_metrics else {
+        return Ok(());
+    };
+    let Some(reads_removed_reported) =
+        backend_metrics.get("reads_removed_reported").and_then(serde_json::Value::as_u64)
+    else {
+        return Ok(());
+    };
+    if reads_removed_reported != report.reads_removed_low_complexity {
+        return Err(anyhow!(
+            "low-complexity backend reads_removed_reported {reads_removed_reported} does not match normalized reads_removed_low_complexity {}",
+            report.reads_removed_low_complexity
+        ));
+    }
+    Ok(())
 }
 
 fn build_low_complexity_report(
