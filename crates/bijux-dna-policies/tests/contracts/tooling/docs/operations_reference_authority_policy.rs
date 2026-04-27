@@ -109,6 +109,22 @@ fn policy__contracts__operations_reference_authority_policy__vcf_reference_cache
 }
 
 #[test]
+fn policy__contracts__operations_reference_authority_policy__vcf_downstream_readiness_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "VCF_REFERENCE_CACHE_POLICY.md".to_string(),
+        "TRACEABILITY_PROOF_FRONTEND.md".to_string(),
+        "../../configs/vcf/downstream_acceptance.toml".to_string(),
+    ]);
+    let documented =
+        markdown_link_targets("docs/30-operations/VCF_DOWNSTREAM_READINESS_CHECKLIST.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/VCF_DOWNSTREAM_READINESS_CHECKLIST.md must link the governed VCF readiness authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([

@@ -12,6 +12,8 @@ Gate for promoting VCF downstream runs from frontend-only validation to compute-
 ## Contracts
 - Every required check in this file must pass for readiness.
 - Production badge eligibility requires lock validity and acceptance criteria success.
+- Lock validity is governed by [VCF_REFERENCE_CACHE_POLICY.md](VCF_REFERENCE_CACHE_POLICY.md).
+- Frontend proof remains governed by [TRACEABILITY_PROOF_FRONTEND.md](TRACEABILITY_PROOF_FRONTEND.md).
 
 ## Required Green Checks
 - `cargo run -q -p bijux-dna-dev -- checks run check-vcf-reference-governance`
@@ -24,13 +26,14 @@ Gate for promoting VCF downstream runs from frontend-only validation to compute-
 - `cargo run -q -p bijux-dna-dev -- checks run check-frontend-telemetry-sanity`
 
 ## Stage Acceptance Criteria Source
-- `configs/vcf/downstream_acceptance.toml`
+- [configs/vcf/downstream_acceptance.toml](../../configs/vcf/downstream_acceptance.toml)
 
 ## Production Badge Rule
 A run is production-badge eligible only when all are true:
 - panel/map locks are resolved and validated
 - `decision.imputation_accept` is accepted
-- stage acceptance criteria in `configs/vcf/downstream_acceptance.toml` are met
+- stage acceptance criteria in
+  [configs/vcf/downstream_acceptance.toml](../../configs/vcf/downstream_acceptance.toml) are met
 
 ## Fail-Fast Refusals
 - unknown phasing/impute knobs
