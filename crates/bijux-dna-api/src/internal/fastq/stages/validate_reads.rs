@@ -63,24 +63,9 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
     let setup = prepare_validate_benchmark_setup(catalog, platform, runner_override, args, tools)?;
 
     if args.explain {
-        write_explain_md(
-            &setup.bench_inputs.bench_dir,
-            STAGE_VALIDATE_READS.as_str(),
-            &setup.tools,
-            &setup.excluded_tools,
-            None,
-        )?;
-        write_explain_plan_json(
-            &setup.bench_inputs.bench_dir,
-            STAGE_VALIDATE_READS.as_str(),
-            &setup.tools,
-            &setup.registry,
-            None,
-        )?;
+        write_validate_benchmark_explain(&setup)?;
     }
-
-    ensure_image_qa_passed(STAGE_VALIDATE_READS.as_str(), &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_VALIDATE_READS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_validate_benchmark_qa(catalog, platform, &setup.tools)?;
 
     let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -199,6 +184,32 @@ fn excluded_validate_tools(registry: &ToolRegistry, selected_tools: &[String]) -
         .map(|tool| tool.tool_id.to_string())
         .filter(|tool| !selected_tools.contains(tool))
         .collect()
+}
+
+fn write_validate_benchmark_explain(setup: &ValidateBenchmarkSetup) -> Result<()> {
+    write_explain_md(
+        &setup.bench_inputs.bench_dir,
+        STAGE_VALIDATE_READS.as_str(),
+        &setup.tools,
+        &setup.excluded_tools,
+        None,
+    )?;
+    write_explain_plan_json(
+        &setup.bench_inputs.bench_dir,
+        STAGE_VALIDATE_READS.as_str(),
+        &setup.tools,
+        &setup.registry,
+        None,
+    )
+}
+
+fn ensure_validate_benchmark_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_VALIDATE_READS.as_str(), tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_VALIDATE_READS.as_str(), tools, platform, catalog)
 }
 
 #[derive(Debug, Clone)]
