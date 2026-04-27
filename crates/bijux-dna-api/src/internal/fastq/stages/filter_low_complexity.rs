@@ -52,20 +52,7 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
         prepare_low_complexity_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
-        write_explain_md(
-            &setup.bench_inputs.bench_dir,
-            STAGE_FILTER_LOW_COMPLEXITY.as_str(),
-            &setup.tools,
-            &[],
-            None,
-        )?;
-        write_explain_plan_json(
-            &setup.bench_inputs.bench_dir,
-            STAGE_FILTER_LOW_COMPLEXITY.as_str(),
-            &setup.tools,
-            &setup.registry,
-            None,
-        )?;
+        write_low_complexity_benchmark_explain(&setup)?;
     }
 
     ensure_image_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &setup.tools, platform, catalog)?;
@@ -224,6 +211,23 @@ fn prepare_low_complexity_benchmark_setup<S: ::std::hash::BuildHasher>(
         input_stats_r2,
         options,
     })
+}
+
+fn write_low_complexity_benchmark_explain(setup: &LowComplexityBenchmarkSetup) -> Result<()> {
+    write_explain_md(
+        &setup.bench_inputs.bench_dir,
+        STAGE_FILTER_LOW_COMPLEXITY.as_str(),
+        &setup.tools,
+        &[],
+        None,
+    )?;
+    write_explain_plan_json(
+        &setup.bench_inputs.bench_dir,
+        STAGE_FILTER_LOW_COMPLEXITY.as_str(),
+        &setup.tools,
+        &setup.registry,
+        None,
+    )
 }
 
 #[allow(clippy::too_many_arguments)]
