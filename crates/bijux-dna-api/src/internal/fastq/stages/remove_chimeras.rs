@@ -123,6 +123,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         validate_remove_chimeras_report_observed_counts(&setup, &observation, &report)?;
         validate_remove_chimeras_report_fraction(&report)?;
         validate_remove_chimeras_report_fallback_state(&report)?;
+        validate_remove_chimeras_report_backend_metrics(&report)?;
         validate_remove_chimeras_report_metrics(&report, &metric_set.metrics)?;
         write_remove_chimeras_artifacts(&tool_plan.out_dir, &outputs, &report, &metric_set)?;
         let record = build_remove_chimeras_record(
@@ -831,6 +832,50 @@ fn validate_remove_chimeras_report_fallback_state(report: &RemoveChimerasReportV
         ));
     }
     Ok(())
+}
+
+fn validate_remove_chimeras_report_backend_metrics(report: &RemoveChimerasReportV1) -> Result<()> {
+    match (report.raw_backend_report.as_deref(), report.backend_metrics.as_ref()) {
+        (Some(_), Some(metrics)) => {
+            if report.raw_backend_report_format.as_deref() != Some("vsearch_uchime_tsv") {
+                return Err(anyhow!(
+                    "remove_chimeras raw backend report format mismatch: observed {:?}",
+                    report.raw_backend_report_format
+                ));
+            }
+            let parsed_records = remove_chimeras_backend_metric_u64(metrics, "parsed_records")?;
+            let flagged_records = remove_chimeras_backend_metric_u64(metrics, "flagged_records")?;
+            if flagged_records > parsed_records {
+                return Err(anyhow!(
+                    "remove_chimeras backend metrics impossible counts: flagged_records={} parsed_records={}",
+                    flagged_records,
+                    parsed_records
+                ));
+            }
+            Ok(())
+        }
+        (Some(_), None) => {
+            Err(anyhow!("remove_chimeras report missing backend metrics for raw backend report"))
+        }
+        (None, Some(_)) => {
+            Err(anyhow!("remove_chimeras report has backend metrics without raw backend report"))
+        }
+        (None, None) => {
+            if report.raw_backend_report_format.is_some() {
+                return Err(anyhow!(
+                    "remove_chimeras report has backend format without raw backend report"
+                ));
+            }
+            Ok(())
+        }
+    }
+}
+
+fn remove_chimeras_backend_metric_u64(metrics: &serde_json::Value, name: &str) -> Result<u64> {
+    metrics
+        .get(name)
+        .and_then(serde_json::Value::as_u64)
+        .ok_or_else(|| anyhow!("remove_chimeras backend metrics missing unsigned {name}"))
 }
 
 fn validate_remove_chimeras_report_metrics(
