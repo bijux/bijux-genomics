@@ -172,6 +172,50 @@ fn bam_tool_stage_specs() -> BTreeMap<String, BTreeSet<String>> {
     specs
 }
 
+fn bam_reference_bank_hooks() -> BTreeMap<String, BTreeSet<String>> {
+    let root = support::workspace_root();
+    let mut specs = BTreeMap::new();
+    for entry in fs::read_dir(root.join("domain/bam/stages")).expect("read bam stages") {
+        let path = entry.expect("stage entry").path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
+            continue;
+        }
+        if path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
+            continue;
+        }
+        let raw = fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read bam stage manifest {}: {err}", path.display()));
+        let stage_id = raw
+            .lines()
+            .find_map(|line| line.strip_prefix("stage_id: "))
+            .map(|value| value.trim_matches('"').to_string())
+            .unwrap_or_else(|| panic!("missing stage_id in {}", path.display()));
+        let mut hooks = BTreeSet::new();
+        let mut in_hooks = false;
+        for line in raw.lines() {
+            let trimmed = line.trim();
+            if trimmed == "bank_hooks:" {
+                in_hooks = true;
+                continue;
+            }
+            if in_hooks {
+                if let Some(hook) = trimmed.strip_prefix("- ") {
+                    let hook = hook.trim_matches('"');
+                    if hook != "none" {
+                        hooks.insert(hook.to_string());
+                    }
+                    continue;
+                }
+                in_hooks = false;
+            }
+        }
+        if !hooks.is_empty() {
+            specs.insert(stage_id, hooks);
+        }
+    }
+    specs
+}
+
 fn bam_stage_assumption_rows() -> Vec<String> {
     let root = support::workspace_root();
     let raw = fs::read_to_string(root.join("docs/20-science/bam/STAGE_ASSUMPTIONS.md"))
@@ -260,6 +304,25 @@ fn bam_stage_taxonomy_rows() -> BTreeMap<String, String> {
                 "BAM stage taxonomy rows must expose stage, phase, class, and status columns",
             );
             (row[0].to_string(), row[3].to_string())
+        })
+        .collect()
+}
+
+fn bam_reference_governance_rows() -> BTreeMap<String, BTreeSet<String>> {
+    markdown_table_rows("docs/20-science/bam/REFERENCE_GOVERNANCE.md", "| Stage |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 2,
+                "BAM reference governance rows must expose stage and required-bank columns",
+            );
+            let hooks = row[1]
+                .split(',')
+                .map(str::trim)
+                .filter(|value| !value.is_empty() && *value != "none")
+                .map(ToOwned::to_owned)
+                .collect::<BTreeSet<_>>();
+            (row[0].to_string(), hooks)
         })
         .collect()
 }
@@ -497,5 +560,15 @@ fn policy__contracts__bam_science_docs_policy__stage_taxonomy_covers_bam_stage_c
         offenders.is_empty(),
         "BAM stage taxonomy status drift:\n{}",
         offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__bam_science_docs_policy__reference_governance_covers_reference_bound_stages() {
+    let expected = bam_reference_bank_hooks();
+    let documented = bam_reference_governance_rows();
+    assert_eq!(
+        expected, documented,
+        "BAM reference governance must cover exactly the stages with non-empty bank hooks"
     );
 }
