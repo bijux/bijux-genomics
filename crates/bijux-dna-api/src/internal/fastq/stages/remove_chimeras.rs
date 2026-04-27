@@ -116,6 +116,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         let report = build_remove_chimeras_report(&report_inputs);
         let metrics = measurements.metrics();
         let metric_set = metric_set(metrics);
+        validate_remove_chimeras_report_identity(tool, &report)?;
         write_remove_chimeras_artifacts(&tool_plan.out_dir, &outputs, &report, &metric_set)?;
         let record = build_remove_chimeras_record(
             &RemoveChimerasRecordInputs {
@@ -576,6 +577,34 @@ fn write_remove_chimeras_artifacts(
         &out_dir.join("metrics.json"),
         &serde_json::to_value(metric_set)?,
     )?;
+    Ok(())
+}
+
+fn validate_remove_chimeras_report_identity(
+    tool: &str,
+    report: &RemoveChimerasReportV1,
+) -> Result<()> {
+    if report.schema_version != REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "remove_chimeras report schema mismatch: expected {}, observed {}",
+            REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_ID || report.stage_id != STAGE_ID {
+        return Err(anyhow!(
+            "remove_chimeras report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool {
+        return Err(anyhow!(
+            "remove_chimeras report tool mismatch: expected {}, observed {}",
+            tool,
+            report.tool_id
+        ));
+    }
     Ok(())
 }
 
