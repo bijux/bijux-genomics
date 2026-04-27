@@ -251,6 +251,19 @@ fn bam_reference_stage_rows() -> BTreeMap<String, BTreeSet<String>> {
         .collect()
 }
 
+fn bam_stage_taxonomy_rows() -> BTreeMap<String, String> {
+    markdown_table_rows("docs/20-science/bam/STAGE_TAXONOMY.md", "| Stage |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 4,
+                "BAM stage taxonomy rows must expose stage, phase, class, and status columns",
+            );
+            (row[0].to_string(), row[3].to_string())
+        })
+        .collect()
+}
+
 fn assert_bam_tools_roster_matches(stage_ids: &[&str], label: &str) {
     let expected = bam_stage_specs();
     let roster = bam_tools_roster_rows();
@@ -453,5 +466,36 @@ fn policy__contracts__bam_science_docs_policy__references_cover_damage_and_infer
             "king",
         ],
         "damage and inference tools",
+    );
+}
+
+#[test]
+fn policy__contracts__bam_science_docs_policy__stage_taxonomy_covers_bam_stage_catalog() {
+    let expected = bam_stage_specs();
+    let documented = bam_stage_taxonomy_rows();
+
+    assert_eq!(
+        expected.keys().cloned().collect::<BTreeSet<_>>(),
+        documented.keys().cloned().collect::<BTreeSet<_>>(),
+        "BAM stage taxonomy must cover the BAM stage manifest exactly"
+    );
+
+    let mut offenders = Vec::new();
+    for (stage_id, expected_spec) in expected {
+        let documented_status = documented
+            .get(&stage_id)
+            .unwrap_or_else(|| panic!("missing taxonomy row for {stage_id}"));
+        if documented_status != &expected_spec.status {
+            offenders.push(format!(
+                "{stage_id}: expected status {}, found {}",
+                expected_spec.status, documented_status
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "BAM stage taxonomy status drift:\n{}",
+        offenders.join("\n")
     );
 }
