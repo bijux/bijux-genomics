@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 
 use crate::internal::fastq::stages::trim_bench_common::{
-    build_benchmark_context, observe_fastq_stats, prepare_trim_bench,
+    build_benchmark_context, observe_fastq_stats, prepare_trim_bench, TrimBenchInputs,
 };
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
-use crate::support::benchmark_runtime::ensure_bench_runner;
 use crate::support::workspace::load_workspace_registry;
 use crate::tool_selection::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
@@ -13,8 +12,10 @@ use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_deplete_rrna_v1, insert_fastq_deplete_rrna_v1,
 };
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDepleteRrnaMetrics};
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
+use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::params::screen::RrnaEffectiveParams;
 use bijux_dna_domain_fastq::{
@@ -41,59 +42,43 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteRrnaArgs,
 ) -> Result<BenchOutcome<FastqDepleteRrnaMetrics>> {
     let tools = select_rrna_benchmark_tools(args)?;
-
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_DEPLETE_RRNA.as_str(), &tools, &registry, false)?;
-    let bench_inputs = prepare_trim_bench(
-        catalog,
-        platform,
-        runner_override,
-        &args.sample_id,
-        &args.out,
-        &args.r1,
-        &STAGE_DEPLETE_RRNA,
-    )?;
-    let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
-    } else {
-        bench_inputs.input_hash.clone()
-    };
-    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
-    } else {
-        None
-    };
+    let setup = prepare_rrna_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
-        write_explain_md(&bench_inputs.bench_dir, STAGE_DEPLETE_RRNA.as_str(), &tools, &[], None)?;
-        write_explain_plan_json(
-            &bench_inputs.bench_dir,
+        write_explain_md(
+            &setup.bench_inputs.bench_dir,
             STAGE_DEPLETE_RRNA.as_str(),
-            &tools,
-            &registry,
+            &setup.tools,
+            &[],
+            None,
+        )?;
+        write_explain_plan_json(
+            &setup.bench_inputs.bench_dir,
+            STAGE_DEPLETE_RRNA.as_str(),
+            &setup.tools,
+            &setup.registry,
             None,
         )?;
     }
 
-    let runner = ensure_bench_runner(platform, runner_override)?;
-    ensure_image_qa_passed(STAGE_DEPLETE_RRNA.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_DEPLETE_RRNA.as_str(), &tools, platform, catalog)?;
+    let runner = setup.bench_inputs.runner;
+    ensure_image_qa_passed(STAGE_DEPLETE_RRNA.as_str(), &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_DEPLETE_RRNA.as_str(), &setup.tools, platform, catalog)?;
 
-    let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = bench_inputs.bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_inputs.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::<RawFailure>::new();
     let mut records = Vec::<BenchmarkRecord<FastqDepleteRrnaMetrics>>::new();
 
-    for tool in tools {
-        let out_dir = bench_inputs.tools_root.join(&tool);
+    for tool in setup.tools.clone() {
+        let out_dir = setup.bench_inputs.tools_root.join(&tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec(
             STAGE_DEPLETE_RRNA.as_str(),
             &tool,
-            &registry,
+            &setup.registry,
             catalog,
             platform,
         )?;
@@ -103,7 +88,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         }
         let plan = plan_rrna_with_options(
             &tool_spec,
-            &bench_inputs.r1,
+            &setup.bench_inputs.r1,
             args.r2.as_deref(),
             &out_dir,
             &bijux_dna_planner_fastq::DepleteRrnaStageParams {
@@ -127,7 +112,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             &image_digest,
             &runner.to_string(),
             &platform.name,
-            &input_hash,
+            &setup.input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -154,8 +139,8 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
 
         let report = build_rrna_report(
             &plan,
-            &bench_inputs.input_stats,
-            input_stats_r2.as_ref(),
+            &setup.bench_inputs.input_stats,
+            setup.input_stats_r2.as_ref(),
             catalog,
             platform,
             runner,
@@ -198,7 +183,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             image_digest,
             runner,
             platform,
-            input_hash.clone(),
+            setup.input_hash.clone(),
             plan.params.clone(),
         );
         let record = BenchmarkRecord {
@@ -216,7 +201,12 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir: setup.bench_inputs.bench_dir,
+        explain: args.explain,
+    })
 }
 
 fn select_rrna_benchmark_tools(
@@ -229,6 +219,46 @@ fn select_rrna_benchmark_tools(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_DEPLETE_RRNA.as_str(), &header);
     Ok(tools)
+}
+
+struct RrnaBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    bench_inputs: TrimBenchInputs,
+    input_hash: String,
+    input_stats_r2: Option<SeqkitMetrics>,
+}
+
+fn prepare_rrna_benchmark_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteRrnaArgs,
+    tools: &[String],
+) -> Result<RrnaBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role(STAGE_DEPLETE_RRNA.as_str(), tools, &registry, false)?;
+    let bench_inputs = prepare_trim_bench(
+        catalog,
+        platform,
+        runner_override,
+        &args.sample_id,
+        &args.out,
+        &args.r1,
+        &STAGE_DEPLETE_RRNA,
+    )?;
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
+    } else {
+        bench_inputs.input_hash.clone()
+    };
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
+    } else {
+        None
+    };
+    Ok(RrnaBenchmarkSetup { registry, tools, bench_inputs, input_hash, input_stats_r2 })
 }
 
 #[allow(clippy::too_many_arguments)]
