@@ -91,6 +91,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         let observation = observe_read_lengths_tool(args, &tool_plan.plan)?;
         let metric_set = build_read_lengths_metric_set(&observation)?;
         let histogram = project_read_lengths_histogram(&observation);
+        validate_read_lengths_histogram(&histogram, metric_set.metrics.read_count)?;
         let report = build_read_lengths_report(ReadLengthsReportInputs {
             tool,
             args,
@@ -433,6 +434,24 @@ fn project_read_lengths_histogram(
             count,
         })
         .collect()
+}
+
+fn validate_read_lengths_histogram(
+    histogram: &[ProfileReadLengthBinV1],
+    expected_read_count: u64,
+) -> Result<()> {
+    if histogram.is_empty() {
+        return Err(anyhow!("profile_read_lengths histogram has no bins"));
+    }
+    let observed_read_count = histogram.iter().map(|bin| bin.count).sum::<u64>();
+    if observed_read_count != expected_read_count {
+        return Err(anyhow!(
+            "profile_read_lengths histogram count mismatch: expected {}, observed {}",
+            expected_read_count,
+            observed_read_count
+        ));
+    }
+    Ok(())
 }
 
 fn build_read_lengths_metric_set(
