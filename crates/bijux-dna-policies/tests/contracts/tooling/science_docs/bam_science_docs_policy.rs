@@ -433,3 +433,25 @@ fn policy__contracts__bam_science_docs_policy__references_cover_alignment_and_fi
         "alignment and filtering tools",
     );
 }
+
+#[test]
+fn policy__contracts__bam_science_docs_policy__references_cover_damage_and_inference_tools() {
+    assert_bam_reference_rows_match(
+        &[
+            "mapdamage2",
+            "pydamage",
+            "damageprofiler",
+            "pmdtools",
+            "addeam",
+            "authenticct",
+            "schmutzi",
+            "verifybamid2",
+            "contammix",
+            "rxy",
+            "yleaf",
+            "angsd",
+            "king",
+        ],
+        "damage and inference tools",
+    );
+}
