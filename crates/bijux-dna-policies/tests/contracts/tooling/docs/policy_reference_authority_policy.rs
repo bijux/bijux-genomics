@@ -37,3 +37,17 @@ fn policy__contracts__policy_reference_authority_policy__policy_index_links_gove
         "docs/40-policies/POLICY_INDEX.md must link the governed policy authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__style_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "DOCS_STYLE.md".to_string(),
+        "../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs"
+            .to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/40-policies/STYLE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/40-policies/STYLE.md must link the governed style authorities exactly"
+    );
+}
