@@ -271,6 +271,7 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
             })),
         });
         validate_cluster_otus_report_identity(tool, &report)?;
+        validate_cluster_otus_report_metrics(&report, &metric_set.metrics)?;
         bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
@@ -352,6 +353,27 @@ fn validate_cluster_otus_report_identity(tool: &str, report: &ClusterOtusReportV
             "cluster_otus report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_cluster_otus_report_metrics(
+    report: &ClusterOtusReportV1,
+    metrics: &FastqClusterOtusMetrics,
+) -> Result<()> {
+    if report.otu_count != metrics.otu_count {
+        return Err(anyhow!(
+            "cluster_otus report otu_count mismatch: expected {}, observed {}",
+            metrics.otu_count,
+            report.otu_count
+        ));
+    }
+    if report.representative_sequence_count != metrics.representative_count {
+        return Err(anyhow!(
+            "cluster_otus report representative count mismatch: expected {}, observed {}",
+            metrics.representative_count,
+            report.representative_sequence_count
         ));
     }
     Ok(())
