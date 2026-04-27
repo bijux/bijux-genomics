@@ -72,6 +72,8 @@ fn policy__contracts__science_authored_specs_policy__data_specs_docs_link_contra
         "CONTRACT.md".to_string(),
         "../evidence/README.md".to_string(),
         "../../README.md".to_string(),
+        "../../CONTRACT.md".to_string(),
+        "../../generated/README.md".to_string(),
     ]);
     let documented = markdown_link_targets("science/specs/data/README.md");
     assert_eq!(
@@ -136,6 +138,8 @@ fn policy__contracts__science_authored_specs_policy__data_specs_contract_links_b
         "README.md".to_string(),
         "../evidence/README.md".to_string(),
         "../../README.md".to_string(),
+        "../../CONTRACT.md".to_string(),
+        "../../generated/README.md".to_string(),
     ]);
     let documented = markdown_link_targets("science/specs/data/CONTRACT.md");
     assert_eq!(
