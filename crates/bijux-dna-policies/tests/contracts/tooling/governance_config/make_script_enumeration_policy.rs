@@ -30,7 +30,6 @@ fn parse_tool_ids(tool_registry_path: &Path) -> Vec<String> {
 }
 
 #[test]
-#[ignore = "TODO: update enumeration heuristic for current script/make layout"]
 fn policy__contracts__make_script_enumeration_policy__tool_stage_lists_live_in_registry_only() {
     let root = repo_root();
     let tool_ids = parse_tool_ids(
@@ -62,10 +61,9 @@ fn policy__contracts__make_script_enumeration_policy__tool_stage_lists_live_in_r
         }
     }
 
-    if !offenders.is_empty() {
-        eprintln!(
-            "tool/stage enumeration drift (non-fatal during migration):\n{}",
-            offenders.join("\n")
-        );
-    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "tool/stage enumeration must stay in registry/domain SSOT surfaces:\n{}",
+        offenders.join("\n")
+    );
 }
