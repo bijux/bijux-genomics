@@ -86,3 +86,19 @@ fn policy__contracts__root_docs_navigation_policy__scope_links_governed_surfaces
         "docs/00-intro/SCOPE.md must link the governed scope surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__glossary_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "../30-operations/RUN_ARTIFACTS.md".to_string(),
+        "../10-architecture/CONTRACT_SPINE.md".to_string(),
+        "../30-operations/REPORT_CONTRACT.md".to_string(),
+        "../50-reference/PIPELINES.md".to_string(),
+        "../40-policies/STYLE.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/00-intro/GLOSSARY.md");
+    assert_eq!(
+        expected, documented,
+        "docs/00-intro/GLOSSARY.md must link the governed glossary authorities exactly"
+    );
+}
