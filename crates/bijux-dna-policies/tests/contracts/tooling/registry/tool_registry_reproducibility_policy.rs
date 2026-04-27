@@ -38,76 +38,92 @@ fn str_field<'a>(table: &'a toml::Value, key: &str) -> &'a str {
 fn policy__contracts__tool_registry_reproducibility_policy__production_registry_is_pinned_and_non_floating(
 ) {
     let root = workspace_root();
-    let registry = parse_registry(&root.join("configs/ci/registry/tool_registry.toml"));
-    let tools = tools_by_id(&registry);
     let mut offenders = Vec::new();
 
-    for (id, tool) in tools {
-        let upstream = str_field(&tool, "upstream");
-        let version = str_field(&tool, "default_version");
-        let pin = str_field(&tool, "pinned_commit");
-        let metrics_schema = str_field(&tool, "metrics_schema");
-        let citation = str_field(&tool, "citation");
-        let license = str_field(&tool, "license");
-        let version_rule = str_field(&tool, "version_rule");
-        let container_ref = str_field(&tool, "container_ref");
-        let expected_bin = str_field(&tool, "expected_bin");
-        let version_cmd = str_field(&tool, "version_cmd");
-        let help_cmd = str_field(&tool, "help_cmd");
-        let dockerfile = str_field(&tool, "dockerfile");
+    for rel in ["configs/ci/registry/tool_registry.toml", "configs/ci/registry/tool_registry_vcf.toml"]
+    {
+        let registry = parse_registry(&root.join(rel));
+        let tools = tools_by_id(&registry);
 
-        if upstream.eq_ignore_ascii_case("unknown") {
-            offenders.push(format!("tool={id}: upstream cannot be unknown in production registry"));
-        }
-        if version == "latest-pinned" {
-            offenders.push(format!("tool={id}: latest-pinned is forbidden in production registry"));
-        }
-        if pin.is_empty() || pin == "domain-managed" || pin == "unresolved" {
-            offenders.push(format!("tool={id}: immutable pin is required"));
-        }
-        if metrics_schema == "bijux.unknown.v1" {
-            offenders.push(format!(
-                "tool={id}: unknown metrics schema is forbidden in production registry"
-            ));
-        }
-        if citation.is_empty() || citation.starts_with("pending:") {
-            offenders.push(format!("tool={id}: citation must be concrete"));
-        }
-        if license.is_empty() {
-            offenders.push(format!("tool={id}: license is required"));
-        }
-        if version_rule.is_empty() {
-            offenders.push(format!("tool={id}: version_rule is required"));
-        }
-        if container_ref.contains(":latest") {
-            offenders
-                .push(format!("tool={id}: floating container tag is forbidden ({container_ref})"));
-        }
-        if expected_bin.is_empty() {
-            offenders.push(format!("tool={id}: expected_bin is required"));
-        }
-        if !version_cmd.contains("--version") {
-            offenders.push(format!("tool={id}: version_cmd must run --version"));
-        }
-        if !(help_cmd.contains("--help") || help_cmd.contains(" -h")) {
-            offenders.push(format!("tool={id}: help_cmd must run --help/-h"));
-        }
-        if !version_cmd.contains(expected_bin) {
-            offenders.push(format!("tool={id}: version_cmd must invoke expected_bin"));
-        }
-        if !help_cmd.contains(expected_bin) {
-            offenders.push(format!("tool={id}: help_cmd must invoke expected_bin"));
-        }
-        let dockerfile_path = root.join(dockerfile);
-        if !dockerfile.is_empty() && dockerfile_path.exists() {
-            let content = std::fs::read_to_string(&dockerfile_path).unwrap_or_default();
-            if !(content.contains("ENTRYPOINT") || content.contains("CMD [")) {
-                offenders.push(format!("tool={id}: dockerfile missing ENTRYPOINT/CMD"));
+        for (id, tool) in tools {
+            let status = str_field(&tool, "status");
+            if !support::registry_status_is_production(status) {
+                continue;
             }
-            if !content.contains(expected_bin) {
+
+            let upstream = str_field(&tool, "upstream");
+            let version = str_field(&tool, "default_version");
+            let pin = str_field(&tool, "pinned_commit");
+            let metrics_schema = str_field(&tool, "metrics_schema");
+            let citation = str_field(&tool, "citation");
+            let license = str_field(&tool, "license");
+            let version_rule = str_field(&tool, "version_rule");
+            let container_ref = str_field(&tool, "container_ref");
+            let expected_bin = str_field(&tool, "expected_bin");
+            let version_cmd = str_field(&tool, "version_cmd");
+            let help_cmd = str_field(&tool, "help_cmd");
+            let dockerfile = str_field(&tool, "dockerfile");
+
+            if upstream.eq_ignore_ascii_case("unknown") {
                 offenders.push(format!(
-                    "tool={id}: dockerfile must reference expected_bin `{expected_bin}`"
+                    "{rel}: tool={id}: upstream cannot be unknown in production registry"
                 ));
+            }
+            if version == "latest-pinned" {
+                offenders.push(format!(
+                    "{rel}: tool={id}: latest-pinned is forbidden in production registry"
+                ));
+            }
+            if pin.is_empty() || pin == "domain-managed" || pin == "unresolved" {
+                offenders.push(format!("{rel}: tool={id}: immutable pin is required"));
+            }
+            if metrics_schema == "bijux.unknown.v1" {
+                offenders.push(format!(
+                    "{rel}: tool={id}: unknown metrics schema is forbidden in production registry"
+                ));
+            }
+            if citation.is_empty() || citation.starts_with("pending:") {
+                offenders.push(format!("{rel}: tool={id}: citation must be concrete"));
+            }
+            if license.is_empty() {
+                offenders.push(format!("{rel}: tool={id}: license is required"));
+            }
+            if version_rule.is_empty() {
+                offenders.push(format!("{rel}: tool={id}: version_rule is required"));
+            }
+            if container_ref.contains(":latest") {
+                offenders.push(format!(
+                    "{rel}: tool={id}: floating container tag is forbidden ({container_ref})"
+                ));
+            }
+            if expected_bin.is_empty() {
+                offenders.push(format!("{rel}: tool={id}: expected_bin is required"));
+            }
+            if !version_cmd.contains("--version") {
+                offenders.push(format!("{rel}: tool={id}: version_cmd must run --version"));
+            }
+            if !(help_cmd.contains("--help") || help_cmd.contains(" -h")) {
+                offenders.push(format!("{rel}: tool={id}: help_cmd must run --help/-h"));
+            }
+            if !version_cmd.contains(expected_bin) {
+                offenders.push(format!(
+                    "{rel}: tool={id}: version_cmd must invoke expected_bin"
+                ));
+            }
+            if !help_cmd.contains(expected_bin) {
+                offenders.push(format!("{rel}: tool={id}: help_cmd must invoke expected_bin"));
+            }
+            let dockerfile_path = root.join(dockerfile);
+            if !dockerfile.is_empty() && dockerfile_path.exists() {
+                let content = std::fs::read_to_string(&dockerfile_path).unwrap_or_default();
+                if !(content.contains("ENTRYPOINT") || content.contains("CMD [")) {
+                    offenders.push(format!("{rel}: tool={id}: dockerfile missing ENTRYPOINT/CMD"));
+                }
+                if !content.contains(expected_bin) {
+                    offenders.push(format!(
+                        "{rel}: tool={id}: dockerfile must reference expected_bin `{expected_bin}`"
+                    ));
+                }
             }
         }
     }
