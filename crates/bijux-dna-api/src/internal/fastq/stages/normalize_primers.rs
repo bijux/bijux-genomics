@@ -101,16 +101,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             &tool_execution,
             &outputs,
         )?;
-        let primer_trimmed_fraction =
-            observation.payload.get("primer_trimmed_fraction").and_then(serde_json::Value::as_f64);
-        let orientation_forward_fraction = observation
-            .payload
-            .get("orientation_forward_fraction")
-            .and_then(serde_json::Value::as_f64);
-        let reads_in_total = setup.input_stats_r1.reads
-            + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
-        let reads_out_total = observation.output_stats_r1.reads
-            + observation.output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let measurements = project_normalize_primers_measurements(&setup, &observation);
         let report = NormalizePrimersReportV1 {
             schema_version: NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION.to_string(),
             stage: STAGE_ID.to_string(),
@@ -144,32 +135,15 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
             output_r1: outputs.output_r1.display().to_string(),
             output_r2: outputs.output_r2.as_ref().map(|path| path.display().to_string()),
-            reads_in: Some(reads_in_total),
-            reads_out: Some(reads_out_total),
-            bases_in: Some(
-                setup.input_stats_r1.bases
-                    + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.bases),
-            ),
-            bases_out: Some(
-                observation.output_stats_r1.bases
-                    + observation.output_stats_r2.as_ref().map_or(0, |stats| stats.bases),
-            ),
-            pairs_in: args.r2.as_ref().map(|_| {
-                setup
-                    .input_stats_r1
-                    .reads
-                    .min(setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads))
-            }),
-            pairs_out: outputs.output_r2.as_ref().map(|_| {
-                observation
-                    .output_stats_r1
-                    .reads
-                    .min(observation.output_stats_r2.as_ref().map_or(0, |stats| stats.reads))
-            }),
-            primer_trimmed_reads: primer_trimmed_fraction
-                .and_then(|fraction| rounded_fraction_count(fraction, reads_in_total)),
-            primer_trimmed_fraction,
-            orientation_forward_fraction,
+            reads_in: Some(measurements.reads_in_total),
+            reads_out: Some(measurements.reads_out_total),
+            bases_in: Some(measurements.bases_in),
+            bases_out: Some(measurements.bases_out),
+            pairs_in: measurements.pairs_in,
+            pairs_out: measurements.pairs_out,
+            primer_trimmed_reads: measurements.primer_trimmed_reads,
+            primer_trimmed_fraction: measurements.primer_trimmed_fraction,
+            orientation_forward_fraction: measurements.orientation_forward_fraction,
             primer_orientation_report: outputs.orientation_report.display().to_string(),
             primer_stats_json: outputs.primer_stats_json.display().to_string(),
             raw_backend_report: Some(outputs.primer_stats_json.display().to_string()),
@@ -188,8 +162,8 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             backend_metrics: Some(observation.payload.clone()),
         };
         let metrics = FastqNormalizePrimersMetrics {
-            reads_in: reads_in_total,
-            reads_out: reads_out_total,
+            reads_in: measurements.reads_in_total,
+            reads_out: measurements.reads_out_total,
             primer_trimmed_fraction: report.primer_trimmed_fraction.unwrap_or(0.0),
             orientation_forward_fraction: report.orientation_forward_fraction.unwrap_or(0.0),
         };
@@ -267,6 +241,18 @@ struct NormalizePrimersObservation {
     payload: serde_json::Value,
     output_stats_r1: SeqkitMetrics,
     output_stats_r2: Option<SeqkitMetrics>,
+}
+
+struct NormalizePrimersMeasurements {
+    reads_in_total: u64,
+    reads_out_total: u64,
+    bases_in: u64,
+    bases_out: u64,
+    pairs_in: Option<u64>,
+    pairs_out: Option<u64>,
+    primer_trimmed_fraction: Option<f64>,
+    orientation_forward_fraction: Option<f64>,
+    primer_trimmed_reads: Option<u64>,
 }
 
 struct NormalizePrimersCacheIdentity<'a> {
@@ -474,6 +460,43 @@ fn observe_normalize_primers_tool<S: ::std::hash::BuildHasher>(
         None
     };
     Ok(NormalizePrimersObservation { payload, output_stats_r1, output_stats_r2 })
+}
+
+fn project_normalize_primers_measurements(
+    setup: &NormalizePrimersBenchmarkSetup,
+    observation: &NormalizePrimersObservation,
+) -> NormalizePrimersMeasurements {
+    let primer_trimmed_fraction =
+        observation.payload.get("primer_trimmed_fraction").and_then(serde_json::Value::as_f64);
+    let orientation_forward_fraction =
+        observation.payload.get("orientation_forward_fraction").and_then(serde_json::Value::as_f64);
+    let reads_in_total =
+        setup.input_stats_r1.reads + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+    let reads_out_total = observation.output_stats_r1.reads
+        + observation.output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+    let bases_in =
+        setup.input_stats_r1.bases + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.bases);
+    let bases_out = observation.output_stats_r1.bases
+        + observation.output_stats_r2.as_ref().map_or(0, |stats| stats.bases);
+    let pairs_in =
+        setup.input_stats_r2.as_ref().map(|stats| setup.input_stats_r1.reads.min(stats.reads));
+    let pairs_out = observation
+        .output_stats_r2
+        .as_ref()
+        .map(|stats| observation.output_stats_r1.reads.min(stats.reads));
+    let primer_trimmed_reads = primer_trimmed_fraction
+        .and_then(|fraction| rounded_fraction_count(fraction, reads_in_total));
+    NormalizePrimersMeasurements {
+        reads_in_total,
+        reads_out_total,
+        bases_in,
+        bases_out,
+        pairs_in,
+        pairs_out,
+        primer_trimmed_fraction,
+        orientation_forward_fraction,
+        primer_trimmed_reads,
+    }
 }
 
 fn select_normalize_primers_benchmark_tools(
