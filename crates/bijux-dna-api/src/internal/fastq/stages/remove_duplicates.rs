@@ -15,7 +15,9 @@ use anyhow::{anyhow, Result};
 use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_duplicates_v1, insert_fastq_duplicates_v1,
 };
-use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDuplicateMetrics};
+use bijux_dna_analyze::{
+    append_jsonl, metric_set, BenchmarkRecord, FastqDuplicateMetrics, MetricSet,
+};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_core::prelude::errors::ErrorCategory;
@@ -136,10 +138,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         let counts = load_deduplicate_report_counts(&outputs.report_path)?;
         let metrics = duplicate_metrics_from_counts(&counts);
         let metric_set = metric_set(metrics);
-        bijux_dna_infra::atomic_write_json(
-            &tool_plan.out_dir.join("metrics.json"),
-            &serde_json::to_value(&metric_set)?,
-        )?;
+        write_remove_duplicates_metrics(&tool_plan.out_dir, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
@@ -352,6 +351,16 @@ fn duplicate_metrics_from_counts(counts: &DuplicateReportCounts) -> FastqDuplica
         duplicate_provenance_json: counts.duplicate_provenance_json.clone(),
         raw_backend_report_format: counts.raw_backend_report_format.clone(),
     }
+}
+
+fn write_remove_duplicates_metrics(
+    out_dir: &std::path::Path,
+    metric_set: &MetricSet<FastqDuplicateMetrics>,
+) -> Result<()> {
+    Ok(bijux_dna_infra::atomic_write_json(
+        &out_dir.join("metrics.json"),
+        &serde_json::to_value(metric_set)?,
+    )?)
 }
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
