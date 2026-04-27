@@ -28,6 +28,14 @@ pub struct RemoveDuplicatesPlanOptions {
     pub threads_override: Option<u32>,
 }
 
+struct DeduplicatePlanPaths {
+    output_r1: std::path::PathBuf,
+    output_r2: Option<std::path::PathBuf>,
+    report: std::path::PathBuf,
+    duplicate_classes_tsv: std::path::PathBuf,
+    duplicate_provenance_json: std::path::PathBuf,
+}
+
 impl Default for RemoveDuplicatesPlanOptions {
     fn default() -> Self {
         Self { dedup_mode: DedupMode::Exact, keep_order: true, threads_override: None }
@@ -95,63 +103,10 @@ pub fn plan_deduplicate_with_options(
     let paired_mode = r2.is_some();
     validate_deduplicate_options(&tool.tool_id.0, paired_mode, options)?;
     let threads = options.threads_override.unwrap_or(tool.resources.threads).max(1);
-    let output_r1 = if paired_mode {
-        out_dir.join(format!("{}.dedup.R1.fastq.gz", tool.tool_id))
-    } else {
-        let output_name = deduplicate_output_name(&tool.tool_id.0)
-            .ok_or_else(|| anyhow!("unsupported deduplicate tool"))?;
-        out_dir.join(output_name)
-    };
-    let output_r2 = r2.map(|_| out_dir.join(format!("{}.dedup.R2.fastq.gz", tool.tool_id)));
-    let report = out_dir.join("deduplicate_report.json");
-    let duplicate_classes_tsv = out_dir.join("duplicate_classes.tsv");
-    let duplicate_provenance_json = out_dir.join("duplicate_provenance.json");
-    let mut inputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("reads_r1"),
-        r1.to_path_buf(),
-        ArtifactRole::Reads,
-    )];
-    if let Some(r2) = r2 {
-        inputs.push(ArtifactRef::required(
-            ArtifactId::from_static("reads_r2"),
-            r2.to_path_buf(),
-            ArtifactRole::Reads,
-        ));
-    }
-    let mut outputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("dedup_reads_r1"),
-        output_r1.clone(),
-        ArtifactRole::Reads,
-    )];
-    if let Some(output_r2) = &output_r2 {
-        outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("dedup_reads_r2"),
-            output_r2.clone(),
-            ArtifactRole::Reads,
-        ));
-    }
-    outputs.push(ArtifactRef::required(
-        ArtifactId::from_static("duplicate_classes_tsv"),
-        duplicate_classes_tsv.clone(),
-        ArtifactRole::SummaryTsv,
-    ));
-    outputs.push(ArtifactRef::required(
-        ArtifactId::from_static("duplicate_provenance_json"),
-        duplicate_provenance_json.clone(),
-        ArtifactRole::SummaryJson,
-    ));
-    outputs.push(ArtifactRef::required(
-        ArtifactId::from_static("report_json"),
-        report.clone(),
-        ArtifactRole::ReportJson,
-    ));
-    let effective_params = RemoveDuplicatesEffectiveParams {
-        schema_version: REMOVE_DUPLICATES_SCHEMA_VERSION.to_string(),
-        paired_mode: PairedMode::from_has_r2(paired_mode),
-        threads,
-        dedup_mode: options.dedup_mode.clone(),
-        keep_order: options.keep_order,
-    };
+    let paths = deduplicate_plan_paths(&tool.tool_id.0, paired_mode, out_dir)?;
+    let inputs = deduplicate_inputs(r1, r2);
+    let outputs = deduplicate_outputs(&paths);
+    let effective_params = deduplicate_effective_params(paired_mode, threads, options);
     let mut resources = tool.resources.clone();
     resources.threads = threads;
     Ok(StagePlanV1 {
@@ -169,11 +124,11 @@ pub fn plan_deduplicate_with_options(
                 tool,
                 r1,
                 r2,
-                &output_r1,
-                output_r2.as_deref(),
-                &duplicate_classes_tsv,
-                &duplicate_provenance_json,
-                &report,
+                &paths.output_r1,
+                paths.output_r2.as_deref(),
+                &paths.duplicate_classes_tsv,
+                &paths.duplicate_provenance_json,
+                &paths.report,
                 out_dir,
                 options,
             )?,
@@ -181,23 +136,117 @@ pub fn plan_deduplicate_with_options(
         resources,
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({
-            "tool": tool.tool_id.0,
-            "input_r1": r1,
-            "input_r2": r2,
-            "output_r1": output_r1,
-            "output_r2": output_r2,
-            "duplicate_classes_tsv": duplicate_classes_tsv,
-            "duplicate_provenance_json": duplicate_provenance_json,
-            "report_json": report,
-            "threads": threads,
-            "dedup_mode": options.dedup_mode,
-            "keep_order": options.keep_order,
-        }),
+        params: deduplicate_plan_params(&tool.tool_id.0, r1, r2, &paths, threads, options),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize deduplicate effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+    })
+}
+
+fn deduplicate_plan_paths(
+    tool_id: &str,
+    paired_mode: bool,
+    out_dir: &Path,
+) -> Result<DeduplicatePlanPaths> {
+    let output_r1 = if paired_mode {
+        out_dir.join(format!("{tool_id}.dedup.R1.fastq.gz"))
+    } else {
+        out_dir.join(
+            deduplicate_output_name(tool_id)
+                .ok_or_else(|| anyhow!("unsupported deduplicate tool"))?,
+        )
+    };
+    Ok(DeduplicatePlanPaths {
+        output_r1,
+        output_r2: paired_mode.then(|| out_dir.join(format!("{tool_id}.dedup.R2.fastq.gz"))),
+        report: out_dir.join("deduplicate_report.json"),
+        duplicate_classes_tsv: out_dir.join("duplicate_classes.tsv"),
+        duplicate_provenance_json: out_dir.join("duplicate_provenance.json"),
+    })
+}
+
+fn deduplicate_inputs(r1: &Path, r2: Option<&Path>) -> Vec<ArtifactRef> {
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
+    inputs
+}
+
+fn deduplicate_outputs(paths: &DeduplicatePlanPaths) -> Vec<ArtifactRef> {
+    let mut outputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("dedup_reads_r1"),
+        paths.output_r1.clone(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(output_r2) = &paths.output_r2 {
+        outputs.push(ArtifactRef::required(
+            ArtifactId::from_static("dedup_reads_r2"),
+            output_r2.clone(),
+            ArtifactRole::Reads,
+        ));
+    }
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("duplicate_classes_tsv"),
+        paths.duplicate_classes_tsv.clone(),
+        ArtifactRole::SummaryTsv,
+    ));
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("duplicate_provenance_json"),
+        paths.duplicate_provenance_json.clone(),
+        ArtifactRole::SummaryJson,
+    ));
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("report_json"),
+        paths.report.clone(),
+        ArtifactRole::ReportJson,
+    ));
+    outputs
+}
+
+fn deduplicate_effective_params(
+    paired_mode: bool,
+    threads: u32,
+    options: &RemoveDuplicatesPlanOptions,
+) -> RemoveDuplicatesEffectiveParams {
+    RemoveDuplicatesEffectiveParams {
+        schema_version: REMOVE_DUPLICATES_SCHEMA_VERSION.to_string(),
+        paired_mode: PairedMode::from_has_r2(paired_mode),
+        threads,
+        dedup_mode: options.dedup_mode.clone(),
+        keep_order: options.keep_order,
+    }
+}
+
+fn deduplicate_plan_params(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    paths: &DeduplicatePlanPaths,
+    threads: u32,
+    options: &RemoveDuplicatesPlanOptions,
+) -> serde_json::Value {
+    serde_json::json!({
+        "tool": tool_id,
+        "input_r1": r1,
+        "input_r2": r2,
+        "output_r1": paths.output_r1,
+        "output_r2": paths.output_r2,
+        "duplicate_classes_tsv": paths.duplicate_classes_tsv,
+        "duplicate_provenance_json": paths.duplicate_provenance_json,
+        "report_json": paths.report,
+        "threads": threads,
+        "dedup_mode": options.dedup_mode,
+        "keep_order": options.keep_order,
     })
 }
 
