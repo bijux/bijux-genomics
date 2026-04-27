@@ -92,13 +92,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         let observation = observe_read_lengths_tool(args, &tool_plan.plan)?;
         let metrics = metrics_from_lengths(&observation.lengths)?;
         let metric_set = metric_set(metrics);
-        let histogram = rebin_lengths(&observation.lengths, observation.artifacts.histogram_bins)
-            .into_iter()
-            .map(|(read_length, count)| ProfileReadLengthBinV1 {
-                read_length: read_length as u64,
-                count,
-            })
-            .collect::<Vec<_>>();
+        let histogram = project_read_lengths_histogram(&observation);
         let report = build_read_lengths_report(ReadLengthsReportInputs {
             tool,
             args,
@@ -368,6 +362,18 @@ fn observe_read_lengths_tool(
     let lengths = observe_read_lengths(args)?;
     let artifacts = prepare_read_lengths_artifacts(args, plan, &lengths)?;
     Ok(ReadLengthsObservation { lengths, artifacts })
+}
+
+fn project_read_lengths_histogram(
+    observation: &ReadLengthsObservation,
+) -> Vec<ProfileReadLengthBinV1> {
+    rebin_lengths(&observation.lengths, observation.artifacts.histogram_bins)
+        .into_iter()
+        .map(|(read_length, count)| ProfileReadLengthBinV1 {
+            read_length: read_length as u64,
+            count,
+        })
+        .collect()
 }
 
 fn build_read_lengths_report(inputs: ReadLengthsReportInputs<'_>) -> ProfileReadLengthsReportV1 {
