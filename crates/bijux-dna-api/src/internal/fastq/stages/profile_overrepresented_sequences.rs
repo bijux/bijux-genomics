@@ -110,8 +110,9 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             },
             metric_set,
         )?;
-        append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
-        insert_fastq_overrepresented_v1(&conn, &record).context("insert bench sqlite")?;
+        persist_overrepresented_record(&store, &record, |record| {
+            insert_fastq_overrepresented_v1(&conn, record).context("insert bench sqlite")
+        })?;
         records.push(record);
     }
 
@@ -346,6 +347,15 @@ fn overrepresented_execution_metrics(execution: &OverrepresentedToolExecution) -
         memory_mb: execution.result.memory_mb,
         exit_code: execution.result.exit_code,
     }
+}
+
+fn persist_overrepresented_record(
+    store: &OverrepresentedBenchmarkStore,
+    record: &BenchmarkRecord<FastqOverrepresentedMetrics>,
+    insert_record: impl FnOnce(&BenchmarkRecord<FastqOverrepresentedMetrics>) -> Result<()>,
+) -> Result<()> {
+    append_jsonl(&store.jsonl_path, record).context("write bench.jsonl")?;
+    insert_record(record)
 }
 
 fn prepare_overrepresented_artifacts(
