@@ -33,6 +33,8 @@ surfaces are used.
 generated FASTQ science slice.
 
 - Row counts show the size of each governed evidence surface.
+- `source_archive_summary` shows which kinds of sources are present, which access modes they use,
+  whether any governed archive payloads are missing, and which tool families would be blocked.
 - `fastq_closure_summary` shows how many FASTQ bindings are world-class closed, declared closed
   with gaps, or still not closed, plus the rolled-up blocker and warning reasons.
 - `fastq_evidence_summary` shows the distribution of backlog, paper archive, prerequisite, risk,
