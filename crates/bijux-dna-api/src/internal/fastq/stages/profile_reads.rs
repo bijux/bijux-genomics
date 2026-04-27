@@ -9,7 +9,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_stats_v1, insert_fastq_stats_v1};
 use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkContext, BenchmarkRecord, FastqStatsMetrics,
-    LengthHistogramBin,
+    LengthHistogramBin, MetricSet,
 };
 use bijux_dna_core::metrics::MetricContextV1;
 use bijux_dna_core::prelude::errors::ErrorCategory;
@@ -204,6 +204,10 @@ struct StatsToolExecution {
     result: StageResultV1,
 }
 
+struct StatsObservation {
+    metric_set: MetricSet<FastqStatsMetrics>,
+}
+
 fn prepare_stats_tool_plan<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -242,6 +246,44 @@ fn execute_stats_tool(
         .next()
         .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
     Ok(StatsToolExecution { result })
+}
+
+fn observe_profile_reads(
+    bench_inputs: &StatsBenchInputs,
+    tool_plan: &StatsToolPlan,
+    execution: &StatsToolExecution,
+) -> Result<StatsObservation> {
+    let length_histogram = combine_length_histograms(
+        &bench_inputs.length_hist,
+        bench_inputs.length_hist_r2.as_deref(),
+    );
+    let backend_rows = parse_seqkit_stats_rows(&execution.result.stdout).unwrap_or_else(|_| {
+        fallback_seqkit_rows(&bench_inputs.input_stats, bench_inputs.input_stats_r2.as_ref())
+    });
+    materialize_profile_reads_outputs(
+        &tool_plan.plan,
+        &backend_rows,
+        &length_histogram,
+        &execution_metrics_from_stage_result(&execution.result),
+    )?;
+    let report = std::fs::read_to_string(required_plan_output_path(&tool_plan.plan, "qc_json")?)
+        .ok()
+        .and_then(|raw| bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw).ok())
+        .ok_or_else(|| anyhow!("profile_reads governed report was not materialized"))?;
+    let metrics = FastqStatsMetrics {
+        reads_total: report.reads_total,
+        bases_total: report.bases_total,
+        mean_q: report.mean_q,
+        gc_percent: report.gc_percent,
+        length_histogram: report
+            .length_histogram
+            .iter()
+            .map(|bin| LengthHistogramBin { length: bin.length, count: bin.count })
+            .collect(),
+    };
+    let metric_set = metric_set(metrics);
+    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    Ok(StatsObservation { metric_set })
 }
 
 fn prepare_stats_benchmark_setup<S: ::std::hash::BuildHasher>(
@@ -390,37 +432,7 @@ fn run_stats_tool(
     let out_dir = run_dirs.artifacts_dir.clone();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
     let execution = execute_stats_tool(tool_plan, bench_inputs.runner, bench_jobs(args.jobs))?;
-
-    let length_histogram = combine_length_histograms(
-        &bench_inputs.length_hist,
-        bench_inputs.length_hist_r2.as_deref(),
-    );
-    let backend_rows = parse_seqkit_stats_rows(&execution.result.stdout).unwrap_or_else(|_| {
-        fallback_seqkit_rows(&bench_inputs.input_stats, bench_inputs.input_stats_r2.as_ref())
-    });
-    materialize_profile_reads_outputs(
-        plan,
-        &backend_rows,
-        &length_histogram,
-        &execution_metrics_from_stage_result(&execution.result),
-    )?;
-    let report = std::fs::read_to_string(required_plan_output_path(plan, "qc_json")?)
-        .ok()
-        .and_then(|raw| bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw).ok())
-        .ok_or_else(|| anyhow!("profile_reads governed report was not materialized"))?;
-    let metrics = FastqStatsMetrics {
-        reads_total: report.reads_total,
-        bases_total: report.bases_total,
-        mean_q: report.mean_q,
-        gc_percent: report.gc_percent,
-        length_histogram: report
-            .length_histogram
-            .iter()
-            .map(|bin| LengthHistogramBin { length: bin.length, count: bin.count })
-            .collect(),
-    };
-    let metric_set = metric_set(metrics);
-    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    let observation = observe_profile_reads(bench_inputs, tool_plan, &execution)?;
 
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
@@ -457,7 +469,7 @@ fn run_stats_tool(
         parameters: params.clone().into(),
     };
     let execution_metrics = execution_metrics_from_stage_result(&execution.result);
-    let metrics_json = serde_json::to_value(&metric_set)?;
+    let metrics_json = serde_json::to_value(&observation.metric_set)?;
     let parameters_json_normalized =
         bijux_dna_core::contract::canonical::parameters_json_canonicalization(&params);
     let stage_ctx = StageObservabilityContextV1 {
@@ -487,7 +499,7 @@ fn run_stats_tool(
         &metrics_json,
         std::slice::from_ref(&bench_inputs.input_hash),
     )?;
-    let envelope = &metric_set;
+    let envelope = &observation.metric_set;
     write_metrics_json(&run_dirs, &execution_metrics, envelope)?;
     let adapter_bank_path = bijux_dna_planner_fastq::stage_api::adapter_bank_path();
     let run_provenance = RunProvenanceV1 {
@@ -518,7 +530,8 @@ fn run_stats_tool(
         stage_contract_hash,
         &extra_artifacts,
     )?;
-    let record = BenchmarkRecord { context, execution: execution_metrics, metrics: metric_set };
+    let record =
+        BenchmarkRecord { context, execution: execution_metrics, metrics: observation.metric_set };
     record.validate()?;
     Ok(record)
 }
