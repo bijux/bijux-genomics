@@ -610,3 +610,20 @@ fn policy__contracts__science_boundary_docs_policy__imputation_network_policy_do
         "containers/docs/IMPUTATION_NETWORK_POLICY.md must link the governed imputation-network authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__imputation_runtime_constraints_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "IMPUTATION_NETWORK_POLICY.md".to_string(),
+        "FRONTEND_BUILD_AUTHORITY.md".to_string(),
+        "../../docs/30-operations/HPC_FRONTEND_RUNBOOK.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/IMPUTATION_RUNTIME_CONSTRAINTS.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/IMPUTATION_RUNTIME_CONSTRAINTS.md must link the governed imputation-runtime authorities exactly"
+    );
+}

@@ -2,6 +2,13 @@
 
 Purpose: define minimum runtime envelopes for core VCF downstream tools on frontend/HPC shared environments.
 
+Authority surfaces:
+- [../README.md](../README.md)
+- [../index.md](../index.md)
+- [IMPUTATION_NETWORK_POLICY.md](IMPUTATION_NETWORK_POLICY.md)
+- [FRONTEND_BUILD_AUTHORITY.md](FRONTEND_BUILD_AUTHORITY.md)
+- [../../docs/30-operations/HPC_FRONTEND_RUNBOOK.md](../../docs/30-operations/HPC_FRONTEND_RUNBOOK.md)
+
 Contract:
 - These are planning baselines, not performance guarantees.
 - `cpu_threads`, `ram_gb`, and `scratch_gb` must be declared for each core tool.
@@ -17,4 +24,3 @@ Contract:
 | `eagle` | 4 | 10 | 20 | license and upstream constraints apply; only use when enabled. |
 | `bcftools` | 2 | 4 | 10 | helper/normalization/indexing baseline. |
 | `plink2` | 4 | 8 | 20 | downstream QC/ROH/structure helpers; large cohorts increase RAM. |
-
