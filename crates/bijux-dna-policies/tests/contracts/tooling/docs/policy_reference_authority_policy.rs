@@ -126,3 +126,18 @@ fn policy__contracts__policy_reference_authority_policy__bijux_contract_links_go
         "docs/50-reference/BIJUX_CONTRACT.md must link the governed platform authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__pipelines_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../20-science/SCIENTIFIC_DEFAULTS.md".to_string(),
+        "../../crates/bijux-dna-core/src/id_catalog/pipeline/".to_string(),
+        "COMPATIBILITY_MATRIX.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/PIPELINES.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/PIPELINES.md must link the governed pipeline authorities exactly"
+    );
+}
