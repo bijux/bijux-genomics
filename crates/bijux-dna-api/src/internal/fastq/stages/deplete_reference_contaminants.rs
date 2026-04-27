@@ -118,25 +118,9 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         )
         .context("write reference contaminant depletion metrics")?;
 
-        let context = build_benchmark_context(
-            &tool_plan.tool,
-            tool_plan.tool_spec.tool_version.clone(),
-            tool_plan.image_digest,
-            runner,
-            platform,
-            setup.input_hash.clone(),
-            tool_plan.plan.params.clone(),
-        );
-        let record = BenchmarkRecord {
-            context,
-            execution: ExecutionMetrics {
-                runtime_s: execution.runtime_s,
-                memory_mb: execution.memory_mb,
-                exit_code: execution.exit_code,
-            },
-            metrics: metric_set,
-        };
-        record.validate()?;
+        let record = build_reference_contaminants_record(
+            platform, &setup, &tool_plan, &execution, metric_set,
+        )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_deplete_reference_contaminants_v1(&conn, &record)
             .context("insert bench sqlite")?;
@@ -256,6 +240,35 @@ fn reference_contaminants_tool_failure(
         reason: format!("tool `{}` failed with status {exit_code}", tool_plan.tool),
         category: ErrorCategory::ToolError,
     })
+}
+
+fn build_reference_contaminants_record(
+    platform: &PlatformSpec,
+    setup: &ReferenceContaminantsBenchmarkSetup,
+    tool_plan: &ReferenceContaminantsToolPlan,
+    execution: &StageResultV1,
+    metrics: bijux_dna_analyze::MetricSet<FastqDepleteReferenceContaminantsMetrics>,
+) -> Result<BenchmarkRecord<FastqDepleteReferenceContaminantsMetrics>> {
+    let context = build_benchmark_context(
+        &tool_plan.tool,
+        tool_plan.tool_spec.tool_version.clone(),
+        tool_plan.image_digest.clone(),
+        setup.bench_inputs.runner,
+        platform,
+        setup.input_hash.clone(),
+        tool_plan.plan.params.clone(),
+    );
+    let record = BenchmarkRecord {
+        context,
+        execution: ExecutionMetrics {
+            runtime_s: execution.runtime_s,
+            memory_mb: execution.memory_mb,
+            exit_code: execution.exit_code,
+        },
+        metrics,
+    };
+    record.validate()?;
+    Ok(record)
 }
 
 fn prepare_reference_contaminants_benchmark_setup<S: ::std::hash::BuildHasher>(
