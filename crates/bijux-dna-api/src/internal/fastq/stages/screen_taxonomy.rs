@@ -12,6 +12,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
 use bijux_dna_domain_fastq::{
     ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
@@ -32,6 +33,7 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::{execute_observer_command, StageResultV1};
+use bijux_dna_stage_contract::StagePlanV1;
 use uuid::Uuid;
 
 use crate::internal::handlers::fastq::jobs::bench_jobs;
@@ -68,51 +70,37 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     let mut failures = Vec::<RawFailure>::new();
     let mut records = Vec::<BenchmarkRecord<FastqScreenMetrics>>::new();
     for tool in &bench_inputs.tools {
-        let out_dir = bench_inputs.tools_root.join(&tool);
-        bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec = build_tool_execution_spec(
-            STAGE_SCREEN_TAXONOMY.as_str(),
-            &tool,
-            &bench_inputs.registry,
-            catalog,
-            platform,
-        )?;
-        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_screen_with_options(
-            &tool_spec,
-            &bench_inputs.r1,
-            bench_inputs.r2.as_deref(),
-            &out_dir,
-            &ScreenPlanOptions { database_root: args.database_root.clone(), threads: args.threads },
-        )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = benchmark_image_identity(&tool_spec);
+        let tool_plan =
+            prepare_screen_tool_plan(catalog, platform, args, &bench_inputs, jobs, tool)?;
         if let Ok(Some(record)) = fetch_fastq_screen_v1(
             &conn,
-            &tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &bench_inputs.runner.to_string(),
             &platform.name,
             &bench_inputs.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             bench_inputs.runner,
             jobs,
         )?
         .into_iter()
         .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+        .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: STAGE_SCREEN_TAXONOMY.as_str().to_string(),
-                tool: tool.clone(),
-                reason: format!("tool `{tool}` failed with status {}", execution.exit_code),
+                tool: tool_plan.tool.clone(),
+                reason: format!(
+                    "tool `{}` failed with status {}",
+                    tool_plan.tool, execution.exit_code
+                ),
                 category: ErrorCategory::ToolError,
             });
             continue;
@@ -120,10 +108,10 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
         let record = build_screen_record(
             platform,
             &bench_inputs,
-            &tool,
-            &tool_spec,
-            &plan,
-            &out_dir,
+            &tool_plan.tool,
+            &tool_plan.tool_spec,
+            &tool_plan.plan,
+            &tool_plan.out_dir,
             &execution,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -185,6 +173,52 @@ struct ScreenBenchInputs {
     input_stats_r2: Option<SeqkitMetrics>,
     bench_dir: std::path::PathBuf,
     tools_root: std::path::PathBuf,
+}
+
+struct ScreenToolPlan {
+    tool: String,
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    out_dir: std::path::PathBuf,
+    params_hash: String,
+    image_digest: String,
+}
+
+fn prepare_screen_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqScreenArgs,
+    bench_inputs: &ScreenBenchInputs,
+    jobs: usize,
+    tool: &str,
+) -> Result<ScreenToolPlan> {
+    let out_dir = bench_inputs.tools_root.join(tool);
+    bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
+    let tool_spec = build_tool_execution_spec(
+        STAGE_SCREEN_TAXONOMY.as_str(),
+        tool,
+        &bench_inputs.registry,
+        catalog,
+        platform,
+    )?;
+    let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+    let plan = plan_screen_with_options(
+        &tool_spec,
+        &bench_inputs.r1,
+        bench_inputs.r2.as_deref(),
+        &out_dir,
+        &ScreenPlanOptions { database_root: args.database_root.clone(), threads: args.threads },
+    )?;
+    let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let image_digest = benchmark_image_identity(&tool_spec);
+    Ok(ScreenToolPlan {
+        tool: tool.to_string(),
+        tool_spec,
+        plan,
+        out_dir,
+        params_hash,
+        image_digest,
+    })
 }
 
 fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
