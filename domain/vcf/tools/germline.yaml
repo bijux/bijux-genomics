@@ -10,7 +10,7 @@ default_version: "planned"
 upstream: "https://www.cs.columbia.edu/~gusev/germline/"
 pin_strategy: "container_digest"
 license: "GPL-3.0"
-citation: "planned"
+citation: "paper:https://doi.org/10.1101/gr.081398.108"
 version_cmd: "germline --version"
 help_cmd: "germline --help"
 expected_artifacts: ["ibd_segments", "metrics.json"]

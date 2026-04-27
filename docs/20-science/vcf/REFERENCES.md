@@ -29,7 +29,7 @@ The VCF domain mixes currently supported calling stages with many planned downst
 | beagle | `vcf.phasing`, `vcf.imputation`, `vcf.impute` | planned citation closure | https://faculty.washington.edu/browning/beagle/beagle.html |
 | eagle | `vcf.phasing` | planned citation closure | https://alkesgroup.broadinstitute.org/Eagle/ |
 | eigensoft | `vcf.pca`, `vcf.population_structure` | planned citation closure | https://github.com/DReichLab/EIG |
-| germline | `vcf.ibd` | planned citation closure | https://www.cs.columbia.edu/~gusev/germline/ |
+| germline | `vcf.ibd` | governed paper locator present; promotion and runtime evidence still pending | https://www.cs.columbia.edu/~gusev/germline/ |
 | glimpse | `vcf.impute` | planned citation closure | https://odelaneau.github.io/GLIMPSE/ |
 | ibdhap | `vcf.ibd` | placeholder upstream locator still unresolved in governed tool contract | https://example.invalid/ibdhap |
 | ibdne | `vcf.demography` | planned citation closure | https://faculty.washington.edu/browning/ibdne.shtml |

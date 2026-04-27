@@ -6,7 +6,7 @@ pin_strategy: "pinned"
 default_version: "0.60"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "paper:https://doi.org/10.1073/pnas.1318934111"
 stage_ids: ["bam.damage","bam.authenticity"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"

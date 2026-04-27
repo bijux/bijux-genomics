@@ -32,7 +32,7 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 | bedtools | `bam.validate`, `bam.filter` | governed paper locator present; runtime closure remains separate | https://github.com/arq5x/bedtools2 |
 | bamtools | `bam.validate`, `bam.filter`, `bam.mapq_filter` | governed paper locator present; runtime closure remains separate | https://github.com/pezmaster31/bamtools |
 | mosdepth | `bam.coverage` | governed paper locator present; runtime closure remains separate | https://github.com/brentp/mosdepth |
-| picard | `bam.markdup`, `bam.length_filter`, `bam.duplication_metrics`, `bam.insert_size`, `bam.gc_bias` | upstream software locator captured; paper mapping still pending | https://github.com/broadinstitute/picard |
+| picard | `bam.markdup`, `bam.length_filter`, `bam.duplication_metrics`, `bam.insert_size`, `bam.gc_bias` | governed software citation present; no standalone Picard paper is claimed | https://github.com/broadinstitute/picard |
 
 ## Damage, Authenticity, Contamination, and Inference
 | Tool | Applies to | Reference status | Primary locator |
@@ -40,7 +40,7 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 | mapdamage2 | `bam.damage` | governed paper locator present; runtime closure remains separate | https://github.com/ginolhac/mapDamage |
 | pydamage | `bam.damage` | governed paper locator present; runtime closure remains separate | https://github.com/maxibor/pydamage |
 | damageprofiler | `bam.damage`, `bam.authenticity` | governed paper locator present; runtime closure remains separate | https://github.com/Integrative-Transcriptomics/DamageProfiler |
-| pmdtools | `bam.damage`, `bam.authenticity` | upstream software locator captured; paper mapping still pending | https://github.com/pontussk/PMDtools |
+| pmdtools | `bam.damage`, `bam.authenticity` | governed method-paper citation present; runtime closure remains separate | https://github.com/pontussk/PMDtools |
 | addeam | `bam.damage` | governed paper locator present; runtime closure remains separate | https://github.com/LouisPwr/AdDeam |
 | authenticct | `bam.authenticity` | governed paper locator present; runtime closure remains separate | https://github.com/StephanePeyregne/AuthentiCT |
 | schmutzi | `bam.contamination` | governed paper locator present; runtime closure remains separate | https://github.com/grenaud/schmutzi |
@@ -54,12 +54,12 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 ## Planned Expansion and Open Citation Backlog
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
-| preseq | `bam.complexity` | upstream software locator captured; paper mapping still pending | https://github.com/smithlabcode/preseq |
+| preseq | `bam.complexity` | governed paper locator present; runtime closure remains separate | https://github.com/smithlabcode/preseq |
 | bamutil | `bam.overlap_correction` | upstream software locator captured; paper mapping still pending | https://github.com/statgen/bamUtil |
 | gatk | `bam.recalibration` | governed paper locator present; promotion and runtime evidence still pending | https://github.com/broadinstitute/gatk |
-| ngsbriggs | `bam.damage` | upstream locator unresolved in the governed tool contract; citation closure still needed | unknown |
+| ngsbriggs | `bam.damage` | governed paper locator and upstream repository are now present; promotion and runtime evidence still pending | https://github.com/RAHenriksen/ngsBriggs |
 
 ## Failure modes
 - A tool listed against the wrong stage creates fake scientific support for a runtime boundary we do not actually govern.
 - Replacing an explicit backlog with hand-wavy prose hides citation debt instead of making it reviewable.
-- Placeholder upstream locators such as `rxy` and unresolved locators such as `ngsbriggs` must stay visible until they are repaired in the governed tool catalog and science evidence backlog.
+- Placeholder upstream locators such as `rxy` must stay visible until they are repaired in the governed tool catalog and science evidence backlog.

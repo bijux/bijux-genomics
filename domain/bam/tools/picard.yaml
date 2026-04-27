@@ -6,7 +6,7 @@ pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "software:https://broadinstitute.github.io/picard/"
 stage_ids: ["bam.markdup","bam.length_filter","bam.duplication_metrics","bam.insert_size","bam.gc_bias"]
 status: "planned"
 scope: "pre_hpc_pre_vcf"
