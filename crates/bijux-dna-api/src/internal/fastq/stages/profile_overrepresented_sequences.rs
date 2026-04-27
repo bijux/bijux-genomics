@@ -100,8 +100,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             payload: observation.payload.clone(),
             execution: &execution,
         });
-        write_overrepresented_report(&observation.artifacts.report_json, &report)?;
-        write_overrepresented_metrics(&tool_plan.out_dir, &metric_set)?;
+        write_overrepresented_artifacts(&tool_plan, &observation, &report, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
@@ -417,6 +416,16 @@ fn write_overrepresented_metrics(
     let metrics_json = serde_json::to_value(metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write overrepresented metrics")
+}
+
+fn write_overrepresented_artifacts(
+    tool_plan: &OverrepresentedToolPlan,
+    observation: &OverrepresentedObservation,
+    report: &ProfileOverrepresentedReportV1,
+    metric_set: &MetricSet<FastqOverrepresentedMetrics>,
+) -> Result<()> {
+    write_overrepresented_report(&observation.artifacts.report_json, report)?;
+    write_overrepresented_metrics(&tool_plan.out_dir, metric_set)
 }
 
 fn materialize_overrepresented_outputs(
