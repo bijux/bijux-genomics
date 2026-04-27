@@ -100,34 +100,15 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
                 count,
             })
             .collect::<Vec<_>>();
-        let report = ProfileReadLengthsReportV1 {
-            schema_version: PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION.to_string(),
-            stage: STAGE_ID.to_string(),
-            stage_id: STAGE_ID.to_string(),
-            tool_id: tool.clone(),
-            paired_mode: if args.r2.is_some() {
-                PairedMode::PairedEnd
-            } else {
-                PairedMode::SingleEnd
-            },
-            threads: tool_plan.plan.resources.threads,
-            histogram_bins: artifacts.histogram_bins,
-            input_r1: args.r1.display().to_string(),
-            input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
-            length_distribution_tsv: artifacts.length_tsv.display().to_string(),
-            length_distribution_json: artifacts.length_json.display().to_string(),
-            report_json: artifacts.report_json.display().to_string(),
-            read_count: metric_set.metrics.read_count,
-            mean_read_length: metric_set.metrics.mean_read_length,
-            max_read_length: metric_set.metrics.max_read_length,
-            distinct_lengths: metric_set.metrics.distinct_lengths,
+        let report = build_read_lengths_report(ReadLengthsReportInputs {
+            tool,
+            args,
+            artifacts: &artifacts,
+            metrics: &metric_set.metrics,
             histogram,
-            runtime_s: Some(execution.runtime_s),
-            memory_mb: Some(execution.memory_mb),
-            exit_code: Some(execution.exit_code),
-            raw_backend_report: Some(artifacts.length_tsv.display().to_string()),
-            raw_backend_report_format: Some("seqkit_fx2tab_tsv".to_string()),
-        };
+            threads: tool_plan.plan.resources.threads,
+            execution: &execution,
+        });
         bijux_dna_infra::atomic_write_json(&artifacts.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &tool_plan.out_dir.join("metrics.json"),
@@ -182,6 +163,16 @@ struct ReadLengthsArtifacts {
     length_tsv: PathBuf,
     length_json: PathBuf,
     histogram_bins: u32,
+}
+
+struct ReadLengthsReportInputs<'a> {
+    tool: &'a str,
+    args: &'a bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
+    artifacts: &'a ReadLengthsArtifacts,
+    metrics: &'a FastqReadLengthMetrics,
+    histogram: Vec<ProfileReadLengthBinV1>,
+    threads: u32,
+    execution: &'a StageResultV1,
 }
 
 fn preflight_read_lengths_inputs(
@@ -324,6 +315,37 @@ fn prepare_read_lengths_artifacts(
         write_length_outputs(&length_tsv, &length_json, lengths, histogram_bins)?;
     }
     Ok(ReadLengthsArtifacts { report_json, length_tsv, length_json, histogram_bins })
+}
+
+fn build_read_lengths_report(inputs: ReadLengthsReportInputs<'_>) -> ProfileReadLengthsReportV1 {
+    ProfileReadLengthsReportV1 {
+        schema_version: PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION.to_string(),
+        stage: STAGE_ID.to_string(),
+        stage_id: STAGE_ID.to_string(),
+        tool_id: inputs.tool.to_string(),
+        paired_mode: if inputs.args.r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        },
+        threads: inputs.threads,
+        histogram_bins: inputs.artifacts.histogram_bins,
+        input_r1: inputs.args.r1.display().to_string(),
+        input_r2: inputs.args.r2.as_ref().map(|path| path.display().to_string()),
+        length_distribution_tsv: inputs.artifacts.length_tsv.display().to_string(),
+        length_distribution_json: inputs.artifacts.length_json.display().to_string(),
+        report_json: inputs.artifacts.report_json.display().to_string(),
+        read_count: inputs.metrics.read_count,
+        mean_read_length: inputs.metrics.mean_read_length,
+        max_read_length: inputs.metrics.max_read_length,
+        distinct_lengths: inputs.metrics.distinct_lengths,
+        histogram: inputs.histogram,
+        runtime_s: Some(inputs.execution.runtime_s),
+        memory_mb: Some(inputs.execution.memory_mb),
+        exit_code: Some(inputs.execution.exit_code),
+        raw_backend_report: Some(inputs.artifacts.length_tsv.display().to_string()),
+        raw_backend_report_format: Some("seqkit_fx2tab_tsv".to_string()),
+    }
 }
 
 fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
