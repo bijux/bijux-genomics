@@ -60,3 +60,20 @@ fn policy__contracts__root_science_docs_policy__scientific_decisions_link_govern
         "Scientific decisions must link the governed publication asset surface and domain science authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_science_docs_policy__scientific_defaults_link_governed_references() {
+    let expected = BTreeSet::from([
+        "fastq/GOLD_PIPELINE_SPEC.md".to_string(),
+        "fastq/TOOLS_ROSTER.md".to_string(),
+        "fastq/STAGE_ASSUMPTIONS.md".to_string(),
+        "bam/STAGE_ASSUMPTIONS.md".to_string(),
+        "VALIDITY_LIMITS.md".to_string(),
+        "vcf/STAGE_CATALOG.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/SCIENTIFIC_DEFAULTS.md");
+    assert_eq!(
+        expected, documented,
+        "Scientific defaults must link the governed reference surfaces exactly"
+    );
+}
