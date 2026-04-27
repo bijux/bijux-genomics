@@ -601,6 +601,7 @@ fn read_overrepresented_payload(path: &Path) -> Result<OverrepresentedPayload> {
     let value: serde_json::Value = serde_json::from_slice(
         &std::fs::read(path).with_context(|| format!("read {}", path.display()))?,
     )?;
+    validate_overrepresented_payload_schema(path, &value)?;
     let rows = value
         .get("rows")
         .and_then(serde_json::Value::as_array)
@@ -641,6 +642,22 @@ fn read_overrepresented_payload(path: &Path) -> Result<OverrepresentedPayload> {
     };
     metrics.validate()?;
     Ok(OverrepresentedPayload { metrics, rows })
+}
+
+fn validate_overrepresented_payload_schema(path: &Path, value: &serde_json::Value) -> Result<()> {
+    let schema_version =
+        value.get("schema_version").and_then(serde_json::Value::as_str).ok_or_else(|| {
+            anyhow!("overrepresented payload missing schema_version: {}", path.display())
+        })?;
+    if schema_version != "bijux.fastq.profile_overrepresented_sequences.v1" {
+        return Err(anyhow!(
+            "overrepresented payload schema mismatch in {}: expected {}, observed {}",
+            path.display(),
+            "bijux.fastq.profile_overrepresented_sequences.v1",
+            schema_version
+        ));
+    }
+    Ok(())
 }
 
 fn required_output_path<'a>(
