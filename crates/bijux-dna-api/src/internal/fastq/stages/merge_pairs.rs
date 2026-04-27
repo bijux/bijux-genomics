@@ -85,6 +85,13 @@ fn required_plan_output_path<'a>(
         .ok_or_else(|| anyhow!("planned merge output `{artifact_name}` missing"))
 }
 
+fn resolve_merge_outputs(plan: &StagePlanV1) -> Result<MergePlanOutputs<'_>> {
+    Ok(MergePlanOutputs {
+        merged_reads: required_plan_output_path(plan, "merged_reads")?,
+        report_json: required_plan_output_path(plan, "report_json")?,
+    })
+}
+
 /// Benchmark FASTQ read-merging tools under governed stage contracts.
 ///
 /// # Errors
@@ -133,8 +140,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             failures.push(failure);
             continue;
         }
-        let merged_reads = required_plan_output_path(&tool_plan.plan, "merged_reads")?;
-        let report_json = required_plan_output_path(&tool_plan.plan, "report_json")?;
+        let outputs = resolve_merge_outputs(&tool_plan.plan)?;
         let record = build_merge_record(
             catalog,
             platform,
@@ -144,8 +150,8 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             &setup.r2_stats,
             &tool_plan.tool_spec,
             &tool_plan.plan.params,
-            merged_reads,
-            report_json,
+            outputs.merged_reads,
+            outputs.report_json,
             &execution,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -173,6 +179,11 @@ struct MergeToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct MergePlanOutputs<'a> {
+    merged_reads: &'a Path,
+    report_json: &'a Path,
 }
 
 fn select_merge_benchmark_tools(
