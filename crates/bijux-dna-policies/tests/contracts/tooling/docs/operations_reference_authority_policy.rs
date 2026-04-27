@@ -48,3 +48,18 @@ fn policy__contracts__operations_reference_authority_policy__ci_links_governed_s
         "docs/30-operations/CI.md must link the governed CI authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "RUN_ARTIFACTS.md".to_string(),
+        "../10-architecture/DATAFLOW.md".to_string(),
+        "REPORT_CONTRACT.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/ARTIFACT_EXPLORER.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/ARTIFACT_EXPLORER.md must link the governed artifact authorities exactly"
+    );
+}
