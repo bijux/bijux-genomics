@@ -33,11 +33,12 @@ Applies to registry-linked container definitions, versions, and smoke-policy beh
 - HPC cache-path assumptions can break container smoke/build workflows.
 
 ## Canonical Admission Reference
-- Use `docs/50-reference/TOOL_ADMISSION.md` as the single authoritative "how to add tool" checklist.
+- Use [docs/50-reference/TOOL_ADMISSION.md](../50-reference/TOOL_ADMISSION.md)
+  as the single authoritative "how to add tool" checklist.
 
 ## References
-- `containers/index.md`
-- `containers/docs/index.md`
-- `containers/README.md`
-- `containers/docs/RELEASE_CHECKLIST.md`
-- `containers/docs/PLANNED.md`
+- [containers/index.md](../../containers/index.md)
+- [containers/docs/index.md](../../containers/docs/index.md)
+- [containers/README.md](../../containers/README.md)
+- [containers/docs/RELEASE_CHECKLIST.md](../../containers/docs/RELEASE_CHECKLIST.md)
+- [containers/docs/PLANNED.md](../../containers/docs/PLANNED.md)
