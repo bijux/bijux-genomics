@@ -61,20 +61,10 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     let setup = prepare_umi_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
-        write_explain_md(&setup.bench_dir, STAGE_EXTRACT_UMIS.as_str(), &setup.tools, &[], None)?;
-        write_explain_plan_json(
-            &setup.bench_dir,
-            STAGE_EXTRACT_UMIS.as_str(),
-            &setup.tools,
-            &setup.registry,
-            None,
-        )?;
+        write_umi_benchmark_explain(&setup)?;
     }
 
-    ensure_image_qa_passed(STAGE_EXTRACT_UMIS.as_str(), &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_EXTRACT_UMIS.as_str(), &setup.tools, platform, catalog)?;
-
-    ensure_umi_headers(&args.r1, Some(r2))?;
+    ensure_umi_benchmark_qa(catalog, platform, args, &setup.tools)?;
 
     let sqlite_path = setup.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -215,6 +205,28 @@ fn prepare_umi_benchmark_setup<S: ::std::hash::BuildHasher>(
         input_stats_r1,
         input_stats_r2,
     })
+}
+
+fn write_umi_benchmark_explain(setup: &UmiBenchmarkSetup) -> Result<()> {
+    write_explain_md(&setup.bench_dir, STAGE_EXTRACT_UMIS.as_str(), &setup.tools, &[], None)?;
+    write_explain_plan_json(
+        &setup.bench_dir,
+        STAGE_EXTRACT_UMIS.as_str(),
+        &setup.tools,
+        &setup.registry,
+        None,
+    )
+}
+
+fn ensure_umi_benchmark_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqUmiArgs,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_EXTRACT_UMIS.as_str(), tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_EXTRACT_UMIS.as_str(), tools, platform, catalog)?;
+    ensure_umi_headers(&args.r1, Some(args.r2.as_path()))
 }
 
 #[allow(clippy::too_many_arguments)]
