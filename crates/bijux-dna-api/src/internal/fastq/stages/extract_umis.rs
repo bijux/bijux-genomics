@@ -408,18 +408,12 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     inputs: &UmiRecordInputs<'_, S>,
 ) -> Result<BenchmarkRecord<FastqUmiMetrics>> {
     let artifacts = prepare_umi_artifacts(inputs.plan)?;
-    let output_stats_r1 = if inputs.execution.result.exit_code == 0 && artifacts.output_r1.exists()
-    {
-        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, &artifacts.output_r1)?
-    } else {
-        *inputs.input_stats_r1
-    };
-    let output_stats_r2 = if inputs.execution.result.exit_code == 0 && artifacts.output_r2.exists()
-    {
-        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, &artifacts.output_r2)?
-    } else {
-        *inputs.input_stats_r2
-    };
+    let output_stats_r1 =
+        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, &artifacts.output_r1)
+            .with_context(|| format!("observe umi output r1 {}", artifacts.output_r1.display()))?;
+    let output_stats_r2 =
+        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, &artifacts.output_r2)
+            .with_context(|| format!("observe umi output r2 {}", artifacts.output_r2.display()))?;
     let report = build_umi_report(&UmiReportInputs {
         tool: inputs.tool,
         threads: inputs.tool_spec.resources.threads,
