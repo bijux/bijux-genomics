@@ -463,6 +463,34 @@ fn trim_command_template(
             options,
         );
     }
+    generic_trim_command_template(
+        tool,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+        effective_threads,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        options,
+    )
+}
+
+fn generic_trim_command_template(
+    tool: &ToolExecutionSpecV1,
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    effective_threads: u32,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+) -> Result<Vec<String>> {
     let rendered = crate::tool_adapters::template_render::render_command_template(
         &tool.command.template,
         &[
