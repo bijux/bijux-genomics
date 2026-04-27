@@ -27,9 +27,13 @@ The first implemented slice is the FASTQ environment and container support surfa
 - which container and runtime references back each admitted tool
 - which upstream source packets and paper roots back each reviewed FASTQ tool
 
-This control surface does not replace `domain/**`, `configs/**`, `containers/**`, or
-`crates/bijux-dna-environment/**`. It traces and compiles the claims that explain how those
-surfaces are used.
+This control surface does not replace FASTQ domain manifests such as
+[domain/fastq/execution_support.yaml](../domain/fastq/execution_support.yaml),
+configuration indexes such as [configs/index.md](../configs/index.md),
+operational container contracts in [containers/README.md](../containers/README.md),
+or the runtime resolution surface in
+[crates/bijux-dna-environment/README.md](../crates/bijux-dna-environment/README.md).
+It traces and compiles the claims that explain how those surfaces are used.
 
 ## Generated Index
 

@@ -190,3 +190,22 @@ fn policy__contracts__science_authored_specs_policy__release_specs_contract_link
         "science/specs/releases/CONTRACT.md must link the release-spec boundaries exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_authored_specs_policy__science_root_links_adjacent_repo_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../domain/fastq/execution_support.yaml".to_string(),
+        "../configs/index.md".to_string(),
+        "../containers/README.md".to_string(),
+        "../crates/bijux-dna-environment/README.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/README.md")
+        .into_iter()
+        .filter(|target| target.starts_with("../"))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "science/README.md must link the adjacent repo surfaces it complements exactly"
+    );
+}
