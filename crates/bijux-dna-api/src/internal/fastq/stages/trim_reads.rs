@@ -127,34 +127,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         let governed_report =
             enrich_governed_trim_report(&report_path, &observed_stats, &execution)?;
         write_governed_trim_report(&report_path, &governed_report)?;
-        let metrics = FastqTrimMetrics {
-            reads_in: observed_stats.before.reads,
-            reads_out: observed_stats.after.reads,
-            bases_in: observed_stats.before.bases,
-            bases_out: observed_stats.after.bases,
-            pairs_in: observed_stats.pairs_in,
-            pairs_out: observed_stats.pairs_out,
-            mean_q_before: observed_stats.before.mean_q,
-            mean_q_after: observed_stats.after.mean_q,
-            delta_metrics: derive_trim_delta(&observed_stats.before, &observed_stats.after),
-            paired_mode: Some(
-                match governed_report.paired_mode {
-                    bijux_dna_domain_fastq::PairedMode::SingleEnd => "single_end",
-                    bijux_dna_domain_fastq::PairedMode::PairedEnd => "paired_end",
-                    bijux_dna_domain_fastq::PairedMode::Unknown => "not_declared",
-                }
-                .to_string(),
-            ),
-            adapter_policy: Some(governed_report.adapter_policy.clone()),
-            polyx_policy: governed_report.polyx_policy.clone(),
-            n_policy: governed_report.n_policy.clone(),
-            contaminant_policy: governed_report.contaminant_policy.clone(),
-            raw_backend_report_format: governed_report.raw_backend_report_format.clone(),
-            adapter_preset: governed_report.adapter_preset.clone(),
-            adapter_bank_id: governed_report.adapter_bank_id.clone(),
-            adapter_bank_hash: governed_report.adapter_bank_hash.clone(),
-            adapter_overrides: governed_report.adapter_overrides.clone().map(Into::into),
-        };
+        let metrics = trim_metrics_from_report(&observed_stats, &governed_report);
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         let metrics_json = serde_json::to_value(&metric_set)?;
@@ -292,6 +265,41 @@ fn enrich_governed_trim_report(
     report.runtime_s = Some(execution.runtime_s);
     report.memory_mb = Some(execution.memory_mb);
     Ok(report)
+}
+
+fn trim_metrics_from_report(
+    observed_stats: &TrimObservedStats,
+    report: &TrimReadsReportV1,
+) -> FastqTrimMetrics {
+    FastqTrimMetrics {
+        reads_in: observed_stats.before.reads,
+        reads_out: observed_stats.after.reads,
+        bases_in: observed_stats.before.bases,
+        bases_out: observed_stats.after.bases,
+        pairs_in: observed_stats.pairs_in,
+        pairs_out: observed_stats.pairs_out,
+        mean_q_before: observed_stats.before.mean_q,
+        mean_q_after: observed_stats.after.mean_q,
+        delta_metrics: derive_trim_delta(&observed_stats.before, &observed_stats.after),
+        paired_mode: Some(paired_mode_label(report).to_string()),
+        adapter_policy: Some(report.adapter_policy.clone()),
+        polyx_policy: report.polyx_policy.clone(),
+        n_policy: report.n_policy.clone(),
+        contaminant_policy: report.contaminant_policy.clone(),
+        raw_backend_report_format: report.raw_backend_report_format.clone(),
+        adapter_preset: report.adapter_preset.clone(),
+        adapter_bank_id: report.adapter_bank_id.clone(),
+        adapter_bank_hash: report.adapter_bank_hash.clone(),
+        adapter_overrides: report.adapter_overrides.clone().map(Into::into),
+    }
+}
+
+fn paired_mode_label(report: &TrimReadsReportV1) -> &'static str {
+    match report.paired_mode {
+        bijux_dna_domain_fastq::PairedMode::SingleEnd => "single_end",
+        bijux_dna_domain_fastq::PairedMode::PairedEnd => "paired_end",
+        bijux_dna_domain_fastq::PairedMode::Unknown => "not_declared",
+    }
 }
 
 fn prepare_trim_tool_plan<S: ::std::hash::BuildHasher>(
