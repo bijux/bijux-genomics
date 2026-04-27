@@ -52,6 +52,8 @@ mod mod_contracts_tooling_benchmark_suite_support_policy_rs;
 mod mod_contracts_tooling_binding_decision_record_policy_rs;
 #[path = "contracts/tooling/docs/boundary_docs_policy.rs"]
 mod mod_contracts_tooling_boundary_docs_policy_rs;
+#[path = "contracts/tooling/docs/root_docs_navigation_policy.rs"]
+mod mod_contracts_tooling_root_docs_navigation_policy_rs;
 #[path = "contracts/tooling/governance_config/ci_no_stage_tool_defs_policy.rs"]
 mod mod_contracts_tooling_ci_no_stage_tool_defs_policy_rs;
 #[path = "contracts/tooling/governance_config/ci_tools_policy.rs"]

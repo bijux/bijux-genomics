@@ -1,5 +1,7 @@
 # 00-intro Index
 
+- [../index.md](../index.md)
+- [REPO_ROOT_MAP.generated.md](REPO_ROOT_MAP.generated.md)
 - [WHAT_IS_BIJUX.md](WHAT_IS_BIJUX.md)
 - [SCOPE.md](SCOPE.md)
 - [QUICKSTART.md](QUICKSTART.md)
