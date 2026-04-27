@@ -91,8 +91,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             continue;
         }
         let observation = observe_overrepresented_tool(args, &tool_plan.plan)?;
-        let metrics = observation.payload.metrics.clone();
-        let metric_set = metric_set(metrics);
+        let metric_set = build_overrepresented_metric_set(&observation)?;
         let report = build_overrepresented_report(OverrepresentedReportInputs {
             tool,
             args,
@@ -362,6 +361,14 @@ fn observe_overrepresented_tool(
             .context("parse overrepresented effective params")?;
     let payload = read_overrepresented_payload(&artifacts.output_json)?;
     Ok(OverrepresentedObservation { artifacts, effective_params, payload })
+}
+
+fn build_overrepresented_metric_set(
+    observation: &OverrepresentedObservation,
+) -> Result<MetricSet<FastqOverrepresentedMetrics>> {
+    let metric_set = metric_set(observation.payload.metrics.clone());
+    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    Ok(metric_set)
 }
 
 fn build_overrepresented_report(
