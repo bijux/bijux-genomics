@@ -480,3 +480,19 @@ fn policy__contracts__science_boundary_docs_policy__container_style_doc_links_go
         "containers/docs/STYLE.md must link the governed style authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__licensing_reference_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../LICENSE".to_string(),
+        "../../containers/licenses/README.md".to_string(),
+        "../../containers/versions/versions.toml".to_string(),
+        "../../containers/apptainer/shared/NON_BIJUX_SOURCES.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/LICENSING.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/LICENSING.md must link the governed licensing authorities exactly"
+    );
+}
