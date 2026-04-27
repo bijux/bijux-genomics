@@ -121,12 +121,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
         }
         match run_stats_tool(platform, args, &setup.bench_inputs, &tool_plan) {
             Ok(record) => new_records.push(record),
-            Err(err) => failures.push(RawFailure {
-                stage: STAGE_PROFILE_READS.as_str().to_string(),
-                tool: tool_plan.tool.clone(),
-                reason: err.to_string(),
-                category: ErrorCategory::ToolError,
-            }),
+            Err(err) => failures.push(stats_tool_failure(&tool_plan, &err)),
         }
     }
 
@@ -234,6 +229,15 @@ impl StatsCacheIdentity {
             input_hash: bench_inputs.input_hash.clone(),
             params_hash: tool_plan.params_hash.clone(),
         }
+    }
+}
+
+fn stats_tool_failure(tool_plan: &StatsToolPlan, err: &anyhow::Error) -> RawFailure {
+    RawFailure {
+        stage: STAGE_PROFILE_READS.as_str().to_string(),
+        tool: tool_plan.tool.clone(),
+        reason: err.to_string(),
+        category: ErrorCategory::ToolError,
     }
 }
 
