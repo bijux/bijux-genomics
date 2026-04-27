@@ -16,7 +16,7 @@ use crate::support::workspace::load_workspace_registry;
 use crate::tool_selection::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::quality::{fetch_fastq_filter_v2, insert_fastq_filter_v2};
-use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqFilterMetrics};
+use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqFilterMetrics, MetricSet};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
@@ -408,11 +408,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let metrics = filter_metrics_from_report(&report, &bench_inputs.input_stats, &output_stats_r1);
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
-
-    bijux_dna_infra::atomic_write_json(&report_path, &report).context("write filter report")?;
-    let metrics_json = serde_json::to_value(&metric_set)?;
-    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
-        .context("write filter metrics")?;
+    write_filter_artifacts(out_dir, &report_path, &report, &metric_set)?;
 
     let context = build_benchmark_context(
         tool,
@@ -434,6 +430,18 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn write_filter_artifacts(
+    out_dir: &Path,
+    report_path: &Path,
+    report: &FilterReadsReportV1,
+    metric_set: &MetricSet<FastqFilterMetrics>,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(report_path, report).context("write filter report")?;
+    let metrics_json = serde_json::to_value(metric_set)?;
+    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+        .context("write filter metrics")
 }
 
 fn filter_metrics_from_report(
