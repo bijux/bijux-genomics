@@ -241,44 +241,29 @@ fn validation_command(
     out_dir: &Path,
     effective_params: &ValidateEffectiveParams,
 ) -> Result<Vec<String>> {
-    let single_command = |reads: &Path,
-                          log_path: &Path,
-                          status_var: &str,
-                          stream_placeholder: &str|
-     -> Result<String> {
-        let cleanup_dir = fastqc_probe_dir(out_dir, tool.tool_id.as_str(), stream_placeholder);
-        let rendered = rendered_validation_backend_command(
-            tool,
-            reads,
-            stream_placeholder,
-            cleanup_dir.as_deref(),
-            effective_params.threads,
-        )?;
-        let mut command = String::new();
-        if let Some(cleanup_dir) = cleanup_dir.as_ref() {
-            command.push_str(&format!("mkdir -p {}\n", shell_quote(cleanup_dir)));
-        }
-        command.push_str(&format!(
-            "{} > {} 2>&1\n{status_var}=$?",
-            shell_join(&rendered),
-            shell_quote(log_path)
-        ));
-        if let Some(cleanup_dir) = cleanup_dir.as_ref() {
-            command.push_str(&format!("\nrm -rf {}", shell_quote(cleanup_dir)));
-        }
-        Ok(command)
-    };
-
     let r1_log = out_dir.join("validation_r1.log");
-    let mut commands =
-        vec!["set +e".to_string(), single_command(r1, &r1_log, "status_r1", "reads_r1")?];
+    let mut commands = vec![
+        "set +e".to_string(),
+        validation_stream_command(
+            tool,
+            r1,
+            &r1_log,
+            "status_r1",
+            "reads_r1",
+            out_dir,
+            effective_params.threads,
+        )?,
+    ];
     let r2_log = r2.map(|_| out_dir.join("validation_r2.log"));
     if let Some(r2) = r2 {
-        commands.push(single_command(
+        commands.push(validation_stream_command(
+            tool,
             r2,
             r2_log.as_deref().ok_or_else(|| anyhow!("paired validation log path missing"))?,
             "status_r2",
             "reads_r2",
+            out_dir,
+            effective_params.threads,
         )?);
     } else {
         commands.push("status_r2=0".to_string());
@@ -404,6 +389,38 @@ fn validation_command(
     ));
     commands.push("exit \"$exit_code\"".to_string());
     Ok(vec!["sh".to_string(), "-lc".to_string(), commands.join(" && ")])
+}
+
+fn validation_stream_command(
+    tool: &ToolExecutionSpecV1,
+    reads: &Path,
+    log_path: &Path,
+    status_var: &str,
+    stream_placeholder: &str,
+    out_dir: &Path,
+    threads: u32,
+) -> Result<String> {
+    let cleanup_dir = fastqc_probe_dir(out_dir, tool.tool_id.as_str(), stream_placeholder);
+    let rendered = rendered_validation_backend_command(
+        tool,
+        reads,
+        stream_placeholder,
+        cleanup_dir.as_deref(),
+        threads,
+    )?;
+    let mut command = String::new();
+    if let Some(cleanup_dir) = cleanup_dir.as_ref() {
+        command.push_str(&format!("mkdir -p {}\n", shell_quote(cleanup_dir)));
+    }
+    command.push_str(&format!(
+        "{} > {} 2>&1\n{status_var}=$?",
+        shell_join(&rendered),
+        shell_quote(log_path)
+    ));
+    if let Some(cleanup_dir) = cleanup_dir.as_ref() {
+        command.push_str(&format!("\nrm -rf {}", shell_quote(cleanup_dir)));
+    }
+    Ok(command)
 }
 
 fn rendered_validation_backend_command(
