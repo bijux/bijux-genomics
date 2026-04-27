@@ -506,6 +506,9 @@ fn materialize_overrepresented_outputs(
         accumulate_overrepresented_counts(path, &mut counts)?;
     }
     let total: u64 = counts.values().sum();
+    if total == 0 {
+        return Err(anyhow!("profile_overrepresented_sequences found no read evidence"));
+    }
     let mut ranked = counts.into_iter().collect::<Vec<_>>();
     ranked.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
     let top = ranked
