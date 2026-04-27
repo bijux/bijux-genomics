@@ -89,22 +89,11 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             failures.push(failure);
             continue;
         }
-        let output_tsv = required_output_path(&tool_plan.plan, "overrepresented_sequences_tsv")?;
-        let output_json = required_output_path(&tool_plan.plan, "overrepresented_sequences_json")?;
-        let report_json = required_output_path(&tool_plan.plan, "report_json")?;
-        if !output_tsv.exists() || !output_json.exists() {
-            materialize_overrepresented_outputs(
-                &args.r1,
-                args.r2.as_deref(),
-                output_tsv,
-                output_json,
-                args.top_k.unwrap_or(50).max(1),
-            )?;
-        }
+        let artifacts = prepare_overrepresented_artifacts(args, &tool_plan.plan)?;
         let effective_params: FastqOverrepresentedProfileParams =
             serde_json::from_value(tool_plan.plan.effective_params.clone())
                 .context("parse overrepresented effective params")?;
-        let payload = read_overrepresented_payload(output_json)?;
+        let payload = read_overrepresented_payload(&artifacts.output_json)?;
         let metrics = payload.metrics.clone();
         let metric_set = metric_set(metrics);
         let report = ProfileOverrepresentedReportV1 {
@@ -121,9 +110,9 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             top_k: effective_params.top_k,
             input_r1: args.r1.display().to_string(),
             input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
-            overrepresented_sequences_tsv: output_tsv.display().to_string(),
-            overrepresented_sequences_json: output_json.display().to_string(),
-            report_json: report_json.display().to_string(),
+            overrepresented_sequences_tsv: artifacts.output_tsv.display().to_string(),
+            overrepresented_sequences_json: artifacts.output_json.display().to_string(),
+            report_json: artifacts.report_json.display().to_string(),
             sequence_count: payload.metrics.sequence_count,
             flagged_sequences: payload.metrics.flagged_sequences,
             top_fraction: payload.metrics.top_fraction,
@@ -134,7 +123,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             raw_backend_report: None,
             raw_backend_report_format: None,
         };
-        bijux_dna_infra::atomic_write_json(report_json, &report)
+        bijux_dna_infra::atomic_write_json(&artifacts.report_json, &report)
             .context("write overrepresented report")?;
         let metrics_json = serde_json::to_value(&metric_set)?;
         bijux_dna_infra::atomic_write_json(&tool_plan.out_dir.join("metrics.json"), &metrics_json)
@@ -181,6 +170,12 @@ struct OverrepresentedToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct OverrepresentedArtifacts {
+    output_tsv: PathBuf,
+    output_json: PathBuf,
+    report_json: PathBuf,
 }
 
 fn preflight_overrepresented_inputs(
@@ -298,6 +293,25 @@ fn overrepresented_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure
         reason: format!("tool {tool} failed with status {exit_code}"),
         category: ErrorCategory::ToolError,
     })
+}
+
+fn prepare_overrepresented_artifacts(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
+    plan: &StagePlanV1,
+) -> Result<OverrepresentedArtifacts> {
+    let output_tsv = required_output_path(plan, "overrepresented_sequences_tsv")?.to_path_buf();
+    let output_json = required_output_path(plan, "overrepresented_sequences_json")?.to_path_buf();
+    let report_json = required_output_path(plan, "report_json")?.to_path_buf();
+    if !output_tsv.exists() || !output_json.exists() {
+        materialize_overrepresented_outputs(
+            &args.r1,
+            args.r2.as_deref(),
+            &output_tsv,
+            &output_json,
+            args.top_k.unwrap_or(50).max(1),
+        )?;
+    }
+    Ok(OverrepresentedArtifacts { output_tsv, output_json, report_json })
 }
 
 fn materialize_overrepresented_outputs(
