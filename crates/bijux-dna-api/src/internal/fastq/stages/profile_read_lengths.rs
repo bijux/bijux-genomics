@@ -84,7 +84,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         }
 
         let execution = execute_read_lengths_tool(&tool_plan, setup.runner, jobs)?;
-        if let Some(failure) = read_lengths_tool_failure(tool, execution.exit_code) {
+        if let Some(failure) = read_lengths_tool_failure(tool, execution.result.exit_code) {
             failures.push(failure);
             continue;
         }
@@ -99,7 +99,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             metrics: &metric_set.metrics,
             histogram,
             threads: tool_plan.plan.resources.threads,
-            execution: &execution,
+            execution: &execution.result,
         });
         write_read_lengths_artifacts(&tool_plan, &observation, &report, &metric_set)?;
         let record = build_read_lengths_record(
@@ -108,7 +108,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
                 setup: &setup,
                 tool,
                 tool_plan: &tool_plan,
-                execution: &execution,
+                execution: &execution.result,
             },
             metric_set,
         )?;
@@ -150,6 +150,10 @@ struct ReadLengthsToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct ReadLengthsToolExecution {
+    result: StageResultV1,
 }
 
 struct ReadLengthsCacheIdentity {
@@ -305,15 +309,16 @@ fn execute_read_lengths_tool(
     tool_plan: &ReadLengthsToolPlan,
     runner: RuntimeKind,
     jobs: usize,
-) -> Result<StageResultV1> {
-    execute_plans_with_jobs(
+) -> Result<ReadLengthsToolExecution> {
+    let result = execute_plans_with_jobs(
         vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
         runner,
         jobs,
     )?
     .into_iter()
     .next()
-    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))
+    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
+    Ok(ReadLengthsToolExecution { result })
 }
 
 fn read_lengths_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
