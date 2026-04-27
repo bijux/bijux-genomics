@@ -7,8 +7,10 @@ use crate::tool_selection::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_umi_v1, insert_fastq_umi_v1};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqUmiMetrics};
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
+use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::{ExtractUmisReportV1, PairedMode, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
@@ -56,49 +58,37 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqUmiMetrics>> {
     let tools = select_umi_benchmark_tools(args)?;
     let r2 = args.r2.as_path();
-
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_EXTRACT_UMIS.as_str(), &tools, &registry, false)?;
-
-    let bench_dir_name = bench_dir_name(&STAGE_EXTRACT_UMIS)
-        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_EXTRACT_UMIS.as_str()))?;
-    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
-    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
-    bijux_dna_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
-    bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
-    let input_hash = format!(
-        "{}+{}",
-        hash_file_sha256(&args.r1).context("hash umi input r1")?,
-        hash_file_sha256(r2).context("hash umi input r2")?
-    );
+    let setup = prepare_umi_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
-        write_explain_md(&bench_dir, STAGE_EXTRACT_UMIS.as_str(), &tools, &[], None)?;
-        write_explain_plan_json(&bench_dir, STAGE_EXTRACT_UMIS.as_str(), &tools, &registry, None)?;
+        write_explain_md(&setup.bench_dir, STAGE_EXTRACT_UMIS.as_str(), &setup.tools, &[], None)?;
+        write_explain_plan_json(
+            &setup.bench_dir,
+            STAGE_EXTRACT_UMIS.as_str(),
+            &setup.tools,
+            &setup.registry,
+            None,
+        )?;
     }
 
-    ensure_bench_runner(platform, runner_override)?;
-    ensure_image_qa_passed(STAGE_EXTRACT_UMIS.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_EXTRACT_UMIS.as_str(), &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_EXTRACT_UMIS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_EXTRACT_UMIS.as_str(), &setup.tools, platform, catalog)?;
 
     ensure_umi_headers(&args.r1, Some(r2))?;
 
-    let sqlite_path = bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
-    let input_stats_r1 = observe_fastq_stats(catalog, platform, platform.runner, &args.r1)?;
-    let input_stats_r2 = observe_fastq_stats(catalog, platform, platform.runner, r2)?;
     let mut records = Vec::<BenchmarkRecord<FastqUmiMetrics>>::new();
-    for tool in &tools {
-        let out_dir = tools_root.join(tool);
+    for tool in &setup.tools {
+        let out_dir = setup.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec(
             STAGE_EXTRACT_UMIS.as_str(),
             tool,
-            &registry,
+            &setup.registry,
             catalog,
             platform,
         )?;
@@ -121,9 +111,9 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             tool,
             &tool_spec.tool_version,
             &image_digest,
-            &platform.runner.to_string(),
+            &setup.runner.to_string(),
             &platform.name,
-            &input_hash,
+            &setup.input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -131,7 +121,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
         }
         let execution = execute_plans_with_jobs(
             vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
-            platform.runner,
+            setup.runner,
             jobs,
         )?
         .into_iter()
@@ -140,11 +130,11 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
         let record = build_umi_record(
             catalog,
             platform,
-            &input_hash,
+            &setup.input_hash,
             &args.r1,
             r2,
-            &input_stats_r1,
-            &input_stats_r2,
+            &setup.input_stats_r1,
+            &setup.input_stats_r2,
             tool,
             &tool_spec,
             &plan.params,
@@ -165,7 +155,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+    Ok(BenchOutcome { records, failures, bench_dir: setup.bench_dir, explain: args.explain })
 }
 
 fn select_umi_benchmark_tools(
@@ -177,6 +167,54 @@ fn select_umi_benchmark_tools(
     let header = inspect_headers(&args.r1, Some(r2), false)?;
     log_header_warnings(STAGE_EXTRACT_UMIS.as_str(), &header);
     Ok(tools)
+}
+
+struct UmiBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    bench_dir: std::path::PathBuf,
+    tools_root: std::path::PathBuf,
+    input_hash: String,
+    runner: RuntimeKind,
+    input_stats_r1: SeqkitMetrics,
+    input_stats_r2: SeqkitMetrics,
+}
+
+fn prepare_umi_benchmark_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqUmiArgs,
+    tools: &[String],
+) -> Result<UmiBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role(STAGE_EXTRACT_UMIS.as_str(), tools, &registry, false)?;
+    let runner = ensure_bench_runner(platform, runner_override)?;
+    let bench_dir_name = bench_dir_name(&STAGE_EXTRACT_UMIS)
+        .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_EXTRACT_UMIS.as_str()))?;
+    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
+    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
+    bijux_dna_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
+    bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
+    let r2 = args.r2.as_path();
+    let input_hash = format!(
+        "{}+{}",
+        hash_file_sha256(&args.r1).context("hash umi input r1")?,
+        hash_file_sha256(r2).context("hash umi input r2")?
+    );
+    let input_stats_r1 = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
+    let input_stats_r2 = observe_fastq_stats(catalog, platform, runner, r2)?;
+    Ok(UmiBenchmarkSetup {
+        registry,
+        tools,
+        bench_dir,
+        tools_root,
+        input_hash,
+        runner,
+        input_stats_r1,
+        input_stats_r2,
+    })
 }
 
 #[allow(clippy::too_many_arguments)]
