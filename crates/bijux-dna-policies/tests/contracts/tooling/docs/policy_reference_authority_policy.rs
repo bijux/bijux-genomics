@@ -82,3 +82,19 @@ fn policy__contracts__policy_reference_authority_policy__example_runner_contract
         "docs/50-reference/EXAMPLE_RUNNER_CONTRACT.md must link the governed example-runner authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__example_failure_triage_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "EXAMPLE_RUNNER_CONTRACT.md".to_string(),
+        "../../examples/POLICY.md".to_string(),
+        "../../crates/bijux-dna-dev/docs/COMMANDS.md".to_string(),
+        "../30-operations/TEST_FAILURE_TRIAGE.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/EXAMPLE_FAILURE_TRIAGE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/EXAMPLE_FAILURE_TRIAGE.md must link the governed example-triage authorities exactly"
+    );
+}
