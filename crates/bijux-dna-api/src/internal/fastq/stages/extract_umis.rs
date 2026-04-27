@@ -160,6 +160,10 @@ struct UmiToolPlan {
     image_digest: String,
 }
 
+struct UmiToolExecution {
+    result: StageResultV1,
+}
+
 struct UmiCacheIdentity {
     tool: String,
     tool_version: String,
@@ -200,7 +204,7 @@ struct UmiRecordInputs<'a, S: ::std::hash::BuildHasher> {
     tool_spec: &'a ToolExecutionSpecV1,
     params: &'a serde_json::Value,
     out_dir: &'a std::path::Path,
-    execution: &'a StageResultV1,
+    execution: &'a UmiToolExecution,
 }
 
 struct UmiReportInputs<'a> {
@@ -256,23 +260,24 @@ fn execute_umi_tool(
     tool_plan: &UmiToolPlan,
     runner: RuntimeKind,
     jobs: usize,
-) -> Result<StageResultV1> {
-    execute_plans_with_jobs(
+) -> Result<UmiToolExecution> {
+    let result = execute_plans_with_jobs(
         vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
         runner,
         jobs,
     )?
     .into_iter()
     .next()
-    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))
+    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
+    Ok(UmiToolExecution { result })
 }
 
-fn umi_tool_failure(tool_plan: &UmiToolPlan, execution: &StageResultV1) -> Option<RawFailure> {
-    let exit_code = execution.exit_code;
+fn umi_tool_failure(tool_plan: &UmiToolPlan, execution: &UmiToolExecution) -> Option<RawFailure> {
+    let exit_code = execution.result.exit_code;
     if exit_code == 0 {
         return None;
     }
-    let stderr = execution.stderr.trim();
+    let stderr = execution.result.stderr.trim();
     let reason = if stderr.is_empty() {
         format!("tool {} failed with status {exit_code}", tool_plan.tool)
     } else {
@@ -284,6 +289,14 @@ fn umi_tool_failure(tool_plan: &UmiToolPlan, execution: &StageResultV1) -> Optio
         reason,
         category: ErrorCategory::ToolError,
     })
+}
+
+fn umi_execution_metrics(execution: &UmiToolExecution) -> ExecutionMetrics {
+    ExecutionMetrics {
+        runtime_s: execution.result.runtime_s,
+        memory_mb: execution.result.memory_mb,
+        exit_code: execution.result.exit_code,
+    }
 }
 
 fn prepare_umi_benchmark_setup<S: ::std::hash::BuildHasher>(
@@ -350,12 +363,12 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
 ) -> Result<BenchmarkRecord<FastqUmiMetrics>> {
     let output_r1 = inputs.out_dir.join("umi_tools.r1.fastq.gz");
     let output_r2 = inputs.out_dir.join("umi_tools.r2.fastq.gz");
-    let output_stats_r1 = if inputs.execution.exit_code == 0 && output_r1.exists() {
+    let output_stats_r1 = if inputs.execution.result.exit_code == 0 && output_r1.exists() {
         observe_fastq_stats(inputs.catalog, inputs.platform, inputs.platform.runner, &output_r1)?
     } else {
         *inputs.input_stats_r1
     };
-    let output_stats_r2 = if inputs.execution.exit_code == 0 && output_r2.exists() {
+    let output_stats_r2 = if inputs.execution.result.exit_code == 0 && output_r2.exists() {
         observe_fastq_stats(inputs.catalog, inputs.platform, inputs.platform.runner, &output_r2)?
     } else {
         *inputs.input_stats_r2
@@ -372,7 +385,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
         input_stats_r2: inputs.input_stats_r2,
         output_stats_r1: &output_stats_r1,
         output_stats_r2: &output_stats_r2,
-        execution: inputs.execution,
+        execution: &inputs.execution.result,
     });
     let metrics = umi_metrics_from_report(&report);
     let metric_set = metric_set(metrics.clone());
@@ -392,11 +405,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     );
     let record = BenchmarkRecord {
         context,
-        execution: ExecutionMetrics {
-            runtime_s: inputs.execution.runtime_s,
-            memory_mb: inputs.execution.memory_mb,
-            exit_code: inputs.execution.exit_code,
-        },
+        execution: umi_execution_metrics(inputs.execution),
         metrics: metric_set,
     };
     record.validate()?;
