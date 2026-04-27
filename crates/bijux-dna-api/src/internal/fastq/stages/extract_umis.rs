@@ -98,6 +98,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
         let record = build_umi_record(&UmiRecordInputs {
             catalog,
             platform,
+            runner: setup.runner,
             input_hash: &setup.input_hash,
             r1: &args.r1,
             r2,
@@ -205,6 +206,7 @@ struct UmiArtifacts {
 struct UmiRecordInputs<'a, S: ::std::hash::BuildHasher> {
     catalog: &'a HashMap<String, ToolImageSpec, S>,
     platform: &'a PlatformSpec,
+    runner: RuntimeKind,
     input_hash: &'a str,
     r1: &'a std::path::Path,
     r2: &'a std::path::Path,
@@ -406,23 +408,13 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     let artifacts = prepare_umi_artifacts(inputs.plan)?;
     let output_stats_r1 = if inputs.execution.result.exit_code == 0 && artifacts.output_r1.exists()
     {
-        observe_fastq_stats(
-            inputs.catalog,
-            inputs.platform,
-            inputs.platform.runner,
-            &artifacts.output_r1,
-        )?
+        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, &artifacts.output_r1)?
     } else {
         *inputs.input_stats_r1
     };
     let output_stats_r2 = if inputs.execution.result.exit_code == 0 && artifacts.output_r2.exists()
     {
-        observe_fastq_stats(
-            inputs.catalog,
-            inputs.platform,
-            inputs.platform.runner,
-            &artifacts.output_r2,
-        )?
+        observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, &artifacts.output_r2)?
     } else {
         *inputs.input_stats_r2
     };
@@ -455,7 +447,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
         inputs.tool,
         inputs.tool_spec.tool_version.clone(),
         benchmark_image_identity(inputs.tool_spec),
-        inputs.platform.runner,
+        inputs.runner,
         inputs.platform,
         inputs.input_hash.to_string(),
         inputs.params.clone(),
