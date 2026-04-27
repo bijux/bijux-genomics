@@ -90,14 +90,11 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             records.push(record);
             continue;
         }
-        let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
-            setup.runner,
-            jobs,
-        )?
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+        let execution = execute_umi_tool(&tool_plan, setup.runner, jobs)?;
+        if let Some(failure) = umi_tool_failure(&tool_plan, execution.exit_code) {
+            failures.push(failure);
+            continue;
+        }
         let record = build_umi_record(
             catalog,
             platform,
@@ -114,15 +111,6 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_umi_v1(&conn, &record).context("insert bench sqlite")?;
-        if execution.exit_code != 0 {
-            let tool_name = tool.clone();
-            failures.push(RawFailure {
-                stage: STAGE_EXTRACT_UMIS.as_str().to_string(),
-                tool: tool_plan.tool.clone(),
-                reason: format!("tool {tool_name} failed with status {}", execution.exit_code),
-                category: ErrorCategory::ToolError,
-            });
-        }
         records.push(record);
     }
 
@@ -191,6 +179,33 @@ fn prepare_umi_tool_plan<S: ::std::hash::BuildHasher>(
     let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
     let image_digest = benchmark_image_identity(&tool_spec);
     Ok(UmiToolPlan { tool: tool.to_string(), tool_spec, plan, params_hash, image_digest })
+}
+
+fn execute_umi_tool(
+    tool_plan: &UmiToolPlan,
+    runner: RuntimeKind,
+    jobs: usize,
+) -> Result<StageResultV1> {
+    execute_plans_with_jobs(
+        vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
+        runner,
+        jobs,
+    )?
+    .into_iter()
+    .next()
+    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))
+}
+
+fn umi_tool_failure(tool_plan: &UmiToolPlan, exit_code: i32) -> Option<RawFailure> {
+    if exit_code == 0 {
+        return None;
+    }
+    Some(RawFailure {
+        stage: STAGE_EXTRACT_UMIS.as_str().to_string(),
+        tool: tool_plan.tool.clone(),
+        reason: format!("tool {} failed with status {exit_code}", tool_plan.tool),
+        category: ErrorCategory::ToolError,
+    })
 }
 
 fn prepare_umi_benchmark_setup<S: ::std::hash::BuildHasher>(
