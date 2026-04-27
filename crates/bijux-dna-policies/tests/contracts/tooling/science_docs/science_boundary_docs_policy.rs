@@ -99,3 +99,19 @@ fn policy__contracts__science_boundary_docs_policy__container_science_boundary_l
         "containers/docs/SCIENCE_EVIDENCE_BOUNDARY.md must link the governed science and container review surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_license_readme_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "../docs/VERSION_AUTHORITY.md".to_string(),
+        "../docs/SCIENCE_EVIDENCE_BOUNDARY.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/licenses/README.md");
+    assert_eq!(
+        expected, documented,
+        "containers/licenses/README.md must link the governed container license-review surfaces exactly"
+    );
+}
