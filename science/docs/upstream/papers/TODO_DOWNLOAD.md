@@ -3,6 +3,11 @@
 This file is the operator-facing worklist for local paper payloads under
 `science/docs/upstream/papers/`.
 
+Use [README.md](README.md) for the durable paper-root contract and
+[../../generated/current/evidence/README.md](../../generated/current/evidence/README.md)
+when this backlog needs the wider generated evidence inventory around the FASTQ
+paper matrix.
+
 ## Purpose
 
 - reserve durable local roots for FASTQ tool publications and software-citation packets
