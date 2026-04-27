@@ -154,6 +154,8 @@ mod mod_contracts_tooling_science_docs_bam_science_docs_policy_rs;
 mod mod_contracts_tooling_science_docs_science_archive_docs_policy_rs;
 #[path = "contracts/tooling/science_docs/science_authored_specs_policy.rs"]
 mod mod_contracts_tooling_science_docs_science_authored_specs_policy_rs;
+#[path = "contracts/tooling/science_docs/science_boundary_docs_policy.rs"]
+mod mod_contracts_tooling_science_docs_science_boundary_docs_policy_rs;
 #[path = "contracts/tooling/science_docs/science_evidence_specs_policy.rs"]
 mod mod_contracts_tooling_science_docs_science_evidence_specs_policy_rs;
 #[path = "contracts/tooling/science_docs/fastq_science_docs_policy.rs"]

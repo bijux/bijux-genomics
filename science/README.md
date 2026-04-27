@@ -8,6 +8,9 @@
 - compile those authored records into deterministic traceability outputs
 - freeze release bundles without hand-editing generated science state
 
+[science/CONTRACT.md](CONTRACT.md) defines the authored, generated, and
+local-archive boundary for the full science control surface.
+
 ## Authority Split
 
 - [science/specs/data/README.md](specs/data/README.md) is the authored data-plane surface
