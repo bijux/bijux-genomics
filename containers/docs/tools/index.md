@@ -2,91 +2,96 @@
 <!-- source: cargo run -p bijux-dna-dev -- containers run generate-tool-docs -->
 # Tool Docs Index
 
-- `adapterremoval`: `containers/docs/tools/adapterremoval.md`
-- `addeam`: `containers/docs/tools/addeam.md`
-- `alientrimmer`: `containers/docs/tools/alientrimmer.md`
-- `angsd`: `containers/docs/tools/angsd.md`
-- `atropos`: `containers/docs/tools/atropos.md`
-- `authenticct`: `containers/docs/tools/authenticct.md`
-- `bamtools`: `containers/docs/tools/bamtools.md`
-- `bamutil`: `containers/docs/tools/bamutil.md`
-- `bayeshammer`: `containers/docs/tools/bayeshammer.md`
-- `bbduk`: `containers/docs/tools/bbduk.md`
-- `bbmerge`: `containers/docs/tools/bbmerge.md`
-- `bcftools`: `containers/docs/tools/bcftools.md`
-- `beagle`: `containers/docs/tools/beagle.md`
-- `bedtools`: `containers/docs/tools/bedtools.md`
-- `bowtie2`: `containers/docs/tools/bowtie2.md`
-- `bowtie2_build`: `containers/docs/tools/bowtie2_build.md`
-- `bracken`: `containers/docs/tools/bracken.md`
-- `bwa`: `containers/docs/tools/bwa.md`
-- `centrifuge`: `containers/docs/tools/centrifuge.md`
-- `clumpify`: `containers/docs/tools/clumpify.md`
-- `contammix`: `containers/docs/tools/contammix.md`
-- `cutadapt`: `containers/docs/tools/cutadapt.md`
-- `dada2`: `containers/docs/tools/dada2.md`
-- `damageprofiler`: `containers/docs/tools/damageprofiler.md`
-- `diamond`: `containers/docs/tools/diamond.md`
-- `dustmasker`: `containers/docs/tools/dustmasker.md`
-- `eagle`: `containers/docs/tools/eagle.md`
-- `eigensoft`: `containers/docs/tools/eigensoft.md`
-- `fastp`: `containers/docs/tools/fastp.md`
-- `fastq_scan`: `containers/docs/tools/fastq_scan.md`
-- `fastq_screen`: `containers/docs/tools/fastq_screen.md`
-- `fastqc`: `containers/docs/tools/fastqc.md`
-- `fastqvalidator`: `containers/docs/tools/fastqvalidator.md`
-- `fastuniq`: `containers/docs/tools/fastuniq.md`
-- `fastx_clipper`: `containers/docs/tools/fastx_clipper.md`
-- `flash2`: `containers/docs/tools/flash2.md`
-- `fqtools`: `containers/docs/tools/fqtools.md`
-- `gatk`: `containers/docs/tools/gatk.md`
-- `germline`: `containers/docs/tools/germline.md`
-- `glimpse`: `containers/docs/tools/glimpse.md`
-- `ibdhap`: `containers/docs/tools/ibdhap.md`
-- `ibdne`: `containers/docs/tools/ibdne.md`
-- `ibdseq`: `containers/docs/tools/ibdseq.md`
-- `impute5`: `containers/docs/tools/impute5.md`
-- `kaiju`: `containers/docs/tools/kaiju.md`
-- `king`: `containers/docs/tools/king.md`
-- `kraken2`: `containers/docs/tools/kraken2.md`
-- `krakenuniq`: `containers/docs/tools/krakenuniq.md`
-- `leehom`: `containers/docs/tools/leehom.md`
-- `lighter`: `containers/docs/tools/lighter.md`
-- `mapdamage2`: `containers/docs/tools/mapdamage2.md`
-- `metaphlan`: `containers/docs/tools/metaphlan.md`
-- `minimac4`: `containers/docs/tools/minimac4.md`
-- `mosdepth`: `containers/docs/tools/mosdepth.md`
-- `multiqc`: `containers/docs/tools/multiqc.md`
-- `musket`: `containers/docs/tools/musket.md`
-- `ngsbriggs`: `containers/docs/tools/ngsbriggs.md`
-- `pear`: `containers/docs/tools/pear.md`
-- `picard`: `containers/docs/tools/picard.md`
-- `plink`: `containers/docs/tools/plink.md`
-- `plink2`: `containers/docs/tools/plink2.md`
-- `pmdtools`: `containers/docs/tools/pmdtools.md`
-- `preseq`: `containers/docs/tools/preseq.md`
-- `prinseq`: `containers/docs/tools/prinseq.md`
-- `pydamage`: `containers/docs/tools/pydamage.md`
-- `qualimap`: `containers/docs/tools/qualimap.md`
-- `rcorrector`: `containers/docs/tools/rcorrector.md`
-- `rxy`: `containers/docs/tools/rxy.md`
-- `samtools`: `containers/docs/tools/samtools.md`
-- `schmutzi`: `containers/docs/tools/schmutzi.md`
-- `seqfu`: `containers/docs/tools/seqfu.md`
-- `seqkit`: `containers/docs/tools/seqkit.md`
-- `seqkit_stats`: `containers/docs/tools/seqkit_stats.md`
-- `seqprep`: `containers/docs/tools/seqprep.md`
-- `seqpurge`: `containers/docs/tools/seqpurge.md`
-- `seqtk`: `containers/docs/tools/seqtk.md`
-- `shapeit`: `containers/docs/tools/shapeit.md`
-- `shapeit5`: `containers/docs/tools/shapeit5.md`
-- `skewer`: `containers/docs/tools/skewer.md`
-- `sortmerna`: `containers/docs/tools/sortmerna.md`
-- `spades`: `containers/docs/tools/spades.md`
-- `star`: `containers/docs/tools/star.md`
-- `trim_galore`: `containers/docs/tools/trim_galore.md`
-- `trimmomatic`: `containers/docs/tools/trimmomatic.md`
-- `umi_tools`: `containers/docs/tools/umi_tools.md`
-- `verifybamid2`: `containers/docs/tools/verifybamid2.md`
-- `vsearch`: `containers/docs/tools/vsearch.md`
-- `yleaf`: `containers/docs/tools/yleaf.md`
+- Root contract: [containers/README.md](../../README.md)
+- Container docs index: [containers/docs/index.md](../index.md)
+- Tool name map: [containers/docs/TOOL_NAME_MAP.md](../TOOL_NAME_MAP.md)
+- Tool ID manifest: [containers/TOOL_IDS.txt](../../TOOL_IDS.txt)
+
+- [adapterremoval](adapterremoval.md)
+- [addeam](addeam.md)
+- [alientrimmer](alientrimmer.md)
+- [angsd](angsd.md)
+- [atropos](atropos.md)
+- [authenticct](authenticct.md)
+- [bamtools](bamtools.md)
+- [bamutil](bamutil.md)
+- [bayeshammer](bayeshammer.md)
+- [bbduk](bbduk.md)
+- [bbmerge](bbmerge.md)
+- [bcftools](bcftools.md)
+- [beagle](beagle.md)
+- [bedtools](bedtools.md)
+- [bowtie2](bowtie2.md)
+- [bowtie2_build](bowtie2_build.md)
+- [bracken](bracken.md)
+- [bwa](bwa.md)
+- [centrifuge](centrifuge.md)
+- [clumpify](clumpify.md)
+- [contammix](contammix.md)
+- [cutadapt](cutadapt.md)
+- [dada2](dada2.md)
+- [damageprofiler](damageprofiler.md)
+- [diamond](diamond.md)
+- [dustmasker](dustmasker.md)
+- [eagle](eagle.md)
+- [eigensoft](eigensoft.md)
+- [fastp](fastp.md)
+- [fastq_scan](fastq_scan.md)
+- [fastq_screen](fastq_screen.md)
+- [fastqc](fastqc.md)
+- [fastqvalidator](fastqvalidator.md)
+- [fastuniq](fastuniq.md)
+- [fastx_clipper](fastx_clipper.md)
+- [flash2](flash2.md)
+- [fqtools](fqtools.md)
+- [gatk](gatk.md)
+- [germline](germline.md)
+- [glimpse](glimpse.md)
+- [ibdhap](ibdhap.md)
+- [ibdne](ibdne.md)
+- [ibdseq](ibdseq.md)
+- [impute5](impute5.md)
+- [kaiju](kaiju.md)
+- [king](king.md)
+- [kraken2](kraken2.md)
+- [krakenuniq](krakenuniq.md)
+- [leehom](leehom.md)
+- [lighter](lighter.md)
+- [mapdamage2](mapdamage2.md)
+- [metaphlan](metaphlan.md)
+- [minimac4](minimac4.md)
+- [mosdepth](mosdepth.md)
+- [multiqc](multiqc.md)
+- [musket](musket.md)
+- [ngsbriggs](ngsbriggs.md)
+- [pear](pear.md)
+- [picard](picard.md)
+- [plink](plink.md)
+- [plink2](plink2.md)
+- [pmdtools](pmdtools.md)
+- [preseq](preseq.md)
+- [prinseq](prinseq.md)
+- [pydamage](pydamage.md)
+- [qualimap](qualimap.md)
+- [rcorrector](rcorrector.md)
+- [rxy](rxy.md)
+- [samtools](samtools.md)
+- [schmutzi](schmutzi.md)
+- [seqfu](seqfu.md)
+- [seqkit](seqkit.md)
+- [seqkit_stats](seqkit_stats.md)
+- [seqprep](seqprep.md)
+- [seqpurge](seqpurge.md)
+- [seqtk](seqtk.md)
+- [shapeit](shapeit.md)
+- [shapeit5](shapeit5.md)
+- [skewer](skewer.md)
+- [sortmerna](sortmerna.md)
+- [spades](spades.md)
+- [star](star.md)
+- [trim_galore](trim_galore.md)
+- [trimmomatic](trimmomatic.md)
+- [umi_tools](umi_tools.md)
+- [verifybamid2](verifybamid2.md)
+- [vsearch](vsearch.md)
+- [yleaf](yleaf.md)

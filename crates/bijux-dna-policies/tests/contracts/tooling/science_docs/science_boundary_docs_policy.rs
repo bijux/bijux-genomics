@@ -697,3 +697,33 @@ fn policy__contracts__science_boundary_docs_policy__tool_name_map_doc_links_gove
         "containers/docs/TOOL_NAME_MAP.md must link the governed tool-name-map authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__tool_docs_index_links_governed_surfaces_exactly(
+) {
+    let root = support::workspace_root();
+    let mut expected = BTreeSet::from([
+        "../../README.md".to_string(),
+        "../index.md".to_string(),
+        "../TOOL_NAME_MAP.md".to_string(),
+        "../../TOOL_IDS.txt".to_string(),
+    ]);
+    for path in fs::read_dir(root.join("containers/docs/tools"))
+        .unwrap_or_else(|err| panic!("read containers/docs/tools: {err}"))
+        .filter_map(std::result::Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("md"))
+    {
+        let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        if name != "index.md" {
+            expected.insert(name.to_string());
+        }
+    }
+    let documented = markdown_link_targets("containers/docs/tools/index.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/tools/index.md must link the governed tool-doc surfaces exactly"
+    );
+}
