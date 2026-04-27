@@ -539,6 +539,9 @@ fn accumulate_overrepresented_counts(
         if !record[0].starts_with('@') || !record[2].starts_with('+') {
             return Err(anyhow!("invalid FASTQ framing in {}", path.display()));
         }
+        if record[1].len() != record[3].len() {
+            return Err(anyhow!("FASTQ sequence/quality length mismatch in {}", path.display()));
+        }
         *counts.entry(record[1].trim().to_string()).or_insert(0) += 1;
     }
     Ok(())
