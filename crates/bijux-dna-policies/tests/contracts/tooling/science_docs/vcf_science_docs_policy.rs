@@ -275,3 +275,24 @@ fn policy__contracts__vcf_science_docs_policy__tools_roster_matches_supported_ex
         "supported execution stages",
     );
 }
+
+#[test]
+fn policy__contracts__vcf_science_docs_policy__tools_roster_matches_planned_downstream_stages() {
+    assert_vcf_tools_roster_matches(
+        &[
+            "vcf.qc",
+            "vcf.pca",
+            "vcf.admixture",
+            "vcf.population_structure",
+            "vcf.phasing",
+            "vcf.prepare_reference_panel",
+            "vcf.imputation",
+            "vcf.impute",
+            "vcf.postprocess",
+            "vcf.ibd",
+            "vcf.roh",
+            "vcf.demography",
+        ],
+        "planned downstream stages",
+    );
+}
