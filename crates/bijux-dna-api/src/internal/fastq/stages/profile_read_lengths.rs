@@ -99,7 +99,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             metrics: &metric_set.metrics,
             histogram,
             threads: tool_plan.plan.resources.threads,
-            execution: &execution.result,
+            execution: &execution,
         });
         write_read_lengths_artifacts(&tool_plan, &observation, &report, &metric_set)?;
         let record = build_read_lengths_record(
@@ -108,7 +108,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
                 setup: &setup,
                 tool,
                 tool_plan: &tool_plan,
-                execution: &execution.result,
+                execution: &execution,
             },
             metric_set,
         )?;
@@ -203,7 +203,7 @@ struct ReadLengthsReportInputs<'a> {
     metrics: &'a FastqReadLengthMetrics,
     histogram: Vec<ProfileReadLengthBinV1>,
     threads: u32,
-    execution: &'a StageResultV1,
+    execution: &'a ReadLengthsToolExecution,
 }
 
 struct ReadLengthsRecordInputs<'a> {
@@ -211,7 +211,7 @@ struct ReadLengthsRecordInputs<'a> {
     setup: &'a ReadLengthsBenchmarkSetup,
     tool: &'a str,
     tool_plan: &'a ReadLengthsToolPlan,
-    execution: &'a StageResultV1,
+    execution: &'a ReadLengthsToolExecution,
 }
 
 fn select_read_lengths_benchmark_tools(
@@ -411,9 +411,9 @@ fn build_read_lengths_report(inputs: ReadLengthsReportInputs<'_>) -> ProfileRead
         max_read_length: inputs.metrics.max_read_length,
         distinct_lengths: inputs.metrics.distinct_lengths,
         histogram: inputs.histogram,
-        runtime_s: Some(inputs.execution.runtime_s),
-        memory_mb: Some(inputs.execution.memory_mb),
-        exit_code: Some(inputs.execution.exit_code),
+        runtime_s: Some(inputs.execution.result.runtime_s),
+        memory_mb: Some(inputs.execution.result.memory_mb),
+        exit_code: Some(inputs.execution.result.exit_code),
         raw_backend_report: Some(inputs.artifacts.length_tsv.display().to_string()),
         raw_backend_report_format: Some("seqkit_fx2tab_tsv".to_string()),
     }
@@ -460,9 +460,9 @@ fn build_read_lengths_record(
             inputs.tool_plan.plan.params.clone(),
         ),
         execution: ExecutionMetrics {
-            runtime_s: inputs.execution.runtime_s,
-            memory_mb: inputs.execution.memory_mb,
-            exit_code: inputs.execution.exit_code,
+            runtime_s: inputs.execution.result.runtime_s,
+            memory_mb: inputs.execution.result.memory_mb,
+            exit_code: inputs.execution.result.exit_code,
         },
         metrics: metric_set,
     };
