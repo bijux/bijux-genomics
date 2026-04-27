@@ -26,14 +26,14 @@ The FASTQ domain is only reviewable when each supported backend can be traced to
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
 | fastqc | `fastq.validate_reads`, `fastq.detect_adapters`, `fastq.profile_overrepresented_sequences` | software citation; no dedicated journal paper | https://www.bioinformatics.babraham.ac.uk/projects/fastqc/ |
-| fastq-scan | `fastq.profile_reads` candidate evidence | software citation; no dedicated journal paper confirmed | https://github.com/rpetit3/fastq-scan |
+| fastq-scan | `fastq.validate_reads`, `fastq.profile_overrepresented_sequences` | software citation; no dedicated journal paper confirmed | https://github.com/rpetit3/fastq-scan |
 | fqtools | `fastq.validate_reads` | paper | https://pmc.ncbi.nlm.nih.gov/articles/PMC4908325/ |
 | seqtk | `fastq.validate_reads` | software citation | https://github.com/lh3/seqtk |
 
 ## Trimming, Filtering, and Complexity
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
-| fastp | `fastq.trim_reads`, `fastq.filter_reads`, `fastq.trim_polyg_tails`, profiling support | paper | https://academic.oup.com/bioinformatics/article/34/17/i884/5093234 |
+| fastp | `fastq.trim_reads`, `fastq.filter_reads`, `fastq.trim_polyg_tails`, `fastq.profile_read_lengths` | paper | https://academic.oup.com/bioinformatics/article/34/17/i884/5093234 |
 | cutadapt | `fastq.trim_reads`, `fastq.trim_terminal_damage`, `fastq.normalize_primers` | paper | https://journal.embnet.org/index.php/embnetjournal/article/view/200 |
 | atropos | `fastq.trim_reads` | paper | https://pmc.ncbi.nlm.nih.gov/articles/PMC5581536/ |
 | adapterremoval | `fastq.trim_reads` | paper | https://pmc.ncbi.nlm.nih.gov/articles/PMC4751634/ |

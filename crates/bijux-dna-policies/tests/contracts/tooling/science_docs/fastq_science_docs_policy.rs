@@ -39,6 +39,45 @@ fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
     rows
 }
 
+fn markdown_table_rows_all(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
+    let root = support::workspace_root();
+    let raw =
+        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let mut rows = Vec::new();
+    let mut in_table = false;
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(header_prefix) {
+            in_table = true;
+            continue;
+        }
+        if !in_table {
+            continue;
+        }
+        if trimmed.starts_with("|---") {
+            continue;
+        }
+        if trimmed.starts_with('#') {
+            in_table = false;
+            continue;
+        }
+        if trimmed.is_empty() {
+            in_table = false;
+            continue;
+        }
+        if trimmed.starts_with('|') {
+            rows.push(
+                trimmed
+                    .trim_matches('|')
+                    .split('|')
+                    .map(|value| value.trim().to_string())
+                    .collect(),
+            );
+        }
+    }
+    rows
+}
+
 fn tsv_ids(path: &str, id_column: usize) -> BTreeSet<String> {
     let root = support::workspace_root();
     let raw =
@@ -179,6 +218,27 @@ fn fastq_tools_roster_rows() -> BTreeMap<String, BTreeSet<String>> {
                     .collect()
             };
             (stage_id, tools)
+        })
+        .collect()
+}
+
+fn backticked_ids(raw: &str) -> BTreeSet<String> {
+    raw.split('`')
+        .enumerate()
+        .filter_map(|(index, chunk)| (index % 2 == 1).then_some(chunk.trim().to_string()))
+        .filter(|value| !value.is_empty())
+        .collect()
+}
+
+fn fastq_reference_stage_rows() -> BTreeMap<String, BTreeSet<String>> {
+    markdown_table_rows_all("docs/20-science/fastq/REFERENCES.md", "| Tool | Applies to |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 2,
+                "FASTQ reference rows must expose at least tool and applies-to columns"
+            );
+            (row[0].to_string(), backticked_ids(&row[1]))
         })
         .collect()
 }
@@ -384,6 +444,48 @@ fn policy__contracts__fastq_science_docs_policy__tools_roster_matches_reporting_
     assert!(
         offenders.is_empty(),
         "FASTQ tools roster drift for reporting/inference stages:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__fastq_science_docs_policy__references_cover_qc_stage_sets_exactly() {
+    let references = fastq_reference_stage_rows();
+    let expected = BTreeMap::from([
+        (
+            "fastq-scan".to_string(),
+            BTreeSet::from([
+                "fastq.profile_overrepresented_sequences".to_string(),
+                "fastq.validate_reads".to_string(),
+            ]),
+        ),
+        (
+            "fastp".to_string(),
+            BTreeSet::from([
+                "fastq.filter_reads".to_string(),
+                "fastq.profile_read_lengths".to_string(),
+                "fastq.trim_polyg_tails".to_string(),
+                "fastq.trim_reads".to_string(),
+            ]),
+        ),
+    ]);
+    let mut offenders = Vec::new();
+
+    for (tool_id, expected_stages) in expected {
+        let documented_stages = references
+            .get(&tool_id)
+            .unwrap_or_else(|| panic!("missing FASTQ reference row for {tool_id}"));
+        if documented_stages != &expected_stages {
+            offenders.push(format!(
+                "{tool_id}: expected {:?}, found {:?}",
+                expected_stages, documented_stages
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "FASTQ reference applicability drift for QC rows:\n{}",
         offenders.join("\n")
     );
 }
