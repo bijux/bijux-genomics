@@ -7,7 +7,11 @@ fn vcf_output_kinds(stage: &DomainStage) -> Vec<String> {
     kinds
 }
 
-fn vcf_stage_default_tools(index: &DomainIndex, stage: &DomainStage, tools: &[String]) -> Vec<String> {
+fn vcf_stage_default_tools(
+    index: &DomainIndex,
+    stage: &DomainStage,
+    tools: &[String],
+) -> Vec<String> {
     index
         .active_defaults
         .get(&stage.stage_id)
@@ -29,7 +33,12 @@ fn vcf_apptainer_def(tool: &DomainToolLoose) -> String {
     }
     if let Some(container) = tool.container.as_ref() {
         let image = container.image.trim();
-        if image.ends_with(".def") && Path::new(image).exists() {
+        if Path::new(image)
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("def"))
+            && Path::new(image).exists()
+        {
             return image.to_string();
         }
     }
@@ -108,11 +117,7 @@ pub(super) fn write_vcf_generated_views(
             toml_array(&required_tool_roles_for_stage(&stage.stage_id))
         );
         let _ = writeln!(registry_stage_toml, "primary_tools = {}", toml_array(&primary));
-        let _ = writeln!(
-            registry_stage_toml,
-            "optional_alternatives = {}",
-            toml_array(&optional)
-        );
+        let _ = writeln!(registry_stage_toml, "optional_alternatives = {}", toml_array(&optional));
         registry_stage_toml.push_str("validation_tools = []\n");
         registry_stage_toml.push_str("reporting_tools = []\n");
         let _ = writeln!(
