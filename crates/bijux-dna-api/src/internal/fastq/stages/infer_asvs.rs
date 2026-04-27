@@ -269,6 +269,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             serde_json::from_value(plan.effective_params.clone())
                 .context("parse infer_asvs effective params")?;
         let used_fallback = infer_asvs_used_fallback(&payload)?;
+        let backend_metrics = infer_asvs_backend_metrics(payload);
         let report = canonical_infer_asvs_report(InferAsvsReportInputs {
             tool_id: tool,
             input_r1: &args.r1,
@@ -285,7 +286,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             memory_mb: Some(execution.memory_mb),
             exit_code: Some(execution.exit_code),
             used_fallback,
-            backend_metrics: Some(payload),
+            backend_metrics: Some(backend_metrics),
         });
         validate_infer_asvs_report_identity(tool, &report)?;
         validate_infer_asvs_report_metrics(&report, &metric_set.metrics)?;
@@ -369,6 +370,12 @@ fn infer_asvs_used_fallback(payload: &serde_json::Value) -> Result<bool> {
         .get("used_fallback")
         .and_then(serde_json::Value::as_bool)
         .ok_or_else(|| anyhow!("infer_asvs payload missing boolean used_fallback"))
+}
+
+fn infer_asvs_backend_metrics(payload: serde_json::Value) -> serde_json::Value {
+    serde_json::json!({
+        "tool_payload": payload,
+    })
 }
 
 fn validate_infer_asvs_report_identity(tool: &str, report: &InferAsvsReportV1) -> Result<()> {
