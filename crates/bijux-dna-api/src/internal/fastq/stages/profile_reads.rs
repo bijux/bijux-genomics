@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
 use crate::support::benchmark_runtime::ensure_bench_runner;
 use crate::support::workspace::load_workspace_registry;
@@ -14,12 +15,10 @@ use bijux_dna_analyze::{
 use bijux_dna_core::metrics::MetricContextV1;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
-use bijux_dna_core::prelude::params_hash;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_runtime::{RunProvenanceV1, StageObservabilityContextV1};
-use uuid::Uuid;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use bijux_dna_core::contract::validate_execution_outputs;
@@ -230,7 +229,7 @@ fn prepare_stats_tool_plan<S: ::std::hash::BuildHasher>(
         &tool_dir,
         args.threads,
     )?;
-    let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let params_hash = stable_params_hash(&plan.params);
     let image_digest = benchmark_image_identity(&tool_spec);
     Ok(StatsToolPlan { tool: tool.to_string(), tool_spec, plan, params_hash, image_digest })
 }
