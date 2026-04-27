@@ -76,20 +76,22 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
         .collect();
     let excluded: Vec<String> =
         all_tools.into_iter().filter(|tool| !selected.contains(tool)).collect();
-    write_explain_md(
-        &setup.bench_inputs.bench_dir,
-        STAGE_PROFILE_READS.as_str(),
-        &selected,
-        &excluded,
-        None,
-    )?;
-    write_explain_plan_json(
-        &setup.bench_inputs.bench_dir,
-        STAGE_PROFILE_READS.as_str(),
-        &selected,
-        &setup.registry,
-        None,
-    )?;
+    if args.explain {
+        write_explain_md(
+            &setup.bench_inputs.bench_dir,
+            STAGE_PROFILE_READS.as_str(),
+            &selected,
+            &excluded,
+            None,
+        )?;
+        write_explain_plan_json(
+            &setup.bench_inputs.bench_dir,
+            STAGE_PROFILE_READS.as_str(),
+            &selected,
+            &setup.registry,
+            None,
+        )?;
+    }
     ensure_image_qa_passed(STAGE_PROFILE_READS.as_str(), &setup.tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_PROFILE_READS.as_str(), &setup.tools, platform, catalog)?;
 
