@@ -234,3 +234,29 @@ fn policy__contracts__science_authored_specs_policy__science_root_links_fastq_op
         "science/README.md must link the FASTQ operator surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_authored_specs_policy__science_root_links_local_archive_boundaries_exactly(
+) {
+    let expected = BTreeSet::from([
+        "specs/evidence/README.md".to_string(),
+        "docs/README.md".to_string(),
+        "docs/TODO_DOWNLOAD.md".to_string(),
+        "docs/upstream/README.md".to_string(),
+        "generated/indexes/science_index.json".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/README.md")
+        .into_iter()
+        .filter(|target| {
+            target == "specs/evidence/README.md"
+                || target == "docs/README.md"
+                || target == "docs/TODO_DOWNLOAD.md"
+                || target == "docs/upstream/README.md"
+                || target == "generated/indexes/science_index.json"
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "science/README.md must link the local archive boundaries exactly"
+    );
+}
