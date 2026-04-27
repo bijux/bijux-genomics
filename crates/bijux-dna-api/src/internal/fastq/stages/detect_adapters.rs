@@ -337,11 +337,7 @@ fn build_detect_record(
     let context = build_detect_adapters_context(inputs);
     let record = BenchmarkRecord {
         context,
-        execution: ExecutionMetrics {
-            runtime_s: inputs.execution.result.runtime_s,
-            memory_mb: inputs.execution.result.memory_mb,
-            exit_code: inputs.execution.result.exit_code,
-        },
+        execution: detect_adapters_execution_metrics(inputs.execution),
         metrics: metric_set,
     };
     record.validate()?;
@@ -389,6 +385,14 @@ fn build_detect_adapters_context(
         inputs.input_hash.to_string(),
         inputs.tool_plan.plan.params.clone(),
     )
+}
+
+fn detect_adapters_execution_metrics(execution: &DetectAdaptersToolExecution) -> ExecutionMetrics {
+    ExecutionMetrics {
+        runtime_s: execution.result.runtime_s,
+        memory_mb: execution.result.memory_mb,
+        exit_code: execution.result.exit_code,
+    }
 }
 
 fn build_detect_report(
