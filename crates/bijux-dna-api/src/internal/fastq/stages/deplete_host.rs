@@ -132,6 +132,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
             execution: &execution,
         })?;
         validate_host_report_identity(&tool_plan.tool, &report)?;
+        validate_host_report_execution(&report, &execution)?;
         write_deplete_host_report(&report)?;
         let metrics = deplete_host_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -467,6 +468,36 @@ fn validate_host_report_identity(tool: &str, report: &DepleteHostReportV1) -> Re
             "host depletion report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_host_report_execution(
+    report: &DepleteHostReportV1,
+    execution: &StageResultV1,
+) -> Result<()> {
+    if report.runtime_s.is_none_or(|observed| (observed - execution.runtime_s).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "host depletion report runtime mismatch: expected {}, observed {:?}",
+            execution.runtime_s,
+            report.runtime_s
+        ));
+    }
+    if report.memory_mb.is_none_or(|observed| (observed - execution.memory_mb).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "host depletion report memory mismatch: expected {}, observed {:?}",
+            execution.memory_mb,
+            report.memory_mb
+        ));
+    }
+    if report.exit_code != Some(execution.exit_code) {
+        return Err(anyhow!(
+            "host depletion report exit code mismatch: expected {}, observed {:?}",
+            execution.exit_code,
+            report.exit_code
         ));
     }
     Ok(())
