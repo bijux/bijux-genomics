@@ -102,43 +102,27 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
 
     let runner = setup.bench_inputs.runner.to_string();
     let platform_name = platform.name.clone();
-    for tool in setup.tools {
-        let tool_spec = build_tool_execution_spec(
-            STAGE_PROFILE_READS.as_str(),
-            &tool,
-            &setup.registry,
-            catalog,
-            platform,
-        )?;
-        let tool_dir = setup.bench_inputs.tools_root.join(&tool);
-        let plan = plan_stats_with_threads(
-            &tool_spec,
-            &setup.bench_inputs.r1,
-            setup.bench_inputs.r2.as_deref(),
-            &tool_dir,
-            args.threads,
-        )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = benchmark_image_identity(&tool_spec);
+    for tool in &setup.tools {
+        let tool_plan = prepare_stats_tool_plan(catalog, platform, args, &setup, &tool)?;
         let cached = fetch_fastq_stats_v1(
             &conn,
-            &tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &runner,
             &platform_name,
             &setup.bench_inputs.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         );
         if let Ok(Some(record)) = cached {
             records.push(record);
             continue;
         }
-        match run_stats_tool(catalog, platform, args, &setup.bench_inputs, &tool) {
+        match run_stats_tool(platform, args, &setup.bench_inputs, &tool_plan) {
             Ok(record) => new_records.push(record),
             Err(err) => failures.push(RawFailure {
                 stage: STAGE_PROFILE_READS.as_str().to_string(),
-                tool: tool.clone(),
+                tool: tool_plan.tool.clone(),
                 reason: err.to_string(),
                 category: ErrorCategory::ToolError,
             }),
@@ -206,6 +190,41 @@ impl StatsBenchmarkStore {
             jsonl_path: bench_inputs.bench_dir.join("bench.jsonl"),
         }
     }
+}
+
+struct StatsToolPlan {
+    tool: String,
+    tool_spec: bijux_dna_core::prelude::ToolExecutionSpecV1,
+    plan: bijux_dna_stage_contract::StagePlanV1,
+    params_hash: String,
+    image_digest: String,
+}
+
+fn prepare_stats_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqStatsArgs,
+    setup: &StatsBenchmarkSetup,
+    tool: &str,
+) -> Result<StatsToolPlan> {
+    let tool_spec = build_tool_execution_spec(
+        STAGE_PROFILE_READS.as_str(),
+        tool,
+        &setup.registry,
+        catalog,
+        platform,
+    )?;
+    let tool_dir = setup.bench_inputs.tools_root.join(tool);
+    let plan = plan_stats_with_threads(
+        &tool_spec,
+        &setup.bench_inputs.r1,
+        setup.bench_inputs.r2.as_deref(),
+        &tool_dir,
+        args.threads,
+    )?;
+    let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let image_digest = benchmark_image_identity(&tool_spec);
+    Ok(StatsToolPlan { tool: tool.to_string(), tool_spec, plan, params_hash, image_digest })
 }
 
 fn prepare_stats_benchmark_setup<S: ::std::hash::BuildHasher>(
@@ -330,37 +349,19 @@ fn prepare_stats_bench<S: ::std::hash::BuildHasher>(
     })
 }
 
-#[allow(clippy::too_many_lines)]
-fn run_stats_tool<S: ::std::hash::BuildHasher>(
-    catalog: &HashMap<String, ToolImageSpec, S>,
+fn run_stats_tool(
     platform: &PlatformSpec,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqStatsArgs,
     bench_inputs: &StatsBenchInputs,
-    tool: &str,
+    tool_plan: &StatsToolPlan,
 ) -> Result<BenchmarkRecord<FastqStatsMetrics>> {
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tool_spec = build_tool_execution_spec(
-        STAGE_PROFILE_READS.as_str(),
-        tool,
-        &registry,
-        catalog,
-        platform,
-    )?;
-
+    let tool = &tool_plan.tool;
     println!("→ stats {tool}");
-    let tool_dir = bench_inputs.tools_root.join(tool);
-    let plan = plan_stats_with_threads(
-        &tool_spec,
-        &bench_inputs.r1,
-        bench_inputs.r2.as_deref(),
-        &tool_dir,
-        args.threads,
-    )?;
-    let plan_json = StagePlanJson::from_plan(&plan);
+    let plan = &tool_plan.plan;
+    let plan_json = StagePlanJson::from_plan(plan);
     let params = plan.params.clone();
-    let param_hash = params_hash(&params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-    let image_digest = benchmark_image_identity(&tool_spec);
+    let param_hash = tool_plan.params_hash.clone();
+    let image_digest = tool_plan.image_digest.clone();
     let run_id = compute_run_id(
         STAGE_PROFILE_READS.as_str(),
         tool,
@@ -371,7 +372,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
-    let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
+    let step = bijux_dna_stage_contract::execution_step_from_stage_plan(plan);
     let execution =
         execute_plans_with_jobs(vec![step.clone()], bench_inputs.runner, bench_jobs(args.jobs))?
             .into_iter()
@@ -391,7 +392,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         &length_histogram,
         &execution_metrics_from_stage_result(&execution),
     )?;
-    let report = std::fs::read_to_string(required_plan_output_path(&plan, "qc_json")?)
+    let report = std::fs::read_to_string(required_plan_output_path(plan, "qc_json")?)
         .ok()
         .and_then(|raw| bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw).ok())
         .ok_or_else(|| anyhow!("profile_reads governed report was not materialized"))?;
@@ -421,7 +422,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         run_id: run_id.clone(),
         stage: STAGE_PROFILE_READS.as_str().to_string(),
         tool: tool.to_string(),
-        tool_version: tool_spec.tool_version.clone(),
+        tool_version: tool_plan.tool_spec.tool_version.clone(),
         image_digest: image_digest.clone(),
         command: execution.command.clone(),
         input_hashes: vec![bench_inputs.input_hash.clone()],
@@ -436,7 +437,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     write_execution_logs(&run_dirs.logs_dir, &execution.stdout, &execution.stderr)?;
     let context = BenchmarkContext {
         tool: tool.to_string(),
-        tool_version: tool_spec.tool_version.clone(),
+        tool_version: tool_plan.tool_spec.tool_version.clone(),
         image_digest: image_digest.clone(),
         runner: bench_inputs.runner.to_string(),
         platform: platform.name.clone(),
@@ -451,14 +452,14 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
         stage_id: STAGE_PROFILE_READS.as_str().to_string(),
         stage_version: plan.stage_version.0,
         tool_id: tool.to_string(),
-        tool_version: tool_spec.tool_version.clone(),
+        tool_version: tool_plan.tool_spec.tool_version.clone(),
         input_fingerprint: bench_inputs.input_hash.clone(),
         parameters_fingerprint: param_hash.clone(),
         parameters_json: params.clone(),
         parameters_json_normalized,
         metric_context: MetricContextV1 {
             tool_id: tool.to_string(),
-            tool_version: tool_spec.tool_version.clone(),
+            tool_version: tool_plan.tool_spec.tool_version.clone(),
             image_digest: Some(image_digest.clone()),
             runner: bench_inputs.runner.to_string(),
             platform: platform.name.clone(),
@@ -480,7 +481,7 @@ fn run_stats_tool<S: ::std::hash::BuildHasher>(
     let run_provenance = RunProvenanceV1 {
         schema_version: "bijux.run_provenance.v1".to_string(),
         tool_image_digest: Some(image_digest.clone()),
-        tool_version: tool_spec.tool_version.clone(),
+        tool_version: tool_plan.tool_spec.tool_version.clone(),
         params_hash: param_hash.clone(),
         input_hashes: vec![bench_inputs.input_hash.clone()],
         reference_genome: None,
