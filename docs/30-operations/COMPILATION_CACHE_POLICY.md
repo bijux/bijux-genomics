@@ -1,42 +1,36 @@
 # Compilation Cache Policy
 
-Scope: local developer throughput only.
+## Purpose
+Define the local compilation-cache contract without making CI correctness depend on cache state.
 
-Rules:
+## Scope
+Applies to developer-oriented Rust build reuse, shared target-root conventions, and optional local
+`sccache` use.
+
+## Non-goals
+- Remote cache integration in CI.
+- Hidden crate-specific compile flags.
+
+## Contracts
 - `sccache` is optional and local-only.
 - CI correctness must not depend on cache presence.
-- Shared dev runs should use isolate target roots (`$ISO_ROOT/target-*`) to avoid IDE contention.
-- Do not add crate-local `RUSTFLAGS` overrides without governance review.
+- Shared or automated dev runs must honor the governed artifact environment in
+  [ISOLATION.md](ISOLATION.md).
+- The local helper surface for cache-aware Rust workflows is
+  [makes/cargo-dev.mk](../../makes/cargo-dev.mk).
+- Crate-local `RUSTFLAGS` overrides require governance review.
 
-Recommended local setup:
+## Recommended Local Setup
 1. Install `sccache`.
 2. Export `RUSTC_WRAPPER=$(command -v sccache)` in your shell profile.
-3. Keep Cargo builds on the shared `artifacts/target` cache for deterministic reuse.
+3. Use shared `artifacts/target` reuse for interactive local builds, and prefer isolate target
+   roots for shared or automated runs.
 
-Diagnostics:
+## Diagnostics
 - `sccache --show-stats`
 - `make -f makes/cargo-dev.mk dev-test`
 
-Non-goals:
-- No remote cache integration in CI.
-- No hidden compile flags per crate.
-
-
-## Purpose
-
-Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
-
-
-## Scope
-
-Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
-
-
-## Non-Goals
-
-Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
-
-
-## Contracts
-
-Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+## Failure modes
+- Treating cache presence as required CI behavior hides correctness regressions.
+- Reusing shared target roots outside the governed artifact environment causes cross-run
+  interference.

@@ -191,6 +191,20 @@ fn policy__contracts__operations_reference_authority_policy__explainability_link
 }
 
 #[test]
+fn policy__contracts__operations_reference_authority_policy__compilation_cache_policy_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "ISOLATION.md".to_string(),
+        "../../makes/cargo-dev.mk".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/COMPILATION_CACHE_POLICY.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/COMPILATION_CACHE_POLICY.md must link the governed compilation-cache authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
