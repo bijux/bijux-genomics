@@ -1388,6 +1388,17 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         "## Non-goals".to_string(),
         "- Replacing full per-tool smoke manifests.".to_string(),
         String::new(),
+        "## Authority Surfaces".to_string(),
+        "- [docs/30-operations/CONTAINERS.md](CONTAINERS.md)".to_string(),
+        "- [docs/30-operations/HPC_FRONTEND_RUNBOOK.md](HPC_FRONTEND_RUNBOOK.md)".to_string(),
+        "- [containers/docs/FRONTEND_BUILD_AUTHORITY.md](../../containers/docs/FRONTEND_BUILD_AUTHORITY.md)"
+            .to_string(),
+        "- [containers/docs/SMOKE_CONTRACT.md](../../containers/docs/SMOKE_CONTRACT.md)"
+            .to_string(),
+        "- [containers/docs/NETWORK_USAGE.md](../../containers/docs/NETWORK_USAGE.md)"
+            .to_string(),
+        "- [containers/docs/PLANNED.md](../../containers/docs/PLANNED.md)".to_string(),
+        String::new(),
         "## Contracts".to_string(),
         "- Tool row exists iff registry runtimes include `apptainer`.".to_string(),
         "- `apptainer_def` and smoke command fields are surfaced for QA checks.".to_string(),
