@@ -355,12 +355,12 @@ fn stage_tool_capability_surfaces_current_infer_asvs_runtime_contract() {
     )
     .expect("FASTQ ASV binding must surface the governed runtime capability row");
 
-    assert!(capability.declared);
-    assert!(capability.plannable);
-    assert!(capability.runnable);
-    assert!(capability.parse_normalized);
-    assert!(!capability.benchmark_normalized);
-    assert!(!capability.comparable);
+    assert!(capability.execution.declared);
+    assert!(capability.execution.plannable);
+    assert!(capability.execution.runnable);
+    assert!(capability.normalization.parse_normalized);
+    assert!(!capability.normalization.benchmark_normalized);
+    assert!(!capability.normalization.comparable);
 }
 
 #[test]
@@ -370,18 +370,18 @@ fn stage_tool_capability_uses_manifest_normalization_modes() {
         &ToolId::from_static("fastqc"),
     )
     .expect("fastqc detect-adapters capability must exist");
-    assert!(detect_adapters.parse_normalized);
-    assert!(detect_adapters.benchmark_normalized);
-    assert!(detect_adapters.comparable);
+    assert!(detect_adapters.normalization.parse_normalized);
+    assert!(detect_adapters.normalization.benchmark_normalized);
+    assert!(detect_adapters.normalization.comparable);
 
     let trim_reads = crate::stage_api::stage_tool_capability(
         &StageId::from_static("fastq.trim_reads"),
         &ToolId::from_static("fastp"),
     )
     .expect("fastp trim capability must exist");
-    assert!(trim_reads.parse_normalized);
-    assert!(trim_reads.benchmark_normalized);
-    assert!(!trim_reads.comparable);
+    assert!(trim_reads.normalization.parse_normalized);
+    assert!(trim_reads.normalization.benchmark_normalized);
+    assert!(!trim_reads.normalization.comparable);
 }
 
 #[test]
@@ -397,14 +397,14 @@ fn mixed_normalization_stages_only_mark_observer_specialized_tools_comparable() 
     )
     .expect("seqkit overrepresented capability must exist");
 
-    assert!(fastqc.parse_normalized);
-    assert!(fastqc.benchmark_normalized);
-    assert!(fastqc.comparable);
+    assert!(fastqc.normalization.parse_normalized);
+    assert!(fastqc.normalization.benchmark_normalized);
+    assert!(fastqc.normalization.comparable);
 
-    assert!(seqkit.runnable);
-    assert!(seqkit.parse_normalized);
-    assert!(seqkit.benchmark_normalized);
-    assert!(seqkit.comparable);
+    assert!(seqkit.execution.runnable);
+    assert!(seqkit.normalization.parse_normalized);
+    assert!(seqkit.normalization.benchmark_normalized);
+    assert!(seqkit.normalization.comparable);
 }
 
 #[test]
