@@ -295,58 +295,7 @@ fn trim_command_template(
         options.resolved_threads(tool.resources.threads),
     );
     if tool.tool_id.as_str() == "fastp" {
-        let raw_backend_report = raw_backend_report_path(report_json, "fastp", "json");
-        let mut command = vec![
-            "fastp".to_string(),
-            "--in1".to_string(),
-            r1.display().to_string(),
-            "--out1".to_string(),
-            output_r1.display().to_string(),
-            "--json".to_string(),
-            raw_backend_report.display().to_string(),
-            "--thread".to_string(),
-            effective_threads.to_string(),
-        ];
-        if let Some(min_length) = options.min_length {
-            command.extend(["--length_required".to_string(), min_length.to_string()]);
-        }
-        if let Some(quality_cutoff) = options.quality_cutoff {
-            command.extend(["--qualified_quality_phred".to_string(), quality_cutoff.to_string()]);
-        }
-        if options.resolved_n_policy() == "drop" {
-            command.extend(["--n_base_limit".to_string(), "0".to_string()]);
-        }
-        if let Some(adapter_sequence) = adapter_sequences.first() {
-            if adapter_policy != "none" && adapter_policy != "auto" {
-                command.extend(["--adapter_sequence".to_string(), adapter_sequence.clone()]);
-                if r2.is_some() {
-                    command.extend([
-                        "--adapter_sequence_r2".to_string(),
-                        adapter_sequences
-                            .get(1)
-                            .cloned()
-                            .unwrap_or_else(|| adapter_sequence.clone()),
-                    ]);
-                }
-            }
-        }
-        if polyx_policy == "trim" || (polyx_policy == "bank" && polyx_bank.is_some()) {
-            command.push("--trim_poly_x".to_string());
-        }
-        if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
-            command.extend([
-                "--in2".to_string(),
-                r2.display().to_string(),
-                "--out2".to_string(),
-                output_r2.display().to_string(),
-            ]);
-            if adapter_policy == "auto" && adapter_sequences.is_empty() {
-                command.push("--detect_adapter_for_pe".to_string());
-            }
-        }
-        return Ok(wrap_trim_command_with_report(
-            "fastp",
-            &command,
+        return Ok(fastp_trim_command_template(
             r1,
             r2,
             output_r1,
@@ -357,8 +306,9 @@ fn trim_command_template(
             polyx_bank,
             contaminant_bank,
             options,
-            Some(raw_backend_report.as_path()),
-            Some("fastp_json"),
+            &adapter_policy,
+            &adapter_sequences,
+            &polyx_policy,
         ));
     }
     if tool.tool_id.as_str() == "cutadapt" {
@@ -546,6 +496,110 @@ fn trim_command_template(
         None,
         None,
     ))
+}
+
+fn fastp_trim_command_template(
+    r1: &Path,
+    r2: Option<&Path>,
+    output_r1: &Path,
+    output_r2: Option<&Path>,
+    report_json: &Path,
+    effective_threads: u32,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+    adapter_policy: &str,
+    adapter_sequences: &[String],
+    polyx_policy: &str,
+) -> Vec<String> {
+    let raw_backend_report = raw_backend_report_path(report_json, "fastp", "json");
+    let mut command = vec![
+        "fastp".to_string(),
+        "--in1".to_string(),
+        r1.display().to_string(),
+        "--out1".to_string(),
+        output_r1.display().to_string(),
+        "--json".to_string(),
+        raw_backend_report.display().to_string(),
+        "--thread".to_string(),
+        effective_threads.to_string(),
+    ];
+    append_fastp_quality_args(&mut command, options);
+    append_fastp_adapter_args(&mut command, r2, adapter_policy, adapter_sequences);
+    if polyx_policy == "trim" || (polyx_policy == "bank" && polyx_bank.is_some()) {
+        command.push("--trim_poly_x".to_string());
+    }
+    append_fastp_paired_args(&mut command, r2, output_r2, adapter_policy, adapter_sequences);
+    wrap_trim_command_with_report(
+        "fastp",
+        &command,
+        r1,
+        r2,
+        output_r1,
+        output_r2,
+        report_json,
+        effective_threads,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        options,
+        Some(raw_backend_report.as_path()),
+        Some("fastp_json"),
+    )
+}
+
+fn append_fastp_quality_args(command: &mut Vec<String>, options: &TrimPlanOptions) {
+    if let Some(min_length) = options.min_length {
+        command.extend(["--length_required".to_string(), min_length.to_string()]);
+    }
+    if let Some(quality_cutoff) = options.quality_cutoff {
+        command.extend(["--qualified_quality_phred".to_string(), quality_cutoff.to_string()]);
+    }
+    if options.resolved_n_policy() == "drop" {
+        command.extend(["--n_base_limit".to_string(), "0".to_string()]);
+    }
+}
+
+fn append_fastp_adapter_args(
+    command: &mut Vec<String>,
+    r2: Option<&Path>,
+    adapter_policy: &str,
+    adapter_sequences: &[String],
+) {
+    let Some(adapter_sequence) = adapter_sequences.first() else {
+        return;
+    };
+    if adapter_policy == "none" || adapter_policy == "auto" {
+        return;
+    }
+    command.extend(["--adapter_sequence".to_string(), adapter_sequence.clone()]);
+    if r2.is_some() {
+        command.extend([
+            "--adapter_sequence_r2".to_string(),
+            adapter_sequences.get(1).cloned().unwrap_or_else(|| adapter_sequence.clone()),
+        ]);
+    }
+}
+
+fn append_fastp_paired_args(
+    command: &mut Vec<String>,
+    r2: Option<&Path>,
+    output_r2: Option<&Path>,
+    adapter_policy: &str,
+    adapter_sequences: &[String],
+) {
+    if let (Some(r2), Some(output_r2)) = (r2, output_r2) {
+        command.extend([
+            "--in2".to_string(),
+            r2.display().to_string(),
+            "--out2".to_string(),
+            output_r2.display().to_string(),
+        ]);
+        if adapter_policy == "auto" && adapter_sequences.is_empty() {
+            command.push("--detect_adapter_for_pe".to_string());
+        }
+    }
 }
 
 fn seqkit_trim_command_template(
