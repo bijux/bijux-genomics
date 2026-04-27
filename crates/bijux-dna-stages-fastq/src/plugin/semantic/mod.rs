@@ -1,4 +1,4 @@
-use super::*;
+use super::{ArtifactRef, StagePlanV1};
 
 mod feature_tables;
 mod processing;

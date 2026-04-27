@@ -1,4 +1,8 @@
-use super::*;
+use std::fs;
+
+use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
+
+use crate::observer::{parse_detect_adapters_report, parse_extract_umis_report};
 
 pub(super) fn observed_read_preparation_metrics(
     plan: &StagePlanV1,

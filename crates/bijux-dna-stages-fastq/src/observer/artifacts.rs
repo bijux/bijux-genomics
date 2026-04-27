@@ -16,6 +16,8 @@ fn run_artifacts_dir(run_dir: &Path) -> PathBuf {
     run_dir.join("run_artifacts")
 }
 
+/// # Errors
+/// Returns an error if the effective adapter artifact directory or JSON payload cannot be written.
 pub fn write_effective_adapters(
     run_dir: &Path,
     effective: &EffectiveAdapterSet,
@@ -48,6 +50,9 @@ pub fn write_effective_adapters(
     Ok(path)
 }
 
+/// # Errors
+/// Returns an error if the adapter bank reference artifact directory or JSON payload cannot be
+/// written.
 pub fn write_adapter_bank_ref(
     run_dir: &Path,
     bank: &AdapterBankV1,
@@ -80,6 +85,8 @@ pub fn write_adapter_bank_ref(
 }
 
 #[allow(clippy::too_many_arguments)]
+/// # Errors
+/// Returns an error if the adapter trimming report directory or JSON payload cannot be written.
 pub fn write_adapter_trimming_report(
     run_dir: &Path,
     tool: &str,
@@ -113,6 +120,8 @@ pub fn write_adapter_trimming_report(
     Ok(path)
 }
 
+/// # Errors
+/// Returns an error if the retention report directory or JSON payload cannot be written.
 pub fn write_retention_report_artifact(
     run_dir: &Path,
     report: &RetentionReportV1,
@@ -125,6 +134,8 @@ pub fn write_retention_report_artifact(
     Ok(path)
 }
 
+/// # Errors
+/// Returns an error if the stage plan directory tree or JSON payload cannot be written.
 pub fn write_stage_plan_json(
     run_dir: &Path,
     file_name: &str,
