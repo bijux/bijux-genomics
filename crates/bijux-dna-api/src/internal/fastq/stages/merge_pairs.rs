@@ -1,3 +1,4 @@
+use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::fs;
@@ -87,10 +88,22 @@ fn required_plan_output_path<'a>(
 }
 
 fn resolve_merge_outputs(plan: &StagePlanV1) -> Result<MergePlanOutputs<'_>> {
-    Ok(MergePlanOutputs {
+    let outputs = MergePlanOutputs {
         merged_reads: required_plan_output_path(plan, "merged_reads")?,
         report_json: required_plan_output_path(plan, "report_json")?,
-    })
+    };
+    validate_merge_output_paths(&outputs)?;
+    Ok(outputs)
+}
+
+fn validate_merge_output_paths(outputs: &MergePlanOutputs<'_>) -> Result<()> {
+    let mut paths = BTreeSet::new();
+    for path in [outputs.merged_reads, outputs.report_json] {
+        if !paths.insert(path) {
+            return Err(anyhow!("merge output path reused: {}", path.display()));
+        }
+    }
+    Ok(())
 }
 
 /// Benchmark FASTQ read-merging tools under governed stage contracts.
