@@ -289,6 +289,12 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
         });
         validate_infer_asvs_report_identity(tool, &report)?;
         validate_infer_asvs_report_metrics(&report, &metric_set.metrics)?;
+        validate_infer_asvs_report_execution(
+            &report,
+            execution.runtime_s,
+            execution.memory_mb,
+            execution.exit_code,
+        )?;
         bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
@@ -410,6 +416,36 @@ fn validate_infer_asvs_report_metrics(
             "infer_asvs report sample_count mismatch: expected {}, observed {}",
             metrics.sample_count,
             report.sample_count
+        ));
+    }
+    Ok(())
+}
+
+fn validate_infer_asvs_report_execution(
+    report: &InferAsvsReportV1,
+    runtime_s: f64,
+    memory_mb: f64,
+    exit_code: i32,
+) -> Result<()> {
+    if report.runtime_s.is_none_or(|observed| (observed - runtime_s).abs() > f64::EPSILON) {
+        return Err(anyhow!(
+            "infer_asvs report runtime mismatch: expected {}, observed {:?}",
+            runtime_s,
+            report.runtime_s
+        ));
+    }
+    if report.memory_mb.is_none_or(|observed| (observed - memory_mb).abs() > f64::EPSILON) {
+        return Err(anyhow!(
+            "infer_asvs report memory mismatch: expected {}, observed {:?}",
+            memory_mb,
+            report.memory_mb
+        ));
+    }
+    if report.exit_code != Some(exit_code) {
+        return Err(anyhow!(
+            "infer_asvs report exit code mismatch: expected {}, observed {:?}",
+            exit_code,
+            report.exit_code
         ));
     }
     Ok(())
