@@ -44,7 +44,7 @@ use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::execute_observer_command;
 use bijux_dna_runtime::recording::{
     compute_run_id, prepare_tool_run_dirs, write_execution_logs, write_metrics_envelope,
-    write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput,
+    write_metrics_json, write_run_manifest, write_stage_plan_json, RunArtifactInput, RunDirs,
 };
 
 use super::trim_bench_common::benchmark_image_identity;
@@ -293,6 +293,42 @@ fn build_profile_reads_metric_set(
     Ok(metric_set)
 }
 
+fn write_profile_reads_execution_manifest(
+    platform: &PlatformSpec,
+    bench_inputs: &StatsBenchInputs,
+    tool_plan: &StatsToolPlan,
+    run_id: &str,
+    out_dir: &std::path::Path,
+    run_dirs: &RunDirs,
+    execution: &StatsToolExecution,
+) -> Result<()> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let stage_id = bijux_dna_core::ids::StageId::new(STAGE_PROFILE_READS.as_str());
+    let tool_manifest = registry
+        .tool_by_id(&stage_id, &bijux_dna_core::ids::ToolId::new(&tool_plan.tool))
+        .ok_or_else(|| anyhow!("tool {} missing from manifests", tool_plan.tool))?;
+    validate_execution_outputs(&tool_manifest.execution_contract, out_dir)?;
+    let manifest = ExecutionManifest {
+        contract_version: ContractVersion::v1(),
+        run_id: run_id.to_string(),
+        stage: STAGE_PROFILE_READS.as_str().to_string(),
+        tool: tool_plan.tool.clone(),
+        tool_version: tool_plan.tool_spec.tool_version.clone(),
+        image_digest: tool_plan.image_digest.clone(),
+        command: execution.result.command.clone(),
+        input_hashes: vec![bench_inputs.input_hash.clone()],
+        input_files: vec![bench_inputs.r1.display().to_string()],
+        output_dir: out_dir.display().to_string(),
+        runner: bench_inputs.runner.to_string(),
+        platform: platform.name.clone(),
+        arch: platform.arch.clone(),
+    };
+    bijux_dna_infra::atomic_write_json(&run_dirs.manifest_path, &manifest)
+        .context("write execution manifest")?;
+    write_execution_logs(&run_dirs.logs_dir, &execution.result.stdout, &execution.result.stderr)
+}
+
 fn prepare_stats_benchmark_setup<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -441,31 +477,15 @@ fn run_stats_tool(
     let execution = execute_stats_tool(tool_plan, bench_inputs.runner, bench_jobs(args.jobs))?;
     let observation = observe_profile_reads(bench_inputs, tool_plan, &execution)?;
 
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let stage_id = bijux_dna_core::ids::StageId::new(STAGE_PROFILE_READS.as_str());
-    let tool_manifest = registry
-        .tool_by_id(&stage_id, &bijux_dna_core::ids::ToolId::new(tool))
-        .ok_or_else(|| anyhow!("tool {tool} missing from manifests"))?;
-    validate_execution_outputs(&tool_manifest.execution_contract, &out_dir)?;
-    let manifest = ExecutionManifest {
-        contract_version: ContractVersion::v1(),
-        run_id: run_id.clone(),
-        stage: STAGE_PROFILE_READS.as_str().to_string(),
-        tool: tool.to_string(),
-        tool_version: tool_plan.tool_spec.tool_version.clone(),
-        image_digest: image_digest.clone(),
-        command: execution.result.command.clone(),
-        input_hashes: vec![bench_inputs.input_hash.clone()],
-        input_files: vec![bench_inputs.r1.display().to_string()],
-        output_dir: out_dir.display().to_string(),
-        runner: bench_inputs.runner.to_string(),
-        platform: platform.name.clone(),
-        arch: platform.arch.clone(),
-    };
-    bijux_dna_infra::atomic_write_json(&run_dirs.manifest_path, &manifest)
-        .context("write execution manifest")?;
-    write_execution_logs(&run_dirs.logs_dir, &execution.result.stdout, &execution.result.stderr)?;
+    write_profile_reads_execution_manifest(
+        platform,
+        bench_inputs,
+        tool_plan,
+        &run_id,
+        &out_dir,
+        &run_dirs,
+        &execution,
+    )?;
     let context = BenchmarkContext {
         tool: tool.to_string(),
         tool_version: tool_plan.tool_spec.tool_version.clone(),
