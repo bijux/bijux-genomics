@@ -32,7 +32,7 @@ fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_ha
         let raw = match std::fs::read_to_string(&index) {
             Ok(raw) => raw,
             Err(_) => {
-                eprintln!("missing domain index (non-fatal): {}", index.display());
+                offenders.push(format!("missing domain index for {domain}: {}", index.display()));
                 continue;
             }
         };
@@ -70,7 +70,10 @@ fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_ha
                 let tool_raw = match std::fs::read_to_string(&tool_file) {
                     Ok(raw) => raw,
                     Err(_) => {
-                        eprintln!("missing tool yaml (non-fatal): {}", tool_file.display());
+                        offenders.push(format!(
+                            "missing tool yaml for {domain} {stage_id} / {tool}: {}",
+                            tool_file.display()
+                        ));
                         continue;
                     }
                 };
