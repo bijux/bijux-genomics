@@ -649,6 +649,22 @@ fn validate_umi_report_observed_counts(
             report.bases_out
         ));
     }
+    let pairs_in = Some(input_stats_r1.reads.min(input_stats_r2.reads));
+    if report.pairs_in != pairs_in {
+        return Err(anyhow!(
+            "extract_umis report pairs_in observed mismatch: expected {:?}, observed {:?}",
+            pairs_in,
+            report.pairs_in
+        ));
+    }
+    let pairs_out = Some(output_stats_r1.reads.min(output_stats_r2.reads));
+    if report.pairs_out != pairs_out {
+        return Err(anyhow!(
+            "extract_umis report pairs_out observed mismatch: expected {:?}, observed {:?}",
+            pairs_out,
+            report.pairs_out
+        ));
+    }
     Ok(())
 }
 
