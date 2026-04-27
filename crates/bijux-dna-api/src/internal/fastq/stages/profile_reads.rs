@@ -307,12 +307,19 @@ fn observe_profile_reads(
         &length_histogram,
         &stats_execution_metrics(execution),
     )?;
-    let report = std::fs::read_to_string(required_plan_output_path(&tool_plan.plan, "qc_json")?)
-        .ok()
-        .and_then(|raw| bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw).ok())
-        .ok_or_else(|| anyhow!("profile_reads governed report was not materialized"))?;
+    let report = read_profile_reads_report(&tool_plan.plan)?;
     let metric_set = build_profile_reads_metric_set(&report)?;
     Ok(StatsObservation { metric_set })
+}
+
+fn read_profile_reads_report(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> Result<ProfileReadsReportV1> {
+    let report_path = required_plan_output_path(plan, "qc_json")?;
+    let raw = std::fs::read_to_string(report_path)
+        .with_context(|| format!("read profile_reads governed report {}", report_path.display()))?;
+    bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw)
+        .with_context(|| format!("parse profile_reads governed report {}", report_path.display()))
 }
 
 fn build_profile_reads_metric_set(
