@@ -81,14 +81,11 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
             records.push(record);
             continue;
         }
-        let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
-            setup.bench_inputs.runner,
-            jobs,
-        )?
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
+        let execution = execute_low_complexity_tool(&tool_plan, setup.bench_inputs.runner, jobs)?;
+        if let Some(failure) = low_complexity_tool_failure(&tool_plan, execution.exit_code) {
+            failures.push(failure);
+            continue;
+        }
         let record = build_low_complexity_record(
             catalog,
             platform,
@@ -104,17 +101,6 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_filter_low_complexity_v1(&conn, &record).context("insert bench sqlite")?;
-        if execution.exit_code != 0 {
-            failures.push(RawFailure {
-                stage: STAGE_FILTER_LOW_COMPLEXITY.as_str().to_string(),
-                tool: tool_plan.tool.clone(),
-                reason: format!(
-                    "tool {} failed with status {}",
-                    tool_plan.tool, execution.exit_code
-                ),
-                category: ErrorCategory::ToolError,
-            });
-        }
         records.push(record);
     }
 
@@ -183,6 +169,36 @@ fn prepare_low_complexity_tool_plan<S: ::std::hash::BuildHasher>(
     let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
     let image_digest = benchmark_image_identity(&tool_spec);
     Ok(LowComplexityToolPlan { tool: tool.to_string(), tool_spec, plan, params_hash, image_digest })
+}
+
+fn execute_low_complexity_tool(
+    tool_plan: &LowComplexityToolPlan,
+    runner: RuntimeKind,
+    jobs: usize,
+) -> Result<StageResultV1> {
+    execute_plans_with_jobs(
+        vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
+        runner,
+        jobs,
+    )?
+    .into_iter()
+    .next()
+    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))
+}
+
+fn low_complexity_tool_failure(
+    tool_plan: &LowComplexityToolPlan,
+    exit_code: i32,
+) -> Option<RawFailure> {
+    if exit_code == 0 {
+        return None;
+    }
+    Some(RawFailure {
+        stage: STAGE_FILTER_LOW_COMPLEXITY.as_str().to_string(),
+        tool: tool_plan.tool.clone(),
+        reason: format!("tool {} failed with status {exit_code}", tool_plan.tool),
+        category: ErrorCategory::ToolError,
+    })
 }
 
 fn prepare_low_complexity_benchmark_setup<S: ::std::hash::BuildHasher>(
