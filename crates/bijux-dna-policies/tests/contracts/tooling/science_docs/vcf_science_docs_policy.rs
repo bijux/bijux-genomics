@@ -593,6 +593,23 @@ fn policy__contracts__vcf_science_docs_policy__imputation_methods_doc_covers_exe
 }
 
 #[test]
+fn policy__contracts__vcf_science_docs_policy__reference_governance_doc_covers_panel_bound_family() {
+    let expected = BTreeSet::from([
+        "vcf.prepare_reference_panel".to_string(),
+        "vcf.phasing".to_string(),
+        "vcf.imputation".to_string(),
+        "vcf.impute".to_string(),
+        "vcf.postprocess".to_string(),
+        "vcf.qc".to_string(),
+    ]);
+    let documented = vcf_doc_stage_mentions("docs/20-science/vcf/REFERENCE_GOVERNANCE.md");
+    assert_eq!(
+        expected, documented,
+        "VCF reference-governance doc must mention the governed panel-bound stage family exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__vcf_science_docs_policy__damage_logic_covers_gl_damage_stage_family() {
     let expected = BTreeSet::from([
         "vcf.call_gl".to_string(),
