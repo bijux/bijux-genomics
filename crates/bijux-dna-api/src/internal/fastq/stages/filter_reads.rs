@@ -205,6 +205,47 @@ struct FilterBackendReport {
     removal_counts: FilterRemovalCounts,
 }
 
+struct FilterReportParams {
+    input_r1: String,
+    input_r2: Option<String>,
+    max_n: Option<u32>,
+    max_n_fraction: Option<f64>,
+    max_n_count: Option<u32>,
+    low_complexity_threshold: Option<f64>,
+    entropy_threshold: Option<f64>,
+    polyx_policy: Option<String>,
+    contaminant_db: Option<String>,
+}
+
+impl FilterReportParams {
+    fn from_params(params: &serde_json::Value, fallback_r1: &Path) -> Self {
+        Self {
+            input_r1: params
+                .get("input_r1")
+                .and_then(serde_json::Value::as_str)
+                .map_or_else(|| fallback_r1.display().to_string(), ToString::to_string),
+            input_r2: string_param(params, "input_r2"),
+            max_n: u32_param(params, "max_n"),
+            max_n_fraction: params.get("max_n_fraction").and_then(serde_json::Value::as_f64),
+            max_n_count: u32_param(params, "max_n_count"),
+            low_complexity_threshold: params
+                .get("low_complexity_threshold")
+                .and_then(serde_json::Value::as_f64),
+            entropy_threshold: params.get("entropy_threshold").and_then(serde_json::Value::as_f64),
+            polyx_policy: string_param(params, "polyx_policy"),
+            contaminant_db: string_param(params, "kmer_ref"),
+        }
+    }
+}
+
+fn string_param(params: &serde_json::Value, name: &str) -> Option<String> {
+    params.get(name).and_then(serde_json::Value::as_str).map(ToString::to_string)
+}
+
+fn u32_param(params: &serde_json::Value, name: &str) -> Option<u32> {
+    params.get(name).and_then(serde_json::Value::as_u64).and_then(|value| u32::try_from(value).ok())
+}
+
 fn select_filter_benchmark_tools(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterArgs,
 ) -> Result<Vec<String>> {
@@ -381,6 +422,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     let out_dir = output_reads.parent().ok_or_else(|| anyhow!("filter output has no parent"))?;
     let report_path = out_dir.join("filter_report.json");
     let backend_report = filter_backend_report(params);
+    let report_params = FilterReportParams::from_params(params, &bench_inputs.r1);
     let report = FilterReadsReportV1 {
         schema_version: FILTER_READS_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_FILTER_READS.as_str().to_string(),
@@ -392,39 +434,19 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
             bijux_dna_domain_fastq::params::PairedMode::SingleEnd
         },
         threads: tool_spec.resources.threads,
-        input_r1: params
-            .get("input_r1")
-            .and_then(serde_json::Value::as_str)
-            .map_or_else(|| bench_inputs.r1.display().to_string(), ToString::to_string),
-        input_r2: params
-            .get("input_r2")
-            .and_then(serde_json::Value::as_str)
-            .map(ToString::to_string),
+        input_r1: report_params.input_r1,
+        input_r2: report_params.input_r2,
         output_r1: output_reads.display().to_string(),
         output_r2: output_reads_r2.map(|path| path.display().to_string()),
         report_json: report_path.display().to_string(),
-        max_n: params
-            .get("max_n")
-            .and_then(serde_json::Value::as_u64)
-            .and_then(|v| u32::try_from(v).ok()),
-        max_n_fraction: params.get("max_n_fraction").and_then(serde_json::Value::as_f64),
-        max_n_count: params
-            .get("max_n_count")
-            .and_then(serde_json::Value::as_u64)
-            .and_then(|v| u32::try_from(v).ok()),
-        low_complexity_threshold: params
-            .get("low_complexity_threshold")
-            .and_then(serde_json::Value::as_f64),
-        entropy_threshold: params.get("entropy_threshold").and_then(serde_json::Value::as_f64),
+        max_n: report_params.max_n,
+        max_n_fraction: report_params.max_n_fraction,
+        max_n_count: report_params.max_n_count,
+        low_complexity_threshold: report_params.low_complexity_threshold,
+        entropy_threshold: report_params.entropy_threshold,
         n_policy: Some("drop".to_string()),
-        polyx_policy: params
-            .get("polyx_policy")
-            .and_then(serde_json::Value::as_str)
-            .map(ToString::to_string),
-        contaminant_db: params
-            .get("kmer_ref")
-            .and_then(serde_json::Value::as_str)
-            .map(ToString::to_string),
+        polyx_policy: report_params.polyx_policy,
+        contaminant_db: report_params.contaminant_db,
         reads_in: accounting.reads_in,
         reads_out: accounting.reads_out,
         reads_dropped: accounting.reads_dropped,
