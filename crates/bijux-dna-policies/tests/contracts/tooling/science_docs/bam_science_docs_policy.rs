@@ -255,16 +255,10 @@ fn policy__contracts__bam_science_docs_policy__tools_roster_covers_stage_catalog
 
 #[test]
 fn policy__contracts__bam_science_docs_policy__stage_catalog_covers_supported_stage_catalog() {
-    let expected = bam_stage_specs()
-        .into_iter()
-        .filter_map(|(stage_id, spec)| (spec.status == "supported").then_some(stage_id))
-        .collect::<BTreeSet<_>>();
+    let expected = bam_stage_specs().into_keys().collect::<BTreeSet<_>>();
     let documented = bam_stage_catalog_ids();
-
-    let missing = expected.difference(&documented).cloned().collect::<Vec<_>>();
-    assert!(
-        missing.is_empty(),
-        "BAM stage catalog is missing supported stages:\n{}",
-        missing.join("\n")
+    assert_eq!(
+        expected, documented,
+        "BAM stage catalog must cover the BAM stage manifest exactly"
     );
 }
