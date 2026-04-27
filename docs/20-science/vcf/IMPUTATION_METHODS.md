@@ -7,6 +7,7 @@ Provide reference-grade method defaults for planned VCF imputation workflows in 
 Covers two recommended paths:
 - aDNA low-coverage (GL-based style; GLIMPSE-like workflow).
 - Modern diploid cohorts (phasing + imputation; SHAPEIT5/IMPUTE5-like workflow).
+Both paths stay inside the governed `vcf.prepare_reference_panel` -> `vcf.phasing` -> `vcf.imputation` -> `vcf.impute` -> `vcf.postprocess` family.
 
 ## Non-goals
 - Declaring scientific equivalence between tools.
@@ -16,9 +17,10 @@ Covers two recommended paths:
 - Input model: genotype likelihoods / uncertain calls from low-depth data.
 - Preferred flow:
   1. `vcf.prepare_reference_panel` for panel normalization.
-  2. `vcf.phasing` with conservative assumptions.
-  3. `vcf.impute` with GL-oriented method (GLIMPSE-style).
-  4. `vcf.postprocess` for INFO/filter normalization.
+  2. `vcf.phasing` with conservative assumptions when a backend requires phased input.
+  3. `vcf.imputation` to keep the admitted GL-oriented method family explicit.
+  4. `vcf.impute` with the chosen GL-oriented backend (GLIMPSE-style baseline family).
+  5. `vcf.postprocess` for INFO/filter normalization.
 - Practical defaults:
   - smaller chunk windows for memory control,
   - explicit random seed,
@@ -29,8 +31,9 @@ Covers two recommended paths:
 - Preferred flow:
   1. `vcf.prepare_reference_panel`
   2. `vcf.phasing` (SHAPEIT5/Eagle family)
-  3. `vcf.impute` (IMPUTE5/Minimac4/Beagle family)
-  4. `vcf.postprocess`
+  3. `vcf.imputation` to keep the admitted Beagle/IMPUTE5/Minimac4 family explicit
+  4. `vcf.impute` (IMPUTE5/Minimac4/Beagle family)
+  5. `vcf.postprocess`
 - Practical defaults:
   - deterministic seed and fixed threads,
   - stable chunk size and output format,

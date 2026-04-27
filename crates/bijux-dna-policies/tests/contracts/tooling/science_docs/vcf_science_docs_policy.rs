@@ -577,6 +577,22 @@ fn policy__contracts__vcf_science_docs_policy__imputation_scope_doc_covers_imput
 }
 
 #[test]
+fn policy__contracts__vcf_science_docs_policy__imputation_methods_doc_covers_execution_family() {
+    let expected = BTreeSet::from([
+        "vcf.prepare_reference_panel".to_string(),
+        "vcf.phasing".to_string(),
+        "vcf.imputation".to_string(),
+        "vcf.impute".to_string(),
+        "vcf.postprocess".to_string(),
+    ]);
+    let documented = vcf_doc_stage_mentions("docs/20-science/vcf/IMPUTATION_METHODS.md");
+    assert_eq!(
+        expected, documented,
+        "VCF imputation methods doc must mention the governed imputation execution family exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__vcf_science_docs_policy__damage_logic_covers_gl_damage_stage_family() {
     let expected = BTreeSet::from([
         "vcf.call_gl".to_string(),
