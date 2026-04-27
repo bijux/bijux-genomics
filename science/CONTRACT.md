@@ -21,7 +21,8 @@ Only build commands may write:
 - [science/generated/current/README.md](generated/current/README.md)
 - [science/generated/current/evidence/README.md](generated/current/evidence/README.md)
 - [science/generated/indexes/README.md](generated/indexes/README.md)
-- `artifacts/science-releases/**`
+- [science/specs/releases/README.md](specs/releases/README.md) governs release
+  bundles emitted under `artifacts/science-releases/**`
 
 Generated science outputs are never hand-edited.
 
