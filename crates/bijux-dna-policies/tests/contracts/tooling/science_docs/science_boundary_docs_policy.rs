@@ -512,3 +512,19 @@ fn policy__contracts__science_boundary_docs_policy__container_network_usage_doc_
         "containers/docs/NETWORK_USAGE.md must link the governed network-usage surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_security_boundary_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "NETWORK_USAGE.md".to_string(),
+        "SMOKE_CONTRACT.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/SECURITY_BOUNDARY.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/SECURITY_BOUNDARY.md must link the governed security-boundary surfaces exactly"
+    );
+}
