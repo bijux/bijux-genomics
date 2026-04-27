@@ -142,6 +142,23 @@ fn policy__contracts__operations_reference_authority_policy__frontend_mini_stack
 }
 
 #[test]
+fn policy__contracts__operations_reference_authority_policy__production_guarantees_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "CI.md".to_string(),
+        "../50-reference/TOOL_ADMISSION.md".to_string(),
+        "ISOLATION.md".to_string(),
+        "DOCS_BUILD_REPRODUCIBLE.md".to_string(),
+        "REPRODUCIBILITY.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/PRODUCTION_GUARANTEES.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/PRODUCTION_GUARANTEES.md must link the governed production authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
