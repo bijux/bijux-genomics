@@ -136,6 +136,10 @@ fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_pe
         for tool in table_array(&registry, "tools") {
             let tool_id =
                 tool.get("id").and_then(toml::Value::as_str).unwrap_or_default().to_string();
+            let status = tool.get("status").and_then(toml::Value::as_str).unwrap_or("supported");
+            if !support::registry_status_is_production(status) {
+                continue;
+            }
             let metrics_schema = tool
                 .get("metrics_schema")
                 .and_then(toml::Value::as_str)
