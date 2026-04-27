@@ -151,6 +151,36 @@ fn vcf_stage_catalog_ids() -> BTreeSet<String> {
         .collect()
 }
 
+fn vcf_tools_roster_rows() -> BTreeMap<String, VcfStageDocSpec> {
+    markdown_table_rows("docs/20-science/vcf/TOOLS_ROSTER.md", "| Stage |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 4,
+                "VCF tools roster rows must expose stage, status, tools, and rationale columns",
+            );
+            let stage_id = row[0].to_string();
+            let compatible_tools = if row[2] == "none" {
+                BTreeSet::new()
+            } else {
+                row[2]
+                    .split(',')
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                    .map(ToOwned::to_owned)
+                    .collect()
+            };
+            (
+                stage_id,
+                VcfStageDocSpec {
+                    status: row[1].to_string(),
+                    compatible_tools,
+                },
+            )
+        })
+        .collect()
+}
+
 #[test]
 fn policy__contracts__vcf_science_docs_policy__index_covers_vcf_science_docs_exactly() {
     let expected = vcf_science_doc_targets();
@@ -168,5 +198,35 @@ fn policy__contracts__vcf_science_docs_policy__stage_catalog_covers_supported_st
     assert_eq!(
         expected, documented,
         "VCF stage catalog must cover the VCF stage manifest exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__vcf_science_docs_policy__tools_roster_covers_stage_catalog_with_statuses() {
+    let expected = vcf_stage_specs();
+    let documented = vcf_tools_roster_rows();
+
+    assert_eq!(
+        expected.keys().cloned().collect::<BTreeSet<_>>(),
+        documented.keys().cloned().collect::<BTreeSet<_>>(),
+        "VCF tools roster must cover the VCF stage catalog exactly"
+    );
+
+    let mut offenders = Vec::new();
+    for (stage_id, expected_spec) in expected {
+        let documented_spec =
+            documented.get(&stage_id).unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"));
+        if documented_spec.status != expected_spec.status {
+            offenders.push(format!(
+                "{stage_id}: expected status {}, found {}",
+                expected_spec.status, documented_spec.status
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "VCF tools roster status drift:\n{}",
+        offenders.join("\n")
     );
 }

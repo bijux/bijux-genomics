@@ -25,3 +25,4 @@ Documents under `docs/20-science/vcf/`.
 - [Roadmap](ROADMAP.md)
 - [Runs of Homozygosity](ROH.md)
 - [Stage Catalog](STAGE_CATALOG.md)
+- [Tools Roster](TOOLS_ROSTER.md)
