@@ -214,3 +214,17 @@ fn policy__contracts__policy_reference_authority_policy__policy_ownership_links_
         "docs/40-policies/POLICY_OWNERSHIP.md must link the governed policy-ownership authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__policy_stability_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "POLICY_INDEX.md".to_string(),
+        "../50-reference/CONTRACT_VERSIONING.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/40-policies/POLICY_STABILITY.md");
+    assert_eq!(
+        expected, documented,
+        "docs/40-policies/POLICY_STABILITY.md must link the governed policy-stability authorities exactly"
+    );
+}
