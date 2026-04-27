@@ -75,3 +75,14 @@ fn policy__contracts__operations_reference_authority_policy__corpus_01_links_gov
         "docs/30-operations/corpus-01.md must link the governed corpus specification exactly"
     );
 }
+
+#[test]
+fn policy__contracts__operations_reference_authority_policy__release_hygiene_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from(["../50-reference/CONTRACT_VERSIONING.md".to_string()]);
+    let documented = markdown_link_targets("docs/30-operations/RELEASE_HYGIENE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/RELEASE_HYGIENE.md must link the governed release versioning authority exactly"
+    );
+}

@@ -21,7 +21,8 @@ Minimal publishable gate:
 - includes docs contract checks, root layout guardrail, tool registry lock verification, and container version lock/authority checks.
 
 ## Examples
-If `RunManifest` changes, update schema snapshots + `CONTRACT_VERSIONING.md`.
+If `RunManifest` changes, update schema snapshots +
+[CONTRACT_VERSIONING.md](../50-reference/CONTRACT_VERSIONING.md).
 
 ## Failure modes
 CI fails if snapshots or docs are missing.
