@@ -6,10 +6,7 @@ mod support;
 fn slow__policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_deterministic() {
     let root = support::workspace_root();
     let checksum = root.join("assets/toy/core-v1/CHECKSUMS.sha256");
-    if !checksum.exists() {
-        eprintln!("skip toy golden deterministic check; missing {}", checksum.display());
-        return;
-    }
+    assert!(checksum.exists(), "missing governed toy checksum: {}", checksum.display());
     let status = std::process::Command::new("cargo")
         .arg("run")
         .arg("-q")
