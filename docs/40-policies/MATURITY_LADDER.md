@@ -10,8 +10,11 @@ Clarifies the minimum enforcement bar for new or experimental crates.
 - Replacing the policy matrix.
 
 ## Contracts
-- Required policies must pass for all production crates.
-- Optional policies are explicitly documented when deferred.
+- Required policy classes are cataloged in [POLICY_MATRIX.md](POLICY_MATRIX.md).
+- Stability and compatibility expectations are defined in
+  [POLICY_STABILITY.md](POLICY_STABILITY.md).
+- Workspace enforcement ownership lives in
+  [crates/bijux-dna-policies/README.md](../../crates/bijux-dna-policies/README.md).
 
 ## Examples
 ## Required
