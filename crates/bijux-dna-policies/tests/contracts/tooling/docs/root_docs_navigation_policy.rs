@@ -194,3 +194,24 @@ fn policy__contracts__root_docs_navigation_policy__architecture_overview_links_g
         "docs/10-architecture/ARCHITECTURE_OVERVIEW.md must link the governed overview authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__architecture_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../40-policies/index.md".to_string(),
+        "../../domain/fastq/artifacts.yaml".to_string(),
+        "../../domain/bam/artifacts.yaml".to_string(),
+        "../../domain/fastq/metrics.yaml".to_string(),
+        "../../domain/bam/metrics.yaml".to_string(),
+        "../../configs/ci/registry/tool_registry.toml".to_string(),
+        "../../configs/ci/stages/stages.toml".to_string(),
+        "../../configs/ci/tools/images.toml".to_string(),
+        "CRATE_AUTHORITY_MAP.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/ARCHITECTURE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/ARCHITECTURE.md must link the governed architecture authorities exactly"
+    );
+}
