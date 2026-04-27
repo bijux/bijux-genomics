@@ -407,15 +407,19 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     );
     let record = BenchmarkRecord {
         context,
-        execution: ExecutionMetrics {
-            runtime_s: inputs.execution.result.runtime_s,
-            memory_mb: inputs.execution.result.memory_mb,
-            exit_code: inputs.execution.result.exit_code,
-        },
+        execution: low_complexity_execution_metrics(inputs.execution),
         metrics: metric_set,
     };
     record.validate()?;
     Ok(record)
+}
+
+fn low_complexity_execution_metrics(execution: &LowComplexityToolExecution) -> ExecutionMetrics {
+    ExecutionMetrics {
+        runtime_s: execution.result.runtime_s,
+        memory_mb: execution.result.memory_mb,
+        exit_code: execution.result.exit_code,
+    }
 }
 
 fn build_low_complexity_metric_set(
