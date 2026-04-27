@@ -28,6 +28,15 @@ struct ExpandedRouteNode {
     output_context: RouteContext,
 }
 
+type ToolsetByNodeId<'a> = std::collections::BTreeMap<String, &'a ToolsetSelection>;
+type ExpandedNodesByOriginal = std::collections::BTreeMap<String, Vec<ExpandedRouteNode>>;
+
+struct RouteExpansionState {
+    nodes: Vec<PipelineNodeSpec>,
+    selections: Vec<StageToolSelection>,
+    expanded_nodes_by_original: ExpandedNodesByOriginal,
+}
+
 /// # Errors
 /// Returns an error if toolset selection fails.
 pub fn select_preprocess_toolsets(
@@ -80,46 +89,63 @@ pub fn expand_pipeline_stage_tool_routes(
     toolsets: &[ToolsetSelection],
 ) -> Result<(PipelineSpec, Vec<StageToolSelection>)> {
     let ordered_nodes = pipeline.ordered_nodes();
-    let executable_nodes = ordered_nodes
-        .iter()
-        .filter(|node| !planner_owned_graph_stage(&node.stage_id))
-        .collect::<Vec<_>>();
-    if executable_nodes.len() != toolsets.len() {
+    validate_toolsets_for_nodes(&ordered_nodes, toolsets)?;
+    validate_route_count(toolsets)?;
+    let toolset_by_node_id = toolset_by_node_id(toolsets);
+    let base_edges = route_base_edges(pipeline, &ordered_nodes);
+    let predecessor_sets = predecessor_context_sets(&base_edges);
+    let mut state = RouteExpansionState {
+        nodes: Vec::new(),
+        selections: Vec::new(),
+        expanded_nodes_by_original: ExpandedNodesByOriginal::new(),
+    };
+    for node in ordered_nodes {
+        if planner_owned_graph_stage(&node.stage_id) {
+            expand_planner_owned_node(&node, &base_edges, &predecessor_sets, &mut state)?;
+            continue;
+        }
+        expand_executable_node(&node, &toolset_by_node_id, &predecessor_sets, &mut state)?;
+    }
+
+    let mut edges = expanded_route_edges(&base_edges, &state.expanded_nodes_by_original)?;
+    sort_route_graph(&mut state.nodes, &mut edges, &mut state.selections);
+    Ok((PipelineSpec::graph(state.nodes, edges), state.selections))
+}
+
+fn validate_toolsets_for_nodes(
+    ordered_nodes: &[PipelineNodeSpec],
+    toolsets: &[ToolsetSelection],
+) -> Result<()> {
+    let executable_nodes =
+        ordered_nodes.iter().filter(|node| !planner_owned_graph_stage(&node.stage_id));
+    if executable_nodes.clone().count() != toolsets.len() {
         return Err(anyhow!(
             "pipeline node/toolset length mismatch: {} vs {}",
-            executable_nodes.len(),
+            executable_nodes.count(),
             toolsets.len()
         ));
     }
-    for (node, toolset) in executable_nodes.iter().zip(toolsets.iter()) {
-        if node.stage_id != toolset.stage_id || node.stage_instance_id != toolset.stage_instance_id
-        {
-            return Err(anyhow!(
-                "toolset expansion requires node-aligned stage selections; got pipeline node {} and toolset {}",
-                PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref()),
-                PipelineSpec::stage_node_id(&toolset.stage_id, toolset.stage_instance_id.as_deref()),
-            ));
-        }
-        if toolset.tool_ids.is_empty() {
-            return Err(anyhow!(
-                "toolset expansion requires at least one tool for {}",
-                node.stage_id
-            ));
-        }
+    for (node, toolset) in executable_nodes.zip(toolsets.iter()) {
+        validate_toolset_for_node(node, toolset)?;
     }
-    let toolset_by_node_id = toolsets
-        .iter()
-        .map(|toolset| {
-            (
-                PipelineSpec::stage_node_id(
-                    &toolset.stage_id,
-                    toolset.stage_instance_id.as_deref(),
-                ),
-                toolset,
-            )
-        })
-        .collect::<std::collections::BTreeMap<_, _>>();
+    Ok(())
+}
 
+fn validate_toolset_for_node(node: &PipelineNodeSpec, toolset: &ToolsetSelection) -> Result<()> {
+    if node.stage_id != toolset.stage_id || node.stage_instance_id != toolset.stage_instance_id {
+        return Err(anyhow!(
+            "toolset expansion requires node-aligned stage selections; got pipeline node {} and toolset {}",
+            PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref()),
+            PipelineSpec::stage_node_id(&toolset.stage_id, toolset.stage_instance_id.as_deref()),
+        ));
+    }
+    if toolset.tool_ids.is_empty() {
+        return Err(anyhow!("toolset expansion requires at least one tool for {}", node.stage_id));
+    }
+    Ok(())
+}
+
+fn validate_route_count(toolsets: &[ToolsetSelection]) -> Result<()> {
     let route_count = toolsets.iter().try_fold(1usize, |count, toolset| {
         count
             .checked_mul(toolset.tool_ids.len())
@@ -131,95 +157,139 @@ pub fn expand_pipeline_stage_tool_routes(
             "preprocess tool route expansion would create {route_count} route-specific pipelines; configured limit is {max_route_specific_pipelines}. Narrow the stage toolsets or raise BIJUX_FASTQ_MAX_ROUTE_PIPELINES"
         ));
     }
+    Ok(())
+}
 
-    let base_edges = if pipeline.declares_graph_topology() {
-        pipeline.edges.clone()
-    } else {
-        ordered_nodes
-            .windows(2)
-            .map(|window| PipelineEdgeSpec {
-                from: PipelineSpec::stage_node_id(
-                    &window[0].stage_id,
-                    window[0].stage_instance_id.as_deref(),
+fn toolset_by_node_id(toolsets: &[ToolsetSelection]) -> ToolsetByNodeId<'_> {
+    toolsets
+        .iter()
+        .map(|toolset| {
+            (
+                PipelineSpec::stage_node_id(
+                    &toolset.stage_id,
+                    toolset.stage_instance_id.as_deref(),
                 ),
-                to: PipelineSpec::stage_node_id(
-                    &window[1].stage_id,
-                    window[1].stage_instance_id.as_deref(),
-                ),
-                from_output_id: None,
-                to_input_id: None,
-            })
-            .collect::<Vec<_>>()
-    };
+                toolset,
+            )
+        })
+        .collect()
+}
 
-    let mut nodes = Vec::new();
-    let mut edges = Vec::new();
-    let mut selections = Vec::new();
-    let mut expanded_nodes_by_original =
-        std::collections::BTreeMap::<String, Vec<ExpandedRouteNode>>::new();
-    let predecessor_sets = predecessor_context_sets(&base_edges);
-    for node in ordered_nodes {
-        let node_id =
-            PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
-        let input_contexts =
-            incoming_route_contexts(&node_id, &predecessor_sets, &expanded_nodes_by_original)?;
-        if planner_owned_graph_stage(&node.stage_id) {
-            let collapsed_source_nodes = collapsed_source_nodes_for_select(&node_id, &base_edges)?;
-            for input_context in input_contexts {
-                let output_context = input_context.without(&collapsed_source_nodes);
-                let expanded_node_id = expanded_planner_stage_instance_id(
-                    &node.stage_id,
-                    node.stage_instance_id.as_deref(),
-                    &output_context.route_key(),
-                );
-                nodes.push(PipelineNodeSpec {
-                    stage_id: node.stage_id.clone(),
-                    stage_instance_id: Some(expanded_node_id.clone()),
-                });
-                expanded_nodes_by_original
-                    .entry(node_id.clone())
-                    .or_default()
-                    .push(ExpandedRouteNode { expanded_node_id, input_context, output_context });
-            }
-            continue;
-        }
+fn route_base_edges(
+    pipeline: &PipelineSpec,
+    ordered_nodes: &[PipelineNodeSpec],
+) -> Vec<PipelineEdgeSpec> {
+    if pipeline.declares_graph_topology() {
+        return pipeline.edges.clone();
+    }
+    ordered_nodes
+        .windows(2)
+        .map(|window| PipelineEdgeSpec {
+            from: PipelineSpec::stage_node_id(
+                &window[0].stage_id,
+                window[0].stage_instance_id.as_deref(),
+            ),
+            to: PipelineSpec::stage_node_id(
+                &window[1].stage_id,
+                window[1].stage_instance_id.as_deref(),
+            ),
+            from_output_id: None,
+            to_input_id: None,
+        })
+        .collect()
+}
 
-        let toolset = toolset_by_node_id
-            .get(&node_id)
-            .copied()
-            .ok_or_else(|| anyhow!("toolset expansion requires a stage toolset for {}", node_id))?;
-        for input_context in input_contexts {
-            for tool_id in &toolset.tool_ids {
-                let output_context =
-                    input_context.with_assignment(node_id.clone(), tool_id.clone());
-                let stage_instance_id = expanded_stage_instance_id(
-                    &node.stage_id,
-                    node.stage_instance_id.as_deref(),
-                    tool_id,
-                    &output_context.route_key(),
-                );
-                nodes.push(PipelineNodeSpec {
-                    stage_id: node.stage_id.clone(),
-                    stage_instance_id: Some(stage_instance_id.clone()),
-                });
-                selections.push(StageToolSelection {
-                    stage_id: node.stage_id.clone(),
-                    stage_instance_id: Some(stage_instance_id.clone()),
-                    tool_id: tool_id.clone(),
-                    reason: toolset.reason.clone(),
-                });
-                expanded_nodes_by_original.entry(node_id.clone()).or_default().push(
-                    ExpandedRouteNode {
-                        expanded_node_id: stage_instance_id,
-                        input_context: input_context.clone(),
-                        output_context,
-                    },
-                );
-            }
+fn expand_planner_owned_node(
+    node: &PipelineNodeSpec,
+    base_edges: &[PipelineEdgeSpec],
+    predecessor_sets: &std::collections::BTreeMap<String, Vec<String>>,
+    state: &mut RouteExpansionState,
+) -> Result<()> {
+    let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+    let input_contexts =
+        incoming_route_contexts(&node_id, predecessor_sets, &state.expanded_nodes_by_original)?;
+    let collapsed_source_nodes = collapsed_source_nodes_for_select(&node_id, base_edges)?;
+    for input_context in input_contexts {
+        let output_context = input_context.without(&collapsed_source_nodes);
+        let expanded_node_id = expanded_planner_stage_instance_id(
+            &node.stage_id,
+            node.stage_instance_id.as_deref(),
+            &output_context.route_key(),
+        );
+        state.nodes.push(PipelineNodeSpec {
+            stage_id: node.stage_id.clone(),
+            stage_instance_id: Some(expanded_node_id.clone()),
+        });
+        state
+            .expanded_nodes_by_original
+            .entry(node_id.clone())
+            .or_default()
+            .push(ExpandedRouteNode { expanded_node_id, input_context, output_context });
+    }
+    Ok(())
+}
+
+fn expand_executable_node(
+    node: &PipelineNodeSpec,
+    toolset_by_node_id: &ToolsetByNodeId<'_>,
+    predecessor_sets: &std::collections::BTreeMap<String, Vec<String>>,
+    state: &mut RouteExpansionState,
+) -> Result<()> {
+    let node_id = PipelineSpec::stage_node_id(&node.stage_id, node.stage_instance_id.as_deref());
+    let input_contexts =
+        incoming_route_contexts(&node_id, predecessor_sets, &state.expanded_nodes_by_original)?;
+    let toolset = toolset_by_node_id
+        .get(&node_id)
+        .copied()
+        .ok_or_else(|| anyhow!("toolset expansion requires a stage toolset for {}", node_id))?;
+    for input_context in input_contexts {
+        for tool_id in &toolset.tool_ids {
+            expand_tool_route_node(node, &node_id, toolset, tool_id, &input_context, state);
         }
     }
+    Ok(())
+}
 
-    for edge in &base_edges {
+fn expand_tool_route_node(
+    node: &PipelineNodeSpec,
+    node_id: &str,
+    toolset: &ToolsetSelection,
+    tool_id: &str,
+    input_context: &RouteContext,
+    state: &mut RouteExpansionState,
+) {
+    let output_context = input_context.with_assignment(node_id.to_string(), tool_id.to_string());
+    let stage_instance_id = expanded_stage_instance_id(
+        &node.stage_id,
+        node.stage_instance_id.as_deref(),
+        tool_id,
+        &output_context.route_key(),
+    );
+    state.nodes.push(PipelineNodeSpec {
+        stage_id: node.stage_id.clone(),
+        stage_instance_id: Some(stage_instance_id.clone()),
+    });
+    state.selections.push(StageToolSelection {
+        stage_id: node.stage_id.clone(),
+        stage_instance_id: Some(stage_instance_id.clone()),
+        tool_id: tool_id.to_string(),
+        reason: toolset.reason.clone(),
+    });
+    state.expanded_nodes_by_original.entry(node_id.to_string()).or_default().push(
+        ExpandedRouteNode {
+            expanded_node_id: stage_instance_id,
+            input_context: input_context.clone(),
+            output_context,
+        },
+    );
+}
+
+fn expanded_route_edges(
+    base_edges: &[PipelineEdgeSpec],
+    expanded_nodes_by_original: &ExpandedNodesByOriginal,
+) -> Result<Vec<PipelineEdgeSpec>> {
+    let mut edges = Vec::new();
+    for edge in base_edges {
         let from_nodes = expanded_nodes_by_original
             .get(&edge.from)
             .ok_or_else(|| anyhow!("expanded route missing source node {}", edge.from))?;
@@ -240,7 +310,14 @@ pub fn expand_pipeline_stage_tool_routes(
             }
         }
     }
+    Ok(edges)
+}
 
+fn sort_route_graph(
+    nodes: &mut Vec<PipelineNodeSpec>,
+    edges: &mut Vec<PipelineEdgeSpec>,
+    selections: &mut Vec<StageToolSelection>,
+) {
     nodes.sort_by(|left, right| {
         PipelineSpec::stage_node_id(&left.stage_id, left.stage_instance_id.as_deref())
             .cmp(&PipelineSpec::stage_node_id(&right.stage_id, right.stage_instance_id.as_deref()))
@@ -269,8 +346,6 @@ pub fn expand_pipeline_stage_tool_routes(
     selections.dedup_by(|left, right| {
         left.stage_instance_id == right.stage_instance_id && left.tool_id == right.tool_id
     });
-
-    Ok((PipelineSpec::graph(nodes, edges), selections))
 }
 
 fn max_route_specific_pipelines() -> Result<usize> {
