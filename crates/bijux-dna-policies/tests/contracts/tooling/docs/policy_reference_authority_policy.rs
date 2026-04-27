@@ -257,3 +257,18 @@ fn policy__contracts__policy_reference_authority_policy__failure_playbooks_links
         "docs/40-policies/FAILURE_PLAYBOOKS.md must link the governed failure-playbook authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__tests_style_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../crates/bijux-dna-policies/tests/contracts/".to_string(),
+        "../../crates/bijux-dna-policies/tests/support/".to_string(),
+        "../../crates/bijux-dna-testkit/README.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/40-policies/TESTS_STYLE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/40-policies/TESTS_STYLE.md must link the governed test-style authorities exactly"
+    );
+}
