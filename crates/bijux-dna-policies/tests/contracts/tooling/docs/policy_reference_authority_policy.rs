@@ -169,3 +169,18 @@ fn policy__contracts__policy_reference_authority_policy__contract_compatibility_
         "docs/50-reference/CONTRACT_COMPATIBILITY.md must link the governed contract-compatibility authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__design_authority_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../10-architecture/BOUNDARY_MAP.md".to_string(),
+        "../10-architecture/CONTRACT_AUTHORITY_LADDER.md".to_string(),
+        "../40-policies/POLICY_INDEX.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/DESIGN_AUTHORITY.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/DESIGN_AUTHORITY.md must link the governed design authorities exactly"
+    );
+}
