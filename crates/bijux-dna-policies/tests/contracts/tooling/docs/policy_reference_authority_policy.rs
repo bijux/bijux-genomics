@@ -199,3 +199,18 @@ fn policy__contracts__policy_reference_authority_policy__policies_explained_link
         "docs/40-policies/POLICIES_EXPLAINED.md must link the governed policy-explainer authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__policy_ownership_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../crates/bijux-dna-policies/README.md".to_string(),
+        "POLICY_INDEX.md".to_string(),
+        "../10-architecture/CONTRACT_INDEX.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/40-policies/POLICY_OWNERSHIP.md");
+    assert_eq!(
+        expected, documented,
+        "docs/40-policies/POLICY_OWNERSHIP.md must link the governed policy-ownership authorities exactly"
+    );
+}
