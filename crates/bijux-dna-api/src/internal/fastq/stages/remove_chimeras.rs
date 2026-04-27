@@ -122,6 +122,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         validate_remove_chimeras_report_paths(args, &outputs, &report)?;
         validate_remove_chimeras_report_observed_counts(&setup, &observation, &report)?;
         validate_remove_chimeras_report_fraction(&report)?;
+        validate_remove_chimeras_report_fallback_state(&report)?;
         validate_remove_chimeras_report_metrics(&report, &metric_set.metrics)?;
         write_remove_chimeras_artifacts(&tool_plan.out_dir, &outputs, &report, &metric_set)?;
         let record = build_remove_chimeras_record(
@@ -798,6 +799,15 @@ fn validate_remove_chimeras_report_fraction(report: &RemoveChimerasReportV1) -> 
             "remove_chimeras report fraction arithmetic mismatch: expected {}, observed {:?}",
             expected,
             report.chimera_fraction
+        ));
+    }
+    Ok(())
+}
+
+fn validate_remove_chimeras_report_fallback_state(report: &RemoveChimerasReportV1) -> Result<()> {
+    if report.used_fallback {
+        return Err(anyhow!(
+            "remove_chimeras report used fallback despite required filtered output observation"
         ));
     }
     Ok(())
