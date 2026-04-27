@@ -146,29 +146,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         })?;
         bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.report_json), &report)
             .context("write host depletion report")?;
-        let metrics = FastqDepleteHostMetrics {
-            reads_in: report.reads_in,
-            reads_out: report.reads_out,
-            bases_in: report.bases_in,
-            bases_out: report.bases_out,
-            pairs_in: report.pairs_in.unwrap_or(0),
-            pairs_out: report.pairs_out.unwrap_or(0),
-            host_fraction_removed: report.host_fraction_removed.clamp(0.0, 1.0),
-            depletion_summary: serde_json::json!({
-                "reads_removed": report.reads_removed,
-                "bases_removed": report.bases_removed,
-                "output_r1": report.output_r1,
-                "output_r2": report.output_r2,
-                "removed_host_r1": report.removed_host_r1,
-                "removed_host_r2": report.removed_host_r2,
-                "report_json": report.report_json,
-                "reference_catalog_id": report.reference_catalog_id,
-                "reference_index_backend": report.reference_index_backend,
-                "raw_backend_report": report.raw_backend_report,
-                "raw_backend_report_format": report.raw_backend_report_format,
-            })
-            .into(),
-        };
+        let metrics = deplete_host_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         bijux_dna_infra::atomic_write_json(
@@ -425,6 +403,32 @@ fn build_deplete_host_report<S: ::std::hash::BuildHasher>(
             "bases_removed": bases_removed,
         })),
     })
+}
+
+fn deplete_host_metrics_from_report(report: &DepleteHostReportV1) -> FastqDepleteHostMetrics {
+    FastqDepleteHostMetrics {
+        reads_in: report.reads_in,
+        reads_out: report.reads_out,
+        bases_in: report.bases_in,
+        bases_out: report.bases_out,
+        pairs_in: report.pairs_in.unwrap_or(0),
+        pairs_out: report.pairs_out.unwrap_or(0),
+        host_fraction_removed: report.host_fraction_removed.clamp(0.0, 1.0),
+        depletion_summary: serde_json::json!({
+            "reads_removed": report.reads_removed,
+            "bases_removed": report.bases_removed,
+            "output_r1": report.output_r1,
+            "output_r2": report.output_r2,
+            "removed_host_r1": report.removed_host_r1,
+            "removed_host_r2": report.removed_host_r2,
+            "report_json": report.report_json,
+            "reference_catalog_id": report.reference_catalog_id,
+            "reference_index_backend": report.reference_index_backend,
+            "raw_backend_report": report.raw_backend_report,
+            "raw_backend_report_format": report.raw_backend_report_format,
+        })
+        .into(),
+    }
 }
 
 fn u64_to_f64(value: u64) -> f64 {
