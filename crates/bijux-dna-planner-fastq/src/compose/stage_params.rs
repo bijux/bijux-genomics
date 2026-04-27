@@ -27,98 +27,7 @@ pub(super) fn ensure_stage_params_match(binding: &FastqStageBinding) -> Result<(
     let Some(params) = binding.params.as_ref() else {
         return Ok(());
     };
-    let (expected_stage_id, params_name): (String, &str) = match params {
-        FastqStageParameters::Validate(_) => {
-            (bijux_dna_domain_fastq::STAGE_VALIDATE_READS.as_str().to_string(), "Validate")
-        }
-        FastqStageParameters::DetectAdapters(_) => {
-            (bijux_dna_domain_fastq::STAGE_DETECT_ADAPTERS.as_str().to_string(), "DetectAdapters")
-        }
-        FastqStageParameters::FilterReads(_) => {
-            (bijux_dna_domain_fastq::STAGE_FILTER_READS.as_str().to_string(), "FilterReads")
-        }
-        FastqStageParameters::FilterLowComplexity(_) => (
-            bijux_dna_domain_fastq::STAGE_FILTER_LOW_COMPLEXITY.as_str().to_string(),
-            "FilterLowComplexity",
-        ),
-        FastqStageParameters::ExtractUmis(_) => {
-            (bijux_dna_domain_fastq::STAGE_EXTRACT_UMIS.as_str().to_string(), "ExtractUmis")
-        }
-        FastqStageParameters::ProfileReadLengths(_) => (
-            bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS.as_str().to_string(),
-            "ProfileReadLengths",
-        ),
-        FastqStageParameters::ProfileOverrepresented(_) => (
-            bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES
-                .as_str()
-                .to_string(),
-            "ProfileOverrepresented",
-        ),
-        FastqStageParameters::ProfileReads(_) => {
-            (bijux_dna_domain_fastq::STAGE_PROFILE_READS.as_str().to_string(), "ProfileReads")
-        }
-        FastqStageParameters::RemoveDuplicates(_) => (
-            bijux_dna_domain_fastq::STAGE_REMOVE_DUPLICATES.as_str().to_string(),
-            "RemoveDuplicates",
-        ),
-        FastqStageParameters::RemoveChimeras(_) => {
-            (bijux_dna_domain_fastq::STAGE_REMOVE_CHIMERAS.as_str().to_string(), "RemoveChimeras")
-        }
-        FastqStageParameters::ReportQc(_) => {
-            (bijux_dna_domain_fastq::STAGE_REPORT_QC.as_str().to_string(), "ReportQc")
-        }
-        FastqStageParameters::Trim(_) => {
-            (bijux_dna_domain_fastq::STAGE_TRIM_READS.as_str().to_string(), "Trim")
-        }
-        FastqStageParameters::TrimPolygTails(_) => (
-            bijux_dna_domain_fastq::stages::ids::STAGE_TRIM_POLYG_TAILS.as_str().to_string(),
-            "TrimPolygTails",
-        ),
-        FastqStageParameters::MergePairs(_) => {
-            (bijux_dna_domain_fastq::STAGE_MERGE_PAIRS.as_str().to_string(), "MergePairs")
-        }
-        FastqStageParameters::NormalizePrimers(_) => (
-            bijux_dna_domain_fastq::STAGE_NORMALIZE_PRIMERS.as_str().to_string(),
-            "NormalizePrimers",
-        ),
-        FastqStageParameters::NormalizeAbundance(_) => (
-            bijux_dna_domain_fastq::STAGE_NORMALIZE_ABUNDANCE.as_str().to_string(),
-            "NormalizeAbundance",
-        ),
-        FastqStageParameters::Screen(_) => {
-            (bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY.as_str().to_string(), "Screen")
-        }
-        FastqStageParameters::IndexReference(_) => (
-            bijux_dna_domain_fastq::stages::ids::STAGE_INDEX_REFERENCE.as_str().to_string(),
-            "IndexReference",
-        ),
-        FastqStageParameters::InferAsvs(_) => {
-            (bijux_dna_domain_fastq::STAGE_INFER_ASVS.as_str().to_string(), "InferAsvs")
-        }
-        FastqStageParameters::ClusterOtus(_) => {
-            (bijux_dna_domain_fastq::STAGE_CLUSTER_OTUS.as_str().to_string(), "ClusterOtus")
-        }
-        FastqStageParameters::CorrectErrors(_) => {
-            (bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS.as_str().to_string(), "CorrectErrors")
-        }
-        FastqStageParameters::TrimTerminalDamage(_) => (
-            bijux_dna_domain_fastq::STAGE_TRIM_TERMINAL_DAMAGE.as_str().to_string(),
-            "TrimTerminalDamage",
-        ),
-        FastqStageParameters::DepleteRrna(_) => {
-            (bijux_dna_domain_fastq::STAGE_DEPLETE_RRNA.as_str().to_string(), "DepleteRrna")
-        }
-        FastqStageParameters::DepleteHost(_) => (
-            bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST.as_str().to_string(),
-            "DepleteHost",
-        ),
-        FastqStageParameters::DepleteReferenceContaminants(_) => (
-            bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS
-                .as_str()
-                .to_string(),
-            "DepleteReferenceContaminants",
-        ),
-    };
+    let (expected_stage_id, params_name) = stage_params_contract(params);
     if binding.stage_id == expected_stage_id {
         return Ok(());
     }
@@ -127,6 +36,84 @@ pub(super) fn ensure_stage_params_match(binding: &FastqStageBinding) -> Result<(
         binding.stage_id,
         expected_stage_id
     ))
+}
+
+fn stage_params_contract(params: &FastqStageParameters) -> (&'static str, &'static str) {
+    quality_params_contract(params)
+        .or_else(|| processing_params_contract(params))
+        .or_else(|| amplicon_and_reference_params_contract(params))
+        .unwrap_or_else(|| unreachable!("all FASTQ stage parameter variants must map to a stage"))
+}
+
+fn quality_params_contract(params: &FastqStageParameters) -> Option<(&'static str, &'static str)> {
+    match params {
+        FastqStageParameters::Validate(_) => Some(("fastq.validate_reads", "Validate")),
+        FastqStageParameters::DetectAdapters(_) => {
+            Some(("fastq.detect_adapters", "DetectAdapters"))
+        }
+        FastqStageParameters::FilterReads(_) => Some(("fastq.filter_reads", "FilterReads")),
+        FastqStageParameters::FilterLowComplexity(_) => {
+            Some(("fastq.filter_low_complexity", "FilterLowComplexity"))
+        }
+        FastqStageParameters::ProfileReadLengths(_) => {
+            Some(("fastq.profile_read_lengths", "ProfileReadLengths"))
+        }
+        FastqStageParameters::ProfileOverrepresented(_) => {
+            Some(("fastq.profile_overrepresented_sequences", "ProfileOverrepresented"))
+        }
+        FastqStageParameters::ProfileReads(_) => Some(("fastq.profile_reads", "ProfileReads")),
+        FastqStageParameters::ReportQc(_) => Some(("fastq.report_qc", "ReportQc")),
+        FastqStageParameters::Screen(_) => Some(("fastq.screen_taxonomy", "Screen")),
+        FastqStageParameters::TrimTerminalDamage(_) => {
+            Some(("fastq.trim_terminal_damage", "TrimTerminalDamage"))
+        }
+        FastqStageParameters::DepleteRrna(_) => Some(("fastq.deplete_rrna", "DepleteRrna")),
+        FastqStageParameters::DepleteHost(_) => Some(("fastq.deplete_host", "DepleteHost")),
+        FastqStageParameters::DepleteReferenceContaminants(_) => {
+            Some(("fastq.deplete_reference_contaminants", "DepleteReferenceContaminants"))
+        }
+        _ => None,
+    }
+}
+
+fn processing_params_contract(
+    params: &FastqStageParameters,
+) -> Option<(&'static str, &'static str)> {
+    match params {
+        FastqStageParameters::ExtractUmis(_) => Some(("fastq.extract_umis", "ExtractUmis")),
+        FastqStageParameters::RemoveDuplicates(_) => {
+            Some(("fastq.remove_duplicates", "RemoveDuplicates"))
+        }
+        FastqStageParameters::Trim(_) => Some(("fastq.trim_reads", "Trim")),
+        FastqStageParameters::TrimPolygTails(_) => {
+            Some(("fastq.trim_polyg_tails", "TrimPolygTails"))
+        }
+        FastqStageParameters::MergePairs(_) => Some(("fastq.merge_pairs", "MergePairs")),
+        FastqStageParameters::CorrectErrors(_) => Some(("fastq.correct_errors", "CorrectErrors")),
+        _ => None,
+    }
+}
+
+fn amplicon_and_reference_params_contract(
+    params: &FastqStageParameters,
+) -> Option<(&'static str, &'static str)> {
+    match params {
+        FastqStageParameters::RemoveChimeras(_) => {
+            Some(("fastq.remove_chimeras", "RemoveChimeras"))
+        }
+        FastqStageParameters::NormalizePrimers(_) => {
+            Some(("fastq.normalize_primers", "NormalizePrimers"))
+        }
+        FastqStageParameters::NormalizeAbundance(_) => {
+            Some(("fastq.normalize_abundance", "NormalizeAbundance"))
+        }
+        FastqStageParameters::IndexReference(_) => {
+            Some(("fastq.index_reference", "IndexReference"))
+        }
+        FastqStageParameters::InferAsvs(_) => Some(("fastq.infer_asvs", "InferAsvs")),
+        FastqStageParameters::ClusterOtus(_) => Some(("fastq.cluster_otus", "ClusterOtus")),
+        _ => None,
+    }
 }
 
 pub(super) fn trim_terminal_damage_params(
