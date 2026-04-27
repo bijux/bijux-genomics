@@ -47,8 +47,9 @@ fn policy__contracts__science_evidence_specs_policy__evidence_contract_links_gov
 ) {
     let expected = BTreeSet::from([
         "README.md".to_string(),
-        "../../generated/indexes/science_index.json".to_string(),
-        "../../generated/current/evidence/claim_evidence_map.tsv".to_string(),
+        "../../generated/README.md".to_string(),
+        "../../generated/current/evidence/README.md".to_string(),
+        "../../generated/indexes/README.md".to_string(),
     ]);
     let documented = markdown_link_targets("science/specs/evidence/CONTRACT.md");
     assert_eq!(
