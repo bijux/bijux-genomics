@@ -73,6 +73,50 @@ fn assert_fastq_slice_rows(compiled: &CompiledScience) {
             && row.paper_status == "mapped"
     }));
     assert_eq!(
+        compiled.index.source_inventory_rows,
+        compiled.source_inventory.len()
+    );
+    assert_eq!(
+        compiled.index.source_archive_gap_rows,
+        compiled.source_archive_gaps.len()
+    );
+    assert_eq!(
+        compiled
+            .index
+            .source_archive_summary
+            .archive_status_counts
+            .get("present")
+            .copied()
+            .unwrap_or_default(),
+        compiled
+            .source_inventory
+            .iter()
+            .filter(|row| row.archive_status == "present")
+            .count()
+    );
+    assert_eq!(
+        compiled
+            .index
+            .source_archive_summary
+            .archive_status_counts
+            .get("missing")
+            .copied()
+            .unwrap_or_default(),
+        compiled
+            .source_inventory
+            .iter()
+            .filter(|row| row.archive_status == "missing")
+            .count()
+    );
+    assert_eq!(
+        compiled
+            .index
+            .source_archive_summary
+            .missing_tool_counts
+            .len(),
+        0
+    );
+    assert_eq!(
         compiled.index.fastq_closure_summary.total_rows,
         compiled.fastq_closure_gate_rows.len()
     );
