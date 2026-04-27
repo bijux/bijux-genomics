@@ -21,6 +21,27 @@ the current authored workspace state.
 - [unresolved_refs.json](unresolved_refs.json) records reference-resolution
   failures that must stay empty for a clean compiled state
 
+## FASTQ Runtime and Closure Ledgers
+
+- [fastq_stage_tool_environment_matrix.tsv](fastq_stage_tool_environment_matrix.tsv)
+  inventories the governed FASTQ stage-tool runtime surface and the claims,
+  decisions, and bindings that justify each row
+- [fastq_container_reference_matrix.tsv](fastq_container_reference_matrix.tsv)
+  inventories the governed FASTQ container references, version pins, and runtime
+  artifacts behind each tool
+- [fastq_download_backlog.tsv](fastq_download_backlog.tsv) tracks the current
+  source-packet acquisition backlog for reviewed FASTQ tools
+- [fastq_paper_archive_matrix.tsv](fastq_paper_archive_matrix.tsv) tracks the
+  current FASTQ paper archive coverage for reviewed tool families
+- [fastq_closure_gate.tsv](fastq_closure_gate.tsv) records closure status and
+  blocker or warning reasons per FASTQ stage-tool binding
+- [fastq_missing_closure_prerequisites.tsv](fastq_missing_closure_prerequisites.tsv)
+  expands each closure blocker into one row per missing prerequisite
+- [fastq_default_binding_risk_ledger.tsv](fastq_default_binding_risk_ledger.tsv)
+  records the rolled-up risk class for each default FASTQ binding
+- [fastq_truth_delta.tsv](fastq_truth_delta.tsv) records where observed compiled
+  closure state still diverges from the expected governed truth surface
+
 ## Adjacent Surfaces
 
 - [../README.md](../README.md) explains the current generated snapshot boundary
