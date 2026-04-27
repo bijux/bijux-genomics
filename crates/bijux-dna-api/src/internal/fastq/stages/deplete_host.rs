@@ -18,6 +18,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
+use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::screen::HostDepletionEffectiveParams;
 use bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST;
@@ -201,17 +202,28 @@ fn prepare_deplete_host_benchmark_setup<S: ::std::hash::BuildHasher>(
         &args.r1,
         &STAGE_DEPLETE_HOST,
     )?;
-    let input_hash = if let Some(r2) = args.r2.as_ref() {
-        format!("{}+{}", bench_inputs.input_hash, hash_file_sha256(r2)?)
-    } else {
-        bench_inputs.input_hash.clone()
-    };
+    let input_hash = deplete_host_input_hash(&bench_inputs, args)?;
     let input_stats_r2 = if let Some(r2) = args.r2.as_ref() {
         Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
     } else {
         None
     };
     Ok(DepleteHostBenchmarkSetup { registry, tools, bench_inputs, input_hash, input_stats_r2 })
+}
+
+fn deplete_host_input_hash(
+    bench_inputs: &TrimBenchInputs,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDepleteHostArgs,
+) -> Result<String> {
+    if let Some(r2) = args.r2.as_ref() {
+        let r2_hash = hash_file_sha256(r2).context("hash host depletion input r2")?;
+        return params_hash(&serde_json::json!({
+            "r1": bench_inputs.input_hash,
+            "r2": r2_hash,
+        }))
+        .context("combine host depletion paired input hashes");
+    }
+    Ok(bench_inputs.input_hash.clone())
 }
 
 fn prepare_deplete_host_tool_plan<S: ::std::hash::BuildHasher>(
