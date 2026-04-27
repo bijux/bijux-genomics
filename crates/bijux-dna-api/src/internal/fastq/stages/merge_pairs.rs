@@ -356,6 +356,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     let merged_stats = observe_merge_stats(catalog, platform, runner, merged_reads)?;
     let report = merge_report_with_execution(report_path, execution)?;
     validate_merge_report_identity(&tool_spec.tool_id.0, &report)?;
+    validate_merge_report_execution(&report, execution.runtime_s, execution.memory_mb)?;
     validate_merge_report_paths(&report, merged_reads)?;
 
     let metrics = merge_metrics_from_report(&report, r1_stats, r2_stats, &merged_stats);
@@ -468,6 +469,28 @@ fn validate_merge_report_paths(report: &MergePairsReportV1, merged_reads: &Path)
             "merge_pairs report merged_reads mismatch: expected {}, observed {}",
             merged_reads.display(),
             report_merged_reads.display()
+        ));
+    }
+    Ok(())
+}
+
+fn validate_merge_report_execution(
+    report: &MergePairsReportV1,
+    runtime_s: f64,
+    memory_mb: f64,
+) -> Result<()> {
+    if report.runtime_s.is_none_or(|observed| (observed - runtime_s).abs() > f64::EPSILON) {
+        return Err(anyhow!(
+            "merge_pairs report runtime mismatch: expected {}, observed {:?}",
+            runtime_s,
+            report.runtime_s
+        ));
+    }
+    if report.memory_mb.is_none_or(|observed| (observed - memory_mb).abs() > f64::EPSILON) {
+        return Err(anyhow!(
+            "merge_pairs report memory mismatch: expected {}, observed {:?}",
+            memory_mb,
+            report.memory_mb
         ));
     }
     Ok(())
