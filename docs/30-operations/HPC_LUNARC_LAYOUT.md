@@ -1,6 +1,9 @@
 # HPC Lunarc Layout
 
-This document describes the Lunarc benchmark workspace contract as configured through `configs/bench/benchmark.toml`.
+This document describes the Lunarc benchmark workspace contract as configured through
+[configs/bench/benchmark.toml](../../configs/bench/benchmark.toml). Read it together with
+[benchmark/workspace-contract.md](benchmark/workspace-contract.md) and
+[benchmark/workspace-model.md](benchmark/workspace-model.md).
 
 ## Roots
 
@@ -14,8 +17,11 @@ This document describes the Lunarc benchmark workspace contract as configured th
 
 1. `bijux-dna` owns benchmark orchestration and corpus dossier generation; Make should stay a thin wrapper over Rust commands.
 2. Repo sync and benchmark artifact sync are separate responsibilities. Code belongs under `workspace.remote.repo_root`; shared artifacts belong under the configured workspace roots.
-3. Corpus benchmarks should resolve their inputs through `configs/bench/benchmark.toml`, not through hardcoded frontend paths in scripts, docs, or wrapper targets.
-4. Every HPC run must carry reproducibility metadata and run-context metadata in `run_manifest.json`.
+3. Corpus benchmarks should resolve their inputs through
+   [configs/bench/benchmark.toml](../../configs/bench/benchmark.toml), not through hardcoded
+   frontend paths in scripts, docs, or wrapper targets.
+4. Every HPC run must carry reproducibility metadata and run-context metadata in
+   [RUN_ARTIFACTS.md](RUN_ARTIFACTS.md).
 5. Result paths remain run-scoped and timestamped according to the configured layout templates.
 6. Shared temp directories are forbidden. Each run must use its own run-scoped temp path.
 7. Pulled Lunarc artifacts must land under `workspace.local.results_root` so publication, audits, and rerenders share one local contract.
