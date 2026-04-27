@@ -123,3 +123,14 @@ fn policy__contracts__operations_reference_authority_policy__developer_workflow_
         "docs/40-policies/DEVELOPER_WORKFLOW.md must link the governed workflow authority exactly"
     );
 }
+
+#[test]
+fn policy__contracts__operations_reference_authority_policy__no_orphans_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from(["REFERENCE_INDEX.md".to_string()]);
+    let documented = markdown_link_targets("docs/50-reference/NO_ORPHANS.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/NO_ORPHANS.md must link the governed reference index exactly"
+    );
+}
