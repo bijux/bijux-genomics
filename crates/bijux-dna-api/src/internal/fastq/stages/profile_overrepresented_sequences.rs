@@ -472,7 +472,8 @@ fn write_overrepresented_artifacts(
     validate_overrepresented_report_identity(tool_plan, report)?;
     validate_overrepresented_report_metrics(report, &metric_set.metrics)?;
     write_overrepresented_report(&observation.artifacts.report_json, report)?;
-    write_overrepresented_metrics(&tool_plan.out_dir, metric_set)
+    write_overrepresented_metrics(&tool_plan.out_dir, metric_set)?;
+    validate_overrepresented_written_artifacts(&observation.artifacts, &tool_plan.out_dir)
 }
 
 fn validate_overrepresented_report_identity(
@@ -529,6 +530,29 @@ fn validate_overrepresented_report_metrics(
         ));
     }
     validate_overrepresented_payload_metrics(Path::new(&report.report_json), metrics, &report.rows)
+}
+
+fn validate_overrepresented_written_artifacts(
+    artifacts: &OverrepresentedArtifacts,
+    out_dir: &Path,
+) -> Result<()> {
+    for path in [
+        artifacts.output_tsv.as_path(),
+        artifacts.output_json.as_path(),
+        artifacts.report_json.as_path(),
+        out_dir.join("metrics.json").as_path(),
+    ] {
+        let metadata = std::fs::metadata(path).with_context(|| {
+            format!("read profile_overrepresented_sequences artifact {}", path.display())
+        })?;
+        if metadata.len() == 0 {
+            return Err(anyhow!(
+                "profile_overrepresented_sequences artifact is empty: {}",
+                path.display()
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn build_overrepresented_record(
