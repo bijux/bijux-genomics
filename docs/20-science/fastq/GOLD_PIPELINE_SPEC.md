@@ -10,11 +10,12 @@ Provides a reference baseline for audits.
 - Performance benchmarking.
 
 ## Contracts
-- Pipeline defaults ledger.
-- Generic default FASTQ profile requires validation, read-length profiling, adapter detection, polyG trimming, ordinary trimming/filtering, neutral read profiling, overrepresented-sequence profiling, and QC aggregation.
-- Minimal FASTQ profile requires only validation, adapter detection, ordinary trimming/filtering, and QC aggregation.
-- Terminal-damage trimming is outside generic defaults and belongs to aDNA/reference-aDNA profiles or explicit user selection.
-- Inline UMI extraction, when requested, is upstream of trimming and filtering.
+- Pipeline stage inventory and governed FASTQ stage IDs live in
+  [domain/fastq/index.yaml](../../../domain/fastq/index.yaml).
+- Default stage ordering and route families live in
+  [domain/fastq/route_policies.toml](../../../domain/fastq/route_policies.toml).
+- Pinned default tools and profile semantics live in
+  [domain/fastq/docs/DEFAULT_SETTINGS.md](../../../domain/fastq/docs/DEFAULT_SETTINGS.md).
 
 ## Examples
 - Default pipeline profile used for regression checks.
