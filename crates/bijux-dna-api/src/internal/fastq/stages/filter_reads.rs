@@ -663,10 +663,30 @@ fn build_filter_metric_set(
     input_stats_r1: &SeqkitMetrics,
     output_stats_r1: &SeqkitMetrics,
 ) -> Result<MetricSet<FastqFilterMetrics>> {
+    validate_filter_removal_evidence(report)?;
     let metrics = filter_metrics_from_report(report, input_stats_r1, output_stats_r1);
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     Ok(metric_set)
+}
+
+fn validate_filter_removal_evidence(report: &FilterReadsReportV1) -> Result<()> {
+    for (name, value) in [
+        ("reads_removed_by_n", report.reads_removed_by_n),
+        ("reads_removed_by_entropy", report.reads_removed_by_entropy),
+        ("reads_removed_low_complexity", report.reads_removed_low_complexity),
+        ("reads_removed_by_kmer", report.reads_removed_by_kmer),
+        ("reads_removed_contaminant_kmer", report.reads_removed_contaminant_kmer),
+        ("reads_removed_by_length", report.reads_removed_by_length),
+    ] {
+        if value > report.reads_dropped {
+            return Err(anyhow!(
+                "filter {name} {value} exceeds reads_dropped {}",
+                report.reads_dropped
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn filter_metrics_from_report(
