@@ -328,3 +328,17 @@ fn policy__contracts__bam_science_docs_policy__tools_roster_matches_planned_qc_a
         "planned QC and mutation stages",
     );
 }
+
+#[test]
+fn policy__contracts__bam_science_docs_policy__tools_roster_matches_damage_and_inference_stages() {
+    assert_bam_tools_roster_matches(
+        &[
+            "bam.damage",
+            "bam.authenticity",
+            "bam.contamination",
+            "bam.sex",
+            "bam.kinship",
+        ],
+        "damage and inference stages",
+    );
+}
