@@ -384,17 +384,12 @@ fn validate_normalize_abundance_report_composition(
     for (sample_id, sum) in &report.per_sample_sums {
         if !sum.is_finite() || *sum < 0.0 {
             return Err(anyhow!(
-                "normalize_abundance report invalid sample sum for {}: {}",
-                sample_id,
-                sum
+                "normalize_abundance report invalid sample sum for {sample_id}: {sum}"
             ));
         }
         if *sum > 0.0 && (*sum - expected_sum).abs() > 1e-3 {
             return Err(anyhow!(
-                "normalize_abundance report sample sum mismatch for {}: expected {}, observed {}",
-                sample_id,
-                expected_sum,
-                sum
+                "normalize_abundance report sample sum mismatch for {sample_id}: expected {expected_sum}, observed {sum}"
             ));
         }
     }
