@@ -20,6 +20,8 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub type DepleteHostPlanOptions = crate::DepleteHostStageParams;
 
+/// # Errors
+/// Returns an error if any requested host-depletion tool is not admitted for `fastq.deplete_host`.
 pub fn normalize_host_depletion_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();

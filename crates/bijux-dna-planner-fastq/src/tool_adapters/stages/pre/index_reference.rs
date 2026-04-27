@@ -15,6 +15,8 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub type IndexReferencePlanOptions = crate::IndexReferenceStageParams;
 const DEFAULT_INDEX_REFERENCE_THREADS: u32 = 2;
 
+/// # Errors
+/// Returns an error if any requested reference-indexing tool is not admitted for the stage.
 pub fn normalize_index_reference_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();
@@ -31,6 +33,8 @@ pub fn normalize_index_reference_tool_list(tools: &[String]) -> Result<Vec<Strin
     Ok(normalized)
 }
 
+/// # Errors
+/// Returns an error if the requested reference-indexing tool cannot be planned.
 pub fn plan(
     tool: &ToolExecutionSpecV1,
     reference_fasta: &Path,
@@ -39,6 +43,9 @@ pub fn plan(
     plan_with_options(tool, reference_fasta, out_dir, &IndexReferencePlanOptions::default())
 }
 
+/// # Errors
+/// Returns an error if the requested reference-indexing tool or options are unsupported, or if
+/// the stage plan cannot be built.
 pub fn plan_with_options(
     tool: &ToolExecutionSpecV1,
     reference_fasta: &Path,

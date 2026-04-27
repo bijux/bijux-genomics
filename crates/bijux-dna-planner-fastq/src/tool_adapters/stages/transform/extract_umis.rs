@@ -13,6 +13,8 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 const DEFAULT_UMI_PATTERN: &str = "NNNNNNNN";
 pub type ExtractUmisPlanOptions = crate::ExtractUmisStageParams;
 
+/// # Errors
+/// Returns an error if any requested UMI extraction tool is not admitted for `fastq.extract_umis`.
 pub fn normalize_umi_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     normalize_tools_with_allowlist(tools, &allowlist)
@@ -34,6 +36,9 @@ pub fn plan_umi(
     plan_umi_with_options(tool, r1, r2, out_dir, &options)
 }
 
+/// # Errors
+/// Returns an error if the requested UMI extraction tool or options are unsupported, or if the
+/// stage plan cannot be built.
 pub fn plan_umi_with_options(
     tool: &ToolExecutionSpecV1,
     r1: &Path,

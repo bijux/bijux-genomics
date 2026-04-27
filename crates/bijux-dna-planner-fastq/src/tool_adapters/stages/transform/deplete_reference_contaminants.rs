@@ -16,6 +16,9 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub type DepleteReferenceContaminantsPlanOptions = crate::DepleteReferenceContaminantsStageParams;
 
+/// # Errors
+/// Returns an error if any requested contaminant-depletion tool is not admitted for
+/// `fastq.deplete_reference_contaminants`.
 pub fn normalize_contaminant_screen_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     let mut normalized: Vec<String> = tools.iter().map(|tool| tool.to_lowercase()).collect();

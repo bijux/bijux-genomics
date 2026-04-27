@@ -2,24 +2,34 @@ use std::collections::BTreeMap;
 
 use anyhow::{anyhow, Result};
 
+/// # Errors
+/// Returns an error if any requested trim tool is not admitted for `fastq.trim_reads`.
 pub fn select_trim_tools(tools: &[String], _allow_experimental: bool) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_TRIM_READS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested validation tool is not admitted for `fastq.validate_reads`.
 pub fn select_validate_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_VALIDATE_READS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested adapter detection tool is not admitted for
+/// `fastq.detect_adapters`.
 pub fn select_detect_adapters_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_DETECT_ADAPTERS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested read-length profiling tool is not admitted for
+/// `fastq.profile_read_lengths`.
 pub fn select_profile_read_lengths_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(
         &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_READ_LENGTHS,
@@ -27,12 +37,17 @@ pub fn select_profile_read_lengths_tools(tools: &[String]) -> Result<Vec<String>
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested filter tool is not admitted for `fastq.filter_reads`.
 pub fn select_filter_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_FILTER_READS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested low-complexity filter tool is not admitted for
+/// `fastq.filter_low_complexity`.
 pub fn select_filter_low_complexity_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(
         &bijux_dna_domain_fastq::STAGE_FILTER_LOW_COMPLEXITY,
@@ -40,18 +55,26 @@ pub fn select_filter_low_complexity_tools(tools: &[String]) -> Result<Vec<String
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested merge tool is not admitted for `fastq.merge_pairs`.
 pub fn select_merge_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_MERGE_PAIRS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested deduplication tool is not admitted for
+/// `fastq.remove_duplicates`.
 pub fn select_remove_duplicates_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_REMOVE_DUPLICATES);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested chimera-removal tool is not admitted for
+/// `fastq.remove_chimeras`.
 pub fn select_remove_chimeras_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(
         &bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_CHIMERAS,
@@ -59,6 +82,9 @@ pub fn select_remove_chimeras_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested primer-normalization tool is not admitted for
+/// `fastq.normalize_primers`.
 pub fn select_normalize_primers_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(
         &bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS,
@@ -66,6 +92,9 @@ pub fn select_normalize_primers_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if `fastq.infer_asvs` has no admitted runtime tools or if any requested tool
+/// is not admitted for the stage.
 pub fn select_infer_asvs_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(
         &bijux_dna_domain_fastq::stages::ids::STAGE_INFER_ASVS,
@@ -76,6 +105,9 @@ pub fn select_infer_asvs_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested abundance-normalization tool is not admitted for
+/// `fastq.normalize_abundance`.
 pub fn select_normalize_abundance_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(
         &bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_ABUNDANCE,
@@ -83,6 +115,9 @@ pub fn select_normalize_abundance_tools(tools: &[String]) -> Result<Vec<String>>
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested OTU clustering tool is not admitted for
+/// `fastq.cluster_otus`.
 pub fn select_cluster_otus_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(
         &bijux_dna_domain_fastq::stages::ids::STAGE_CLUSTER_OTUS,
@@ -90,24 +125,34 @@ pub fn select_cluster_otus_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested correction tool is not admitted for
+/// `fastq.correct_errors`.
 pub fn select_correct_tools(tools: &[String], _allow_experimental: bool) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_CORRECT_ERRORS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested QC aggregation tool is not admitted for `fastq.report_qc`.
 pub fn select_qc_post_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_REPORT_QC);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested UMI extraction tool is not admitted for `fastq.extract_umis`.
 pub fn select_umi_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_EXTRACT_UMIS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested reference-indexing tool is not admitted for
+/// `fastq.index_reference`.
 pub fn select_index_reference_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(
         &bijux_dna_domain_fastq::stages::ids::STAGE_INDEX_REFERENCE,
@@ -115,12 +160,17 @@ pub fn select_index_reference_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested taxonomy-screening tool is not admitted for
+/// `fastq.screen_taxonomy`.
 pub fn select_screen_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_SCREEN_TAXONOMY);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested host-depletion tool is not admitted for `fastq.deplete_host`.
 pub fn select_deplete_host_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(
         &bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_HOST,
@@ -128,6 +178,9 @@ pub fn select_deplete_host_tools(tools: &[String]) -> Result<Vec<String>> {
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested contaminant-depletion tool is not admitted for
+/// `fastq.deplete_reference_contaminants`.
 pub fn select_deplete_reference_contaminants_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(
         &bijux_dna_domain_fastq::stages::ids::STAGE_DEPLETE_REFERENCE_CONTAMINANTS,
@@ -135,18 +188,26 @@ pub fn select_deplete_reference_contaminants_tools(tools: &[String]) -> Result<V
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested rRNA depletion tool is not admitted for `fastq.deplete_rrna`.
 pub fn select_deplete_rrna_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_DEPLETE_RRNA);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested read-statistics tool is not admitted for
+/// `fastq.profile_reads`.
 pub fn select_stats_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist =
         crate::selection::allowed_tools_for_stage(&bijux_dna_domain_fastq::STAGE_PROFILE_READS);
     select_tools_with_allowlist(tools, &allowlist)
 }
 
+/// # Errors
+/// Returns an error if any requested overrepresented-sequence profiling tool is not admitted for
+/// `fastq.profile_overrepresented_sequences`.
 pub fn select_profile_overrepresented_tools(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(
         &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,

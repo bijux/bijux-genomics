@@ -18,6 +18,8 @@ pub const STAGE_ID: StageId = STAGE_DETECT_ADAPTERS;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub type DetectAdaptersPlanOptions = crate::DetectAdaptersStageParams;
 
+/// # Errors
+/// Returns an error if adapter detection cannot be planned for the requested tool.
 pub fn plan(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -27,6 +29,8 @@ pub fn plan(
     plan_with_options(tool, r1, r2, out_dir, &DetectAdaptersPlanOptions::default())
 }
 
+/// # Errors
+/// Returns an error if adapter detection cannot be planned for the requested tool or options.
 pub fn plan_with_options(
     tool: &ToolExecutionSpecV1,
     r1: &Path,

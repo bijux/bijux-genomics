@@ -49,6 +49,8 @@ impl Default for ValidateReadsPlanOptions {
     }
 }
 
+/// # Errors
+/// Returns an error if read validation cannot be planned for the requested tool or layout.
 pub fn plan(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -58,6 +60,9 @@ pub fn plan(
     plan_with_options(tool, r1, r2, out_dir, &default_plan_options_for_layout(r2))
 }
 
+/// # Errors
+/// Returns an error if the requested validation options are incompatible with the input layout or
+/// the stage plan cannot be built.
 pub fn plan_with_options(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -146,6 +151,8 @@ pub fn plan_with_options(
     })
 }
 
+/// # Errors
+/// Returns an error if any requested validation tool is not admitted for `fastq.validate_reads`.
 pub fn normalize_validate_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     normalize_tools_with_allowlist(tools, &allowlist)
@@ -161,6 +168,8 @@ pub fn resolve_config(user: ValidateReadsUserConfig) -> ValidateReadsEffectiveCo
     }
 }
 
+/// # Errors
+/// Returns an error if the stage plan cannot be built from the resolved validation config.
 pub fn plan_from_config(
     tool: &ToolExecutionSpecV1,
     config: &ValidateReadsEffectiveConfig,

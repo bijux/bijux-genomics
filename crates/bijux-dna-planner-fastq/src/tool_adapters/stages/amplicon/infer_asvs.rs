@@ -18,6 +18,9 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub type InferAsvsPlanOptions = crate::InferAsvsStageParams;
 const DEFAULT_INFER_ASVS_THREADS: u32 = 1;
 
+/// # Errors
+/// Returns an error if ASV inference is not runtime-closed or the requested stage plan cannot be
+/// built.
 pub fn plan(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -27,6 +30,9 @@ pub fn plan(
     plan_with_options(tool, r1, r2, out_dir, &InferAsvsPlanOptions::baseline())
 }
 
+/// # Errors
+/// Returns an error if ASV inference is not runtime-closed, the requested options are unsupported,
+/// or the stage plan cannot be built.
 pub fn plan_with_options(
     tool: &ToolExecutionSpecV1,
     r1: &Path,

@@ -15,6 +15,8 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 pub type ClusterOtusPlanOptions = crate::ClusterOtusStageParams;
 const DEFAULT_CLUSTER_OTUS_THREADS: u32 = 4;
 
+/// # Errors
+/// Returns an error if OTU clustering cannot be planned for the requested input layout or tool.
 pub fn plan(
     tool: &ToolExecutionSpecV1,
     r1: &Path,
@@ -24,6 +26,9 @@ pub fn plan(
     plan_with_options(tool, r1, r2, out_dir, &ClusterOtusPlanOptions::baseline())
 }
 
+/// # Errors
+/// Returns an error if the requested OTU clustering options are unsupported or the stage plan
+/// cannot be built.
 pub fn plan_with_options(
     tool: &ToolExecutionSpecV1,
     r1: &Path,

@@ -34,6 +34,8 @@ impl Default for MergePlanOptions {
     }
 }
 
+/// # Errors
+/// Returns an error if any requested merge tool is not admitted for `fastq.merge_pairs`.
 pub fn normalize_merge_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     normalize_tools_with_allowlist(tools, &allowlist)
@@ -52,6 +54,9 @@ pub fn plan_merge(
     plan_merge_with_options(tool, r1, r2, out_dir, &MergePlanOptions::default())
 }
 
+/// # Errors
+/// Returns an error if the requested merge options are unsupported or the stage plan cannot be
+/// built.
 pub fn plan_merge_with_options(
     tool: &ToolExecutionSpecV1,
     r1: &Path,

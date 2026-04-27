@@ -26,6 +26,8 @@ pub struct FilterPlanOptions {
     pub polyx_policy: Option<String>,
 }
 
+/// # Errors
+/// Returns an error if any requested filter tool is not admitted for `fastq.filter_reads`.
 pub fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
     let allowlist = crate::selection::allowed_tools_for_stage(&STAGE_ID);
     normalize_tools_with_allowlist(tools, &allowlist)
