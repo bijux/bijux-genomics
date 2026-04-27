@@ -8,7 +8,7 @@ Use these rules when changing `bijux-dna-stages-vcf`.
 - Update `stage_specs.rs`, `docs/STAGE_CONTRACTS.md`, and
   `docs/COMMANDS.md` when a stage becomes managed here.
 - Keep `implemented_stages()` and the catalog tests aligned with the supported
-  stage set.
+  stage set, not the full planned domain catalog.
 
 ## Execution Behavior
 

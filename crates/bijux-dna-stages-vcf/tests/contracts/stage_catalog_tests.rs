@@ -10,16 +10,19 @@ fn stage_catalog_covers_every_domain_vcf_stage_id() {
 }
 
 #[test]
-fn implemented_stages_match_domain_vcf_stage_catalog() {
+fn implemented_stages_match_supported_stage_catalog() {
     let implemented = bijux_dna_stages_vcf::implemented_stages()
         .into_iter()
         .map(|stage| stage.as_str().to_string())
         .collect::<std::collections::BTreeSet<_>>();
+    let supported = bijux_dna_stages_vcf::stage_specs::supported_vcf_stages()
+        .into_iter()
+        .map(str::to_string)
+        .collect::<std::collections::BTreeSet<_>>();
 
     assert_eq!(
-        implemented,
-        domain_stage_ids(),
-        "implemented_stages must expose the full VCF domain stage surface implemented here"
+        implemented, supported,
+        "implemented_stages must expose the supported VCF stage surface implemented here"
     );
 }
 

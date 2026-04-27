@@ -15,7 +15,7 @@ The crate root exports the VCF stage execution modules from `src/lib.rs`.
 
 ## Stable Root Exports
 
-- `implemented_stages`
+- `implemented_stages` for the supported execution surface managed by this crate
 
 ## Compatibility Rules
 

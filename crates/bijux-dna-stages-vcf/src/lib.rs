@@ -30,5 +30,9 @@ pub mod wrappers;
 
 #[must_use]
 pub fn implemented_stages() -> Vec<bijux_dna_domain_vcf::VcfDomainStage> {
-    bijux_dna_domain_vcf::VcfDomainStage::all().to_vec()
+    bijux_dna_domain_vcf::VcfDomainStage::all()
+        .iter()
+        .copied()
+        .filter(|stage| stage_specs::supported_vcf_stages().contains(&stage.as_str()))
+        .collect()
 }
