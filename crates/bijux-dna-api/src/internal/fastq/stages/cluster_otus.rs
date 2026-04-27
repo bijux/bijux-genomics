@@ -270,11 +270,7 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
         });
         validate_cluster_otus_report_identity(tool, &report)?;
         validate_cluster_otus_report_metrics(&report, &metric_set.metrics)?;
-        bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
-        bijux_dna_infra::atomic_write_json(
-            &out_dir.join("metrics.json"),
-            &serde_json::to_value(&metric_set)?,
-        )?;
+        write_cluster_otus_artifacts(&out_dir, &outputs, &report, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
@@ -373,6 +369,62 @@ fn validate_cluster_otus_report_metrics(
             metrics.representative_count,
             report.representative_sequence_count
         ));
+    }
+    Ok(())
+}
+
+fn write_cluster_otus_artifacts(
+    out_dir: &std::path::Path,
+    outputs: &ClusterOtusOutputs,
+    report: &ClusterOtusReportV1,
+    metric_set: &bijux_dna_analyze::MetricSet<FastqClusterOtusMetrics>,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(&outputs.report_json, report)?;
+    bijux_dna_infra::atomic_write_json(
+        &out_dir.join("metrics.json"),
+        &serde_json::to_value(metric_set)?,
+    )?;
+    validate_cluster_otus_written_artifacts(out_dir, outputs, report)
+}
+
+fn validate_cluster_otus_written_artifacts(
+    out_dir: &std::path::Path,
+    outputs: &ClusterOtusOutputs,
+    report: &ClusterOtusReportV1,
+) -> Result<()> {
+    let metrics_json = out_dir.join("metrics.json");
+    for path in [
+        outputs.otu_table.as_path(),
+        outputs.otu_representatives.as_path(),
+        outputs.taxonomy_reference_fasta.as_path(),
+        outputs.taxonomy_reads_fastq.as_path(),
+        outputs.report_json.as_path(),
+        metrics_json.as_path(),
+    ] {
+        validate_cluster_otus_artifact_exists(path)?;
+    }
+    validate_cluster_otus_nonempty_artifact(&outputs.otu_table)?;
+    validate_cluster_otus_nonempty_artifact(&outputs.report_json)?;
+    validate_cluster_otus_nonempty_artifact(&metrics_json)?;
+    if report.representative_sequence_count > 0 {
+        validate_cluster_otus_nonempty_artifact(&outputs.otu_representatives)?;
+        validate_cluster_otus_nonempty_artifact(&outputs.taxonomy_reference_fasta)?;
+        validate_cluster_otus_nonempty_artifact(&outputs.taxonomy_reads_fastq)?;
+    }
+    Ok(())
+}
+
+fn validate_cluster_otus_artifact_exists(path: &std::path::Path) -> Result<()> {
+    std::fs::metadata(path)
+        .with_context(|| format!("read cluster_otus artifact {}", path.display()))?;
+    Ok(())
+}
+
+fn validate_cluster_otus_nonempty_artifact(path: &std::path::Path) -> Result<()> {
+    let metadata = std::fs::metadata(path)
+        .with_context(|| format!("read cluster_otus artifact {}", path.display()))?;
+    if metadata.len() == 0 {
+        return Err(anyhow!("cluster_otus artifact is empty: {}", path.display()));
     }
     Ok(())
 }
