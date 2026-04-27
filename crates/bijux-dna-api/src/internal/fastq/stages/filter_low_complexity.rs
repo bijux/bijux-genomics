@@ -7,7 +7,9 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::quality::{
     fetch_fastq_filter_low_complexity_v1, insert_fastq_filter_low_complexity_v1,
 };
-use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqLowComplexityMetrics};
+use bijux_dna_analyze::{
+    append_jsonl, metric_set, BenchmarkRecord, FastqLowComplexityMetrics, MetricSet,
+};
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
@@ -358,9 +360,7 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
         .parent()
         .ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
     write_low_complexity_report(out_dir, &report)?;
-    let metrics_json = serde_json::to_value(&metric_set)?;
-    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
-        .context("write low-complexity metrics")?;
+    write_low_complexity_metrics(out_dir, &metric_set)?;
 
     let context = build_benchmark_context(
         inputs.tool,
@@ -487,6 +487,15 @@ fn write_low_complexity_report(
 ) -> Result<()> {
     bijux_dna_infra::atomic_write_json(&out_dir.join("low_complexity_report.json"), report)
         .context("write low-complexity report")
+}
+
+fn write_low_complexity_metrics(
+    out_dir: &std::path::Path,
+    metric_set: &MetricSet<FastqLowComplexityMetrics>,
+) -> Result<()> {
+    let metrics_json = serde_json::to_value(metric_set)?;
+    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+        .context("write low-complexity metrics")
 }
 
 fn low_complexity_backend_metrics(
