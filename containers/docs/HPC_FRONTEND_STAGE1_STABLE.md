@@ -6,6 +6,14 @@ Repository head at freeze: `2303f4f7`
 ## Scope
 This freeze marks governance checks for container policy Stage 1 on HPC frontend workflows.
 
+Authority surfaces:
+- [../README.md](../README.md)
+- [FRONTEND_BUILD_AUTHORITY.md](FRONTEND_BUILD_AUTHORITY.md)
+- [TOOL_IDS_CONTRACT.md](TOOL_IDS_CONTRACT.md)
+- [VERSION_AUTHORITY.md](VERSION_AUTHORITY.md)
+- [../versions/LOCK.md](../versions/LOCK.md)
+- [../../docs/30-operations/APPTAINER_QA_MATRIX.md](../../docs/30-operations/APPTAINER_QA_MATRIX.md)
+
 ## Evidence
 - `cargo run -p bijux-dna-dev -- containers run check-tool-id-manifest` -> `OK`
 - `cargo run -p bijux-dna-dev -- containers run check-tool-id-contract` -> `OK`

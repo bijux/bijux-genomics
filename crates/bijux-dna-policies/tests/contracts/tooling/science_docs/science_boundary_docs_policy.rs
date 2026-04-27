@@ -575,3 +575,21 @@ fn policy__contracts__science_boundary_docs_policy__container_smoke_contract_doc
         "containers/docs/SMOKE_CONTRACT.md must link the governed smoke-contract authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__hpc_frontend_stage_freeze_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "FRONTEND_BUILD_AUTHORITY.md".to_string(),
+        "TOOL_IDS_CONTRACT.md".to_string(),
+        "VERSION_AUTHORITY.md".to_string(),
+        "../versions/LOCK.md".to_string(),
+        "../../docs/30-operations/APPTAINER_QA_MATRIX.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/HPC_FRONTEND_STAGE1_STABLE.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/HPC_FRONTEND_STAGE1_STABLE.md must link the governed frontend-freeze authorities exactly"
+    );
+}
