@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::Path;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -90,19 +91,24 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             failures.push(failure);
             continue;
         }
-        let record = build_filter_record(
+        let record = build_filter_record(&FilterRecordInputs {
             catalog,
             platform,
-            &setup.bench_inputs,
-            setup.input_stats_r2.as_ref(),
+            bench_inputs: &setup.bench_inputs,
+            input_stats_r2: setup.input_stats_r2.as_ref(),
             tool,
-            &tool_plan.tool_spec,
-            &setup.input_hash,
-            &tool_plan.plan.params,
-            &tool_plan.plan.io.outputs[0].path,
-            tool_plan.plan.io.outputs.get(1).map(|artifact| artifact.path.as_path()),
-            &execution,
-        )?;
+            tool_spec: &tool_plan.tool_spec,
+            input_hash: &setup.input_hash,
+            params: &tool_plan.plan.params,
+            output_reads: &tool_plan.plan.io.outputs[0].path,
+            output_reads_r2: tool_plan
+                .plan
+                .io
+                .outputs
+                .get(1)
+                .map(|artifact| artifact.path.as_path()),
+            execution: &execution,
+        })?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_filter_v2(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
@@ -130,6 +136,20 @@ struct FilterToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct FilterRecordInputs<'a, S: ::std::hash::BuildHasher> {
+    catalog: &'a HashMap<String, ToolImageSpec, S>,
+    platform: &'a PlatformSpec,
+    bench_inputs: &'a TrimBenchInputs,
+    input_stats_r2: Option<&'a SeqkitMetrics>,
+    tool: &'a str,
+    tool_spec: &'a ToolExecutionSpecV1,
+    input_hash: &'a str,
+    params: &'a serde_json::Value,
+    output_reads: &'a Path,
+    output_reads_r2: Option<&'a Path>,
+    execution: &'a StageResultV1,
 }
 
 fn select_filter_benchmark_tools(
@@ -269,20 +289,21 @@ fn filter_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
     })
 }
 
-#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+#[allow(clippy::too_many_lines)]
 fn build_filter_record<S: ::std::hash::BuildHasher>(
-    catalog: &HashMap<String, ToolImageSpec, S>,
-    platform: &PlatformSpec,
-    bench_inputs: &crate::internal::fastq::stages::trim_bench_common::TrimBenchInputs,
-    input_stats_r2: Option<&SeqkitMetrics>,
-    tool: &str,
-    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
-    input_hash: &str,
-    params: &serde_json::Value,
-    output_reads: &std::path::Path,
-    output_reads_r2: Option<&std::path::Path>,
-    execution: &StageResultV1,
+    inputs: &FilterRecordInputs<'_, S>,
 ) -> Result<BenchmarkRecord<FastqFilterMetrics>> {
+    let catalog = inputs.catalog;
+    let platform = inputs.platform;
+    let bench_inputs = inputs.bench_inputs;
+    let input_stats_r2 = inputs.input_stats_r2;
+    let tool = inputs.tool;
+    let tool_spec = inputs.tool_spec;
+    let input_hash = inputs.input_hash;
+    let params = inputs.params;
+    let output_reads = inputs.output_reads;
+    let output_reads_r2 = inputs.output_reads_r2;
+    let execution = inputs.execution;
     let output_stats_r1 = if execution.exit_code == 0 && output_reads.exists() {
         observe_fastq_stats(catalog, platform, bench_inputs.runner, output_reads)?
     } else {
