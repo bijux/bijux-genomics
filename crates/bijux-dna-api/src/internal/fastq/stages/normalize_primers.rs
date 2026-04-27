@@ -114,6 +114,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         });
         let metric_set = build_normalize_primers_metric_set(&measurements, &report)?;
         validate_normalize_primers_report_identity(tool, &report)?;
+        validate_normalize_primers_report_metrics(&report, &metric_set.metrics)?;
         write_normalize_primers_artifacts(&tool_plan, &outputs, &report, &metric_set)?;
         let record = build_normalize_primers_record(
             &NormalizePrimersRecordInputs {
@@ -615,6 +616,46 @@ fn validate_normalize_primers_report_identity(
             "normalize primers report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_normalize_primers_report_metrics(
+    report: &NormalizePrimersReportV1,
+    metrics: &FastqNormalizePrimersMetrics,
+) -> Result<()> {
+    if report.reads_in != Some(metrics.reads_in) {
+        return Err(anyhow!(
+            "normalize primers report reads_in mismatch: expected {}, observed {:?}",
+            metrics.reads_in,
+            report.reads_in
+        ));
+    }
+    if report.reads_out != Some(metrics.reads_out) {
+        return Err(anyhow!(
+            "normalize primers report reads_out mismatch: expected {}, observed {:?}",
+            metrics.reads_out,
+            report.reads_out
+        ));
+    }
+    if report
+        .primer_trimmed_fraction
+        .is_none_or(|observed| (observed - metrics.primer_trimmed_fraction).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "normalize primers report primer_trimmed_fraction mismatch: expected {}, observed {:?}",
+            metrics.primer_trimmed_fraction,
+            report.primer_trimmed_fraction
+        ));
+    }
+    if report.orientation_forward_fraction.is_none_or(|observed| {
+        (observed - metrics.orientation_forward_fraction).abs() > f64::EPSILON
+    }) {
+        return Err(anyhow!(
+            "normalize primers report orientation_forward_fraction mismatch: expected {}, observed {:?}",
+            metrics.orientation_forward_fraction,
+            report.orientation_forward_fraction
         ));
     }
     Ok(())
