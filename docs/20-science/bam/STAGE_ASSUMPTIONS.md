@@ -8,14 +8,14 @@ These assumptions define when BAM-stage outputs are scientifically interpretable
 instead of merely syntactically valid.
 
 ## Non-goals
-- Replacing the lower-level stage manifests under `domain/bam/stages/`.
-- Repeating tool-specific failure modes that belong in `TOOLS_ROSTER.md`.
+- Replacing the lower-level stage manifests under [domain/bam/stages/](../../../domain/bam/stages/).
+- Repeating tool-specific failure modes that belong in [TOOLS_ROSTER.md](TOOLS_ROSTER.md).
 
 ## Contracts
 - Every `status: "supported"` BAM stage must appear exactly once below.
 - Planned BAM stages stay out of this list until they are promoted to supported.
 - The authoritative source for per-stage assumption payloads remains
-  `domain/bam/stages/*.yaml` (`assumptions` field).
+  [domain/bam/stages/](../../../domain/bam/stages/) (`assumptions` field).
 
 ## Stage assumptions
 - `bam.align`: read-to-reference mapping is meaningful under selected aligner parameters.
@@ -39,5 +39,5 @@ instead of merely syntactically valid.
 - Planned stages such as `bam.qc_pre`, `bam.markdup`, `bam.gc_bias`, `bam.insert_size`,
   `bam.overlap_correction`, `bam.bias_mitigation`, `bam.recalibration`,
   `bam.haplogroups`, `bam.genotyping`, and `bam.complexity` stay documented in
-  `STAGE_CATALOG.md` and `TOOLS_ROSTER.md`, but they do not belong in this
+  [STAGE_CATALOG.md](STAGE_CATALOG.md) and [TOOLS_ROSTER.md](TOOLS_ROSTER.md), but they do not belong in this
   supported-stage assumption ledger yet.
