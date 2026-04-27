@@ -221,6 +221,7 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
                 "execution_exit_code": execution.exit_code,
             })),
         );
+        validate_normalize_abundance_report_identity(tool, &report)?;
         bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
@@ -279,6 +280,34 @@ fn required_output_path(
 ) -> Result<std::path::PathBuf> {
     output_path_for(plan, artifact_name)
         .ok_or_else(|| anyhow!("normalize_abundance plan missing {artifact_name} output"))
+}
+
+fn validate_normalize_abundance_report_identity(
+    tool: &str,
+    report: &NormalizeAbundanceReportV1,
+) -> Result<()> {
+    if report.schema_version != NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "normalize_abundance report schema mismatch: expected {}, observed {}",
+            NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_ID || report.stage_id != STAGE_ID {
+        return Err(anyhow!(
+            "normalize_abundance report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool {
+        return Err(anyhow!(
+            "normalize_abundance report tool mismatch: expected {}, observed {}",
+            tool,
+            report.tool_id
+        ));
+    }
+    Ok(())
 }
 
 pub(crate) fn materialize_normalized_table(
