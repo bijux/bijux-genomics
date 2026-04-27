@@ -305,7 +305,7 @@ fn observe_profile_reads(
         &tool_plan.plan,
         &backend_rows,
         &length_histogram,
-        &execution_metrics_from_stage_result(&execution.result),
+        &stats_execution_metrics(execution),
     )?;
     let report = std::fs::read_to_string(required_plan_output_path(&tool_plan.plan, "qc_json")?)
         .ok()
@@ -575,7 +575,7 @@ fn run_stats_tool(
         &execution,
     )?;
     let context = build_profile_reads_context(platform, bench_inputs, tool_plan, &params);
-    let execution_metrics = execution_metrics_from_stage_result(&execution.result);
+    let execution_metrics = stats_execution_metrics(&execution);
     let metrics_json = serde_json::to_value(&observation.metric_set)?;
     let parameters_json_normalized =
         bijux_dna_core::contract::canonical::parameters_json_canonicalization(&params);
@@ -647,6 +647,10 @@ fn execution_metrics_from_stage_result(execution: &StageResultV1) -> ExecutionMe
         memory_mb: execution.memory_mb,
         exit_code: execution.exit_code,
     }
+}
+
+fn stats_execution_metrics(execution: &StatsToolExecution) -> ExecutionMetrics {
+    execution_metrics_from_stage_result(&execution.result)
 }
 
 fn parse_seqkit_stats_rows(stdout: &str) -> Result<Vec<ProfileReadsMateSummaryV1>> {
