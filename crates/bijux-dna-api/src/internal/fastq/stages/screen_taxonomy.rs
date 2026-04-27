@@ -405,6 +405,7 @@ fn build_screen_record(
     validate_screen_report_database(&effective_params, &governed_report)?;
     validate_screen_report_paths(inputs.plan, &governed_report)?;
     validate_screen_report_counts(&read_accounting, &governed_report)?;
+    validate_screen_report_classification(&classification_summary, &governed_report)?;
     bijux_dna_infra::atomic_write_json(&report_paths.classification_json, &governed_report)
         .context("write governed screen taxonomy report")?;
     let metrics =
@@ -726,6 +727,66 @@ fn validate_screen_summary_entries(entries: &[TaxonomyScreenSummaryEntryV1]) -> 
                 "screen taxonomy summary percent out of range for {}: {}",
                 entry.label,
                 entry.percent
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_screen_report_classification(
+    classification_summary: &ScreenClassificationSummary,
+    report: &ScreenTaxonomyReportV1,
+) -> Result<()> {
+    validate_screen_optional_fraction(
+        "classified_fraction",
+        classification_summary.classified_fraction,
+        report.classified_fraction,
+    )?;
+    validate_screen_optional_fraction(
+        "unclassified_fraction",
+        classification_summary.unclassified_fraction,
+        report.unclassified_fraction,
+    )?;
+    validate_screen_optional_fraction(
+        "contamination_rate",
+        Some(classification_summary.contamination_rate),
+        report.contamination_rate,
+    )?;
+    if let (Some(classified), Some(unclassified)) =
+        (report.classified_fraction, report.unclassified_fraction)
+    {
+        let total = classified + unclassified;
+        if (total - 1.0).abs() > f64::EPSILON {
+            return Err(anyhow!(
+                "screen taxonomy report classified/unclassified fractions must sum to 1: observed {total}"
+            ));
+        }
+    }
+    if report.summary_entries != classification_summary.entries {
+        return Err(anyhow!("screen taxonomy report summary entries mismatch"));
+    }
+    if report.top_taxa != classification_summary.top_taxa {
+        return Err(anyhow!("screen taxonomy report top taxa mismatch"));
+    }
+    Ok(())
+}
+
+fn validate_screen_optional_fraction(
+    name: &str,
+    expected: Option<f64>,
+    observed: Option<f64>,
+) -> Result<()> {
+    if observed != expected {
+        return Err(anyhow!(
+            "screen taxonomy report {name} mismatch: expected {:?}, observed {:?}",
+            expected,
+            observed
+        ));
+    }
+    if let Some(observed) = observed {
+        if !observed.is_finite() || !(0.0..=1.0).contains(&observed) {
+            return Err(anyhow!(
+                "screen taxonomy report {name} must be within [0, 1]: observed {observed}"
             ));
         }
     }
