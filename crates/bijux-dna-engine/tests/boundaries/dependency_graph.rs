@@ -3,9 +3,7 @@ use std::path::Path;
 
 #[test]
 fn normal_dependency_graph_matches_engine_boundary() {
-    let manifest =
-        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
-            .expect("read Cargo.toml");
+    let manifest = manifest();
     let dependencies = dependency_names(&manifest, "dependencies");
     let expected = entries([
         "anyhow",
@@ -27,9 +25,7 @@ fn normal_dependency_graph_matches_engine_boundary() {
 
 #[test]
 fn dev_dependency_graph_stays_test_facing() {
-    let manifest =
-        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
-            .expect("read Cargo.toml");
+    let manifest = manifest();
     let dependencies = dependency_names(&manifest, "dev-dependencies");
     let expected = entries(["bijux-dna-policies", "cargo_metadata", "tempfile", "walkdir"]);
 
@@ -38,9 +34,7 @@ fn dev_dependency_graph_stays_test_facing() {
 
 #[test]
 fn engine_rejects_planner_domain_stage_runner_and_environment_dependencies() {
-    let manifest =
-        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
-            .expect("read Cargo.toml");
+    let manifest = manifest();
     let dependencies = dependency_names(&manifest, "dependencies");
     let forbidden = [
         "bijux-dna-api",
@@ -64,6 +58,11 @@ fn engine_rejects_planner_domain_stage_runner_and_environment_dependencies() {
             "bijux-dna-engine must not depend on `{dependency}`"
         );
     }
+}
+
+fn manifest() -> String {
+    std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
+        .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"))
 }
 
 fn dependency_names(manifest: &str, section: &str) -> BTreeSet<String> {
