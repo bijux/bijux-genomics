@@ -162,6 +162,21 @@ struct UmiRecordInputs<'a, S: ::std::hash::BuildHasher> {
     execution: &'a StageResultV1,
 }
 
+struct UmiReportInputs<'a> {
+    tool: &'a str,
+    threads: u32,
+    params: &'a serde_json::Value,
+    r1: &'a std::path::Path,
+    r2: &'a std::path::Path,
+    output_r1: &'a std::path::Path,
+    output_r2: &'a std::path::Path,
+    input_stats_r1: &'a SeqkitMetrics,
+    input_stats_r2: &'a SeqkitMetrics,
+    output_stats_r1: &'a SeqkitMetrics,
+    output_stats_r2: &'a SeqkitMetrics,
+    execution: &'a StageResultV1,
+}
+
 fn prepare_umi_tool_plan<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -297,20 +312,20 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     } else {
         *inputs.input_stats_r2
     };
-    let report = build_umi_report(
-        inputs.tool,
-        inputs.tool_spec.resources.threads,
-        inputs.params,
-        inputs.r1,
-        inputs.r2,
-        &output_r1,
-        &output_r2,
-        inputs.input_stats_r1,
-        inputs.input_stats_r2,
-        &output_stats_r1,
-        &output_stats_r2,
-        inputs.execution,
-    );
+    let report = build_umi_report(&UmiReportInputs {
+        tool: inputs.tool,
+        threads: inputs.tool_spec.resources.threads,
+        params: inputs.params,
+        r1: inputs.r1,
+        r2: inputs.r2,
+        output_r1: &output_r1,
+        output_r2: &output_r2,
+        input_stats_r1: inputs.input_stats_r1,
+        input_stats_r2: inputs.input_stats_r2,
+        output_stats_r1: &output_stats_r1,
+        output_stats_r2: &output_stats_r2,
+        execution: inputs.execution,
+    });
     let metrics = FastqUmiMetrics {
         reads_in: report.reads_in,
         reads_out: report.reads_out,
@@ -351,29 +366,16 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     Ok(record)
 }
 
-#[allow(clippy::too_many_arguments)]
-fn build_umi_report(
-    tool: &str,
-    threads: u32,
-    params: &serde_json::Value,
-    r1: &std::path::Path,
-    r2: &std::path::Path,
-    output_r1: &std::path::Path,
-    output_r2: &std::path::Path,
-    input_stats_r1: &bijux_dna_core::prelude::measure::SeqkitMetrics,
-    input_stats_r2: &bijux_dna_core::prelude::measure::SeqkitMetrics,
-    output_stats_r1: &bijux_dna_core::prelude::measure::SeqkitMetrics,
-    output_stats_r2: &bijux_dna_core::prelude::measure::SeqkitMetrics,
-    execution: &StageResultV1,
-) -> ExtractUmisReportV1 {
-    let reads_in = input_stats_r1.reads + input_stats_r2.reads;
-    let reads_out = output_stats_r1.reads + output_stats_r2.reads;
-    let bases_in = input_stats_r1.bases + input_stats_r2.bases;
-    let bases_out = output_stats_r1.bases + output_stats_r2.bases;
-    let pairs_in = Some(input_stats_r1.reads.min(input_stats_r2.reads));
-    let pairs_out = Some(output_stats_r1.reads.min(output_stats_r2.reads));
+fn build_umi_report(inputs: &UmiReportInputs<'_>) -> ExtractUmisReportV1 {
+    let reads_in = inputs.input_stats_r1.reads + inputs.input_stats_r2.reads;
+    let reads_out = inputs.output_stats_r1.reads + inputs.output_stats_r2.reads;
+    let bases_in = inputs.input_stats_r1.bases + inputs.input_stats_r2.bases;
+    let bases_out = inputs.output_stats_r1.bases + inputs.output_stats_r2.bases;
+    let pairs_in = Some(inputs.input_stats_r1.reads.min(inputs.input_stats_r2.reads));
+    let pairs_out = Some(inputs.output_stats_r1.reads.min(inputs.output_stats_r2.reads));
     let reads_with_umi = reads_out;
-    let raw_backend_report = params
+    let raw_backend_report = inputs
+        .params
         .get("raw_backend_report")
         .and_then(serde_json::Value::as_str)
         .map(ToString::to_string);
@@ -381,19 +383,21 @@ fn build_umi_report(
         schema_version: EXTRACT_UMIS_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_EXTRACT_UMIS.as_str().to_string(),
         stage_id: STAGE_EXTRACT_UMIS.as_str().to_string(),
-        tool_id: tool.to_string(),
+        tool_id: inputs.tool.to_string(),
         paired_mode: PairedMode::PairedEnd,
-        threads,
-        umi_pattern: params
+        threads: inputs.threads,
+        umi_pattern: inputs
+            .params
             .get("umi_pattern")
             .and_then(serde_json::Value::as_str)
             .unwrap_or("NNNNNNNN")
             .to_string(),
-        input_r1: r1.display().to_string(),
-        input_r2: Some(r2.display().to_string()),
-        output_r1: output_r1.display().to_string(),
-        output_r2: Some(output_r2.display().to_string()),
-        report_json: params
+        input_r1: inputs.r1.display().to_string(),
+        input_r2: Some(inputs.r2.display().to_string()),
+        output_r1: inputs.output_r1.display().to_string(),
+        output_r2: Some(inputs.output_r2.display().to_string()),
+        report_json: inputs
+            .params
             .get("report_json")
             .and_then(serde_json::Value::as_str)
             .unwrap_or("umi_report.json")
@@ -405,13 +409,14 @@ fn build_umi_report(
         pairs_in,
         pairs_out,
         reads_with_umi,
-        mean_q_before: weighted_mean_q(input_stats_r1, input_stats_r2),
-        mean_q_after: weighted_mean_q(output_stats_r1, output_stats_r2),
-        runtime_s: Some(execution.runtime_s),
-        memory_mb: Some(execution.memory_mb),
-        exit_code: Some(execution.exit_code),
+        mean_q_before: weighted_mean_q(inputs.input_stats_r1, inputs.input_stats_r2),
+        mean_q_after: weighted_mean_q(inputs.output_stats_r1, inputs.output_stats_r2),
+        runtime_s: Some(inputs.execution.runtime_s),
+        memory_mb: Some(inputs.execution.memory_mb),
+        exit_code: Some(inputs.execution.exit_code),
         raw_backend_report: raw_backend_report.clone(),
-        raw_backend_report_format: params
+        raw_backend_report_format: inputs
+            .params
             .get("raw_backend_report_format")
             .and_then(serde_json::Value::as_str)
             .map(ToString::to_string),
