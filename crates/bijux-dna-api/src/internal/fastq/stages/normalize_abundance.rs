@@ -222,6 +222,7 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
             })),
         );
         validate_normalize_abundance_report_identity(tool, &report)?;
+        validate_normalize_abundance_report_metrics(&report, &metric_set.metrics)?;
         bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
@@ -305,6 +306,41 @@ fn validate_normalize_abundance_report_identity(
             "normalize_abundance report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_normalize_abundance_report_metrics(
+    report: &NormalizeAbundanceReportV1,
+    metrics: &FastqNormalizeAbundanceMetrics,
+) -> Result<()> {
+    if report.table_rows != metrics.table_rows {
+        return Err(anyhow!(
+            "normalize_abundance report table_rows mismatch: expected {}, observed {}",
+            metrics.table_rows,
+            report.table_rows
+        ));
+    }
+    if report.sample_count != metrics.sample_count {
+        return Err(anyhow!(
+            "normalize_abundance report sample_count mismatch: expected {}, observed {}",
+            metrics.sample_count,
+            report.sample_count
+        ));
+    }
+    if (report.zero_fraction - metrics.zero_fraction).abs() > f64::EPSILON {
+        return Err(anyhow!(
+            "normalize_abundance report zero_fraction mismatch: expected {}, observed {}",
+            metrics.zero_fraction,
+            report.zero_fraction
+        ));
+    }
+    if report.method != metrics.normalization_method {
+        return Err(anyhow!(
+            "normalize_abundance report method mismatch: expected {}, observed {}",
+            metrics.normalization_method,
+            report.method
         ));
     }
     Ok(())
