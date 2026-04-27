@@ -15,7 +15,7 @@
 - [science/specs/releases/README.md](specs/releases/README.md) is the authored release-manifest surface
 - [science/specs/reports/README.md](specs/reports/README.md) is the authored report-intent surface
 - [science/specs/results/README.md](specs/results/README.md) is the authored result-plane surface
-- `science/generated/**` is compiler output
+- [science/generated/README.md](generated/README.md) is the committed compiler output surface
 - `artifacts/science-releases/**` is release output
 - [science/docs/README.md](docs/README.md) is the local manual archive for non-shareable evidence payloads
 
@@ -43,8 +43,17 @@ It traces and compiles the claims that explain how those surfaces are used.
 
 ## Generated Index
 
+[science/generated/README.md](generated/README.md) is the authored landing page
+for committed compiler outputs. It fans out to the current snapshot in
+[science/generated/current/README.md](generated/current/README.md), the
+row-level inventory in
+[science/generated/current/evidence/README.md](generated/current/evidence/README.md),
+and the rolled-up index surface in
+[science/generated/indexes/README.md](generated/indexes/README.md).
+
 [science/generated/indexes/science_index.json](generated/indexes/science_index.json)
-is the top-level operator entrypoint for the generated FASTQ science slice.
+remains the top-level machine-readable operator entrypoint for the generated
+FASTQ science slice.
 
 - Row counts show the size of each governed evidence surface.
 - `source_archive_summary` shows which kinds of sources are present, which access modes they use,
@@ -54,9 +63,9 @@ is the top-level operator entrypoint for the generated FASTQ science slice.
 - `fastq_evidence_summary` shows the distribution of backlog, paper archive, prerequisite, risk,
   and truth-delta categories without reopening every TSV.
 
-Use the index to decide which evidence table to inspect next, then use the TSV
-files under [science/generated/current/evidence/](generated/current/evidence/)
-for the stage- and tool-level detail.
+Use the index to decide which evidence table to inspect next, then use
+[science/generated/current/evidence/README.md](generated/current/evidence/README.md)
+for the stage- and tool-level ledger inventory.
 
 ## Local Evidence Archive
 
