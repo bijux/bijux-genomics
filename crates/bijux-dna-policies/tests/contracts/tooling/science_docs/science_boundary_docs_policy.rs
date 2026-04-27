@@ -180,3 +180,22 @@ fn policy__contracts__science_boundary_docs_policy__operations_container_doc_lin
         "docs/30-operations/CONTAINERS.md must link the governed container operations surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_versions_index_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../docs/VERSION_AUTHORITY.md".to_string(),
+        "../docs/LOCK_LIFECYCLE.md".to_string(),
+        "versions.toml".to_string(),
+        "LOCK.md".to_string(),
+        "lock.json".to_string(),
+        "index.sha256".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/versions/index.md");
+    assert_eq!(
+        expected, documented,
+        "containers/versions/index.md must link the governed version-control surfaces exactly"
+    );
+}
