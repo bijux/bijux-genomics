@@ -29,8 +29,7 @@ fn rust_source(path: &Path) -> String {
 }
 
 fn collect_rust_source(path: &Path, source: &mut String) {
-    for entry in fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
-    {
+    for entry in fs::read_dir(path).unwrap_or_else(|err| panic!("read {}: {err}", path.display())) {
         let entry = entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display()));
         let path = entry.path();
         if path.is_dir() {

@@ -40,10 +40,8 @@ fn documented_public_modules(docs: &str) -> BTreeSet<String> {
                 in_public_modules = false;
             }
             line if in_public_modules => {
-                if let Some(module) = line
-                    .trim()
-                    .strip_prefix("- `")
-                    .and_then(|module| module.strip_suffix('`'))
+                if let Some(module) =
+                    line.trim().strip_prefix("- `").and_then(|module| module.strip_suffix('`'))
                 {
                     modules.insert(module.to_string());
                 }
