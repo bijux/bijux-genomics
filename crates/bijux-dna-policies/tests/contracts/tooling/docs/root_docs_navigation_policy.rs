@@ -176,3 +176,21 @@ fn policy__contracts__root_docs_navigation_policy__architecture_index_links_gove
         "docs/10-architecture/index.md must link the governed architecture entry surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__architecture_overview_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs"
+            .to_string(),
+        "../../crates/bijux-dna-policies/tests/contracts/data/contract_handshake.rs"
+            .to_string(),
+        "BOUNDARY_DIAGRAM.md".to_string(),
+        "CONTRACT_SPINE.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/ARCHITECTURE_OVERVIEW.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/ARCHITECTURE_OVERVIEW.md must link the governed overview authorities exactly"
+    );
+}
