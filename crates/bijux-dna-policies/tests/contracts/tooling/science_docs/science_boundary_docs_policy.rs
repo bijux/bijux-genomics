@@ -233,3 +233,22 @@ fn policy__contracts__science_boundary_docs_policy__container_lock_lifecycle_lin
         "containers/docs/LOCK_LIFECYCLE.md must link the governed lock-lifecycle surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_version_lock_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "versions.toml".to_string(),
+        "lock.json".to_string(),
+        "../README.md".to_string(),
+        "index.md".to_string(),
+        "../docs/VERSION_AUTHORITY.md".to_string(),
+        "../docs/FRONTEND_BUILD_AUTHORITY.md".to_string(),
+        "deprecations.toml".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/versions/LOCK.md");
+    assert_eq!(
+        expected, documented,
+        "containers/versions/LOCK.md must link the governed lock-authority surfaces exactly"
+    );
+}
