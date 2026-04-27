@@ -549,15 +549,7 @@ fn build_filter_benchmark_record(
     inputs: &FilterBenchmarkRecordInputs<'_>,
     metric_set: MetricSet<FastqFilterMetrics>,
 ) -> Result<BenchmarkRecord<FastqFilterMetrics>> {
-    let context = build_benchmark_context(
-        inputs.tool,
-        inputs.tool_spec.tool_version.clone(),
-        benchmark_image_identity(inputs.tool_spec),
-        inputs.bench_inputs.runner,
-        inputs.platform,
-        inputs.input_hash.to_string(),
-        inputs.params.clone(),
-    );
+    let context = build_filter_context(inputs);
     let record = BenchmarkRecord {
         context,
         execution: ExecutionMetrics {
@@ -569,6 +561,20 @@ fn build_filter_benchmark_record(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn build_filter_context(
+    inputs: &FilterBenchmarkRecordInputs<'_>,
+) -> bijux_dna_analyze::BenchmarkContext {
+    build_benchmark_context(
+        inputs.tool,
+        inputs.tool_spec.tool_version.clone(),
+        benchmark_image_identity(inputs.tool_spec),
+        inputs.bench_inputs.runner,
+        inputs.platform,
+        inputs.input_hash.to_string(),
+        inputs.params.clone(),
+    )
 }
 
 fn build_filter_report(inputs: &FilterReportBuildInputs<'_>) -> FilterReadsReportV1 {
