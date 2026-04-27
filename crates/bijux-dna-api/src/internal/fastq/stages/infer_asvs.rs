@@ -288,6 +288,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             backend_metrics: Some(payload),
         });
         validate_infer_asvs_report_identity(tool, &report)?;
+        validate_infer_asvs_report_metrics(&report, &metric_set.metrics)?;
         bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
@@ -388,6 +389,27 @@ fn validate_infer_asvs_report_identity(tool: &str, report: &InferAsvsReportV1) -
             "infer_asvs report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_infer_asvs_report_metrics(
+    report: &InferAsvsReportV1,
+    metrics: &FastqInferAsvsMetrics,
+) -> Result<()> {
+    if report.asv_count != metrics.asv_count {
+        return Err(anyhow!(
+            "infer_asvs report asv_count mismatch: expected {}, observed {}",
+            metrics.asv_count,
+            report.asv_count
+        ));
+    }
+    if report.sample_count != metrics.sample_count {
+        return Err(anyhow!(
+            "infer_asvs report sample_count mismatch: expected {}, observed {}",
+            metrics.sample_count,
+            report.sample_count
         ));
     }
     Ok(())
