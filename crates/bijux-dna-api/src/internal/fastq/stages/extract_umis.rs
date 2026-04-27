@@ -449,6 +449,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
     validate_umi_report_identity(inputs.tool, &report)?;
+    validate_umi_report_metrics(&report, &metric_set.metrics)?;
     write_umi_report(&artifacts.report_json, &report)?;
     write_umi_metrics(inputs.out_dir, &metric_set)?;
 
@@ -559,6 +560,62 @@ fn validate_umi_report_identity(tool: &str, report: &ExtractUmisReportV1) -> Res
             "extract_umis report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_umi_report_metrics(
+    report: &ExtractUmisReportV1,
+    metrics: &FastqUmiMetrics,
+) -> Result<()> {
+    if report.reads_in != metrics.reads_in {
+        return Err(anyhow!(
+            "extract_umis report reads_in mismatch: expected {}, observed {}",
+            metrics.reads_in,
+            report.reads_in
+        ));
+    }
+    if report.reads_out != metrics.reads_out {
+        return Err(anyhow!(
+            "extract_umis report reads_out mismatch: expected {}, observed {}",
+            metrics.reads_out,
+            report.reads_out
+        ));
+    }
+    if report.bases_in != metrics.bases_in {
+        return Err(anyhow!(
+            "extract_umis report bases_in mismatch: expected {}, observed {}",
+            metrics.bases_in,
+            report.bases_in
+        ));
+    }
+    if report.bases_out != metrics.bases_out {
+        return Err(anyhow!(
+            "extract_umis report bases_out mismatch: expected {}, observed {}",
+            metrics.bases_out,
+            report.bases_out
+        ));
+    }
+    if report.pairs_in != metrics.pairs_in {
+        return Err(anyhow!(
+            "extract_umis report pairs_in mismatch: expected {:?}, observed {:?}",
+            metrics.pairs_in,
+            report.pairs_in
+        ));
+    }
+    if report.pairs_out != metrics.pairs_out {
+        return Err(anyhow!(
+            "extract_umis report pairs_out mismatch: expected {:?}, observed {:?}",
+            metrics.pairs_out,
+            report.pairs_out
+        ));
+    }
+    if report.reads_with_umi != metrics.reads_with_umi {
+        return Err(anyhow!(
+            "extract_umis report reads_with_umi mismatch: expected {}, observed {}",
+            metrics.reads_with_umi,
+            report.reads_with_umi
         ));
     }
     Ok(())
