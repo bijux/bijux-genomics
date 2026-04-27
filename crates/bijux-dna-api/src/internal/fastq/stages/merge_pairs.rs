@@ -32,7 +32,6 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
-use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::{
     benchmark_image_identity, build_benchmark_context, observe_fastq_stats,
@@ -272,7 +271,7 @@ fn prepare_merge_tool_plan<S: ::std::hash::BuildHasher>(
     )?;
     let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
     let plan = plan_merge_with_options(&tool_spec, &args.r1, &args.r2, &out_dir, &setup.options)?;
-    let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let params_hash = params_hash(&plan.params).context("hash merge plan params")?;
     let image_digest = tool_spec
         .image
         .digest
