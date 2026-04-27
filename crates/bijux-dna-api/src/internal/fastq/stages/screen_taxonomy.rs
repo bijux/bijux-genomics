@@ -726,9 +726,7 @@ fn validate_screen_optional_count(
 ) -> Result<()> {
     if observed != expected {
         return Err(anyhow!(
-            "screen taxonomy report {name} mismatch: expected {:?}, observed {:?}",
-            expected,
-            observed
+            "screen taxonomy report {name} mismatch: expected {expected:?}, observed {observed:?}"
         ));
     }
     Ok(())
@@ -798,9 +796,7 @@ fn validate_screen_optional_fraction(
 ) -> Result<()> {
     if observed != expected {
         return Err(anyhow!(
-            "screen taxonomy report {name} mismatch: expected {:?}, observed {:?}",
-            expected,
-            observed
+            "screen taxonomy report {name} mismatch: expected {expected:?}, observed {observed:?}"
         ));
     }
     if let Some(observed) = observed {
@@ -840,23 +836,23 @@ fn validate_screen_report_metrics(
     )?;
     validate_screen_metric_string(
         "classifier",
-        Some(enum_json_name(&report.classifier)?),
-        &metrics.classifier,
+        &enum_json_name(&report.classifier)?,
+        metrics.classifier.as_ref(),
     )?;
     validate_screen_metric_string(
         "report_format",
-        Some(enum_json_name(&report.report_format)?),
-        &metrics.report_format,
+        &enum_json_name(&report.report_format)?,
+        metrics.report_format.as_ref(),
     )?;
     validate_screen_metric_string(
         "database_catalog_id",
-        Some(report.database_catalog_id.clone()),
-        &metrics.database_catalog_id,
+        &report.database_catalog_id,
+        metrics.database_catalog_id.as_ref(),
     )?;
     validate_screen_metric_string(
         "database_artifact_id",
-        Some(report.database_artifact_id.clone()),
-        &metrics.database_artifact_id,
+        &report.database_artifact_id,
+        metrics.database_artifact_id.as_ref(),
     )?;
     if metrics.minimum_confidence != report.minimum_confidence.map(f64::from) {
         return Err(anyhow!(
@@ -908,9 +904,7 @@ fn validate_screen_metric_optional_fraction(
 ) -> Result<()> {
     if observed != expected {
         return Err(anyhow!(
-            "screen taxonomy metrics {name} mismatch: expected {:?}, observed {:?}",
-            expected,
-            observed
+            "screen taxonomy metrics {name} mismatch: expected {expected:?}, observed {observed:?}"
         ));
     }
     Ok(())
@@ -918,14 +912,12 @@ fn validate_screen_metric_optional_fraction(
 
 fn validate_screen_metric_string(
     name: &str,
-    expected: Option<String>,
-    observed: &Option<String>,
+    expected: &str,
+    observed: Option<&String>,
 ) -> Result<()> {
-    if observed != &expected {
+    if observed.map(String::as_str) != Some(expected) {
         return Err(anyhow!(
-            "screen taxonomy metrics {name} mismatch: expected {:?}, observed {:?}",
-            expected,
-            observed
+            "screen taxonomy metrics {name} mismatch: expected {expected:?}, observed {observed:?}"
         ));
     }
     Ok(())
