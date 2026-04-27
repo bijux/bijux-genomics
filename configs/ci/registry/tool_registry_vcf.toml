@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 9bd8ba09557455d64952c709f7cb756b4aec3dc2
+# source_commit: 18d7b5c860965f5d516167804315f932a9ac6504
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -175,7 +175,7 @@ default_version = "planned"
 upstream = "https://www.cs.columbia.edu/~gusev/germline/"
 version_rule = "pinned"
 license = "GPL-3.0"
-citation = "planned"
+citation = "paper:https://doi.org/10.1101/gr.081398.108"
 pinned_commit = "planned"
 pin_strategy = "container_digest"
 container_ref = "containers/apptainer/lunarc/germline.def@planned"
