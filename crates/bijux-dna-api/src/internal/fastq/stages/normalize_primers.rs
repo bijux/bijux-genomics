@@ -175,6 +175,7 @@ struct NormalizePrimersObservation {
     output_stats_r1: SeqkitMetrics,
     output_stats_r2: Option<SeqkitMetrics>,
     used_fallback: bool,
+    backend_metrics: serde_json::Value,
 }
 
 struct NormalizePrimersMeasurements {
@@ -446,13 +447,20 @@ fn observe_normalize_primers_tool<S: ::std::hash::BuildHasher>(
         materialize_amplicon_stage_outputs_for_bench(&tool_plan.out_dir, &tool_execution.step)?;
     enforce_amplicon_qc_thresholds_for_bench(&tool_plan.out_dir, STAGE_ID, &payload)?;
     let used_fallback = normalize_primers_used_fallback(&payload)?;
+    let backend_metrics = normalize_primers_backend_metrics(&payload);
     let output_stats_r1 = observe_fastq_stats(catalog, platform, setup.runner, &outputs.output_r1)?;
     let output_stats_r2 = if let Some(output_r2) = outputs.output_r2.as_deref() {
         Some(observe_fastq_stats(catalog, platform, setup.runner, output_r2)?)
     } else {
         None
     };
-    Ok(NormalizePrimersObservation { payload, output_stats_r1, output_stats_r2, used_fallback })
+    Ok(NormalizePrimersObservation {
+        payload,
+        output_stats_r1,
+        output_stats_r2,
+        used_fallback,
+        backend_metrics,
+    })
 }
 
 fn normalize_primers_used_fallback(payload: &serde_json::Value) -> Result<bool> {
@@ -460,6 +468,12 @@ fn normalize_primers_used_fallback(payload: &serde_json::Value) -> Result<bool> 
         .get("used_fallback")
         .and_then(serde_json::Value::as_bool)
         .ok_or_else(|| anyhow!("normalize primers payload missing boolean used_fallback"))
+}
+
+fn normalize_primers_backend_metrics(payload: &serde_json::Value) -> serde_json::Value {
+    serde_json::json!({
+        "tool_payload": payload,
+    })
 }
 
 fn project_normalize_primers_measurements(
@@ -558,7 +572,7 @@ fn build_normalize_primers_report(
         runtime_s: Some(inputs.tool_execution.result.runtime_s),
         memory_mb: Some(inputs.tool_execution.result.memory_mb),
         used_fallback: inputs.observation.used_fallback,
-        backend_metrics: Some(inputs.observation.payload.clone()),
+        backend_metrics: Some(inputs.observation.backend_metrics.clone()),
     }
 }
 
