@@ -49,7 +49,11 @@ fn deduplicate_fixture_invariants_parse_metrics() -> Result<()> {
     for raw in fixtures {
         let (reads_in, reads_out) = parse_deduplicate_report(raw)?;
         assert!(reads_out <= reads_in);
-        let retained = reads_out as f64 / reads_in as f64;
+        let reads_in = u32::try_from(reads_in)
+            .unwrap_or_else(|err| panic!("fixture reads_in must fit in u32: {err}"));
+        let reads_out = u32::try_from(reads_out)
+            .unwrap_or_else(|err| panic!("fixture reads_out must fit in u32: {err}"));
+        let retained = f64::from(reads_out) / f64::from(reads_in);
         assert!((0.0..=1.0).contains(&retained));
     }
     Ok(())

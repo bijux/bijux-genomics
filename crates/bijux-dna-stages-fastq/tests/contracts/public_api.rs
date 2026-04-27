@@ -29,9 +29,10 @@ fn public_api_docs_list_stable_root_exports() {
 
 #[test]
 fn public_api_exports_remain_usable_from_crate_root() {
-    let _plugin = bijux_dna_stages_fastq::FastqStagePlugin;
-    let _plan_json: Option<bijux_dna_stages_fastq::StagePlanJson> = None;
-    let _level = bijux_dna_stages_fastq::RuntimeInterpretationLevel::GenericEnvelope;
+    let plugin = bijux_dna_stages_fastq::FastqStagePlugin;
+    let plan_json: Option<bijux_dna_stages_fastq::StagePlanJson> = None;
+    let level = bijux_dna_stages_fastq::RuntimeInterpretationLevel::GenericEnvelope;
+    let _ = (plugin, plan_json, level);
 
     assert!(!bijux_dna_stages_fastq::contract_stage_ids().is_empty());
     assert!(!bijux_dna_stages_fastq::implemented_stages().is_empty());
@@ -43,9 +44,10 @@ fn public_api_exports_remain_usable_from_crate_root() {
 
 #[test]
 fn public_modules_remain_available() {
-    let _contract_lookup = bijux_dna_stages_fastq::contracts::contract_for_stage;
-    let _validator_parser = bijux_dna_stages_fastq::observer::parse_fastqvalidator_count;
-    let _stage_specs = bijux_dna_stages_fastq::stage_specs::STAGES.len();
+    let contract_lookup = bijux_dna_stages_fastq::contracts::contract_for_stage;
+    let validator_parser = bijux_dna_stages_fastq::observer::parse_fastqvalidator_count;
+    let stage_specs = bijux_dna_stages_fastq::stage_specs::STAGES.len();
+    let _ = (contract_lookup, validator_parser, stage_specs);
 }
 
 #[test]
