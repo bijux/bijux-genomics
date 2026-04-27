@@ -294,13 +294,10 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
     let effective_params: RrnaEffectiveParams =
         serde_json::from_value(inputs.plan.effective_params.clone())
             .context("decode rrna effective params")?;
-    let output_r1 = artifact_output_path(inputs.plan, "rrna_filtered_reads_r1")
-        .unwrap_or_else(|| inputs.plan.out_dir.join("rrna_filtered.fastq.gz"));
+    let output_r1 = required_rrna_output_path(inputs.plan, "rrna_filtered_reads_r1")?;
     let output_r2 = artifact_output_path(inputs.plan, "rrna_filtered_reads_r2");
-    let rrna_report_tsv = artifact_output_path(inputs.plan, "rrna_report_tsv")
-        .unwrap_or_else(|| inputs.plan.out_dir.join("rrna_report.tsv"));
-    let rrna_report_json = artifact_output_path(inputs.plan, "rrna_report_json")
-        .unwrap_or_else(|| inputs.plan.out_dir.join("rrna_report.json"));
+    let rrna_report_tsv = required_rrna_output_path(inputs.plan, "rrna_report_tsv")?;
+    let rrna_report_json = required_rrna_output_path(inputs.plan, "rrna_report_json")?;
     let output_stats_r1 =
         observe_fastq_stats(inputs.catalog, inputs.platform, inputs.runner, &output_r1)?;
     let output_stats_r2 = if let Some(path) = output_r2.as_deref() {
@@ -444,6 +441,14 @@ fn artifact_output_path(
         .iter()
         .find(|artifact| artifact.name.as_str() == artifact_id)
         .map(|artifact| artifact.path.clone())
+}
+
+fn required_rrna_output_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_id: &str,
+) -> Result<std::path::PathBuf> {
+    artifact_output_path(plan, artifact_id)
+        .ok_or_else(|| anyhow!("rrna depletion plan missing output artifact {artifact_id}"))
 }
 
 fn artifact_input_path(
