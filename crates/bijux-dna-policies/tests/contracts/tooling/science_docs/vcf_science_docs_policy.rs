@@ -232,6 +232,35 @@ fn vcf_stage_specs() -> BTreeMap<String, VcfStageDocSpec> {
     specs
 }
 
+fn vcf_index_active_defaults() -> BTreeMap<String, String> {
+    let root = support::workspace_root();
+    let raw = fs::read_to_string(root.join("domain/vcf/index.yaml"))
+        .expect("read domain/vcf/index.yaml");
+    let mut defaults = BTreeMap::new();
+    let mut in_defaults = false;
+
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed == "active_defaults:" {
+            in_defaults = true;
+            continue;
+        }
+        if in_defaults {
+            if !line.starts_with("  ") {
+                break;
+            }
+            if let Some((stage_id, tool_id)) = trimmed.split_once(':') {
+                defaults.insert(
+                    stage_id.trim().to_string(),
+                    tool_id.trim().trim_matches('"').to_string(),
+                );
+            }
+        }
+    }
+
+    defaults
+}
+
 fn vcf_stage_catalog_ids() -> BTreeSet<String> {
     let root = support::workspace_root();
     let raw = fs::read_to_string(root.join("docs/20-science/vcf/STAGE_CATALOG.md"))
@@ -274,6 +303,21 @@ fn vcf_tools_roster_rows() -> BTreeMap<String, VcfStageDocSpec> {
                     compatible_tools,
                 },
             )
+        })
+        .collect()
+}
+
+fn vcf_default_settings_rows() -> BTreeMap<String, String> {
+    let root = support::workspace_root();
+    let raw = fs::read_to_string(root.join("domain/vcf/docs/DEFAULT_SETTINGS.md"))
+        .expect("read domain/vcf/docs/DEFAULT_SETTINGS.md");
+    raw.lines()
+        .filter_map(|line| {
+            let trimmed = line.trim();
+            let rest = trimmed.strip_prefix("- `")?;
+            let (stage_id, after_stage) = rest.split_once("` default: `")?;
+            let (tool_id, _) = after_stage.split_once('`')?;
+            Some((stage_id.to_string(), tool_id.to_string()))
         })
         .collect()
 }
@@ -490,5 +534,38 @@ fn policy__contracts__vcf_science_docs_policy__references_cover_planned_vcf_tool
             "shapeit5",
         ],
         "planned VCF tools",
+    );
+}
+
+#[test]
+fn policy__contracts__vcf_science_docs_policy__default_settings_use_admitted_tools() {
+    let stage_specs = vcf_stage_specs();
+    let documented_defaults = vcf_default_settings_rows();
+    let active_defaults = vcf_index_active_defaults();
+    let mut offenders = Vec::new();
+
+    for (stage_id, tool_id) in documented_defaults {
+        let stage_spec = stage_specs
+            .get(&stage_id)
+            .unwrap_or_else(|| panic!("missing VCF stage manifest for {stage_id}"));
+        if !stage_spec.compatible_tools.contains(&tool_id) {
+            offenders.push(format!(
+                "{stage_id}: default tool {tool_id} is not in compatible_tools {:?}",
+                stage_spec.compatible_tools
+            ));
+        }
+        if let Some(active_tool) = active_defaults.get(&stage_id) {
+            if active_tool != &tool_id {
+                offenders.push(format!(
+                    "{stage_id}: default settings doc uses {tool_id}, but domain/vcf/index.yaml uses {active_tool}"
+                ));
+            }
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "VCF default-settings drift:\n{}",
+        offenders.join("\n")
     );
 }
