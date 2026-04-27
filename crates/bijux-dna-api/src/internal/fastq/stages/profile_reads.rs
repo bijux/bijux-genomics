@@ -329,6 +329,23 @@ fn write_profile_reads_execution_manifest(
     write_execution_logs(&run_dirs.logs_dir, &execution.result.stdout, &execution.result.stderr)
 }
 
+fn build_profile_reads_context(
+    platform: &PlatformSpec,
+    bench_inputs: &StatsBenchInputs,
+    tool_plan: &StatsToolPlan,
+    params: &serde_json::Value,
+) -> BenchmarkContext {
+    BenchmarkContext {
+        tool: tool_plan.tool.clone(),
+        tool_version: tool_plan.tool_spec.tool_version.clone(),
+        image_digest: tool_plan.image_digest.clone(),
+        runner: bench_inputs.runner.to_string(),
+        platform: platform.name.clone(),
+        input_hash: bench_inputs.input_hash.clone(),
+        parameters: params.clone().into(),
+    }
+}
+
 fn prepare_stats_benchmark_setup<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -486,15 +503,7 @@ fn run_stats_tool(
         &run_dirs,
         &execution,
     )?;
-    let context = BenchmarkContext {
-        tool: tool.to_string(),
-        tool_version: tool_plan.tool_spec.tool_version.clone(),
-        image_digest: image_digest.clone(),
-        runner: bench_inputs.runner.to_string(),
-        platform: platform.name.clone(),
-        input_hash: bench_inputs.input_hash.clone(),
-        parameters: params.clone().into(),
-    };
+    let context = build_profile_reads_context(platform, bench_inputs, tool_plan, &params);
     let execution_metrics = execution_metrics_from_stage_result(&execution.result);
     let metrics_json = serde_json::to_value(&observation.metric_set)?;
     let parameters_json_normalized =
