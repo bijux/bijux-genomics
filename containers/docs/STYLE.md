@@ -3,6 +3,14 @@
 ## Scope
 Applies to all files under `containers/docker/**` and `containers/apptainer/**`.
 
+Related governed surfaces:
+- [../README.md](../README.md)
+- [../index.md](../index.md)
+- [../docker/NONROOT_EXCEPTIONS.md](../docker/NONROOT_EXCEPTIONS.md)
+- [../docker/ENTRYPOINT_EXCEPTIONS.md](../docker/ENTRYPOINT_EXCEPTIONS.md)
+- [../apptainer/shared/NON_BIJUX_SOURCES.md](../apptainer/shared/NON_BIJUX_SOURCES.md)
+- [../apptainer/shared/TEMPLATE.def.inc](../apptainer/shared/TEMPLATE.def.inc)
+
 ## Tone And Language
 - Use imperative, technical English.
 - Keep comments short and factual.
