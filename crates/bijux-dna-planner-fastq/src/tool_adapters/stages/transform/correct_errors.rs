@@ -605,19 +605,82 @@ fn move_bayeshammer_outputs_script(
 ) -> String {
     let list_path = search_dir.join("corrected_outputs.list");
     let unsorted_list_path = search_dir.join("corrected_outputs.unsorted");
-    let mut script = format!(
-        "find {} -type f \\( -name '*.cor.fq' -o -name '*.cor.fastq' -o -name '*.cor.fq.gz' -o -name '*.cor.fastq.gz' \\) > {}\nLC_ALL=C sort {} > {}\nrm -f {}\n",
-        shell_quote_path(search_dir),
-        shell_quote_path(&unsorted_list_path),
-        shell_quote_path(&unsorted_list_path),
-        shell_quote_path(&list_path),
-        shell_quote_path(&unsorted_list_path),
-    );
+    let mut script = bayeshammer_list_outputs_script(search_dir, &list_path, &unsorted_list_path);
     if let Some(output_r2) = output_r2 {
         let Some(input_r2) = input_r2 else {
             unreachable!("paired BayesHammer reconstruction requires R2 input");
         };
-        let reconstruction_python = r#"import gzip
+        script.push_str(&bayeshammer_paired_reconstruction_script(
+            search_dir, &list_path, input_r1, input_r2, output_r1, output_r2,
+        ));
+    } else {
+        script.push_str(&bayeshammer_single_output_script(search_dir, &list_path, output_r1));
+    }
+    script
+}
+
+fn bayeshammer_list_outputs_script(
+    search_dir: &Path,
+    list_path: &Path,
+    unsorted_list_path: &Path,
+) -> String {
+    format!(
+        "find {} -type f \\( -name '*.cor.fq' -o -name '*.cor.fastq' -o -name '*.cor.fq.gz' -o -name '*.cor.fastq.gz' \\) > {}\nLC_ALL=C sort {} > {}\nrm -f {}\n",
+        shell_quote_path(search_dir),
+        shell_quote_path(unsorted_list_path),
+        shell_quote_path(unsorted_list_path),
+        shell_quote_path(list_path),
+        shell_quote_path(unsorted_list_path),
+    )
+}
+
+fn bayeshammer_paired_reconstruction_script(
+    search_dir: &Path,
+    list_path: &Path,
+    input_r1: &Path,
+    input_r2: &Path,
+    output_r1: &Path,
+    output_r2: &Path,
+) -> String {
+    format!(
+        "r1_output=$(grep '/[^/]*R1[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
+r2_output=$(grep '/[^/]*R2[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
+unpaired_output=$(grep '/[^/]*R_unpaired[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
+if [ -z \"$r1_output\" ] || [ -z \"$r2_output\" ]; then echo \"expected BayesHammer paired corrected outputs in {}\" >&2; cat {} >&2; exit 64; fi\n\
+INPUT_R1={} INPUT_R2={} PAIRED_R1=\"$r1_output\" PAIRED_R2=\"$r2_output\" UNPAIRED_PATH=\"$unpaired_output\" OUTPUT_R1={} OUTPUT_R2={} python3 - <<'PY'\n\
+{}\
+PY\n",
+        shell_quote_path(list_path),
+        shell_quote_path(list_path),
+        shell_quote_path(list_path),
+        shell_quote_path(search_dir),
+        shell_quote_path(list_path),
+        shell_quote_path(input_r1),
+        shell_quote_path(input_r2),
+        shell_quote_path(output_r1),
+        shell_quote_path(output_r2),
+        bayeshammer_reconstruction_python(),
+    )
+}
+
+fn bayeshammer_single_output_script(
+    search_dir: &Path,
+    list_path: &Path,
+    output_r1: &Path,
+) -> String {
+    format!(
+        "actual_outputs=$(wc -l < {} | tr -d '[:space:]')\n\
+if [ \"$actual_outputs\" -ne 1 ]; then echo \"expected 1 corrected output in {} but found $actual_outputs\" >&2; exit 64; fi\n\
+normalize_fastq_output \"$(sed -n '1p' {})\" {}\n",
+        shell_quote_path(list_path),
+        shell_quote_path(search_dir),
+        shell_quote_path(list_path),
+        shell_quote_path(output_r1),
+    )
+}
+
+fn bayeshammer_reconstruction_python() -> &'static str {
+    r#"import gzip
 import os
 
 input_r1 = os.environ["INPUT_R1"]
@@ -715,44 +778,7 @@ for original_r1_record, original_r2_record in zip(original_r1, original_r2):
 
 write_fastq(output_r1, reconstructed_r1)
 write_fastq(output_r2, reconstructed_r2)
-"#;
-        push_script(
-            &mut script,
-            format_args!(
-                "r1_output=$(grep '/[^/]*R1[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
-r2_output=$(grep '/[^/]*R2[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
-unpaired_output=$(grep '/[^/]*R_unpaired[^/]*\\.cor\\.f\\(ast\\)\\?q\\(.gz\\)\\?$' {} | head -n 1 || true)\n\
-if [ -z \"$r1_output\" ] || [ -z \"$r2_output\" ]; then echo \"expected BayesHammer paired corrected outputs in {}\" >&2; cat {} >&2; exit 64; fi\n\
-INPUT_R1={} INPUT_R2={} PAIRED_R1=\"$r1_output\" PAIRED_R2=\"$r2_output\" UNPAIRED_PATH=\"$unpaired_output\" OUTPUT_R1={} OUTPUT_R2={} python3 - <<'PY'\n\
-{}\
-PY\n",
-                shell_quote_path(&list_path),
-                shell_quote_path(&list_path),
-                shell_quote_path(&list_path),
-                shell_quote_path(search_dir),
-                shell_quote_path(&list_path),
-                shell_quote_path(input_r1),
-                shell_quote_path(input_r2),
-                shell_quote_path(output_r1),
-                shell_quote_path(output_r2),
-                reconstruction_python,
-            ),
-        );
-    } else {
-        push_script(
-            &mut script,
-            format_args!(
-                "actual_outputs=$(wc -l < {} | tr -d '[:space:]')\n\
-if [ \"$actual_outputs\" -ne 1 ]; then echo \"expected 1 corrected output in {} but found $actual_outputs\" >&2; exit 64; fi\n\
-normalize_fastq_output \"$(sed -n '1p' {})\" {}\n",
-                shell_quote_path(&list_path),
-                shell_quote_path(search_dir),
-                shell_quote_path(&list_path),
-                shell_quote_path(output_r1),
-            ),
-        );
-    }
-    script
+"#
 }
 
 fn push_script(target: &mut String, args: std::fmt::Arguments<'_>) {
