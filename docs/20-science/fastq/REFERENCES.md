@@ -20,7 +20,9 @@ The FASTQ domain is only reviewable when each supported backend can be traced to
 - Use software/project pages for tools without a dedicated peer-reviewed paper.
 - Use Zenodo DOI records for archived software releases when the tool has no dedicated paper and the release DOI is the most stable citation.
 - Use PubMed or PMC mirrors as access copies, not as the canonical locator, when a DOI-bearing paper page is available.
-- Keep generated closure state in `science/generated/current/evidence/`; this file is the human-readable reference guide.
+- Keep generated closure state in
+  [science/generated/current/evidence/README.md](../../../science/generated/current/evidence/README.md);
+  this file remains the human-readable reference guide.
 
 ## Quality Control and Profiling
 | Tool | Applies to | Reference status | Primary locator |
@@ -90,5 +92,11 @@ The FASTQ domain is only reviewable when each supported backend can be traced to
 
 ## Evidence Gaps
 - Software-only tools remain valid runtime backends only when their stage contracts are otherwise governed and their software citation is explicit.
-- Missing local paper/archive payloads are tracked in `science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv` and `/Users/bijan/bijux/NEEDED.md`.
-- Unsupported tools must not be listed here as admitted backends unless they are present in `domain/fastq/execution_support.yaml` and the corresponding stage manifest.
+- Missing local paper/archive payloads are tracked in
+  [science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv](../../../science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv),
+  [science/generated/current/evidence/fastq_paper_archive_matrix.tsv](../../../science/generated/current/evidence/fastq_paper_archive_matrix.tsv),
+  and [science/generated/current/evidence/fastq_download_backlog.tsv](../../../science/generated/current/evidence/fastq_download_backlog.tsv),
+  plus `/Users/bijan/bijux/NEEDED.md`.
+- Unsupported tools must not be listed here as admitted backends unless they are present in
+  [domain/fastq/execution_support.yaml](../../../domain/fastq/execution_support.yaml)
+  and the corresponding stage manifest.
