@@ -434,6 +434,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
     validate_umi_report_identity(inputs.tool, &report)?;
+    validate_umi_report_execution(&report, &inputs.execution.result)?;
     validate_umi_report_paths(&report, inputs.r1, inputs.r2, &artifacts)?;
     validate_umi_report_metrics(&report, &metric_set.metrics)?;
     write_umi_report(&artifacts.report_json, &report)?;
@@ -547,6 +548,36 @@ fn validate_umi_report_identity(tool: &str, report: &ExtractUmisReportV1) -> Res
             "extract_umis report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_umi_report_execution(
+    report: &ExtractUmisReportV1,
+    execution: &StageResultV1,
+) -> Result<()> {
+    if report.runtime_s.is_none_or(|observed| (observed - execution.runtime_s).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "extract_umis report runtime mismatch: expected {}, observed {:?}",
+            execution.runtime_s,
+            report.runtime_s
+        ));
+    }
+    if report.memory_mb.is_none_or(|observed| (observed - execution.memory_mb).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "extract_umis report memory mismatch: expected {}, observed {:?}",
+            execution.memory_mb,
+            report.memory_mb
+        ));
+    }
+    if report.exit_code != Some(execution.exit_code) {
+        return Err(anyhow!(
+            "extract_umis report exit code mismatch: expected {}, observed {:?}",
+            execution.exit_code,
+            report.exit_code
         ));
     }
     Ok(())
