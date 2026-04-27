@@ -11,8 +11,9 @@ Single source of truth for architectural boundaries.
 
 ## Contracts
 Enforced by policy tests:
-- `crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs`
-- `crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs`
+- [BOUNDARY_MAP.md](BOUNDARY_MAP.md) defines the narrative boundary ownership behind this diagram.
+- [../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs)
+- [../../crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs)
 
 ## Examples
 ```
