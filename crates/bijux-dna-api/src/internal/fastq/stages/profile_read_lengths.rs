@@ -111,8 +111,9 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             },
             metric_set,
         )?;
-        append_jsonl(&store.jsonl_path, &record)?;
-        insert_fastq_read_lengths_v1(&conn, &record)?;
+        persist_read_lengths_record(&store, &record, |record| {
+            insert_fastq_read_lengths_v1(&conn, record).context("insert bench sqlite")
+        })?;
         records.push(record);
     }
 
@@ -348,6 +349,15 @@ fn read_lengths_execution_metrics(execution: &ReadLengthsToolExecution) -> Execu
         memory_mb: execution.result.memory_mb,
         exit_code: execution.result.exit_code,
     }
+}
+
+fn persist_read_lengths_record(
+    store: &ReadLengthsBenchmarkStore,
+    record: &BenchmarkRecord<FastqReadLengthMetrics>,
+    insert_record: impl FnOnce(&BenchmarkRecord<FastqReadLengthMetrics>) -> Result<()>,
+) -> Result<()> {
+    append_jsonl(&store.jsonl_path, record).context("write bench.jsonl")?;
+    insert_record(record)
 }
 
 fn observe_read_lengths(
