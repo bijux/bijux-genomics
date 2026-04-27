@@ -11,7 +11,8 @@ use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_overrepresented_v1, insert_fastq_overrepresented_v1,
 };
 use bijux_dna_analyze::{
-    append_jsonl, metric_set, BenchmarkRecord, FastqOverrepresentedMetrics, StageMetricSchema,
+    append_jsonl, metric_set, BenchmarkRecord, FastqOverrepresentedMetrics, MetricSet,
+    StageMetricSchema,
 };
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
@@ -104,11 +105,8 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             payload,
             execution: &execution,
         });
-        bijux_dna_infra::atomic_write_json(&artifacts.report_json, &report)
-            .context("write overrepresented report")?;
-        let metrics_json = serde_json::to_value(&metric_set)?;
-        bijux_dna_infra::atomic_write_json(&tool_plan.out_dir.join("metrics.json"), &metrics_json)
-            .context("write overrepresented metrics")?;
+        write_overrepresented_report(&artifacts.report_json, &report)?;
+        write_overrepresented_metrics(&tool_plan.out_dir, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
@@ -334,6 +332,22 @@ fn build_overrepresented_report(
         raw_backend_report: None,
         raw_backend_report_format: None,
     }
+}
+
+fn write_overrepresented_report(
+    report_json: &Path,
+    report: &ProfileOverrepresentedReportV1,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(report_json, report).context("write overrepresented report")
+}
+
+fn write_overrepresented_metrics(
+    out_dir: &Path,
+    metric_set: &MetricSet<FastqOverrepresentedMetrics>,
+) -> Result<()> {
+    let metrics_json = serde_json::to_value(metric_set)?;
+    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+        .context("write overrepresented metrics")
 }
 
 fn materialize_overrepresented_outputs(
