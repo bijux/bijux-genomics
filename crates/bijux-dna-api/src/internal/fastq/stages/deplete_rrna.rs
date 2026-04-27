@@ -32,6 +32,7 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_planner_fastq::tool_adapters::stages::qc::deplete_rrna::plan_rrna_with_options;
 use bijux_dna_planner_fastq::DepleteRrnaStageParams;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
@@ -78,24 +79,9 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
-            runner,
-            jobs,
-        )?
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
-        if execution.exit_code != 0 {
-            failures.push(RawFailure {
-                stage: STAGE_DEPLETE_RRNA.as_str().to_string(),
-                tool: tool_plan.tool.clone(),
-                reason: format!(
-                    "tool `{}` failed with status {}",
-                    tool_plan.tool, execution.exit_code
-                ),
-                category: ErrorCategory::ToolError,
-            });
+        let execution = execute_rrna_tool(&tool_plan, runner, jobs)?;
+        if let Some(failure) = rrna_tool_failure(&tool_plan, execution.exit_code) {
+            failures.push(failure);
             continue;
         }
 
@@ -235,6 +221,33 @@ fn prepare_rrna_tool_plan<S: ::std::hash::BuildHasher>(
         params_hash(&plan.params).unwrap_or_else(|_| uuid::Uuid::new_v4().to_string());
     let image_digest = benchmark_image_identity(&tool_spec);
     Ok(RrnaToolPlan { tool, tool_spec, plan, params_hash, image_digest })
+}
+
+fn execute_rrna_tool(
+    tool_plan: &RrnaToolPlan,
+    runner: RuntimeKind,
+    jobs: usize,
+) -> Result<StageResultV1> {
+    execute_plans_with_jobs(
+        vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
+        runner,
+        jobs,
+    )?
+    .into_iter()
+    .next()
+    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))
+}
+
+fn rrna_tool_failure(tool_plan: &RrnaToolPlan, exit_code: i32) -> Option<RawFailure> {
+    if exit_code == 0 {
+        return None;
+    }
+    Some(RawFailure {
+        stage: STAGE_DEPLETE_RRNA.as_str().to_string(),
+        tool: tool_plan.tool.clone(),
+        reason: format!("tool `{}` failed with status {exit_code}", tool_plan.tool),
+        category: ErrorCategory::ToolError,
+    })
 }
 
 fn prepare_rrna_benchmark_setup<S: ::std::hash::BuildHasher>(
