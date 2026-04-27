@@ -185,6 +185,19 @@ struct FilterRecordInputs<'a, S: ::std::hash::BuildHasher> {
     execution: &'a StageResultV1,
 }
 
+struct FilterReportBuildInputs<'a> {
+    tool: &'a str,
+    threads: u32,
+    params: &'a serde_json::Value,
+    bench_inputs: &'a TrimBenchInputs,
+    output_reads: &'a Path,
+    output_reads_r2: Option<&'a Path>,
+    report_path: &'a Path,
+    accounting: &'a FilterReadAccounting,
+    output_stats_r1: &'a SeqkitMetrics,
+    execution: &'a StageResultV1,
+}
+
 struct FilterReadAccounting {
     reads_in: u64,
     reads_out: u64,
@@ -480,19 +493,62 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     );
     let out_dir = output_reads.parent().ok_or_else(|| anyhow!("filter output has no parent"))?;
     let report_path = out_dir.join("filter_report.json");
-    let backend_report = filter_backend_report(params);
-    let report_params = FilterReportParams::from_params(params, &bench_inputs.r1);
-    let report_outputs =
-        FilterReportOutputs::from_paths(output_reads, output_reads_r2, &report_path);
+    let report = build_filter_report(&FilterReportBuildInputs {
+        tool,
+        threads: tool_spec.resources.threads,
+        params,
+        bench_inputs,
+        output_reads,
+        output_reads_r2,
+        report_path: &report_path,
+        accounting: &accounting,
+        output_stats_r1: &output_stats_r1,
+        execution,
+    });
+    let metrics = filter_metrics_from_report(&report, &bench_inputs.input_stats, &output_stats_r1);
+    let metric_set = metric_set(metrics.clone());
+    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    write_filter_artifacts(out_dir, &report_path, &report, &metric_set)?;
+
+    let context = build_benchmark_context(
+        tool,
+        tool_spec.tool_version.clone(),
+        benchmark_image_identity(tool_spec),
+        bench_inputs.runner,
+        platform,
+        input_hash.to_string(),
+        params.clone(),
+    );
+    let record = BenchmarkRecord {
+        context,
+        execution: ExecutionMetrics {
+            runtime_s: execution.runtime_s,
+            memory_mb: execution.memory_mb,
+            exit_code: execution.exit_code,
+        },
+        metrics: metric_set,
+    };
+    record.validate()?;
+    Ok(record)
+}
+
+fn build_filter_report(inputs: &FilterReportBuildInputs<'_>) -> FilterReadsReportV1 {
+    let backend_report = filter_backend_report(inputs.params);
+    let report_params = FilterReportParams::from_params(inputs.params, &inputs.bench_inputs.r1);
+    let report_outputs = FilterReportOutputs::from_paths(
+        inputs.output_reads,
+        inputs.output_reads_r2,
+        inputs.report_path,
+    );
     let report_measurements =
-        FilterReportMeasurements::from_accounting(&accounting, backend_report.removal_counts);
-    let report = FilterReadsReportV1 {
+        FilterReportMeasurements::from_accounting(inputs.accounting, backend_report.removal_counts);
+    FilterReadsReportV1 {
         schema_version: FILTER_READS_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_FILTER_READS.as_str().to_string(),
         stage_id: STAGE_FILTER_READS.as_str().to_string(),
-        tool_id: tool.to_string(),
+        tool_id: inputs.tool.to_string(),
         paired_mode: report_outputs.paired_mode,
-        threads: tool_spec.resources.threads,
+        threads: inputs.threads,
         input_r1: report_params.input_r1,
         input_r2: report_params.input_r2,
         output_r1: report_outputs.output_r1,
@@ -519,40 +575,15 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
         bases_out: report_measurements.bases_out,
         pairs_in: report_measurements.pairs_in,
         pairs_out: report_measurements.pairs_out,
-        mean_q_before: bench_inputs.input_stats.mean_q,
-        mean_q_after: output_stats_r1.mean_q,
-        runtime_s: Some(execution.runtime_s),
-        memory_mb: Some(execution.memory_mb),
-        exit_code: Some(execution.exit_code),
+        mean_q_before: inputs.bench_inputs.input_stats.mean_q,
+        mean_q_after: inputs.output_stats_r1.mean_q,
+        runtime_s: Some(inputs.execution.runtime_s),
+        memory_mb: Some(inputs.execution.memory_mb),
+        exit_code: Some(inputs.execution.exit_code),
         raw_backend_report: backend_report.raw_backend_report,
         raw_backend_report_format: backend_report.raw_backend_report_format,
         backend_metrics: backend_report.metrics,
-    };
-    let metrics = filter_metrics_from_report(&report, &bench_inputs.input_stats, &output_stats_r1);
-    let metric_set = metric_set(metrics.clone());
-    bijux_dna_analyze::validate_metric_set(&metric_set)?;
-    write_filter_artifacts(out_dir, &report_path, &report, &metric_set)?;
-
-    let context = build_benchmark_context(
-        tool,
-        tool_spec.tool_version.clone(),
-        benchmark_image_identity(tool_spec),
-        bench_inputs.runner,
-        platform,
-        input_hash.to_string(),
-        params.clone(),
-    );
-    let record = BenchmarkRecord {
-        context,
-        execution: ExecutionMetrics {
-            runtime_s: execution.runtime_s,
-            memory_mb: execution.memory_mb,
-            exit_code: execution.exit_code,
-        },
-        metrics: metric_set,
-    };
-    record.validate()?;
-    Ok(record)
+    }
 }
 
 fn filter_paired_mode(output_reads_r2: Option<&Path>) -> PairedMode {
