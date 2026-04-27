@@ -31,6 +31,7 @@ use bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::{
     dedup_mode_from_literal, plan_deduplicate_with_options, RemoveDuplicatesPlanOptions,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
 
 const STAGE_ID: &str = "fastq.remove_duplicates";
@@ -126,21 +127,9 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             records.push(record);
             continue;
         }
-        let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
-            setup.runner,
-            jobs,
-        )?
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
-        if execution.exit_code != 0 {
-            failures.push(RawFailure {
-                stage: STAGE_ID.to_string(),
-                tool: tool.clone(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
-                category: ErrorCategory::ToolError,
-            });
+        let execution = execute_remove_duplicates_tool(&tool_plan, setup.runner, jobs, tool)?;
+        if let Some(failure) = remove_duplicates_tool_failure(tool, execution.exit_code) {
+            failures.push(failure);
             continue;
         }
         let report_path = required_plan_output_path(&tool_plan.plan, "report_json")?;
@@ -327,6 +316,31 @@ fn prepare_remove_duplicates_tool_plan<S: ::std::hash::BuildHasher>(
         bench_params,
         params_hash,
         image_digest,
+    })
+}
+
+fn execute_remove_duplicates_tool(
+    tool_plan: &RemoveDuplicatesToolPlan,
+    runner: RuntimeKind,
+    jobs: usize,
+    tool: &str,
+) -> Result<StageResultV1> {
+    execute_plans_with_jobs(
+        vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
+        runner,
+        jobs,
+    )?
+    .into_iter()
+    .next()
+    .ok_or_else(|| anyhow!("missing execution result for {tool}"))
+}
+
+fn remove_duplicates_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
+    (exit_code != 0).then(|| RawFailure {
+        stage: STAGE_ID.to_string(),
+        tool: tool.to_string(),
+        reason: format!("tool {tool} failed with status {exit_code}"),
+        category: ErrorCategory::ToolError,
     })
 }
 
