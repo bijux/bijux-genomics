@@ -65,3 +65,16 @@ fn policy__contracts__science_archive_docs_policy__science_upstream_readme_links
         "science/docs/upstream/README.md must link the governed upstream archive surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__paper_archive_readme_links_contracts_exactly() {
+    let expected = BTreeSet::from([
+        "TODO_DOWNLOAD.md".to_string(),
+        "TOOL_PAPER_MAP.tsv".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/docs/upstream/papers/README.md");
+    assert_eq!(
+        expected, documented,
+        "science/docs/upstream/papers/README.md must link the governed paper archive contracts exactly"
+    );
+}
