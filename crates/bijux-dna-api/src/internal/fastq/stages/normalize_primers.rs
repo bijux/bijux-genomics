@@ -115,6 +115,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         let metric_set = build_normalize_primers_metric_set(&measurements, &report)?;
         validate_normalize_primers_report_identity(tool, &report)?;
         validate_normalize_primers_report_metrics(&report, &metric_set.metrics)?;
+        validate_normalize_primers_report_execution(&report, &tool_execution.result)?;
         write_normalize_primers_artifacts(&tool_plan, &outputs, &report, &metric_set)?;
         let record = build_normalize_primers_record(
             &NormalizePrimersRecordInputs {
@@ -656,6 +657,29 @@ fn validate_normalize_primers_report_metrics(
             "normalize primers report orientation_forward_fraction mismatch: expected {}, observed {:?}",
             metrics.orientation_forward_fraction,
             report.orientation_forward_fraction
+        ));
+    }
+    Ok(())
+}
+
+fn validate_normalize_primers_report_execution(
+    report: &NormalizePrimersReportV1,
+    execution: &StageResultV1,
+) -> Result<()> {
+    if report.runtime_s.is_none_or(|observed| (observed - execution.runtime_s).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "normalize primers report runtime mismatch: expected {}, observed {:?}",
+            execution.runtime_s,
+            report.runtime_s
+        ));
+    }
+    if report.memory_mb.is_none_or(|observed| (observed - execution.memory_mb).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "normalize primers report memory mismatch: expected {}, observed {:?}",
+            execution.memory_mb,
+            report.memory_mb
         ));
     }
     Ok(())
