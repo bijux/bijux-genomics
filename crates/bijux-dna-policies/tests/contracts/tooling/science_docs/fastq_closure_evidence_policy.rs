@@ -108,6 +108,10 @@ fn production_fastq_tag_only_container_tools() -> BTreeSet<String> {
         .into_iter()
         .filter_map(|tool| {
             let id = tool.get("id").and_then(toml::Value::as_str)?;
+            let status = tool.get("status").and_then(toml::Value::as_str).unwrap_or_default();
+            if !support::registry_status_is_production(status) {
+                return None;
+            }
             let domain = tool.get("domain").and_then(toml::Value::as_str).unwrap_or_default();
             let stage_is_fastq = tool
                 .get("stage_ids")
