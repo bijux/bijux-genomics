@@ -14,6 +14,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
@@ -24,6 +25,7 @@ use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_stage_contract::StagePlanV1;
 use uuid::Uuid;
 
 use crate::internal::fastq::stages::preprocess::{
@@ -66,51 +68,22 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
     let mut records = Vec::new();
 
     for tool in &setup.tools {
-        let out_dir = setup.tools_root.join(tool);
-        bijux_dna_infra::ensure_dir(&out_dir)?;
-        let tool_spec =
-            build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
-        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::plan_with_options(
-            &tool_spec,
-            &args.r1,
-            args.r2.as_deref(),
-            &out_dir,
-            &bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::NormalizePrimersPlanOptions {
-                primer_set_id: setup.primer_governance.primer_set_id.clone(),
-                marker_id: Some(setup.primer_governance.marker_id.clone()),
-                primer_fasta: Some(setup.primer_governance.primer_fasta.clone()),
-                orientation_policy: args
-                    .orientation_policy
-                    .clone()
-                    .unwrap_or_else(|| "normalize_to_forward_primer".to_string()),
-                max_mismatch_rate: args.max_mismatch_rate.unwrap_or(0.10),
-                min_overlap_bp: args.min_overlap_bp.unwrap_or(10),
-                strict_5p_anchor: args.strict_5p_anchor.unwrap_or(true),
-                allow_iupac_codes: args.allow_iupac_codes.unwrap_or(true),
-            },
-        )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
+        let tool_plan =
+            prepare_normalize_primers_tool_plan(catalog, platform, args, &setup, jobs, tool)?;
         if let Ok(Some(record)) = fetch_fastq_normalize_primers_v1(
             &conn,
             tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &setup.runner.to_string(),
             &platform.name,
             &setup.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
-        let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
+        let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan);
         let execution = execute_plans_with_jobs(vec![step.clone()], setup.runner, jobs)?
             .into_iter()
             .next()
@@ -124,13 +97,13 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             });
             continue;
         }
-        let payload = materialize_amplicon_stage_outputs_for_bench(&out_dir, &step)?;
-        enforce_amplicon_qc_thresholds_for_bench(&out_dir, STAGE_ID, &payload)?;
-        let output_r1 = artifact_path(&plan, "normalized_reads_r1")?;
-        let output_r2 = artifact_path_optional(&plan, "normalized_reads_r2");
-        let report_json = artifact_path(&plan, "report_json")?;
-        let orientation_report = artifact_path(&plan, "primer_orientation_report")?;
-        let primer_stats_json = artifact_path(&plan, "primer_stats_json")?;
+        let payload = materialize_amplicon_stage_outputs_for_bench(&tool_plan.out_dir, &step)?;
+        enforce_amplicon_qc_thresholds_for_bench(&tool_plan.out_dir, STAGE_ID, &payload)?;
+        let output_r1 = artifact_path(&tool_plan.plan, "normalized_reads_r1")?;
+        let output_r2 = artifact_path_optional(&tool_plan.plan, "normalized_reads_r2");
+        let report_json = artifact_path(&tool_plan.plan, "report_json")?;
+        let orientation_report = artifact_path(&tool_plan.plan, "primer_orientation_report")?;
+        let primer_stats_json = artifact_path(&tool_plan.plan, "primer_stats_json")?;
         let output_stats_r1 = observe_fastq_stats(catalog, platform, setup.runner, &output_r1)?;
         let output_stats_r2 = if let Some(output_r2) = output_r2.as_deref() {
             Some(observe_fastq_stats(catalog, platform, setup.runner, output_r2)?)
@@ -154,18 +127,21 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             primer_set_id: setup.primer_governance.primer_set_id.clone(),
             marker_id: Some(setup.primer_governance.marker_id.clone()),
             primer_fasta: Some(setup.primer_governance.primer_fasta.display().to_string()),
-            orientation_policy: plan
+            orientation_policy: tool_plan
+                .plan
                 .effective_params
                 .get("orientation_policy")
                 .and_then(serde_json::Value::as_str)
                 .unwrap_or("normalize_to_forward_primer")
                 .to_string(),
-            max_mismatch_rate: plan
+            max_mismatch_rate: tool_plan
+                .plan
                 .effective_params
                 .get("max_mismatch_rate")
                 .and_then(serde_json::Value::as_f64)
                 .unwrap_or(0.10),
-            min_overlap_bp: plan
+            min_overlap_bp: tool_plan
+                .plan
                 .effective_params
                 .get("min_overlap_bp")
                 .and_then(serde_json::Value::as_u64)
@@ -222,18 +198,18 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         let metric_set = metric_set(metrics);
         bijux_dna_infra::atomic_write_json(&report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
-            &out_dir.join("metrics.json"),
+            &tool_plan.out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
         )?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
-                tool_spec.tool_version.clone(),
-                image_digest,
+                tool_plan.tool_spec.tool_version.clone(),
+                tool_plan.image_digest,
                 setup.runner,
                 platform,
                 setup.input_hash.clone(),
-                plan.params.clone(),
+                tool_plan.plan.params.clone(),
             ),
             execution: ExecutionMetrics {
                 runtime_s: execution.runtime_s,
@@ -266,6 +242,14 @@ struct NormalizePrimersBenchmarkSetup {
 struct NormalizePrimersBenchmarkStore {
     sqlite_path: PathBuf,
     jsonl_path: PathBuf,
+}
+
+struct NormalizePrimersToolPlan {
+    out_dir: PathBuf,
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    params_hash: String,
+    image_digest: String,
 }
 
 impl NormalizePrimersBenchmarkStore {
@@ -342,6 +326,47 @@ fn ensure_normalize_primers_qa<S: ::std::hash::BuildHasher>(
 ) -> Result<()> {
     ensure_image_qa_passed(STAGE_ID, tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_ID, tools, platform, catalog)
+}
+
+fn prepare_normalize_primers_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqNormalizePrimersArgs,
+    setup: &NormalizePrimersBenchmarkSetup,
+    jobs: usize,
+    tool: &str,
+) -> Result<NormalizePrimersToolPlan> {
+    let out_dir = setup.tools_root.join(tool);
+    bijux_dna_infra::ensure_dir(&out_dir)?;
+    let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
+    let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+    let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::plan_with_options(
+        &tool_spec,
+        &args.r1,
+        args.r2.as_deref(),
+        &out_dir,
+        &bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::NormalizePrimersPlanOptions {
+            primer_set_id: setup.primer_governance.primer_set_id.clone(),
+            marker_id: Some(setup.primer_governance.marker_id.clone()),
+            primer_fasta: Some(setup.primer_governance.primer_fasta.clone()),
+            orientation_policy: args
+                .orientation_policy
+                .clone()
+                .unwrap_or_else(|| "normalize_to_forward_primer".to_string()),
+            max_mismatch_rate: args.max_mismatch_rate.unwrap_or(0.10),
+            min_overlap_bp: args.min_overlap_bp.unwrap_or(10),
+            strict_5p_anchor: args.strict_5p_anchor.unwrap_or(true),
+            allow_iupac_codes: args.allow_iupac_codes.unwrap_or(true),
+        },
+    )?;
+    let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let image_digest = tool_spec
+        .image
+        .digest
+        .as_ref()
+        .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
+        .clone();
+    Ok(NormalizePrimersToolPlan { out_dir, tool_spec, plan, params_hash, image_digest })
 }
 
 fn select_normalize_primers_benchmark_tools(
