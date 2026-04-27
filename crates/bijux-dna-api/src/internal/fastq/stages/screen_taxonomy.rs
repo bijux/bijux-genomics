@@ -59,8 +59,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
         write_screen_benchmark_explain(&bench_inputs)?;
     }
 
-    ensure_image_qa_passed(STAGE_SCREEN_TAXONOMY.as_str(), &bench_inputs.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_SCREEN_TAXONOMY.as_str(), &bench_inputs.tools, platform, catalog)?;
+    ensure_screen_benchmark_qa(catalog, platform, &bench_inputs.tools)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -162,6 +161,15 @@ fn write_screen_benchmark_explain(bench_inputs: &ScreenBenchInputs) -> Result<()
         &bench_inputs.registry,
         None,
     )
+}
+
+fn ensure_screen_benchmark_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_SCREEN_TAXONOMY.as_str(), tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_SCREEN_TAXONOMY.as_str(), tools, platform, catalog)
 }
 
 #[derive(Debug, Clone)]
