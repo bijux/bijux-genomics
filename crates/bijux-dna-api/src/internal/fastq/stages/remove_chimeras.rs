@@ -118,6 +118,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         let metric_set = metric_set(metrics);
         validate_remove_chimeras_report_identity(tool, &report)?;
         validate_remove_chimeras_report_execution(&report, &execution.result)?;
+        validate_remove_chimeras_report_paired_mode(args, &report)?;
         validate_remove_chimeras_report_paths(args, &outputs, &report)?;
         validate_remove_chimeras_report_metrics(&report, &metric_set.metrics)?;
         write_remove_chimeras_artifacts(&tool_plan.out_dir, &outputs, &report, &metric_set)?;
@@ -668,6 +669,21 @@ fn validate_remove_chimeras_report_execution(
             "remove_chimeras report exit code mismatch: expected {}, observed {:?}",
             execution.exit_code,
             report.exit_code
+        ));
+    }
+    Ok(())
+}
+
+fn validate_remove_chimeras_report_paired_mode(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
+    report: &RemoveChimerasReportV1,
+) -> Result<()> {
+    let expected = if args.r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
+    if report.paired_mode != expected {
+        return Err(anyhow!(
+            "remove_chimeras report paired mode mismatch: expected {:?}, observed {:?}",
+            expected,
+            report.paired_mode
         ));
     }
     Ok(())
