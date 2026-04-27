@@ -13,16 +13,17 @@ Ensures all reference pages are linked and stable.
 All pages here are enforced by snapshot or schema tests.
 
 ## Examples
-- Start with `SCHEMAS_INDEX.md` to locate enforced schema snapshots.
+- Start with [SCHEMAS_INDEX.md](SCHEMAS_INDEX.md) to locate enforced schema snapshots.
 
 ## Failure modes
 - Missing entries create orphaned reference pages.
 
 ## Index
-- `SCHEMAS_INDEX.md`
-- `COMPATIBILITY_MATRIX.md`
-- `EXAMPLES.md`
-- `NO_ORPHANS.md`
-- `CRATE_MAP.md`
-- `PIPELINES.md`
-- `CONTRACT_VERSIONING.md`
+- [index.md](index.md)
+- [SCHEMAS_INDEX.md](SCHEMAS_INDEX.md)
+- [COMPATIBILITY_MATRIX.md](COMPATIBILITY_MATRIX.md)
+- [EXAMPLES.md](EXAMPLES.md)
+- [NO_ORPHANS.md](NO_ORPHANS.md)
+- [CRATE_MAP.md](CRATE_MAP.md)
+- [PIPELINES.md](PIPELINES.md)
+- [CONTRACT_VERSIONING.md](CONTRACT_VERSIONING.md)
