@@ -80,6 +80,49 @@ fn stage_catalog_default_tools_are_present_in_runtime_surface() {
     }
 }
 
+#[test]
+fn supported_stage_defaults_match_domain_index_defaults() {
+    let defaults = parse_domain_index_active_defaults();
+    for spec in bijux_dna_stages_vcf::stage_specs::vcf_stage_catalog() {
+        if spec.status != "supported" {
+            continue;
+        }
+        assert_eq!(
+            defaults.get(spec.stage_id).map(String::as_str),
+            Some(spec.default_tool_id),
+            "supported stage {} default drifted from domain/vcf/index.yaml",
+            spec.stage_id
+        );
+    }
+}
+
+fn parse_domain_index_active_defaults() -> std::collections::BTreeMap<String, String> {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../");
+    let raw = std::fs::read_to_string(root.join("domain/vcf/index.yaml"))
+        .unwrap_or_else(|err| panic!("read domain/vcf/index.yaml: {err}"));
+    let mut defaults = std::collections::BTreeMap::new();
+    let mut in_block = false;
+    for line in raw.lines() {
+        if line == "active_defaults:" {
+            in_block = true;
+            continue;
+        }
+        if in_block && !line.starts_with(' ') {
+            break;
+        }
+        if !in_block {
+            continue;
+        }
+        if let Some((stage_id, tool_id)) = line.trim().split_once(':') {
+            defaults.insert(
+                stage_id.trim().to_string(),
+                tool_id.trim().trim_matches('"').to_string(),
+            );
+        }
+    }
+    defaults
+}
+
 fn catalog_stage_ids() -> std::collections::BTreeSet<String> {
     bijux_dna_stages_vcf::stage_specs::vcf_stage_catalog()
         .iter()

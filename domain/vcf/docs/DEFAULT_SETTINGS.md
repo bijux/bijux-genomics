@@ -59,11 +59,11 @@ Purpose: define deterministic blessed defaults and rationale for each VCF stage.
 - `vcf.impute` default: `beagle` (planned). rationale: first pinned planned imputation baseline while alternative tools are externally tracked.
 - `vcf.postprocess` default: `bcftools` (planned). rationale: deterministic normalization/filter baseline.
 - `vcf.prepare_reference_panel` default: `bcftools` (planned). rationale: deterministic reference panel prep baseline.
-- `vcf.call_gl` default: `angsd` (planned). rationale: deterministic genotype-likelihood baseline for low-coverage aDNA profiles.
-- `vcf.call_diploid` default: `bcftools` (planned). rationale: deterministic diploid baseline for modern-depth profiles.
-- `vcf.call_pseudohaploid` default: `angsd` (planned). rationale: deterministic pseudohaploid path for low-depth regimes.
-- `vcf.damage_filter` default: `bcftools` (planned). rationale: deterministic PMD/C>T-G>A masking contract anchor.
-- `vcf.gl_propagation` default: `bcftools` (planned). rationale: preserves GL fields across downstream imputation handoffs.
+- `vcf.call_gl` default: `bcftools`. rationale: current governed production default keeps GL emission runnable while `angsd` remains a planned low-coverage alternative.
+- `vcf.call_diploid` default: `bcftools`. rationale: deterministic diploid baseline for the current governed production profile.
+- `vcf.call_pseudohaploid` default: `bcftools`. rationale: current governed production default preserves the pseudohaploid contract while `angsd` remains a planned alternative.
+- `vcf.damage_filter` default: `bcftools`. rationale: deterministic PMD/C>T-G>A masking contract anchor for the current governed profile.
+- `vcf.gl_propagation` default: `bcftools`. rationale: preserves GL fields across downstream handoffs in the current governed profile.
 - `vcf.population_structure` default: `plink2` (planned). rationale: deterministic PCA/pop-structure baseline with stable metrics schema.
 - `vcf.roh` default: `plink2` (planned). rationale: deterministic ROH interval extraction and summary bins.
 - `vcf.demography` default: `ibdne` (planned). rationale: deterministic effective population size summary from IBD-derived inputs.
