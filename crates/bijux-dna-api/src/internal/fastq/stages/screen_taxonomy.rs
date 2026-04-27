@@ -401,6 +401,7 @@ fn build_screen_record(
     validate_screen_report_identity(inputs.tool, &governed_report)?;
     validate_screen_report_execution(&governed_report, inputs.execution)?;
     validate_screen_report_paired_mode(inputs.bench_inputs.r2.is_some(), &governed_report)?;
+    validate_screen_report_database(&effective_params, &governed_report)?;
     bijux_dna_infra::atomic_write_json(&report_paths.classification_json, &governed_report)
         .context("write governed screen taxonomy report")?;
     let metrics =
@@ -578,6 +579,40 @@ fn validate_screen_report_paired_mode(has_r2: bool, report: &ScreenTaxonomyRepor
             expected,
             report.paired_mode
         ));
+    }
+    Ok(())
+}
+
+fn validate_screen_report_database(
+    effective_params: &ScreenEffectiveParams,
+    report: &ScreenTaxonomyReportV1,
+) -> Result<()> {
+    if report.threads != effective_params.threads {
+        return Err(anyhow!(
+            "screen taxonomy report threads mismatch: expected {}, observed {}",
+            effective_params.threads,
+            report.threads
+        ));
+    }
+    if report.classifier != effective_params.classifier
+        || report.report_format != effective_params.report_format
+        || report.assignment_format != effective_params.assignment_format
+    {
+        return Err(anyhow!("screen taxonomy report classifier contract mismatch"));
+    }
+    if report.database_catalog_id != effective_params.database_catalog_id
+        || report.database_artifact_id != effective_params.database_artifact_id
+        || report.database_build_id != effective_params.database_build_id
+        || report.database_digest != effective_params.database_digest
+        || report.database_namespace != effective_params.database_namespace
+        || report.database_scope != effective_params.database_scope
+    {
+        return Err(anyhow!("screen taxonomy report database identity mismatch"));
+    }
+    if report.minimum_confidence != effective_params.minimum_confidence
+        || report.emit_unclassified != effective_params.emit_unclassified
+    {
+        return Err(anyhow!("screen taxonomy report classification parameter mismatch"));
     }
     Ok(())
 }
