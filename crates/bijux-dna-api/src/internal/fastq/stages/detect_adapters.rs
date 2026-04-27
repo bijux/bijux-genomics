@@ -93,12 +93,9 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
             bench_inputs: &setup.bench_inputs,
             input_r2_path: args.r2.as_deref(),
             input_stats_r2: setup.input_stats_r2.as_ref(),
-            tool: &tool_plan.tool,
-            tool_spec: &tool_plan.tool_spec,
             input_hash: &setup.input_hash,
-            params: &tool_plan.plan.params,
-            out_dir: &tool_plan.plan.out_dir,
-            execution: &execution.result,
+            tool_plan: &tool_plan,
+            execution: &execution,
         })?;
         append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
         insert_fastq_detect_adapters_v1(&conn, &record).context("insert bench sqlite")?;
@@ -192,12 +189,9 @@ struct DetectRecordInputs<'a> {
     bench_inputs: &'a TrimBenchInputs,
     input_r2_path: Option<&'a std::path::Path>,
     input_stats_r2: Option<&'a SeqkitMetrics>,
-    tool: &'a str,
-    tool_spec: &'a ToolExecutionSpecV1,
     input_hash: &'a str,
-    params: &'a serde_json::Value,
-    out_dir: &'a std::path::Path,
-    execution: &'a StageResultV1,
+    tool_plan: &'a DetectAdaptersToolPlan,
+    execution: &'a DetectAdaptersToolExecution,
 }
 
 fn prepare_detect_adapters_tool_plan<S: ::std::hash::BuildHasher>(
@@ -329,10 +323,10 @@ fn build_detect_record(
         inputs.bench_inputs,
         inputs.input_r2_path,
         inputs.input_stats_r2,
-        inputs.tool,
-        inputs.tool_spec,
-        inputs.out_dir,
-        inputs.execution,
+        &inputs.tool_plan.tool,
+        &inputs.tool_plan.tool_spec,
+        &inputs.tool_plan.plan.out_dir,
+        &inputs.execution.result,
     )?;
     let metrics = FastqDetectAdaptersMetrics {
         reads_in: report.reads_in,
@@ -346,27 +340,33 @@ fn build_detect_record(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("adapter_report.json"), &report)
-        .context("write adapter report")?;
+    bijux_dna_infra::atomic_write_json(
+        &inputs.tool_plan.plan.out_dir.join("adapter_report.json"),
+        &report,
+    )
+    .context("write adapter report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
-    bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("metrics.json"), &metrics_json)
-        .context("write adapter metrics")?;
+    bijux_dna_infra::atomic_write_json(
+        &inputs.tool_plan.plan.out_dir.join("metrics.json"),
+        &metrics_json,
+    )
+    .context("write adapter metrics")?;
 
     let context = build_benchmark_context(
-        inputs.tool,
-        inputs.tool_spec.tool_version.clone(),
-        benchmark_image_identity(inputs.tool_spec),
+        &inputs.tool_plan.tool,
+        inputs.tool_plan.tool_spec.tool_version.clone(),
+        inputs.tool_plan.image_digest.clone(),
         inputs.bench_inputs.runner,
         inputs.platform,
         inputs.input_hash.to_string(),
-        inputs.params.clone(),
+        inputs.tool_plan.plan.params.clone(),
     );
     let record = BenchmarkRecord {
         context,
         execution: ExecutionMetrics {
-            runtime_s: inputs.execution.runtime_s,
-            memory_mb: inputs.execution.memory_mb,
-            exit_code: inputs.execution.exit_code,
+            runtime_s: inputs.execution.result.runtime_s,
+            memory_mb: inputs.execution.result.memory_mb,
+            exit_code: inputs.execution.result.exit_code,
         },
         metrics: metric_set,
     };
