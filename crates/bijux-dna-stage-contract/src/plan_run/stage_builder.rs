@@ -1,5 +1,5 @@
 use std::collections::{BTreeMap, HashSet};
-use std::path::PathBuf;
+use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
@@ -51,7 +51,7 @@ pub fn build_stage_plan(
     run_spec: &RunSpec,
     tool_manifest: &ToolManifest,
     stage_spec: &StageSpec,
-    run_dir: PathBuf,
+    run_dir: &Path,
     inputs: Vec<ArtifactRef>,
     outputs: Vec<ArtifactRef>,
 ) -> Result<StagePlanV1> {
