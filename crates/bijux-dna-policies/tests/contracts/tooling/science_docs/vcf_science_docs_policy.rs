@@ -163,15 +163,10 @@ fn policy__contracts__vcf_science_docs_policy__index_covers_vcf_science_docs_exa
 
 #[test]
 fn policy__contracts__vcf_science_docs_policy__stage_catalog_covers_supported_stage_catalog() {
-    let expected = vcf_stage_specs()
-        .into_iter()
-        .filter_map(|(stage_id, spec)| (spec.status == "supported").then_some(stage_id))
-        .collect::<BTreeSet<_>>();
+    let expected = vcf_stage_specs().into_keys().collect::<BTreeSet<_>>();
     let documented = vcf_stage_catalog_ids();
-    let missing = expected.difference(&documented).cloned().collect::<Vec<_>>();
-    assert!(
-        missing.is_empty(),
-        "VCF stage catalog is missing supported stages:\n{}",
-        missing.join("\n")
+    assert_eq!(
+        expected, documented,
+        "VCF stage catalog must cover the VCF stage manifest exactly"
     );
 }
