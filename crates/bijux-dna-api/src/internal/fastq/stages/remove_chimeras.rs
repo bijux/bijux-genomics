@@ -54,9 +54,8 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
 
     ensure_remove_chimeras_qa(catalog, platform, &setup.tools)?;
 
-    let sqlite_path = setup.bench_dir.join("bench.sqlite");
-    let conn = bijux_dna_analyze::open_sqlite(&sqlite_path)?;
-    let bench_path = setup.bench_dir.join("bench.jsonl");
+    let store = RemoveChimerasBenchmarkStore::from_setup(&setup);
+    let conn = bijux_dna_analyze::open_sqlite(&store.sqlite_path)?;
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::new();
@@ -205,7 +204,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             metrics: metric_set,
         };
         record.validate()?;
-        append_jsonl(&bench_path, &record)?;
+        append_jsonl(&store.jsonl_path, &record)?;
         insert_fastq_chimeras_v1(&conn, &record)?;
         records.push(record);
     }
@@ -222,6 +221,20 @@ struct RemoveChimerasBenchmarkSetup {
     input_hash: String,
     bench_dir: PathBuf,
     tools_root: PathBuf,
+}
+
+struct RemoveChimerasBenchmarkStore {
+    sqlite_path: PathBuf,
+    jsonl_path: PathBuf,
+}
+
+impl RemoveChimerasBenchmarkStore {
+    fn from_setup(setup: &RemoveChimerasBenchmarkSetup) -> Self {
+        Self {
+            sqlite_path: setup.bench_dir.join("bench.sqlite"),
+            jsonl_path: setup.bench_dir.join("bench.jsonl"),
+        }
+    }
 }
 
 fn prepare_remove_chimeras_setup<S: ::std::hash::BuildHasher>(
