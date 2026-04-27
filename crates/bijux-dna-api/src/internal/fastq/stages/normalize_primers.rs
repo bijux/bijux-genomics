@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::support::benchmark_runtime::ensure_bench_runner;
@@ -9,8 +10,9 @@ use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_normalize_primers_v1, insert_fastq_normalize_primers_v1,
 };
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqNormalizePrimersMetrics};
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
-use bijux_dna_core::prelude::measure::ExecutionMetrics;
+use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
@@ -26,7 +28,7 @@ use uuid::Uuid;
 
 use crate::internal::fastq::stages::preprocess::{
     enforce_amplicon_qc_thresholds_for_bench, materialize_amplicon_stage_outputs_for_bench,
-    resolve_primer_set_governance,
+    resolve_primer_set_governance, PrimerSetGovernance,
 };
 use crate::internal::fastq::stages::trim_bench_common::{
     build_benchmark_context, observe_fastq_stats,
@@ -47,55 +49,30 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqNormalizePrimersArgs,
 ) -> Result<BenchOutcome<FastqNormalizePrimersMetrics>> {
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = select_normalize_primers_benchmark_tools(args)?;
-    let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
-    let runner = ensure_bench_runner(platform, runner_override)?;
-    let input_stats_r1 = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
-    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(catalog, platform, runner, r2)?)
-    } else {
-        None
-    };
-    let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!(
-            "{}+{}",
-            hash_file_sha256(&args.r1).context("hash normalize primers input r1")?,
-            hash_file_sha256(r2).context("hash normalize primers input r2")?
-        )
-    } else {
-        hash_file_sha256(&args.r1).context("hash normalize primers input")?
-    };
-
-    let bench_dir_name =
-        bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS)
-            .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
-    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
-    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
-    bijux_dna_infra::ensure_dir(&bench_dir)?;
-    bijux_dna_infra::ensure_dir(&tools_root)?;
+    let selected_tools = select_normalize_primers_benchmark_tools(args)?;
+    let setup =
+        prepare_normalize_primers_setup(catalog, platform, runner_override, args, &selected_tools)?;
 
     if args.explain {
-        write_explain_md(&bench_dir, STAGE_ID, &tools, &[], None)?;
-        write_explain_plan_json(&bench_dir, STAGE_ID, &tools, &registry, None)?;
+        write_explain_md(&setup.bench_dir, STAGE_ID, &setup.tools, &[], None)?;
+        write_explain_plan_json(&setup.bench_dir, STAGE_ID, &setup.tools, &setup.registry, None)?;
     }
 
-    ensure_image_qa_passed(STAGE_ID, &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_ID, &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
 
-    let sqlite_path = bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path)?;
-    let bench_path = bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::new();
-    let primer_governance = resolve_primer_set_governance(args.primer_set_id.as_deref())?;
 
-    for tool in &tools {
-        let out_dir = tools_root.join(tool);
+    for tool in &setup.tools {
+        let out_dir = setup.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir)?;
-        let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
+        let tool_spec =
+            build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
         let plan = bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::plan_with_options(
             &tool_spec,
@@ -103,9 +80,9 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             args.r2.as_deref(),
             &out_dir,
             &bijux_dna_planner_fastq::tool_adapters::fastq::normalize_primers::NormalizePrimersPlanOptions {
-                primer_set_id: primer_governance.primer_set_id.clone(),
-                marker_id: Some(primer_governance.marker_id.clone()),
-                primer_fasta: Some(primer_governance.primer_fasta.clone()),
+                primer_set_id: setup.primer_governance.primer_set_id.clone(),
+                marker_id: Some(setup.primer_governance.marker_id.clone()),
+                primer_fasta: Some(setup.primer_governance.primer_fasta.clone()),
                 orientation_policy: args
                     .orientation_policy
                     .clone()
@@ -128,16 +105,16 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             tool,
             &tool_spec.tool_version,
             &image_digest,
-            &runner.to_string(),
+            &setup.runner.to_string(),
             &platform.name,
-            &input_hash,
+            &setup.input_hash,
             &params_hash,
         ) {
             records.push(record);
             continue;
         }
         let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
-        let execution = execute_plans_with_jobs(vec![step.clone()], runner, jobs)?
+        let execution = execute_plans_with_jobs(vec![step.clone()], setup.runner, jobs)?
             .into_iter()
             .next()
             .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
@@ -157,9 +134,9 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         let report_json = artifact_path(&plan, "report_json")?;
         let orientation_report = artifact_path(&plan, "primer_orientation_report")?;
         let primer_stats_json = artifact_path(&plan, "primer_stats_json")?;
-        let output_stats_r1 = observe_fastq_stats(catalog, platform, runner, &output_r1)?;
+        let output_stats_r1 = observe_fastq_stats(catalog, platform, setup.runner, &output_r1)?;
         let output_stats_r2 = if let Some(output_r2) = output_r2.as_deref() {
-            Some(observe_fastq_stats(catalog, platform, runner, output_r2)?)
+            Some(observe_fastq_stats(catalog, platform, setup.runner, output_r2)?)
         } else {
             None
         };
@@ -167,8 +144,8 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             payload.get("primer_trimmed_fraction").and_then(serde_json::Value::as_f64);
         let orientation_forward_fraction =
             payload.get("orientation_forward_fraction").and_then(serde_json::Value::as_f64);
-        let reads_in_total =
-            input_stats_r1.reads + input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+        let reads_in_total = setup.input_stats_r1.reads
+            + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
         let reads_out_total =
             output_stats_r1.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
         let report = NormalizePrimersReportV1 {
@@ -177,9 +154,9 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             stage_id: STAGE_ID.to_string(),
             tool_id: tool.clone(),
             paired_mode: PairedMode::from_has_r2(args.r2.is_some()),
-            primer_set_id: primer_governance.primer_set_id.clone(),
-            marker_id: Some(primer_governance.marker_id.clone()),
-            primer_fasta: Some(primer_governance.primer_fasta.display().to_string()),
+            primer_set_id: setup.primer_governance.primer_set_id.clone(),
+            marker_id: Some(setup.primer_governance.marker_id.clone()),
+            primer_fasta: Some(setup.primer_governance.primer_fasta.display().to_string()),
             orientation_policy: plan
                 .effective_params
                 .get("orientation_policy")
@@ -204,13 +181,17 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             reads_in: Some(reads_in_total),
             reads_out: Some(reads_out_total),
             bases_in: Some(
-                input_stats_r1.bases + input_stats_r2.as_ref().map_or(0, |stats| stats.bases),
+                setup.input_stats_r1.bases
+                    + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.bases),
             ),
             bases_out: Some(
                 output_stats_r1.bases + output_stats_r2.as_ref().map_or(0, |stats| stats.bases),
             ),
             pairs_in: args.r2.as_ref().map(|_| {
-                input_stats_r1.reads.min(input_stats_r2.as_ref().map_or(0, |stats| stats.reads))
+                setup
+                    .input_stats_r1
+                    .reads
+                    .min(setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads))
             }),
             pairs_out: output_r2.as_ref().map(|_| {
                 output_stats_r1.reads.min(output_stats_r2.as_ref().map_or(0, |stats| stats.reads))
@@ -252,9 +233,9 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
                 tool,
                 tool_spec.tool_version.clone(),
                 image_digest,
-                runner,
+                setup.runner,
                 platform,
-                input_hash.clone(),
+                setup.input_hash.clone(),
                 plan.params.clone(),
             ),
             execution: ExecutionMetrics {
@@ -270,7 +251,72 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+    Ok(BenchOutcome { records, failures, bench_dir: setup.bench_dir, explain: args.explain })
+}
+
+struct NormalizePrimersBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    runner: RuntimeKind,
+    input_stats_r1: SeqkitMetrics,
+    input_stats_r2: Option<SeqkitMetrics>,
+    input_hash: String,
+    bench_dir: PathBuf,
+    tools_root: PathBuf,
+    primer_governance: PrimerSetGovernance,
+}
+
+fn prepare_normalize_primers_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqNormalizePrimersArgs,
+    selected_tools: &[String],
+) -> Result<NormalizePrimersBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role(STAGE_ID, selected_tools, &registry, false)?;
+    let runner = ensure_bench_runner(platform, runner_override)?;
+    let input_stats_r1 = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, runner, r2)?)
+    } else {
+        None
+    };
+    let input_hash = normalize_primers_input_hash(args)?;
+    let bench_dir_name =
+        bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_NORMALIZE_PRIMERS)
+            .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
+    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
+    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
+    bijux_dna_infra::ensure_dir(&bench_dir)?;
+    bijux_dna_infra::ensure_dir(&tools_root)?;
+    let primer_governance = resolve_primer_set_governance(args.primer_set_id.as_deref())?;
+
+    Ok(NormalizePrimersBenchmarkSetup {
+        registry,
+        tools,
+        runner,
+        input_stats_r1,
+        input_stats_r2,
+        input_hash,
+        bench_dir,
+        tools_root,
+        primer_governance,
+    })
+}
+
+fn normalize_primers_input_hash(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqNormalizePrimersArgs,
+) -> Result<String> {
+    if let Some(r2) = args.r2.as_deref() {
+        return Ok(format!(
+            "{}+{}",
+            hash_file_sha256(&args.r1).context("hash normalize primers input r1")?,
+            hash_file_sha256(r2).context("hash normalize primers input r2")?
+        ));
+    }
+    hash_file_sha256(&args.r1).context("hash normalize primers input")
 }
 
 fn select_normalize_primers_benchmark_tools(
