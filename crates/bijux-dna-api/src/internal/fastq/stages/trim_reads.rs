@@ -8,6 +8,7 @@ use crate::tool_selection::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::query_shared::{fetch_fastq_trim_v2, insert_fastq_trim_v2};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimMetrics};
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_domain_fastq::TrimReadsReportV1;
@@ -25,7 +26,7 @@ use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec
 
 use super::trim_bench_common::{
     benchmark_image_identity, build_benchmark_context, derive_trim_delta, json_string,
-    observe_fastq_stats, prepare_trim_bench,
+    observe_fastq_stats, prepare_trim_bench, TrimBenchInputs,
 };
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
@@ -83,54 +84,27 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_TRIM_READS.as_str(), &header);
 
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_TRIM_READS.as_str(), &tools, &registry, false)?;
-    let bench_inputs = prepare_trim_bench(
-        catalog,
-        platform,
-        runner_override,
-        &args.sample_id,
-        &args.out,
-        &args.r1,
-        &STAGE_TRIM_READS,
-    )?;
-    let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
-    } else {
-        bench_inputs.input_hash.clone()
-    };
-    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
-    } else {
-        None
-    };
-
-    let stage_id = bijux_dna_core::ids::StageId::new(STAGE_TRIM_READS.as_str());
-    let all_tools: Vec<String> =
-        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
-    let excluded: Vec<String> =
-        all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
+    let setup = prepare_trim_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
         write_explain_md(
-            &bench_inputs.bench_dir,
+            &setup.bench_inputs.bench_dir,
             STAGE_TRIM_READS.as_str(),
-            &tools,
-            &excluded,
+            &setup.tools,
+            &setup.excluded_tools,
             None,
         )?;
         write_explain_plan_json(
-            &bench_inputs.bench_dir,
+            &setup.bench_inputs.bench_dir,
             STAGE_TRIM_READS.as_str(),
-            &tools,
-            &registry,
+            &setup.tools,
+            &setup.registry,
             None,
         )?;
     }
 
-    ensure_image_qa_passed(STAGE_TRIM_READS.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_TRIM_READS.as_str(), &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_TRIM_READS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_TRIM_READS.as_str(), &setup.tools, platform, catalog)?;
 
     let adapter_policy =
         normalized_adapter_policy(args.adapter_policy.as_deref(), adapter_bank_requested(args))?;
@@ -170,22 +144,22 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         polyx_policy: polyx_policy.clone(),
         contaminant_policy: contaminant_policy.clone(),
     };
-    validate_trim_toolset_support(&tools, args.r2.is_some(), &trim_options)?;
+    validate_trim_toolset_support(&setup.tools, args.r2.is_some(), &trim_options)?;
 
-    let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = bench_inputs.bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_inputs.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
     let mut records = Vec::<BenchmarkRecord<FastqTrimMetrics>>::new();
     let mut failures = Vec::<RawFailure>::new();
 
-    for tool in tools {
-        let out_dir = bench_inputs.tools_root.join(&tool);
+    for tool in setup.tools {
+        let out_dir = setup.bench_inputs.tools_root.join(&tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec(
             STAGE_TRIM_READS.as_str(),
             &tool,
-            &registry,
+            &setup.registry,
             catalog,
             platform,
         )?;
@@ -193,7 +167,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         let tool_spec = apply_thread_override(&tool_spec, args.threads);
         let plan = plan_with_options(
             &tool_spec,
-            &bench_inputs.r1,
+            &setup.bench_inputs.r1,
             args.r2.as_deref(),
             &out_dir,
             adapter_context.as_ref(),
@@ -214,9 +188,9 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             &tool,
             &tool_spec.tool_version,
             &image_digest,
-            &bench_inputs.runner.to_string(),
+            &setup.bench_inputs.runner.to_string(),
             &platform.name,
-            &input_hash,
+            &setup.input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -225,7 +199,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
 
         let execution = execute_plans_with_jobs(
             vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
-            bench_inputs.runner,
+            setup.bench_inputs.runner,
             jobs,
         )?
         .into_iter()
@@ -244,19 +218,19 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
 
         let output_r1 = plan.io.outputs[0].path.clone();
         let output_stats_r1 =
-            observe_fastq_stats(catalog, platform, bench_inputs.runner, &output_r1)?;
+            observe_fastq_stats(catalog, platform, setup.bench_inputs.runner, &output_r1)?;
         let output_stats_r2 = if args.r2.is_some() {
             Some(observe_fastq_stats(
                 catalog,
                 platform,
-                bench_inputs.runner,
+                setup.bench_inputs.runner,
                 &plan.io.outputs[1].path,
             )?)
         } else {
             None
         };
         let before_stats =
-            combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2.as_ref());
+            combine_seqkit_metrics(&setup.bench_inputs.input_stats, setup.input_stats_r2.as_ref());
         let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
         let report_path = out_dir.join("trim_report.json");
         let mut governed_report = load_governed_trim_report(&report_path)?;
@@ -264,8 +238,10 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         governed_report.reads_out = Some(after_stats.reads);
         governed_report.bases_in = Some(before_stats.bases);
         governed_report.bases_out = Some(after_stats.bases);
-        governed_report.pairs_in =
-            input_stats_r2.as_ref().map(|stats| bench_inputs.input_stats.reads.min(stats.reads));
+        governed_report.pairs_in = setup
+            .input_stats_r2
+            .as_ref()
+            .map(|stats| setup.bench_inputs.input_stats.reads.min(stats.reads));
         governed_report.pairs_out =
             output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
         governed_report.mean_q_before = Some(before_stats.mean_q);
@@ -278,9 +254,10 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             reads_out: after_stats.reads,
             bases_in: before_stats.bases,
             bases_out: after_stats.bases,
-            pairs_in: input_stats_r2
+            pairs_in: setup
+                .input_stats_r2
                 .as_ref()
-                .map(|stats| bench_inputs.input_stats.reads.min(stats.reads)),
+                .map(|stats| setup.bench_inputs.input_stats.reads.min(stats.reads)),
             pairs_out: output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads)),
             mean_q_before: before_stats.mean_q,
             mean_q_after: after_stats.mean_q,
@@ -315,9 +292,9 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             &tool,
             tool_spec.tool_version.clone(),
             image_digest,
-            bench_inputs.runner,
+            setup.bench_inputs.runner,
             platform,
-            input_hash.clone(),
+            setup.input_hash.clone(),
             bench_params.clone(),
         );
         let record = BenchmarkRecord {
@@ -335,7 +312,71 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir: setup.bench_inputs.bench_dir,
+        explain: args.explain,
+    })
+}
+
+struct TrimBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    excluded_tools: Vec<String>,
+    bench_inputs: TrimBenchInputs,
+    input_hash: String,
+    input_stats_r2: Option<SeqkitMetrics>,
+}
+
+fn prepare_trim_benchmark_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimArgs,
+    tools: &[String],
+) -> Result<TrimBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role(STAGE_TRIM_READS.as_str(), tools, &registry, false)?;
+    let bench_inputs = prepare_trim_bench(
+        catalog,
+        platform,
+        runner_override,
+        &args.sample_id,
+        &args.out,
+        &args.r1,
+        &STAGE_TRIM_READS,
+    )?;
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
+    } else {
+        bench_inputs.input_hash.clone()
+    };
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
+    } else {
+        None
+    };
+    let excluded_tools = excluded_trim_tools(&registry, &tools);
+    Ok(TrimBenchmarkSetup {
+        registry,
+        tools,
+        excluded_tools,
+        bench_inputs,
+        input_hash,
+        input_stats_r2,
+    })
+}
+
+fn excluded_trim_tools(registry: &ToolRegistry, selected_tools: &[String]) -> Vec<String> {
+    let stage_id = bijux_dna_core::ids::StageId::new(STAGE_TRIM_READS.as_str());
+    registry
+        .tools_for_stage(&stage_id)
+        .iter()
+        .map(|tool| tool.tool_id.to_string())
+        .filter(|tool| !selected_tools.contains(tool))
+        .collect()
 }
 
 fn combine_seqkit_metrics(
