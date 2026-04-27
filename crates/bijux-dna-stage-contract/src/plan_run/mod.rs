@@ -90,8 +90,7 @@ pub fn build_run_execution_plan(
         })
         .collect();
 
-    let stage =
-        build_stage_plan(run_spec, tool_manifest, stage_spec, run_dir.clone(), inputs, outputs)?;
+    let stage = build_stage_plan(run_spec, tool_manifest, stage_spec, &run_dir, inputs, outputs)?;
 
     let planned_artifacts = stage
         .io
@@ -130,11 +129,12 @@ mod tests {
 
     use bijux_dna_core::contract::ToolRole;
     use bijux_dna_core::contract::{
-        ArtifactKind, Cardinality, PathSpec, PortSpec, RunSpec, RuntimeScale, StageSemanticKind,
-        StageSpec, ToolConstraints, ToolManifest,
+        ArtifactKind, Cardinality, ExecutionContract, PathSpec, PortSpec, RunSpec, RuntimeScale,
+        StageSemanticKind, StageSpec, ToolConstraints, ToolManifest,
     };
     use bijux_dna_core::id_catalog;
     use bijux_dna_core::ids::{StageId, ToolId};
+    use bijux_dna_core::prelude::tooling::StageBehavior;
 
     #[test]
     fn build_stage_plan_copies_run_params_into_effective_params() {
@@ -155,7 +155,7 @@ mod tests {
             outputs: Vec::new(),
             metrics_parser: None,
             constraints: ToolConstraints::default(),
-            execution_contract: Default::default(),
+            execution_contract: ExecutionContract::default(),
         };
         let stage_spec = StageSpec {
             stage_id: StageId::from_static(id_catalog::FASTQ_TRIM),
@@ -174,20 +174,22 @@ mod tests {
             parameters: Vec::new(),
             metrics: Vec::new(),
             description: None,
-            behavior: Default::default(),
+            behavior: StageBehavior::default(),
             image_requirements: None,
             extends: None,
         };
 
-        let plan = super::build_stage_plan(
+        let plan = match super::build_stage_plan(
             &run_spec,
             &tool_manifest,
             &stage_spec,
-            PathBuf::from("runs/run-1"),
+            &PathBuf::from("runs/run-1"),
             Vec::new(),
             Vec::new(),
-        )
-        .expect("build stage plan");
+        ) {
+            Ok(plan) => plan,
+            Err(error) => panic!("build stage plan failed: {error}"),
+        };
 
         assert_eq!(plan.params, serde_json::json!({"quality": "20", "trim_poly_g": "true"}));
         assert_eq!(plan.effective_params, plan.params);
@@ -218,13 +220,15 @@ mod tests {
             parameters: Vec::new(),
             metrics: Vec::new(),
             description: None,
-            behavior: Default::default(),
+            behavior: StageBehavior::default(),
             image_requirements: None,
             extends: None,
         };
 
-        let error = super::validate_stage_outputs(&stage_spec, &run_spec)
-            .expect_err("stage output contract must match the requested run stage");
+        let error = match super::validate_stage_outputs(&stage_spec, &run_spec) {
+            Ok(()) => panic!("stage output contract must match the requested run stage"),
+            Err(error) => error,
+        };
 
         assert!(error.to_string().contains("output contract belongs to"));
     }
@@ -261,13 +265,15 @@ mod tests {
             parameters: Vec::new(),
             metrics: Vec::new(),
             description: None,
-            behavior: Default::default(),
+            behavior: StageBehavior::default(),
             image_requirements: None,
             extends: None,
         };
 
-        let error = super::validate_stage_outputs(&stage_spec, &run_spec)
-            .expect_err("duplicate output names must fail validation");
+        let error = match super::validate_stage_outputs(&stage_spec, &run_spec) {
+            Ok(()) => panic!("duplicate output names must fail validation"),
+            Err(error) => error,
+        };
 
         assert!(error.to_string().contains("duplicate output contract entry"));
     }
