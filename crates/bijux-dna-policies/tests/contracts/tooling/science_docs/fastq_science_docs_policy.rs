@@ -5,6 +5,40 @@ mod support;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 
+fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
+    let root = support::workspace_root();
+    let raw =
+        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let mut rows = Vec::new();
+    let mut in_table = false;
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with(header_prefix) {
+            in_table = true;
+            continue;
+        }
+        if !in_table {
+            continue;
+        }
+        if trimmed.starts_with("|---") {
+            continue;
+        }
+        if trimmed.is_empty() {
+            break;
+        }
+        if trimmed.starts_with('|') {
+            rows.push(
+                trimmed
+                    .trim_matches('|')
+                    .split('|')
+                    .map(|value| value.trim().to_string())
+                    .collect(),
+            );
+        }
+    }
+    rows
+}
+
 fn tsv_ids(path: &str, id_column: usize) -> BTreeSet<String> {
     let root = support::workspace_root();
     let raw =
@@ -89,6 +123,64 @@ fn fastq_tool_ids() -> BTreeSet<String> {
         );
     }
     ids
+}
+
+fn fastq_execution_support_admitted_tools() -> BTreeMap<String, BTreeSet<String>> {
+    let root = support::workspace_root();
+    let raw = fs::read_to_string(root.join("domain/fastq/execution_support.yaml"))
+        .expect("read domain/fastq/execution_support.yaml");
+    let mut rows = BTreeMap::<String, BTreeSet<String>>::new();
+    let mut current_stage = None::<String>;
+    let mut in_admitted_tools = false;
+
+    for line in raw.lines() {
+        let trimmed = line.trim();
+        if let Some(value) = trimmed.strip_prefix("- stage_id: ") {
+            current_stage = Some(value.trim_matches('"').to_string());
+            in_admitted_tools = false;
+            continue;
+        }
+        if trimmed == "admitted_tools:" {
+            in_admitted_tools = true;
+            continue;
+        }
+        if in_admitted_tools {
+            if let Some(value) = trimmed.strip_prefix("- ") {
+                let stage_id = current_stage
+                    .clone()
+                    .unwrap_or_else(|| panic!("admitted_tools row without stage_id"));
+                rows.entry(stage_id).or_default().insert(value.trim_matches('"').to_string());
+                continue;
+            }
+            in_admitted_tools = false;
+        }
+    }
+
+    rows
+}
+
+fn fastq_tools_roster_rows() -> BTreeMap<String, BTreeSet<String>> {
+    markdown_table_rows("docs/20-science/fastq/TOOLS_ROSTER.md", "| Stage | Supported tools |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 2,
+                "FASTQ tools roster rows must expose at least stage and supported-tools columns"
+            );
+            let stage_id = row[0].to_string();
+            let tools = if row[1] == "no admitted backend yet" {
+                BTreeSet::new()
+            } else {
+                row[1]
+                    .split(',')
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                    .map(ToOwned::to_owned)
+                    .collect()
+            };
+            (stage_id, tools)
+        })
+        .collect()
 }
 
 #[test]
@@ -195,4 +287,37 @@ fn policy__contracts__fastq_science_docs_policy__star_uses_dobin_paper_not_bowti
             "STAR evidence must not use Bowtie 2 locator {forbidden}"
         );
     }
+}
+
+#[test]
+fn policy__contracts__fastq_science_docs_policy__tools_roster_matches_validation_and_profile_stages(
+) {
+    let expected = fastq_execution_support_admitted_tools();
+    let roster = fastq_tools_roster_rows();
+    let mut offenders = Vec::new();
+
+    for stage_id in [
+        "fastq.validate_reads",
+        "fastq.profile_read_lengths",
+        "fastq.profile_reads",
+    ] {
+        let expected_tools = expected
+            .get(stage_id)
+            .unwrap_or_else(|| panic!("missing execution support stage {stage_id}"));
+        let documented_tools = roster
+            .get(stage_id)
+            .unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"));
+        if documented_tools != expected_tools {
+            offenders.push(format!(
+                "{stage_id}: expected {:?}, found {:?}",
+                expected_tools, documented_tools
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "FASTQ tools roster drift for validation/profile stages:\n{}",
+        offenders.join("\n")
+    );
 }
