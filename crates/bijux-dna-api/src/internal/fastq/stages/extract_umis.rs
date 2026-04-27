@@ -434,6 +434,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
     validate_umi_report_identity(inputs.tool, &report)?;
+    validate_umi_report_paired_contract(&report)?;
     validate_umi_report_execution(&report, &inputs.execution.result)?;
     validate_umi_report_paths(&report, inputs.r1, inputs.r2, &artifacts)?;
     validate_umi_report_observed_counts(
@@ -556,6 +557,25 @@ fn validate_umi_report_identity(tool: &str, report: &ExtractUmisReportV1) -> Res
             tool,
             report.tool_id
         ));
+    }
+    Ok(())
+}
+
+fn validate_umi_report_paired_contract(report: &ExtractUmisReportV1) -> Result<()> {
+    if report.paired_mode != PairedMode::PairedEnd {
+        return Err(anyhow!("extract_umis report must be paired-end"));
+    }
+    if report.input_r2.is_none() {
+        return Err(anyhow!("extract_umis paired report missing input_r2"));
+    }
+    if report.output_r2.is_none() {
+        return Err(anyhow!("extract_umis paired report missing output_r2"));
+    }
+    if report.pairs_in.is_none() {
+        return Err(anyhow!("extract_umis paired report missing pairs_in"));
+    }
+    if report.pairs_out.is_none() {
+        return Err(anyhow!("extract_umis paired report missing pairs_out"));
     }
     Ok(())
 }
