@@ -11,10 +11,10 @@ Prevent regressions and keep contracts enforceable.
 
 ## Contracts
 Enforced by policy tests:
-- `crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_policy_duplication.rs`
-- `crates/bijux-dna-policies/tests/boundaries/surface/policy/id_literal_policy.rs`
-- `crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_serde_json_writer.rs`
-- `crates/bijux-dna-policies/tests/boundaries/surface/purity/domain_purity.rs`
+- [../../crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_policy_duplication.rs](../../crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_policy_duplication.rs)
+- [../../crates/bijux-dna-policies/tests/boundaries/surface/policy/id_literal_policy.rs](../../crates/bijux-dna-policies/tests/boundaries/surface/policy/id_literal_policy.rs)
+- [../../crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_serde_json_writer.rs](../../crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_serde_json_writer.rs)
+- [../../crates/bijux-dna-policies/tests/boundaries/surface/purity/domain_purity.rs](../../crates/bijux-dna-policies/tests/boundaries/surface/purity/domain_purity.rs)
 
 ## Examples
 - Policy duplication outside `bijux-dna-policies`.
