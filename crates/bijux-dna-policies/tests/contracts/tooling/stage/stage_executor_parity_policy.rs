@@ -141,10 +141,11 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
     }
     let tools_by_id = tool_rows
         .iter()
-        .filter_map(|row| {
-            row.get("id").and_then(toml::Value::as_str).map(|id| (id.to_string(), row))
-        })
-        .collect::<BTreeMap<_, _>>();
+        .filter_map(|row| row.get("id").and_then(toml::Value::as_str).map(|id| (id.to_string(), row)))
+        .fold(BTreeMap::<String, Vec<&toml::Value>>::new(), |mut acc, (id, row)| {
+            acc.entry(id).or_default().push(row);
+            acc
+        });
     let config_rows = config_stage_rows_by_id(&root);
 
     let executors =
@@ -209,12 +210,23 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
             if status != "supported" {
                 continue;
             }
-            let Some(tool) = tools_by_id.get(&tool_id) else {
+            let Some(tool_rows) = tools_by_id.get(&tool_id) else {
                 offenders.push(format!(
                     "stage {stage_id} references tool {tool_id} missing from tool registry"
                 ));
                 continue;
             };
+            let tool = tool_rows
+                .iter()
+                .copied()
+                .find(|row| {
+                    row.get("stage_ids")
+                        .and_then(toml::Value::as_array)
+                        .is_some_and(|stage_ids| {
+                            stage_ids.iter().any(|value| value.as_str() == Some(stage_id))
+                        })
+                })
+                .unwrap_or(tool_rows[0]);
             let runtimes = tool
                 .get("runtimes")
                 .and_then(toml::Value::as_array)
