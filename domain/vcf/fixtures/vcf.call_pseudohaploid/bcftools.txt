@@ -1,0 +1,9 @@
+tool=bcftools
+tool_version=pinned
+stage=vcf.call_pseudohaploid
+domain=vcf
+fixture_kind=truth
+command=bcftools
+args=mpileup -Ou -f ref.fa sample.bam | bcftools call --ploidy 1 -mv -Ov -o pseudohaploid.vcf
+expected_outputs=pseudohaploid.vcf,pseudohaploid_sampling_log.json
+expected_stdout_patterns=ploidy=1,contract_ok
