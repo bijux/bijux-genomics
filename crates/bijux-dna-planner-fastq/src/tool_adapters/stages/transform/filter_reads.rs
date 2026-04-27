@@ -26,6 +26,14 @@ pub struct FilterPlanOptions {
     pub polyx_policy: Option<String>,
 }
 
+struct FilterPlanPaths {
+    output_r1: PathBuf,
+    output_r2: Option<PathBuf>,
+    report_json: PathBuf,
+    raw_backend_report: Option<PathBuf>,
+    raw_backend_report_format: Option<&'static str>,
+}
+
 /// # Errors
 /// Returns an error if any requested filter tool is not admitted for `fastq.filter_reads`.
 pub fn normalize_filter_tool_list(tools: &[String]) -> Result<Vec<String>> {
@@ -48,66 +56,20 @@ pub fn plan_filter(
         filter_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported filter tool"))?;
     ensure_filter_option_support(&tool.tool_id.0, options)?;
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
-    let output_r1 = if r2.is_some() {
-        out_dir.join(format!("R1.{output_name}"))
-    } else {
-        out_dir.join(output_name)
-    };
-    let output_r2 = r2.map(|_| out_dir.join(format!("R2.{output_name}")));
-    let report_json = out_dir.join("filter_report.json");
-    let (raw_backend_report, raw_backend_report_format) =
-        raw_backend_report_contract(&tool.tool_id.0, out_dir);
+    let paths = filter_plan_paths(&tool.tool_id.0, output_name, r2.is_some(), out_dir);
     let kmer_ref = options.kmer_ref.clone().map(|path| path.display().to_string());
-    let effective_params = FilterEffectiveParams {
-        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
-        threads: effective_threads,
-        max_n: options.max_n,
-        max_n_fraction: options.max_n_fraction,
-        max_n_count: options.max_n_count.or(options.max_n),
-        low_complexity_threshold: options.low_complexity_threshold,
-        entropy_threshold: options.entropy_threshold,
-        contaminant_db: kmer_ref.clone(),
-        n_policy: None,
-        polyx_policy: options.polyx_policy.clone(),
-        damage_mode: None,
-    };
-    let mut inputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("reads_r1"),
-        r1.to_path_buf(),
-        ArtifactRole::Reads,
-    )];
-    if let Some(r2) = r2 {
-        inputs.push(ArtifactRef::required(
-            ArtifactId::from_static("reads_r2"),
-            r2.to_path_buf(),
-            ArtifactRole::Reads,
-        ));
-    }
-    let mut outputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("filtered_reads_r1"),
-        output_r1.clone(),
-        ArtifactRole::Reads,
-    )];
-    if let Some(output_r2) = &output_r2 {
-        outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("filtered_reads_r2"),
-            output_r2.clone(),
-            ArtifactRole::Reads,
-        ));
-    }
-    outputs.push(ArtifactRef::required(
-        ArtifactId::from_static("report_json"),
-        report_json.clone(),
-        ArtifactRole::ReportJson,
-    ));
+    let effective_params =
+        filter_effective_params(options, r2.is_some(), effective_threads, &kmer_ref);
+    let inputs = filter_inputs(r1, r2);
+    let outputs = filter_outputs(&paths);
     let command_template = filter_command_template(
         tool,
         r1,
         r2,
-        &output_r1,
-        output_r2.as_deref(),
-        &report_json,
-        raw_backend_report.as_deref(),
+        &paths.output_r1,
+        paths.output_r2.as_deref(),
+        &paths.report_json,
+        paths.raw_backend_report.as_deref(),
         effective_threads,
         options,
     )?;
@@ -127,29 +89,126 @@ pub fn plan_filter(
         resources,
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({
-            "tool": tool.tool_id.0,
-            "threads": effective_threads,
-            "input_r1": r1,
-            "input_r2": r2,
-            "output_r1": output_r1,
-            "output_r2": output_r2,
-            "report_json": report_json,
-            "raw_backend_report": raw_backend_report,
-            "raw_backend_report_format": raw_backend_report_format,
-            "max_n": options.max_n,
-            "max_n_fraction": options.max_n_fraction,
-            "max_n_count": options.max_n_count,
-            "low_complexity_threshold": options.low_complexity_threshold,
-            "entropy_threshold": options.entropy_threshold,
-            "kmer_ref": kmer_ref,
-            "redundant_filters": options.redundant_filters,
-            "polyx_policy": options.polyx_policy,
-        }),
+        params: filter_plan_params(
+            &tool.tool_id.0,
+            r1,
+            r2,
+            &paths,
+            options,
+            effective_threads,
+            &kmer_ref,
+        ),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize filter effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+    })
+}
+
+fn filter_plan_paths(
+    tool_id: &str,
+    output_name: &str,
+    paired: bool,
+    out_dir: &Path,
+) -> FilterPlanPaths {
+    let output_r1 =
+        if paired { out_dir.join(format!("R1.{output_name}")) } else { out_dir.join(output_name) };
+    let (raw_backend_report, raw_backend_report_format) =
+        raw_backend_report_contract(tool_id, out_dir);
+    FilterPlanPaths {
+        output_r1,
+        output_r2: paired.then(|| out_dir.join(format!("R2.{output_name}"))),
+        report_json: out_dir.join("filter_report.json"),
+        raw_backend_report,
+        raw_backend_report_format,
+    }
+}
+
+fn filter_effective_params(
+    options: &FilterPlanOptions,
+    paired: bool,
+    effective_threads: u32,
+    kmer_ref: &Option<String>,
+) -> FilterEffectiveParams {
+    FilterEffectiveParams {
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        threads: effective_threads,
+        max_n: options.max_n,
+        max_n_fraction: options.max_n_fraction,
+        max_n_count: options.max_n_count.or(options.max_n),
+        low_complexity_threshold: options.low_complexity_threshold,
+        entropy_threshold: options.entropy_threshold,
+        contaminant_db: kmer_ref.clone(),
+        n_policy: None,
+        polyx_policy: options.polyx_policy.clone(),
+        damage_mode: None,
+    }
+}
+
+fn filter_inputs(r1: &Path, r2: Option<&Path>) -> Vec<ArtifactRef> {
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
+    inputs
+}
+
+fn filter_outputs(paths: &FilterPlanPaths) -> Vec<ArtifactRef> {
+    let mut outputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("filtered_reads_r1"),
+        paths.output_r1.clone(),
+        ArtifactRole::Reads,
+    )];
+    if let Some(output_r2) = &paths.output_r2 {
+        outputs.push(ArtifactRef::required(
+            ArtifactId::from_static("filtered_reads_r2"),
+            output_r2.clone(),
+            ArtifactRole::Reads,
+        ));
+    }
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("report_json"),
+        paths.report_json.clone(),
+        ArtifactRole::ReportJson,
+    ));
+    outputs
+}
+
+fn filter_plan_params(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    paths: &FilterPlanPaths,
+    options: &FilterPlanOptions,
+    effective_threads: u32,
+    kmer_ref: &Option<String>,
+) -> serde_json::Value {
+    serde_json::json!({
+        "tool": tool_id,
+        "threads": effective_threads,
+        "input_r1": r1,
+        "input_r2": r2,
+        "output_r1": paths.output_r1,
+        "output_r2": paths.output_r2,
+        "report_json": paths.report_json,
+        "raw_backend_report": paths.raw_backend_report,
+        "raw_backend_report_format": paths.raw_backend_report_format,
+        "max_n": options.max_n,
+        "max_n_fraction": options.max_n_fraction,
+        "max_n_count": options.max_n_count,
+        "low_complexity_threshold": options.low_complexity_threshold,
+        "entropy_threshold": options.entropy_threshold,
+        "kmer_ref": kmer_ref,
+        "redundant_filters": options.redundant_filters,
+        "polyx_policy": options.polyx_policy,
     })
 }
 
