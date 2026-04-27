@@ -22,6 +22,13 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub type TrimTerminalDamagePlanOptions = crate::TrimTerminalDamageStageParams;
 
+struct TrimTerminalDamagePaths {
+    output_r1: std::path::PathBuf,
+    output_r2: Option<std::path::PathBuf>,
+    report: std::path::PathBuf,
+    raw_backend_report: Option<std::path::PathBuf>,
+}
+
 fn output_name(tool_id: &str) -> Option<&'static str> {
     match tool_id {
         "adapterremoval" => Some("trim_terminal_damage.adapterremoval.fastq.gz"),
@@ -78,22 +85,15 @@ pub fn plan_trim_terminal_damage_with_options(
     let out_name = output_name(tool.tool_id.as_str())
         .ok_or_else(|| anyhow!("unsupported trim_terminal_damage tool {}", tool.tool_id))?;
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
-    let output_r1 =
-        if r2.is_some() { out_dir.join(format!("R1.{out_name}")) } else { out_dir.join(out_name) };
-    let output_r2 = r2.map(|_| out_dir.join(format!("R2.{out_name}")));
-    let report = out_dir.join("trim_terminal_damage_report.json");
-    let raw_backend_report = match tool.tool_id.as_str() {
-        "cutadapt" => Some(out_dir.join("trim_terminal_damage.cutadapt.raw.json")),
-        _ => None,
-    };
+    let paths = trim_terminal_damage_paths(tool.tool_id.as_str(), out_name, r2.is_some(), out_dir);
     let command_template = trim_terminal_damage_command(
         &tool.tool_id.0,
         r1,
         r2,
-        &output_r1,
-        output_r2.as_deref(),
-        &report,
-        raw_backend_report.as_deref(),
+        &paths.output_r1,
+        paths.output_r2.as_deref(),
+        &paths.report,
+        paths.raw_backend_report.as_deref(),
         effective_threads,
         options.damage_mode,
         resolved_policy.execution_policy,
@@ -102,9 +102,65 @@ pub fn plan_trim_terminal_damage_with_options(
         resolved_policy.requested_trim_5p_bases,
         resolved_policy.requested_trim_3p_bases,
     )?;
-    let effective_params = TrimTerminalDamageParams {
+    let effective_params = trim_terminal_damage_effective_params(
+        options,
+        r2.is_some(),
+        effective_threads,
+        resolved_policy,
+    );
+    let inputs = trim_terminal_damage_inputs(r1, r2);
+    let outputs = trim_terminal_damage_outputs(&paths);
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_threads;
+    Ok(StagePlanV1 {
+        stage_id: STAGE_ID.clone(),
+        stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
+            &STAGE_ID,
+            &tool.tool_id,
+        )),
+        stage_version: STAGE_VERSION,
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: CommandSpecV1 { template: command_template },
+        resources,
+        io: StageIO { inputs, outputs },
+        out_dir: out_dir.to_path_buf(),
+        params: trim_terminal_damage_params(&tool.tool_id.0, r1, r2, &paths, effective_threads),
+        effective_params: serde_json::to_value(&effective_params)?,
+        aux_images: std::collections::BTreeMap::new(),
+        reason: PlanDecisionReason::new(PlanReasonKind::Default, "damage-aware terminal trimming"),
+    })
+}
+
+fn trim_terminal_damage_paths(
+    tool_id: &str,
+    out_name: &str,
+    paired: bool,
+    out_dir: &Path,
+) -> TrimTerminalDamagePaths {
+    let output_r1 =
+        if paired { out_dir.join(format!("R1.{out_name}")) } else { out_dir.join(out_name) };
+    TrimTerminalDamagePaths {
+        output_r1,
+        output_r2: paired.then(|| out_dir.join(format!("R2.{out_name}"))),
+        report: out_dir.join("trim_terminal_damage_report.json"),
+        raw_backend_report: match tool_id {
+            "cutadapt" => Some(out_dir.join("trim_terminal_damage.cutadapt.raw.json")),
+            _ => None,
+        },
+    }
+}
+
+fn trim_terminal_damage_effective_params(
+    options: &TrimTerminalDamagePlanOptions,
+    paired: bool,
+    effective_threads: u32,
+    resolved_policy: bijux_dna_domain_fastq::params::trim::ResolvedTerminalDamagePolicy,
+) -> TrimTerminalDamageParams {
+    TrimTerminalDamageParams {
         schema_version: TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION.to_string(),
-        paired_mode: PairedMode::from_has_r2(r2.is_some()),
+        paired_mode: PairedMode::from_has_r2(paired),
         threads: effective_threads,
         damage_mode: options.damage_mode,
         execution_policy: resolved_policy.execution_policy,
@@ -112,7 +168,10 @@ pub fn plan_trim_terminal_damage_with_options(
         trim_3p_bases: resolved_policy.effective_trim_3p_bases,
         requested_trim_5p_bases: Some(resolved_policy.requested_trim_5p_bases),
         requested_trim_3p_bases: Some(resolved_policy.requested_trim_3p_bases),
-    };
+    }
+}
+
+fn trim_terminal_damage_inputs(r1: &Path, r2: Option<&Path>) -> Vec<ArtifactRef> {
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -125,12 +184,16 @@ pub fn plan_trim_terminal_damage_with_options(
             ArtifactRole::Reads,
         ));
     }
+    inputs
+}
+
+fn trim_terminal_damage_outputs(paths: &TrimTerminalDamagePaths) -> Vec<ArtifactRef> {
     let mut outputs = vec![ArtifactRef::required(
         ArtifactId::from_static("trimmed_reads_r1"),
-        output_r1.clone(),
+        paths.output_r1.clone(),
         ArtifactRole::TrimmedReads,
     )];
-    if let Some(output_r2) = &output_r2 {
+    if let Some(output_r2) = &paths.output_r2 {
         outputs.push(ArtifactRef::required(
             ArtifactId::from_static("trimmed_reads_r2"),
             output_r2.clone(),
@@ -139,47 +202,35 @@ pub fn plan_trim_terminal_damage_with_options(
     }
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("report_json"),
-        report.clone(),
+        paths.report.clone(),
         ArtifactRole::ReportJson,
     ));
-    if let Some(raw_backend_report) = &raw_backend_report {
+    if let Some(raw_backend_report) = &paths.raw_backend_report {
         outputs.push(ArtifactRef::optional(
             ArtifactId::from_static("raw_backend_report_json"),
             raw_backend_report.clone(),
             ArtifactRole::ReportJson,
         ));
     }
-    Ok(StagePlanV1 {
-        stage_id: STAGE_ID.clone(),
-        stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
-            &STAGE_ID,
-            &tool.tool_id,
-        )),
-        stage_version: STAGE_VERSION,
-        tool_id: tool.tool_id.clone(),
-        tool_version: tool.tool_version.clone(),
-        image: tool.image.clone(),
-        command: CommandSpecV1 { template: command_template },
-        resources: {
-            let mut resources = tool.resources.clone();
-            resources.threads = effective_threads;
-            resources
-        },
-        io: StageIO { inputs, outputs },
-        out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({
-            "tool": tool.tool_id.0,
-            "input_r1": r1,
-            "input_r2": r2,
-            "output_r1": output_r1,
-            "output_r2": output_r2,
-            "report_json": report,
-            "raw_backend_report": raw_backend_report,
-            "threads": effective_threads,
-        }),
-        effective_params: serde_json::to_value(&effective_params)?,
-        aux_images: std::collections::BTreeMap::new(),
-        reason: PlanDecisionReason::new(PlanReasonKind::Default, "damage-aware terminal trimming"),
+    outputs
+}
+
+fn trim_terminal_damage_params(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    paths: &TrimTerminalDamagePaths,
+    effective_threads: u32,
+) -> serde_json::Value {
+    serde_json::json!({
+        "tool": tool_id,
+        "input_r1": r1,
+        "input_r2": r2,
+        "output_r1": paths.output_r1,
+        "output_r2": paths.output_r2,
+        "report_json": paths.report,
+        "raw_backend_report": paths.raw_backend_report,
+        "threads": effective_threads,
     })
 }
 
