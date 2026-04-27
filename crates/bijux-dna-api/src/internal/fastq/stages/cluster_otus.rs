@@ -275,6 +275,7 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
                 "tool_payload": payload,
             })),
         });
+        validate_cluster_otus_report_identity(tool, &report)?;
         bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
@@ -332,6 +333,31 @@ fn validate_cluster_otus_output_paths(outputs: &ClusterOtusOutputs) -> Result<()
         if !paths.insert(path) {
             return Err(anyhow!("cluster_otus output path reused: {}", path.display()));
         }
+    }
+    Ok(())
+}
+
+fn validate_cluster_otus_report_identity(tool: &str, report: &ClusterOtusReportV1) -> Result<()> {
+    if report.schema_version != CLUSTER_OTUS_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "cluster_otus report schema mismatch: expected {}, observed {}",
+            CLUSTER_OTUS_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_ID || report.stage_id != STAGE_ID {
+        return Err(anyhow!(
+            "cluster_otus report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool {
+        return Err(anyhow!(
+            "cluster_otus report tool mismatch: expected {}, observed {}",
+            tool,
+            report.tool_id
+        ));
     }
     Ok(())
 }
