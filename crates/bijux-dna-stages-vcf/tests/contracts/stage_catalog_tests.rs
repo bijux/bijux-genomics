@@ -27,12 +27,18 @@ fn implemented_stages_match_supported_stage_catalog() {
 }
 
 #[test]
-fn vcf_domain_stage_completeness_accepts_every_catalog_stage() {
-    for stage in bijux_dna_domain_vcf::VcfDomainStage::all() {
-        assert!(
-            bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_completeness(*stage),
-            "domain stage {} must be complete in stages-vcf catalog",
-            stage.as_str()
+fn vcf_domain_stage_completeness_matches_supported_catalog_rows() {
+    for spec in bijux_dna_stages_vcf::stage_specs::vcf_stage_catalog() {
+        let stage = bijux_dna_domain_vcf::VcfDomainStage::all()
+            .iter()
+            .copied()
+            .find(|stage| stage.as_str() == spec.stage_id)
+            .unwrap_or_else(|| panic!("catalog stage {} missing from domain enum", spec.stage_id));
+        assert_eq!(
+            bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_completeness(stage),
+            spec.status == "supported",
+            "domain stage {} completeness drifted from stage status",
+            spec.stage_id
         );
     }
 }

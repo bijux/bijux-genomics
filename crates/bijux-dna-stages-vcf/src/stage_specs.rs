@@ -210,7 +210,9 @@ pub fn vcf_stage_completeness(stage: VcfStage) -> bool {
     vcf_stage_catalog()
         .iter()
         .find(|spec| spec.stage_id == stage.as_str())
-        .is_some_and(|spec| spec.smoke_supported && spec.parser_supported)
+        .is_some_and(|spec| {
+            spec.status == "supported" && spec.smoke_supported && spec.parser_supported
+        })
 }
 
 #[must_use]
@@ -218,7 +220,9 @@ pub fn vcf_domain_stage_completeness(stage: VcfDomainStage) -> bool {
     vcf_stage_catalog()
         .iter()
         .find(|spec| spec.stage_id == stage.as_str())
-        .is_some_and(|spec| spec.smoke_supported && spec.parser_supported)
+        .is_some_and(|spec| {
+            spec.status == "supported" && spec.smoke_supported && spec.parser_supported
+        })
 }
 
 #[must_use]

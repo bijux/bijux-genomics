@@ -15,7 +15,7 @@ command routing.
 | `list-vcf-implemented-stages` | `implemented_stages` | Return the VCF stages that this crate currently supports as managed execution entrypoints. |
 | `list-vcf-stage-catalog` | `stage_specs::vcf_stage_catalog` | Return the stage metadata catalog with stage status, runtime default tool, metrics schema, and smoke/parser flags. |
 | `list-vcf-supported-stages` | `stage_specs::supported_vcf_stages` | Return stages that are currently marked supported and smoke/parser ready. |
-| `check-vcf-stage-completeness` | `stage_specs::vcf_stage_completeness` | Check whether a baseline VCF stage has smoke and parser support. |
+| `check-vcf-stage-completeness` | `stage_specs::vcf_stage_completeness` | Check whether a baseline VCF stage is marked supported and has smoke/parser support. |
 
 ## Pipeline Operations
 
