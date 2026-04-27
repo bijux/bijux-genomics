@@ -97,26 +97,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         })?;
         bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.rrna_report_json), &report)
             .context("write rrna depletion report")?;
-        let metrics = FastqDepleteRrnaMetrics {
-            reads_in: report.reads_in,
-            reads_out: report.reads_out,
-            bases_in: report.bases_in,
-            bases_out: report.bases_out,
-            pairs_in: report.pairs_in.unwrap_or(0),
-            pairs_out: report.pairs_out.unwrap_or(0),
-            rrna_fraction_removed: report.rrna_fraction_removed.clamp(0.0, 1.0),
-            depletion_summary: serde_json::json!({
-                "reads_removed": report.reads_removed,
-                "bases_removed": report.bases_removed,
-                "output_r1": report.output_r1,
-                "output_r2": report.output_r2,
-                "report_tsv": report.rrna_report_tsv,
-                "report_json": report.rrna_report_json,
-                "database_artifact_id": report.database_artifact_id,
-                "screening_engine": report.screening_engine,
-            })
-            .into(),
-        };
+        let metrics = rrna_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         bijux_dna_infra::atomic_write_json(
@@ -392,6 +373,29 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
             "bases_removed": bases_removed,
         })),
     })
+}
+
+fn rrna_metrics_from_report(report: &DepleteRrnaReportV1) -> FastqDepleteRrnaMetrics {
+    FastqDepleteRrnaMetrics {
+        reads_in: report.reads_in,
+        reads_out: report.reads_out,
+        bases_in: report.bases_in,
+        bases_out: report.bases_out,
+        pairs_in: report.pairs_in.unwrap_or(0),
+        pairs_out: report.pairs_out.unwrap_or(0),
+        rrna_fraction_removed: report.rrna_fraction_removed.clamp(0.0, 1.0),
+        depletion_summary: serde_json::json!({
+            "reads_removed": report.reads_removed,
+            "bases_removed": report.bases_removed,
+            "output_r1": report.output_r1,
+            "output_r2": report.output_r2,
+            "report_tsv": report.rrna_report_tsv,
+            "report_json": report.rrna_report_json,
+            "database_artifact_id": report.database_artifact_id,
+            "screening_engine": report.screening_engine,
+        })
+        .into(),
+    }
 }
 
 fn u64_to_f64(value: u64) -> f64 {
