@@ -103,7 +103,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     let runner = setup.bench_inputs.runner.to_string();
     let platform_name = platform.name.clone();
     for tool in &setup.tools {
-        let tool_plan = prepare_stats_tool_plan(catalog, platform, args, &setup, &tool)?;
+        let tool_plan = prepare_stats_tool_plan(catalog, platform, args, &setup, tool)?;
         let cached = fetch_fastq_stats_v1(
             &conn,
             &tool_plan.tool,
