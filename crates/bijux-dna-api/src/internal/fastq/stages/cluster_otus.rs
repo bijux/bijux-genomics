@@ -246,6 +246,7 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
         let effective_params: OtuClusteringEffectiveParams =
             serde_json::from_value(plan.effective_params.clone())
                 .context("parse cluster_otus effective params")?;
+        let used_fallback = cluster_otus_used_fallback(&payload)?;
         let raw_backend_report = out_dir.join("otu_clusters.uc");
         let report = canonical_cluster_otus_report(ClusterOtusReportInputs {
             tool_id: tool,
@@ -261,10 +262,7 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
             runtime_s: Some(execution.runtime_s),
             memory_mb: Some(execution.memory_mb),
             exit_code: Some(execution.exit_code),
-            used_fallback: payload
-                .get("used_fallback")
-                .and_then(serde_json::Value::as_bool)
-                .unwrap_or(false),
+            used_fallback,
             raw_backend_report: raw_backend_report.exists().then_some(raw_backend_report.as_path()),
             backend_metrics: Some(serde_json::json!({
                 "tool_payload": payload,
@@ -377,6 +375,13 @@ fn validate_cluster_otus_report_metrics(
         ));
     }
     Ok(())
+}
+
+fn cluster_otus_used_fallback(payload: &serde_json::Value) -> Result<bool> {
+    payload
+        .get("used_fallback")
+        .and_then(serde_json::Value::as_bool)
+        .ok_or_else(|| anyhow!("cluster_otus payload missing boolean used_fallback"))
 }
 
 fn output_path(
