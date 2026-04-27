@@ -434,6 +434,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
     validate_umi_report_identity(inputs.tool, &report)?;
+    validate_umi_report_paths(&report, inputs.r1, inputs.r2, &artifacts)?;
     validate_umi_report_metrics(&report, &metric_set.metrics)?;
     write_umi_report(&artifacts.report_json, &report)?;
     write_umi_metrics(inputs.out_dir, &metric_set)?;
@@ -602,6 +603,38 @@ fn validate_umi_report_metrics(
             "extract_umis report reads_with_umi mismatch: expected {}, observed {}",
             metrics.reads_with_umi,
             report.reads_with_umi
+        ));
+    }
+    Ok(())
+}
+
+fn validate_umi_report_paths(
+    report: &ExtractUmisReportV1,
+    input_r1: &Path,
+    input_r2: &Path,
+    artifacts: &UmiArtifacts,
+) -> Result<()> {
+    validate_umi_path_field("input_r1", input_r1, Path::new(&report.input_r1))?;
+    let report_input_r2 = report
+        .input_r2
+        .as_deref()
+        .ok_or_else(|| anyhow!("extract_umis paired report missing input_r2"))?;
+    validate_umi_path_field("input_r2", input_r2, Path::new(report_input_r2))?;
+    validate_umi_path_field("output_r1", &artifacts.output_r1, Path::new(&report.output_r1))?;
+    let report_output_r2 = report
+        .output_r2
+        .as_deref()
+        .ok_or_else(|| anyhow!("extract_umis paired report missing output_r2"))?;
+    validate_umi_path_field("output_r2", &artifacts.output_r2, Path::new(report_output_r2))?;
+    validate_umi_path_field("report_json", &artifacts.report_json, Path::new(&report.report_json))
+}
+
+fn validate_umi_path_field(label: &str, expected: &Path, observed: &Path) -> Result<()> {
+    if observed != expected {
+        return Err(anyhow!(
+            "extract_umis report {label} mismatch: expected {}, observed {}",
+            expected.display(),
+            observed.display()
         ));
     }
     Ok(())
