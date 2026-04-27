@@ -61,17 +61,11 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqCorrectArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqCorrectMetrics>> {
-    let allow_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_ok();
-    let tools = select_correct_tools(&args.tools, allow_experimental)?;
-    let artifact =
-        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
-    preflight_stage(STAGE_CORRECT_ERRORS.as_str(), artifact)?;
-    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
-    log_header_warnings(STAGE_CORRECT_ERRORS.as_str(), &header);
-
+    let selected_tools = select_correct_benchmark_tools(args)?;
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_CORRECT_ERRORS.as_str(), &tools, &registry, false)?;
+    let tools =
+        filter_tools_by_role(STAGE_CORRECT_ERRORS.as_str(), &selected_tools, &registry, false)?;
     let bench_inputs = prepare_correct_bench(catalog, platform, runner_override, args)?;
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_CORRECT_ERRORS.as_str());
     let all_tools: Vec<String> =
@@ -186,6 +180,19 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     }
 
     Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
+}
+
+fn select_correct_benchmark_tools(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqCorrectArgs,
+) -> Result<Vec<String>> {
+    let allow_experimental = std::env::var("BIJUX_EXPERIMENTAL_TOOLS").is_ok();
+    let tools = select_correct_tools(&args.tools, allow_experimental)?;
+    let artifact =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
+    preflight_stage(STAGE_CORRECT_ERRORS.as_str(), artifact)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_CORRECT_ERRORS.as_str(), &header);
+    Ok(tools)
 }
 
 #[derive(Debug, Clone)]
