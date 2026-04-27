@@ -63,9 +63,8 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
 
     ensure_overrepresented_benchmark_qa(catalog, platform, &setup.tools)?;
 
-    let sqlite_path = setup.bench_dir.join("bench.sqlite");
-    let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = setup.bench_dir.join("bench.jsonl");
+    let store = OverrepresentedBenchmarkStore::from_setup(&setup);
+    let conn = bijux_dna_analyze::open_sqlite(&store.sqlite_path).context("open bench sqlite")?;
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqOverrepresentedMetrics>>::new();
@@ -125,7 +124,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             metrics: metric_set,
         };
         record.validate()?;
-        append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
+        append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
         insert_fastq_overrepresented_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
     }
@@ -140,6 +139,20 @@ struct OverrepresentedBenchmarkSetup {
     bench_dir: PathBuf,
     tools_root: PathBuf,
     input_hash: String,
+}
+
+struct OverrepresentedBenchmarkStore {
+    sqlite_path: PathBuf,
+    jsonl_path: PathBuf,
+}
+
+impl OverrepresentedBenchmarkStore {
+    fn from_setup(setup: &OverrepresentedBenchmarkSetup) -> Self {
+        Self {
+            sqlite_path: setup.bench_dir.join("bench.sqlite"),
+            jsonl_path: setup.bench_dir.join("bench.jsonl"),
+        }
+    }
 }
 
 struct OverrepresentedToolPlan {
