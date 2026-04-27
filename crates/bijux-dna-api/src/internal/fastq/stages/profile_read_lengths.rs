@@ -90,8 +90,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         }
 
         let observation = observe_read_lengths_tool(args, &tool_plan.plan)?;
-        let metrics = metrics_from_lengths(&observation.lengths)?;
-        let metric_set = metric_set(metrics);
+        let metric_set = build_read_lengths_metric_set(&observation)?;
         let histogram = project_read_lengths_histogram(&observation);
         let report = build_read_lengths_report(ReadLengthsReportInputs {
             tool,
@@ -374,6 +373,15 @@ fn project_read_lengths_histogram(
             count,
         })
         .collect()
+}
+
+fn build_read_lengths_metric_set(
+    observation: &ReadLengthsObservation,
+) -> Result<MetricSet<FastqReadLengthMetrics>> {
+    let metrics = metrics_from_lengths(&observation.lengths)?;
+    let metric_set = metric_set(metrics);
+    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    Ok(metric_set)
 }
 
 fn build_read_lengths_report(inputs: ReadLengthsReportInputs<'_>) -> ProfileReadLengthsReportV1 {
