@@ -30,6 +30,7 @@ use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
 use uuid::Uuid;
 
@@ -83,21 +84,9 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             records.push(record);
             continue;
         }
-        let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
-            setup.runner,
-            jobs,
-        )?
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
-        if execution.exit_code != 0 {
-            failures.push(RawFailure {
-                stage: STAGE_ID.to_string(),
-                tool: tool.clone(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
-                category: ErrorCategory::ToolError,
-            });
+        let execution = execute_overrepresented_tool(&tool_plan, setup.runner, jobs)?;
+        if let Some(failure) = overrepresented_tool_failure(tool, execution.exit_code) {
+            failures.push(failure);
             continue;
         }
         let output_tsv = required_output_path(&tool_plan.plan, "overrepresented_sequences_tsv")?;
@@ -186,6 +175,7 @@ struct OverrepresentedBenchmarkSetup {
 }
 
 struct OverrepresentedToolPlan {
+    tool: String,
     out_dir: PathBuf,
     tool_spec: ToolExecutionSpecV1,
     plan: StagePlanV1,
@@ -273,7 +263,41 @@ fn prepare_overrepresented_tool_plan<S: ::std::hash::BuildHasher>(
     )?;
     let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
     let image_digest = benchmark_image_identity(&tool_spec);
-    Ok(OverrepresentedToolPlan { out_dir, tool_spec, plan, params_hash, image_digest })
+    Ok(OverrepresentedToolPlan {
+        tool: tool.to_string(),
+        out_dir,
+        tool_spec,
+        plan,
+        params_hash,
+        image_digest,
+    })
+}
+
+fn execute_overrepresented_tool(
+    tool_plan: &OverrepresentedToolPlan,
+    runner: RuntimeKind,
+    jobs: usize,
+) -> Result<StageResultV1> {
+    execute_plans_with_jobs(
+        vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
+        runner,
+        jobs,
+    )?
+    .into_iter()
+    .next()
+    .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))
+}
+
+fn overrepresented_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
+    if exit_code == 0 {
+        return None;
+    }
+    Some(RawFailure {
+        stage: STAGE_ID.to_string(),
+        tool: tool.to_string(),
+        reason: format!("tool {tool} failed with status {exit_code}"),
+        category: ErrorCategory::ToolError,
+    })
 }
 
 fn materialize_overrepresented_outputs(
