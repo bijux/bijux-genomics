@@ -354,3 +354,36 @@ fn policy__contracts__fastq_science_docs_policy__tools_roster_matches_transform_
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__fastq_science_docs_policy__tools_roster_matches_reporting_and_inference_stages(
+) {
+    let expected = fastq_execution_support_admitted_tools();
+    let roster = fastq_tools_roster_rows();
+    let mut offenders = Vec::new();
+
+    for stage_id in [
+        "fastq.profile_overrepresented_sequences",
+        "fastq.screen_taxonomy",
+        "fastq.infer_asvs",
+    ] {
+        let expected_tools = expected
+            .get(stage_id)
+            .unwrap_or_else(|| panic!("missing execution support stage {stage_id}"));
+        let documented_tools = roster
+            .get(stage_id)
+            .unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"));
+        if documented_tools != expected_tools {
+            offenders.push(format!(
+                "{stage_id}: expected {:?}, found {:?}",
+                expected_tools, documented_tools
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "FASTQ tools roster drift for reporting/inference stages:\n{}",
+        offenders.join("\n")
+    );
+}
