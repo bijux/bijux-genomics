@@ -539,6 +539,16 @@ fn policy__contracts__vcf_science_docs_policy__ibd_doc_covers_relatedness_stage_
 }
 
 #[test]
+fn policy__contracts__vcf_science_docs_policy__roh_doc_covers_roh_stage_family() {
+    let expected = BTreeSet::from(["vcf.qc".to_string(), "vcf.roh".to_string()]);
+    let documented = vcf_doc_stage_mentions("docs/20-science/vcf/ROH.md");
+    assert_eq!(
+        expected, documented,
+        "VCF ROH doc must mention the governed ROH stage family exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__vcf_science_docs_policy__damage_logic_covers_gl_damage_stage_family() {
     let expected = BTreeSet::from([
         "vcf.call_gl".to_string(),
