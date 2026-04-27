@@ -11,8 +11,10 @@ Applies to failures from `cargo run -q -p bijux-dna-dev -- examples run run` and
 - Covering non-example integration test failures.
 
 ## Contracts
-- Example runs must write artifacts under `artifacts/examples/<example-id>/`.
+- Example runs must satisfy [EXAMPLE_RUNNER_CONTRACT.md](EXAMPLE_RUNNER_CONTRACT.md) and write
+  artifacts under `artifacts/examples/<example-id>/`.
 - Triage decisions should be based on generated `plan.json`, `explain.json`, `report.json`, `run_report.json`, `manifest.json`, and `logs.txt`.
+- Shared example governance is defined in [examples/POLICY.md](../../examples/POLICY.md).
 
 ## Common Failure Modes
 - Missing corpus metadata (`MANIFEST.toml` / `CHECKSUMS.sha256`).
@@ -35,6 +37,8 @@ Applies to failures from `cargo run -q -p bijux-dna-dev -- examples run run` and
    - `cargo run -q -p bijux-dna-dev -- checks run check-examples-corpus-checksums`
 5. Validate CLI snapshot if command surface changed:
    - `cargo run -q -p bijux-dna-dev -- checks run check-cli-command-snapshot`
+   - Command inventory for those checks is published in
+     [crates/bijux-dna-dev/docs/COMMANDS.md](../../crates/bijux-dna-dev/docs/COMMANDS.md).
 
 ## Examples
 - `fastq_qc_pre_bench` fails with golden drift:
@@ -42,4 +46,6 @@ Applies to failures from `cargo run -q -p bijux-dna-dev -- examples run run` and
 
 ## Failure modes
 - Updating goldens without diagnosing root cause can hide regressions.
-- Running outside the shared artifact contract can produce misleading paths/artifacts and invalidate triage output.
+- Running outside the shared artifact contract can produce misleading paths/artifacts and
+  invalidate triage output; follow [TEST_FAILURE_TRIAGE.md](../30-operations/TEST_FAILURE_TRIAGE.md)
+  when the failure expands beyond the example surface.
