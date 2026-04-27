@@ -113,12 +113,12 @@ fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_pe
         let registry_path = resolve_ssot_path(&root, tool_registry_ssot);
         let params_path = resolve_ssot_path(&root, param_registry_ssot);
         if !(stages_path.exists() && registry_path.exists() && params_path.exists()) {
-            eprintln!(
-                "contract authority ssot pointer missing for domain {id}: stages={}, registry={}, params={}",
+            offenders.push(format!(
+                "domain {id}: contract authority ssot pointer missing: stages={}, registry={}, params={}",
                 stages_path.display(),
                 registry_path.display(),
                 params_path.display()
-            );
+            ));
             continue;
         }
         let stages = parse_toml(&stages_path);
@@ -172,7 +172,6 @@ fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_pe
                     })
                 });
             let has_tools = !stage_tools.is_empty();
-            let runnable = status == "supported";
 
             if !experimental {
                 if !has_param {
@@ -190,7 +189,6 @@ fn policy__contracts__contract_authority_policy__stage_contracts_are_complete_pe
                         "domain={id} stage={stage_id}: missing tool binding in {stages_ssot}/{tool_registry_ssot}"
                     ));
                 }
-                let _ = runnable;
             }
         }
     }
