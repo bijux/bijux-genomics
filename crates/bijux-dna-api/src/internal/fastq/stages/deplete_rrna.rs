@@ -95,8 +95,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             tool: &tool_plan.tool,
             execution: &execution,
         })?;
-        bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.rrna_report_json), &report)
-            .context("write rrna depletion report")?;
+        write_rrna_report(&report)?;
         let metrics = rrna_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -385,6 +384,11 @@ fn write_rrna_metrics(
         &serde_json::to_value(metrics)?,
     )
     .context("write rrna depletion metrics")
+}
+
+fn write_rrna_report(report: &DepleteRrnaReportV1) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.rrna_report_json), report)
+        .context("write rrna depletion report")
 }
 
 fn build_rrna_record(
