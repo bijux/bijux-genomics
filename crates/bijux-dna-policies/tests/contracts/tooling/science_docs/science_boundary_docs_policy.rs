@@ -644,3 +644,39 @@ fn policy__contracts__science_boundary_docs_policy__retired_defs_doc_links_gover
         "containers/docs/RETIRED_DEFS.md must link the governed retired-definition authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_docs_index_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "PROMOTION_POLICY.md".to_string(),
+        "TOOL_LIFECYCLE.md".to_string(),
+        "VERSION_AUTHORITY.md".to_string(),
+        "LOCK_LIFECYCLE.md".to_string(),
+        "FRONTEND_BUILD_AUTHORITY.md".to_string(),
+        "STYLE.md".to_string(),
+        "SMOKE_CONTRACT.md".to_string(),
+        "../versions/LOCK.md".to_string(),
+        "NETWORK_USAGE.md".to_string(),
+        "SECURITY_BOUNDARY.md".to_string(),
+        "MULTIARCH_POLICY.md".to_string(),
+        "GHCR_PUBLISH.md".to_string(),
+        "../licenses/README.md".to_string(),
+        "../docker/NONROOT_EXCEPTIONS.md".to_string(),
+        "../docker/ENTRYPOINT_EXCEPTIONS.md".to_string(),
+        "PLANNED.md".to_string(),
+        "TOOL_IDS_CONTRACT.md".to_string(),
+        "../TOOL_IDS.txt".to_string(),
+        "../versions/versions.toml".to_string(),
+        "../versions/lock.json".to_string(),
+        "../apptainer/shared/NON_BIJUX_SOURCES.md".to_string(),
+        "../OWNERS.toml".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/index.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/index.md must link the governed container-docs authorities exactly"
+    );
+}

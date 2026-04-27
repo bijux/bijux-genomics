@@ -6,34 +6,34 @@
 Purpose: Authoritative tool/container index for container governance and CI checks.
 
 ## Strict TOC
-- Entry point: `containers/index.md`
-- Policy: `containers/docs/PROMOTION_POLICY.md`
-- Lifecycle: `containers/docs/TOOL_LIFECYCLE.md`
-- Version authority: `containers/docs/VERSION_AUTHORITY.md`
-- Lock lifecycle: `containers/docs/LOCK_LIFECYCLE.md`
-- HPC frontend build authority: `containers/docs/FRONTEND_BUILD_AUTHORITY.md`
-- Build + style rules: `containers/docs/STYLE.md`
-- Smoke: `containers/docs/SMOKE_CONTRACT.md`
-- Lock/versioning: `containers/versions/LOCK.md`
-- Promotion/demotion: `containers/docs/PROMOTION_POLICY.md`
-- Network disclosure: `containers/docs/NETWORK_USAGE.md`
-- Security boundary: `containers/docs/SECURITY_BOUNDARY.md`
-- Multiarch policy: `containers/docs/MULTIARCH_POLICY.md`
-- GHCR publication: `containers/docs/GHCR_PUBLISH.md`
+- Root contract: [containers/README.md](../README.md)
+- Entry point: [containers/index.md](../index.md)
+- Policy: [containers/docs/PROMOTION_POLICY.md](PROMOTION_POLICY.md)
+- Lifecycle: [containers/docs/TOOL_LIFECYCLE.md](TOOL_LIFECYCLE.md)
+- Version authority: [containers/docs/VERSION_AUTHORITY.md](VERSION_AUTHORITY.md)
+- Lock lifecycle: [containers/docs/LOCK_LIFECYCLE.md](LOCK_LIFECYCLE.md)
+- HPC frontend build authority: [containers/docs/FRONTEND_BUILD_AUTHORITY.md](FRONTEND_BUILD_AUTHORITY.md)
+- Build + style rules: [containers/docs/STYLE.md](STYLE.md)
+- Smoke: [containers/docs/SMOKE_CONTRACT.md](SMOKE_CONTRACT.md)
+- Lock/versioning: [containers/versions/LOCK.md](../versions/LOCK.md)
+- Network disclosure: [containers/docs/NETWORK_USAGE.md](NETWORK_USAGE.md)
+- Security boundary: [containers/docs/SECURITY_BOUNDARY.md](SECURITY_BOUNDARY.md)
+- Multiarch policy: [containers/docs/MULTIARCH_POLICY.md](MULTIARCH_POLICY.md)
+- GHCR publication: [containers/docs/GHCR_PUBLISH.md](GHCR_PUBLISH.md)
 - GHCR packages view: `https://github.com/bijux?tab=packages&repo_name=bijux-genomics`
-- Licenses: `containers/licenses/`
+- Licenses: [containers/licenses/README.md](../licenses/README.md)
 - SBOM + vulnerability hooks: `cargo run -p bijux-dna-dev -- containers run check-sbom-artifacts`, `cargo run -p bijux-dna-dev -- containers run check-vuln-hook`
-- Exceptions: `containers/docker/NONROOT_EXCEPTIONS.md`, `containers/docker/ENTRYPOINT_EXCEPTIONS.md`, `containers/docs/PLANNED.md`
-- Tool ID contract: `containers/docs/TOOL_IDS_CONTRACT.md`
+- Exceptions: [containers/docker/NONROOT_EXCEPTIONS.md](../docker/NONROOT_EXCEPTIONS.md), [containers/docker/ENTRYPOINT_EXCEPTIONS.md](../docker/ENTRYPOINT_EXCEPTIONS.md), [containers/docs/PLANNED.md](PLANNED.md)
+- Tool ID contract: [containers/docs/TOOL_IDS_CONTRACT.md](TOOL_IDS_CONTRACT.md)
 
 ## Authority
-- Tool IDs + lifecycle status: `containers/TOOL_IDS.txt` (generated from registry).
+- Tool IDs + lifecycle status: [containers/TOOL_IDS.txt](../TOOL_IDS.txt) (generated from registry).
 - Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.
-- Container version metadata: `containers/versions/versions.toml` + `containers/versions/lock.json`.
+- Container version metadata: [containers/versions/versions.toml](../versions/versions.toml) + [containers/versions/lock.json](../versions/lock.json).
 - GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.
 - GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.
-- Non-bijux provenance: `containers/apptainer/shared/NON_BIJUX_SOURCES.md`.
-- Ownership map: `containers/OWNERS.toml`.
+- Non-bijux provenance: [containers/apptainer/shared/NON_BIJUX_SOURCES.md](../apptainer/shared/NON_BIJUX_SOURCES.md).
+- Ownership map: [containers/OWNERS.toml](../OWNERS.toml).
 
 ## Tool Container Coverage
 | tool_id | status | apptainer_source | docker_source |
