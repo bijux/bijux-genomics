@@ -45,6 +45,10 @@ fn command_inventory_matches_science_cli_surface() {
         commands_doc.contains("`src/main.rs` is the only Cargo binary entrypoint"),
         "docs/COMMANDS.md must document the binary entrypoint"
     );
+    assert!(
+        commands_doc.contains("source-archive and FASTQ closure summaries"),
+        "docs/COMMANDS.md must describe the build summary surface"
+    );
     for forbidden in [
         "No bioinformatics tool execution.",
         "No container, scheduler, runtime, or runner orchestration.",
