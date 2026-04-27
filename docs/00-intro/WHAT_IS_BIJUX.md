@@ -18,8 +18,11 @@ Three invariants define Bijux:
 - **Effect boundaries**: only allowlisted crates may spawn processes or access networks.
 
 ## Examples
-See `QUICKSTART.md` for a first successful run.
-Licensing policy reference: `docs/50-reference/LICENSING.md`.
+See [QUICKSTART.md](QUICKSTART.md) for a first successful run.
+Scope and architecture entrypoints:
+- [SCOPE.md](SCOPE.md)
+- [../10-architecture/ARCHITECTURE_OVERVIEW.md](../10-architecture/ARCHITECTURE_OVERVIEW.md)
+Licensing policy reference: [../50-reference/LICENSING.md](../50-reference/LICENSING.md).
 
 ## Failure modes
 If any invariant is violated, policies fail in CI and execution halts with a contract error.

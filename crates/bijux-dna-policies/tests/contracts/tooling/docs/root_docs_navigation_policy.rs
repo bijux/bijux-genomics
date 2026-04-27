@@ -43,3 +43,18 @@ fn policy__contracts__root_docs_navigation_policy__intro_index_links_governed_su
         "docs/00-intro/index.md must link the governed intro entry surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__what_is_bijux_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "QUICKSTART.md".to_string(),
+        "SCOPE.md".to_string(),
+        "../10-architecture/ARCHITECTURE_OVERVIEW.md".to_string(),
+        "../50-reference/LICENSING.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/00-intro/WHAT_IS_BIJUX.md");
+    assert_eq!(
+        expected, documented,
+        "docs/00-intro/WHAT_IS_BIJUX.md must link the governed identity surfaces exactly"
+    );
+}
