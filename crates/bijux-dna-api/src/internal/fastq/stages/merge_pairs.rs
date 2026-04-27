@@ -285,12 +285,7 @@ fn prepare_merge_tool_plan<S: ::std::hash::BuildHasher>(
     let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
     let plan = plan_merge_with_options(&tool_spec, &args.r1, &args.r2, &out_dir, &setup.options)?;
     let params_hash = stable_params_hash(&plan.params);
-    let image_digest = tool_spec
-        .image
-        .digest
-        .as_ref()
-        .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-        .clone();
+    let image_digest = benchmark_image_identity(&tool_spec);
 
     Ok(MergeToolPlan { tool_spec, plan, params_hash, image_digest })
 }
