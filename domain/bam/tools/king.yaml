@@ -6,7 +6,7 @@ pin_strategy: "pinned"
 default_version: "2.3.0"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "paper:https://academic.oup.com/bioinformatics/article/26/22/2867/228512"
 stage_ids: ["bam.kinship"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"

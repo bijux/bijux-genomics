@@ -6,7 +6,7 @@ pin_strategy: "pinned"
 default_version: "2.5.4"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "paper:https://www.nature.com/articles/nmeth.1923"
 stage_ids: ["bam.align"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"

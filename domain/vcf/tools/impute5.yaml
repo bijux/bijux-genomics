@@ -10,7 +10,7 @@ default_version: "planned"
 upstream: "https://jmarchini.org/software/#impute-5"
 pin_strategy: "external_tool"
 license: "research_only_or_restricted"
-citation: "planned"
+citation: "paper:https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009049"
 version_cmd: "impute5 --version"
 help_cmd: "impute5 --help"
 expected_artifacts: ["imputed_vcf"]

@@ -10,7 +10,7 @@ default_version: "planned"
 upstream: "https://odelaneau.github.io/shapeit5/"
 pin_strategy: "external_tool"
 license: "MIT"
-citation: "planned"
+citation: "paper:https://www.nature.com/articles/s41588-023-01415-w"
 version_cmd: "shapeit5 --version"
 help_cmd: "shapeit5 --help"
 expected_artifacts: ["phased_vcf"]
