@@ -356,6 +356,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     let merged_stats = observe_merge_stats(catalog, platform, runner, merged_reads)?;
     let report = merge_report_with_execution(report_path, execution)?;
     validate_merge_report_identity(&tool_spec.tool_id.0, &report)?;
+    validate_merge_report_paths(&report, merged_reads)?;
 
     let metrics = merge_metrics_from_report(&report, r1_stats, r2_stats, &merged_stats);
     let metric_set = metric_set(metrics.clone());
@@ -454,6 +455,18 @@ fn validate_merge_report_identity(tool: &str, report: &MergePairsReportV1) -> Re
             "merge_pairs report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_merge_report_paths(report: &MergePairsReportV1, merged_reads: &Path) -> Result<()> {
+    let report_merged_reads = Path::new(&report.merged_reads);
+    if report_merged_reads != merged_reads {
+        return Err(anyhow!(
+            "merge_pairs report merged_reads mismatch: expected {}, observed {}",
+            merged_reads.display(),
+            report_merged_reads.display()
         ));
     }
     Ok(())
