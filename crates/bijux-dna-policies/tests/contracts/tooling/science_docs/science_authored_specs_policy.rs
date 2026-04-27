@@ -102,3 +102,17 @@ fn policy__contracts__science_authored_specs_policy__report_specs_docs_link_cont
         "science/specs/reports/README.md must link the report-spec contract and its authored dependencies exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_authored_specs_policy__result_specs_docs_link_contract_and_current_authority_exactly(
+) {
+    let expected = BTreeSet::from([
+        "CONTRACT.md".to_string(),
+        "../evidence/README.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/specs/results/README.md");
+    assert_eq!(
+        expected, documented,
+        "science/specs/results/README.md must link the result-spec contract and current authority exactly"
+    );
+}
