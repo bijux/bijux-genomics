@@ -28,3 +28,7 @@ pub fn crate_root(crate_name: &str) -> PathBuf {
 pub fn read_to_string(path: &Path) -> String {
     bijux_dna_testkit::read_policy_text(path)
 }
+
+pub fn registry_status_is_production(status: &str) -> bool {
+    matches!(status.trim(), "supported" | "production")
+}
