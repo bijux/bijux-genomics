@@ -470,6 +470,7 @@ fn write_overrepresented_artifacts(
     metric_set: &MetricSet<FastqOverrepresentedMetrics>,
 ) -> Result<()> {
     validate_overrepresented_report_identity(tool_plan, report)?;
+    validate_overrepresented_report_metrics(report, &metric_set.metrics)?;
     write_overrepresented_report(&observation.artifacts.report_json, report)?;
     write_overrepresented_metrics(&tool_plan.out_dir, metric_set)
 }
@@ -500,6 +501,34 @@ fn validate_overrepresented_report_identity(
         ));
     }
     Ok(())
+}
+
+fn validate_overrepresented_report_metrics(
+    report: &ProfileOverrepresentedReportV1,
+    metrics: &FastqOverrepresentedMetrics,
+) -> Result<()> {
+    if report.sequence_count != metrics.sequence_count {
+        return Err(anyhow!(
+            "profile_overrepresented_sequences report sequence count mismatch: expected {}, observed {}",
+            metrics.sequence_count,
+            report.sequence_count
+        ));
+    }
+    if report.flagged_sequences != metrics.flagged_sequences {
+        return Err(anyhow!(
+            "profile_overrepresented_sequences report flagged count mismatch: expected {}, observed {}",
+            metrics.flagged_sequences,
+            report.flagged_sequences
+        ));
+    }
+    if (report.top_fraction - metrics.top_fraction).abs() > f64::EPSILON {
+        return Err(anyhow!(
+            "profile_overrepresented_sequences report top fraction mismatch: expected {}, observed {}",
+            metrics.top_fraction,
+            report.top_fraction
+        ));
+    }
+    validate_overrepresented_payload_metrics(Path::new(&report.report_json), metrics, &report.rows)
 }
 
 fn build_overrepresented_record(
