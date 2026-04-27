@@ -61,6 +61,22 @@ fn policy__contracts__operations_reference_authority_policy__benchmark_variance_
 }
 
 #[test]
+fn policy__contracts__operations_reference_authority_policy__hpc_lunarc_layout_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../configs/bench/benchmark.toml".to_string(),
+        "benchmark/workspace-contract.md".to_string(),
+        "benchmark/workspace-model.md".to_string(),
+        "RUN_ARTIFACTS.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/HPC_LUNARC_LAYOUT.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/HPC_LUNARC_LAYOUT.md must link the governed Lunarc workspace authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
