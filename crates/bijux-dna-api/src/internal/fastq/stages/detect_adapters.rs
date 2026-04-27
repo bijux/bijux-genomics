@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
-    benchmark_image_identity, build_benchmark_context, prepare_trim_bench,
+    benchmark_image_identity, build_benchmark_context, observe_fastq_stats, prepare_trim_bench,
+    TrimBenchInputs,
 };
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
@@ -17,6 +18,7 @@ use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_detect_adapters_v1, insert_fastq_detect_adapters_v1,
 };
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqDetectAdaptersMetrics};
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_domain_fastq::{
@@ -46,68 +48,42 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDetectAdaptersArgs,
 ) -> Result<BenchOutcome<FastqDetectAdaptersMetrics>> {
     let tools = select_detect_adapters_benchmark_tools(args)?;
-
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_DETECT_ADAPTERS.as_str(), &tools, &registry, false)?;
-    let bench_inputs = prepare_trim_bench(
-        catalog,
-        platform,
-        runner_override,
-        &args.sample_id,
-        &args.out,
-        &args.r1,
-        &STAGE_DETECT_ADAPTERS,
-    )?;
-    let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
-    } else {
-        bench_inputs.input_hash.clone()
-    };
-    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
-        Some(crate::internal::fastq::stages::trim_bench_common::observe_fastq_stats(
-            catalog,
-            platform,
-            bench_inputs.runner,
-            r2,
-        )?)
-    } else {
-        None
-    };
+    let setup =
+        prepare_detect_adapters_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
         write_explain_md(
-            &bench_inputs.bench_dir,
+            &setup.bench_inputs.bench_dir,
             STAGE_DETECT_ADAPTERS.as_str(),
-            &tools,
+            &setup.tools,
             &[],
             None,
         )?;
         write_explain_plan_json(
-            &bench_inputs.bench_dir,
+            &setup.bench_inputs.bench_dir,
             STAGE_DETECT_ADAPTERS.as_str(),
-            &tools,
-            &registry,
+            &setup.tools,
+            &setup.registry,
             None,
         )?;
     }
 
-    ensure_image_qa_passed(STAGE_DETECT_ADAPTERS.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_DETECT_ADAPTERS.as_str(), &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_DETECT_ADAPTERS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_DETECT_ADAPTERS.as_str(), &setup.tools, platform, catalog)?;
 
-    let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = bench_inputs.bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_inputs.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqDetectAdaptersMetrics>>::new();
-    for tool in &tools {
-        let out_dir = bench_inputs.tools_root.join(tool);
+    for tool in &setup.tools {
+        let out_dir = setup.bench_inputs.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let mut tool_spec = build_tool_execution_spec(
             STAGE_DETECT_ADAPTERS.as_str(),
             tool,
-            &registry,
+            &setup.registry,
             catalog,
             platform,
         )?;
@@ -115,7 +91,7 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
             tool_spec.resources.threads = threads;
         }
         let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan(&tool_spec, &bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
+        let plan = plan(&tool_spec, &setup.bench_inputs.r1, args.r2.as_deref(), &out_dir)?;
         let params_hash = stable_params_hash(&plan.params);
         let image_digest = benchmark_image_identity(&tool_spec);
         if let Ok(Some(record)) = fetch_fastq_detect_adapters_v1(
@@ -123,9 +99,9 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
             tool,
             &tool_spec.tool_version,
             &image_digest,
-            &bench_inputs.runner.to_string(),
+            &setup.bench_inputs.runner.to_string(),
             &platform.name,
-            &input_hash,
+            &setup.input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -133,7 +109,7 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
         }
         let execution = execute_plans_with_jobs(
             vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
-            bench_inputs.runner,
+            setup.bench_inputs.runner,
             jobs,
         )?
         .into_iter()
@@ -141,12 +117,12 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
         let record = build_detect_record(
             platform,
-            &bench_inputs,
+            &setup.bench_inputs,
             args.r2.as_deref(),
-            input_stats_r2.as_ref(),
+            setup.input_stats_r2.as_ref(),
             tool,
             &tool_spec,
-            &input_hash,
+            &setup.input_hash,
             &plan.params,
             &out_dir,
             &execution,
@@ -164,7 +140,12 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir: setup.bench_inputs.bench_dir,
+        explain: args.explain,
+    })
 }
 
 fn select_detect_adapters_benchmark_tools(
@@ -177,6 +158,46 @@ fn select_detect_adapters_benchmark_tools(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_DETECT_ADAPTERS.as_str(), &header);
     Ok(tools)
+}
+
+struct DetectAdaptersBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    bench_inputs: TrimBenchInputs,
+    input_hash: String,
+    input_stats_r2: Option<SeqkitMetrics>,
+}
+
+fn prepare_detect_adapters_benchmark_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqDetectAdaptersArgs,
+    tools: &[String],
+) -> Result<DetectAdaptersBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = filter_tools_by_role(STAGE_DETECT_ADAPTERS.as_str(), tools, &registry, false)?;
+    let bench_inputs = prepare_trim_bench(
+        catalog,
+        platform,
+        runner_override,
+        &args.sample_id,
+        &args.out,
+        &args.r1,
+        &STAGE_DETECT_ADAPTERS,
+    )?;
+    let input_hash = if let Some(r2) = args.r2.as_deref() {
+        format!("{}+{}", bench_inputs.input_hash, bijux_dna_infra::hash_file_sha256(r2)?)
+    } else {
+        bench_inputs.input_hash.clone()
+    };
+    let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
+        Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, r2)?)
+    } else {
+        None
+    };
+    Ok(DetectAdaptersBenchmarkSetup { registry, tools, bench_inputs, input_hash, input_stats_r2 })
 }
 
 #[allow(clippy::too_many_arguments)]
