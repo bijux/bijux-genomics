@@ -10,7 +10,10 @@ Ensures report compatibility across releases.
 - UI presentation rules.
 
 ## Contracts
-- `report.json` schema must be stable.
+- `report.json` schema must remain stable under
+  [REPORT_CONTRACT.md](../30-operations/REPORT_CONTRACT.md).
+- Analysis output reasoning must stay aligned with
+  [EXPLAINABILITY.md](../30-operations/EXPLAINABILITY.md).
 
 ## Examples
 - Report completeness checks ensure required fields.
