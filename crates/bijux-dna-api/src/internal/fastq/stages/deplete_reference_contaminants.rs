@@ -106,8 +106,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
                 tool: &tool_plan.tool,
                 execution: &execution,
             })?;
-        bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.report_json), &report)
-            .context("write reference contaminant depletion report")?;
+        write_reference_contaminants_report(&report)?;
         let metrics = reference_contaminants_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -275,6 +274,13 @@ fn write_reference_contaminants_metrics(
         &serde_json::to_value(metrics)?,
     )
     .context("write reference contaminant depletion metrics")
+}
+
+fn write_reference_contaminants_report(
+    report: &DepleteReferenceContaminantsReportV1,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.report_json), report)
+        .context("write reference contaminant depletion report")
 }
 
 fn prepare_reference_contaminants_benchmark_setup<S: ::std::hash::BuildHasher>(
