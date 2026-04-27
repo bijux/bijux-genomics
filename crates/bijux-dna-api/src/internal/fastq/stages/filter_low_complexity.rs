@@ -8,6 +8,7 @@ use bijux_dna_analyze::load::sqlite::quality::{
     fetch_fastq_filter_low_complexity_v1, insert_fastq_filter_low_complexity_v1,
 };
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqLowComplexityMetrics};
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
@@ -28,7 +29,7 @@ use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::{
     benchmark_image_identity, build_benchmark_context, derive_trim_delta, observe_fastq_stats,
-    prepare_trim_bench,
+    prepare_trim_bench, TrimBenchInputs,
 };
 use crate::internal::handlers::fastq::jobs::bench_jobs;
 use crate::internal::handlers::fastq::jobs::execute_plans_with_jobs;
@@ -47,11 +48,151 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterLowComplexityArgs,
 ) -> Result<BenchOutcome<FastqLowComplexityMetrics>> {
     let tools = select_low_complexity_benchmark_tools(args)?;
+    let setup =
+        prepare_low_complexity_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
+    if args.explain {
+        write_explain_md(
+            &setup.bench_inputs.bench_dir,
+            STAGE_FILTER_LOW_COMPLEXITY.as_str(),
+            &setup.tools,
+            &[],
+            None,
+        )?;
+        write_explain_plan_json(
+            &setup.bench_inputs.bench_dir,
+            STAGE_FILTER_LOW_COMPLEXITY.as_str(),
+            &setup.tools,
+            &setup.registry,
+            None,
+        )?;
+    }
+
+    ensure_image_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &setup.tools, platform, catalog)?;
+
+    let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
+    let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
+    let bench_path = setup.bench_inputs.bench_dir.join("bench.jsonl");
+    let jobs = bench_jobs(args.jobs);
+    let mut failures = Vec::new();
+    let mut records = Vec::<BenchmarkRecord<FastqLowComplexityMetrics>>::new();
+    for tool in &setup.tools {
+        let out_dir = setup.bench_inputs.tools_root.join(tool);
+        bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
+        let tool_spec = build_tool_execution_spec(
+            STAGE_FILTER_LOW_COMPLEXITY.as_str(),
+            tool,
+            &setup.registry,
+            catalog,
+            platform,
+        )?;
+        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+        let plan = plan_low_complexity(
+            &tool_spec,
+            &setup.bench_inputs.r1,
+            args.r2.as_deref(),
+            &out_dir,
+            &setup.options,
+        )?;
+        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let image_digest = tool_spec
+            .image
+            .digest
+            .as_ref()
+            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
+            .clone();
+        if let Ok(Some(record)) = fetch_fastq_filter_low_complexity_v1(
+            &conn,
+            tool,
+            &tool_spec.tool_version,
+            &image_digest,
+            &setup.bench_inputs.runner.to_string(),
+            &platform.name,
+            &setup.input_hash,
+            &params_hash,
+        ) {
+            records.push(record);
+            continue;
+        }
+        let execution = execute_plans_with_jobs(
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            setup.bench_inputs.runner,
+            jobs,
+        )?
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+        let record = build_low_complexity_record(
+            catalog,
+            platform,
+            &setup.bench_inputs,
+            setup.input_stats_r2.as_ref(),
+            tool,
+            &tool_spec,
+            &setup.input_hash,
+            &plan.params,
+            &plan.io.outputs[0].path,
+            plan.io.outputs.get(1).map(|artifact| artifact.path.as_path()),
+            &execution,
+        )?;
+        append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
+        insert_fastq_filter_low_complexity_v1(&conn, &record).context("insert bench sqlite")?;
+        if execution.exit_code != 0 {
+            failures.push(RawFailure {
+                stage: STAGE_FILTER_LOW_COMPLEXITY.as_str().to_string(),
+                tool: tool.clone(),
+                reason: format!("tool {tool} failed with status {}", execution.exit_code),
+                category: ErrorCategory::ToolError,
+            });
+        }
+        records.push(record);
+    }
+
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir: setup.bench_inputs.bench_dir,
+        explain: args.explain,
+    })
+}
+
+fn select_low_complexity_benchmark_tools(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterLowComplexityArgs,
+) -> Result<Vec<String>> {
+    let tools = select_filter_low_complexity_tools(&args.tools)?;
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
+    preflight_stage(STAGE_FILTER_LOW_COMPLEXITY.as_str(), artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &header);
+    Ok(tools)
+}
+
+struct LowComplexityBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    bench_inputs: TrimBenchInputs,
+    input_hash: String,
+    input_stats_r2: Option<SeqkitMetrics>,
+    options: LowComplexityPlanOptions,
+}
+
+fn prepare_low_complexity_benchmark_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterLowComplexityArgs,
+    selected_tools: &[String],
+) -> Result<LowComplexityBenchmarkSetup> {
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools =
-        filter_tools_by_role(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &tools, &registry, false)?;
+    let tools = filter_tools_by_role(
+        STAGE_FILTER_LOW_COMPLEXITY.as_str(),
+        selected_tools,
+        &registry,
+        false,
+    )?;
     let bench_inputs = prepare_trim_bench(
         catalog,
         platform,
@@ -71,122 +212,18 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
     } else {
         None
     };
-
-    if args.explain {
-        write_explain_md(
-            &bench_inputs.bench_dir,
-            STAGE_FILTER_LOW_COMPLEXITY.as_str(),
-            &tools,
-            &[],
-            None,
-        )?;
-        write_explain_plan_json(
-            &bench_inputs.bench_dir,
-            STAGE_FILTER_LOW_COMPLEXITY.as_str(),
-            &tools,
-            &registry,
-            None,
-        )?;
-    }
-
-    ensure_image_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &tools, platform, catalog)?;
-
-    let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
-    let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = bench_inputs.bench_dir.join("bench.jsonl");
-    let jobs = bench_jobs(args.jobs);
     let options = LowComplexityPlanOptions {
         entropy_threshold: args.entropy_threshold,
         polyx_threshold: args.polyx_threshold,
     };
-    let mut failures = Vec::new();
-    let mut records = Vec::<BenchmarkRecord<FastqLowComplexityMetrics>>::new();
-    for tool in &tools {
-        let out_dir = bench_inputs.tools_root.join(tool);
-        bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec = build_tool_execution_spec(
-            STAGE_FILTER_LOW_COMPLEXITY.as_str(),
-            tool,
-            &registry,
-            catalog,
-            platform,
-        )?;
-        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_low_complexity(
-            &tool_spec,
-            &bench_inputs.r1,
-            args.r2.as_deref(),
-            &out_dir,
-            &options,
-        )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = tool_spec
-            .image
-            .digest
-            .as_ref()
-            .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
-            .clone();
-        if let Ok(Some(record)) = fetch_fastq_filter_low_complexity_v1(
-            &conn,
-            tool,
-            &tool_spec.tool_version,
-            &image_digest,
-            &bench_inputs.runner.to_string(),
-            &platform.name,
-            &input_hash,
-            &params_hash,
-        ) {
-            records.push(record);
-            continue;
-        }
-        let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
-            bench_inputs.runner,
-            jobs,
-        )?
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
-        let record = build_low_complexity_record(
-            catalog,
-            platform,
-            &bench_inputs,
-            input_stats_r2.as_ref(),
-            tool,
-            &tool_spec,
-            &input_hash,
-            &plan.params,
-            &plan.io.outputs[0].path,
-            plan.io.outputs.get(1).map(|artifact| artifact.path.as_path()),
-            &execution,
-        )?;
-        append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
-        insert_fastq_filter_low_complexity_v1(&conn, &record).context("insert bench sqlite")?;
-        if execution.exit_code != 0 {
-            failures.push(RawFailure {
-                stage: STAGE_FILTER_LOW_COMPLEXITY.as_str().to_string(),
-                tool: tool.clone(),
-                reason: format!("tool {tool} failed with status {}", execution.exit_code),
-                category: ErrorCategory::ToolError,
-            });
-        }
-        records.push(record);
-    }
-
-    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
-}
-
-fn select_low_complexity_benchmark_tools(
-    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterLowComplexityArgs,
-) -> Result<Vec<String>> {
-    let tools = select_filter_low_complexity_tools(&args.tools)?;
-    let artifact_kind =
-        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
-    preflight_stage(STAGE_FILTER_LOW_COMPLEXITY.as_str(), artifact_kind)?;
-    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
-    log_header_warnings(STAGE_FILTER_LOW_COMPLEXITY.as_str(), &header);
-    Ok(tools)
+    Ok(LowComplexityBenchmarkSetup {
+        registry,
+        tools,
+        bench_inputs,
+        input_hash,
+        input_stats_r2,
+        options,
+    })
 }
 
 #[allow(clippy::too_many_arguments)]
