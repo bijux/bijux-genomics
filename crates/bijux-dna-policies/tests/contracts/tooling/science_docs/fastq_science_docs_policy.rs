@@ -473,6 +473,21 @@ fn policy__contracts__fastq_science_docs_policy__scientific_spec_links_governed_
 }
 
 #[test]
+fn policy__contracts__fastq_science_docs_policy__stage_taxonomy_links_governed_stage_taxonomy_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../../domain/fastq/index.yaml".to_string(),
+        "../../../domain/fastq/execution_support.yaml".to_string(),
+        "STAGE_CATALOG.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/fastq/STAGE_TAXONOMY.md");
+    assert_eq!(
+        expected, documented,
+        "docs/20-science/fastq/STAGE_TAXONOMY.md must link the governed stage taxonomy surfaces exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__fastq_science_docs_policy__software_citation_tools_do_not_claim_papers() {
     let rows = tsv_records("science/docs/upstream/papers/TOOL_PAPER_MAP.tsv");
     let expected = BTreeMap::from([
