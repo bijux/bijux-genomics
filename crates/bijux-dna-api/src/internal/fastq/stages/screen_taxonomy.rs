@@ -56,20 +56,7 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     let bench_inputs = prepare_screen_bench(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
-        write_explain_md(
-            &bench_inputs.bench_dir,
-            STAGE_SCREEN_TAXONOMY.as_str(),
-            &bench_inputs.tools,
-            &bench_inputs.excluded_tools,
-            None,
-        )?;
-        write_explain_plan_json(
-            &bench_inputs.bench_dir,
-            STAGE_SCREEN_TAXONOMY.as_str(),
-            &bench_inputs.tools,
-            &bench_inputs.registry,
-            None,
-        )?;
+        write_screen_benchmark_explain(&bench_inputs)?;
     }
 
     ensure_image_qa_passed(STAGE_SCREEN_TAXONOMY.as_str(), &bench_inputs.tools, platform, catalog)?;
@@ -158,6 +145,23 @@ fn select_screen_benchmark_tools(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_SCREEN_TAXONOMY.as_str(), &header);
     Ok(tools)
+}
+
+fn write_screen_benchmark_explain(bench_inputs: &ScreenBenchInputs) -> Result<()> {
+    write_explain_md(
+        &bench_inputs.bench_dir,
+        STAGE_SCREEN_TAXONOMY.as_str(),
+        &bench_inputs.tools,
+        &bench_inputs.excluded_tools,
+        None,
+    )?;
+    write_explain_plan_json(
+        &bench_inputs.bench_dir,
+        STAGE_SCREEN_TAXONOMY.as_str(),
+        &bench_inputs.tools,
+        &bench_inputs.registry,
+        None,
+    )
 }
 
 #[derive(Debug, Clone)]
