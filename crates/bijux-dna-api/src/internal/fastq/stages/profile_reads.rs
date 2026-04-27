@@ -200,6 +200,10 @@ struct StatsToolPlan {
     image_digest: String,
 }
 
+struct StatsToolExecution {
+    result: StageResultV1,
+}
+
 fn prepare_stats_tool_plan<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -225,6 +229,19 @@ fn prepare_stats_tool_plan<S: ::std::hash::BuildHasher>(
     let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
     let image_digest = benchmark_image_identity(&tool_spec);
     Ok(StatsToolPlan { tool: tool.to_string(), tool_spec, plan, params_hash, image_digest })
+}
+
+fn execute_stats_tool(
+    tool_plan: &StatsToolPlan,
+    runner: RuntimeKind,
+    jobs: usize,
+) -> Result<StatsToolExecution> {
+    let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan);
+    let result = execute_plans_with_jobs(vec![step], runner, jobs)?
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
+    Ok(StatsToolExecution { result })
 }
 
 fn prepare_stats_benchmark_setup<S: ::std::hash::BuildHasher>(
@@ -372,25 +389,20 @@ fn run_stats_tool(
     let run_dirs = prepare_tool_run_dirs(&bench_inputs.tools_root, tool, &run_id)?;
     let out_dir = run_dirs.artifacts_dir.clone();
     let _plan_path = write_stage_plan_json(&run_dirs, "fastq_stats_neutral.plan.json", &plan_json)?;
-    let step = bijux_dna_stage_contract::execution_step_from_stage_plan(plan);
-    let execution =
-        execute_plans_with_jobs(vec![step.clone()], bench_inputs.runner, bench_jobs(args.jobs))?
-            .into_iter()
-            .next()
-            .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+    let execution = execute_stats_tool(tool_plan, bench_inputs.runner, bench_jobs(args.jobs))?;
 
     let length_histogram = combine_length_histograms(
         &bench_inputs.length_hist,
         bench_inputs.length_hist_r2.as_deref(),
     );
-    let backend_rows = parse_seqkit_stats_rows(&execution.stdout).unwrap_or_else(|_| {
+    let backend_rows = parse_seqkit_stats_rows(&execution.result.stdout).unwrap_or_else(|_| {
         fallback_seqkit_rows(&bench_inputs.input_stats, bench_inputs.input_stats_r2.as_ref())
     });
     materialize_profile_reads_outputs(
-        &plan,
+        plan,
         &backend_rows,
         &length_histogram,
-        &execution_metrics_from_stage_result(&execution),
+        &execution_metrics_from_stage_result(&execution.result),
     )?;
     let report = std::fs::read_to_string(required_plan_output_path(plan, "qc_json")?)
         .ok()
@@ -424,7 +436,7 @@ fn run_stats_tool(
         tool: tool.to_string(),
         tool_version: tool_plan.tool_spec.tool_version.clone(),
         image_digest: image_digest.clone(),
-        command: execution.command.clone(),
+        command: execution.result.command.clone(),
         input_hashes: vec![bench_inputs.input_hash.clone()],
         input_files: vec![bench_inputs.r1.display().to_string()],
         output_dir: out_dir.display().to_string(),
@@ -434,7 +446,7 @@ fn run_stats_tool(
     };
     bijux_dna_infra::atomic_write_json(&run_dirs.manifest_path, &manifest)
         .context("write execution manifest")?;
-    write_execution_logs(&run_dirs.logs_dir, &execution.stdout, &execution.stderr)?;
+    write_execution_logs(&run_dirs.logs_dir, &execution.result.stdout, &execution.result.stderr)?;
     let context = BenchmarkContext {
         tool: tool.to_string(),
         tool_version: tool_plan.tool_spec.tool_version.clone(),
@@ -444,7 +456,7 @@ fn run_stats_tool(
         input_hash: bench_inputs.input_hash.clone(),
         parameters: params.clone().into(),
     };
-    let execution_metrics = execution_metrics_from_stage_result(&execution);
+    let execution_metrics = execution_metrics_from_stage_result(&execution.result);
     let metrics_json = serde_json::to_value(&metric_set)?;
     let parameters_json_normalized =
         bijux_dna_core::contract::canonical::parameters_json_canonicalization(&params);
