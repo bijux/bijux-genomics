@@ -57,6 +57,14 @@ fn required_host_output_path(
         .ok_or_else(|| anyhow!("host depletion plan missing output artifact {name}"))
 }
 
+fn required_host_input_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    name: &str,
+) -> Result<std::path::PathBuf> {
+    artifact_input_path(plan, name)
+        .ok_or_else(|| anyhow!("host depletion plan missing input artifact {name}"))
+}
+
 fn artifact_input_path(
     plan: &bijux_dna_stage_contract::StagePlanV1,
     name: &str,
@@ -134,6 +142,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         validate_host_report_identity(&tool_plan.tool, &report)?;
         validate_host_report_execution(&report, &execution)?;
         validate_host_report_paired_mode(args.r2.is_some(), &report)?;
+        validate_host_report_paths(&tool_plan.plan, &report)?;
         write_deplete_host_report(&report)?;
         let metrics = deplete_host_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -511,6 +520,74 @@ fn validate_host_report_paired_mode(has_r2: bool, report: &DepleteHostReportV1) 
             "host depletion report paired mode mismatch: expected {:?}, observed {:?}",
             expected,
             report.paired_mode
+        ));
+    }
+    Ok(())
+}
+
+fn validate_host_report_paths(plan: &StagePlanV1, report: &DepleteHostReportV1) -> Result<()> {
+    validate_host_report_path(
+        "input r1",
+        &required_host_input_path(plan, "reads_r1")?,
+        &report.input_r1,
+    )?;
+    validate_host_optional_report_path(
+        "input r2",
+        artifact_input_path(plan, "reads_r2").as_deref(),
+        report.input_r2.as_deref(),
+    )?;
+    validate_host_report_path(
+        "output r1",
+        &required_host_output_path(plan, "host_depleted_reads_r1")?,
+        &report.output_r1,
+    )?;
+    validate_host_optional_report_path(
+        "output r2",
+        artifact_output_path(plan, "host_depleted_reads_r2").as_deref(),
+        report.output_r2.as_deref(),
+    )?;
+    validate_host_report_path(
+        "removed host r1",
+        &required_host_output_path(plan, "removed_host_reads_r1")?,
+        &report.removed_host_r1,
+    )?;
+    validate_host_optional_report_path(
+        "removed host r2",
+        artifact_output_path(plan, "removed_host_reads_r2").as_deref(),
+        report.removed_host_r2.as_deref(),
+    )?;
+    validate_host_report_path(
+        "report json",
+        &required_host_output_path(plan, "host_depletion_report_json")?,
+        &report.report_json,
+    )
+}
+
+fn validate_host_optional_report_path(
+    label: &str,
+    expected: Option<&std::path::Path>,
+    observed: Option<&str>,
+) -> Result<()> {
+    match (expected, observed) {
+        (Some(expected), Some(observed)) => validate_host_report_path(label, expected, observed),
+        (None, None) => Ok(()),
+        _ => Err(anyhow!(
+            "host depletion report {label} path mismatch: expected {:?}, observed {:?}",
+            expected.map(|path| path.display().to_string()),
+            observed
+        )),
+    }
+}
+
+fn validate_host_report_path(
+    label: &str,
+    expected: &std::path::Path,
+    observed: &str,
+) -> Result<()> {
+    let expected = expected.display().to_string();
+    if observed != expected {
+        return Err(anyhow!(
+            "host depletion report {label} path mismatch: expected {expected}, observed {observed}"
         ));
     }
     Ok(())
