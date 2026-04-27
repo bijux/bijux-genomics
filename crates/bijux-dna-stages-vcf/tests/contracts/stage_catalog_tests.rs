@@ -105,6 +105,19 @@ fn supported_stage_defaults_match_domain_index_defaults() {
     }
 }
 
+#[test]
+fn default_settings_doc_defaults_match_stage_catalog() {
+    let defaults = parse_default_settings_doc_defaults();
+    for spec in bijux_dna_stages_vcf::stage_specs::vcf_stage_catalog() {
+        assert_eq!(
+            defaults.get(spec.stage_id).map(String::as_str),
+            Some(spec.default_tool_id),
+            "default settings doc drifted for {}",
+            spec.stage_id
+        );
+    }
+}
+
 fn parse_domain_index_active_defaults() -> std::collections::BTreeMap<String, String> {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../");
     let raw = std::fs::read_to_string(root.join("domain/vcf/index.yaml"))
@@ -130,6 +143,21 @@ fn parse_domain_index_active_defaults() -> std::collections::BTreeMap<String, St
         }
     }
     defaults
+}
+
+fn parse_default_settings_doc_defaults() -> std::collections::BTreeMap<String, String> {
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../");
+    let raw = std::fs::read_to_string(root.join("domain/vcf/docs/DEFAULT_SETTINGS.md"))
+        .unwrap_or_else(|err| panic!("read domain/vcf/docs/DEFAULT_SETTINGS.md: {err}"));
+    raw.lines()
+        .filter_map(|line| {
+            let line = line.trim();
+            let stage_start = line.strip_prefix("- `")?;
+            let (stage_id, rest) = stage_start.split_once("` default: `")?;
+            let (tool_id, _) = rest.split_once('`')?;
+            Some((stage_id.to_string(), tool_id.to_string()))
+        })
+        .collect()
 }
 
 fn catalog_stage_ids() -> std::collections::BTreeSet<String> {
