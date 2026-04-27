@@ -2,6 +2,13 @@
 
 Purpose: Define deterministic, per-tool smoke behavior across Docker and Apptainer.
 
+Authority surfaces:
+- [../README.md](../README.md)
+- [../index.md](../index.md)
+- [NETWORK_USAGE.md](NETWORK_USAGE.md)
+- [SECURITY_BOUNDARY.md](SECURITY_BOUNDARY.md)
+- [../versions/LOCK.md](../versions/LOCK.md)
+
 Per-tool smoke spec (resolved from registry fields with defaults):
 - `smoke_version_cmd`: must execute and produce non-empty output matching `expected_version_regex`.
 - `smoke_help_cmd`: must execute with `smoke_help_exit_code` (required to be `0`).
