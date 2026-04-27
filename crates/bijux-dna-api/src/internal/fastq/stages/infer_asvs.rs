@@ -268,6 +268,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
         let effective_params: AsvInferenceEffectiveParams =
             serde_json::from_value(plan.effective_params.clone())
                 .context("parse infer_asvs effective params")?;
+        let used_fallback = infer_asvs_used_fallback(&payload)?;
         let report = canonical_infer_asvs_report(InferAsvsReportInputs {
             tool_id: tool,
             input_r1: &args.r1,
@@ -283,10 +284,7 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             runtime_s: Some(execution.runtime_s),
             memory_mb: Some(execution.memory_mb),
             exit_code: Some(execution.exit_code),
-            used_fallback: payload
-                .get("used_fallback")
-                .and_then(serde_json::Value::as_bool)
-                .unwrap_or(false),
+            used_fallback,
             backend_metrics: Some(payload),
         });
         bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
@@ -360,4 +358,11 @@ fn validate_infer_asvs_output_paths(outputs: &InferAsvsOutputs) -> Result<()> {
         }
     }
     Ok(())
+}
+
+fn infer_asvs_used_fallback(payload: &serde_json::Value) -> Result<bool> {
+    payload
+        .get("used_fallback")
+        .and_then(serde_json::Value::as_bool)
+        .ok_or_else(|| anyhow!("infer_asvs payload missing boolean used_fallback"))
 }
