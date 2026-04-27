@@ -291,3 +291,20 @@ fn policy__contracts__science_boundary_docs_policy__container_release_checklist_
         "containers/docs/RELEASE_CHECKLIST.md must link the governed release-checklist surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_frontend_build_authority_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../versions/LOCK.md".to_string(),
+        "../../docs/30-operations/TRACEABILITY_PROOF_FRONTEND.md".to_string(),
+        "../versions/versions.toml".to_string(),
+        "../../configs/ci/tools/apptainer_cache_policy.toml".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/FRONTEND_BUILD_AUTHORITY.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/FRONTEND_BUILD_AUTHORITY.md must link the governed frontend-build-authority surfaces exactly"
+    );
+}
