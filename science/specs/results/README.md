@@ -2,4 +2,7 @@
 
 Authored result-plane specifications live here.
 
-No result-plane specs are seeded yet for the FASTQ environment slice.
+- [CONTRACT.md](CONTRACT.md) defines what authored result intent may live here.
+- [../evidence/README.md](../evidence/README.md) remains the current authored
+  authority for the FASTQ science slice while no result-plane specs are seeded
+  yet.
