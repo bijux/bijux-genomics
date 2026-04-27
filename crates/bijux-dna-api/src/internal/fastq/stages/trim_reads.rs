@@ -11,6 +11,7 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqTrimMetr
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::TrimReadsReportV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
@@ -23,6 +24,7 @@ use bijux_dna_planner_fastq::stage_api::{
     polyx_bank_context, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_stage_contract::StagePlanV1;
 
 use super::trim_bench_common::{
     benchmark_image_identity, build_benchmark_context, derive_trim_delta, json_string,
@@ -95,70 +97,46 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
     let mut records = Vec::<BenchmarkRecord<FastqTrimMetrics>>::new();
     let mut failures = Vec::<RawFailure>::new();
 
-    for tool in setup.tools {
-        let out_dir = setup.bench_inputs.tools_root.join(&tool);
-        bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec = build_tool_execution_spec(
-            STAGE_TRIM_READS.as_str(),
-            &tool,
-            &setup.registry,
-            catalog,
-            platform,
-        )?;
-        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let tool_spec = apply_thread_override(&tool_spec, args.threads);
-        let plan = plan_with_options(
-            &tool_spec,
-            &setup.bench_inputs.r1,
-            args.r2.as_deref(),
-            &out_dir,
-            policy.adapter_context.as_ref(),
-            policy.polyx_context.as_ref(),
-            policy.contaminant_context.as_ref(),
-            &policy.trim_options,
-        )?;
-        let bench_params = benchmark_query_context(
-            policy.adapter_context.as_ref(),
-            policy.polyx_context.as_ref(),
-            policy.contaminant_context.as_ref(),
-        )?
-        .embed_in_parameters(&plan.params);
-        let params_hash = stable_params_hash(&bench_params);
-        let image_digest = benchmark_image_identity(&tool_spec);
+    for tool in setup.tools.clone() {
+        let tool_plan =
+            prepare_trim_tool_plan(catalog, platform, args, &setup, &policy, jobs, tool)?;
         if let Ok(Some(record)) = fetch_fastq_trim_v2(
             &conn,
-            &tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &setup.bench_inputs.runner.to_string(),
             &platform.name,
             &setup.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             setup.bench_inputs.runner,
             jobs,
         )?
         .into_iter()
         .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+        .ok_or_else(|| anyhow!("missing execution result for {}", tool_plan.tool))?;
 
         if execution.exit_code != 0 {
             failures.push(RawFailure {
                 stage: STAGE_TRIM_READS.as_str().to_string(),
-                tool: tool.clone(),
-                reason: format!("tool `{tool}` failed with status {}", execution.exit_code),
+                tool: tool_plan.tool.clone(),
+                reason: format!(
+                    "tool `{}` failed with status {}",
+                    tool_plan.tool, execution.exit_code
+                ),
                 category: ErrorCategory::ToolError,
             });
             continue;
         }
 
-        let output_r1 = plan.io.outputs[0].path.clone();
+        let output_r1 = tool_plan.plan.io.outputs[0].path.clone();
         let output_stats_r1 =
             observe_fastq_stats(catalog, platform, setup.bench_inputs.runner, &output_r1)?;
         let output_stats_r2 = if args.r2.is_some() {
@@ -166,7 +144,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
                 catalog,
                 platform,
                 setup.bench_inputs.runner,
-                &plan.io.outputs[1].path,
+                &tool_plan.plan.io.outputs[1].path,
             )?)
         } else {
             None
@@ -174,7 +152,7 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         let before_stats =
             combine_seqkit_metrics(&setup.bench_inputs.input_stats, setup.input_stats_r2.as_ref());
         let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
-        let report_path = out_dir.join("trim_report.json");
+        let report_path = tool_plan.plan.out_dir.join("trim_report.json");
         let mut governed_report = load_governed_trim_report(&report_path)?;
         governed_report.reads_in = Some(before_stats.reads);
         governed_report.reads_out = Some(after_stats.reads);
@@ -225,19 +203,24 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         let metrics_json = serde_json::to_value(&metric_set)?;
-        let metrics_path = out_dir.join("metrics.json");
+        let metrics_path = tool_plan.plan.out_dir.join("metrics.json");
         bijux_dna_infra::atomic_write_json(&metrics_path, &metrics_json)
             .context("write trim metrics")?;
-        prune_trim_tool_payload(&out_dir, &report_path, &metrics_path, &governed_report)?;
+        prune_trim_tool_payload(
+            &tool_plan.plan.out_dir,
+            &report_path,
+            &metrics_path,
+            &governed_report,
+        )?;
 
         let context = build_benchmark_context(
-            &tool,
-            tool_spec.tool_version.clone(),
-            image_digest,
+            &tool_plan.tool,
+            tool_plan.tool_spec.tool_version.clone(),
+            tool_plan.image_digest,
             setup.bench_inputs.runner,
             platform,
             setup.input_hash.clone(),
-            bench_params.clone(),
+            tool_plan.bench_params.clone(),
         );
         let record = BenchmarkRecord {
             context,
@@ -288,6 +271,56 @@ struct TrimPolicyContext {
     adapter_context: Option<serde_json::Value>,
     polyx_context: Option<serde_json::Value>,
     contaminant_context: Option<serde_json::Value>,
+}
+
+struct TrimToolPlan {
+    tool: String,
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    bench_params: serde_json::Value,
+    params_hash: String,
+    image_digest: String,
+}
+
+fn prepare_trim_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimArgs,
+    setup: &TrimBenchmarkSetup,
+    policy: &TrimPolicyContext,
+    jobs: usize,
+    tool: String,
+) -> Result<TrimToolPlan> {
+    let out_dir = setup.bench_inputs.tools_root.join(&tool);
+    bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
+    let tool_spec = build_tool_execution_spec(
+        STAGE_TRIM_READS.as_str(),
+        &tool,
+        &setup.registry,
+        catalog,
+        platform,
+    )?;
+    let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+    let tool_spec = apply_thread_override(&tool_spec, args.threads);
+    let plan = plan_with_options(
+        &tool_spec,
+        &setup.bench_inputs.r1,
+        args.r2.as_deref(),
+        &out_dir,
+        policy.adapter_context.as_ref(),
+        policy.polyx_context.as_ref(),
+        policy.contaminant_context.as_ref(),
+        &policy.trim_options,
+    )?;
+    let bench_params = benchmark_query_context(
+        policy.adapter_context.as_ref(),
+        policy.polyx_context.as_ref(),
+        policy.contaminant_context.as_ref(),
+    )?
+    .embed_in_parameters(&plan.params);
+    let params_hash = stable_params_hash(&bench_params);
+    let image_digest = benchmark_image_identity(&tool_spec);
+    Ok(TrimToolPlan { tool, tool_spec, plan, bench_params, params_hash, image_digest })
 }
 
 fn resolve_trim_policy_context(
