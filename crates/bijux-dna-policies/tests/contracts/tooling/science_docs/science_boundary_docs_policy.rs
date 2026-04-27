@@ -543,3 +543,18 @@ fn policy__contracts__science_boundary_docs_policy__container_multiarch_policy_d
         "containers/docs/MULTIARCH_POLICY.md must link the governed multiarch authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_tool_ids_contract_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "../TOOL_IDS.txt".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/TOOL_IDS_CONTRACT.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/TOOL_IDS_CONTRACT.md must link the governed tool-id authorities exactly"
+    );
+}
