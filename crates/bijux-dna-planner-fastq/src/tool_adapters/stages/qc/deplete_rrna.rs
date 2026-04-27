@@ -20,6 +20,13 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub type DepleteRrnaPlanOptions = crate::DepleteRrnaStageParams;
 
+struct RrnaPlanPaths {
+    filtered_reads_r1: std::path::PathBuf,
+    filtered_reads_r2: Option<std::path::PathBuf>,
+    report: std::path::PathBuf,
+    metrics: std::path::PathBuf,
+}
+
 fn rrna_database_artifact_id(rrna_db: &str) -> String {
     let path = Path::new(rrna_db);
     if path.components().count() > 1 {
@@ -84,27 +91,92 @@ pub fn plan_rrna_with_options(
             options.min_identity
         ));
     }
-    let filtered_reads_r1 = if r2.is_some() {
+    let paths = rrna_plan_paths(r2.is_some(), out_dir);
+    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
+    let database_artifact_id = rrna_database_artifact_id(&options.rrna_db);
+    let effective_params =
+        rrna_effective_params(r2.is_some(), effective_threads, options, &database_artifact_id);
+    let inputs = rrna_inputs(r1, r2, options);
+    let outputs = rrna_outputs(&paths);
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_threads;
+    Ok(StagePlanV1 {
+        stage_id: STAGE_ID.clone(),
+        stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
+            &STAGE_ID,
+            &tool.tool_id,
+        )),
+        stage_version: STAGE_VERSION,
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: CommandSpecV1 {
+            template: rrna_command(
+                &tool.tool_id.0,
+                r1,
+                r2,
+                out_dir,
+                &paths.filtered_reads_r1,
+                paths.filtered_reads_r2.as_deref(),
+                &paths.report,
+                &paths.metrics,
+                effective_threads,
+                options,
+            )?,
+        },
+        resources,
+        io: StageIO { inputs, outputs },
+        out_dir: out_dir.to_path_buf(),
+        params: rrna_plan_params(
+            &tool.tool_id.0,
+            r1,
+            r2,
+            options,
+            &paths,
+            &database_artifact_id,
+            effective_threads,
+        ),
+        effective_params: serde_json::to_value(&effective_params)
+            .map_err(|error| anyhow!("serialize rrna effective params: {error}"))?,
+        aux_images: std::collections::BTreeMap::new(),
+        reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+    })
+}
+
+fn rrna_plan_paths(paired: bool, out_dir: &Path) -> RrnaPlanPaths {
+    let filtered_reads_r1 = if paired {
         out_dir.join("rrna_filtered_R1.fastq.gz")
     } else {
         out_dir.join("rrna_filtered.fastq.gz")
     };
-    let filtered_reads_r2 = r2.map(|_| out_dir.join("rrna_filtered_R2.fastq.gz"));
-    let report = out_dir.join("rrna_report.tsv");
-    let metrics = out_dir.join("rrna_report.json");
-    let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
-    let database_artifact_id = rrna_database_artifact_id(&options.rrna_db);
-    let effective_params = RrnaEffectiveParams {
+    RrnaPlanPaths {
+        filtered_reads_r1,
+        filtered_reads_r2: paired.then(|| out_dir.join("rrna_filtered_R2.fastq.gz")),
+        report: out_dir.join("rrna_report.tsv"),
+        metrics: out_dir.join("rrna_report.json"),
+    }
+}
+
+fn rrna_effective_params(
+    paired: bool,
+    effective_threads: u32,
+    options: &DepleteRrnaPlanOptions,
+    database_artifact_id: &str,
+) -> RrnaEffectiveParams {
+    RrnaEffectiveParams {
         schema_version: RRNA_DEPLETION_SCHEMA_VERSION.to_string(),
-        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: effective_threads,
         contaminant_db: Some(options.rrna_db.clone()),
-        database_artifact_id: database_artifact_id.clone(),
+        database_artifact_id: database_artifact_id.to_string(),
         database_build_id: None,
         screening_engine: RrnaScreeningEngine::Sortmerna,
         report_format: RrnaReportFormat::SummaryTsvAndJson,
         emit_removed_reads: false,
-    };
+    }
+}
+
+fn rrna_inputs(r1: &Path, r2: Option<&Path>, options: &DepleteRrnaPlanOptions) -> Vec<ArtifactRef> {
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -122,12 +194,16 @@ pub fn plan_rrna_with_options(
         Path::new(&options.rrna_db).to_path_buf(),
         ArtifactRole::Reference,
     ));
+    inputs
+}
+
+fn rrna_outputs(paths: &RrnaPlanPaths) -> Vec<ArtifactRef> {
     let mut outputs = vec![ArtifactRef::required(
         ArtifactId::from_static("rrna_filtered_reads_r1"),
-        filtered_reads_r1.clone(),
+        paths.filtered_reads_r1.clone(),
         ArtifactRole::Reads,
     )];
-    if let Some(filtered_reads_r2) = &filtered_reads_r2 {
+    if let Some(filtered_reads_r2) = &paths.filtered_reads_r2 {
         outputs.push(ArtifactRef::required(
             ArtifactId::from_static("rrna_filtered_reads_r2"),
             filtered_reads_r2.clone(),
@@ -136,58 +212,38 @@ pub fn plan_rrna_with_options(
     }
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("rrna_report_tsv"),
-        report.clone(),
+        paths.report.clone(),
         ArtifactRole::SummaryTsv,
     ));
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("rrna_report_json"),
-        metrics.clone(),
+        paths.metrics.clone(),
         ArtifactRole::MetricsJson,
     ));
-    Ok(StagePlanV1 {
-        stage_id: STAGE_ID.clone(),
-        stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
-            &STAGE_ID,
-            &tool.tool_id,
-        )),
-        stage_version: STAGE_VERSION,
-        tool_id: tool.tool_id.clone(),
-        tool_version: tool.tool_version.clone(),
-        image: tool.image.clone(),
-        command: CommandSpecV1 {
-            template: rrna_command(
-                &tool.tool_id.0,
-                r1,
-                r2,
-                out_dir,
-                &filtered_reads_r1,
-                filtered_reads_r2.as_deref(),
-                &report,
-                &metrics,
-                effective_threads,
-                options,
-            )?,
-        },
-        resources: tool.resources.clone(),
-        io: StageIO { inputs, outputs },
-        out_dir: out_dir.to_path_buf(),
-        params: serde_json::json!({
-            "tool": tool.tool_id.0,
-            "input_r1": r1,
-            "input_r2": r2,
-            "rrna_db": options.rrna_db,
-            "database_artifact_id": database_artifact_id,
-            "min_identity": options.min_identity,
-            "threads": effective_threads,
-            "filtered_reads_r1": filtered_reads_r1,
-            "filtered_reads_r2": filtered_reads_r2,
-            "report_tsv": report,
-            "report_json": metrics
-        }),
-        effective_params: serde_json::to_value(&effective_params)
-            .map_err(|error| anyhow!("serialize rrna effective params: {error}"))?,
-        aux_images: std::collections::BTreeMap::new(),
-        reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+    outputs
+}
+
+fn rrna_plan_params(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    options: &DepleteRrnaPlanOptions,
+    paths: &RrnaPlanPaths,
+    database_artifact_id: &str,
+    effective_threads: u32,
+) -> serde_json::Value {
+    serde_json::json!({
+        "tool": tool_id,
+        "input_r1": r1,
+        "input_r2": r2,
+        "rrna_db": options.rrna_db,
+        "database_artifact_id": database_artifact_id,
+        "min_identity": options.min_identity,
+        "threads": effective_threads,
+        "filtered_reads_r1": paths.filtered_reads_r1,
+        "filtered_reads_r2": paths.filtered_reads_r2,
+        "report_tsv": paths.report,
+        "report_json": paths.metrics
     })
 }
 
