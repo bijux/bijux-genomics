@@ -10,7 +10,8 @@ Frontend-only mini/test stacks executed by repository validation scripts.
 This document does not define heavy-corpus performance or production-scale acceptance criteria.
 
 ## Contracts
-The mini validator must enforce all checks listed below.
+The mini validator must enforce all checks listed below against the runnable example surface in
+[examples/index.yaml](../../examples/index.yaml).
 
 ## Runner
 - Script: `cargo run -q -p bijux-dna-dev -- tooling run validate-frontend-mini-domain-stacks`
@@ -19,10 +20,13 @@ The mini validator must enforce all checks listed below.
 
 ## What Is Validated
 - FASTQ mini path (`fastq_edna_mini`) and VCF mini paths (`vcf_damage_aware_genotype_mini`, `vcf_downstream_vcf_full_mini`, `vcf_downstream_demography_mini`, `vcf_imputation_mini`) are executed through the example harness.
-- Example outputs are compared against committed golden `plan.json`, `explain.json`, and `report.json`.
+- Example outputs are compared against committed golden `plan.json`, `explain.json`, and
+  `report.json` under the bundle rules defined in
+  [EXAMPLE_RUNNER_CONTRACT.md](../50-reference/EXAMPLE_RUNNER_CONTRACT.md).
 - Artifact bundle contract presence is checked (`plan/explain/report/run_report/metrics/logs`).
 - `metrics.json` and `logs.txt` structural checks are enforced.
-- VCF `coverage_regime` observability contract is enforced in explain/report.
+- VCF `coverage_regime` observability contract is enforced in
+  [EXPLAINABILITY.md](EXPLAINABILITY.md) and [REPORT_CONTRACT.md](REPORT_CONTRACT.md).
 - Coverage branching behavior is validated for:
   - `gl` (low depth)
   - `pseudohaploid` (mid depth)
