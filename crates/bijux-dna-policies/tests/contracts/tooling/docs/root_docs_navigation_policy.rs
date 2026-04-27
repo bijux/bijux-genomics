@@ -424,3 +424,13 @@ fn policy__contracts__root_docs_navigation_policy__contract_index_links_governed
         "docs/10-architecture/CONTRACT_INDEX.md must link the governed contract index authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__configs_guide_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from(["../../configs/OWNERS.toml".to_string()]);
+    let documented = markdown_link_targets("docs/50-reference/CONFIGS_GUIDE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/CONFIGS_GUIDE.md must link the governed config ownership authority exactly"
+    );
+}
