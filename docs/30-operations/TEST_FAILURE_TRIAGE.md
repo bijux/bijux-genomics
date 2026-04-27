@@ -1,6 +1,7 @@
 # Test Failure Triage
 
-This document defines the default buckets used to triage CI/local test failures.
+This document defines the default buckets used to triage CI/local test failures from
+[CI.md](CI.md).
 
 ## What
 Defines standard failure buckets and a reproducible triage workflow for local/CI runs.
@@ -34,11 +35,15 @@ Makes repeated failure classes easy to route to the right subsystem owner.
    - `cp artifacts/test-logs/<timestamp>.log artifacts/test-logs/latest.log`
 3. Run:
    - `make test-triage`
+   - The governed wrapper lives in [makes/cargo.mk](../../makes/cargo.mk) and the command
+     inventory is published in
+     [crates/bijux-dna-dev/docs/COMMANDS.md](../../crates/bijux-dna-dev/docs/COMMANDS.md).
 
 ## Notes
 
 - `make test-triage` is heuristic and intended for fast diagnosis.
-- Final source of truth remains `cargo nextest` output and individual failing test logs.
+- Final source of truth remains the `cargo nextest` surface configured in
+  [configs/rust/nextest.toml](../../configs/rust/nextest.toml) and individual failing test logs.
 
 ## Examples
 - `snapshot` failures from `.snap.new` drift.

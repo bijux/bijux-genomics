@@ -159,6 +159,22 @@ fn policy__contracts__operations_reference_authority_policy__production_guarante
 }
 
 #[test]
+fn policy__contracts__operations_reference_authority_policy__test_failure_triage_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "CI.md".to_string(),
+        "../../makes/cargo.mk".to_string(),
+        "../../crates/bijux-dna-dev/docs/COMMANDS.md".to_string(),
+        "../../configs/rust/nextest.toml".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/TEST_FAILURE_TRIAGE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/TEST_FAILURE_TRIAGE.md must link the governed triage authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
