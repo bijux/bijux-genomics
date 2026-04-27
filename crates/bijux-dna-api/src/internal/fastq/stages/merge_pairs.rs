@@ -141,19 +141,19 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             continue;
         }
         let outputs = resolve_merge_outputs(&tool_plan.plan)?;
-        let record = build_merge_record(
+        let record = build_merge_record(&MergeRecordInputs {
             catalog,
             platform,
-            setup.runner,
-            &setup.input_hash,
-            &setup.r1_stats,
-            &setup.r2_stats,
-            &tool_plan.tool_spec,
-            &tool_plan.plan.params,
-            outputs.merged_reads,
-            outputs.report_json,
-            &execution,
-        )?;
+            runner: setup.runner,
+            input_hash: &setup.input_hash,
+            r1_stats: &setup.r1_stats,
+            r2_stats: &setup.r2_stats,
+            tool_spec: &tool_plan.tool_spec,
+            params: &tool_plan.plan.params,
+            merged_reads: outputs.merged_reads,
+            report_path: outputs.report_json,
+            execution: &execution,
+        })?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_merge_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
@@ -184,6 +184,20 @@ struct MergeToolPlan {
 struct MergePlanOutputs<'a> {
     merged_reads: &'a Path,
     report_json: &'a Path,
+}
+
+struct MergeRecordInputs<'a, S: ::std::hash::BuildHasher> {
+    catalog: &'a HashMap<String, ToolImageSpec, S>,
+    platform: &'a PlatformSpec,
+    runner: RuntimeKind,
+    input_hash: &'a str,
+    r1_stats: &'a SeqkitMetrics,
+    r2_stats: &'a SeqkitMetrics,
+    tool_spec: &'a ToolExecutionSpecV1,
+    params: &'a serde_json::Value,
+    merged_reads: &'a Path,
+    report_path: &'a Path,
+    execution: &'a StageResultV1,
 }
 
 fn select_merge_benchmark_tools(
@@ -306,20 +320,20 @@ fn merge_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
     })
 }
 
-#[allow(clippy::too_many_arguments)]
 fn build_merge_record<S: ::std::hash::BuildHasher>(
-    catalog: &HashMap<String, ToolImageSpec, S>,
-    platform: &PlatformSpec,
-    runner: RuntimeKind,
-    input_hash: &str,
-    r1_stats: &bijux_dna_core::prelude::measure::SeqkitMetrics,
-    r2_stats: &bijux_dna_core::prelude::measure::SeqkitMetrics,
-    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
-    params: &serde_json::Value,
-    merged_reads: &Path,
-    report_path: &Path,
-    execution: &StageResultV1,
+    inputs: &MergeRecordInputs<'_, S>,
 ) -> Result<BenchmarkRecord<FastqMergeMetrics>> {
+    let catalog = inputs.catalog;
+    let platform = inputs.platform;
+    let runner = inputs.runner;
+    let input_hash = inputs.input_hash;
+    let r1_stats = inputs.r1_stats;
+    let r2_stats = inputs.r2_stats;
+    let tool_spec = inputs.tool_spec;
+    let params = inputs.params;
+    let merged_reads = inputs.merged_reads;
+    let report_path = inputs.report_path;
+    let execution = inputs.execution;
     let merged_stats = observe_merge_stats(catalog, platform, runner, merged_reads)?;
     let mut report = load_governed_merge_report(report_path)?;
     report.runtime_s = Some(execution.runtime_s);
