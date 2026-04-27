@@ -87,10 +87,14 @@ fn policy__contracts__science_authored_specs_policy__release_specs_docs_link_con
 ) {
     let expected = BTreeSet::from([
         "CONTRACT.md".to_string(),
+        "manifests/README.md".to_string(),
         "../evidence/README.md".to_string(),
         "../reports/README.md".to_string(),
         "../results/README.md".to_string(),
         "../../README.md".to_string(),
+        "../../CONTRACT.md".to_string(),
+        "../../generated/current/README.md".to_string(),
+        "../../generated/indexes/README.md".to_string(),
     ]);
     let documented = markdown_link_targets("science/specs/releases/README.md");
     assert_eq!(

@@ -66,3 +66,18 @@ fn policy__contracts__science_boundary_docs_policy__science_contract_links_bound
         "science/CONTRACT.md must link the governed boundary surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__release_manifest_inventory_links_governed_files_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../CONTRACT.md".to_string(),
+        "fastq-environment-baseline.yaml".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/specs/releases/manifests/README.md");
+    assert_eq!(
+        expected, documented,
+        "science/specs/releases/manifests/README.md must link the governed release-manifest files exactly"
+    );
+}
