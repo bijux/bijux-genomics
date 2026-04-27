@@ -86,3 +86,14 @@ fn policy__contracts__operations_reference_authority_policy__release_hygiene_lin
         "docs/30-operations/RELEASE_HYGIENE.md must link the governed release versioning authority exactly"
     );
 }
+
+#[test]
+fn policy__contracts__operations_reference_authority_policy__mkdocs_build_redirect_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from(["DOCS_BUILD_REPRODUCIBLE.md".to_string()]);
+    let documented = markdown_link_targets("docs/30-operations/MKDOCS_BUILD.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/MKDOCS_BUILD.md must link the governed docs build authority exactly"
+    );
+}
