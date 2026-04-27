@@ -190,6 +190,14 @@ struct ScreenReadAccounting {
     pairs: u64,
 }
 
+struct ScreenClassificationSummary {
+    entries: Vec<TaxonomyScreenSummaryEntryV1>,
+    classified_fraction: Option<f64>,
+    unclassified_fraction: Option<f64>,
+    contamination_rate: f64,
+    top_taxa: Vec<TaxonomyScreenSummaryEntryV1>,
+}
+
 fn prepare_screen_tool_plan<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -348,11 +356,8 @@ fn build_screen_record(
             .context("decode screen taxonomy effective params")?;
     let report_paths = screen_report_paths(inputs.plan, inputs.out_dir);
     let read_accounting = screen_read_accounting(inputs.bench_inputs);
-    let summary_entries = load_screen_summary_entries(&report_paths.summary_tsv)?;
-    let unclassified_fraction = find_unclassified_fraction(&summary_entries);
-    let classified_fraction = unclassified_fraction.map(|value| (1.0 - value).max(0.0));
-    let contamination_rate = classified_fraction.unwrap_or(0.0);
-    let top_taxa = top_taxa_entries(&summary_entries, 5);
+    let classification_summary =
+        screen_classification_summary(load_screen_summary_entries(&report_paths.summary_tsv)?);
     let governed_report = ScreenTaxonomyReportV1 {
         schema_version: SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_SCREEN_TAXONOMY.as_str().to_string(),
@@ -381,11 +386,11 @@ fn build_screen_record(
         bases_out: Some(read_accounting.bases_in),
         pairs_in: Some(read_accounting.pairs),
         pairs_out: Some(read_accounting.pairs),
-        contamination_rate: Some(contamination_rate),
-        classified_fraction,
-        unclassified_fraction,
-        summary_entries: summary_entries.clone(),
-        top_taxa: top_taxa.clone(),
+        contamination_rate: Some(classification_summary.contamination_rate),
+        classified_fraction: classification_summary.classified_fraction,
+        unclassified_fraction: classification_summary.unclassified_fraction,
+        summary_entries: classification_summary.entries.clone(),
+        top_taxa: classification_summary.top_taxa.clone(),
         runtime_s: Some(inputs.execution.runtime_s),
         memory_mb: Some(inputs.execution.memory_mb),
     };
@@ -398,19 +403,21 @@ fn build_screen_record(
         bases_out: read_accounting.bases_in,
         pairs_in: read_accounting.pairs,
         pairs_out: read_accounting.pairs,
-        contamination_rate,
-        classified_fraction,
-        unclassified_fraction,
+        contamination_rate: classification_summary.contamination_rate,
+        classified_fraction: classification_summary.classified_fraction,
+        unclassified_fraction: classification_summary.unclassified_fraction,
         classifier: Some(enum_json_name(&effective_params.classifier)?),
         report_format: Some(enum_json_name(&effective_params.report_format)?),
         database_catalog_id: Some(effective_params.database_catalog_id.clone()),
         database_artifact_id: Some(effective_params.database_artifact_id.clone()),
         minimum_confidence: effective_params.minimum_confidence.map(f64::from),
         emit_unclassified: Some(effective_params.emit_unclassified),
-        contamination_summary: serde_json::to_value(&summary_entries)
+        contamination_summary: serde_json::to_value(&classification_summary.entries)
             .context("serialize taxonomy summary entries")?
             .into(),
-        top_taxa: serde_json::to_value(&top_taxa).context("serialize top taxonomy entries")?.into(),
+        top_taxa: serde_json::to_value(&classification_summary.top_taxa)
+            .context("serialize top taxonomy entries")?
+            .into(),
     };
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -470,6 +477,22 @@ fn screen_read_accounting(bench_inputs: &ScreenBenchInputs) -> ScreenReadAccount
         .as_ref()
         .map_or(0, |stats| bench_inputs.input_stats.reads.min(stats.reads));
     ScreenReadAccounting { reads_in, bases_in, pairs }
+}
+
+fn screen_classification_summary(
+    entries: Vec<TaxonomyScreenSummaryEntryV1>,
+) -> ScreenClassificationSummary {
+    let unclassified_fraction = find_unclassified_fraction(&entries);
+    let classified_fraction = unclassified_fraction.map(|value| (1.0 - value).max(0.0));
+    let contamination_rate = classified_fraction.unwrap_or(0.0);
+    let top_taxa = top_taxa_entries(&entries, 5);
+    ScreenClassificationSummary {
+        entries,
+        classified_fraction,
+        unclassified_fraction,
+        contamination_rate,
+        top_taxa,
+    }
 }
 
 fn find_unclassified_fraction(entries: &[TaxonomyScreenSummaryEntryV1]) -> Option<f64> {
