@@ -205,6 +205,21 @@ fn policy__contracts__operations_reference_authority_policy__compilation_cache_p
 }
 
 #[test]
+fn policy__contracts__operations_reference_authority_policy__certification_scope_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "FRONTEND_MINI_STACK_VALIDATION.md".to_string(),
+        "RUN_ARTIFACTS.md".to_string(),
+        "../50-reference/EXAMPLE_RUNNER_CONTRACT.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/CERTIFICATION_SCOPE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/CERTIFICATION_SCOPE.md must link the governed certification authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
