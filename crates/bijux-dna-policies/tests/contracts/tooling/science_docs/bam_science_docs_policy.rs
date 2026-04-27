@@ -442,6 +442,21 @@ fn policy__contracts__bam_science_docs_policy__stage_catalog_links_governed_bam_
     );
 }
 
+#[test]
+fn policy__contracts__bam_science_docs_policy__stage_taxonomy_links_governed_bam_taxonomy_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../../domain/bam/stages/".to_string(),
+        "STAGE_CATALOG.md".to_string(),
+        "TOOLS_ROSTER.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/bam/STAGE_TAXONOMY.md");
+    assert_eq!(
+        documented, expected,
+        "docs/20-science/bam/STAGE_TAXONOMY.md must link the governed BAM taxonomy surfaces exactly"
+    );
+}
+
 fn assert_bam_tools_roster_matches(stage_ids: &[&str], label: &str) {
     let expected = bam_stage_specs();
     let roster = bam_tools_roster_rows();
