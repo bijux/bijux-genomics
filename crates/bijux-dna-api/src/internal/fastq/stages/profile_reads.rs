@@ -51,7 +51,7 @@ use super::trim_bench_common::benchmark_image_identity;
 use crate::public_bridge::handlers::fastq::{
     write_explain_md, write_explain_plan_json, BenchOutcome, STAGE_PROFILE_READS,
 };
-use bijux_dna_core::contract::{ContractVersion, ExecutionManifest};
+use bijux_dna_core::contract::{ContractVersion, ExecutionManifest, ToolRegistry};
 use bijux_dna_planner_fastq::stage_api::RawFailure;
 
 /// Run the FASTQ benchmark stage.
@@ -66,54 +66,55 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqStatsArgs,
 ) -> Result<BenchOutcome<FastqStatsMetrics>> {
     let tools = select_stats_benchmark_tools(args)?;
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_PROFILE_READS.as_str(), &tools, &registry, false)?;
-    let bench_inputs = prepare_stats_bench(catalog, platform, runner_override, args)?;
-    let selected = tools.clone();
+    let setup = prepare_stats_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
+    let selected = setup.tools.clone();
     let stage_id = bijux_dna_core::ids::StageId::new(STAGE_PROFILE_READS.as_str());
-    let all_tools: Vec<String> =
-        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
+    let all_tools: Vec<String> = setup
+        .registry
+        .tools_for_stage(&stage_id)
+        .iter()
+        .map(|tool| tool.tool_id.to_string())
+        .collect();
     let excluded: Vec<String> =
         all_tools.into_iter().filter(|tool| !selected.contains(tool)).collect();
     write_explain_md(
-        &bench_inputs.bench_dir,
+        &setup.bench_inputs.bench_dir,
         STAGE_PROFILE_READS.as_str(),
         &selected,
         &excluded,
         None,
     )?;
     write_explain_plan_json(
-        &bench_inputs.bench_dir,
+        &setup.bench_inputs.bench_dir,
         STAGE_PROFILE_READS.as_str(),
         &selected,
-        &registry,
+        &setup.registry,
         None,
     )?;
-    ensure_image_qa_passed(STAGE_PROFILE_READS.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_PROFILE_READS.as_str(), &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_PROFILE_READS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_PROFILE_READS.as_str(), &setup.tools, platform, catalog)?;
 
-    let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
     let mut records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
     let mut new_records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
     let mut failures: Vec<RawFailure> = Vec::new();
 
-    let runner = bench_inputs.runner.to_string();
+    let runner = setup.bench_inputs.runner.to_string();
     let platform_name = platform.name.clone();
-    for tool in tools {
+    for tool in setup.tools {
         let tool_spec = build_tool_execution_spec(
             STAGE_PROFILE_READS.as_str(),
             &tool,
-            &registry,
+            &setup.registry,
             catalog,
             platform,
         )?;
-        let tool_dir = bench_inputs.tools_root.join(&tool);
+        let tool_dir = setup.bench_inputs.tools_root.join(&tool);
         let plan = plan_stats_with_threads(
             &tool_spec,
-            &bench_inputs.r1,
-            bench_inputs.r2.as_deref(),
+            &setup.bench_inputs.r1,
+            setup.bench_inputs.r2.as_deref(),
             &tool_dir,
             args.threads,
         )?;
@@ -126,14 +127,14 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
             &image_digest,
             &runner,
             &platform_name,
-            &bench_inputs.input_hash,
+            &setup.bench_inputs.input_hash,
             &params_hash,
         );
         if let Ok(Some(record)) = cached {
             records.push(record);
             continue;
         }
-        match run_stats_tool(catalog, platform, args, &bench_inputs, &tool) {
+        match run_stats_tool(catalog, platform, args, &setup.bench_inputs, &tool) {
             Ok(record) => new_records.push(record),
             Err(err) => failures.push(RawFailure {
                 stage: STAGE_PROFILE_READS.as_str().to_string(),
@@ -146,7 +147,7 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
 
     records.extend(new_records.iter().cloned());
 
-    let bench_path = bench_inputs.bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_inputs.bench_dir.join("bench.jsonl");
     for record in &new_records {
         append_jsonl(&bench_path, record).context("write bench.jsonl")?;
     }
@@ -155,7 +156,12 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
         insert_fastq_stats_v1(&conn, record).context("insert bench sqlite")?;
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir: setup.bench_inputs.bench_dir,
+        explain: args.explain,
+    })
 }
 
 fn select_stats_benchmark_tools(
@@ -181,6 +187,27 @@ struct StatsBenchInputs {
     length_hist_r2: Option<Vec<LengthHistogramBin>>,
     bench_dir: PathBuf,
     tools_root: PathBuf,
+}
+
+struct StatsBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    bench_inputs: StatsBenchInputs,
+}
+
+fn prepare_stats_benchmark_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqStatsArgs,
+    selected_tools: &[String],
+) -> Result<StatsBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools =
+        filter_tools_by_role(STAGE_PROFILE_READS.as_str(), selected_tools, &registry, false)?;
+    let bench_inputs = prepare_stats_bench(catalog, platform, runner_override, args)?;
+    Ok(StatsBenchmarkSetup { registry, tools, bench_inputs })
 }
 
 #[allow(clippy::too_many_lines)]
