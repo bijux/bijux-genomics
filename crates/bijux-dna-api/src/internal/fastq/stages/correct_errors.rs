@@ -15,6 +15,7 @@ use bijux_dna_analyze::load::sqlite::quality::{fetch_fastq_correct_v1, insert_fa
 use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkContext, BenchmarkRecord, FastqCorrectMetrics,
 };
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
@@ -62,50 +63,42 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqCorrectArgs,
 ) -> Result<BenchOutcome<bijux_dna_analyze::FastqCorrectMetrics>> {
     let selected_tools = select_correct_benchmark_tools(args)?;
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools =
-        filter_tools_by_role(STAGE_CORRECT_ERRORS.as_str(), &selected_tools, &registry, false)?;
-    let bench_inputs = prepare_correct_bench(catalog, platform, runner_override, args)?;
-    let stage_id = bijux_dna_core::ids::StageId::new(STAGE_CORRECT_ERRORS.as_str());
-    let all_tools: Vec<String> =
-        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
-    let excluded: Vec<String> =
-        all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
+    let setup =
+        prepare_correct_benchmark_setup(catalog, platform, runner_override, args, &selected_tools)?;
 
     if args.explain {
         write_explain_md(
-            &bench_inputs.bench_dir,
+            &setup.bench_inputs.bench_dir,
             STAGE_CORRECT_ERRORS.as_str(),
-            &tools,
-            &excluded,
+            &setup.tools,
+            &setup.excluded_tools,
             None,
         )?;
         write_explain_plan_json(
-            &bench_inputs.bench_dir,
+            &setup.bench_inputs.bench_dir,
             STAGE_CORRECT_ERRORS.as_str(),
-            &tools,
-            &registry,
+            &setup.tools,
+            &setup.registry,
             None,
         )?;
     }
 
-    ensure_image_qa_passed(STAGE_CORRECT_ERRORS.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_CORRECT_ERRORS.as_str(), &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_CORRECT_ERRORS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_CORRECT_ERRORS.as_str(), &setup.tools, platform, catalog)?;
 
-    let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = bench_inputs.bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_inputs.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqCorrectMetrics>>::new();
-    for tool in &tools {
-        let out_dir = bench_inputs.tools_root.join(tool);
+    for tool in &setup.tools {
+        let out_dir = setup.bench_inputs.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec(
             STAGE_CORRECT_ERRORS.as_str(),
             tool,
-            &registry,
+            &setup.registry,
             catalog,
             platform,
         )?;
@@ -127,8 +120,8 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         );
         let plan = plan_correct_with_options(
             &tool_spec,
-            &bench_inputs.r1,
-            bench_inputs.r2.as_deref(),
+            &setup.bench_inputs.r1,
+            setup.bench_inputs.r2.as_deref(),
             &out_dir,
             &projected_options,
         )?;
@@ -140,9 +133,9 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             tool,
             &tool_spec.tool_version,
             &image_digest,
-            &bench_inputs.runner.to_string(),
+            &setup.bench_inputs.runner.to_string(),
             &platform.name,
-            &bench_inputs.input_hash,
+            &setup.bench_inputs.input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -150,7 +143,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         }
         let execution = execute_plans_with_jobs(
             vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
-            bench_inputs.runner,
+            setup.bench_inputs.runner,
             jobs,
         )?
         .into_iter()
@@ -158,7 +151,7 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
         let record = build_correct_record(
             platform,
-            &bench_inputs,
+            &setup.bench_inputs,
             tool,
             &tool_spec,
             &bench_params,
@@ -179,7 +172,12 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir: bench_inputs.bench_dir, explain: args.explain })
+    Ok(BenchOutcome {
+        records,
+        failures,
+        bench_dir: setup.bench_inputs.bench_dir,
+        explain: args.explain,
+    })
 }
 
 fn select_correct_benchmark_tools(
@@ -206,6 +204,32 @@ struct CorrectBenchInputs {
     bench_dir: PathBuf,
     tools_root: PathBuf,
     seqkit_image: String,
+}
+
+struct CorrectBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    excluded_tools: Vec<String>,
+    bench_inputs: CorrectBenchInputs,
+}
+
+fn prepare_correct_benchmark_setup<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqCorrectArgs,
+    selected_tools: &[String],
+) -> Result<CorrectBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools =
+        filter_tools_by_role(STAGE_CORRECT_ERRORS.as_str(), selected_tools, &registry, false)?;
+    let bench_inputs = prepare_correct_bench(catalog, platform, runner_override, args)?;
+    let stage_id = bijux_dna_core::ids::StageId::new(STAGE_CORRECT_ERRORS.as_str());
+    let all_tools: Vec<String> =
+        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
+    let excluded_tools = all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
+    Ok(CorrectBenchmarkSetup { registry, tools, excluded_tools, bench_inputs })
 }
 
 fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
