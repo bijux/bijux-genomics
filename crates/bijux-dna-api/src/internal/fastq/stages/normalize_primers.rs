@@ -9,7 +9,9 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_normalize_primers_v1, insert_fastq_normalize_primers_v1,
 };
-use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqNormalizePrimersMetrics};
+use bijux_dna_analyze::{
+    append_jsonl, metric_set, BenchmarkRecord, FastqNormalizePrimersMetrics, MetricSet,
+};
 use bijux_dna_core::contract::{ExecutionStep, ToolRegistry};
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
@@ -112,18 +114,8 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             measurements: &measurements,
             tool_execution: &tool_execution,
         });
-        let metrics = FastqNormalizePrimersMetrics {
-            reads_in: measurements.reads_in_total,
-            reads_out: measurements.reads_out_total,
-            primer_trimmed_fraction: report.primer_trimmed_fraction.unwrap_or(0.0),
-            orientation_forward_fraction: report.orientation_forward_fraction.unwrap_or(0.0),
-        };
-        let metric_set = metric_set(metrics);
-        bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
-        bijux_dna_infra::atomic_write_json(
-            &tool_plan.out_dir.join("metrics.json"),
-            &serde_json::to_value(&metric_set)?,
-        )?;
+        let metric_set = build_normalize_primers_metric_set(&measurements, &report)?;
+        write_normalize_primers_artifacts(&tool_plan, &outputs, &report, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
@@ -527,6 +519,35 @@ fn build_normalize_primers_report(
             .unwrap_or(false),
         backend_metrics: Some(inputs.observation.payload.clone()),
     }
+}
+
+fn build_normalize_primers_metric_set(
+    measurements: &NormalizePrimersMeasurements,
+    report: &NormalizePrimersReportV1,
+) -> Result<MetricSet<FastqNormalizePrimersMetrics>> {
+    let metrics = FastqNormalizePrimersMetrics {
+        reads_in: measurements.reads_in_total,
+        reads_out: measurements.reads_out_total,
+        primer_trimmed_fraction: report.primer_trimmed_fraction.unwrap_or(0.0),
+        orientation_forward_fraction: report.orientation_forward_fraction.unwrap_or(0.0),
+    };
+    let metric_set = metric_set(metrics);
+    bijux_dna_analyze::validate_metric_set(&metric_set)?;
+    Ok(metric_set)
+}
+
+fn write_normalize_primers_artifacts(
+    tool_plan: &NormalizePrimersToolPlan,
+    outputs: &NormalizePrimersOutputs,
+    report: &NormalizePrimersReportV1,
+    metric_set: &MetricSet<FastqNormalizePrimersMetrics>,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(&outputs.report_json, report)?;
+    bijux_dna_infra::atomic_write_json(
+        &tool_plan.out_dir.join("metrics.json"),
+        &serde_json::to_value(metric_set)?,
+    )?;
+    Ok(())
 }
 
 fn select_normalize_primers_benchmark_tools(
