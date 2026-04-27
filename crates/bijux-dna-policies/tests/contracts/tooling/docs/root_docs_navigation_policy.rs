@@ -233,6 +233,23 @@ fn policy__contracts__root_docs_navigation_policy__architecture_litmus_links_gov
 }
 
 #[test]
+fn policy__contracts__root_docs_navigation_policy__anti_patterns_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "../../crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_policy_duplication.rs".to_string(),
+        "../../crates/bijux-dna-policies/tests/boundaries/surface/policy/id_literal_policy.rs"
+            .to_string(),
+        "../../crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_serde_json_writer.rs".to_string(),
+        "../../crates/bijux-dna-policies/tests/boundaries/surface/purity/domain_purity.rs"
+            .to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/ANTI_PATTERNS.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/ANTI_PATTERNS.md must link the governed anti-pattern authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from([
         "../index.md".to_string(),
