@@ -5,6 +5,25 @@ mod support;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 
+fn markdown_link_targets(path: &str) -> BTreeSet<String> {
+    let root = support::workspace_root();
+    let raw =
+        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let mut targets = BTreeSet::new();
+    for line in raw.lines() {
+        let mut rest = line;
+        while let Some((_, suffix)) = rest.split_once("](") {
+            if let Some((target, tail)) = suffix.split_once(')') {
+                targets.insert(target.to_string());
+                rest = tail;
+            } else {
+                break;
+            }
+        }
+    }
+    targets
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct BamStageDocSpec {
     status: String,
@@ -325,6 +344,26 @@ fn bam_reference_governance_rows() -> BTreeMap<String, BTreeSet<String>> {
             (row[0].to_string(), hooks)
         })
         .collect()
+}
+
+#[test]
+fn policy__contracts__bam_science_docs_policy__bam_index_links_governed_bam_doc_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "METHODOLOGICAL_INTENT.md".to_string(),
+        "METRIC_SEMANTICS.md".to_string(),
+        "OPERATIONAL_CONTRACT.md".to_string(),
+        "REFERENCE_GOVERNANCE.md".to_string(),
+        "REFERENCES.md".to_string(),
+        "STAGE_ASSUMPTIONS.md".to_string(),
+        "STAGE_CATALOG.md".to_string(),
+        "STAGE_TAXONOMY.md".to_string(),
+        "TOOLS_ROSTER.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/bam/index.md");
+    assert_eq!(
+        documented, expected,
+        "docs/20-science/bam/index.md must link the governed BAM doc surfaces exactly"
+    );
 }
 
 fn assert_bam_tools_roster_matches(stage_ids: &[&str], label: &str) {
