@@ -271,3 +271,23 @@ fn policy__contracts__science_boundary_docs_policy__container_promotion_policy_l
         "containers/docs/PROMOTION_POLICY.md must link the governed promotion-policy surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_release_checklist_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "VERSION_AUTHORITY.md".to_string(),
+        "GHCR_PUBLISH.md".to_string(),
+        "../../configs/ci/registry/".to_string(),
+        "../versions/versions.toml".to_string(),
+        "../versions/LOCK.md".to_string(),
+        "index.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/RELEASE_CHECKLIST.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/RELEASE_CHECKLIST.md must link the governed release-checklist surfaces exactly"
+    );
+}

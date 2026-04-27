@@ -2,9 +2,17 @@
 
 Purpose: define the mandatory gate before tagging a container-affecting release.
 
+[../README.md](../README.md), [../index.md](../index.md),
+[VERSION_AUTHORITY.md](VERSION_AUTHORITY.md), and
+[GHCR_PUBLISH.md](GHCR_PUBLISH.md) define the adjacent surfaces this checklist
+must close before a publish run.
+
 ## Preconditions
-- Registry updates are merged (`configs/ci/registry/*.toml`).
-- Version metadata and lock are updated (`containers/versions/versions.toml`, `containers/versions/lock.json`).
+- Registry updates are merged from the governed
+  [configs/ci/registry/](../../configs/ci/registry/).
+- Version metadata and lock are updated
+  ([containers/versions/versions.toml](../versions/versions.toml),
+  [containers/versions/LOCK.md](../versions/LOCK.md)).
 - Planned/production status transitions are tracked via promotion/demotion scripts.
 
 ## Required Commands
@@ -26,5 +34,8 @@ Purpose: define the mandatory gate before tagging a container-affecting release.
 ## Exit Criteria
 - All release-gate checks pass with zero policy failures.
 - Lock, smoke, provenance, and docs checks are green.
-- GHCR runtime-family package scope is reviewed against `containers/docs/GHCR_PUBLISH.md` before a manual publish run.
-- Container docs stay aligned with runtime contracts (`containers/README.md`, `containers/docs/index.md`).
+- GHCR runtime-family package scope is reviewed against
+  [containers/docs/GHCR_PUBLISH.md](GHCR_PUBLISH.md) before a manual publish
+  run.
+- Container docs stay aligned with runtime contracts
+  ([containers/README.md](../README.md), [containers/docs/index.md](index.md)).
