@@ -99,6 +99,8 @@ fn policy__contracts__science_authored_specs_policy__report_specs_docs_link_cont
         "CONTRACT.md".to_string(),
         "../evidence/README.md".to_string(),
         "../results/README.md".to_string(),
+        "../releases/README.md".to_string(),
+        "../../README.md".to_string(),
     ]);
     let documented = markdown_link_targets("science/specs/reports/README.md");
     assert_eq!(
