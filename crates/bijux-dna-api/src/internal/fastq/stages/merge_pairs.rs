@@ -17,6 +17,7 @@ use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
+use bijux_dna_domain_fastq::metrics::ratio_u64;
 use bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy;
 use bijux_dna_domain_fastq::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
@@ -532,7 +533,7 @@ fn validate_merge_report_observed_counts(
 
 fn validate_merge_report_rate(report: &MergePairsReportV1) -> Result<()> {
     let pairs_in = report.reads_r1.min(report.reads_r2);
-    let expected = if pairs_in == 0 { 0.0 } else { report.reads_merged as f64 / pairs_in as f64 };
+    let expected = ratio_u64(report.reads_merged, pairs_in);
     if (report.merge_rate - expected).abs() > 0.000_001 {
         return Err(anyhow!(
             "merge_pairs report merge_rate arithmetic mismatch: expected {}, observed {}",
