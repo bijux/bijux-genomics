@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::support::workspace::load_workspace_registry;
 use crate::tool_selection::filter_tools_by_role;
@@ -14,7 +15,6 @@ use bijux_dna_analyze::{
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
-use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{
     FilterLowComplexityReportV1, PairedMode, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
@@ -30,7 +30,6 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
-use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::{
     benchmark_image_identity, build_benchmark_context, derive_trim_delta, observe_fastq_stats,
@@ -243,7 +242,7 @@ fn prepare_low_complexity_tool_plan<S: ::std::hash::BuildHasher>(
         &out_dir,
         &setup.options,
     )?;
-    let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let params_hash = stable_params_hash(&plan.params);
     let image_digest = benchmark_image_identity(&tool_spec);
     Ok(LowComplexityToolPlan { tool: tool.to_string(), tool_spec, plan, params_hash, image_digest })
 }
