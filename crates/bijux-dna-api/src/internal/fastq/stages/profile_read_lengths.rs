@@ -378,11 +378,29 @@ fn prepare_read_lengths_artifacts(
     let report_json = required_output_path(plan, "report_json")?.to_path_buf();
     let length_tsv = required_output_path(plan, "length_distribution_tsv")?.to_path_buf();
     let length_json = required_output_path(plan, "length_distribution_json")?.to_path_buf();
+    validate_read_lengths_artifact_paths(&report_json, &length_tsv, &length_json)?;
     let histogram_bins = args.histogram_bins.unwrap_or(100).max(1);
     if !length_tsv.exists() || !length_json.exists() {
         write_length_outputs(&length_tsv, &length_json, lengths, histogram_bins)?;
     }
     Ok(ReadLengthsArtifacts { report_json, length_tsv, length_json, histogram_bins })
+}
+
+fn validate_read_lengths_artifact_paths(
+    report_json: &Path,
+    length_tsv: &Path,
+    length_json: &Path,
+) -> Result<()> {
+    let mut paths = BTreeSet::new();
+    for path in [report_json, length_tsv, length_json] {
+        if !paths.insert(path) {
+            return Err(anyhow!(
+                "profile_read_lengths output path reused by multiple artifacts: {}",
+                path.display()
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn observe_read_lengths_tool(
