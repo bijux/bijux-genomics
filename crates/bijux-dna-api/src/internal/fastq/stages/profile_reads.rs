@@ -127,13 +127,9 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
 
     records.extend(new_records.iter().cloned());
 
-    for record in &new_records {
-        append_jsonl(&store.jsonl_path, record).context("write bench.jsonl")?;
-    }
-
-    for record in &new_records {
-        insert_fastq_stats_v1(&conn, record).context("insert bench sqlite")?;
-    }
+    persist_stats_records(&store, &new_records, |record| {
+        insert_fastq_stats_v1(&conn, record).context("insert bench sqlite")
+    })?;
 
     Ok(BenchOutcome {
         records,
@@ -239,6 +235,18 @@ fn stats_tool_failure(tool_plan: &StatsToolPlan, err: &anyhow::Error) -> RawFail
         reason: err.to_string(),
         category: ErrorCategory::ToolError,
     }
+}
+
+fn persist_stats_records(
+    store: &StatsBenchmarkStore,
+    records: &[BenchmarkRecord<FastqStatsMetrics>],
+    mut insert_record: impl FnMut(&BenchmarkRecord<FastqStatsMetrics>) -> Result<()>,
+) -> Result<()> {
+    for record in records {
+        append_jsonl(&store.jsonl_path, record).context("write bench.jsonl")?;
+        insert_record(record)?;
+    }
+    Ok(())
 }
 
 fn prepare_stats_tool_plan<S: ::std::hash::BuildHasher>(
