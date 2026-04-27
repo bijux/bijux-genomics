@@ -496,13 +496,16 @@ fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
         let seq = lines.next();
         let plus = lines.next();
         let qual = lines.next();
-        let (Some(header), Some(seq), Some(plus), Some(_qual)) = (header, seq, plus, qual) else {
-            break;
-        };
-        if !header.starts_with('@') || !plus.starts_with('+') {
-            return Err(anyhow!("invalid FASTQ framing in {}", path.display()));
+        match (header, seq, plus, qual) {
+            (None, None, None, None) => break,
+            (Some(header), Some(seq), Some(plus), Some(_qual)) => {
+                if !header.starts_with('@') || !plus.starts_with('+') {
+                    return Err(anyhow!("invalid FASTQ framing in {}", path.display()));
+                }
+                lengths.push(seq.len());
+            }
+            _ => return Err(anyhow!("truncated FASTQ record in {}", path.display())),
         }
-        lengths.push(seq.len());
     }
     if lengths.is_empty() {
         return Err(anyhow!("no reads detected in {}", path.display()));
