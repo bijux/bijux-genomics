@@ -12,6 +12,14 @@ Derived from tool registries and container metadata fields.
 ## Non-goals
 - Replacing full per-tool smoke manifests.
 
+## Authority Surfaces
+- [docs/30-operations/CONTAINERS.md](CONTAINERS.md)
+- [docs/30-operations/HPC_FRONTEND_RUNBOOK.md](HPC_FRONTEND_RUNBOOK.md)
+- [containers/docs/FRONTEND_BUILD_AUTHORITY.md](../../containers/docs/FRONTEND_BUILD_AUTHORITY.md)
+- [containers/docs/SMOKE_CONTRACT.md](../../containers/docs/SMOKE_CONTRACT.md)
+- [containers/docs/NETWORK_USAGE.md](../../containers/docs/NETWORK_USAGE.md)
+- [containers/docs/PLANNED.md](../../containers/docs/PLANNED.md)
+
 ## Contracts
 - Tool row exists iff registry runtimes include `apptainer`.
 - `apptainer_def` and smoke command fields are surfaced for QA checks.

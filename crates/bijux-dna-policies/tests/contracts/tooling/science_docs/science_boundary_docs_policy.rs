@@ -763,3 +763,21 @@ fn policy__contracts__science_boundary_docs_policy__tool_docs_detail_links_gover
         );
     }
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__apptainer_qa_matrix_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "CONTAINERS.md".to_string(),
+        "HPC_FRONTEND_RUNBOOK.md".to_string(),
+        "../../containers/docs/FRONTEND_BUILD_AUTHORITY.md".to_string(),
+        "../../containers/docs/SMOKE_CONTRACT.md".to_string(),
+        "../../containers/docs/NETWORK_USAGE.md".to_string(),
+        "../../containers/docs/PLANNED.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/APPTAINER_QA_MATRIX.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/APPTAINER_QA_MATRIX.md must link the governed QA-matrix authorities exactly"
+    );
+}
