@@ -332,3 +332,20 @@ fn policy__contracts__root_docs_navigation_policy__architecture_contract_links_g
         "docs/10-architecture/ARCHITECTURE_CONTRACT.md must link the governed architecture contract authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__boundary_map_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "BOUNDARY_DIAGRAM.md".to_string(),
+        "DEPENDENCY_RULES.md".to_string(),
+        "../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs"
+            .to_string(),
+        "../../crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs"
+            .to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/BOUNDARY_MAP.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/BOUNDARY_MAP.md must link the governed boundary authorities exactly"
+    );
+}

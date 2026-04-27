@@ -17,10 +17,10 @@ Avoids boundary duplication across documents.
 
 ## Contracts
 Enforced by:
-- `docs/10-architecture/BOUNDARY_DIAGRAM.md`
-- `docs/10-architecture/DEPENDENCY_RULES.md`
-- `crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs`
-- `crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs`
+- [docs/10-architecture/BOUNDARY_DIAGRAM.md](BOUNDARY_DIAGRAM.md)
+- [docs/10-architecture/DEPENDENCY_RULES.md](DEPENDENCY_RULES.md)
+- [crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs)
+- [crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs)
 
 ## Executable Boundary Map
 ```boundaries
@@ -57,7 +57,7 @@ bijux-dna-testkit: bijux-dna-policies
 ```
 
 ## Examples
-See `BOUNDARY_DIAGRAM.md` for the canonical diagram.
+See [BOUNDARY_DIAGRAM.md](BOUNDARY_DIAGRAM.md) for the canonical diagram.
 
 ## Failure modes
 Boundary violations fail CI dependency/effect policies.
