@@ -2,6 +2,10 @@
 
 Purpose: define the lifecycle states and required gates for containerized tools.
 
+[../README.md](../README.md), [../index.md](../index.md), and
+[PROMOTION_POLICY.md](PROMOTION_POLICY.md) define the adjacent container control
+surfaces that govern these lifecycle states.
+
 ## Lifecycle Diagram
 ```text
 planned -> experimental -> production -> deprecated -> removed
@@ -19,7 +23,8 @@ planned -> experimental -> production -> deprecated -> removed
 - `removed`: no longer shipped.
 
 ## References
-- `containers/docs/PROMOTION_POLICY.md`
-- `containers/versions/deprecations.toml`
+- [containers/docs/PROMOTION_POLICY.md](PROMOTION_POLICY.md)
+- [containers/versions/deprecations.toml](../versions/deprecations.toml)
+- [containers/TOOL_IDS.txt](../TOOL_IDS.txt)
 - `cargo run -p bijux-dna-dev -- containers run tool-lifecycle`
 - `cargo run -p bijux-dna-dev -- containers run demote`

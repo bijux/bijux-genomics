@@ -325,3 +325,20 @@ fn policy__contracts__science_boundary_docs_policy__frontend_traceability_doc_li
         "docs/30-operations/TRACEABILITY_PROOF_FRONTEND.md must link the governed frontend-traceability surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_tool_lifecycle_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "PROMOTION_POLICY.md".to_string(),
+        "../versions/deprecations.toml".to_string(),
+        "../TOOL_IDS.txt".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/TOOL_LIFECYCLE.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/TOOL_LIFECYCLE.md must link the governed lifecycle surfaces exactly"
+    );
+}
