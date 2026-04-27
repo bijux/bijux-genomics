@@ -1,6 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::Path;
 
+use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::support::benchmark_runtime::ensure_bench_runner;
 use crate::support::workspace::load_workspace_registry;
@@ -14,7 +15,6 @@ use bijux_dna_analyze::{
 };
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
-use bijux_dna_core::prelude::params_hash;
 use bijux_dna_domain_fastq::params::edna::AbundanceNormalizationEffectiveParams;
 use bijux_dna_domain_fastq::{
     NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
@@ -24,7 +24,6 @@ use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::stage_api::bench_dir_name;
 use bijux_dna_planner_fastq::stage_api::RawFailure;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
-use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::build_benchmark_context;
 use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs};
@@ -145,7 +144,7 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
                 &out_dir,
                 &plan_options,
             )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+        let params_hash = stable_params_hash(&plan.params);
         let image_digest = tool_spec
             .image
             .digest
