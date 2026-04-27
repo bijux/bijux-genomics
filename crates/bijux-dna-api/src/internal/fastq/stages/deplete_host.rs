@@ -152,6 +152,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         write_deplete_host_metrics(&tool_plan, &metric_set)?;
+        validate_host_written_artifacts(&tool_plan, &report)?;
 
         let record =
             build_deplete_host_record(platform, &setup, &tool_plan, &execution, metric_set)?;
@@ -706,6 +707,36 @@ fn write_deplete_host_metrics(
         &serde_json::to_value(metrics)?,
     )
     .context("write host depletion metrics")
+}
+
+fn validate_host_written_artifacts(
+    tool_plan: &DepleteHostToolPlan,
+    report: &DepleteHostReportV1,
+) -> Result<()> {
+    for path in
+        [report.output_r1.as_str(), report.removed_host_r1.as_str(), report.report_json.as_str()]
+    {
+        validate_host_nonempty_artifact(std::path::Path::new(path))?;
+    }
+    if let Some(path) = report.output_r2.as_deref() {
+        validate_host_nonempty_artifact(std::path::Path::new(path))?;
+    }
+    if let Some(path) = report.removed_host_r2.as_deref() {
+        validate_host_nonempty_artifact(std::path::Path::new(path))?;
+    }
+    if let Some(path) = report.raw_backend_report.as_deref() {
+        validate_host_nonempty_artifact(std::path::Path::new(path))?;
+    }
+    validate_host_nonempty_artifact(&tool_plan.plan.out_dir.join("metrics.json"))
+}
+
+fn validate_host_nonempty_artifact(path: &std::path::Path) -> Result<()> {
+    let metadata = std::fs::metadata(path)
+        .with_context(|| format!("read host depletion artifact {}", path.display()))?;
+    if metadata.len() == 0 {
+        return Err(anyhow!("host depletion artifact is empty: {}", path.display()));
+    }
+    Ok(())
 }
 
 fn build_deplete_host_record(
