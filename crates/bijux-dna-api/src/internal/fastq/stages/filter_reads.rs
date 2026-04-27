@@ -167,6 +167,13 @@ struct FilterObservedOutputs {
     r2: Option<SeqkitMetrics>,
 }
 
+struct FilterBackendReport {
+    raw_backend_report: Option<String>,
+    raw_backend_report_format: Option<String>,
+    metrics: Option<serde_json::Value>,
+    removal_counts: FilterRemovalCounts,
+}
+
 fn select_filter_benchmark_tools(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterArgs,
 ) -> Result<Vec<String>> {
@@ -329,20 +336,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     );
     let out_dir = output_reads.parent().ok_or_else(|| anyhow!("filter output has no parent"))?;
     let report_path = out_dir.join("filter_report.json");
-    let raw_backend_report = params
-        .get("raw_backend_report")
-        .and_then(serde_json::Value::as_str)
-        .map(ToString::to_string);
-    let raw_backend_report_format = params
-        .get("raw_backend_report_format")
-        .and_then(serde_json::Value::as_str)
-        .map(ToString::to_string);
-    let backend_metrics = parse_filter_backend_metrics(
-        raw_backend_report.as_deref().map(std::path::Path::new),
-        raw_backend_report_format.as_deref(),
-    );
-    let removal_counts =
-        derive_filter_removal_counts(backend_metrics.as_ref(), args_kmer_filter_requested(params));
+    let backend_report = filter_backend_report(params);
     let report = FilterReadsReportV1 {
         schema_version: FILTER_READS_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_FILTER_READS.as_str().to_string(),
@@ -390,12 +384,14 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
         reads_in: accounting.reads_in,
         reads_out: accounting.reads_out,
         reads_dropped: accounting.reads_dropped,
-        reads_removed_by_n: removal_counts.reads_removed_by_n,
-        reads_removed_by_entropy: removal_counts.reads_removed_by_entropy,
-        reads_removed_low_complexity: removal_counts.reads_removed_low_complexity,
-        reads_removed_by_kmer: removal_counts.reads_removed_by_kmer,
-        reads_removed_contaminant_kmer: removal_counts.reads_removed_contaminant_kmer,
-        reads_removed_by_length: removal_counts.reads_removed_by_length,
+        reads_removed_by_n: backend_report.removal_counts.reads_removed_by_n,
+        reads_removed_by_entropy: backend_report.removal_counts.reads_removed_by_entropy,
+        reads_removed_low_complexity: backend_report.removal_counts.reads_removed_low_complexity,
+        reads_removed_by_kmer: backend_report.removal_counts.reads_removed_by_kmer,
+        reads_removed_contaminant_kmer: backend_report
+            .removal_counts
+            .reads_removed_contaminant_kmer,
+        reads_removed_by_length: backend_report.removal_counts.reads_removed_by_length,
         bases_in: accounting.bases_in,
         bases_out: accounting.bases_out,
         pairs_in: accounting.pairs_in,
@@ -405,9 +401,9 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
         runtime_s: Some(execution.runtime_s),
         memory_mb: Some(execution.memory_mb),
         exit_code: Some(execution.exit_code),
-        raw_backend_report,
-        raw_backend_report_format,
-        backend_metrics,
+        raw_backend_report: backend_report.raw_backend_report,
+        raw_backend_report_format: backend_report.raw_backend_report_format,
+        backend_metrics: backend_report.metrics,
     };
     let metrics = FastqFilterMetrics {
         reads_in: report.reads_in,
@@ -510,6 +506,25 @@ fn filter_read_accounting(
         pairs_in,
         pairs_out,
     }
+}
+
+fn filter_backend_report(params: &serde_json::Value) -> FilterBackendReport {
+    let raw_backend_report = params
+        .get("raw_backend_report")
+        .and_then(serde_json::Value::as_str)
+        .map(ToString::to_string);
+    let raw_backend_report_format = params
+        .get("raw_backend_report_format")
+        .and_then(serde_json::Value::as_str)
+        .map(ToString::to_string);
+    let metrics = parse_filter_backend_metrics(
+        raw_backend_report.as_deref().map(Path::new),
+        raw_backend_report_format.as_deref(),
+    );
+    let removal_counts =
+        derive_filter_removal_counts(metrics.as_ref(), args_kmer_filter_requested(params));
+
+    FilterBackendReport { raw_backend_report, raw_backend_report_format, metrics, removal_counts }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
