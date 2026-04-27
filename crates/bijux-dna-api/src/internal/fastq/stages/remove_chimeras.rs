@@ -44,14 +44,9 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
 ) -> Result<BenchOutcome<FastqChimeraMetrics>> {
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = bijux_dna_planner_fastq::select_remove_chimeras_tools(&args.tools)?;
+    let tools = select_remove_chimeras_benchmark_tools(args)?;
     let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let artifact_kind =
-        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
-    preflight_stage(STAGE_ID, artifact_kind)?;
-    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
-    log_header_warnings(STAGE_ID, &header);
     let input_stats_r1 = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
     let input_stats_r2 = if let Some(r2) = args.r2.as_deref() {
         Some(observe_fastq_stats(catalog, platform, runner, r2)?)
@@ -234,6 +229,18 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
     }
 
     Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+}
+
+fn select_remove_chimeras_benchmark_tools(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqRemoveChimerasArgs,
+) -> Result<Vec<String>> {
+    let tools = bijux_dna_planner_fastq::select_remove_chimeras_tools(&args.tools)?;
+    let artifact_kind =
+        if args.r2.is_some() { FastqArtifactKind::PairedEnd } else { FastqArtifactKind::SingleEnd };
+    preflight_stage(STAGE_ID, artifact_kind)?;
+    let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
+    log_header_warnings(STAGE_ID, &header);
+    Ok(tools)
 }
 
 fn parse_uchime_summary(path: Option<&std::path::Path>) -> Option<serde_json::Value> {
