@@ -122,8 +122,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
             tool: &tool_plan.tool,
             execution: &execution,
         })?;
-        bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.report_json), &report)
-            .context("write host depletion report")?;
+        write_deplete_host_report(&report)?;
         let metrics = deplete_host_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
@@ -449,6 +448,11 @@ fn deplete_host_metrics_from_report(report: &DepleteHostReportV1) -> FastqDeplet
         })
         .into(),
     }
+}
+
+fn write_deplete_host_report(report: &DepleteHostReportV1) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.report_json), report)
+        .context("write host depletion report")
 }
 
 fn u64_to_f64(value: u64) -> f64 {
