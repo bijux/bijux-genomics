@@ -54,8 +54,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     let setup = prepare_overrepresented_benchmark_setup(platform, runner_override, args)?;
 
     if args.explain {
-        write_explain_md(&setup.bench_dir, STAGE_ID, &setup.tools, &[], None)?;
-        write_explain_plan_json(&setup.bench_dir, STAGE_ID, &setup.tools, &setup.registry, None)?;
+        write_overrepresented_benchmark_explain(&setup)?;
     }
 
     ensure_image_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
@@ -242,6 +241,11 @@ fn prepare_overrepresented_benchmark_setup(
     bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
     let input_hash = overrepresented_input_hash(args)?;
     Ok(OverrepresentedBenchmarkSetup { registry, tools, runner, bench_dir, tools_root, input_hash })
+}
+
+fn write_overrepresented_benchmark_explain(setup: &OverrepresentedBenchmarkSetup) -> Result<()> {
+    write_explain_md(&setup.bench_dir, STAGE_ID, &setup.tools, &[], None)?;
+    write_explain_plan_json(&setup.bench_dir, STAGE_ID, &setup.tools, &setup.registry, None)
 }
 
 fn materialize_overrepresented_outputs(
