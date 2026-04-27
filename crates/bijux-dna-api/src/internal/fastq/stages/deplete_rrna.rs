@@ -97,6 +97,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
             execution: &execution,
         })?;
         validate_rrna_report_identity(&tool_plan.tool, &report)?;
+        validate_rrna_report_execution(&report, &execution)?;
         write_rrna_report(&report)?;
         let metrics = rrna_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -405,6 +406,36 @@ fn validate_rrna_report_identity(tool: &str, report: &DepleteRrnaReportV1) -> Re
             "rrna depletion report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_rrna_report_execution(
+    report: &DepleteRrnaReportV1,
+    execution: &StageResultV1,
+) -> Result<()> {
+    if report.runtime_s.is_none_or(|observed| (observed - execution.runtime_s).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "rrna depletion report runtime mismatch: expected {}, observed {:?}",
+            execution.runtime_s,
+            report.runtime_s
+        ));
+    }
+    if report.memory_mb.is_none_or(|observed| (observed - execution.memory_mb).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "rrna depletion report memory mismatch: expected {}, observed {:?}",
+            execution.memory_mb,
+            report.memory_mb
+        ));
+    }
+    if report.exit_code != Some(execution.exit_code) {
+        return Err(anyhow!(
+            "rrna depletion report exit code mismatch: expected {}, observed {:?}",
+            execution.exit_code,
+            report.exit_code
         ));
     }
     Ok(())
