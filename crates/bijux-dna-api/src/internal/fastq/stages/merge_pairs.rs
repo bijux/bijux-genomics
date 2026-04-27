@@ -335,10 +335,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     let report_path = inputs.report_path;
     let execution = inputs.execution;
     let merged_stats = observe_merge_stats(catalog, platform, runner, merged_reads)?;
-    let mut report = load_governed_merge_report(report_path)?;
-    report.runtime_s = Some(execution.runtime_s);
-    report.memory_mb = Some(execution.memory_mb);
-    write_governed_merge_report(report_path, &report)?;
+    let report = merge_report_with_execution(report_path, execution)?;
 
     let pairs_in = report.reads_r1.min(report.reads_r2);
     let reads_merged = report.reads_merged.min(pairs_in);
@@ -385,6 +382,17 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn merge_report_with_execution(
+    report_path: &Path,
+    execution: &StageResultV1,
+) -> Result<MergePairsReportV1> {
+    let mut report = load_governed_merge_report(report_path)?;
+    report.runtime_s = Some(execution.runtime_s);
+    report.memory_mb = Some(execution.memory_mb);
+    write_governed_merge_report(report_path, &report)?;
+    Ok(report)
 }
 
 fn prune_merge_tool_payload(
