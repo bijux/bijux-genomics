@@ -47,7 +47,6 @@ use bijux_dna_stage_contract::StagePlanV1;
 
 /// # Errors
 /// Returns an error if planning, execution, metric derivation, or persistence fails.
-#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -61,7 +60,7 @@ pub fn bench_fastq_validate_reads<S: ::std::hash::BuildHasher>(
     let header = inspect_headers(&args.r1, args.r2.as_deref(), false)?;
     log_header_warnings(STAGE_VALIDATE_READS.as_str(), &header);
 
-    let setup = prepare_validate_benchmark_setup(catalog, platform, runner_override, args, tools)?;
+    let setup = prepare_validate_benchmark_setup(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
         write_validate_benchmark_explain(&setup)?;
@@ -137,11 +136,11 @@ fn prepare_validate_benchmark_setup<S: ::std::hash::BuildHasher>(
     platform: &PlatformSpec,
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqValidateArgs,
-    tools: Vec<String>,
+    tools: &[String],
 ) -> Result<ValidateBenchmarkSetup> {
     let registry =
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_VALIDATE_READS.as_str(), &tools, &registry, false)?;
+    let tools = filter_tools_by_role(STAGE_VALIDATE_READS.as_str(), tools, &registry, false)?;
     let bench_inputs = prepare_validate_bench(catalog, platform, runner_override, args)?;
     let excluded_tools = excluded_validate_tools(&registry, &tools);
     Ok(ValidateBenchmarkSetup { registry, tools, excluded_tools, bench_inputs })
