@@ -22,7 +22,7 @@ use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::screen::RrnaEffectiveParams;
 use bijux_dna_domain_fastq::{
-    DepleteRrnaReportV1, DEPLETE_RRNA_REPORT_SCHEMA_VERSION, STAGE_DEPLETE_RRNA,
+    DepleteRrnaReportV1, PairedMode, DEPLETE_RRNA_REPORT_SCHEMA_VERSION, STAGE_DEPLETE_RRNA,
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::hash_file_sha256;
@@ -98,6 +98,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         })?;
         validate_rrna_report_identity(&tool_plan.tool, &report)?;
         validate_rrna_report_execution(&report, &execution)?;
+        validate_rrna_report_paired_mode(args.r2.is_some(), &report)?;
         write_rrna_report(&report)?;
         let metrics = rrna_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -436,6 +437,18 @@ fn validate_rrna_report_execution(
             "rrna depletion report exit code mismatch: expected {}, observed {:?}",
             execution.exit_code,
             report.exit_code
+        ));
+    }
+    Ok(())
+}
+
+fn validate_rrna_report_paired_mode(has_r2: bool, report: &DepleteRrnaReportV1) -> Result<()> {
+    let expected = if has_r2 { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
+    if report.paired_mode != expected {
+        return Err(anyhow!(
+            "rrna depletion report paired mode mismatch: expected {:?}, observed {:?}",
+            expected,
+            report.paired_mode
         ));
     }
     Ok(())
