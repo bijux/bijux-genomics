@@ -101,8 +101,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             threads: tool_plan.plan.resources.threads,
             execution: &execution,
         });
-        write_read_lengths_report(&observation.artifacts.report_json, &report)?;
-        write_read_lengths_metrics(&tool_plan.out_dir, &metric_set)?;
+        write_read_lengths_artifacts(&tool_plan, &observation, &report, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
@@ -429,6 +428,16 @@ fn write_read_lengths_metrics(
     let metrics_json = serde_json::to_value(metric_set)?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
         .context("write read-lengths metrics")
+}
+
+fn write_read_lengths_artifacts(
+    tool_plan: &ReadLengthsToolPlan,
+    observation: &ReadLengthsObservation,
+    report: &ProfileReadLengthsReportV1,
+    metric_set: &MetricSet<FastqReadLengthMetrics>,
+) -> Result<()> {
+    write_read_lengths_report(&observation.artifacts.report_json, report)?;
+    write_read_lengths_metrics(&tool_plan.out_dir, metric_set)
 }
 
 fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
