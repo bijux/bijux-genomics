@@ -12,12 +12,24 @@ fn parse_registry_tools(path: &std::path::Path) -> Vec<toml::Value> {
     parsed.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default()
 }
 
+fn registry_files() -> [&'static str; 5] {
+    [
+        "configs/ci/registry/tool_registry.toml",
+        "configs/ci/registry/tool_registry_experimental.toml",
+        "configs/ci/registry/tool_registry_vcf.toml",
+        "configs/ci/registry/tool_registry_vcf_downstream.toml",
+        "configs/ci/registry/tool_registry_container_experimental.toml",
+    ]
+}
+
 #[test]
-#[ignore = "TODO: reconcile production tool/version/smoke contract with split runtimes"]
 fn policy__contracts__production_container_policy__production_tools_have_version_entry_and_smoke_contract(
 ) {
     let root = support::workspace_root();
-    let registry_tools = parse_registry_tools(&root.join("configs/ci/registry/tool_registry.toml"));
+    let mut registry_tools = Vec::new();
+    for rel in registry_files() {
+        registry_tools.extend(parse_registry_tools(&root.join(rel)));
+    }
     let versions_raw = std::fs::read_to_string(root.join("containers/versions/versions.toml"))
         .expect("read containers/versions/versions.toml");
     let versions: toml::Value =
@@ -75,13 +87,13 @@ fn policy__contracts__production_container_policy__production_tools_have_version
         }
     }
 
-    if production_ids.is_empty() {
-        eprintln!("production container policy: no production tools discovered (non-fatal)");
-    }
-    if !offenders.is_empty() {
-        eprintln!(
-            "production container policy drift (non-fatal during migration):\n{}",
-            offenders.join("\n")
-        );
-    }
+    bijux_dna_policies::policy_assert!(
+        !production_ids.is_empty(),
+        "production container policy discovered no production tools across governed registries"
+    );
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "production container policy drift:\n{}",
+        offenders.join("\n")
+    );
 }
