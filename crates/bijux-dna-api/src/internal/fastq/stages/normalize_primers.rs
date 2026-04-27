@@ -174,6 +174,7 @@ struct NormalizePrimersObservation {
     payload: serde_json::Value,
     output_stats_r1: SeqkitMetrics,
     output_stats_r2: Option<SeqkitMetrics>,
+    used_fallback: bool,
 }
 
 struct NormalizePrimersMeasurements {
@@ -444,13 +445,21 @@ fn observe_normalize_primers_tool<S: ::std::hash::BuildHasher>(
     let payload =
         materialize_amplicon_stage_outputs_for_bench(&tool_plan.out_dir, &tool_execution.step)?;
     enforce_amplicon_qc_thresholds_for_bench(&tool_plan.out_dir, STAGE_ID, &payload)?;
+    let used_fallback = normalize_primers_used_fallback(&payload)?;
     let output_stats_r1 = observe_fastq_stats(catalog, platform, setup.runner, &outputs.output_r1)?;
     let output_stats_r2 = if let Some(output_r2) = outputs.output_r2.as_deref() {
         Some(observe_fastq_stats(catalog, platform, setup.runner, output_r2)?)
     } else {
         None
     };
-    Ok(NormalizePrimersObservation { payload, output_stats_r1, output_stats_r2 })
+    Ok(NormalizePrimersObservation { payload, output_stats_r1, output_stats_r2, used_fallback })
+}
+
+fn normalize_primers_used_fallback(payload: &serde_json::Value) -> Result<bool> {
+    payload
+        .get("used_fallback")
+        .and_then(serde_json::Value::as_bool)
+        .ok_or_else(|| anyhow!("normalize primers payload missing boolean used_fallback"))
 }
 
 fn project_normalize_primers_measurements(
@@ -548,12 +557,7 @@ fn build_normalize_primers_report(
         },
         runtime_s: Some(inputs.tool_execution.result.runtime_s),
         memory_mb: Some(inputs.tool_execution.result.memory_mb),
-        used_fallback: inputs
-            .observation
-            .payload
-            .get("used_fallback")
-            .and_then(serde_json::Value::as_bool)
-            .unwrap_or(false),
+        used_fallback: inputs.observation.used_fallback,
         backend_metrics: Some(inputs.observation.payload.clone()),
     }
 }
