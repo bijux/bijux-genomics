@@ -577,6 +577,38 @@ fn write_remove_chimeras_artifacts(
         &out_dir.join("metrics.json"),
         &serde_json::to_value(metric_set)?,
     )?;
+    validate_remove_chimeras_written_artifacts(out_dir, outputs)
+}
+
+fn validate_remove_chimeras_written_artifacts(
+    out_dir: &std::path::Path,
+    outputs: &RemoveChimerasOutputs,
+) -> Result<()> {
+    let metrics_json = out_dir.join("metrics.json");
+    for path in [
+        outputs.filtered_reads.as_path(),
+        outputs.metrics_json.as_path(),
+        outputs.report_json.as_path(),
+        metrics_json.as_path(),
+    ] {
+        validate_remove_chimeras_nonempty_artifact(path)?;
+    }
+    for path in [outputs.chimeras_fasta.as_deref(), outputs.uchime_report_tsv.as_deref()]
+        .into_iter()
+        .flatten()
+        .filter(|path| path.exists())
+    {
+        validate_remove_chimeras_nonempty_artifact(path)?;
+    }
+    Ok(())
+}
+
+fn validate_remove_chimeras_nonempty_artifact(path: &std::path::Path) -> Result<()> {
+    let metadata = std::fs::metadata(path)
+        .with_context(|| format!("read remove_chimeras artifact {}", path.display()))?;
+    if metadata.len() == 0 {
+        return Err(anyhow!("remove_chimeras artifact is empty: {}", path.display()));
+    }
     Ok(())
 }
 
