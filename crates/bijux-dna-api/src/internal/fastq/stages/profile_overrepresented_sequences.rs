@@ -602,24 +602,7 @@ fn read_overrepresented_payload(path: &Path) -> Result<OverrepresentedPayload> {
         &std::fs::read(path).with_context(|| format!("read {}", path.display()))?,
     )?;
     validate_overrepresented_payload_schema(path, &value)?;
-    let rows = value
-        .get("rows")
-        .and_then(serde_json::Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(|entry| {
-            Some(OverrepresentedSequenceRowV1 {
-                sequence: entry.get("sequence").and_then(serde_json::Value::as_str)?.to_string(),
-                count: entry.get("count").and_then(serde_json::Value::as_u64)?,
-                fraction: entry.get("fraction").and_then(serde_json::Value::as_f64).unwrap_or(0.0),
-                flag: entry
-                    .get("flag")
-                    .and_then(serde_json::Value::as_str)
-                    .unwrap_or("background")
-                    .to_string(),
-            })
-        })
-        .collect::<Vec<_>>();
+    let rows = parse_overrepresented_rows(path, &value)?;
     let metrics = FastqOverrepresentedMetrics {
         sequence_count: value
             .get("sequence_count")
@@ -642,6 +625,43 @@ fn read_overrepresented_payload(path: &Path) -> Result<OverrepresentedPayload> {
     };
     metrics.validate()?;
     Ok(OverrepresentedPayload { metrics, rows })
+}
+
+fn parse_overrepresented_rows(
+    path: &Path,
+    value: &serde_json::Value,
+) -> Result<Vec<OverrepresentedSequenceRowV1>> {
+    let rows = value
+        .get("rows")
+        .and_then(serde_json::Value::as_array)
+        .ok_or_else(|| anyhow!("overrepresented payload missing rows: {}", path.display()))?;
+    rows.iter()
+        .enumerate()
+        .map(|(index, entry)| {
+            let sequence = entry
+                .get("sequence")
+                .and_then(serde_json::Value::as_str)
+                .ok_or_else(|| anyhow!("overrepresented row {index} missing sequence"))?;
+            let count = entry
+                .get("count")
+                .and_then(serde_json::Value::as_u64)
+                .ok_or_else(|| anyhow!("overrepresented row {index} missing count"))?;
+            let fraction = entry
+                .get("fraction")
+                .and_then(serde_json::Value::as_f64)
+                .ok_or_else(|| anyhow!("overrepresented row {index} missing fraction"))?;
+            let flag = entry
+                .get("flag")
+                .and_then(serde_json::Value::as_str)
+                .ok_or_else(|| anyhow!("overrepresented row {index} missing flag"))?;
+            Ok(OverrepresentedSequenceRowV1 {
+                sequence: sequence.to_string(),
+                count,
+                fraction,
+                flag: flag.to_string(),
+            })
+        })
+        .collect()
 }
 
 fn validate_overrepresented_payload_schema(path: &Path, value: &serde_json::Value) -> Result<()> {
