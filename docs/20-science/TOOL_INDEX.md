@@ -77,7 +77,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `glimpse` | `imputation` | `vcf.impute, vcf.imputation` | `registry_lock` | `0.0.0-planned` | planned | `planned` |
 | `ibdhap` | `relatedness` | `vcf.ibd` | `registry_lock` | `0.1.0-planned` | planned | `planned` |
 | `ibdne` | `demography` | `vcf.ibd, vcf.demography` | `registry_lock` | `1.0-planned` | planned | `planned` |
-| `ibdseq` | `relatedness` | `vcf.ibd` | `planned` | `0.0.0-planned` | planned | `planned` |
+| `ibdseq` | `relatedness` | `vcf.ibd` | `registry_lock` | `3.0-planned` | planned | `planned` |
 | `impute5` | `imputation` | `vcf.impute, vcf.imputation` | `registry_lock` | `0.0.0-planned` | planned | `planned` |
 | `kaiju` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/kaiju@sha256:4f30fd9becc62e873bc223231c717bba5b42db8a4f993979bf26c7fc00979f9b` | `1.10.0` | paper:https://www.nature.com/articles/ncomms11257 | `production` |
 | `king` | `transform` | `bam.kinship` | `bijuxdna/king:2.3.0` | `2.3.0` | upstream:https://www.kingrelatedness.com/ | `production` |
@@ -103,7 +103,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `seqkit` | `filter` | `fastq.trim_reads, fastq.filter_reads, fastq.normalize_abundance, fastq.trim_terminal_damage, fastq.profile_overrepresented_sequences` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.8.2` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/ | `production` |
 | `seqkit_stats` | `transform` | `fastq.profile_reads, fastq.profile_read_lengths` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.7.0` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/ | `production` |
 | `seqtk` | `validator` | `fastq.validate_reads` | `bijuxdna/seqtk@sha256:16e615286a66f1654278a862ad47c3d62bdfabbbf17cb2e12a568256d1b05024` | `1.5-r133` | software:https://github.com/lh3/seqtk | `production` |
-| `shapeit` | `phasing` | `vcf.phasing` | `planned` | `0.0.0-planned` | planned | `planned` |
+| `shapeit` | `phasing` | `vcf.phasing` | `registry_lock` | `4.2.2-planned` | planned | `planned` |
 | `shapeit5` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
 | `skewer` | `trimmer` | `fastq.trim_reads` | `bijuxdna/skewer:978e8e46cba4` | `978e8e46cba4` | paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-182 | `production` |
 | `sortmerna` | `transform` | `fastq.deplete_rrna` | `bijuxdna/sortmerna@sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c` | `4.3.7` | paper:https://academic.oup.com/bioinformatics/article/28/24/3211/246053 | `production` |
