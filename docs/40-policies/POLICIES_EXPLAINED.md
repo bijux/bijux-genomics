@@ -10,7 +10,9 @@ Makes architectural rules understandable and enforceable.
 - Replacing policy tests.
 
 ## Contracts
-- Effect boundary, no helpers, docs spine, tree contracts.
+- The governed catalog lives in [POLICY_INDEX.md](POLICY_INDEX.md).
+- Coverage relationships live in [POLICY_MATRIX.md](POLICY_MATRIX.md).
+- Fast remediation summaries live in [FAILURE_PLAYBOOKS.md](FAILURE_PLAYBOOKS.md).
 
 ## Examples
 - No thin modules prevents single‑file directories.
