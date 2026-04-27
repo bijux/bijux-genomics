@@ -381,6 +381,22 @@ fn policy__contracts__bam_science_docs_policy__methodological_intent_links_gover
     );
 }
 
+#[test]
+fn policy__contracts__bam_science_docs_policy__metric_semantics_links_governed_bam_metric_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../../domain/bam/metrics.yaml".to_string(),
+        "METHODOLOGICAL_INTENT.md".to_string(),
+        "OPERATIONAL_CONTRACT.md".to_string(),
+        "STAGE_CATALOG.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/bam/METRIC_SEMANTICS.md");
+    assert_eq!(
+        documented, expected,
+        "docs/20-science/bam/METRIC_SEMANTICS.md must link the governed BAM metric surfaces exactly"
+    );
+}
+
 fn assert_bam_tools_roster_matches(stage_ids: &[&str], label: &str) {
     let expected = bam_stage_specs();
     let roster = bam_tools_roster_rows();

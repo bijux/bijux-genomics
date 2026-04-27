@@ -8,22 +8,26 @@ Downstream decisions and reports assume shared metric semantics; ambiguity leads
 
 ## Non-goals
 - Replacing the metric schema definitions.
-- Explaining every algorithm behind each metric.
+- Inventing scientific BAM metrics that are not yet part of the governed BAM catalog.
 
 ## Contracts
-- Metrics must include stable units and interpretation notes.
-- Failure modes must be documented for each metric used in decisions.
+- The governed BAM metric catalog lives in [../../../domain/bam/metrics.yaml](../../../domain/bam/metrics.yaml).
+- Stage-level metric exposure lives in [STAGE_CATALOG.md](STAGE_CATALOG.md).
+- The scientific interpretation boundary lives in [METHODOLOGICAL_INTENT.md](METHODOLOGICAL_INTENT.md)
+  and [OPERATIONAL_CONTRACT.md](OPERATIONAL_CONTRACT.md).
 
 ## Examples
-### damage_profile
-- units: proportion
-- failure modes: insufficient reads
-- can be gamed by filtering damaged reads
+### runtime_s
+- units: seconds
+- meaning: wall-clock runtime for the governed stage execution
+- limitation: operational telemetry only; not a biological signal
 
-### contamination_rate
-- units: proportion
-- failure modes: low coverage
-- can be gamed by selective alignment
+### memory_mb
+- units: megabytes
+- meaning: peak memory usage for the governed stage execution
+- limitation: hardware- and implementation-sensitive operational telemetry
 
 ## Failure modes
-- Ambiguous units or scaling cause incompatible comparisons.
+- Treating runtime telemetry as biological evidence creates fake scientific comparability.
+- Adding stage-specific scientific metrics here before they exist in the governed BAM metric catalog
+  causes the doc surface to outrun the manifests.
