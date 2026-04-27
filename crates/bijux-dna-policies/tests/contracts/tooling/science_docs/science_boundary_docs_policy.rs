@@ -528,3 +528,18 @@ fn policy__contracts__science_boundary_docs_policy__container_security_boundary_
         "containers/docs/SECURITY_BOUNDARY.md must link the governed security-boundary surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_multiarch_policy_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "../docker/multiarch-policy.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/MULTIARCH_POLICY.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/MULTIARCH_POLICY.md must link the governed multiarch authorities exactly"
+    );
+}
