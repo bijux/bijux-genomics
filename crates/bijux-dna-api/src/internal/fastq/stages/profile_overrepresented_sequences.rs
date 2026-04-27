@@ -462,12 +462,7 @@ fn materialize_overrepresented_outputs(
 ) -> Result<()> {
     let mut counts = BTreeMap::<String, u64>::new();
     for path in std::iter::once(input_fastq).chain(input_fastq_r2.into_iter()) {
-        let lines = open_fastq_lines(path)?;
-        for (idx, line) in lines.into_iter().enumerate() {
-            if idx % 4 == 1 {
-                *counts.entry(line.trim().to_string()).or_insert(0) += 1;
-            }
-        }
+        accumulate_overrepresented_counts(path, &mut counts)?;
     }
     let total: u64 = counts.values().sum();
     let mut ranked = counts.into_iter().collect::<Vec<_>>();
@@ -528,6 +523,19 @@ fn materialize_overrepresented_outputs(
             "rows": rows,
         }),
     )?;
+    Ok(())
+}
+
+fn accumulate_overrepresented_counts(
+    path: &Path,
+    counts: &mut BTreeMap<String, u64>,
+) -> Result<()> {
+    let lines = open_fastq_lines(path)?;
+    for (idx, line) in lines.into_iter().enumerate() {
+        if idx % 4 == 1 {
+            *counts.entry(line.trim().to_string()).or_insert(0) += 1;
+        }
+    }
     Ok(())
 }
 
