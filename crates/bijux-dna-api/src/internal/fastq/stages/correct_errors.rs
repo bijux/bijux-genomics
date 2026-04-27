@@ -18,6 +18,7 @@ use bijux_dna_analyze::{
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
 use bijux_dna_planner_fastq::select_correct_tools;
@@ -78,56 +79,22 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqCorrectMetrics>>::new();
     for tool in &setup.tools {
-        let out_dir = setup.bench_inputs.tools_root.join(tool);
-        bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec = build_tool_execution_spec(
-            STAGE_CORRECT_ERRORS.as_str(),
-            tool,
-            &setup.registry,
-            catalog,
-            platform,
-        )?;
-        let tool_spec = apply_thread_override(&tool_spec, args.threads);
-        let tool_spec = apply_memory_override(&tool_spec, args.max_memory_gb);
-        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let projected_options = project_correct_options_for_tool(
-            tool,
-            &CorrectPlanOptions {
-                threads: args.threads,
-                quality_encoding: parse_quality_encoding(args.quality_encoding.as_deref())?,
-                kmer_size: args.kmer_size,
-                musket_kmer_budget: args.musket_kmer_budget,
-                genome_size: args.genome_size,
-                max_memory_gb: args.max_memory_gb,
-                trusted_kmer_artifact: args.trusted_kmer_artifact.clone(),
-                conservative_mode: args.conservative_mode.unwrap_or(false),
-            },
-        );
-        let plan = plan_correct_with_options(
-            &tool_spec,
-            &setup.bench_inputs.r1,
-            setup.bench_inputs.r2.as_deref(),
-            &out_dir,
-            &projected_options,
-        )?;
-        let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
-        let params_hash = stable_params_hash(&bench_params);
-        let image_digest = benchmark_image_identity(&tool_spec);
+        let tool_plan = prepare_correct_tool_plan(catalog, platform, args, &setup, jobs, tool)?;
         if let Ok(Some(record)) = fetch_fastq_correct_v1(
             &conn,
             tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &setup.bench_inputs.runner.to_string(),
             &platform.name,
             &setup.bench_inputs.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             setup.bench_inputs.runner,
             jobs,
         )?
@@ -138,9 +105,9 @@ pub fn bench_fastq_correct<S: ::std::hash::BuildHasher>(
             platform,
             &setup.bench_inputs,
             tool,
-            &tool_spec,
-            &bench_params,
-            &plan,
+            &tool_plan.tool_spec,
+            &tool_plan.bench_params,
+            &tool_plan.plan,
             &execution,
         )?;
         append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
@@ -203,6 +170,14 @@ struct CorrectBenchmarkStore {
     jsonl_path: PathBuf,
 }
 
+struct CorrectToolPlan {
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    bench_params: serde_json::Value,
+    params_hash: String,
+    image_digest: String,
+}
+
 impl CorrectBenchmarkStore {
     fn from_inputs(inputs: &CorrectBenchInputs) -> Self {
         Self {
@@ -255,6 +230,52 @@ fn ensure_correct_benchmark_qa<S: ::std::hash::BuildHasher>(
 ) -> Result<()> {
     ensure_image_qa_passed(STAGE_CORRECT_ERRORS.as_str(), tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_CORRECT_ERRORS.as_str(), tools, platform, catalog)
+}
+
+fn prepare_correct_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqCorrectArgs,
+    setup: &CorrectBenchmarkSetup,
+    jobs: usize,
+    tool: &str,
+) -> Result<CorrectToolPlan> {
+    let out_dir = setup.bench_inputs.tools_root.join(tool);
+    bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
+    let tool_spec = build_tool_execution_spec(
+        STAGE_CORRECT_ERRORS.as_str(),
+        tool,
+        &setup.registry,
+        catalog,
+        platform,
+    )?;
+    let tool_spec = apply_thread_override(&tool_spec, args.threads);
+    let tool_spec = apply_memory_override(&tool_spec, args.max_memory_gb);
+    let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+    let projected_options = project_correct_options_for_tool(
+        tool,
+        &CorrectPlanOptions {
+            threads: args.threads,
+            quality_encoding: parse_quality_encoding(args.quality_encoding.as_deref())?,
+            kmer_size: args.kmer_size,
+            musket_kmer_budget: args.musket_kmer_budget,
+            genome_size: args.genome_size,
+            max_memory_gb: args.max_memory_gb,
+            trusted_kmer_artifact: args.trusted_kmer_artifact.clone(),
+            conservative_mode: args.conservative_mode.unwrap_or(false),
+        },
+    );
+    let plan = plan_correct_with_options(
+        &tool_spec,
+        &setup.bench_inputs.r1,
+        setup.bench_inputs.r2.as_deref(),
+        &out_dir,
+        &projected_options,
+    )?;
+    let bench_params = benchmark_query_context()?.embed_in_parameters(&plan.params);
+    let params_hash = stable_params_hash(&bench_params);
+    let image_digest = benchmark_image_identity(&tool_spec);
+    Ok(CorrectToolPlan { tool_spec, plan, bench_params, params_hash, image_digest })
 }
 
 fn prepare_correct_bench<S: ::std::hash::BuildHasher>(
