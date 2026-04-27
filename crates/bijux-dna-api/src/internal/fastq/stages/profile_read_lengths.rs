@@ -60,9 +60,8 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
 
     ensure_read_lengths_benchmark_qa(catalog, platform, &setup.tools)?;
 
-    let sqlite_path = setup.bench_dir.join("bench.sqlite");
-    let conn = bijux_dna_analyze::open_sqlite(&sqlite_path)?;
-    let bench_path = setup.bench_dir.join("bench.jsonl");
+    let store = ReadLengthsBenchmarkStore::from_setup(&setup);
+    let conn = bijux_dna_analyze::open_sqlite(&store.sqlite_path)?;
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::new();
@@ -129,7 +128,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             metrics: metric_set,
         };
         record.validate()?;
-        append_jsonl(&bench_path, &record)?;
+        append_jsonl(&store.jsonl_path, &record)?;
         insert_fastq_read_lengths_v1(&conn, &record)?;
         records.push(record);
     }
@@ -144,6 +143,20 @@ struct ReadLengthsBenchmarkSetup {
     bench_dir: PathBuf,
     tools_root: PathBuf,
     input_hash: String,
+}
+
+struct ReadLengthsBenchmarkStore {
+    sqlite_path: PathBuf,
+    jsonl_path: PathBuf,
+}
+
+impl ReadLengthsBenchmarkStore {
+    fn from_setup(setup: &ReadLengthsBenchmarkSetup) -> Self {
+        Self {
+            sqlite_path: setup.bench_dir.join("bench.sqlite"),
+            jsonl_path: setup.bench_dir.join("bench.jsonl"),
+        }
+    }
 }
 
 struct ReadLengthsToolPlan {
