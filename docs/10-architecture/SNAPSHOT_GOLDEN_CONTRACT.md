@@ -23,6 +23,10 @@ Define when committed snapshots and golden files are authoritative evidence.
 
 ## Validation command
 - `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-policies --test contracts snapshot_hygiene --no-default-features`
+- The governed snapshot-hygiene policy anchor lives in
+  [../../crates/bijux-dna-policies/tests/contracts/snapshots/snapshot_hygiene.rs](../../crates/bijux-dna-policies/tests/contracts/snapshots/snapshot_hygiene.rs).
+- Failure review and bless workflow handling live in
+  [../30-operations/TEST_FAILURE_TRIAGE.md](../30-operations/TEST_FAILURE_TRIAGE.md).
 
 ## Failure modes
 - Unstable snapshots hide real contract regressions.

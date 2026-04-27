@@ -333,6 +333,21 @@ fn policy__contracts__root_docs_navigation_policy__generated_files_contract_link
 }
 
 #[test]
+fn policy__contracts__root_docs_navigation_policy__snapshot_golden_contract_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../crates/bijux-dna-policies/tests/contracts/snapshots/snapshot_hygiene.rs"
+            .to_string(),
+        "../30-operations/TEST_FAILURE_TRIAGE.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md must link the governed snapshot authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from([
         "../index.md".to_string(),
