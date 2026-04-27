@@ -42,6 +42,11 @@ pub(crate) struct NormalizedAbundanceTableMetrics {
     pub per_sample_sums: Vec<(String, f64)>,
 }
 
+struct NormalizeAbundanceOutputs {
+    normalized_table: std::path::PathBuf,
+    report_json: std::path::PathBuf,
+}
+
 impl NormalizedAbundanceTableMetrics {
     fn to_benchmark_metrics(
         &self,
@@ -187,15 +192,12 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
         let effective_params: AbundanceNormalizationEffectiveParams =
             serde_json::from_value(plan.effective_params.clone())
                 .context("decode abundance normalization effective params")?;
-        let normalized_table = output_path_for(&plan, "normalized_abundance_tsv")
-            .unwrap_or_else(|| out_dir.join("abundance_normalized.tsv"));
-        let report_json = output_path_for(&plan, "report_json")
-            .unwrap_or_else(|| out_dir.join("normalize_abundance_report.json"));
-        let used_fallback = !normalized_table.exists();
+        let outputs = resolve_normalize_abundance_outputs(&plan)?;
+        let used_fallback = !outputs.normalized_table.exists();
         let table_metrics = if used_fallback {
-            materialize_normalized_table(&args.table, &normalized_table, &effective_params)?
+            materialize_normalized_table(&args.table, &outputs.normalized_table, &effective_params)?
         } else {
-            read_normalized_table_metrics(&normalized_table, &effective_params)?
+            read_normalized_table_metrics(&outputs.normalized_table, &effective_params)?
         };
         let metrics = table_metrics.to_benchmark_metrics(&effective_params.method)?;
         let metric_set = metric_set(metrics);
@@ -203,7 +205,7 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
             STAGE_ID,
             tool,
             &args.table,
-            &normalized_table,
+            &outputs.normalized_table,
             &effective_params,
             &table_metrics,
             Some(&ExecutionMetrics {
@@ -219,7 +221,7 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
                 "execution_exit_code": execution.exit_code,
             })),
         );
-        bijux_dna_infra::atomic_write_json(&report_json, &report)?;
+        bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -248,6 +250,35 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
     }
 
     Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+}
+
+fn resolve_normalize_abundance_outputs(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> Result<NormalizeAbundanceOutputs> {
+    let outputs = NormalizeAbundanceOutputs {
+        normalized_table: required_output_path(plan, "normalized_abundance_tsv")?,
+        report_json: required_output_path(plan, "report_json")?,
+    };
+    validate_normalize_abundance_output_paths(&outputs)?;
+    Ok(outputs)
+}
+
+fn validate_normalize_abundance_output_paths(outputs: &NormalizeAbundanceOutputs) -> Result<()> {
+    if outputs.normalized_table == outputs.report_json {
+        return Err(anyhow!(
+            "normalize_abundance output path reused: {}",
+            outputs.normalized_table.display()
+        ));
+    }
+    Ok(())
+}
+
+fn required_output_path(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    artifact_name: &str,
+) -> Result<std::path::PathBuf> {
+    output_path_for(plan, artifact_name)
+        .ok_or_else(|| anyhow!("normalize_abundance plan missing {artifact_name} output"))
 }
 
 pub(crate) fn materialize_normalized_table(
