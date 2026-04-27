@@ -85,14 +85,11 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             records.push(record);
             continue;
         }
-        let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
-            setup.bench_inputs.runner,
-            jobs,
-        )?
-        .into_iter()
-        .next()
-        .ok_or_else(|| anyhow!("missing execution result for {tool}"))?;
+        let execution = execute_filter_tool(&tool_plan, setup.bench_inputs.runner, jobs, tool)?;
+        if let Some(failure) = filter_tool_failure(tool, execution.exit_code) {
+            failures.push(failure);
+            continue;
+        }
         let record = build_filter_record(
             catalog,
             platform,
@@ -108,15 +105,6 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_filter_v2(&conn, &record).context("insert bench sqlite")?;
-        if execution.exit_code != 0 {
-            let tool_name = tool.clone();
-            failures.push(RawFailure {
-                stage: STAGE_FILTER_READS.as_str().to_string(),
-                tool: tool.clone(),
-                reason: format!("tool {tool_name} failed with status {}", execution.exit_code),
-                category: ErrorCategory::ToolError,
-            });
-        }
         records.push(record);
     }
 
@@ -254,6 +242,31 @@ fn prepare_filter_tool_plan<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
         .clone();
     Ok(FilterToolPlan { tool_spec, plan, params_hash, image_digest })
+}
+
+fn execute_filter_tool(
+    tool_plan: &FilterToolPlan,
+    runner: RuntimeKind,
+    jobs: usize,
+    tool: &str,
+) -> Result<StageResultV1> {
+    execute_plans_with_jobs(
+        vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
+        runner,
+        jobs,
+    )?
+    .into_iter()
+    .next()
+    .ok_or_else(|| anyhow!("missing execution result for {tool}"))
+}
+
+fn filter_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
+    (exit_code != 0).then(|| RawFailure {
+        stage: STAGE_FILTER_READS.as_str().to_string(),
+        tool: tool.to_string(),
+        reason: format!("tool {tool} failed with status {exit_code}"),
+        category: ErrorCategory::ToolError,
+    })
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
