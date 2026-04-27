@@ -134,9 +134,12 @@ children = [
   "docs/20-science/vcf/IMPUTATION_METHODS.md",
   "docs/20-science/vcf/IMPUTATION_SCOPE.md",
   "docs/20-science/vcf/POPULATION_STRUCTURE.md",
+  "docs/20-science/vcf/REFERENCES.md",
   "docs/20-science/vcf/REFERENCE_GOVERNANCE.md",
   "docs/20-science/vcf/ROADMAP.md",
   "docs/20-science/vcf/ROH.md",
+  "docs/20-science/vcf/STAGE_CATALOG.md",
+  "docs/20-science/vcf/TOOLS_ROSTER.md",
 ]
 
 [[edge]]
