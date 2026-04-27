@@ -22,10 +22,22 @@ fn indexed_contract_rows(content: &str) -> Vec<(&str, &str)> {
             if cells.len() != 2 || cells[0] == "Contract category" {
                 return None;
             }
-            let authority = cells[1].trim_matches('`');
+            let authority = authority_path(cells[1]);
             Some((cells[0], authority))
         })
         .collect()
+}
+
+fn authority_path(cell: &str) -> &str {
+    let trimmed = cell.trim().trim_matches('`');
+    if let Some(rest) = trimmed.strip_prefix('[') {
+        if let Some((_, suffix)) = rest.split_once("](") {
+            if let Some((target, "")) = suffix.rsplit_once(')') {
+                return target;
+            }
+        }
+    }
+    trimmed
 }
 
 #[test]
@@ -73,11 +85,14 @@ fn policy__contracts__contract_index_policy__index_covers_architecture_boundarie
 fn policy__contracts__contract_index_policy__index_authorities_exist() {
     let root = repo_root();
     let path = root.join("docs/10-architecture/CONTRACT_INDEX.md");
+    let doc_root = path
+        .parent()
+        .unwrap_or_else(|| bijux_dna_policies::policy_panic!("resolve {}", path.display()));
     let content = std::fs::read_to_string(&path)
         .unwrap_or_else(|err| bijux_dna_policies::policy_panic!("read {}: {err}", path.display()));
     let missing = indexed_contract_rows(&content)
         .into_iter()
-        .filter(|(_, authority)| !root.join(authority).exists())
+        .filter(|(_, authority)| !doc_root.join(authority).exists())
         .map(|(category, authority)| format!("{category}: {authority}"))
         .collect::<Vec<_>>();
 
