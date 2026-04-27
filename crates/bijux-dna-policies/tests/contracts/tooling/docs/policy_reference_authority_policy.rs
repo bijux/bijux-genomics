@@ -242,3 +242,18 @@ fn policy__contracts__policy_reference_authority_policy__policy_matrix_links_gov
         "docs/40-policies/POLICY_MATRIX.md must link the governed policy-matrix authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__failure_playbooks_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "POLICY_INDEX.md".to_string(),
+        "POLICY_MATRIX.md".to_string(),
+        "../../crates/bijux-dna-policies/docs/ENFORCEMENT.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/40-policies/FAILURE_PLAYBOOKS.md");
+    assert_eq!(
+        expected, documented,
+        "docs/40-policies/FAILURE_PLAYBOOKS.md must link the governed failure-playbook authorities exactly"
+    );
+}

@@ -8,10 +8,13 @@ Short playbooks reduce triage time and keep enforcement consistent.
 
 ## Non-goals
 - Exhaustive troubleshooting guides.
-- Replacement for policy diagnostics.
+- Replacing the enforcement and diagnostics surfaces.
 
 ## Contracts
-- Every entry maps to a specific policy test.
+- Policy IDs and owners are defined in [POLICY_INDEX.md](POLICY_INDEX.md).
+- Coverage expectations are defined in [POLICY_MATRIX.md](POLICY_MATRIX.md).
+- Diagnostics and test locations are owned by
+  [crates/bijux-dna-policies/docs/ENFORCEMENT.md](../../crates/bijux-dna-policies/docs/ENFORCEMENT.md).
 
 ## Examples
 ## Top 10 Failures
@@ -26,7 +29,8 @@ Short playbooks reduce triage time and keep enforcement consistent.
 9. **no_thin_modules_policy**: mod.rs only dir → collapse/expand.
 10. **ssot_catalog_authority**: duplicate IDs → move to owner.
 
-Each failure links to the matching policy test file.
+Each failure summary stays aligned with those authorities instead of re-describing the
+full enforcement implementation here.
 
 ## Failure modes
 - Missing entries lead to inconsistent fixes and reviewer confusion.
