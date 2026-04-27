@@ -10,7 +10,8 @@ Applies to docs build guidance maintained under operations docs.
 - Duplicating build instructions in multiple files.
 
 ## Contracts
-- Authoritative source: `docs/30-operations/DOCS_BUILD_REPRODUCIBLE.md`.
+- Authoritative source:
+  [docs/30-operations/DOCS_BUILD_REPRODUCIBLE.md](DOCS_BUILD_REPRODUCIBLE.md).
 - This file remains a short redirect to avoid conflicting instructions.
 
 See: [Docs Build Reproducible](DOCS_BUILD_REPRODUCIBLE.md)
