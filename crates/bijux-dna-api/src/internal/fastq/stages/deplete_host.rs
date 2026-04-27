@@ -131,6 +131,7 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
             tool: &tool_plan.tool,
             execution: &execution,
         })?;
+        validate_host_report_identity(&tool_plan.tool, &report)?;
         write_deplete_host_report(&report)?;
         let metrics = deplete_host_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -443,6 +444,32 @@ fn deplete_host_metrics_from_report(report: &DepleteHostReportV1) -> FastqDeplet
         })
         .into(),
     }
+}
+
+fn validate_host_report_identity(tool: &str, report: &DepleteHostReportV1) -> Result<()> {
+    if report.schema_version != DEPLETE_HOST_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "host depletion report schema mismatch: expected {}, observed {}",
+            DEPLETE_HOST_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_DEPLETE_HOST.as_str() || report.stage_id != STAGE_DEPLETE_HOST.as_str()
+    {
+        return Err(anyhow!(
+            "host depletion report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool {
+        return Err(anyhow!(
+            "host depletion report tool mismatch: expected {}, observed {}",
+            tool,
+            report.tool_id
+        ));
+    }
+    Ok(())
 }
 
 fn write_deplete_host_report(report: &DepleteHostReportV1) -> Result<()> {
