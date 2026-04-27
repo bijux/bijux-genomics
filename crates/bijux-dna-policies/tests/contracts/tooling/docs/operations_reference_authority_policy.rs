@@ -175,6 +175,22 @@ fn policy__contracts__operations_reference_authority_policy__test_failure_triage
 }
 
 #[test]
+fn policy__contracts__operations_reference_authority_policy__explainability_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../20-science/SCIENTIFIC_DECISIONS.md".to_string(),
+        "../20-science/SCIENTIFIC_DEFAULTS.md".to_string(),
+        "REPORT_CONTRACT.md".to_string(),
+        "../../crates/bijux-dna-dev/docs/COMMANDS.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/EXPLAINABILITY.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/EXPLAINABILITY.md must link the governed explainability authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__operations_reference_authority_policy__artifact_explorer_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from([
