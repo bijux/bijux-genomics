@@ -6,8 +6,8 @@ Purpose: generated per-tool container contract summary.
 
 - Version: `4.2.2`
 - License: `MIT`
-- Runtime support: `none`
+- Runtime support: `apptainer`
 - Smoke status: `unknown`
 
 ## Known Limitations
-- No runtime implementation currently present.
+- No declared limitations.
