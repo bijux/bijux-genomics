@@ -7,14 +7,15 @@ packets.
 
 - reserve durable archive paths under `science/docs/upstream/fastq/tools/<tool-id>/`
 - track the primary upstream and supplemental evidence locators for review
-- complement `science/docs/TODO_DOWNLOAD.md` with tool-specific acquisition notes
+- complement [../README.md](../README.md) and the operator backlog in
+  `science/docs/TODO_DOWNLOAD.md` with tool-specific acquisition notes
 
 ## Canonical Files
 
-- `EVIDENCE_MAP.tsv`
+- [EVIDENCE_MAP.tsv](EVIDENCE_MAP.tsv)
   tracked map of primary upstreams, supporting locators, and expected archive
   packet shape for focused FASTQ tools
-- `../papers/TOOL_PAPER_MAP.tsv`
+- [../../papers/TOOL_PAPER_MAP.tsv](../../papers/TOOL_PAPER_MAP.tsv)
   tracked map from FASTQ tools to durable paper archive roots
 
 ## Local Payloads
@@ -22,9 +23,11 @@ packets.
 Keep payloads untracked and place them under the archive path declared in the
 science backlog, for example:
 
-- `science/docs/upstream/fastq/tools/<tool-id>/repo/`
-- `science/docs/upstream/fastq/tools/<tool-id>/download/`
+- [<tool-id>/repo/](<tool-id>/repo/)
+- [<tool-id>/download/](<tool-id>/download/)
 
 When a tool needs both a source repository and a paper or release page, keep
-the tool packet and the linked paper root aligned through `EVIDENCE_MAP.tsv` and
-`../papers/TOOL_PAPER_MAP.tsv` rather than inventing a new root-level location.
+the tool packet and the linked paper root aligned through
+[EVIDENCE_MAP.tsv](EVIDENCE_MAP.tsv) and
+[../../papers/TOOL_PAPER_MAP.tsv](../../papers/TOOL_PAPER_MAP.tsv) rather than
+inventing a new root-level location.
