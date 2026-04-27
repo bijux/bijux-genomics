@@ -359,6 +359,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     validate_merge_report_execution(&report, execution.runtime_s, execution.memory_mb)?;
     validate_merge_report_paths(&report, merged_reads)?;
     validate_merge_report_observed_counts(&report, r1_stats, r2_stats, &merged_stats)?;
+    validate_merge_report_rate(&report)?;
 
     let metrics = merge_metrics_from_report(&report, r1_stats, r2_stats, &merged_stats);
     let metric_set = metric_set(metrics.clone());
@@ -522,6 +523,19 @@ fn validate_merge_report_observed_counts(
             "merge_pairs report merged read count mismatch: expected {}, observed {}",
             merged_stats.reads,
             report.reads_merged
+        ));
+    }
+    Ok(())
+}
+
+fn validate_merge_report_rate(report: &MergePairsReportV1) -> Result<()> {
+    let pairs_in = report.reads_r1.min(report.reads_r2);
+    let expected = if pairs_in == 0 { 0.0 } else { report.reads_merged as f64 / pairs_in as f64 };
+    if (report.merge_rate - expected).abs() > 0.000_001 {
+        return Err(anyhow!(
+            "merge_pairs report merge_rate arithmetic mismatch: expected {}, observed {}",
+            expected,
+            report.merge_rate
         ));
     }
     Ok(())
