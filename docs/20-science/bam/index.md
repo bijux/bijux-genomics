@@ -1,16 +1,19 @@
 # BAM Science Index
 
 ## Purpose
-Index BAM-domain science documents.
+Index the governed science docs for the BAM domain.
 
 ## Scope
 Documents under `docs/20-science/bam/`.
 
 ## Non-goals
-- Replacing domain code contracts.
+- Replacing the lower-level stage and tool manifests under `domain/bam/`.
+- Claiming that planned BAM stages are already scientifically closed for production use.
 
 ## Contracts
-- Every BAM science doc in this folder is linked here.
+- Every Markdown doc in this folder, except this index, must be linked here exactly once.
+- Narrative BAM science docs must stay consistent with the governed stage, tool, and
+  reference-bank surfaces.
 
 ## Entries
 - [Methodological Intent](METHODOLOGICAL_INTENT.md)
