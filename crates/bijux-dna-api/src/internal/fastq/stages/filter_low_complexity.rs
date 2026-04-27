@@ -349,16 +349,7 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
         output_reads_r2: inputs.output_reads_r2,
         execution: inputs.execution,
     });
-    let metrics = FastqLowComplexityMetrics {
-        reads_in: report.reads_in,
-        reads_out: report.reads_out,
-        bases_in: report.bases_in,
-        bases_out: report.bases_out,
-        reads_removed_low_complexity: report.reads_removed_low_complexity,
-        mean_q_before: report.mean_q_before,
-        mean_q_after: report.mean_q_after,
-        delta_metrics: derive_trim_delta(&before_stats, &after_stats),
-    };
+    let metrics = low_complexity_metrics_from_report(&report, &before_stats, &after_stats);
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
@@ -471,6 +462,23 @@ fn build_low_complexity_report(
             raw_backend_report.as_deref(),
             raw_backend_report_format.as_deref(),
         ),
+    }
+}
+
+fn low_complexity_metrics_from_report(
+    report: &FilterLowComplexityReportV1,
+    before_stats: &SeqkitMetrics,
+    after_stats: &SeqkitMetrics,
+) -> FastqLowComplexityMetrics {
+    FastqLowComplexityMetrics {
+        reads_in: report.reads_in,
+        reads_out: report.reads_out,
+        bases_in: report.bases_in,
+        bases_out: report.bases_out,
+        reads_removed_low_complexity: report.reads_removed_low_complexity,
+        mean_q_before: report.mean_q_before,
+        mean_q_after: report.mean_q_after,
+        delta_metrics: derive_trim_delta(before_stats, after_stats),
     }
 }
 
