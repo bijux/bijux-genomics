@@ -8,7 +8,7 @@ use walkdir::WalkDir;
 fn policy__boundaries__no_policy_duplication__policies_live_only_in_bijux_dna_policies() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok()) {
+    for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }

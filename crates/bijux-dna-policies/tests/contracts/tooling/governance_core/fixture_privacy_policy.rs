@@ -1,22 +1,18 @@
 #![allow(non_snake_case)]
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use regex::Regex;
 use walkdir::WalkDir;
 
 fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("resolve repo root")
-        .to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 #[test]
 fn policy__contracts__fixture_privacy_policy__fixtures_do_not_embed_absolute_host_paths() {
     let root = repo_root();
     let fixtures_root = root.join("crates");
-    let absolute_path = Regex::new(r#"(/Users/|/home/|[A-Za-z]:\\)"#).expect("regex");
+    let absolute_path = Regex::new(r"(/Users/|/home/|[A-Za-z]:\\)").expect("regex");
     let mut offenders = Vec::new();
     for entry in WalkDir::new(&fixtures_root)
         .into_iter()

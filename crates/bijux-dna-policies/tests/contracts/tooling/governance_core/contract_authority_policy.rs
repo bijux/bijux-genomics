@@ -54,13 +54,11 @@ fn policy__contracts__contract_authority_policy__param_schema_ids_are_not_hardco
 {
     let root = support::workspace_root();
     let pattern = regex::Regex::new(
-        r#"bijux\.[a-z0-9_]+\.(call|filter|stats|fastq|bam)?\.?params\.[a-z0-9_.-]*v[0-9]+"#,
+        r"bijux\.[a-z0-9_]+\.(call|filter|stats|fastq|bam)?\.?params\.[a-z0-9_.-]*v[0-9]+",
     )
     .expect("compile regex");
     let mut offenders = Vec::new();
-    for entry in
-        walkdir::WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok())
-    {
+    for entry in walkdir::WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         let path = entry.path();
         if !entry.file_type().is_file() {
             continue;
@@ -232,12 +230,10 @@ fn policy__contracts__contract_authority_policy__registry_unknowns_images_and_re
             if upstream == "unknown" {
                 offenders.push(format!("{rel}: tool {id} has upstream=unknown"));
             }
-            if support::registry_status_is_production(status) {
-                if !image_ids.contains(id) {
-                    offenders.push(format!(
-                        "{rel}: production tool {id} missing image catalog entry in configs/ci/tools/images.toml"
-                    ));
-                }
+            if support::registry_status_is_production(status) && !image_ids.contains(id) {
+                offenders.push(format!(
+                    "{rel}: production tool {id} missing image catalog entry in configs/ci/tools/images.toml"
+                ));
             }
         }
     }
@@ -264,8 +260,7 @@ fn policy__contracts__contract_authority_policy__registry_unknowns_images_and_re
         .collect::<Vec<_>>();
     if !missing_required.is_empty() {
         offenders.push(format!(
-            "required_tools drift: missing from production registries: {:?}",
-            missing_required
+            "required_tools drift: missing from production registries: {missing_required:?}"
         ));
     }
 

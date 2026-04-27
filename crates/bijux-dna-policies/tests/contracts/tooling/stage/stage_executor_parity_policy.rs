@@ -141,7 +141,9 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
     }
     let tools_by_id = tool_rows
         .iter()
-        .filter_map(|row| row.get("id").and_then(toml::Value::as_str).map(|id| (id.to_string(), row)))
+        .filter_map(|row| {
+            row.get("id").and_then(toml::Value::as_str).map(|id| (id.to_string(), row))
+        })
         .fold(BTreeMap::<String, Vec<&toml::Value>>::new(), |mut acc, (id, row)| {
             acc.entry(id).or_default().push(row);
             acc
@@ -220,11 +222,9 @@ fn policy__contracts__stage_executor_parity_policy__registry_and_ssot_are_consis
                 .iter()
                 .copied()
                 .find(|row| {
-                    row.get("stage_ids")
-                        .and_then(toml::Value::as_array)
-                        .is_some_and(|stage_ids| {
-                            stage_ids.iter().any(|value| value.as_str() == Some(stage_id))
-                        })
+                    row.get("stage_ids").and_then(toml::Value::as_array).is_some_and(|stage_ids| {
+                        stage_ids.iter().any(|value| value.as_str() == Some(stage_id))
+                    })
                 })
                 .unwrap_or(tool_rows[0]);
             let runtimes = tool

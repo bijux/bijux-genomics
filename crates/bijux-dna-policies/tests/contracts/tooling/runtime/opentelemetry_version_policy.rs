@@ -39,7 +39,6 @@ fn policy__contracts__opentelemetry_version_policy__workspace_uses_single_otel_v
 
     assert!(
         otel_minor_series.len() <= 1,
-        "OpenTelemetry crates must stay on one major.minor series; found versions {:?}",
-        otel_versions
+        "OpenTelemetry crates must stay on one major.minor series; found versions {otel_versions:?}"
     );
 }

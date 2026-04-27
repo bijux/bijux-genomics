@@ -35,7 +35,8 @@ fn policy__contracts__stage_catalog_registry_parity_policy__supported_stage_tool
         let registry_raw = std::fs::read_to_string(root.join(registry_rel))
             .unwrap_or_else(|err| panic!("read {registry_rel}: {err}"));
 
-        let stages: toml::Value = stages_raw.parse().unwrap_or_else(|err| panic!("parse {stages_rel}: {err}"));
+        let stages: toml::Value =
+            stages_raw.parse().unwrap_or_else(|err| panic!("parse {stages_rel}: {err}"));
         let registry: toml::Value =
             registry_raw.parse().unwrap_or_else(|err| panic!("parse {registry_rel}: {err}"));
 
@@ -60,10 +61,7 @@ fn policy__contracts__stage_catalog_registry_parity_policy__supported_stage_tool
             let stage_tools = list(stage, "tools").into_iter().collect::<BTreeSet<_>>();
             let registry_tools = registry_stage_tools.get(stage_id).cloned().unwrap_or_default();
             if stage_tools != registry_tools {
-                offenders.push(format!(
-                    "{stage_id} tools drifted: {stages_rel}={:?} {registry_rel}={:?}",
-                    stage_tools, registry_tools
-                ));
+                offenders.push(format!("{stage_id} tools drifted: {stages_rel}={stage_tools:?} {registry_rel}={registry_tools:?}"));
             }
         }
     }

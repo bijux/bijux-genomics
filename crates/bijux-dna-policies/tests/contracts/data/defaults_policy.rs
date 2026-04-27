@@ -5,7 +5,7 @@ use bijux_dna_pipelines::registry::PipelineRegistry;
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn collect_rs_files(dir: &Path) -> Vec<PathBuf> {

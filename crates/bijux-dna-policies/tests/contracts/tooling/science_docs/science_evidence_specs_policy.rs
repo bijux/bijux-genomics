@@ -25,8 +25,8 @@ fn markdown_link_targets(path: &str) -> BTreeSet<String> {
 }
 
 #[test]
-fn policy__contracts__science_evidence_specs_policy__evidence_readme_links_governed_inputs_exactly(
-) {
+fn policy__contracts__science_evidence_specs_policy__evidence_readme_links_governed_inputs_exactly()
+{
     let expected = BTreeSet::from([
         "CONTRACT.md".to_string(),
         "../../docs/upstream/fastq/STAGE_CLAIMS.tsv".to_string(),

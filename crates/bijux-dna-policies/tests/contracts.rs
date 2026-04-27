@@ -52,12 +52,6 @@ mod mod_contracts_tooling_benchmark_suite_support_policy_rs;
 mod mod_contracts_tooling_binding_decision_record_policy_rs;
 #[path = "contracts/tooling/docs/boundary_docs_policy.rs"]
 mod mod_contracts_tooling_boundary_docs_policy_rs;
-#[path = "contracts/tooling/docs/operations_reference_authority_policy.rs"]
-mod mod_contracts_tooling_operations_reference_authority_policy_rs;
-#[path = "contracts/tooling/docs/policy_reference_authority_policy.rs"]
-mod mod_contracts_tooling_policy_reference_authority_policy_rs;
-#[path = "contracts/tooling/docs/root_docs_navigation_policy.rs"]
-mod mod_contracts_tooling_root_docs_navigation_policy_rs;
 #[path = "contracts/tooling/governance_config/ci_no_stage_tool_defs_policy.rs"]
 mod mod_contracts_tooling_ci_no_stage_tool_defs_policy_rs;
 #[path = "contracts/tooling/governance_config/ci_tools_policy.rs"]
@@ -128,6 +122,8 @@ mod mod_contracts_tooling_no_placeholders_code_policy_rs;
 mod mod_contracts_tooling_no_runtime_escape_hatch_policy_rs;
 #[path = "contracts/tooling/runtime/opentelemetry_version_policy.rs"]
 mod mod_contracts_tooling_opentelemetry_version_policy_rs;
+#[path = "contracts/tooling/docs/operations_reference_authority_policy.rs"]
+mod mod_contracts_tooling_operations_reference_authority_policy_rs;
 #[path = "contracts/tooling/governance_quality/planner_data_driven_catalog_policy.rs"]
 mod mod_contracts_tooling_planner_data_driven_catalog_policy_rs;
 #[path = "contracts/tooling/planner/fastq_route_policy.rs"]
@@ -136,6 +132,8 @@ mod mod_contracts_tooling_planner_fastq_route_policy_rs;
 mod mod_contracts_tooling_planner_tool_id_policy_rs;
 #[path = "contracts/tooling/governance/policies.rs"]
 mod mod_contracts_tooling_policies_rs;
+#[path = "contracts/tooling/docs/policy_reference_authority_policy.rs"]
+mod mod_contracts_tooling_policy_reference_authority_policy_rs;
 #[path = "contracts/tooling/runtime/production_container_policy.rs"]
 mod mod_contracts_tooling_production_container_policy_rs;
 #[path = "contracts/tooling/runtime/profiles_runtime_policy.rs"]
@@ -146,16 +144,22 @@ mod mod_contracts_tooling_purity_effects_responsibility_policy_rs;
 mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
 #[path = "contracts/tooling/governance_core/root_architecture_contract_policy.rs"]
 mod mod_contracts_tooling_root_architecture_contract_policy_rs;
+#[path = "contracts/tooling/docs/root_docs_navigation_policy.rs"]
+mod mod_contracts_tooling_root_docs_navigation_policy_rs;
 #[path = "contracts/tooling/root/root_layout_policy.rs"]
 mod mod_contracts_tooling_root_layout_policy_rs;
 #[path = "contracts/tooling/root/root_migration_guard_policy.rs"]
 mod mod_contracts_tooling_root_migration_guard_policy_rs;
 #[path = "contracts/tooling/root/root_pollution_policy.rs"]
 mod mod_contracts_tooling_root_pollution_policy_rs;
-#[path = "contracts/tooling/science_docs/fastq_closure_evidence_policy.rs"]
-mod mod_contracts_tooling_science_docs_fastq_closure_evidence_policy_rs;
 #[path = "contracts/tooling/science_docs/bam_science_docs_policy.rs"]
 mod mod_contracts_tooling_science_docs_bam_science_docs_policy_rs;
+#[path = "contracts/tooling/science_docs/fastq_closure_evidence_policy.rs"]
+mod mod_contracts_tooling_science_docs_fastq_closure_evidence_policy_rs;
+#[path = "contracts/tooling/science_docs/fastq_science_docs_policy.rs"]
+mod mod_contracts_tooling_science_docs_fastq_science_docs_policy_rs;
+#[path = "contracts/tooling/science_docs/root_science_docs_policy.rs"]
+mod mod_contracts_tooling_science_docs_root_science_docs_policy_rs;
 #[path = "contracts/tooling/science_docs/science_archive_docs_policy.rs"]
 mod mod_contracts_tooling_science_docs_science_archive_docs_policy_rs;
 #[path = "contracts/tooling/science_docs/science_authored_specs_policy.rs"]
@@ -164,12 +168,8 @@ mod mod_contracts_tooling_science_docs_science_authored_specs_policy_rs;
 mod mod_contracts_tooling_science_docs_science_boundary_docs_policy_rs;
 #[path = "contracts/tooling/science_docs/science_evidence_specs_policy.rs"]
 mod mod_contracts_tooling_science_docs_science_evidence_specs_policy_rs;
-#[path = "contracts/tooling/science_docs/fastq_science_docs_policy.rs"]
-mod mod_contracts_tooling_science_docs_fastq_science_docs_policy_rs;
 #[path = "contracts/tooling/science_docs/science_generated_docs_policy.rs"]
 mod mod_contracts_tooling_science_docs_science_generated_docs_policy_rs;
-#[path = "contracts/tooling/science_docs/root_science_docs_policy.rs"]
-mod mod_contracts_tooling_science_docs_root_science_docs_policy_rs;
 #[path = "contracts/tooling/science_docs/vcf_science_docs_policy.rs"]
 mod mod_contracts_tooling_science_docs_vcf_science_docs_policy_rs;
 #[path = "contracts/tooling/governance_config/scripts_layout_policy.rs"]

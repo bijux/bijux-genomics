@@ -23,7 +23,7 @@ fn policy__boundaries__fixtures_policy__fixture_lint() {
             continue;
         }
 
-        for entry in WalkDir::new(&fixtures_root).into_iter().filter_map(|entry| entry.ok()) {
+        for entry in WalkDir::new(&fixtures_root).into_iter().filter_map(Result::ok) {
             let path = entry.path();
             if entry.file_type().is_file() {
                 if path.parent() == Some(fixtures_root.as_path()) {
@@ -45,15 +45,14 @@ fn policy__boundaries__fixtures_policy__fixture_lint() {
 
         for entry in WalkDir::new(&fixtures_root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_dir())
         {
             let dir = entry.path();
             let has_subdir = dir
                 .read_dir()
                 .ok()
-                .map(|mut it| it.any(|e| e.ok().map(|e| e.path().is_dir()).unwrap_or(false)))
-                .unwrap_or(false);
+                .is_some_and(|mut it| it.any(|e| e.ok().is_some_and(|e| e.path().is_dir())));
             let has_case = dir.join("CASE.toml").exists() || dir.join("CASE.json").exists();
             if !has_subdir && !has_case {
                 offenders

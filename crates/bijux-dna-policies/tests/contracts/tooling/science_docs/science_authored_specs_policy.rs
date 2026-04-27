@@ -141,8 +141,8 @@ fn policy__contracts__science_authored_specs_policy__result_specs_docs_link_cont
 }
 
 #[test]
-fn policy__contracts__science_authored_specs_policy__data_specs_contract_links_boundaries_exactly(
-) {
+fn policy__contracts__science_authored_specs_policy__data_specs_contract_links_boundaries_exactly()
+{
     let expected = BTreeSet::from([
         "README.md".to_string(),
         "../evidence/README.md".to_string(),

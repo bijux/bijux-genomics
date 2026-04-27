@@ -17,8 +17,8 @@ fn find_links(line: &str) -> Vec<String> {
         if let Some(close) = rest[open..].find("](") {
             let start = open + close + 2;
             if let Some(end) = rest[start..].find(')') {
-                let link = &rest[start..start + end];
-                links.push(link.to_string());
+                let target = &rest[start..start + end];
+                links.push(target.to_string());
                 rest = &rest[start + end + 1..];
                 continue;
             }

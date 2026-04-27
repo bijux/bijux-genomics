@@ -38,17 +38,15 @@ fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_ha
 
     for domain in configured_domains(&root) {
         let index = root.join("domain").join(&domain).join("index.yaml");
-        let parsed = match std::fs::read_to_string(&index) {
-            Ok(_) => parse_yaml(&index),
-            Err(_) => {
-                offenders.push(format!("missing domain index for {domain}: {}", index.display()));
-                continue;
-            }
+        let parsed = if std::fs::read_to_string(&index).is_ok() {
+            parse_yaml(&index)
+        } else {
+            offenders.push(format!("missing domain index for {domain}: {}", index.display()));
+            continue;
         };
 
-        let Some(stage_tool_compatibility) = parsed
-            .get("stage_tool_compatibility")
-            .and_then(serde_yaml::Value::as_mapping)
+        let Some(stage_tool_compatibility) =
+            parsed.get("stage_tool_compatibility").and_then(serde_yaml::Value::as_mapping)
         else {
             offenders.push(format!(
                 "missing stage_tool_compatibility map for {domain}: {}",
@@ -72,15 +70,14 @@ fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_ha
             for tool in tools.iter().filter_map(serde_yaml::Value::as_str) {
                 let tool_file =
                     root.join("domain").join(&domain).join("tools").join(format!("{tool}.yaml"));
-                let tool_doc = match std::fs::read_to_string(&tool_file) {
-                    Ok(_) => parse_yaml(&tool_file),
-                    Err(_) => {
-                        offenders.push(format!(
-                            "missing tool yaml for {domain} {stage_id} / {tool}: {}",
-                            tool_file.display()
-                        ));
-                        continue;
-                    }
+                let tool_doc = if std::fs::read_to_string(&tool_file).is_ok() {
+                    parse_yaml(&tool_file)
+                } else {
+                    offenders.push(format!(
+                        "missing tool yaml for {domain} {stage_id} / {tool}: {}",
+                        tool_file.display()
+                    ));
+                    continue;
                 };
                 let status =
                     yaml_string(&tool_doc, "status").unwrap_or_else(|| "supported".to_string());

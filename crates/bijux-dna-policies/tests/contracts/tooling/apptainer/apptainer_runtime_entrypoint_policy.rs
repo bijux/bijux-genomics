@@ -11,10 +11,7 @@ fn policy__contracts__apptainer_runtime_entrypoint_policy__python_java_defs_have
     let mut offenders = Vec::new();
 
     for entry in WalkDir::new(&root) {
-        let entry = match entry {
-            Ok(value) => value,
-            Err(_) => continue,
-        };
+        let Ok(entry) = entry else { continue };
         let path = entry.path();
         if !entry.file_type().is_file()
             || path.extension().and_then(|ext| ext.to_str()) != Some("def")
@@ -22,9 +19,8 @@ fn policy__contracts__apptainer_runtime_entrypoint_policy__python_java_defs_have
             continue;
         }
 
-        let raw = match std::fs::read_to_string(path) {
-            Ok(value) => value,
-            Err(_) => continue,
+        let Ok(raw) = std::fs::read_to_string(path) else {
+            continue;
         };
         let lowered = raw.to_ascii_lowercase();
         let runscript = raw

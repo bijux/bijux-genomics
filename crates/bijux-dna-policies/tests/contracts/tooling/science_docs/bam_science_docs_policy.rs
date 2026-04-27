@@ -4,11 +4,23 @@ mod support;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
+use std::path::PathBuf;
+
+fn workspace_file(path: &str) -> String {
+    let root = support::workspace_root();
+    fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"))
+}
+
+fn workspace_dir_paths(path: &str) -> Vec<PathBuf> {
+    let root = support::workspace_root();
+    fs::read_dir(root.join(path))
+        .unwrap_or_else(|err| panic!("read {path}: {err}"))
+        .map(|entry| entry.unwrap_or_else(|err| panic!("read {path} entry: {err}")).path())
+        .collect()
+}
 
 fn markdown_link_targets(path: &str) -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     let mut targets = BTreeSet::new();
     for line in raw.lines() {
         let mut rest = line;
@@ -31,9 +43,7 @@ struct BamStageDocSpec {
 }
 
 fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     let mut rows = Vec::new();
     let mut in_table = false;
     for line in raw.lines() {
@@ -65,9 +75,7 @@ fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
 }
 
 fn markdown_table_rows_all(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     let mut rows = Vec::new();
     let mut in_table = false;
     for line in raw.lines() {
@@ -100,10 +108,8 @@ fn markdown_table_rows_all(path: &str, header_prefix: &str) -> Vec<Vec<String>> 
 }
 
 fn bam_stage_specs() -> BTreeMap<String, BamStageDocSpec> {
-    let root = support::workspace_root();
     let mut specs = BTreeMap::new();
-    for entry in fs::read_dir(root.join("domain/bam/stages")).expect("read bam stages") {
-        let path = entry.expect("stage entry").path();
+    for path in workspace_dir_paths("domain/bam/stages") {
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
             continue;
         }
@@ -112,16 +118,14 @@ fn bam_stage_specs() -> BTreeMap<String, BamStageDocSpec> {
         }
         let raw = fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read bam stage manifest {}: {err}", path.display()));
-        let stage_id = raw
-            .lines()
-            .find_map(|line| line.strip_prefix("stage_id: "))
-            .map(|value| value.trim_matches('"').to_string())
-            .unwrap_or_else(|| panic!("missing stage_id in {}", path.display()));
-        let status = raw
-            .lines()
-            .find_map(|line| line.strip_prefix("status: "))
-            .map(|value| value.trim_matches('"').to_string())
-            .unwrap_or_else(|| panic!("missing status in {}", path.display()));
+        let stage_id = raw.lines().find_map(|line| line.strip_prefix("stage_id: ")).map_or_else(
+            || panic!("missing stage_id in {}", path.display()),
+            |value| value.trim_matches('"').to_string(),
+        );
+        let status = raw.lines().find_map(|line| line.strip_prefix("status: ")).map_or_else(
+            || panic!("missing status in {}", path.display()),
+            |value| value.trim_matches('"').to_string(),
+        );
         let mut compatible_tools = BTreeSet::new();
         let mut in_tools = false;
         for line in raw.lines() {
@@ -144,10 +148,8 @@ fn bam_stage_specs() -> BTreeMap<String, BamStageDocSpec> {
 }
 
 fn bam_tool_stage_specs() -> BTreeMap<String, BTreeSet<String>> {
-    let root = support::workspace_root();
     let mut specs = BTreeMap::new();
-    for entry in fs::read_dir(root.join("domain/bam/tools")).expect("read bam tools") {
-        let path = entry.expect("tool entry").path();
+    for path in workspace_dir_paths("domain/bam/tools") {
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
             continue;
         }
@@ -156,11 +158,10 @@ fn bam_tool_stage_specs() -> BTreeMap<String, BTreeSet<String>> {
         }
         let raw = fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read bam tool manifest {}: {err}", path.display()));
-        let tool_id = raw
-            .lines()
-            .find_map(|line| line.strip_prefix("tool_id: "))
-            .map(|value| value.trim_matches('"').to_string())
-            .unwrap_or_else(|| panic!("missing tool_id in {}", path.display()));
+        let tool_id = raw.lines().find_map(|line| line.strip_prefix("tool_id: ")).map_or_else(
+            || panic!("missing tool_id in {}", path.display()),
+            |value| value.trim_matches('"').to_string(),
+        );
         let mut stage_ids = BTreeSet::new();
         let mut in_stage_ids = false;
         for line in raw.lines() {
@@ -192,10 +193,8 @@ fn bam_tool_stage_specs() -> BTreeMap<String, BTreeSet<String>> {
 }
 
 fn bam_reference_bank_hooks() -> BTreeMap<String, BTreeSet<String>> {
-    let root = support::workspace_root();
     let mut specs = BTreeMap::new();
-    for entry in fs::read_dir(root.join("domain/bam/stages")).expect("read bam stages") {
-        let path = entry.expect("stage entry").path();
+    for path in workspace_dir_paths("domain/bam/stages") {
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
             continue;
         }
@@ -204,11 +203,10 @@ fn bam_reference_bank_hooks() -> BTreeMap<String, BTreeSet<String>> {
         }
         let raw = fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read bam stage manifest {}: {err}", path.display()));
-        let stage_id = raw
-            .lines()
-            .find_map(|line| line.strip_prefix("stage_id: "))
-            .map(|value| value.trim_matches('"').to_string())
-            .unwrap_or_else(|| panic!("missing stage_id in {}", path.display()));
+        let stage_id = raw.lines().find_map(|line| line.strip_prefix("stage_id: ")).map_or_else(
+            || panic!("missing stage_id in {}", path.display()),
+            |value| value.trim_matches('"').to_string(),
+        );
         let mut hooks = BTreeSet::new();
         let mut in_hooks = false;
         for line in raw.lines() {
@@ -236,24 +234,20 @@ fn bam_reference_bank_hooks() -> BTreeMap<String, BTreeSet<String>> {
 }
 
 fn bam_stage_assumption_rows() -> Vec<String> {
-    let root = support::workspace_root();
-    let raw = fs::read_to_string(root.join("docs/20-science/bam/STAGE_ASSUMPTIONS.md"))
-        .expect("read docs/20-science/bam/STAGE_ASSUMPTIONS.md");
+    let raw = workspace_file("docs/20-science/bam/STAGE_ASSUMPTIONS.md");
     raw.lines()
         .filter_map(|line| {
             let trimmed = line.trim();
             trimmed
                 .strip_prefix("- `")
-                .and_then(|rest| rest.split_once("`"))
+                .and_then(|rest| rest.split_once('`'))
                 .map(|(stage_id, _)| stage_id.to_string())
         })
         .collect()
 }
 
 fn bam_stage_catalog_ids() -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw = fs::read_to_string(root.join("docs/20-science/bam/STAGE_CATALOG.md"))
-        .expect("read docs/20-science/bam/STAGE_CATALOG.md");
+    let raw = workspace_file("docs/20-science/bam/STAGE_CATALOG.md");
     raw.lines()
         .filter_map(|line| {
             let trimmed = line.trim();
@@ -285,10 +279,7 @@ fn bam_tools_roster_rows() -> BTreeMap<String, BamStageDocSpec> {
                     .map(ToOwned::to_owned)
                     .collect()
             };
-            (
-                stage_id,
-                BamStageDocSpec { status: row[1].to_string(), compatible_tools },
-            )
+            (stage_id, BamStageDocSpec { status: row[1].to_string(), compatible_tools })
         })
         .collect()
 }
@@ -517,17 +508,12 @@ fn assert_bam_tools_roster_matches(stage_ids: &[&str], label: &str) {
             .compatible_tools;
         if documented_tools != expected_tools {
             offenders.push(format!(
-                "{stage_id}: expected {:?}, found {:?}",
-                expected_tools, documented_tools
+                "{stage_id}: expected {expected_tools:?}, found {documented_tools:?}"
             ));
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "BAM tools roster drift for {label}:\n{}",
-        offenders.join("\n")
-    );
+    assert!(offenders.is_empty(), "BAM tools roster drift for {label}:\n{}", offenders.join("\n"));
 }
 
 fn assert_bam_reference_rows_match(tool_ids: &[&str], label: &str) {
@@ -544,8 +530,7 @@ fn assert_bam_reference_rows_match(tool_ids: &[&str], label: &str) {
             .unwrap_or_else(|| panic!("missing BAM references row for {tool_id}"));
         if documented_stages != expected_stages {
             offenders.push(format!(
-                "{tool_id}: expected {:?}, found {:?}",
-                expected_stages, documented_stages
+                "{tool_id}: expected {expected_stages:?}, found {documented_stages:?}"
             ));
         }
     }
@@ -590,8 +575,9 @@ fn policy__contracts__bam_science_docs_policy__tools_roster_covers_stage_catalog
 
     let mut offenders = Vec::new();
     for (stage_id, expected_spec) in expected {
-        let documented_spec =
-            documented.get(&stage_id).unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"));
+        let documented_spec = documented
+            .get(&stage_id)
+            .unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"));
         if documented_spec.status != expected_spec.status {
             offenders.push(format!(
                 "{stage_id}: expected status {}, found {}",
@@ -600,21 +586,14 @@ fn policy__contracts__bam_science_docs_policy__tools_roster_covers_stage_catalog
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "BAM tools roster status drift:\n{}",
-        offenders.join("\n")
-    );
+    assert!(offenders.is_empty(), "BAM tools roster status drift:\n{}", offenders.join("\n"));
 }
 
 #[test]
 fn policy__contracts__bam_science_docs_policy__stage_catalog_covers_supported_stage_catalog() {
     let expected = bam_stage_specs().into_keys().collect::<BTreeSet<_>>();
     let documented = bam_stage_catalog_ids();
-    assert_eq!(
-        expected, documented,
-        "BAM stage catalog must cover the BAM stage manifest exactly"
-    );
+    assert_eq!(expected, documented, "BAM stage catalog must cover the BAM stage manifest exactly");
 }
 
 #[test]
@@ -636,7 +615,8 @@ fn policy__contracts__bam_science_docs_policy__tools_roster_matches_alignment_an
 }
 
 #[test]
-fn policy__contracts__bam_science_docs_policy__tools_roster_matches_planned_qc_and_mutation_stages() {
+fn policy__contracts__bam_science_docs_policy__tools_roster_matches_planned_qc_and_mutation_stages()
+{
     assert_bam_tools_roster_matches(
         &[
             "bam.qc_pre",
@@ -657,13 +637,7 @@ fn policy__contracts__bam_science_docs_policy__tools_roster_matches_planned_qc_a
 #[test]
 fn policy__contracts__bam_science_docs_policy__tools_roster_matches_damage_and_inference_stages() {
     assert_bam_tools_roster_matches(
-        &[
-            "bam.damage",
-            "bam.authenticity",
-            "bam.contamination",
-            "bam.sex",
-            "bam.kinship",
-        ],
+        &["bam.damage", "bam.authenticity", "bam.contamination", "bam.sex", "bam.kinship"],
         "damage and inference stages",
     );
 }
@@ -671,15 +645,7 @@ fn policy__contracts__bam_science_docs_policy__tools_roster_matches_damage_and_i
 #[test]
 fn policy__contracts__bam_science_docs_policy__references_cover_alignment_and_filter_tools() {
     assert_bam_reference_rows_match(
-        &[
-            "bwa",
-            "bowtie2",
-            "samtools",
-            "bedtools",
-            "bamtools",
-            "mosdepth",
-            "picard",
-        ],
+        &["bwa", "bowtie2", "samtools", "bedtools", "bamtools", "mosdepth", "picard"],
         "alignment and filtering tools",
     );
 }
@@ -730,15 +696,12 @@ fn policy__contracts__bam_science_docs_policy__stage_taxonomy_covers_bam_stage_c
         }
     }
 
-    assert!(
-        offenders.is_empty(),
-        "BAM stage taxonomy status drift:\n{}",
-        offenders.join("\n")
-    );
+    assert!(offenders.is_empty(), "BAM stage taxonomy status drift:\n{}", offenders.join("\n"));
 }
 
 #[test]
-fn policy__contracts__bam_science_docs_policy__reference_governance_covers_reference_bound_stages() {
+fn policy__contracts__bam_science_docs_policy__reference_governance_covers_reference_bound_stages()
+{
     let expected = bam_reference_bank_hooks();
     let documented = bam_reference_governance_rows();
     assert_eq!(

@@ -5,7 +5,7 @@ use regex::Regex;
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn rs_test_files(root: &Path) -> Vec<PathBuf> {
@@ -19,7 +19,7 @@ fn rs_test_files(root: &Path) -> Vec<PathBuf> {
         if path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
             continue;
         }
-        let content = std::fs::read_to_string(path).expect("read test source");
+        let content = bijux_dna_testkit::read_policy_text(path);
         let is_integration_test = path_s.contains("/tests/");
         let is_unit_test_container = path_s.contains("/src/")
             && (content.contains("#[cfg(test)]") || content.contains("mod tests {"));
@@ -33,7 +33,7 @@ fn rs_test_files(root: &Path) -> Vec<PathBuf> {
 }
 
 fn test_scoped_content(path: &Path) -> String {
-    let content = std::fs::read_to_string(path).expect("read test source");
+    let content = bijux_dna_testkit::read_policy_text(path);
     let path_s = path.to_string_lossy();
     if path_s.contains("/tests/") {
         return content;

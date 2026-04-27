@@ -8,7 +8,7 @@ fn crate_dependencies(root: &std::path::Path, name: &str) -> std::collections::B
     let metadata = cargo_metadata::MetadataCommand::new()
         .manifest_path(root.join("Cargo.toml"))
         .exec()
-        .expect("cargo metadata");
+        .unwrap_or_else(|err| panic!("cargo metadata: {err}"));
     let pkg = metadata
         .packages
         .iter()

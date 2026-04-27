@@ -4,11 +4,23 @@ mod support;
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
+use std::path::PathBuf;
+
+fn workspace_file(path: &str) -> String {
+    let root = support::workspace_root();
+    fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"))
+}
+
+fn workspace_dir_paths(path: &str) -> Vec<PathBuf> {
+    let root = support::workspace_root();
+    fs::read_dir(root.join(path))
+        .unwrap_or_else(|err| panic!("read {path}: {err}"))
+        .map(|entry| entry.unwrap_or_else(|err| panic!("read {path} entry: {err}")).path())
+        .collect()
+}
 
 fn markdown_link_targets(path: &str) -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     let mut targets = BTreeSet::new();
     for line in raw.lines() {
         let mut rest = line;
@@ -25,9 +37,7 @@ fn markdown_link_targets(path: &str) -> BTreeSet<String> {
 }
 
 fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     let mut rows = Vec::new();
     let mut in_table = false;
     for line in raw.lines() {
@@ -59,9 +69,7 @@ fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
 }
 
 fn markdown_table_rows_all(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     let mut rows = Vec::new();
     let mut in_table = false;
     for line in raw.lines() {
@@ -98,9 +106,7 @@ fn markdown_table_rows_all(path: &str, header_prefix: &str) -> Vec<Vec<String>> 
 }
 
 fn tsv_ids(path: &str, id_column: usize) -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     let mut ids = BTreeSet::new();
     for (index, line) in raw.lines().enumerate() {
         if index == 0 || line.trim().is_empty() {
@@ -113,9 +119,7 @@ fn tsv_ids(path: &str, id_column: usize) -> BTreeSet<String> {
 }
 
 fn tsv_records(path: &str) -> Vec<BTreeMap<String, String>> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let raw = workspace_file(path);
     let mut lines = raw.lines();
     let header = lines
         .next()
@@ -126,24 +130,22 @@ fn tsv_records(path: &str) -> Vec<BTreeMap<String, String>> {
     lines
         .filter(|line| !line.trim().is_empty())
         .map(|line| {
-            let row = line.split('\t').map(str::to_string).collect::<Vec<_>>();
+            let record = line.split('\t').map(str::to_string).collect::<Vec<_>>();
             assert_eq!(
-                row.len(),
+                record.len(),
                 header.len(),
                 "{path} row has {} columns but header has {}",
-                row.len(),
+                record.len(),
                 header.len()
             );
-            header.iter().cloned().zip(row).collect()
+            header.iter().cloned().zip(record).collect()
         })
         .collect()
 }
 
 fn fastq_stage_ids() -> BTreeSet<String> {
-    let root = support::workspace_root();
     let mut ids = BTreeSet::new();
-    for entry in fs::read_dir(root.join("domain/fastq/stages")).expect("read fastq stages") {
-        let path = entry.expect("stage entry").path();
+    for path in workspace_dir_paths("domain/fastq/stages") {
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
             continue;
         }
@@ -152,21 +154,18 @@ fn fastq_stage_ids() -> BTreeSet<String> {
         }
         let raw = fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read fastq stage manifest {}: {err}", path.display()));
-        let stage_id = raw
-            .lines()
-            .find_map(|line| line.strip_prefix("stage_id: "))
-            .map(|value| value.trim_matches('"').to_string())
-            .unwrap_or_else(|| panic!("missing stage_id in {}", path.display()));
+        let stage_id = raw.lines().find_map(|line| line.strip_prefix("stage_id: ")).map_or_else(
+            || panic!("missing stage_id in {}", path.display()),
+            |value| value.trim_matches('"').to_string(),
+        );
         ids.insert(stage_id);
     }
     ids
 }
 
 fn fastq_tool_ids() -> BTreeSet<String> {
-    let root = support::workspace_root();
     let mut ids = BTreeSet::new();
-    for entry in fs::read_dir(root.join("domain/fastq/tools")).expect("read fastq tools") {
-        let path = entry.expect("tool entry").path();
+    for path in workspace_dir_paths("domain/fastq/tools") {
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
             continue;
         }
@@ -184,9 +183,7 @@ fn fastq_tool_ids() -> BTreeSet<String> {
 }
 
 fn fastq_execution_support_admitted_tools() -> BTreeMap<String, BTreeSet<String>> {
-    let root = support::workspace_root();
-    let raw = fs::read_to_string(root.join("domain/fastq/execution_support.yaml"))
-        .expect("read domain/fastq/execution_support.yaml");
+    let raw = workspace_file("domain/fastq/execution_support.yaml");
     let mut rows = BTreeMap::<String, BTreeSet<String>>::new();
     let mut current_stage = None::<String>;
     let mut in_admitted_tools = false;
@@ -263,10 +260,8 @@ fn fastq_reference_stage_rows() -> BTreeMap<String, BTreeSet<String>> {
 }
 
 fn fastq_reference_bank_hooks() -> BTreeMap<String, BTreeSet<String>> {
-    let root = support::workspace_root();
     let mut specs = BTreeMap::new();
-    for entry in fs::read_dir(root.join("domain/fastq/stages")).expect("read fastq stages") {
-        let path = entry.expect("stage entry").path();
+    for path in workspace_dir_paths("domain/fastq/stages") {
         if path.extension().and_then(|ext| ext.to_str()) != Some("yaml") {
             continue;
         }
@@ -275,11 +270,10 @@ fn fastq_reference_bank_hooks() -> BTreeMap<String, BTreeSet<String>> {
         }
         let raw = fs::read_to_string(&path)
             .unwrap_or_else(|err| panic!("read fastq stage manifest {}: {err}", path.display()));
-        let stage_id = raw
-            .lines()
-            .find_map(|line| line.strip_prefix("stage_id: "))
-            .map(|value| value.trim_matches('"').to_string())
-            .unwrap_or_else(|| panic!("missing stage_id in {}", path.display()));
+        let stage_id = raw.lines().find_map(|line| line.strip_prefix("stage_id: ")).map_or_else(
+            || panic!("missing stage_id in {}", path.display()),
+            |value| value.trim_matches('"').to_string(),
+        );
         let mut hooks = BTreeSet::new();
         let mut in_hooks = false;
         for line in raw.lines() {
@@ -662,11 +656,7 @@ fn policy__contracts__fastq_science_docs_policy__tools_roster_matches_validation
     let roster = fastq_tools_roster_rows();
     let mut offenders = Vec::new();
 
-    for stage_id in [
-        "fastq.validate_reads",
-        "fastq.profile_read_lengths",
-        "fastq.profile_reads",
-    ] {
+    for stage_id in ["fastq.validate_reads", "fastq.profile_read_lengths", "fastq.profile_reads"] {
         let expected_tools = expected
             .get(stage_id)
             .unwrap_or_else(|| panic!("missing execution support stage {stage_id}"));
@@ -675,8 +665,7 @@ fn policy__contracts__fastq_science_docs_policy__tools_roster_matches_validation
             .unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"));
         if documented_tools != expected_tools {
             offenders.push(format!(
-                "{stage_id}: expected {:?}, found {:?}",
-                expected_tools, documented_tools
+                "{stage_id}: expected {expected_tools:?}, found {documented_tools:?}"
             ));
         }
     }
@@ -708,8 +697,7 @@ fn policy__contracts__fastq_science_docs_policy__tools_roster_matches_transform_
             .unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"));
         if documented_tools != expected_tools {
             offenders.push(format!(
-                "{stage_id}: expected {:?}, found {:?}",
-                expected_tools, documented_tools
+                "{stage_id}: expected {expected_tools:?}, found {documented_tools:?}"
             ));
         }
     }
@@ -728,11 +716,9 @@ fn policy__contracts__fastq_science_docs_policy__tools_roster_matches_reporting_
     let roster = fastq_tools_roster_rows();
     let mut offenders = Vec::new();
 
-    for stage_id in [
-        "fastq.profile_overrepresented_sequences",
-        "fastq.screen_taxonomy",
-        "fastq.infer_asvs",
-    ] {
+    for stage_id in
+        ["fastq.profile_overrepresented_sequences", "fastq.screen_taxonomy", "fastq.infer_asvs"]
+    {
         let expected_tools = expected
             .get(stage_id)
             .unwrap_or_else(|| panic!("missing execution support stage {stage_id}"));
@@ -741,8 +727,7 @@ fn policy__contracts__fastq_science_docs_policy__tools_roster_matches_reporting_
             .unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"));
         if documented_tools != expected_tools {
             offenders.push(format!(
-                "{stage_id}: expected {:?}, found {:?}",
-                expected_tools, documented_tools
+                "{stage_id}: expected {expected_tools:?}, found {documented_tools:?}"
             ));
         }
     }
@@ -783,8 +768,7 @@ fn policy__contracts__fastq_science_docs_policy__references_cover_qc_stage_sets_
             .unwrap_or_else(|| panic!("missing FASTQ reference row for {tool_id}"));
         if documented_stages != &expected_stages {
             offenders.push(format!(
-                "{tool_id}: expected {:?}, found {:?}",
-                expected_stages, documented_stages
+                "{tool_id}: expected {expected_stages:?}, found {documented_stages:?}"
             ));
         }
     }
@@ -809,10 +793,7 @@ fn policy__contracts__fastq_science_docs_policy__references_cover_inference_stag
                 "fastq.trim_terminal_damage".to_string(),
             ]),
         ),
-        (
-            "dada2".to_string(),
-            BTreeSet::from(["fastq.infer_asvs".to_string()]),
-        ),
+        ("dada2".to_string(), BTreeSet::from(["fastq.infer_asvs".to_string()])),
     ]);
     let mut offenders = Vec::new();
 
@@ -822,8 +803,7 @@ fn policy__contracts__fastq_science_docs_policy__references_cover_inference_stag
             .unwrap_or_else(|| panic!("missing FASTQ reference row for {tool_id}"));
         if documented_stages != &expected_stages {
             offenders.push(format!(
-                "{tool_id}: expected {:?}, found {:?}",
-                expected_stages, documented_stages
+                "{tool_id}: expected {expected_stages:?}, found {documented_stages:?}"
             ));
         }
     }

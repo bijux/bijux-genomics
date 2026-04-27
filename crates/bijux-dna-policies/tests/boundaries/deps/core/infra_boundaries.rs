@@ -37,7 +37,7 @@ fn policy__boundaries__infra_boundaries__no_id_catalog_literals_in_infra() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
     let infra_src = root.join("../../../../bijux-dna-infra/src");
     let mut offenders = Vec::new();
-    for entry in walkdir::WalkDir::new(infra_src).into_iter().filter_map(|e| e.ok()) {
+    for entry in walkdir::WalkDir::new(infra_src).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }

@@ -37,10 +37,7 @@ fn policy__contracts__apptainer_structure_policy__section_order_and_minimal_post
     let mut offenders = Vec::new();
 
     for entry in WalkDir::new(&root) {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(_) => continue,
-        };
+        let Ok(entry) = entry else { continue };
         let path = entry.path();
         if !entry.file_type().is_file()
             || path.extension().and_then(|ext| ext.to_str()) != Some("def")
@@ -48,9 +45,8 @@ fn policy__contracts__apptainer_structure_policy__section_order_and_minimal_post
             continue;
         }
 
-        let content = match std::fs::read_to_string(path) {
-            Ok(content) => content,
-            Err(_) => continue,
+        let Ok(content) = std::fs::read_to_string(path) else {
+            continue;
         };
         let lowered = content.to_ascii_lowercase();
 
@@ -100,19 +96,15 @@ fn policy__contracts__apptainer_structure_policy__runscript_execs_tool_passthrou
     let mut offenders = Vec::new();
 
     for entry in WalkDir::new(&root) {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(_) => continue,
-        };
+        let Ok(entry) = entry else { continue };
         let path = entry.path();
         if !entry.file_type().is_file()
             || path.extension().and_then(|ext| ext.to_str()) != Some("def")
         {
             continue;
         }
-        let content = match std::fs::read_to_string(path) {
-            Ok(content) => content,
-            Err(_) => continue,
+        let Ok(content) = std::fs::read_to_string(path) else {
+            continue;
         };
         let runscript = content
             .split("%runscript")

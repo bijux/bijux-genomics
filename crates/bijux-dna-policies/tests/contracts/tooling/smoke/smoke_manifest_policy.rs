@@ -21,10 +21,10 @@ fn policy__contracts__smoke_manifest_policy__container_smoke_manifests_include_i
 
     let mut sources = WalkDir::new(&source_dir)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "rs"))
-        .map(|entry| entry.into_path())
+        .map(walkdir::DirEntry::into_path)
         .collect::<Vec<_>>();
     sources.sort();
 

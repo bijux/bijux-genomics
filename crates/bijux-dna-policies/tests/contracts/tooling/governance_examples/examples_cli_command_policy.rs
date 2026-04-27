@@ -73,8 +73,8 @@ fn policy__contracts__examples_cli_command_policy__examples_use_existing_cli_com
 }
 
 #[test]
-fn policy__contracts__examples_cli_command_policy__recipe_only_dirs_are_allowlisted_and_readme_only()
-{
+fn policy__contracts__examples_cli_command_policy__recipe_only_dirs_are_allowlisted_and_readme_only(
+) {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(Path::parent)
@@ -145,7 +145,8 @@ fn policy__contracts__examples_cli_command_policy__example_navigation_docs_use_i
         .parent()
         .and_then(Path::parent)
         .expect("workspace root");
-    let index = std::fs::read_to_string(root.join("examples/index.yaml")).expect("read examples index");
+    let index =
+        std::fs::read_to_string(root.join("examples/index.yaml")).expect("read examples index");
     let example_ids = index
         .lines()
         .filter_map(|line| line.trim().strip_prefix("- id: ").map(str::to_string))
@@ -154,11 +155,18 @@ fn policy__contracts__examples_cli_command_policy__example_navigation_docs_use_i
     let mut offenders = Vec::new();
     for rel in ["examples/README.md", "docs/50-reference/EXAMPLES.md"] {
         let path = root.join(rel);
-        let raw = std::fs::read_to_string(&path).unwrap_or_else(|_| panic!("read {}", path.display()));
+        let raw =
+            std::fs::read_to_string(&path).unwrap_or_else(|_| panic!("read {}", path.display()));
         if !raw.contains("examples/index.yaml") {
             offenders.push(format!("{rel}: must point to examples/index.yaml as runnable SSOT"));
         }
-        for forbidden in ["`template`", "`data_corpus_01`", "`data_corpus_01_mini`", "`corpus_01`", "`corpus_01_mini`"] {
+        for forbidden in [
+            "`template`",
+            "`data_corpus_01`",
+            "`data_corpus_01_mini`",
+            "`corpus_01`",
+            "`corpus_01_mini`",
+        ] {
             if raw.contains(forbidden) {
                 offenders.push(format!(
                     "{rel}: must not advertise non-runnable example ids such as {forbidden}"

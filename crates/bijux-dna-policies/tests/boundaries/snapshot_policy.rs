@@ -41,7 +41,7 @@ fn policy__boundaries__snapshot_policy__snapshot_files_live_in_snapshots_dir() {
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_file())
         {
             let path = entry.path();
@@ -55,7 +55,9 @@ fn policy__boundaries__snapshot_policy__snapshot_files_live_in_snapshots_dir() {
             if path.to_string_lossy().contains("tests/fixtures/") {
                 continue;
             }
-            if name.ends_with(".json") || name.ends_with(".txt") {
+            if std::path::Path::new(name).extension().is_some_and(|ext| {
+                ext.eq_ignore_ascii_case("json") || ext.eq_ignore_ascii_case("txt")
+            }) {
                 continue; // allow non-snapshot artifacts outside snapshots dir
             }
             offenders.push(path.display().to_string());
@@ -81,7 +83,7 @@ fn policy__boundaries__snapshot_policy__snapshot_names_are_normalized() {
         }
         for entry in WalkDir::new(&snapshots_dir)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_file())
         {
             let path = entry.path();
@@ -97,7 +99,6 @@ fn policy__boundaries__snapshot_policy__snapshot_names_are_normalized() {
             let parts: Vec<&str> = file_name.splitn(4, "__").collect();
             if parts.len() < 3 || !SNAPSHOT_BUCKETS.contains(&parts[1]) {
                 offenders.push(path.display().to_string());
-                continue;
             }
         }
     }
@@ -118,7 +119,7 @@ fn policy__boundaries__snapshot_policy__tests_document_snapshot_intent() {
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_file())
             .filter(|entry| entry.path().extension().and_then(|e| e.to_str()) == Some("rs"))
         {

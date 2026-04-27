@@ -40,7 +40,8 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registry_
     let root = workspace_root();
     let mut offenders = Vec::new();
 
-    for rel in ["configs/ci/registry/tool_registry.toml", "configs/ci/registry/tool_registry_vcf.toml"]
+    for rel in
+        ["configs/ci/registry/tool_registry.toml", "configs/ci/registry/tool_registry_vcf.toml"]
     {
         let registry = parse_registry(&root.join(rel));
         let tools = tools_by_id(&registry);
@@ -106,9 +107,7 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registry_
                 offenders.push(format!("{rel}: tool={id}: help_cmd must run --help/-h"));
             }
             if !version_cmd.contains(expected_bin) {
-                offenders.push(format!(
-                    "{rel}: tool={id}: version_cmd must invoke expected_bin"
-                ));
+                offenders.push(format!("{rel}: tool={id}: version_cmd must invoke expected_bin"));
             }
             if !help_cmd.contains(expected_bin) {
                 offenders.push(format!("{rel}: tool={id}: help_cmd must invoke expected_bin"));

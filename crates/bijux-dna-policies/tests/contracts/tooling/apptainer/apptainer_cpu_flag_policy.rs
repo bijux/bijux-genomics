@@ -13,10 +13,7 @@ fn policy__contracts__apptainer_cpu_flag_policy__no_arch_flag_injection_without_
     let whitelist = ["star"];
 
     for entry in WalkDir::new(&root) {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(_) => continue,
-        };
+        let Ok(entry) = entry else { continue };
         let path = entry.path();
         if !entry.file_type().is_file() {
             continue;
@@ -26,9 +23,8 @@ fn policy__contracts__apptainer_cpu_flag_policy__no_arch_flag_injection_without_
         }
         let tool_id =
             path.file_stem().and_then(|stem| stem.to_str()).unwrap_or_default().to_string();
-        let content = match std::fs::read_to_string(path) {
-            Ok(content) => content,
-            Err(_) => continue,
+        let Ok(content) = std::fs::read_to_string(path) else {
+            continue;
         };
         let justified = content.contains("APPTAINER_CPU_FLAG_JUSTIFIED:")
             || whitelist.contains(&tool_id.as_str());

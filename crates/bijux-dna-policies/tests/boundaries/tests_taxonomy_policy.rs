@@ -40,7 +40,7 @@ fn policy__boundaries__tests_taxonomy_policy__taxonomy_buckets_only() {
         for entry in WalkDir::new(&tests_root)
             .max_depth(2)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_dir())
         {
             let dir = entry.path();

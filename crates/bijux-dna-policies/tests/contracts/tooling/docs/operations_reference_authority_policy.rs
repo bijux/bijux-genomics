@@ -133,8 +133,7 @@ fn policy__contracts__operations_reference_authority_policy__frontend_mini_stack
         "EXPLAINABILITY.md".to_string(),
         "REPORT_CONTRACT.md".to_string(),
     ]);
-    let documented =
-        markdown_link_targets("docs/30-operations/FRONTEND_MINI_STACK_VALIDATION.md");
+    let documented = markdown_link_targets("docs/30-operations/FRONTEND_MINI_STACK_VALIDATION.md");
     assert_eq!(
         expected, documented,
         "docs/30-operations/FRONTEND_MINI_STACK_VALIDATION.md must link the governed frontend-mini authorities exactly"
@@ -193,10 +192,8 @@ fn policy__contracts__operations_reference_authority_policy__explainability_link
 #[test]
 fn policy__contracts__operations_reference_authority_policy__compilation_cache_policy_links_governed_surfaces_exactly(
 ) {
-    let expected = BTreeSet::from([
-        "ISOLATION.md".to_string(),
-        "../../makes/cargo-dev.mk".to_string(),
-    ]);
+    let expected =
+        BTreeSet::from(["ISOLATION.md".to_string(), "../../makes/cargo-dev.mk".to_string()]);
     let documented = markdown_link_targets("docs/30-operations/COMPILATION_CACHE_POLICY.md");
     assert_eq!(
         expected, documented,
@@ -237,8 +234,7 @@ fn policy__contracts__operations_reference_authority_policy__artifact_explorer_l
 #[test]
 fn policy__contracts__operations_reference_authority_policy__corpus_01_links_governed_surfaces_exactly(
 ) {
-    let expected =
-        BTreeSet::from(["../../configs/runtime/corpora/corpus-01.toml".to_string()]);
+    let expected = BTreeSet::from(["../../configs/runtime/corpora/corpus-01.toml".to_string()]);
     let documented = markdown_link_targets("docs/30-operations/corpus-01.md");
     assert_eq!(
         expected, documented,

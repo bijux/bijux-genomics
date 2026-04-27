@@ -10,7 +10,7 @@ fn policy__boundaries__hashmap_policy__no_hashmap_in_contract_paths() {
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_file())
         {
             let path = entry.path();

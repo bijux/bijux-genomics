@@ -6,8 +6,7 @@ use std::process::Command;
 
 fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
     std::env::var_os("CARGO_TARGET_DIR")
-        .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| root.join("artifacts/target"))
+        .map_or_else(|| root.join("artifacts/target"), std::path::PathBuf::from)
 }
 
 fn run_workspace_bijux_dna(

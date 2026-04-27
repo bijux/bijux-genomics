@@ -192,8 +192,7 @@ fn policy__contracts__tool_role_capability_policy__fastq_benchmark_stages_capabi
             for req in &required {
                 if !caps.contains(req) {
                     offenders.push(format!(
-                        "stage={} tool={} missing required capability `{}`",
-                        stage_id, tool, req
+                        "stage={stage_id} tool={tool} missing required capability `{req}`"
                     ));
                 }
             }

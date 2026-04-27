@@ -14,10 +14,7 @@ fn docs_root() -> PathBuf {
 }
 
 fn is_uppercase_stem(path: &Path) -> bool {
-    path.file_stem()
-        .and_then(|stem| stem.to_str())
-        .map(|stem| stem == stem.to_uppercase())
-        .unwrap_or(false)
+    path.file_stem().and_then(|stem| stem.to_str()).is_some_and(|stem| stem == stem.to_uppercase())
 }
 
 #[test]
@@ -70,7 +67,7 @@ fn policy__boundaries__docs_spine__no_docs_under_src() {
                 && entry.path().extension().and_then(|ext| ext.to_str()) == Some("md")
                 && !matches!(
                     entry.path().file_name().and_then(|name| name.to_str()),
-                    Some("OWNER.md") | Some("INDEX.md")
+                    Some("OWNER.md" | "INDEX.md")
                 )
             {
                 bijux_dna_policies::policy_panic!(

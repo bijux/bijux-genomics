@@ -10,7 +10,7 @@ fn policy__boundaries__mod_naming_policy__legacy_dirs_require_legacy_doc() {
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_dir())
         {
             if entry.file_name() != "legacy" {
@@ -36,7 +36,7 @@ fn policy__boundaries__mod_naming_policy__internal_rs_is_forbidden() {
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_file())
         {
             if entry.file_name() == "internal.rs" {

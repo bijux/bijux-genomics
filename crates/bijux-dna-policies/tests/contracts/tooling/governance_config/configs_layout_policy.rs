@@ -1,10 +1,10 @@
 #![allow(non_snake_case)]
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use walkdir::WalkDir;
 
 fn workspace_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap().to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 #[test]
@@ -14,9 +14,8 @@ fn policy__contracts__configs_layout_policy__configs_root_contains_only_index_an
     let mut offenders = Vec::new();
 
     for entry in std::fs::read_dir(&configs).expect("read configs/") {
-        let entry = match entry {
-            Ok(v) => v,
-            Err(_) => continue,
+        let Ok(entry) = entry else {
+            continue;
         };
         let path = entry.path();
         if path.is_dir() {

@@ -41,5 +41,5 @@ fn policy__contracts__image_catalog_completeness_policy__production_tools_have_i
         }
     }
 
-    assert!(offenders.is_empty(), "production tools missing from image catalog: {:?}", offenders);
+    assert!(offenders.is_empty(), "production tools missing from image catalog: {offenders:?}");
 }

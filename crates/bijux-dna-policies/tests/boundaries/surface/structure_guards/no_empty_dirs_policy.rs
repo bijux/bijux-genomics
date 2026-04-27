@@ -34,7 +34,7 @@ fn policy__boundaries__no_empty_dirs_policy__no_empty_or_placeholder_dirs() {
     for crate_root in support::crate_roots() {
         for entry in WalkDir::new(&crate_root)
             .into_iter()
-            .filter_map(|entry| entry.ok())
+            .filter_map(Result::ok)
             .filter(|entry| entry.file_type().is_dir())
         {
             let dir = entry.path();
@@ -77,10 +77,9 @@ fn policy__boundaries__no_empty_dirs_policy__no_empty_or_placeholder_dirs() {
                     && std::fs::read_dir(dir)
                         .ok()
                         .and_then(|mut it| it.next())
-                        .and_then(|entry| entry.ok())
+                        .and_then(Result::ok)
                         .and_then(|entry| entry.file_name().into_string().ok())
-                        .map(|name| name == ".keep")
-                        .unwrap_or(false);
+                        .is_some_and(|name| name == ".keep");
                 if has_only_keep && keep_reason.is_none() {
                     offenders.push(dir.display().to_string());
                     continue;

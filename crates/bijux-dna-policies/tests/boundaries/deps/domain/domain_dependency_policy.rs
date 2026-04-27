@@ -2,15 +2,12 @@
 use std::path::{Path, PathBuf};
 
 fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("resolve repo root")
-        .to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn parse_dependency_names(manifest: &Path) -> Vec<String> {
-    let content = std::fs::read_to_string(manifest).expect("read Cargo.toml");
+    let content = std::fs::read_to_string(manifest)
+        .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
     let mut deps = Vec::new();
     let mut in_deps = false;
     for line in content.lines() {

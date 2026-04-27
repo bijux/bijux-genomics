@@ -66,13 +66,13 @@ fn policy__contracts__container_versions_policy__each_container_definition_has_v
 
     let mut offenders = Vec::new();
     for tool_id in expected {
-        let Some(row) = table.get(&tool_id).and_then(toml::Value::as_table) else {
+        let Some(version_row) = table.get(&tool_id).and_then(toml::Value::as_table) else {
             offenders.push(format!("missing [{tool_id}] in containers/versions/versions.toml"));
             continue;
         };
-        let version = row.get("version").and_then(toml::Value::as_str).unwrap_or_default();
-        let source = row.get("source").and_then(toml::Value::as_str).unwrap_or_default();
-        let date = row.get("date_pinned").and_then(toml::Value::as_str).unwrap_or_default();
+        let version = version_row.get("version").and_then(toml::Value::as_str).unwrap_or_default();
+        let source = version_row.get("source").and_then(toml::Value::as_str).unwrap_or_default();
+        let date = version_row.get("date_pinned").and_then(toml::Value::as_str).unwrap_or_default();
         if !is_semver_like(version) {
             offenders.push(format!("{tool_id}: version must be x.y.z, got `{version}`"));
         }

@@ -91,17 +91,11 @@ fn policy__contracts__tool_registry_stage_domain_policy__production_tool_binding
             .collect::<BTreeSet<_>>();
 
         if !declared_domains.is_empty() && stage_domain_strs != declared_domains {
-            offenders.push(format!(
-                "tool={id}: declared domains {:?} do not match discovered {:?}",
-                declared_domains, stage_domain_strs
-            ));
+            offenders.push(format!("tool={id}: declared domains {declared_domains:?} do not match discovered {stage_domain_strs:?}"));
         }
         if let Some(primary_domain) = declared_domain {
             if !stage_domain_set.contains(&primary_domain) {
-                offenders.push(format!(
-                    "tool={id}: declared primary domain `{declared_domain_raw}` is absent from bindings {:?}",
-                    binding_stage_ids
-                ));
+                offenders.push(format!("tool={id}: declared primary domain `{declared_domain_raw}` is absent from bindings {binding_stage_ids:?}"));
             }
         }
     }

@@ -1,16 +1,12 @@
 #![allow(non_snake_case)]
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use walkdir::WalkDir;
 
 fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("resolve repo root")
-        .to_path_buf()
+    bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn tsv_records(path: &str) -> Vec<BTreeMap<String, String>> {
@@ -27,15 +23,15 @@ fn tsv_records(path: &str) -> Vec<BTreeMap<String, String>> {
     lines
         .filter(|line| !line.trim().is_empty())
         .map(|line| {
-            let row = line.split('\t').map(str::to_string).collect::<Vec<_>>();
+            let record = line.split('\t').map(str::to_string).collect::<Vec<_>>();
             assert_eq!(
-                row.len(),
+                record.len(),
                 header.len(),
                 "{path} row has {} columns but header has {}",
-                row.len(),
+                record.len(),
                 header.len()
             );
-            header.iter().cloned().zip(row).collect()
+            header.iter().cloned().zip(record).collect()
         })
         .collect()
 }
@@ -56,8 +52,11 @@ fn policy__contracts__assets_governance_policy__assets_root_uses_taxonomy_dirs_o
     let assets = root.join("assets");
     let mut offenders = Vec::new();
     let allowed_dirs = ["publications", "golden", "toy", "reference"];
-    for entry in std::fs::read_dir(&assets).expect("read assets dir") {
-        let entry = entry.expect("read assets entry");
+    for entry in
+        std::fs::read_dir(&assets).unwrap_or_else(|err| panic!("read {}: {err}", assets.display()))
+    {
+        let entry =
+            entry.unwrap_or_else(|err| panic!("read entry under {}: {err}", assets.display()));
         let path = entry.path();
         let name = entry.file_name().to_string_lossy().to_string();
         if path.is_dir() {
@@ -290,10 +289,7 @@ fn policy__contracts__assets_governance_policy__publication_dirs_require_manifes
                 ));
             }
         }
-        if parsed
-            .get("authors")
-            .and_then(toml::Value::as_array)
-            .is_none_or(|authors| authors.is_empty())
+        if parsed.get("authors").and_then(toml::Value::as_array).is_none_or(std::vec::Vec::is_empty)
         {
             offenders.push(format!(
                 "assets/publications/{id}/MANIFEST.toml field `authors` must be a non-empty array"
@@ -317,7 +313,11 @@ fn policy__contracts__assets_governance_policy__golden_files_require_generate_me
     {
         let path = entry.path();
         let name = path.file_name().and_then(|s| s.to_str()).unwrap_or_default();
-        if name == "GENERATE.md" || name.ends_with(".md") {
+        if name == "GENERATE.md"
+            || std::path::Path::new(name)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("md"))
+        {
             continue;
         }
         let Some(dir) = path.parent() else {

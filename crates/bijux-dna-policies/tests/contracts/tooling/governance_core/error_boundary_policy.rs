@@ -6,9 +6,7 @@ mod support;
 fn policy__contracts__error_boundary_policy__domain_crates_must_not_reference_runner_errors() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
-    for entry in
-        walkdir::WalkDir::new(root.join("crates")).into_iter().filter_map(|entry| entry.ok())
-    {
+    for entry in walkdir::WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }

@@ -2,12 +2,12 @@
 #[path = "../../../support/fs.rs"]
 mod support;
 
-use std::path::PathBuf;
+use std::path::Path;
 
 use support::crate_roots;
 
-fn read_doc(path: &PathBuf) -> String {
-    std::fs::read_to_string(path).expect("read doc")
+fn read_doc(path: &Path) -> String {
+    bijux_dna_testkit::read_policy_text(path)
 }
 
 /// Checks crate docs index files without snapshotting the full workspace docs tree.

@@ -195,12 +195,11 @@ fn slow__policy__boundaries__workspace__retention_reports_require_context() {
             continue;
         }
         let raw = std::fs::read_to_string(entry.path()).unwrap_or_default();
-        let value: serde_json::Value = match serde_json::from_str(&raw) {
-            Ok(value) => value,
-            Err(_) => {
-                offenders.push(format!("{} (invalid json)", entry.path().display()));
-                continue;
-            }
+        let value: serde_json::Value = if let Ok(value) = serde_json::from_str(&raw) {
+            value
+        } else {
+            offenders.push(format!("{} (invalid json)", entry.path().display()));
+            continue;
         };
         let has_context = value.get("numerator").is_some()
             && value.get("denominator").is_some()

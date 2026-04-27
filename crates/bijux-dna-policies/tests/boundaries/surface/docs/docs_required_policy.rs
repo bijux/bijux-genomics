@@ -6,10 +6,7 @@ use std::path::Path;
 
 const REQUIRED_DOCS: &[&str] = &["ARCHITECTURE.md"];
 fn has_uppercase_name(path: &Path) -> bool {
-    path.file_stem()
-        .and_then(|name| name.to_str())
-        .map(|name| name == name.to_uppercase())
-        .unwrap_or(false)
+    path.file_stem().and_then(|name| name.to_str()).is_some_and(|name| name == name.to_uppercase())
 }
 
 #[test]

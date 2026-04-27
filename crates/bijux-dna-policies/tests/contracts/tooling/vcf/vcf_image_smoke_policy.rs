@@ -23,10 +23,10 @@ fn policy__contracts__vcf_image_smoke_policy__vcf_tools_have_image_entries_and_s
         images_raw.parse().unwrap_or_else(|_| panic!("parse {images_path:?}"));
     let mut native_sources = WalkDir::new(&native_dir)
         .into_iter()
-        .filter_map(|entry| entry.ok())
+        .filter_map(Result::ok)
         .filter(|entry| entry.file_type().is_file())
         .filter(|entry| entry.path().extension().is_some_and(|ext| ext == "rs"))
-        .map(|entry| entry.into_path())
+        .map(walkdir::DirEntry::into_path)
         .collect::<Vec<_>>();
     native_sources.sort();
     assert!(
