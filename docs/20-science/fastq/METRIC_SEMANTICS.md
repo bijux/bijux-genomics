@@ -11,8 +11,11 @@ Decision logic relies on stable metric semantics across planners, stages, and re
 - Duplicating the metrics schema definitions.
 
 ## Contracts
-- Metrics must declare numerator/denominator and units.
-- Failure modes must be documented for metrics used in decisions.
+- Metric IDs and governed metric inventory live in
+  [domain/fastq/metrics.yaml](../../../domain/fastq/metrics.yaml).
+- Cross-stage scientific interpretation lives in [SCIENTIFIC_SPEC.md](SCIENTIFIC_SPEC.md).
+- Artifact and reporting expectations for stage metrics live in
+  [OPERATIONAL_CONTRACT.md](OPERATIONAL_CONTRACT.md).
 
 ## Examples
 ### retention
