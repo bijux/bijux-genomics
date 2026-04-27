@@ -22,6 +22,7 @@ use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
+use bijux_dna_domain_fastq::metrics::ratio_u64;
 use bijux_dna_domain_fastq::params::screen::ReferenceContaminantEffectiveParams;
 use bijux_dna_domain_fastq::params::PairedMode;
 use bijux_dna_domain_fastq::{
@@ -405,8 +406,7 @@ fn build_deplete_reference_contaminants_report<S: ::std::hash::BuildHasher>(
     let bases_removed = bases_in.saturating_sub(bases_out);
     let pairs_in = inputs.input_stats_r2.map(|stats| inputs.input_stats_r1.reads.min(stats.reads));
     let pairs_out = output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
-    let contaminant_fraction_removed =
-        if reads_in == 0 { 0.0 } else { u64_to_f64(reads_removed) / u64_to_f64(reads_in) };
+    let contaminant_fraction_removed = ratio_u64(reads_removed, reads_in);
 
     Ok(DepleteReferenceContaminantsReportV1 {
         schema_version: DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION.to_string(),
@@ -699,10 +699,6 @@ fn validate_reference_contaminants_removed_count(
         ));
     }
     Ok(())
-}
-
-fn u64_to_f64(value: u64) -> f64 {
-    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
 
 fn artifact_output_path(
