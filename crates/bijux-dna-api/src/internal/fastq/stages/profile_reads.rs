@@ -101,19 +101,19 @@ pub fn bench_fastq_stats_neutral<S: ::std::hash::BuildHasher>(
     let mut new_records: Vec<BenchmarkRecord<FastqStatsMetrics>> = Vec::new();
     let mut failures: Vec<RawFailure> = Vec::new();
 
-    let runner = setup.bench_inputs.runner.to_string();
-    let platform_name = platform.name.clone();
     for tool in &setup.tools {
         let tool_plan = prepare_stats_tool_plan(catalog, platform, args, &setup, tool)?;
+        let cache_identity =
+            StatsCacheIdentity::from_plan(platform, &setup.bench_inputs, &tool_plan);
         let cached = fetch_fastq_stats_v1(
             &conn,
-            &tool_plan.tool,
-            &tool_plan.tool_spec.tool_version,
-            &tool_plan.image_digest,
-            &runner,
-            &platform_name,
-            &setup.bench_inputs.input_hash,
-            &tool_plan.params_hash,
+            &cache_identity.tool,
+            &cache_identity.tool_version,
+            &cache_identity.image_digest,
+            &cache_identity.runner,
+            &cache_identity.platform,
+            &cache_identity.input_hash,
+            &cache_identity.params_hash,
         );
         if let Ok(Some(record)) = cached {
             records.push(record);
@@ -207,6 +207,34 @@ struct StatsToolExecution {
 
 struct StatsObservation {
     metric_set: MetricSet<FastqStatsMetrics>,
+}
+
+struct StatsCacheIdentity {
+    tool: String,
+    tool_version: String,
+    image_digest: String,
+    runner: String,
+    platform: String,
+    input_hash: String,
+    params_hash: String,
+}
+
+impl StatsCacheIdentity {
+    fn from_plan(
+        platform: &PlatformSpec,
+        bench_inputs: &StatsBenchInputs,
+        tool_plan: &StatsToolPlan,
+    ) -> Self {
+        Self {
+            tool: tool_plan.tool.clone(),
+            tool_version: tool_plan.tool_spec.tool_version.clone(),
+            image_digest: tool_plan.image_digest.clone(),
+            runner: bench_inputs.runner.to_string(),
+            platform: platform.name.clone(),
+            input_hash: bench_inputs.input_hash.clone(),
+            params_hash: tool_plan.params_hash.clone(),
+        }
+    }
 }
 
 fn prepare_stats_tool_plan<S: ::std::hash::BuildHasher>(
