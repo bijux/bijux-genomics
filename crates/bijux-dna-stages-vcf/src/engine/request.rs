@@ -210,26 +210,8 @@ pub(super) fn write_stage_manifest(
 }
 
 pub(super) fn stage_default_tool_id(stage: VcfDomainStage) -> &'static str {
-    match stage {
-        VcfDomainStage::Call
-        | VcfDomainStage::CallDiploid
-        | VcfDomainStage::CallGl
-        | VcfDomainStage::CallPseudohaploid
-        | VcfDomainStage::DamageFilter
-        | VcfDomainStage::GlPropagation
-        | VcfDomainStage::Filter
-        | VcfDomainStage::Qc
-        | VcfDomainStage::Stats
-        | VcfDomainStage::Postprocess
-        | VcfDomainStage::PrepareReferencePanel => "bcftools",
-        VcfDomainStage::Phasing => "shapeit5",
-        VcfDomainStage::Impute | VcfDomainStage::Imputation => "glimpse",
-        VcfDomainStage::Pca | VcfDomainStage::PopulationStructure => "plink2",
-        VcfDomainStage::Admixture => "admixture",
-        VcfDomainStage::Roh => "plink2",
-        VcfDomainStage::Ibd => "germline",
-        VcfDomainStage::Demography => "ibdne",
-    }
+    crate::stage_specs::vcf_domain_stage_default_tool_id(stage)
+        .unwrap_or_else(|| panic!("missing VCF stage default for {}", stage.as_str()))
 }
 
 fn stage_workspace_root() -> Result<PathBuf> {

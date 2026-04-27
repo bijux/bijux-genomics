@@ -46,6 +46,40 @@ fn stage_catalog_entries_have_metric_schema_versions() {
     }
 }
 
+#[test]
+fn supported_vcf_stage_helper_matches_supported_catalog_rows() {
+    let supported = bijux_dna_stages_vcf::stage_specs::supported_vcf_stages()
+        .into_iter()
+        .collect::<std::collections::BTreeSet<_>>();
+    let catalog_supported = bijux_dna_stages_vcf::stage_specs::vcf_stage_catalog()
+        .iter()
+        .filter(|spec| spec.status == "supported")
+        .map(|spec| spec.stage_id)
+        .collect::<std::collections::BTreeSet<_>>();
+
+    assert_eq!(
+        supported, catalog_supported,
+        "supported_vcf_stages must track the supported rows in the stage catalog"
+    );
+}
+
+#[test]
+fn stage_catalog_default_tools_are_present_in_runtime_surface() {
+    for spec in bijux_dna_stages_vcf::stage_specs::vcf_stage_catalog() {
+        let stage = bijux_dna_domain_vcf::VcfDomainStage::all()
+            .iter()
+            .copied()
+            .find(|stage| stage.as_str() == spec.stage_id)
+            .unwrap_or_else(|| panic!("catalog stage {} missing from domain enum", spec.stage_id));
+        assert!(
+            bijux_dna_stages_vcf::stage_specs::vcf_domain_stage_default_tool_id(stage)
+                == Some(spec.default_tool_id),
+            "stage {} default tool lookup drifted from the catalog",
+            spec.stage_id
+        );
+    }
+}
+
 fn catalog_stage_ids() -> std::collections::BTreeSet<String> {
     bijux_dna_stages_vcf::stage_specs::vcf_stage_catalog()
         .iter()
