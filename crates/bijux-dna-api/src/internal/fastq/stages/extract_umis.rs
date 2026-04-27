@@ -330,8 +330,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("umi_report.json"), &report)
-        .context("write umi report")?;
+    write_umi_report(inputs.out_dir, &report)?;
     let metrics_json = serde_json::to_value(&metric_set)?;
     bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("metrics.json"), &metrics_json)
         .context("write umi metrics")?;
@@ -429,6 +428,11 @@ fn umi_metrics_from_report(report: &ExtractUmisReportV1) -> FastqUmiMetrics {
         pairs_out: report.pairs_out,
         reads_with_umi: report.reads_with_umi,
     }
+}
+
+fn write_umi_report(out_dir: &std::path::Path, report: &ExtractUmisReportV1) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(&out_dir.join("umi_report.json"), report)
+        .context("write umi report")
 }
 
 fn weighted_mean_q(
