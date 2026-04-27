@@ -100,6 +100,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         validate_rrna_report_execution(&report, &execution)?;
         validate_rrna_report_paired_mode(args.r2.is_some(), &report)?;
         validate_rrna_report_paths(&tool_plan.plan, &report)?;
+        validate_rrna_report_counts(&setup, &report)?;
         write_rrna_report(&report)?;
         let metrics = rrna_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -513,6 +514,61 @@ fn validate_rrna_report_path(
     if observed != expected {
         return Err(anyhow!(
             "rrna depletion report {label} path mismatch: expected {expected}, observed {observed}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_rrna_report_counts(
+    setup: &RrnaBenchmarkSetup,
+    report: &DepleteRrnaReportV1,
+) -> Result<()> {
+    let expected_reads_in =
+        setup.bench_inputs.input_stats.reads + setup.input_stats_r2.as_ref().map_or(0, |s| s.reads);
+    if report.reads_in != expected_reads_in {
+        return Err(anyhow!(
+            "rrna depletion report reads_in mismatch: expected {}, observed {}",
+            expected_reads_in,
+            report.reads_in
+        ));
+    }
+    let expected_bases_in =
+        setup.bench_inputs.input_stats.bases + setup.input_stats_r2.as_ref().map_or(0, |s| s.bases);
+    if report.bases_in != expected_bases_in {
+        return Err(anyhow!(
+            "rrna depletion report bases_in mismatch: expected {}, observed {}",
+            expected_bases_in,
+            report.bases_in
+        ));
+    }
+    validate_rrna_removed_count("reads", report.reads_in, report.reads_out, report.reads_removed)?;
+    validate_rrna_removed_count("bases", report.bases_in, report.bases_out, report.bases_removed)?;
+    let expected_pairs_in = setup
+        .input_stats_r2
+        .as_ref()
+        .map(|stats| setup.bench_inputs.input_stats.reads.min(stats.reads));
+    if report.pairs_in != expected_pairs_in {
+        return Err(anyhow!(
+            "rrna depletion report pairs_in mismatch: expected {:?}, observed {:?}",
+            expected_pairs_in,
+            report.pairs_in
+        ));
+    }
+    if report.pairs_out.zip(report.pairs_in).is_some_and(|(out, input)| out > input) {
+        return Err(anyhow!(
+            "rrna depletion report pairs_out exceeds pairs_in: pairs_out={:?} pairs_in={:?}",
+            report.pairs_out,
+            report.pairs_in
+        ));
+    }
+    Ok(())
+}
+
+fn validate_rrna_removed_count(label: &str, input: u64, output: u64, removed: u64) -> Result<()> {
+    let expected = input.saturating_sub(output);
+    if removed != expected {
+        return Err(anyhow!(
+            "rrna depletion report removed {label} mismatch: expected {expected}, observed {removed}"
         ));
     }
     Ok(())
