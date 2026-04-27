@@ -357,7 +357,7 @@ fn build_screen_record(
     let effective_params: ScreenEffectiveParams =
         serde_json::from_value(inputs.plan.effective_params.clone())
             .context("decode screen taxonomy effective params")?;
-    let report_paths = screen_report_paths(inputs.plan, inputs.out_dir);
+    let report_paths = screen_report_paths(inputs.plan)?;
     let read_accounting = screen_read_accounting(inputs.bench_inputs);
     let classification_summary =
         screen_classification_summary(load_screen_summary_entries(&report_paths.summary_tsv)?);
@@ -435,18 +435,27 @@ fn load_screen_summary_entries(path: &Path) -> Result<Vec<TaxonomyScreenSummaryE
     parse_screen_summary_tsv(&raw)
 }
 
-fn screen_report_paths(plan: &StagePlanV1, out_dir: &Path) -> ScreenReportPaths {
-    let summary_tsv = plan
-        .params
-        .get("report")
-        .and_then(serde_json::Value::as_str)
-        .map_or_else(|| out_dir.join("screen_report.tsv"), std::path::PathBuf::from);
-    let classification_json = plan
-        .params
-        .get("assignments")
-        .and_then(serde_json::Value::as_str)
-        .map_or_else(|| out_dir.join("classification_report.json"), std::path::PathBuf::from);
-    ScreenReportPaths { summary_tsv, classification_json }
+fn screen_report_paths(plan: &StagePlanV1) -> Result<ScreenReportPaths> {
+    Ok(ScreenReportPaths {
+        summary_tsv: required_screen_output_path(plan, "screen_report_tsv")?,
+        classification_json: required_screen_output_path(plan, "classification_report_json")?,
+    })
+}
+
+fn artifact_output_path(plan: &StagePlanV1, artifact_id: &str) -> Option<std::path::PathBuf> {
+    plan.io
+        .outputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_id)
+        .map(|artifact| artifact.path.clone())
+}
+
+fn required_screen_output_path(
+    plan: &StagePlanV1,
+    artifact_id: &str,
+) -> Result<std::path::PathBuf> {
+    artifact_output_path(plan, artifact_id)
+        .ok_or_else(|| anyhow!("screen taxonomy plan missing output artifact {artifact_id}"))
 }
 
 fn screen_read_accounting(bench_inputs: &ScreenBenchInputs) -> ScreenReadAccounting {
