@@ -295,3 +295,23 @@ fn policy__contracts__root_docs_navigation_policy__reference_index_links_governe
         "docs/50-reference/index.md must link the governed reference entry surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__reference_contract_index_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "index.md".to_string(),
+        "SCHEMAS_INDEX.md".to_string(),
+        "COMPATIBILITY_MATRIX.md".to_string(),
+        "EXAMPLES.md".to_string(),
+        "NO_ORPHANS.md".to_string(),
+        "CRATE_MAP.md".to_string(),
+        "PIPELINES.md".to_string(),
+        "CONTRACT_VERSIONING.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/REFERENCE_INDEX.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/REFERENCE_INDEX.md must link the governed reference authorities exactly"
+    );
+}
