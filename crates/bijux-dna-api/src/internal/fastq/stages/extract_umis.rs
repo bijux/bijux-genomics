@@ -452,6 +452,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     validate_umi_report_metrics(&report, &metric_set.metrics)?;
     write_umi_report(&artifacts.report_json, &report)?;
     write_umi_metrics(inputs.out_dir, &metric_set)?;
+    validate_umi_written_artifacts(&artifacts, inputs.out_dir)?;
 
     let context = build_benchmark_context(
         inputs.tool,
@@ -617,6 +618,23 @@ fn validate_umi_report_metrics(
             metrics.reads_with_umi,
             report.reads_with_umi
         ));
+    }
+    Ok(())
+}
+
+fn validate_umi_written_artifacts(artifacts: &UmiArtifacts, out_dir: &Path) -> Result<()> {
+    let metrics_json = out_dir.join("metrics.json");
+    for path in [
+        artifacts.output_r1.as_path(),
+        artifacts.output_r2.as_path(),
+        artifacts.report_json.as_path(),
+        metrics_json.as_path(),
+    ] {
+        let metadata = std::fs::metadata(path)
+            .with_context(|| format!("read extract_umis artifact {}", path.display()))?;
+        if metadata.len() == 0 {
+            return Err(anyhow!("extract_umis artifact is empty: {}", path.display()));
+        }
     }
     Ok(())
 }
