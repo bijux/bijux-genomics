@@ -108,8 +108,9 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             out_dir: &tool_plan.plan.out_dir,
             execution: &execution,
         })?;
-        append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
-        insert_fastq_umi_v1(&conn, &record).context("insert bench sqlite")?;
+        persist_umi_record(&store, &record, |record| {
+            insert_fastq_umi_v1(&conn, record).context("insert bench sqlite")
+        })?;
         records.push(record);
     }
 
@@ -297,6 +298,15 @@ fn umi_execution_metrics(execution: &UmiToolExecution) -> ExecutionMetrics {
         memory_mb: execution.result.memory_mb,
         exit_code: execution.result.exit_code,
     }
+}
+
+fn persist_umi_record(
+    store: &UmiBenchmarkStore,
+    record: &BenchmarkRecord<FastqUmiMetrics>,
+    insert_record: impl FnOnce(&BenchmarkRecord<FastqUmiMetrics>) -> Result<()>,
+) -> Result<()> {
+    append_jsonl(&store.jsonl_path, record).context("write bench.jsonl")?;
+    insert_record(record)
 }
 
 fn prepare_umi_benchmark_setup<S: ::std::hash::BuildHasher>(
