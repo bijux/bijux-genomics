@@ -284,6 +284,24 @@ fn policy__contracts__root_docs_navigation_policy__dependency_rules_links_govern
 }
 
 #[test]
+fn policy__contracts__root_docs_navigation_policy__dataflow_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "../../crates/bijux-dna-engine/tests/contracts/recording/recording_completeness.rs"
+            .to_string(),
+        "../../crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs".to_string(),
+        "../../crates/bijux-dna-analyze/tests/contracts/report/report_contract.rs".to_string(),
+        "../30-operations/RUN_ARTIFACTS.md".to_string(),
+        "../30-operations/REPORT_CONTRACT.md".to_string(),
+        "../50-reference/PIPELINES.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/DATAFLOW.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/DATAFLOW.md must link the governed dataflow authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from([
         "../index.md".to_string(),
