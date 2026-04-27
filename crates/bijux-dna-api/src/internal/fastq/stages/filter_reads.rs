@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -100,13 +100,8 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             tool_spec: &tool_plan.tool_spec,
             input_hash: &setup.input_hash,
             params: &tool_plan.plan.params,
-            output_reads: &tool_plan.plan.io.outputs[0].path,
-            output_reads_r2: tool_plan
-                .plan
-                .io
-                .outputs
-                .get(1)
-                .map(|artifact| artifact.path.as_path()),
+            output_reads: &tool_plan.outputs.reads,
+            output_reads_r2: tool_plan.outputs.reads_r2.as_deref(),
             execution: &execution,
         })?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -134,8 +129,14 @@ struct FilterBenchmarkSetup {
 struct FilterToolPlan {
     tool_spec: ToolExecutionSpecV1,
     plan: StagePlanV1,
+    outputs: FilterPlanOutputs,
     params_hash: String,
     image_digest: String,
+}
+
+struct FilterPlanOutputs {
+    reads: PathBuf,
+    reads_r2: Option<PathBuf>,
 }
 
 struct FilterRecordInputs<'a, S: ::std::hash::BuildHasher> {
@@ -276,6 +277,7 @@ fn prepare_filter_tool_plan<S: ::std::hash::BuildHasher>(
     let tool_spec = apply_thread_override(&tool_spec, args.threads);
     let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
     let plan = plan_filter(&tool_spec, &args.r1, args.r2.as_deref(), &out_dir, &setup.options)?;
+    let outputs = resolve_filter_outputs(&plan)?;
     let params_hash = stable_params_hash(&plan.params);
     let image_digest = tool_spec
         .image
@@ -283,7 +285,19 @@ fn prepare_filter_tool_plan<S: ::std::hash::BuildHasher>(
         .as_ref()
         .ok_or_else(|| anyhow!("image digest missing for tool {tool}"))?
         .clone();
-    Ok(FilterToolPlan { tool_spec, plan, params_hash, image_digest })
+    Ok(FilterToolPlan { tool_spec, plan, outputs, params_hash, image_digest })
+}
+
+fn resolve_filter_outputs(plan: &StagePlanV1) -> Result<FilterPlanOutputs> {
+    let reads = plan
+        .io
+        .outputs
+        .first()
+        .ok_or_else(|| anyhow!("filter plan missing primary reads output"))?
+        .path
+        .clone();
+    let reads_r2 = plan.io.outputs.get(1).map(|artifact| artifact.path.clone());
+    Ok(FilterPlanOutputs { reads, reads_r2 })
 }
 
 fn execute_filter_tool(
