@@ -13,6 +13,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
+use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{ExtractUmisReportV1, PairedMode, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
@@ -362,11 +363,7 @@ fn prepare_umi_benchmark_setup<S: ::std::hash::BuildHasher>(
     bijux_dna_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
     bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
     let r2 = args.r2.as_path();
-    let input_hash = format!(
-        "{}+{}",
-        hash_file_sha256(&args.r1).context("hash umi input r1")?,
-        hash_file_sha256(r2).context("hash umi input r2")?
-    );
+    let input_hash = umi_input_hash(&args.r1, r2)?;
     let input_stats_r1 = observe_fastq_stats(catalog, platform, runner, &args.r1)?;
     let input_stats_r2 = observe_fastq_stats(catalog, platform, runner, r2)?;
     Ok(UmiBenchmarkSetup {
@@ -667,6 +664,13 @@ fn weighted_mean_q(
 
 fn u64_to_f64(value: u64) -> f64 {
     value.to_string().parse::<f64>().unwrap_or(0.0)
+}
+
+fn umi_input_hash(r1: &Path, r2: &Path) -> Result<String> {
+    let r1_hash = hash_file_sha256(r1).context("hash umi input r1")?;
+    let r2_hash = hash_file_sha256(r2).context("hash umi input r2")?;
+    params_hash(&serde_json::json!({ "r1": r1_hash, "r2": r2_hash }))
+        .context("combine paired umi input hashes")
 }
 
 fn required_output_path<'a>(plan: &'a StagePlanV1, artifact_name: &str) -> Result<&'a Path> {
