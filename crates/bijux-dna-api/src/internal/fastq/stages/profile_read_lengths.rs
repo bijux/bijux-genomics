@@ -16,6 +16,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{
     PairedMode, ProfileReadLengthBinV1, ProfileReadLengthsReportV1,
     PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION,
@@ -27,6 +28,7 @@ use bijux_dna_planner_fastq::stage_api::{
     RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_stage_contract::StagePlanV1;
 use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -65,37 +67,23 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
     let mut records = Vec::new();
 
     for tool in &setup.tools {
-        let out_dir = setup.tools_root.join(tool);
-        bijux_dna_infra::ensure_dir(&out_dir)?;
-        let tool_spec =
-            build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
-        let plan =
-            bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan_with_options(
-                &tool_spec,
-                &args.r1,
-                args.r2.as_deref(),
-                &out_dir,
-                args.threads,
-                args.histogram_bins,
-            )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = benchmark_image_identity(&tool_spec);
+        let tool_plan = prepare_read_lengths_tool_plan(catalog, platform, args, &setup, tool)?;
         if let Ok(Some(record)) = fetch_fastq_read_lengths_v1(
             &conn,
             tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &setup.runner.to_string(),
             &platform.name,
             &setup.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
 
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             setup.runner,
             jobs,
         )?
@@ -116,9 +104,9 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         if let Some(r2) = args.r2.as_deref() {
             lengths.extend(read_fastq_lengths(r2)?);
         }
-        let report_json_path = required_output_path(&plan, "report_json")?;
-        let length_tsv_path = required_output_path(&plan, "length_distribution_tsv")?;
-        let length_json_path = required_output_path(&plan, "length_distribution_json")?;
+        let report_json_path = required_output_path(&tool_plan.plan, "report_json")?;
+        let length_tsv_path = required_output_path(&tool_plan.plan, "length_distribution_tsv")?;
+        let length_json_path = required_output_path(&tool_plan.plan, "length_distribution_json")?;
         if !length_tsv_path.exists() || !length_json_path.exists() {
             write_length_outputs(
                 length_tsv_path,
@@ -146,7 +134,7 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             } else {
                 PairedMode::SingleEnd
             },
-            threads: plan.resources.threads,
+            threads: tool_plan.plan.resources.threads,
             histogram_bins: args.histogram_bins.unwrap_or(100).max(1),
             input_r1: args.r1.display().to_string(),
             input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
@@ -166,18 +154,18 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         };
         bijux_dna_infra::atomic_write_json(report_json_path, &report)?;
         bijux_dna_infra::atomic_write_json(
-            &out_dir.join("metrics.json"),
+            &tool_plan.out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
         )?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
-                tool_spec.tool_version.clone(),
-                image_digest,
+                tool_plan.tool_spec.tool_version.clone(),
+                tool_plan.image_digest,
                 setup.runner,
                 platform,
                 setup.input_hash.clone(),
-                plan.params.clone(),
+                tool_plan.plan.params.clone(),
             ),
             execution: ExecutionMetrics {
                 runtime_s: execution.runtime_s,
@@ -202,6 +190,14 @@ struct ReadLengthsBenchmarkSetup {
     bench_dir: PathBuf,
     tools_root: PathBuf,
     input_hash: String,
+}
+
+struct ReadLengthsToolPlan {
+    out_dir: PathBuf,
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    params_hash: String,
+    image_digest: String,
 }
 
 fn preflight_read_lengths_inputs(
@@ -261,6 +257,30 @@ fn ensure_read_lengths_benchmark_qa<S: ::std::hash::BuildHasher>(
 ) -> Result<()> {
     ensure_image_qa_passed(STAGE_ID, tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_ID, tools, platform, catalog)
+}
+
+fn prepare_read_lengths_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
+    setup: &ReadLengthsBenchmarkSetup,
+    tool: &str,
+) -> Result<ReadLengthsToolPlan> {
+    let out_dir = setup.tools_root.join(tool);
+    bijux_dna_infra::ensure_dir(&out_dir)?;
+    let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
+    let plan =
+        bijux_dna_planner_fastq::tool_adapters::fastq::profile_read_lengths::plan_with_options(
+            &tool_spec,
+            &args.r1,
+            args.r2.as_deref(),
+            &out_dir,
+            args.threads,
+            args.histogram_bins,
+        )?;
+    let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let image_digest = benchmark_image_identity(&tool_spec);
+    Ok(ReadLengthsToolPlan { out_dir, tool_spec, plan, params_hash, image_digest })
 }
 
 fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
