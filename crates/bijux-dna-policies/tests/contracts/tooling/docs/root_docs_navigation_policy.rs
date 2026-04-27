@@ -434,3 +434,24 @@ fn policy__contracts__root_docs_navigation_policy__configs_guide_links_governed_
         "docs/50-reference/CONFIGS_GUIDE.md must link the governed config ownership authority exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__examples_reference_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../examples/index.yaml".to_string(),
+        "../../examples/README.md".to_string(),
+        "../../examples/_template/README.md".to_string(),
+        "../../examples/data/corpus-01/README.md".to_string(),
+        "../../examples/data/corpus-01-mini/README.md".to_string(),
+        "../../examples/fastq/index-reference-bench/README.md".to_string(),
+        "../../examples/fastq/normalize-abundance-bench/README.md".to_string(),
+        "../../examples/POLICY.md".to_string(),
+        "../../examples/RECIPE_ONLY.txt".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/EXAMPLES.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/EXAMPLES.md must link the governed example reference surfaces exactly"
+    );
+}
