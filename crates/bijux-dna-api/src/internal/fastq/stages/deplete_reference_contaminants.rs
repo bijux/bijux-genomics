@@ -116,6 +116,7 @@ pub fn bench_fastq_deplete_reference_contaminants<S: ::std::hash::BuildHasher>(
         validate_reference_contaminants_report_paths(&tool_plan.plan, &report)?;
         validate_reference_contaminants_report_counts(&setup, &report)?;
         validate_reference_contaminants_report_fraction(&report)?;
+        validate_reference_contaminants_backend_metrics(&report)?;
         write_reference_contaminants_report(&report)?;
         let metrics = reference_contaminants_metrics_from_report(&report);
         let metric_set = metric_set(metrics.clone());
@@ -711,6 +712,38 @@ fn validate_reference_contaminants_report_fraction(
             "reference contaminant depletion report fraction mismatch: expected {}, observed {}",
             expected,
             report.contaminant_fraction_removed
+        ));
+    }
+    Ok(())
+}
+
+fn validate_reference_contaminants_backend_metrics(
+    report: &DepleteReferenceContaminantsReportV1,
+) -> Result<()> {
+    if report.raw_backend_report.is_none() && report.raw_backend_report_format.is_some() {
+        return Err(anyhow!(
+            "reference contaminant depletion report has backend format without raw backend report"
+        ));
+    }
+    let metrics = report
+        .backend_metrics
+        .as_ref()
+        .ok_or_else(|| anyhow!("reference contaminant depletion report missing backend metrics"))?;
+    validate_reference_contaminants_backend_metric(metrics, "reads_removed", report.reads_removed)?;
+    validate_reference_contaminants_backend_metric(metrics, "bases_removed", report.bases_removed)
+}
+
+fn validate_reference_contaminants_backend_metric(
+    metrics: &serde_json::Value,
+    name: &str,
+    expected: u64,
+) -> Result<()> {
+    let observed = metrics.get(name).and_then(serde_json::Value::as_u64).ok_or_else(|| {
+        anyhow!("reference contaminant depletion backend metrics missing unsigned {name}")
+    })?;
+    if observed != expected {
+        return Err(anyhow!(
+            "reference contaminant depletion backend metric {name} mismatch: expected {expected}, observed {observed}"
         ));
     }
     Ok(())
