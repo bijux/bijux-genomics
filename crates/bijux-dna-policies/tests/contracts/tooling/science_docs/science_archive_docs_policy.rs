@@ -409,6 +409,8 @@ fn policy__contracts__science_archive_docs_policy__fastq_tools_readme_links_cont
     let expected = BTreeSet::from([
         "EVIDENCE_MAP.tsv".to_string(),
         "../README.md".to_string(),
+        "../../README.md".to_string(),
+        "../../../TODO_DOWNLOAD.md".to_string(),
         "../../papers/TOOL_PAPER_MAP.tsv".to_string(),
         "<tool-id>/repo/".to_string(),
         "<tool-id>/download/".to_string(),
