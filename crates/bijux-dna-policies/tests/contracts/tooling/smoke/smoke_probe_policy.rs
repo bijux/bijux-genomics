@@ -3,7 +3,7 @@
 mod support;
 
 #[test]
-fn policy__contracts__smoke_probe_policy__supported_tools_define_valid_probe_contract() {
+fn policy__contracts__smoke_probe_policy__production_tools_define_valid_probe_contract() {
     let root = support::workspace_root();
     let raw = std::fs::read_to_string(root.join("configs/ci/registry/tool_registry.toml"))
         .expect("read configs/ci/registry/tool_registry.toml");
@@ -14,7 +14,7 @@ fn policy__contracts__smoke_probe_policy__supported_tools_define_valid_probe_con
     for tool in tools {
         let id = tool.get("id").and_then(toml::Value::as_str).unwrap_or("<missing-id>");
         let status = tool.get("status").and_then(toml::Value::as_str).unwrap_or("supported");
-        if status != "supported" {
+        if !support::registry_status_is_production(status) {
             continue;
         }
         let version_cmd = tool
@@ -43,5 +43,9 @@ fn policy__contracts__smoke_probe_policy__supported_tools_define_valid_probe_con
         }
     }
 
-    assert!(offenders.is_empty(), "smoke probe policy violations:\n{}", offenders.join("\n"));
+    assert!(
+        offenders.is_empty(),
+        "production smoke probe policy violations:\n{}",
+        offenders.join("\n")
+    );
 }
