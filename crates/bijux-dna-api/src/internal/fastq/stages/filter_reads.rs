@@ -152,6 +152,16 @@ struct FilterRecordInputs<'a, S: ::std::hash::BuildHasher> {
     execution: &'a StageResultV1,
 }
 
+struct FilterReadAccounting {
+    reads_in: u64,
+    reads_out: u64,
+    reads_dropped: u64,
+    bases_in: u64,
+    bases_out: u64,
+    pairs_in: Option<u64>,
+    pairs_out: Option<u64>,
+}
+
 fn select_filter_benchmark_tools(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqFilterArgs,
 ) -> Result<Vec<String>> {
@@ -318,13 +328,12 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     } else {
         None
     };
-    let reads_in = bench_inputs.input_stats.reads + input_stats_r2.map_or(0, |stats| stats.reads);
-    let reads_out = output_stats_r1.reads + output_stats_r2.as_ref().map_or(0, |stats| stats.reads);
-    let bases_in = bench_inputs.input_stats.bases + input_stats_r2.map_or(0, |stats| stats.bases);
-    let bases_out = output_stats_r1.bases + output_stats_r2.as_ref().map_or(0, |stats| stats.bases);
-    let reads_dropped = reads_in.saturating_sub(reads_out);
-    let pairs_in = input_stats_r2.map(|stats| bench_inputs.input_stats.reads.min(stats.reads));
-    let pairs_out = output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
+    let accounting = filter_read_accounting(
+        bench_inputs.input_stats,
+        input_stats_r2,
+        output_stats_r1,
+        output_stats_r2.as_ref(),
+    );
     let out_dir = output_reads.parent().ok_or_else(|| anyhow!("filter output has no parent"))?;
     let report_path = out_dir.join("filter_report.json");
     let raw_backend_report = params
@@ -385,19 +394,19 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
             .get("kmer_ref")
             .and_then(serde_json::Value::as_str)
             .map(ToString::to_string),
-        reads_in,
-        reads_out,
-        reads_dropped,
+        reads_in: accounting.reads_in,
+        reads_out: accounting.reads_out,
+        reads_dropped: accounting.reads_dropped,
         reads_removed_by_n: removal_counts.reads_removed_by_n,
         reads_removed_by_entropy: removal_counts.reads_removed_by_entropy,
         reads_removed_low_complexity: removal_counts.reads_removed_low_complexity,
         reads_removed_by_kmer: removal_counts.reads_removed_by_kmer,
         reads_removed_contaminant_kmer: removal_counts.reads_removed_contaminant_kmer,
         reads_removed_by_length: removal_counts.reads_removed_by_length,
-        bases_in,
-        bases_out,
-        pairs_in,
-        pairs_out,
+        bases_in: accounting.bases_in,
+        bases_out: accounting.bases_out,
+        pairs_in: accounting.pairs_in,
+        pairs_out: accounting.pairs_out,
         mean_q_before: bench_inputs.input_stats.mean_q,
         mean_q_after: output_stats_r1.mean_q,
         runtime_s: Some(execution.runtime_s),
@@ -453,6 +462,30 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn filter_read_accounting(
+    input_stats_r1: SeqkitMetrics,
+    input_stats_r2: Option<&SeqkitMetrics>,
+    output_stats_r1: SeqkitMetrics,
+    output_stats_r2: Option<&SeqkitMetrics>,
+) -> FilterReadAccounting {
+    let reads_in = input_stats_r1.reads + input_stats_r2.map_or(0, |stats| stats.reads);
+    let reads_out = output_stats_r1.reads + output_stats_r2.map_or(0, |stats| stats.reads);
+    let bases_in = input_stats_r1.bases + input_stats_r2.map_or(0, |stats| stats.bases);
+    let bases_out = output_stats_r1.bases + output_stats_r2.map_or(0, |stats| stats.bases);
+    let pairs_in = input_stats_r2.map(|stats| input_stats_r1.reads.min(stats.reads));
+    let pairs_out = output_stats_r2.map(|stats| output_stats_r1.reads.min(stats.reads));
+
+    FilterReadAccounting {
+        reads_in,
+        reads_out,
+        reads_dropped: reads_in.saturating_sub(reads_out),
+        bases_in,
+        bases_out,
+        pairs_in,
+        pairs_out,
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
