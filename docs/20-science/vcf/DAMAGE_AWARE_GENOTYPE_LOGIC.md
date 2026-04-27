@@ -5,7 +5,9 @@
 This document defines the VCF aDNA damage-aware path used by:
 
 - `vcf.call_gl`
+- `vcf.call_pseudohaploid`
 - `vcf.damage_filter`
+- `vcf.gl_propagation`
 - `vcf.impute` (GLIMPSE-oriented low-coverage path)
 
 ## Required Contracts
@@ -70,17 +72,18 @@ Terminal threshold:
 
 - Downstream imputation stage writes residual transition asymmetry diagnostics and warnings so damage signatures can be re-audited after imputation merge.
 
-
 ## Purpose
 
-Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+Keep the damage-aware VCF path explicit across calling, damage filtering, GL retention, and low-coverage imputation so ancient-DNA runs do not silently collapse into modern-diploid assumptions.
 
+## Non-goals
 
-## Non-Goals
-
-Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
-
+- Declaring one damage model universally best across all library types.
+- Replacing lower-level tool parameter ledgers or provenance artifacts.
 
 ## Contracts
 
-Contract details are enforced by stage contracts, schema locks, and CI policy gates for this scope.
+- `vcf.call_gl` and `vcf.call_pseudohaploid` must emit enough provenance for later damage-sensitive interpretation.
+- `vcf.damage_filter` must state whether it used explicit PMD/damage evidence or proxy heuristics.
+- `vcf.gl_propagation` must preserve likelihood-bearing fields needed by low-coverage downstream stages.
+- `vcf.impute` must record residual damage diagnostics when it consumes the damage-aware calling path.
