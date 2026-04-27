@@ -364,3 +364,27 @@ fn policy__contracts__root_docs_navigation_policy__contract_authority_ladder_lin
         "docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md must link the governed ladder authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__crate_authority_map_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "BOUNDARY_MAP.md".to_string(),
+        "../../crates/bijux-dna-policies/docs/POLICY_DIAGNOSTICS.md".to_string(),
+        "../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs"
+            .to_string(),
+        "../../crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs"
+            .to_string(),
+        "../../crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs"
+            .to_string(),
+        "../../crates/bijux-dna-policies/tests/contracts/tooling/governance_core/command_spawn_policy.rs"
+            .to_string(),
+        "../../crates/bijux-dna-policies/tests/contracts/tooling/governance/purity_effects_responsibility_policy.rs"
+            .to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/CRATE_AUTHORITY_MAP.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/CRATE_AUTHORITY_MAP.md must link the governed crate authority surfaces exactly"
+    );
+}
