@@ -440,11 +440,7 @@ fn build_correct_record(
         execution,
         observation.outputs_changed,
     )?;
-    bijux_dna_infra::atomic_write_json(&outputs.report_path, &report)
-        .context("write correction report")?;
-    let metrics_json = serde_json::to_value(&metric_set)?;
-    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
-        .context("write correction metrics")?;
+    write_correct_artifacts(out_dir, &outputs, &report, &metric_set)?;
 
     let context = BenchmarkContext {
         tool: tool.to_string(),
@@ -507,6 +503,19 @@ fn correct_metric_set(
     let metric_set = metric_set(metrics);
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     Ok(metric_set)
+}
+
+fn write_correct_artifacts(
+    out_dir: &Path,
+    outputs: &CorrectRecordOutputs,
+    report: &CorrectErrorsReportV1,
+    metric_set: &bijux_dna_analyze::MetricSet<FastqCorrectMetrics>,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(&outputs.report_path, report)
+        .context("write correction report")?;
+    let metrics_json = serde_json::to_value(metric_set)?;
+    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+        .context("write correction metrics")
 }
 
 #[cfg(test)]
