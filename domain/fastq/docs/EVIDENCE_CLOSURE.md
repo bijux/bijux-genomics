@@ -6,8 +6,12 @@ Evidence-closure rules for FASTQ stage and tool support.
 ## Why
 The FASTQ domain separates three different claims that are easy to conflate:
 
-- the runtime contract is represented in `domain/fastq/`;
-- the scientific method or software citation is represented in `science/docs/upstream/` and `docs/20-science/fastq/REFERENCES.md`;
+- the runtime contract is represented by
+  [domain/fastq/execution_support.yaml](../execution_support.yaml);
+- the scientific method or software citation is represented in
+  [science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv](../../../science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv),
+  [science/docs/upstream/papers/TOOL_PAPER_MAP.tsv](../../../science/docs/upstream/papers/TOOL_PAPER_MAP.tsv),
+  and [docs/20-science/fastq/REFERENCES.md](../../../docs/20-science/fastq/REFERENCES.md);
 - the local archive state is represented by governed payloads and generated closure reports.
 
 ## Closure Contract
@@ -30,10 +34,11 @@ Treat a FASTQ tool-stage pair as closed only when all of these are true:
 ## Generated Reports
 Use these generated reports as the source of truth for closure state after running the science build:
 
-- `science/generated/current/evidence/fastq_evidence_closure.tsv`
-- `science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv`
-- `science/generated/current/evidence/fastq_paper_archive_matrix.tsv`
-- `science/generated/current/evidence/fastq_download_backlog.tsv`
+- [science/generated/current/evidence/README.md](../../../science/generated/current/evidence/README.md)
+- [science/generated/current/evidence/fastq_closure_gate.tsv](../../../science/generated/current/evidence/fastq_closure_gate.tsv)
+- [science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv](../../../science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv)
+- [science/generated/current/evidence/fastq_paper_archive_matrix.tsv](../../../science/generated/current/evidence/fastq_paper_archive_matrix.tsv)
+- [science/generated/current/evidence/fastq_download_backlog.tsv](../../../science/generated/current/evidence/fastq_download_backlog.tsv)
 
 ## Review Notes
 - Adding a citation URL is not enough for world-class closure when the generated report also requires a local paper or upstream archive payload.

@@ -5,6 +5,25 @@ mod support;
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 
+fn markdown_link_targets(path: &str) -> BTreeSet<String> {
+    let root = support::workspace_root();
+    let raw =
+        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
+    let mut targets = BTreeSet::new();
+    for line in raw.lines() {
+        let mut rest = line;
+        while let Some((_, suffix)) = rest.split_once("](") {
+            if let Some((target, tail)) = suffix.split_once(')') {
+                targets.insert(target.to_string());
+                rest = tail;
+            } else {
+                break;
+            }
+        }
+    }
+    targets
+}
+
 fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
     let root = support::workspace_root();
     let raw =
@@ -241,6 +260,28 @@ fn fastq_reference_stage_rows() -> BTreeMap<String, BTreeSet<String>> {
             (row[0].to_string(), backticked_ids(&row[1]))
         })
         .collect()
+}
+
+#[test]
+fn policy__contracts__fastq_science_docs_policy__fastq_evidence_closure_links_governed_runtime_and_generated_ledgers_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../execution_support.yaml".to_string(),
+        "../../../science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv".to_string(),
+        "../../../science/docs/upstream/papers/TOOL_PAPER_MAP.tsv".to_string(),
+        "../../../docs/20-science/fastq/REFERENCES.md".to_string(),
+        "../../../science/generated/current/evidence/README.md".to_string(),
+        "../../../science/generated/current/evidence/fastq_closure_gate.tsv".to_string(),
+        "../../../science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv"
+            .to_string(),
+        "../../../science/generated/current/evidence/fastq_paper_archive_matrix.tsv".to_string(),
+        "../../../science/generated/current/evidence/fastq_download_backlog.tsv".to_string(),
+    ]);
+    let documented = markdown_link_targets("domain/fastq/docs/EVIDENCE_CLOSURE.md");
+    assert_eq!(
+        expected, documented,
+        "domain/fastq/docs/EVIDENCE_CLOSURE.md must link the governed runtime, evidence, and generated closure surfaces exactly"
+    );
 }
 
 #[test]
