@@ -33,6 +33,12 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 const FALLBACK_TRIM_ADAPTER_R1: &str = "CGTACGATTCGAGCTAGTCCGATGCTTACGATCGTTCAGAGTAC";
 const FALLBACK_TRIM_ADAPTER_R2: &str = "TGCATCGACTAGCGTTACGTCAGTATCGGATCAGTTCGATGACA";
 
+struct TrimPlanPaths {
+    output_r1: PathBuf,
+    output_r2: Option<PathBuf>,
+    report_json: PathBuf,
+}
+
 /// Build a trim command plan.
 ///
 /// # Errors
@@ -71,8 +77,6 @@ pub fn plan_with_options(
     contaminant_bank: Option<&serde_json::Value>,
     options: &TrimPlanOptions,
 ) -> Result<StagePlanV1> {
-    let output_name =
-        trim_output_name(&tool.tool_id.0).ok_or_else(|| anyhow!("unsupported trim tool"))?;
     if tool.tool_id.as_str() == "seqpurge" && r2.is_none() {
         return Err(anyhow!("seqpurge trim planning requires paired-end reads"));
     }
@@ -81,49 +85,126 @@ pub fn plan_with_options(
         tool.tool_id.as_str(),
         options.resolved_threads(tool.resources.threads),
     );
-    let output_r1 = if r2.is_some() {
-        out_dir.join(format!("R1.{output_name}"))
-    } else {
-        out_dir.join(output_name)
-    };
-    let output_r2 = r2.map(|_| out_dir.join(format!("R2.{output_name}")));
+    let paths = trim_plan_paths(tool.tool_id.as_str(), out_dir, r2.is_some())?;
+    let params = trim_plan_params(
+        &tool.tool_id.0,
+        r1,
+        r2,
+        &paths,
+        effective_threads,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        options,
+    );
+    let effective_params = trim_effective_params(r2.is_some(), effective_threads, options);
+    let inputs = trim_plan_inputs(r1, r2);
+    let outputs = trim_plan_outputs(tool.tool_id.as_str(), &paths);
+    let command_template = trim_command_template(
+        tool,
+        r1,
+        r2,
+        &paths.output_r1,
+        paths.output_r2.as_deref(),
+        &paths.report_json,
+        adapter_bank,
+        polyx_bank,
+        contaminant_bank,
+        options,
+    )?;
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_threads;
+    Ok(StagePlanV1 {
+        stage_id: STAGE_ID.clone(),
+        stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
+            &STAGE_ID,
+            &tool.tool_id,
+        )),
+        stage_version: STAGE_VERSION,
+        tool_id: tool.tool_id.clone(),
+        tool_version: tool.tool_version.clone(),
+        image: tool.image.clone(),
+        command: CommandSpecV1 { template: command_template },
+        resources,
+        io: StageIO { inputs, outputs },
+        out_dir: out_dir.to_path_buf(),
+        params,
+        effective_params: serde_json::to_value(&effective_params)
+            .map_err(|error| anyhow!("serialize trim effective params: {error}"))?,
+        aux_images: std::collections::BTreeMap::new(),
+        reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
+    })
+}
+
+fn trim_plan_paths(tool_id: &str, out_dir: &Path, paired: bool) -> Result<TrimPlanPaths> {
+    let output_name = trim_output_name(tool_id).ok_or_else(|| anyhow!("unsupported trim tool"))?;
+    Ok(TrimPlanPaths {
+        output_r1: if paired {
+            out_dir.join(format!("R1.{output_name}"))
+        } else {
+            out_dir.join(output_name)
+        },
+        output_r2: paired.then(|| out_dir.join(format!("R2.{output_name}"))),
+        report_json: out_dir.join("trim_report.json"),
+    })
+}
+
+fn trim_plan_params(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    paths: &TrimPlanPaths,
+    effective_threads: u32,
+    adapter_bank: Option<&serde_json::Value>,
+    polyx_bank: Option<&serde_json::Value>,
+    contaminant_bank: Option<&serde_json::Value>,
+    options: &TrimPlanOptions,
+) -> serde_json::Value {
+    let adapter_policy = options.resolved_adapter_policy();
+    let polyx_policy = options.resolved_polyx_policy();
+    let contaminant_policy = options.resolved_contaminant_policy();
+    let n_policy = options.resolved_n_policy();
     let mut params = serde_json::json!({
-        "tool": tool.tool_id.0,
+        "tool": tool_id,
         "input_r1": r1,
         "input_r2": r2,
-        "output_r1": output_r1,
-        "output_r2": output_r2,
+        "output_r1": paths.output_r1,
+        "output_r2": paths.output_r2,
         "threads": effective_threads,
         "min_length": options.resolved_min_length(),
         "quality_cutoff": options.quality_cutoff,
-        "n_policy": options.resolved_n_policy(),
-        "adapter_policy": options.resolved_adapter_policy(),
-        "polyx_policy": options.resolved_polyx_policy(),
-        "contaminant_policy": options.resolved_contaminant_policy(),
+        "n_policy": n_policy,
+        "adapter_policy": adapter_policy,
+        "polyx_policy": polyx_policy,
+        "contaminant_policy": contaminant_policy,
     });
-    if options.resolved_adapter_policy() != "none" {
-        if let Some(adapter_bank) = adapter_bank {
-            if let Some(map) = params.as_object_mut() {
-                map.insert("adapter_bank".to_string(), adapter_bank.clone());
-            }
-        }
+    insert_enabled_bank(&mut params, "adapter_bank", &adapter_policy, adapter_bank);
+    insert_enabled_bank(&mut params, "polyx_bank", &polyx_policy, polyx_bank);
+    insert_enabled_bank(&mut params, "contaminant_bank", &contaminant_policy, contaminant_bank);
+    params
+}
+
+fn insert_enabled_bank(
+    params: &mut serde_json::Value,
+    key: &str,
+    policy: &str,
+    bank: Option<&serde_json::Value>,
+) {
+    if policy == "none" {
+        return;
     }
-    if options.resolved_polyx_policy() != "none" {
-        if let Some(polyx_bank) = polyx_bank {
-            if let Some(map) = params.as_object_mut() {
-                map.insert("polyx_bank".to_string(), polyx_bank.clone());
-            }
-        }
+    if let (Some(map), Some(bank)) = (params.as_object_mut(), bank) {
+        map.insert(key.to_string(), bank.clone());
     }
-    if options.resolved_contaminant_policy() != "none" {
-        if let Some(contaminant_bank) = contaminant_bank {
-            if let Some(map) = params.as_object_mut() {
-                map.insert("contaminant_bank".to_string(), contaminant_bank.clone());
-            }
-        }
-    }
-    let effective_params = TrimEffectiveParams {
-        paired_mode: if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+}
+
+fn trim_effective_params(
+    paired: bool,
+    effective_threads: u32,
+    options: &TrimPlanOptions,
+) -> TrimEffectiveParams {
+    TrimEffectiveParams {
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: effective_threads,
         min_len: options.resolved_min_length(),
         q_cutoff: options.quality_cutoff,
@@ -132,7 +213,10 @@ pub fn plan_with_options(
         polyx_policy: Some(options.resolved_polyx_policy()),
         n_policy: Some(options.resolved_n_policy()),
         contaminant_policy: Some(options.resolved_contaminant_policy()),
-    };
+    }
+}
+
+fn trim_plan_inputs(r1: &Path, r2: Option<&Path>) -> Vec<ArtifactRef> {
     let mut inputs = vec![ArtifactRef::required(
         ArtifactId::from_static("reads_r1"),
         r1.to_path_buf(),
@@ -145,13 +229,16 @@ pub fn plan_with_options(
             ArtifactRole::Reads,
         ));
     }
-    let report_json = out_dir.join("trim_report.json");
+    inputs
+}
+
+fn trim_plan_outputs(tool_id: &str, paths: &TrimPlanPaths) -> Vec<ArtifactRef> {
     let mut outputs = vec![ArtifactRef::required(
         ArtifactId::from_static("trimmed_reads_r1"),
-        output_r1.clone(),
+        paths.output_r1.clone(),
         ArtifactRole::TrimmedReads,
     )];
-    if let Some(output_r2) = &output_r2 {
+    if let Some(output_r2) = &paths.output_r2 {
         outputs.push(ArtifactRef::required(
             ArtifactId::from_static("trimmed_reads_r2"),
             output_r2.clone(),
@@ -160,48 +247,13 @@ pub fn plan_with_options(
     }
     outputs.push(ArtifactRef::required(
         ArtifactId::from_static("report_json"),
-        report_json.clone(),
+        paths.report_json.clone(),
         ArtifactRole::ReportJson,
     ));
-    if let Some(raw_backend_output) = trim_raw_backend_output(tool.tool_id.as_str(), &report_json) {
+    if let Some(raw_backend_output) = trim_raw_backend_output(tool_id, &paths.report_json) {
         outputs.push(raw_backend_output);
     }
-    let command_template = trim_command_template(
-        tool,
-        r1,
-        r2,
-        &output_r1,
-        output_r2.as_deref(),
-        &report_json,
-        adapter_bank,
-        polyx_bank,
-        contaminant_bank,
-        options,
-    )?;
-    Ok(StagePlanV1 {
-        stage_id: STAGE_ID.clone(),
-        stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
-            &STAGE_ID,
-            &tool.tool_id,
-        )),
-        stage_version: STAGE_VERSION,
-        tool_id: tool.tool_id.clone(),
-        tool_version: tool.tool_version.clone(),
-        image: tool.image.clone(),
-        command: CommandSpecV1 { template: command_template },
-        resources: {
-            let mut resources = tool.resources.clone();
-            resources.threads = effective_threads;
-            resources
-        },
-        io: StageIO { inputs, outputs },
-        out_dir: out_dir.to_path_buf(),
-        params,
-        effective_params: serde_json::to_value(&effective_params)
-            .map_err(|error| anyhow!("serialize trim effective params: {error}"))?,
-        aux_images: std::collections::BTreeMap::new(),
-        reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
-    })
+    outputs
 }
 
 /// Build a trim plan from resolved config.
