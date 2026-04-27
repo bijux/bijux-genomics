@@ -156,6 +156,8 @@ fn policy__contracts__science_archive_docs_policy__science_docs_readme_links_arc
 fn policy__contracts__science_archive_docs_policy__science_upstream_readme_links_subsurfaces_exactly(
 ) {
     let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../TODO_DOWNLOAD.md".to_string(),
         "fastq/README.md".to_string(),
         "fastq/tools/README.md".to_string(),
         "fastq/tools/EVIDENCE_MAP.tsv".to_string(),
