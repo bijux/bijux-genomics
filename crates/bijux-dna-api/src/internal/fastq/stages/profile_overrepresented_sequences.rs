@@ -1,4 +1,4 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
 
@@ -365,6 +365,7 @@ fn prepare_overrepresented_artifacts(
     let output_tsv = required_output_path(plan, "overrepresented_sequences_tsv")?.to_path_buf();
     let output_json = required_output_path(plan, "overrepresented_sequences_json")?.to_path_buf();
     let report_json = required_output_path(plan, "report_json")?.to_path_buf();
+    validate_overrepresented_artifact_paths(&output_tsv, &output_json, &report_json)?;
     if !output_tsv.exists() || !output_json.exists() {
         materialize_overrepresented_outputs(
             &args.r1,
@@ -375,6 +376,23 @@ fn prepare_overrepresented_artifacts(
         )?;
     }
     Ok(OverrepresentedArtifacts { output_tsv, output_json, report_json })
+}
+
+fn validate_overrepresented_artifact_paths(
+    output_tsv: &Path,
+    output_json: &Path,
+    report_json: &Path,
+) -> Result<()> {
+    let mut paths = BTreeSet::new();
+    for path in [output_tsv, output_json, report_json] {
+        if !paths.insert(path) {
+            return Err(anyhow!(
+                "profile_overrepresented_sequences output path reused by multiple artifacts: {}",
+                path.display()
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn observe_overrepresented_tool(
