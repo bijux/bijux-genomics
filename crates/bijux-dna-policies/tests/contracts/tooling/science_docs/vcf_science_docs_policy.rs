@@ -108,6 +108,15 @@ fn vcf_stage_specs() -> BTreeMap<String, VcfStageDocSpec> {
         let mut in_tools = false;
         for line in raw.lines() {
             let trimmed = line.trim();
+            if let Some(value) = trimmed.strip_prefix("compatible_tools: [") {
+                for tool_id in value.trim_end_matches(']').split(',') {
+                    let tool_id = tool_id.trim().trim_matches('"');
+                    if !tool_id.is_empty() {
+                        compatible_tools.insert(tool_id.to_string());
+                    }
+                }
+                continue;
+            }
             if trimmed == "compatible_tools:" {
                 in_tools = true;
                 continue;
@@ -115,16 +124,6 @@ fn vcf_stage_specs() -> BTreeMap<String, VcfStageDocSpec> {
             if in_tools {
                 if let Some(tool_id) = trimmed.strip_prefix("- ") {
                     compatible_tools.insert(tool_id.trim_matches('"').to_string());
-                    continue;
-                }
-                if let Some(value) = trimmed.strip_prefix("compatible_tools: [") {
-                    for tool_id in value.trim_end_matches(']').split(',') {
-                        let tool_id = tool_id.trim().trim_matches('"');
-                        if !tool_id.is_empty() {
-                            compatible_tools.insert(tool_id.to_string());
-                        }
-                    }
-                    in_tools = false;
                     continue;
                 }
                 in_tools = false;
@@ -181,6 +180,35 @@ fn vcf_tools_roster_rows() -> BTreeMap<String, VcfStageDocSpec> {
         .collect()
 }
 
+fn assert_vcf_tools_roster_matches(stage_ids: &[&str], label: &str) {
+    let expected = vcf_stage_specs();
+    let roster = vcf_tools_roster_rows();
+    let mut offenders = Vec::new();
+
+    for stage_id in stage_ids {
+        let expected_tools = &expected
+            .get(*stage_id)
+            .unwrap_or_else(|| panic!("missing VCF stage manifest for {stage_id}"))
+            .compatible_tools;
+        let documented_tools = &roster
+            .get(*stage_id)
+            .unwrap_or_else(|| panic!("missing tools roster row for {stage_id}"))
+            .compatible_tools;
+        if documented_tools != expected_tools {
+            offenders.push(format!(
+                "{stage_id}: expected {:?}, found {:?}",
+                expected_tools, documented_tools
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "VCF tools roster drift for {label}:\n{}",
+        offenders.join("\n")
+    );
+}
+
 #[test]
 fn policy__contracts__vcf_science_docs_policy__index_covers_vcf_science_docs_exactly() {
     let expected = vcf_science_doc_targets();
@@ -228,5 +256,22 @@ fn policy__contracts__vcf_science_docs_policy__tools_roster_covers_stage_catalog
         offenders.is_empty(),
         "VCF tools roster status drift:\n{}",
         offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__vcf_science_docs_policy__tools_roster_matches_supported_execution_stages() {
+    assert_vcf_tools_roster_matches(
+        &[
+            "vcf.call",
+            "vcf.call_diploid",
+            "vcf.call_gl",
+            "vcf.call_pseudohaploid",
+            "vcf.damage_filter",
+            "vcf.filter",
+            "vcf.gl_propagation",
+            "vcf.stats",
+        ],
+        "supported execution stages",
     );
 }
