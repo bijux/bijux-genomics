@@ -536,6 +536,9 @@ fn accumulate_overrepresented_counts(
         return Err(anyhow!("truncated FASTQ record in {}", path.display()));
     }
     for record in chunks {
+        if !record[0].starts_with('@') || !record[2].starts_with('+') {
+            return Err(anyhow!("invalid FASTQ framing in {}", path.display()));
+        }
         *counts.entry(record[1].trim().to_string()).or_insert(0) += 1;
     }
     Ok(())
