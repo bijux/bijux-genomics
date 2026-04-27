@@ -1,5 +1,9 @@
 use std::path::{Path, PathBuf};
 
+/// Return sorted child paths for a directory.
+///
+/// # Panics
+/// Panics if `dir` cannot be read.
 #[must_use]
 pub fn sorted_read_dir_paths(dir: impl AsRef<Path>) -> Vec<PathBuf> {
     let dir = dir.as_ref();
