@@ -1125,6 +1125,18 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
             String::new(),
             "Purpose: generated per-tool container contract summary.".to_string(),
             String::new(),
+            "- Root contract: [containers/README.md](../../README.md)".to_string(),
+            "- Tool docs index: [containers/docs/tools/index.md](index.md)".to_string(),
+            "- Tool name map: [containers/docs/TOOL_NAME_MAP.md](../TOOL_NAME_MAP.md)"
+                .to_string(),
+            "- Version inventory: [containers/versions/versions.toml](../../versions/versions.toml)"
+                .to_string(),
+            "- License index: [containers/licenses/README.md](../../licenses/README.md)"
+                .to_string(),
+            format!(
+                "- Tool license record: [containers/licenses/{tool}.license.toml](../../licenses/{tool}.license.toml)"
+            ),
+            String::new(),
             format!("- Version: `{}`", table_string(version_row, "version")),
             format!("- License: `{}`", {
                 let spdx = table_string(&license_row, "spdx");
