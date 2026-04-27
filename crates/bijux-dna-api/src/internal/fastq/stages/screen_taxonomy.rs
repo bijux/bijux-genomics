@@ -90,15 +90,15 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
             failures.push(failure);
             continue;
         }
-        let record = build_screen_record(
+        let record = build_screen_record(&ScreenRecordInputs {
             platform,
-            &bench_inputs,
-            &tool_plan.tool,
-            &tool_plan.tool_spec,
-            &tool_plan.plan,
-            &tool_plan.out_dir,
-            &execution,
-        )?;
+            bench_inputs: &bench_inputs,
+            tool: &tool_plan.tool,
+            tool_spec: &tool_plan.tool_spec,
+            plan: &tool_plan.plan,
+            out_dir: &tool_plan.out_dir,
+            execution: &execution,
+        })?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_screen_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
@@ -167,6 +167,16 @@ struct ScreenToolPlan {
     out_dir: std::path::PathBuf,
     params_hash: String,
     image_digest: String,
+}
+
+struct ScreenRecordInputs<'a> {
+    platform: &'a PlatformSpec,
+    bench_inputs: &'a ScreenBenchInputs,
+    tool: &'a str,
+    tool_spec: &'a ToolExecutionSpecV1,
+    plan: &'a StagePlanV1,
+    out_dir: &'a Path,
+    execution: &'a StageResultV1,
 }
 
 fn prepare_screen_tool_plan<S: ::std::hash::BuildHasher>(
@@ -320,35 +330,31 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
 
 #[allow(clippy::too_many_lines)]
 fn build_screen_record(
-    platform: &PlatformSpec,
-    bench_inputs: &ScreenBenchInputs,
-    tool: &str,
-    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
-    plan: &bijux_dna_stage_contract::StagePlanV1,
-    out_dir: &Path,
-    execution: &StageResultV1,
+    inputs: &ScreenRecordInputs<'_>,
 ) -> Result<BenchmarkRecord<FastqScreenMetrics>> {
     let effective_params: ScreenEffectiveParams =
-        serde_json::from_value(plan.effective_params.clone())
+        serde_json::from_value(inputs.plan.effective_params.clone())
             .context("decode screen taxonomy effective params")?;
-    let report_path = plan
+    let report_path = inputs
+        .plan
         .params
         .get("report")
         .and_then(serde_json::Value::as_str)
-        .map_or_else(|| out_dir.join("screen_report.tsv"), std::path::PathBuf::from);
-    let classification_report_path = plan
-        .params
-        .get("assignments")
-        .and_then(serde_json::Value::as_str)
-        .map_or_else(|| out_dir.join("classification_report.json"), std::path::PathBuf::from);
-    let reads_in = bench_inputs.input_stats.reads
-        + bench_inputs.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
-    let bases_in = bench_inputs.input_stats.bases
-        + bench_inputs.input_stats_r2.as_ref().map_or(0, |stats| stats.bases);
-    let pairs = bench_inputs
+        .map_or_else(|| inputs.out_dir.join("screen_report.tsv"), std::path::PathBuf::from);
+    let classification_report_path =
+        inputs.plan.params.get("assignments").and_then(serde_json::Value::as_str).map_or_else(
+            || inputs.out_dir.join("classification_report.json"),
+            std::path::PathBuf::from,
+        );
+    let reads_in = inputs.bench_inputs.input_stats.reads
+        + inputs.bench_inputs.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
+    let bases_in = inputs.bench_inputs.input_stats.bases
+        + inputs.bench_inputs.input_stats_r2.as_ref().map_or(0, |stats| stats.bases);
+    let pairs = inputs
+        .bench_inputs
         .input_stats_r2
         .as_ref()
-        .map_or(0, |stats| bench_inputs.input_stats.reads.min(stats.reads));
+        .map_or(0, |stats| inputs.bench_inputs.input_stats.reads.min(stats.reads));
     let summary_entries = load_screen_summary_entries(&report_path)?;
     let unclassified_fraction = find_unclassified_fraction(&summary_entries);
     let classified_fraction = unclassified_fraction.map(|value| (1.0 - value).max(0.0));
@@ -358,7 +364,7 @@ fn build_screen_record(
         schema_version: SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_SCREEN_TAXONOMY.as_str().to_string(),
         stage_id: STAGE_SCREEN_TAXONOMY.as_str().to_string(),
-        tool_id: tool.to_string(),
+        tool_id: inputs.tool.to_string(),
         paired_mode: effective_params.paired_mode,
         threads: effective_params.threads,
         classifier: effective_params.classifier.clone(),
@@ -372,8 +378,8 @@ fn build_screen_record(
         database_scope: effective_params.database_scope.clone(),
         minimum_confidence: effective_params.minimum_confidence,
         emit_unclassified: effective_params.emit_unclassified,
-        input_r1: bench_inputs.r1.display().to_string(),
-        input_r2: bench_inputs.r2.as_ref().map(|path| path.display().to_string()),
+        input_r1: inputs.bench_inputs.r1.display().to_string(),
+        input_r2: inputs.bench_inputs.r2.as_ref().map(|path| path.display().to_string()),
         screen_report_tsv: report_path.display().to_string(),
         classification_report_json: classification_report_path.display().to_string(),
         reads_in: Some(reads_in),
@@ -387,8 +393,8 @@ fn build_screen_record(
         unclassified_fraction,
         summary_entries: summary_entries.clone(),
         top_taxa: top_taxa.clone(),
-        runtime_s: Some(execution.runtime_s),
-        memory_mb: Some(execution.memory_mb),
+        runtime_s: Some(inputs.execution.runtime_s),
+        memory_mb: Some(inputs.execution.memory_mb),
     };
     bijux_dna_infra::atomic_write_json(&classification_report_path, &governed_report)
         .context("write governed screen taxonomy report")?;
@@ -416,24 +422,24 @@ fn build_screen_record(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     let metrics_json = serde_json::to_value(&metric_set)?;
-    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+    bijux_dna_infra::atomic_write_json(&inputs.out_dir.join("metrics.json"), &metrics_json)
         .context("write screen taxonomy metrics")?;
 
     let context = build_benchmark_context(
-        tool,
-        tool_spec.tool_version.clone(),
-        benchmark_image_identity(tool_spec),
-        bench_inputs.runner,
-        platform,
-        bench_inputs.input_hash.clone(),
-        plan.params.clone(),
+        inputs.tool,
+        inputs.tool_spec.tool_version.clone(),
+        benchmark_image_identity(inputs.tool_spec),
+        inputs.bench_inputs.runner,
+        inputs.platform,
+        inputs.bench_inputs.input_hash.clone(),
+        inputs.plan.params.clone(),
     );
     let record = BenchmarkRecord {
         context,
         execution: ExecutionMetrics {
-            runtime_s: execution.runtime_s,
-            memory_mb: execution.memory_mb,
-            exit_code: execution.exit_code,
+            runtime_s: inputs.execution.runtime_s,
+            memory_mb: inputs.execution.memory_mb,
+            exit_code: inputs.execution.exit_code,
         },
         metrics: metric_set,
     };
