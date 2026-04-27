@@ -22,7 +22,6 @@ fn configured_domains(root: &std::path::Path) -> Vec<String> {
 }
 
 #[test]
-#[ignore = "TODO: refresh truth fixture policy for expanded stage/tool matrix"]
 fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_have_truth_fixtures()
 {
     let root = support::workspace_root();
@@ -104,10 +103,9 @@ fn policy__contracts__domain_truth_fixture_policy__supported_stage_tool_pairs_ha
         }
     }
 
-    if !offenders.is_empty() {
-        eprintln!(
-            "domain truth fixture drift (non-fatal during migration):\n{}",
-            offenders.join("\n")
-        );
-    }
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "supported stage/tool pairs must keep truth fixtures:\n{}",
+        offenders.join("\n")
+    );
 }
