@@ -498,9 +498,15 @@ fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
         let qual = lines.next();
         match (header, seq, plus, qual) {
             (None, None, None, None) => break,
-            (Some(header), Some(seq), Some(plus), Some(_qual)) => {
+            (Some(header), Some(seq), Some(plus), Some(qual)) => {
                 if !header.starts_with('@') || !plus.starts_with('+') {
                     return Err(anyhow!("invalid FASTQ framing in {}", path.display()));
+                }
+                if seq.len() != qual.len() {
+                    return Err(anyhow!(
+                        "FASTQ sequence/quality length mismatch in {}",
+                        path.display()
+                    ));
                 }
                 lengths.push(seq.len());
             }
