@@ -403,6 +403,7 @@ fn build_screen_record(
     validate_screen_report_paired_mode(inputs.bench_inputs.r2.is_some(), &governed_report)?;
     validate_screen_report_database(&effective_params, &governed_report)?;
     validate_screen_report_paths(inputs.plan, &governed_report)?;
+    validate_screen_report_counts(&read_accounting, &governed_report)?;
     bijux_dna_infra::atomic_write_json(&report_paths.classification_json, &governed_report)
         .context("write governed screen taxonomy report")?;
     let metrics =
@@ -679,6 +680,33 @@ fn validate_screen_report_path(label: &str, expected: &Path, observed: &str) -> 
     if observed != expected {
         return Err(anyhow!(
             "screen taxonomy report {label} path mismatch: expected {expected}, observed {observed}"
+        ));
+    }
+    Ok(())
+}
+
+fn validate_screen_report_counts(
+    read_accounting: &ScreenReadAccounting,
+    report: &ScreenTaxonomyReportV1,
+) -> Result<()> {
+    validate_screen_optional_count("reads_in", Some(read_accounting.reads_in), report.reads_in)?;
+    validate_screen_optional_count("reads_out", report.reads_in, report.reads_out)?;
+    validate_screen_optional_count("bases_in", Some(read_accounting.bases_in), report.bases_in)?;
+    validate_screen_optional_count("bases_out", report.bases_in, report.bases_out)?;
+    validate_screen_optional_count("pairs_in", Some(read_accounting.pairs), report.pairs_in)?;
+    validate_screen_optional_count("pairs_out", report.pairs_in, report.pairs_out)
+}
+
+fn validate_screen_optional_count(
+    name: &str,
+    expected: Option<u64>,
+    observed: Option<u64>,
+) -> Result<()> {
+    if observed != expected {
+        return Err(anyhow!(
+            "screen taxonomy report {name} mismatch: expected {:?}, observed {:?}",
+            expected,
+            observed
         ));
     }
     Ok(())
