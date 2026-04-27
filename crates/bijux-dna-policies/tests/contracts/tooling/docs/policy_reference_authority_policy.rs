@@ -67,3 +67,18 @@ fn policy__contracts__policy_reference_authority_policy__example_template_links_
         "docs/50-reference/EXAMPLE_TEMPLATE.md must link the governed example-template authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__example_runner_contract_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../examples/index.yaml".to_string(),
+        "../30-operations/RUN_ARTIFACTS.md".to_string(),
+        "../30-operations/REPORT_CONTRACT.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/EXAMPLE_RUNNER_CONTRACT.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/EXAMPLE_RUNNER_CONTRACT.md must link the governed example-runner authorities exactly"
+    );
+}

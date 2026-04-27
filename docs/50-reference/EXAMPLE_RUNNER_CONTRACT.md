@@ -4,14 +4,17 @@
 Define required outputs for any example runner execution.
 
 ## Scope
-Applies to scripts and commands that run curated examples and sample workflows.
+Applies to scripts and commands that run curated examples and sample workflows listed in
+[examples/index.yaml](../../examples/index.yaml).
 
 ## Non-goals
 - Defining tool-specific scientific metric semantics.
 
 ## Contracts
 - Every example run must produce a minimum output bundle with logs, metrics, traces, and report artifacts.
-- Output paths must be deterministic relative to run root.
+- Output paths must be deterministic relative to run root under
+  [RUN_ARTIFACTS.md](../30-operations/RUN_ARTIFACTS.md).
+- Machine-readable report outputs must satisfy [REPORT_CONTRACT.md](../30-operations/REPORT_CONTRACT.md).
 
 ## Required Outputs
 - `logs/`:
