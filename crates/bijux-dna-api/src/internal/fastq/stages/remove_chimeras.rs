@@ -121,6 +121,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         validate_remove_chimeras_report_paired_mode(args, &report)?;
         validate_remove_chimeras_report_paths(args, &outputs, &report)?;
         validate_remove_chimeras_report_observed_counts(&setup, &observation, &report)?;
+        validate_remove_chimeras_report_fraction(&report)?;
         validate_remove_chimeras_report_metrics(&report, &metric_set.metrics)?;
         write_remove_chimeras_artifacts(&tool_plan.out_dir, &outputs, &report, &metric_set)?;
         let record = build_remove_chimeras_record(
@@ -779,6 +780,24 @@ fn validate_remove_chimeras_report_observed_counts(
             "remove_chimeras report removed count does not match observed reads: expected {}, observed {:?}",
             expected_removed,
             report.chimeras_removed
+        ));
+    }
+    Ok(())
+}
+
+fn validate_remove_chimeras_report_fraction(report: &RemoveChimerasReportV1) -> Result<()> {
+    let reads_in = report.reads_in.ok_or_else(|| {
+        anyhow!("remove_chimeras report missing reads_in for fraction validation")
+    })?;
+    let chimeras_removed = report.chimeras_removed.ok_or_else(|| {
+        anyhow!("remove_chimeras report missing chimeras_removed for fraction validation")
+    })?;
+    let expected = ratio_u64(chimeras_removed, reads_in);
+    if report.chimera_fraction.is_none_or(|observed| (observed - expected).abs() > f64::EPSILON) {
+        return Err(anyhow!(
+            "remove_chimeras report fraction arithmetic mismatch: expected {}, observed {:?}",
+            expected,
+            report.chimera_fraction
         ));
     }
     Ok(())
