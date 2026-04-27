@@ -179,6 +179,11 @@ struct ScreenRecordInputs<'a> {
     execution: &'a StageResultV1,
 }
 
+struct ScreenReportPaths {
+    summary_tsv: std::path::PathBuf,
+    classification_json: std::path::PathBuf,
+}
+
 fn prepare_screen_tool_plan<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
@@ -335,17 +340,7 @@ fn build_screen_record(
     let effective_params: ScreenEffectiveParams =
         serde_json::from_value(inputs.plan.effective_params.clone())
             .context("decode screen taxonomy effective params")?;
-    let report_path = inputs
-        .plan
-        .params
-        .get("report")
-        .and_then(serde_json::Value::as_str)
-        .map_or_else(|| inputs.out_dir.join("screen_report.tsv"), std::path::PathBuf::from);
-    let classification_report_path =
-        inputs.plan.params.get("assignments").and_then(serde_json::Value::as_str).map_or_else(
-            || inputs.out_dir.join("classification_report.json"),
-            std::path::PathBuf::from,
-        );
+    let report_paths = screen_report_paths(inputs.plan, inputs.out_dir);
     let reads_in = inputs.bench_inputs.input_stats.reads
         + inputs.bench_inputs.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
     let bases_in = inputs.bench_inputs.input_stats.bases
@@ -355,7 +350,7 @@ fn build_screen_record(
         .input_stats_r2
         .as_ref()
         .map_or(0, |stats| inputs.bench_inputs.input_stats.reads.min(stats.reads));
-    let summary_entries = load_screen_summary_entries(&report_path)?;
+    let summary_entries = load_screen_summary_entries(&report_paths.summary_tsv)?;
     let unclassified_fraction = find_unclassified_fraction(&summary_entries);
     let classified_fraction = unclassified_fraction.map(|value| (1.0 - value).max(0.0));
     let contamination_rate = classified_fraction.unwrap_or(0.0);
@@ -380,8 +375,8 @@ fn build_screen_record(
         emit_unclassified: effective_params.emit_unclassified,
         input_r1: inputs.bench_inputs.r1.display().to_string(),
         input_r2: inputs.bench_inputs.r2.as_ref().map(|path| path.display().to_string()),
-        screen_report_tsv: report_path.display().to_string(),
-        classification_report_json: classification_report_path.display().to_string(),
+        screen_report_tsv: report_paths.summary_tsv.display().to_string(),
+        classification_report_json: report_paths.classification_json.display().to_string(),
         reads_in: Some(reads_in),
         reads_out: Some(reads_in),
         bases_in: Some(bases_in),
@@ -396,7 +391,7 @@ fn build_screen_record(
         runtime_s: Some(inputs.execution.runtime_s),
         memory_mb: Some(inputs.execution.memory_mb),
     };
-    bijux_dna_infra::atomic_write_json(&classification_report_path, &governed_report)
+    bijux_dna_infra::atomic_write_json(&report_paths.classification_json, &governed_report)
         .context("write governed screen taxonomy report")?;
     let metrics = FastqScreenMetrics {
         reads_in,
@@ -451,6 +446,20 @@ fn load_screen_summary_entries(path: &Path) -> Result<Vec<TaxonomyScreenSummaryE
     let raw = std::fs::read_to_string(path)
         .with_context(|| format!("screen report missing: {}", path.display()))?;
     parse_screen_summary_tsv(&raw)
+}
+
+fn screen_report_paths(plan: &StagePlanV1, out_dir: &Path) -> ScreenReportPaths {
+    let summary_tsv = plan
+        .params
+        .get("report")
+        .and_then(serde_json::Value::as_str)
+        .map_or_else(|| out_dir.join("screen_report.tsv"), std::path::PathBuf::from);
+    let classification_json = plan
+        .params
+        .get("assignments")
+        .and_then(serde_json::Value::as_str)
+        .map_or_else(|| out_dir.join("classification_report.json"), std::path::PathBuf::from);
+    ScreenReportPaths { summary_tsv, classification_json }
 }
 
 fn find_unclassified_fraction(entries: &[TaxonomyScreenSummaryEntryV1]) -> Option<f64> {
