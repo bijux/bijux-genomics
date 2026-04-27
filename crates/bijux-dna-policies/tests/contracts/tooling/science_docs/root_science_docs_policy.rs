@@ -95,3 +95,19 @@ fn policy__contracts__root_science_docs_policy__validity_limits_link_domain_auth
         "Scientific validity limits must link the governed domain authority docs exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_science_docs_policy__tool_stage_citations_link_governed_ledgers() {
+    let expected = BTreeSet::from([
+        "fastq/REFERENCES.md".to_string(),
+        "bam/REFERENCES.md".to_string(),
+        "vcf/REFERENCES.md".to_string(),
+        "../../science/docs/upstream/papers/TOOL_PAPER_MAP.tsv".to_string(),
+        "../../science/docs/upstream/github-repos/MANIFEST.tsv".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/20-science/TOOL_STAGE_CITATIONS.md");
+    assert_eq!(
+        expected, documented,
+        "Tool-stage citations must link the governed domain ledgers and upstream evidence maps exactly"
+    );
+}
