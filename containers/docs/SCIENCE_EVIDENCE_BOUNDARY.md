@@ -15,11 +15,15 @@ Purpose: define what container evidence can and cannot prove for scientific revi
 - A smoke-passing SIF or Docker image closes missing local paper/archive evidence.
 
 ## Required Cross-Links
-- Tool citation and stage binding: `domain/fastq/tools/` and `docs/20-science/fastq/REFERENCES.md`.
-- FASTQ closure state: `domain/fastq/docs/EVIDENCE_CLOSURE.md`.
-- Generated evidence status: `science/generated/current/evidence/`.
-- Container smoke behavior: `containers/docs/SMOKE_CONTRACT.md`.
-- Container promotion requirements: `containers/docs/PROMOTION_POLICY.md`.
+- Tool citation and stage binding:
+  [domain/fastq/execution_support.yaml](../../domain/fastq/execution_support.yaml)
+  and [docs/20-science/fastq/REFERENCES.md](../../docs/20-science/fastq/REFERENCES.md).
+- FASTQ closure state:
+  [domain/fastq/docs/EVIDENCE_CLOSURE.md](../../domain/fastq/docs/EVIDENCE_CLOSURE.md).
+- Generated evidence status:
+  [science/generated/current/evidence/README.md](../../science/generated/current/evidence/README.md).
+- Container smoke behavior: [containers/docs/SMOKE_CONTRACT.md](SMOKE_CONTRACT.md).
+- Container promotion requirements: [containers/docs/PROMOTION_POLICY.md](PROMOTION_POLICY.md).
 
 ## Review Rule
 When a container change touches a scientific tool, reviewers should verify two independent paths:
