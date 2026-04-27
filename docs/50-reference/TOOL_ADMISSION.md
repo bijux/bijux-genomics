@@ -17,12 +17,25 @@ Applies to all tools entering planned/experimental/production states.
 - Registry/config/container/docs/example surfaces must be mutually consistent.
 
 ## Required Path
-1. Domain contract: add/update `domain/**/tools/*.yaml` and stage bindings in domain sources.
-2. Registry/config contract: regenerate and validate `configs/ci/registry/*`, `configs/ci/tools/*`, and related lock files.
-3. Container contract: add/update `containers/**` defs, versions metadata, smoke mappings, and lock outputs.
-4. Docs contract: regenerate/update `docs/20-science/TOOL_INDEX.md`, operations notes, and admission references.
-5. Example contract: ensure at least one runnable example path is documented/validated where required by policy.
-6. Gate contract: run lint/policy checks that enforce parity across all above surfaces.
+1. Domain contract: add/update tool manifests under
+   [domain/fastq/tools/](../../domain/fastq/tools),
+   [domain/bam/tools/](../../domain/bam/tools), or
+   [domain/vcf/tools/](../../domain/vcf/tools), plus stage bindings in
+   [domain/fastq/index.yaml](../../domain/fastq/index.yaml),
+   [domain/bam/index.yaml](../../domain/bam/index.yaml), or
+   [domain/vcf/index.yaml](../../domain/vcf/index.yaml).
+2. Registry/config contract: regenerate and validate
+   [configs/ci/registry/tool_registry.toml](../../configs/ci/registry/tool_registry.toml),
+   [configs/ci/tools/images.toml](../../configs/ci/tools/images.toml), and related lock files.
+3. Container contract: add/update governed container surfaces under
+   [containers/index.md](../../containers/index.md).
+4. Docs contract: regenerate/update [docs/20-science/TOOL_INDEX.md](../20-science/TOOL_INDEX.md),
+   linked operational notes under [docs/30-operations/index.md](../30-operations/index.md),
+   and admission references.
+5. Example contract: ensure at least one runnable example path is documented or validated through
+   [examples/index.yaml](../../examples/index.yaml) where required by policy.
+6. Gate contract: run lint and policy checks through [docs/30-operations/CI.md](../30-operations/CI.md)
+   so parity across all above surfaces is enforced.
 
 ## Admission Gate
 A tool is considered admitted only when registry, containers, QA, and docs are all consistent and CI passes.
@@ -54,7 +67,8 @@ Acceptance criteria:
 - CLI stability:
   - `--help` and version command behavior are contract-checked in smoke policy.
 - Domain contract:
-  - Tool has `domain/vcf/tools/<tool>.yaml` and stage bindings.
+  - Tool has manifests under [domain/vcf/tools/](../../domain/vcf/tools) and stage bindings in
+    [domain/vcf/index.yaml](../../domain/vcf/index.yaml).
 - Fixture contract:
   - At least one fixture exists for each admitted stage binding.
 - Runtime contract:

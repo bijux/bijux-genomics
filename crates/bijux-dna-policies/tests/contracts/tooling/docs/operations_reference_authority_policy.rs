@@ -150,3 +150,28 @@ fn policy__contracts__operations_reference_authority_policy__schemas_index_links
         "docs/50-reference/SCHEMAS_INDEX.md must link the governed schema snapshot surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__operations_reference_authority_policy__tool_admission_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../domain/fastq/tools".to_string(),
+        "../../domain/bam/tools".to_string(),
+        "../../domain/vcf/tools".to_string(),
+        "../../domain/fastq/index.yaml".to_string(),
+        "../../domain/bam/index.yaml".to_string(),
+        "../../domain/vcf/index.yaml".to_string(),
+        "../../configs/ci/registry/tool_registry.toml".to_string(),
+        "../../configs/ci/tools/images.toml".to_string(),
+        "../../containers/index.md".to_string(),
+        "../20-science/TOOL_INDEX.md".to_string(),
+        "../30-operations/index.md".to_string(),
+        "../../examples/index.yaml".to_string(),
+        "../30-operations/CI.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/TOOL_ADMISSION.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/TOOL_ADMISSION.md must link the governed admission authorities exactly"
+    );
+}
