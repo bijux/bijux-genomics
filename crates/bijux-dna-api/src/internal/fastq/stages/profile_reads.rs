@@ -270,6 +270,13 @@ fn observe_profile_reads(
         .ok()
         .and_then(|raw| bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw).ok())
         .ok_or_else(|| anyhow!("profile_reads governed report was not materialized"))?;
+    let metric_set = build_profile_reads_metric_set(&report)?;
+    Ok(StatsObservation { metric_set })
+}
+
+fn build_profile_reads_metric_set(
+    report: &ProfileReadsReportV1,
+) -> Result<MetricSet<FastqStatsMetrics>> {
     let metrics = FastqStatsMetrics {
         reads_total: report.reads_total,
         bases_total: report.bases_total,
@@ -283,7 +290,7 @@ fn observe_profile_reads(
     };
     let metric_set = metric_set(metrics);
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
-    Ok(StatsObservation { metric_set })
+    Ok(metric_set)
 }
 
 fn prepare_stats_benchmark_setup<S: ::std::hash::BuildHasher>(
