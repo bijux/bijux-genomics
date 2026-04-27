@@ -219,7 +219,6 @@ fn policy__contracts__contract_authority_policy__registry_unknowns_images_and_re
         .map(|table| table.keys().cloned().collect::<BTreeSet<_>>())
         .unwrap_or_default();
     let mut offenders = Vec::new();
-    let mut production_supported_tools = BTreeSet::new();
     let mut all_registry_tools = BTreeSet::new();
 
     for rel in production_registries {
@@ -231,11 +230,10 @@ fn policy__contracts__contract_authority_policy__registry_unknowns_images_and_re
             if upstream == "unknown" {
                 offenders.push(format!("{rel}: tool {id} has upstream=unknown"));
             }
-            if status == "supported" {
-                production_supported_tools.insert(id.to_string());
+            if support::registry_status_is_production(status) {
                 if !image_ids.contains(id) {
                     offenders.push(format!(
-                        "{rel}: supported tool {id} missing image catalog entry in configs/ci/tools/images.toml"
+                        "{rel}: production tool {id} missing image catalog entry in configs/ci/tools/images.toml"
                     ));
                 }
             }
