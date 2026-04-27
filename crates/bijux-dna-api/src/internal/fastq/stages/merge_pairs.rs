@@ -358,6 +358,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     validate_merge_report_identity(&tool_spec.tool_id.0, &report)?;
     validate_merge_report_execution(&report, execution.runtime_s, execution.memory_mb)?;
     validate_merge_report_paths(&report, merged_reads)?;
+    validate_merge_report_observed_counts(&report, r1_stats, r2_stats, &merged_stats)?;
 
     let metrics = merge_metrics_from_report(&report, r1_stats, r2_stats, &merged_stats);
     let metric_set = metric_set(metrics.clone());
@@ -491,6 +492,36 @@ fn validate_merge_report_execution(
             "merge_pairs report memory mismatch: expected {}, observed {:?}",
             memory_mb,
             report.memory_mb
+        ));
+    }
+    Ok(())
+}
+
+fn validate_merge_report_observed_counts(
+    report: &MergePairsReportV1,
+    r1_stats: &SeqkitMetrics,
+    r2_stats: &SeqkitMetrics,
+    merged_stats: &SeqkitMetrics,
+) -> Result<()> {
+    if report.reads_r1 != r1_stats.reads {
+        return Err(anyhow!(
+            "merge_pairs report r1 read count mismatch: expected {}, observed {}",
+            r1_stats.reads,
+            report.reads_r1
+        ));
+    }
+    if report.reads_r2 != r2_stats.reads {
+        return Err(anyhow!(
+            "merge_pairs report r2 read count mismatch: expected {}, observed {}",
+            r2_stats.reads,
+            report.reads_r2
+        ));
+    }
+    if report.reads_merged != merged_stats.reads {
+        return Err(anyhow!(
+            "merge_pairs report merged read count mismatch: expected {}, observed {}",
+            merged_stats.reads,
+            report.reads_merged
         ));
     }
     Ok(())
