@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, HashMap};
 use std::io::{BufRead, BufReader};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
 use crate::support::benchmark_runtime::ensure_bench_runner;
@@ -13,6 +13,7 @@ use bijux_dna_analyze::load::sqlite::bench::{
 use bijux_dna_analyze::{
     append_jsonl, metric_set, BenchmarkRecord, FastqOverrepresentedMetrics, StageMetricSchema,
 };
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
@@ -50,42 +51,28 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
 ) -> Result<BenchOutcome<FastqOverrepresentedMetrics>> {
     preflight_overrepresented_inputs(args)?;
-
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = bijux_dna_planner_fastq::select_profile_overrepresented_tools(&args.tools)?;
-    let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
-    let runner = ensure_bench_runner(platform, runner_override)?;
-
-    let bench_dir_name = bench_dir_name(
-        &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
-    )
-    .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
-    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
-    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
-    bijux_dna_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
-    bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
+    let setup = prepare_overrepresented_benchmark_setup(platform, runner_override, args)?;
 
     if args.explain {
-        write_explain_md(&bench_dir, STAGE_ID, &tools, &[], None)?;
-        write_explain_plan_json(&bench_dir, STAGE_ID, &tools, &registry, None)?;
+        write_explain_md(&setup.bench_dir, STAGE_ID, &setup.tools, &[], None)?;
+        write_explain_plan_json(&setup.bench_dir, STAGE_ID, &setup.tools, &setup.registry, None)?;
     }
 
-    ensure_image_qa_passed(STAGE_ID, &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_ID, &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
 
-    let input_hash = overrepresented_input_hash(args)?;
-    let sqlite_path = bench_dir.join("bench.sqlite");
+    let sqlite_path = setup.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = bench_dir.join("bench.jsonl");
+    let bench_path = setup.bench_dir.join("bench.jsonl");
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqOverrepresentedMetrics>>::new();
 
-    for tool in &tools {
-        let out_dir = tools_root.join(tool);
+    for tool in &setup.tools {
+        let out_dir = setup.tools_root.join(tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &registry, catalog, platform)?;
+        let tool_spec =
+            build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
         let plan = plan_with_options(
             &tool_spec,
             &args.r1,
@@ -101,9 +88,9 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             tool,
             &tool_spec.tool_version,
             &image_digest,
-            &runner.to_string(),
+            &setup.runner.to_string(),
             &platform.name,
-            &input_hash,
+            &setup.input_hash,
             &params_hash,
         ) {
             records.push(record);
@@ -111,7 +98,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
         }
         let execution = execute_plans_with_jobs(
             vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
-            runner,
+            setup.runner,
             jobs,
         )?
         .into_iter()
@@ -181,9 +168,9 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
                 tool,
                 tool_spec.tool_version.clone(),
                 image_digest,
-                runner,
+                setup.runner,
                 platform,
-                input_hash.clone(),
+                setup.input_hash.clone(),
                 plan.params.clone(),
             ),
             execution: ExecutionMetrics {
@@ -199,7 +186,16 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
         records.push(record);
     }
 
-    Ok(BenchOutcome { records, failures, bench_dir, explain: args.explain })
+    Ok(BenchOutcome { records, failures, bench_dir: setup.bench_dir, explain: args.explain })
+}
+
+struct OverrepresentedBenchmarkSetup {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    runner: RuntimeKind,
+    bench_dir: PathBuf,
+    tools_root: PathBuf,
+    input_hash: String,
 }
 
 fn preflight_overrepresented_inputs(
@@ -224,6 +220,28 @@ fn overrepresented_input_hash(
         ));
     }
     hash_file_sha256(&args.r1).context("hash overrepresented input")
+}
+
+fn prepare_overrepresented_benchmark_setup(
+    platform: &PlatformSpec,
+    runner_override: Option<RuntimeKind>,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
+) -> Result<OverrepresentedBenchmarkSetup> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools = bijux_dna_planner_fastq::select_profile_overrepresented_tools(&args.tools)?;
+    let tools = filter_tools_by_role(STAGE_ID, &tools, &registry, false)?;
+    let runner = ensure_bench_runner(platform, runner_override)?;
+    let bench_dir_name = bench_dir_name(
+        &bijux_dna_domain_fastq::stages::ids::STAGE_PROFILE_OVERREPRESENTED_SEQUENCES,
+    )
+    .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
+    let bench_dir = bench_base_dir(&args.out, bench_dir_name, &args.sample_id);
+    let tools_root = bench_tools_dir(&args.out, bench_dir_name, &args.sample_id);
+    bijux_dna_infra::ensure_dir(&bench_dir).context("create bench output dir")?;
+    bijux_dna_infra::ensure_dir(&tools_root).context("create tools output dir")?;
+    let input_hash = overrepresented_input_hash(args)?;
+    Ok(OverrepresentedBenchmarkSetup { registry, tools, runner, bench_dir, tools_root, input_hash })
 }
 
 fn materialize_overrepresented_outputs(
