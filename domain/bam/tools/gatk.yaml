@@ -6,7 +6,7 @@ pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC2928508/"
 stage_ids: ["bam.recalibration"]
 status: "planned"
 scope: "pre_hpc_pre_vcf"

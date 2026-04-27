@@ -6,7 +6,7 @@ pin_strategy: "pinned"
 default_version: "0.940"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
 stage_ids: ["bam.sex","bam.kinship"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"

@@ -6,7 +6,7 @@ pin_strategy: "pinned"
 default_version: "latest-pinned"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "paper:https://academic.oup.com/mbe/article/35/5/1291/4922696"
 stage_ids: ["bam.sex","bam.haplogroups"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"

@@ -6,7 +6,7 @@ pin_strategy: "pinned"
 default_version: "2.2.2"
 install_kind: "container"
 license: "GPL-3.0"
-citation: "pending:tool-publication"
+citation: "paper:https://academic.oup.com/bioinformatics/article/29/13/1682/184965"
 stage_ids: ["bam.damage"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"

@@ -10,7 +10,7 @@ default_version: "planned"
 upstream: "https://alkesgroup.broadinstitute.org/Eagle/"
 pin_strategy: "external_tool"
 license: "GPL-3.0"
-citation: "planned"
+citation: "paper:https://www.nature.com/articles/ng.3679"
 version_cmd: "eagle --version"
 help_cmd: "eagle --help"
 expected_artifacts: ["phased_vcf"]

@@ -10,7 +10,7 @@ default_version: "planned"
 upstream: "https://faculty.washington.edu/browning/beagle/beagle.html"
 pin_strategy: "container_digest"
 license: "GPL-3.0"
-citation: "planned"
+citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC6128308/"
 version_cmd: "beagle --version"
 help_cmd: "beagle --help"
 expected_artifacts: ["phased_vcf", "imputed_vcf"]
