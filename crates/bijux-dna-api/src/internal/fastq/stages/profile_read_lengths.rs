@@ -10,7 +10,7 @@ use bijux_dna_analyze::load::sqlite::bench::{
     fetch_fastq_read_lengths_v1, insert_fastq_read_lengths_v1,
 };
 use bijux_dna_analyze::{
-    append_jsonl, metric_set, BenchmarkRecord, FastqReadLengthMetrics, StageMetricSchema,
+    append_jsonl, metric_set, BenchmarkRecord, FastqReadLengthMetrics, MetricSet, StageMetricSchema,
 };
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
@@ -109,11 +109,8 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             threads: tool_plan.plan.resources.threads,
             execution: &execution,
         });
-        bijux_dna_infra::atomic_write_json(&artifacts.report_json, &report)?;
-        bijux_dna_infra::atomic_write_json(
-            &tool_plan.out_dir.join("metrics.json"),
-            &serde_json::to_value(&metric_set)?,
-        )?;
+        write_read_lengths_report(&artifacts.report_json, &report)?;
+        write_read_lengths_metrics(&tool_plan.out_dir, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
@@ -346,6 +343,22 @@ fn build_read_lengths_report(inputs: ReadLengthsReportInputs<'_>) -> ProfileRead
         raw_backend_report: Some(inputs.artifacts.length_tsv.display().to_string()),
         raw_backend_report_format: Some("seqkit_fx2tab_tsv".to_string()),
     }
+}
+
+fn write_read_lengths_report(
+    report_json: &Path,
+    report: &ProfileReadLengthsReportV1,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(report_json, report).context("write read-lengths report")
+}
+
+fn write_read_lengths_metrics(
+    out_dir: &Path,
+    metric_set: &MetricSet<FastqReadLengthMetrics>,
+) -> Result<()> {
+    let metrics_json = serde_json::to_value(metric_set)?;
+    bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+        .context("write read-lengths metrics")
 }
 
 fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
