@@ -59,9 +59,8 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
 
     ensure_normalize_primers_qa(catalog, platform, &setup.tools)?;
 
-    let sqlite_path = setup.bench_dir.join("bench.sqlite");
-    let conn = bijux_dna_analyze::open_sqlite(&sqlite_path)?;
-    let bench_path = setup.bench_dir.join("bench.jsonl");
+    let store = NormalizePrimersBenchmarkStore::from_setup(&setup);
+    let conn = bijux_dna_analyze::open_sqlite(&store.sqlite_path)?;
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::new();
@@ -244,7 +243,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             metrics: metric_set,
         };
         record.validate()?;
-        append_jsonl(&bench_path, &record)?;
+        append_jsonl(&store.jsonl_path, &record)?;
         insert_fastq_normalize_primers_v1(&conn, &record)?;
         records.push(record);
     }
@@ -262,6 +261,20 @@ struct NormalizePrimersBenchmarkSetup {
     bench_dir: PathBuf,
     tools_root: PathBuf,
     primer_governance: PrimerSetGovernance,
+}
+
+struct NormalizePrimersBenchmarkStore {
+    sqlite_path: PathBuf,
+    jsonl_path: PathBuf,
+}
+
+impl NormalizePrimersBenchmarkStore {
+    fn from_setup(setup: &NormalizePrimersBenchmarkSetup) -> Self {
+        Self {
+            sqlite_path: setup.bench_dir.join("bench.sqlite"),
+            jsonl_path: setup.bench_dir.join("bench.jsonl"),
+        }
+    }
 }
 
 fn prepare_normalize_primers_setup<S: ::std::hash::BuildHasher>(
