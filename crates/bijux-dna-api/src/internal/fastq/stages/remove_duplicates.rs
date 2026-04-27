@@ -132,19 +132,8 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
             failures.push(failure);
             continue;
         }
-        let report_path = required_plan_output_path(&tool_plan.plan, "report_json")?;
-        let duplicate_classes_tsv =
-            required_plan_output_path(&tool_plan.plan, "duplicate_classes_tsv")?;
-        let duplicate_provenance_json =
-            required_plan_output_path(&tool_plan.plan, "duplicate_provenance_json")?;
-        let report_path = require_existing_benchmark_output(&report_path, "report_json")?;
-        let _duplicate_classes_tsv =
-            require_existing_benchmark_output(&duplicate_classes_tsv, "duplicate_classes_tsv")?;
-        let _duplicate_provenance_json = require_existing_benchmark_output(
-            &duplicate_provenance_json,
-            "duplicate_provenance_json",
-        )?;
-        let counts = load_deduplicate_report_counts(report_path)?;
+        let outputs = resolve_remove_duplicates_outputs(&tool_plan.plan)?;
+        let counts = load_deduplicate_report_counts(&outputs.report_path)?;
         let metrics = FastqDuplicateMetrics {
             reads_in: counts.reads_in,
             reads_out: counts.reads_out,
@@ -207,6 +196,10 @@ struct RemoveDuplicatesToolPlan {
     bench_params: serde_json::Value,
     params_hash: String,
     image_digest: String,
+}
+
+struct RemoveDuplicatesOutputs {
+    report_path: PathBuf,
 }
 
 fn select_remove_duplicates_benchmark_tools(
@@ -342,6 +335,19 @@ fn remove_duplicates_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailu
         reason: format!("tool {tool} failed with status {exit_code}"),
         category: ErrorCategory::ToolError,
     })
+}
+
+fn resolve_remove_duplicates_outputs(plan: &StagePlanV1) -> Result<RemoveDuplicatesOutputs> {
+    let report_path = required_plan_output_path(plan, "report_json")?;
+    let duplicate_classes_tsv = required_plan_output_path(plan, "duplicate_classes_tsv")?;
+    let duplicate_provenance_json = required_plan_output_path(plan, "duplicate_provenance_json")?;
+    let report_path = require_existing_benchmark_output(&report_path, "report_json")?.to_path_buf();
+    let _duplicate_classes_tsv =
+        require_existing_benchmark_output(&duplicate_classes_tsv, "duplicate_classes_tsv")?;
+    let _duplicate_provenance_json =
+        require_existing_benchmark_output(&duplicate_provenance_json, "duplicate_provenance_json")?;
+
+    Ok(RemoveDuplicatesOutputs { report_path })
 }
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
