@@ -247,3 +247,29 @@ fn policy__contracts__root_docs_navigation_policy__docs_style_links_governed_sur
         "docs/40-policies/DOCS_STYLE.md must link the governed docs-style authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__operations_index_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../index.md".to_string(),
+        "CI.md".to_string(),
+        "BENCHMARK_VARIANCE.md".to_string(),
+        "CONTAINERS.md".to_string(),
+        "FRONTEND_MINI_STACK_VALIDATION.md".to_string(),
+        "PRODUCTION_GUARANTEES.md".to_string(),
+        "DEVELOPER_WORKFLOW.md".to_string(),
+        "REPRODUCIBILITY.md".to_string(),
+        "RUN_ARTIFACTS.md".to_string(),
+        "vcf-downstream-triage.md".to_string(),
+        "VCF_REFERENCE_CACHE_POLICY.md".to_string(),
+        "VCF_DOWNSTREAM_READINESS_CHECKLIST.md".to_string(),
+        "SCOPE_CLOSURE_CHECKLIST.generated.md".to_string(),
+        "CERTIFICATION_SCOPE.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/index.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/index.md must link the governed operations entry surfaces exactly"
+    );
+}
