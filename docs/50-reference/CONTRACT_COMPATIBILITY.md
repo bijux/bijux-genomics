@@ -10,7 +10,8 @@ Supports forward/backward compatibility.
 - Full migration tooling.
 
 ## Contracts
-- New fields must be additive.
+- New fields must be additive under [CONTRACT_VERSIONING.md](CONTRACT_VERSIONING.md).
+- Compatibility statements must match [COMPATIBILITY_MATRIX.md](COMPATIBILITY_MATRIX.md).
 
 ## Examples
 - Optional fields are safe additions.
