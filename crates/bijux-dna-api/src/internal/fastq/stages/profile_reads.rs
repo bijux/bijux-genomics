@@ -308,6 +308,7 @@ fn observe_profile_reads(
         &stats_execution_metrics(execution),
     )?;
     let report = read_profile_reads_report(&tool_plan.plan)?;
+    validate_profile_reads_report_identity(tool_plan, &report)?;
     let metric_set = build_profile_reads_metric_set(&report)?;
     Ok(StatsObservation { metric_set })
 }
@@ -320,6 +321,36 @@ fn read_profile_reads_report(
         .with_context(|| format!("read profile_reads governed report {}", report_path.display()))?;
     bijux_dna_domain_fastq::observer::parse_profile_reads_report(&raw)
         .with_context(|| format!("parse profile_reads governed report {}", report_path.display()))
+}
+
+fn validate_profile_reads_report_identity(
+    tool_plan: &StatsToolPlan,
+    report: &ProfileReadsReportV1,
+) -> Result<()> {
+    if report.schema_version != PROFILE_READS_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "profile_reads report schema mismatch: expected {}, observed {}",
+            PROFILE_READS_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_PROFILE_READS.as_str()
+        || report.stage_id != STAGE_PROFILE_READS.as_str()
+    {
+        return Err(anyhow!(
+            "profile_reads report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool_plan.tool {
+        return Err(anyhow!(
+            "profile_reads report tool mismatch: expected {}, observed {}",
+            tool_plan.tool,
+            report.tool_id
+        ));
+    }
+    Ok(())
 }
 
 fn build_profile_reads_metric_set(
