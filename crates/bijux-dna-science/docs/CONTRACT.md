@@ -24,7 +24,9 @@ reference matrix, download backlog, paper archive matrix, closure gate, truth
 delta, missing closure prerequisites, and default binding risk ledger.
 
 `science/generated/indexes/science_index.json` is not just an inventory counter.
-It must also summarize the FASTQ closure surface through:
+It must also summarize the source-archive and FASTQ closure surfaces through:
+
+- `source_archive_summary` for source kind, access mode, archive status, and missing-tool rollups
 
 - `fastq_closure_summary` for rolled-up closure state and blocker/warning counts
 - `fastq_evidence_summary` for backlog, paper archive, prerequisite, risk, and truth-delta counts
