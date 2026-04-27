@@ -308,8 +308,8 @@ pub fn bench_fastq_infer_asvs<S: ::std::hash::BuildHasher>(
             metrics: metric_set,
         };
         record.validate()?;
-        append_jsonl(&bench_path, &record)?;
-        insert_fastq_infer_asvs_v1(&conn, &record)?;
+        append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
+        insert_fastq_infer_asvs_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
     }
 
