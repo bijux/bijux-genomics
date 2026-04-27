@@ -15,7 +15,6 @@ fn native_ops_sources(root: &std::path::Path) -> Vec<std::path::PathBuf> {
 }
 
 #[test]
-#[ignore = "TODO: generated header/source_commit format migration in progress"]
 fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_edited() {
     let root = support::workspace_root();
 
@@ -33,21 +32,44 @@ fn policy__contracts__generated_configs_policy__generated_configs_are_not_hand_e
         let checked_in_raw = std::fs::read_to_string(&checked_in)
             .unwrap_or_else(|_| panic!("read {}", checked_in.display()));
 
-        let mut lines = checked_in_raw.lines();
-        let first = lines.next().unwrap_or_default();
-        let second = lines.next().unwrap_or_default();
-        let third = lines.next().unwrap_or_default();
-        if !first.starts_with("# GENERATED - DO NOT EDIT - source: ") {
-            eprintln!("generated header marker drift: {}", checked_in.display());
-        }
-        if !(second.starts_with("# source_commit: ")
-            && second.len() == "# source_commit: ".len() + 40
-            && second["# source_commit: ".len()..].chars().all(|c| c.is_ascii_hexdigit()))
-        {
-            eprintln!("generated source_commit drift: {}", checked_in.display());
-        }
-        if third != "# domain_schema_version: bijux.domain.v1" {
-            eprintln!("generated domain schema header drift: {}", checked_in.display());
+        let header_lines = checked_in_raw.lines().take(12).collect::<Vec<_>>();
+        let generated_line = header_lines
+            .iter()
+            .find(|line| line.starts_with("# GENERATED - DO NOT EDIT - source: "))
+            .copied();
+        let source_commit_line = header_lines
+            .iter()
+            .find(|line| line.starts_with("# source_commit: "))
+            .copied();
+        let domain_schema_line = header_lines
+            .iter()
+            .find(|line| **line == "# domain_schema_version: bijux.domain.v1")
+            .copied();
+
+        bijux_dna_policies::policy_assert!(
+            generated_line.is_some(),
+            "generated header marker drift: {}",
+            checked_in.display()
+        );
+        bijux_dna_policies::policy_assert!(
+            domain_schema_line.is_some(),
+            "generated domain schema header drift: {}",
+            checked_in.display()
+        );
+
+        let requires_source_commit = generated_line.is_some_and(|line| {
+            line.contains("source: domain/**") || line.contains("source: domain/vcf/**")
+        });
+        if requires_source_commit {
+            let valid_source_commit = source_commit_line.is_some_and(|line| {
+                line.len() == "# source_commit: ".len() + 40
+                    && line["# source_commit: ".len()..].chars().all(|c| c.is_ascii_hexdigit())
+            });
+            bijux_dna_policies::policy_assert!(
+                valid_source_commit,
+                "generated source_commit drift: {}",
+                checked_in.display()
+            );
         }
     }
 }
