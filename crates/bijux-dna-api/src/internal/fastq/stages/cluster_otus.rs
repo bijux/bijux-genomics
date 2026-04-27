@@ -240,13 +240,8 @@ pub fn bench_fastq_cluster_otus<S: ::std::hash::BuildHasher>(
         let table_metrics = read_cluster_otus_table_metrics(&outputs.otu_table)?;
         let representative_count =
             count_cluster_otus_representatives(&outputs.otu_representatives)?;
-        let metrics = FastqClusterOtusMetrics {
-            otu_count: payload
-                .get("otu_count")
-                .and_then(serde_json::Value::as_u64)
-                .unwrap_or(table_metrics.otu_count),
-            representative_count,
-        };
+        let metrics =
+            FastqClusterOtusMetrics { otu_count: table_metrics.otu_count, representative_count };
         let metric_set = metric_set(metrics);
         let effective_params: OtuClusteringEffectiveParams =
             serde_json::from_value(plan.effective_params.clone())
