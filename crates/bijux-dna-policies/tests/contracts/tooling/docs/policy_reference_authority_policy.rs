@@ -155,3 +155,17 @@ fn policy__contracts__policy_reference_authority_policy__contract_versioning_lin
         "docs/50-reference/CONTRACT_VERSIONING.md must link the governed contract-versioning authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__policy_reference_authority_policy__contract_compatibility_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "CONTRACT_VERSIONING.md".to_string(),
+        "COMPATIBILITY_MATRIX.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/CONTRACT_COMPATIBILITY.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/CONTRACT_COMPATIBILITY.md must link the governed contract-compatibility authorities exactly"
+    );
+}
