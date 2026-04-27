@@ -5,6 +5,13 @@ Purpose: explicit "no implicit network at runtime" contract for VCF downstream i
 Scope:
 - `glimpse`, `impute5`, `minimac4`, `shapeit5`, `beagle`, `eagle`, `bcftools`, `plink2`.
 
+Authority surfaces:
+- [../README.md](../README.md)
+- [../index.md](../index.md)
+- [NETWORK_USAGE.md](NETWORK_USAGE.md)
+- [IMPUTATION_RUNTIME_CONSTRAINTS.md](IMPUTATION_RUNTIME_CONSTRAINTS.md)
+- [SECURITY_BOUNDARY.md](SECURITY_BOUNDARY.md)
+
 Runtime policy:
 - Runtime network access is prohibited for all tools in this set.
 - Any required downloads must be handled by explicit acquisition workflows before execution.
