@@ -405,24 +405,7 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
         raw_backend_report_format: backend_report.raw_backend_report_format,
         backend_metrics: backend_report.metrics,
     };
-    let metrics = FastqFilterMetrics {
-        reads_in: report.reads_in,
-        reads_out: report.reads_out,
-        reads_dropped: report.reads_dropped,
-        reads_removed_by_n: report.reads_removed_by_n,
-        reads_removed_by_entropy: report.reads_removed_by_entropy,
-        reads_removed_low_complexity: report.reads_removed_low_complexity,
-        reads_removed_by_kmer: report.reads_removed_by_kmer,
-        reads_removed_contaminant_kmer: report.reads_removed_contaminant_kmer,
-        reads_removed_by_length: report.reads_removed_by_length,
-        bases_in: report.bases_in,
-        bases_out: report.bases_out,
-        pairs_in: report.pairs_in,
-        pairs_out: report.pairs_out,
-        mean_q_before: report.mean_q_before,
-        mean_q_after: report.mean_q_after,
-        delta_metrics: derive_trim_delta(&bench_inputs.input_stats, &output_stats_r1),
-    };
+    let metrics = filter_metrics_from_report(&report, &bench_inputs.input_stats, &output_stats_r1);
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
@@ -451,6 +434,31 @@ fn build_filter_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn filter_metrics_from_report(
+    report: &FilterReadsReportV1,
+    input_stats_r1: &SeqkitMetrics,
+    output_stats_r1: &SeqkitMetrics,
+) -> FastqFilterMetrics {
+    FastqFilterMetrics {
+        reads_in: report.reads_in,
+        reads_out: report.reads_out,
+        reads_dropped: report.reads_dropped,
+        reads_removed_by_n: report.reads_removed_by_n,
+        reads_removed_by_entropy: report.reads_removed_by_entropy,
+        reads_removed_low_complexity: report.reads_removed_low_complexity,
+        reads_removed_by_kmer: report.reads_removed_by_kmer,
+        reads_removed_contaminant_kmer: report.reads_removed_contaminant_kmer,
+        reads_removed_by_length: report.reads_removed_by_length,
+        bases_in: report.bases_in,
+        bases_out: report.bases_out,
+        pairs_in: report.pairs_in,
+        pairs_out: report.pairs_out,
+        mean_q_before: report.mean_q_before,
+        mean_q_after: report.mean_q_after,
+        delta_metrics: derive_trim_delta(input_stats_r1, output_stats_r1),
+    }
 }
 
 fn observe_filter_outputs<S: ::std::hash::BuildHasher>(
