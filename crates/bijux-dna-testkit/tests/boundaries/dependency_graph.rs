@@ -94,7 +94,7 @@ fn section_keys(manifest: &str, section: &str) -> BTreeSet<String> {
             continue;
         }
 
-        let key = trimmed.split_once('=').map(|(key, _)| key.trim()).unwrap_or(trimmed);
+        let key = trimmed.split_once('=').map_or(trimmed, |(key, _)| key.trim());
         keys.insert(key.strip_suffix(".workspace").unwrap_or(key).to_string());
     }
 
