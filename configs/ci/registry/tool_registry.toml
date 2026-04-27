@@ -1965,7 +1965,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.filter"
-required_tool_roles = ["filter"]
+required_tool_roles = ["filter", "transform"]
 primary_tools = ["samtools"]
 optional_alternatives = ["bamtools", "bedtools"]
 validation_tools = []
@@ -2001,7 +2001,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.length_filter"
-required_tool_roles = ["filter"]
+required_tool_roles = ["filter", "transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -2025,7 +2025,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.mapq_filter"
-required_tool_roles = ["filter"]
+required_tool_roles = ["filter", "transform"]
 primary_tools = ["samtools"]
 optional_alternatives = ["bamtools"]
 validation_tools = []
@@ -2049,7 +2049,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.qc_pre"
-required_tool_roles = ["qc"]
+required_tool_roles = ["qc", "transform"]
 primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
@@ -2073,7 +2073,7 @@ requires_reporting = false
 
 [[stages]]
 id = "bam.validate"
-required_tool_roles = ["validator"]
+required_tool_roles = ["validator", "filter", "transform"]
 primary_tools = ["samtools"]
 optional_alternatives = ["bamtools", "bedtools"]
 validation_tools = []
@@ -2121,7 +2121,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.deplete_reference_contaminants"
-required_tool_roles = ["screen"]
+required_tool_roles = ["screen", "transform", "aligner"]
 primary_tools = ["bowtie2"]
 optional_alternatives = []
 validation_tools = []
@@ -2217,7 +2217,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.merge_pairs"
-required_tool_roles = ["merger"]
+required_tool_roles = ["merger", "transform"]
 primary_tools = ["pear"]
 optional_alternatives = ["adapterremoval", "bbmerge", "flash2", "leehom", "vsearch"]
 validation_tools = []
@@ -2229,7 +2229,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.normalize_abundance"
-required_tool_roles = ["transform"]
+required_tool_roles = ["transform", "filter"]
 primary_tools = ["seqkit"]
 optional_alternatives = []
 validation_tools = []
@@ -2253,7 +2253,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.profile_overrepresented_sequences"
-required_tool_roles = ["transform"]
+required_tool_roles = ["transform", "filter", "trimmer"]
 primary_tools = ["fastqc"]
 optional_alternatives = ["fastq_scan", "seqkit"]
 validation_tools = []
@@ -2337,7 +2337,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.trim_polyg_tails"
-required_tool_roles = ["trimmer"]
+required_tool_roles = ["trimmer", "filter"]
 primary_tools = ["fastp"]
 optional_alternatives = ["bbduk"]
 validation_tools = []
@@ -2349,7 +2349,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.trim_reads"
-required_tool_roles = ["trimmer"]
+required_tool_roles = ["trimmer", "filter", "transform", "merger"]
 primary_tools = ["fastp"]
 optional_alternatives = ["adapterremoval", "alientrimmer", "atropos", "bbduk", "cutadapt", "fastx_clipper", "leehom", "prinseq", "seqkit", "skewer", "trim_galore", "trimmomatic"]
 validation_tools = []
@@ -2361,7 +2361,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.trim_terminal_damage"
-required_tool_roles = ["trimmer"]
+required_tool_roles = ["trimmer", "filter", "transform", "merger"]
 primary_tools = ["cutadapt"]
 optional_alternatives = ["adapterremoval", "seqkit"]
 validation_tools = []
@@ -2373,7 +2373,7 @@ requires_reporting = false
 
 [[stages]]
 id = "fastq.validate_reads"
-required_tool_roles = ["validator"]
+required_tool_roles = ["validator", "transform", "trimmer"]
 primary_tools = ["fastqvalidator"]
 optional_alternatives = ["fastq_scan", "fastqc", "fqtools", "seqtk"]
 validation_tools = []

@@ -263,5 +263,23 @@ pub(crate) fn infer_tool_role(stage_ids: &[String]) -> String {
 }
 
 pub(crate) fn required_tool_roles_for_stage(stage_id: &str) -> Vec<String> {
-    vec![tool_role_from_stage_id(stage_id).to_string()]
+    let roles = match stage_id {
+        "bam.filter" | "bam.length_filter" | "bam.mapq_filter" => {
+            vec!["filter", "transform"]
+        }
+        "bam.qc_pre" => vec!["qc", "transform"],
+        "bam.validate" => vec!["validator", "filter", "transform"],
+        "fastq.deplete_reference_contaminants" => vec!["screen", "transform", "aligner"],
+        "fastq.merge_pairs" => vec!["merger", "transform"],
+        "fastq.normalize_abundance" => vec!["transform", "filter"],
+        "fastq.profile_overrepresented_sequences" => vec!["transform", "filter", "trimmer"],
+        "fastq.trim_polyg_tails" => vec!["trimmer", "filter"],
+        "fastq.trim_reads" | "fastq.trim_terminal_damage" => {
+            vec!["trimmer", "filter", "transform", "merger"]
+        }
+        "fastq.validate_reads" => vec!["validator", "transform", "trimmer"],
+        _ => vec![tool_role_from_stage_id(stage_id)],
+    };
+
+    roles.into_iter().map(str::to_string).collect()
 }
