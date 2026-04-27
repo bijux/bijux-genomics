@@ -78,3 +78,13 @@ fn policy__contracts__science_archive_docs_policy__paper_archive_readme_links_co
         "science/docs/upstream/papers/README.md must link the governed paper archive contracts exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__github_repo_archive_readme_links_manifest() {
+    let expected = BTreeSet::from(["MANIFEST.tsv".to_string()]);
+    let documented = markdown_link_targets("science/docs/upstream/github-repos/README.md");
+    assert_eq!(
+        expected, documented,
+        "science/docs/upstream/github-repos/README.md must link the governed repository manifest exactly"
+    );
+}
