@@ -19,9 +19,9 @@ Makes the supported roster explicit so review decisions do not have to be revers
 | fastq.validate_reads | fastqvalidator, fastqc, fastq_scan, seqtk, fqtools | Structural validation before any mutating read transform |
 | fastq.detect_adapters | fastqc | Report-only adapter evidence without mutating FASTQ |
 | fastq.trim_polyg_tails | fastp, bbduk | PolyG/polyX artifact trimming for sequencer-tail cleanup |
-| fastq.trim_reads | fastp, cutadapt, atropos, bbduk, adapterremoval, trimmomatic, trim_galore | Adapter and quality trimming backends with governed runtime coverage and normalized stage outputs |
+| fastq.trim_reads | fastp, cutadapt, atropos, bbduk, adapterremoval, alientrimmer, fastx_clipper, leehom, trimmomatic, trim_galore, prinseq, seqkit, skewer | Adapter and quality trimming backends with governed runtime coverage and normalized stage outputs |
 | fastq.filter_reads | fastp, seqkit, prinseq, bbduk | Quality/length/content filtering without stage overloading |
-| fastq.filter_low_complexity | prinseq, bbduk, fastp | Dedicated low-complexity-capable backends admitted in the current runtime set |
+| fastq.filter_low_complexity | prinseq, bbduk | Dedicated low-complexity-capable backends admitted in the current runtime set |
 | fastq.profile_read_lengths | seqkit_stats | Neutral read-length summaries |
 | fastq.profile_reads | seqkit_stats | Deterministic baseline read statistics |
 | fastq.profile_overrepresented_sequences | fastqc, seqkit | Overrepresented-sequence reporting |
@@ -34,8 +34,8 @@ Makes the supported roster explicit so review decisions do not have to be revers
 | fastq.extract_umis | umi_tools | UMI extraction with barcode-pattern-aware header propagation |
 | fastq.screen_taxonomy | kraken2, krakenuniq, centrifuge, kaiju | Read-level screening and profiling backends only |
 | fastq.report_qc | multiqc | Aggregated QC reporting |
-| fastq.trim_terminal_damage | cutadapt, seqkit | Terminal-damage-aware trimming/masking |
-| fastq.normalize_primers | cutadapt, seqkit | Primer normalization with explicit sequence handling |
+| fastq.trim_terminal_damage | adapterremoval, cutadapt, seqkit | Terminal-damage-aware trimming/masking |
+| fastq.normalize_primers | cutadapt | Primer normalization with explicit sequence handling |
 | fastq.remove_chimeras | vsearch | Chimera removal in amplicon workflows |
 | fastq.cluster_otus | vsearch | OTU clustering |
 | fastq.infer_asvs | no admitted backend yet | Stage contract is defined, but governed runtime admission for ASV inference is still pending |
