@@ -117,6 +117,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
         let metrics = measurements.metrics();
         let metric_set = metric_set(metrics);
         validate_remove_chimeras_report_identity(tool, &report)?;
+        validate_remove_chimeras_report_execution(&report, &execution.result)?;
         validate_remove_chimeras_report_metrics(&report, &metric_set.metrics)?;
         write_remove_chimeras_artifacts(&tool_plan.out_dir, &outputs, &report, &metric_set)?;
         let record = build_remove_chimeras_record(
@@ -636,6 +637,36 @@ fn validate_remove_chimeras_report_identity(
             "remove_chimeras report tool mismatch: expected {}, observed {}",
             tool,
             report.tool_id
+        ));
+    }
+    Ok(())
+}
+
+fn validate_remove_chimeras_report_execution(
+    report: &RemoveChimerasReportV1,
+    execution: &StageResultV1,
+) -> Result<()> {
+    if report.runtime_s.is_none_or(|observed| (observed - execution.runtime_s).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "remove_chimeras report runtime mismatch: expected {}, observed {:?}",
+            execution.runtime_s,
+            report.runtime_s
+        ));
+    }
+    if report.memory_mb.is_none_or(|observed| (observed - execution.memory_mb).abs() > f64::EPSILON)
+    {
+        return Err(anyhow!(
+            "remove_chimeras report memory mismatch: expected {}, observed {:?}",
+            execution.memory_mb,
+            report.memory_mb
+        ));
+    }
+    if report.exit_code != Some(execution.exit_code) {
+        return Err(anyhow!(
+            "remove_chimeras report exit code mismatch: expected {}, observed {:?}",
+            execution.exit_code,
+            report.exit_code
         ));
     }
     Ok(())
