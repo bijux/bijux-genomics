@@ -489,3 +489,42 @@ fn policy__contracts__fastq_science_docs_policy__references_cover_qc_stage_sets_
         offenders.join("\n")
     );
 }
+
+#[test]
+fn policy__contracts__fastq_science_docs_policy__references_cover_inference_stage_sets_exactly() {
+    let references = fastq_reference_stage_rows();
+    let expected = BTreeMap::from([
+        (
+            "seqkit".to_string(),
+            BTreeSet::from([
+                "fastq.filter_reads".to_string(),
+                "fastq.normalize_abundance".to_string(),
+                "fastq.profile_overrepresented_sequences".to_string(),
+                "fastq.trim_terminal_damage".to_string(),
+            ]),
+        ),
+        (
+            "dada2".to_string(),
+            BTreeSet::from(["fastq.infer_asvs".to_string()]),
+        ),
+    ]);
+    let mut offenders = Vec::new();
+
+    for (tool_id, expected_stages) in expected {
+        let documented_stages = references
+            .get(&tool_id)
+            .unwrap_or_else(|| panic!("missing FASTQ reference row for {tool_id}"));
+        if documented_stages != &expected_stages {
+            offenders.push(format!(
+                "{tool_id}: expected {:?}, found {:?}",
+                expected_stages, documented_stages
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "FASTQ reference applicability drift for inference rows:\n{}",
+        offenders.join("\n")
+    );
+}
