@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 use crate::internal::fastq::stages::record_identity::stable_params_hash;
 use crate::qa::{ensure_image_qa_passed, ensure_tool_qa_passed};
@@ -67,9 +68,8 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
 
     ensure_umi_benchmark_qa(catalog, platform, args, &setup.tools)?;
 
-    let sqlite_path = setup.bench_dir.join("bench.sqlite");
-    let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = setup.bench_dir.join("bench.jsonl");
+    let store = UmiBenchmarkStore::from_setup(&setup);
+    let conn = bijux_dna_analyze::open_sqlite(&store.sqlite_path).context("open bench sqlite")?;
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqUmiMetrics>>::new();
@@ -107,7 +107,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             out_dir: &tool_plan.plan.out_dir,
             execution: &execution,
         })?;
-        append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
+        append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
         insert_fastq_umi_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
     }
@@ -135,6 +135,20 @@ struct UmiBenchmarkSetup {
     runner: RuntimeKind,
     input_stats_r1: SeqkitMetrics,
     input_stats_r2: SeqkitMetrics,
+}
+
+struct UmiBenchmarkStore {
+    sqlite_path: PathBuf,
+    jsonl_path: PathBuf,
+}
+
+impl UmiBenchmarkStore {
+    fn from_setup(setup: &UmiBenchmarkSetup) -> Self {
+        Self {
+            sqlite_path: setup.bench_dir.join("bench.sqlite"),
+            jsonl_path: setup.bench_dir.join("bench.jsonl"),
+        }
+    }
 }
 
 struct UmiToolPlan {
