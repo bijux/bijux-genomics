@@ -448,6 +448,7 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
+    validate_umi_report_identity(inputs.tool, &report)?;
     write_umi_report(&artifacts.report_json, &report)?;
     write_umi_metrics(inputs.out_dir, &metric_set)?;
 
@@ -535,6 +536,32 @@ fn umi_metrics_from_report(report: &ExtractUmisReportV1) -> FastqUmiMetrics {
         pairs_out: report.pairs_out,
         reads_with_umi: report.reads_with_umi,
     }
+}
+
+fn validate_umi_report_identity(tool: &str, report: &ExtractUmisReportV1) -> Result<()> {
+    if report.schema_version != EXTRACT_UMIS_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "extract_umis report schema mismatch: expected {}, observed {}",
+            EXTRACT_UMIS_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_EXTRACT_UMIS.as_str() || report.stage_id != STAGE_EXTRACT_UMIS.as_str()
+    {
+        return Err(anyhow!(
+            "extract_umis report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool {
+        return Err(anyhow!(
+            "extract_umis report tool mismatch: expected {}, observed {}",
+            tool,
+            report.tool_id
+        ));
+    }
+    Ok(())
 }
 
 fn write_umi_report(report_json: &Path, report: &ExtractUmisReportV1) -> Result<()> {
