@@ -1,10 +1,17 @@
 # Container Version Lock Rules
 
-Purpose: Define lock semantics for `containers/versions/versions.toml` and `containers/versions/lock.json`.
+Purpose: Define lock semantics for
+[containers/versions/versions.toml](versions.toml) and
+[containers/versions/lock.json](lock.json).
+
+[../README.md](../README.md), [index.md](index.md),
+[../docs/VERSION_AUTHORITY.md](../docs/VERSION_AUTHORITY.md), and
+[../docs/FRONTEND_BUILD_AUTHORITY.md](../docs/FRONTEND_BUILD_AUTHORITY.md)
+define the broader control surfaces this lock artifact must satisfy.
 
 ## Authority
-- Canonical version source: `containers/versions/versions.toml`.
-- Canonical lock artifact: `containers/versions/lock.json`.
+- Canonical version source: [containers/versions/versions.toml](versions.toml).
+- Canonical lock artifact: [containers/versions/lock.json](lock.json).
 - Lock generator: `cargo run -p bijux-dna-dev -- containers run generate-version-lock`.
 
 ## What `lock.json` Pins
@@ -33,7 +40,8 @@ Purpose: Define lock semantics for `containers/versions/versions.toml` and `cont
 5. Commit changes together with rationale.
 
 ## Deprecation Workflow
-- Version deprecations are tracked in `containers/versions/deprecations.toml`.
+- Version deprecations are tracked in
+  [containers/versions/deprecations.toml](deprecations.toml).
 - Add a deprecation entry via:
   - `cargo run -p bijux-dna-dev -- containers run deprecate-version -- --tool <id> --version <v> --rationale <text> --sunset-date YYYY-MM-DD --replacement-tool <id> --replacement-version <v>`
 - Validation gate:
