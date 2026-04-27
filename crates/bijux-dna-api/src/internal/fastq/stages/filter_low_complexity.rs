@@ -86,19 +86,24 @@ pub fn bench_fastq_filter_low_complexity<S: ::std::hash::BuildHasher>(
             failures.push(failure);
             continue;
         }
-        let record = build_low_complexity_record(
+        let record = build_low_complexity_record(&LowComplexityRecordInputs {
             catalog,
             platform,
-            &setup.bench_inputs,
-            setup.input_stats_r2.as_ref(),
-            &tool_plan.tool,
-            &tool_plan.tool_spec,
-            &setup.input_hash,
-            &tool_plan.plan.params,
-            &tool_plan.plan.io.outputs[0].path,
-            tool_plan.plan.io.outputs.get(1).map(|artifact| artifact.path.as_path()),
-            &execution,
-        )?;
+            bench_inputs: &setup.bench_inputs,
+            input_stats_r2: setup.input_stats_r2.as_ref(),
+            tool: &tool_plan.tool,
+            tool_spec: &tool_plan.tool_spec,
+            input_hash: &setup.input_hash,
+            params: &tool_plan.plan.params,
+            output_reads: &tool_plan.plan.io.outputs[0].path,
+            output_reads_r2: tool_plan
+                .plan
+                .io
+                .outputs
+                .get(1)
+                .map(|artifact| artifact.path.as_path()),
+            execution: &execution,
+        })?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_filter_low_complexity_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
@@ -139,6 +144,20 @@ struct LowComplexityToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct LowComplexityRecordInputs<'a, S: ::std::hash::BuildHasher> {
+    catalog: &'a HashMap<String, ToolImageSpec, S>,
+    platform: &'a PlatformSpec,
+    bench_inputs: &'a TrimBenchInputs,
+    input_stats_r2: Option<&'a SeqkitMetrics>,
+    tool: &'a str,
+    tool_spec: &'a ToolExecutionSpecV1,
+    input_hash: &'a str,
+    params: &'a serde_json::Value,
+    output_reads: &'a std::path::Path,
+    output_reads_r2: Option<&'a std::path::Path>,
+    execution: &'a StageResultV1,
 }
 
 fn prepare_low_complexity_tool_plan<S: ::std::hash::BuildHasher>(
@@ -275,47 +294,47 @@ fn ensure_low_complexity_benchmark_qa<S: ::std::hash::BuildHasher>(
     ensure_tool_qa_passed(STAGE_FILTER_LOW_COMPLEXITY.as_str(), tools, platform, catalog)
 }
 
-#[allow(clippy::too_many_arguments)]
 fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
-    catalog: &HashMap<String, ToolImageSpec, S>,
-    platform: &PlatformSpec,
-    bench_inputs: &crate::internal::fastq::stages::trim_bench_common::TrimBenchInputs,
-    input_stats_r2: Option<&SeqkitMetrics>,
-    tool: &str,
-    tool_spec: &bijux_dna_core::prelude::ToolExecutionSpecV1,
-    input_hash: &str,
-    params: &serde_json::Value,
-    output_reads: &std::path::Path,
-    output_reads_r2: Option<&std::path::Path>,
-    execution: &StageResultV1,
+    inputs: &LowComplexityRecordInputs<'_, S>,
 ) -> Result<BenchmarkRecord<FastqLowComplexityMetrics>> {
-    let output_stats_r1 = if execution.exit_code == 0 && output_reads.exists() {
-        observe_fastq_stats(catalog, platform, bench_inputs.runner, output_reads)?
+    let output_stats_r1 = if inputs.execution.exit_code == 0 && inputs.output_reads.exists() {
+        observe_fastq_stats(
+            inputs.catalog,
+            inputs.platform,
+            inputs.bench_inputs.runner,
+            inputs.output_reads,
+        )?
     } else {
-        bench_inputs.input_stats
+        inputs.bench_inputs.input_stats
     };
-    let output_stats_r2 = if let Some(output_reads_r2) = output_reads_r2 {
-        if execution.exit_code == 0 && output_reads_r2.exists() {
-            Some(observe_fastq_stats(catalog, platform, bench_inputs.runner, output_reads_r2)?)
+    let output_stats_r2 = if let Some(output_reads_r2) = inputs.output_reads_r2 {
+        if inputs.execution.exit_code == 0 && output_reads_r2.exists() {
+            Some(observe_fastq_stats(
+                inputs.catalog,
+                inputs.platform,
+                inputs.bench_inputs.runner,
+                output_reads_r2,
+            )?)
         } else {
-            input_stats_r2.copied()
+            inputs.input_stats_r2.copied()
         }
     } else {
         None
     };
-    let before_stats = combine_seqkit_metrics(&bench_inputs.input_stats, input_stats_r2);
+    let before_stats =
+        combine_seqkit_metrics(&inputs.bench_inputs.input_stats, inputs.input_stats_r2);
     let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
     let report = build_low_complexity_report(
-        tool,
-        tool_spec.resources.threads,
-        params,
+        inputs.tool,
+        inputs.tool_spec.resources.threads,
+        inputs.params,
         &before_stats,
         &after_stats,
         output_stats_r2.as_ref(),
-        input_stats_r2,
-        output_reads,
-        output_reads_r2,
-        execution,
+        inputs.input_stats_r2,
+        inputs.output_reads,
+        inputs.output_reads_r2,
+        inputs.execution,
     );
     let metrics = FastqLowComplexityMetrics {
         reads_in: report.reads_in,
@@ -330,8 +349,10 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     let metric_set = metric_set(metrics.clone());
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
 
-    let out_dir =
-        output_reads.parent().ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
+    let out_dir = inputs
+        .output_reads
+        .parent()
+        .ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
     bijux_dna_infra::atomic_write_json(&out_dir.join("low_complexity_report.json"), &report)
         .context("write low-complexity report")?;
     let metrics_json = serde_json::to_value(&metric_set)?;
@@ -339,20 +360,20 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
         .context("write low-complexity metrics")?;
 
     let context = build_benchmark_context(
-        tool,
-        tool_spec.tool_version.clone(),
-        benchmark_image_identity(tool_spec),
-        bench_inputs.runner,
-        platform,
-        input_hash.to_string(),
-        params.clone(),
+        inputs.tool,
+        inputs.tool_spec.tool_version.clone(),
+        benchmark_image_identity(inputs.tool_spec),
+        inputs.bench_inputs.runner,
+        inputs.platform,
+        inputs.input_hash.to_string(),
+        inputs.params.clone(),
     );
     let record = BenchmarkRecord {
         context,
         execution: ExecutionMetrics {
-            runtime_s: execution.runtime_s,
-            memory_mb: execution.memory_mb,
-            exit_code: execution.exit_code,
+            runtime_s: inputs.execution.runtime_s,
+            memory_mb: inputs.execution.memory_mb,
+            exit_code: inputs.execution.exit_code,
         },
         metrics: metric_set,
     };
