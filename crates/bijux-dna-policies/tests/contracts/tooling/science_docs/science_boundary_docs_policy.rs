@@ -727,3 +727,39 @@ fn policy__contracts__science_boundary_docs_policy__tool_docs_index_links_govern
         "containers/docs/tools/index.md must link the governed tool-doc surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__tool_docs_detail_links_governed_surfaces_exactly(
+) {
+    let root = support::workspace_root();
+    for path in fs::read_dir(root.join("containers/docs/tools"))
+        .unwrap_or_else(|err| panic!("read containers/docs/tools: {err}"))
+        .filter_map(std::result::Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("md"))
+    {
+        let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        if name == "index.md" {
+            continue;
+        }
+        let Some(tool) = name.strip_suffix(".md") else {
+            continue;
+        };
+        let expected = BTreeSet::from([
+            "../../README.md".to_string(),
+            "index.md".to_string(),
+            "../TOOL_NAME_MAP.md".to_string(),
+            "../../versions/versions.toml".to_string(),
+            "../../licenses/README.md".to_string(),
+            format!("../../licenses/{tool}.license.toml"),
+        ]);
+        let rel = format!("containers/docs/tools/{name}");
+        let documented = markdown_link_targets(&rel);
+        assert_eq!(
+            expected, documented,
+            "{rel} must link the governed per-tool container authorities exactly"
+        );
+    }
+}

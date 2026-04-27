@@ -4,6 +4,13 @@
 
 Purpose: generated per-tool container contract summary.
 
+- Root contract: [containers/README.md](../../README.md)
+- Tool docs index: [containers/docs/tools/index.md](index.md)
+- Tool name map: [containers/docs/TOOL_NAME_MAP.md](../TOOL_NAME_MAP.md)
+- Version inventory: [containers/versions/versions.toml](../../versions/versions.toml)
+- License index: [containers/licenses/README.md](../../licenses/README.md)
+- Tool license record: [containers/licenses/seqfu.license.toml](../../licenses/seqfu.license.toml)
+
 - Version: `2.4.0`
 - License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
