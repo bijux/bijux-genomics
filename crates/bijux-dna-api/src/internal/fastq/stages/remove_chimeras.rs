@@ -64,15 +64,17 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
 
     for tool in &setup.tools {
         let tool_plan = prepare_remove_chimeras_tool_plan(catalog, platform, args, &setup, tool)?;
+        let cache_identity =
+            RemoveChimerasCacheIdentity::from_plan(platform, &setup, tool, &tool_plan);
         if let Ok(Some(record)) = fetch_fastq_chimeras_v1(
             &conn,
-            tool,
-            &tool_plan.tool_spec.tool_version,
-            &tool_plan.image_digest,
-            &setup.runner.to_string(),
-            &platform.name,
-            &setup.input_hash,
-            &tool_plan.params_hash,
+            cache_identity.tool,
+            &cache_identity.tool_version,
+            &cache_identity.image_digest,
+            &cache_identity.runner,
+            &cache_identity.platform,
+            &cache_identity.input_hash,
+            &cache_identity.params_hash,
         ) {
             records.push(record);
             continue;
@@ -222,6 +224,35 @@ struct RemoveChimerasToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct RemoveChimerasCacheIdentity<'a> {
+    tool: &'a str,
+    tool_version: String,
+    image_digest: String,
+    runner: String,
+    platform: String,
+    input_hash: String,
+    params_hash: String,
+}
+
+impl<'a> RemoveChimerasCacheIdentity<'a> {
+    fn from_plan(
+        platform: &PlatformSpec,
+        setup: &RemoveChimerasBenchmarkSetup,
+        tool: &'a str,
+        tool_plan: &RemoveChimerasToolPlan,
+    ) -> Self {
+        Self {
+            tool,
+            tool_version: tool_plan.tool_spec.tool_version.clone(),
+            image_digest: tool_plan.image_digest.clone(),
+            runner: setup.runner.to_string(),
+            platform: platform.name.clone(),
+            input_hash: setup.input_hash.clone(),
+            params_hash: tool_plan.params_hash.clone(),
+        }
+    }
 }
 
 impl RemoveChimerasBenchmarkStore {
