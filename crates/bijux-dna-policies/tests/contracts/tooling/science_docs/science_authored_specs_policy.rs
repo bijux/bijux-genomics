@@ -72,3 +72,18 @@ fn policy__contracts__science_authored_specs_policy__data_specs_docs_link_contra
         "science/specs/data/README.md must link the data-spec contract and current authority exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_authored_specs_policy__release_specs_docs_link_contract_and_adjacent_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "CONTRACT.md".to_string(),
+        "../reports/README.md".to_string(),
+        "../results/README.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/specs/releases/README.md");
+    assert_eq!(
+        expected, documented,
+        "science/specs/releases/README.md must link the release-spec contract and adjacent authored surfaces exactly"
+    );
+}
