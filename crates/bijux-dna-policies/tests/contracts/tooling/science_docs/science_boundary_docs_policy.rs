@@ -392,3 +392,20 @@ fn policy__contracts__science_boundary_docs_policy__container_ghcr_publish_doc_l
         "containers/docs/GHCR_PUBLISH.md must link the governed GHCR publication surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__apptainer_frontend_security_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "FRONTEND_BUILD_AUTHORITY.md".to_string(),
+        "../licenses/README.md".to_string(),
+        "../../docs/50-reference/LICENSING.md".to_string(),
+        "../../configs/ci/tools/vuln_allowlist.toml".to_string(),
+        "APPTAINER_FRONTEND_SECURITY_SUMMARY.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/APPTAINER_FRONTEND_SECURITY.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/APPTAINTER_FRONTEND_SECURITY.md must link the governed frontend-security surfaces exactly"
+    );
+}
