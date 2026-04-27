@@ -11,8 +11,9 @@ Prevent accidental coupling and preserve purity boundaries.
 
 ## Contracts
 Enforced by policy tests:
-- `crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs`
-- `crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs`
+- [BOUNDARY_MAP.md](BOUNDARY_MAP.md) defines the allowed layer directions these rules summarize.
+- [../../crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs)
+- [../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs)
 
 ## Examples
 - `bijux-dna-core` must not depend on runners or planners.

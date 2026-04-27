@@ -267,6 +267,23 @@ fn policy__contracts__root_docs_navigation_policy__boundary_diagram_links_govern
 }
 
 #[test]
+fn policy__contracts__root_docs_navigation_policy__dependency_rules_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "BOUNDARY_MAP.md".to_string(),
+        "../../crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs"
+            .to_string(),
+        "../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs"
+            .to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/DEPENDENCY_RULES.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/DEPENDENCY_RULES.md must link the governed dependency authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from([
         "../index.md".to_string(),
