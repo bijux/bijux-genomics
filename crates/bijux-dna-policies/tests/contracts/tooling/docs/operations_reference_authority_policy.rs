@@ -34,3 +34,17 @@ fn policy__contracts__operations_reference_authority_policy__security_links_gove
         "docs/30-operations/SECURITY.md must link the governed security authority exactly"
     );
 }
+
+#[test]
+fn policy__contracts__operations_reference_authority_policy__ci_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "../../configs/rust/nextest.toml".to_string(),
+        "../../configs/coverage/runner.toml".to_string(),
+        "ISOLATION.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/30-operations/CI.md");
+    assert_eq!(
+        expected, documented,
+        "docs/30-operations/CI.md must link the governed CI authorities exactly"
+    );
+}

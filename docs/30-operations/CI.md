@@ -21,10 +21,12 @@ Define the canonical CI gate contract and shared artifact invocation for the rep
 - Slow CI profile: `cargo run -q -p bijux-dna-dev -- tooling run ci-slow`
 - Fast profile intent: static/policy/contract gates with deterministic runner settings.
 - Slow profile intent: heavier coverage/docs/release-readiness checks.
-- Test/coverage runner defaults are pinned in `configs/rust/nextest.toml` and `configs/coverage/runner.toml`.
+- Test/coverage runner defaults are pinned in
+  [configs/rust/nextest.toml](../../configs/rust/nextest.toml) and
+  [configs/coverage/runner.toml](../../configs/coverage/runner.toml).
 
 ## Artifact Contract
-- See `docs/30-operations/ISOLATION.md`.
+- See [docs/30-operations/ISOLATION.md](ISOLATION.md).
 
 ## HPC Forward-compat
 - With HPC enabled, `make ci` still enforces the same gate order and policy checks.
