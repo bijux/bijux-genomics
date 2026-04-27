@@ -67,9 +67,8 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
 
     ensure_filter_benchmark_qa(catalog, platform, &setup.tools)?;
 
-    let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
-    let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
-    let bench_path = setup.bench_inputs.bench_dir.join("bench.jsonl");
+    let store = FilterBenchmarkStore::from_setup(&setup);
+    let conn = bijux_dna_analyze::open_sqlite(&store.sqlite_path).context("open bench sqlite")?;
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqFilterMetrics>>::new();
@@ -107,7 +106,7 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
             output_reads_r2: tool_plan.outputs.reads_r2.as_deref(),
             execution: &execution,
         })?;
-        append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
+        append_jsonl(&store.jsonl_path, &record).context("write bench.jsonl")?;
         insert_fastq_filter_v2(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
     }
@@ -127,6 +126,20 @@ struct FilterBenchmarkSetup {
     input_hash: String,
     input_stats_r2: Option<SeqkitMetrics>,
     options: FilterPlanOptions,
+}
+
+struct FilterBenchmarkStore {
+    sqlite_path: PathBuf,
+    jsonl_path: PathBuf,
+}
+
+impl FilterBenchmarkStore {
+    fn from_setup(setup: &FilterBenchmarkSetup) -> Self {
+        Self {
+            sqlite_path: setup.bench_inputs.bench_dir.join("bench.sqlite"),
+            jsonl_path: setup.bench_inputs.bench_dir.join("bench.jsonl"),
+        }
+    }
 }
 
 struct FilterToolPlan {
