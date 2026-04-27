@@ -128,25 +128,8 @@ pub fn bench_fastq_deplete_host<S: ::std::hash::BuildHasher>(
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         write_deplete_host_metrics(&tool_plan, &metric_set)?;
 
-        let context = build_benchmark_context(
-            &tool_plan.tool,
-            tool_plan.tool_spec.tool_version.clone(),
-            tool_plan.image_digest,
-            runner,
-            platform,
-            setup.input_hash.clone(),
-            tool_plan.plan.params.clone(),
-        );
-        let record = BenchmarkRecord {
-            context,
-            execution: ExecutionMetrics {
-                runtime_s: execution.runtime_s,
-                memory_mb: execution.memory_mb,
-                exit_code: execution.exit_code,
-            },
-            metrics: metric_set,
-        };
-        record.validate()?;
+        let record =
+            build_deplete_host_record(platform, &setup, &tool_plan, &execution, metric_set)?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
         insert_fastq_deplete_host_v1(&conn, &record).context("insert bench sqlite")?;
         records.push(record);
@@ -460,6 +443,35 @@ fn write_deplete_host_metrics(
         &serde_json::to_value(metrics)?,
     )
     .context("write host depletion metrics")
+}
+
+fn build_deplete_host_record(
+    platform: &PlatformSpec,
+    setup: &DepleteHostBenchmarkSetup,
+    tool_plan: &DepleteHostToolPlan,
+    execution: &StageResultV1,
+    metrics: bijux_dna_analyze::MetricSet<FastqDepleteHostMetrics>,
+) -> Result<BenchmarkRecord<FastqDepleteHostMetrics>> {
+    let context = build_benchmark_context(
+        &tool_plan.tool,
+        tool_plan.tool_spec.tool_version.clone(),
+        tool_plan.image_digest.clone(),
+        setup.bench_inputs.runner,
+        platform,
+        setup.input_hash.clone(),
+        tool_plan.plan.params.clone(),
+    );
+    let record = BenchmarkRecord {
+        context,
+        execution: ExecutionMetrics {
+            runtime_s: execution.runtime_s,
+            memory_mb: execution.memory_mb,
+            exit_code: execution.exit_code,
+        },
+        metrics,
+    };
+    record.validate()?;
+    Ok(record)
 }
 
 fn u64_to_f64(value: u64) -> f64 {
