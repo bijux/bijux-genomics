@@ -26,37 +26,37 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 ## Alignment, Validation, and Filtering
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
-| bwa | `bam.align` | upstream software locator captured; paper mapping still pending | https://github.com/lh3/bwa |
-| bowtie2 | `bam.align` | upstream software locator captured; paper mapping still pending | https://github.com/BenLangmead/bowtie2 |
-| samtools | `bam.validate`, `bam.qc_pre`, `bam.mapping_summary`, `bam.filter`, `bam.mapq_filter`, `bam.length_filter`, `bam.markdup`, `bam.duplication_metrics`, `bam.coverage`, `bam.endogenous_content` | upstream software locator captured; paper mapping still pending | https://github.com/samtools/samtools |
-| bedtools | `bam.validate`, `bam.filter` | upstream software locator captured; paper mapping still pending | https://github.com/arq5x/bedtools2 |
-| bamtools | `bam.validate`, `bam.filter`, `bam.mapq_filter` | upstream software locator captured; paper mapping still pending | https://github.com/pezmaster31/bamtools |
-| mosdepth | `bam.coverage` | upstream software locator captured; paper mapping still pending | https://github.com/brentp/mosdepth |
+| bwa | `bam.align` | governed paper locator present; runtime closure remains separate | https://github.com/lh3/bwa |
+| bowtie2 | `bam.align` | governed paper locator present; runtime closure remains separate | https://github.com/BenLangmead/bowtie2 |
+| samtools | `bam.validate`, `bam.qc_pre`, `bam.mapping_summary`, `bam.filter`, `bam.mapq_filter`, `bam.length_filter`, `bam.markdup`, `bam.duplication_metrics`, `bam.coverage`, `bam.endogenous_content` | governed paper locator present; runtime closure remains separate | https://github.com/samtools/samtools |
+| bedtools | `bam.validate`, `bam.filter` | governed paper locator present; runtime closure remains separate | https://github.com/arq5x/bedtools2 |
+| bamtools | `bam.validate`, `bam.filter`, `bam.mapq_filter` | governed paper locator present; runtime closure remains separate | https://github.com/pezmaster31/bamtools |
+| mosdepth | `bam.coverage` | governed paper locator present; runtime closure remains separate | https://github.com/brentp/mosdepth |
 | picard | `bam.markdup`, `bam.length_filter`, `bam.duplication_metrics`, `bam.insert_size`, `bam.gc_bias` | upstream software locator captured; paper mapping still pending | https://github.com/broadinstitute/picard |
 
 ## Damage, Authenticity, Contamination, and Inference
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
-| mapdamage2 | `bam.damage` | upstream software locator captured; paper mapping still pending | https://github.com/ginolhac/mapDamage |
-| pydamage | `bam.damage` | upstream software locator captured; paper mapping still pending | https://github.com/maxibor/pydamage |
-| damageprofiler | `bam.damage`, `bam.authenticity` | upstream software locator captured; paper mapping still pending | https://github.com/Integrative-Transcriptomics/DamageProfiler |
+| mapdamage2 | `bam.damage` | governed paper locator present; runtime closure remains separate | https://github.com/ginolhac/mapDamage |
+| pydamage | `bam.damage` | governed paper locator present; runtime closure remains separate | https://github.com/maxibor/pydamage |
+| damageprofiler | `bam.damage`, `bam.authenticity` | governed paper locator present; runtime closure remains separate | https://github.com/Integrative-Transcriptomics/DamageProfiler |
 | pmdtools | `bam.damage`, `bam.authenticity` | upstream software locator captured; paper mapping still pending | https://github.com/pontussk/PMDtools |
-| addeam | `bam.damage` | upstream software locator captured; paper mapping still pending | https://github.com/LouisPwr/AdDeam |
-| authenticct | `bam.authenticity` | upstream software locator captured; paper mapping still pending | https://github.com/StephanePeyregne/AuthentiCT |
-| schmutzi | `bam.contamination` | upstream software locator captured; paper mapping still pending | https://github.com/grenaud/schmutzi |
-| verifybamid2 | `bam.contamination` | upstream software locator captured; paper mapping still pending | https://github.com/Griffan/VerifyBamID |
+| addeam | `bam.damage` | governed paper locator present; runtime closure remains separate | https://github.com/LouisPwr/AdDeam |
+| authenticct | `bam.authenticity` | governed paper locator present; runtime closure remains separate | https://github.com/StephanePeyregne/AuthentiCT |
+| schmutzi | `bam.contamination` | governed paper locator present; runtime closure remains separate | https://github.com/grenaud/schmutzi |
+| verifybamid2 | `bam.contamination` | governed paper locator present; runtime closure remains separate | https://github.com/Griffan/VerifyBamID |
 | contammix | `bam.contamination` | package/software locator captured; paper mapping still pending | https://bioconductor.org/packages/contamMix |
 | rxy | `bam.sex` | governed tool contract still points to a local placeholder; external citation locator still needed | https://github.com/bijux/bijux-genomics |
-| yleaf | `bam.sex`, `bam.haplogroups` | upstream software locator captured; paper mapping still pending | https://github.com/genid/Yleaf |
-| angsd | `bam.sex`, `bam.kinship` | upstream software locator captured; paper mapping still pending | https://github.com/ANGSD/angsd |
-| king | `bam.kinship` | upstream software locator captured; paper mapping still pending | https://www.kingrelatedness.com/ |
+| yleaf | `bam.sex`, `bam.haplogroups` | governed paper locator present; runtime closure remains separate | https://github.com/genid/Yleaf |
+| angsd | `bam.sex`, `bam.kinship` | governed paper locator present; runtime closure remains separate | https://github.com/ANGSD/angsd |
+| king | `bam.kinship` | governed paper locator present; runtime closure remains separate | https://www.kingrelatedness.com/ |
 
 ## Planned Expansion and Open Citation Backlog
 | Tool | Applies to | Reference status | Primary locator |
 | --- | --- | --- | --- |
 | preseq | `bam.complexity` | upstream software locator captured; paper mapping still pending | https://github.com/smithlabcode/preseq |
 | bamutil | `bam.overlap_correction` | upstream software locator captured; paper mapping still pending | https://github.com/statgen/bamUtil |
-| gatk | `bam.recalibration` | upstream software locator captured; paper mapping still pending | https://github.com/broadinstitute/gatk |
+| gatk | `bam.recalibration` | governed paper locator present; promotion and runtime evidence still pending | https://github.com/broadinstitute/gatk |
 | ngsbriggs | `bam.damage` | upstream locator unresolved in the governed tool contract; citation closure still needed | unknown |
 
 ## Failure modes

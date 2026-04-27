@@ -155,12 +155,17 @@ fn policy__contracts__science_archive_docs_policy__science_upstream_readme_links
     let expected = BTreeSet::from([
         "../README.md".to_string(),
         "../TODO_DOWNLOAD.md".to_string(),
+        "PRODUCTION_CLOSURE_INDEX.tsv".to_string(),
+        "bam/README.md".to_string(),
+        "bam/BAM_PRODUCTION_CLOSURE_LEDGER.tsv".to_string(),
         "fastq/README.md".to_string(),
         "fastq/tools/README.md".to_string(),
         "fastq/tools/EVIDENCE_MAP.tsv".to_string(),
         "papers/README.md".to_string(),
         "papers/TODO_DOWNLOAD.md".to_string(),
         "papers/TOOL_PAPER_MAP.tsv".to_string(),
+        "vcf/README.md".to_string(),
+        "vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv".to_string(),
         "github-repos/README.md".to_string(),
         "github-repos/MANIFEST.tsv".to_string(),
     ]);

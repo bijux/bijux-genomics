@@ -65,6 +65,7 @@ roots intentionally use homepage or repository snapshots rather than paper PDFs.
 | `seqpurge` | `paper.fastq.seqpurge.stenzel-2016` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC4862148/ |
 | `skewer` | `paper.fastq.skewer.jiang-2014` | PDF archived | `open_access_publisher` | https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-182 |
 | `sortmerna` | `paper.fastq.sortmerna.kopylova-2012` | PDF archived | `open_access_publisher` | https://academic.oup.com/bioinformatics/article/28/24/3211/246053 |
+| `star` | `paper.fastq.star.dobin-2013` | PDF archived | `free_pmc_not_open_access` | https://academic.oup.com/bioinformatics/article-abstract/29/1/15/272537 |
 | `trimmomatic` | `paper.fastq.trimmomatic.bolger-2014` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC4103590/ |
 | `umi_tools` | `paper.fastq.umi-tools.smith-2017` | PDF archived | `open_access_publisher` | https://genome.cshlp.org/content/27/3/491 |
 | `vsearch` | `paper.fastq.vsearch.rognes-2016` | PDF archived | `open_access_pmc` | https://pmc.ncbi.nlm.nih.gov/articles/PMC5075697/ |

@@ -468,6 +468,7 @@ fn policy__contracts__bam_science_docs_policy__references_link_governed_bam_evid
 ) {
     let expected = BTreeSet::from([
         "../../../domain/bam/tools/".to_string(),
+        "../../../science/docs/upstream/bam/BAM_PRODUCTION_CLOSURE_LEDGER.tsv".to_string(),
         "../../../science/docs/upstream/github-repos/README.md".to_string(),
         "../../../science/docs/upstream/papers/TOOL_PAPER_MAP.tsv".to_string(),
     ]);
