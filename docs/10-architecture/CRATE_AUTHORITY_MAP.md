@@ -22,21 +22,21 @@ Prevents responsibility drift across crates and makes policy failures actionable
 - `bijux-dna-analyze`: report/analytics/provenance contracts over produced artifacts.
 
 ## Non-goals
-- Duplicating low-level dependency edge tables (see `docs/10-architecture/BOUNDARY_MAP.md`).
+- Duplicating low-level dependency edge tables (see [docs/10-architecture/BOUNDARY_MAP.md](BOUNDARY_MAP.md)).
 
 ## Contracts
-- Ownership source of truth: `docs/10-architecture/CRATE_AUTHORITY_MAP.md`
-- Boundary map and allowed edges: `docs/10-architecture/BOUNDARY_MAP.md`
-- Workspace policy diagnostics: `crates/bijux-dna-policies/docs/POLICY_DIAGNOSTICS.md`
+- Ownership source of truth: this document.
+- Boundary map and allowed edges: [docs/10-architecture/BOUNDARY_MAP.md](BOUNDARY_MAP.md)
+- Workspace policy diagnostics: [crates/bijux-dna-policies/docs/POLICY_DIAGNOSTICS.md](../../crates/bijux-dna-policies/docs/POLICY_DIAGNOSTICS.md)
 
 ## Enforcement
-- Dependency edges: `crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs`
-- Dependency graph: `crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs`
-- Effect boundaries: `crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs`
+- Dependency edges: [crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs)
+- Dependency graph: [crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs)
+- Effect boundaries: [crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs)
 - Command spawn confinement:
-  `crates/bijux-dna-policies/tests/contracts/tooling/governance_core/command_spawn_policy.rs`
+  [crates/bijux-dna-policies/tests/contracts/tooling/governance_core/command_spawn_policy.rs](../../crates/bijux-dna-policies/tests/contracts/tooling/governance_core/command_spawn_policy.rs)
 - Domain/stage purity and crate responsibilities:
-  `crates/bijux-dna-policies/tests/contracts/tooling/governance/purity_effects_responsibility_policy.rs`
+  [crates/bijux-dna-policies/tests/contracts/tooling/governance/purity_effects_responsibility_policy.rs](../../crates/bijux-dna-policies/tests/contracts/tooling/governance/purity_effects_responsibility_policy.rs)
 
 ## Examples
 - Planner-only tool selection logic lives in `crates/bijux-dna-planner-*`; execution wiring lives in `crates/bijux-dna-engine`.
