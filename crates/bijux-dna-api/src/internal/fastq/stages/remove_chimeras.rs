@@ -93,6 +93,11 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
                 .map_err(|error| anyhow!("parse remove_chimeras effective params: {error}"))?;
         let report_inputs = RemoveChimerasReportInputs {
             tool_id: tool,
+            paired_mode: if args.r2.is_some() {
+                PairedMode::PairedEnd
+            } else {
+                PairedMode::SingleEnd
+            },
             effective_params: &effective_params,
             input_reads: &args.r1,
             output_reads: &outputs.filtered_reads,
@@ -483,6 +488,7 @@ fn parse_uchime_summary(path: Option<&std::path::Path>) -> Option<serde_json::Va
 
 struct RemoveChimerasReportInputs<'a> {
     tool_id: &'a str,
+    paired_mode: PairedMode,
     effective_params: &'a ChimeraDetectionEffectiveParams,
     input_reads: &'a std::path::Path,
     output_reads: &'a std::path::Path,
@@ -505,7 +511,7 @@ fn build_remove_chimeras_report(inputs: &RemoveChimerasReportInputs<'_>) -> Remo
         stage: STAGE_ID.to_string(),
         stage_id: STAGE_ID.to_string(),
         tool_id: inputs.tool_id.to_string(),
-        paired_mode: PairedMode::SingleEnd,
+        paired_mode: inputs.paired_mode,
         threads: inputs.effective_params.threads,
         method: inputs.effective_params.method.clone(),
         detection_scope: inputs.effective_params.detection_scope.clone(),
