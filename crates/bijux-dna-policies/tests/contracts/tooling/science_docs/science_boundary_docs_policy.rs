@@ -593,3 +593,20 @@ fn policy__contracts__science_boundary_docs_policy__hpc_frontend_stage_freeze_do
         "containers/docs/HPC_FRONTEND_STAGE1_STABLE.md must link the governed frontend-freeze authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__imputation_network_policy_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "NETWORK_USAGE.md".to_string(),
+        "IMPUTATION_RUNTIME_CONSTRAINTS.md".to_string(),
+        "SECURITY_BOUNDARY.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/IMPUTATION_NETWORK_POLICY.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/IMPUTATION_NETWORK_POLICY.md must link the governed imputation-network authorities exactly"
+    );
+}
