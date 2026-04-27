@@ -110,17 +110,9 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             exit_code: execution.exit_code,
         };
         let report = build_remove_chimeras_report(&report_inputs);
-        bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
-        bijux_dna_infra::atomic_write_json(
-            &outputs.metrics_json,
-            &compatibility_metrics_from_report(&report),
-        )?;
         let metrics = measurements.metrics();
         let metric_set = metric_set(metrics);
-        bijux_dna_infra::atomic_write_json(
-            &tool_plan.out_dir.join("metrics.json"),
-            &serde_json::to_value(&metric_set)?,
-        )?;
+        write_remove_chimeras_artifacts(&tool_plan.out_dir, &outputs, &report, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
@@ -486,6 +478,24 @@ fn build_remove_chimeras_report(inputs: &RemoveChimerasReportInputs<'_>) -> Remo
         exit_code: Some(inputs.exit_code),
         backend_metrics: parse_uchime_summary(inputs.uchime_report_tsv),
     }
+}
+
+fn write_remove_chimeras_artifacts(
+    out_dir: &std::path::Path,
+    outputs: &RemoveChimerasOutputs,
+    report: &RemoveChimerasReportV1,
+    metric_set: &bijux_dna_analyze::MetricSet<FastqChimeraMetrics>,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(&outputs.report_json, report)?;
+    bijux_dna_infra::atomic_write_json(
+        &outputs.metrics_json,
+        &compatibility_metrics_from_report(report),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &out_dir.join("metrics.json"),
+        &serde_json::to_value(metric_set)?,
+    )?;
+    Ok(())
 }
 
 fn compatibility_metrics_from_report(report: &RemoveChimerasReportV1) -> serde_json::Value {
