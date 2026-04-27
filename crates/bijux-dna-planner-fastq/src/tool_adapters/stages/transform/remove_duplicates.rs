@@ -364,7 +364,7 @@ fn render_deduplicate_command(
 fn deduplicate_script_prelude(rendered: &[String]) -> String {
     format!(
         "set -euo pipefail\ncount_fastq_reads() {{ case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac | awk 'END {{ print NR / 4 }}'; }}\n{}\n",
-        shell_join(&rendered),
+        shell_join(rendered),
     )
 }
 
