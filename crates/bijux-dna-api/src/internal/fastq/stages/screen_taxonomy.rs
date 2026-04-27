@@ -12,6 +12,7 @@ use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqScreenMe
 use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
+use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
 use bijux_dna_domain_fastq::{
@@ -320,15 +321,7 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
         (None, None)
     };
 
-    let input_hash = if let Some(r2) = r2.as_ref() {
-        format!(
-            "{}+{}",
-            hash_file_sha256(&args.r1).context("hash screen input r1")?,
-            hash_file_sha256(r2).context("hash screen input r2")?
-        )
-    } else {
-        hash_file_sha256(&args.r1).context("hash screen input")?
-    };
+    let input_hash = screen_input_hash(&r1, r2.as_deref())?;
 
     Ok(ScreenBenchInputs {
         registry,
@@ -343,6 +336,19 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
         bench_dir,
         tools_root,
     })
+}
+
+fn screen_input_hash(r1: &Path, r2: Option<&Path>) -> Result<String> {
+    let r1_hash = hash_file_sha256(r1).context("hash screen input r1")?;
+    if let Some(r2) = r2 {
+        let r2_hash = hash_file_sha256(r2).context("hash screen input r2")?;
+        return params_hash(&serde_json::json!({
+            "r1": r1_hash,
+            "r2": r2_hash,
+        }))
+        .context("combine screen paired input hashes");
+    }
+    Ok(r1_hash)
 }
 
 fn build_screen_record(
