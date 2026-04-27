@@ -28,7 +28,7 @@ fn policy__contracts__vcf_support_gate_policy__supported_vcf_stages_require_smok
 }
 
 #[test]
-fn policy__contracts__vcf_support_gate_policy__supported_vcf_tools_must_be_pinned() {
+fn policy__contracts__vcf_support_gate_policy__production_vcf_tools_must_be_pinned() {
     let path = repo_root().join("configs/ci/registry/tool_registry_vcf.toml");
     let raw = fs::read_to_string(path).expect("read tool_registry_vcf.toml");
     let doc: toml::Value = raw.parse().expect("parse tool_registry_vcf.toml");
@@ -37,7 +37,7 @@ fn policy__contracts__vcf_support_gate_policy__supported_vcf_tools_must_be_pinne
     for tool in tools {
         let id = tool.get("id").and_then(toml::Value::as_str).unwrap_or_default();
         let status = tool.get("status").and_then(toml::Value::as_str).unwrap_or_default();
-        if status != "supported" {
+        if !matches!(status, "supported" | "production") {
             continue;
         }
         let pin = tool.get("pinned_commit").and_then(toml::Value::as_str).unwrap_or_default();
@@ -47,10 +47,10 @@ fn policy__contracts__vcf_support_gate_policy__supported_vcf_tools_must_be_pinne
         let smoke_version =
             tool.get("smoke_version_cmd").and_then(toml::Value::as_str).unwrap_or_default();
 
-        assert!(!pin.is_empty(), "supported VCF tool {id} must be pinned");
-        assert!(schema != "bijux.unknown.v1", "supported VCF tool {id} cannot use unknown schema");
-        assert!(!smoke_help.is_empty(), "supported VCF tool {id} must define smoke_help_cmd");
-        assert!(!smoke_version.is_empty(), "supported VCF tool {id} must define smoke_version_cmd");
+        assert!(!pin.is_empty(), "production VCF tool {id} must be pinned");
+        assert!(schema != "bijux.unknown.v1", "production VCF tool {id} cannot use unknown schema");
+        assert!(!smoke_help.is_empty(), "production VCF tool {id} must define smoke_help_cmd");
+        assert!(!smoke_version.is_empty(), "production VCF tool {id} must define smoke_version_cmd");
     }
 }
 
