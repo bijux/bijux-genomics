@@ -67,15 +67,17 @@ pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
     for tool in &setup.tools {
         let tool_plan =
             prepare_detect_adapters_tool_plan(catalog, platform, args, &setup, jobs, tool)?;
+        let cache_identity =
+            DetectAdaptersCacheIdentity::from_tool_plan(&setup, platform, &tool_plan);
         if let Ok(Some(record)) = fetch_fastq_detect_adapters_v1(
             &conn,
-            &tool_plan.tool,
-            &tool_plan.tool_spec.tool_version,
-            &tool_plan.image_digest,
-            &setup.bench_inputs.runner.to_string(),
-            &platform.name,
-            &setup.input_hash,
-            &tool_plan.params_hash,
+            &cache_identity.tool,
+            &cache_identity.tool_version,
+            &cache_identity.image_digest,
+            &cache_identity.runner,
+            &cache_identity.platform,
+            &cache_identity.input_hash,
+            &cache_identity.params_hash,
         ) {
             records.push(record);
             continue;
@@ -150,6 +152,34 @@ struct DetectAdaptersToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct DetectAdaptersCacheIdentity {
+    tool: String,
+    tool_version: String,
+    image_digest: String,
+    runner: String,
+    platform: String,
+    input_hash: String,
+    params_hash: String,
+}
+
+impl DetectAdaptersCacheIdentity {
+    fn from_tool_plan(
+        setup: &DetectAdaptersBenchmarkSetup,
+        platform: &PlatformSpec,
+        tool_plan: &DetectAdaptersToolPlan,
+    ) -> Self {
+        Self {
+            tool: tool_plan.tool.clone(),
+            tool_version: tool_plan.tool_spec.tool_version.clone(),
+            image_digest: tool_plan.image_digest.clone(),
+            runner: setup.bench_inputs.runner.to_string(),
+            platform: platform.name.clone(),
+            input_hash: setup.input_hash.clone(),
+            params_hash: tool_plan.params_hash.clone(),
+        }
+    }
 }
 
 struct DetectRecordInputs<'a> {
