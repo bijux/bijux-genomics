@@ -558,3 +558,20 @@ fn policy__contracts__science_boundary_docs_policy__container_tool_ids_contract_
         "containers/docs/TOOL_IDS_CONTRACT.md must link the governed tool-id authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_smoke_contract_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "NETWORK_USAGE.md".to_string(),
+        "SECURITY_BOUNDARY.md".to_string(),
+        "../versions/LOCK.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/SMOKE_CONTRACT.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/SMOKE_CONTRACT.md must link the governed smoke-contract authorities exactly"
+    );
+}
