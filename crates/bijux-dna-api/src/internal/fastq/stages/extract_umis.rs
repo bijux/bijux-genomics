@@ -436,6 +436,13 @@ fn build_umi_record<S: ::std::hash::BuildHasher>(
     validate_umi_report_identity(inputs.tool, &report)?;
     validate_umi_report_execution(&report, &inputs.execution.result)?;
     validate_umi_report_paths(&report, inputs.r1, inputs.r2, &artifacts)?;
+    validate_umi_report_observed_counts(
+        &report,
+        inputs.input_stats_r1,
+        inputs.input_stats_r2,
+        &output_stats_r1,
+        &output_stats_r2,
+    )?;
     validate_umi_report_metrics(&report, &metric_set.metrics)?;
     write_umi_report(&artifacts.report_json, &report)?;
     write_umi_metrics(inputs.out_dir, &metric_set)?;
@@ -578,6 +585,48 @@ fn validate_umi_report_execution(
             "extract_umis report exit code mismatch: expected {}, observed {:?}",
             execution.exit_code,
             report.exit_code
+        ));
+    }
+    Ok(())
+}
+
+fn validate_umi_report_observed_counts(
+    report: &ExtractUmisReportV1,
+    input_stats_r1: &SeqkitMetrics,
+    input_stats_r2: &SeqkitMetrics,
+    output_stats_r1: &SeqkitMetrics,
+    output_stats_r2: &SeqkitMetrics,
+) -> Result<()> {
+    let reads_in = input_stats_r1.reads + input_stats_r2.reads;
+    if report.reads_in != reads_in {
+        return Err(anyhow!(
+            "extract_umis report reads_in observed mismatch: expected {}, observed {}",
+            reads_in,
+            report.reads_in
+        ));
+    }
+    let reads_out = output_stats_r1.reads + output_stats_r2.reads;
+    if report.reads_out != reads_out {
+        return Err(anyhow!(
+            "extract_umis report reads_out observed mismatch: expected {}, observed {}",
+            reads_out,
+            report.reads_out
+        ));
+    }
+    let bases_in = input_stats_r1.bases + input_stats_r2.bases;
+    if report.bases_in != bases_in {
+        return Err(anyhow!(
+            "extract_umis report bases_in observed mismatch: expected {}, observed {}",
+            bases_in,
+            report.bases_in
+        ));
+    }
+    let bases_out = output_stats_r1.bases + output_stats_r2.bases;
+    if report.bases_out != bases_out {
+        return Err(anyhow!(
+            "extract_umis report bases_out observed mismatch: expected {}, observed {}",
+            bases_out,
+            report.bases_out
         ));
     }
     Ok(())
