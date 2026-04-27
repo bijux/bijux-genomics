@@ -109,6 +109,7 @@ pub fn bench_fastq_deplete_rrna<S: ::std::hash::BuildHasher>(
         let metric_set = metric_set(metrics.clone());
         bijux_dna_analyze::validate_metric_set(&metric_set)?;
         write_rrna_metrics(&tool_plan, &metric_set)?;
+        validate_rrna_written_artifacts(&tool_plan, &report)?;
 
         let record = build_rrna_record(platform, &setup, &tool_plan, &execution, metric_set)?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -631,6 +632,32 @@ fn write_rrna_metrics(
 fn write_rrna_report(report: &DepleteRrnaReportV1) -> Result<()> {
     bijux_dna_infra::atomic_write_json(std::path::Path::new(&report.rrna_report_json), report)
         .context("write rrna depletion report")
+}
+
+fn validate_rrna_written_artifacts(
+    tool_plan: &RrnaToolPlan,
+    report: &DepleteRrnaReportV1,
+) -> Result<()> {
+    for path in [
+        report.output_r1.as_str(),
+        report.rrna_report_tsv.as_str(),
+        report.rrna_report_json.as_str(),
+    ] {
+        validate_rrna_nonempty_artifact(std::path::Path::new(path))?;
+    }
+    if let Some(path) = report.output_r2.as_deref() {
+        validate_rrna_nonempty_artifact(std::path::Path::new(path))?;
+    }
+    validate_rrna_nonempty_artifact(&tool_plan.plan.out_dir.join("metrics.json"))
+}
+
+fn validate_rrna_nonempty_artifact(path: &std::path::Path) -> Result<()> {
+    let metadata = std::fs::metadata(path)
+        .with_context(|| format!("read rrna depletion artifact {}", path.display()))?;
+    if metadata.len() == 0 {
+        return Err(anyhow!("rrna depletion artifact is empty: {}", path.display()));
+    }
+    Ok(())
 }
 
 fn build_rrna_record(
