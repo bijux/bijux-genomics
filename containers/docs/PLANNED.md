@@ -40,7 +40,7 @@ For each tool below, promotion from `planned` to `experimental`/`production` req
 |---|---|---|
 | `angsd` | bijux apptainer + docker arm64 | keep status planned until aDNA calling smoke fixtures and scientific acceptance thresholds are committed |
 | `shapeit` | bijux apptainer wrapper | keep apptainer-only wrapper status until phasing fixtures and scientific acceptance thresholds are governed |
-| `ibdseq` | no container definitions yet | decide packaging path or runtime exemption before promotion |
+| `ibdseq` | bijux apptainer wrapper | keep apptainer-only wrapper status until IBD fixtures and scientific acceptance thresholds are governed |
 | `ibdhap` | non-bijux apptainer + docker arm64 | confirm wrapper contract and scientific comparability before promotion |
 | `ibdne` | non-bijux apptainer + docker arm64 | confirm wrapper contract and demography-specific acceptance criteria before promotion |
 | `glimpse` | non-bijux apptainer + docker arm64 | add imputation smoke fixtures and acceptance thresholds before promotion |

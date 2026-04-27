@@ -6,8 +6,8 @@ Purpose: generated per-tool container contract summary.
 
 - Version: `3.0`
 - License: `GPL-3.0`
-- Runtime support: `none`
+- Runtime support: `apptainer`
 - Smoke status: `unknown`
 
 ## Known Limitations
-- No runtime implementation currently present.
+- No declared limitations.
