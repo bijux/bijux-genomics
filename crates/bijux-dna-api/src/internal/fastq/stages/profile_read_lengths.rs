@@ -90,20 +90,10 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
         }
 
         let lengths = observe_read_lengths(args)?;
-        let report_json_path = required_output_path(&tool_plan.plan, "report_json")?;
-        let length_tsv_path = required_output_path(&tool_plan.plan, "length_distribution_tsv")?;
-        let length_json_path = required_output_path(&tool_plan.plan, "length_distribution_json")?;
-        if !length_tsv_path.exists() || !length_json_path.exists() {
-            write_length_outputs(
-                length_tsv_path,
-                length_json_path,
-                &lengths,
-                args.histogram_bins.unwrap_or(100).max(1),
-            )?;
-        }
+        let artifacts = prepare_read_lengths_artifacts(args, &tool_plan.plan, &lengths)?;
         let metrics = metrics_from_lengths(&lengths)?;
         let metric_set = metric_set(metrics);
-        let histogram = rebin_lengths(&lengths, args.histogram_bins.unwrap_or(100).max(1))
+        let histogram = rebin_lengths(&lengths, artifacts.histogram_bins)
             .into_iter()
             .map(|(read_length, count)| ProfileReadLengthBinV1 {
                 read_length: read_length as u64,
@@ -121,12 +111,12 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
                 PairedMode::SingleEnd
             },
             threads: tool_plan.plan.resources.threads,
-            histogram_bins: args.histogram_bins.unwrap_or(100).max(1),
+            histogram_bins: artifacts.histogram_bins,
             input_r1: args.r1.display().to_string(),
             input_r2: args.r2.as_ref().map(|path| path.display().to_string()),
-            length_distribution_tsv: length_tsv_path.display().to_string(),
-            length_distribution_json: length_json_path.display().to_string(),
-            report_json: report_json_path.display().to_string(),
+            length_distribution_tsv: artifacts.length_tsv.display().to_string(),
+            length_distribution_json: artifacts.length_json.display().to_string(),
+            report_json: artifacts.report_json.display().to_string(),
             read_count: metric_set.metrics.read_count,
             mean_read_length: metric_set.metrics.mean_read_length,
             max_read_length: metric_set.metrics.max_read_length,
@@ -135,10 +125,10 @@ pub fn bench_fastq_profile_read_lengths<S: ::std::hash::BuildHasher>(
             runtime_s: Some(execution.runtime_s),
             memory_mb: Some(execution.memory_mb),
             exit_code: Some(execution.exit_code),
-            raw_backend_report: Some(length_tsv_path.display().to_string()),
+            raw_backend_report: Some(artifacts.length_tsv.display().to_string()),
             raw_backend_report_format: Some("seqkit_fx2tab_tsv".to_string()),
         };
-        bijux_dna_infra::atomic_write_json(report_json_path, &report)?;
+        bijux_dna_infra::atomic_write_json(&artifacts.report_json, &report)?;
         bijux_dna_infra::atomic_write_json(
             &tool_plan.out_dir.join("metrics.json"),
             &serde_json::to_value(&metric_set)?,
@@ -185,6 +175,13 @@ struct ReadLengthsToolPlan {
     plan: StagePlanV1,
     params_hash: String,
     image_digest: String,
+}
+
+struct ReadLengthsArtifacts {
+    report_json: PathBuf,
+    length_tsv: PathBuf,
+    length_json: PathBuf,
+    histogram_bins: u32,
 }
 
 fn preflight_read_lengths_inputs(
@@ -312,6 +309,21 @@ fn observe_read_lengths(
         lengths.extend(read_fastq_lengths(r2)?);
     }
     Ok(lengths)
+}
+
+fn prepare_read_lengths_artifacts(
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileReadLengthsArgs,
+    plan: &StagePlanV1,
+    lengths: &[usize],
+) -> Result<ReadLengthsArtifacts> {
+    let report_json = required_output_path(plan, "report_json")?.to_path_buf();
+    let length_tsv = required_output_path(plan, "length_distribution_tsv")?.to_path_buf();
+    let length_json = required_output_path(plan, "length_distribution_json")?.to_path_buf();
+    let histogram_bins = args.histogram_bins.unwrap_or(100).max(1);
+    if !length_tsv.exists() || !length_json.exists() {
+        write_length_outputs(&length_tsv, &length_json, lengths, histogram_bins)?;
+    }
+    Ok(ReadLengthsArtifacts { report_json, length_tsv, length_json, histogram_bins })
 }
 
 fn read_fastq_lengths(path: &Path) -> Result<Vec<usize>> {
