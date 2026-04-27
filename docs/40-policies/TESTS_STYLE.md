@@ -11,10 +11,16 @@ Consistent structure keeps policies enforceable and tests easy to navigate.
 - Documenting every test case.
 
 ## Contracts
-- Buckets, naming, fixtures, snapshots, determinism, and network rules are mandatory.
+- Policy enforcement lives under
+  [crates/bijux-dna-policies/tests/contracts/](../../crates/bijux-dna-policies/tests/contracts/).
+- Shared test helpers and workspace fixtures live under
+  [crates/bijux-dna-policies/tests/support/](../../crates/bijux-dna-policies/tests/support/).
+- Snapshot sanitization helpers and shared testkit utilities live under
+  [crates/bijux-dna-testkit/README.md](../../crates/bijux-dna-testkit/README.md).
 
 ## Examples
-See the sections below for concrete rules and layouts.
+See the sections below for the required layout and naming rules enforced through those
+surfaces.
 
 ## Failure modes
 - Divergent layouts and naming cause policy failures and test drift.
