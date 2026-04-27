@@ -1,4 +1,11 @@
-use super::*;
+use std::fs;
+
+use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
+
+use crate::observer::{
+    parse_profile_overrepresented_report, parse_profile_read_lengths_report,
+    parse_profile_reads_report,
+};
 
 pub(super) fn observed_profiling_metrics(
     plan: &StagePlanV1,

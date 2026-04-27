@@ -1,3 +1,5 @@
+#![allow(clippy::expect_used, clippy::too_many_lines)]
+
 use std::path::PathBuf;
 
 use bijux_dna_core::contract::{ArtifactRole, StageIO, ToolConstraints};
@@ -2432,12 +2434,12 @@ fn parse_outputs_surfaces_normalize_abundance_semantics() {
             "input_value_column": "abundance",
             "normalized_value_column": "counts_per_million",
             "compositional_rule": "per_sample_sum_to_one_million",
-            "scale_factor": 1000000.0,
+            "scale_factor": 1_000_000.0,
             "table_rows": 12,
             "sample_count": 3,
             "feature_count": 4,
             "zero_fraction": 0.25,
-            "per_sample_sums": [["sample_a", 1000000.0], ["sample_b", 1000000.0]],
+            "per_sample_sums": [["sample_a", 1_000_000.0], ["sample_b", 1_000_000.0]],
             "runtime_s": 1.8,
             "memory_mb": 24.0,
             "raw_backend_report": null,

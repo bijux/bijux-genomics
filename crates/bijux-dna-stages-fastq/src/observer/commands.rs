@@ -21,10 +21,14 @@ pub enum ObserverCommandKind {
     SeqkitLengthHistogram,
 }
 
+/// # Errors
+/// Returns an error if the mount directory or input FASTQ path cannot be canonicalized.
 pub fn input_fastq_stats(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
     seqkit_stats_command(mount_dir, fastq)
 }
 
+/// # Errors
+/// Returns an error if the mount directory or input FASTQ path cannot be canonicalized.
 pub fn output_fastq_stats(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
     seqkit_stats_command(mount_dir, fastq)
 }
@@ -51,6 +55,8 @@ fn seqkit_stats_command(mount_dir: &Path, fastq: &Path) -> Result<ObserverComman
     })
 }
 
+/// # Errors
+/// Returns an error if the mount directory or input FASTQ path cannot be canonicalized.
 pub fn length_histogram_command(mount_dir: &Path, fastq: &Path) -> Result<ObserverCommandSpec> {
     let mount_dir = mount_dir.canonicalize().context("resolve mount directory")?;
     let fastq = fastq.canonicalize().context("resolve fastq path")?;

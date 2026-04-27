@@ -1,4 +1,8 @@
-use super::*;
+use std::fs;
+
+use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
+
+use crate::observer::{parse_merge_pairs_report, parse_normalize_primers_report};
 
 pub(super) fn observed_quality_read_flow_metrics(
     plan: &StagePlanV1,
