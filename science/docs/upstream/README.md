@@ -16,6 +16,12 @@ for manual acquisition outside the GitHub mirror workflow.
 
 ## Layout
 
+- [PRODUCTION_CLOSURE_INDEX.tsv](PRODUCTION_CLOSURE_INDEX.tsv)
+  tracked rollup pointing at the FASTQ, BAM, VCF, reference-asset, and primer-evidence closure authorities
+- [bam/README.md](bam/README.md)
+  contract for BAM citation and promotion blockers
+- [bam/BAM_PRODUCTION_CLOSURE_LEDGER.tsv](bam/BAM_PRODUCTION_CLOSURE_LEDGER.tsv)
+  tracked BAM closure blocker ledger
 - [fastq/README.md](fastq/README.md)
   contract for FASTQ upstream evidence packets
 - [fastq/tools/README.md](fastq/tools/README.md)
@@ -28,6 +34,10 @@ for manual acquisition outside the GitHub mirror workflow.
   operator-facing paper archive worklist
 - [papers/TOOL_PAPER_MAP.tsv](papers/TOOL_PAPER_MAP.tsv)
   tracked tool-to-paper root map
+- [vcf/README.md](vcf/README.md)
+  contract for VCF calling and downstream promotion blockers
+- [vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv](vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv)
+  tracked VCF closure blocker ledger
 - [github-repos/README.md](github-repos/README.md)
   contract for GitHub repository evidence mirrors
 - [github-repos/MANIFEST.tsv](github-repos/MANIFEST.tsv)
@@ -43,3 +53,5 @@ for manual acquisition outside the GitHub mirror workflow.
 - keep the target list and archive contract tracked
 - prefer one stable upstream location per evidence family instead of ad hoc
   directories at the root of `science/docs/`
+- keep FASTQ, BAM, and VCF closure authorities separate so one domain does not
+  inherit release status from another

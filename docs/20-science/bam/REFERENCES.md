@@ -14,6 +14,8 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 ## Contracts
 - Every governed BAM tool must map to the exact `stage_ids` declared in
   [domain/bam/tools/](../../../domain/bam/tools/).
+- Conservative release-review blocker status for BAM tools now lives in
+  [../../../science/docs/upstream/bam/BAM_PRODUCTION_CLOSURE_LEDGER.tsv](../../../science/docs/upstream/bam/BAM_PRODUCTION_CLOSURE_LEDGER.tsv).
 - Paper-status closure for governed tool citations stays tracked in
   [../../../science/docs/upstream/papers/TOOL_PAPER_MAP.tsv](../../../science/docs/upstream/papers/TOOL_PAPER_MAP.tsv).
 - Repository-style upstream software locators stay governed by

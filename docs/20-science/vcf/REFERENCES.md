@@ -13,6 +13,8 @@ The VCF domain mixes currently supported calling stages with many planned downst
 ## Contracts
 - Every VCF tool in `domain/vcf/tools/*.yaml` must appear here exactly once.
 - `Applies to` must mirror the tool manifest `stage_ids`.
+- Conservative release-review blocker status for VCF tools now lives in
+  [../../../science/docs/upstream/vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv](../../../science/docs/upstream/vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv).
 - Planned tools may use honest `planned` citation status rather than fake-closed claims.
 
 ## Supported Calling and Filtering

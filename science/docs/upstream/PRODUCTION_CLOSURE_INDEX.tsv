@@ -1,0 +1,6 @@
+closure_surface	surface_scope	authority_path	authority_status	notes
+fastq	FASTQ production defaults	science/docs/upstream/fastq/container/FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv	governed_generated	Authoritative closure rollup for FASTQ execution defaults; generated from the science compiler and container evidence surfaces.
+bam	BAM governed tool surface	science/docs/upstream/bam/BAM_PRODUCTION_CLOSURE_LEDGER.tsv	tracked_manual	Conservative blocker ledger for BAM citation, upstream-identity, and promotion debt; do not borrow FASTQ closure state here.
+vcf	VCF governed tool surface	science/docs/upstream/vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv	tracked_manual	Conservative blocker ledger for supported VCF calling and planned downstream inference surfaces; do not treat planned tools as promoted.
+reference_assets	Contaminant reference sentinels	assets/reference/contaminants/references/REFERENCE_STATUS.tsv	tracked_manual	PhiX174 and UniVec remain sentinel fixtures blocked for production until pinned replacement snapshots are committed with full provenance.
+primer_evidence	Amplicon primer authorities	assets/reference/primers/PRIMER_EVIDENCE.tsv	tracked_manual	Primer citation authority stays governed outside the FASTQ upstream tree; Folmer COI remains DOI-unverified until a primary-source DOI is confirmed.
