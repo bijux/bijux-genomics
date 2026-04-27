@@ -310,6 +310,7 @@ fn observe_profile_reads(
     )?;
     let report = read_profile_reads_report(&tool_plan.plan)?;
     validate_profile_reads_report_identity(tool_plan, &report)?;
+    validate_profile_reads_report_metrics(&report)?;
     let metric_set = build_profile_reads_metric_set(&report)?;
     Ok(StatsObservation { metric_set })
 }
@@ -369,6 +370,32 @@ fn validate_profile_reads_observation_inputs(
     }
     if length_histogram.iter().all(|bin| bin.count == 0) {
         return Err(anyhow!("profile_reads observation has empty length histogram evidence"));
+    }
+    Ok(())
+}
+
+fn validate_profile_reads_report_metrics(report: &ProfileReadsReportV1) -> Result<()> {
+    if report.mate_summaries.is_empty() {
+        return Err(anyhow!("profile_reads report has no mate summaries"));
+    }
+    let reads_total = report.mate_summaries.iter().map(|summary| summary.reads).sum::<u64>();
+    if reads_total != report.reads_total {
+        return Err(anyhow!(
+            "profile_reads report read total mismatch: expected {}, observed {}",
+            reads_total,
+            report.reads_total
+        ));
+    }
+    let bases_total = report.mate_summaries.iter().map(|summary| summary.bases).sum::<u64>();
+    if bases_total != report.bases_total {
+        return Err(anyhow!(
+            "profile_reads report base total mismatch: expected {}, observed {}",
+            bases_total,
+            report.bases_total
+        ));
+    }
+    if report.length_histogram.is_empty() {
+        return Err(anyhow!("profile_reads report has no length histogram"));
     }
     Ok(())
 }
