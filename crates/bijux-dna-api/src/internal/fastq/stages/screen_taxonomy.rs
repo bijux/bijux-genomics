@@ -8,6 +8,7 @@ use crate::tool_selection::filter_tools_by_role;
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_analyze::load::sqlite::bench::{fetch_fastq_screen_v1, insert_fastq_screen_v1};
 use bijux_dna_analyze::{append_jsonl, metric_set, BenchmarkRecord, FastqScreenMetrics};
+use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
@@ -52,37 +53,27 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqScreenArgs,
 ) -> Result<BenchOutcome<FastqScreenMetrics>> {
     let tools = select_screen_benchmark_tools(args)?;
-
-    let registry =
-        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
-    let tools = filter_tools_by_role(STAGE_SCREEN_TAXONOMY.as_str(), &tools, &registry, false)?;
-    let bench_inputs = prepare_screen_bench(catalog, platform, runner_override, args)?;
-
-    let stage_id = bijux_dna_core::ids::StageId::new(STAGE_SCREEN_TAXONOMY.as_str());
-    let all_tools: Vec<String> =
-        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
-    let excluded: Vec<String> =
-        all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
+    let bench_inputs = prepare_screen_bench(catalog, platform, runner_override, args, &tools)?;
 
     if args.explain {
         write_explain_md(
             &bench_inputs.bench_dir,
             STAGE_SCREEN_TAXONOMY.as_str(),
-            &tools,
-            &excluded,
+            &bench_inputs.tools,
+            &bench_inputs.excluded_tools,
             None,
         )?;
         write_explain_plan_json(
             &bench_inputs.bench_dir,
             STAGE_SCREEN_TAXONOMY.as_str(),
-            &tools,
-            &registry,
+            &bench_inputs.tools,
+            &bench_inputs.registry,
             None,
         )?;
     }
 
-    ensure_image_qa_passed(STAGE_SCREEN_TAXONOMY.as_str(), &tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_SCREEN_TAXONOMY.as_str(), &tools, platform, catalog)?;
+    ensure_image_qa_passed(STAGE_SCREEN_TAXONOMY.as_str(), &bench_inputs.tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_SCREEN_TAXONOMY.as_str(), &bench_inputs.tools, platform, catalog)?;
 
     let sqlite_path = bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -90,13 +81,13 @@ pub fn bench_fastq_screen<S: ::std::hash::BuildHasher>(
     let jobs = bench_jobs(args.jobs);
     let mut failures = Vec::<RawFailure>::new();
     let mut records = Vec::<BenchmarkRecord<FastqScreenMetrics>>::new();
-    for tool in tools {
+    for tool in &bench_inputs.tools {
         let out_dir = bench_inputs.tools_root.join(&tool);
         bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
         let tool_spec = build_tool_execution_spec(
             STAGE_SCREEN_TAXONOMY.as_str(),
             &tool,
-            &registry,
+            &bench_inputs.registry,
             catalog,
             platform,
         )?;
@@ -171,6 +162,9 @@ fn select_screen_benchmark_tools(
 
 #[derive(Debug, Clone)]
 struct ScreenBenchInputs {
+    registry: ToolRegistry,
+    tools: Vec<String>,
+    excluded_tools: Vec<String>,
     runner: RuntimeKind,
     r1: std::path::PathBuf,
     r2: Option<std::path::PathBuf>,
@@ -186,7 +180,17 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
     platform: &PlatformSpec,
     runner_override: Option<RuntimeKind>,
     args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqScreenArgs,
+    selected_tools: &[String],
 ) -> Result<ScreenBenchInputs> {
+    let registry =
+        load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
+    let tools =
+        filter_tools_by_role(STAGE_SCREEN_TAXONOMY.as_str(), selected_tools, &registry, false)?;
+    let stage_id = bijux_dna_core::ids::StageId::new(STAGE_SCREEN_TAXONOMY.as_str());
+    let all_tools: Vec<String> =
+        registry.tools_for_stage(&stage_id).iter().map(|tool| tool.tool_id.to_string()).collect();
+    let excluded_tools: Vec<String> =
+        all_tools.into_iter().filter(|tool| !tools.contains(tool)).collect();
     let runner = ensure_bench_runner(platform, runner_override)?;
     let bench_dir_name = bench_dir_name(&STAGE_SCREEN_TAXONOMY)
         .ok_or_else(|| anyhow!("bench dir missing for {}", STAGE_SCREEN_TAXONOMY.as_str()))?;
@@ -242,6 +246,9 @@ fn prepare_screen_bench<S: ::std::hash::BuildHasher>(
     };
 
     Ok(ScreenBenchInputs {
+        registry,
+        tools,
+        excluded_tools,
         runner,
         r1,
         r2,
