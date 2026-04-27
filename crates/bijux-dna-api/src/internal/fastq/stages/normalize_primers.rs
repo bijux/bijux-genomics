@@ -113,6 +113,7 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
             tool_execution: &tool_execution,
         });
         let metric_set = build_normalize_primers_metric_set(&measurements, &report)?;
+        validate_normalize_primers_report_identity(tool, &report)?;
         write_normalize_primers_artifacts(&tool_plan, &outputs, &report, &metric_set)?;
         let record = build_normalize_primers_record(
             &NormalizePrimersRecordInputs {
@@ -589,6 +590,34 @@ fn build_normalize_primers_metric_set(
     let metric_set = metric_set(metrics);
     bijux_dna_analyze::validate_metric_set(&metric_set)?;
     Ok(metric_set)
+}
+
+fn validate_normalize_primers_report_identity(
+    tool: &str,
+    report: &NormalizePrimersReportV1,
+) -> Result<()> {
+    if report.schema_version != NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "normalize primers report schema mismatch: expected {}, observed {}",
+            NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_ID || report.stage_id != STAGE_ID {
+        return Err(anyhow!(
+            "normalize primers report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool {
+        return Err(anyhow!(
+            "normalize primers report tool mismatch: expected {}, observed {}",
+            tool,
+            report.tool_id
+        ));
+    }
+    Ok(())
 }
 
 fn write_normalize_primers_artifacts(
