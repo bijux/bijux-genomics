@@ -136,3 +136,29 @@ fn policy__contracts__science_boundary_docs_policy__container_root_readme_links_
         "containers/README.md must link the governed container entrypoints exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_index_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "docs/index.md".to_string(),
+        "docs/TOOL_LIFECYCLE.md".to_string(),
+        "docs/VERSION_AUTHORITY.md".to_string(),
+        "versions/index.md".to_string(),
+        "versions/LOCK.md".to_string(),
+        "docs/SMOKE_CONTRACT.md".to_string(),
+        "docs/PROMOTION_POLICY.md".to_string(),
+        "docs/SCIENCE_EVIDENCE_BOUNDARY.md".to_string(),
+        "docs/SECURITY_BOUNDARY.md".to_string(),
+        "docs/MULTIARCH_POLICY.md".to_string(),
+        "licenses/README.md".to_string(),
+        "versions/versions.toml".to_string(),
+        "versions/lock.json".to_string(),
+        "versions/index.sha256".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/index.md");
+    assert_eq!(
+        expected, documented,
+        "containers/index.md must link the governed container control surfaces exactly"
+    );
+}
