@@ -71,3 +71,18 @@ fn policy__contracts__root_docs_navigation_policy__quickstart_links_governed_sur
         "docs/00-intro/QUICKSTART.md must link the governed quickstart authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__scope_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "../10-architecture/index.md".to_string(),
+        "../20-science/index.md".to_string(),
+        "../30-operations/index.md".to_string(),
+        "../50-reference/index.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/00-intro/SCOPE.md");
+    assert_eq!(
+        expected, documented,
+        "docs/00-intro/SCOPE.md must link the governed scope surfaces exactly"
+    );
+}
