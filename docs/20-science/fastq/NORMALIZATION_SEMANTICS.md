@@ -11,11 +11,12 @@ Define abundance normalization semantics for eDNA and pollen FASTQ analyses.
 - Prescribing one normalization transform for all markers.
 
 ## Contracts
-- Normalized outputs are explicitly labeled as relative/compositional.
-- The selected transform and parameters are emitted in artifacts.
-- Downstream comparisons must use the same normalization contract.
-- Supported normalization modes are explicit: rarefaction and compositional transforms.
-- Reports must emit warnings when normalization assumptions are likely violated (for example low depth under rarefaction).
+- The abundance-normalization stage contract lives in
+  [domain/fastq/stages/normalize_abundance.yaml](../../../domain/fastq/stages/normalize_abundance.yaml).
+- Metric names and normalization observability fields live in
+  [domain/fastq/metrics.yaml](../../../domain/fastq/metrics.yaml).
+- The pinned default backend and method policy live in
+  [domain/fastq/docs/DEFAULT_SETTINGS.md](../../../domain/fastq/docs/DEFAULT_SETTINGS.md).
 
 ## Examples
 - Relative-abundance normalization for community composition summaries.
