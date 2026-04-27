@@ -472,14 +472,16 @@ fn detect_adapter_summary(out_dir: &std::path::Path) -> Result<DetectAdapterEvid
             .with_context(|| format!("read {}", fastp_json.display()))?;
         let parsed: serde_json::Value = serde_json::from_str(&raw)
             .with_context(|| format!("parse {}", fastp_json.display()))?;
-        let adapter_trimmed_reads = parsed
-            .pointer("/adapter_cutting/adapter_trimmed_reads")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0);
-        let total_reads = parsed
-            .pointer("/summary/before_filtering/total_reads")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or(0);
+        let adapter_trimmed_reads =
+            required_fastp_u64(&parsed, "/adapter_cutting/adapter_trimmed_reads", &fastp_json)?;
+        let total_reads =
+            required_fastp_u64(&parsed, "/summary/before_filtering/total_reads", &fastp_json)?;
+        if adapter_trimmed_reads > total_reads {
+            return Err(anyhow!(
+                "fastp adapter_trimmed_reads exceeds total_reads in {}",
+                fastp_json.display()
+            ));
+        }
         let fraction = if total_reads > 0 {
             Some(u64_to_f64(adapter_trimmed_reads) / u64_to_f64(total_reads))
         } else {
@@ -494,6 +496,16 @@ fn detect_adapter_summary(out_dir: &std::path::Path) -> Result<DetectAdapterEvid
     Ok(DetectAdapterEvidenceSummary {
         candidate_adapter_count: u64::from(out_dir.join("fastqc").exists()),
         adapter_trimmed_fraction: None,
+    })
+}
+
+fn required_fastp_u64(
+    parsed: &serde_json::Value,
+    pointer: &str,
+    path: &std::path::Path,
+) -> Result<u64> {
+    parsed.pointer(pointer).and_then(serde_json::Value::as_u64).ok_or_else(|| {
+        anyhow!("fastp report missing unsigned integer `{pointer}` in {}", path.display())
     })
 }
 
