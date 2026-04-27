@@ -2,6 +2,12 @@
 
 Purpose: enforce deterministic Apptainer SIF rebuild behavior on HPC frontend nodes.
 
+[FRONTEND_BUILD_AUTHORITY.md](FRONTEND_BUILD_AUTHORITY.md),
+[../../docs/30-operations/HPC_FRONTEND_RUNBOOK.md](../../docs/30-operations/HPC_FRONTEND_RUNBOOK.md),
+and [APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md](APPTAINTER_FRONTEND_REPRODUCIBILITY_REPORT.md)
+define the adjacent control and reporting surfaces for this reproducibility
+gate.
+
 ## Scope
 - Build authority is frontend/login hosts only.
 - Sample 10 random tool definitions per run.
@@ -20,10 +26,12 @@ Purpose: enforce deterministic Apptainer SIF rebuild behavior on HPC frontend no
 - Frontend pinned-version requirement:
   - `cargo run -p bijux-dna-dev -- containers run check-version-hash-pin` must pass before rebuild sampling.
 - Compute-node refusal:
-  - hostname policy from `configs/ci/tools/hpc_frontend_build_policy.toml`.
+  - hostname policy from
+    [configs/ci/tools/hpc_frontend_build_policy.toml](../../configs/ci/tools/hpc_frontend_build_policy.toml).
 
 ## Acceptance Standard
-- Config: `configs/ci/tools/apptainer_reproducibility_policy.toml`
+- Config:
+  [configs/ci/tools/apptainer_reproducibility_policy.toml](../../configs/ci/tools/apptainer_reproducibility_policy.toml)
 - Current standard:
   - `tool_sample_count = 10`
   - `confidence_min = 1.0`
@@ -43,7 +51,7 @@ Purpose: enforce deterministic Apptainer SIF rebuild behavior on HPC frontend no
 - Machine summary:
   - `artifacts/containers/hpc/frontend-reproducibility/<run_id>/summary.json`
 - Human report:
-  - `containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md`
+  - [containers/docs/APPTAINTER_FRONTEND_REPRODUCIBILITY_REPORT.md](APPTAINTER_FRONTEND_REPRODUCIBILITY_REPORT.md)
 
 ## Nondeterminism Cause Labels
 - `timestamp_or_timezone`
