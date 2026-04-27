@@ -1,22 +1,28 @@
 # VCF Population Structure Stage
 
 ## Purpose
-Define methodological intent for `vcf.population_structure` outputs used in downstream inference.
+Define the governed population-structure stage family for VCF cohorts without collapsing distinct QC, PCA, admixture, and summary boundaries into one generic narrative.
 
 ## Scope
-Applies to PCA/cluster summary generation from filtered VCF cohorts.
+This science surface covers:
+- `vcf.qc` for cohort-level missingness and MAF gating before structure inference.
+- `vcf.pca` for principal-component summaries from the admitted structure-tool family.
+- `vcf.admixture` for mixture-style downstream summaries that stay planned until stronger validation exists.
+- `vcf.population_structure` for the higher-level report contract that rolls structure evidence into a governed summary.
 
 ## Non-goals
-- Replacing full population genetics study design.
+- Replacing full study design or interpretation of ancestry history.
+- Pretending that PCA, admixture, and final structure reporting are interchangeable stages.
 
 ## Contracts
-- Stage contract: `domain/vcf/stages/population_structure.yaml`.
-- Expected output: `population_structure_report`.
-- Baseline planned tools: `plink`, `plink2`, `eigensoft`.
-- Output contract requires `metrics.json` with schema `bijux.vcf.population_structure.v1`.
-- Required metrics include PCA variance, PC axes, cluster assignments, and admixture model selection summaries.
+- `vcf.qc` emits the planned cohort-QC report contract before downstream inference is admitted.
+- `vcf.pca` emits PCA-oriented summaries from the admitted `plink2` and `eigensoft` tool family.
+- `vcf.admixture` stays planned on the admitted `plink` and `plink2` matrix-tool surface rather than inventing a fake dedicated backend.
+- `vcf.population_structure` emits `population_structure_report` with schema `bijux.vcf.population_structure.v1`.
+- Required `vcf.population_structure` metrics include PCA variance, PC axes, cluster assignments, `admixture_k_selected`, and `admixture_cross_validation_error`.
+- Planned defaults remain `plink2` for `vcf.qc`, `vcf.pca`, `vcf.admixture`, and `vcf.population_structure` until a stronger justified baseline is promoted in `domain/vcf/docs/DEFAULT_SETTINGS.md`.
 
 ## Validity Limits
-- Sensitive to LD pruning choices and sample composition.
-- Cross-run comparison requires fixed panel/build and pinned tool versions.
-- Clustering/admixture summaries are model-dependent and not absolute ancestry truths.
+- LD pruning, missingness filtering, and cohort composition materially change `vcf.pca`, `vcf.admixture`, and `vcf.population_structure` outputs.
+- Cross-run comparison requires fixed build, fixed admitted tool versions, and unchanged QC thresholds.
+- Structure summaries are model-dependent reports, not absolute ancestry truths.

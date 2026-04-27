@@ -509,6 +509,22 @@ fn policy__contracts__vcf_science_docs_policy__roadmap_covers_damage_aware_calli
 }
 
 #[test]
+fn policy__contracts__vcf_science_docs_policy__population_structure_doc_covers_structure_stage_family(
+) {
+    let expected = BTreeSet::from([
+        "vcf.qc".to_string(),
+        "vcf.pca".to_string(),
+        "vcf.admixture".to_string(),
+        "vcf.population_structure".to_string(),
+    ]);
+    let documented = vcf_doc_stage_mentions("docs/20-science/vcf/POPULATION_STRUCTURE.md");
+    assert_eq!(
+        expected, documented,
+        "VCF population-structure doc must mention the governed structure stage family exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__vcf_science_docs_policy__damage_logic_covers_gl_damage_stage_family() {
     let expected = BTreeSet::from([
         "vcf.call_gl".to_string(),
