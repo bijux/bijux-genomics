@@ -322,6 +322,19 @@ fn vcf_default_settings_rows() -> BTreeMap<String, String> {
         .collect()
 }
 
+fn vcf_domain_stage_taxonomy_rows() -> BTreeMap<String, String> {
+    markdown_table_rows("domain/vcf/docs/STAGE_TAXONOMY.md", "| Stage |")
+        .into_iter()
+        .map(|row| {
+            assert!(
+                row.len() >= 4,
+                "VCF stage taxonomy rows must expose stage, phase, class, and status columns",
+            );
+            (row[0].to_string(), row[3].to_string())
+        })
+        .collect()
+}
+
 fn assert_vcf_tools_roster_matches(stage_ids: &[&str], label: &str) {
     let expected = vcf_stage_specs();
     let roster = vcf_tools_roster_rows();
@@ -566,6 +579,37 @@ fn policy__contracts__vcf_science_docs_policy__default_settings_use_admitted_too
     assert!(
         offenders.is_empty(),
         "VCF default-settings drift:\n{}",
+        offenders.join("\n")
+    );
+}
+
+#[test]
+fn policy__contracts__vcf_science_docs_policy__domain_stage_taxonomy_covers_vcf_stage_catalog() {
+    let expected = vcf_stage_specs();
+    let documented = vcf_domain_stage_taxonomy_rows();
+
+    assert_eq!(
+        expected.keys().cloned().collect::<BTreeSet<_>>(),
+        documented.keys().cloned().collect::<BTreeSet<_>>(),
+        "VCF domain stage taxonomy must cover the VCF stage manifest exactly"
+    );
+
+    let mut offenders = Vec::new();
+    for (stage_id, expected_spec) in expected {
+        let documented_status = documented
+            .get(&stage_id)
+            .unwrap_or_else(|| panic!("missing taxonomy row for {stage_id}"));
+        if documented_status != &expected_spec.status {
+            offenders.push(format!(
+                "{stage_id}: expected status {}, found {}",
+                expected_spec.status, documented_status
+            ));
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "VCF stage taxonomy status drift:\n{}",
         offenders.join("\n")
     );
 }
