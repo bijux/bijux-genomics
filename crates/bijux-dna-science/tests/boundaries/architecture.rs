@@ -75,9 +75,10 @@ fn science_test_tree_matches_architecture_contract() {
             "command_inventory.rs",
             "dependency_graph.rs",
             "docs_layout.rs",
+            "generated_surface_docs.rs",
             "public_api_docs.rs",
         ]),
-        "science boundary tests must cover docs, commands, dependencies, public API, and architecture"
+        "science boundary tests must cover docs, commands, generated surfaces, dependencies, public API, and architecture"
     );
 }
 
