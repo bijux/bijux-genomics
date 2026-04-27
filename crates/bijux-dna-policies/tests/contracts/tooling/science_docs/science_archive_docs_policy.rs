@@ -132,6 +132,9 @@ fn policy__contracts__science_archive_docs_policy__science_docs_readme_links_arc
 ) {
     let expected = BTreeSet::from([
         "TODO_DOWNLOAD.md".to_string(),
+        "../generated/README.md".to_string(),
+        "../generated/current/evidence/README.md".to_string(),
+        "../specs/releases/README.md".to_string(),
         "../generated/current/evidence/fastq_download_backlog.tsv".to_string(),
         "upstream/README.md".to_string(),
         "upstream/fastq/README.md".to_string(),

@@ -22,8 +22,9 @@ repositories, supplementary documents, and local notes tied to licensed access.
 ## What Does Not Belong Here
 
 - review-authored science SSOT under `science/specs/**`
-- generated compiler outputs under `science/generated/**`
-- release bundles under `artifacts/science-releases/**`
+- generated compiler outputs under [science/generated/README.md](../generated/README.md)
+- release bundles owned by [science/specs/releases/README.md](../specs/releases/README.md)
+  and written under `artifacts/science-releases/**`
 
 ## Handling Rules
 
@@ -32,6 +33,8 @@ repositories, supplementary documents, and local notes tied to licensed access.
 - treat [fastq_download_backlog.tsv](../generated/current/evidence/fastq_download_backlog.tsv) as the
   machine-readable source for FASTQ archive planning and keep
   [TODO_DOWNLOAD.md](TODO_DOWNLOAD.md) aligned with it
+- use [science/generated/current/evidence/README.md](../generated/current/evidence/README.md)
+  when a review needs the wider generated evidence inventory behind that backlog
 - place each acquired item under a stable path that matches the planned archive
   path recorded in the TODO list or a future science source record
 
