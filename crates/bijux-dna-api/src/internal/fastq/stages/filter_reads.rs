@@ -478,7 +478,6 @@ fn filter_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
     })
 }
 
-#[allow(clippy::too_many_lines)]
 fn build_filter_record<S: ::std::hash::BuildHasher>(
     inputs: &FilterRecordInputs<'_, S>,
 ) -> Result<BenchmarkRecord<FastqFilterMetrics>> {
