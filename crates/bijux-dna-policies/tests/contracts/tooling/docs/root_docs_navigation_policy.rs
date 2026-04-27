@@ -215,3 +215,20 @@ fn policy__contracts__root_docs_navigation_policy__architecture_doc_links_govern
         "docs/10-architecture/ARCHITECTURE.md must link the governed architecture authorities exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "../index.md".to_string(),
+        "POLICY_INDEX.md".to_string(),
+        "POLICY_MATRIX.md".to_string(),
+        "POLICIES_EXPLAINED.md".to_string(),
+        "DOCS_STYLE.md".to_string(),
+        "STYLE.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/40-policies/index.md");
+    assert_eq!(
+        expected, documented,
+        "docs/40-policies/index.md must link the governed policy entry surfaces exactly"
+    );
+}
