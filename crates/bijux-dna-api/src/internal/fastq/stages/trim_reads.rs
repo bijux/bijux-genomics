@@ -122,52 +122,30 @@ pub fn bench_fastq_trim<S: ::std::hash::BuildHasher>(
             continue;
         }
 
-        let output_r1 = tool_plan.plan.io.outputs[0].path.clone();
-        let output_stats_r1 =
-            observe_fastq_stats(catalog, platform, setup.bench_inputs.runner, &output_r1)?;
-        let output_stats_r2 = if args.r2.is_some() {
-            Some(observe_fastq_stats(
-                catalog,
-                platform,
-                setup.bench_inputs.runner,
-                &tool_plan.plan.io.outputs[1].path,
-            )?)
-        } else {
-            None
-        };
-        let before_stats =
-            combine_seqkit_metrics(&setup.bench_inputs.input_stats, setup.input_stats_r2.as_ref());
-        let after_stats = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
+        let observed_stats = observe_trim_tool_stats(catalog, platform, args, &setup, &tool_plan)?;
         let report_path = tool_plan.plan.out_dir.join("trim_report.json");
         let mut governed_report = load_governed_trim_report(&report_path)?;
-        governed_report.reads_in = Some(before_stats.reads);
-        governed_report.reads_out = Some(after_stats.reads);
-        governed_report.bases_in = Some(before_stats.bases);
-        governed_report.bases_out = Some(after_stats.bases);
-        governed_report.pairs_in = setup
-            .input_stats_r2
-            .as_ref()
-            .map(|stats| setup.bench_inputs.input_stats.reads.min(stats.reads));
-        governed_report.pairs_out =
-            output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
-        governed_report.mean_q_before = Some(before_stats.mean_q);
-        governed_report.mean_q_after = Some(after_stats.mean_q);
+        governed_report.reads_in = Some(observed_stats.before.reads);
+        governed_report.reads_out = Some(observed_stats.after.reads);
+        governed_report.bases_in = Some(observed_stats.before.bases);
+        governed_report.bases_out = Some(observed_stats.after.bases);
+        governed_report.pairs_in = observed_stats.pairs_in;
+        governed_report.pairs_out = observed_stats.pairs_out;
+        governed_report.mean_q_before = Some(observed_stats.before.mean_q);
+        governed_report.mean_q_after = Some(observed_stats.after.mean_q);
         governed_report.runtime_s = Some(execution.runtime_s);
         governed_report.memory_mb = Some(execution.memory_mb);
         write_governed_trim_report(&report_path, &governed_report)?;
         let metrics = FastqTrimMetrics {
-            reads_in: before_stats.reads,
-            reads_out: after_stats.reads,
-            bases_in: before_stats.bases,
-            bases_out: after_stats.bases,
-            pairs_in: setup
-                .input_stats_r2
-                .as_ref()
-                .map(|stats| setup.bench_inputs.input_stats.reads.min(stats.reads)),
-            pairs_out: output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads)),
-            mean_q_before: before_stats.mean_q,
-            mean_q_after: after_stats.mean_q,
-            delta_metrics: derive_trim_delta(&before_stats, &after_stats),
+            reads_in: observed_stats.before.reads,
+            reads_out: observed_stats.after.reads,
+            bases_in: observed_stats.before.bases,
+            bases_out: observed_stats.after.bases,
+            pairs_in: observed_stats.pairs_in,
+            pairs_out: observed_stats.pairs_out,
+            mean_q_before: observed_stats.before.mean_q,
+            mean_q_after: observed_stats.after.mean_q,
+            delta_metrics: derive_trim_delta(&observed_stats.before, &observed_stats.after),
             paired_mode: Some(
                 match governed_report.paired_mode {
                     bijux_dna_domain_fastq::PairedMode::SingleEnd => "single_end",
@@ -266,6 +244,44 @@ struct TrimToolPlan {
     bench_params: serde_json::Value,
     params_hash: String,
     image_digest: String,
+}
+
+struct TrimObservedStats {
+    before: SeqkitMetrics,
+    after: SeqkitMetrics,
+    pairs_in: Option<u64>,
+    pairs_out: Option<u64>,
+}
+
+fn observe_trim_tool_stats<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqTrimArgs,
+    setup: &TrimBenchmarkSetup,
+    tool_plan: &TrimToolPlan,
+) -> Result<TrimObservedStats> {
+    let output_r1 = tool_plan.plan.io.outputs[0].path.clone();
+    let output_stats_r1 =
+        observe_fastq_stats(catalog, platform, setup.bench_inputs.runner, &output_r1)?;
+    let output_stats_r2 = if args.r2.is_some() {
+        Some(observe_fastq_stats(
+            catalog,
+            platform,
+            setup.bench_inputs.runner,
+            &tool_plan.plan.io.outputs[1].path,
+        )?)
+    } else {
+        None
+    };
+    let before =
+        combine_seqkit_metrics(&setup.bench_inputs.input_stats, setup.input_stats_r2.as_ref());
+    let after = combine_seqkit_metrics(&output_stats_r1, output_stats_r2.as_ref());
+    let pairs_in = setup
+        .input_stats_r2
+        .as_ref()
+        .map(|stats| setup.bench_inputs.input_stats.reads.min(stats.reads));
+    let pairs_out = output_stats_r2.as_ref().map(|stats| output_stats_r1.reads.min(stats.reads));
+    Ok(TrimObservedStats { before, after, pairs_in, pairs_out })
 }
 
 fn prepare_trim_tool_plan<S: ::std::hash::BuildHasher>(
