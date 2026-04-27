@@ -396,15 +396,7 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
         .ok_or_else(|| anyhow!("low-complexity output has no parent"))?;
     write_low_complexity_artifacts(out_dir, &report, &metric_set)?;
 
-    let context = build_benchmark_context(
-        &inputs.tool_plan.tool,
-        inputs.tool_plan.tool_spec.tool_version.clone(),
-        inputs.tool_plan.image_digest.clone(),
-        inputs.bench_inputs.runner,
-        inputs.platform,
-        inputs.input_hash.to_string(),
-        inputs.tool_plan.plan.params.clone(),
-    );
+    let context = build_low_complexity_context(inputs);
     let record = BenchmarkRecord {
         context,
         execution: low_complexity_execution_metrics(inputs.execution),
@@ -412,6 +404,20 @@ fn build_low_complexity_record<S: ::std::hash::BuildHasher>(
     };
     record.validate()?;
     Ok(record)
+}
+
+fn build_low_complexity_context<S: ::std::hash::BuildHasher>(
+    inputs: &LowComplexityRecordInputs<'_, S>,
+) -> bijux_dna_analyze::BenchmarkContext {
+    build_benchmark_context(
+        &inputs.tool_plan.tool,
+        inputs.tool_plan.tool_spec.tool_version.clone(),
+        inputs.tool_plan.image_digest.clone(),
+        inputs.bench_inputs.runner,
+        inputs.platform,
+        inputs.input_hash.to_string(),
+        inputs.tool_plan.plan.params.clone(),
+    )
 }
 
 fn low_complexity_execution_metrics(execution: &LowComplexityToolExecution) -> ExecutionMetrics {
