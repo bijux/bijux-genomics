@@ -481,23 +481,10 @@ pub(in super::super) fn check_planned_actionability(
             errors.push(format!("PLANNED.md missing required column/header marker: {header}"));
         }
     }
-    let mut rows = Vec::new();
-    let mut in_table = false;
-    for line in text.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with("| Tool ") && trimmed.contains("Owner") {
-            in_table = true;
-            continue;
-        }
-        if in_table && trimmed.starts_with("|---") {
-            continue;
-        }
-        if in_table && trimmed.starts_with('|') {
-            rows.push(trimmed.to_string());
-        } else if in_table && trimmed.is_empty() {
-            break;
-        }
-    }
+    let rows = markdown_table_rows(
+        &text,
+        "| Tool | Primary Stage(s) | Shipping Policy | Justification | Owner |",
+    );
     if rows.is_empty() {
         errors.push("PLANNED.md has no actionable planned tool rows".to_string());
     }
@@ -525,13 +512,115 @@ pub(in super::super) fn check_planned_actionability(
             "{tool}: documented in containers/docs/PLANNED.md but not planned in configs/ci/registry/tool_registry_vcf_downstream.toml"
         ));
     }
-    if errors.is_empty() {
-        return success_line(format!(
-            "planned actionability: OK ({})",
-            documented_tools.len()
+
+    let coverage_rows =
+        markdown_table_rows(&text, "| Tool | Current Container Coverage | Open Gap |");
+    if coverage_rows.is_empty() {
+        errors.push("PLANNED.md has no current container coverage rows".to_string());
+    }
+    let mut coverage_tools = BTreeSet::new();
+    let index_rows =
+        container_index_rows_by_tool(&read_utf8(&workspace.path("containers/docs/index.md"))?);
+    for row in coverage_rows {
+        let cols = row.trim_matches('|').split('|').map(str::trim).collect::<Vec<_>>();
+        if cols.len() < 3 {
+            errors.push(format!("PLANNED.md malformed coverage row: {row}"));
+            continue;
+        }
+        let tool = cols[0].trim_matches('`');
+        let documented_coverage = cols[1];
+        coverage_tools.insert(tool.to_string());
+        let Some((status, apptainer_source, docker_source)) = index_rows.get(tool) else {
+            errors.push(format!(
+                "{tool}: documented in PLANNED.md coverage table but missing from containers/docs/index.md"
+            ));
+            continue;
+        };
+        if status != "planned" {
+            errors.push(format!(
+                "{tool}: PLANNED.md coverage table expects status planned but containers/docs/index.md reports {status}"
+            ));
+        }
+        let expected_coverage =
+            planned_coverage_label(apptainer_source.as_str(), docker_source.as_str());
+        if documented_coverage != expected_coverage {
+            errors.push(format!(
+                "{tool}: PLANNED.md coverage '{documented_coverage}' does not match containers/docs/index.md derived coverage '{expected_coverage}'"
+            ));
+        }
+    }
+    for tool in planned_registry_tools.difference(&coverage_tools) {
+        errors.push(format!(
+            "{tool}: planned in configs/ci/registry/tool_registry_vcf_downstream.toml but missing from PLANNED.md coverage table"
         ));
     }
+    for tool in coverage_tools.difference(&planned_registry_tools) {
+        errors.push(format!(
+            "{tool}: documented in PLANNED.md coverage table but not planned in configs/ci/registry/tool_registry_vcf_downstream.toml"
+        ));
+    }
+    if errors.is_empty() {
+        return success_line(format!("planned actionability: OK ({})", documented_tools.len()));
+    }
     failure_lines("planned actionability: FAILED", &errors)
+}
+
+fn markdown_table_rows(text: &str, header: &str) -> Vec<String> {
+    let mut rows = Vec::new();
+    let mut in_table = false;
+    for line in text.lines() {
+        let trimmed = line.trim();
+        if trimmed == header {
+            in_table = true;
+            continue;
+        }
+        if in_table && trimmed.starts_with("|---") {
+            continue;
+        }
+        if in_table && trimmed.starts_with('|') {
+            rows.push(trimmed.to_string());
+        } else if in_table && trimmed.is_empty() {
+            break;
+        }
+    }
+    rows
+}
+
+fn container_index_rows_by_tool(text: &str) -> BTreeMap<String, (String, String, String)> {
+    let mut rows = BTreeMap::new();
+    for row in markdown_table_rows(text, "| tool_id | status | apptainer_source | docker_source |")
+    {
+        let cols = row.trim_matches('|').split('|').map(str::trim).collect::<Vec<_>>();
+        if cols.len() < 4 {
+            continue;
+        }
+        rows.insert(
+            cols[0].trim_matches('`').to_string(),
+            (
+                cols[1].trim_matches('`').to_string(),
+                cols[2].trim_matches('`').to_string(),
+                cols[3].trim_matches('`').to_string(),
+            ),
+        );
+    }
+    rows
+}
+
+fn planned_coverage_label(apptainer_source: &str, docker_source: &str) -> String {
+    match (apptainer_source, docker_source) {
+        ("bijux", "none") => "bijux apptainer wrapper".to_string(),
+        ("bijux", "arm64") | ("bijux", "arm64+amd64") => {
+            "bijux apptainer + docker arm64".to_string()
+        }
+        ("non-bijux", "arm64") | ("non-bijux", "arm64+amd64") => {
+            "non-bijux apptainer + docker arm64".to_string()
+        }
+        ("non-bijux", "none") => "non-bijux apptainer wrapper".to_string(),
+        ("none", "arm64") | ("none", "arm64+amd64") => "docker arm64 only".to_string(),
+        _ => {
+            format!("apptainer={apptainer_source}, docker={docker_source}")
+        }
+    }
 }
 
 pub(in super::super) fn check_bijux_template_markers(
