@@ -120,6 +120,13 @@ fn fastq_paper_archive_matrix() -> Vec<Vec<String>> {
     tsv_records("science/generated/current/evidence/fastq_paper_archive_matrix.tsv")
 }
 
+fn source_ids(path: &str) -> BTreeSet<String> {
+    tsv_records(path)
+        .into_iter()
+        .filter_map(|row| row.first().cloned())
+        .collect()
+}
+
 #[test]
 fn policy__contracts__science_archive_docs_policy__science_docs_readme_links_archive_contracts_exactly(
 ) {
@@ -395,6 +402,60 @@ fn policy__contracts__science_archive_docs_policy__fastq_tools_readme_links_cont
     assert_eq!(
         expected, documented,
         "science/docs/upstream/fastq/tools/README.md must link the governed FASTQ tool-packet contracts exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__fastq_tool_evidence_map_covers_generated_backlog_sources(
+) {
+    let expected = tsv_records("science/generated/current/evidence/fastq_download_backlog.tsv")
+        .into_iter()
+        .map(|row| format!("{}|{}|{}|{}|{}|{}", row[0], row[1], row[7], row[9], row[3], row[5]))
+        .collect::<BTreeSet<_>>();
+    let documented = tsv_records("science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv")
+        .into_iter()
+        .filter(|row| row[1] != "fastq_screen")
+        .map(|row| format!("{}|{}|{}|{}|{}|{}", row[0], row[1], row[2], row[3], row[4], row[5]))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv must cover the generated FASTQ backlog source rows exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__fastq_tool_evidence_map_only_keeps_fastq_screen_as_contextual_extra(
+) {
+    let evidence_ids = source_ids("science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv");
+    let backlog_ids = source_ids("science/generated/current/evidence/fastq_download_backlog.tsv");
+    let extras = evidence_ids.difference(&backlog_ids).cloned().collect::<BTreeSet<_>>();
+    assert_eq!(
+        extras,
+        BTreeSet::from(["source.fastq.tool.fastq_screen.upstream".to_string()]),
+        "science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv must not grow unexplained contextual packets"
+    );
+}
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__fastq_tool_evidence_map_contextual_fastq_screen_remains_paper_backed(
+) {
+    let fastq_screen_row = tsv_records("science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv")
+        .into_iter()
+        .find(|row| row[1] == "fastq_screen")
+        .expect("science/docs/upstream/fastq/tools/EVIDENCE_MAP.tsv must keep the fastq_screen contextual packet");
+    assert_eq!(
+        fastq_screen_row[3],
+        "science/docs/upstream/papers/paper.fastq.fastq-screen.wingett-2018",
+        "fastq_screen contextual packet must stay tied to the governed FastQ Screen paper root"
+    );
+
+    let paper_row = fastq_paper_archive_matrix()
+        .into_iter()
+        .find(|row| row[0] == "paper.fastq.fastq-screen.wingett-2018")
+        .expect("fastq paper archive matrix must retain the FastQ Screen paper root");
+    assert_eq!(
+        paper_row[2], "not_applicable",
+        "FastQ Screen must remain outside the current governed FASTQ execution-stage surface"
     );
 }
 

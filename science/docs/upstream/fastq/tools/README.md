@@ -14,7 +14,8 @@ packets.
 
 - [EVIDENCE_MAP.tsv](EVIDENCE_MAP.tsv)
   tracked map of primary upstreams, supporting locators, and expected archive
-  packet shape for focused FASTQ tools
+  packet shape for focused FASTQ tools plus explicit contextual packets such as
+  FastQ Screen when they still anchor governed FASTQ QC evidence
 - [../../papers/TOOL_PAPER_MAP.tsv](../../papers/TOOL_PAPER_MAP.tsv)
   tracked map from FASTQ tools to durable paper archive roots
 
