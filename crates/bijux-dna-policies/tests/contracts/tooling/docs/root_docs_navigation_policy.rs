@@ -388,3 +388,39 @@ fn policy__contracts__root_docs_navigation_policy__crate_authority_map_links_gov
         "docs/10-architecture/CRATE_AUTHORITY_MAP.md must link the governed crate authority surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__root_docs_navigation_policy__contract_index_links_governed_surfaces_exactly() {
+    let expected = BTreeSet::from([
+        "ARCHITECTURE_CONTRACT.md".to_string(),
+        "CRATE_BOUNDARY_CONTRACTS.md".to_string(),
+        "BOUNDARY_MAP.md".to_string(),
+        "CRATE_AUTHORITY_MAP.md".to_string(),
+        "CONTRACT_SPINE.md".to_string(),
+        "SSOT.md".to_string(),
+        "GENERATED_FILES_CONTRACT.md".to_string(),
+        "DRY_RUN_EFFECTS_CONTRACT.md".to_string(),
+        "SNAPSHOT_GOLDEN_CONTRACT.md".to_string(),
+        "../40-policies/TESTS_STYLE.md".to_string(),
+        "../../containers/docs/TOOL_IDS_CONTRACT.md".to_string(),
+        "CONTRACT_AUTHORITY.md".to_string(),
+        "../30-operations/REPORT_CONTRACT.md".to_string(),
+        "../../assets/CONTRACT.md".to_string(),
+        "../../containers/docs/SMOKE_CONTRACT.md".to_string(),
+        "../../containers/docs/SCIENCE_EVIDENCE_BOUNDARY.md".to_string(),
+        "../30-operations/benchmark/workspace-contract.md".to_string(),
+        "../20-science/SCIENTIFIC_DECISIONS.md".to_string(),
+        "../50-reference/LICENSING.md".to_string(),
+        "../50-reference/CONTRACT_COMPATIBILITY.md".to_string(),
+        "../../.github/release.env".to_string(),
+        "../../.github/workflows/publish-ghcr-container-images.yml".to_string(),
+        "../../assets/reference/LOCK.md".to_string(),
+        "../50-reference/CONTRACT_VERSIONING.md".to_string(),
+        "../40-policies/POLICY_OWNERSHIP.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/CONTRACT_INDEX.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/CONTRACT_INDEX.md must link the governed contract index authorities exactly"
+    );
+}
