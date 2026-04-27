@@ -29,6 +29,9 @@ impl DownloadConfig {
         }
     }
 
+    /// # Errors
+    /// Returns an error when the configured output directory is empty or when
+    /// the configured job count is zero.
     pub fn validate(&self) -> Result<()> {
         if self.output_dir.as_os_str().is_empty() {
             anyhow::bail!("output_dir must not be empty");
