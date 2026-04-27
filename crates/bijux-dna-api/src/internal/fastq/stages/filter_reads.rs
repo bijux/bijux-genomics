@@ -57,24 +57,10 @@ pub fn bench_fastq_filter<S: ::std::hash::BuildHasher>(
         prepare_filter_benchmark_setup(catalog, platform, runner_override, args, &selected_tools)?;
 
     if args.explain {
-        write_explain_md(
-            &setup.bench_inputs.bench_dir,
-            STAGE_FILTER_READS.as_str(),
-            &setup.tools,
-            &[],
-            None,
-        )?;
-        write_explain_plan_json(
-            &setup.bench_inputs.bench_dir,
-            STAGE_FILTER_READS.as_str(),
-            &setup.tools,
-            &setup.registry,
-            None,
-        )?;
+        write_filter_benchmark_explain(&setup)?;
     }
 
-    ensure_image_qa_passed(STAGE_FILTER_READS.as_str(), &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_FILTER_READS.as_str(), &setup.tools, platform, catalog)?;
+    ensure_filter_benchmark_qa(catalog, platform, &setup.tools)?;
 
     let sqlite_path = setup.bench_inputs.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path).context("open bench sqlite")?;
@@ -221,6 +207,32 @@ fn prepare_filter_benchmark_setup<S: ::std::hash::BuildHasher>(
         polyx_policy: args.polyx_policy.clone(),
     };
     Ok(FilterBenchmarkSetup { registry, tools, bench_inputs, input_hash, input_stats_r2, options })
+}
+
+fn write_filter_benchmark_explain(setup: &FilterBenchmarkSetup) -> Result<()> {
+    write_explain_md(
+        &setup.bench_inputs.bench_dir,
+        STAGE_FILTER_READS.as_str(),
+        &setup.tools,
+        &[],
+        None,
+    )?;
+    write_explain_plan_json(
+        &setup.bench_inputs.bench_dir,
+        STAGE_FILTER_READS.as_str(),
+        &setup.tools,
+        &setup.registry,
+        None,
+    )
+}
+
+fn ensure_filter_benchmark_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_FILTER_READS.as_str(), tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_FILTER_READS.as_str(), tools, platform, catalog)
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
