@@ -216,3 +216,20 @@ fn policy__contracts__science_boundary_docs_policy__container_version_authority_
         "containers/docs/VERSION_AUTHORITY.md must link the governed version-authority surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_lock_lifecycle_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../versions/lock.json".to_string(),
+        "../README.md".to_string(),
+        "VERSION_AUTHORITY.md".to_string(),
+        "../versions/LOCK.md".to_string(),
+        "../versions/versions.toml".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/LOCK_LIFECYCLE.md");
+    assert_eq!(
+        expected, documented,
+        "containers/docs/LOCK_LIFECYCLE.md must link the governed lock-lifecycle surfaces exactly"
+    );
+}
