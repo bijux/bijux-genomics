@@ -624,7 +624,44 @@ fn read_overrepresented_payload(path: &Path) -> Result<OverrepresentedPayload> {
             .unwrap_or_else(|| rows.first().map_or(0.0, |row| row.fraction)),
     };
     metrics.validate()?;
+    validate_overrepresented_payload_metrics(path, &metrics, &rows)?;
     Ok(OverrepresentedPayload { metrics, rows })
+}
+
+fn validate_overrepresented_payload_metrics(
+    path: &Path,
+    metrics: &FastqOverrepresentedMetrics,
+    rows: &[OverrepresentedSequenceRowV1],
+) -> Result<()> {
+    let row_count = usize_to_u64(rows.len());
+    if metrics.sequence_count != row_count {
+        return Err(anyhow!(
+            "overrepresented payload sequence count mismatch in {}: expected {}, observed {}",
+            path.display(),
+            row_count,
+            metrics.sequence_count
+        ));
+    }
+    let flagged_count = rows.iter().filter(|row| row.flag == "overrepresented").count();
+    let flagged_count = usize_to_u64(flagged_count);
+    if metrics.flagged_sequences != flagged_count {
+        return Err(anyhow!(
+            "overrepresented payload flagged count mismatch in {}: expected {}, observed {}",
+            path.display(),
+            flagged_count,
+            metrics.flagged_sequences
+        ));
+    }
+    let top_fraction = rows.first().map_or(0.0, |row| row.fraction);
+    if (metrics.top_fraction - top_fraction).abs() > f64::EPSILON {
+        return Err(anyhow!(
+            "overrepresented payload top fraction mismatch in {}: expected {}, observed {}",
+            path.display(),
+            top_fraction,
+            metrics.top_fraction
+        ));
+    }
+    Ok(())
 }
 
 fn parse_overrepresented_rows(
