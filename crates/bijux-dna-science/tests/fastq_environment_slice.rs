@@ -233,7 +233,7 @@ fn assert_generated_output_inventory(root: &Path) -> Result<()> {
         fs::read_dir(&evidence_root).with_context(|| format!("read {}", evidence_root.display()))?
     {
         let entry = entry?;
-        if entry.file_type()?.is_file() {
+        if entry.file_type()?.is_file() && entry.file_name() != "README.md" {
             actual.insert(format!(
                 "science/generated/current/evidence/{}",
                 entry.file_name().to_string_lossy()
