@@ -20,6 +20,15 @@ pub const STAGE_VERSION: StageVersion = StageVersion(1);
 
 pub type DepleteHostPlanOptions = crate::DepleteHostStageParams;
 
+struct HostDepletionPaths {
+    report: std::path::PathBuf,
+    raw_backend_report: std::path::PathBuf,
+    output_r1: std::path::PathBuf,
+    output_r2: Option<std::path::PathBuf>,
+    removed_r1: std::path::PathBuf,
+    removed_r2: Option<std::path::PathBuf>,
+}
+
 /// # Errors
 /// Returns an error if any requested host-depletion tool is not admitted for `fastq.deplete_host`.
 pub fn normalize_host_depletion_tool_list(tools: &[String]) -> Result<Vec<String>> {
@@ -95,118 +104,30 @@ pub fn plan_host_depletion_with_index_backend(
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_host_depletion_tool_list(std::slice::from_ref(&tool_id))?;
-    if (options.host_identity_threshold - 0.95).abs() > f64::EPSILON {
-        return Err(anyhow!(
-            "fastq.deplete_host with bowtie2 currently requires host_identity_threshold=0.95"
-        ));
-    }
-    if !options.retain_unmapped_only {
-        return Err(anyhow!(
-            "fastq.deplete_host with bowtie2 currently requires retain_unmapped_only=true"
-        ));
-    }
-    let report = out_dir.join("host_depletion_report.json");
-    let raw_backend_report = out_dir.join("bowtie2.host.metrics.txt");
-    let paired_mode = if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd };
+    ensure_host_depletion_options(options)?;
+    let paired = r2.is_some();
+    let paths = host_depletion_paths(out_dir, paired);
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
-    let effective_params = HostDepletionEffectiveParams {
-        schema_version: HOST_DEPLETION_SCHEMA_VERSION.to_string(),
-        paired_mode,
-        threads: effective_threads,
-        reference_scope: ReferenceScope::Host,
-        reference_catalog_id: "host_reference".to_string(),
-        reference_index_artifact_id: "reference_index".to_string(),
-        reference_index_backend: reference_index_backend.to_string(),
-        reference_build_id: None,
-        reference_digest: None,
-        masking_policy: ReferenceMaskingPolicy::Unmasked,
-        decoy_policy: ReferenceDecoyPolicy::None,
-        decoy_catalog_id: None,
-        identity_threshold: options.host_identity_threshold,
-        retained_read_policy: ReadRetentionPolicy::KeepNonHostReads,
-        emit_removed_reads: true,
-        report_format: MappingReportFormat::Bowtie2MetricsFile,
-        retain_unmapped_pairs: options.retain_unmapped_only && r2.is_some(),
-    };
-    let mut inputs = vec![ArtifactRef::required(
-        ArtifactId::from_static("reads_r1"),
-        r1.to_path_buf(),
-        ArtifactRole::Reads,
-    )];
-    inputs.push(ArtifactRef::required(
-        ArtifactId::from_static("reference_index"),
-        reference_index.to_path_buf(),
-        ArtifactRole::Index,
-    ));
-    let mut outputs = Vec::new();
-    let mut params = serde_json::json!({
-        "tool": tool.tool_id.0,
-        "input_r1": r1,
-        "reference_index": reference_index,
-        "reference_index_backend": reference_index_backend,
-        "host_identity_threshold": options.host_identity_threshold,
-        "retain_unmapped_only": options.retain_unmapped_only,
-        "threads": effective_threads,
-        "report_json": report,
-        "raw_backend_report": raw_backend_report,
-        "raw_backend_report_format": "bowtie2_met_file",
-    });
-    if let Some(r2) = r2 {
-        let output_r1 = out_dir.join("host_depleted_R1.fastq.gz");
-        let output_r2 = out_dir.join("host_depleted_R2.fastq.gz");
-        let removed_r1 = out_dir.join("removed_host_R1.fastq.gz");
-        let removed_r2 = out_dir.join("removed_host_R2.fastq.gz");
-        inputs.push(ArtifactRef::required(
-            ArtifactId::from_static("reads_r2"),
-            r2.to_path_buf(),
-            ArtifactRole::Reads,
-        ));
-        outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("host_depleted_reads_r1"),
-            output_r1.clone(),
-            ArtifactRole::Reads,
-        ));
-        outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("host_depleted_reads_r2"),
-            output_r2.clone(),
-            ArtifactRole::Reads,
-        ));
-        outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("removed_host_reads_r1"),
-            removed_r1.clone(),
-            ArtifactRole::Reads,
-        ));
-        outputs.push(ArtifactRef::optional(
-            ArtifactId::from_static("removed_host_reads_r2"),
-            removed_r2.clone(),
-            ArtifactRole::Reads,
-        ));
-        params["input_r2"] = serde_json::json!(r2);
-        params["output_r1"] = serde_json::json!(output_r1);
-        params["output_r2"] = serde_json::json!(output_r2);
-        params["removed_host_r1"] = serde_json::json!(removed_r1);
-        params["removed_host_r2"] = serde_json::json!(removed_r2);
-    } else {
-        let output = out_dir.join("host_depleted.fastq.gz");
-        let removed = out_dir.join("removed_host.fastq.gz");
-        outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("host_depleted_reads_r1"),
-            output.clone(),
-            ArtifactRole::Reads,
-        ));
-        outputs.push(ArtifactRef::required(
-            ArtifactId::from_static("removed_host_reads_r1"),
-            removed.clone(),
-            ArtifactRole::Reads,
-        ));
-        params["output"] = serde_json::json!(output);
-        params["removed_host_reads"] = serde_json::json!(removed);
-    }
-    outputs.push(ArtifactRef::required(
-        ArtifactId::from_static("host_depletion_report_json"),
-        report.clone(),
-        ArtifactRole::ReportJson,
-    ));
+    let effective_params = host_depletion_effective_params(
+        paired,
+        effective_threads,
+        reference_index_backend,
+        options,
+    );
+    let inputs = host_depletion_inputs(r1, r2, reference_index);
+    let outputs = host_depletion_outputs(&paths);
+    let params = host_depletion_params(
+        &tool.tool_id.0,
+        r1,
+        r2,
+        reference_index,
+        reference_index_backend,
+        options,
+        effective_threads,
+        &paths,
+    );
+    let mut resources = tool.resources.clone();
+    resources.threads = effective_threads;
     Ok(StagePlanV1 {
         stage_id: STAGE_ID.clone(),
         stage_instance_id: Some(crate::tool_adapters::default_stage_instance_id(
@@ -224,11 +145,11 @@ pub fn plan_host_depletion_with_index_backend(
                 r2,
                 reference_index,
                 out_dir,
-                raw_backend_report.as_path(),
+                paths.raw_backend_report.as_path(),
                 effective_threads,
             )?,
         },
-        resources: tool.resources.clone(),
+        resources,
         io: StageIO { inputs, outputs },
         out_dir: out_dir.to_path_buf(),
         params,
@@ -237,6 +158,163 @@ pub fn plan_host_depletion_with_index_backend(
         aux_images: std::collections::BTreeMap::new(),
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
+}
+
+fn ensure_host_depletion_options(options: &DepleteHostPlanOptions) -> Result<()> {
+    if (options.host_identity_threshold - 0.95).abs() > f64::EPSILON {
+        return Err(anyhow!(
+            "fastq.deplete_host with bowtie2 currently requires host_identity_threshold=0.95"
+        ));
+    }
+    if !options.retain_unmapped_only {
+        return Err(anyhow!(
+            "fastq.deplete_host with bowtie2 currently requires retain_unmapped_only=true"
+        ));
+    }
+    Ok(())
+}
+
+fn host_depletion_paths(out_dir: &Path, paired: bool) -> HostDepletionPaths {
+    if paired {
+        HostDepletionPaths {
+            report: out_dir.join("host_depletion_report.json"),
+            raw_backend_report: out_dir.join("bowtie2.host.metrics.txt"),
+            output_r1: out_dir.join("host_depleted_R1.fastq.gz"),
+            output_r2: Some(out_dir.join("host_depleted_R2.fastq.gz")),
+            removed_r1: out_dir.join("removed_host_R1.fastq.gz"),
+            removed_r2: Some(out_dir.join("removed_host_R2.fastq.gz")),
+        }
+    } else {
+        HostDepletionPaths {
+            report: out_dir.join("host_depletion_report.json"),
+            raw_backend_report: out_dir.join("bowtie2.host.metrics.txt"),
+            output_r1: out_dir.join("host_depleted.fastq.gz"),
+            output_r2: None,
+            removed_r1: out_dir.join("removed_host.fastq.gz"),
+            removed_r2: None,
+        }
+    }
+}
+
+fn host_depletion_effective_params(
+    paired: bool,
+    effective_threads: u32,
+    reference_index_backend: &str,
+    options: &DepleteHostPlanOptions,
+) -> HostDepletionEffectiveParams {
+    HostDepletionEffectiveParams {
+        schema_version: HOST_DEPLETION_SCHEMA_VERSION.to_string(),
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+        threads: effective_threads,
+        reference_scope: ReferenceScope::Host,
+        reference_catalog_id: "host_reference".to_string(),
+        reference_index_artifact_id: "reference_index".to_string(),
+        reference_index_backend: reference_index_backend.to_string(),
+        reference_build_id: None,
+        reference_digest: None,
+        masking_policy: ReferenceMaskingPolicy::Unmasked,
+        decoy_policy: ReferenceDecoyPolicy::None,
+        decoy_catalog_id: None,
+        identity_threshold: options.host_identity_threshold,
+        retained_read_policy: ReadRetentionPolicy::KeepNonHostReads,
+        emit_removed_reads: true,
+        report_format: MappingReportFormat::Bowtie2MetricsFile,
+        retain_unmapped_pairs: options.retain_unmapped_only && paired,
+    }
+}
+
+fn host_depletion_inputs(r1: &Path, r2: Option<&Path>, reference_index: &Path) -> Vec<ArtifactRef> {
+    let mut inputs = vec![ArtifactRef::required(
+        ArtifactId::from_static("reads_r1"),
+        r1.to_path_buf(),
+        ArtifactRole::Reads,
+    )];
+    inputs.push(ArtifactRef::required(
+        ArtifactId::from_static("reference_index"),
+        reference_index.to_path_buf(),
+        ArtifactRole::Index,
+    ));
+    if let Some(r2) = r2 {
+        inputs.push(ArtifactRef::required(
+            ArtifactId::from_static("reads_r2"),
+            r2.to_path_buf(),
+            ArtifactRole::Reads,
+        ));
+    }
+    inputs
+}
+
+fn host_depletion_outputs(paths: &HostDepletionPaths) -> Vec<ArtifactRef> {
+    let mut outputs = vec![
+        ArtifactRef::required(
+            ArtifactId::from_static("host_depleted_reads_r1"),
+            paths.output_r1.clone(),
+            ArtifactRole::Reads,
+        ),
+        ArtifactRef::required(
+            ArtifactId::from_static("removed_host_reads_r1"),
+            paths.removed_r1.clone(),
+            ArtifactRole::Reads,
+        ),
+    ];
+    if let Some(output_r2) = &paths.output_r2 {
+        outputs.insert(
+            1,
+            ArtifactRef::required(
+                ArtifactId::from_static("host_depleted_reads_r2"),
+                output_r2.clone(),
+                ArtifactRole::Reads,
+            ),
+        );
+    }
+    if let Some(removed_r2) = &paths.removed_r2 {
+        outputs.push(ArtifactRef::optional(
+            ArtifactId::from_static("removed_host_reads_r2"),
+            removed_r2.clone(),
+            ArtifactRole::Reads,
+        ));
+    }
+    outputs.push(ArtifactRef::required(
+        ArtifactId::from_static("host_depletion_report_json"),
+        paths.report.clone(),
+        ArtifactRole::ReportJson,
+    ));
+    outputs
+}
+
+fn host_depletion_params(
+    tool_id: &str,
+    r1: &Path,
+    r2: Option<&Path>,
+    reference_index: &Path,
+    reference_index_backend: &str,
+    options: &DepleteHostPlanOptions,
+    effective_threads: u32,
+    paths: &HostDepletionPaths,
+) -> serde_json::Value {
+    let mut params = serde_json::json!({
+        "tool": tool_id,
+        "input_r1": r1,
+        "reference_index": reference_index,
+        "reference_index_backend": reference_index_backend,
+        "host_identity_threshold": options.host_identity_threshold,
+        "retain_unmapped_only": options.retain_unmapped_only,
+        "threads": effective_threads,
+        "report_json": paths.report,
+        "raw_backend_report": paths.raw_backend_report,
+        "raw_backend_report_format": "bowtie2_met_file",
+    });
+    if let Some(r2) = r2 {
+        params["input_r2"] = serde_json::json!(r2);
+        params["output_r1"] = serde_json::json!(paths.output_r1);
+        params["output_r2"] = serde_json::json!(paths.output_r2);
+        params["removed_host_r1"] = serde_json::json!(paths.removed_r1);
+        params["removed_host_r2"] = serde_json::json!(paths.removed_r2);
+    } else {
+        params["output"] = serde_json::json!(paths.output_r1);
+        params["removed_host_reads"] = serde_json::json!(paths.removed_r1);
+    }
+    params
 }
 
 fn host_depletion_command(
