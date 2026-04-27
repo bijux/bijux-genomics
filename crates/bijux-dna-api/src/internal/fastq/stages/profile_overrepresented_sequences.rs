@@ -17,6 +17,7 @@ use bijux_dna_core::contract::ToolRegistry;
 use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{
     FastqOverrepresentedProfileParams, OverrepresentedSequenceRowV1, PairedMode,
     ProfileOverrepresentedReportV1, PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
@@ -29,6 +30,7 @@ use bijux_dna_planner_fastq::stage_api::{
     inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind, RawFailure,
 };
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
+use bijux_dna_stage_contract::StagePlanV1;
 use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -67,35 +69,22 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
     let mut records = Vec::<BenchmarkRecord<FastqOverrepresentedMetrics>>::new();
 
     for tool in &setup.tools {
-        let out_dir = setup.tools_root.join(tool);
-        bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec =
-            build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
-        let plan = plan_with_options(
-            &tool_spec,
-            &args.r1,
-            args.r2.as_deref(),
-            &out_dir,
-            args.threads,
-            args.top_k,
-        )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = benchmark_image_identity(&tool_spec);
+        let tool_plan = prepare_overrepresented_tool_plan(catalog, platform, args, &setup, tool)?;
         if let Ok(Some(record)) = fetch_fastq_overrepresented_v1(
             &conn,
             tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &setup.runner.to_string(),
             &platform.name,
             &setup.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             setup.runner,
             jobs,
         )?
@@ -111,9 +100,9 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             });
             continue;
         }
-        let output_tsv = required_output_path(&plan, "overrepresented_sequences_tsv")?;
-        let output_json = required_output_path(&plan, "overrepresented_sequences_json")?;
-        let report_json = required_output_path(&plan, "report_json")?;
+        let output_tsv = required_output_path(&tool_plan.plan, "overrepresented_sequences_tsv")?;
+        let output_json = required_output_path(&tool_plan.plan, "overrepresented_sequences_json")?;
+        let report_json = required_output_path(&tool_plan.plan, "report_json")?;
         if !output_tsv.exists() || !output_json.exists() {
             materialize_overrepresented_outputs(
                 &args.r1,
@@ -124,7 +113,7 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
             )?;
         }
         let effective_params: FastqOverrepresentedProfileParams =
-            serde_json::from_value(plan.effective_params.clone())
+            serde_json::from_value(tool_plan.plan.effective_params.clone())
                 .context("parse overrepresented effective params")?;
         let payload = read_overrepresented_payload(output_json)?;
         let metrics = payload.metrics.clone();
@@ -159,17 +148,17 @@ pub fn bench_fastq_profile_overrepresented<S: ::std::hash::BuildHasher>(
         bijux_dna_infra::atomic_write_json(report_json, &report)
             .context("write overrepresented report")?;
         let metrics_json = serde_json::to_value(&metric_set)?;
-        bijux_dna_infra::atomic_write_json(&out_dir.join("metrics.json"), &metrics_json)
+        bijux_dna_infra::atomic_write_json(&tool_plan.out_dir.join("metrics.json"), &metrics_json)
             .context("write overrepresented metrics")?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
-                tool_spec.tool_version.clone(),
-                image_digest,
+                tool_plan.tool_spec.tool_version.clone(),
+                tool_plan.image_digest,
                 setup.runner,
                 platform,
                 setup.input_hash.clone(),
-                plan.params.clone(),
+                tool_plan.plan.params.clone(),
             ),
             execution: ExecutionMetrics {
                 runtime_s: execution.runtime_s,
@@ -194,6 +183,14 @@ struct OverrepresentedBenchmarkSetup {
     bench_dir: PathBuf,
     tools_root: PathBuf,
     input_hash: String,
+}
+
+struct OverrepresentedToolPlan {
+    out_dir: PathBuf,
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    params_hash: String,
+    image_digest: String,
 }
 
 fn preflight_overrepresented_inputs(
@@ -254,6 +251,29 @@ fn ensure_overrepresented_benchmark_qa<S: ::std::hash::BuildHasher>(
 ) -> Result<()> {
     ensure_image_qa_passed(STAGE_ID, tools, platform, catalog)?;
     ensure_tool_qa_passed(STAGE_ID, tools, platform, catalog)
+}
+
+fn prepare_overrepresented_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqProfileOverrepresentedArgs,
+    setup: &OverrepresentedBenchmarkSetup,
+    tool: &str,
+) -> Result<OverrepresentedToolPlan> {
+    let out_dir = setup.tools_root.join(tool);
+    bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
+    let tool_spec = build_tool_execution_spec(STAGE_ID, tool, &setup.registry, catalog, platform)?;
+    let plan = plan_with_options(
+        &tool_spec,
+        &args.r1,
+        args.r2.as_deref(),
+        &out_dir,
+        args.threads,
+        args.top_k,
+    )?;
+    let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let image_digest = benchmark_image_identity(&tool_spec);
+    Ok(OverrepresentedToolPlan { out_dir, tool_spec, plan, params_hash, image_digest })
 }
 
 fn materialize_overrepresented_outputs(
