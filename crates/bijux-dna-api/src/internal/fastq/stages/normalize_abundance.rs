@@ -229,11 +229,7 @@ pub fn bench_fastq_normalize_abundance<S: ::std::hash::BuildHasher>(
             execution.memory_mb,
         )?;
         validate_normalize_abundance_report_composition(&report)?;
-        bijux_dna_infra::atomic_write_json(&outputs.report_json, &report)?;
-        bijux_dna_infra::atomic_write_json(
-            &out_dir.join("metrics.json"),
-            &serde_json::to_value(&metric_set)?,
-        )?;
+        write_normalize_abundance_artifacts(&out_dir, &outputs, &report, &metric_set)?;
         let record = BenchmarkRecord {
             context: build_benchmark_context(
                 tool,
@@ -400,6 +396,37 @@ fn validate_normalize_abundance_report_composition(
                 expected_sum,
                 sum
             ));
+        }
+    }
+    Ok(())
+}
+
+fn write_normalize_abundance_artifacts(
+    out_dir: &Path,
+    outputs: &NormalizeAbundanceOutputs,
+    report: &NormalizeAbundanceReportV1,
+    metric_set: &bijux_dna_analyze::MetricSet<FastqNormalizeAbundanceMetrics>,
+) -> Result<()> {
+    bijux_dna_infra::atomic_write_json(&outputs.report_json, report)?;
+    bijux_dna_infra::atomic_write_json(
+        &out_dir.join("metrics.json"),
+        &serde_json::to_value(metric_set)?,
+    )?;
+    validate_normalize_abundance_written_artifacts(out_dir, outputs)
+}
+
+fn validate_normalize_abundance_written_artifacts(
+    out_dir: &Path,
+    outputs: &NormalizeAbundanceOutputs,
+) -> Result<()> {
+    let metrics_json = out_dir.join("metrics.json");
+    for path in
+        [outputs.normalized_table.as_path(), outputs.report_json.as_path(), metrics_json.as_path()]
+    {
+        let metadata = std::fs::metadata(path)
+            .with_context(|| format!("read normalize_abundance artifact {}", path.display()))?;
+        if metadata.len() == 0 {
+            return Err(anyhow!("normalize_abundance artifact is empty: {}", path.display()));
         }
     }
     Ok(())
