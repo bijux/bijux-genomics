@@ -24,6 +24,24 @@ fn markdown_link_targets(path: &str) -> BTreeSet<String> {
     targets
 }
 
+fn publication_index_targets() -> BTreeSet<String> {
+    let root = support::workspace_root();
+    fs::read_dir(root.join("assets/publications"))
+        .expect("read assets/publications")
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.is_dir())
+        .map(|path| {
+            format!(
+                "../../assets/publications/{}/index.md",
+                path.file_name()
+                    .and_then(|name| name.to_str())
+                    .unwrap_or_else(|| panic!("invalid UTF-8 publication path {}", path.display()))
+            )
+        })
+        .collect()
+}
+
 #[test]
 fn policy__contracts__root_science_docs_policy__science_index_links_root_docs_exactly() {
     let expected = BTreeSet::from([
@@ -109,5 +127,18 @@ fn policy__contracts__root_science_docs_policy__tool_stage_citations_link_govern
     assert_eq!(
         expected, documented,
         "Tool-stage citations must link the governed domain ledgers and upstream evidence maps exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__root_science_docs_policy__publication_assets_list_publication_indexes_exactly() {
+    let expected = publication_index_targets();
+    let documented = markdown_link_targets("docs/20-science/PUBLICATION_ASSETS.md")
+        .into_iter()
+        .filter(|target| target.starts_with("../../assets/publications/"))
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "Publication assets must list the governed publication indexes exactly"
     );
 }
