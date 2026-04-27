@@ -54,12 +54,10 @@ pub fn bench_fastq_normalize_primers<S: ::std::hash::BuildHasher>(
         prepare_normalize_primers_setup(catalog, platform, runner_override, args, &selected_tools)?;
 
     if args.explain {
-        write_explain_md(&setup.bench_dir, STAGE_ID, &setup.tools, &[], None)?;
-        write_explain_plan_json(&setup.bench_dir, STAGE_ID, &setup.tools, &setup.registry, None)?;
+        write_normalize_primers_explain(&setup)?;
     }
 
-    ensure_image_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
-    ensure_tool_qa_passed(STAGE_ID, &setup.tools, platform, catalog)?;
+    ensure_normalize_primers_qa(catalog, platform, &setup.tools)?;
 
     let sqlite_path = setup.bench_dir.join("bench.sqlite");
     let conn = bijux_dna_analyze::open_sqlite(&sqlite_path)?;
@@ -317,6 +315,20 @@ fn normalize_primers_input_hash(
         ));
     }
     hash_file_sha256(&args.r1).context("hash normalize primers input")
+}
+
+fn write_normalize_primers_explain(setup: &NormalizePrimersBenchmarkSetup) -> Result<()> {
+    write_explain_md(&setup.bench_dir, STAGE_ID, &setup.tools, &[], None)?;
+    write_explain_plan_json(&setup.bench_dir, STAGE_ID, &setup.tools, &setup.registry, None)
+}
+
+fn ensure_normalize_primers_qa<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    tools: &[String],
+) -> Result<()> {
+    ensure_image_qa_passed(STAGE_ID, tools, platform, catalog)?;
+    ensure_tool_qa_passed(STAGE_ID, tools, platform, catalog)
 }
 
 fn select_normalize_primers_benchmark_tools(
