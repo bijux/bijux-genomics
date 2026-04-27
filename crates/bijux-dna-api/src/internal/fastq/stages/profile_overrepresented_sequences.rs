@@ -469,8 +469,37 @@ fn write_overrepresented_artifacts(
     report: &ProfileOverrepresentedReportV1,
     metric_set: &MetricSet<FastqOverrepresentedMetrics>,
 ) -> Result<()> {
+    validate_overrepresented_report_identity(tool_plan, report)?;
     write_overrepresented_report(&observation.artifacts.report_json, report)?;
     write_overrepresented_metrics(&tool_plan.out_dir, metric_set)
+}
+
+fn validate_overrepresented_report_identity(
+    tool_plan: &OverrepresentedToolPlan,
+    report: &ProfileOverrepresentedReportV1,
+) -> Result<()> {
+    if report.schema_version != PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "profile_overrepresented_sequences report schema mismatch: expected {}, observed {}",
+            PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
+            report.schema_version
+        ));
+    }
+    if report.stage != STAGE_ID || report.stage_id != STAGE_ID {
+        return Err(anyhow!(
+            "profile_overrepresented_sequences report stage mismatch: observed stage={} stage_id={}",
+            report.stage,
+            report.stage_id
+        ));
+    }
+    if report.tool_id != tool_plan.tool {
+        return Err(anyhow!(
+            "profile_overrepresented_sequences report tool mismatch: expected {}, observed {}",
+            tool_plan.tool,
+            report.tool_id
+        ));
+    }
+    Ok(())
 }
 
 fn build_overrepresented_record(
