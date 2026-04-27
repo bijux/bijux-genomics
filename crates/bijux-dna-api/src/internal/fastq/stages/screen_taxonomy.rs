@@ -360,8 +360,9 @@ fn build_screen_record(
             .context("decode screen taxonomy effective params")?;
     let report_paths = screen_report_paths(inputs.plan)?;
     let read_accounting = screen_read_accounting(inputs.bench_inputs);
-    let classification_summary =
-        screen_classification_summary(load_screen_summary_entries(&report_paths.summary_tsv)?);
+    let summary_entries = load_screen_summary_entries(&report_paths.summary_tsv)?;
+    validate_screen_summary_entries(&summary_entries)?;
+    let classification_summary = screen_classification_summary(summary_entries);
     let governed_report = ScreenTaxonomyReportV1 {
         schema_version: SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION.to_string(),
         stage: STAGE_SCREEN_TAXONOMY.as_str().to_string(),
@@ -708,6 +709,25 @@ fn validate_screen_optional_count(
             expected,
             observed
         ));
+    }
+    Ok(())
+}
+
+fn validate_screen_summary_entries(entries: &[TaxonomyScreenSummaryEntryV1]) -> Result<()> {
+    if entries.is_empty() {
+        return Err(anyhow!("screen taxonomy summary is empty"));
+    }
+    for entry in entries {
+        if entry.label.trim().is_empty() {
+            return Err(anyhow!("screen taxonomy summary contains an empty label"));
+        }
+        if !entry.percent.is_finite() || !(0.0..=100.0).contains(&entry.percent) {
+            return Err(anyhow!(
+                "screen taxonomy summary percent out of range for {}: {}",
+                entry.label,
+                entry.percent
+            ));
+        }
     }
     Ok(())
 }
