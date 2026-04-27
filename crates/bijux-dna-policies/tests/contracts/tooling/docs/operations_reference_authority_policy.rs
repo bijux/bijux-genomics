@@ -134,3 +134,19 @@ fn policy__contracts__operations_reference_authority_policy__no_orphans_links_go
         "docs/50-reference/NO_ORPHANS.md must link the governed reference index exactly"
     );
 }
+
+#[test]
+fn policy__contracts__operations_reference_authority_policy__schemas_index_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../../crates/bijux-dna-api/tests/snapshots".to_string(),
+        "../../crates/bijux-dna/tests/snapshots".to_string(),
+        "../../crates/bijux-dna-core/tests/schemas".to_string(),
+        "../../crates/bijux-dna-stage-contract/tests/schemas".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/50-reference/SCHEMAS_INDEX.md");
+    assert_eq!(
+        expected, documented,
+        "docs/50-reference/SCHEMAS_INDEX.md must link the governed schema snapshot surfaces exactly"
+    );
+}
