@@ -80,7 +80,7 @@ pub fn bench_fastq_remove_chimeras<S: ::std::hash::BuildHasher>(
             continue;
         }
         let execution = execute_remove_chimeras_tool(&tool_plan, setup.runner, jobs, tool)?;
-        if let Some(failure) = remove_chimeras_tool_failure(tool, execution.result.exit_code) {
+        if let Some(failure) = remove_chimeras_tool_failure(tool, &execution) {
             failures.push(failure);
             continue;
         }
@@ -367,11 +367,24 @@ fn remove_chimeras_execution_metrics(execution: &RemoveChimerasToolExecution) ->
     }
 }
 
-fn remove_chimeras_tool_failure(tool: &str, exit_code: i32) -> Option<RawFailure> {
-    (exit_code != 0).then(|| RawFailure {
+fn remove_chimeras_tool_failure(
+    tool: &str,
+    execution: &RemoveChimerasToolExecution,
+) -> Option<RawFailure> {
+    let exit_code = execution.result.exit_code;
+    if exit_code == 0 {
+        return None;
+    }
+    let stderr = execution.result.stderr.trim();
+    let reason = if stderr.is_empty() {
+        format!("tool {tool} failed with status {exit_code}")
+    } else {
+        format!("tool {tool} failed with status {exit_code}: {stderr}")
+    };
+    Some(RawFailure {
         stage: STAGE_ID.to_string(),
         tool: tool.to_string(),
-        reason: format!("tool {tool} failed with status {exit_code}"),
+        reason,
         category: ErrorCategory::ToolError,
     })
 }
