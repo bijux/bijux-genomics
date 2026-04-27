@@ -2,6 +2,11 @@
 
 Purpose: define how `bijux-genomics` publishes governed external-tool container packages to GitHub Container Registry.
 
+[../README.md](../README.md), [../index.md](../index.md),
+[VERSION_AUTHORITY.md](VERSION_AUTHORITY.md), and
+[RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) define the adjacent container
+control surfaces this publish path must satisfy.
+
 ## Scope
 
 - Repository packages view: `https://github.com/bijux?tab=packages&repo_name=bijux-genomics`
@@ -31,9 +36,9 @@ Do not publish both runtime families under the same package slug.
 ## Workflows
 
 - Docker arm64 workflow:
-  `.github/workflows/publish-ghcr-container-images.yml`
+  [publish-ghcr-container-images.yml](../../.github/workflows/publish-ghcr-container-images.yml)
 - Apptainer workflow:
-  `.github/workflows/publish-ghcr-apptainer-images.yml`
+  [publish-ghcr-apptainer-images.yml](../../.github/workflows/publish-ghcr-apptainer-images.yml)
 
 Both workflows are manual release surfaces guarded by `enabled=true`.
 
@@ -64,15 +69,15 @@ Each package gets:
 - Apptainer matrix:
   `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`
 - Tool versions:
-  `containers/versions/versions.toml`
+  [containers/versions/versions.toml](../versions/versions.toml)
 - Tool runtime coverage:
-  `configs/ci/registry/tool_registry*.toml`
+  [configs/ci/registry/](../../configs/ci/registry/)
 - Docker build surface:
-  `containers/docker/arm64/Dockerfile.<tool_id>`
+  [containers/docker/arm64/](../docker/arm64/)
 - Apptainer build surface:
-  `containers/apptainer/shared/<tool_id>.def`
+  [containers/apptainer/shared/](../apptainer/shared/)
 - Non-bijux provenance:
-  `containers/apptainer/shared/NON_BIJUX_SOURCES.md`
+  [containers/apptainer/shared/NON_BIJUX_SOURCES.md](../apptainer/shared/NON_BIJUX_SOURCES.md)
 
 ## Pull Contract
 

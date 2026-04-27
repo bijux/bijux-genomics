@@ -360,3 +360,35 @@ fn policy__contracts__science_boundary_docs_policy__container_planned_doc_links_
         "containers/docs/PLANNED.md must link the governed planned-tool surfaces exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_boundary_docs_policy__container_ghcr_publish_doc_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "../README.md".to_string(),
+        "../index.md".to_string(),
+        "VERSION_AUTHORITY.md".to_string(),
+        "RELEASE_CHECKLIST.md".to_string(),
+        "../../.github/workflows/publish-ghcr-container-images.yml".to_string(),
+        "../../.github/workflows/publish-ghcr-apptainer-images.yml".to_string(),
+        "../versions/versions.toml".to_string(),
+        "../../configs/ci/registry/".to_string(),
+        "../docker/arm64/".to_string(),
+        "../apptainer/shared/".to_string(),
+        "../apptainer/shared/NON_BIJUX_SOURCES.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("containers/docs/GHCR_PUBLISH.md")
+        .into_iter()
+        .filter(|target| {
+            target.starts_with("../")
+                || target.starts_with("../../.github/")
+                || target.starts_with("../../configs/")
+                || target == "VERSION_AUTHORITY.md"
+                || target == "RELEASE_CHECKLIST.md"
+        })
+        .collect::<BTreeSet<_>>();
+    assert_eq!(
+        expected, documented,
+        "containers/docs/GHCR_PUBLISH.md must link the governed GHCR publication surfaces exactly"
+    );
+}
