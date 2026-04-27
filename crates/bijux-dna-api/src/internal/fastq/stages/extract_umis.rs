@@ -12,6 +12,7 @@ use bijux_dna_core::prelude::errors::ErrorCategory;
 use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_core::prelude::params_hash;
+use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{ExtractUmisReportV1, PairedMode, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
@@ -22,8 +23,10 @@ use bijux_dna_planner_fastq::stage_api::{
     ensure_umi_headers, inspect_headers, log_header_warnings, preflight_stage, FastqArtifactKind,
     RawFailure,
 };
+use bijux_dna_planner_fastq::ExtractUmisStageParams;
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
+use bijux_dna_stage_contract::StagePlanV1;
 use uuid::Uuid;
 
 use crate::internal::fastq::stages::trim_bench_common::{
@@ -73,44 +76,22 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
     let mut failures = Vec::new();
     let mut records = Vec::<BenchmarkRecord<FastqUmiMetrics>>::new();
     for tool in &setup.tools {
-        let out_dir = setup.tools_root.join(tool);
-        bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
-        let tool_spec = build_tool_execution_spec(
-            STAGE_EXTRACT_UMIS.as_str(),
-            tool,
-            &setup.registry,
-            catalog,
-            platform,
-        )?;
-        let tool_spec = apply_thread_override(&tool_spec, args.threads);
-        let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
-        let plan = plan_umi_with_options(
-            &tool_spec,
-            &args.r1,
-            r2,
-            &out_dir,
-            &bijux_dna_planner_fastq::ExtractUmisStageParams {
-                threads: args.threads,
-                umi_pattern: Some(args.umi_pattern.clone()),
-            },
-        )?;
-        let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
-        let image_digest = benchmark_image_identity(&tool_spec);
+        let tool_plan = prepare_umi_tool_plan(catalog, platform, args, &setup, jobs, tool)?;
         if let Ok(Some(record)) = fetch_fastq_umi_v1(
             &conn,
-            tool,
-            &tool_spec.tool_version,
-            &image_digest,
+            &tool_plan.tool,
+            &tool_plan.tool_spec.tool_version,
+            &tool_plan.image_digest,
             &setup.runner.to_string(),
             &platform.name,
             &setup.input_hash,
-            &params_hash,
+            &tool_plan.params_hash,
         ) {
             records.push(record);
             continue;
         }
         let execution = execute_plans_with_jobs(
-            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&plan)],
+            vec![bijux_dna_stage_contract::execution_step_from_stage_plan(&tool_plan.plan)],
             setup.runner,
             jobs,
         )?
@@ -125,10 +106,10 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             r2,
             &setup.input_stats_r1,
             &setup.input_stats_r2,
-            tool,
-            &tool_spec,
-            &plan.params,
-            &out_dir,
+            &tool_plan.tool,
+            &tool_plan.tool_spec,
+            &tool_plan.plan.params,
+            &tool_plan.plan.out_dir,
             &execution,
         )?;
         append_jsonl(&bench_path, &record).context("write bench.jsonl")?;
@@ -137,7 +118,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             let tool_name = tool.clone();
             failures.push(RawFailure {
                 stage: STAGE_EXTRACT_UMIS.as_str().to_string(),
-                tool: tool.clone(),
+                tool: tool_plan.tool.clone(),
                 reason: format!("tool {tool_name} failed with status {}", execution.exit_code),
                 category: ErrorCategory::ToolError,
             });
@@ -168,6 +149,48 @@ struct UmiBenchmarkSetup {
     runner: RuntimeKind,
     input_stats_r1: SeqkitMetrics,
     input_stats_r2: SeqkitMetrics,
+}
+
+struct UmiToolPlan {
+    tool: String,
+    tool_spec: ToolExecutionSpecV1,
+    plan: StagePlanV1,
+    params_hash: String,
+    image_digest: String,
+}
+
+fn prepare_umi_tool_plan<S: ::std::hash::BuildHasher>(
+    catalog: &HashMap<String, ToolImageSpec, S>,
+    platform: &PlatformSpec,
+    args: &bijux_dna_planner_fastq::stage_api::args::BenchFastqUmiArgs,
+    setup: &UmiBenchmarkSetup,
+    jobs: usize,
+    tool: &str,
+) -> Result<UmiToolPlan> {
+    let out_dir = setup.tools_root.join(tool);
+    bijux_dna_infra::ensure_dir(&out_dir).context("create tool output dir")?;
+    let tool_spec = build_tool_execution_spec(
+        STAGE_EXTRACT_UMIS.as_str(),
+        tool,
+        &setup.registry,
+        catalog,
+        platform,
+    )?;
+    let tool_spec = apply_thread_override(&tool_spec, args.threads);
+    let tool_spec = scale_tool_spec_for_jobs(&tool_spec, jobs);
+    let plan = plan_umi_with_options(
+        &tool_spec,
+        &args.r1,
+        args.r2.as_path(),
+        &out_dir,
+        &ExtractUmisStageParams {
+            threads: args.threads,
+            umi_pattern: Some(args.umi_pattern.clone()),
+        },
+    )?;
+    let params_hash = params_hash(&plan.params).unwrap_or_else(|_| Uuid::new_v4().to_string());
+    let image_digest = benchmark_image_identity(&tool_spec);
+    Ok(UmiToolPlan { tool: tool.to_string(), tool_spec, plan, params_hash, image_digest })
 }
 
 fn prepare_umi_benchmark_setup<S: ::std::hash::BuildHasher>(
