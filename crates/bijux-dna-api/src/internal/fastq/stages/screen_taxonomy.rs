@@ -402,6 +402,7 @@ fn build_screen_record(
     validate_screen_report_execution(&governed_report, inputs.execution)?;
     validate_screen_report_paired_mode(inputs.bench_inputs.r2.is_some(), &governed_report)?;
     validate_screen_report_database(&effective_params, &governed_report)?;
+    validate_screen_report_paths(inputs.plan, &governed_report)?;
     bijux_dna_infra::atomic_write_json(&report_paths.classification_json, &governed_report)
         .context("write governed screen taxonomy report")?;
     let metrics =
@@ -461,6 +462,19 @@ fn required_screen_output_path(
 ) -> Result<std::path::PathBuf> {
     artifact_output_path(plan, artifact_id)
         .ok_or_else(|| anyhow!("screen taxonomy plan missing output artifact {artifact_id}"))
+}
+
+fn artifact_input_path(plan: &StagePlanV1, artifact_id: &str) -> Option<std::path::PathBuf> {
+    plan.io
+        .inputs
+        .iter()
+        .find(|artifact| artifact.name.as_str() == artifact_id)
+        .map(|artifact| artifact.path.clone())
+}
+
+fn required_screen_input_path(plan: &StagePlanV1, artifact_id: &str) -> Result<std::path::PathBuf> {
+    artifact_input_path(plan, artifact_id)
+        .ok_or_else(|| anyhow!("screen taxonomy plan missing input artifact {artifact_id}"))
 }
 
 fn screen_read_accounting(bench_inputs: &ScreenBenchInputs) -> ScreenReadAccounting {
@@ -613,6 +627,59 @@ fn validate_screen_report_database(
         || report.emit_unclassified != effective_params.emit_unclassified
     {
         return Err(anyhow!("screen taxonomy report classification parameter mismatch"));
+    }
+    Ok(())
+}
+
+fn validate_screen_report_paths(plan: &StagePlanV1, report: &ScreenTaxonomyReportV1) -> Result<()> {
+    validate_screen_report_path(
+        "input r1",
+        &required_screen_input_path(plan, "reads_r1")?,
+        &report.input_r1,
+    )?;
+    validate_screen_optional_report_path(
+        "input r2",
+        artifact_input_path(plan, "reads_r2").as_deref(),
+        report.input_r2.as_deref(),
+    )?;
+    validate_screen_report_path(
+        "summary tsv",
+        &required_screen_output_path(plan, "screen_report_tsv")?,
+        &report.screen_report_tsv,
+    )?;
+    validate_screen_report_path(
+        "classification json",
+        &required_screen_output_path(plan, "classification_report_json")?,
+        &report.classification_report_json,
+    )?;
+    if report.database_artifact_id == "taxonomy_database_root" {
+        required_screen_input_path(plan, "taxonomy_database_root")?;
+    }
+    Ok(())
+}
+
+fn validate_screen_optional_report_path(
+    label: &str,
+    expected: Option<&Path>,
+    observed: Option<&str>,
+) -> Result<()> {
+    match (expected, observed) {
+        (Some(expected), Some(observed)) => validate_screen_report_path(label, expected, observed),
+        (None, None) => Ok(()),
+        _ => Err(anyhow!(
+            "screen taxonomy report {label} path mismatch: expected {:?}, observed {:?}",
+            expected.map(|path| path.display().to_string()),
+            observed
+        )),
+    }
+}
+
+fn validate_screen_report_path(label: &str, expected: &Path, observed: &str) -> Result<()> {
+    let expected = expected.display().to_string();
+    if observed != expected {
+        return Err(anyhow!(
+            "screen taxonomy report {label} path mismatch: expected {expected}, observed {observed}"
+        ));
     }
     Ok(())
 }
