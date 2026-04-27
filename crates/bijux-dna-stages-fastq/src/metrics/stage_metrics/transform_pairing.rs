@@ -1,7 +1,10 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use bijux_dna_domain_fastq::metrics::*;
+use bijux_dna_domain_fastq::metrics::{
+    FastqDeduplicateMetricsV1, FastqDeltaMetricsV1, FastqMergeMetricsV1, FastqValidateMetricsV1,
+    RetentionReportMetricV1,
+};
 use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::metrics::envelope_support::{
@@ -23,8 +26,8 @@ pub(super) fn deduplicate_metrics(
     let parsed_report = std::fs::read_to_string(plan.out_dir.join("deduplicate_report.json"))
         .ok()
         .and_then(|raw| crate::observer::parse_remove_duplicates_report(&raw).ok());
-    let reads_in = parsed_report.as_ref().map(|report| report.reads_in).unwrap_or(input.reads);
-    let reads_out = parsed_report.as_ref().map(|report| report.reads_out).unwrap_or(output.reads);
+    let reads_in = parsed_report.as_ref().map_or(input.reads, |report| report.reads_in);
+    let reads_out = parsed_report.as_ref().map_or(output.reads, |report| report.reads_out);
     let (pairs_in, pairs_out) = (
         parsed_report.as_ref().and_then(|report| report.pairs_in),
         parsed_report.as_ref().and_then(|report| report.pairs_out),
@@ -114,22 +117,23 @@ pub(super) fn merge_metrics(
     let parsed_report = std::fs::read_to_string(plan.out_dir.join("merge_report.json"))
         .ok()
         .and_then(|raw| crate::observer::parse_merge_pairs_report(&raw).ok());
-    let reads_r1 = parsed_report.as_ref().map(|report| report.reads_r1).unwrap_or(r1.reads);
-    let reads_r2 = parsed_report.as_ref().map(|report| report.reads_r2).unwrap_or(r2.reads);
-    let reads_merged =
-        parsed_report.as_ref().map(|report| report.reads_merged).unwrap_or(merged.reads);
+    let reads_r1 = parsed_report.as_ref().map_or(r1.reads, |report| report.reads_r1);
+    let reads_r2 = parsed_report.as_ref().map_or(r2.reads, |report| report.reads_r2);
+    let reads_merged = parsed_report.as_ref().map_or(merged.reads, |report| report.reads_merged);
     let reads_unmerged = parsed_report
         .as_ref()
-        .map(|report| report.reads_unmerged)
-        .unwrap_or_else(|| unmerged_r1.reads.min(unmerged_r2.reads));
+        .map_or_else(|| unmerged_r1.reads.min(unmerged_r2.reads), |report| report.reads_unmerged);
     let min_reads = reads_r1.min(reads_r2);
-    let merge_rate = parsed_report.as_ref().map(|report| report.merge_rate).unwrap_or_else(|| {
-        if min_reads > 0 {
-            f64_from_u64(reads_merged) / f64_from_u64(min_reads)
-        } else {
-            0.0
-        }
-    });
+    let merge_rate = parsed_report.as_ref().map_or_else(
+        || {
+            if min_reads > 0 {
+                f64_from_u64(reads_merged) / f64_from_u64(min_reads)
+            } else {
+                0.0
+            }
+        },
+        |report| report.merge_rate,
+    );
     let bases_in = r1.bases.min(r2.bases);
     let mean_q_in = (r1.mean_q + r2.mean_q) / 2.0;
     let merge_q_delta = merged.mean_q - mean_q_in;
@@ -175,7 +179,8 @@ pub(super) fn validate_metrics(
         .map(|report| {
             let reads_total = report.validated_reads_r1 + report.validated_reads_r2.unwrap_or(0);
             let reads_invalid = match report.failure_class {
-                bijux_dna_domain_fastq::ValidateFailureClass::None => 0,
+                bijux_dna_domain_fastq::ValidateFailureClass::None
+                | bijux_dna_domain_fastq::ValidateFailureClass::HeaderSyncMismatch => 0,
                 bijux_dna_domain_fastq::ValidateFailureClass::PairCountMismatch => {
                     report.validated_reads_r1.abs_diff(report.validated_reads_r2.unwrap_or(0))
                 }
@@ -189,7 +194,6 @@ pub(super) fn validate_metrics(
                     }
                     invalid
                 }
-                bijux_dna_domain_fastq::ValidateFailureClass::HeaderSyncMismatch => 0,
             }
             .min(reads_total);
             FastqValidateMetricsV1 {

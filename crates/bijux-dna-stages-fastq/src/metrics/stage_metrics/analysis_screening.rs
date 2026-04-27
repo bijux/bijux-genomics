@@ -127,8 +127,11 @@ pub(super) fn deplete_rrna_metrics(
         let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
         let reads_removed = input.reads.saturating_sub(output.reads);
         let bases_removed = input.bases.saturating_sub(output.bases);
-        let rrna_fraction_removed =
-            if input.reads == 0 { 0.0 } else { reads_removed as f64 / input.reads as f64 };
+        let rrna_fraction_removed = if input.reads == 0 {
+            0.0
+        } else {
+            super::super::f64_from_u64(reads_removed) / super::super::f64_from_u64(input.reads)
+        };
         serde_json::json!({
             "reads_in": input.reads,
             "reads_out": output.reads,
@@ -189,8 +192,11 @@ pub(super) fn deplete_reference_contaminants_metrics(
         let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
         let reads_removed = input.reads.saturating_sub(output.reads);
         let bases_removed = input.bases.saturating_sub(output.bases);
-        let contaminant_fraction_removed =
-            if input.reads == 0 { 0.0 } else { reads_removed as f64 / input.reads as f64 };
+        let contaminant_fraction_removed = if input.reads == 0 {
+            0.0
+        } else {
+            super::super::f64_from_u64(reads_removed) / super::super::f64_from_u64(input.reads)
+        };
         serde_json::json!({
             "reads_in": input.reads,
             "reads_out": output.reads,
@@ -253,8 +259,11 @@ pub(super) fn deplete_host_metrics(
         let (pairs_in, pairs_out) = pair_counts_from_paths(inputs, outputs)?;
         let reads_removed = input.reads.saturating_sub(output.reads);
         let bases_removed = input.bases.saturating_sub(output.bases);
-        let host_fraction_removed =
-            if input.reads == 0 { 0.0 } else { reads_removed as f64 / input.reads as f64 };
+        let host_fraction_removed = if input.reads == 0 {
+            0.0
+        } else {
+            super::super::f64_from_u64(reads_removed) / super::super::f64_from_u64(input.reads)
+        };
         serde_json::json!({
             "reads_in": input.reads,
             "reads_out": output.reads,

@@ -1,7 +1,9 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use bijux_dna_domain_fastq::metrics::*;
+use bijux_dna_domain_fastq::metrics::{
+    FastqDeltaMetricsV1, FastqFilterMetricsV1, FastqTrimMetricsV1, RetentionReportMetricV1,
+};
 use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::metrics::envelope_support::{
@@ -215,7 +217,7 @@ pub(super) fn low_complexity_metrics(
         ])?;
         let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
         let output = stats.get(1).copied().unwrap_or_else(zero_seqkit_metrics);
-        removals.by_low_complexity =
+        removals.low_complexity =
             std::fs::read_to_string(plan.out_dir.join("low_complexity_report.json"))
                 .ok()
                 .and_then(|raw| crate::observer::parse_low_complexity_report(&raw).ok())

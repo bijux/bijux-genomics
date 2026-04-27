@@ -2,7 +2,11 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use bijux_dna_core::id_catalog;
-use bijux_dna_domain_fastq::metrics::*;
+use bijux_dna_domain_fastq::metrics::{
+    FastqCorrectMetricsV1, FastqDeltaMetricsV1, FastqDetectAdaptersMetricsV1,
+    FastqPreprocessMetricsV1, FastqQcPostMetricsV1, FastqStatsNeutralMetricsV1, FastqUmiMetricsV1,
+    RetentionReportMetricV1,
+};
 use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::metrics::envelope_support::{
@@ -483,6 +487,7 @@ fn preprocess_metrics(
     })?)
 }
 
+#[allow(clippy::too_many_lines)]
 fn qc_post_metrics(
     plan: &StagePlanV1,
     inputs: &[PathBuf],
@@ -491,30 +496,13 @@ fn qc_post_metrics(
     let stats = stats_for_paths(&[inputs.first().map(PathBuf::as_path)])?;
     let input = stats.first().copied().unwrap_or_else(zero_seqkit_metrics);
     let output = input;
-    let pairs_in = if inputs.len() >= 2 {
-        let r1 = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
-        let r2 = stats_or_zero(inputs.get(1).map(PathBuf::as_path))?;
-        Some(r1.reads.min(r2.reads))
-    } else {
-        None
-    };
+    let pairs_in = qc_post_pairs_from_inputs(inputs)?;
     let pairs_out = pairs_in;
-    let out_dir = path_from_params(&plan.params, "out_dir")
-        .unwrap_or_else(|| outputs.first().cloned().unwrap_or_default());
-    let raw_dir = out_dir.join("fastqc_raw");
-    let trimmed_dir = out_dir.join("fastqc_trimmed");
-    let multiqc_report = out_dir.join("multiqc_report.html");
-    let multiqc_data = out_dir.join("multiqc_data");
-    let raw_metrics = fastqc_metrics_v2_from_dir(&raw_dir);
-    let trimmed_metrics = fastqc_metrics_v2_from_dir(&trimmed_dir);
+    let paths = qc_post_paths(plan, outputs);
+    let raw_metrics = fastqc_metrics_v2_from_dir(&paths.raw_dir);
+    let trimmed_metrics = fastqc_metrics_v2_from_dir(&paths.trimmed_dir);
     let metrics_source = trimmed_metrics.as_ref().or(raw_metrics.as_ref());
-    let governed_report = path_from_params(&plan.params, "report_json")
-        .or_else(|| {
-            let fallback = out_dir.join("report_qc_report.json");
-            fallback.exists().then_some(fallback)
-        })
-        .and_then(|report_path| std::fs::read_to_string(report_path).ok())
-        .and_then(|raw| crate::observer::parse_report_qc_report(&raw).ok());
+    let governed_report = qc_post_report(plan, &paths.out_dir);
     let adapter_content_max = governed_report
         .as_ref()
         .and_then(|report| report.adapter_content_max)
@@ -538,13 +526,12 @@ fn qc_post_metrics(
         governed_report.as_ref().and_then(|report| report.overrepresented_sequence_count).or_else(
             || metrics_source.and_then(|m| m.overrepresented_sequences.as_ref().map(|o| o.count)),
         );
-    let reads_in = governed_report.as_ref().map(|report| report.reads_in).unwrap_or(input.reads);
-    let reads_out = governed_report.as_ref().map(|report| report.reads_out).unwrap_or(output.reads);
-    let bases_in = governed_report.as_ref().map(|report| report.bases_in).unwrap_or(input.bases);
-    let bases_out = governed_report.as_ref().map(|report| report.bases_out).unwrap_or(output.bases);
+    let reads_in = governed_report.as_ref().map_or(input.reads, |report| report.reads_in);
+    let reads_out = governed_report.as_ref().map_or(output.reads, |report| report.reads_out);
+    let bases_in = governed_report.as_ref().map_or(input.bases, |report| report.bases_in);
+    let bases_out = governed_report.as_ref().map_or(output.bases, |report| report.bases_out);
     let mean_q_before = input.mean_q;
-    let mean_q_after =
-        governed_report.as_ref().map(|report| report.mean_q).unwrap_or(output.mean_q);
+    let mean_q_after = governed_report.as_ref().map_or(output.mean_q, |report| report.mean_q);
     let read_retention =
         if reads_in > 0 { f64_from_u64(reads_out) / f64_from_u64(reads_in) } else { 0.0 };
     let base_retention =
@@ -613,14 +600,16 @@ fn qc_post_metrics(
             .as_ref()
             .map(|report| report.contamination_rate)
             .or(Some(0.0)),
-        aggregation_engine: governed_report
-            .as_ref()
-            .and_then(|report| serde_json::to_value(report.aggregation_engine.clone()).ok())
-            .and_then(|value| value.as_str().map(ToString::to_string)),
-        aggregation_scope: governed_report
-            .as_ref()
-            .and_then(|report| serde_json::to_value(report.aggregation_scope.clone()).ok())
-            .and_then(|value| value.as_str().map(ToString::to_string)),
+        aggregation_engine: governed_report.as_ref().and_then(|report| {
+            serde_json::to_value(report.aggregation_engine.clone())
+                .ok()
+                .and_then(|value| value.as_str().map(ToString::to_string))
+        }),
+        aggregation_scope: governed_report.as_ref().and_then(|report| {
+            serde_json::to_value(report.aggregation_scope.clone())
+                .ok()
+                .and_then(|value| value.as_str().map(ToString::to_string))
+        }),
         adapter_content_max,
         adapter_content_mean,
         duplication_rate,
@@ -630,19 +619,29 @@ fn qc_post_metrics(
         raw_fastqc_dir: governed_report
             .as_ref()
             .and_then(|report| report.raw_fastqc_dir.clone())
-            .or_else(|| raw_dir.exists().then_some(raw_dir.display().to_string())),
+            .or_else(|| paths.raw_dir.exists().then_some(paths.raw_dir.display().to_string())),
         trimmed_fastqc_dir: governed_report
             .as_ref()
             .and_then(|report| report.trimmed_fastqc_dir.clone())
-            .or_else(|| trimmed_dir.exists().then_some(trimmed_dir.display().to_string())),
+            .or_else(|| {
+                paths
+                    .trimmed_dir
+                    .exists()
+                    .then_some(paths.trimmed_dir.display().to_string())
+            }),
         multiqc_report: governed_report
             .as_ref()
             .and_then(|report| report.multiqc_report.clone())
-            .or_else(|| multiqc_report.exists().then_some(multiqc_report.display().to_string())),
+            .or_else(|| {
+                paths
+                    .multiqc_report
+                    .exists()
+                    .then_some(paths.multiqc_report.display().to_string())
+            }),
         multiqc_data: governed_report
             .as_ref()
             .and_then(|report| report.multiqc_data.clone())
-            .or_else(|| multiqc_data.exists().then_some(multiqc_data.display().to_string())),
+            .or_else(|| paths.multiqc_data.exists().then_some(paths.multiqc_data.display().to_string())),
         governed_qc_input_count: governed_report
             .as_ref()
             .map(|report| report.governed_qc_input_count),
@@ -664,6 +663,48 @@ fn qc_post_metrics(
             .as_ref()
             .and_then(|report| report.multiqc_module_count),
     })?)
+}
+
+struct QcPostPaths {
+    out_dir: PathBuf,
+    raw_dir: PathBuf,
+    trimmed_dir: PathBuf,
+    multiqc_report: PathBuf,
+    multiqc_data: PathBuf,
+}
+
+fn qc_post_paths(plan: &StagePlanV1, outputs: &[PathBuf]) -> QcPostPaths {
+    let out_dir =
+        path_from_params(&plan.params, "out_dir").unwrap_or_else(|| outputs.first().cloned().unwrap_or_default());
+    QcPostPaths {
+        raw_dir: out_dir.join("fastqc_raw"),
+        trimmed_dir: out_dir.join("fastqc_trimmed"),
+        multiqc_report: out_dir.join("multiqc_report.html"),
+        multiqc_data: out_dir.join("multiqc_data"),
+        out_dir,
+    }
+}
+
+fn qc_post_pairs_from_inputs(inputs: &[PathBuf]) -> Result<Option<u64>> {
+    if inputs.len() < 2 {
+        return Ok(None);
+    }
+    let r1 = stats_or_zero(inputs.first().map(PathBuf::as_path))?;
+    let r2 = stats_or_zero(inputs.get(1).map(PathBuf::as_path))?;
+    Ok(Some(r1.reads.min(r2.reads)))
+}
+
+fn qc_post_report(
+    plan: &StagePlanV1,
+    out_dir: &std::path::Path,
+) -> Option<bijux_dna_domain_fastq::ReportQcReportV1> {
+    path_from_params(&plan.params, "report_json")
+        .or_else(|| {
+            let fallback = out_dir.join("report_qc_report.json");
+            fallback.exists().then_some(fallback)
+        })
+        .and_then(|report_path| std::fs::read_to_string(report_path).ok())
+        .and_then(|raw| crate::observer::parse_report_qc_report(&raw).ok())
 }
 
 fn stats_neutral_metrics(
@@ -710,16 +751,10 @@ fn stats_neutral_metrics(
         distributions_for_path(inputs.first().map(PathBuf::as_path))?
     };
     Ok(serde_json::to_value(FastqStatsNeutralMetricsV1 {
-        reads_in: governed_report.as_ref().map(|report| report.reads_total).unwrap_or(input.reads),
-        reads_out: governed_report
-            .as_ref()
-            .map(|report| report.reads_total)
-            .unwrap_or(output.reads),
-        bases_in: governed_report.as_ref().map(|report| report.bases_total).unwrap_or(input.bases),
-        bases_out: governed_report
-            .as_ref()
-            .map(|report| report.bases_total)
-            .unwrap_or(output.bases),
+        reads_in: governed_report.as_ref().map_or(input.reads, |report| report.reads_total),
+        reads_out: governed_report.as_ref().map_or(output.reads, |report| report.reads_total),
+        bases_in: governed_report.as_ref().map_or(input.bases, |report| report.bases_total),
+        bases_out: governed_report.as_ref().map_or(output.bases, |report| report.bases_total),
         pairs_in,
         pairs_out,
         read_length_distribution,
@@ -773,8 +808,11 @@ fn profile_read_lengths_metrics(
             .iter()
             .map(|(length, count)| length.saturating_mul(*count))
             .sum::<u64>();
-        let mean_read_length =
-            if read_count == 0 { 0.0 } else { weighted_total as f64 / read_count as f64 };
+        let mean_read_length = if read_count == 0 {
+            0.0
+        } else {
+            super::super::f64_from_u64(weighted_total) / super::super::f64_from_u64(read_count)
+        };
         let max_read_length =
             read_length_distribution.iter().map(|(length, _count)| *length).max().unwrap_or(0);
         Ok(serde_json::json!({

@@ -13,11 +13,11 @@ pub(super) fn stage_metrics_for_stage(
 ) -> Option<Result<serde_json::Value>> {
     match plan.stage_id.as_str() {
         "fastq.normalize_abundance" => {
-            Some(analysis_feature_tables::normalize_abundance_metrics(plan))
+            Some(Ok(analysis_feature_tables::normalize_abundance_metrics(plan)))
         }
-        "fastq.infer_asvs" => Some(analysis_feature_tables::infer_asvs_metrics(plan)),
-        "fastq.cluster_otus" => Some(analysis_feature_tables::cluster_otus_metrics(plan)),
-        "fastq.index_reference" => Some(analysis_feature_tables::index_reference_metrics(plan)),
+        "fastq.infer_asvs" => Some(Ok(analysis_feature_tables::infer_asvs_metrics(plan))),
+        "fastq.cluster_otus" => Some(Ok(analysis_feature_tables::cluster_otus_metrics(plan))),
+        "fastq.index_reference" => Some(Ok(analysis_feature_tables::index_reference_metrics(plan))),
         id_catalog::FASTQ_SCREEN => Some(analysis_screening::screen_metrics(plan, inputs, outputs)),
         "fastq.deplete_rrna" => {
             Some(analysis_screening::deplete_rrna_metrics(plan, inputs, outputs))
