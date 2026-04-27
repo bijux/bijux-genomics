@@ -217,6 +217,22 @@ fn policy__contracts__root_docs_navigation_policy__architecture_doc_links_govern
 }
 
 #[test]
+fn policy__contracts__root_docs_navigation_policy__architecture_litmus_links_governed_surfaces_exactly(
+) {
+    let expected = BTreeSet::from([
+        "BOUNDARY_MAP.md".to_string(),
+        "CONTRACT_SPINE.md".to_string(),
+        "SSOT.md".to_string(),
+        "CRATE_AUTHORITY_MAP.md".to_string(),
+    ]);
+    let documented = markdown_link_targets("docs/10-architecture/ARCHITECTURE_LITMUS.md");
+    assert_eq!(
+        expected, documented,
+        "docs/10-architecture/ARCHITECTURE_LITMUS.md must link the governed litmus authorities exactly"
+    );
+}
+
+#[test]
 fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from([
         "../index.md".to_string(),
