@@ -16,8 +16,8 @@ use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{
-    params::edna::ChimeraDetectionEffectiveParams, PairedMode, RemoveChimerasReportV1,
-    REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
+    metrics::ratio_u64, params::edna::ChimeraDetectionEffectiveParams, PairedMode,
+    RemoveChimerasReportV1, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
@@ -469,8 +469,7 @@ fn remove_chimeras_measurements(
         setup.input_stats_r1.reads + setup.input_stats_r2.as_ref().map_or(0, |stats| stats.reads);
     let reads_out = observation.output_stats_r1.reads;
     let chimeras_removed = reads_in.saturating_sub(reads_out);
-    let chimera_fraction =
-        if reads_in == 0 { 0.0 } else { u64_to_f64(chimeras_removed) / u64_to_f64(reads_in) };
+    let chimera_fraction = ratio_u64(chimeras_removed, reads_in);
     RemoveChimerasMeasurements { reads_in, reads_out, chimeras_removed, chimera_fraction }
 }
 
@@ -906,8 +905,4 @@ fn governed_chimera_params(threads: u32) -> ChimeraDetectionEffectiveParams {
                 .to_string(),
         fallback_behavior: "require_filtered_output_reads".to_string(),
     }
-}
-
-fn u64_to_f64(value: u64) -> f64 {
-    value.to_string().parse::<f64>().unwrap_or(0.0)
 }
