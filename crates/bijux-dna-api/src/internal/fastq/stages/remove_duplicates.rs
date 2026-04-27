@@ -134,20 +134,7 @@ pub fn bench_fastq_remove_duplicates<S: ::std::hash::BuildHasher>(
         }
         let outputs = resolve_remove_duplicates_outputs(&tool_plan.plan)?;
         let counts = load_deduplicate_report_counts(&outputs.report_path)?;
-        let metrics = FastqDuplicateMetrics {
-            reads_in: counts.reads_in,
-            reads_out: counts.reads_out,
-            duplicates_removed: counts.duplicates_removed,
-            dedup_rate: counts.dedup_rate,
-            tool: counts.tool.clone(),
-            paired_mode: counts.paired_mode.clone(),
-            dedup_mode: counts.dedup_mode.clone(),
-            keep_order: counts.keep_order,
-            pair_count_match: counts.pair_count_match,
-            duplicate_class_count: counts.duplicate_class_count,
-            duplicate_provenance_json: counts.duplicate_provenance_json.clone(),
-            raw_backend_report_format: counts.raw_backend_report_format.clone(),
-        };
+        let metrics = duplicate_metrics_from_counts(&counts);
         let metric_set = metric_set(metrics);
         bijux_dna_infra::atomic_write_json(
             &tool_plan.out_dir.join("metrics.json"),
@@ -348,6 +335,23 @@ fn resolve_remove_duplicates_outputs(plan: &StagePlanV1) -> Result<RemoveDuplica
         require_existing_benchmark_output(&duplicate_provenance_json, "duplicate_provenance_json")?;
 
     Ok(RemoveDuplicatesOutputs { report_path })
+}
+
+fn duplicate_metrics_from_counts(counts: &DuplicateReportCounts) -> FastqDuplicateMetrics {
+    FastqDuplicateMetrics {
+        reads_in: counts.reads_in,
+        reads_out: counts.reads_out,
+        duplicates_removed: counts.duplicates_removed,
+        dedup_rate: counts.dedup_rate,
+        tool: counts.tool.clone(),
+        paired_mode: counts.paired_mode.clone(),
+        dedup_mode: counts.dedup_mode.clone(),
+        keep_order: counts.keep_order,
+        pair_count_match: counts.pair_count_match,
+        duplicate_class_count: counts.duplicate_class_count,
+        duplicate_provenance_json: counts.duplicate_provenance_json.clone(),
+        raw_backend_report_format: counts.raw_backend_report_format.clone(),
+    }
 }
 
 fn benchmark_query_context() -> Result<bijux_dna_domain_fastq::BenchQueryContext> {
