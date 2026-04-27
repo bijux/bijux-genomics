@@ -105,7 +105,7 @@ pub fn bench_fastq_umi<S: ::std::hash::BuildHasher>(
             tool: &tool_plan.tool,
             tool_spec: &tool_plan.tool_spec,
             params: &tool_plan.plan.params,
-            out_dir: &tool_plan.plan.out_dir,
+            out_dir: &tool_plan.out_dir,
             execution: &execution,
         })?;
         persist_umi_record(&store, &record, |record| {
@@ -155,6 +155,7 @@ impl UmiBenchmarkStore {
 
 struct UmiToolPlan {
     tool: String,
+    out_dir: PathBuf,
     tool_spec: ToolExecutionSpecV1,
     plan: StagePlanV1,
     params_hash: String,
@@ -254,7 +255,7 @@ fn prepare_umi_tool_plan<S: ::std::hash::BuildHasher>(
     )?;
     let params_hash = stable_params_hash(&plan.params);
     let image_digest = benchmark_image_identity(&tool_spec);
-    Ok(UmiToolPlan { tool: tool.to_string(), tool_spec, plan, params_hash, image_digest })
+    Ok(UmiToolPlan { tool: tool.to_string(), out_dir, tool_spec, plan, params_hash, image_digest })
 }
 
 fn execute_umi_tool(
