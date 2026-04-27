@@ -696,8 +696,7 @@ fn validate_remove_chimeras_compatibility_metrics(
     let schema_version = metrics.get("schema_version").and_then(serde_json::Value::as_str);
     if schema_version != Some("bijux.fastq.remove_chimeras.v2") {
         return Err(anyhow!(
-            "remove_chimeras compatibility metrics schema mismatch: observed {:?}",
-            schema_version
+            "remove_chimeras compatibility metrics schema mismatch: observed {schema_version:?}"
         ));
     }
     let chimeras_removed = metrics.get("chimeras_removed").and_then(serde_json::Value::as_u64);
