@@ -199,11 +199,7 @@ fn prepare_remove_duplicates_setup(
         load_workspace_registry().map_err(|err| anyhow!("manifest validation failed: {err}"))?;
     let tools = filter_tools_by_role(STAGE_ID, selected_tools, &registry, false)?;
     let runner = ensure_bench_runner(platform, runner_override)?;
-    let input_hash = if let Some(r2) = args.r2.as_deref() {
-        format!("{}+{}", hash_file_sha256(&args.r1)?, hash_file_sha256(r2)?)
-    } else {
-        hash_file_sha256(&args.r1)?
-    };
+    let input_hash = remove_duplicates_input_hash(&args.r1, args.r2.as_deref())?;
     let bench_dir_name =
         bench_dir_name(&bijux_dna_domain_fastq::stages::ids::STAGE_REMOVE_DUPLICATES)
             .ok_or_else(|| anyhow!("bench dir missing for {STAGE_ID}"))?;
@@ -231,6 +227,17 @@ fn prepare_remove_duplicates_setup(
         tools_root,
         options,
     })
+}
+
+fn remove_duplicates_input_hash(
+    r1: &std::path::Path,
+    r2: Option<&std::path::Path>,
+) -> Result<String> {
+    if let Some(r2) = r2 {
+        return Ok(format!("{}+{}", hash_file_sha256(r1)?, hash_file_sha256(r2)?));
+    }
+
+    hash_file_sha256(r1).map_err(Into::into)
 }
 
 fn write_remove_duplicates_explain(setup: &RemoveDuplicatesBenchmarkSetup) -> Result<()> {
