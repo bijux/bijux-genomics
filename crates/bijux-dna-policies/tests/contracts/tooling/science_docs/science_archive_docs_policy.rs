@@ -110,3 +110,41 @@ fn policy__contracts__science_archive_docs_policy__fastq_upstream_readme_links_c
         "science/docs/upstream/fastq/README.md must link the governed FASTQ archive contracts exactly"
     );
 }
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__fastq_tools_readme_links_contracts_exactly() {
+    let expected = BTreeSet::from([
+        "EVIDENCE_MAP.tsv".to_string(),
+        "../README.md".to_string(),
+        "../../papers/TOOL_PAPER_MAP.tsv".to_string(),
+        "<tool-id>/repo/".to_string(),
+        "<tool-id>/download/".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/docs/upstream/fastq/tools/README.md");
+    assert_eq!(
+        expected, documented,
+        "science/docs/upstream/fastq/tools/README.md must link the governed FASTQ tool-packet contracts exactly"
+    );
+}
+
+#[test]
+fn policy__contracts__science_archive_docs_policy__fastq_container_readme_links_reports_exactly() {
+    let expected = BTreeSet::from([
+        "FASTQ_CONTAINER_DEFAULT_MATRIX.tsv".to_string(),
+        "FASTQ_CONTAINER_DIGEST_CLASSES.tsv".to_string(),
+        "FASTQ_CONTAINER_ASSET_HOOKS.tsv".to_string(),
+        "FASTQ_CONTAINER_EVIDENCE_STATUS.tsv".to_string(),
+        "FASTQ_CONTAINER_PROOF_GAPS.tsv".to_string(),
+        "FASTQ_CONTAINER_LOCK_GAPS.tsv".to_string(),
+        "FASTQ_CONTAINER_LICENSE_GAPS.tsv".to_string(),
+        "FASTQ_CONTAINER_PACKAGE_PARITY.tsv".to_string(),
+        "FASTQ_CONTAINER_PLANNER_GAPS.tsv".to_string(),
+        "FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv".to_string(),
+        "FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv".to_string(),
+    ]);
+    let documented = markdown_link_targets("science/docs/upstream/fastq/container/README.md");
+    assert_eq!(
+        expected, documented,
+        "science/docs/upstream/fastq/container/README.md must link the governed FASTQ container reports exactly"
+    );
+}

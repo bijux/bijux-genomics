@@ -10,17 +10,17 @@ The generator is `makes/bin/generate_fastq_container_readiness.py`. Do not hand-
 
 ## Reports
 
-- `FASTQ_CONTAINER_DEFAULT_MATRIX.tsv`: stage-to-default-tool matrix from `domain/fastq/execution_support.yaml`, compiled registry entries, and domain tool container declarations.
-- `FASTQ_CONTAINER_DIGEST_CLASSES.tsv`: digest class for each default tool reference (`immutable`, `tag_only`, `pending`, `zero_placeholder`, or `missing`).
-- `FASTQ_CONTAINER_ASSET_HOOKS.tsv`: stage asset hooks and whether each hook has an in-domain producer or still needs an external authority.
-- `FASTQ_CONTAINER_EVIDENCE_STATUS.tsv`: repository/paper evidence coverage from `science/generated/current/evidence/fastq_download_backlog.tsv`.
-- `FASTQ_CONTAINER_PROOF_GAPS.tsv`: expected SBOM and smoke-test artifact locations under `artifacts/containers`.
-- `FASTQ_CONTAINER_LOCK_GAPS.tsv`: missing or placeholder fields in `containers/versions/lock.json`.
-- `FASTQ_CONTAINER_LICENSE_GAPS.tsv`: license assertions from `containers/licenses/*.license.toml`, including `NOASSERTION` fields that still require legal/source review.
-- `FASTQ_CONTAINER_PACKAGE_PARITY.tsv`: package-name parity between compiled registry references and domain tool container images.
-- `FASTQ_CONTAINER_PLANNER_GAPS.tsv`: planner snapshot parity with execution defaults and planner image digest presence.
-- `FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv`: per-stage rollup of the blockers above.
-- `FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv`: SSOT release-gate ledger for each FASTQ
+- [FASTQ_CONTAINER_DEFAULT_MATRIX.tsv](FASTQ_CONTAINER_DEFAULT_MATRIX.tsv): stage-to-default-tool matrix from `domain/fastq/execution_support.yaml`, compiled registry entries, and domain tool container declarations.
+- [FASTQ_CONTAINER_DIGEST_CLASSES.tsv](FASTQ_CONTAINER_DIGEST_CLASSES.tsv): digest class for each default tool reference (`immutable`, `tag_only`, `pending`, `zero_placeholder`, or `missing`).
+- [FASTQ_CONTAINER_ASSET_HOOKS.tsv](FASTQ_CONTAINER_ASSET_HOOKS.tsv): stage asset hooks and whether each hook has an in-domain producer or still needs an external authority.
+- [FASTQ_CONTAINER_EVIDENCE_STATUS.tsv](FASTQ_CONTAINER_EVIDENCE_STATUS.tsv): repository/paper evidence coverage from `science/generated/current/evidence/fastq_download_backlog.tsv`.
+- [FASTQ_CONTAINER_PROOF_GAPS.tsv](FASTQ_CONTAINER_PROOF_GAPS.tsv): expected SBOM and smoke-test artifact locations under `artifacts/containers`.
+- [FASTQ_CONTAINER_LOCK_GAPS.tsv](FASTQ_CONTAINER_LOCK_GAPS.tsv): missing or placeholder fields in `containers/versions/lock.json`.
+- [FASTQ_CONTAINER_LICENSE_GAPS.tsv](FASTQ_CONTAINER_LICENSE_GAPS.tsv): license assertions from `containers/licenses/*.license.toml`, including `NOASSERTION` fields that still require legal/source review.
+- [FASTQ_CONTAINER_PACKAGE_PARITY.tsv](FASTQ_CONTAINER_PACKAGE_PARITY.tsv): package-name parity between compiled registry references and domain tool container images.
+- [FASTQ_CONTAINER_PLANNER_GAPS.tsv](FASTQ_CONTAINER_PLANNER_GAPS.tsv): planner snapshot parity with execution defaults and planner image digest presence.
+- [FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv](FASTQ_CONTAINER_CLOSURE_SUMMARY.tsv): per-stage rollup of the blockers above.
+- [FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv](FASTQ_PRODUCTION_CLOSURE_LEDGER.tsv): SSOT release-gate ledger for each FASTQ
   execution default. A row can be `closed` only when citation or software
   evidence, payload access, reference assets, immutable container references,
   resolved image and SIF digests, license assertions, runtime surfaces, planner
