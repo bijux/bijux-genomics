@@ -162,6 +162,7 @@ pub fn bench_fastq_merge<S: ::std::hash::BuildHasher>(
             r1_stats: &setup.r1_stats,
             r2_stats: &setup.r2_stats,
             tool_spec: &tool_plan.tool_spec,
+            image_digest: &tool_plan.image_digest,
             params: &tool_plan.plan.params,
             merged_reads: outputs.merged_reads,
             report_path: outputs.report_json,
@@ -207,6 +208,7 @@ struct MergeRecordInputs<'a, S: ::std::hash::BuildHasher> {
     r1_stats: &'a SeqkitMetrics,
     r2_stats: &'a SeqkitMetrics,
     tool_spec: &'a ToolExecutionSpecV1,
+    image_digest: &'a str,
     params: &'a serde_json::Value,
     merged_reads: &'a Path,
     report_path: &'a Path,
@@ -346,6 +348,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     let r1_stats = inputs.r1_stats;
     let r2_stats = inputs.r2_stats;
     let tool_spec = inputs.tool_spec;
+    let image_digest = inputs.image_digest;
     let params = inputs.params;
     let merged_reads = inputs.merged_reads;
     let report_path = inputs.report_path;
@@ -362,7 +365,7 @@ fn build_merge_record<S: ::std::hash::BuildHasher>(
     let context = build_benchmark_context(
         &report.tool_id,
         tool_spec.tool_version.clone(),
-        benchmark_image_identity(tool_spec),
+        image_digest.to_string(),
         runner,
         platform,
         input_hash.to_string(),
