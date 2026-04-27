@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/**
-# source_commit: 7eef690103ea79403f69e198e0a4c2753d3d371d
+# source_commit: cee9c192ac0e976c11588884fc259192712844ad
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -12,6 +12,7 @@
 [[stages]]
 id = "vcf.admixture"
 status = "planned"
+output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -20,6 +21,7 @@ tools = ["plink", "plink2"]
 [[stages]]
 id = "vcf.call"
 status = "supported"
+output_kinds = ["vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -28,6 +30,7 @@ tools = ["bcftools"]
 [[stages]]
 id = "vcf.call_diploid"
 status = "supported"
+output_kinds = ["vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -36,6 +39,7 @@ tools = ["bcftools"]
 [[stages]]
 id = "vcf.call_gl"
 status = "supported"
+output_kinds = ["json", "vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -44,6 +48,7 @@ tools = ["angsd", "bcftools"]
 [[stages]]
 id = "vcf.call_pseudohaploid"
 status = "supported"
+output_kinds = ["json", "vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -52,6 +57,7 @@ tools = ["angsd", "bcftools"]
 [[stages]]
 id = "vcf.damage_filter"
 status = "supported"
+output_kinds = ["json", "vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -60,6 +66,7 @@ tools = ["bcftools", "angsd"]
 [[stages]]
 id = "vcf.demography"
 status = "planned"
+output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -68,6 +75,7 @@ tools = ["ibdne"]
 [[stages]]
 id = "vcf.filter"
 status = "supported"
+output_kinds = ["vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.filter.v1"
 smoke_required = true
@@ -76,6 +84,7 @@ tools = ["bcftools"]
 [[stages]]
 id = "vcf.gl_propagation"
 status = "supported"
+output_kinds = ["json", "vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -84,6 +93,7 @@ tools = ["bcftools", "angsd"]
 [[stages]]
 id = "vcf.ibd"
 status = "planned"
+output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -92,6 +102,7 @@ tools = ["germline", "ibdhap"]
 [[stages]]
 id = "vcf.imputation"
 status = "planned"
+output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -100,6 +111,7 @@ tools = ["beagle", "glimpse", "impute5", "minimac4"]
 [[stages]]
 id = "vcf.impute"
 status = "planned"
+output_kinds = ["vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -108,6 +120,7 @@ tools = ["beagle", "glimpse", "impute5", "minimac4"]
 [[stages]]
 id = "vcf.pca"
 status = "planned"
+output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -116,6 +129,7 @@ tools = ["plink2", "eigensoft"]
 [[stages]]
 id = "vcf.phasing"
 status = "planned"
+output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -124,6 +138,7 @@ tools = ["beagle", "shapeit5", "eagle"]
 [[stages]]
 id = "vcf.population_structure"
 status = "planned"
+output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -132,6 +147,7 @@ tools = ["plink", "plink2", "eigensoft"]
 [[stages]]
 id = "vcf.postprocess"
 status = "planned"
+output_kinds = ["vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -140,6 +156,7 @@ tools = ["bcftools"]
 [[stages]]
 id = "vcf.prepare_reference_panel"
 status = "planned"
+output_kinds = ["vcf"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -148,6 +165,7 @@ tools = ["bcftools"]
 [[stages]]
 id = "vcf.qc"
 status = "planned"
+output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -156,6 +174,7 @@ tools = ["plink", "plink2"]
 [[stages]]
 id = "vcf.roh"
 status = "planned"
+output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.call.v1"
 smoke_required = true
@@ -164,6 +183,7 @@ tools = ["plink2"]
 [[stages]]
 id = "vcf.stats"
 status = "supported"
+output_kinds = ["json"]
 experimental = true
 metrics_schema = "bijux.vcf.stats.v1"
 smoke_required = true
