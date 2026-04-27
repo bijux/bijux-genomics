@@ -42,7 +42,6 @@ use bijux_dna_stage_contract::StagePlanV1;
 
 /// # Errors
 /// Returns an error if planning, execution, report parsing, or persistence fails.
-#[allow(clippy::too_many_lines)]
 pub fn bench_fastq_detect_adapters<S: ::std::hash::BuildHasher>(
     catalog: &HashMap<String, ToolImageSpec, S>,
     platform: &PlatformSpec,
