@@ -71,6 +71,6 @@ Primary failures surface as snapshot or contract violations; inspect the golden 
 Contract and behavior changes must update the relevant docs and tests in the same reviewable change.
 
 ## Repository Policy
-This crate follows repository governance documentation. `README.md` and
-`README.md`; re-read both before editing this child repository or
-making commits.
+This crate follows repository governance documentation. `/Users/bijan/bijux/bijux-genomics/README.md`,
+`README.md`, and `README.md`; re-read
+those files before editing this child repository or making commits.

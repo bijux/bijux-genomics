@@ -71,7 +71,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         VcfStageSpec {
             stage_id: "vcf.qc",
             status: "planned",
-            default_tool_id: "bcftools",
+            default_tool_id: "plink2",
             metrics_schema: "bijux.vcf.qc.v1",
             smoke_supported: true,
             parser_supported: true,
@@ -98,7 +98,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         VcfStageSpec {
             stage_id: "vcf.admixture",
             status: "planned",
-            default_tool_id: "admixture",
+            default_tool_id: "plink2",
             metrics_schema: "bijux.vcf.population_structure.v1",
             smoke_supported: true,
             parser_supported: true,
@@ -125,7 +125,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         VcfStageSpec {
             stage_id: "vcf.imputation",
             status: "planned",
-            default_tool_id: "glimpse",
+            default_tool_id: "beagle",
             metrics_schema: "bijux.vcf.imputation.v1",
             smoke_supported: true,
             parser_supported: true,
@@ -134,7 +134,7 @@ pub fn vcf_stage_catalog() -> &'static [VcfStageSpec] {
         VcfStageSpec {
             stage_id: "vcf.impute",
             status: "planned",
-            default_tool_id: "glimpse",
+            default_tool_id: "beagle",
             metrics_schema: "bijux.vcf.impute.v1",
             smoke_supported: true,
             parser_supported: true,
