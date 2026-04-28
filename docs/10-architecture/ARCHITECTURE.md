@@ -1,16 +1,17 @@
 # Architecture
 
-## What:
-Defines the repository architecture rule for SSOT ownership and consumption boundaries.
+## Purpose
+Define the repository architecture rule for SSOT ownership and consumption boundaries.
 
-## Why:
-Prevents drift between authored domain data, generated configs, and runtime/planner behavior.
+## Scope
+- Repository-level SSOT ownership across domain data, generated configs, and consumer crates.
+- The boundary between authored source, generated artifacts, and runtime/planner behavior.
 
-## Non-goals:
+## Non-goals
 - Defining crate-local implementation details.
 - Duplicating policy text that already lives under [../40-policies/index.md](../40-policies/index.md).
 
-## Contracts:
+## Contracts
 Domain is the authored SSOT; configs are generated; code consumes generated configs; makes call CLI only.
 
 Domain-owned canonical vocabularies are part of SSOT:
@@ -20,7 +21,7 @@ Domain-owned canonical vocabularies are part of SSOT:
   [../../domain/bam/metrics.yaml](../../domain/bam/metrics.yaml) define allowed metric IDs.
 - `bijux-dna domain validate` must fail when stages/tools use IDs outside those vocabularies.
 
-## Examples:
+## Examples
 The generated config set is fixed and compiler-owned:
 - [../../configs/ci/registry/tool_registry.toml](../../configs/ci/registry/tool_registry.toml)
 - [../../configs/ci/stages/stages.toml](../../configs/ci/stages/stages.toml)
@@ -29,6 +30,6 @@ The generated config set is fixed and compiler-owned:
 Crate authority ownership is defined in:
 - [CRATE_AUTHORITY_MAP.md](CRATE_AUTHORITY_MAP.md)
 
-## Failure modes:
+## Failure modes
 - Manual edits to generated configs drift from domain and fail CI.
 - Makefile-side tool lists drift from registry and fail policies.

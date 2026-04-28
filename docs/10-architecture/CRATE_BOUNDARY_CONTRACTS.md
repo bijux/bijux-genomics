@@ -8,6 +8,18 @@ Contract version: v1
 ## Purpose
 Define the common required fields and family-specific authority for crate `BOUNDARY.md` files.
 
+## Scope
+- Workspace crate-family boundary documents and their required fields.
+- The family-level ownership rules enforced by policy tests.
+
+## Non-goals
+- Replacing crate-local `BOUNDARY.md` files.
+- Restating every crate's implementation structure or public API.
+
+## Contracts
+- Every governed crate boundary document must expose the required fields listed below.
+- Family-level rules define the minimum contract each crate must refine locally.
+
 ## Required fields
 Every crate root `BOUNDARY.md` must declare:
 - `Owner:`

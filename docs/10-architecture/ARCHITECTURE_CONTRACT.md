@@ -9,6 +9,18 @@ Applies to: repository root, workspace crates, generated configs, policy tests
 ## Purpose
 Define the machine-checkable contract for repository architecture authority.
 
+## Scope
+- Repository root architecture documents and their owning policy tests.
+- Workspace crate boundaries, dependency edges, and contract authorities.
+
+## Non-goals
+- Restating every crate-local implementation detail.
+- Replacing crate-owned boundary or API documents.
+
+## Contracts
+- Repository architecture authority stays rooted in the documents listed below.
+- Policy tests may enforce those authorities, but they must not invent parallel sources of truth.
+
 ## Allowed inputs
 - Workspace membership from [Cargo.toml](../../Cargo.toml).
 - Dependency edges from crate [Cargo.toml](../../Cargo.toml) files.
