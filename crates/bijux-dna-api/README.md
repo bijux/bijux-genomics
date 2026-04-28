@@ -4,9 +4,9 @@
 execution, reporting, explainability, and policy-audit workflows in
 `bijux-genomics`.
 
-Workspace work on this crate is governed by `/Users/bijan/bijux/README.md` and
-`/Users/bijan/bijux/CODEX.md`; re-read those files before editing this child
-repository and before committing.
+Workspace work on this crate is governed by `/Users/bijan/bijux/bijux-genomics/README.md`,
+`/Users/bijan/bijux/README.md`, and `/Users/bijan/bijux/CODEX.md`; re-read
+those files before editing this child repository and before committing.
 
 ## What this crate does
 

@@ -28,6 +28,6 @@ See [docs/TESTS.md](docs/TESTS.md). Key coverage starts in `tests/boundaries.rs`
 Start at [docs/INDEX.md](docs/INDEX.md), then read [docs/SCOPE.md](docs/SCOPE.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/COMMANDS.md](docs/COMMANDS.md), [docs/CONTRACTS.md](docs/CONTRACTS.md), and [docs/TESTS.md](docs/TESTS.md).
 
 ## Workspace Policy
-Workspace work on this crate is governed by `/Users/bijan/bijux/README.md` and
-`/Users/bijan/bijux/CODEX.md`; re-read both before editing this child repository or
-making commits.
+Workspace work on this crate is governed by `/Users/bijan/bijux/bijux-genomics/README.md`,
+`/Users/bijan/bijux/README.md`, and `/Users/bijan/bijux/CODEX.md`; re-read
+those files before editing this child repository or making commits.

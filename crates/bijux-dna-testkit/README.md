@@ -52,6 +52,6 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-testkit --no-def
 ```
 
 ## Workspace Policy
-Workspace work on this crate is governed by `/Users/bijan/bijux/README.md` and
-`/Users/bijan/bijux/CODEX.md`; re-read both before editing this child repository or
-making commits.
+Workspace work on this crate is governed by `/Users/bijan/bijux/bijux-genomics/README.md`,
+`/Users/bijan/bijux/README.md`, and `/Users/bijan/bijux/CODEX.md`; re-read
+those files before editing this child repository or making commits.

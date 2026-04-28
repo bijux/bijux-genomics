@@ -55,6 +55,6 @@ Runtime failures surface through backend process errors, missing images, permiss
 Contract changes must update the relevant docs and boundary tests in the same reviewable change.
 
 ## Workspace Policy
-Workspace work on this crate is governed by `/Users/bijan/bijux/README.md` and
-`/Users/bijan/bijux/CODEX.md`; re-read both before editing this child repository or
-making commits.
+Workspace work on this crate is governed by `/Users/bijan/bijux/bijux-genomics/README.md`,
+`/Users/bijan/bijux/README.md`, and `/Users/bijan/bijux/CODEX.md`; re-read
+those files before editing this child repository or making commits.
