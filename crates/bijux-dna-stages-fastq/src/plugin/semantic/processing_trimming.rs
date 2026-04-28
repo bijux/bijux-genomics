@@ -243,7 +243,8 @@ fn insert_fastp_metrics(semantics: &mut serde_json::Map<String, serde_json::Valu
     let Ok(metrics) = parse_fastp_metrics(raw) else {
         return;
     };
-    semantics.insert("passed_filter_reads".to_string(), serde_json::json!(metrics.passed_filter_reads));
+    semantics
+        .insert("passed_filter_reads".to_string(), serde_json::json!(metrics.passed_filter_reads));
     semantics.insert("low_quality_reads".to_string(), serde_json::json!(metrics.low_quality_reads));
     semantics.insert("too_many_n_reads".to_string(), serde_json::json!(metrics.too_many_n_reads));
     semantics.insert("too_short_reads".to_string(), serde_json::json!(metrics.too_short_reads));
