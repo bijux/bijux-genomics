@@ -102,10 +102,7 @@ fn contributor_stage_ids(
         contributor_entries
             .iter()
             .filter_map(|entry| {
-                entry
-                    .get("stage_id")
-                    .and_then(serde_json::Value::as_str)
-                    .map(ToString::to_string)
+                entry.get("stage_id").and_then(serde_json::Value::as_str).map(ToString::to_string)
             })
             .collect::<Vec<_>>()
     };
@@ -124,12 +121,11 @@ fn contributor_tool_ids(
         contributor_entries
             .iter()
             .filter_map(|entry| {
-                entry
-                    .get("contributor_id")
-                    .and_then(serde_json::Value::as_str)
-                    .and_then(|contributor_id| {
+                entry.get("contributor_id").and_then(serde_json::Value::as_str).and_then(
+                    |contributor_id| {
                         contributor_id.rsplit_once('.').map(|(_, tool_id)| tool_id.to_string())
-                    })
+                    },
+                )
             })
             .collect::<Vec<_>>()
     };

@@ -624,24 +624,20 @@ fn qc_post_metrics(
             .as_ref()
             .and_then(|report| report.trimmed_fastqc_dir.clone())
             .or_else(|| {
-                paths
-                    .trimmed_dir
-                    .exists()
-                    .then_some(paths.trimmed_dir.display().to_string())
+                paths.trimmed_dir.exists().then_some(paths.trimmed_dir.display().to_string())
             }),
         multiqc_report: governed_report
             .as_ref()
             .and_then(|report| report.multiqc_report.clone())
             .or_else(|| {
-                paths
-                    .multiqc_report
-                    .exists()
-                    .then_some(paths.multiqc_report.display().to_string())
+                paths.multiqc_report.exists().then_some(paths.multiqc_report.display().to_string())
             }),
         multiqc_data: governed_report
             .as_ref()
             .and_then(|report| report.multiqc_data.clone())
-            .or_else(|| paths.multiqc_data.exists().then_some(paths.multiqc_data.display().to_string())),
+            .or_else(|| {
+                paths.multiqc_data.exists().then_some(paths.multiqc_data.display().to_string())
+            }),
         governed_qc_input_count: governed_report
             .as_ref()
             .map(|report| report.governed_qc_input_count),
@@ -674,8 +670,8 @@ struct QcPostPaths {
 }
 
 fn qc_post_paths(plan: &StagePlanV1, outputs: &[PathBuf]) -> QcPostPaths {
-    let out_dir =
-        path_from_params(&plan.params, "out_dir").unwrap_or_else(|| outputs.first().cloned().unwrap_or_default());
+    let out_dir = path_from_params(&plan.params, "out_dir")
+        .unwrap_or_else(|| outputs.first().cloned().unwrap_or_default());
     QcPostPaths {
         raw_dir: out_dir.join("fastqc_raw"),
         trimmed_dir: out_dir.join("fastqc_trimmed"),

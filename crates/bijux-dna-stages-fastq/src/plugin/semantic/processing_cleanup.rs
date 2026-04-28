@@ -56,11 +56,8 @@ fn remove_duplicates_metrics(artifacts: &[ArtifactRef]) -> Option<serde_json::Va
 fn legacy_deduplicate_metrics(raw_report: &str) -> Option<serde_json::Value> {
     let (reads_in, reads_out) = parse_deduplicate_report(raw_report).ok()?;
     let duplicates_removed = reads_in.saturating_sub(reads_out);
-    let dedup_rate = if reads_in > 0 {
-        f64_from_u64(duplicates_removed) / f64_from_u64(reads_in)
-    } else {
-        0.0
-    };
+    let dedup_rate =
+        if reads_in > 0 { f64_from_u64(duplicates_removed) / f64_from_u64(reads_in) } else { 0.0 };
     Some(serde_json::json!({
         "reads_in": reads_in,
         "reads_out": reads_out,
