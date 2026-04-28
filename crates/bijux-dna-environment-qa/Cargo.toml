@@ -12,7 +12,7 @@ sha2.workspace = true
 tracing.workspace = true
 uuid.workspace = true
 clap.workspace = true
-rusqlite = "0.31"
+rusqlite = "0.39"
 bijux-dna-environment = { path = "../bijux-dna-environment" }
 bijux-dna-analyze = { path = "../bijux-dna-analyze", features = ["sqlite"] }
 bijux-dna-core = { path = "../bijux-dna-core" }
