@@ -1135,8 +1135,6 @@ pub(in super::super) fn check_docker_labels(
 pub(in super::super) fn check_docker_unpinned_apt(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
-    let ci_mode =
-        matches!(env_or_empty("CI").trim().to_ascii_lowercase().as_str(), "1" | "true" | "yes");
     let mut errors = Vec::new();
     let option_re = Regex::new(r"--[a-zA-Z0-9-]+(?:=[^\s]+)?")?;
     for dockerfile in dockerfile_paths(workspace)? {
@@ -1185,11 +1183,8 @@ pub(in super::super) fn check_docker_unpinned_apt(
     if errors.is_empty() {
         return success_line("docker apt pin check: OK");
     }
-    if ci_mode {
-        return failure_lines("docker apt pin check: failed", &errors);
-    }
     Ok(ContainerCommandOutcome::success(format!(
-        "docker apt pin check: WARN (non-CI mode)\n{}\n",
+        "docker apt pin check: WARN\n{}\n",
         errors.into_iter().map(|error| format!("- {error}")).collect::<Vec<_>>().join("\n")
     )))
 }

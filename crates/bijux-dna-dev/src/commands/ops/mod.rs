@@ -216,19 +216,27 @@ fn set_assets_readonly(workspace: &Workspace, readonly: bool) -> Result<()> {
 }
 
 fn glob_paths(workspace: &Workspace, pattern: &str) -> Result<Vec<PathBuf>> {
+    let regex = glob_to_regex(pattern)?;
     let outcome = run_program(
         workspace,
         "rg",
         &["--files".to_string(), workspace.root.display().to_string()],
-    )?;
-    if !outcome.is_success() {
-        return Ok(Vec::new());
+    );
+    if let Ok(outcome) = outcome {
+        if outcome.is_success() {
+            return Ok(outcome
+                .stdout
+                .lines()
+                .map(PathBuf::from)
+                .filter(|path| regex.is_match(&workspace.rel(path).to_string_lossy()))
+                .collect());
+        }
     }
-    let regex = glob_to_regex(pattern)?;
-    Ok(outcome
-        .stdout
-        .lines()
-        .map(PathBuf::from)
+    Ok(WalkDir::new(&workspace.root)
+        .into_iter()
+        .filter_map(std::result::Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .map(walkdir::DirEntry::into_path)
         .filter(|path| regex.is_match(&workspace.rel(path).to_string_lossy()))
         .collect())
 }
