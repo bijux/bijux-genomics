@@ -8,6 +8,18 @@ Contract version: v1
 ## Purpose
 Define when committed snapshots and golden files are authoritative evidence.
 
+## Scope
+- Committed snapshots, golden files, fixture payloads, and their bless workflows.
+- The tests and policies that validate deterministic evidence artifacts.
+
+## Non-goals
+- Replacing the product contracts that snapshots represent.
+- Allowing ad hoc fixture rewrites during ordinary development flows.
+
+## Contracts
+- Snapshot and golden evidence must stay deterministic, reviewable, and explicitly blessed.
+- Test automation may validate those files, but it must not rewrite them implicitly.
+
 ## Allowed inputs
 - Sanitized deterministic command output.
 - Fixture inputs documented by test case metadata.

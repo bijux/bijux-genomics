@@ -8,6 +8,18 @@ Contract version: v1
 ## Purpose
 List the authoritative document for each architecture contract category.
 
+## Scope
+- Repository-wide contract categories that need one explicit authority document.
+- The index surface used by policy tests and review workflows.
+
+## Non-goals
+- Duplicating the full contents of each listed authority document.
+- Defining new contract categories implicitly through the index.
+
+## Contracts
+- Every listed category must point to one governed authority surface.
+- When a contract authority moves, this index must be updated in the same change set.
+
 ## Index
 | Contract category | Authority |
 | --- | --- |

@@ -31,7 +31,7 @@ The VCF domain mixes currently supported calling stages with many planned downst
 | eigensoft | `vcf.pca`, `vcf.population_structure` | planned citation closure | https://github.com/DReichLab/EIG |
 | germline | `vcf.ibd` | governed paper locator present; promotion and runtime evidence still pending | https://www.cs.columbia.edu/~gusev/germline/ |
 | glimpse | `vcf.impute` | planned citation closure | https://odelaneau.github.io/GLIMPSE/ |
-| ibdhap | `vcf.ibd` | placeholder upstream locator still unresolved in governed tool contract | https://example.invalid/ibdhap |
+| ibdhap | `vcf.ibd` | upstream locator is still unresolved in the governed tool contract | https://example.invalid/ibdhap |
 | ibdne | `vcf.demography` | planned citation closure | https://faculty.washington.edu/browning/ibdne.shtml |
 | impute5 | `vcf.impute` | planned citation closure | https://jmarchini.org/software/#impute-5 |
 | minimac4 | `vcf.impute` | planned citation closure | https://genome.sph.umich.edu/wiki/Minimac4 |
@@ -41,4 +41,4 @@ The VCF domain mixes currently supported calling stages with many planned downst
 
 ## Failure modes
 - A stage listed against the wrong tool creates fake scientific support for a workflow we do not actually admit.
-- Placeholder upstream locators such as `https://example.invalid/ibdhap` must stay visible until the governed tool contract is repaired.
+- Temporary upstream locators such as `https://example.invalid/ibdhap` must stay visible until the governed tool contract is repaired.

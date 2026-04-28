@@ -8,6 +8,18 @@ Contract version: v1
 ## Purpose
 Guarantee that dry-run paths prove planning and manifest shape without executing product tools.
 
+## Scope
+- CLI and API dry-run flows, their declared artifact outputs, and their validation tests.
+- The contract that separates planning evidence from execution.
+
+## Non-goals
+- Replacing runtime execution or smoke-testing contracts.
+- Governing non-dry-run artifact layouts beyond the declared handoff points.
+
+## Contracts
+- Dry-run paths must remain execution-free while still proving manifest and plan shape.
+- Dry-run output may be written only to declared report or artifact paths.
+
 ## Allowed inputs
 - CLI/API request parameters.
 - Repository configs and domain contracts.

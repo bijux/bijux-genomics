@@ -15,9 +15,6 @@ const FOUNDATION_CRATES: &[&str] = &[
     "bijux-dna-testkit",
 ];
 
-const WORKSPACE_POLICY_PATHS: &[&str] =
-    &["/Users/bijan/bijux/README.md", "/Users/bijan/bijux/CODEX.md"];
-
 #[test]
 fn policy__boundaries__foundation_docs__foundation_crates_keep_docs_in_governed_locations() {
     let workspace = workspace_root();
@@ -54,13 +51,14 @@ fn policy__boundaries__foundation_docs__foundation_crates_keep_docs_in_governed_
 #[test]
 fn policy__boundaries__foundation_docs__foundation_readmes_expose_workspace_policy() {
     let workspace = workspace_root();
+    let policy_paths = workspace_policy_paths(&workspace);
 
     for crate_name in FOUNDATION_CRATES {
         let readme = workspace.join("crates").join(crate_name).join("README.md");
         let content = std::fs::read_to_string(&readme)
             .unwrap_or_else(|err| panic!("read {}: {err}", readme.display()));
 
-        for policy_path in WORKSPACE_POLICY_PATHS {
+        for policy_path in &policy_paths {
             assert!(
                 content.contains(policy_path),
                 "{crate_name} README.md must expose workspace policy path {policy_path}"
@@ -88,6 +86,15 @@ fn workspace_root() -> PathBuf {
         .and_then(Path::parent)
         .unwrap_or_else(|| panic!("resolve workspace root"))
         .to_path_buf()
+}
+
+fn workspace_policy_paths(workspace: &Path) -> Vec<String> {
+    ["README.md", "CODEX.md"]
+        .into_iter()
+        .map(|name| workspace.join(name))
+        .filter(|path| path.is_file())
+        .map(|path| path.display().to_string())
+        .collect()
 }
 
 fn markdown_files(root: &Path) -> Vec<PathBuf> {

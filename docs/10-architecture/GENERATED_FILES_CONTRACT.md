@@ -8,6 +8,18 @@ Contract version: v1
 ## Purpose
 Separate authored source from generated or managed output.
 
+## Scope
+- Generated repository configs, managed standards output, and governed inventories.
+- The commands and policies that validate those generated surfaces.
+
+## Non-goals
+- Replacing the source documents that feed generators.
+- Treating generated output as an authored authority.
+
+## Contracts
+- Authored source remains upstream of generated output.
+- Generated files may be committed, but they must stay reproducible from their governed inputs.
+
 ## Allowed inputs
 - Domain source files under [../../domain/](../../domain/).
 - Shared-standard managed inputs under [../../.bijux/shared/](../../.bijux/shared/) and

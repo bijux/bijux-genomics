@@ -46,7 +46,7 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 | schmutzi | `bam.contamination` | governed paper locator present; runtime closure remains separate | https://github.com/grenaud/schmutzi |
 | verifybamid2 | `bam.contamination` | governed paper locator present; runtime closure remains separate | https://github.com/Griffan/VerifyBamID |
 | contammix | `bam.contamination` | package/software locator captured; paper mapping still pending | https://bioconductor.org/packages/contamMix |
-| rxy | `bam.sex` | governed tool contract still points to a local placeholder; external citation locator still needed | https://github.com/bijux/bijux-genomics |
+| rxy | `bam.sex` | governed tool contract still points to a local interim locator; external citation locator still needed | https://github.com/bijux/bijux-genomics |
 | yleaf | `bam.sex`, `bam.haplogroups` | governed paper locator present; runtime closure remains separate | https://github.com/genid/Yleaf |
 | angsd | `bam.sex`, `bam.kinship` | governed paper locator present; runtime closure remains separate | https://github.com/ANGSD/angsd |
 | king | `bam.kinship` | governed paper locator present; runtime closure remains separate | https://www.kingrelatedness.com/ |
@@ -62,4 +62,4 @@ The BAM domain is not reviewable if tool admission, stage claims, and citation c
 ## Failure modes
 - A tool listed against the wrong stage creates fake scientific support for a runtime boundary we do not actually govern.
 - Replacing an explicit backlog with hand-wavy prose hides citation debt instead of making it reviewable.
-- Placeholder upstream locators such as `rxy` must stay visible until they are repaired in the governed tool catalog and science evidence backlog.
+- Interim upstream locators such as `rxy` must stay visible until they are repaired in the governed tool catalog and science evidence backlog.

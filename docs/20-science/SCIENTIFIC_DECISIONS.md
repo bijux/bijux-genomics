@@ -1,6 +1,19 @@
 # Scientific Decisions
 
+## Purpose
 This document records the cross-domain scientific decisions that remain normative above individual tool manifests and per-domain science ledgers.
+
+## Scope
+- Cross-domain scientific defaults and gating rules that affect FASTQ, BAM, and VCF workflows.
+- Decision rules that stay normative above per-tool manifests and evidence ledgers.
+
+## Non-goals
+- Replacing per-domain scientific specs or detailed method ledgers.
+- Claiming citation closure or promotion readiness for every governed tool.
+
+## Contracts
+- Domain-specific scientific specs remain the detailed authority for each surface.
+- Cross-domain defaults recorded here stay normative until a governed update changes them.
 
 Publication-scoped scientific artifacts are referenced via [the current publication index](../../assets/publications/adna-methods-2024/index.md); governed publication-asset handling lives in [Publication Assets](PUBLICATION_ASSETS.md).
 
