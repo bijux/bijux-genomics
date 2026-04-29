@@ -30,5 +30,21 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
         request.graph.pipeline_id().as_str(),
         &layout.manifest_path,
     )?;
-    Ok(ExecuteResponse { run_id, manifest_path: layout.manifest_path, report_path: None })
+    let correlation_id = format!("run:{run_id}");
+    let evidence_bundle_path = bijux_dna_analyze::write_evidence_bundle_json(&layout.run_dir, None)?;
+    summary_artifact::attach_output_artifact(
+        &layout.manifest_path,
+        &layout.run_dir,
+        &correlation_id,
+        "evidence_bundle",
+        "bijux.evidence_bundle.v1",
+        &evidence_bundle_path,
+    )?;
+    Ok(ExecuteResponse {
+        run_id,
+        correlation_id,
+        manifest_path: layout.manifest_path,
+        report_path: None,
+        evidence_bundle_path,
+    })
 }

@@ -31,6 +31,8 @@ pub(super) fn status(run_dir: &Path) -> RunStatus {
         run_dir: run_dir.to_path_buf(),
         manifest_path: manifest,
         report_path: report,
+        evidence_bundle_path: None,
+        correlation_id: None,
         has_failures,
     }
 }

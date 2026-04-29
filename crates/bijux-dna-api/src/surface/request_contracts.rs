@@ -189,6 +189,7 @@ pub struct RenderReportRequest {
 /// Stability: v1 (stable).
 pub struct RenderReportResult {
     pub report_path: PathBuf,
+    pub evidence_bundle_path: PathBuf,
 }
 
 #[derive(Debug, Clone)]
@@ -199,6 +200,8 @@ pub struct RunStatus {
     pub run_dir: PathBuf,
     pub manifest_path: Option<PathBuf>,
     pub report_path: Option<PathBuf>,
+    pub evidence_bundle_path: Option<PathBuf>,
+    pub correlation_id: Option<String>,
     pub has_failures: bool,
 }
 
@@ -237,8 +240,10 @@ pub struct ExecuteRequest {
 /// Stability: v1 (stable).
 pub struct ExecuteResponse {
     pub run_id: String,
+    pub correlation_id: String,
     pub manifest_path: PathBuf,
     pub report_path: Option<PathBuf>,
+    pub evidence_bundle_path: PathBuf,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -258,4 +263,7 @@ pub struct DryRunRequest {
 pub struct DryRunResponse {
     pub graph_path: PathBuf,
     pub manifest_path: PathBuf,
+    pub run_summary_path: PathBuf,
+    pub evidence_bundle_path: PathBuf,
+    pub correlation_id: String,
 }
