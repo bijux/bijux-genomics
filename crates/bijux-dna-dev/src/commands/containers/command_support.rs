@@ -88,6 +88,18 @@ pub(super) fn git_last_modified_timestamp(workspace: &Workspace, rel_path: &str)
         .unwrap_or_else(|| "1970-01-01T00:00:00Z".to_string())
 }
 
+pub(super) fn git_is_shallow_repository(workspace: &Workspace) -> bool {
+    std::process::Command::new("git")
+        .arg("-C")
+        .arg(&workspace.root)
+        .args(["rev-parse", "--is-shallow-repository"])
+        .output()
+        .ok()
+        .filter(|output| output.status.success())
+        .map(|output| String::from_utf8_lossy(&output.stdout).trim().eq("true"))
+        .unwrap_or(false)
+}
+
 pub(super) fn out_path_arg(
     workspace: &Workspace,
     args: &[String],

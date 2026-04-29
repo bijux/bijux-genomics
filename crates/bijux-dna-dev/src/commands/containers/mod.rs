@@ -24,9 +24,9 @@ mod version_state;
 mod versioning;
 
 use self::command_support::{
-    append_named_outcome, failure_lines, git_last_modified_timestamp, iso_root_path, iso_run_id,
-    json_string_pretty, out_path_arg, path_from_arg, policy_path, read_json, read_utf8,
-    run_container_runtime_check, success_line, write_utf8,
+    append_named_outcome, failure_lines, git_is_shallow_repository, git_last_modified_timestamp,
+    iso_root_path, iso_run_id, json_string_pretty, out_path_arg, path_from_arg, policy_path,
+    read_json, read_utf8, run_container_runtime_check, success_line, write_utf8,
 };
 use self::content_support::{
     line_has_network_command, load_toml, markdown_code_value, sha256_hex, table_array_strings,
