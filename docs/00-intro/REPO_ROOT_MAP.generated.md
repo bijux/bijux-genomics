@@ -18,26 +18,26 @@ Top-level workspace paths only.
 
 | Path | Kind | Owner | Purpose |
 |---|---|---|---|
+| `Cargo.lock` | `file` | `-` | - |
 | `Cargo.toml` | `file` | `-` | - |
-| `artifacts` | `dir` | `-` | - |
-| `crates` | `dir` | `-` | - |
-| `mkdocs.yml` | `file` | `-` | - |
-| `rustfmt.toml` | `file` | `-` | - |
 | `LICENSE` | `file` | `-` | - |
 | `Makefile` | `file` | `-` | - |
-| `science` | `dir` | `-` | - |
-| `Cargo.lock` | `file` | `-` | - |
-| `docs` | `dir` | `-` | - |
 | `NOTICE` | `file` | `-` | - |
 | `README.md` | `file` | `-` | - |
+| `artifacts` | `dir` | `-` | - |
+| `assets` | `dir` | `-` | - |
 | `audit-allowlist.toml` | `file` | `-` | - |
-| `examples` | `dir` | `-` | - |
-| `makes` | `dir` | `-` | - |
 | `configs` | `dir` | `-` | - |
 | `containers` | `dir` | `-` | - |
-| `rust-toolchain.toml` | `file` | `-` | - |
-| `assets` | `dir` | `-` | - |
+| `crates` | `dir` | `-` | - |
+| `docs` | `dir` | `-` | - |
 | `domain` | `dir` | `-` | - |
+| `examples` | `dir` | `-` | - |
+| `makes` | `dir` | `-` | - |
+| `mkdocs.yml` | `file` | `-` | - |
+| `rust-toolchain.toml` | `file` | `-` | - |
+| `rustfmt.toml` | `file` | `-` | - |
+| `science` | `dir` | `-` | - |
 
 ## Automation Intent
 | Control Plane Path | Purpose |
