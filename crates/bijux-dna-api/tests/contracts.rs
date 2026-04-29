@@ -13,5 +13,7 @@ mod mod_contracts_v1_dry_run_manifest_rs;
 mod mod_contracts_v1_fastq_small_integration_rs;
 #[path = "contracts/v1_report_evidence.rs"]
 mod mod_contracts_v1_report_evidence_rs;
+#[path = "contracts/v1_status_evidence.rs"]
+mod mod_contracts_v1_status_evidence_rs;
 #[path = "support/workspace_paths.rs"]
 mod support;
