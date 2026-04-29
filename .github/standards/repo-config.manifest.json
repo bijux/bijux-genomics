@@ -1421,7 +1421,7 @@
                     "TZ": "UTC",
                     "LC_ALL": "C"
                   },
-                  "run": "make ssot-policy-fast && make ci-fast"
+                  "run": "make ssot-policy-fast\nmake ci-fast\n"
                 }
               ]
             },
@@ -1458,7 +1458,7 @@
                     "TZ": "UTC",
                     "LC_ALL": "C"
                   },
-                  "run": "make ci-slow"
+                  "run": "make ci-slow\n"
                 }
               ]
             },
@@ -1483,7 +1483,7 @@
                 },
                 {
                   "name": "Example schema + dry plan",
-                  "run": "make ci-fast"
+                  "run": "make ci-fast\n"
                 }
               ]
             },
@@ -1508,7 +1508,7 @@
                 },
                 {
                   "name": "Registry tools must have container defs",
-                  "run": "make ci-fast"
+                  "run": "make ci-fast\n"
                 }
               ]
             },
@@ -1533,7 +1533,7 @@
                 },
                 {
                   "name": "Container defs must exist in registry",
-                  "run": "make ci-fast"
+                  "run": "make ci-fast\n"
                 }
               ]
             }
@@ -1884,6 +1884,9 @@
                   "name": "Run post-test validation",
                   "if": "${{ inputs.post_test_command != '' }}",
                   "shell": "bash",
+                  "env": {
+                    "ARTIFACTS_DIR": "${{ inputs.artifacts_dir }}"
+                  },
                   "run": "${{ inputs.post_test_command }}"
                 },
                 {
@@ -2477,6 +2480,9 @@
                   "name": "Run post-test validation",
                   "if": "${{ inputs.post_test_command != '' }}",
                   "shell": "bash",
+                  "env": {
+                    "ARTIFACTS_DIR": "${{ inputs.artifacts_dir }}"
+                  },
                   "run": "${{ inputs.post_test_command }}"
                 },
                 {
