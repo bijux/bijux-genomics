@@ -3,7 +3,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use bijux_dna_analyze::exports::{
-    summarize_facts, write_run_summary_json, write_stage_summary_csv,
+    build_evidence_bundle, compare_evidence_bundles, verify_evidence_bundle,
+    summarize_facts, write_evidence_bundle_json, write_run_summary_json, write_stage_summary_csv,
 };
 use bijux_dna_analyze::load::load_facts;
 
@@ -177,5 +178,133 @@ fn run_summary_snapshot_is_stable() -> anyhow::Result<()> {
     let snapshot_raw = fs::read_to_string(&snapshot_path)?;
     let snapshot_value: serde_json::Value = serde_json::from_str(&snapshot_raw)?;
     assert_eq!(summary_value, snapshot_value);
+    Ok(())
+}
+
+#[test]
+fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let facts_path = dir.path().join("facts.jsonl");
+    let rows = vec![facts_row("ih")];
+    bijux_dna_infra::write_bytes(
+        &facts_path,
+        rows.iter()
+            .map(serde_json::to_string)
+            .collect::<Result<Vec<_>, _>>()?
+            .join("\n")
+            + "\n",
+    )?;
+    let summary_path = dir.path().join("run_summary.json");
+    write_run_summary_json(&summary_path, &rows)?;
+    let report_path = dir.path().join("report.json");
+    bijux_dna_infra::atomic_write_json(
+        &report_path,
+        &serde_json::json!({
+            "schema_version": "bijux.run_report.v1",
+            "completeness": { "status": "complete", "missing_metrics": [], "missing_reports": [] },
+            "pipeline_verdict": { "verdict": "pass", "reasons": [] }
+        }),
+    )?;
+    let graph_path = dir.path().join("graph.json");
+    bijux_dna_infra::write_bytes(&graph_path, r#"{"graph":"ok"}"#)?;
+    let telemetry_dir = dir.path().join("telemetry");
+    bijux_dna_infra::ensure_dir(&telemetry_dir)?;
+    let telemetry_path = telemetry_dir.join("events.jsonl");
+    let telemetry = TelemetryEventV1 {
+        schema_version: "bijux.telemetry.v1".to_string(),
+        run_id: "run-1".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
+        tool_id: "fastp".to_string(),
+        event_name: TelemetryEventName::StageStart,
+        timestamp: chrono::DateTime::parse_from_rfc3339("2024-01-01T00:00:01Z")?.with_timezone(&chrono::Utc),
+        duration_ms: Some(10),
+        status: "ok".to_string(),
+        trace_id: "trace-1".to_string(),
+        span_id: "span-1".to_string(),
+        attrs: AttrMap::new(),
+        failure_code: None,
+    };
+    bijux_dna_infra::write_bytes(&telemetry_path, format!("{}\n", serde_json::to_string(&telemetry)?))?;
+    let validated_path = dir.path().join("validated.fastq");
+    bijux_dna_infra::write_bytes(&validated_path, "ACGT")?;
+    let summary_hash = bijux_dna_infra::hash_file_sha256(&summary_path)?;
+    let report_hash = bijux_dna_infra::hash_file_sha256(&report_path)?;
+    let artifact_hash = bijux_dna_infra::hash_file_sha256(&validated_path)?;
+    bijux_dna_infra::atomic_write_json(
+        &dir.path().join("run_manifest.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_manifest.v3",
+            "run_id": "run-1",
+            "correlation_id": "corr-run-1",
+            "graph_hash": "sha256:graph",
+            "cache_key": { "semantic_hash": "sha256:sem", "params_hash": "sha256:param", "tool_version": "0.23.4", "image_digest": "sha256:img" },
+            "dataset_fingerprints": ["sha256:input"],
+            "stages": [{ "stage_id": "fastq.trim_reads" }],
+            "output_artifacts": [
+                { "name": "run_summary", "path": "run_summary.json", "sha256": summary_hash },
+                { "name": "report", "path": "report.json", "sha256": report_hash },
+                { "name": "validated_reads", "path": "validated.fastq", "sha256": artifact_hash }
+            ],
+            "execution_replay_identity": { "tool_image_digest": "sha256:img" }
+        }),
+    )?;
+
+    let bundle = build_evidence_bundle(dir.path(), Some(&facts_path))?;
+    assert_eq!(bundle.correlation_id, "corr-run-1");
+    assert_eq!(bundle.compact_summary.stage_count, 1);
+    assert!(bundle.timeline.iter().any(|event| event.event == "cache_key_declared"));
+    assert!(bundle.timeline.iter().any(|event| event.event == "artifact_written" || event.event == "stage_start"));
+    assert!(bundle.health.gaps.is_empty(), "unexpected gaps: {:?}", bundle.health.gaps);
+    assert!(bundle
+        .provenance_graph
+        .nodes
+        .iter()
+        .any(|node| node.kind == "input" && node.label == "sha256:input"));
+
+    let bundle_path = write_evidence_bundle_json(dir.path(), Some(&facts_path))?;
+    let verification = verify_evidence_bundle(&bundle_path)?;
+    assert!(verification.verified, "verification failed: {:?}", verification.checks);
+    Ok(())
+}
+
+#[test]
+fn evidence_bundle_comparison_surfaces_artifact_drift() -> anyhow::Result<()> {
+    let left = bijux_dna_infra::temp_dir("bijux")?;
+    let right = bijux_dna_infra::temp_dir("bijux")?;
+    for (dir, bytes, correlation) in [
+        (left.path(), "AAAA", "corr-a"),
+        (right.path(), "CCCC", "corr-b"),
+    ] {
+        let artifact = dir.join("artifact.txt");
+        bijux_dna_infra::write_bytes(&artifact, bytes)?;
+        let hash = bijux_dna_infra::hash_file_sha256(&artifact)?;
+        bijux_dna_infra::atomic_write_json(
+            &dir.join("run_manifest.json"),
+            &serde_json::json!({
+                "schema_version": "bijux.run_manifest.v3",
+                "run_id": format!("run-{correlation}"),
+                "correlation_id": correlation,
+                "graph_hash": "sha256:graph",
+                "dataset_fingerprints": ["sha256:input"],
+                "stages": [{ "stage_id": "fastq.trim_reads" }],
+                "output_artifacts": [{ "name": "artifact", "path": "artifact.txt", "sha256": hash }]
+            }),
+        )?;
+        let bundle_path = dir.join("evidence_bundle.json");
+        bijux_dna_infra::atomic_write_json(
+            &bundle_path,
+            &build_evidence_bundle(dir, None)?,
+        )?;
+    }
+
+    let comparison = compare_evidence_bundles(
+        &left.path().join("evidence_bundle.json"),
+        &right.path().join("evidence_bundle.json"),
+    )?;
+    assert!(comparison.changed_artifacts.iter().any(|name| name == "artifact"));
+    assert!(comparison
+        .policy_change_hints
+        .iter()
+        .any(|hint| hint.contains("artifact inventory or hashes changed")));
     Ok(())
 }
