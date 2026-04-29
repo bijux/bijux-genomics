@@ -80,8 +80,10 @@ fn plan_response_schema_is_stable() -> anyhow::Result<()> {
 fn execute_response_schema_is_stable() -> anyhow::Result<()> {
     let response = ExecuteResponse {
         run_id: "run-1".to_string(),
+        correlation_id: "run:run-1".to_string(),
         manifest_path: PathBuf::from("runs/run-1/run_manifest.json"),
         report_path: Some(PathBuf::from("runs/run-1/run_artifacts/report.html")),
+        evidence_bundle_path: PathBuf::from("runs/run-1/evidence_bundle.json"),
     };
     let json = serde_json::to_value(&response)?;
     let name = snapshot_name("schemas", "execute_response_schema");
@@ -126,6 +128,8 @@ fn status_schema_is_stable() -> anyhow::Result<()> {
         "run_dir": status.run_dir,
         "manifest_path": status.manifest_path,
         "report_path": status.report_path,
+        "evidence_bundle_path": status.evidence_bundle_path,
+        "correlation_id": status.correlation_id,
         "has_failures": status.has_failures,
     });
     let root = temp
