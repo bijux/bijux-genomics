@@ -536,8 +536,12 @@ fn generate_repo_root_map(workspace: &Workspace, out: &Path) -> Result<()> {
         "| Path | Kind | Owner | Purpose |".to_string(),
         "|---|---|---|---|".to_string(),
     ];
-    for entry in fs::read_dir(&workspace.root)?.filter_map(std::result::Result::ok) {
-        let path = entry.path();
+    let mut entries = fs::read_dir(&workspace.root)?
+        .filter_map(std::result::Result::ok)
+        .map(|entry| entry.path())
+        .collect::<Vec<_>>();
+    entries.sort();
+    for path in entries {
         let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
             continue;
         };
