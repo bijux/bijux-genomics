@@ -63,6 +63,9 @@ fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
     let response = dry_run(&request)?;
     assert!(response.graph_path.exists());
     assert!(response.manifest_path.exists());
+    assert!(response.run_summary_path.exists());
+    assert!(response.evidence_bundle_path.exists());
+    assert!(response.correlation_id.starts_with("dry-run:"));
     assert!(temp.path().join("run_summary.json").exists());
     Ok(())
 }
