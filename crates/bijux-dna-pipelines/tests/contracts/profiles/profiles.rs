@@ -1,4 +1,5 @@
 /// Snapshot intent: verifies stable, reviewed output for this contract.
+use std::collections::{BTreeMap, HashSet};
 use std::path::PathBuf;
 
 use bijux_dna_pipelines::bam::{
@@ -15,7 +16,6 @@ use insta::assert_json_snapshot;
 
 fn profile_drift_components(profile: &bijux_dna_pipelines::PipelineProfile) -> serde_json::Value {
     use bijux_dna_core::prelude::hashing::params_hash;
-    use std::collections::BTreeMap;
 
     let tool_map = profile
         .defaults
@@ -47,6 +47,22 @@ fn profile_drift_components(profile: &bijux_dna_pipelines::PipelineProfile) -> s
         "tool_bindings": tool_map,
         "param_bindings": param_map,
     })
+}
+
+fn canonical_sha256_hex(value: &serde_json::Value) -> String {
+    use sha2::Digest;
+    use std::fmt::Write as _;
+
+    let bytes = bijux_dna_core::contract::canonical::to_canonical_json_bytes(value)
+        .expect("canonicalize contract payload");
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(bytes);
+    let digest = hasher.finalize();
+    let mut hex = String::with_capacity(digest.len() * 2);
+    for byte in digest {
+        let _ = write!(&mut hex, "{byte:02x}");
+    }
+    hex
 }
 
 fn prune_bam_downstream(value: &mut serde_json::Value) {
@@ -195,28 +211,74 @@ fn cross_fastq_to_bam_default_profile_snapshot() {
 }
 
 #[test]
-fn profile_hash_contract_snapshot() {
-    let _guard = snapshot_settings().bind_to_scope();
-    let name = snapshot_name("contracts", "profile_hash_contract");
-    let mut hashes = std::collections::BTreeMap::new();
+fn profile_hash_contracts_are_manifest_backed_and_unique() {
+    let mut seen_hashes = HashSet::new();
     let mut profiles = Vec::new();
     profiles.extend(bijux_dna_pipelines::registry::fastq_profiles());
     profiles.extend(bijux_dna_pipelines::registry::bam_profiles());
     profiles.extend(bijux_dna_pipelines::registry::cross_profiles());
     profiles.extend(bijux_dna_pipelines::registry::vcf_profiles());
+
     for profile in profiles {
-        let mut hash_entry = serde_json::json!({
-            "profile_hash": profile.profile_hash(),
-            "manifest": profile.profile_manifest(),
-            "drift_components": profile_drift_components(&profile),
-        });
-        prune_bam_downstream(&mut hash_entry);
-        hashes.insert(profile.id.as_str().to_string(), hash_entry);
+        let manifest = profile.profile_manifest();
+        let profile_hash = profile.profile_hash();
+        let drift_components = profile_drift_components(&profile);
+
+        assert_eq!(
+            manifest.pipeline_id,
+            profile.id.as_str(),
+            "profile manifest must preserve the profile id"
+        );
+
+        let manifest_json = serde_json::to_value(&manifest).expect("serialize profile manifest");
+        assert_eq!(
+            profile_hash,
+            canonical_sha256_hex(&manifest_json),
+            "profile hash must be derived from the canonical profile manifest for {}",
+            profile.id.as_str()
+        );
+
+        assert!(
+            seen_hashes.insert(profile_hash),
+            "profile hashes must stay unique across the registry; duplicate for {}",
+            profile.id.as_str()
+        );
+
+        let mut expected_tool_bindings =
+            serde_json::to_value(&manifest.tool_ids).expect("serialize tool bindings");
+        let mut expected_param_bindings =
+            serde_json::to_value(&manifest.param_hashes).expect("serialize param bindings");
+        prune_bam_downstream(&mut expected_tool_bindings);
+        prune_bam_downstream(&mut expected_param_bindings);
+
+        assert_eq!(
+            drift_components["tool_bindings"],
+            expected_tool_bindings,
+            "tool binding drift surface must mirror manifest tool ids for {}",
+            profile.id.as_str()
+        );
+        assert_eq!(
+            drift_components["param_bindings"],
+            expected_param_bindings,
+            "parameter drift surface must mirror manifest param hashes for {}",
+            profile.id.as_str()
+        );
+
+        let expected_tool_hash = canonical_sha256_hex(&drift_components["tool_bindings"]);
+        let expected_param_hash = canonical_sha256_hex(&drift_components["param_bindings"]);
+        assert_eq!(
+            drift_components["tool_bindings_hash"],
+            serde_json::Value::String(expected_tool_hash),
+            "tool binding drift hash must match the canonical tool binding map for {}",
+            profile.id.as_str()
+        );
+        assert_eq!(
+            drift_components["param_bindings_hash"],
+            serde_json::Value::String(expected_param_hash),
+            "parameter drift hash must match the canonical param binding map for {}",
+            profile.id.as_str()
+        );
     }
-    assert_json_snapshot!(
-        name,
-        bijux_dna_testkit::snapshot_normalize_json(&serde_json::json!(hashes))
-    );
 }
 
 #[test]
