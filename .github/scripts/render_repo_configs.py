@@ -44,6 +44,16 @@ def yaml_scalar(value: Any) -> str:
     return f'"{escaped}"'
 
 
+def yaml_block_scalar(value: str, indent: int) -> list[str]:
+    pad = " " * indent
+    lines = [f"{pad}|"]
+    for line in value.splitlines():
+        lines.append(f"{pad}  {line}")
+    if value.endswith("\n"):
+        lines.append(f"{pad}")
+    return lines
+
+
 def dump_yaml(obj: Any, indent: int = 0) -> list[str]:
     pad = " " * indent
     lines: list[str] = []
@@ -52,6 +62,10 @@ def dump_yaml(obj: Any, indent: int = 0) -> list[str]:
         for key, value in obj.items():
             if value is None:
                 lines.append(f"{pad}{key}:")
+                continue
+            if isinstance(value, str) and "\n" in value:
+                lines.append(f"{pad}{key}:")
+                lines.extend(yaml_block_scalar(value, indent + 2))
                 continue
             if isinstance(value, (dict, list)):
                 lines.append(f"{pad}{key}:")
