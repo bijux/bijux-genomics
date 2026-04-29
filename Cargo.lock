@@ -262,6 +262,7 @@ dependencies = [
  "bijux-dna-policies",
  "bijux-dna-runtime",
  "bijux-dna-testkit",
+ "chrono",
  "insta",
  "parquet",
  "rusqlite",

@@ -12,6 +12,7 @@ thiserror.workspace = true
 rusqlite = { version = "0.31", optional = true }
 tracing.workspace = true
 anyhow.workspace = true
+chrono.workspace = true
 bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
