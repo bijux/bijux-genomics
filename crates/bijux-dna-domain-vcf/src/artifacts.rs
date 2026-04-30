@@ -26,6 +26,8 @@ pub const VCF_COHORT_QC_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.cohort_qc.v1"
 pub const VCF_PCA_ADMIXTURE_GUARDRAIL_SCHEMA_VERSION: &str = "bijux.vcf.pca_admixture.v1";
 pub const VCF_ROH_IBD_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.roh_ibd_boundary.v1";
 pub const VCF_DEMOGRAPHY_REFUSAL_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.demography_refusal.v1";
+pub const VCF_PANEL_REFERENCE_DRIFT_REPORT_SCHEMA_VERSION: &str =
+    "bijux.vcf.panel_reference_drift.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -353,6 +355,33 @@ pub struct VcfDemographyRefusalBoundaryV1 {
     pub missing_assumptions: Vec<String>,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfPanelReferenceSnapshotV1 {
+    pub label: String,
+    pub reference_build: String,
+    pub reference_fasta_sha256: String,
+    pub panel_id: String,
+    pub map_id: String,
+    pub contig_alias_digest: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfPanelReferenceDriftReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub baseline_label: String,
+    pub candidate_label: String,
+    #[serde(default)]
+    pub changed_surfaces: Vec<String>,
+    #[serde(default)]
+    pub invalidated_outputs: Vec<String>,
+    pub requires_reprocessing: bool,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -1466,6 +1495,54 @@ pub fn evaluate_demography_refusal_boundary(
     }
 }
 
+/// Build a panel/reference drift report with explicit invalidation of downstream artifacts.
+#[must_use]
+pub fn build_panel_reference_drift_report(
+    baseline: &VcfPanelReferenceSnapshotV1,
+    candidate: &VcfPanelReferenceSnapshotV1,
+    downstream_outputs: &[&str],
+) -> VcfPanelReferenceDriftReportV1 {
+    let mut changed_surfaces = Vec::<String>::new();
+    if baseline.reference_build != candidate.reference_build {
+        changed_surfaces.push("reference_build".to_string());
+    }
+    if baseline.reference_fasta_sha256 != candidate.reference_fasta_sha256 {
+        changed_surfaces.push("reference_fasta".to_string());
+    }
+    if baseline.panel_id != candidate.panel_id {
+        changed_surfaces.push("panel_id".to_string());
+    }
+    if baseline.map_id != candidate.map_id {
+        changed_surfaces.push("map_id".to_string());
+    }
+    if baseline.contig_alias_digest != candidate.contig_alias_digest {
+        changed_surfaces.push("contig_alias_digest".to_string());
+    }
+    changed_surfaces.sort();
+    changed_surfaces.dedup();
+    let requires_reprocessing = !changed_surfaces.is_empty();
+    let mut invalidated_outputs = if requires_reprocessing {
+        downstream_outputs.iter().map(|output| (*output).to_string()).collect::<Vec<_>>()
+    } else {
+        Vec::new()
+    };
+    invalidated_outputs.sort();
+    invalidated_outputs.dedup();
+    VcfPanelReferenceDriftReportV1 {
+        schema_version: VCF_PANEL_REFERENCE_DRIFT_REPORT_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.prepare_reference_panel".to_string(),
+        baseline_label: baseline.label.clone(),
+        candidate_label: candidate.label.clone(),
+        changed_surfaces,
+        invalidated_outputs,
+        requires_reprocessing,
+        caveats: vec![
+            "panel/reference drift requires explicit downstream artifact invalidation".to_string(),
+            "drift classification does not infer biological correctness".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -2054,5 +2131,41 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"temporal_metadata_required".to_string()));
         assert!(refused.missing_assumptions.contains(&"adequate_cohort_size".to_string()));
         assert!(refused.missing_assumptions.contains(&"method_assumptions_documented".to_string()));
+    }
+
+    #[test]
+    fn build_panel_reference_drift_report_flags_changed_surfaces_and_invalidated_outputs() {
+        let baseline = VcfPanelReferenceSnapshotV1 {
+            label: "baseline".to_string(),
+            reference_build: "GRCh38".to_string(),
+            reference_fasta_sha256: "aaa".to_string(),
+            panel_id: "panel_v1".to_string(),
+            map_id: "map_v1".to_string(),
+            contig_alias_digest: "digest_a".to_string(),
+        };
+        let candidate = VcfPanelReferenceSnapshotV1 {
+            label: "candidate".to_string(),
+            reference_build: "GRCh38".to_string(),
+            reference_fasta_sha256: "bbb".to_string(),
+            panel_id: "panel_v2".to_string(),
+            map_id: "map_v1".to_string(),
+            contig_alias_digest: "digest_b".to_string(),
+        };
+
+        let report = build_panel_reference_drift_report(
+            &baseline,
+            &candidate,
+            &["vcf.imputation.vcf.gz", "vcf.phasing.vcf.gz", "vcf.imputation.vcf.gz"],
+        );
+        assert!(report.requires_reprocessing);
+        assert!(report.changed_surfaces.contains(&"reference_fasta".to_string()));
+        assert!(report.changed_surfaces.contains(&"panel_id".to_string()));
+        assert!(report.changed_surfaces.contains(&"contig_alias_digest".to_string()));
+        assert_eq!(report.invalidated_outputs.len(), 2);
+
+        let stable = build_panel_reference_drift_report(&baseline, &baseline, &["noop"]);
+        assert!(!stable.requires_reprocessing);
+        assert!(stable.changed_surfaces.is_empty());
+        assert!(stable.invalidated_outputs.is_empty());
     }
 }
