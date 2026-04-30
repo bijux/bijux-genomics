@@ -4,13 +4,14 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::path::PathBuf;
 
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 use crate::contract::canonical::to_canonical_json_bytes;
 use crate::contract::{
-    ArtifactRole, ArtifactRoleFamily, CompressionSupport, ExecutionGraph, ExecutionStep,
-    PlanPolicy, ReadLayoutMode, ToolConstraints,
+    ArtifactRef, ArtifactRole, ArtifactRoleFamily, CompressionSupport, ExecutionGraph,
+    ExecutionStep, PlanPolicy, ReadLayoutMode, ToolConstraints,
 };
 use crate::foundation::{BijuxError, Result};
 
@@ -214,6 +215,12 @@ impl WorkflowManifestV1 {
                 &b.path,
             ))
         });
+        for input in &mut normalized.inputs {
+            input.path = PathBuf::from(stable_path_identity(&input.path));
+            if let Some(format_id) = input.format_id.as_mut() {
+                *format_id = stable_command_fragment_identity(format_id);
+            }
+        }
         normalized.reference_assets.sort_by(|a, b| {
             key_artifact(&a.asset_id, a.role, &a.path).cmp(&key_artifact(
                 &b.asset_id,
@@ -221,6 +228,15 @@ impl WorkflowManifestV1 {
                 &b.path,
             ))
         });
+        for asset in &mut normalized.reference_assets {
+            asset.path = PathBuf::from(stable_path_identity(&asset.path));
+            if let Some(build_id) = asset.build_id.as_mut() {
+                *build_id = stable_command_fragment_identity(build_id);
+            }
+            if let Some(alias_group) = asset.alias_group.as_mut() {
+                *alias_group = stable_command_fragment_identity(alias_group);
+            }
+        }
         normalized.requested_stages.sort_by(|a, b| a.stage_id.cmp(&b.stage_id));
         normalized
             .evidence_expectations
@@ -387,6 +403,17 @@ impl PlanManifestV1 {
                 ))
             });
             step.reference_asset_ids.sort();
+            step.environment.out_dir = PathBuf::from(stable_path_identity(&step.environment.out_dir));
+            step.environment.command = step
+                .environment
+                .command
+                .iter()
+                .map(|fragment| stable_command_fragment_identity(fragment))
+                .collect();
+            normalize_json_value_paths(&mut step.effective_parameters_json);
+            for artifact in &mut step.artifact_promises {
+                artifact.path = PathBuf::from(stable_path_identity(&artifact.path));
+            }
         }
         normalized.stage_decisions.sort_by(|a, b| a.stage_id.cmp(&b.stage_id));
         normalized.refusal_records.sort_by(|a, b| {
@@ -400,6 +427,10 @@ impl PlanManifestV1 {
         normalized.parameter_traces.sort_by(|a, b| {
             (&a.step_id, &a.parameter).cmp(&(&b.step_id, &b.parameter))
         });
+        for trace in &mut normalized.parameter_traces {
+            normalize_json_value_paths(&mut trace.resolved_value);
+            trace.detail = stable_command_fragment_identity(&trace.detail);
+        }
         normalized.cross_domain_handoffs.sort_by(|a, b| {
             (&a.from_step_id, &a.to_step_id).cmp(&(&b.from_step_id, &b.to_step_id))
         });
@@ -470,7 +501,7 @@ pub struct PlanManifestBuildInputV1 {
 /// Returns an error when the workflow or graph is invalid.
 pub fn build_plan_manifest(input: PlanManifestBuildInputV1) -> Result<PlanManifestV1> {
     let workflow_fingerprint = input.workflow_manifest.fingerprint()?;
-    let graph_hash = input.graph.hash()?;
+    let graph_hash = semantic_hash(&graph_identity_contract(&input.graph))?;
     let stage_contract_refs = input.stage_contract_refs.into_iter().collect::<BTreeMap<_, _>>();
     let dependency_map = dependency_map(&input.graph);
     let order = input.graph.topological_step_ids()?;
@@ -826,6 +857,8 @@ fn step_manifest(
 ) -> Result<PlanManifestStepV1> {
     let effective_parameters_json = effective_parameters_json
         .unwrap_or_else(|| serde_json::json!({ "command_template": step.command.template }));
+    let mut normalized_effective_parameters_json = effective_parameters_json.clone();
+    normalize_json_value_paths(&mut normalized_effective_parameters_json);
     let reference_asset_ids = if step
         .io
         .inputs
@@ -849,12 +882,25 @@ fn step_manifest(
         .collect::<Vec<_>>();
     let cache_key = semantic_hash(&serde_json::json!({
         "stage_id": step.stage_id,
-        "image": step.image,
-        "command": step.command,
+        "image": {
+            "image": step.image.image,
+            "digest": step.image.digest,
+        },
         "resources": step.resources,
-        "inputs": step.io.inputs,
-        "outputs": step.io.outputs,
-        "effective_parameters_json": effective_parameters_json,
+        "inputs": step
+            .io
+            .inputs
+            .iter()
+            .map(artifact_cache_identity)
+            .collect::<Vec<_>>(),
+        "outputs": step
+            .io
+            .outputs
+            .iter()
+            .map(artifact_cache_identity)
+            .collect::<Vec<_>>(),
+        "out_dir": stable_path_identity(&step.out_dir),
+        "effective_parameters_json": normalized_effective_parameters_json,
         "reference_asset_ids": reference_asset_ids,
     }))?;
     Ok(PlanManifestStepV1 {
@@ -890,6 +936,85 @@ fn first_shared_role(from_step: &ExecutionStep, to_step: &ExecutionStep) -> Opti
 
 fn key_artifact(id: &str, role: ArtifactRole, path: &PathBuf) -> (String, &'static str, String) {
     (id.to_string(), role.as_str(), path.display().to_string())
+}
+
+fn graph_identity_contract(graph: &ExecutionGraph) -> serde_json::Value {
+    serde_json::json!({
+        "pipeline_id": graph.pipeline_id(),
+        "planner_version": graph.planner_version(),
+        "policy": graph.policy(),
+        "deterministic_scheduler": graph.deterministic_scheduler(),
+        "retry_policy": graph.retry_policy(),
+        "step_timeout_s": graph.step_timeout_s(),
+        "steps": graph
+            .steps()
+            .iter()
+            .map(|step| serde_json::json!({
+                "step_id": step.step_id,
+                "stage_id": step.stage_id,
+                "image": {
+                    "image": step.image.image,
+                    "digest": step.image.digest,
+                },
+                "resources": step.resources,
+                "inputs": step.io.inputs.iter().map(artifact_cache_identity).collect::<Vec<_>>(),
+                "outputs": step.io.outputs.iter().map(artifact_cache_identity).collect::<Vec<_>>(),
+                "out_dir": stable_path_identity(&step.out_dir),
+            }))
+            .collect::<Vec<_>>(),
+        "edges": graph.edges(),
+    })
+}
+
+fn artifact_cache_identity(artifact: &ArtifactRef) -> serde_json::Value {
+    serde_json::json!({
+        "artifact_id": artifact.name.to_string(),
+        "role": artifact.role.as_str(),
+        "optional": artifact.optional,
+        "path_identity": stable_path_identity(&artifact.path),
+    })
+}
+
+fn stable_path_identity(path: &std::path::Path) -> String {
+    if path.is_absolute() {
+        path.file_name()
+            .and_then(|value| value.to_str())
+            .map(str::to_string)
+            .unwrap_or_else(|| path.display().to_string())
+    } else {
+        path.display().to_string()
+    }
+}
+
+fn stable_command_fragment_identity(fragment: &str) -> String {
+    let absolute_path_pattern =
+        Regex::new(r"/[A-Za-z0-9._~:@%+=,-]+(?:/[A-Za-z0-9._~:@%+=,-]+)*").expect("valid regex");
+    absolute_path_pattern
+        .replace_all(fragment, |captures: &regex::Captures<'_>| {
+            stable_path_identity(std::path::Path::new(&captures[0]))
+        })
+        .into_owned()
+}
+
+fn normalize_json_value_paths(value: &mut serde_json::Value) {
+    match value {
+        serde_json::Value::String(text) => {
+            *text = stable_command_fragment_identity(text);
+        }
+        serde_json::Value::Array(values) => {
+            for child in values {
+                normalize_json_value_paths(child);
+            }
+        }
+        serde_json::Value::Object(map) => {
+            for child in map.values_mut() {
+                normalize_json_value_paths(child);
+            }
+        }
+        serde_json::Value::Null
+        | serde_json::Value::Bool(_)
+        | serde_json::Value::Number(_) => {}
+    }
 }
 
 fn stage_domain(stage_id: &str) -> String {
