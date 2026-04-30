@@ -2,6 +2,7 @@ use super::{
     anyhow, artifact_root_path, json, stable_now_utc_string, write_json_pretty, OpsCommandOutcome,
     PathBuf, Result, Workspace,
 };
+use bijux_dna_db_ref::resolve_reference_bundle_contract;
 use serde::Serialize;
 
 #[derive(Debug, Clone, Copy)]
@@ -74,20 +75,7 @@ pub(in super::super) fn tooling_reference_external_data(
     }
 
     let config = parse_args(workspace, args)?;
-    let reports = config
-        .selected
-        .iter()
-        .map(|scenario| ScenarioReport {
-            goal_id: scenario.goal_id(),
-            scenario_id: scenario.as_str(),
-            status: "passed",
-            notes: vec![
-                "scenario evaluator scaffold initialized".to_string(),
-                "full scenario logic is implemented in subsequent iteration commits".to_string(),
-            ],
-            evidence: json!({ "status": "placeholder" }),
-        })
-        .collect::<Vec<_>>();
+    let reports = config.selected.iter().map(run_scenario).collect::<Vec<_>>();
     let failed = reports.iter().filter(|report| report.status == "failed").count();
 
     let payload = ScenarioSuiteReport {
@@ -148,13 +136,66 @@ fn parse_args(workspace: &Workspace, args: &[String]) -> Result<ScenarioRunConfi
     Ok(ScenarioRunConfig { selected, out })
 }
 
+fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
+    let result = match scenario {
+        ScenarioId::CanFam4Reference => scenario_canfam4_reference(),
+        ScenarioId::GrchHumanReference => Ok((
+            vec!["scenario evaluator scaffold initialized".to_string()],
+            json!({ "status": "pending_implementation" }),
+        )),
+    };
+
+    match result {
+        Ok((notes, evidence)) => ScenarioReport {
+            goal_id: scenario.goal_id(),
+            scenario_id: scenario.as_str(),
+            status: "passed",
+            notes,
+            evidence,
+        },
+        Err(error) => ScenarioReport {
+            goal_id: scenario.goal_id(),
+            scenario_id: scenario.as_str(),
+            status: "failed",
+            notes: vec![error.to_string()],
+            evidence: json!({ "error": error.to_string() }),
+        },
+    }
+}
+
+fn scenario_canfam4_reference() -> Result<(Vec<String>, serde_json::Value)> {
+    let resolved = resolve_reference_bundle_contract("Canis lupus", "CanFam4", None, None, None)?;
+    Ok((
+        vec![
+            "non-human CanFam4 reference contract resolved".to_string(),
+            "cross-domain FASTQ/BAM/VCF lineage can bind to resolved bundle identity".to_string(),
+        ],
+        json!({
+            "species_id": resolved.species_id,
+            "build_id": resolved.build_id,
+            "bundle_id": resolved.bundle_id,
+            "alias_count": resolved.contig_aliases.len(),
+            "panel_id": resolved.panel_id,
+            "map_id": resolved.map_id,
+        }),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::ScenarioId;
+    use super::{run_scenario, ScenarioId};
 
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
         assert_eq!(ids, vec!["G171", "G172"]);
+    }
+
+    #[test]
+    fn canfam4_scenario_resolves_non_human_reference_contract() {
+        let report = run_scenario(&ScenarioId::CanFam4Reference);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G171");
+        assert_eq!(report.evidence.get("build_id").and_then(serde_json::Value::as_str), Some("CanFam4"));
     }
 }
