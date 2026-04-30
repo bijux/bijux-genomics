@@ -3,6 +3,7 @@ use super::{
 };
 
 mod dry_run;
+mod cache_explain;
 mod environment_identity;
 mod evidence_support;
 mod execute_run;
@@ -21,6 +22,7 @@ mod summary_artifact;
 mod workspace_audit;
 
 pub use dry_run::dry_run;
+pub use cache_explain::explain_cache_hit_miss;
 pub use environment_identity::environment_identity;
 pub use execute_run::execute;
 pub use local_workflows::{

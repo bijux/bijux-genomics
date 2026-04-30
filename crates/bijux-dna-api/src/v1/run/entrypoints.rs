@@ -2,7 +2,7 @@ pub use crate::internal::public_bridge::handlers::cross::run_fastq_to_bam_profil
 pub use crate::runtime::run::{
     assess_failed_replay_eligibility, cancel_run, dry_run, environment_identity, execute,
     execute_and_report, execute_local_bam_workflow, execute_local_fastq_workflow,
-    execute_local_vcf_workflow, execute_run, explain_successful_replay, operator_health, pause_run,
-    plan, plan_only, policy_audit, replay_failed_run, replay_manifest, resume_run, run_pipeline,
-    status, RunMode,
+    execute_local_vcf_workflow, execute_run, explain_cache_hit_miss, explain_successful_replay,
+    operator_health, pause_run, plan, plan_only, policy_audit, replay_failed_run, replay_manifest,
+    resume_run, run_pipeline, status, RunMode,
 };

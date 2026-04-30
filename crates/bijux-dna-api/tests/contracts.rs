@@ -21,6 +21,8 @@ mod mod_contracts_v1_run_iteration09_workflows_rs;
 mod mod_contracts_v1_run_iteration09_replay_success_rs;
 #[path = "contracts/v1_run_iteration09_replay_failed.rs"]
 mod mod_contracts_v1_run_iteration09_replay_failed_rs;
+#[path = "contracts/v1_run_iteration09_cache_explain.rs"]
+mod mod_contracts_v1_run_iteration09_cache_explain_rs;
 #[path = "contracts/v1_report_evidence.rs"]
 mod mod_contracts_v1_report_evidence_rs;
 #[path = "contracts/v1_route_adapter_contract.rs"]
