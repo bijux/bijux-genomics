@@ -188,6 +188,9 @@ pub fn plan_contaminant_screen_with_index_backend(
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize contaminant screen effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
 }

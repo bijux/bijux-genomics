@@ -125,6 +125,9 @@ pub fn plan_screen_with_effective_params(
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize screen effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
 }

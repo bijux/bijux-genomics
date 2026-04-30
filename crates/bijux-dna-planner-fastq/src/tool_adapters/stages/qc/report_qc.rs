@@ -181,6 +181,9 @@ pub fn plan_qc_post_with_qc_inputs(
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize report_qc effective params: {error}"))?,
         aux_images,
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
 }
