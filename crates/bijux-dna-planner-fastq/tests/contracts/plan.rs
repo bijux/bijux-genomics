@@ -2,6 +2,8 @@
 mod contract_handshake;
 #[path = "plan/correct_plan.rs"]
 mod correct_plan;
+#[path = "plan/cross_bam_catalog.rs"]
+mod cross_bam_catalog;
 #[path = "plan/domain_parity.rs"]
 mod domain_parity;
 #[path = "plan/filter_plan.rs"]
