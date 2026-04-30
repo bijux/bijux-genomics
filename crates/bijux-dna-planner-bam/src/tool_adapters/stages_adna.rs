@@ -71,6 +71,8 @@ pub mod damage {
                 "pmd_threshold_3p": params.pmd_threshold_3p,
                 "trim_5p": params.trim_5p,
                 "trim_3p": params.trim_3p,
+                "damage_tool_profile": params.damage_tool_profile,
+                "evidence_only": params.evidence_only,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
                 serde_json::to_value(params).map_err(|error| {
@@ -160,6 +162,8 @@ pub mod authenticity {
                 "bam": bam,
                 "mode": params.mode,
                 "pmd_filter_enabled": tool.tool_id.as_str() == "pmdtools",
+                "evidence_only": params.evidence_only,
+                "disallow_certification": params.disallow_certification,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
                 serde_json::to_value(params).map_err(|error| {
@@ -244,6 +248,10 @@ pub mod contamination {
                 "prior": params.prior,
                 "sex_specific": params.sex_specific,
                 "assumptions": params.assumptions,
+                "required_reference_digest": params.required_reference_digest,
+                "chromosome_system": params.chromosome_system,
+                "minimum_mean_coverage": params.minimum_mean_coverage,
+                "emit_confidence_caveats": params.emit_confidence_caveats,
                 "tool_scope": match tool.tool_id.as_str() {
                     "schmutzi" => "mt",
                     "verifybamid2" | "contammix" => "nuclear",
@@ -327,6 +335,9 @@ pub mod sex {
                 "bam": bam,
                 "expected_sex": params.expected_sex,
                 "method": params.method,
+                "chromosome_system": params.chromosome_system,
+                "minimum_y_sites": params.minimum_y_sites,
+                "refuse_without_context": params.refuse_without_context,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
                 serde_json::to_value(params).map_err(|error| {

@@ -98,7 +98,7 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             let BamEffectiveParams::EndogenousContent(params) = params else {
                 return Err(anyhow!("endogenous_content params mismatch"));
             };
-            let mut plan = tool_adapters::stages_post::coverage::plan(
+            let mut plan = tool_adapters::stages_post::endogenous_content::plan(
                 request.tool,
                 bam,
                 request.out_dir,

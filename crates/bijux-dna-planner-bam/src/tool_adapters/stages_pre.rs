@@ -195,7 +195,9 @@ pub mod align {
                 "reference": reference,
                 "sample_id": sample_id,
                 "aligner": effective.aligner,
+                "strategy_id": effective.strategy_id,
                 "preset": effective.preset,
+                "mode": effective.mode,
                 "threads": effective.threads,
                 "build_indices": effective.build_indices,
                 "read_group": {
