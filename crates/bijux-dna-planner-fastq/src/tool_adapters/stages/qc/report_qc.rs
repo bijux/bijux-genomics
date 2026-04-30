@@ -15,37 +15,14 @@ use bijux_dna_domain_fastq::params::{
     PairedMode,
 };
 use bijux_dna_domain_fastq::{
-    qc_bundle_artifact_paths, GovernedQcContributorV1, ReportQcReportV1,
-    REPORT_QC_REPORT_SCHEMA_VERSION, STAGE_REPORT_QC,
+    governed_qc_contributors_from_inputs, governed_qc_inputs_manifest_from_inputs,
+    qc_bundle_artifact_paths, GovernedQcContributorV1, GovernedQcInputsManifestV1,
+    ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION, STAGE_REPORT_QC,
 };
 use bijux_dna_stage_contract::{StageIO, StagePlanV1};
 
 pub const STAGE_ID: StageId = STAGE_REPORT_QC;
 pub const STAGE_VERSION: StageVersion = StageVersion(1);
-const GOVERNED_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1";
-
-#[derive(Debug, Clone, serde::Serialize, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-struct GovernedQcContributor {
-    contributor_id: String,
-    stage_id: String,
-    tool_id: String,
-    artifact_id: String,
-    artifact_role: ArtifactRole,
-    path: std::path::PathBuf,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-#[serde(deny_unknown_fields)]
-struct GovernedQcInputsManifest {
-    schema_version: String,
-    qc_inputs: Vec<ArtifactRef>,
-    contributors: Vec<GovernedQcContributor>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    raw_fastqc_dir: Option<std::path::PathBuf>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    lineage_hash: Option<String>,
-}
 
 /// # Errors
 /// Returns an error if any requested QC aggregation tool is not admitted for `fastq.report_qc`.
@@ -266,86 +243,17 @@ fn qc_contributor_identity_from_artifact_name(name: &str) -> Option<(String, Str
 }
 
 fn qc_contributor_stage_ids(qc_inputs: &[ArtifactRef]) -> Vec<String> {
-    let mut stage_ids = qc_inputs
-        .iter()
-        .filter_map(|artifact| qc_contributor_identity_from_artifact_name(artifact.name.as_str()))
-        .map(|(stage_id, _tool_id)| stage_id)
+    let mut stage_ids = governed_qc_contributors_from_inputs(qc_inputs)
+        .into_iter()
+        .map(|contributor| contributor.stage_id)
         .collect::<Vec<_>>();
     stage_ids.sort();
     stage_ids.dedup();
     stage_ids
 }
 
-fn governed_qc_inputs_manifest_payload(qc_inputs: &[ArtifactRef]) -> GovernedQcInputsManifest {
-    let contributors = governed_qc_contributors(qc_inputs);
-    GovernedQcInputsManifest {
-        schema_version: GOVERNED_QC_INPUTS_SCHEMA_VERSION.to_string(),
-        qc_inputs: qc_inputs.to_vec(),
-        raw_fastqc_dir: None,
-        lineage_hash: derived_governed_qc_lineage_hash(&contributors),
-        contributors,
-    }
-}
-
-fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContributor> {
-    let mut contributors = qc_inputs.iter().filter_map(governed_qc_contributor).collect::<Vec<_>>();
-    contributors.sort_by(|left, right| {
-        left.contributor_id
-            .cmp(&right.contributor_id)
-            .then_with(|| left.artifact_id.cmp(&right.artifact_id))
-            .then_with(|| left.artifact_role.as_str().cmp(right.artifact_role.as_str()))
-            .then_with(|| left.path.cmp(&right.path))
-    });
-    contributors.dedup_by(|left, right| {
-        left.contributor_id == right.contributor_id
-            && left.artifact_id == right.artifact_id
-            && left.artifact_role == right.artifact_role
-            && left.path == right.path
-    });
-    contributors
-}
-
-fn governed_qc_contributor(artifact: &ArtifactRef) -> Option<GovernedQcContributor> {
-    let artifact_name = artifact.name.as_str();
-    let (contributor_id, artifact_id) = artifact_name.rsplit_once('.')?;
-    let contributor_parts = contributor_id.split('.').collect::<Vec<_>>();
-    if contributor_parts.len() < 3 {
-        return None;
-    }
-    let tool_id = if contributor_parts.get(2) == Some(&"tool") {
-        contributor_parts.get(3..)?.join(".")
-    } else {
-        contributor_parts[2..].join(".")
-    };
-    Some(GovernedQcContributor {
-        contributor_id: contributor_id.to_string(),
-        stage_id: format!("{}.{}", contributor_parts[0], contributor_parts[1]),
-        tool_id,
-        artifact_id: artifact_id.to_string(),
-        artifact_role: artifact.role,
-        path: artifact.path.clone(),
-    })
-}
-
-fn derived_governed_qc_lineage_hash(contributors: &[GovernedQcContributor]) -> Option<String> {
-    if contributors.is_empty() {
-        return None;
-    }
-    Some(
-        contributors
-            .iter()
-            .map(|contributor| {
-                format!(
-                    "{}:{}:{}={}",
-                    contributor.contributor_id,
-                    contributor.artifact_id,
-                    contributor.artifact_role.as_str(),
-                    contributor.path.display()
-                )
-            })
-            .collect::<Vec<_>>()
-            .join("|"),
-    )
+fn governed_qc_inputs_manifest_payload(qc_inputs: &[ArtifactRef]) -> GovernedQcInputsManifestV1 {
+    governed_qc_inputs_manifest_from_inputs(qc_inputs)
 }
 
 fn governed_report_qc_report(
@@ -356,8 +264,9 @@ fn governed_report_qc_report(
     multiqc_report: &Path,
     governed_qc_manifest: &Path,
 ) -> ReportQcReportV1 {
-    let contributors = governed_qc_contributors(qc_inputs);
-    let governed_contributors = contributors
+    let manifest = governed_qc_inputs_manifest_from_inputs(qc_inputs);
+    let governed_contributors = manifest
+        .contributors
         .iter()
         .map(|contributor| GovernedQcContributorV1 {
             contributor_id: contributor.contributor_id.clone(),
@@ -412,7 +321,7 @@ fn governed_report_qc_report(
         governed_qc_contributor_stage_ids: contributor_stage_ids,
         governed_qc_contributor_tool_ids: contributor_tool_ids,
         governed_qc_contributors: governed_contributors,
-        governed_qc_lineage_hash: derived_governed_qc_lineage_hash(&contributors),
+        governed_qc_lineage_hash: manifest.lineage_hash,
         governed_qc_inputs_manifest: Some(governed_qc_manifest.display().to_string()),
         runtime_s: None,
         memory_mb: None,
