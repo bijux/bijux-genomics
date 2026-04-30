@@ -4,6 +4,50 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "capabilities": {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.merge_pairs",
+        "fastq.trim_terminal_damage",
+        "fastq.filter_low_complexity",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "low_input_regime",
+        "post_mortem_damage_bias"
+      ],
+      "story_order": [
+        "read_admission",
+        "damage_aware_preprocessing",
+        "qc_summary"
+      ]
+    },
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
     "input_artifacts": [
       "FastqReads"
     ],
@@ -17,6 +61,24 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "output_domains": [
       "Fastq"
     ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.merge_pairs": [
+          "minimum_overlap",
+          "max_mismatch_rate"
+        ],
+        "fastq.trim_terminal_damage": [
+          "five_prime_trim",
+          "three_prime_trim"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "fastq.trim_terminal_damage": [
+          "udg_assumption"
+        ]
+      }
+    },
     "produces_outputs": [
       "fastq",
       "fastq.metrics"
@@ -58,7 +120,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.merge_pairs"
     ],
     "supports_benchmarks": true,
-    "supports_sample_sheet": false
+    "supports_sample_sheet": false,
+    "workflow_template_ids": [
+      "fastq.ancient_dna_preprocessing"
+    ]
   },
   "defaults": {
     "params": {
