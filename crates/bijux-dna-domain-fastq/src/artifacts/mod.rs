@@ -21,6 +21,7 @@ mod materialize_qc_manifest;
 mod naming;
 mod normalize_abundance;
 mod normalize_primers;
+mod normalize_read_names;
 mod prepare_adapter_bank;
 mod prepare_host_reference_bundle;
 mod prepare_primer_bank;
@@ -98,6 +99,9 @@ pub use normalize_abundance::{
     NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
 };
 pub use normalize_primers::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
+pub use normalize_read_names::{
+    NormalizeReadNamesReportV1, NORMALIZE_READ_NAMES_REPORT_SCHEMA_VERSION,
+};
 pub use prepare_adapter_bank::{
     PrepareAdapterBankReportV1, PREPARE_ADAPTER_BANK_REPORT_SCHEMA_VERSION,
 };

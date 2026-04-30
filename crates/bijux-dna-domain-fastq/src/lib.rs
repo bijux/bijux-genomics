@@ -97,6 +97,7 @@ pub use artifacts::{
 };
 pub use artifacts::{NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION};
 pub use artifacts::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
+pub use artifacts::{NormalizeReadNamesReportV1, NORMALIZE_READ_NAMES_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
     OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1,
     PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,

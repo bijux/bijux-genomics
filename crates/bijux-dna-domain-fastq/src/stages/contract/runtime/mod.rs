@@ -21,6 +21,7 @@ mod fastq_io;
 mod prepare_adapter_bank;
 mod prepare_host_reference_bundle;
 mod prepare_primer_bank;
+mod normalize_read_names;
 
 pub use header_inspection::{
     ensure_umi_headers, inspect_headers, log_header_warnings, HeaderInspection,
@@ -32,6 +33,7 @@ pub use build_taxonomy_db::build_taxonomy_db;
 pub use layout_classification::{classify_layout, ensure_layout_is_coherent};
 pub use merge_suitability::{assess_merge_suitability, MergeSuitability};
 pub use output_normalization::{find_first_fastq, normalize_outputs, NormalizedOutputs};
+pub use normalize_read_names::normalize_read_names;
 pub use prepare_adapter_bank::prepare_adapter_bank;
 pub use prepare_host_reference_bundle::prepare_host_reference_bundle;
 pub use prepare_primer_bank::prepare_primer_bank;

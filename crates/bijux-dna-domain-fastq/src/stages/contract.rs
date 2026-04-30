@@ -10,5 +10,5 @@ pub use runtime::{
     normalize_outputs, preflight_stage, verify_assets, ensure_assets_verified,
     capture_provenance_snapshot, prepare_adapter_bank, prepare_host_reference_bundle,
     prepare_primer_bank, build_contaminant_db, build_rrna_db, build_taxonomy_db,
-    HeaderInspection, MergeSuitability, NormalizedOutputs,
+    normalize_read_names, HeaderInspection, MergeSuitability, NormalizedOutputs,
 };
