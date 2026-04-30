@@ -3,6 +3,10 @@ use bijux_dna_core::ids::StageId;
 pub const STAGE_VALIDATE_READS: StageId = StageId::from_static("fastq.validate_reads");
 pub const STAGE_PROFILE_READ_LENGTHS: StageId = StageId::from_static("fastq.profile_read_lengths");
 pub const STAGE_DETECT_ADAPTERS: StageId = StageId::from_static("fastq.detect_adapters");
+pub const STAGE_DETECT_DUPLICATES_PREMERGE: StageId =
+    StageId::from_static("fastq.detect_duplicates_premerge");
+pub const STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN: StageId =
+    StageId::from_static("fastq.estimate_library_complexity_prealign");
 pub const STAGE_TRIM_TERMINAL_DAMAGE: StageId = StageId::from_static("fastq.trim_terminal_damage");
 pub const STAGE_TRIM_POLYG_TAILS: StageId = StageId::from_static("fastq.trim_polyg_tails");
 pub const STAGE_TRIM_READS: StageId = StageId::from_static("fastq.trim_reads");
@@ -31,11 +35,13 @@ pub const STAGE_NORMALIZE_ABUNDANCE: StageId = StageId::from_static("fastq.norma
 
 pub const STAGE_PREFIX: &str = "fastq.";
 
-pub const STAGES: [StageId; 25] = [
+pub const STAGES: [StageId; 27] = [
     STAGE_INDEX_REFERENCE,
     STAGE_VALIDATE_READS,
     STAGE_PROFILE_READ_LENGTHS,
     STAGE_DETECT_ADAPTERS,
+    STAGE_DETECT_DUPLICATES_PREMERGE,
+    STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN,
     STAGE_TRIM_TERMINAL_DAMAGE,
     STAGE_NORMALIZE_PRIMERS,
     STAGE_TRIM_POLYG_TAILS,
@@ -67,6 +73,10 @@ pub fn bench_dir_name(stage: &StageId) -> Option<&'static str> {
         Some("profile_read_lengths")
     } else if stage == &STAGE_DETECT_ADAPTERS {
         Some("detect_adapters")
+    } else if stage == &STAGE_DETECT_DUPLICATES_PREMERGE {
+        Some("detect_duplicates_premerge")
+    } else if stage == &STAGE_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN {
+        Some("estimate_library_complexity_prealign")
     } else if stage == &STAGE_TRIM_TERMINAL_DAMAGE {
         Some("trim_terminal_damage")
     } else if stage == &STAGE_TRIM_POLYG_TAILS {

@@ -4,6 +4,8 @@ mod deplete_host;
 mod deplete_reference_contaminants;
 mod deplete_rrna;
 mod detect_adapters;
+mod detect_duplicates_premerge;
+mod estimate_library_complexity_prealign;
 mod extract_umis;
 mod filter_low_complexity;
 mod filter_reads;
@@ -34,6 +36,13 @@ pub use deplete_reference_contaminants::{
 };
 pub use deplete_rrna::{DepleteRrnaReportV1, DEPLETE_RRNA_REPORT_SCHEMA_VERSION};
 pub use detect_adapters::{DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION};
+pub use detect_duplicates_premerge::{
+    DetectDuplicatesPremergeReportV1, DETECT_DUPLICATES_PREMERGE_REPORT_SCHEMA_VERSION,
+};
+pub use estimate_library_complexity_prealign::{
+    EstimateLibraryComplexityPrealignReportV1,
+    ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_REPORT_SCHEMA_VERSION,
+};
 pub use extract_umis::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 pub use filter_low_complexity::{
     FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,

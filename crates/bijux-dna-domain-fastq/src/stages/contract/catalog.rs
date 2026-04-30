@@ -136,6 +136,8 @@ pub fn contract_for_stage(stage_id: &str) -> Option<FastqStageContract> {
         | "fastq.profile_read_lengths"
         | "fastq.profile_overrepresented_sequences"
         | "fastq.detect_adapters"
+        | "fastq.detect_duplicates_premerge"
+        | "fastq.estimate_library_complexity_prealign"
         | "fastq.profile_reads"
         | "fastq.report_qc" => Some(stats_stage_contract()),
         "fastq.screen_taxonomy" => Some(taxonomy_stage_contract()),
@@ -166,6 +168,8 @@ pub(crate) fn stage_for_id(stage_id: &str) -> Option<FastqStage> {
         "fastq.validate_reads" => Some(FastqStage::ValidateReads),
         "fastq.profile_read_lengths" => Some(FastqStage::ProfileReadLengths),
         "fastq.detect_adapters" => Some(FastqStage::DetectAdapters),
+        "fastq.detect_duplicates_premerge" => Some(FastqStage::Deduplicate),
+        "fastq.estimate_library_complexity_prealign" => Some(FastqStage::LowComplexity),
         "fastq.trim_terminal_damage" => Some(FastqStage::DamageAwarePretrim),
         "fastq.normalize_primers" => Some(FastqStage::PrimerNormalization),
         "fastq.trim_polyg_tails" => Some(FastqStage::PolygTailing),

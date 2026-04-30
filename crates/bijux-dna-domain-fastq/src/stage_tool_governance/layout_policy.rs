@@ -59,7 +59,9 @@ pub fn declared_input_layouts_for_stage(stage_id: &str) -> Option<FastqStageLayo
         | "fastq.remove_duplicates"
         | "fastq.deplete_host"
         | "fastq.deplete_reference_contaminants"
-        | "fastq.deplete_rrna" => Some(FastqStageLayoutPolicy {
+        | "fastq.deplete_rrna"
+        | "fastq.detect_duplicates_premerge"
+        | "fastq.estimate_library_complexity_prealign" => Some(FastqStageLayoutPolicy {
             stage_id: match stage_id {
                 "fastq.trim_terminal_damage" => "fastq.trim_terminal_damage",
                 "fastq.normalize_primers" => "fastq.normalize_primers",
@@ -72,6 +74,10 @@ pub fn declared_input_layouts_for_stage(stage_id: &str) -> Option<FastqStageLayo
                 "fastq.deplete_host" => "fastq.deplete_host",
                 "fastq.deplete_reference_contaminants" => "fastq.deplete_reference_contaminants",
                 "fastq.deplete_rrna" => "fastq.deplete_rrna",
+                "fastq.detect_duplicates_premerge" => "fastq.detect_duplicates_premerge",
+                "fastq.estimate_library_complexity_prealign" => {
+                    "fastq.estimate_library_complexity_prealign"
+                }
                 _ => unreachable!("validated in match arm"),
             },
             accepted_layouts: SINGLE_OR_PAIRED,
