@@ -1,0 +1,1376 @@
+[
+  {
+    "domain_id": "bam",
+    "artifacts": [
+      {
+        "artifact_id": "align_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "aligned_bam",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "authenticity_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "authenticity_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "bam_index",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "bam_stats",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "bam_validation_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "bias_mitigation_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "complexity_curve",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "complexity_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "contamination_estimate",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "contamination_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "contammix_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "coverage_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "coverage_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "damage_clusters",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "damage_parameters",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "damage_plot",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "damage_profile",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "damage_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "dup_metrics",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "duplication_histogram",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "duplication_metrics_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "duplication_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "endogenous_content_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "filter_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "gc_bias_plot",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "gc_bias_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "gc_bias_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "genotyping_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "haplogroup_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "haplogroups_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "insert_size_histogram",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "insert_size_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "insert_size_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "interval_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "kinship_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "kinship_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "length_filter_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "mapping_summary_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "mapq_filter_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "markdup_bam",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "markdup_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "mt_consensus",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "overlap_corrected_bam",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "overlap_correction_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "overlap_metrics",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "pmd_scores",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "population_metrics",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "qc_pre_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "recal_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "recalibration_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "sex_estimate",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "sex_report_json",
+        "artifact_type": null
+      }
+    ],
+    "stage_outputs": {
+      "bam.align": [
+        "align_report_json"
+      ],
+      "bam.authenticity": [
+        "authenticity_report_json"
+      ],
+      "bam.bias_mitigation": [
+        "bias_mitigation_report_json"
+      ],
+      "bam.complexity": [
+        "complexity_report_json"
+      ],
+      "bam.contamination": [
+        "contamination_report_json"
+      ],
+      "bam.coverage": [
+        "coverage_report_json"
+      ],
+      "bam.damage": [
+        "damage_report_json"
+      ],
+      "bam.duplication_metrics": [
+        "duplication_metrics_report_json"
+      ],
+      "bam.endogenous_content": [
+        "endogenous_content_report_json"
+      ],
+      "bam.filter": [
+        "filter_report_json"
+      ],
+      "bam.gc_bias": [
+        "gc_bias_report_json"
+      ],
+      "bam.genotyping": [
+        "genotyping_report_json"
+      ],
+      "bam.haplogroups": [
+        "haplogroups_report_json"
+      ],
+      "bam.insert_size": [
+        "insert_size_report_json"
+      ],
+      "bam.kinship": [
+        "kinship_report_json"
+      ],
+      "bam.length_filter": [
+        "length_filter_report_json"
+      ],
+      "bam.mapping_summary": [
+        "mapping_summary_report_json"
+      ],
+      "bam.mapq_filter": [
+        "mapq_filter_report_json"
+      ],
+      "bam.markdup": [
+        "markdup_report_json"
+      ],
+      "bam.overlap_correction": [
+        "overlap_correction_report_json"
+      ],
+      "bam.qc_pre": [
+        "qc_pre_report_json"
+      ],
+      "bam.recalibration": [
+        "recalibration_report_json"
+      ],
+      "bam.sex": [
+        "sex_report_json"
+      ],
+      "bam.validate": [
+        "report_json"
+      ]
+    }
+  },
+  {
+    "domain_id": "fastq",
+    "artifacts": [
+      {
+        "artifact_id": "adapter_bank",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "adapter_evidence_dir",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "adapter_inspection_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "adapter_inspection_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "adapter_inspection_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "adapter_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "asset_lock",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "asset_verification_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "asv_sequences_fasta",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "asv_table_tsv",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "chimera_filtered_reads",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "chimera_metrics_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "chimera_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "chimera_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "chimera_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "chimeras_fasta",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "classification_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "concatenated_reads",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "contaminant_database",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "contaminant_depletion_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "contaminant_depletion_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "contaminant_depletion_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "contaminant_screen_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "contaminant_screened_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "contaminant_screened_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "corrected_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "corrected_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "correction_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "correction_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "correction_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "dedup_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "dedup_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "dedup_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "dedup_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "dedup_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "demultiplex_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "duplicate_classes_tsv",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "duplicate_provenance_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "duplicate_signal_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "filter_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "filter_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "filter_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "filter_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "filtered_fastq_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "filtered_fastq_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "filtered_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "filtered_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "governed_qc_inputs_manifest",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "host_depleted_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "host_depleted_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "host_depletion_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "host_depletion_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "host_depletion_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "host_depletion_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "host_reference_bundle",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "index_reference_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "index_reference_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "index_reference_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "instrument_artifact_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "interleaved_reads",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "lane_manifest_out",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "layout_classification",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "layout_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "length_distribution_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "length_distribution_tsv",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "library_complexity_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "low_complexity_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "low_complexity_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "low_complexity_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "manifest_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "merge_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "merge_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "merge_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "merged_reads",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "multiqc_data",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "multiqc_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "name_normalization_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "normalize_abundance_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "normalize_abundance_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "normalize_abundance_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "normalized_abundance_tsv",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "normalized_reads",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "normalized_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "normalized_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "otu_clustering_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "otu_clustering_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "otu_clustering_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "otu_representatives",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "otu_table",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "overrepresented_sequence_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "overrepresented_sequence_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "overrepresented_sequence_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "overrepresented_sequences_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "overrepresented_sequences_tsv",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "polyg_trim_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "polyg_trim_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "polyg_trim_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "primer_bank",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "primer_normalization_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "primer_normalization_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "primer_normalization_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "primer_orientation_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "primer_stats_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "profile_reads_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "profile_reads_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "profile_reads_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "provenance_snapshot",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "qc_aggregation_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "qc_aggregation_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "qc_aggregation_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "qc_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "qc_manifest",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "qc_plots_dir",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "qc_tsv",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "raw_backend_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "raw_backend_report_txt",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "read_length_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "read_length_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "read_length_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "reference_index",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "removed_host_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "removed_host_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "repair_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "repaired_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "repaired_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_database",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_depletion_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_depletion_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_depletion_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_filtered_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_filtered_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_report_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "rrna_report_tsv",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "sample_reads",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "screen_report_tsv",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "stage_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "stage_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "subsample_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "subsampled_reads",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "taxonomy_database",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "taxonomy_ready_fasta",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "taxonomy_ready_fastq",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "taxonomy_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "taxonomy_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "taxonomy_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "terminal_damage_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "terminal_damage_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "terminal_damage_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "trim_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "trim_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "trim_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "trimmed_reads",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "trimmed_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "trimmed_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "uchime_report_tsv",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "umi_extraction_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "umi_extraction_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "umi_extraction_tool_normalization_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "umi_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "umi_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "unmerged_reads_r1",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "unmerged_reads_r2",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "validated_reads_manifest",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "validation_report",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "validation_tool_benchmark_cohort_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "validation_tool_comparison_json",
+        "artifact_type": null
+      },
+      {
+        "artifact_id": "validation_tool_normalization_json",
+        "artifact_type": null
+      }
+    ],
+    "stage_outputs": {
+      "fastq.build_contaminant_db": [
+        "contaminant_database",
+        "asset_lock"
+      ],
+      "fastq.build_rrna_db": [
+        "rrna_database",
+        "asset_lock"
+      ],
+      "fastq.build_taxonomy_db": [
+        "taxonomy_database",
+        "asset_lock"
+      ],
+      "fastq.capture_provenance_snapshot": [
+        "provenance_snapshot"
+      ],
+      "fastq.classify_layout": [
+        "layout_classification"
+      ],
+      "fastq.cluster_otus": [
+        "report_json",
+        "otu_table",
+        "otu_representatives",
+        "taxonomy_ready_fasta",
+        "taxonomy_ready_fastq"
+      ],
+      "fastq.concatenate_lanes": [
+        "concatenated_reads",
+        "lane_manifest_out"
+      ],
+      "fastq.correct_errors": [
+        "corrected_reads_r1",
+        "corrected_reads_r2",
+        "report_json"
+      ],
+      "fastq.deinterleave_reads": [
+        "reads_r1",
+        "reads_r2",
+        "layout_report"
+      ],
+      "fastq.demultiplex_reads": [
+        "sample_reads",
+        "demultiplex_report"
+      ],
+      "fastq.deplete_host": [
+        "host_depleted_reads_r1",
+        "host_depleted_reads_r2",
+        "removed_host_reads_r1",
+        "removed_host_reads_r2",
+        "host_depletion_report_json"
+      ],
+      "fastq.deplete_reference_contaminants": [
+        "contaminant_screened_reads_r1",
+        "contaminant_screened_reads_r2",
+        "contaminant_screen_report_json"
+      ],
+      "fastq.deplete_rrna": [
+        "rrna_filtered_reads_r1",
+        "rrna_filtered_reads_r2",
+        "rrna_report_tsv",
+        "rrna_report_json"
+      ],
+      "fastq.detect_adapters": [
+        "report_json",
+        "adapter_report",
+        "adapter_evidence_dir"
+      ],
+      "fastq.detect_duplicates_premerge": [
+        "duplicate_signal_report"
+      ],
+      "fastq.detect_instrument_artifacts": [
+        "instrument_artifact_report"
+      ],
+      "fastq.estimate_library_complexity_prealign": [
+        "library_complexity_report"
+      ],
+      "fastq.extract_umis": [
+        "umi_reads_r1",
+        "umi_reads_r2",
+        "report_json"
+      ],
+      "fastq.filter_low_complexity": [
+        "filtered_fastq_r1",
+        "filtered_fastq_r2",
+        "filter_report_json"
+      ],
+      "fastq.filter_reads": [
+        "filtered_reads_r1",
+        "filtered_reads_r2",
+        "report_json"
+      ],
+      "fastq.index_reference": [
+        "reference_index",
+        "report_json"
+      ],
+      "fastq.infer_asvs": [
+        "asv_table_tsv",
+        "asv_sequences_fasta",
+        "taxonomy_ready_fasta",
+        "taxonomy_ready_fastq",
+        "report_json"
+      ],
+      "fastq.interleave_reads": [
+        "interleaved_reads",
+        "layout_report"
+      ],
+      "fastq.materialize_qc_manifest": [
+        "qc_manifest"
+      ],
+      "fastq.merge_pairs": [
+        "merged_reads",
+        "unmerged_reads_r1",
+        "unmerged_reads_r2",
+        "report_json",
+        "raw_backend_report_txt"
+      ],
+      "fastq.normalize_abundance": [
+        "normalized_abundance_tsv",
+        "report_json"
+      ],
+      "fastq.normalize_primers": [
+        "normalized_reads_r1",
+        "normalized_reads_r2",
+        "report_json",
+        "primer_orientation_report",
+        "primer_stats_json"
+      ],
+      "fastq.normalize_read_names": [
+        "normalized_reads",
+        "name_normalization_report"
+      ],
+      "fastq.prepare_adapter_bank": [
+        "adapter_bank",
+        "asset_lock"
+      ],
+      "fastq.prepare_host_reference_bundle": [
+        "host_reference_bundle",
+        "asset_lock"
+      ],
+      "fastq.prepare_primer_bank": [
+        "primer_bank",
+        "asset_lock"
+      ],
+      "fastq.profile_overrepresented_sequences": [
+        "overrepresented_sequences_tsv",
+        "overrepresented_sequences_json",
+        "report_json"
+      ],
+      "fastq.profile_read_lengths": [
+        "report_json",
+        "length_distribution_tsv",
+        "length_distribution_json"
+      ],
+      "fastq.profile_reads": [
+        "qc_json",
+        "qc_tsv",
+        "qc_plots_dir"
+      ],
+      "fastq.remove_chimeras": [
+        "chimera_filtered_reads",
+        "report_json",
+        "chimera_metrics_json",
+        "chimeras_fasta",
+        "uchime_report_tsv"
+      ],
+      "fastq.remove_duplicates": [
+        "dedup_reads_r1",
+        "dedup_reads_r2",
+        "duplicate_classes_tsv",
+        "duplicate_provenance_json",
+        "report_json"
+      ],
+      "fastq.repair_pairs": [
+        "repaired_reads_r1",
+        "repaired_reads_r2",
+        "repair_report"
+      ],
+      "fastq.report_qc": [
+        "report_json",
+        "multiqc_report",
+        "multiqc_data",
+        "governed_qc_inputs_manifest"
+      ],
+      "fastq.screen_taxonomy": [
+        "screen_report_tsv",
+        "classification_report_json"
+      ],
+      "fastq.subsample_reads": [
+        "subsampled_reads",
+        "subsample_report"
+      ],
+      "fastq.trim_polyg_tails": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json",
+        "raw_backend_report_json",
+        "raw_backend_report_txt"
+      ],
+      "fastq.trim_reads": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json",
+        "raw_backend_report_json",
+        "raw_backend_report_txt"
+      ],
+      "fastq.trim_terminal_damage": [
+        "trimmed_reads_r1",
+        "trimmed_reads_r2",
+        "report_json",
+        "raw_backend_report_json"
+      ],
+      "fastq.validate_reads": [
+        "validation_report",
+        "validated_reads_manifest"
+      ],
+      "fastq.verify_assets": [
+        "asset_verification_report"
+      ]
+    }
+  },
+  {
+    "domain_id": "vcf",
+    "artifacts": [
+      {
+        "artifact_id": "admixture_out",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "called_vcf",
+        "artifact_type": "vcf"
+      },
+      {
+        "artifact_id": "damage_bias_audit_report",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "damage_filtered_vcf",
+        "artifact_type": "vcf"
+      },
+      {
+        "artifact_id": "demography_report",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "diploid_vcf",
+        "artifact_type": "vcf"
+      },
+      {
+        "artifact_id": "filtered_vcf",
+        "artifact_type": "vcf"
+      },
+      {
+        "artifact_id": "gl_propagated_vcf",
+        "artifact_type": "vcf"
+      },
+      {
+        "artifact_id": "gl_propagation_report",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "gl_provenance",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "gl_sites_vcf",
+        "artifact_type": "vcf"
+      },
+      {
+        "artifact_id": "ibd_segments",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "imputation_out",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "imputed_vcf",
+        "artifact_type": "vcf"
+      },
+      {
+        "artifact_id": "pca_out",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "phasing_out",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "population_structure_report",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "postprocess_vcf",
+        "artifact_type": "vcf"
+      },
+      {
+        "artifact_id": "prepared_panel",
+        "artifact_type": "vcf"
+      },
+      {
+        "artifact_id": "pseudohaploid_sampling_log",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "pseudohaploid_vcf",
+        "artifact_type": "vcf"
+      },
+      {
+        "artifact_id": "qc_out",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "roh_report",
+        "artifact_type": "json"
+      },
+      {
+        "artifact_id": "stats_json",
+        "artifact_type": "json"
+      }
+    ],
+    "stage_outputs": {
+      "vcf.admixture": [
+        "admixture_out"
+      ],
+      "vcf.call": [
+        "called_vcf"
+      ],
+      "vcf.call_diploid": [
+        "diploid_vcf"
+      ],
+      "vcf.call_gl": [
+        "gl_sites_vcf",
+        "gl_provenance"
+      ],
+      "vcf.call_pseudohaploid": [
+        "pseudohaploid_vcf",
+        "pseudohaploid_sampling_log"
+      ],
+      "vcf.damage_filter": [
+        "damage_filtered_vcf",
+        "damage_bias_audit_report"
+      ],
+      "vcf.demography": [
+        "demography_report"
+      ],
+      "vcf.filter": [
+        "filtered_vcf"
+      ],
+      "vcf.gl_propagation": [
+        "gl_propagated_vcf",
+        "gl_propagation_report"
+      ],
+      "vcf.ibd": [
+        "ibd_segments"
+      ],
+      "vcf.imputation": [
+        "imputation_out"
+      ],
+      "vcf.impute": [
+        "imputed_vcf"
+      ],
+      "vcf.pca": [
+        "pca_out"
+      ],
+      "vcf.phasing": [
+        "phasing_out"
+      ],
+      "vcf.population_structure": [
+        "population_structure_report"
+      ],
+      "vcf.postprocess": [
+        "postprocess_vcf"
+      ],
+      "vcf.prepare_reference_panel": [
+        "prepared_panel"
+      ],
+      "vcf.qc": [
+        "qc_out"
+      ],
+      "vcf.roh": [
+        "roh_report"
+      ],
+      "vcf.stats": [
+        "stats_json"
+      ]
+    }
+  }
+]
