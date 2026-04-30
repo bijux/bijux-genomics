@@ -4,6 +4,49 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "capabilities": {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.call",
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": [
+        "vcf.call"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "reference_aliasing",
+        "normalization_scope_limits"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "normalization_boundaries",
+        "filter_impact",
+        "qc_summary"
+      ]
+    },
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
     "input_artifacts": [
       "ReportJson"
     ],
@@ -17,6 +60,27 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "output_domains": [
       "Vcf"
     ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.call": [
+          "caller",
+          "min_base_quality",
+          "min_mapping_quality"
+        ],
+        "vcf.filter": [
+          "min_qual",
+          "require_pass",
+          "normalize",
+          "require_bgzip_tabix"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.call": [
+          "reference_fasta"
+        ]
+      }
+    },
     "produces_outputs": [
       "vcf",
       "vcf.metrics"
@@ -51,7 +115,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "vcf.stats"
     ],
     "supports_benchmarks": false,
-    "supports_sample_sheet": false
+    "supports_sample_sheet": false,
+    "workflow_template_ids": [
+      "vcf.validation_normalization_qc",
+      "vcf.cohort_qc_review",
+      "vcf.population_structure_guardrail",
+      "vcf.roh_ibd_boundary",
+      "vcf.annotation_provenance_workflow"
+    ]
   },
   "defaults": {
     "params": {
