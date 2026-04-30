@@ -130,6 +130,13 @@ fn stage_postprocess(
                         "ok".to_string()
                     },
                 }),
+                proper_pair_reads: None,
+                secondary_reads: None,
+                supplementary_reads: None,
+                mapq_histogram: mapq
+                    .as_ref()
+                    .map_or_else(Vec::new, |summary| summary.histogram.clone()),
+                read_group_breakdown: Vec::new(),
             };
             bijux_dna_infra::atomic_write_json(&summary, &payload)
                 .with_context(|| format!("write {}", summary.display()))?;
