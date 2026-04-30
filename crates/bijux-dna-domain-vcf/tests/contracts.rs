@@ -340,6 +340,19 @@ mod contracts {
     }
 
     #[test]
+    fn filter_postprocess_and_stats_stage_contracts_list_governed_artifacts() {
+        let filter = stage_artifact_contract(VcfDomainStage::Filter);
+        assert!(filter.required_artifacts.contains(&"filter_explain.json"));
+
+        let postprocess = stage_artifact_contract(VcfDomainStage::Postprocess);
+        assert!(postprocess.required_artifacts.contains(&"normalization_contract.json"));
+
+        let stats = stage_artifact_contract(VcfDomainStage::Stats);
+        assert!(stats.required_artifacts.contains(&"stats.json"));
+        assert!(stats.required_artifacts.contains(&"bcftools_stats.txt"));
+    }
+
+    #[test]
     fn domain_coverage_report_marks_contract_vs_execution() {
         let report = domain_coverage_report();
         assert_eq!(report.schema_version, "bijux.vcf.domain_coverage.v1");
