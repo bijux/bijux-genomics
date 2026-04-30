@@ -6,7 +6,7 @@ Repository policy: apply `README.md` and `README.md` before changing this crate.
 Defines canonical pipeline profiles, defaults ledgers, manifests, and registry lookups for FASTQ, BAM, VCF, and cross-domain handoffs.
 
 Pipeline IDs:
-- fastq-only: `fastq-to-fastq__adna__v1`, `fastq-to-fastq__default__v1`, `fastq-to-fastq__minimal__v1`, `fastq-to-fastq__reference_adna__v1`
+- fastq-only: `fastq-to-fastq__adna__v1`, `fastq-to-fastq__amplicon_standard__v1`, `fastq-to-fastq__amplicon_umi__v1`, `fastq-to-fastq__contaminant_depletion__v1`, `fastq-to-fastq__default__v1`, `fastq-to-fastq__edna_metabarcoding__v1`, `fastq-to-fastq__host_depletion__v1`, `fastq-to-fastq__minimal__v1`, `fastq-to-fastq__qc_only__v1`, `fastq-to-fastq__reference_adna__v1`, `fastq-to-fastq__rrna_depletion__v1`, `fastq-to-fastq__trim_qc__v1`, `fastq-to-fastq__umi__v1`
 - fastq → bam: `fastq-to-bam__default__v1`, `fastq-to-bam__adna_shotgun__v1`
 - bam-only: `bam-to-bam__adna_capture__v1`, `bam-to-bam__adna_shotgun__v1`, `bam-to-bam__default__v1`, `bam-to-bam__reference_adna__v1`
 - vcf-only: `vcf-to-vcf__minimal__v1`, `vcf-to-vcf__reference_basic__v1`

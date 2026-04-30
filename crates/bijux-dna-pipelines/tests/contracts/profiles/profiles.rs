@@ -2,13 +2,18 @@
 use std::collections::{BTreeMap, HashSet};
 use std::path::PathBuf;
 
+use bijux_dna_core::id_catalog;
 use bijux_dna_pipelines::bam::{
     bam_adna_capture_profile, bam_adna_shotgun_profile, bam_default_profile,
     bam_reference_adna_profile,
 };
 use bijux_dna_pipelines::cross::{fastq_to_bam_adna_shotgun_profile, fastq_to_bam_default_profile};
 use bijux_dna_pipelines::fastq::{
-    fastq_default_profile, fastq_minimal_profile, fastq_reference_adna_profile,
+    fastq_amplicon_standard_profile, fastq_amplicon_umi_profile,
+    fastq_contaminant_depletion_profile, fastq_default_profile, fastq_edna_metabarcoding_profile,
+    fastq_host_depletion_profile, fastq_minimal_profile, fastq_qc_only_profile,
+    fastq_reference_adna_profile, fastq_rrna_depletion_profile, fastq_trim_qc_profile,
+    fastq_umi_profile,
 };
 use bijux_dna_pipelines::vcf::vcf_reference_basic_profile;
 use bijux_dna_testkit::snapshot_name;
@@ -138,6 +143,47 @@ fn fastq_default_profile_snapshot() {
 }
 
 #[test]
+fn fastq_amplicon_standard_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_amplicon_standard_profile");
+    let json = serde_json::to_value(fastq_amplicon_standard_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn fastq_amplicon_umi_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_amplicon_umi_profile");
+    let json = serde_json::to_value(fastq_amplicon_umi_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn fastq_contaminant_depletion_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_contaminant_depletion_profile");
+    let json =
+        serde_json::to_value(fastq_contaminant_depletion_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn fastq_edna_metabarcoding_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_edna_metabarcoding_profile");
+    let json = serde_json::to_value(fastq_edna_metabarcoding_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn fastq_host_depletion_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_host_depletion_profile");
+    let json = serde_json::to_value(fastq_host_depletion_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
 fn fastq_minimal_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "fastq_minimal_profile");
@@ -150,6 +196,38 @@ fn fastq_reference_adna_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "fastq_reference_adna_profile");
     let json = serde_json::to_value(fastq_reference_adna_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn fastq_qc_only_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_qc_only_profile");
+    let json = serde_json::to_value(fastq_qc_only_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn fastq_rrna_depletion_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_rrna_depletion_profile");
+    let json = serde_json::to_value(fastq_rrna_depletion_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn fastq_trim_qc_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_trim_qc_profile");
+    let json = serde_json::to_value(fastq_trim_qc_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn fastq_umi_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_umi_profile");
+    let json = serde_json::to_value(fastq_umi_profile()).expect("serialize profile");
     assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
 }
 
@@ -293,4 +371,45 @@ fn profile_hash_depends_on_manifest_only_not_capability_ordering() {
         profile.profile_hash(),
         "profile hash must stay stable when non-manifest capability ordering changes"
     );
+}
+
+#[test]
+fn production_fastq_profiles_cover_iteration_14_templates() {
+    let profiles = [
+        fastq_qc_only_profile(),
+        fastq_trim_qc_profile(),
+        fastq_umi_profile(),
+        fastq_host_depletion_profile(),
+        fastq_rrna_depletion_profile(),
+        fastq_contaminant_depletion_profile(),
+        fastq_amplicon_standard_profile(),
+        fastq_amplicon_umi_profile(),
+        fastq_edna_metabarcoding_profile(),
+    ];
+
+    let required_stage_sets = profiles
+        .iter()
+        .map(|profile| {
+            (
+                profile.id.as_str(),
+                profile.capabilities.required_stages.iter().map(String::as_str).collect::<Vec<_>>(),
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+
+    assert!(required_stage_sets[id_catalog::PIPELINE_FASTQ_QC_ONLY].contains(&"fastq.report_qc"));
+    assert!(required_stage_sets[id_catalog::PIPELINE_FASTQ_TRIM_QC].contains(&"fastq.trim_reads"));
+    assert!(required_stage_sets[id_catalog::PIPELINE_FASTQ_UMI].contains(&"fastq.extract_umis"));
+    assert!(required_stage_sets[id_catalog::PIPELINE_FASTQ_HOST_DEPLETION]
+        .contains(&"fastq.deplete_host"));
+    assert!(required_stage_sets[id_catalog::PIPELINE_FASTQ_RRNA_DEPLETION]
+        .contains(&"fastq.deplete_rrna"));
+    assert!(required_stage_sets[id_catalog::PIPELINE_FASTQ_CONTAMINANT_DEPLETION]
+        .contains(&"fastq.deplete_reference_contaminants"));
+    assert!(required_stage_sets[id_catalog::PIPELINE_FASTQ_AMPLICON_STANDARD]
+        .contains(&"fastq.infer_asvs"));
+    assert!(required_stage_sets[id_catalog::PIPELINE_FASTQ_AMPLICON_UMI]
+        .contains(&"fastq.extract_umis"));
+    assert!(required_stage_sets[id_catalog::PIPELINE_FASTQ_EDNA_METABARCODING]
+        .contains(&"fastq.cluster_otus"));
 }

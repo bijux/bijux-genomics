@@ -47,15 +47,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.validate_reads",
       "fastq.profile_read_lengths",
       "fastq.detect_adapters",
-      "fastq.trim_polyg_tails",
-      "fastq.trim_reads",
-      "fastq.filter_reads",
       "fastq.profile_reads",
       "fastq.profile_overrepresented_sequences",
-      "fastq.report_qc",
-      "fastq.trim_terminal_damage",
-      "fastq.filter_low_complexity",
-      "fastq.merge_pairs"
+      "fastq.report_qc"
     ],
     "supports_benchmarks": true
   },
@@ -77,7 +71,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "kmer_size": null,
         "max_memory_gb": null,
         "musket_kmer_budget": null,
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "quality_encoding": "phred33",
         "schema_version": "bijux.fastq.params.correct.v1",
         "threads": 1,
@@ -89,7 +83,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "emit_removed_reads": false,
         "identity_threshold": 0.95,
         "masking_policy": "unmasked",
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "reference_build_id": null,
         "reference_catalog_id": "host_reference",
         "reference_digest": null,
@@ -105,7 +99,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.deplete_reference_contaminants": {
         "contaminant_reference": "contaminants.fasta",
         "index_artifact": "contaminants_index",
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "reference_build_id": null,
         "reference_catalog_id": "reference_contaminants",
         "reference_digest": null,
@@ -119,7 +113,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "database_artifact_id": "rrna_db",
         "database_build_id": null,
         "emit_removed_reads": false,
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "report_format": "summary_tsv_and_json",
         "schema_version": "bijux.fastq.params.deplete_rrna.v1",
         "screening_engine": "sortmerna",
@@ -131,9 +125,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "evidence_format": "fastqc_summary",
         "evidence_scope": "full_input",
         "inspection_mode": "evidence_only",
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "report_only": true,
-        "sample_reads": 2000000,
+        "sample_reads": null,
         "schema_version": "bijux.fastq.params.detect_adapters.v1",
         "threads": 1
       },
@@ -141,13 +135,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "downstream_propagation": "header_and_report",
         "extraction_location": "read1_prefix",
         "failed_extraction_policy": "refuse_stage",
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "read_name_transform": "append_to_header",
         "schema_version": "bijux.fastq.params.umi.v1",
         "threads": 1,
         "umi_pattern": null
       },
-      "fastq.filter_low_complexity": {
+      "fastq.filter_reads": {
         "contaminant_db": null,
         "entropy_threshold": null,
         "low_complexity_threshold": null,
@@ -155,28 +149,15 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "max_n_count": null,
         "max_n_fraction": null,
         "n_policy": null,
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "polyx_policy": null,
-        "threads": 1
-      },
-      "fastq.filter_reads": {
-        "contaminant_db": null,
-        "damage_mode": "ancient",
-        "entropy_threshold": null,
-        "low_complexity_threshold": null,
-        "max_n": null,
-        "max_n_count": null,
-        "max_n_fraction": 0.02,
-        "n_policy": null,
-        "paired_mode": "paired_end",
-        "polyx_policy": "trim",
         "threads": 1
       },
       "fastq.infer_asvs": {
         "chimera_policy": "report_only",
         "denoising_method": "dada2",
         "output_table_kind": "feature_table",
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "pooling_mode": "independent",
         "raw_backend_report_artifact": "infer_asvs_report.json",
         "raw_backend_report_format": "dada2_json",
@@ -187,9 +168,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "fastq.merge_pairs": {
         "merge_engine": "pear",
-        "merge_overlap": 11,
-        "min_len": 20,
-        "paired_mode": "paired_end",
+        "merge_overlap": null,
+        "min_len": null,
+        "paired_mode": "single_end",
         "schema_version": "bijux.fastq.params.merge_pairs.v1",
         "threads": 6,
         "unmerged_read_policy": "emit_unmerged_pairs"
@@ -213,7 +194,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "max_mismatch_rate": 0.1,
         "min_overlap_bp": 18,
         "orientation_policy": "forward_reverse",
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "primer_fasta": "assets/reference/primers/COI.fasta",
         "primer_set_id": "metabarcoding_default",
         "schema_version": "v1",
@@ -221,19 +202,19 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "threads": 1
       },
       "fastq.profile_overrepresented_sequences": {
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "schema_version": "bijux.fastq.params.overrepresented_profile.v1",
         "threads": 2,
         "top_k": 50
       },
       "fastq.profile_read_lengths": {
         "histogram_bins": 100,
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "schema_version": "bijux.fastq.params.read_length_profile.v1",
         "threads": 2
       },
       "fastq.profile_reads": {
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "schema_version": "bijux.fastq.params.stats.v1",
         "threads": 2
       },
@@ -242,7 +223,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "chimera_sequence_artifact": "chimera_sequences_fasta",
         "detection_scope": "sample",
         "fallback_behavior": "refuse_stage",
-        "input_layout": "paired_end",
+        "input_layout": "single_end",
         "method": "uchime_denovo",
         "metrics_artifact": "chimera_metrics_json",
         "raw_backend_report_artifact": "uchime_report_tsv",
@@ -253,13 +234,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.report_qc": {
         "aggregation_engine": "multiqc",
         "aggregation_scope": "governed_qc_artifacts",
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "schema_version": "bijux.fastq.params.report_qc.v1"
       },
       "fastq.screen_taxonomy": {
         "assignment_format": "kraken_assignments",
         "classifier": "kraken2",
-        "contaminant_db": "host_depletion_db",
+        "contaminant_db": null,
         "database_artifact_id": "taxonomy_db",
         "database_build_id": null,
         "database_catalog_id": "taxonomy_reference",
@@ -268,41 +249,31 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "database_scope": "read_screening",
         "emit_unclassified": true,
         "minimum_confidence": null,
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "report_format": "kraken_report",
         "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
         "threads": 4
       },
       "fastq.trim_polyg_tails": {
         "min_polyg_run": 10,
-        "paired_mode": "paired_end",
+        "paired_mode": "single_end",
         "schema_version": "bijux.fastq.params.trim_polyg_tails.v1",
         "threads": 4,
         "trim_polyg": true
       },
       "fastq.trim_reads": {
-        "adapter_policy": "ancient_strict",
+        "adapter_policy": "none",
         "contaminant_policy": null,
-        "damage_mode": "ancient",
-        "min_len": 25,
+        "min_len": 30,
         "n_policy": null,
-        "paired_mode": "paired_end",
-        "polyx_policy": "trim",
-        "q_cutoff": 20,
+        "paired_mode": "single_end",
+        "polyx_policy": null,
+        "q_cutoff": null,
         "threads": 1
       },
-      "fastq.trim_terminal_damage": {
-        "damage_mode": "ancient",
-        "execution_policy": "explicit_terminal_trim",
-        "paired_mode": "paired_end",
-        "schema_version": "bijux.fastq.params.trim_terminal_damage.v1",
-        "threads": 1,
-        "trim_3p_bases": 2,
-        "trim_5p_bases": 2
-      },
       "fastq.validate_reads": {
-        "pair_sync_policy": "require_header_sync",
-        "paired_mode": "paired_end",
+        "pair_sync_policy": "not_applicable",
+        "paired_mode": "single_end",
         "schema_version": "bijux.fastq.params.validate_reads.v1",
         "threads": 4,
         "validation_mode": "strict"
@@ -314,12 +285,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.deplete_host": "pipeline default",
       "fastq.deplete_reference_contaminants": "pipeline default",
       "fastq.deplete_rrna": "pipeline default",
-      "fastq.detect_adapters": "aDNA preset: stricter adapter detection depth for short fragments",
+      "fastq.detect_adapters": "pipeline default",
       "fastq.extract_umis": "pipeline default",
-      "fastq.filter_low_complexity": "reference-grade aDNA: pre-alignment low-complexity/duplication proxy estimate stage",
       "fastq.filter_reads": "pipeline default",
       "fastq.infer_asvs": "pipeline default",
-      "fastq.merge_pairs": "reference-grade gate: production-pinned merge tool with explicit overlap/min-length defaults",
+      "fastq.merge_pairs": "pipeline default",
       "fastq.normalize_abundance": "pipeline default",
       "fastq.normalize_primers": "pipeline default",
       "fastq.profile_overrepresented_sequences": "pipeline default",
@@ -327,10 +297,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.profile_reads": "pipeline default",
       "fastq.remove_chimeras": "pipeline default",
       "fastq.report_qc": "pipeline default",
-      "fastq.screen_taxonomy": "reference-grade aDNA: contamination/host depletion hook with declared reference DB",
+      "fastq.screen_taxonomy": "pipeline default",
       "fastq.trim_polyg_tails": "pipeline default",
-      "fastq.trim_reads": "reference-grade gate: production-pinned trim tool with aDNA-safe parameters",
-      "fastq.trim_terminal_damage": "pipeline default",
+      "fastq.trim_reads": "pipeline default",
       "fastq.validate_reads": "pipeline default"
     },
     "tools": {
@@ -341,10 +310,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.deplete_rrna": "sortmerna",
       "fastq.detect_adapters": "fastqc",
       "fastq.extract_umis": "umi_tools",
-      "fastq.filter_low_complexity": "bbduk",
       "fastq.filter_reads": "fastp",
       "fastq.infer_asvs": "dada2",
-      "fastq.merge_pairs": "vsearch",
+      "fastq.merge_pairs": "pear",
       "fastq.normalize_abundance": "seqkit",
       "fastq.normalize_primers": "cutadapt",
       "fastq.profile_overrepresented_sequences": "fastqc",
@@ -355,25 +323,24 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.screen_taxonomy": "kraken2",
       "fastq.trim_polyg_tails": "fastp",
       "fastq.trim_reads": "fastp",
-      "fastq.trim_terminal_damage": "cutadapt",
       "fastq.validate_reads": "fastqvalidator"
     }
   },
   "defaults_ledger_ref": "defaults_ledger.json",
-  "description": "Reference-grade aDNA FASTQ pipeline defaults",
-  "id": "fastq-to-fastq__reference_adna__v1",
+  "description": "FASTQ QC-only production profile",
+  "id": "fastq-to-fastq__qc_only__v1",
   "input_domains": [
     "Fastq"
   ],
-  "invariants_preset": "reference_adna",
+  "invariants_preset": null,
   "library_model": {
-    "assay_kind": "shotgun",
-    "layout": "paired_end",
+    "assay_kind": "unknown",
+    "layout": "single_end",
     "platform_hint": "illumina",
-    "udg_treatment": "none"
+    "udg_treatment": "unknown"
   },
   "output_domains": [
     "Fastq"
   ],
-  "stability": "Beta"
+  "stability": "Stable"
 }
