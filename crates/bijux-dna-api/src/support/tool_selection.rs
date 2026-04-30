@@ -48,8 +48,9 @@ pub fn filter_tools_by_role(
 mod tests {
     use super::filter_tools_by_role;
     use bijux_dna_core::contract::{
-        ExecutionContract, PortSpec, StageSpec, ToolConstraints, ToolManifest, ToolRegistry,
-        ToolRole,
+        ArtifactRole, BackendVersionPolicy, ExecutionContract, PortSpec, StageCapabilitySpec,
+        StageEnvironmentRequirements, StageOperatingMode, StageSpec, ToolConstraints, ToolManifest,
+        ToolRegistry, ToolRole,
     };
     use bijux_dna_core::ids::{StageId, ToolId};
 
@@ -69,6 +70,11 @@ mod tests {
             parameters: Vec::new(),
             metrics: Vec::new(),
             description: None,
+            environment_requirements: StageEnvironmentRequirements::default(),
+            report_contracts: Vec::new(),
+            capability_contract: StageCapabilitySpec::default(),
+            refusal_codes: Vec::new(),
+            operating_mode: StageOperatingMode::Enforced,
             behavior: bijux_dna_core::prelude::tooling::StageBehavior::default(),
             image_requirements: None,
             extends: None,
@@ -82,10 +88,14 @@ mod tests {
                 name: "report_json".to_string(),
                 data_type: "json".to_string(),
                 cardinality: bijux_dna_core::contract::Cardinality::One,
+                artifact_role: ArtifactRole::ReportJson,
             }],
             metrics_parser: None,
             constraints: ToolConstraints::default(),
             execution_contract: ExecutionContract::default(),
+            supported_modes: vec![StageOperatingMode::Enforced],
+            backend_version_policy: BackendVersionPolicy::Pinned,
+            capability_contract: StageCapabilitySpec::default(),
         });
         registry
     }

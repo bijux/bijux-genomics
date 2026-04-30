@@ -269,6 +269,10 @@ fn prepare_umi_tool_plan<S: ::std::hash::BuildHasher>(
         &ExtractUmisStageParams {
             threads: args.threads,
             umi_pattern: Some(args.umi_pattern.clone()),
+            extraction_location: None,
+            read_name_transform: None,
+            failed_extraction_policy: None,
+            downstream_propagation: None,
         },
     )?;
     let params_hash = stable_params_hash(&plan.params);
