@@ -12,6 +12,7 @@ mod deplete_rrna;
 mod deinterleave_reads;
 mod demultiplex_reads;
 mod detect_adapters;
+mod detect_instrument_artifacts;
 mod detect_duplicates_premerge;
 mod estimate_library_complexity_prealign;
 mod extract_umis;
@@ -81,6 +82,9 @@ pub use demultiplex_reads::{
     DEMULTIPLEX_READS_REPORT_SCHEMA_VERSION,
 };
 pub use detect_adapters::{DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION};
+pub use detect_instrument_artifacts::{
+    DetectInstrumentArtifactsReportV1, DETECT_INSTRUMENT_ARTIFACTS_REPORT_SCHEMA_VERSION,
+};
 pub use detect_duplicates_premerge::{
     DetectDuplicatesPremergeReportV1, DETECT_DUPLICATES_PREMERGE_REPORT_SCHEMA_VERSION,
 };

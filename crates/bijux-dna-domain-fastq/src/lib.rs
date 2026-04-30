@@ -81,6 +81,9 @@ pub use artifacts::{
 };
 pub use artifacts::{DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
+    DetectInstrumentArtifactsReportV1, DETECT_INSTRUMENT_ARTIFACTS_REPORT_SCHEMA_VERSION,
+};
+pub use artifacts::{
     DetectDuplicatesPremergeReportV1, DETECT_DUPLICATES_PREMERGE_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{
