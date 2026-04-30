@@ -2,6 +2,7 @@ use super::{
     anyhow, artifact_root_path, json, stable_now_utc_string, write_json_pretty, OpsCommandOutcome,
     PathBuf, Result, Workspace,
 };
+use std::collections::{BTreeMap, BTreeSet};
 use bijux_dna_domain_bam::{
     bam_adna_workflow_contract, bam_sample_identity, estimate_endogenous_content,
     execute_ancient_damage_evidence, evaluate_kinship_prerequisites,
@@ -14,6 +15,7 @@ use bijux_dna_domain_vcf::{
     execute_damage_aware_vcf_filter,
     evaluate_diploid_calling_boundary, evaluate_genotype_likelihood_workflow_boundary,
     evaluate_phasing_workflow_boundary, evaluate_pseudohaploid_calling_boundary,
+    resolve_vcf_reference_context,
 };
 use serde::Serialize;
 
@@ -27,6 +29,7 @@ enum ScenarioId {
     DamageAwareVariant,
     ContaminationPropagation,
     SampleIdentityConflict,
+    ReferenceBuildConflict,
 }
 
 impl ScenarioId {
@@ -40,6 +43,7 @@ impl ScenarioId {
             Self::DamageAwareVariant => "g186_damage_aware_variant_caveat_library",
             Self::ContaminationPropagation => "g187_contamination_propagation_model",
             Self::SampleIdentityConflict => "g188_sample_identity_conflict_propagation",
+            Self::ReferenceBuildConflict => "g189_reference_build_conflict_propagation",
         }
     }
 
@@ -53,6 +57,7 @@ impl ScenarioId {
             Self::DamageAwareVariant => "G186",
             Self::ContaminationPropagation => "G187",
             Self::SampleIdentityConflict => "G188",
+            Self::ReferenceBuildConflict => "G189",
         }
     }
 
@@ -66,6 +71,7 @@ impl ScenarioId {
             Self::DamageAwareVariant,
             Self::ContaminationPropagation,
             Self::SampleIdentityConflict,
+            Self::ReferenceBuildConflict,
         ]
     }
 
@@ -86,6 +92,9 @@ impl ScenarioId {
             }
             "g188_sample_identity_conflict_propagation" | "G188" => {
                 Some(Self::SampleIdentityConflict)
+            }
+            "g189_reference_build_conflict_propagation" | "G189" => {
+                Some(Self::ReferenceBuildConflict)
             }
             _ => None,
         }
@@ -211,6 +220,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::DamageAwareVariant => scenario_damage_aware_variant_caveat_library(),
         ScenarioId::ContaminationPropagation => scenario_contamination_propagation_model(),
         ScenarioId::SampleIdentityConflict => scenario_sample_identity_conflict_propagation(),
+        ScenarioId::ReferenceBuildConflict => scenario_reference_build_conflict_propagation(),
     };
 
     match result {
@@ -759,6 +769,76 @@ fn scenario_sample_identity_conflict_propagation() -> Result<(Vec<String>, serde
     ))
 }
 
+fn scenario_reference_build_conflict_propagation() -> Result<(Vec<String>, serde_json::Value)> {
+    let workspace = Workspace::resolve()?;
+    let input_vcf = workspace.path("crates/bijux-dna-stages-vcf/tests/fixtures/vcf/default/input.vcf");
+    let alias_map = BTreeMap::<String, String>::new();
+    let known_contigs = BTreeSet::from([String::from("chr1")]);
+    let resolution = resolve_vcf_reference_context(
+        &input_vcf,
+        "GRCh38",
+        "GRCh37",
+        Some("GRCh37"),
+        &alias_map,
+        false,
+        false,
+        &known_contigs,
+    )?;
+
+    let refusal_codes = resolution.refusal_codes.clone();
+    let required = [
+        "reference_contig_mismatch",
+        "reference_fasta_missing",
+        "reference_fai_missing",
+        "panel_build_mismatch",
+        "genetic_map_build_mismatch",
+    ];
+    for code in required {
+        if !refusal_codes.iter().any(|entry| entry == code) {
+            return Err(anyhow!(
+                "reference-build conflict scenario missing required refusal code: {code}"
+            ));
+        }
+    }
+
+    let caveat_library = vec![
+        json!({
+            "topic": "reference_build_conflict",
+            "refusal_codes": refusal_codes,
+            "propagation_targets": ["reference_resolver", "bam.align_reads", "vcf.prepare_reference_panel"],
+        }),
+        json!({
+            "topic": "bam_refusal",
+            "caveat": "BAM alignment and contamination workflows must refuse when reference assets and build compatibility are unresolved",
+            "propagation_targets": ["bam.align_reads", "bam.contamination", "bam.kinship"],
+        }),
+        json!({
+            "topic": "vcf_refusal",
+            "caveat": "VCF calling/phasing/imputation workflows must refuse on reference-panel-map build mismatch",
+            "propagation_targets": ["vcf.call_variants", "vcf.phasing", "vcf.imputation"],
+        }),
+        json!({
+            "topic": "population_refusal",
+            "caveat": "population analyses must not proceed when upstream reference context is inconsistent",
+            "propagation_targets": ["vcf.pca", "vcf.admixture", "report.population_summary"],
+        }),
+    ];
+
+    Ok((
+        vec![
+            "reference-build conflict propagation surfaces refusal codes from reference resolution into BAM/VCF/population stages"
+                .to_string(),
+            "build and contig mismatches remain explicit structured caveats instead of hidden prose warnings"
+                .to_string(),
+        ],
+        json!({
+            "input_vcf": workspace.rel(&input_vcf).display().to_string(),
+            "reference_context_resolution": resolution,
+            "caveat_library": caveat_library,
+        }),
+    ))
+}
+
 fn base_adna_metrics() -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
     metrics.damage.c_to_t_5p = 0.18;
@@ -781,7 +861,9 @@ mod tests {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
         assert_eq!(
             ids,
-            vec!["G181", "G182", "G183", "G184", "G185", "G186", "G187", "G188"]
+            vec![
+                "G181", "G182", "G183", "G184", "G185", "G186", "G187", "G188", "G189"
+            ]
         );
     }
 
@@ -1121,5 +1203,46 @@ mod tests {
             .cloned()
             .unwrap_or_default();
         assert!(rg_ids.len() >= 2);
+    }
+
+    #[test]
+    fn g189_reference_build_conflict_propagates_required_refusal_codes() {
+        let report = run_scenario(&ScenarioId::ReferenceBuildConflict);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G189");
+        let resolution = report
+            .evidence
+            .get("reference_context_resolution")
+            .cloned()
+            .unwrap_or_default();
+        let refusals = resolution
+            .get("refusal_codes")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(refusals
+            .iter()
+            .any(|entry| entry.as_str() == Some("panel_build_mismatch")));
+        assert!(refusals
+            .iter()
+            .any(|entry| entry.as_str() == Some("reference_contig_mismatch")));
+    }
+
+    #[test]
+    fn g189_reference_conflict_library_contains_population_refusal_topic() {
+        let report = run_scenario(&ScenarioId::ReferenceBuildConflict);
+        assert_eq!(report.status, "passed");
+        let library = report
+            .evidence
+            .get("caveat_library")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(library.iter().any(|entry| {
+            entry
+                .get("topic")
+                .and_then(serde_json::Value::as_str)
+                == Some("population_refusal")
+        }));
     }
 }
