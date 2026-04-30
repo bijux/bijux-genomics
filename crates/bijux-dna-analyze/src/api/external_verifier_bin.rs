@@ -2,8 +2,9 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_analyze::exports::{
-    verify_evidence_bundle, verify_profile_bundle, write_methods_summary_json,
-    write_profile_bundle_json, EvidenceBundleProfileV1,
+    list_reviewer_challenges, submit_reviewer_challenge, verify_evidence_bundle,
+    verify_profile_bundle, write_methods_summary_json, write_profile_bundle_json,
+    EvidenceBundleProfileV1, ReviewerChallengeRequestV1,
 };
 
 fn main() -> Result<()> {
@@ -32,10 +33,35 @@ fn main() -> Result<()> {
         }
         "write-profile" => {
             let run_dir = parse_required_path(&args, 0, "run_dir")?;
-            let profile = parse_profile(args.get(1).map(String::as_str).unwrap_or("publication_strict"))?;
+            let profile =
+                parse_profile(args.get(1).map(String::as_str).unwrap_or("publication_strict"))?;
             let facts_path = args.get(2).map(PathBuf::from);
             let output = write_profile_bundle_json(&run_dir, facts_path.as_deref(), profile)?;
             println!("{}", output.display());
+        }
+        "challenge-submit" => {
+            let run_dir = parse_required_path(&args, 0, "run_dir")?;
+            let artifact_id = parse_required_arg(&args, 1, "artifact_id")?;
+            let evidence_path = parse_required_arg(&args, 2, "evidence_path")?;
+            let report_field = parse_required_arg(&args, 3, "report_field")?;
+            let caveat = parse_required_arg(&args, 4, "caveat")?;
+            let question = parse_required_arg(&args, 5, "question")?;
+            let requested_by = parse_required_arg(&args, 6, "requested_by")?;
+            let request = ReviewerChallengeRequestV1 {
+                artifact_id,
+                evidence_path,
+                report_field,
+                caveat,
+                question,
+                requested_by,
+            };
+            let challenge = submit_reviewer_challenge(&run_dir, &request)?;
+            println!("{}", serde_json::to_string_pretty(&challenge)?);
+        }
+        "challenge-list" => {
+            let run_dir = parse_required_path(&args, 0, "run_dir")?;
+            let rows = list_reviewer_challenges(&run_dir)?;
+            println!("{}", serde_json::to_string_pretty(&rows)?);
         }
         other => {
             print_usage();
@@ -46,14 +72,21 @@ fn main() -> Result<()> {
 }
 
 fn parse_required_path(args: &[String], index: usize, label: &str) -> Result<PathBuf> {
-    let value = args
-        .get(index)
-        .ok_or_else(|| anyhow!("missing required argument `{label}`"))?;
+    let value = args.get(index).ok_or_else(|| anyhow!("missing required argument `{label}`"))?;
     let path = PathBuf::from(value);
     if !path.exists() {
         return Err(anyhow!("path does not exist: {}", path.display()));
     }
     Ok(path)
+}
+
+fn parse_required_arg(args: &[String], index: usize, label: &str) -> Result<String> {
+    let value =
+        args.get(index).ok_or_else(|| anyhow!("missing required argument `{label}`"))?.trim();
+    if value.is_empty() {
+        return Err(anyhow!("argument `{label}` cannot be empty"));
+    }
+    Ok(value.to_string())
 }
 
 fn parse_profile(value: &str) -> Result<EvidenceBundleProfileV1> {
@@ -73,6 +106,6 @@ fn parse_profile(value: &str) -> Result<EvidenceBundleProfileV1> {
 
 fn print_usage() {
     eprintln!(
-        "usage:\n  bijux-dna-verify verify-evidence <evidence_bundle.json>\n  bijux-dna-verify verify-profile <profile_bundle.json>\n  bijux-dna-verify write-methods <run_dir> [facts.jsonl]\n  bijux-dna-verify write-profile <run_dir> [profile] [facts.jsonl]"
+        "usage:\n  bijux-dna-verify verify-evidence <evidence_bundle.json>\n  bijux-dna-verify verify-profile <profile_bundle.json>\n  bijux-dna-verify write-methods <run_dir> [facts.jsonl]\n  bijux-dna-verify write-profile <run_dir> [profile] [facts.jsonl]\n  bijux-dna-verify challenge-submit <run_dir> <artifact_id> <evidence_path> <report_field> <caveat> <question> <requested_by>\n  bijux-dna-verify challenge-list <run_dir>"
     );
 }

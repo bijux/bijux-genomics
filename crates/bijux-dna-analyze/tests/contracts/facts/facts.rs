@@ -3,10 +3,11 @@ use std::fs;
 use std::path::PathBuf;
 
 use bijux_dna_analyze::exports::{
-    build_evidence_bundle, compare_evidence_bundles, validate_evidence_bundle_profile,
-    verify_evidence_bundle, verify_profile_bundle, summarize_facts, write_evidence_bundle_json,
-    write_profile_bundle_json, write_run_summary_json, write_methods_summary_json,
-    write_stage_summary_csv, EvidenceBundleProfileV1,
+    build_evidence_bundle, compare_evidence_bundles, list_reviewer_challenges,
+    submit_reviewer_challenge, summarize_facts, validate_evidence_bundle_profile,
+    verify_evidence_bundle, verify_profile_bundle, write_evidence_bundle_json,
+    write_methods_summary_json, write_profile_bundle_json, write_run_summary_json,
+    write_stage_summary_csv, EvidenceBundleProfileV1, ReviewerChallengeRequestV1,
 };
 use bijux_dna_analyze::load::load_facts;
 
@@ -190,11 +191,7 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
     let rows = vec![facts_row("ih")];
     bijux_dna_infra::write_bytes(
         &facts_path,
-        rows.iter()
-            .map(serde_json::to_string)
-            .collect::<Result<Vec<_>, _>>()?
-            .join("\n")
-            + "\n",
+        rows.iter().map(serde_json::to_string).collect::<Result<Vec<_>, _>>()?.join("\n") + "\n",
     )?;
     let summary_path = dir.path().join("run_summary.json");
     write_run_summary_json(&summary_path, &rows)?;
@@ -218,7 +215,8 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
         stage_id: "fastq.trim_reads".to_string(),
         tool_id: "fastp".to_string(),
         event_name: TelemetryEventName::StageStart,
-        timestamp: chrono::DateTime::parse_from_rfc3339("2024-01-01T00:00:01Z")?.with_timezone(&chrono::Utc),
+        timestamp: chrono::DateTime::parse_from_rfc3339("2024-01-01T00:00:01Z")?
+            .with_timezone(&chrono::Utc),
         duration_ms: Some(10),
         status: "ok".to_string(),
         trace_id: "trace-1".to_string(),
@@ -226,7 +224,10 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
         attrs: AttrMap::new(),
         failure_code: None,
     };
-    bijux_dna_infra::write_bytes(&telemetry_path, format!("{}\n", serde_json::to_string(&telemetry)?))?;
+    bijux_dna_infra::write_bytes(
+        &telemetry_path,
+        format!("{}\n", serde_json::to_string(&telemetry)?),
+    )?;
     let validated_path = dir.path().join("validated.fastq");
     bijux_dna_infra::write_bytes(&validated_path, "ACGT")?;
     let summary_hash = bijux_dna_infra::hash_file_sha256(&summary_path)?;
@@ -364,7 +365,10 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
     assert_eq!(bundle.correlation_id, "corr-run-1");
     assert_eq!(bundle.compact_summary.stage_count, 1);
     assert!(bundle.timeline.iter().any(|event| event.event == "cache_key_declared"));
-    assert!(bundle.timeline.iter().any(|event| event.event == "artifact_written" || event.event == "stage_start"));
+    assert!(bundle
+        .timeline
+        .iter()
+        .any(|event| event.event == "artifact_written" || event.event == "stage_start"));
     assert!(bundle.health.gaps.is_empty(), "unexpected gaps: {:?}", bundle.health.gaps);
     assert!(bundle.methods_summary.as_ref().is_some_and(|summary| summary.stage_count >= 1));
     assert_eq!(
@@ -380,9 +384,11 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
     let bundle_path = write_evidence_bundle_json(dir.path(), Some(&facts_path))?;
     let verification = verify_evidence_bundle(&bundle_path)?;
     assert!(verification.verified, "verification failed: {:?}", verification.checks);
-    let operational = validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Operational);
+    let operational =
+        validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Operational);
     assert!(operational.ok, "operational profile failed: {:?}", operational.checks);
-    let publication = validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Publication);
+    let publication =
+        validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Publication);
     assert!(publication.ok, "publication profile failed: {:?}", publication.checks);
 
     let methods_summary_path = write_methods_summary_json(dir.path(), Some(&facts_path))?;
@@ -397,10 +403,9 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
 fn evidence_bundle_comparison_surfaces_artifact_drift() -> anyhow::Result<()> {
     let left = bijux_dna_infra::temp_dir("bijux")?;
     let right = bijux_dna_infra::temp_dir("bijux")?;
-    for (dir, bytes, correlation) in [
-        (left.path(), "AAAA", "corr-a"),
-        (right.path(), "CCCC", "corr-b"),
-    ] {
+    for (dir, bytes, correlation) in
+        [(left.path(), "AAAA", "corr-a"), (right.path(), "CCCC", "corr-b")]
+    {
         let artifact = dir.join("artifact.txt");
         bijux_dna_infra::write_bytes(&artifact, bytes)?;
         let hash = bijux_dna_infra::hash_file_sha256(&artifact)?;
@@ -417,10 +422,7 @@ fn evidence_bundle_comparison_surfaces_artifact_drift() -> anyhow::Result<()> {
             }),
         )?;
         let bundle_path = dir.join("evidence_bundle.json");
-        bijux_dna_infra::atomic_write_json(
-            &bundle_path,
-            &build_evidence_bundle(dir, None)?,
-        )?;
+        bijux_dna_infra::atomic_write_json(&bundle_path, &build_evidence_bundle(dir, None)?)?;
     }
 
     let comparison = compare_evidence_bundles(
@@ -512,7 +514,8 @@ fn draft_profile_tolerates_missing_publication_material() {
     assert!(draft.ok);
     assert!(draft.blocking_gap_codes.is_empty());
 
-    let publication = validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Publication);
+    let publication =
+        validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Publication);
     assert!(!publication.ok);
     assert!(!publication.required_paths_present || !publication.blocking_gap_codes.is_empty());
 }
@@ -667,5 +670,92 @@ fn profile_bundles_write_and_verify_for_release_surfaces() -> anyhow::Result<()>
         archive_json["archive_migration"]["manifest_schema_version"],
         "bijux.run_manifest.v3"
     );
+    Ok(())
+}
+
+#[test]
+fn reviewer_challenge_workflow_records_tied_references() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let facts_path = dir.path().join("facts.jsonl");
+    let row = facts_row("ih");
+    bijux_dna_infra::write_bytes(&facts_path, format!("{}\n", serde_json::to_string(&row)?))?;
+    write_run_summary_json(&dir.path().join("run_summary.json"), &[row])?;
+    bijux_dna_infra::atomic_write_json(
+        &dir.path().join("run_manifest.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_manifest.v3",
+            "run_id": "review-run-1",
+            "correlation_id": "corr-review-1",
+            "graph_hash": "sha256:graph",
+            "stages": [{ "stage_id": "fastq.trim_reads" }],
+            "output_artifacts": [{ "name": "run_summary", "path": "run_summary.json", "sha256": bijux_dna_infra::hash_file_sha256(&dir.path().join("run_summary.json"))? }],
+            "failures": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &dir.path().join("report.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.report.v1",
+            "sections": { "pipeline_defaults": { "defaults_ledger": {} } },
+            "completeness": { "missing_metrics": [], "missing_reports": [] },
+            "pipeline_verdict": { "verdict": "advisory", "reasons": [] }
+        }),
+    )?;
+    let artifact_path = dir.path().join("validated.fastq");
+    bijux_dna_infra::write_bytes(&artifact_path, "ACGT")?;
+    let artifact_hash = bijux_dna_infra::hash_file_sha256(&artifact_path)?;
+    bijux_dna_infra::atomic_write_json(
+        &dir.path().join("artifact_inventory.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.artifact_inventory.v1",
+            "run_id": "review-run-1",
+            "artifacts": [{
+                "artifact_id": "validated_reads",
+                "name": "validated_reads",
+                "role": "Reads",
+                "path": "validated.fastq",
+                "sha256": artifact_hash,
+                "input_lineage": ["sha256:input"]
+            }]
+        }),
+    )?;
+    let bundle_path = write_evidence_bundle_json(dir.path(), Some(&facts_path))?;
+    let bundle_raw = std::fs::read_to_string(&bundle_path)?;
+    let mut bundle_json: serde_json::Value = serde_json::from_str(&bundle_raw)?;
+    if let Some(health) = bundle_json.get_mut("health").and_then(serde_json::Value::as_object_mut) {
+        health.insert(
+            "gaps".to_string(),
+            serde_json::json!([{
+                "code": "advisory_missing_context",
+                "severity": "advisory",
+                "message": "insufficient context for reviewer",
+                "path": "report.json",
+                "blocks_audit": false
+            }]),
+        );
+    }
+    bijux_dna_infra::atomic_write_json(&bundle_path, &bundle_json)?;
+
+    let submitted = submit_reviewer_challenge(
+        dir.path(),
+        &ReviewerChallengeRequestV1 {
+            artifact_id: "validated_reads".to_string(),
+            evidence_path: "evidence_bundle.json".to_string(),
+            report_field: "completeness.missing_metrics".to_string(),
+            caveat: "advisory_missing_context".to_string(),
+            question: "which metric is missing and why was it tolerated?".to_string(),
+            requested_by: "reviewer@example.org".to_string(),
+        },
+    )?;
+    assert!(submitted.challenge_id.starts_with("challenge-"));
+    assert_eq!(submitted.state, "open");
+    assert_eq!(submitted.evidence_path, "evidence_bundle.json");
+
+    let listed = list_reviewer_challenges(dir.path())?;
+    assert_eq!(listed.len(), 1);
+    assert_eq!(listed[0].artifact_id, "validated_reads");
+    assert_eq!(listed[0].report_field, "completeness.missing_metrics");
+    assert_eq!(listed[0].caveat, "advisory_missing_context");
+    assert!(dir.path().join("reviewer_challenges.latest.json").exists());
     Ok(())
 }

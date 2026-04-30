@@ -131,6 +131,30 @@ pub struct EvidenceProfileBundleVerificationV1 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReviewerChallengeRequestV1 {
+    pub artifact_id: String,
+    pub evidence_path: String,
+    pub report_field: String,
+    pub caveat: String,
+    pub question: String,
+    pub requested_by: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReviewerChallengeRecordV1 {
+    pub schema_version: String,
+    pub challenge_id: String,
+    pub created_at: String,
+    pub artifact_id: String,
+    pub evidence_path: String,
+    pub report_field: String,
+    pub caveat: String,
+    pub question: String,
+    pub requested_by: String,
+    pub state: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EvidenceTimelineEventV1 {
     pub category: EvidenceTimelineCategoryV1,
     pub event: String,
@@ -343,11 +367,15 @@ struct EvidenceInputs {
 ///
 /// # Errors
 /// Returns an error if required evidence inputs cannot be parsed.
-pub fn build_evidence_bundle(base_dir: &Path, facts_path: Option<&Path>) -> Result<EvidenceBundleV1> {
+pub fn build_evidence_bundle(
+    base_dir: &Path,
+    facts_path: Option<&Path>,
+) -> Result<EvidenceBundleV1> {
     let inputs = discover_inputs(base_dir, facts_path);
-    let manifest = load_optional_json(inputs.manifest_path.as_deref())
-        .context("load evidence manifest")?;
-    let report = load_optional_json(inputs.report_path.as_deref()).context("load evidence report")?;
+    let manifest =
+        load_optional_json(inputs.manifest_path.as_deref()).context("load evidence manifest")?;
+    let report =
+        load_optional_json(inputs.report_path.as_deref()).context("load evidence report")?;
     let summary = if let Some(path) = inputs.run_summary_path.as_deref() {
         load_run_summary(path).ok()
     } else {
@@ -364,7 +392,11 @@ pub fn build_evidence_bundle(base_dir: &Path, facts_path: Option<&Path>) -> Resu
         .as_ref()
         .and_then(|value| value.get("run_id"))
         .and_then(serde_json::Value::as_str)
-        .or_else(|| summary.as_ref().and_then(|value| value.stage_rows.first().map(|row| row.run_id.as_str())))
+        .or_else(|| {
+            summary
+                .as_ref()
+                .and_then(|value| value.stage_rows.first().map(|row| row.run_id.as_str()))
+        })
         .or_else(|| facts.as_ref().and_then(|rows| rows.first().map(|row| row.run_id.as_str())))
         .unwrap_or("unknown-run")
         .to_string();
@@ -383,10 +415,26 @@ pub fn build_evidence_bundle(base_dir: &Path, facts_path: Option<&Path>) -> Resu
         report.as_ref(),
     );
     let artifacts = collect_artifacts(base_dir, manifest.as_ref());
-    let provenance_graph = build_provenance_graph(manifest.as_ref(), summary.as_ref(), facts.as_deref(), &artifacts);
-    let health = build_health(base_dir, &inputs, manifest.as_ref(), report.as_ref(), summary.as_ref(), facts.as_deref(), &artifacts);
-    let metrics = build_metrics(&timeline, report.as_ref(), summary.as_ref(), facts.as_deref(), &health);
-    let compact_summary = build_compact_summary(summary.as_ref(), manifest.as_ref(), facts.as_deref(), &artifacts, &health);
+    let provenance_graph =
+        build_provenance_graph(manifest.as_ref(), summary.as_ref(), facts.as_deref(), &artifacts);
+    let health = build_health(
+        base_dir,
+        &inputs,
+        manifest.as_ref(),
+        report.as_ref(),
+        summary.as_ref(),
+        facts.as_deref(),
+        &artifacts,
+    );
+    let metrics =
+        build_metrics(&timeline, report.as_ref(), summary.as_ref(), facts.as_deref(), &health);
+    let compact_summary = build_compact_summary(
+        summary.as_ref(),
+        manifest.as_ref(),
+        facts.as_deref(),
+        &artifacts,
+        &health,
+    );
     let citations = build_citations(report.as_ref(), summary.as_ref());
     let methods_summary = Some(build_methods_summary(
         &run_id,
@@ -410,13 +458,25 @@ pub fn build_evidence_bundle(base_dir: &Path, facts_path: Option<&Path>) -> Resu
             facts_path: to_relative_string(base_dir, inputs.facts_path.as_deref()),
             graph_path: to_relative_string(base_dir, inputs.graph_path.as_deref()),
             environment_path: to_relative_string(base_dir, inputs.environment_path.as_deref()),
-            runtime_policy_path: to_relative_string(base_dir, inputs.runtime_policy_path.as_deref()),
+            runtime_policy_path: to_relative_string(
+                base_dir,
+                inputs.runtime_policy_path.as_deref(),
+            ),
             run_state_path: to_relative_string(base_dir, inputs.run_state_path.as_deref()),
-            executor_descriptor_path: to_relative_string(base_dir, inputs.executor_descriptor_path.as_deref()),
+            executor_descriptor_path: to_relative_string(
+                base_dir,
+                inputs.executor_descriptor_path.as_deref(),
+            ),
             checkpoint_path: to_relative_string(base_dir, inputs.checkpoint_path.as_deref()),
             failure_path: to_relative_string(base_dir, inputs.failure_path.as_deref()),
-            artifact_inventory_path: to_relative_string(base_dir, inputs.artifact_inventory_path.as_deref()),
-            replay_manifest_path: to_relative_string(base_dir, inputs.replay_manifest_path.as_deref()),
+            artifact_inventory_path: to_relative_string(
+                base_dir,
+                inputs.artifact_inventory_path.as_deref(),
+            ),
+            replay_manifest_path: to_relative_string(
+                base_dir,
+                inputs.replay_manifest_path.as_deref(),
+            ),
             hash_ledger_path: to_relative_string(base_dir, inputs.hash_ledger_path.as_deref()),
             evidence_verification_path: to_relative_string(
                 base_dir,
@@ -493,9 +553,8 @@ pub fn verify_profile_bundle(
         .with_context(|| format!("read {}", profile_bundle_path.display()))?;
     let bundle: EvidenceProfileBundleV1 = serde_json::from_str(&raw)
         .with_context(|| format!("parse {}", profile_bundle_path.display()))?;
-    let base_dir = profile_bundle_path
-        .parent()
-        .ok_or_else(|| anyhow!("profile bundle path has no parent"))?;
+    let base_dir =
+        profile_bundle_path.parent().ok_or_else(|| anyhow!("profile bundle path has no parent"))?;
 
     let mut missing_paths = Vec::new();
     let mut hash_mismatches = Vec::new();
@@ -526,6 +585,148 @@ pub fn verify_profile_bundle(
     })
 }
 
+/// Submit a reviewer challenge tied to a governed evidence/report location.
+///
+/// # Errors
+/// Returns an error if required evidence files are missing or challenge references are invalid.
+pub fn submit_reviewer_challenge(
+    base_dir: &Path,
+    request: &ReviewerChallengeRequestV1,
+) -> Result<ReviewerChallengeRecordV1> {
+    if request.artifact_id.trim().is_empty() {
+        return Err(anyhow!("artifact_id cannot be empty"));
+    }
+    if request.evidence_path.trim().is_empty() {
+        return Err(anyhow!("evidence_path cannot be empty"));
+    }
+    if request.report_field.trim().is_empty() {
+        return Err(anyhow!("report_field cannot be empty"));
+    }
+    if request.caveat.trim().is_empty() {
+        return Err(anyhow!("caveat cannot be empty"));
+    }
+    if request.question.trim().is_empty() {
+        return Err(anyhow!("question cannot be empty"));
+    }
+    if request.requested_by.trim().is_empty() {
+        return Err(anyhow!("requested_by cannot be empty"));
+    }
+
+    let artifact_inventory_path = base_dir.join("artifact_inventory.json");
+    let report_path = base_dir.join("report.json");
+    let evidence_bundle_path = base_dir.join("evidence_bundle.json");
+    if !artifact_inventory_path.exists() {
+        return Err(anyhow!(
+            "reviewer challenge requires artifact inventory at {}",
+            artifact_inventory_path.display()
+        ));
+    }
+    if !report_path.exists() {
+        return Err(anyhow!("reviewer challenge requires report at {}", report_path.display()));
+    }
+    if !evidence_bundle_path.exists() {
+        return Err(anyhow!(
+            "reviewer challenge requires evidence bundle at {}",
+            evidence_bundle_path.display()
+        ));
+    }
+
+    let inventory: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&artifact_inventory_path)
+            .with_context(|| format!("read {}", artifact_inventory_path.display()))?,
+    )
+    .with_context(|| format!("parse {}", artifact_inventory_path.display()))?;
+    let artifact_exists =
+        inventory.get("artifacts").and_then(serde_json::Value::as_array).is_some_and(|rows| {
+            rows.iter().any(|row| {
+                row.get("artifact_id").and_then(serde_json::Value::as_str)
+                    == Some(request.artifact_id.as_str())
+            })
+        });
+    if !artifact_exists {
+        return Err(anyhow!(
+            "artifact_id `{}` is not present in artifact_inventory.json",
+            request.artifact_id
+        ));
+    }
+
+    let report: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(&report_path)
+            .with_context(|| format!("read {}", report_path.display()))?,
+    )
+    .with_context(|| format!("parse {}", report_path.display()))?;
+    if report_field(&report, &request.report_field).is_none() {
+        return Err(anyhow!(
+            "report field `{}` is not present in report.json",
+            request.report_field
+        ));
+    }
+    let evidence_relative = validate_reviewer_evidence_path(base_dir, &request.evidence_path)?;
+
+    let bundle: EvidenceBundleV1 = serde_json::from_str(
+        &std::fs::read_to_string(&evidence_bundle_path)
+            .with_context(|| format!("read {}", evidence_bundle_path.display()))?,
+    )
+    .with_context(|| format!("parse {}", evidence_bundle_path.display()))?;
+    let caveat_matches = bundle
+        .health
+        .gaps
+        .iter()
+        .any(|gap| gap.code == request.caveat || gap.message.contains(&request.caveat));
+    if !caveat_matches {
+        return Err(anyhow!(
+            "caveat `{}` does not match any evidence gap code/message",
+            request.caveat
+        ));
+    }
+
+    let mut existing = list_reviewer_challenges(base_dir)?;
+    existing.sort_by(|left, right| left.challenge_id.cmp(&right.challenge_id));
+    let sequence = existing.len() + 1;
+    let challenge_id = format!(
+        "challenge-{}-{}-{:04}",
+        Utc::now().format("%Y%m%d%H%M%S%3f"),
+        sanitized_suffix(&request.artifact_id),
+        sequence
+    );
+    let record = ReviewerChallengeRecordV1 {
+        schema_version: "bijux.reviewer_challenge.v1".to_string(),
+        challenge_id,
+        created_at: Utc::now().to_rfc3339(),
+        artifact_id: request.artifact_id.clone(),
+        evidence_path: evidence_relative,
+        report_field: request.report_field.clone(),
+        caveat: request.caveat.clone(),
+        question: request.question.clone(),
+        requested_by: request.requested_by.clone(),
+        state: "open".to_string(),
+    };
+    append_reviewer_challenge(base_dir, &record)?;
+    Ok(record)
+}
+
+/// Load reviewer challenges from the run root.
+///
+/// # Errors
+/// Returns an error if the challenge log exists but cannot be parsed.
+pub fn list_reviewer_challenges(base_dir: &Path) -> Result<Vec<ReviewerChallengeRecordV1>> {
+    let path = base_dir.join("reviewer_challenges.jsonl");
+    if !path.exists() {
+        return Ok(Vec::new());
+    }
+    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let mut rows = Vec::new();
+    for (index, line) in raw.lines().enumerate() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let row: ReviewerChallengeRecordV1 = serde_json::from_str(line)
+            .with_context(|| format!("parse {} line {}", path.display(), index + 1))?;
+        rows.push(row);
+    }
+    Ok(rows)
+}
+
 /// Verify an evidence bundle and its referenced sources/artifacts.
 ///
 /// # Errors
@@ -535,9 +736,8 @@ pub fn verify_evidence_bundle(bundle_path: &Path) -> Result<EvidenceVerification
         .with_context(|| format!("read evidence bundle {}", bundle_path.display()))?;
     let bundle: EvidenceBundleV1 = serde_json::from_str(&bundle_raw)
         .with_context(|| format!("parse evidence bundle {}", bundle_path.display()))?;
-    let base_dir = bundle_path
-        .parent()
-        .ok_or_else(|| anyhow!("evidence bundle missing parent directory"))?;
+    let base_dir =
+        bundle_path.parent().ok_or_else(|| anyhow!("evidence bundle missing parent directory"))?;
 
     let mut checks = Vec::new();
     let mut missing_paths = Vec::new();
@@ -629,25 +829,16 @@ pub fn verify_evidence_bundle(bundle_path: &Path) -> Result<EvidenceVerification
     if let Some(path) = bundle.sources.hash_ledger_path.as_deref() {
         let full = base_dir.join(path);
         let (ok, message) = verify_hash_ledger_contract(base_dir, &full);
-        checks.push(EvidenceCheckV1 {
-            check_id: "hash_ledger_contract".to_string(),
-            ok,
-            message,
-        });
+        checks.push(EvidenceCheckV1 { check_id: "hash_ledger_contract".to_string(), ok, message });
     }
     if let Some(path) = bundle.sources.report_path.as_deref() {
         let full = base_dir.join(path);
         let (ok, message) = verify_report_completeness(&full);
-        checks.push(EvidenceCheckV1 {
-            check_id: "report_completeness".to_string(),
-            ok,
-            message,
-        });
+        checks.push(EvidenceCheckV1 { check_id: "report_completeness".to_string(), ok, message });
     }
-    if let (Some(manifest_path), Some(run_state_path)) = (
-        bundle.sources.manifest_path.as_deref(),
-        bundle.sources.run_state_path.as_deref(),
-    ) {
+    if let (Some(manifest_path), Some(run_state_path)) =
+        (bundle.sources.manifest_path.as_deref(), bundle.sources.run_state_path.as_deref())
+    {
         let (ok, message) = verify_advisory_and_enforced_consistency(
             &base_dir.join(manifest_path),
             &base_dir.join(run_state_path),
@@ -677,11 +868,10 @@ pub fn compare_evidence_bundles(left: &Path, right: &Path) -> Result<EvidenceCom
     let left_bundle = read_bundle(left)?;
     let right_bundle = read_bundle(right)?;
     let left_stages: BTreeSet<_> = left_bundle.compact_summary.stage_ids.iter().cloned().collect();
-    let right_stages: BTreeSet<_> = right_bundle.compact_summary.stage_ids.iter().cloned().collect();
-    let changed_stage_ids: Vec<String> = left_stages
-        .symmetric_difference(&right_stages)
-        .cloned()
-        .collect();
+    let right_stages: BTreeSet<_> =
+        right_bundle.compact_summary.stage_ids.iter().cloned().collect();
+    let changed_stage_ids: Vec<String> =
+        left_stages.symmetric_difference(&right_stages).cloned().collect();
 
     let left_artifacts: BTreeMap<_, _> = left_bundle
         .artifacts
@@ -707,7 +897,8 @@ pub fn compare_evidence_bundles(left: &Path, right: &Path) -> Result<EvidenceCom
         policy_change_hints.push("stage set changed between evidence bundles".to_string());
     }
     if !changed_artifacts.is_empty() {
-        policy_change_hints.push("artifact inventory or hashes changed between evidence bundles".to_string());
+        policy_change_hints
+            .push("artifact inventory or hashes changed between evidence bundles".to_string());
     }
     if left_bundle.correlation_id != right_bundle.correlation_id {
         policy_change_hints.push("correlation identifiers differ across compared runs".to_string());
@@ -722,7 +913,8 @@ pub fn compare_evidence_bundles(left: &Path, right: &Path) -> Result<EvidenceCom
         changed_stage_ids,
         changed_artifacts,
         runtime_delta_s: right_bundle.metrics.run_time_s - left_bundle.metrics.run_time_s,
-        evidence_gap_delta: right_bundle.health.gaps.len() as i64 - left_bundle.health.gaps.len() as i64,
+        evidence_gap_delta: right_bundle.health.gaps.len() as i64
+            - left_bundle.health.gaps.len() as i64,
         policy_change_hints,
     })
 }
@@ -764,9 +956,15 @@ pub fn validate_evidence_bundle_profile(
 fn discover_inputs(base_dir: &Path, facts_path: Option<&Path>) -> EvidenceInputs {
     EvidenceInputs {
         manifest_path: first_existing(base_dir, &["run_manifest.json", "execution_manifest.json"]),
-        plan_manifest_path: first_existing(base_dir, &["manifests/plan_manifest.json", "plan_manifest.json"]),
+        plan_manifest_path: first_existing(
+            base_dir,
+            &["manifests/plan_manifest.json", "plan_manifest.json"],
+        ),
         report_path: first_existing(base_dir, &["report.json"]),
-        run_summary_path: first_existing(base_dir, &["run_summary.json", "summary/run_summary.json"]),
+        run_summary_path: first_existing(
+            base_dir,
+            &["run_summary.json", "summary/run_summary.json"],
+        ),
         facts_path: facts_path
             .map(Path::to_path_buf)
             .or_else(|| first_existing(base_dir, &["facts.jsonl", "summary/facts.jsonl"])),
@@ -775,7 +973,10 @@ fn discover_inputs(base_dir: &Path, facts_path: Option<&Path>) -> EvidenceInputs
         runtime_policy_path: first_existing(base_dir, &["runtime_policy.json"]),
         run_state_path: first_existing(base_dir, &["run_state.json"]),
         executor_descriptor_path: first_existing(base_dir, &["executor_descriptor.json"]),
-        checkpoint_path: first_existing(base_dir, &["checkpoints/checkpoint.json", "checkpoint.json"]),
+        checkpoint_path: first_existing(
+            base_dir,
+            &["checkpoints/checkpoint.json", "checkpoint.json"],
+        ),
         failure_path: first_existing(base_dir, &["run_failure.json"]),
         artifact_inventory_path: first_existing(base_dir, &["artifact_inventory.json"]),
         replay_manifest_path: first_existing(base_dir, &["replay_manifest.json"]),
@@ -862,13 +1063,18 @@ fn build_timeline(
                     .unwrap_or(serde_json::Value::Null),
             });
         }
-        if let Some(artifacts) = manifest.get("output_artifacts").and_then(serde_json::Value::as_array) {
+        if let Some(artifacts) =
+            manifest.get("output_artifacts").and_then(serde_json::Value::as_array)
+        {
             for artifact in artifacts {
                 timeline.push(EvidenceTimelineEventV1 {
                     category: EvidenceTimelineCategoryV1::Artifact,
                     event: "artifact_manifest_entry".to_string(),
                     timestamp: None,
-                    stage_id: artifact.get("stage_id").and_then(serde_json::Value::as_str).map(str::to_string),
+                    stage_id: artifact
+                        .get("stage_id")
+                        .and_then(serde_json::Value::as_str)
+                        .map(str::to_string),
                     tool_id: None,
                     correlation_id: correlation_id.to_string(),
                     status: "observed".to_string(),
@@ -1063,7 +1269,8 @@ fn build_health(
         gaps.push(EvidenceGapV1 {
             code: "missing_telemetry".to_string(),
             severity: EvidenceSeverityV1::Advisory,
-            message: "telemetry timeline is incomplete because no telemetry jsonl files were found".to_string(),
+            message: "telemetry timeline is incomplete because no telemetry jsonl files were found"
+                .to_string(),
             path: None,
             blocks_audit: true,
         });
@@ -1082,7 +1289,8 @@ fn build_health(
         gaps.push(EvidenceGapV1 {
             code: "missing_artifact_inventory".to_string(),
             severity: EvidenceSeverityV1::Blocking,
-            message: "artifact inventory is required for durable evidence reuse and audit".to_string(),
+            message: "artifact inventory is required for durable evidence reuse and audit"
+                .to_string(),
             path: Some("artifact_inventory.json".to_string()),
             blocks_audit: true,
         });
@@ -1120,7 +1328,8 @@ fn build_health(
         gaps.push(EvidenceGapV1 {
             code: "missing_replay_manifest".to_string(),
             severity: EvidenceSeverityV1::Advisory,
-            message: "replay provenance is reduced because replay_manifest.json is missing".to_string(),
+            message: "replay provenance is reduced because replay_manifest.json is missing"
+                .to_string(),
             path: Some("replay_manifest.json".to_string()),
             blocks_audit: false,
         });
@@ -1148,7 +1357,10 @@ fn build_health(
                     gaps.push(EvidenceGapV1 {
                         code: "artifact_hash_mismatch".to_string(),
                         severity: EvidenceSeverityV1::Blocking,
-                        message: format!("artifact {} does not match its declared hash", artifact.name),
+                        message: format!(
+                            "artifact {} does not match its declared hash",
+                            artifact.name
+                        ),
                         path: Some(artifact.path.clone()),
                         blocks_audit: true,
                     });
@@ -1190,9 +1402,8 @@ fn build_metrics(
         .map(|summary| summary.total_runtime_s)
         .or_else(|| facts.map(|rows| rows.iter().map(|row| row.runtime_s).sum()))
         .unwrap_or(0.0);
-    let failed_stage_count = facts
-        .map(|rows| rows.iter().filter(|row| row.exit_code != 0).count() as u64)
-        .unwrap_or(0);
+    let failed_stage_count =
+        facts.map(|rows| rows.iter().filter(|row| row.exit_code != 0).count() as u64).unwrap_or(0);
     let queue_time_ms = queue_time_from_timeline(timeline);
     let cache_hit_count = timeline
         .iter()
@@ -1261,12 +1472,9 @@ fn build_compact_summary(
     if let Some(facts) = facts {
         stage_ids.extend(facts.iter().map(|row| row.stage_id.clone()));
     }
-    let final_outputs = summary
-        .map(|summary| summary.final_outputs.clone())
-        .unwrap_or_default();
-    let failed_stage_count = facts
-        .map(|rows| rows.iter().filter(|row| row.exit_code != 0).count())
-        .unwrap_or(0);
+    let final_outputs = summary.map(|summary| summary.final_outputs.clone()).unwrap_or_default();
+    let failed_stage_count =
+        facts.map(|rows| rows.iter().filter(|row| row.exit_code != 0).count()).unwrap_or(0);
     EvidenceCompactSummaryV1 {
         stage_count: stage_ids.len(),
         artifact_count: artifacts.len(),
@@ -1295,7 +1503,9 @@ fn build_provenance_graph(
     let mut input_ids = BTreeSet::new();
 
     if let Some(manifest) = manifest {
-        if let Some(inputs) = manifest.get("dataset_fingerprints").and_then(serde_json::Value::as_array) {
+        if let Some(inputs) =
+            manifest.get("dataset_fingerprints").and_then(serde_json::Value::as_array)
+        {
             for input in inputs.iter().filter_map(serde_json::Value::as_str) {
                 input_ids.insert(input.to_string());
             }
@@ -1320,13 +1530,7 @@ fn build_provenance_graph(
         push_node(&mut nodes, &mut seen_nodes, format!("input:{input}"), "input", input.clone());
     }
     for stage in &stage_ids {
-        push_node(
-            &mut nodes,
-            &mut seen_nodes,
-            format!("stage:{stage}"),
-            "stage",
-            stage.clone(),
-        );
+        push_node(&mut nodes, &mut seen_nodes, format!("stage:{stage}"), "stage", stage.clone());
     }
     for artifact in artifacts {
         push_node(
@@ -1363,7 +1567,10 @@ fn build_provenance_graph(
     EvidenceProvenanceGraphV1 { nodes, edges }
 }
 
-fn collect_artifacts(base_dir: &Path, manifest: Option<&serde_json::Value>) -> Vec<EvidenceArtifactV1> {
+fn collect_artifacts(
+    base_dir: &Path,
+    manifest: Option<&serde_json::Value>,
+) -> Vec<EvidenceArtifactV1> {
     let mut artifacts = Vec::new();
     if let Some(entries) = manifest
         .and_then(|manifest| manifest.get("output_artifacts"))
@@ -1381,11 +1588,14 @@ fn collect_artifacts(base_dir: &Path, manifest: Option<&serde_json::Value>) -> V
                 .and_then(serde_json::Value::as_str)
                 .unwrap_or("unknown")
                 .to_string();
-            let sha256 = entry.get("sha256").and_then(serde_json::Value::as_str).map(str::to_string);
+            let sha256 =
+                entry.get("sha256").and_then(serde_json::Value::as_str).map(str::to_string);
             artifacts.push(EvidenceArtifactV1 { name, path, sha256 });
         }
     }
-    artifacts.sort_by(|left, right| (left.name.as_str(), left.path.as_str()).cmp(&(right.name.as_str(), right.path.as_str())));
+    artifacts.sort_by(|left, right| {
+        (left.name.as_str(), left.path.as_str()).cmp(&(right.name.as_str(), right.path.as_str()))
+    });
     artifacts.dedup_by(|left, right| left.name == right.name && left.path == right.path);
     if artifacts.is_empty() {
         let bundle_path = base_dir.join("evidence_bundle.json");
@@ -1582,10 +1792,9 @@ fn build_profile_bundle(
     let evidence_verification = verify_evidence_bundle(&evidence_bundle_path)?;
     let profile_validation = validate_evidence_bundle_profile(&source_bundle, profile);
     let required_files = build_required_files(base_dir, &source_bundle)?;
-    let archive_migration =
-        matches!(profile, EvidenceBundleProfileV1::ArchiveRetention).then(|| {
-            build_archive_migration(base_dir, &source_bundle)
-        }).transpose()?;
+    let archive_migration = matches!(profile, EvidenceBundleProfileV1::ArchiveRetention)
+        .then(|| build_archive_migration(base_dir, &source_bundle))
+        .transpose()?;
     let signature_path = base_dir
         .join("bundle_signature.json")
         .exists()
@@ -1642,6 +1851,12 @@ fn build_required_files(
     if base_dir.join("bundle_signature.json").exists() {
         required.insert("bundle_signature.json".to_string());
     }
+    if base_dir.join("reviewer_challenges.jsonl").exists() {
+        required.insert("reviewer_challenges.jsonl".to_string());
+    }
+    if base_dir.join("reviewer_challenges.latest.json").exists() {
+        required.insert("reviewer_challenges.latest.json".to_string());
+    }
 
     let mut rows = Vec::new();
     for rel in required {
@@ -1676,13 +1891,16 @@ fn redact_for_collaborator(bundle: EvidenceBundleV1) -> EvidenceBundleV1 {
     redacted.sources.environment_path = redact_path(&redacted.sources.environment_path);
     redacted.sources.runtime_policy_path = redact_path(&redacted.sources.runtime_policy_path);
     redacted.sources.run_state_path = redact_path(&redacted.sources.run_state_path);
-    redacted.sources.executor_descriptor_path = redact_path(&redacted.sources.executor_descriptor_path);
+    redacted.sources.executor_descriptor_path =
+        redact_path(&redacted.sources.executor_descriptor_path);
     redacted.sources.checkpoint_path = redact_path(&redacted.sources.checkpoint_path);
     redacted.sources.failure_path = redact_path(&redacted.sources.failure_path);
-    redacted.sources.artifact_inventory_path = redact_path(&redacted.sources.artifact_inventory_path);
+    redacted.sources.artifact_inventory_path =
+        redact_path(&redacted.sources.artifact_inventory_path);
     redacted.sources.replay_manifest_path = redact_path(&redacted.sources.replay_manifest_path);
     redacted.sources.hash_ledger_path = redact_path(&redacted.sources.hash_ledger_path);
-    redacted.sources.evidence_verification_path = redact_path(&redacted.sources.evidence_verification_path);
+    redacted.sources.evidence_verification_path =
+        redact_path(&redacted.sources.evidence_verification_path);
     redacted.sources.telemetry_paths = redacted
         .sources
         .telemetry_paths
@@ -1733,7 +1951,11 @@ fn build_archive_migration(
     })
 }
 
-fn load_schema_version(base_dir: &Path, relative_path: Option<&str>, fallback: &str) -> Result<String> {
+fn load_schema_version(
+    base_dir: &Path,
+    relative_path: Option<&str>,
+    fallback: &str,
+) -> Result<String> {
     let Some(relative_path) = relative_path else {
         return Ok(fallback.to_string());
     };
@@ -1762,8 +1984,80 @@ fn profile_bundle_file_name(profile: EvidenceBundleProfileV1) -> &'static str {
     }
 }
 
+fn report_field<'a>(
+    value: &'a serde_json::Value,
+    dotted_path: &str,
+) -> Option<&'a serde_json::Value> {
+    let mut current = value;
+    for segment in dotted_path.split('.').filter(|segment| !segment.is_empty()) {
+        current = current.get(segment)?;
+    }
+    Some(current)
+}
+
+fn append_reviewer_challenge(base_dir: &Path, record: &ReviewerChallengeRecordV1) -> Result<()> {
+    let path = base_dir.join("reviewer_challenges.jsonl");
+    let mut rows = list_reviewer_challenges(base_dir)?;
+    rows.push(record.clone());
+    rows.sort_by(|left, right| left.challenge_id.cmp(&right.challenge_id));
+    let payload = rows
+        .iter()
+        .map(serde_json::to_string)
+        .collect::<std::result::Result<Vec<_>, _>>()?
+        .join("\n")
+        + "\n";
+    bijux_dna_infra::write_bytes(&path, payload)?;
+    let latest_path = base_dir.join("reviewer_challenges.latest.json");
+    bijux_dna_infra::atomic_write_json(&latest_path, record)
+        .with_context(|| format!("write {}", latest_path.display()))?;
+    Ok(())
+}
+
+fn validate_reviewer_evidence_path(base_dir: &Path, value: &str) -> Result<String> {
+    let candidate = Path::new(value);
+    if candidate.is_absolute() {
+        return Err(anyhow!(
+            "evidence_path must be repository-relative, got absolute path `{value}`"
+        ));
+    }
+    if candidate.components().any(|component| matches!(component, std::path::Component::ParentDir))
+    {
+        return Err(anyhow!(
+            "evidence_path must not contain parent traversal (`..`), got `{value}`"
+        ));
+    }
+    let relative = candidate
+        .to_str()
+        .map(str::trim)
+        .filter(|path| !path.is_empty())
+        .ok_or_else(|| anyhow!("evidence_path must be valid UTF-8"))?;
+    let full = base_dir.join(relative);
+    if !full.exists() {
+        return Err(anyhow!("evidence_path `{relative}` is not present under run directory"));
+    }
+    Ok(relative.to_string())
+}
+
+fn sanitized_suffix(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for ch in value.chars() {
+        if ch.is_ascii_alphanumeric() {
+            out.push(ch.to_ascii_lowercase());
+        } else if ch == '_' || ch == '-' {
+            out.push(ch);
+        }
+    }
+    if out.is_empty() {
+        "artifact".to_string()
+    } else {
+        out
+    }
+}
+
 fn verify_artifact_inventory_contract(path: &Path) -> (bool, String) {
-    let Ok((inventory, audit)) = bijux_dna_runtime::run_layout::read_supported_artifact_inventory(path) else {
+    let Ok((inventory, audit)) =
+        bijux_dna_runtime::run_layout::read_supported_artifact_inventory(path)
+    else {
         return (false, format!("artifact inventory missing at {}", path.display()));
     };
     let role_complete = inventory.artifacts.iter().all(|row| !row.role.trim().is_empty());
@@ -1990,21 +2284,20 @@ fn verify_report_completeness(path: &Path) -> (bool, String) {
     )
 }
 
-fn verify_advisory_and_enforced_consistency(manifest_path: &Path, run_state_path: &Path) -> (bool, String) {
+fn verify_advisory_and_enforced_consistency(
+    manifest_path: &Path,
+    run_state_path: &Path,
+) -> (bool, String) {
     let manifest = std::fs::read_to_string(manifest_path)
         .ok()
         .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok());
     let run_state = std::fs::read_to_string(run_state_path)
         .ok()
         .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok());
-    let manifest_mode = manifest
-        .as_ref()
-        .and_then(|value| value.get("mode"))
-        .and_then(serde_json::Value::as_str);
-    let state_mode = run_state
-        .as_ref()
-        .and_then(|value| value.get("mode"))
-        .and_then(serde_json::Value::as_str);
+    let manifest_mode =
+        manifest.as_ref().and_then(|value| value.get("mode")).and_then(serde_json::Value::as_str);
+    let state_mode =
+        run_state.as_ref().and_then(|value| value.get("mode")).and_then(serde_json::Value::as_str);
     let ok = manifest_mode == state_mode;
     (
         ok,
@@ -2032,10 +2325,7 @@ fn load_optional_json(path: Option<&Path>) -> Result<Option<serde_json::Value>> 
 }
 
 fn first_existing(base_dir: &Path, candidates: &[&str]) -> Option<PathBuf> {
-    candidates
-        .iter()
-        .map(|candidate| base_dir.join(candidate))
-        .find(|path| path.exists())
+    candidates.iter().map(|candidate| base_dir.join(candidate)).find(|path| path.exists())
 }
 
 fn find_telemetry_paths(base_dir: &Path) -> Vec<PathBuf> {
@@ -2068,10 +2358,7 @@ fn to_relative_string(base_dir: &Path, path: Option<&Path>) -> Option<String> {
 }
 
 fn relative_or_display(base_dir: &Path, path: &Path) -> String {
-    path.strip_prefix(base_dir)
-        .unwrap_or(path)
-        .display()
-        .to_string()
+    path.strip_prefix(base_dir).unwrap_or(path).display().to_string()
 }
 
 fn push_node(
@@ -2100,7 +2387,9 @@ fn push_edge(
 }
 
 fn queue_time_from_timeline(timeline: &[EvidenceTimelineEventV1]) -> Option<u64> {
-    let planner = timeline.iter().find(|event| matches!(event.category, EvidenceTimelineCategoryV1::Planner))?;
+    let planner = timeline
+        .iter()
+        .find(|event| matches!(event.category, EvidenceTimelineCategoryV1::Planner))?;
     let execution = timeline
         .iter()
         .find(|event| matches!(event.category, EvidenceTimelineCategoryV1::Execution))?;
