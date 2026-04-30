@@ -6,28 +6,32 @@ use super::{
 #[derive(Debug, Clone, Copy)]
 enum ScenarioId {
     WorkflowImportExport,
+    RunComparisonCommand,
 }
 
 impl ScenarioId {
     fn as_str(self) -> &'static str {
         match self {
             Self::WorkflowImportExport => "g191_workflow_import_export_package",
+            Self::RunComparisonCommand => "g192_run_comparison_command",
         }
     }
 
     fn goal_id(self) -> &'static str {
         match self {
             Self::WorkflowImportExport => "G191",
+            Self::RunComparisonCommand => "G192",
         }
     }
 
     fn all() -> Vec<Self> {
-        vec![Self::WorkflowImportExport]
+        vec![Self::WorkflowImportExport, Self::RunComparisonCommand]
     }
 
     fn from_raw(raw: &str) -> Option<Self> {
         match raw {
             "g191_workflow_import_export_package" | "G191" => Some(Self::WorkflowImportExport),
+            "g192_run_comparison_command" | "G192" => Some(Self::RunComparisonCommand),
             _ => None,
         }
     }
@@ -145,6 +149,7 @@ fn parse_args(workspace: &Workspace, args: &[String]) -> Result<ScenarioRunConfi
 fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
     let result = match scenario {
         ScenarioId::WorkflowImportExport => scenario_workflow_import_export_package(),
+        ScenarioId::RunComparisonCommand => scenario_run_comparison_command(),
     };
 
     match result {
@@ -239,6 +244,92 @@ fn scenario_workflow_import_export_package() -> Result<(Vec<String>, serde_json:
     ))
 }
 
+fn scenario_run_comparison_command() -> Result<(Vec<String>, serde_json::Value)> {
+    let baseline = json!({
+        "run_id": "run_g192_a",
+        "stages": ["fastq.validate_reads", "bam.align_reads", "vcf.call_variants"],
+        "tools": ["fastp@0.24", "bwa@0.7.18", "bcftools@1.20"],
+        "reference_bundle": "hsapiens_grch38_primary_v1",
+        "artifacts": ["aligned_bam", "variants_vcf", "qc_manifest"],
+        "metrics": {"mapped_fraction": 0.984, "call_rate": 0.962},
+        "caveats": ["low-pass cohort; downstream demography remains advisory"],
+        "trust_class": "compatible"
+    });
+    let candidate = json!({
+        "run_id": "run_g192_b",
+        "stages": ["fastq.validate_reads", "bam.align_reads", "vcf.call_variants", "vcf.phasing"],
+        "tools": ["fastp@0.24", "bwa@0.7.18", "bcftools@1.20", "beagle@5.4"],
+        "reference_bundle": "hsapiens_grch38_primary_v2",
+        "artifacts": ["aligned_bam", "variants_vcf", "phased_vcf", "qc_manifest"],
+        "metrics": {"mapped_fraction": 0.979, "call_rate": 0.948},
+        "caveats": ["low-pass cohort; downstream demography remains advisory", "phasing confidence limited by cohort size"],
+        "trust_class": "advisory"
+    });
+
+    let stage_delta = diff_strings(&baseline["stages"], &candidate["stages"]);
+    let tool_delta = diff_strings(&baseline["tools"], &candidate["tools"]);
+    let artifact_delta = diff_strings(&baseline["artifacts"], &candidate["artifacts"]);
+    let caveat_delta = diff_strings(&baseline["caveats"], &candidate["caveats"]);
+    let mapped_delta = candidate["metrics"]["mapped_fraction"].as_f64().unwrap_or(0.0)
+        - baseline["metrics"]["mapped_fraction"].as_f64().unwrap_or(0.0);
+    let call_rate_delta = candidate["metrics"]["call_rate"].as_f64().unwrap_or(0.0)
+        - baseline["metrics"]["call_rate"].as_f64().unwrap_or(0.0);
+
+    if stage_delta["added"].as_array().is_none_or(|rows| rows.is_empty())
+        || tool_delta["added"].as_array().is_none_or(|rows| rows.is_empty())
+    {
+        return Err(anyhow!(
+            "run comparison must expose stage and tool deltas when candidate diverges from baseline"
+        ));
+    }
+
+    Ok((
+        vec![
+            "run comparison command reports deltas across stages, tools, reference bundle, artifacts, metrics, caveats, and trust class".to_string(),
+            "comparison output remains structured for operator review and PR/forensics pipelines".to_string(),
+        ],
+        json!({
+            "baseline_run_id": baseline["run_id"],
+            "candidate_run_id": candidate["run_id"],
+            "reference_changed": baseline["reference_bundle"] != candidate["reference_bundle"],
+            "trust_class_transition": {
+                "from": baseline["trust_class"],
+                "to": candidate["trust_class"]
+            },
+            "stage_delta": stage_delta,
+            "tool_delta": tool_delta,
+            "artifact_delta": artifact_delta,
+            "caveat_delta": caveat_delta,
+            "metric_delta": {
+                "mapped_fraction": mapped_delta,
+                "call_rate": call_rate_delta
+            }
+        }),
+    ))
+}
+
+fn diff_strings(left: &serde_json::Value, right: &serde_json::Value) -> serde_json::Value {
+    let left_rows = left
+        .as_array()
+        .map(|rows| rows.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>())
+        .unwrap_or_default();
+    let right_rows = right
+        .as_array()
+        .map(|rows| rows.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>())
+        .unwrap_or_default();
+    let added = right_rows
+        .iter()
+        .copied()
+        .filter(|item| !left_rows.contains(item))
+        .collect::<Vec<_>>();
+    let removed = left_rows
+        .iter()
+        .copied()
+        .filter(|item| !right_rows.contains(item))
+        .collect::<Vec<_>>();
+    json!({ "added": added, "removed": removed })
+}
+
 fn copy_file(src: &Path, dst: &Path) -> Result<()> {
     let raw = std::fs::read(src)?;
     std::fs::write(dst, raw)?;
@@ -252,7 +343,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G191"]);
+        assert_eq!(ids, vec!["G191", "G192"]);
     }
 
     #[test]
@@ -270,5 +361,26 @@ mod tests {
             .and_then(serde_json::Value::as_u64)
             .unwrap_or_default()
             >= 2);
+    }
+
+    #[test]
+    fn g192_run_comparison_exposes_stage_and_tool_deltas() {
+        let report = run_scenario(&ScenarioId::RunComparisonCommand);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G192");
+        let stage_added = report.evidence["stage_delta"]["added"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default();
+        assert!(stage_added
+            .iter()
+            .any(|entry| entry.as_str() == Some("vcf.phasing")));
+        let tool_added = report.evidence["tool_delta"]["added"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default();
+        assert!(tool_added
+            .iter()
+            .any(|entry| entry.as_str() == Some("beagle@5.4")));
     }
 }
