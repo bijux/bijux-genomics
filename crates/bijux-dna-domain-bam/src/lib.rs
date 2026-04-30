@@ -3,8 +3,8 @@
 //! Owns: BAM stage semantics, effective params, and canonical metrics schema.
 //! Must NOT depend on: bijux-dna-engine or runtime/container execution logic.
 
-mod artifacts;
 pub mod alignment;
+mod artifacts;
 pub mod defaults;
 pub mod invariants;
 pub mod metrics;
@@ -14,7 +14,6 @@ pub mod prelude;
 pub mod stage_specs;
 pub mod types;
 
-pub use invariants::bam_invariant_specs;
 pub use artifacts::{
     bam_adna_workflow_contract, bam_alignment_strategies, bam_alignment_strategy_for_tool,
     bam_artifact_inventory_from_outputs, bam_bench_corpus_manifest,
@@ -22,29 +21,30 @@ pub use artifacts::{
     bam_scientific_report_contract_for_stage, bam_scientific_report_contracts,
     bam_workflow_template_by_id, bam_workflow_templates, classify_bam_coverage_regime,
     compare_bam_duplicate_methods, estimate_bam_stage_resources, evaluate_bam_merge_compatibility,
-    required_bam_bench_corpus_scenarios, BamAdnaWorkflowV1, BamAdvisoryBoundaryV1,
-    BamAlignmentProvenanceV1, BamAlignmentStrategyV1, BamAlignmentSuitabilityV1,
-    BamArtifactEntryV1, BamArtifactInventoryV1, BamBenchCorpusDatasetManifestEntryV1,
-    BamBenchCorpusManifestV1, BamBenchDatasetScenarioV1, BamContaminationToolContractV1,
-    BamContaminationWorkflowV1, BamCoverageRegimeClassV1, BamCoverageRegimeV1,
-    BamCoverageSummaryV1, BamDuplicateComparisonV1, BamDuplicateMethodMetricsV1,
-    BamDuplicatePolicyV1, BamFlagstatCountsV1, BamMapqFilterSummaryV1, BamMapqRegimeV1,
-    BamMappingSummaryV1, BamMergeCompatibilityV1, BamMergeInputIdentityV1,
+    execute_bam_validation, required_bam_bench_corpus_scenarios, BamAdnaWorkflowV1,
+    BamAdvisoryBoundaryV1, BamAlignmentProvenanceV1, BamAlignmentStrategyV1,
+    BamAlignmentSuitabilityV1, BamArtifactEntryV1, BamArtifactInventoryV1,
+    BamBenchCorpusDatasetManifestEntryV1, BamBenchCorpusManifestV1, BamBenchDatasetScenarioV1,
+    BamContaminationToolContractV1, BamContaminationWorkflowV1, BamCoverageRegimeClassV1,
+    BamCoverageRegimeV1, BamCoverageSummaryV1, BamDuplicateComparisonV1,
+    BamDuplicateMethodMetricsV1, BamDuplicatePolicyV1, BamFlagstatCountsV1, BamMappingSummaryV1,
+    BamMapqFilterSummaryV1, BamMapqRegimeV1, BamMergeCompatibilityV1, BamMergeInputIdentityV1,
     BamPostAlignmentChainV1, BamReferenceAssetIdentityV1, BamReferencePreflightV1,
     BamSampleIdentityV1, BamScientificReportContractV1, BamScientificReportIdV1,
-    BamStageResourcePlanV1, BamValidationSummaryV1, BamWorkflowModeV1,
-    BamWorkflowTemplateV1, BAM_ADNA_WORKFLOW_SCHEMA_VERSION,
-    BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION, BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION,
-    BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION, BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION,
-    BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION, BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION,
-    BAM_COVERAGE_REGIME_SCHEMA_VERSION, BAM_COVERAGE_SUMMARY_SCHEMA_VERSION,
-    BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION, BAM_DUPLICATE_POLICY_SCHEMA_VERSION,
-    BAM_MAPPING_SUMMARY_SCHEMA_VERSION, BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION,
-    BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION, BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION,
-    BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION, BAM_RESOURCE_PLAN_SCHEMA_VERSION,
-    BAM_SAMPLE_IDENTITY_SCHEMA_VERSION, BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION,
-    BAM_VALIDATION_SUMMARY_SCHEMA_VERSION, BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
+    BamStageResourcePlanV1, BamValidationSummaryV1, BamWorkflowModeV1, BamWorkflowTemplateV1,
+    BAM_ADNA_WORKFLOW_SCHEMA_VERSION, BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION,
+    BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION, BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION,
+    BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION, BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION,
+    BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION, BAM_COVERAGE_REGIME_SCHEMA_VERSION,
+    BAM_COVERAGE_SUMMARY_SCHEMA_VERSION, BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION,
+    BAM_DUPLICATE_POLICY_SCHEMA_VERSION, BAM_MAPPING_SUMMARY_SCHEMA_VERSION,
+    BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION, BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION,
+    BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION, BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION,
+    BAM_RESOURCE_PLAN_SCHEMA_VERSION, BAM_SAMPLE_IDENTITY_SCHEMA_VERSION,
+    BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION, BAM_VALIDATION_SUMMARY_SCHEMA_VERSION,
+    BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
 };
+pub use invariants::bam_invariant_specs;
 pub use stage_specs::{
     contract_for_stage, required_audit_artifacts, stage_contract_hash, stage_contract_json,
     stage_spec, stage_spec_opt, stage_specs, ArtifactPolicy, AuditArtifact, BamArtifactKind,

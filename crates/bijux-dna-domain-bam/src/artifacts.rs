@@ -1,5 +1,7 @@
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
+use anyhow::{anyhow, Result};
 use bijux_dna_core::contract::ArtifactRef;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -23,8 +25,7 @@ pub const BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION: &str = "bijux.bam.post_alignm
 pub const BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION: &str = "bijux.bam.duplicate_comparison.v1";
 pub const BAM_COVERAGE_REGIME_SCHEMA_VERSION: &str = "bijux.bam.coverage_regime.v1";
 pub const BAM_ADNA_WORKFLOW_SCHEMA_VERSION: &str = "bijux.bam.adna_workflow.v1";
-pub const BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION: &str =
-    "bijux.bam.contamination_workflow.v1";
+pub const BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION: &str = "bijux.bam.contamination_workflow.v1";
 pub const BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION: &str = "bijux.bam.scientific_report.v1";
 pub const BAM_RESOURCE_PLAN_SCHEMA_VERSION: &str = "bijux.bam.resource_plan.v1";
 pub const BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION: &str = "bijux.bam.bench_corpus_manifest.v1";
@@ -463,7 +464,9 @@ pub struct BamStageResourcePlanV1 {
     pub notes: Vec<String>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum BamBenchDatasetScenarioV1 {
     TinyAligned,
@@ -492,6 +495,273 @@ pub struct BamBenchCorpusManifestV1 {
     pub scenarios_covered: Vec<BamBenchDatasetScenarioV1>,
     pub ci_subset: Vec<String>,
     pub datasets: Vec<BamBenchCorpusDatasetManifestEntryV1>,
+}
+
+#[derive(Debug, Clone)]
+struct TinySamRecord {
+    qname: String,
+    flag: u16,
+    rname: String,
+    pos: u64,
+    mapq: u8,
+    cigar: String,
+    seq: String,
+    read_group_id: Option<String>,
+}
+
+impl TinySamRecord {
+    fn is_mapped(&self) -> bool {
+        self.rname != "*" && (self.flag & 0x4) == 0
+    }
+
+    fn is_duplicate(&self) -> bool {
+        (self.flag & 0x400) != 0
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+struct TinySamDocument {
+    sort_order: Option<String>,
+    references: Vec<String>,
+    read_groups: Vec<String>,
+    read_group_samples: Vec<String>,
+    records: Vec<TinySamRecord>,
+}
+
+fn parse_tag_value(field: &str, key: &str) -> Option<String> {
+    if !field.starts_with(key) {
+        return None;
+    }
+    let mut iter = field.splitn(3, ':');
+    let first = iter.next()?;
+    let second = iter.next()?;
+    let value = iter.next()?;
+    if first == key && second == "Z" {
+        Some(value.to_string())
+    } else {
+        None
+    }
+}
+
+fn parse_tiny_sam(path: &Path) -> Result<TinySamDocument> {
+    let mut document = TinySamDocument::default();
+    let payload = std::fs::read_to_string(path)?;
+    for (line_index, raw_line) in payload.lines().enumerate() {
+        let line = raw_line.trim_end();
+        if line.is_empty() {
+            continue;
+        }
+        if line.starts_with('@') {
+            let fields = line.split('\t').collect::<Vec<_>>();
+            match fields.first().copied() {
+                Some("@HD") => {
+                    for field in &fields[1..] {
+                        if let Some(sort_order) = field.strip_prefix("SO:") {
+                            document.sort_order = Some(sort_order.to_string());
+                        }
+                    }
+                }
+                Some("@SQ") => {
+                    for field in &fields[1..] {
+                        if let Some(reference_name) = field.strip_prefix("SN:") {
+                            document.references.push(reference_name.to_string());
+                        }
+                    }
+                }
+                Some("@RG") => {
+                    for field in &fields[1..] {
+                        if let Some(read_group_id) = field.strip_prefix("ID:") {
+                            document.read_groups.push(read_group_id.to_string());
+                        } else if let Some(sample_id) = field.strip_prefix("SM:") {
+                            document.read_group_samples.push(sample_id.to_string());
+                        }
+                    }
+                }
+                _ => {}
+            }
+            continue;
+        }
+        let fields = line.split('\t').collect::<Vec<_>>();
+        if fields.len() < 11 {
+            return Err(anyhow!(
+                "malformed SAM record at line {}: expected at least 11 fields",
+                line_index + 1
+            ));
+        }
+        let flag = fields[1].parse::<u16>().map_err(|error| {
+            anyhow!(
+                "malformed SAM record at line {}: invalid flag {} ({error})",
+                line_index + 1,
+                fields[1]
+            )
+        })?;
+        let pos = fields[3].parse::<u64>().map_err(|error| {
+            anyhow!(
+                "malformed SAM record at line {}: invalid position {} ({error})",
+                line_index + 1,
+                fields[3]
+            )
+        })?;
+        let mapq = fields[4].parse::<u8>().map_err(|error| {
+            anyhow!(
+                "malformed SAM record at line {}: invalid MAPQ {} ({error})",
+                line_index + 1,
+                fields[4]
+            )
+        })?;
+        let mut read_group_id = None;
+        for tag in &fields[11..] {
+            if let Some(value) = parse_tag_value(tag, "RG") {
+                read_group_id = Some(value);
+                break;
+            }
+        }
+        document.records.push(TinySamRecord {
+            qname: fields[0].to_string(),
+            flag,
+            rname: fields[2].to_string(),
+            pos,
+            mapq,
+            cigar: fields[5].to_string(),
+            seq: fields[9].to_string(),
+            read_group_id,
+        });
+    }
+    Ok(document)
+}
+
+fn parse_reference_contigs(reference_fasta: &Path) -> Result<BTreeSet<String>> {
+    let payload = std::fs::read_to_string(reference_fasta)?;
+    let mut contigs = BTreeSet::new();
+    for line in payload.lines() {
+        if let Some(header) = line.strip_prefix('>') {
+            let contig = header.split_whitespace().next().unwrap_or_default().trim();
+            if !contig.is_empty() {
+                contigs.insert(contig.to_string());
+            }
+        }
+    }
+    Ok(contigs)
+}
+
+fn flagstat_from_records(records: &[TinySamRecord]) -> BamFlagstatCountsV1 {
+    let total_reads = records.len() as u64;
+    let mapped_reads = records.iter().filter(|record| record.is_mapped()).count() as u64;
+    let duplicate_reads = records.iter().filter(|record| record.is_duplicate()).count() as u64;
+    let mapped_fraction =
+        if total_reads == 0 { None } else { Some(mapped_reads as f64 / total_reads as f64) };
+    BamFlagstatCountsV1 {
+        total_reads: Some(total_reads),
+        mapped_reads: Some(mapped_reads),
+        duplicate_reads: Some(duplicate_reads),
+        mapped_fraction,
+    }
+}
+
+fn push_refusal(refusals: &mut Vec<String>, code: &str) {
+    if !refusals.iter().any(|entry| entry == code) {
+        refusals.push(code.to_string());
+    }
+}
+
+/// Execute strict validation for tiny SAM/BAM fixtures and return a governed validation summary.
+///
+/// Refusal codes are deterministic and cover malformed records, header coherence, read-group/sample
+/// identity, reference alignment scope, empty alignments, and sort/index requirements.
+///
+/// # Errors
+/// Returns an error only when reading fixture files fails unexpectedly.
+pub fn execute_bam_validation(
+    input_bam: &Path,
+    bam_index: Option<&Path>,
+    reference_fasta: Option<&Path>,
+) -> Result<BamValidationSummaryV1> {
+    let mut refusal_codes = Vec::new();
+    let mut flagstat = BamFlagstatCountsV1 {
+        total_reads: None,
+        mapped_reads: None,
+        duplicate_reads: None,
+        mapped_fraction: None,
+    };
+
+    if !input_bam.exists() {
+        push_refusal(&mut refusal_codes, "input_bam_missing");
+    }
+
+    let document = if refusal_codes.is_empty() {
+        match parse_tiny_sam(input_bam) {
+            Ok(parsed) => {
+                flagstat = flagstat_from_records(&parsed.records);
+                Some(parsed)
+            }
+            Err(_) => {
+                push_refusal(&mut refusal_codes, "malformed_alignment_record");
+                None
+            }
+        }
+    } else {
+        None
+    };
+
+    if let Some(parsed) = &document {
+        if parsed.references.is_empty() {
+            push_refusal(&mut refusal_codes, "header_reference_missing");
+        }
+        if parsed.read_groups.is_empty() {
+            push_refusal(&mut refusal_codes, "header_read_group_missing");
+        }
+        if parsed.read_group_samples.is_empty() {
+            push_refusal(&mut refusal_codes, "header_sample_missing");
+        } else if parsed.read_group_samples.windows(2).any(|pair| pair[0] != pair[1]) {
+            push_refusal(&mut refusal_codes, "read_group_sample_conflict");
+        }
+        if parsed.records.is_empty() {
+            push_refusal(&mut refusal_codes, "empty_alignment_records");
+        }
+        let header_references = parsed.references.iter().cloned().collect::<BTreeSet<_>>();
+        if parsed
+            .records
+            .iter()
+            .filter(|record| record.is_mapped())
+            .any(|record| !header_references.contains(&record.rname))
+        {
+            push_refusal(&mut refusal_codes, "record_reference_missing_from_header");
+        }
+        if parsed.sort_order.as_deref() != Some("coordinate") {
+            push_refusal(&mut refusal_codes, "sort_order_not_coordinate");
+        }
+        if parsed.sort_order.as_deref() == Some("coordinate") {
+            match bam_index {
+                Some(index_path) if index_path.exists() => {
+                    if std::fs::metadata(index_path)?.len() == 0 {
+                        push_refusal(&mut refusal_codes, "bam_index_empty");
+                    }
+                }
+                _ => {
+                    push_refusal(&mut refusal_codes, "bam_index_missing");
+                }
+            }
+        }
+        if let Some(reference) = reference_fasta {
+            let contigs = parse_reference_contigs(reference)?;
+            if contigs.is_empty() {
+                push_refusal(&mut refusal_codes, "reference_contigs_missing");
+            } else if !parsed.references.iter().all(|name| contigs.contains(name)) {
+                push_refusal(&mut refusal_codes, "reference_header_mismatch");
+            }
+        }
+    }
+
+    Ok(BamValidationSummaryV1 {
+        schema_version: BAM_VALIDATION_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.validate".to_string(),
+        input_bam: input_bam.to_path_buf(),
+        bam_index: bam_index.map(Path::to_path_buf),
+        reference_fasta: reference_fasta.map(Path::to_path_buf),
+        flagstat,
+        validation_report_present: refusal_codes.is_empty(),
+        refusal_codes,
+    })
 }
 
 #[must_use]
@@ -529,16 +799,11 @@ pub fn bam_sample_identity(
     subject_id: Option<&str>,
     cohort_id: Option<&str>,
 ) -> BamSampleIdentityV1 {
-    let lane = lane_id
-        .map(ToOwned::to_owned)
-        .or_else(|| read_group.lane_id.clone());
-    let library = library_id
-        .map(ToOwned::to_owned)
-        .or_else(|| read_group.library_id());
+    let lane = lane_id.map(ToOwned::to_owned).or_else(|| read_group.lane_id.clone());
+    let library = library_id.map(ToOwned::to_owned).or_else(|| read_group.library_id());
     let platform = Some(read_group.platform.clone());
-    let platform_unit = platform_unit
-        .map(ToOwned::to_owned)
-        .or_else(|| read_group.platform_unit.clone());
+    let platform_unit =
+        platform_unit.map(ToOwned::to_owned).or_else(|| read_group.platform_unit.clone());
     let run = run_id.map(ToOwned::to_owned).or_else(|| read_group.run_id.clone());
     BamSampleIdentityV1 {
         schema_version: BAM_SAMPLE_IDENTITY_SCHEMA_VERSION.to_string(),
@@ -663,16 +928,16 @@ pub fn bam_alignment_strategy_for_tool(
     preset: Option<&str>,
 ) -> Option<BamAlignmentStrategyV1> {
     let preset = preset.unwrap_or("default");
-    bam_alignment_strategies()
-        .into_iter()
-        .find(|strategy| match (tool_id, strategy.tool_id.as_str()) {
+    bam_alignment_strategies().into_iter().find(|strategy| {
+        match (tool_id, strategy.tool_id.as_str()) {
             ("bwa", "bwa") if preset == "adna_short" => {
                 strategy.strategy_id == "bwa_aln_adna_short"
             }
             ("bwa", "bwa") => strategy.strategy_id == "bwa_mem_default",
             ("bowtie2", "bowtie2") => strategy.strategy_id == "bowtie2_very_sensitive_local",
             _ => false,
-        })
+        }
+    })
 }
 
 #[must_use]
@@ -688,10 +953,8 @@ pub fn evaluate_bam_merge_compatibility(
     if sample_ids.windows(2).any(|pair| pair[0] != pair[1]) {
         refusal_codes.push("merge_sample_id_conflict".to_string());
     }
-    let reference_digests = inputs
-        .iter()
-        .filter_map(|input| input.reference_digest.as_deref())
-        .collect::<Vec<_>>();
+    let reference_digests =
+        inputs.iter().filter_map(|input| input.reference_digest.as_deref()).collect::<Vec<_>>();
     if reference_digests.windows(2).any(|pair| pair[0] != pair[1]) {
         refusal_codes.push("merge_reference_digest_conflict".to_string());
     }
@@ -866,7 +1129,9 @@ pub fn bam_contamination_workflow_contract() -> BamContaminationWorkflowV1 {
                     "damage_context".to_string(),
                 ],
                 emits_confidence: true,
-                caveats: vec!["nuclear contamination is not estimated by schmutzi alone".to_string()],
+                caveats: vec![
+                    "nuclear contamination is not estimated by schmutzi alone".to_string()
+                ],
             },
             BamContaminationToolContractV1 {
                 tool_id: "verifybamid2".to_string(),
@@ -889,7 +1154,9 @@ pub fn bam_contamination_workflow_contract() -> BamContaminationWorkflowV1 {
                     "minimum_coverage_context".to_string(),
                 ],
                 emits_confidence: true,
-                caveats: vec!["results are panel-dependent and must carry coverage caveats".to_string()],
+                caveats: vec![
+                    "results are panel-dependent and must carry coverage caveats".to_string()
+                ],
             },
         ],
     }
@@ -959,11 +1226,46 @@ pub fn estimate_bam_stage_resources(stage_id: &str, input_bytes: u64) -> BamStag
     let gib = 1024_u64 * 1024_u64 * 1024_u64;
     let size_gb = input_bytes.div_ceil(gib).max(1) as u32;
     let (cpu_threads, memory_gb, disk_gb, scratch_gb, requires_index, note) = match stage_id {
-        "bam.markdup" => (4, size_gb.saturating_mul(2).max(4), size_gb.saturating_mul(3).max(8), size_gb.saturating_mul(2).max(6), true, "duplicate marking scales with coordinate-sorted temporary shards"),
-        "bam.coverage" => (2, size_gb.max(2), size_gb.max(2), size_gb.max(1), true, "coverage requires indexed random access for deterministic summaries"),
-        "bam.damage" => (2, size_gb.max(2), size_gb.max(2), size_gb.max(2), true, "damage tools stream BAM plus sidecar summaries"),
-        "bam.endogenous_content" => (2, size_gb.max(2), size_gb.max(2), size_gb.max(1), true, "endogenous estimation reuses indexed depth calculations"),
-        _ => (4, size_gb.saturating_mul(2).max(4), size_gb.saturating_mul(2).max(4), size_gb.saturating_mul(2).max(4), true, "sorting/indexing/validation chain dominates temporary storage"),
+        "bam.markdup" => (
+            4,
+            size_gb.saturating_mul(2).max(4),
+            size_gb.saturating_mul(3).max(8),
+            size_gb.saturating_mul(2).max(6),
+            true,
+            "duplicate marking scales with coordinate-sorted temporary shards",
+        ),
+        "bam.coverage" => (
+            2,
+            size_gb.max(2),
+            size_gb.max(2),
+            size_gb.max(1),
+            true,
+            "coverage requires indexed random access for deterministic summaries",
+        ),
+        "bam.damage" => (
+            2,
+            size_gb.max(2),
+            size_gb.max(2),
+            size_gb.max(2),
+            true,
+            "damage tools stream BAM plus sidecar summaries",
+        ),
+        "bam.endogenous_content" => (
+            2,
+            size_gb.max(2),
+            size_gb.max(2),
+            size_gb.max(1),
+            true,
+            "endogenous estimation reuses indexed depth calculations",
+        ),
+        _ => (
+            4,
+            size_gb.saturating_mul(2).max(4),
+            size_gb.saturating_mul(2).max(4),
+            size_gb.saturating_mul(2).max(4),
+            true,
+            "sorting/indexing/validation chain dominates temporary storage",
+        ),
     };
     BamStageResourcePlanV1 {
         schema_version: BAM_RESOURCE_PLAN_SCHEMA_VERSION.to_string(),
@@ -1189,5 +1491,58 @@ mod tests {
         let ancient = bam_workflow_template_by_id("bam.essential_ancient_like")
             .expect("ancient-like template");
         assert!(ancient.advisory_stages.contains(&"bam.damage".to_string()));
+    }
+
+    fn unique_temp_dir(label: &str) -> PathBuf {
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock drift")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("bijux-{label}-{stamp}"));
+        std::fs::create_dir_all(&path).expect("create temporary directory");
+        path
+    }
+
+    #[test]
+    fn execute_bam_validation_reports_fixture_integrity() {
+        let temp = unique_temp_dir("bam-validate");
+        let sam = temp.join("input.sam");
+        let bai = temp.join("input.sam.bai");
+        let reference = temp.join("reference.fa");
+        std::fs::write(
+            &sam,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:50\n\
+@RG\tID:rg1\tSM:sample1\n\
+r001\t99\tchr1\t1\t60\t6M\t=\t7\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r001\t147\tchr1\t7\t60\t6M\t=\t1\t0\tTTAACT\tFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write SAM fixture");
+        std::fs::write(&bai, "tiny-index\n").expect("write BAI fixture");
+        std::fs::write(&reference, ">chr1\nACGTACGTACGTACGTACGT\n").expect("write reference");
+
+        let summary =
+            execute_bam_validation(&sam, Some(&bai), Some(&reference)).expect("validate fixture");
+        assert!(summary.validation_report_present);
+        assert!(summary.refusal_codes.is_empty());
+        assert_eq!(summary.flagstat.total_reads, Some(2));
+        assert_eq!(summary.flagstat.mapped_reads, Some(2));
+    }
+
+    #[test]
+    fn execute_bam_validation_refuses_malformed_or_missing_assets() {
+        let temp = unique_temp_dir("bam-validate-negative");
+        let sam = temp.join("broken.sam");
+        std::fs::write(
+            &sam,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:50\n\
+r001\t99\tchr1\n",
+        )
+        .expect("write malformed SAM fixture");
+
+        let summary = execute_bam_validation(&sam, None, None).expect("validate malformed");
+        assert!(!summary.validation_report_present);
+        assert!(summary.refusal_codes.contains(&"malformed_alignment_record".to_string()));
     }
 }
