@@ -8,6 +8,7 @@ mod artifacts;
 pub mod banks;
 mod bench;
 pub mod bench_repository;
+mod chunking;
 mod comparison_contract;
 mod domain_adapter;
 pub mod execution_support;
@@ -110,6 +111,10 @@ pub use banks::{
 pub use banks::{
     load_polyx_bank, load_polyx_presets, polyx_bank_path, polyx_presets_path, resolve_polyx_preset,
     EffectivePolyxSet, PolyxBankV1, PolyxEntryV1, PolyxPresetV1, PolyxPresetsV1,
+};
+pub use chunking::{
+    aggregate_chunked_preprocess, chunked_and_unchunked_are_equivalent,
+    ChunkedPreprocessAggregateV1, ChunkedPreprocessChunkV1, ChunkedPreprocessContractV1,
 };
 pub use comparison_contract::{
     benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,
