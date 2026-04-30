@@ -43,6 +43,8 @@ Authority:
   `cargo run -q -p bijux-dna -- analyze runs`
 - Run operations evidence paths and recovery steps:
   [RUN_OPERATIONS.md](RUN_OPERATIONS.md)
+- Scientific caveat propagation scenario suite:
+  `cargo run -q -p bijux-dna-dev -- tooling run scientific-caveat-propagation`
 
 ## Verify
 - Verify an evidence bundle:

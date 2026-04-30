@@ -96,3 +96,10 @@ Before touching a run:
   `cargo run -q -p bijux-dna-dev -- tooling run reference-external-data`
 - Scenario operations guide:
   [REFERENCE_EXTERNAL_DATA_SCENARIOS.md](./REFERENCE_EXTERNAL_DATA_SCENARIOS.md)
+
+## Scientific Caveat Propagation Scenarios
+
+- Scenario suite command:
+  `cargo run -q -p bijux-dna-dev -- tooling run scientific-caveat-propagation`
+- Scenario operations guide:
+  [SCIENTIFIC_CAVEAT_PROPAGATION_SCENARIOS.md](./SCIENTIFIC_CAVEAT_PROPAGATION_SCENARIOS.md)
