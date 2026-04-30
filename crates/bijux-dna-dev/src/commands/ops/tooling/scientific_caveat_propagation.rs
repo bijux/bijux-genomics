@@ -9,6 +9,7 @@ use bijux_dna_domain_bam::{
 };
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
 use bijux_dna_domain_vcf::{
+    execute_damage_aware_vcf_filter,
     evaluate_diploid_calling_boundary, evaluate_genotype_likelihood_workflow_boundary,
     evaluate_phasing_workflow_boundary, evaluate_pseudohaploid_calling_boundary,
 };
@@ -21,6 +22,7 @@ enum ScenarioId {
     EdnaTaxonomy,
     PopulationStructure,
     Demography,
+    DamageAwareVariant,
 }
 
 impl ScenarioId {
@@ -31,6 +33,7 @@ impl ScenarioId {
             Self::EdnaTaxonomy => "g183_edna_taxonomy_caveat_library",
             Self::PopulationStructure => "g184_population_structure_caveat_library",
             Self::Demography => "g185_demography_caveat_library",
+            Self::DamageAwareVariant => "g186_damage_aware_variant_caveat_library",
         }
     }
 
@@ -41,6 +44,7 @@ impl ScenarioId {
             Self::EdnaTaxonomy => "G183",
             Self::PopulationStructure => "G184",
             Self::Demography => "G185",
+            Self::DamageAwareVariant => "G186",
         }
     }
 
@@ -51,6 +55,7 @@ impl ScenarioId {
             Self::EdnaTaxonomy,
             Self::PopulationStructure,
             Self::Demography,
+            Self::DamageAwareVariant,
         ]
     }
 
@@ -65,6 +70,7 @@ impl ScenarioId {
                 Some(Self::PopulationStructure)
             }
             "g185_demography_caveat_library" | "G185" => Some(Self::Demography),
+            "g186_damage_aware_variant_caveat_library" | "G186" => Some(Self::DamageAwareVariant),
             _ => None,
         }
     }
@@ -186,6 +192,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::EdnaTaxonomy => scenario_edna_taxonomy_caveat_library(),
         ScenarioId::PopulationStructure => scenario_population_structure_caveat_library(),
         ScenarioId::Demography => scenario_demography_caveat_library(),
+        ScenarioId::DamageAwareVariant => scenario_damage_aware_variant_caveat_library(),
     };
 
     match result {
@@ -535,6 +542,52 @@ fn scenario_demography_caveat_library() -> Result<(Vec<String>, serde_json::Valu
     ))
 }
 
+fn scenario_damage_aware_variant_caveat_library() -> Result<(Vec<String>, serde_json::Value)> {
+    let workspace = Workspace::resolve()?;
+    let input_vcf = workspace.path("crates/bijux-dna-stages-vcf/tests/fixtures/vcf/default/input.vcf");
+    let summary = execute_damage_aware_vcf_filter(&input_vcf, true, "annotate", &["DP"])?;
+
+    if summary.damage_risk_sites == 0 || summary.annotated_sites == 0 {
+        return Err(anyhow!(
+            "damage-aware variant caveat scenario expected non-zero risk and annotated site counts"
+        ));
+    }
+
+    let caveat_library = vec![
+        json!({
+            "topic": "damage_filter_scope",
+            "action": summary.action,
+            "damage_risk_sites": summary.damage_risk_sites,
+            "annotated_sites": summary.annotated_sites,
+            "caveats": summary.caveats,
+        }),
+        json!({
+            "topic": "transition_bias",
+            "caveat": "C>T and G>A transitions in ancient-DNA contexts remain uncertainty-bearing even after annotation",
+            "propagation_targets": ["vcf.damage_filter", "vcf.summary", "report.variant_interpretation"],
+        }),
+        json!({
+            "topic": "downstream_guardrail",
+            "caveat": "downstream allele-frequency and selection analyses must preserve damage-filter caveats in final reporting",
+            "propagation_targets": ["vcf.pca", "vcf.demography", "report.publication_tables"],
+        }),
+    ];
+
+    Ok((
+        vec![
+            "damage-aware variant caveat library is attached from real VCF filter execution outputs"
+                .to_string(),
+            "damage caveats remain structured for downstream VCF summary and population-surface propagation"
+                .to_string(),
+        ],
+        json!({
+            "input_vcf": workspace.rel(&input_vcf).display().to_string(),
+            "damage_filter_summary": summary,
+            "caveat_library": caveat_library,
+        }),
+    ))
+}
+
 fn base_adna_metrics() -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
     metrics.damage.c_to_t_5p = 0.18;
@@ -555,7 +608,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G181", "G182", "G183", "G184", "G185"]);
+        assert_eq!(ids, vec!["G181", "G182", "G183", "G184", "G185", "G186"]);
     }
 
     #[test]
@@ -776,5 +829,44 @@ mod tests {
         assert!(refusals
             .iter()
             .any(|entry| entry.as_str() == Some("marker_overlap_below_required_minimum")));
+    }
+
+    #[test]
+    fn g186_damage_aware_variant_library_attaches_filter_summary() {
+        let report = run_scenario(&ScenarioId::DamageAwareVariant);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G186");
+        let summary = report
+            .evidence
+            .get("damage_filter_summary")
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(
+            summary.get("action").and_then(serde_json::Value::as_str),
+            Some("annotate")
+        );
+        assert!(summary
+            .get("damage_risk_sites")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or_default()
+            > 0);
+    }
+
+    #[test]
+    fn g186_damage_variant_library_lists_downstream_guardrail_topic() {
+        let report = run_scenario(&ScenarioId::DamageAwareVariant);
+        assert_eq!(report.status, "passed");
+        let library = report
+            .evidence
+            .get("caveat_library")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(library.iter().any(|entry| {
+            entry
+                .get("topic")
+                .and_then(serde_json::Value::as_str)
+                == Some("downstream_guardrail")
+        }));
     }
 }
