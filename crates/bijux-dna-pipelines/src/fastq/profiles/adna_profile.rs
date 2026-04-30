@@ -27,6 +27,6 @@ pub fn fastq_adna_profile() -> PipelineProfile {
             UdgTreatment::None,
             AssayKind::Shotgun,
         ),
-        capabilities: fastq_capabilities(required_stages),
+        capabilities: fastq_capabilities(id_catalog::PIPELINE_FASTQ_ADNA, required_stages),
     }
 }

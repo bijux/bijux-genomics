@@ -26,7 +26,10 @@ pub fn fastq_qc_only_profile() -> PipelineProfile {
             UdgTreatment::Unknown,
             AssayKind::Unknown,
         ),
-        capabilities: fastq_capabilities(qc_only_required_stages()),
+        capabilities: fastq_capabilities(
+            id_catalog::PIPELINE_FASTQ_QC_ONLY,
+            qc_only_required_stages(),
+        ),
     }
 }
 
@@ -46,7 +49,10 @@ pub fn fastq_trim_qc_profile() -> PipelineProfile {
             UdgTreatment::Unknown,
             AssayKind::Shotgun,
         ),
-        capabilities: fastq_capabilities(default_shotgun_required_stages()),
+        capabilities: fastq_capabilities(
+            id_catalog::PIPELINE_FASTQ_TRIM_QC,
+            default_shotgun_required_stages(),
+        ),
     }
 }
 
@@ -66,7 +72,7 @@ pub fn fastq_umi_profile() -> PipelineProfile {
             UdgTreatment::Unknown,
             AssayKind::Shotgun,
         ),
-        capabilities: fastq_capabilities(umi_required_stages()),
+        capabilities: fastq_capabilities(id_catalog::PIPELINE_FASTQ_UMI, umi_required_stages()),
     }
 }
 
@@ -86,7 +92,10 @@ pub fn fastq_host_depletion_profile() -> PipelineProfile {
             UdgTreatment::Unknown,
             AssayKind::Shotgun,
         ),
-        capabilities: fastq_capabilities(host_depletion_required_stages()),
+        capabilities: fastq_capabilities(
+            id_catalog::PIPELINE_FASTQ_HOST_DEPLETION,
+            host_depletion_required_stages(),
+        ),
     }
 }
 
@@ -106,7 +115,10 @@ pub fn fastq_rrna_depletion_profile() -> PipelineProfile {
             UdgTreatment::Unknown,
             AssayKind::Shotgun,
         ),
-        capabilities: fastq_capabilities(rrna_depletion_required_stages()),
+        capabilities: fastq_capabilities(
+            id_catalog::PIPELINE_FASTQ_RRNA_DEPLETION,
+            rrna_depletion_required_stages(),
+        ),
     }
 }
 
@@ -126,7 +138,10 @@ pub fn fastq_contaminant_depletion_profile() -> PipelineProfile {
             UdgTreatment::Unknown,
             AssayKind::Shotgun,
         ),
-        capabilities: fastq_capabilities(contaminant_depletion_required_stages()),
+        capabilities: fastq_capabilities(
+            id_catalog::PIPELINE_FASTQ_CONTAMINANT_DEPLETION,
+            contaminant_depletion_required_stages(),
+        ),
     }
 }
 
@@ -146,7 +161,10 @@ pub fn fastq_amplicon_standard_profile() -> PipelineProfile {
             UdgTreatment::Unknown,
             AssayKind::Amplicon,
         ),
-        capabilities: fastq_capabilities(amplicon_standard_required_stages()),
+        capabilities: fastq_capabilities(
+            id_catalog::PIPELINE_FASTQ_AMPLICON_STANDARD,
+            amplicon_standard_required_stages(),
+        ),
     }
 }
 
@@ -166,7 +184,10 @@ pub fn fastq_amplicon_umi_profile() -> PipelineProfile {
             UdgTreatment::Unknown,
             AssayKind::Amplicon,
         ),
-        capabilities: fastq_capabilities(amplicon_umi_required_stages()),
+        capabilities: fastq_capabilities(
+            id_catalog::PIPELINE_FASTQ_AMPLICON_UMI,
+            amplicon_umi_required_stages(),
+        ),
     }
 }
 
@@ -186,6 +207,9 @@ pub fn fastq_edna_metabarcoding_profile() -> PipelineProfile {
             UdgTreatment::Unknown,
             AssayKind::Amplicon,
         ),
-        capabilities: fastq_capabilities(edna_metabarcoding_required_stages()),
+        capabilities: fastq_capabilities(
+            id_catalog::PIPELINE_FASTQ_EDNA_METABARCODING,
+            edna_metabarcoding_required_stages(),
+        ),
     }
 }
