@@ -1,0 +1,23 @@
+{
+  "example_id": "bam_essential_alignment_qc",
+  "status": "ok",
+  "profile_id": "fastq-to-bam__default__v1",
+  "artifacts": [
+    "plan.json",
+    "explain.json",
+    "report.json"
+  ],
+  "bam_evidence_contracts": {
+    "sample_identity": "present",
+    "reference_preflight": "present",
+    "alignment_provenance": "present",
+    "mapping_summary": "present",
+    "coverage_regime": "present",
+    "damage_boundary": "present"
+  },
+  "workflow_assertions": {
+    "align_before_qc": true,
+    "mapping_summary_before_coverage": true,
+    "damage_is_advisory_not_certification": true
+  }
+}

@@ -1,0 +1,3 @@
+suite_id = "bench-bam-essential-alignment-qc-01"
+domain = "bam"
+stages = ["fastq.preprocess", "core.prepare_reference", "bam.align", "bam.qc_pre", "bam.mapping_summary", "bam.coverage", "bam.damage"]
