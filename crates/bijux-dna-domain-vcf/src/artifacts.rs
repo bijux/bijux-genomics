@@ -24,6 +24,7 @@ pub const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.imputation.v1";
 pub const VCF_COHORT_QC_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.cohort_qc.v1";
 pub const VCF_PCA_ADMIXTURE_GUARDRAIL_SCHEMA_VERSION: &str = "bijux.vcf.pca_admixture.v1";
+pub const VCF_ROH_IBD_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.roh_ibd_boundary.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -307,6 +308,27 @@ pub struct VcfPcaAdmixtureGuardrailV1 {
     pub sample_inclusion_defined: bool,
     pub marker_count: u64,
     pub minimum_marker_count: u64,
+    pub missingness_rate: f64,
+    pub maximum_missingness_rate: f64,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub assumptions: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfRohIbdWorkflowBoundaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method: String,
+    pub prerequisites_passed: bool,
+    pub marker_density_per_mb: f64,
+    pub minimum_marker_density_per_mb: f64,
+    pub cohort_size: u32,
+    pub minimum_cohort_size: u32,
     pub missingness_rate: f64,
     pub maximum_missingness_rate: f64,
     #[serde(default)]
@@ -1305,6 +1327,65 @@ pub fn evaluate_pca_admixture_guardrail(
     }
 }
 
+/// Evaluate ROH/IBD workflow boundaries before running cohort-level analyses.
+#[must_use]
+pub fn evaluate_roh_ibd_workflow_boundary(
+    method: &str,
+    marker_density_per_mb: f64,
+    minimum_marker_density_per_mb: f64,
+    cohort_size: u32,
+    minimum_cohort_size: u32,
+    missingness_rate: f64,
+    maximum_missingness_rate: f64,
+    assumptions_documented: bool,
+) -> VcfRohIbdWorkflowBoundaryV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if !matches!(method, "roh" | "ibd") {
+        refusal_codes.push("unsupported_roh_ibd_method".to_string());
+    }
+    if marker_density_per_mb < minimum_marker_density_per_mb {
+        refusal_codes.push("marker_density_below_minimum".to_string());
+    }
+    if cohort_size < minimum_cohort_size {
+        refusal_codes.push("cohort_size_below_minimum".to_string());
+    }
+    if missingness_rate > maximum_missingness_rate {
+        refusal_codes.push("missingness_above_maximum".to_string());
+    }
+    if !assumptions_documented {
+        refusal_codes.push("method_assumptions_required".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    VcfRohIbdWorkflowBoundaryV1 {
+        schema_version: VCF_ROH_IBD_WORKFLOW_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: match method {
+            "roh" => "vcf.roh",
+            "ibd" => "vcf.ibd",
+            _ => "vcf.ibd",
+        }
+        .to_string(),
+        method: method.to_string(),
+        prerequisites_passed: refusal_codes.is_empty(),
+        marker_density_per_mb,
+        minimum_marker_density_per_mb,
+        cohort_size,
+        minimum_cohort_size,
+        missingness_rate,
+        maximum_missingness_rate,
+        refusal_codes,
+        assumptions: vec![
+            "ROH/IBD analyses require adequate marker density and cohort support".to_string(),
+            "method assumptions must be documented before interpretation".to_string(),
+        ],
+        caveats: vec![
+            "low coverage can destabilize segment boundaries".to_string(),
+            "relatedness interpretation depends on cohort ascertainment and phasing quality"
+                .to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -1850,5 +1931,22 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"marker_count_below_minimum".to_string()));
         assert!(refused.refusal_codes.contains(&"missingness_above_maximum".to_string()));
         assert!(refused.refusal_codes.contains(&"interpretation_caveats_required".to_string()));
+    }
+
+    #[test]
+    fn evaluate_roh_ibd_workflow_boundary_requires_density_cohort_missingness_and_assumptions() {
+        let ready = evaluate_roh_ibd_workflow_boundary("roh", 35.0, 10.0, 28, 10, 0.02, 0.05, true);
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.stage_id, "vcf.roh");
+        assert!(ready.refusal_codes.is_empty());
+
+        let refused =
+            evaluate_roh_ibd_workflow_boundary("unknown", 1.0, 10.0, 4, 10, 0.12, 0.05, false);
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"unsupported_roh_ibd_method".to_string()));
+        assert!(refused.refusal_codes.contains(&"marker_density_below_minimum".to_string()));
+        assert!(refused.refusal_codes.contains(&"cohort_size_below_minimum".to_string()));
+        assert!(refused.refusal_codes.contains(&"missingness_above_maximum".to_string()));
+        assert!(refused.refusal_codes.contains(&"method_assumptions_required".to_string()));
     }
 }
