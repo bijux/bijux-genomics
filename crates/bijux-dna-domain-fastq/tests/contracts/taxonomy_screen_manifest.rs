@@ -86,3 +86,16 @@ fn taxonomy_screen_tool_manifests_admit_optional_mate_inputs() -> Result<()> {
     }
     Ok(())
 }
+
+#[test]
+fn taxonomy_screen_defaults_stay_screening_only_without_truth_conditions() {
+    let defaults = bijux_dna_domain_fastq::params::defaults::screen_defaults(true);
+    assert_eq!(
+        defaults.interpretation_boundary,
+        bijux_dna_domain_fastq::params::screen::TaxonomyInterpretationBoundary::ScreeningOnly
+    );
+    assert!(
+        defaults.truth_conditions.is_empty(),
+        "screen-taxonomy defaults must not silently imply definitive classification"
+    );
+}

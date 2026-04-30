@@ -8,7 +8,7 @@ use super::super::qc_post::{
 };
 use super::super::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
-    TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
+    TaxonomyInterpretationBoundary, TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
 use super::super::trim::{
     default_terminal_damage_execution_policy, TrimEffectiveParams, TrimPolygTailsParams,
@@ -139,5 +139,7 @@ pub fn screen_defaults(paired: bool) -> ScreenEffectiveParams {
         assignment_format: TaxonomyAssignmentFormat::KrakenAssignments,
         minimum_confidence: None,
         emit_unclassified: true,
+        interpretation_boundary: TaxonomyInterpretationBoundary::ScreeningOnly,
+        truth_conditions: Vec::new(),
     }
 }

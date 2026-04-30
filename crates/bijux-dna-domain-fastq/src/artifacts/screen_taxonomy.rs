@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::params::{
     screen::{
-        TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope, TaxonomyReportFormat,
+        TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
+        TaxonomyInterpretationBoundary, TaxonomyReportFormat, TaxonomyTruthCondition,
     },
     PairedMode,
 };
@@ -37,6 +38,9 @@ pub struct ScreenTaxonomyReportV1 {
     pub database_scope: TaxonomyDatabaseScope,
     pub minimum_confidence: Option<f32>,
     pub emit_unclassified: bool,
+    pub interpretation_boundary: TaxonomyInterpretationBoundary,
+    #[serde(default)]
+    pub truth_conditions: Vec<TaxonomyTruthCondition>,
     pub input_r1: String,
     pub input_r2: Option<String>,
     pub screen_report_tsv: String,
@@ -64,7 +68,7 @@ mod tests {
     use crate::params::{
         screen::{
             TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
-            TaxonomyReportFormat,
+            TaxonomyInterpretationBoundary, TaxonomyReportFormat, TaxonomyTruthCondition,
         },
         PairedMode,
     };
@@ -89,6 +93,11 @@ mod tests {
             database_scope: TaxonomyDatabaseScope::ReadScreening,
             minimum_confidence: Some(0.2),
             emit_unclassified: true,
+            interpretation_boundary: TaxonomyInterpretationBoundary::ScreeningOnly,
+            truth_conditions: vec![
+                TaxonomyTruthCondition::LockedReferenceDatabase,
+                TaxonomyTruthCondition::OrthogonalValidationRequired,
+            ],
             input_r1: "reads_R1.fastq.gz".to_string(),
             input_r2: Some("reads_R2.fastq.gz".to_string()),
             screen_report_tsv: "kraken2.report.tsv".to_string(),
@@ -121,5 +130,6 @@ mod tests {
         assert_eq!(decoded.tool_id, "kraken2");
         assert_eq!(decoded.classifier, TaxonomyClassifier::Kraken2);
         assert_eq!(decoded.top_taxa.len(), 1);
+        assert_eq!(decoded.interpretation_boundary, TaxonomyInterpretationBoundary::ScreeningOnly);
     }
 }

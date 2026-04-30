@@ -1077,6 +1077,8 @@ mod tests {
                 "database_scope": "read_screening",
                 "minimum_confidence": null,
                 "emit_unclassified": true,
+                "interpretation_boundary": "screening_only",
+                "truth_conditions": [],
                 "input_r1": "reads_R1.fastq.gz",
                 "input_r2": null,
                 "screen_report_tsv": "kraken2.report.tsv",

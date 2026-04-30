@@ -15,5 +15,6 @@ pub use rrna_depletion::{
 };
 pub use taxonomy::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
-    TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
+    TaxonomyInterpretationBoundary, TaxonomyReportFormat, TaxonomyTruthCondition,
+    SCREEN_TAXONOMY_SCHEMA_VERSION,
 };

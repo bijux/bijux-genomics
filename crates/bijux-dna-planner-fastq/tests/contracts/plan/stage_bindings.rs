@@ -1083,6 +1083,9 @@ fn planner_uses_typed_screen_params_from_stage_binding() -> anyhow::Result<()> {
                 assignment_format: TaxonomyAssignmentFormat::KrakenAssignments,
                 minimum_confidence: Some(0.15),
                 emit_unclassified: false,
+                interpretation_boundary:
+                    bijux_dna_domain_fastq::params::screen::TaxonomyInterpretationBoundary::ScreeningOnly,
+                truth_conditions: Vec::new(),
             })),
         }],
         stage_toolsets: Vec::new(),

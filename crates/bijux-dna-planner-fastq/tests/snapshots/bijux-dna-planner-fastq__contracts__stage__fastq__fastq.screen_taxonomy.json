@@ -12,7 +12,7 @@
     "template": [
       "sh",
       "-lc",
-      "set -eu\n'kraken2' '--report' 'out/kraken2.report.tsv' 'reads_R1.fastq.gz'\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.screen_taxonomy.report.v2\",\"stage\":\"fastq.screen_taxonomy\",\"stage_id\":\"fastq.screen_taxonomy\",\"tool_id\":\"kraken2\",\"paired_mode\":\"paired_end\",\"threads\":4,\"classifier\":\"kraken2\",\"report_format\":\"kraken_report\",\"assignment_format\":\"kraken_assignments\",\"database_catalog_id\":\"taxonomy_reference\",\"database_artifact_id\":\"taxonomy_db\",\"database_build_id\":null,\"database_digest\":null,\"database_namespace\":\"read_screening\",\"database_scope\":\"read_screening\",\"minimum_confidence\":null,\"emit_unclassified\":true,\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":\"reads_R2.fastq.gz\",\"screen_report_tsv\":\"out/kraken2.report.tsv\",\"classification_report_json\":\"out/kraken2.classifications.json\",\"reads_in\":null,\"reads_out\":null,\"bases_in\":null,\"bases_out\":null,\"pairs_in\":null,\"pairs_out\":null,\"contamination_rate\":null,\"classified_fraction\":null,\"unclassified_fraction\":null,\"summary_entries\":[],\"top_taxa\":[],\"runtime_s\":null,\"memory_mb\":null}' > 'out/kraken2.classifications.json'\n"
+      "set -eu\n'kraken2' '--report' 'out/kraken2.report.tsv' 'reads_R1.fastq.gz'\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.screen_taxonomy.report.v2\",\"stage\":\"fastq.screen_taxonomy\",\"stage_id\":\"fastq.screen_taxonomy\",\"tool_id\":\"kraken2\",\"paired_mode\":\"paired_end\",\"threads\":4,\"classifier\":\"kraken2\",\"report_format\":\"kraken_report\",\"assignment_format\":\"kraken_assignments\",\"database_catalog_id\":\"taxonomy_reference\",\"database_artifact_id\":\"taxonomy_db\",\"database_build_id\":null,\"database_digest\":null,\"database_namespace\":\"read_screening\",\"database_scope\":\"read_screening\",\"minimum_confidence\":null,\"emit_unclassified\":true,\"interpretation_boundary\":\"screening_only\",\"truth_conditions\":[],\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":\"reads_R2.fastq.gz\",\"screen_report_tsv\":\"out/kraken2.report.tsv\",\"classification_report_json\":\"out/kraken2.classifications.json\",\"reads_in\":null,\"reads_out\":null,\"bases_in\":null,\"bases_out\":null,\"pairs_in\":null,\"pairs_out\":null,\"contamination_rate\":null,\"classified_fraction\":null,\"unclassified_fraction\":null,\"summary_entries\":[],\"top_taxa\":[],\"runtime_s\":null,\"memory_mb\":null}' > 'out/kraken2.classifications.json'\n"
     ]
   },
   "resources": {
@@ -85,11 +85,13 @@
     "database_namespace": "read_screening",
     "database_scope": "read_screening",
     "emit_unclassified": true,
+    "interpretation_boundary": "screening_only",
     "minimum_confidence": null,
     "paired_mode": "paired_end",
     "report_format": "kraken_report",
     "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
-    "threads": 4
+    "threads": 4,
+    "truth_conditions": []
   },
   "operating_mode": "enforced",
   "aux_images": {},

@@ -294,6 +294,8 @@ fn screen_command_template(
         database_scope: effective_params.database_scope.clone(),
         minimum_confidence: effective_params.minimum_confidence,
         emit_unclassified: effective_params.emit_unclassified,
+        interpretation_boundary: effective_params.interpretation_boundary.clone(),
+        truth_conditions: effective_params.truth_conditions.clone(),
         input_r1: r1.display().to_string(),
         input_r2: r2.map(|path| path.display().to_string()),
         screen_report_tsv: report_path.display().to_string(),
@@ -671,7 +673,10 @@ mod tests {
         ArtifactRole, CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1,
         ToolId, ToolVersion,
     };
-    use bijux_dna_domain_fastq::params::{defaults::screen_defaults, screen::TaxonomyClassifier};
+    use bijux_dna_domain_fastq::params::{
+        defaults::screen_defaults,
+        screen::{TaxonomyClassifier, TaxonomyInterpretationBoundary, TaxonomyTruthCondition},
+    };
     use std::path::Path;
 
     fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
@@ -717,6 +722,7 @@ mod tests {
         assert!(plan.command.template[2]
             .contains("\"schema_version\":\"bijux.fastq.screen_taxonomy.report.v2\""));
         assert!(plan.command.template[2].contains("\"tool_id\":\"kraken2\""));
+        assert!(plan.command.template[2].contains("\"interpretation_boundary\":\"screening_only\""));
         assert_eq!(plan.io.inputs.len(), 2);
         assert_eq!(plan.io.inputs[0].role, ArtifactRole::Reads);
         assert_eq!(plan.io.inputs[1].role, ArtifactRole::Reference);
@@ -744,6 +750,31 @@ mod tests {
         .expect_err("mismatched classifier must fail");
 
         assert!(error.to_string().contains("classifier"));
+    }
+
+    #[test]
+    fn screen_plan_threads_truth_boundaries_into_the_governed_report() -> Result<()> {
+        let mut effective_params = screen_defaults(false);
+        effective_params.interpretation_boundary =
+            TaxonomyInterpretationBoundary::DefinitiveWithGovernedTruth;
+        effective_params.truth_conditions = vec![
+            TaxonomyTruthCondition::LockedReferenceDatabase,
+            TaxonomyTruthCondition::OrthogonalValidationRequired,
+        ];
+
+        let plan = plan_screen_with_effective_params(
+            &tool("kraken2"),
+            Path::new("reads_R1.fastq.gz"),
+            None,
+            Path::new("out"),
+            &effective_params,
+        )?;
+
+        assert!(plan.command.template[2]
+            .contains("\"interpretation_boundary\":\"definitive_with_governed_truth\""));
+        assert!(plan.command.template[2].contains("locked_reference_database"));
+        assert!(plan.command.template[2].contains("orthogonal_validation_required"));
+        Ok(())
     }
 
     #[test]
