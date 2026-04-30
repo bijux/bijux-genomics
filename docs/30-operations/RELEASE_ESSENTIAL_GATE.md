@@ -9,6 +9,7 @@ What this gate proves:
 - essential architecture and domain integrity via `essential-integrity`
 - canonical example smoke execution plus targeted dry-run and status contracts
 - evidence verification and targeted planner/runtime evidence surfaces
+- compatibility review across schema migration, route adapters, deprecation docs, and generated upgrade guidance via `essential-compatibility`
 - refusal coverage and advisory/enforced admission coverage before a Level 1 release claim
 
 Supporting truth:
