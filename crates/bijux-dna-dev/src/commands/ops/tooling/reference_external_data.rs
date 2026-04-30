@@ -17,6 +17,7 @@ enum ScenarioId {
     BacterialReference,
     OrganellarReference,
     MultiReferenceRefusal,
+    ReferenceUpdateImpact,
 }
 
 impl ScenarioId {
@@ -27,6 +28,7 @@ impl ScenarioId {
             Self::BacterialReference => "g173_bacterial_reference",
             Self::OrganellarReference => "g174_organellar_reference",
             Self::MultiReferenceRefusal => "g175_multi_reference_refusal",
+            Self::ReferenceUpdateImpact => "g176_reference_update_impact",
         }
     }
 
@@ -37,6 +39,7 @@ impl ScenarioId {
             Self::BacterialReference => "G173",
             Self::OrganellarReference => "G174",
             Self::MultiReferenceRefusal => "G175",
+            Self::ReferenceUpdateImpact => "G176",
         }
     }
 
@@ -47,6 +50,7 @@ impl ScenarioId {
             Self::BacterialReference,
             Self::OrganellarReference,
             Self::MultiReferenceRefusal,
+            Self::ReferenceUpdateImpact,
         ]
     }
 
@@ -57,6 +61,7 @@ impl ScenarioId {
             "g173_bacterial_reference" | "G173" => Some(Self::BacterialReference),
             "g174_organellar_reference" | "G174" => Some(Self::OrganellarReference),
             "g175_multi_reference_refusal" | "G175" => Some(Self::MultiReferenceRefusal),
+            "g176_reference_update_impact" | "G176" => Some(Self::ReferenceUpdateImpact),
             _ => None,
         }
     }
@@ -166,6 +171,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::BacterialReference => scenario_bacterial_reference(),
         ScenarioId::OrganellarReference => scenario_organellar_reference(),
         ScenarioId::MultiReferenceRefusal => scenario_multi_reference_refusal(),
+        ScenarioId::ReferenceUpdateImpact => scenario_reference_update_impact(),
     };
 
     match result {
@@ -326,6 +332,49 @@ fn scenario_multi_reference_refusal() -> Result<(Vec<String>, serde_json::Value)
     ))
 }
 
+fn scenario_reference_update_impact() -> Result<(Vec<String>, serde_json::Value)> {
+    let changed = vec![
+        "fasta_sha256".to_string(),
+        "bundle_lock_sha256".to_string(),
+        "contig_set_digest".to_string(),
+    ];
+    let invalidated = vec![
+        "fastq.index_reference",
+        "bam.align_reads",
+        "bam.mapping_summary",
+        "vcf.reference_context",
+        "vcf.call_variants",
+        "runtime.cache.reference_fingerprint",
+    ];
+    if invalidated.len() < 3 {
+        return Err(anyhow!("reference update impact must invalidate core alignment and VCF surfaces"));
+    }
+    Ok((
+        vec![
+            "reference digest drift invalidates alignment, calling, and replay cache surfaces"
+                .to_string(),
+            "impact report separates changed keys from invalidated workflow outputs".to_string(),
+        ],
+        json!({
+            "baseline": {
+                "species_id": "Homo sapiens",
+                "build_id": "GRCh38",
+                "bundle_id": "hsapiens_grch38_primary",
+                "fasta_sha256": "baseline_fasta_sha256",
+                "bundle_lock_sha256": "baseline_bundle_lock_sha256",
+                "contig_set_digest": "baseline_contig_set_digest",
+            },
+            "candidate": {
+                "fasta_sha256": "candidate_fasta_sha256",
+                "bundle_lock_sha256": "candidate_bundle_lock_sha256",
+                "contig_set_digest": "candidate_contig_set_digest",
+            },
+            "changed_keys": changed,
+            "invalidated_surfaces": invalidated,
+        }),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{run_scenario, ScenarioId};
@@ -333,7 +382,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G171", "G172", "G173", "G174", "G175"]);
+        assert_eq!(ids, vec!["G171", "G172", "G173", "G174", "G175", "G176"]);
     }
 
     #[test]
@@ -397,5 +446,20 @@ mod tests {
                 })
                 .unwrap_or(false)
         }));
+    }
+
+    #[test]
+    fn reference_update_scenario_tracks_invalidated_surfaces() {
+        let report = run_scenario(&ScenarioId::ReferenceUpdateImpact);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G176");
+        let surfaces = report
+            .evidence
+            .get("invalidated_surfaces")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(surfaces.iter().any(|row| row.as_str() == Some("bam.align_reads")));
+        assert!(surfaces.iter().any(|row| row.as_str() == Some("vcf.call_variants")));
     }
 }
