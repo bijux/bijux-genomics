@@ -10,7 +10,7 @@ use bijux_dna_core::contract::{
 };
 use bijux_dna_domain_vcf::contracts::{
     ContigSpec, EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
-    SpeciesContext,
+    SpeciesContext, VCF_COHORT_VALIDATION_CONTRACT, VCF_REPORT_COVERAGE_CONTRACT,
 };
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 use bijux_dna_planner_vcf::{
@@ -363,12 +363,61 @@ fn vcf_explain_surfaces_artifact_classes_and_guardrails() {
 
     assert_eq!(explain.reference_context.schema_version, "bijux.vcf.reference_context_report.v1");
     assert!(!explain.panel_boundary_contracts.is_empty());
+    assert!(!explain.phasing_imputation_boundary_contracts.is_empty());
     assert!(!explain.population_guardrail_contracts.is_empty());
+    assert!(!explain.cohort_analysis_boundary_contracts.is_empty());
+    assert_eq!(
+        explain.cohort_validation_contract.schema_version,
+        VCF_COHORT_VALIDATION_CONTRACT.schema_version
+    );
+    assert_eq!(
+        explain.report_coverage_contract.schema_version,
+        VCF_REPORT_COVERAGE_CONTRACT.schema_version
+    );
     assert!(explain.stages.iter().any(|stage| {
         stage.stage_id == "vcf.call_diploid"
             && !stage.artifact_classes.is_empty()
             && stage.calling_mode_contract.is_some()
     }));
+}
+
+#[test]
+fn vcf_planner_refuses_imputation_without_explicit_panel_identity() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages = Some(vec![
+        "vcf.call_diploid".to_string(),
+        "vcf.phasing".to_string(),
+        "vcf.impute".to_string(),
+        "vcf.stats".to_string(),
+    ]);
+    input.panel_locks.clear();
+    input.panel_id = None;
+
+    let err = plan_vcf_stage_plans(&input).expect_err("imputation without explicit panel identity must fail");
+
+    assert!(
+        err.to_string().contains("explicit panel identity is required"),
+        "unexpected planner refusal: {err}"
+    );
+}
+
+#[test]
+fn vcf_explain_surfaces_selected_panel_for_phasing_without_prepare_panel_stage() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages = Some(vec![
+        "vcf.call_diploid".to_string(),
+        "vcf.phasing".to_string(),
+        "vcf.impute".to_string(),
+        "vcf.stats".to_string(),
+    ]);
+    let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans: {err}"));
+    let explain = explain_vcf_plan(&input, &plans);
+
+    assert_eq!(
+        explain.selected_panel.as_ref().map(|panel| panel.panel_id.as_str()),
+        Some("1000g_phase3")
+    );
+    assert!(explain.panel_selection_reason.contains("panel selected"));
 }
 
 #[test]
