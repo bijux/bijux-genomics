@@ -45,6 +45,8 @@ Authority:
   [RUN_OPERATIONS.md](RUN_OPERATIONS.md)
 - Scientific caveat propagation scenario suite:
   `cargo run -q -p bijux-dna-dev -- tooling run scientific-caveat-propagation`
+- Operator workflow maturity scenario suite:
+  `cargo run -q -p bijux-dna-dev -- tooling run operator-workflow-maturity`
 
 ## Verify
 - Verify an evidence bundle:

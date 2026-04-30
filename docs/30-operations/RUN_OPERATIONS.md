@@ -103,3 +103,10 @@ Before touching a run:
   `cargo run -q -p bijux-dna-dev -- tooling run scientific-caveat-propagation`
 - Scenario operations guide:
   [SCIENTIFIC_CAVEAT_PROPAGATION_SCENARIOS.md](./SCIENTIFIC_CAVEAT_PROPAGATION_SCENARIOS.md)
+
+## Operator Workflow Maturity Scenarios
+
+- Scenario suite command:
+  `cargo run -q -p bijux-dna-dev -- tooling run operator-workflow-maturity`
+- Scenario operations guide:
+  [OPERATOR_WORKFLOW_MATURITY_SCENARIOS.md](./OPERATOR_WORKFLOW_MATURITY_SCENARIOS.md)
