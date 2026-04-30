@@ -18,6 +18,6 @@ pub use reference_assets::{
 };
 pub use species::{
     enforce_declared_build_and_contigs, resolve_contig_aliases_for_assets, resolve_contig_map,
-    resolve_coverage_profile, resolve_sex_chromosome_rule, resolve_species_alias,
-    resolve_species_authority, resolve_species_context,
+    resolve_coverage_profile, resolve_sex_chromosome_rule, resolve_sex_par_organellar_assets,
+    resolve_species_alias, resolve_species_authority, resolve_species_context,
 };

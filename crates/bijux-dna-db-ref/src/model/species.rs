@@ -71,3 +71,16 @@ pub struct ContigAliasResolutionReport {
     pub panel_id: Option<String>,
     pub map_id: Option<String>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct SexParOrganellarAssetsReport {
+    pub schema_version: String,
+    pub species_id: String,
+    pub build_id: String,
+    pub male_x_ploidy: u8,
+    pub male_y_ploidy: u8,
+    pub par_region_count: usize,
+    pub mitochondrion_id: String,
+    pub chloroplast_id: Option<String>,
+    pub supported_sex_chr: bool,
+}

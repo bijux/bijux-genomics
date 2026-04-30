@@ -9,7 +9,7 @@ use crate::runtime_config::{
 };
 use crate::{
     ContigAliasResolutionReport, ContigAliasResolutionRow, ContigMap, ResolvedSpeciesContext,
-    SexChromosomeRule, SpeciesAuthorityEntry, SupportedFeatures,
+    SexChromosomeRule, SexParOrganellarAssetsReport, SpeciesAuthorityEntry, SupportedFeatures,
 };
 
 /// # Errors
@@ -143,6 +143,28 @@ pub fn resolve_contig_aliases_for_assets(
     })
 }
 
+/// # Errors
+/// Returns an error if sex/PAR or organellar policy entries are missing for the species/build.
+pub fn resolve_sex_par_organellar_assets(
+    species: &str,
+    build: &str,
+) -> Result<SexParOrganellarAssetsReport> {
+    let sex = resolve_sex_chromosome_rule(species, build)?;
+    let organellar = crate::resolution::resolve_organellar_policy(species, build)?;
+    let context = resolve_species_context(species, build)?;
+    Ok(SexParOrganellarAssetsReport {
+        schema_version: "bijux.sex_par_organellar_assets.v1".to_string(),
+        species_id: species.to_string(),
+        build_id: build.to_string(),
+        male_x_ploidy: sex.male_x_ploidy,
+        male_y_ploidy: sex.male_y_ploidy,
+        par_region_count: sex.par_regions.len(),
+        mitochondrion_id: organellar.mitochondrion_id,
+        chloroplast_id: organellar.chloroplast_id,
+        supported_sex_chr: context.supported_features.sex_chr,
+    })
+}
+
 fn known_contig_names(contig_map: &ContigMap) -> BTreeSet<&str> {
     let mut names = BTreeSet::new();
     names.insert(contig_map.mitochondrion_id.as_str());
@@ -202,7 +224,8 @@ fn parse_coverage_regime(raw: &str) -> Result<CoverageRegime> {
 #[cfg(test)]
 mod tests {
     use super::{
-        enforce_declared_build_and_contigs, resolve_contig_aliases_for_assets, resolve_species_alias,
+        enforce_declared_build_and_contigs, resolve_contig_aliases_for_assets,
+        resolve_sex_par_organellar_assets, resolve_species_alias,
     };
 
     #[test]
@@ -241,5 +264,16 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.contig_alias_resolution.v1");
         assert_eq!(report.rows[0].normalized, "1");
         assert_eq!(report.rows[1].normalized, "X");
+    }
+
+    #[test]
+    fn resolve_sex_par_organellar_assets_exposes_bam_vcf_policy_inputs() {
+        let report = resolve_sex_par_organellar_assets("Homo sapiens", "GRCh38")
+            .unwrap_or_else(|error| panic!("resolve sex/par/organellar assets: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.sex_par_organellar_assets.v1");
+        assert!(report.par_region_count > 0);
+        assert_eq!(report.mitochondrion_id, "MT");
+        assert!(report.supported_sex_chr);
     }
 }

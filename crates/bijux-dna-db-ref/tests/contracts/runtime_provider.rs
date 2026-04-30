@@ -3,8 +3,9 @@ use bijux_dna_db_ref::public_api::{
     resolve_genetic_map_bank, resolve_map, resolve_map_lock, resolve_organellar_policy,
     resolve_panel, resolve_panel_lock, resolve_reference_bank, resolve_reference_bundle,
     resolve_reference_bundle_contract, resolve_sex_chromosome_rule, resolve_species_authority,
-    resolve_species_context, validate_reference_index_qa, materialize_vcf_panel_assets,
-    resolve_contig_aliases_for_assets, validate_imputation_tool_compatibility,
+    resolve_species_context, resolve_sex_par_organellar_assets, validate_reference_index_qa,
+    materialize_vcf_panel_assets, resolve_contig_aliases_for_assets,
+    validate_imputation_tool_compatibility,
     CatalogCompatibility, PanelCatalogEntry,
 };
 
@@ -190,4 +191,12 @@ fn contig_alias_resolution_contract_normalizes_aliases_for_assets() {
     .unwrap_or_else(|err| panic!("resolve contig aliases for assets: {err}"));
     assert_eq!(report.rows.len(), 2);
     assert_eq!(report.rows[0].normalized, "1");
+}
+
+#[test]
+fn sex_par_organellar_assets_contract_exposes_required_policy_fields() {
+    let report = resolve_sex_par_organellar_assets("Homo sapiens", "GRCh38")
+        .unwrap_or_else(|err| panic!("resolve sex/par/organellar assets: {err}"));
+    assert!(report.par_region_count > 0);
+    assert_eq!(report.mitochondrion_id, "MT");
 }
