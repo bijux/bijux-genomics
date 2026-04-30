@@ -1,0 +1,38 @@
+{
+  "refusal_records": [
+    {
+      "code": "missing_stage_support",
+      "message": "downstream ordering violation: vcf.filter cannot precede vcf.stats"
+    }
+  ],
+  "workflow_manifest": {
+    "domain": "vcf",
+    "executor_preferences": {
+      "allow_advisory_execution": false
+    },
+    "inputs": [
+      {
+        "artifact_id": "vcf",
+        "format_id": "vcf.gz",
+        "path": "sample.vcf.gz",
+        "role": "variant"
+      }
+    ],
+    "policies": {
+      "operational": {},
+      "scientific": {}
+    },
+    "profile_id": "vcf-downstream",
+    "requested_stages": [
+      {
+        "advisory_only": false,
+        "stage_id": "vcf.filter"
+      },
+      {
+        "advisory_only": false,
+        "stage_id": "vcf.stats"
+      }
+    ],
+    "schema_version": "bijux.workflow_manifest.v1"
+  }
+}

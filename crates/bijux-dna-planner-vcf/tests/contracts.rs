@@ -3,7 +3,11 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use bijux_dna_core::contract::PlanPolicy;
+use bijux_dna_core::contract::{
+    build_plan_manifest, planner_refusal_from_message, ArtifactRole, ParameterResolutionTraceV1,
+    PlanManifestBuildInputV1, PlanPolicy, PlannerParameterSourceV1, PlannerWarningCodeV1,
+    PlannerWarningRecordV1, WorkflowInputArtifactV1, WorkflowManifestV1, WorkflowStageRequestV1,
+};
 use bijux_dna_domain_vcf::contracts::{
     ContigSpec, EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
     SpeciesContext,
@@ -90,6 +94,83 @@ fn assert_snapshot_json(name: &str, kind: &str, value: &serde_json::Value) {
     let expected = std::fs::read_to_string(&path)
         .unwrap_or_else(|err| panic!("read snapshot {}: {err}", path.display()));
     assert_eq!(actual, expected.trim_end(), "snapshot mismatch for {}", path.display());
+}
+
+fn vcf_workflow_manifest(advisory_stats: bool) -> WorkflowManifestV1 {
+    let mut manifest = WorkflowManifestV1::new("vcf", "vcf-downstream");
+    manifest.inputs = vec![WorkflowInputArtifactV1 {
+        artifact_id: "vcf".to_string(),
+        role: ArtifactRole::Variant,
+        path: PathBuf::from("sample.vcf.gz"),
+        layout: None,
+        compression: None,
+        format_id: Some("vcf.gz".to_string()),
+    }];
+    manifest.requested_stages = vec![
+        WorkflowStageRequestV1 { stage_id: "vcf.filter".to_string(), advisory_only: false },
+        WorkflowStageRequestV1 { stage_id: "vcf.stats".to_string(), advisory_only: advisory_stats },
+    ];
+    manifest
+}
+
+fn vcf_plan_manifest_value(
+    inputs: &VcfPipelineInputs,
+    advisory_stats: bool,
+) -> anyhow::Result<serde_json::Value> {
+    let stage_plans = plan_vcf_stage_plans(inputs)?;
+    let graph = plan_vcf_pipeline(inputs)?;
+    let effective_parameters_by_step = stage_plans
+        .iter()
+        .map(|plan| {
+            (
+                plan.stage_instance_id
+                    .as_ref()
+                    .map_or_else(|| plan.stage_id.to_string(), std::string::ToString::to_string),
+                plan.effective_params.clone(),
+            )
+        })
+        .collect();
+    let parameter_traces = stage_plans
+        .iter()
+        .filter_map(|plan| {
+            let serde_json::Value::Object(map) = &plan.effective_params else {
+                return None;
+            };
+            let Some((name, value)) = map.iter().next() else {
+                return None;
+            };
+            Some(ParameterResolutionTraceV1 {
+                step_id: plan
+                    .stage_instance_id
+                    .as_ref()
+                    .map_or_else(|| plan.stage_id.to_string(), std::string::ToString::to_string),
+                stage_id: plan.stage_id.to_string(),
+                parameter: name.clone(),
+                source: PlannerParameterSourceV1::PlannerInferred,
+                resolved_value: value.clone(),
+                detail: "derived from stage effective params".to_string(),
+            })
+        })
+        .collect();
+    let warnings = if advisory_stats {
+        vec![PlannerWarningRecordV1 {
+            code: PlannerWarningCodeV1::AdvisoryStage,
+            stage_id: Some("vcf.stats".to_string()),
+            message: "stats stage treated as advisory in this contract".to_string(),
+        }]
+    } else {
+        Vec::new()
+    };
+    let manifest = build_plan_manifest(PlanManifestBuildInputV1 {
+        workflow_manifest: vcf_workflow_manifest(advisory_stats),
+        graph,
+        stage_contract_refs: Vec::new(),
+        effective_parameters_by_step,
+        parameter_traces,
+        refusal_records: Vec::new(),
+        warning_records: warnings,
+    })?;
+    Ok(serde_json::to_value(manifest)?)
 }
 
 fn snapshot_plan_and_explain(name: &str, inputs: &VcfPipelineInputs) {
@@ -447,4 +528,33 @@ fn vcf_planner_refuses_duplicate_chunk_filter_entries() {
         err.to_string().contains("chr_include contains duplicate contig `1`"),
         "unexpected planner refusal: {err}"
     );
+}
+
+#[test]
+fn vcf_happy_plan_manifest_snapshot_is_stable() {
+    let input = base_inputs(CoverageRegime::Diploid);
+    let value =
+        vcf_plan_manifest_value(&input, false).unwrap_or_else(|err| panic!("plan manifest: {err}"));
+    assert_snapshot_json("vcf_happy_plan_manifest", "manifest", &value);
+}
+
+#[test]
+fn vcf_advisory_plan_manifest_snapshot_is_stable() {
+    let input = base_inputs(CoverageRegime::Diploid);
+    let value =
+        vcf_plan_manifest_value(&input, true).unwrap_or_else(|err| panic!("plan manifest: {err}"));
+    assert_snapshot_json("vcf_advisory_plan_manifest", "manifest", &value);
+}
+
+#[test]
+fn vcf_refusal_manifest_snapshot_is_stable() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages = Some(vec!["vcf.stats".to_string(), "vcf.filter".to_string()]);
+    let err = plan_vcf_stage_plans(&input).expect_err("out-of-order stages must fail");
+    let refusal = planner_refusal_from_message(None, &err.to_string());
+    let payload = serde_json::json!({
+        "workflow_manifest": vcf_workflow_manifest(false),
+        "refusal_records": [refusal],
+    });
+    assert_snapshot_json("vcf_refusal_manifest", "manifest", &payload);
 }
