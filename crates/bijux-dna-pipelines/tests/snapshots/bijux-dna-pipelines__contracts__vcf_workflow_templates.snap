@@ -1,0 +1,914 @@
+---
+source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+[
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.call",
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": [
+        "vcf.call"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "reference_aliasing",
+        "normalization_scope_limits"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "normalization_boundaries",
+        "filter_impact",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "vcf_reference_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.call": [
+          "caller",
+          "min_base_quality",
+          "min_mapping_quality"
+        ],
+        "vcf.filter": [
+          "min_qual",
+          "require_pass",
+          "normalize",
+          "require_bgzip_tabix"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.call": [
+          "reference_fasta"
+        ]
+      }
+    },
+    "pipeline_id": "vcf-to-vcf__reference_basic__v1",
+    "requested_stages": [
+      "vcf.call",
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": true,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "batch_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Validation-normalization VCF template with explicit filter semantics and production QC caveats.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "vcf.validation_normalization_qc"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "cohort_size_sensitivity",
+        "relatedness_proxy_not_kinship_truth"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "cohort_qc",
+        "filter_impact",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "vcf_cohort_qc_review"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "cohort_variant_statistics",
+        "fan_pattern": "fan_in",
+        "lineage_fields": [
+          "batch_id",
+          "sample_id",
+          "reference_id"
+        ],
+        "overwrite_strategy": "sample_scoped_stats_then_stable_cohort_aggregate",
+        "source_stage": "vcf.filter",
+        "target_stage": "vcf.stats"
+      }
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.filter": [
+          "min_qual",
+          "require_pass"
+        ],
+        "vcf.stats": [
+          "compute_titv",
+          "collect_depth_distribution"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.filter": [
+          "production_profile"
+        ]
+      }
+    },
+    "pipeline_id": "vcf-to-vcf__reference_basic__v1",
+    "requested_stages": [
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "batch_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Cohort VCF QC template with missingness/heterozygosity/relatedness proxy reporting boundaries.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "vcf.cohort_qc_review"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.call",
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": [
+        "vcf.call"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "pseudohaploid_boundary",
+        "imputation_readiness_uncertainty"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "gl_boundary",
+        "low_pass_readiness",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "vcf_low_pass_gl"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.call": [
+          "min_mapping_quality"
+        ],
+        "vcf.filter": [
+          "min_qual",
+          "require_pass"
+        ],
+        "vcf.stats": [
+          "collect_depth_distribution"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.filter": [
+          "production_profile"
+        ]
+      }
+    },
+    "pipeline_id": "vcf-to-vcf__minimal__v1",
+    "requested_stages": [
+      "vcf.call",
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": true,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "batch_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Low-pass GL readiness template for genotype likelihood handling and caveated downstream interpretation.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "vcf.low_pass_gl_readiness"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.call",
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": [
+        "vcf.call"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "simulation_only_label",
+        "panel_map_mismatch_risk"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "panel_map_readiness",
+        "simulation_boundary",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "vcf_imputation_simulation"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.call": [
+          "caller",
+          "reference_fasta"
+        ],
+        "vcf.filter": [
+          "normalize"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.filter": [
+          "production_profile"
+        ]
+      }
+    },
+    "pipeline_id": "vcf-to-vcf__minimal__v1",
+    "requested_stages": [
+      "vcf.call",
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": true,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "batch_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Imputation simulation template with advisory/simulation boundaries and panel-map readiness caveats.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "vcf.imputation_simulation"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "population_structure_non_diagnostic",
+        "sampling_bias_risk"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "population_structure_readiness",
+        "cohort_qc",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "vcf_population_structure"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "cohort_variant_statistics",
+        "fan_pattern": "fan_in",
+        "lineage_fields": [
+          "batch_id",
+          "sample_id",
+          "reference_id"
+        ],
+        "overwrite_strategy": "sample_scoped_stats_then_stable_cohort_aggregate",
+        "source_stage": "vcf.filter",
+        "target_stage": "vcf.stats"
+      }
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.filter": [
+          "min_qual",
+          "require_pass",
+          "normalize"
+        ],
+        "vcf.stats": [
+          "compute_titv"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.filter": [
+          "production_profile"
+        ]
+      }
+    },
+    "pipeline_id": "vcf-to-vcf__reference_basic__v1",
+    "requested_stages": [
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "batch_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Population-structure guardrail template with pruning/filtering readiness and interpretation caveats.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "vcf.population_structure_guardrail"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "marker_density_floor",
+        "cohort_size_requirement"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "marker_density_check",
+        "roh_ibd_boundary",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "vcf_roh_ibd_boundary"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "cohort_variant_statistics",
+        "fan_pattern": "fan_in",
+        "lineage_fields": [
+          "batch_id",
+          "sample_id",
+          "reference_id"
+        ],
+        "overwrite_strategy": "sample_scoped_stats_then_stable_cohort_aggregate",
+        "source_stage": "vcf.filter",
+        "target_stage": "vcf.stats"
+      }
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.filter": [
+          "min_qual",
+          "require_pass"
+        ],
+        "vcf.stats": [
+          "collect_depth_distribution"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.filter": [
+          "production_profile"
+        ]
+      }
+    },
+    "pipeline_id": "vcf-to-vcf__reference_basic__v1",
+    "requested_stages": [
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "batch_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "ROH/IBD boundary template with marker-density and missingness refusal-aware checks.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "vcf.roh_ibd_boundary"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "unsupported_demography_scope",
+        "insufficient_power"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "demography_boundary",
+        "refusal_reasoning",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "vcf_demography_boundary"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.filter": [
+          "require_pass",
+          "normalize"
+        ],
+        "vcf.stats": [
+          "compute_titv"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.filter": [
+          "production_profile"
+        ]
+      }
+    },
+    "pipeline_id": "vcf-to-vcf__minimal__v1",
+    "requested_stages": [
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "batch_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Demography boundary template focused on explicit refusal for unsupported or underpowered interpretations.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "vcf.demography_boundary_refusal"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.call",
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": [
+        "vcf.call"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "annotation_source_versioning",
+        "transcript_model_variability"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "annotation_coverage",
+        "provenance_chain",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "vcf_annotation_provenance"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.call": [
+          "caller",
+          "reference_fasta"
+        ],
+        "vcf.filter": [
+          "normalize",
+          "require_bgzip_tabix"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.call": [
+          "sample_name"
+        ]
+      }
+    },
+    "pipeline_id": "vcf-to-vcf__reference_basic__v1",
+    "requested_stages": [
+      "vcf.call",
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": true,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "batch_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "VCF annotation workflow template for provenance-first field coverage and source identity reporting.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "vcf.annotation_provenance_workflow"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "filter_policy_comparability",
+        "reference_panel_drift"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "semantic_delta",
+        "policy_impact",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "vcf_semantic_diff"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.filter": [
+          "min_qual",
+          "require_pass",
+          "normalize"
+        ],
+        "vcf.stats": [
+          "compute_titv",
+          "collect_depth_distribution"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.filter": [
+          "production_profile"
+        ]
+      }
+    },
+    "pipeline_id": "vcf-to-vcf__minimal__v1",
+    "requested_stages": [
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "batch_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "VCF semantic-diff template explaining filter/reference/panel normalization deltas as scientific caveats.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "vcf.semantic_diff_report"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "medium_fixture_only",
+        "hardware_dependency"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "performance_profile",
+        "resource_limits",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "vcf_large_file_performance"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.filter": [
+          "min_qual",
+          "normalize",
+          "require_bgzip_tabix"
+        ],
+        "vcf.stats": [
+          "collect_depth_distribution"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.filter": [
+          "production_profile"
+        ]
+      }
+    },
+    "pipeline_id": "vcf-to-vcf__minimal__v1",
+    "requested_stages": [
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "batch_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Large-file VCF performance template tracking stats/filter/normalize runtime and memory caveats.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "vcf.large_file_performance_profile"
+  }
+]
