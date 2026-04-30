@@ -543,6 +543,7 @@ impl TinySamRecord {
 struct TinySamDocument {
     sort_order: Option<String>,
     references: Vec<String>,
+    reference_lengths: HashMap<String, u64>,
     read_groups: Vec<String>,
     read_group_samples: Vec<String>,
     records: Vec<TinySamRecord>,
@@ -582,9 +583,19 @@ fn parse_tiny_sam(path: &Path) -> Result<TinySamDocument> {
                     }
                 }
                 Some("@SQ") => {
+                    let mut reference_name = None::<String>;
+                    let mut reference_length = None::<u64>;
                     for field in &fields[1..] {
-                        if let Some(reference_name) = field.strip_prefix("SN:") {
-                            document.references.push(reference_name.to_string());
+                        if let Some(name) = field.strip_prefix("SN:") {
+                            reference_name = Some(name.to_string());
+                        } else if let Some(length) = field.strip_prefix("LN:") {
+                            reference_length = length.parse::<u64>().ok();
+                        }
+                    }
+                    if let Some(name) = reference_name {
+                        document.references.push(name.clone());
+                        if let Some(length) = reference_length {
+                            document.reference_lengths.insert(name, length);
                         }
                     }
                 }
@@ -1701,6 +1712,7 @@ pub fn apply_duplicate_policy_tiny_bam(
     let output = TinySamDocument {
         sort_order: input.sort_order.clone(),
         references: input.references.clone(),
+        reference_lengths: input.reference_lengths.clone(),
         read_groups: input.read_groups.clone(),
         read_group_samples: input.read_group_samples.clone(),
         records: output_records.clone(),
@@ -1784,6 +1796,7 @@ pub fn filter_tiny_bam_by_mapq(
     let output = TinySamDocument {
         sort_order: input.sort_order.clone(),
         references: input.references.clone(),
+        reference_lengths: input.reference_lengths.clone(),
         read_groups: input.read_groups.clone(),
         read_group_samples: input.read_group_samples.clone(),
         records: filtered_records.clone(),
@@ -1877,6 +1890,80 @@ pub fn summarize_tiny_bam_mapping(input_bam: &Path) -> Result<BamMappingSummaryV
         supplementary_reads: Some(supplementary_reads),
         mapq_histogram,
         read_group_breakdown,
+    })
+}
+
+/// Summarize tiny BAM/SAM coverage and classify coverage regime from depth/breadth signals.
+///
+/// # Errors
+/// Returns an error if input parsing fails.
+pub fn summarize_tiny_bam_coverage(
+    input_bam: &Path,
+    depth_thresholds: &[u32],
+) -> Result<BamCoverageSummaryV1> {
+    let document = parse_tiny_sam(input_bam)?;
+    let mut inferred_lengths = HashMap::<String, u64>::new();
+    for record in document.records.iter().filter(|record| record.is_mapped()) {
+        let end = record.pos + u64::max(record.seq.len() as u64, 1) - 1;
+        let current = inferred_lengths.entry(record.rname.clone()).or_insert(0);
+        *current = (*current).max(end);
+    }
+
+    let mut coverage_vectors = HashMap::<String, Vec<u32>>::new();
+    for reference in &document.references {
+        let declared = document.reference_lengths.get(reference).copied().unwrap_or(0);
+        let inferred = inferred_lengths.get(reference).copied().unwrap_or(0);
+        let length = declared.max(inferred).max(1) as usize;
+        coverage_vectors.insert(reference.clone(), vec![0; length]);
+    }
+
+    for record in document.records.iter().filter(|record| record.is_mapped()) {
+        let Some(depths) = coverage_vectors.get_mut(&record.rname) else {
+            continue;
+        };
+        let start = record.pos.saturating_sub(1) as usize;
+        let span = usize::max(record.seq.len(), 1);
+        let end = usize::min(start.saturating_add(span), depths.len());
+        for depth in depths.iter_mut().take(end).skip(start) {
+            *depth += 1;
+        }
+    }
+
+    let mut total_positions = 0_u64;
+    let mut covered_positions = 0_u64;
+    let mut depth_sum = 0_u64;
+    for depths in coverage_vectors.values() {
+        total_positions += depths.len() as u64;
+        for depth in depths {
+            depth_sum += *depth as u64;
+            if *depth >= 1 {
+                covered_positions += 1;
+            }
+        }
+    }
+
+    let mean_depth = if total_positions > 0 {
+        depth_sum as f64 / total_positions as f64
+    } else {
+        0.0
+    };
+    let breadth_1x = if total_positions > 0 {
+        covered_positions as f64 / total_positions as f64
+    } else {
+        0.0
+    };
+    let regime = classify_bam_coverage_regime(mean_depth, breadth_1x);
+
+    Ok(BamCoverageSummaryV1 {
+        schema_version: BAM_COVERAGE_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.coverage".to_string(),
+        has_mosdepth_summary: false,
+        has_samtools_depth: true,
+        mean_depth: Some(mean_depth),
+        coverage_regime: Some(regime.regime_id.clone()),
+        coverage_family: Some(regime.enforced_label.clone()),
+        regime: Some(regime),
+        depth_thresholds: depth_thresholds.to_vec(),
     })
 }
 
@@ -2743,5 +2830,29 @@ r03\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg2\n",
         assert_eq!(summary.read_group_breakdown[0].mapped_reads, 2);
         assert_eq!(summary.read_group_breakdown[1].read_group_id, "rg2");
         assert_eq!(summary.read_group_breakdown[1].mapped_reads, 1);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_coverage_classifies_regime_from_depth_and_breadth() {
+        let temp = unique_temp_dir("bam-coverage-summary");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:20\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t45\t10M\t*\t0\t0\tACGTACGTAC\tFFFFFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t11\t45\t10M\t*\t0\t0\tTTTTGGGGCC\tFFFFFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write coverage fixture");
+
+        let summary = summarize_tiny_bam_coverage(&input, &[1, 5, 10]).expect("summarize coverage");
+        assert_eq!(summary.stage_id, "bam.coverage");
+        assert_eq!(summary.depth_thresholds, vec![1, 5, 10]);
+        assert_eq!(summary.mean_depth, Some(1.0));
+        assert_eq!(summary.coverage_regime.as_deref(), Some("low_pass"));
+        let regime = summary.regime.expect("coverage regime");
+        assert_eq!(regime.regime_class, BamCoverageRegimeClassV1::LowPass);
+        assert!((regime.breadth_1x - 1.0).abs() < f64::EPSILON);
     }
 }
