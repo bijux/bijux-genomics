@@ -232,6 +232,112 @@ pub struct RunStatus {
     pub has_failures: bool,
 }
 
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
+/// Filters for browsing run histories.
+///
+/// Stability: v1 (stable).
+pub struct RunBrowserFilterV1 {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub run_id_prefix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pipeline_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub correlation_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<bijux_dna_runtime::run_layout::RunLifecycleStateV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mode: Option<bijux_dna_runtime::run_layout::RunExecutionModeV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub has_failures: Option<bool>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for browsing run histories.
+///
+/// Stability: v1 (stable).
+pub struct RunBrowserRequestV1 {
+    pub runs_root: PathBuf,
+    #[serde(default)]
+    pub page_size: usize,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub page_token: Option<String>,
+    #[serde(default)]
+    pub filter: RunBrowserFilterV1,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// One row in the run browser index.
+///
+/// Stability: v1 (stable).
+pub struct RunBrowserRowV1 {
+    pub run_id: String,
+    pub run_dir: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pipeline_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub correlation_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mode: Option<bijux_dna_runtime::run_layout::RunExecutionModeV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<bijux_dna_runtime::run_layout::RunLifecycleStateV1>,
+    pub has_failures: bool,
+    pub has_evidence_bundle: bool,
+    pub artifact_count: usize,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Paginated run browser response.
+///
+/// Stability: v1 (stable).
+pub struct RunBrowserResponseV1 {
+    pub schema_version: String,
+    pub runs_root: PathBuf,
+    pub total_rows: usize,
+    pub page_size: usize,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub next_page_token: Option<String>,
+    #[serde(default)]
+    pub rows: Vec<RunBrowserRowV1>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for extracting artifact lineage from a run.
+///
+/// Stability: v1 (stable).
+pub struct RunLineageQueryRequestV1 {
+    pub run_dir: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub artifact_id: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Lineage edge for a produced artifact.
+///
+/// Stability: v1 (stable).
+pub struct RunLineageEdgeV1 {
+    pub artifact_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub producing_stage_id: Option<String>,
+    pub lineage_key: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Run lineage query response.
+///
+/// Stability: v1 (stable).
+pub struct RunLineageQueryResponseV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub run_dir: PathBuf,
+    pub total_artifacts: usize,
+    #[serde(default)]
+    pub edges: Vec<RunLineageEdgeV1>,
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical run-control response.
 ///

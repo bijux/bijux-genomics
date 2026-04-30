@@ -1,5 +1,8 @@
 use anyhow::Result;
-use bijux_dna_api::v1::api::status;
+use bijux_dna_api::v1::api::{
+    browse_runs, query_run_lineage, status, RunBrowserFilterV1, RunBrowserRequestV1,
+    RunLineageQueryRequestV1,
+};
 
 #[test]
 fn status_discovers_evidence_bundle_and_correlation() -> Result<()> {
@@ -192,5 +195,105 @@ fn status_reads_governed_run_state_and_failure_paths() -> Result<()> {
     assert!(snapshot.run_summary_text_path.is_some());
     assert!(snapshot.evidence_verification_path.is_some());
     assert!(snapshot.has_failures);
+    Ok(())
+}
+
+#[test]
+fn run_browser_lists_run_rows_with_runtime_state() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let run_dir = temp.path().join("run-iteration16");
+    std::fs::create_dir_all(&run_dir)?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("run_manifest.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_manifest.v3",
+            "run_id": "run-iteration16",
+            "profile_id": "fastq.default",
+            "pipeline_id": "fastq-to-fastq__default__v1",
+            "correlation_id": "corr-16",
+            "failures": [],
+            "output_artifacts": [{"kind": "report", "path": "reports/report.json"}]
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("run_state.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_state.v1",
+            "run_id": "run-iteration16",
+            "mode": "enforced",
+            "state": "succeeded",
+            "transitions": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("artifact_inventory.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.artifact_inventory.v1",
+            "run_id": "run-iteration16",
+            "artifacts": [{"artifact_id": "report", "name": "report", "role": "report", "path": "reports/report.json", "input_lineage": []}]
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("evidence_bundle.json"),
+        &serde_json::json!({"schema_version": "bijux.evidence_bundle.v1"}),
+    )?;
+
+    let response = browse_runs(&RunBrowserRequestV1 {
+        runs_root: temp.path().to_path_buf(),
+        page_size: 0,
+        page_token: None,
+        filter: RunBrowserFilterV1::default(),
+    })?;
+
+    assert_eq!(response.schema_version, "bijux.run_browser.v1");
+    assert_eq!(response.total_rows, 1);
+    let row = response.rows.first().unwrap_or_else(|| panic!("missing row"));
+    assert_eq!(row.run_id, "run-iteration16");
+    assert_eq!(row.profile_id.as_deref(), Some("fastq.default"));
+    assert_eq!(row.pipeline_id.as_deref(), Some("fastq-to-fastq__default__v1"));
+    assert_eq!(
+        row.state,
+        Some(bijux_dna_runtime::run_layout::RunLifecycleStateV1::Succeeded)
+    );
+    assert!(row.has_evidence_bundle);
+    assert_eq!(row.artifact_count, 1);
+    Ok(())
+}
+
+#[test]
+fn run_lineage_query_extracts_artifact_lineage_edges() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("artifact_inventory.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.artifact_inventory.v1",
+            "run_id": "run-lineage-16",
+            "artifacts": [
+                {
+                    "artifact_id": "filtered_fastq",
+                    "name": "filtered_fastq",
+                    "role": "reads",
+                    "path": "stages/trim/filtered.fastq.gz",
+                    "producing_stage_id": "fastq.trim_reads",
+                    "input_lineage": [
+                        "raw:R1=abc",
+                        "raw:R2=def"
+                    ]
+                }
+            ]
+        }),
+    )?;
+
+    let response = query_run_lineage(&RunLineageQueryRequestV1 {
+        run_dir: temp.path().to_path_buf(),
+        artifact_id: Some("filtered_fastq".to_string()),
+    })?;
+
+    assert_eq!(response.schema_version, "bijux.run_lineage_query.v1");
+    assert_eq!(response.run_id, "run-lineage-16");
+    assert_eq!(response.total_artifacts, 1);
+    assert_eq!(response.edges.len(), 2);
+    assert!(response.edges.iter().any(|edge| edge.lineage_key == "raw:R1=abc"));
+    assert!(response.edges.iter().any(|edge| edge.lineage_key == "raw:R2=def"));
     Ok(())
 }

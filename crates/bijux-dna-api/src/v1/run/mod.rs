@@ -9,11 +9,11 @@ mod runtime_support;
 mod stage_assets;
 
 pub use entrypoints::{
-    assess_failed_replay_eligibility, cancel_run, dry_run, environment_identity, execute,
-    execute_and_report, execute_local_bam_workflow, execute_local_fastq_workflow,
+    assess_failed_replay_eligibility, browse_runs, cancel_run, dry_run, environment_identity,
+    execute, execute_and_report, execute_local_bam_workflow, execute_local_fastq_workflow,
     execute_local_vcf_workflow, execute_run, explain_cache_hit_miss, explain_successful_replay,
-    operator_health, pause_run, plan, plan_only, policy_audit, replay_failed_run, replay_manifest,
-    resume_run, run_local_failure_injection, verify_run_bundle,
+    operator_health, pause_run, plan, plan_only, policy_audit, query_run_lineage,
+    replay_failed_run, replay_manifest, resume_run, run_local_failure_injection, verify_run_bundle,
     run_fastq_to_bam_profile, run_pipeline, status, RunMode,
 };
 pub use operator_failure::{
@@ -22,8 +22,10 @@ pub use operator_failure::{
 };
 pub use request_contracts::{
     DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, ExecuteRunRequest,
-    ExecuteRunResult, OperatorHealthResponse, PlanRequest, PlanResponse, RunControlResponse,
-    RunRequest, RunResult, RunStatus,
+    ExecuteRunResult, OperatorHealthResponse, PlanRequest, PlanResponse, RunBrowserFilterV1,
+    RunBrowserRequestV1, RunBrowserResponseV1, RunBrowserRowV1, RunControlResponse,
+    RunLineageEdgeV1, RunLineageQueryRequestV1, RunLineageQueryResponseV1, RunRequest, RunResult,
+    RunStatus,
 };
 pub use runtime_support::{
     atomic_write_bytes, build_tool_execution_spec, ensure_dir, execution_step_from_stage_plan,

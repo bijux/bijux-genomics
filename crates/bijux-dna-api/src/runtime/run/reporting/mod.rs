@@ -8,6 +8,7 @@ mod cache_explain;
 mod environment_identity;
 mod evidence_support;
 mod failure_injection;
+mod lineage_query;
 mod execute_run;
 mod lifecycle;
 mod local_workflows;
@@ -19,6 +20,7 @@ mod rendering;
 mod replay;
 mod replay_failed;
 mod replay_success;
+mod run_browser;
 mod status;
 mod summary_artifact;
 mod workspace_audit;
@@ -29,6 +31,7 @@ pub use cache_explain::explain_cache_hit_miss;
 pub use environment_identity::environment_identity;
 pub use execute_run::execute;
 pub use failure_injection::run_local_failure_injection;
+pub use lineage_query::query_run_lineage;
 pub use local_workflows::{
     execute_local_bam_workflow, execute_local_fastq_workflow, execute_local_vcf_workflow,
 };
@@ -38,6 +41,7 @@ pub use rendering::{execute_and_report, render_report};
 pub use replay::replay_manifest;
 pub use replay_failed::{assess_failed_replay_eligibility, replay_failed_run};
 pub use replay_success::explain_successful_replay;
+pub use run_browser::browse_runs;
 pub use status::status;
 pub use workspace_audit::{policy_audit, workspace_edges, write_workspace_audit};
 
