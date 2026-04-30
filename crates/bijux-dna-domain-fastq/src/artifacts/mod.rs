@@ -19,6 +19,7 @@ mod prepare_adapter_bank;
 mod profile_overrepresented_sequences;
 mod profile_read_lengths;
 mod profile_reads;
+mod qc_bundle;
 mod remove_chimeras;
 mod remove_duplicates;
 mod report_qc;
@@ -78,6 +79,11 @@ pub use profile_read_lengths::{
 pub use profile_reads::{
     ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1, ProfileReadsReportV1,
     PROFILE_READS_REPORT_SCHEMA_VERSION,
+};
+pub use qc_bundle::{
+    derived_governed_qc_lineage_hash, governed_qc_contributors_from_inputs,
+    governed_qc_inputs_manifest_from_inputs, GovernedQcInputsManifestV1,
+    GovernedQcManifestContributorV1, GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
 };
 pub use remove_chimeras::{RemoveChimerasReportV1, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION};
 pub use remove_duplicates::{

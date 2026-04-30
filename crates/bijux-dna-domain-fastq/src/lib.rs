@@ -33,6 +33,11 @@ pub use artifacts::{
     ContaminantDepletionArtifactPaths, FastqTransformArtifactPaths, HostDepletionArtifactPaths,
     QcBundleArtifactPaths, RrnaDepletionArtifactPaths, ValidationArtifactPaths,
 };
+pub use artifacts::{
+    derived_governed_qc_lineage_hash, governed_qc_contributors_from_inputs,
+    governed_qc_inputs_manifest_from_inputs, GovernedQcInputsManifestV1,
+    GovernedQcManifestContributorV1, GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
+};
 pub use artifacts::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
