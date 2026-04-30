@@ -397,6 +397,10 @@ gate-essential: ## Fast essential architecture + contract gate for local iterati
 	@$(ensure_artifact_env)
 	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets essential-integrity
 
+gate-execute: ## Fast governed local execute/dry-run/status/replay gate.
+	@$(ensure_artifact_env)
+	@cargo run -q -p bijux-dna-dev -- tooling run cargo-targets essential-execute
+
 _control-plane-inventory: ## Generate control-plane inventory under artifacts/
 	@cargo run -q -p bijux-dna-dev -- tooling run inventory
 
@@ -463,7 +467,7 @@ refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/gol
 		_clippy _clippy-executors _lint _lint-rustfmt _lint-configs _lint-docs _lint-automation _lint-clippy _lint-clippy-executors \
 		realness-gate \
 		_policy-fast _ssot-policy-fast _policy-full _policy-no-raw-cargo _test-profile-invariants _registry-lint _unit-contract-fast _release-readiness _ci-fast _ci-slow _ci-profile-fast _ci-profile-slow _quick _install-ci-tools release-gate \
-		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _control-plane-inventory _config-inventory _smoke-fastq _smoke-bam local-certification-gate _test-slow _policy-index _policy-only-fast-gate gate-essential \
+		_snapshots _snapshots-accept _snapshots-review _fix-snapshots _test-triage _control-plane-inventory _config-inventory _smoke-fastq _smoke-bam local-certification-gate _test-slow _policy-index _policy-only-fast-gate gate-essential gate-execute \
 		certify-fastq certify-bam certify-vcf certify-all \
 		refresh-assets-toy refresh-assets-golden flake-hunt
 

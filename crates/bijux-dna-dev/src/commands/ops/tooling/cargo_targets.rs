@@ -426,6 +426,55 @@ pub(in super::super) fn tooling_cargo_targets(
             ],
             &common_envs,
         ),
+        "essential-execute" => run_programs_with_env(
+            workspace,
+            &[
+                (
+                    "cargo",
+                    vec!["test", "-p", "bijux-dna-runner", "--lib", "--", "--nocapture"],
+                ),
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-api",
+                        "--test",
+                        "contracts",
+                        "v1_dry_run_manifest",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-api",
+                        "--test",
+                        "contracts",
+                        "v1_status_evidence",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+                (
+                    "cargo",
+                    vec![
+                        "test",
+                        "-p",
+                        "bijux-dna-api",
+                        "--test",
+                        "schemas",
+                        "v1_cross_api_stability",
+                        "--",
+                        "--nocapture",
+                    ],
+                ),
+            ],
+            &common_envs,
+        ),
         "vcf-certification" => run_program_with_env(
             workspace,
             "cargo",
