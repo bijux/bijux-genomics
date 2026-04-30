@@ -4,7 +4,8 @@ use bijux_dna_runtime::run_layout::{
     admit_runtime_resources, apply_control_action_idempotent, apptainer_smoke_workflow_plan,
     create_run_layout, docker_smoke_workflow_plan, evaluate_fallback_safety,
     executor_descriptor_from_hpc_profile, lunarc_execution_profile, mock_slurm_submission_record,
-    negotiate_executor_capabilities, restore_queue_state_for_resume, transition_slurm_submission,
+    negotiate_executor_capabilities, restore_queue_state_for_resume,
+    scheduling_decision_from_admission, transition_slurm_submission,
     validate_run_layout_storage_isolation, validate_smoke_workflow_plan, ExecutorCapabilitiesV1,
     FallbackSafetyRequestV1, RunCheckpointV1, RunControlActionV1, RunControlStateV1,
     RunExecutionModeV1, RunQueueLifecycleStateV1, RunQueueStateV1, RunResourceRequestV1,
@@ -323,6 +324,16 @@ fn runtime_resource_admission_warns_or_refuses_before_execution() {
     assert!(denied.refusal_codes.iter().any(|item| item == "cpu_threads_exceed_limit"));
     assert!(denied.refusal_codes.iter().any(|item| item == "io_intensity_not_allowed"));
     assert!(denied.warnings.iter().any(|item| item == "container_runtime_unspecified"));
+
+    let scheduling = scheduling_decision_from_admission(
+        "run-137",
+        "apptainer",
+        &denied_request,
+        &denied,
+        "resource admission enforcement",
+    );
+    assert_eq!(scheduling.queue_class, denied.queue_class);
+    assert!(scheduling.warnings.iter().any(|item| item.starts_with("resource_refusal:")));
 }
 
 #[test]

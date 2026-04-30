@@ -593,6 +593,30 @@ pub fn admit_runtime_resources(
     }
 }
 
+#[must_use]
+pub fn scheduling_decision_from_admission(
+    run_id: &str,
+    runner: &str,
+    request: &RunResourceRequestV1,
+    admission: &RuntimeResourceAdmissionV1,
+    placement_reason: &str,
+) -> RunSchedulingDecisionV1 {
+    let mut warnings = admission.warnings.clone();
+    if !admission.admitted {
+        warnings
+            .extend(admission.refusal_codes.iter().map(|code| format!("resource_refusal:{code}")));
+    }
+    RunSchedulingDecisionV1 {
+        schema_version: "bijux.run_scheduling_decision.v1".to_string(),
+        run_id: run_id.to_string(),
+        runner: runner.to_string(),
+        queue_class: admission.queue_class.clone(),
+        placement_reason: placement_reason.to_string(),
+        requested_resources: request.clone(),
+        warnings,
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RunQueueLifecycleStateV1 {
