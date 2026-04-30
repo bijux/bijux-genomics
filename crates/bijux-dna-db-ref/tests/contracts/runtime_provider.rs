@@ -3,7 +3,7 @@ use bijux_dna_db_ref::public_api::{
     resolve_genetic_map_bank, resolve_map, resolve_map_lock, resolve_organellar_policy,
     resolve_panel, resolve_panel_lock, resolve_reference_bank, resolve_reference_bundle,
     resolve_reference_bundle_contract, resolve_sex_chromosome_rule, resolve_species_authority,
-    resolve_species_context, validate_reference_index_qa,
+    resolve_species_context, validate_reference_index_qa, materialize_vcf_panel_assets,
     validate_imputation_tool_compatibility, CatalogCompatibility, PanelCatalogEntry,
 };
 
@@ -156,4 +156,23 @@ fn reference_index_qa_reports_all_required_tiny_indexes() {
     let report = validate_reference_index_qa("Homo sapiens", "GRCh38", &temp)
         .unwrap_or_else(|err| panic!("validate index qa: {err}"));
     assert_eq!(report.verified_artifacts.len(), 6);
+}
+
+#[test]
+fn vcf_panel_materialization_contract_reports_materialized_files() {
+    let temp = std::env::temp_dir().join(format!(
+        "bijux-db-ref-vcf-assets-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp)
+        .unwrap_or_else(|err| panic!("create temp directory {}: {err}", temp.display()));
+    let report = materialize_vcf_panel_assets(
+        "Homo sapiens",
+        "GRCh38",
+        Some("hsapiens_grch38_mini"),
+        Some("hsapiens_grch38_chr_map"),
+        &temp,
+    )
+    .unwrap_or_else(|err| panic!("materialize vcf panel assets: {err}"));
+    assert!(!report.materialized_files.is_empty());
 }

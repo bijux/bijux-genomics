@@ -11,6 +11,7 @@ use crate::{
     BundleEntry, ContigNormalizationPolicy, GeneticMapBankEntry, MaterializedIndexArtifact,
     OrganellarPolicy, ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport,
     ReferenceIndexQaReport, ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
+    VcfPanelMaterializationReport,
 };
 
 /// # Errors
@@ -319,6 +320,59 @@ pub fn validate_reference_index_qa(
     })
 }
 
+/// # Errors
+/// Returns an error if panel/map catalogs or locks cannot be materialized for VCF workflows.
+pub fn materialize_vcf_panel_assets(
+    species: &str,
+    build: &str,
+    panel_id: Option<&str>,
+    map_id: Option<&str>,
+    materialization_root: &Path,
+) -> Result<VcfPanelMaterializationReport> {
+    let panel = crate::resolution::resolve_panel(species, build, panel_id)?;
+    let map = crate::resolution::resolve_map(species, build, map_id)?;
+    let panel_lock = crate::resolution::resolve_panel_lock(&panel)?;
+    let map_lock = crate::resolution::resolve_map_lock(&map)?;
+    crate::resolution::validate_imputation_tool_compatibility("glimpse", &panel, &map)?;
+
+    let root = materialization_root.join(species).join(build).join("vcf-assets");
+    let panel_root = root.join("panels").join(&panel.id);
+    let map_root = root.join("maps").join(&map.id);
+    std::fs::create_dir_all(&panel_root).with_context(|| format!("create {}", panel_root.display()))?;
+    std::fs::create_dir_all(&map_root).with_context(|| format!("create {}", map_root.display()))?;
+
+    let mut materialized = Vec::new();
+    for file in &panel_lock.files {
+        let target = panel_root.join(&file.path);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        }
+        std::fs::write(&target, format!("synthetic panel asset {}\n", file.name))
+            .with_context(|| format!("write {}", target.display()))?;
+        materialized.push(target.display().to_string());
+    }
+    for file in &map_lock.files {
+        let target = map_root.join(&file.path);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+        }
+        std::fs::write(&target, format!("synthetic map asset {}\n", file.name))
+            .with_context(|| format!("write {}", target.display()))?;
+        materialized.push(target.display().to_string());
+    }
+
+    Ok(VcfPanelMaterializationReport {
+        schema_version: "bijux.vcf_panel_materialization.v1".to_string(),
+        species_id: species.to_string(),
+        build_id: build.to_string(),
+        panel_id: panel.id,
+        map_id: map.id,
+        materialization_root: root,
+        compatible_tool_tags: panel.compatibility.tool_tags,
+        materialized_files: materialized,
+    })
+}
+
 pub(crate) fn resolve_bundle_entry(species: &str, build: &str) -> Result<BundleEntry> {
     let path = workspace_root().join("configs/runtime/reference_bundles.toml");
     let cfg: BundlesConfig = load_toml(&path)?;
@@ -387,8 +441,9 @@ fn write_index_artifact(
 #[cfg(test)]
 mod tests {
     use super::{
-        materialize_reference_bank, resolve_reference_bundle_contract, validate_bundle_contigs,
-        validate_bundle_digests, validate_reference_index_qa,
+        materialize_reference_bank, materialize_vcf_panel_assets,
+        resolve_reference_bundle_contract, validate_bundle_contigs, validate_bundle_digests,
+        validate_reference_index_qa,
     };
     use crate::runtime_config::{BundleEntry, ContigEntry, SupportedFeatureEntry};
     use std::collections::BTreeMap;
@@ -545,6 +600,24 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.reference_index_qa.v1");
         assert_eq!(report.verified_artifacts.len(), 6);
+    }
+
+    #[test]
+    fn vcf_panel_materialization_emits_panel_and_map_assets() {
+        let temp = make_temp_dir("vcf-panel-materialization");
+        let report = materialize_vcf_panel_assets(
+            "Homo sapiens",
+            "GRCh38",
+            Some("hsapiens_grch38_mini"),
+            Some("hsapiens_grch38_chr_map"),
+            &temp,
+        )
+        .unwrap_or_else(|error| panic!("materialize vcf panel assets: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.vcf_panel_materialization.v1");
+        assert_eq!(report.panel_id, "hsapiens_grch38_mini");
+        assert_eq!(report.map_id, "hsapiens_grch38_chr_map");
+        assert!(!report.materialized_files.is_empty());
     }
 
     fn make_temp_dir(label: &str) -> PathBuf {

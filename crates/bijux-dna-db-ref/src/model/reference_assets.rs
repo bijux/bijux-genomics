@@ -127,3 +127,15 @@ pub struct ReferenceIndexQaReport {
     pub materialization_root: PathBuf,
     pub verified_artifacts: Vec<String>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct VcfPanelMaterializationReport {
+    pub schema_version: String,
+    pub species_id: String,
+    pub build_id: String,
+    pub panel_id: String,
+    pub map_id: String,
+    pub materialization_root: PathBuf,
+    pub compatible_tool_tags: Vec<String>,
+    pub materialized_files: Vec<String>,
+}
