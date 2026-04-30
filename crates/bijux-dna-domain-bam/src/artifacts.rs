@@ -12,6 +12,7 @@ pub const BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION: &str = "bijux.bam.reference_pr
 pub const BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION: &str = "bijux.bam.alignment_provenance.v1";
 pub const BAM_VALIDATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.validate.v1";
 pub const BAM_MAPPING_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapping_summary.v1";
+pub const BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.mapq_filter.v1";
 pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summary.v1";
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
@@ -134,6 +135,22 @@ pub struct BamMappingSummaryV1 {
     pub idxstats_present: bool,
     #[serde(default)]
     pub mapq_regime: Option<BamMapqRegimeV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamMapqFilterSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub mapq_threshold: u8,
+    pub input_bam: PathBuf,
+    pub output_bam: PathBuf,
+    pub flagstat_before: BamFlagstatCountsV1,
+    pub flagstat_after: BamFlagstatCountsV1,
+    #[serde(default)]
+    pub mapped_reads_removed: Option<u64>,
+    #[serde(default)]
+    pub mapped_fraction_retained: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -357,6 +374,36 @@ mod tests {
         let reparsed: BamArtifactInventoryV1 =
             serde_json::from_str(&json).expect("deserialize artifact inventory");
         assert_eq!(reparsed.outputs[0].role, ArtifactRole::Bam.as_str());
+    }
+
+    #[test]
+    fn bam_mapq_filter_summary_round_trips() {
+        let payload = BamMapqFilterSummaryV1 {
+            schema_version: BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.mapq_filter".to_string(),
+            mapq_threshold: 30,
+            input_bam: PathBuf::from("input.bam"),
+            output_bam: PathBuf::from("filtered.bam"),
+            flagstat_before: BamFlagstatCountsV1 {
+                total_reads: Some(100),
+                mapped_reads: Some(90),
+                duplicate_reads: Some(10),
+                mapped_fraction: Some(0.9),
+            },
+            flagstat_after: BamFlagstatCountsV1 {
+                total_reads: Some(80),
+                mapped_reads: Some(70),
+                duplicate_reads: Some(8),
+                mapped_fraction: Some(0.875),
+            },
+            mapped_reads_removed: Some(20),
+            mapped_fraction_retained: Some(70.0 / 90.0),
+        };
+
+        let json = serde_json::to_value(&payload).expect("serialize mapq filter summary");
+        let roundtrip: BamMapqFilterSummaryV1 =
+            serde_json::from_value(json).expect("roundtrip mapq filter summary");
+        assert_eq!(roundtrip, payload);
     }
 
     #[test]
