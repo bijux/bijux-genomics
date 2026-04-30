@@ -40,6 +40,20 @@ struct TrimPlanPaths {
     report_json: PathBuf,
 }
 
+pub(crate) fn trim_backend_mode(tool_id: &str) -> &'static str {
+    match tool_id {
+        "seqkit" | "fastx_clipper" => "advisory",
+        _ => "enforced",
+    }
+}
+
+fn trim_operating_mode(tool_id: &str) -> bijux_dna_core::contract::StageOperatingMode {
+    match trim_backend_mode(tool_id) {
+        "advisory" => bijux_dna_core::contract::StageOperatingMode::Advisory,
+        _ => bijux_dna_core::contract::StageOperatingMode::Enforced,
+    }
+}
+
 /// Build a trim command plan.
 ///
 /// # Errors
@@ -133,7 +147,7 @@ pub fn plan_with_options(
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize trim effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
-        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        operating_mode: trim_operating_mode(tool.tool_id.as_str()),
         canonical_contract: None,
         provenance: None,
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
@@ -1704,11 +1718,44 @@ fn shell_quote_str(value: &str) -> String {
 mod tests {
     use super::{
         adapterremoval_command_template, alientrimmer_command_template, atropos_command_template,
-        fastx_clipper_command_template, leehom_trim_command_template, skewer_trim_command_template,
-        trim_galore_command_template, TrimPlanOptions, FALLBACK_TRIM_ADAPTER_R1,
-        FALLBACK_TRIM_ADAPTER_R2,
+        fastx_clipper_command_template, leehom_trim_command_template, plan,
+        skewer_trim_command_template, trim_backend_mode, trim_galore_command_template,
+        TrimPlanOptions, FALLBACK_TRIM_ADAPTER_R1, FALLBACK_TRIM_ADAPTER_R2,
+    };
+    use bijux_dna_core::prelude::{
+        CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
     };
     use std::path::Path;
+
+    fn tool(tool_id: &str) -> ToolExecutionSpecV1 {
+        ToolExecutionSpecV1 {
+            tool_id: ToolId::new(tool_id.to_string()),
+            tool_version: "test".to_string(),
+            image: ContainerImageRefV1 { image: "bijux/test:latest".to_string(), digest: None },
+            command: CommandSpecV1 {
+                template: match tool_id {
+                    "seqkit" => vec![
+                        "seqkit".to_string(),
+                        "seq".to_string(),
+                        "{{reads_r1}}".to_string(),
+                        "-o".to_string(),
+                        "{{trimmed_reads_r1}}".to_string(),
+                    ],
+                    _ => vec![
+                        tool_id.to_string(),
+                        "{{reads_r1}}".to_string(),
+                        "{{trimmed_reads_r1}}".to_string(),
+                    ],
+                },
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 1,
+                tmp_gb: 1,
+                threads: 2,
+            },
+        }
+    }
 
     #[test]
     fn adapterremoval_trim_redirects_undeclared_side_outputs() {
@@ -1877,5 +1924,27 @@ mod tests {
         assert!(script.contains("mv 'leehom_r2.fq.gz' 'out/R2.leehom.fastq.gz'"));
         assert!(script.contains("rm -f 'leehom.fq.gz' 'leehom.fail.fq.gz' 'leehom_r1.fail.fq.gz' 'leehom_r2.fail.fq.gz'"));
         assert!(script.contains("--log 'out/trim_report.leehom.log'"));
+    }
+
+    #[test]
+    fn trim_backend_modes_are_explicit() {
+        assert_eq!(trim_backend_mode("fastp"), "enforced");
+        assert_eq!(trim_backend_mode("seqkit"), "advisory");
+    }
+
+    #[test]
+    fn advisory_trim_backend_does_not_claim_enforced_mode() {
+        let plan = plan(
+            &tool("seqkit"),
+            Path::new("reads.fastq.gz"),
+            None,
+            Path::new("out"),
+            None,
+            None,
+            None,
+        )
+        .expect("plan");
+
+        assert_eq!(plan.operating_mode, bijux_dna_core::contract::StageOperatingMode::Advisory);
     }
 }

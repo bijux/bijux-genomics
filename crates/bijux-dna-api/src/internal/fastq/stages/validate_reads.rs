@@ -462,6 +462,12 @@ fn validate_report_reads_invalid(report: &bijux_dna_domain_fastq::ValidationRepo
     match report.failure_class {
         bijux_dna_domain_fastq::ValidateFailureClass::None
         | bijux_dna_domain_fastq::ValidateFailureClass::HeaderSyncMismatch => 0,
+        bijux_dna_domain_fastq::ValidateFailureClass::UnsupportedCompression
+        | bijux_dna_domain_fastq::ValidateFailureClass::EmptyInput
+        | bijux_dna_domain_fastq::ValidateFailureClass::MalformedRecord
+        | bijux_dna_domain_fastq::ValidateFailureClass::InvalidQualityEncoding => {
+            validate_report_reads_total(report)
+        }
         bijux_dna_domain_fastq::ValidateFailureClass::PairCountMismatch => {
             report.validated_reads_r1.abs_diff(report.validated_reads_r2.unwrap_or(0))
         }

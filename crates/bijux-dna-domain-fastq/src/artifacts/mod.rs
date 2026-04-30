@@ -13,6 +13,7 @@ mod merge_pairs;
 mod naming;
 mod normalize_abundance;
 mod normalize_primers;
+mod prepare_adapter_bank;
 mod profile_overrepresented_sequences;
 mod profile_read_lengths;
 mod profile_reads;
@@ -55,6 +56,9 @@ pub use normalize_abundance::{
     NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
 };
 pub use normalize_primers::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
+pub use prepare_adapter_bank::{
+    PrepareAdapterBankReportV1, PREPARE_ADAPTER_BANK_REPORT_SCHEMA_VERSION,
+};
 pub use profile_overrepresented_sequences::{
     OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1,
     PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,

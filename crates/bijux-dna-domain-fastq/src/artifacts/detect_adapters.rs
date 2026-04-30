@@ -23,10 +23,14 @@ pub struct DetectAdaptersReportV1 {
     pub evidence_scope: AdapterEvidenceScope,
     pub evidence_format: AdapterEvidenceFormat,
     pub evidence_artifact_id: String,
+    pub detected_adapter_source: String,
     pub input_r1: String,
     pub input_r2: Option<String>,
     pub report_json: String,
     pub adapter_evidence_dir: String,
+    pub recommended_adapter_bank_id: Option<String>,
+    pub recommended_adapter_bank_hash: Option<String>,
+    pub recommended_adapter_preset: Option<String>,
     pub reads_in: u64,
     pub reads_out: u64,
     pub bases_in: u64,
@@ -72,10 +76,14 @@ mod tests {
             evidence_scope: AdapterEvidenceScope::FullInput,
             evidence_format: AdapterEvidenceFormat::FastqcSummary,
             evidence_artifact_id: "report_json".to_string(),
+            detected_adapter_source: "fastqc_summary".to_string(),
             input_r1: "reads_R1.fastq.gz".to_string(),
             input_r2: Some("reads_R2.fastq.gz".to_string()),
             report_json: "adapter_report.json".to_string(),
             adapter_evidence_dir: "fastqc".to_string(),
+            recommended_adapter_bank_id: Some("illumina".to_string()),
+            recommended_adapter_bank_hash: Some("sha256:adapter-bank".to_string()),
+            recommended_adapter_preset: Some("illumina-default".to_string()),
             reads_in: 200,
             reads_out: 200,
             bases_in: 20_000,
@@ -105,5 +113,6 @@ mod tests {
         assert_eq!(decoded.tool_id, "fastqc");
         assert_eq!(decoded.evidence_scope, AdapterEvidenceScope::FullInput);
         assert_eq!(decoded.candidate_adapter_count, 2);
+        assert_eq!(decoded.detected_adapter_source, "fastqc_summary");
     }
 }
