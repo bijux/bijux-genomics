@@ -44,13 +44,6 @@ pub struct ReferenceContextReport {
 /// # Errors
 /// Returns an error if panel locks cannot be resolved against planner policy.
 pub fn resolve_panel_lock(inputs: &VcfPipelineInputs) -> Result<Option<VcfPanelLock>> {
-    if inputs
-        .requested_stages
-        .as_ref()
-        .is_some_and(|stages| !stages.iter().any(|stage| stage == "vcf.prepare_reference_panel"))
-    {
-        return Ok(None);
-    }
     let policy = DefaultPanelSelectionPolicy;
     let governance = inputs
         .panel_locks

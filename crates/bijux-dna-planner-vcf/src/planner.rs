@@ -3,7 +3,10 @@ use std::collections::BTreeSet;
 use anyhow::{anyhow, bail, Result};
 use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_core::prelude::ArtifactRole;
-use bijux_dna_domain_vcf::contracts::refuse_unsupported_regime_transition;
+use bijux_dna_domain_vcf::contracts::{
+    refuse_unsupported_regime_transition, vcf_panel_boundary_contracts,
+    VCF_COHORT_VALIDATION_CONTRACT,
+};
 use bijux_dna_domain_vcf::taxonomy::{
     validate_downstream_transition, CoverageRegime, VcfDomainStage,
 };
@@ -38,6 +41,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
     validate_stage_param_override_keys(inputs, &stages)?;
     validate_stage_coverage_support(&stages, resolved_coverage)?;
     validate_stage_ordering(&stages)?;
+    validate_panel_and_cohort_contracts(inputs, &stages, selected_panel.is_some(), &map_catalog.id)?;
 
     if stages.contains(&VcfDomainStage::Demography) && !stages.contains(&VcfDomainStage::Ibd) {
         bail!("vcf.demography requires vcf.ibd in requested/default stage set");
@@ -166,6 +170,49 @@ fn validate_stage_coverage_support(
 fn validate_stage_ordering(stages: &[VcfDomainStage]) -> Result<()> {
     for pair in stages.windows(2) {
         validate_downstream_transition(pair[0], pair[1])?;
+    }
+    Ok(())
+}
+
+fn validate_panel_and_cohort_contracts(
+    inputs: &VcfPipelineInputs,
+    stages: &[VcfDomainStage],
+    panel_selected: bool,
+    resolved_map_id: &str,
+) -> Result<()> {
+    let panel_boundary_stages = vcf_panel_boundary_contracts()
+        .iter()
+        .filter(|contract| stages.contains(&contract.stage))
+        .collect::<Vec<_>>();
+    if !panel_boundary_stages.is_empty() && !panel_selected && inputs.panel_id.is_none() {
+        let stage_list = panel_boundary_stages
+            .iter()
+            .map(|contract| contract.stage.as_str())
+            .collect::<Vec<_>>()
+            .join(", ");
+        bail!(
+            "planner refusal: explicit panel identity is required for {stage_list}; provide panel_lock or panel_id"
+        );
+    }
+    if !panel_boundary_stages.is_empty() && resolved_map_id.trim().is_empty() {
+        bail!("planner refusal: phasing/imputation workflows require a resolved genetic map");
+    }
+
+    let requires_cohort_validation = stages.iter().any(|stage| {
+        VCF_COHORT_VALIDATION_CONTRACT
+            .cohort_analysis_stages
+            .contains(stage)
+    });
+    if requires_cohort_validation {
+        if !inputs.entry_vcf_invariants.sample_ids_non_empty_unique {
+            bail!("planner refusal: cohort analysis requires unique non-empty sample IDs");
+        }
+        if !inputs.entry_vcf_invariants.ploidy_constraints_ok {
+            bail!("planner refusal: cohort analysis requires declared sex/ploidy assumptions");
+        }
+        if !inputs.panel_map_invariants.sample_count_ok {
+            bail!("planner refusal: cohort analysis requires cohort sample-count readiness");
+        }
     }
     Ok(())
 }
