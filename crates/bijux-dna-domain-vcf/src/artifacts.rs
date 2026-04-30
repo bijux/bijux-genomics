@@ -20,18 +20,18 @@ pub const VCF_GL_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.gl_workflow.v1";
 pub const VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.phasing.v1";
-pub const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
+const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.imputation.v1";
-pub const VCF_COHORT_QC_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.cohort_qc.v1";
-pub const VCF_PCA_ADMIXTURE_GUARDRAIL_SCHEMA_VERSION: &str = "bijux.vcf.pca_admixture.v1";
-pub const VCF_ROH_IBD_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.roh_ibd_boundary.v1";
-pub const VCF_DEMOGRAPHY_REFUSAL_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.demography_refusal.v1";
-pub const VCF_PANEL_REFERENCE_DRIFT_REPORT_SCHEMA_VERSION: &str =
+const VCF_COHORT_QC_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.cohort_qc.v1";
+const VCF_PCA_ADMIXTURE_GUARDRAIL_SCHEMA_VERSION: &str = "bijux.vcf.pca_admixture.v1";
+const VCF_ROH_IBD_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.roh_ibd_boundary.v1";
+const VCF_DEMOGRAPHY_REFUSAL_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.demography_refusal.v1";
+const VCF_PANEL_REFERENCE_DRIFT_REPORT_SCHEMA_VERSION: &str =
     "bijux.vcf.panel_reference_drift.v1";
-pub const VCF_STRUCTURAL_VARIANT_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.structural_variant.v1";
-pub const VCF_ANNOTATION_PROVENANCE_WORKFLOW_SCHEMA_VERSION: &str =
+const VCF_STRUCTURAL_VARIANT_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.structural_variant.v1";
+const VCF_ANNOTATION_PROVENANCE_WORKFLOW_SCHEMA_VERSION: &str =
     "bijux.vcf.annotation_provenance.v1";
-pub const VCF_POPULATION_HANDOFF_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.population_handoff.v1";
+const VCF_POPULATION_HANDOFF_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.population_handoff.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -251,7 +251,7 @@ pub struct VcfPhasingWorkflowBoundaryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct VcfImputationWorkflowBoundaryV1 {
+struct VcfImputationWorkflowBoundaryV1 {
     pub schema_version: String,
     pub stage_id: String,
     pub backend: String,
@@ -272,7 +272,7 @@ pub struct VcfImputationWorkflowBoundaryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct VcfCohortQcSampleCaveatV1 {
+struct VcfCohortQcSampleCaveatV1 {
     pub sample_id: String,
     pub missingness: f64,
     pub heterozygosity: Option<f64>,
@@ -282,7 +282,7 @@ pub struct VcfCohortQcSampleCaveatV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct VcfCohortQcWorkflowSummaryV1 {
+struct VcfCohortQcWorkflowSummaryV1 {
     pub schema_version: String,
     pub stage_id: String,
     pub prerequisites_passed: bool,
@@ -307,7 +307,7 @@ pub struct VcfCohortQcWorkflowSummaryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct VcfPcaAdmixtureGuardrailV1 {
+struct VcfPcaAdmixtureGuardrailV1 {
     pub schema_version: String,
     pub stage_id: String,
     pub prerequisites_passed: bool,
@@ -327,7 +327,7 @@ pub struct VcfPcaAdmixtureGuardrailV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct VcfRohIbdWorkflowBoundaryV1 {
+struct VcfRohIbdWorkflowBoundaryV1 {
     pub schema_version: String,
     pub stage_id: String,
     pub method: String,
@@ -348,7 +348,7 @@ pub struct VcfRohIbdWorkflowBoundaryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct VcfDemographyRefusalBoundaryV1 {
+struct VcfDemographyRefusalBoundaryV1 {
     pub schema_version: String,
     pub stage_id: String,
     pub requested_model: String,
@@ -365,7 +365,7 @@ pub struct VcfDemographyRefusalBoundaryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct VcfPanelReferenceSnapshotV1 {
+struct VcfPanelReferenceSnapshotV1 {
     pub label: String,
     pub reference_build: String,
     pub reference_fasta_sha256: String,
@@ -376,7 +376,7 @@ pub struct VcfPanelReferenceSnapshotV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct VcfPanelReferenceDriftReportV1 {
+struct VcfPanelReferenceDriftReportV1 {
     pub schema_version: String,
     pub stage_id: String,
     pub baseline_label: String,
@@ -392,7 +392,7 @@ pub struct VcfPanelReferenceDriftReportV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct VcfStructuralVariantBoundaryV1 {
+struct VcfStructuralVariantBoundaryV1 {
     pub schema_version: String,
     pub stage_id: String,
     pub has_structural_variants: bool,
@@ -411,7 +411,7 @@ pub struct VcfStructuralVariantBoundaryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct VcfAnnotationProvenanceWorkflowSummaryV1 {
+struct VcfAnnotationProvenanceWorkflowSummaryV1 {
     pub schema_version: String,
     pub stage_id: String,
     pub annotation_source: String,
@@ -432,7 +432,7 @@ pub struct VcfAnnotationProvenanceWorkflowSummaryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
-pub struct VcfPopulationAnalysisHandoffV1 {
+struct VcfPopulationAnalysisHandoffV1 {
     pub schema_version: String,
     pub stage_id: String,
     pub target_analysis: String,
@@ -1237,7 +1237,7 @@ pub fn evaluate_phasing_workflow_boundary(
 
 /// Evaluate imputation workflow boundaries and enforce panel/map provenance identity.
 #[must_use]
-pub fn evaluate_imputation_workflow_boundary(
+fn evaluate_imputation_workflow_boundary(
     backend: &str,
     panel_id: Option<&str>,
     map_id: Option<&str>,
@@ -1301,7 +1301,7 @@ pub fn evaluate_imputation_workflow_boundary(
 
 /// Build a cohort QC summary with explicit per-sample caveats and cohort-level readiness flags.
 #[must_use]
-pub fn execute_cohort_qc_workflow(
+fn execute_cohort_qc_workflow(
     sample_missingness: &BTreeMap<String, f64>,
     sample_heterozygosity: &BTreeMap<String, f64>,
     related_pairs: &[(String, String, f64)],
@@ -1384,7 +1384,7 @@ pub fn execute_cohort_qc_workflow(
 
 /// Evaluate guardrails for PCA/admixture analyses.
 #[must_use]
-pub fn evaluate_pca_admixture_guardrail(
+fn evaluate_pca_admixture_guardrail(
     ld_pruned: bool,
     sample_inclusion_defined: bool,
     marker_count: u64,
@@ -1437,7 +1437,7 @@ pub fn evaluate_pca_admixture_guardrail(
 
 /// Evaluate ROH/IBD workflow boundaries before running cohort-level analyses.
 #[must_use]
-pub fn evaluate_roh_ibd_workflow_boundary(
+fn evaluate_roh_ibd_workflow_boundary(
     method: &str,
     marker_density_per_mb: f64,
     minimum_marker_density_per_mb: f64,
@@ -1496,7 +1496,7 @@ pub fn evaluate_roh_ibd_workflow_boundary(
 
 /// Evaluate demography-analysis refusal boundaries for underpowered or incompatible requests.
 #[must_use]
-pub fn evaluate_demography_refusal_boundary(
+fn evaluate_demography_refusal_boundary(
     requested_model: &str,
     cohort_size: u32,
     minimum_cohort_size: u32,
@@ -1558,7 +1558,7 @@ pub fn evaluate_demography_refusal_boundary(
 
 /// Build a panel/reference drift report with explicit invalidation of downstream artifacts.
 #[must_use]
-pub fn build_panel_reference_drift_report(
+fn build_panel_reference_drift_report(
     baseline: &VcfPanelReferenceSnapshotV1,
     candidate: &VcfPanelReferenceSnapshotV1,
     downstream_outputs: &[&str],
@@ -1606,7 +1606,7 @@ pub fn build_panel_reference_drift_report(
 
 /// Evaluate structural-variant support boundaries and refuse unsafe coercion into small-variant semantics.
 #[must_use]
-pub fn evaluate_structural_variant_support_boundary(
+fn evaluate_structural_variant_support_boundary(
     has_structural_variants: bool,
     explicit_sv_mode: bool,
     backend: Option<&str>,
@@ -1654,7 +1654,7 @@ pub fn evaluate_structural_variant_support_boundary(
 
 /// Build annotation provenance summary with explicit source/version and field-coverage accounting.
 #[must_use]
-pub fn execute_annotation_provenance_workflow(
+fn execute_annotation_provenance_workflow(
     annotation_source: &str,
     annotation_version: &str,
     requested_fields: &[&str],
@@ -1715,7 +1715,7 @@ pub fn execute_annotation_provenance_workflow(
 
 /// Evaluate typed handoff boundaries from filtered/normalized VCF artifacts into population analyses.
 #[must_use]
-pub fn evaluate_vcf_population_analysis_handoff(
+fn evaluate_vcf_population_analysis_handoff(
     target_analysis: &str,
     filtered: bool,
     normalized: bool,
