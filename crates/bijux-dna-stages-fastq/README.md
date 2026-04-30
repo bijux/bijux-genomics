@@ -42,6 +42,17 @@ into planner, runner, engine, API, CLI, or environment layers.
 
 `docs/COMMANDS.md` is the SSOT for callable operations managed by this crate.
 
+## Release Example
+
+Run the release-surface example from the repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo run -q -p bijux-dna-stages-fastq --example fastq_release_surface
+```
+
+The example prints the governed FASTQ implemented-stage set and observer tool
+bindings used in essential QC release flows.
+
 Managed operations:
 
 - `list-fastq-contract-stages`
