@@ -4,6 +4,64 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "capabilities": {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "core.prepare_reference",
+        "fastq.deplete_rrna",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": [
+        "core.prepare_reference"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "rrna_database_identity",
+        "cross_species_hit_risk"
+      ],
+      "story_order": [
+        "read_admission",
+        "depletion_balance",
+        "qc_summary"
+      ]
+    },
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "shared_reference_bundle",
+        "fan_pattern": "fan_out",
+        "lineage_fields": [
+          "reference_id"
+        ],
+        "overwrite_strategy": "write_once_reuse_many",
+        "source_stage": "core.prepare_reference",
+        "target_stage": "fastq.deplete_rrna"
+      }
+    ],
     "input_artifacts": [
       "FastqReads"
     ],
@@ -17,6 +75,20 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "output_domains": [
       "Fastq"
     ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.deplete_rrna": [
+          "seed_length",
+          "max_edit_distance"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "core.prepare_reference": [
+          "rrna_db_release"
+        ]
+      }
+    },
     "produces_outputs": [
       "fastq",
       "fastq.metrics"
@@ -56,7 +128,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.deplete_rrna"
     ],
     "supports_benchmarks": true,
-    "supports_sample_sheet": false
+    "supports_sample_sheet": false,
+    "workflow_template_ids": [
+      "fastq.rrna_depletion"
+    ]
   },
   "defaults": {
     "params": {
