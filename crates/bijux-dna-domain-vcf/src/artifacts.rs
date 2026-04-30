@@ -23,6 +23,7 @@ pub const VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
 pub const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.imputation.v1";
 pub const VCF_COHORT_QC_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.cohort_qc.v1";
+pub const VCF_PCA_ADMIXTURE_GUARDRAIL_SCHEMA_VERSION: &str = "bijux.vcf.pca_admixture.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -292,6 +293,26 @@ pub struct VcfCohortQcWorkflowSummaryV1 {
     pub per_sample: Vec<VcfCohortQcSampleCaveatV1>,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfPcaAdmixtureGuardrailV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub prerequisites_passed: bool,
+    pub ld_pruned: bool,
+    pub sample_inclusion_defined: bool,
+    pub marker_count: u64,
+    pub minimum_marker_count: u64,
+    pub missingness_rate: f64,
+    pub maximum_missingness_rate: f64,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub assumptions: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -1231,6 +1252,59 @@ pub fn execute_cohort_qc_workflow(
     }
 }
 
+/// Evaluate guardrails for PCA/admixture analyses.
+#[must_use]
+pub fn evaluate_pca_admixture_guardrail(
+    ld_pruned: bool,
+    sample_inclusion_defined: bool,
+    marker_count: u64,
+    minimum_marker_count: u64,
+    missingness_rate: f64,
+    maximum_missingness_rate: f64,
+    interpretation_caveats_attached: bool,
+) -> VcfPcaAdmixtureGuardrailV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if !ld_pruned {
+        refusal_codes.push("ld_pruning_required".to_string());
+    }
+    if !sample_inclusion_defined {
+        refusal_codes.push("sample_inclusion_policy_required".to_string());
+    }
+    if marker_count < minimum_marker_count {
+        refusal_codes.push("marker_count_below_minimum".to_string());
+    }
+    if missingness_rate > maximum_missingness_rate {
+        refusal_codes.push("missingness_above_maximum".to_string());
+    }
+    if !interpretation_caveats_attached {
+        refusal_codes.push("interpretation_caveats_required".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    VcfPcaAdmixtureGuardrailV1 {
+        schema_version: VCF_PCA_ADMIXTURE_GUARDRAIL_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.population_structure".to_string(),
+        prerequisites_passed: refusal_codes.is_empty(),
+        ld_pruned,
+        sample_inclusion_defined,
+        marker_count,
+        minimum_marker_count,
+        missingness_rate,
+        maximum_missingness_rate,
+        refusal_codes,
+        assumptions: vec![
+            "PCA/admixture analyses require LD-pruned marker sets".to_string(),
+            "sample inclusion policy must be explicit for reproducible population summaries"
+                .to_string(),
+        ],
+        caveats: vec![
+            "population-structure plots are descriptive and not deterministic ancestry labels"
+                .to_string(),
+            "batch composition can shift principal-component orientation".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -1759,5 +1833,22 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"missingness_metrics_required".to_string()));
         assert!(refused.refusal_codes.contains(&"heterozygosity_metrics_required".to_string()));
         assert!(refused.refusal_codes.contains(&"filter_variant_counts_incoherent".to_string()));
+    }
+
+    #[test]
+    fn evaluate_pca_admixture_guardrail_requires_ld_pruning_marker_support_and_caveats() {
+        let ready = evaluate_pca_admixture_guardrail(true, true, 150_000, 50_000, 0.01, 0.05, true);
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.stage_id, "vcf.population_structure");
+        assert!(ready.refusal_codes.is_empty());
+
+        let refused =
+            evaluate_pca_admixture_guardrail(false, false, 10_000, 50_000, 0.11, 0.05, false);
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"ld_pruning_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"sample_inclusion_policy_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"marker_count_below_minimum".to_string()));
+        assert!(refused.refusal_codes.contains(&"missingness_above_maximum".to_string()));
+        assert!(refused.refusal_codes.contains(&"interpretation_caveats_required".to_string()));
     }
 }
