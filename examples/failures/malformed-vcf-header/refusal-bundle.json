@@ -1,0 +1,11 @@
+{
+  "schema_version": "bijux.example.refusal_bundle.v1",
+  "bundle_id": "malformed_vcf_header",
+  "category": "malformed_vcf_header",
+  "expected_refusal_codes": [
+    "VCF_HEADER_MALFORMED",
+    "VCF_DECLARATION_MISSING"
+  ],
+  "operating_mode": "enforced",
+  "summary": "Malformed VCF headers must be refused before filter or normalization stages begin."
+}

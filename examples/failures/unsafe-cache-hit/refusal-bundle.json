@@ -1,0 +1,10 @@
+{
+  "schema_version": "bijux.example.refusal_bundle.v1",
+  "bundle_id": "unsafe_cache_hit",
+  "category": "unsafe_cache_hit",
+  "expected_refusal_codes": [
+    "CACHE_IDENTITY_UNSAFE"
+  ],
+  "operating_mode": "enforced",
+  "summary": "Cache hits with mismatched provenance or policy surfaces must be refused."
+}
