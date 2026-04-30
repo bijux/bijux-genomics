@@ -3,6 +3,8 @@ use super::{
     PathBuf, Result, Workspace,
 };
 use std::collections::{BTreeMap, BTreeSet};
+use std::fs;
+use bijux_dna_api::v1::api::{evidence_gap, EvidenceGapRequestV1};
 use bijux_dna_domain_bam::{
     bam_adna_workflow_contract, bam_sample_identity, estimate_endogenous_content,
     execute_ancient_damage_evidence, evaluate_kinship_prerequisites,
@@ -30,6 +32,7 @@ enum ScenarioId {
     ContaminationPropagation,
     SampleIdentityConflict,
     ReferenceBuildConflict,
+    MissingEvidence,
 }
 
 impl ScenarioId {
@@ -44,6 +47,7 @@ impl ScenarioId {
             Self::ContaminationPropagation => "g187_contamination_propagation_model",
             Self::SampleIdentityConflict => "g188_sample_identity_conflict_propagation",
             Self::ReferenceBuildConflict => "g189_reference_build_conflict_propagation",
+            Self::MissingEvidence => "g190_missing_evidence_propagation",
         }
     }
 
@@ -58,6 +62,7 @@ impl ScenarioId {
             Self::ContaminationPropagation => "G187",
             Self::SampleIdentityConflict => "G188",
             Self::ReferenceBuildConflict => "G189",
+            Self::MissingEvidence => "G190",
         }
     }
 
@@ -72,6 +77,7 @@ impl ScenarioId {
             Self::ContaminationPropagation,
             Self::SampleIdentityConflict,
             Self::ReferenceBuildConflict,
+            Self::MissingEvidence,
         ]
     }
 
@@ -96,6 +102,7 @@ impl ScenarioId {
             "g189_reference_build_conflict_propagation" | "G189" => {
                 Some(Self::ReferenceBuildConflict)
             }
+            "g190_missing_evidence_propagation" | "G190" => Some(Self::MissingEvidence),
             _ => None,
         }
     }
@@ -221,6 +228,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::ContaminationPropagation => scenario_contamination_propagation_model(),
         ScenarioId::SampleIdentityConflict => scenario_sample_identity_conflict_propagation(),
         ScenarioId::ReferenceBuildConflict => scenario_reference_build_conflict_propagation(),
+        ScenarioId::MissingEvidence => scenario_missing_evidence_propagation(),
     };
 
     match result {
@@ -839,6 +847,111 @@ fn scenario_reference_build_conflict_propagation() -> Result<(Vec<String>, serde
     ))
 }
 
+fn scenario_missing_evidence_propagation() -> Result<(Vec<String>, serde_json::Value)> {
+    let workspace = Workspace::resolve()?;
+    let run_dir = workspace.path("artifacts/scientific_caveat_propagation/g190_missing_evidence");
+    bijux_dna_infra::ensure_dir(&run_dir)?;
+
+    let evidence_verification_path = run_dir.join("evidence_verification.json");
+    let artifact_inventory_path = run_dir.join("artifact_inventory.json");
+
+    let verification = json!({
+        "schema_version": "bijux.evidence_verification.v1",
+        "verified": false,
+        "checks": [
+            {
+                "check_id": "qc_manifest_present",
+                "ok": false,
+                "message": "missing reports/qc_manifest.json"
+            },
+            {
+                "check_id": "environment_manifest_present",
+                "ok": false,
+                "message": "missing environment.json"
+            }
+        ],
+        "missing_paths": [
+            "reports/qc_manifest.json",
+            "environment.json",
+            "manifests/reference_context.json"
+        ],
+        "gap_count": 3
+    });
+    let inventory = json!({
+        "schema_version": "bijux.artifact_inventory.v1",
+        "run_id": "g190-missing-evidence",
+        "artifacts": [
+            {
+                "artifact_id": "taxonomy_screen",
+                "name": "taxonomy_screen",
+                "role": "report",
+                "path": "reports/taxonomy_screen.json",
+                "scientific_context": {
+                    "domain": "fastq",
+                    "meaning": "taxonomy screening output",
+                    "safe_to_use": true,
+                    "advisory_only": true
+                }
+            },
+            {
+                "artifact_id": "population_summary",
+                "name": "population_summary",
+                "role": "report",
+                "path": "reports/population_summary.json",
+                "scientific_context": {
+                    "domain": "vcf",
+                    "meaning": "population inference summary",
+                    "safe_to_use": false,
+                    "advisory_only": false
+                }
+            }
+        ]
+    });
+    fs::write(&evidence_verification_path, serde_json::to_vec_pretty(&verification)?)?;
+    fs::write(&artifact_inventory_path, serde_json::to_vec_pretty(&inventory)?)?;
+
+    let response = evidence_gap(&EvidenceGapRequestV1 { run_dir: run_dir.clone() })?;
+    if response.gap_count == 0 || response.missing_paths.is_empty() {
+        return Err(anyhow!(
+            "missing-evidence scenario expected non-zero evidence gaps and missing-path propagation"
+        ));
+    }
+
+    let caveat_library = vec![
+        json!({
+            "topic": "missing_qc_evidence",
+            "missing_paths": response.missing_paths,
+            "failed_checks": response.failed_checks,
+            "propagation_targets": ["report.qc_summary", "report.review_queue"],
+        }),
+        json!({
+            "topic": "missing_reference_or_environment_proof",
+            "caveat": "reference-context and environment proof are missing and must block high-trust interpretation",
+            "unsafe_artifacts": response.unsafe_artifacts,
+            "propagation_targets": ["report.final_summary", "release_bundle", "external_exports"],
+        }),
+        json!({
+            "topic": "advisory_only_artifacts",
+            "advisory_only_artifacts": response.advisory_only_artifacts,
+            "propagation_targets": ["report.artifact_inventory", "report.scientific_context"],
+        }),
+    ];
+
+    Ok((
+        vec![
+            "missing-evidence propagation uses the runtime evidence-gap API to surface absent QC/reference/environment proof"
+                .to_string(),
+            "gap diagnostics are transformed into structured caveats that remain visible in downstream final outputs"
+                .to_string(),
+        ],
+        json!({
+            "run_dir": workspace.rel(&run_dir).display().to_string(),
+            "evidence_gap": response,
+            "caveat_library": caveat_library,
+        }),
+    ))
+}
+
 fn base_adna_metrics() -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
     metrics.damage.c_to_t_5p = 0.18;
@@ -863,6 +976,8 @@ mod tests {
             ids,
             vec![
                 "G181", "G182", "G183", "G184", "G185", "G186", "G187", "G188", "G189"
+                ,
+                "G190"
             ]
         );
     }
@@ -1244,5 +1359,53 @@ mod tests {
                 .and_then(serde_json::Value::as_str)
                 == Some("population_refusal")
         }));
+    }
+
+    #[test]
+    fn g190_missing_evidence_propagates_gap_summary() {
+        let report = run_scenario(&ScenarioId::MissingEvidence);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G190");
+        let gap = report.evidence.get("evidence_gap").cloned().unwrap_or_default();
+        assert!(gap
+            .get("gap_count")
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or_default()
+            > 0);
+        let missing_paths = gap
+            .get("missing_paths")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(missing_paths
+            .iter()
+            .any(|entry| entry.as_str() == Some("reports/qc_manifest.json")));
+    }
+
+    #[test]
+    fn g190_missing_evidence_lists_unsafe_artifacts_in_caveats() {
+        let report = run_scenario(&ScenarioId::MissingEvidence);
+        assert_eq!(report.status, "passed");
+        let library = report
+            .evidence
+            .get("caveat_library")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let unsafe_entry = library.iter().find(|entry| {
+            entry
+                .get("topic")
+                .and_then(serde_json::Value::as_str)
+                == Some("missing_reference_or_environment_proof")
+        });
+        assert!(unsafe_entry.is_some());
+        let unsafe_ids = unsafe_entry
+            .and_then(|entry| entry.get("unsafe_artifacts"))
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(unsafe_ids
+            .iter()
+            .any(|entry| entry.as_str() == Some("population_summary")));
     }
 }
