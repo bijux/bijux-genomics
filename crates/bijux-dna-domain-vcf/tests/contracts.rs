@@ -89,6 +89,17 @@ mod contracts {
     }
 
     #[test]
+    fn stats_and_qc_metric_contracts_cover_governed_summary_ids() {
+        let stats = stage_metrics_contract(VcfDomainStage::Stats);
+        assert!(stats.required_metrics.contains(&"sample_count"));
+        assert!(stats.required_metrics.contains(&"annotation_coverage"));
+
+        let qc = stage_metrics_contract(VcfDomainStage::Qc);
+        assert!(qc.required_metrics.contains(&"sample_count"));
+        assert!(qc.required_metrics.contains(&"missingness_post"));
+    }
+
+    #[test]
     fn vcf_workflow_surface_contracts_are_governed_and_explicit() {
         assert!(
             VCF_VALIDATION_CONTRACT
