@@ -10,7 +10,7 @@ This crate must not plan stages, select tools, parse domain data, own CLI UX, pr
 Upstream callers use the `bijux-dna-runtime::Runner` contract and runner facade exports. Downstream effects are process execution, artifact collection, and execution-record replay under declared runtime roots.
 
 ## Public API / entrypoints
-Use `bijux_dna_runner::api::*` for stable consumer-facing entrypoints. The crate root also exports `DockerRunner` for the concrete runtime adapter. See `docs/PUBLIC_API.md` for the full facade contract and `docs/COMMANDS.md` for the command inventory this crate may manage.
+Use `bijux_dna_runner::api::*` for stable consumer-facing entrypoints. The crate root also exports `ApptainerRunner`, `DockerRunner`, and `LocalRunner` for the concrete runtime adapters. See `docs/PUBLIC_API.md` for the full facade contract and `docs/COMMANDS.md` for the command inventory this crate may manage.
 
 ## Key contracts it owns/consumes
 The runner owns backend execution specs, command invocation identity, stdout/stderr capture, exit mapping, runner artifacts, replay verification, and the dependency/effect boundary around those responsibilities.

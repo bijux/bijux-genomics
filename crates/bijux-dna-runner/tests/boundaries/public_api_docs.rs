@@ -24,9 +24,10 @@ fn public_api_doc_matches_exported_surface() {
 
     assert_eq!(
         section_items(&docs, "Root Exports"),
-        entries(["DockerRunner", "LocalRunner", "api"]),
+        entries(["ApptainerRunner", "DockerRunner", "LocalRunner", "api"]),
         "PUBLIC_API.md must list root re-exports"
     );
+    assert!(lib.contains("pub use runner_driver::ApptainerRunner;"));
     assert!(lib.contains("pub use public_api::api;"));
     assert!(lib.contains("pub use runner_driver::DockerRunner;"));
     assert!(lib.contains("pub use runner_driver::LocalRunner;"));

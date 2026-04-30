@@ -3,6 +3,7 @@ use std::process::{Command, Stdio};
 use std::time::Duration;
 
 use anyhow::{anyhow, bail, Context};
+use bijux_dna_environment::api::RuntimeKind;
 use bijux_dna_runtime::{Invocation, Runner, RunnerResult};
 
 mod artifact_collection;
@@ -25,30 +26,10 @@ impl Runner for DockerRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
         let result = crate::step_runner::execute_step(
             &invocation.step,
-            bijux_dna_environment::api::RuntimeKind::Docker,
+            RuntimeKind::Docker,
             self.timeout,
         )?;
-        let crate::step_runner::StageResultV1 {
-            exit_code,
-            runtime_s,
-            outputs,
-            metrics_path,
-            stdout,
-            stderr,
-            ..
-        } = result;
-        let mut paths = outputs;
-        if let Some(metrics_path) = metrics_path {
-            paths.push(metrics_path);
-        }
-        let artifacts = collect_existing_artifacts(paths)?;
-        Ok(RunnerResult {
-            exit_code,
-            stdout,
-            stderr,
-            duration: Duration::from_secs_f64(runtime_s),
-            artifacts,
-        })
+        runner_result_from_stage_result(result)
     }
 }
 
@@ -68,31 +49,58 @@ impl Runner for LocalRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
         let result = crate::step_runner::execute_step(
             &invocation.step,
-            bijux_dna_environment::api::RuntimeKind::Local,
+            RuntimeKind::Local,
             self.timeout,
         )?;
-        let crate::step_runner::StageResultV1 {
-            exit_code,
-            runtime_s,
-            outputs,
-            metrics_path,
-            stdout,
-            stderr,
-            ..
-        } = result;
-        let mut paths = outputs;
-        if let Some(metrics_path) = metrics_path {
-            paths.push(metrics_path);
-        }
-        let artifacts = collect_existing_artifacts(paths)?;
-        Ok(RunnerResult {
-            exit_code,
-            stdout,
-            stderr,
-            duration: Duration::from_secs_f64(runtime_s),
-            artifacts,
-        })
+        runner_result_from_stage_result(result)
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ApptainerRunner {
+    pub runtime: RuntimeKind,
+    pub timeout: Option<Duration>,
+}
+
+impl ApptainerRunner {
+    #[must_use]
+    pub fn new(runtime: RuntimeKind, timeout: Option<Duration>) -> Self {
+        debug_assert!(matches!(runtime, RuntimeKind::Apptainer | RuntimeKind::Singularity));
+        Self { runtime, timeout }
+    }
+}
+
+impl Runner for ApptainerRunner {
+    fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
+        let result = crate::step_runner::execute_step(&invocation.step, self.runtime, self.timeout)?;
+        runner_result_from_stage_result(result)
+    }
+}
+
+fn runner_result_from_stage_result(
+    result: crate::step_runner::StageResultV1,
+) -> anyhow::Result<RunnerResult> {
+    let crate::step_runner::StageResultV1 {
+        exit_code,
+        runtime_s,
+        outputs,
+        metrics_path,
+        stdout,
+        stderr,
+        ..
+    } = result;
+    let mut paths = outputs;
+    if let Some(metrics_path) = metrics_path {
+        paths.push(metrics_path);
+    }
+    let artifacts = collect_existing_artifacts(paths)?;
+    Ok(RunnerResult {
+        exit_code,
+        stdout,
+        stderr,
+        duration: Duration::from_secs_f64(runtime_s),
+        artifacts,
+    })
 }
 
 pub(crate) fn run_local_command(
