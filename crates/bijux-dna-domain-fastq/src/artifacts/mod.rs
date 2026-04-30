@@ -1,5 +1,6 @@
 mod build_contaminant_db;
 mod build_rrna_db;
+mod build_taxonomy_db;
 mod capture_provenance_snapshot;
 mod classify_layout;
 mod cluster_otus;
@@ -48,6 +49,10 @@ pub use build_contaminant_db::{
 };
 pub use build_rrna_db::{
     BuildRrnaDbReportV1, BuildRrnaDbSourceEntryV1, BUILD_RRNA_DB_REPORT_SCHEMA_VERSION,
+};
+pub use build_taxonomy_db::{
+    BuildTaxonomyDbReportV1, BuildTaxonomyDbSourceEntryV1,
+    BUILD_TAXONOMY_DB_REPORT_SCHEMA_VERSION,
 };
 pub use capture_provenance_snapshot::{
     CaptureProvenanceSnapshotReportV1, ProvenanceFileEntryV1, ProvenanceStageEntryV1,
