@@ -67,3 +67,9 @@ case_tags = ["reference-mismatch", "contig-alias"]
 [datasets.truth_set]
 status = "unavailable"
 note = "no truth set; mismatch fixture validates reference compatibility diagnostics"
+
+[[backend_comparisons]]
+comparison_id = "bam.align.ci"
+stage_id = "bam.align"
+tools = ["bwa", "bowtie2"]
+caveat = "aligner comparison is scenario-specific and cannot be interpreted as universal mapping truth"

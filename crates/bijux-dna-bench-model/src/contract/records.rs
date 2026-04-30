@@ -3,8 +3,8 @@
 
 use crate::diagnostics::BenchError;
 use crate::model::{
-    BenchmarkCorpusManifest, BenchmarkObservation, BenchmarkSummary, CorpusDatasetSpec, MetricSummary,
-    SummaryRow, TruthSetHook, TruthSetStatus,
+    BackendComparisonSpec, BenchmarkCorpusManifest, BenchmarkObservation, BenchmarkSummary,
+    CorpusDatasetSpec, MetricSummary, SummaryRow, TruthSetHook, TruthSetStatus,
 };
 use crate::policy::{GateDecision, GateViolation};
 
@@ -39,6 +39,9 @@ pub fn validate_corpus_manifest(corpus: &BenchmarkCorpusManifest) -> Result<(), 
                 dataset.dataset_id
             )));
         }
+    }
+    for comparison in &corpus.backend_comparisons {
+        validate_backend_comparison(comparison)?;
     }
     Ok(())
 }
@@ -166,6 +169,29 @@ fn validate_truth_set_hook(hook: &TruthSetHook) -> Result<(), BenchError> {
     Ok(())
 }
 
+fn validate_backend_comparison(comparison: &BackendComparisonSpec) -> Result<(), BenchError> {
+    required_text(&comparison.comparison_id, "corpus backend comparison_id")?;
+    required_text(&comparison.stage_id, "corpus backend stage_id")?;
+    required_text(&comparison.caveat, "corpus backend caveat")?;
+    if comparison.tools.len() < 2 {
+        return Err(BenchError::InvalidPolicy(format!(
+            "corpus backend comparison {} must include at least two tools",
+            comparison.comparison_id
+        )));
+    }
+    let mut seen = std::collections::BTreeSet::new();
+    for tool in &comparison.tools {
+        required_text(tool, "corpus backend tool")?;
+        if !seen.insert(tool) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "corpus backend comparison {} must not repeat tool {}",
+                comparison.comparison_id, tool
+            )));
+        }
+    }
+    Ok(())
+}
+
 fn validate_metric_summary(metric: &MetricSummary) -> Result<(), BenchError> {
     required_text(&metric.metric_id, "summary metric_id")?;
     if metric.stats.n != metric.n {
@@ -241,8 +267,8 @@ mod tests {
 
     use crate::contract::{CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
     use crate::model::{
-        BenchmarkCorpusManifest, BenchmarkSummary, CorpusDatasetSpec, CorpusDomain, CorpusScale,
-        MetricSummary, SummaryRow, TruthSetHook, TruthSetStatus,
+        BackendComparisonSpec, BenchmarkCorpusManifest, BenchmarkSummary, CorpusDatasetSpec,
+        CorpusDomain, CorpusScale, MetricSummary, SummaryRow, TruthSetHook, TruthSetStatus,
     };
     use crate::policy::{GateDecision, GateViolation};
     use crate::stats::robust_estimators::RobustStats;
@@ -326,6 +352,13 @@ mod tests {
                     truth_set_id: Some("truth.fastq.synthetic.v1".to_string()),
                     note: "truth set available for synthetic paired validation".to_string(),
                 },
+            }],
+            backend_comparisons: vec![BackendComparisonSpec {
+                comparison_id: "fastq.trim_reads.backends".to_string(),
+                stage_id: "fastq.trim_reads".to_string(),
+                tools: vec!["fastp".to_string(), "cutadapt".to_string()],
+                caveat: "backend deltas are operational comparisons, not biological accuracy proofs"
+                    .to_string(),
             }],
         }
     }
@@ -517,6 +550,19 @@ mod tests {
         };
 
         assert!(err.to_string().contains("must not include truth_set_id"));
+        Ok(())
+    }
+
+    #[test]
+    fn corpus_rejects_backend_comparison_without_tool_cohort() -> anyhow::Result<()> {
+        let mut corpus = valid_corpus();
+        corpus.backend_comparisons[0].tools.truncate(1);
+
+        let Err(err) = validate_corpus_manifest(&corpus) else {
+            bail!("backend comparison with one tool should fail");
+        };
+
+        assert!(err.to_string().contains("at least two tools"));
         Ok(())
     }
 }

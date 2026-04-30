@@ -36,6 +36,15 @@ pub struct TruthSetHook {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct BackendComparisonSpec {
+    pub comparison_id: String,
+    pub stage_id: String,
+    pub tools: Vec<String>,
+    pub caveat: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct CorpusDatasetSpec {
     pub dataset_id: String,
     pub fixture: String,
@@ -56,4 +65,6 @@ pub struct BenchmarkCorpusManifest {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub scientific_caveats: Vec<String>,
     pub datasets: Vec<CorpusDatasetSpec>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub backend_comparisons: Vec<BackendComparisonSpec>,
 }

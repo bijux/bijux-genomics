@@ -88,3 +88,9 @@ case_tags = ["panel-mismatch", "reference-panel"]
 [datasets.truth_set]
 status = "unavailable"
 note = "no truth set; panel mismatch fixture validates compatibility diagnostics"
+
+[[backend_comparisons]]
+comparison_id = "vcf.call.ci"
+stage_id = "vcf.call"
+tools = ["bcftools", "freebayes"]
+caveat = "caller comparison is constrained to fixture conditions and remains advisory"

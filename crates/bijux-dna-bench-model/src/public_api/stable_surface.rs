@@ -8,8 +8,8 @@ pub use crate::model::decision::DecisionRationale;
 pub use crate::model::graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 pub use crate::model::observation::MetricsEnvelope;
 pub use crate::model::{
-    BenchmarkCorpusManifest, CorpusDatasetSpec, CorpusDomain, CorpusScale, TruthSetHook,
-    TruthSetStatus,
+    BackendComparisonSpec, BenchmarkCorpusManifest, CorpusDatasetSpec, CorpusDomain, CorpusScale,
+    TruthSetHook, TruthSetStatus,
 };
 pub use crate::model::suite::{
     AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec, DatasetSpec,

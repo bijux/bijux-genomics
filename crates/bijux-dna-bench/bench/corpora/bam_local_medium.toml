@@ -57,3 +57,9 @@ case_tags = ["damage", "authenticity-caveat"]
 [datasets.truth_set]
 status = "unavailable"
 note = "no truth set; damage-profile signals are advisory and uncertainty-driven"
+
+[[backend_comparisons]]
+comparison_id = "bam.markdup.local"
+stage_id = "bam.mark_duplicates"
+tools = ["samtools", "picard"]
+caveat = "duplicate-method comparison is workflow-specific and not a universal biological ranking"

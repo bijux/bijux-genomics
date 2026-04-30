@@ -456,3 +456,40 @@ fn checked_in_corpus_catalog_labels_truth_set_presence_and_absence() -> Result<(
     assert!(has_unavailable_truth, "corpus catalog must include at least one unavailable truth set");
     Ok(())
 }
+
+#[test]
+fn checked_in_corpus_catalog_covers_backend_comparison_cohorts() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let mut domains_with_cohorts = std::collections::BTreeSet::new();
+
+    for corpus in &corpora {
+        for comparison in &corpus.backend_comparisons {
+            assert!(
+                comparison.tools.len() >= 2,
+                "backend comparison {} must include at least two tools",
+                comparison.comparison_id
+            );
+            assert!(
+                comparison.caveat.to_ascii_lowercase().contains("advis")
+                    || comparison.caveat.to_ascii_lowercase().contains("not"),
+                "backend comparison {} must carry an explicit scientific caveat",
+                comparison.comparison_id
+            );
+            let domain = match corpus.domain {
+                CorpusDomain::Fastq => "fastq",
+                CorpusDomain::Bam => "bam",
+                CorpusDomain::Vcf => "vcf",
+            };
+            domains_with_cohorts.insert(domain);
+        }
+    }
+
+    for required_domain in ["fastq", "bam", "vcf"] {
+        assert!(
+            domains_with_cohorts.contains(required_domain),
+            "corpus catalog must define backend comparison cohorts for {}",
+            required_domain
+        );
+    }
+    Ok(())
+}

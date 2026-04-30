@@ -57,3 +57,9 @@ case_tags = ["aggregate-qc", "reporting"]
 [datasets.truth_set]
 status = "unavailable"
 note = "no truth set; aggregate QC report is for schema and scaling checks"
+
+[[backend_comparisons]]
+comparison_id = "fastq.deplete_host.local"
+stage_id = "fastq.deplete_host"
+tools = ["bowtie2", "bwa"]
+caveat = "host depletion backend differences remain operational evidence and not biological prevalence claims"

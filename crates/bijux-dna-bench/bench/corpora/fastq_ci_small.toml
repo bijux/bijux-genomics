@@ -88,3 +88,9 @@ case_tags = ["empty", "boundary"]
 [datasets.truth_set]
 status = "unavailable"
 note = "no truth set; empty fixture exists only for boundary refusal and completeness handling"
+
+[[backend_comparisons]]
+comparison_id = "fastq.trim_reads.ci"
+stage_id = "fastq.trim_reads"
+tools = ["fastp", "cutadapt", "trimmomatic"]
+caveat = "tool deltas are compared on shared synthetic fixtures and must not be read as absolute scientific ranking"

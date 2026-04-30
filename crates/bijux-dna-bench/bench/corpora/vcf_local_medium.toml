@@ -47,3 +47,9 @@ case_tags = ["evidence-size", "report-volume"]
 [datasets.truth_set]
 status = "unavailable"
 note = "no truth set; evidence-size fixture targets report serialization scaling"
+
+[[backend_comparisons]]
+comparison_id = "vcf.normalize.local"
+stage_id = "vcf.filter"
+tools = ["bcftools", "gatk"]
+caveat = "normalization and filter backend differences are evaluated as engineering drift signals, not scientific ranking"
