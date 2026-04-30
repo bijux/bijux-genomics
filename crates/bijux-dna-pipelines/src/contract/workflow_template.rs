@@ -667,6 +667,69 @@ pub fn plan_bam_to_vcf_minimal_workflow(
     })
 }
 
+pub fn plan_fastq_to_vcf_minimal_workflow(
+    template: &CrossWorkflowTemplateV1,
+    sheet: &SampleSheetV1,
+) -> Result<CrossWorkflowExecutionPlanV1> {
+    if template.template_id != "cross.fastq_to_vcf_minimal" {
+        bail!("template {} is not the FASTQ-to-VCF minimal workflow", template.template_id);
+    }
+    let required_chain = [
+        id_catalog::FASTQ_VALIDATE_READS,
+        id_catalog::FASTQ_TRIM,
+        id_catalog::CORE_PREPARE_REFERENCE,
+        id_catalog::BAM_ALIGN,
+        id_catalog::BAM_QC_PRE,
+        id_catalog::BAM_GENOTYPING,
+        id_catalog::VCF_FILTER,
+        id_catalog::VCF_STATS,
+    ];
+    for stage_id in required_chain {
+        if !template.requested_stages.iter().any(|configured| configured == stage_id) {
+            bail!("FASTQ-to-VCF template is missing required stage {stage_id}");
+        }
+    }
+    let sample_stage_sequence = vec![
+        id_catalog::FASTQ_VALIDATE_READS.to_string(),
+        id_catalog::FASTQ_TRIM.to_string(),
+        id_catalog::BAM_ALIGN.to_string(),
+        "bam.sort".to_string(),
+        "bam.index".to_string(),
+        id_catalog::BAM_QC_PRE.to_string(),
+        id_catalog::BAM_MAPPING_SUMMARY.to_string(),
+        id_catalog::BAM_GENOTYPING.to_string(),
+    ];
+    let handoff_sequence = vec![
+        "fastq.trim_reads->bam.align".to_string(),
+        "bam.index->bam.qc_pre".to_string(),
+        "bam.genotyping->vcf.filter".to_string(),
+        "vcf.filter->vcf.stats".to_string(),
+    ];
+    let sample_plans = sheet
+        .records
+        .iter()
+        .map(|record| CrossWorkflowSampleExecutionPlanV1 {
+            sample_id: record.sample_id.clone(),
+            stage_sequence: sample_stage_sequence.clone(),
+            handoff_sequence: handoff_sequence.clone(),
+        })
+        .collect::<Vec<_>>();
+    Ok(CrossWorkflowExecutionPlanV1 {
+        schema_version: "bijux.cross.workflow_execution_plan.v1".to_string(),
+        template_id: template.template_id.clone(),
+        pipeline_id: template.pipeline_id.clone(),
+        shared_reference_stages: vec![id_catalog::CORE_PREPARE_REFERENCE.to_string()],
+        sample_plans,
+        cohort_stages: vec![id_catalog::VCF_FILTER.to_string(), id_catalog::VCF_STATS.to_string()],
+        caveats: vec![
+            "fastq-to-vcf minimal path is a tiny-fixture proof and not clinical-grade calling"
+                .to_string(),
+            "final variant interpretation must include upstream read and mapping caveats"
+                .to_string(),
+        ],
+    })
+}
+
 #[must_use]
 pub fn build_batch_workflow_graph(
     template: &CrossWorkflowTemplateV1,
