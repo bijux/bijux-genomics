@@ -7,7 +7,7 @@ use bijux_dna_core::prelude::ArtifactId;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::metrics::BamMetricsV1;
+use crate::metrics::{authenticity_score, BamMetricsV1};
 use crate::params::ReadGroupSpec;
 
 pub const BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION: &str = "bijux.bam.artifact_inventory.v1";
@@ -32,6 +32,7 @@ pub const BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION: &str = "bijux.bam.scientific_rep
 pub const BAM_RESOURCE_PLAN_SCHEMA_VERSION: &str = "bijux.bam.resource_plan.v1";
 pub const BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION: &str = "bijux.bam.bench_corpus_manifest.v1";
 pub const BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.damage_evidence.v1";
+pub const BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION: &str = "bijux.bam.authenticity_advisory.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -435,6 +436,21 @@ pub struct BamDamageEvidenceV1 {
     pub advisory_boundary: BamAdvisoryBoundaryV1,
     #[serde(default)]
     pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAuthenticityAdvisoryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub score: f64,
+    pub confidence: f64,
+    pub pmd_like_signal_present: bool,
+    pub advisory_boundary: BamAdvisoryBoundaryV1,
+    #[serde(default)]
+    pub assumptions: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -2151,6 +2167,55 @@ pub fn execute_ancient_damage_evidence(
     }
 }
 
+/// Execute PMD/authenticity interpretation as advisory evidence and never as certification.
+#[must_use]
+pub fn execute_pmd_authenticity_advisory(metrics: &BamMetricsV1) -> BamAuthenticityAdvisoryV1 {
+    let authenticity = authenticity_score(metrics);
+    let advisory_boundary = BamAdvisoryBoundaryV1 {
+        schema_version: BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.authenticity".to_string(),
+        advisory_only: true,
+        scientific_scope: "authenticity_evidence_advisory_only".to_string(),
+        evidence_inputs: vec![
+            "damage_metrics".to_string(),
+            "fragment_length_distribution".to_string(),
+            "mapq_distribution".to_string(),
+        ],
+        safe_for_claims: vec![
+            "pmd_like_signal_present".to_string(),
+            "authenticity_evidence_score".to_string(),
+        ],
+        unsafe_for_claims: vec![
+            "authenticity_certification".to_string(),
+            "forensic_identity_claim".to_string(),
+        ],
+    };
+    let mut assumptions = vec![
+        "library preparation and contamination context are required to interpret PMD".to_string(),
+        "authenticity score depends on damage, fragment profile, and MAPQ behavior".to_string(),
+    ];
+    if let Some(inference) = authenticity.library_type_inference {
+        assumptions.push(format!(
+            "inferred library type {} with confidence {:.2}",
+            format!("{:?}", inference.inferred).to_lowercase(),
+            inference.confidence
+        ));
+    }
+    BamAuthenticityAdvisoryV1 {
+        schema_version: BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.authenticity".to_string(),
+        score: authenticity.score,
+        confidence: authenticity.confidence,
+        pmd_like_signal_present: authenticity.evidence.damage_high,
+        advisory_boundary,
+        assumptions,
+        caveats: vec![
+            "this stage is advisory and cannot certify authenticity by itself".to_string(),
+            "contamination and reference-context evidence must be reviewed jointly".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn bam_adna_workflow_contract() -> BamAdnaWorkflowV1 {
     BamAdnaWorkflowV1 {
@@ -2568,6 +2633,25 @@ mod tests {
         assert_eq!(strict.damage_signal, "moderate");
         assert!(!strict.advisory_boundary.advisory_only);
         assert!(strict.strict_profile_upgraded);
+    }
+
+    #[test]
+    fn execute_pmd_authenticity_advisory_never_certifies_authenticity() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.damage.c_to_t_5p = 0.22;
+        metrics.damage.g_to_a_3p = 0.19;
+        metrics.fragment_length.short_fraction = 0.30;
+        metrics.mapq.mean = 22.0;
+
+        let advisory = execute_pmd_authenticity_advisory(&metrics);
+        assert!(advisory.pmd_like_signal_present);
+        assert!(advisory.score > 0.0);
+        assert!(advisory.confidence > 0.0);
+        assert!(advisory.advisory_boundary.advisory_only);
+        assert!(advisory
+            .advisory_boundary
+            .unsafe_for_claims
+            .contains(&"authenticity_certification".to_string()));
     }
 
     fn unique_temp_dir(label: &str) -> PathBuf {
