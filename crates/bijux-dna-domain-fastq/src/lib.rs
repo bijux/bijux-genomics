@@ -109,7 +109,8 @@ pub use banks::{
 pub use comparison_contract::{
     benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,
     comparison_contract_for_stage, comparison_input_artifact_ids_for_stage,
-    StageComparisonContract,
+    trim_backend_comparison_contract, StageComparisonContract, TrimBackendComparisonContract,
+    TrimComparisonToolProfile,
 };
 pub use domain_adapter::FastqDomain;
 pub use execution_support::{

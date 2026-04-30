@@ -115,6 +115,41 @@ fn preprocess_stages_publish_comparison_artifact_contracts() {
 }
 
 #[test]
+fn trim_backend_comparison_contract_exposes_required_tools_and_caveats() {
+    let contract = bijux_dna_domain_fastq::trim_backend_comparison_contract();
+    let required_tools =
+        contract.required_tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<BTreeSet<_>>();
+    assert_eq!(
+        required_tools,
+        BTreeSet::from(["adapterremoval", "cutadapt", "fastp", "fastx_clipper", "trimmomatic"])
+    );
+    assert!(
+        contract
+            .comparison_tool_profiles
+            .iter()
+            .any(|profile| profile.tool_id.as_str() == "fastx_clipper" && profile.legacy_backend),
+        "trim comparison contract must flag at least one legacy backend"
+    );
+    assert!(
+        contract.comparison_tool_profiles.iter().all(|profile| !profile.caveats.is_empty()),
+        "every trim comparison backend must expose caveats"
+    );
+    assert_eq!(
+        contract.normalized_metric_ids,
+        vec![
+            "reads_in",
+            "reads_out",
+            "bases_in",
+            "bases_out",
+            "pairs_in",
+            "pairs_out",
+            "mean_q_before",
+            "mean_q_after",
+        ]
+    );
+}
+
+#[test]
 fn profiling_stages_publish_comparison_artifact_contracts() {
     assert_comparison_stage_contract(
         "fastq.screen_taxonomy",
