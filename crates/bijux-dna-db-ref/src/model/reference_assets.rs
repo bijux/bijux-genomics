@@ -105,3 +105,16 @@ pub struct ReferenceMaterializationReport {
     pub bundle_id: String,
     pub index_artifacts: Vec<MaterializedIndexArtifact>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ReferenceBundleResolverReport {
+    pub schema_version: String,
+    pub species_id: String,
+    pub build_id: String,
+    pub bundle_id: String,
+    pub contig_aliases: BTreeMap<String, String>,
+    pub panel_id: Option<String>,
+    pub map_id: Option<String>,
+    pub map_bank_id: Option<String>,
+    pub compatibility_checked_tool: Option<String>,
+}

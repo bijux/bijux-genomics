@@ -9,8 +9,8 @@ use crate::runtime_config::{
 };
 use crate::{
     BundleEntry, ContigNormalizationPolicy, GeneticMapBankEntry, MaterializedIndexArtifact,
-    OrganellarPolicy, ReferenceBankEntry, ReferenceBundle, ReferenceMaterializationReport,
-    ReferenceProvenance, ReferenceSet,
+    OrganellarPolicy, ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport,
+    ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
 };
 
 /// # Errors
@@ -229,6 +229,49 @@ pub fn materialize_reference_bank(
     })
 }
 
+/// # Errors
+/// Returns an error if any bundle, alias, panel, map, or compatibility contract fails.
+pub fn resolve_reference_bundle_contract(
+    species: &str,
+    build: &str,
+    panel_id: Option<&str>,
+    map_id: Option<&str>,
+    compatibility_tool: Option<&str>,
+) -> Result<ReferenceBundleResolverReport> {
+    let bundle = resolve_reference_bundle(species, build)?;
+    let contig_map = crate::resolution::resolve_contig_map(species, build)?;
+    let map_bank = resolve_genetic_map_bank(species, build, panel_id).ok();
+
+    let resolved_panel = panel_id
+        .map(|id| crate::resolution::resolve_panel(species, build, Some(id)))
+        .transpose()?;
+    let resolved_map = map_id
+        .map(|id| crate::resolution::resolve_map(species, build, Some(id)))
+        .transpose()?;
+
+    if let Some(tool) = compatibility_tool {
+        let Some(panel) = resolved_panel.as_ref() else {
+            bail!("compatibility check for {tool} requires a resolved panel");
+        };
+        let Some(map) = resolved_map.as_ref() else {
+            bail!("compatibility check for {tool} requires a resolved map");
+        };
+        crate::resolution::validate_imputation_tool_compatibility(tool, panel, map)?;
+    }
+
+    Ok(ReferenceBundleResolverReport {
+        schema_version: "bijux.reference_bundle_resolver.v1".to_string(),
+        species_id: species.to_string(),
+        build_id: build.to_string(),
+        bundle_id: bundle.bundle_id,
+        contig_aliases: contig_map.aliases,
+        panel_id: resolved_panel.as_ref().map(|entry| entry.id.clone()),
+        map_id: resolved_map.as_ref().map(|entry| entry.id.clone()),
+        map_bank_id: map_bank.map(|entry| entry.id),
+        compatibility_checked_tool: compatibility_tool.map(ToString::to_string),
+    })
+}
+
 pub(crate) fn resolve_bundle_entry(species: &str, build: &str) -> Result<BundleEntry> {
     let path = workspace_root().join("configs/runtime/reference_bundles.toml");
     let cfg: BundlesConfig = load_toml(&path)?;
@@ -296,7 +339,10 @@ fn write_index_artifact(
 
 #[cfg(test)]
 mod tests {
-    use super::{materialize_reference_bank, validate_bundle_contigs, validate_bundle_digests};
+    use super::{
+        materialize_reference_bank, resolve_reference_bundle_contract, validate_bundle_contigs,
+        validate_bundle_digests,
+    };
     use crate::runtime_config::{BundleEntry, ContigEntry, SupportedFeatureEntry};
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -414,6 +460,34 @@ mod tests {
         assert_eq!(report.mode, "offline_fixture");
         assert!(report.index_artifacts.iter().any(|artifact| artifact.tool_id == "samtools_faidx"));
         assert!(report.index_artifacts.iter().all(|artifact| artifact.path.exists()));
+    }
+
+    #[test]
+    fn reference_bundle_contract_resolves_aliases_and_optional_compatibility() {
+        let report = resolve_reference_bundle_contract(
+            "Homo sapiens",
+            "GRCh38",
+            Some("hsapiens_grch38_mini"),
+            Some("hsapiens_grch38_chr_map"),
+            Some("glimpse"),
+        )
+        .unwrap_or_else(|error| panic!("resolve reference bundle contract: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.reference_bundle_resolver.v1");
+        assert_eq!(report.panel_id.as_deref(), Some("hsapiens_grch38_mini"));
+        assert_eq!(report.map_id.as_deref(), Some("hsapiens_grch38_chr_map"));
+        assert!(report.contig_aliases.contains_key("chr1"));
+    }
+
+    #[test]
+    fn reference_bundle_contract_rejects_tool_check_without_panel_and_map() {
+        let Err(error) =
+            resolve_reference_bundle_contract("Homo sapiens", "GRCh38", None, None, Some("glimpse"))
+        else {
+            panic!("tool compatibility without panel/map must fail");
+        };
+
+        assert!(error.to_string().contains("requires a resolved panel"));
     }
 
     fn make_temp_dir(label: &str) -> PathBuf {

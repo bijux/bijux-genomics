@@ -2,7 +2,8 @@ use bijux_dna_db_ref::public_api::{
     enforce_declared_build_and_contigs, normalize_contig_name, resolve_default_reference_set,
     resolve_genetic_map_bank, resolve_map, resolve_map_lock, resolve_organellar_policy,
     resolve_panel, resolve_panel_lock, resolve_reference_bank, resolve_reference_bundle,
-    resolve_sex_chromosome_rule, resolve_species_authority, resolve_species_context,
+    resolve_reference_bundle_contract, resolve_sex_chromosome_rule, resolve_species_authority,
+    resolve_species_context,
     validate_imputation_tool_compatibility, CatalogCompatibility, PanelCatalogEntry,
 };
 
@@ -118,4 +119,28 @@ fn map_sex_organellar_and_reference_set_resolve() {
     let refs = resolve_default_reference_set("Homo sapiens", "adna")
         .unwrap_or_else(|err| panic!("resolve default reference set: {err}"));
     assert_eq!(refs.primary_reference, "hsapiens_grch38_primary");
+}
+
+#[test]
+fn reference_bundle_resolver_contract_captures_panel_map_identity() {
+    let report = resolve_reference_bundle_contract(
+        "Homo sapiens",
+        "GRCh38",
+        Some("hsapiens_grch38_mini"),
+        Some("hsapiens_grch38_chr_map"),
+        Some("glimpse"),
+    )
+    .unwrap_or_else(|err| panic!("resolve bundle contract: {err}"));
+
+    assert_eq!(report.bundle_id, "hsapiens_grch38_primary");
+    assert_eq!(report.panel_id.as_deref(), Some("hsapiens_grch38_mini"));
+    assert_eq!(report.map_id.as_deref(), Some("hsapiens_grch38_chr_map"));
+}
+
+#[test]
+fn reference_bundle_resolver_contract_refuses_tool_validation_without_assets() {
+    let err = resolve_reference_bundle_contract("Homo sapiens", "GRCh38", None, None, Some("glimpse"))
+        .err()
+        .unwrap_or_else(|| panic!("missing panel/map must fail"));
+    assert!(err.to_string().contains("requires a resolved panel"));
 }
