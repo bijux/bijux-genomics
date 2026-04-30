@@ -13,10 +13,12 @@ mod merge_suitability;
 mod output_normalization;
 mod provenance_snapshot;
 mod qc_manifest;
+mod asset_verification;
 
 pub use header_inspection::{
     ensure_umi_headers, inspect_headers, log_header_warnings, HeaderInspection,
 };
+pub use asset_verification::{ensure_assets_verified, verify_assets};
 pub use layout_classification::{classify_layout, ensure_layout_is_coherent};
 pub use merge_suitability::{assess_merge_suitability, MergeSuitability};
 pub use output_normalization::{find_first_fastq, normalize_outputs, NormalizedOutputs};

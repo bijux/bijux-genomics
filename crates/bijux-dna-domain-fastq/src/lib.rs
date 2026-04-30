@@ -106,6 +106,10 @@ pub use artifacts::{TerminalDamageReportV1, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSIO
 pub use artifacts::{TrimPolygReportV1, TRIM_POLYG_REPORT_SCHEMA_VERSION};
 pub use artifacts::{TrimReadsReportV1, TRIM_READS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
+    AssetVerificationEntryV1, AssetVerificationStatusV1, VerifyAssetsReportV1,
+    VERIFY_ASSETS_REPORT_SCHEMA_VERSION,
+};
+pub use artifacts::{
     ValidateFailureClass, ValidatedReadsManifestV1, ValidationReportV1,
     VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
 };

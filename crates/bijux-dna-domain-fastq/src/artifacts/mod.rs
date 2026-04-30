@@ -32,6 +32,7 @@ mod trim_polyg_tails;
 mod trim_reads;
 mod trim_terminal_damage;
 mod validate_reads;
+mod verify_assets;
 
 pub use cluster_otus::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
 pub use classify_layout::{
@@ -120,4 +121,8 @@ pub use trim_terminal_damage::{TerminalDamageReportV1, TERMINAL_DAMAGE_REPORT_SC
 pub use validate_reads::{
     ValidateFailureClass, ValidatedReadsManifestV1, ValidationReportV1,
     VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,
+};
+pub use verify_assets::{
+    AssetVerificationEntryV1, AssetVerificationStatusV1, VerifyAssetsReportV1,
+    VERIFY_ASSETS_REPORT_SCHEMA_VERSION,
 };
