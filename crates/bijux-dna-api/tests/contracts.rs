@@ -11,6 +11,8 @@ mod mod_contracts_v1_cross_public_contract_rs;
 mod mod_contracts_v1_dry_run_manifest_rs;
 #[path = "contracts/v1_fastq_small_integration.rs"]
 mod mod_contracts_v1_fastq_small_integration_rs;
+#[path = "contracts/v1_plan_manifest_contract.rs"]
+mod mod_contracts_v1_plan_manifest_contract_rs;
 #[path = "contracts/v1_report_evidence.rs"]
 mod mod_contracts_v1_report_evidence_rs;
 #[path = "contracts/v1_status_evidence.rs"]

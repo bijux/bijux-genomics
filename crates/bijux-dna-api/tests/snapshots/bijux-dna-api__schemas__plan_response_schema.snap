@@ -125,5 +125,85 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     ],
     "tool_invocations": [],
     "toolchain_versions": []
+  },
+  "plan_manifest": {
+    "domain": "core",
+    "graph_hash": "934c4ac4579c0d17d2b467b1c1fd777757f6c050fa34f40c71aac13fbce0b37b",
+    "ordered_steps": [
+      {
+        "advisory": false,
+        "artifact_promises": [
+          {
+            "artifact_id": "output",
+            "optional": false,
+            "path": "output",
+            "role": "reads"
+          }
+        ],
+        "cache_key": "d708d00aaee13e26d6bf6d362d4932a8ac97eca2b06c76eace51d536fcf90c34",
+        "effective_parameters_json": {
+          "command_template": [
+            "echo",
+            "hello"
+          ]
+        },
+        "environment": {
+          "command": [
+            "echo",
+            "hello"
+          ],
+          "image": "example/tool:1.0",
+          "image_digest": "sha256:deadbeef",
+          "out_dir": "out",
+          "resources": {
+            "mem_gb": 1,
+            "runtime": "local",
+            "threads": 1,
+            "tmp_gb": 1
+          }
+        },
+        "stage_id": "core.test",
+        "step_id": "core.test"
+      }
+    ],
+    "pipeline_id": "fastq-to-fastq__default__v1",
+    "plan_fingerprint": "347671b2fed7efd3f2a4d27856f08b0db1068263d83ec999dfe59590020e4813",
+    "planner_version": "planner.test",
+    "policy": "PreferAccuracy",
+    "profile_id": "default",
+    "schema_version": "bijux.plan_manifest.v1",
+    "stage_decisions": [
+      {
+        "decision": "included",
+        "reason": "included in deterministic plan",
+        "stage_id": "core.test"
+      }
+    ],
+    "workflow_fingerprint": "1d39042acf550d0c30177d3556bbcfaf7ea887a7f46da658322c12cdb13b6f65"
+  },
+  "workflow_manifest": {
+    "domain": "core",
+    "executor_preferences": {
+      "allow_advisory_execution": false
+    },
+    "inputs": [
+      {
+        "artifact_id": "input",
+        "path": "input",
+        "role": "reads"
+      }
+    ],
+    "policies": {
+      "operational": {},
+      "scientific": {}
+    },
+    "profile_id": "default",
+    "requested_stages": [
+      {
+        "advisory_only": false,
+        "stage_id": "core.test"
+      }
+    ],
+    "schema_version": "bijux.workflow_manifest.v1"
   }
 }

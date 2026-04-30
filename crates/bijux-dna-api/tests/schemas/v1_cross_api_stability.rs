@@ -65,7 +65,16 @@ fn snapshot_settings() -> Settings {
 #[test]
 fn plan_response_schema_is_stable() -> anyhow::Result<()> {
     let graph = minimal_graph();
-    let request = PlanRequest { graph, profile_id: "default".to_string() };
+    let request = PlanRequest {
+        graph,
+        profile_id: "default".to_string(),
+        workflow_manifest: None,
+        stage_plans: Vec::new(),
+        parameter_traces: Vec::new(),
+        planner_refusals: Vec::new(),
+        planner_warnings: Vec::new(),
+        compare_against: None,
+    };
     let response = plan(request)?;
     let json = serde_json::to_value(&response)?;
     let name = snapshot_name("schemas", "plan_response_schema");
