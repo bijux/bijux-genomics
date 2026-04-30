@@ -2,8 +2,13 @@ use super::{
     anyhow, artifact_root_path, json, stable_now_utc_string, write_json_pretty, OpsCommandOutcome,
     PathBuf, Result, Workspace,
 };
-use bijux_dna_db_ref::{resolve_reference_bundle_contract, resolve_sex_par_organellar_assets};
+use bijux_dna_db_ref::{
+    enforce_declared_build_and_contigs, resolve_reference_bundle_contract,
+    resolve_sex_par_organellar_assets,
+};
 use serde::Serialize;
+
+const REFUSAL_GUARD_ID: &str = "reference_refusal_guard";
 
 #[derive(Debug, Clone, Copy)]
 enum ScenarioId {
@@ -11,6 +16,7 @@ enum ScenarioId {
     GrchHumanReference,
     BacterialReference,
     OrganellarReference,
+    MultiReferenceRefusal,
 }
 
 impl ScenarioId {
@@ -20,6 +26,7 @@ impl ScenarioId {
             Self::GrchHumanReference => "g172_grch_human_reference",
             Self::BacterialReference => "g173_bacterial_reference",
             Self::OrganellarReference => "g174_organellar_reference",
+            Self::MultiReferenceRefusal => "g175_multi_reference_refusal",
         }
     }
 
@@ -29,6 +36,7 @@ impl ScenarioId {
             Self::GrchHumanReference => "G172",
             Self::BacterialReference => "G173",
             Self::OrganellarReference => "G174",
+            Self::MultiReferenceRefusal => "G175",
         }
     }
 
@@ -38,6 +46,7 @@ impl ScenarioId {
             Self::GrchHumanReference,
             Self::BacterialReference,
             Self::OrganellarReference,
+            Self::MultiReferenceRefusal,
         ]
     }
 
@@ -47,6 +56,7 @@ impl ScenarioId {
             "g172_grch_human_reference" | "G172" => Some(Self::GrchHumanReference),
             "g173_bacterial_reference" | "G173" => Some(Self::BacterialReference),
             "g174_organellar_reference" | "G174" => Some(Self::OrganellarReference),
+            "g175_multi_reference_refusal" | "G175" => Some(Self::MultiReferenceRefusal),
             _ => None,
         }
     }
@@ -155,6 +165,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::GrchHumanReference => scenario_grch_human_reference(),
         ScenarioId::BacterialReference => scenario_bacterial_reference(),
         ScenarioId::OrganellarReference => scenario_organellar_reference(),
+        ScenarioId::MultiReferenceRefusal => scenario_multi_reference_refusal(),
     };
 
     match result {
@@ -274,6 +285,47 @@ fn scenario_organellar_reference() -> Result<(Vec<String>, serde_json::Value)> {
     ))
 }
 
+fn scenario_multi_reference_refusal() -> Result<(Vec<String>, serde_json::Value)> {
+    let mut refusal_cases = Vec::new();
+
+    let mismatch_panel = resolve_reference_bundle_contract(
+        "Canis lupus",
+        "CanFam4",
+        Some("hsapiens_grch38_mini"),
+        Some("hsapiens_grch38_chr_map"),
+        Some("glimpse"),
+    )
+    .err()
+    .ok_or_else(|| anyhow!("expected cross-species panel/map compatibility refusal"))?;
+    refusal_cases.push(json!({
+        "case": "cross_species_panel_map",
+        "error": mismatch_panel.to_string(),
+    }));
+
+    let mismatch_build = enforce_declared_build_and_contigs(
+        "Homo sapiens",
+        "CanFam4",
+        &["1".to_string(), "2".to_string()],
+    )
+    .err()
+    .ok_or_else(|| anyhow!("expected declared build mismatch refusal"))?;
+    refusal_cases.push(json!({
+        "case": "cross_build_declared_vs_authority",
+        "error": mismatch_build.to_string(),
+    }));
+
+    Ok((
+        vec![
+            "cross-species and cross-build mistakes refused before execution".to_string(),
+            "refusal reasons preserved for operator triage".to_string(),
+        ],
+        json!({
+            "refusal_guard": REFUSAL_GUARD_ID,
+            "refusal_cases": refusal_cases,
+        }),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{run_scenario, ScenarioId};
@@ -281,7 +333,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G171", "G172", "G173", "G174"]);
+        assert_eq!(ids, vec!["G171", "G172", "G173", "G174", "G175"]);
     }
 
     #[test]
@@ -324,5 +376,26 @@ mod tests {
             report.evidence.get("mitochondrion_id").and_then(serde_json::Value::as_str),
             Some("MT")
         );
+    }
+
+    #[test]
+    fn refusals_are_reported_for_multi_reference_scenario() {
+        let report = run_scenario(&ScenarioId::MultiReferenceRefusal);
+        assert_eq!(report.status, "passed");
+        let cases = report
+            .evidence
+            .get("refusal_cases")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(cases.len(), 2);
+        assert!(cases.iter().any(|row| {
+            row.get("error")
+                .and_then(serde_json::Value::as_str)
+                .map(|error| {
+                    error.contains("no panel found") || error.contains("declared build mismatch")
+                })
+                .unwrap_or(false)
+        }));
     }
 }
