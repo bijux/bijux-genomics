@@ -18,6 +18,8 @@ pub const VCF_PSEUDOHAPLOID_CALLING_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.pseudohaploid.v1";
 pub const VCF_GL_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.gl_workflow.v1";
+pub const VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
+    "bijux.vcf.calling_boundary.phasing.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -208,6 +210,25 @@ pub struct VcfLikelihoodWorkflowBoundaryV1 {
     pub schema_version: String,
     pub stage_id: String,
     pub prerequisites_passed: bool,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub assumptions: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfPhasingWorkflowBoundaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub prerequisites_passed: bool,
+    pub panel_compatible: bool,
+    pub genetic_map_compatible: bool,
+    pub confidence: f64,
+    pub sample_count: u32,
+    pub minimum_samples: u32,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
     #[serde(default)]
@@ -945,6 +966,65 @@ pub fn evaluate_genotype_likelihood_workflow_boundary(
     }
 }
 
+/// Evaluate phasing workflow boundaries and sample/reference prerequisites.
+#[must_use]
+pub fn evaluate_phasing_workflow_boundary(
+    has_reference_context: bool,
+    has_reference_panel: bool,
+    has_genetic_map: bool,
+    builds_compatible: bool,
+    sample_count: u32,
+    minimum_samples: u32,
+    sample_metadata_complete: bool,
+) -> VcfPhasingWorkflowBoundaryV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if !has_reference_context {
+        refusal_codes.push("reference_context_required".to_string());
+    }
+    if !has_reference_panel {
+        refusal_codes.push("reference_panel_required".to_string());
+    }
+    if !has_genetic_map {
+        refusal_codes.push("genetic_map_required".to_string());
+    }
+    if !builds_compatible {
+        refusal_codes.push("build_compatibility_required".to_string());
+    }
+    if sample_count < minimum_samples {
+        refusal_codes.push("sample_count_below_phasing_minimum".to_string());
+    }
+    if !sample_metadata_complete {
+        refusal_codes.push("sample_metadata_required".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    let prerequisites_passed = refusal_codes.is_empty();
+    let confidence = if prerequisites_passed {
+        (sample_count as f64 / minimum_samples.max(1) as f64).clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+    VcfPhasingWorkflowBoundaryV1 {
+        schema_version: VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.phasing".to_string(),
+        prerequisites_passed,
+        panel_compatible: has_reference_panel && builds_compatible,
+        genetic_map_compatible: has_genetic_map && builds_compatible,
+        confidence,
+        sample_count,
+        minimum_samples,
+        refusal_codes,
+        assumptions: vec![
+            "phasing requires panel, map, and reference-build compatibility".to_string(),
+            "insufficient sample support reduces phasing confidence".to_string(),
+        ],
+        caveats: vec![
+            "phasing confidence does not certify downstream imputation accuracy".to_string(),
+            "sample metadata gaps can bias switch-error interpretation".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -1360,5 +1440,26 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
             .refusal_codes
             .contains(&"downstream_gl_compatibility_required".to_string()));
         assert!(refused.refusal_codes.contains(&"uncertainty_propagation_required".to_string()));
+    }
+
+    #[test]
+    fn evaluate_phasing_workflow_boundary_requires_panel_map_and_sample_prerequisites() {
+        let ready = evaluate_phasing_workflow_boundary(true, true, true, true, 24, 12, true);
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.stage_id, "vcf.phasing");
+        assert!(ready.panel_compatible);
+        assert!(ready.genetic_map_compatible);
+        assert_eq!(ready.confidence, 1.0);
+        assert!(ready.refusal_codes.is_empty());
+
+        let refused = evaluate_phasing_workflow_boundary(false, false, false, false, 3, 12, false);
+        assert!(!refused.prerequisites_passed);
+        assert_eq!(refused.confidence, 0.0);
+        assert!(refused.refusal_codes.contains(&"reference_context_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"reference_panel_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"genetic_map_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"build_compatibility_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"sample_count_below_phasing_minimum".to_string()));
+        assert!(refused.refusal_codes.contains(&"sample_metadata_required".to_string()));
     }
 }
