@@ -43,10 +43,7 @@ pub fn print_env_registry_list(registry_path: &Path) -> Result<()> {
             .pinned_commit
             .as_deref()
             .is_some_and(|s| s.len() == 40 && s.chars().all(|c| c.is_ascii_hexdigit()));
-        println!(
-            "{}\t{has_docker}\t{has_apptainer}\t{has_smoke}\t{pinned}",
-            row.id
-        );
+        println!("{}\t{has_docker}\t{has_apptainer}\t{has_smoke}\t{pinned}", row.id);
     }
     Ok(())
 }
@@ -95,9 +92,8 @@ pub fn registry_tools_for_stage(
 ) -> Result<Vec<String>> {
     let parsed = parse_registry(registry_path)?;
     let stage_id = normalize_stage_id(stage);
-    let Some(stage_entry) = parse_stage_registry_rows(&parsed)?
-        .into_iter()
-        .find(|entry| entry.id == stage_id)
+    let Some(stage_entry) =
+        parse_stage_registry_rows(&parsed)?.into_iter().find(|entry| entry.id == stage_id)
     else {
         return Err(anyhow!("stage not found in registry: {stage_id}"));
     };
@@ -213,19 +209,14 @@ fn selected_tools(value: &str) -> Vec<String> {
 
 fn current_registry_path() -> Result<PathBuf> {
     let cwd = std::env::current_dir().context("resolve current working directory")?;
-    Ok(bijux_dna_infra::configs_file(
-        &cwd,
-        "ci/registry/tool_registry.toml",
-    ))
+    Ok(bijux_dna_infra::configs_file(&cwd, "ci/registry/tool_registry.toml"))
 }
 
 fn resolved_apptainer_hpc_root() -> Result<PathBuf> {
     if let Ok(config) = crate::commands::hpc::load_hpc_config() {
         return Ok(config.resolve_paths().root);
     }
-    Err(anyhow!(
-        "unable to resolve Apptainer HPC root: declare BIJUX_HPC_CONFIG"
-    ))
+    Err(anyhow!("unable to resolve Apptainer HPC root: declare BIJUX_HPC_CONFIG"))
 }
 
 #[cfg(test)]
@@ -241,8 +232,9 @@ mod env_registry_query_tests {
 
     #[test]
     fn registry_benchmark_tools_follow_trim_fairness_cohort() {
-        let tools = registry_tools_for_stage(&registry_path(), "fastq.trim_reads", None, "benchmark")
-            .expect("trim benchmark tools");
+        let tools =
+            registry_tools_for_stage(&registry_path(), "fastq.trim_reads", None, "benchmark")
+                .expect("trim benchmark tools");
         assert_eq!(
             tools,
             vec![
@@ -292,10 +284,7 @@ mod env_registry_query_tests {
 
     #[test]
     fn selected_tools_supports_csv_batches() {
-        assert_eq!(
-            selected_tools("fastp, seqkit ,cutadapt"),
-            vec!["fastp", "seqkit", "cutadapt"]
-        );
+        assert_eq!(selected_tools("fastp, seqkit ,cutadapt"), vec!["fastp", "seqkit", "cutadapt"]);
     }
 
     #[test]
@@ -373,6 +362,19 @@ pub struct SifInventoryEntry {
 }
 
 #[derive(Debug, Serialize)]
+struct SmokeProbeResult {
+    command: String,
+    applied_command: String,
+    ok: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    output_sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    output_first_line: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    error: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
 struct SmokeManifest {
     schema_version: &'static str,
     tool_id: String,
@@ -387,6 +389,8 @@ struct SmokeManifest {
     help_ok: bool,
     quick_smoke: bool,
     probe_commands: Vec<String>,
+    #[serde(default)]
+    probe_results: Vec<SmokeProbeResult>,
     java_heap_mb: Option<u64>,
     upstream: String,
     image_build_timestamp_unix_s: u64,
