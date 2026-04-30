@@ -9,6 +9,7 @@ pub const VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION: &str = "bijux.vcf.scientif
 pub const VCF_VALIDATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.validation_summary.v1";
 pub const VCF_STATS_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.stats_workflow.v1";
 pub const VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION: &str = "bijux.vcf.filter_consequence.v1";
+pub const VCF_NORMALIZATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.normalization_summary.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -118,6 +119,21 @@ pub struct VcfFilterConsequenceV1 {
     #[serde(default)]
     pub reason_counts: BTreeMap<String, u64>,
     pub output_subset_identity: String,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfNormalizationSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub records_in: u64,
+    pub records_out: u64,
+    pub records_changed: u64,
+    pub split_multiallelic_records: u64,
+    pub duplicate_records_after_normalization: u64,
+    pub raw_view_preserved: bool,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -512,6 +528,79 @@ pub fn execute_vcf_filter_with_explainable_consequences(
     })
 }
 
+fn normalize_alleles(mut pos: u64, ref_allele: &str, alt_allele: &str) -> (u64, String, String) {
+    let mut ref_norm = ref_allele.to_string();
+    let mut alt_norm = alt_allele.to_string();
+    while ref_norm.len() > 1
+        && alt_norm.len() > 1
+        && ref_norm.chars().next() == alt_norm.chars().next()
+    {
+        ref_norm.remove(0);
+        alt_norm.remove(0);
+        pos += 1;
+    }
+    while ref_norm.len() > 1
+        && alt_norm.len() > 1
+        && ref_norm.chars().last() == alt_norm.chars().last()
+    {
+        ref_norm.pop();
+        alt_norm.pop();
+    }
+    if alt_norm.is_empty() {
+        alt_norm = "-".to_string();
+    }
+    if ref_norm.is_empty() {
+        ref_norm = "-".to_string();
+    }
+    (pos, ref_norm, alt_norm)
+}
+
+/// Execute fixture-safe normalization/decomposition accounting for VCF records.
+///
+/// # Errors
+/// Returns an error when the VCF cannot be parsed.
+pub fn execute_vcf_normalization_and_decomposition(
+    input_vcf: &Path,
+) -> Result<VcfNormalizationSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut records_out = 0_u64;
+    let mut records_changed = 0_u64;
+    let mut split_multiallelic_records = 0_u64;
+    let mut normalized_keys = BTreeSet::<String>::new();
+    let mut duplicate_records_after_normalization = 0_u64;
+    for record in &doc.records {
+        if record.alt_alleles.len() > 1 {
+            split_multiallelic_records += 1;
+        }
+        for alt in &record.alt_alleles {
+            records_out += 1;
+            let (norm_pos, norm_ref, norm_alt) =
+                normalize_alleles(record.pos, &record.ref_allele, alt);
+            if norm_pos != record.pos || norm_ref != record.ref_allele || norm_alt != *alt {
+                records_changed += 1;
+            }
+            let key = format!("{}:{}:{}>{}", record.chrom, norm_pos, norm_ref, norm_alt);
+            if !normalized_keys.insert(key) {
+                duplicate_records_after_normalization += 1;
+            }
+        }
+    }
+    Ok(VcfNormalizationSummaryV1 {
+        schema_version: VCF_NORMALIZATION_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.postprocess".to_string(),
+        records_in: doc.records.len() as u64,
+        records_out,
+        records_changed,
+        split_multiallelic_records,
+        duplicate_records_after_normalization,
+        raw_view_preserved: true,
+        caveats: vec![
+            "raw input view must remain inspectable beside normalized outputs".to_string(),
+            "decomposition can increase record count for multiallelic sites".to_string(),
+        ],
+    })
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -763,5 +852,30 @@ chr1\t30\t.\tG\tA\t65\tPASS\tDP=8\tGT\t0/0\t0/1\n",
         assert_eq!(summary.reason_counts.get("low_qual"), Some(&1));
         assert_eq!(summary.reason_counts.get("missingness_above_threshold"), Some(&1));
         assert!(summary.output_subset_identity.starts_with("vcf.filter:3:1:"));
+    }
+
+    #[test]
+    fn execute_vcf_normalization_and_decomposition_tracks_changes_and_splits() {
+        let temp = unique_temp_dir("vcf-normalize");
+        let input = temp.join("normalize.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.3\n\
+##contig=<ID=chr1,length=1000>\n\
+##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n\
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n\
+chr1\t10\t.\tACG\tATG\t55\tPASS\tDP=9\tGT\t0/1\n\
+chr1\t20\t.\tA\tC,G\t60\tPASS\tDP=7\tGT\t0/1\n",
+        )
+        .expect("write normalization fixture");
+
+        let summary =
+            execute_vcf_normalization_and_decomposition(&input).expect("normalize/decompose");
+        assert_eq!(summary.records_in, 2);
+        assert_eq!(summary.records_out, 3);
+        assert_eq!(summary.split_multiallelic_records, 1);
+        assert!(summary.records_changed >= 1);
+        assert!(summary.raw_view_preserved);
     }
 }
