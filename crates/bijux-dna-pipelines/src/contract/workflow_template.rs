@@ -555,6 +555,60 @@ pub fn plan_fastq_to_bam_modern_workflow(
     })
 }
 
+pub fn plan_fastq_to_bam_ancient_workflow(
+    sheet: &SampleSheetV1,
+) -> Result<CrossWorkflowExecutionPlanV1> {
+    if sheet.records.is_empty() {
+        bail!("ancient FASTQ-to-BAM workflow requires at least one sample");
+    }
+    for record in &sheet.records {
+        let mode = record.workflow_mode.to_ascii_lowercase();
+        if !mode.contains("adna") && !mode.contains("ancient") {
+            bail!(
+                "sample {} workflow_mode {} is incompatible with ancient DNA planning",
+                record.sample_id,
+                record.workflow_mode
+            );
+        }
+    }
+    let sample_stage_sequence = vec![
+        id_catalog::FASTQ_VALIDATE_READS.to_string(),
+        id_catalog::FASTQ_MERGE.to_string(),
+        id_catalog::FASTQ_TRIM_TERMINAL_DAMAGE.to_string(),
+        id_catalog::BAM_ALIGN.to_string(),
+        id_catalog::BAM_FILTER.to_string(),
+        id_catalog::BAM_DAMAGE.to_string(),
+        id_catalog::BAM_CONTAMINATION.to_string(),
+        id_catalog::BAM_MAPPING_SUMMARY.to_string(),
+    ];
+    let handoff_sequence = vec![
+        "fastq.trim_terminal_damage->bam.align".to_string(),
+        "bam.filter->bam.damage".to_string(),
+        "bam.damage->bam.contamination".to_string(),
+    ];
+    let sample_plans = sheet
+        .records
+        .iter()
+        .map(|record| CrossWorkflowSampleExecutionPlanV1 {
+            sample_id: record.sample_id.clone(),
+            stage_sequence: sample_stage_sequence.clone(),
+            handoff_sequence: handoff_sequence.clone(),
+        })
+        .collect::<Vec<_>>();
+    Ok(CrossWorkflowExecutionPlanV1 {
+        schema_version: "bijux.cross.workflow_execution_plan.v1".to_string(),
+        template_id: "cross.fastq_to_bam_ancient".to_string(),
+        pipeline_id: "fastq-to-bam__adna_shotgun__v1".to_string(),
+        shared_reference_stages: vec![id_catalog::CORE_PREPARE_REFERENCE.to_string()],
+        sample_plans,
+        cohort_stages: vec![id_catalog::BAM_MAPPING_SUMMARY.to_string()],
+        caveats: vec![
+            "ancient DNA outputs remain low-input and post-mortem-damage caveated".to_string(),
+            "contamination evidence is required before downstream historical inference".to_string(),
+        ],
+    })
+}
+
 #[must_use]
 pub fn build_batch_workflow_graph(
     template: &CrossWorkflowTemplateV1,

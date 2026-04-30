@@ -11,8 +11,9 @@ use bijux_dna_pipelines::cross::{
 };
 use bijux_dna_pipelines::{
     build_batch_workflow_graph, evaluate_template_admission, parse_sample_sheet,
-    plan_fastq_to_bam_modern_workflow, sample_sheet_to_workflow_manifests,
-    summarize_cross_domain_evidence, validate_sample_sheet_preflight, validate_template_overrides,
+    plan_fastq_to_bam_ancient_workflow, plan_fastq_to_bam_modern_workflow,
+    sample_sheet_to_workflow_manifests, summarize_cross_domain_evidence,
+    validate_sample_sheet_preflight, validate_template_overrides,
 };
 
 #[test]
@@ -229,5 +230,31 @@ fn fastq_to_bam_modern_plan_exposes_stage_and_handoff_order() -> Result<()> {
             "bam.index->bam.qc_pre".to_string(),
         ]
     );
+    Ok(())
+}
+
+#[test]
+fn fastq_to_bam_ancient_plan_captures_damage_and_contamination_flow() -> Result<()> {
+    let sheet = parse_sample_sheet(
+        "cross.fastq_to_bam_ancient",
+        "run_id,batch_id,sample_id,library_id,lane_id,layout_mode,reference_id,workflow_mode,r1,r2,expected_outputs\nRUN21,BATCH_A,S21,LIB21,L001,paired_end,GRCh38,adna_shotgun,reads/S21_R1.fastq.gz,reads/S21_R2.fastq.gz,bam;metrics_bundle",
+    )?;
+    let plan = plan_fastq_to_bam_ancient_workflow(&sheet)?;
+
+    assert_eq!(plan.template_id, "cross.fastq_to_bam_ancient");
+    assert_eq!(
+        plan.sample_plans[0].stage_sequence,
+        vec![
+            "fastq.validate_reads".to_string(),
+            "fastq.merge_pairs".to_string(),
+            "fastq.trim_terminal_damage".to_string(),
+            "bam.align".to_string(),
+            "bam.filter".to_string(),
+            "bam.damage".to_string(),
+            "bam.contamination".to_string(),
+            "bam.mapping_summary".to_string(),
+        ]
+    );
+    assert!(plan.caveats.iter().any(|value| value.contains("post-mortem-damage caveated")));
     Ok(())
 }
