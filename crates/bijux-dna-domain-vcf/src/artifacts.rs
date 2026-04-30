@@ -25,6 +25,7 @@ pub const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
 pub const VCF_COHORT_QC_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.cohort_qc.v1";
 pub const VCF_PCA_ADMIXTURE_GUARDRAIL_SCHEMA_VERSION: &str = "bijux.vcf.pca_admixture.v1";
 pub const VCF_ROH_IBD_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.roh_ibd_boundary.v1";
+pub const VCF_DEMOGRAPHY_REFUSAL_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.demography_refusal.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -335,6 +336,23 @@ pub struct VcfRohIbdWorkflowBoundaryV1 {
     pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub assumptions: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfDemographyRefusalBoundaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub requested_model: String,
+    pub prerequisites_passed: bool,
+    pub cohort_size: u32,
+    pub minimum_cohort_size: u32,
+    #[serde(default)]
+    pub missing_assumptions: Vec<String>,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -1386,6 +1404,68 @@ pub fn evaluate_roh_ibd_workflow_boundary(
     }
 }
 
+/// Evaluate demography-analysis refusal boundaries for underpowered or incompatible requests.
+#[must_use]
+pub fn evaluate_demography_refusal_boundary(
+    requested_model: &str,
+    cohort_size: u32,
+    minimum_cohort_size: u32,
+    has_ibd_segments: bool,
+    marker_density_passed: bool,
+    missingness_passed: bool,
+    method_assumptions_documented: bool,
+    temporal_metadata_available: bool,
+) -> VcfDemographyRefusalBoundaryV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    let mut missing_assumptions = Vec::<String>::new();
+    if !matches!(requested_model, "ibdne" | "smc++" | "dadi" | "psmc") {
+        refusal_codes.push("unsupported_demography_model".to_string());
+    }
+    if cohort_size < minimum_cohort_size {
+        refusal_codes.push("cohort_size_below_demography_minimum".to_string());
+        missing_assumptions.push("adequate_cohort_size".to_string());
+    }
+    if !has_ibd_segments {
+        refusal_codes.push("ibd_segments_required".to_string());
+        missing_assumptions.push("ibd_segments".to_string());
+    }
+    if !marker_density_passed {
+        refusal_codes.push("marker_density_gate_failed".to_string());
+        missing_assumptions.push("marker_density_pass".to_string());
+    }
+    if !missingness_passed {
+        refusal_codes.push("missingness_gate_failed".to_string());
+        missing_assumptions.push("missingness_pass".to_string());
+    }
+    if !method_assumptions_documented {
+        refusal_codes.push("method_assumptions_required".to_string());
+        missing_assumptions.push("method_assumptions_documented".to_string());
+    }
+    if !temporal_metadata_available {
+        refusal_codes.push("temporal_metadata_required".to_string());
+        missing_assumptions.push("temporal_metadata".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    missing_assumptions.sort();
+    missing_assumptions.dedup();
+    VcfDemographyRefusalBoundaryV1 {
+        schema_version: VCF_DEMOGRAPHY_REFUSAL_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.demography".to_string(),
+        requested_model: requested_model.to_string(),
+        prerequisites_passed: refusal_codes.is_empty(),
+        cohort_size,
+        minimum_cohort_size,
+        missing_assumptions,
+        refusal_codes,
+        caveats: vec![
+            "demography outputs are model-based and should be interpreted alongside uncertainty"
+                .to_string(),
+            "boundary refusal protects against underpowered historical inference".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -1948,5 +2028,31 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"cohort_size_below_minimum".to_string()));
         assert!(refused.refusal_codes.contains(&"missingness_above_maximum".to_string()));
         assert!(refused.refusal_codes.contains(&"method_assumptions_required".to_string()));
+    }
+
+    #[test]
+    fn evaluate_demography_refusal_boundary_reports_precise_missing_assumptions() {
+        let ready =
+            evaluate_demography_refusal_boundary("ibdne", 40, 20, true, true, true, true, true);
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.stage_id, "vcf.demography");
+        assert!(ready.refusal_codes.is_empty());
+        assert!(ready.missing_assumptions.is_empty());
+
+        let refused = evaluate_demography_refusal_boundary(
+            "unknown", 3, 20, false, false, false, false, false,
+        );
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"unsupported_demography_model".to_string()));
+        assert!(refused
+            .refusal_codes
+            .contains(&"cohort_size_below_demography_minimum".to_string()));
+        assert!(refused.refusal_codes.contains(&"ibd_segments_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"marker_density_gate_failed".to_string()));
+        assert!(refused.refusal_codes.contains(&"missingness_gate_failed".to_string()));
+        assert!(refused.refusal_codes.contains(&"method_assumptions_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"temporal_metadata_required".to_string()));
+        assert!(refused.missing_assumptions.contains(&"adequate_cohort_size".to_string()));
+        assert!(refused.missing_assumptions.contains(&"method_assumptions_documented".to_string()));
     }
 }
