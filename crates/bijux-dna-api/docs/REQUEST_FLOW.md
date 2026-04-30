@@ -52,6 +52,27 @@ Execution is the only managed flow allowed to invoke runner/runtime execution.
 
 Status must not mutate the run.
 
+## Operator Controls
+
+1. Caller invokes `pause_run`, `resume_run`, or `cancel_run` with a run
+   directory.
+2. The API updates `run_control.json` through the reporting control surface.
+3. The response returns `RunControlResponse` with the durable control artifact
+   path and current audited state.
+
+Control operations must remain auditable and must not bypass the governed
+runner/runtime state machine.
+
+## Operator Health
+
+1. Caller invokes `operator_health` with a run directory.
+2. The API infers the runtime backend from the persisted executor descriptor.
+3. The API writes `operator_health.json` and returns
+   `OperatorHealthResponse`.
+
+Health checks may write health evidence, but they must not execute workflow
+stages.
+
 ## Explain
 
 1. Caller provides an execution graph and optional defaults ledger.

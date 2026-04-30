@@ -14,12 +14,14 @@ enter through `bijux_dna_api::v1::api`.
 `src/v1/api/front_door.rs` exports:
 
 - Operations: `plan`, `execute`, `execute_and_report`, `dry_run`, `status`,
-  `explain`, `policy_audit`, `render_report`, `render_report_bundle_html`,
+  `pause_run`, `resume_run`, `cancel_run`, `operator_health`, `explain`,
+  `policy_audit`, `render_report`, `render_report_bundle_html`,
   `workspace_edges`, and `write_workspace_audit`.
 - Contract types: `PlanRequest`, `PlanResponse`, `ExecuteRequest`,
   `ExecuteResponse`, `DryRunRequest`, `DryRunResponse`, `RunStatus`,
-  `RenderReportRequest`, `RenderReportResult`, `ExplainResponse`,
-  `ExplainToolSelection`, `PlanExplainV1`, and `VcfRunRequest`.
+  `RunControlResponse`, `OperatorHealthResponse`, `RenderReportRequest`,
+  `RenderReportResult`, `ExplainResponse`, `ExplainToolSelection`,
+  `PlanExplainV1`, and `VcfRunRequest`.
 - Curated helper namespaces: `bench`, `plan`, `run`, `report`, `bam`, `fastq`,
   `env`, and `shared`.
 
@@ -35,6 +37,9 @@ enter through `bijux_dna_api::v1::api`.
 - Keep `ExecuteRequest`, `ExecuteResponse`, `DryRunResponse`, and `RunStatus`
   aligned with the governed run-state, runtime-policy, executor-descriptor,
   checkpoint, and failure contracts exported from `bijux-dna-runtime`.
+- Keep `RunControlResponse` and `OperatorHealthResponse` aligned with the
+  governed run-control and operator-health contracts exported from
+  `bijux-dna-runtime`.
 - `execute` now distinguishes `simulation`, `advisory`, and `enforced` modes;
   `dry-run` remains a separate public operation with its own response contract.
 

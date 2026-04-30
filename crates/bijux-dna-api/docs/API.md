@@ -13,6 +13,10 @@ are public.
 | `execute_and_report` | `ExecuteRequest` | `ExecuteResponse` | Executes and materializes report outputs through the run/reporting adapter. |
 | `dry_run` | `DryRunRequest` | `DryRunResponse` | Writes deterministic graph and manifest artifacts without executing stages. |
 | `status` | run identifier/path input | `RunStatus` | Reads persisted manifest/report status for a run. |
+| `pause_run` | run directory path input | `RunControlResponse` | Persists a pause request in the governed run-control record. |
+| `resume_run` | run directory path input | `RunControlResponse` | Persists a resume request in the governed run-control record. |
+| `cancel_run` | run directory path input | `RunControlResponse` | Persists a cancellation request in the governed run-control record. |
+| `operator_health` | run directory path input | `OperatorHealthResponse` | Writes and returns the governed operator-health report for a run root. |
 | `explain` | execution graph plus optional defaults ledger | `ExplainResponse` | Returns selected tools, defaults diff, and stage contract evidence. |
 | `policy_audit` | audit target input | policy audit JSON | Reports the policy-audit owner and commands without executing policy guardrails from runtime API code. |
 | `render_report` | `RenderReportRequest` | `RenderReportResult` | Renders a report bundle for existing run facts. |
@@ -46,6 +50,8 @@ Stable schema-bearing types include:
 - `DryRunRequest`
 - `DryRunResponse`
 - `RunStatus`
+- `RunControlResponse`
+- `OperatorHealthResponse`
 - `RenderReportRequest`
 - `RenderReportResult`
 - `ExplainResponse`
