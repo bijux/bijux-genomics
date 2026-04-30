@@ -523,6 +523,110 @@ pub struct SlurmSubmissionRecordV1 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HpcExecutionProfileV1 {
+    pub schema_version: String,
+    pub profile_id: String,
+    pub scheduler: String,
+    pub submission_mode: String,
+    pub scratch_layout_policy: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub container_runtime: Option<String>,
+    pub site_config_path: PathBuf,
+}
+
+#[must_use]
+pub fn lunarc_execution_profile(site_config_path: PathBuf) -> HpcExecutionProfileV1 {
+    HpcExecutionProfileV1 {
+        schema_version: "bijux.hpc_execution_profile.v1".to_string(),
+        profile_id: "lunarc".to_string(),
+        scheduler: "slurm".to_string(),
+        submission_mode: "batch".to_string(),
+        scratch_layout_policy: "run_scoped_scratch".to_string(),
+        container_runtime: Some("apptainer".to_string()),
+        site_config_path,
+    }
+}
+
+#[must_use]
+pub fn executor_descriptor_from_hpc_profile(
+    run_id: &str,
+    mode: RunExecutionModeV1,
+    profile: &HpcExecutionProfileV1,
+) -> RunExecutorDescriptorV1 {
+    RunExecutorDescriptorV1 {
+        schema_version: "bijux.executor_descriptor.v1".to_string(),
+        run_id: run_id.to_string(),
+        mode,
+        descriptor: ExecutorDescriptorV1::Hpc {
+            scheduler: profile.scheduler.clone(),
+            submission_mode: profile.submission_mode.clone(),
+            scratch_layout_policy: profile.scratch_layout_policy.clone(),
+            container_runtime: profile.container_runtime.clone(),
+        },
+    }
+}
+
+/// # Errors
+/// Returns an error when the requested transition is invalid for the current state.
+pub fn transition_slurm_submission(
+    submission: &mut SlurmSubmissionRecordV1,
+    to_state: SlurmJobStateV1,
+    occurred_at: &str,
+    detail: Option<String>,
+) -> CoreResult<()> {
+    if submission.state == to_state {
+        submission.transitions.push(SlurmJobTransitionV1 {
+            from_state: Some(submission.state),
+            to_state,
+            occurred_at: occurred_at.to_string(),
+            detail: detail.or_else(|| Some("idempotent transition request".to_string())),
+        });
+        return Ok(());
+    }
+
+    let allowed = match submission.state {
+        SlurmJobStateV1::Submitted => {
+            matches!(
+                to_state,
+                SlurmJobStateV1::Pending
+                    | SlurmJobStateV1::Running
+                    | SlurmJobStateV1::Cancelled
+                    | SlurmJobStateV1::Failed
+            )
+        }
+        SlurmJobStateV1::Pending => {
+            matches!(
+                to_state,
+                SlurmJobStateV1::Running | SlurmJobStateV1::Cancelled | SlurmJobStateV1::Failed
+            )
+        }
+        SlurmJobStateV1::Running => {
+            matches!(
+                to_state,
+                SlurmJobStateV1::Succeeded | SlurmJobStateV1::Failed | SlurmJobStateV1::Cancelled
+            )
+        }
+        SlurmJobStateV1::Succeeded | SlurmJobStateV1::Failed | SlurmJobStateV1::Cancelled => false,
+    };
+    if !allowed {
+        return Err(bijux_dna_core::prelude::BijuxError::validation(format!(
+            "invalid slurm transition {:?} -> {:?}",
+            submission.state, to_state
+        )));
+    }
+
+    let from_state = submission.state;
+    submission.state = to_state;
+    submission.transitions.push(SlurmJobTransitionV1 {
+        from_state: Some(from_state),
+        to_state,
+        occurred_at: occurred_at.to_string(),
+        detail,
+    });
+    Ok(())
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunCheckpointV1 {
     pub schema_version: String,
     pub run_id: String,

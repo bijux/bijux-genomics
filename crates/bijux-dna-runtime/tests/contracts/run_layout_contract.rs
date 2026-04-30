@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use bijux_dna_runtime::run_layout::{
     apptainer_smoke_workflow_plan, create_run_layout, docker_smoke_workflow_plan,
+    executor_descriptor_from_hpc_profile, lunarc_execution_profile, transition_slurm_submission,
+    RunExecutionModeV1, SlurmJobStateV1, SlurmSubmissionRecordV1,
 };
 
 #[test]
@@ -76,4 +78,76 @@ fn apptainer_smoke_workflow_plan_captures_sif_identity_bindings_and_logs() {
         plan.log_capture_policy.contains("runtime_logs"),
         "apptainer smoke plan should preserve runtime log capture policy",
     );
+}
+
+#[test]
+fn slurm_submission_lifecycle_records_submit_poll_cancel_complete_transitions() {
+    let mut submission = SlurmSubmissionRecordV1 {
+        schema_version: "bijux.slurm_submission.v1".to_string(),
+        run_id: "run-133".to_string(),
+        scheduler: "slurm".to_string(),
+        submission_script_path: "submit.sh".into(),
+        job_id: "12345".to_string(),
+        state: SlurmJobStateV1::Submitted,
+        poll_command: vec!["squeue".to_string(), "-j".to_string(), "12345".to_string()],
+        cancel_command: vec!["scancel".to_string(), "12345".to_string()],
+        stdout_log_path: "stdout.log".into(),
+        stderr_log_path: "stderr.log".into(),
+        retry_count: 0,
+        exit_code: None,
+        transitions: Vec::new(),
+    };
+    transition_slurm_submission(
+        &mut submission,
+        SlurmJobStateV1::Pending,
+        "2026-04-30T10:00:00Z",
+        Some("queued".to_string()),
+    )
+    .expect("submitted->pending must be valid");
+    transition_slurm_submission(
+        &mut submission,
+        SlurmJobStateV1::Running,
+        "2026-04-30T10:05:00Z",
+        Some("node assigned".to_string()),
+    )
+    .expect("pending->running must be valid");
+    transition_slurm_submission(
+        &mut submission,
+        SlurmJobStateV1::Cancelled,
+        "2026-04-30T10:06:00Z",
+        Some("operator cancelled".to_string()),
+    )
+    .expect("running->cancelled must be valid");
+
+    assert_eq!(submission.state, SlurmJobStateV1::Cancelled);
+    assert_eq!(submission.transitions.len(), 3);
+    assert_eq!(submission.transitions[0].to_state, SlurmJobStateV1::Pending);
+    assert_eq!(submission.transitions[1].to_state, SlurmJobStateV1::Running);
+    assert_eq!(submission.transitions[2].to_state, SlurmJobStateV1::Cancelled);
+}
+
+#[test]
+fn lunarc_profile_uses_site_isolated_configuration_and_hpc_descriptor_shape() {
+    let profile = lunarc_execution_profile(PathBuf::from("/etc/bijux/sites/lunarc.toml"));
+    assert_eq!(profile.profile_id, "lunarc");
+    assert_eq!(profile.scheduler, "slurm");
+    assert_eq!(profile.submission_mode, "batch");
+    assert_eq!(profile.site_config_path, PathBuf::from("/etc/bijux/sites/lunarc.toml"));
+
+    let descriptor =
+        executor_descriptor_from_hpc_profile("run-134", RunExecutionModeV1::Enforced, &profile);
+    assert_eq!(descriptor.run_id, "run-134");
+    match descriptor.descriptor {
+        bijux_dna_runtime::run_layout::ExecutorDescriptorV1::Hpc {
+            scheduler,
+            submission_mode,
+            container_runtime,
+            ..
+        } => {
+            assert_eq!(scheduler, "slurm");
+            assert_eq!(submission_mode, "batch");
+            assert_eq!(container_runtime.as_deref(), Some("apptainer"));
+        }
+        _ => panic!("lunarc profile must resolve to an HPC executor descriptor"),
+    }
 }
