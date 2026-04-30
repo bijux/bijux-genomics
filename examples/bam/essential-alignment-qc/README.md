@@ -32,3 +32,10 @@ Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run bam_ess
 ## Step 4 Collect/Report
 - Collect governed outputs under `artifacts/examples/bam_essential_alignment_qc/`.
 - Preserve the BAM planning, explainability, and report artifacts for downstream evidence inspection.
+
+## Canonical Contracts
+- `example.toml` is the runnable manifest.
+- `tiny-inputs.json` records the mini corpus and reference contract.
+- `workflow-manifest.json` records the governed stage order and operating mode.
+- `golden/plan.json` is the expected plan contract.
+- `expected-evidence.json` records the BAM evidence artifacts that must survive bundling.

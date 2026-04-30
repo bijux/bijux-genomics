@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.example.workflow_manifest.v1",
+  "example_id": "bam_essential_alignment_qc",
+  "domain": "bam",
+  "workflow_class": "essential_alignment_qc",
+  "operating_mode": "simulation",
+  "stages": [
+    "fastq.preprocess",
+    "core.prepare_reference",
+    "bam.align",
+    "bam.qc_pre",
+    "bam.mapping_summary",
+    "bam.coverage",
+    "bam.damage"
+  ]
+}
