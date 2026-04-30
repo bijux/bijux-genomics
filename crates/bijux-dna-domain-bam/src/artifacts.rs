@@ -7,6 +7,7 @@ use bijux_dna_core::prelude::ArtifactId;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::metrics::BamMetricsV1;
 use crate::params::ReadGroupSpec;
 
 pub const BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION: &str = "bijux.bam.artifact_inventory.v1";
@@ -30,6 +31,7 @@ pub const BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION: &str = "bijux.bam.contamina
 pub const BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION: &str = "bijux.bam.scientific_report.v1";
 pub const BAM_RESOURCE_PLAN_SCHEMA_VERSION: &str = "bijux.bam.resource_plan.v1";
 pub const BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION: &str = "bijux.bam.bench_corpus_manifest.v1";
+pub const BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.damage_evidence.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -418,6 +420,21 @@ pub struct BamAdnaWorkflowV1 {
     pub authenticity_tools: Vec<String>,
     pub evidence_only: bool,
     pub authenticity_caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamDamageEvidenceV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub terminal_c_to_t_5p: f64,
+    pub terminal_g_to_a_3p: f64,
+    pub short_fragment_fraction: f64,
+    pub damage_signal: String,
+    pub strict_profile_upgraded: bool,
+    pub advisory_boundary: BamAdvisoryBoundaryV1,
+    #[serde(default)]
+    pub notes: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -1942,16 +1959,10 @@ pub fn summarize_tiny_bam_coverage(
         }
     }
 
-    let mean_depth = if total_positions > 0 {
-        depth_sum as f64 / total_positions as f64
-    } else {
-        0.0
-    };
-    let breadth_1x = if total_positions > 0 {
-        covered_positions as f64 / total_positions as f64
-    } else {
-        0.0
-    };
+    let mean_depth =
+        if total_positions > 0 { depth_sum as f64 / total_positions as f64 } else { 0.0 };
+    let breadth_1x =
+        if total_positions > 0 { covered_positions as f64 / total_positions as f64 } else { 0.0 };
     let regime = classify_bam_coverage_regime(mean_depth, breadth_1x);
 
     Ok(BamCoverageSummaryV1 {
@@ -2073,6 +2084,70 @@ pub fn classify_bam_coverage_regime(mean_depth: f64, breadth_1x: f64) -> BamCove
         breadth_1x,
         usable_for,
         caveats,
+    }
+}
+
+/// Produce ancient-DNA damage evidence with explicit advisory boundary semantics.
+#[must_use]
+pub fn execute_ancient_damage_evidence(
+    metrics: &BamMetricsV1,
+    strict_profile: bool,
+) -> BamDamageEvidenceV1 {
+    let terminal_damage = metrics.damage.c_to_t_5p.max(metrics.damage.g_to_a_3p);
+    let damage_signal = if terminal_damage >= 0.20 {
+        "high"
+    } else if terminal_damage >= 0.10 {
+        "moderate"
+    } else {
+        "low"
+    };
+    let strict_upgrade =
+        strict_profile && terminal_damage >= 0.10 && metrics.fragment_length.short_fraction >= 0.20;
+    let advisory_boundary = BamAdvisoryBoundaryV1 {
+        schema_version: BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.damage".to_string(),
+        advisory_only: !strict_upgrade,
+        scientific_scope: if strict_upgrade {
+            "strict_damage_profile_with_context"
+        } else {
+            "damage_evidence_only"
+        }
+        .to_string(),
+        evidence_inputs: vec![
+            "terminal_damage_rates".to_string(),
+            "fragment_length_distribution".to_string(),
+            "mapq_profile".to_string(),
+        ],
+        safe_for_claims: if strict_upgrade {
+            vec!["damage_signal_present".to_string(), "damage_profile_consistent".to_string()]
+        } else {
+            vec!["damage_signal_present".to_string()]
+        },
+        unsafe_for_claims: vec![
+            "authenticity_certification".to_string(),
+            "contamination_absence".to_string(),
+        ],
+    };
+    let mut notes = vec![
+        "damage evidence is contextual and requires contamination/capture/library interpretation"
+            .to_string(),
+    ];
+    if strict_upgrade {
+        notes.push(
+            "strict profile upgraded this stage from advisory-only to guarded evidence status"
+                .to_string(),
+        );
+    }
+    BamDamageEvidenceV1 {
+        schema_version: BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.damage".to_string(),
+        terminal_c_to_t_5p: metrics.damage.c_to_t_5p,
+        terminal_g_to_a_3p: metrics.damage.g_to_a_3p,
+        short_fragment_fraction: metrics.fragment_length.short_fraction,
+        damage_signal: damage_signal.to_string(),
+        strict_profile_upgraded: strict_upgrade,
+        advisory_boundary,
+        notes,
     }
 }
 
@@ -2475,6 +2550,24 @@ mod tests {
         let ancient = bam_workflow_template_by_id("bam.essential_ancient_like")
             .expect("ancient-like template");
         assert!(ancient.advisory_stages.contains(&"bam.damage".to_string()));
+    }
+
+    #[test]
+    fn execute_ancient_damage_evidence_respects_advisory_boundary() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.damage.c_to_t_5p = 0.18;
+        metrics.damage.g_to_a_3p = 0.12;
+        metrics.fragment_length.short_fraction = 0.35;
+
+        let advisory = execute_ancient_damage_evidence(&metrics, false);
+        assert_eq!(advisory.damage_signal, "moderate");
+        assert!(advisory.advisory_boundary.advisory_only);
+        assert!(!advisory.strict_profile_upgraded);
+
+        let strict = execute_ancient_damage_evidence(&metrics, true);
+        assert_eq!(strict.damage_signal, "moderate");
+        assert!(!strict.advisory_boundary.advisory_only);
+        assert!(strict.strict_profile_upgraded);
     }
 
     fn unique_temp_dir(label: &str) -> PathBuf {
