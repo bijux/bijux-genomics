@@ -7,9 +7,10 @@ pub use super::api::{
 };
 pub use super::contracts::{
     admit_runtime_resources, apply_control_action_idempotent, apptainer_smoke_workflow_plan,
-    docker_smoke_workflow_plan, evaluate_fallback_safety, executor_descriptor_from_hpc_profile,
-    lunarc_execution_profile, migrate_artifact_inventory_value, mock_slurm_submission_record,
-    negotiate_executor_capabilities, read_supported_artifact_inventory,
+    control_audit_summary, docker_smoke_workflow_plan, evaluate_fallback_safety,
+    executor_descriptor_from_hpc_profile, lunarc_execution_profile,
+    migrate_artifact_inventory_value, mock_slurm_submission_record,
+    negotiate_executor_capabilities, queue_restore_summary, read_supported_artifact_inventory,
     restore_queue_state_for_resume, scheduling_decision_from_admission,
     transition_slurm_submission, validate_run_layout_storage_isolation,
     validate_smoke_workflow_plan, ArtifactIdentityV1, ArtifactInventoryV1,

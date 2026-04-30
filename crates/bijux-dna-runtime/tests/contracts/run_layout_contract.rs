@@ -2,9 +2,9 @@ use std::path::PathBuf;
 
 use bijux_dna_runtime::run_layout::{
     admit_runtime_resources, apply_control_action_idempotent, apptainer_smoke_workflow_plan,
-    create_run_layout, docker_smoke_workflow_plan, evaluate_fallback_safety,
+    control_audit_summary, create_run_layout, docker_smoke_workflow_plan, evaluate_fallback_safety,
     executor_descriptor_from_hpc_profile, lunarc_execution_profile, mock_slurm_submission_record,
-    negotiate_executor_capabilities, restore_queue_state_for_resume,
+    negotiate_executor_capabilities, queue_restore_summary, restore_queue_state_for_resume,
     scheduling_decision_from_admission, transition_slurm_submission,
     validate_run_layout_storage_isolation, validate_smoke_workflow_plan, ExecutorCapabilitiesV1,
     FallbackSafetyRequestV1, RunCheckpointV1, RunControlActionV1, RunControlStateV1,
@@ -362,6 +362,7 @@ fn queue_restore_persists_resume_state_without_duplicate_dispatch() {
     assert_eq!(restored.restored_state.state, RunQueueLifecycleStateV1::Queued);
     assert_eq!(restored.resumed_stage_ids, vec!["fastq.filter_reads".to_string()]);
     assert_eq!(restored.blocked_stage_ids, vec!["fastq.trim_reads".to_string()]);
+    assert!(queue_restore_summary(&restored).contains("deduplicated_dispatch=true"));
 }
 
 #[test]
@@ -412,6 +413,7 @@ fn pause_resume_cancel_controls_are_idempotent_and_audited() {
     assert!(cancelled);
     assert_eq!(queue_state.state, RunQueueLifecycleStateV1::Cancelled);
     assert!(control_state.audit_log.len() >= 3);
+    assert!(control_audit_summary(&control_state).contains("audit_entries="));
 }
 
 #[test]

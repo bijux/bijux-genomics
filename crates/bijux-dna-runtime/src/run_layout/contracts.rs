@@ -860,6 +860,40 @@ pub fn apply_control_action_idempotent(
     changed
 }
 
+#[must_use]
+pub fn queue_restore_summary(decision: &QueueRestoreDecisionV1) -> String {
+    let mut summary = format!(
+        "resume_state={} deduplicated_dispatch={} resumed={} blocked={}",
+        decision.restored_state.state,
+        decision.deduplicated_dispatch,
+        decision.resumed_stage_ids.len(),
+        decision.blocked_stage_ids.len()
+    );
+    if !decision.notes.is_empty() {
+        summary.push_str("; notes=");
+        summary.push_str(&decision.notes.join(" | "));
+    }
+    summary
+}
+
+#[must_use]
+pub fn control_audit_summary(control_state: &RunControlStateV1) -> String {
+    let mut lines = Vec::with_capacity(control_state.audit_log.len() + 1);
+    lines.push(format!(
+        "run_id={} observed_state={} audit_entries={}",
+        control_state.run_id,
+        control_state.observed_state,
+        control_state.audit_log.len()
+    ));
+    for entry in &control_state.audit_log {
+        lines.push(format!(
+            "{}:{}:{}",
+            entry.occurred_at, entry.requested_action, entry.observed_state
+        ));
+    }
+    lines.join("\n")
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StorageIsolationReportV1 {
     pub valid: bool,
