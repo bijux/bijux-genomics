@@ -980,6 +980,29 @@ pub struct SlurmSubmissionRecordV1 {
     pub transitions: Vec<SlurmJobTransitionV1>,
 }
 
+#[must_use]
+pub fn mock_slurm_submission_record(
+    run_id: &str,
+    submission_script_path: PathBuf,
+    job_id: &str,
+) -> SlurmSubmissionRecordV1 {
+    SlurmSubmissionRecordV1 {
+        schema_version: "bijux.slurm_submission.v1".to_string(),
+        run_id: run_id.to_string(),
+        scheduler: "slurm".to_string(),
+        submission_script_path,
+        job_id: job_id.to_string(),
+        state: SlurmJobStateV1::Submitted,
+        poll_command: vec!["squeue".to_string(), "-j".to_string(), job_id.to_string()],
+        cancel_command: vec!["scancel".to_string(), job_id.to_string()],
+        stdout_log_path: PathBuf::from(format!("logs/slurm-{job_id}.stdout.log")),
+        stderr_log_path: PathBuf::from(format!("logs/slurm-{job_id}.stderr.log")),
+        retry_count: 0,
+        exit_code: None,
+        transitions: Vec::new(),
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HpcExecutionProfileV1 {
     pub schema_version: String,

@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use bijux_dna_runtime::run_layout::{
     admit_runtime_resources, apply_control_action_idempotent, apptainer_smoke_workflow_plan,
     create_run_layout, docker_smoke_workflow_plan, evaluate_fallback_safety,
-    executor_descriptor_from_hpc_profile, lunarc_execution_profile,
+    executor_descriptor_from_hpc_profile, lunarc_execution_profile, mock_slurm_submission_record,
     negotiate_executor_capabilities, restore_queue_state_for_resume, transition_slurm_submission,
     validate_run_layout_storage_isolation, validate_smoke_workflow_plan, ExecutorCapabilitiesV1,
     FallbackSafetyRequestV1, RunCheckpointV1, RunControlActionV1, RunControlStateV1,
@@ -148,6 +148,55 @@ fn slurm_submission_lifecycle_records_submit_poll_cancel_complete_transitions() 
     assert_eq!(submission.transitions[0].to_state, SlurmJobStateV1::Pending);
     assert_eq!(submission.transitions[1].to_state, SlurmJobStateV1::Running);
     assert_eq!(submission.transitions[2].to_state, SlurmJobStateV1::Cancelled);
+}
+
+#[test]
+fn slurm_mock_submission_constructor_sets_poll_cancel_and_log_paths() {
+    let submission =
+        mock_slurm_submission_record("run-133", PathBuf::from("slurm_submit.sh"), "987654");
+    assert_eq!(submission.run_id, "run-133");
+    assert_eq!(submission.job_id, "987654");
+    assert_eq!(submission.state, SlurmJobStateV1::Submitted);
+    assert_eq!(submission.poll_command, vec!["squeue", "-j", "987654"]);
+    assert_eq!(submission.cancel_command, vec!["scancel", "987654"]);
+    assert!(submission.stdout_log_path.ends_with("logs/slurm-987654.stdout.log"));
+    assert!(submission.stderr_log_path.ends_with("logs/slurm-987654.stderr.log"));
+}
+
+#[test]
+fn slurm_transition_refuses_terminal_state_reentry() {
+    let mut submission =
+        mock_slurm_submission_record("run-133b", PathBuf::from("submit.sh"), "444");
+    transition_slurm_submission(
+        &mut submission,
+        SlurmJobStateV1::Pending,
+        "2026-04-30T10:00:00Z",
+        None,
+    )
+    .expect("submitted->pending");
+    transition_slurm_submission(
+        &mut submission,
+        SlurmJobStateV1::Running,
+        "2026-04-30T10:05:00Z",
+        None,
+    )
+    .expect("pending->running");
+    transition_slurm_submission(
+        &mut submission,
+        SlurmJobStateV1::Succeeded,
+        "2026-04-30T10:15:00Z",
+        None,
+    )
+    .expect("running->succeeded");
+
+    let err = transition_slurm_submission(
+        &mut submission,
+        SlurmJobStateV1::Running,
+        "2026-04-30T10:20:00Z",
+        Some("invalid restart".to_string()),
+    )
+    .expect_err("succeeded state must reject non-idempotent transitions");
+    assert!(err.to_string().contains("invalid slurm transition"));
 }
 
 #[test]
