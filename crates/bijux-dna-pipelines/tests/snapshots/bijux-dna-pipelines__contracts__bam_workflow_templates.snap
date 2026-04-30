@@ -1,0 +1,894 @@
+---
+source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+[
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.qc_pre",
+        "bam.mapping_summary",
+        "bam.filter",
+        "bam.duplication_metrics",
+        "bam.coverage"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "reference_identity_required",
+        "duplicate_handling_limits"
+      ],
+      "story_order": [
+        "bam_admission",
+        "alignment_quality",
+        "coverage_readiness",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "bam_essential_alignment_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.coverage": [
+          "depth_thresholds"
+        ],
+        "bam.filter": [
+          "mapq_threshold",
+          "min_length"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.validate": [
+          "strict"
+        ]
+      }
+    },
+    "pipeline_id": "bam-to-bam__default__v1",
+    "requested_stages": [
+      "bam.validate",
+      "bam.qc_pre",
+      "bam.mapping_summary",
+      "bam.filter",
+      "bam.duplication_metrics",
+      "bam.coverage"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Modern WGS BAM QC template with alignment-readiness checks, duplicate review, and coverage-centric reporting.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "bam.modern_wgs_qc"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.mapping_summary",
+        "bam.filter",
+        "bam.length_filter",
+        "bam.damage",
+        "bam.authenticity",
+        "bam.contamination",
+        "bam.coverage"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "post_mortem_damage",
+        "low_coverage_uncertainty"
+      ],
+      "story_order": [
+        "bam_admission",
+        "damage_evidence",
+        "contamination_evidence",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "bam_adna_damage_review"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.contamination": [
+          "minimum_mean_coverage",
+          "scope"
+        ],
+        "bam.damage": [
+          "pmd_threshold_5p",
+          "pmd_threshold_3p"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.authenticity": [
+          "disallow_certification"
+        ]
+      }
+    },
+    "pipeline_id": "bam-to-bam__adna_shotgun__v1",
+    "requested_stages": [
+      "bam.validate",
+      "bam.mapping_summary",
+      "bam.filter",
+      "bam.length_filter",
+      "bam.damage",
+      "bam.authenticity",
+      "bam.contamination",
+      "bam.coverage"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Ancient-DNA BAM QC template with damage/authenticity/contamination evidence and low-input caveats.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "bam.ancient_dna_qc"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.qc_pre",
+        "bam.mapping_summary",
+        "bam.coverage",
+        "bam.filter"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "low_pass_classification",
+        "downstream_gl_uncertainty"
+      ],
+      "story_order": [
+        "bam_admission",
+        "coverage_regime",
+        "calling_readiness",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "bam_low_pass_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.coverage": [
+          "depth_thresholds",
+          "regime_mode"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.validate": [
+          "strict"
+        ]
+      }
+    },
+    "pipeline_id": "bam-to-bam__default__v1",
+    "requested_stages": [
+      "bam.validate",
+      "bam.qc_pre",
+      "bam.mapping_summary",
+      "bam.coverage",
+      "bam.filter"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Low-pass BAM readiness template with coverage-classification thresholds and downstream calling caveats.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "bam.low_pass_readiness"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.mapping_summary",
+        "bam.duplication_metrics",
+        "bam.coverage",
+        "bam.endogenous_content"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "assay_specific_bias",
+        "capture_panel_dependency"
+      ],
+      "story_order": [
+        "bam_admission",
+        "target_coverage",
+        "off_target_signal",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "bam_targeted_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.coverage": [
+          "regions",
+          "depth_thresholds"
+        ],
+        "bam.endogenous_content": [
+          "depth_thresholds"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.validate": [
+          "strict"
+        ]
+      }
+    },
+    "pipeline_id": "bam-to-bam__adna_capture__v1",
+    "requested_stages": [
+      "bam.validate",
+      "bam.mapping_summary",
+      "bam.duplication_metrics",
+      "bam.coverage",
+      "bam.endogenous_content"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Targeted/amplicon BAM template with target-coverage, off-target, duplication, and assay caveat reporting.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "bam.targeted_amplicon_qc"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.mapping_summary",
+        "bam.qc_pre",
+        "bam.coverage"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "aligner_parameter_equivalence",
+        "reference_index_equivalence"
+      ],
+      "story_order": [
+        "bam_admission",
+        "aligner_delta",
+        "mapping_metric_delta",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "bam_aligner_compare"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.mapping_summary": [
+          "regions"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.validate": [
+          "strict"
+        ]
+      }
+    },
+    "pipeline_id": "bam-to-bam__default__v1",
+    "requested_stages": [
+      "bam.validate",
+      "bam.mapping_summary",
+      "bam.qc_pre",
+      "bam.coverage"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "BAM aligner-comparison report template contrasting mapping quality and downstream metric behavior across aligner modes.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "bam.aligner_comparison_report"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.duplication_metrics",
+        "bam.filter",
+        "bam.coverage"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "umi_presence_required",
+        "duplicate_marking_method_bias"
+      ],
+      "story_order": [
+        "bam_admission",
+        "duplicate_policy_delta",
+        "coverage_effect",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "bam_duplicate_method_compare"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.duplication_metrics": [
+          "duplicate_action",
+          "umi_policy"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.validate": [
+          "strict"
+        ]
+      }
+    },
+    "pipeline_id": "bam-to-bam__default__v1",
+    "requested_stages": [
+      "bam.validate",
+      "bam.duplication_metrics",
+      "bam.filter",
+      "bam.coverage"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "BAM duplicate-method comparison template for Picard/samtools/UMI-aware downstream impact review.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "bam.duplicate_method_comparison_report"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.contamination",
+        "bam.authenticity",
+        "bam.coverage"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "coverage_floor_dependency",
+        "panel_compatibility_dependency"
+      ],
+      "story_order": [
+        "bam_admission",
+        "contamination_prerequisites",
+        "method_disagreement",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "bam_contamination_compare"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.contamination": [
+          "scope",
+          "minimum_mean_coverage"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.authenticity": [
+          "disallow_certification"
+        ]
+      }
+    },
+    "pipeline_id": "bam-to-bam__reference_adna__v1",
+    "requested_stages": [
+      "bam.validate",
+      "bam.contamination",
+      "bam.authenticity",
+      "bam.coverage"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "BAM contamination estimator comparison template with prerequisite disclosure and disagreement caveats.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "bam.contamination_method_comparison_report"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.mapping_summary",
+        "bam.filter",
+        "bam.coverage"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "lane_conflict_policy",
+        "library_identity_consistency"
+      ],
+      "story_order": [
+        "bam_admission",
+        "merge_conflict_review",
+        "aggregate_qc_summary"
+      ]
+    },
+    "example_ids": [
+      "bam_lane_merge_review"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "lane_library_merge_bundle",
+        "fan_pattern": "fan_in",
+        "lineage_fields": [
+          "run_id",
+          "sample_id",
+          "library_id"
+        ],
+        "overwrite_strategy": "sample_scoped_inputs_then_stable_cohort_merge",
+        "source_stage": "bam.validate",
+        "target_stage": "bam.mapping_summary"
+      }
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.filter": [
+          "include_flags",
+          "exclude_flags"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.validate": [
+          "strict"
+        ]
+      }
+    },
+    "pipeline_id": "bam-to-bam__default__v1",
+    "requested_stages": [
+      "bam.validate",
+      "bam.mapping_summary",
+      "bam.filter",
+      "bam.coverage"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "BAM batch merge template for lane/library merge conflict detection and aggregate review evidence.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "bam.batch_merge_workflow"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.mapping_summary",
+        "bam.coverage",
+        "bam.qc_pre"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "regional_coverage_interpretation",
+        "reference_version_compatibility"
+      ],
+      "story_order": [
+        "bam_admission",
+        "coverage_snapshot",
+        "review_summary"
+      ]
+    },
+    "example_ids": [
+      "bam_coverage_review"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.coverage": [
+          "regions",
+          "depth_thresholds"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.validate": [
+          "strict"
+        ]
+      }
+    },
+    "pipeline_id": "bam-to-bam__default__v1",
+    "requested_stages": [
+      "bam.validate",
+      "bam.mapping_summary",
+      "bam.coverage",
+      "bam.qc_pre"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "BAM coverage-to-review report template for concise operator/scientific summary outputs.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "bam.coverage_review_report"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.filter",
+        "bam.mapping_summary",
+        "bam.coverage"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "fixture_scale_limitations",
+        "hardware_dependency"
+      ],
+      "story_order": [
+        "bam_admission",
+        "resource_profile",
+        "throughput_summary"
+      ]
+    },
+    "example_ids": [
+      "bam_performance_profile"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.coverage": [
+          "depth_thresholds"
+        ],
+        "bam.filter": [
+          "mapq_threshold",
+          "min_length"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.validate": [
+          "strict"
+        ]
+      }
+    },
+    "pipeline_id": "bam-to-bam__default__v1",
+    "requested_stages": [
+      "bam.validate",
+      "bam.filter",
+      "bam.mapping_summary",
+      "bam.coverage"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "BAM large-file performance template tracking runtime and memory behavior for sort/index/coverage-like heavy paths.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "bam.large_file_performance_profile"
+  }
+]
