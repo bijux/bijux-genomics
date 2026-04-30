@@ -19,6 +19,22 @@ pub enum CorpusScale {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum TruthSetStatus {
+    Available,
+    Unavailable,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct TruthSetHook {
+    pub status: TruthSetStatus,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub truth_set_id: Option<String>,
+    pub note: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct CorpusDatasetSpec {
     pub dataset_id: String,
@@ -27,6 +43,7 @@ pub struct CorpusDatasetSpec {
     pub class_label: String,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub case_tags: Vec<String>,
+    pub truth_set: TruthSetHook,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

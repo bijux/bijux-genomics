@@ -4,7 +4,7 @@
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkCorpusManifest, BenchmarkObservation, BenchmarkSummary, CorpusDatasetSpec, MetricSummary,
-    SummaryRow,
+    SummaryRow, TruthSetHook, TruthSetStatus,
 };
 use crate::policy::{GateDecision, GateViolation};
 
@@ -139,6 +139,30 @@ fn validate_corpus_dataset(dataset: &CorpusDatasetSpec) -> Result<(), BenchError
     for tag in &dataset.case_tags {
         required_text(tag, "corpus case_tag")?;
     }
+    validate_truth_set_hook(&dataset.truth_set)?;
+    Ok(())
+}
+
+fn validate_truth_set_hook(hook: &TruthSetHook) -> Result<(), BenchError> {
+    required_text(&hook.note, "corpus truth_set note")?;
+    match hook.status {
+        TruthSetStatus::Available => {
+            let truth_set_id = hook.truth_set_id.as_deref().ok_or_else(|| {
+                BenchError::InvalidPolicy(
+                    "corpus truth_set with status available must include truth_set_id".to_string(),
+                )
+            })?;
+            required_text(truth_set_id, "corpus truth_set_id")?;
+        }
+        TruthSetStatus::Unavailable => {
+            if hook.truth_set_id.is_some() {
+                return Err(BenchError::InvalidPolicy(
+                    "corpus truth_set with status unavailable must not include truth_set_id"
+                        .to_string(),
+                ));
+            }
+        }
+    }
     Ok(())
 }
 
@@ -218,7 +242,7 @@ mod tests {
     use crate::contract::{CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
     use crate::model::{
         BenchmarkCorpusManifest, BenchmarkSummary, CorpusDatasetSpec, CorpusDomain, CorpusScale,
-        MetricSummary, SummaryRow,
+        MetricSummary, SummaryRow, TruthSetHook, TruthSetStatus,
     };
     use crate::policy::{GateDecision, GateViolation};
     use crate::stats::robust_estimators::RobustStats;
@@ -297,6 +321,11 @@ mod tests {
                 read_layout: "paired".to_string(),
                 class_label: "valid".to_string(),
                 case_tags: vec!["valid".to_string(), "paired".to_string()],
+                truth_set: TruthSetHook {
+                    status: TruthSetStatus::Available,
+                    truth_set_id: Some("truth.fastq.synthetic.v1".to_string()),
+                    note: "truth set available for synthetic paired validation".to_string(),
+                },
             }],
         }
     }
@@ -475,6 +504,19 @@ mod tests {
         };
 
         assert!(err.to_string().contains("must include at least one scientific caveat"));
+        Ok(())
+    }
+
+    #[test]
+    fn corpus_rejects_unavailable_truth_set_with_identifier() -> anyhow::Result<()> {
+        let mut corpus = valid_corpus();
+        corpus.datasets[0].truth_set.status = TruthSetStatus::Unavailable;
+
+        let Err(err) = validate_corpus_manifest(&corpus) else {
+            bail!("corpus with unavailable truth_set and id should fail");
+        };
+
+        assert!(err.to_string().contains("must not include truth_set_id"));
         Ok(())
     }
 }

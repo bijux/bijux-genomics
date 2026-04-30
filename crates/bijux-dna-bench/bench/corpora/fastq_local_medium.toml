@@ -12,6 +12,9 @@ fixture = "fixtures/fastq/chunking_10m"
 read_layout = "paired"
 class_label = "chunking"
 case_tags = ["chunking", "high-volume"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; chunking corpus focuses on determinism and fan-out integrity"
 
 [[datasets]]
 dataset_id = "fastq_edna_primer_mix"
@@ -19,6 +22,9 @@ fixture = "fixtures/fastq/edna_primer_mix"
 read_layout = "paired"
 class_label = "edna"
 case_tags = ["edna", "primer-mix"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; eDNA primer composition is scenario-driven and must remain caveated"
 
 [[datasets]]
 dataset_id = "fastq_host_depletion_panel"
@@ -26,6 +32,10 @@ fixture = "fixtures/fastq/host_depletion_panel"
 read_layout = "paired"
 class_label = "host_depletion"
 case_tags = ["depletion", "host"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.fastq.synthetic.host-depletion-panel.v1"
+note = "spike recipe anchors retained/rejected host depletion expectations"
 
 [[datasets]]
 dataset_id = "fastq_rrna_depletion_panel"
@@ -33,6 +43,10 @@ fixture = "fixtures/fastq/rrna_depletion_panel"
 read_layout = "paired"
 class_label = "rrna_depletion"
 case_tags = ["depletion", "rrna"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.fastq.synthetic.rrna-depletion-panel.v1"
+note = "synthetic rrna labels provide controlled depletion truth hooks"
 
 [[datasets]]
 dataset_id = "fastq_aggregate_qc_report"
@@ -40,3 +54,6 @@ fixture = "fixtures/fastq/aggregate_qc_report"
 read_layout = "paired"
 class_label = "aggregate_qc"
 case_tags = ["aggregate-qc", "reporting"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; aggregate QC report is for schema and scaling checks"

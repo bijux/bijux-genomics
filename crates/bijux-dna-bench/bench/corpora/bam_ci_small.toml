@@ -12,6 +12,10 @@ fixture = "fixtures/bam/valid_coordinate_sorted"
 read_layout = "paired"
 class_label = "valid"
 case_tags = ["valid", "coordinate-sorted"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.bam.synthetic.valid-coordinate.v1"
+note = "synthetic alignment truth supports deterministic QC expectations"
 
 [[datasets]]
 dataset_id = "bam_missing_index"
@@ -19,6 +23,9 @@ fixture = "fixtures/bam/missing_index"
 read_layout = "paired"
 class_label = "missing_index"
 case_tags = ["missing-index", "boundary"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; missing index case asserts contract refusal semantics"
 
 [[datasets]]
 dataset_id = "bam_duplicate_heavy"
@@ -26,6 +33,10 @@ fixture = "fixtures/bam/duplicate_heavy"
 read_layout = "paired"
 class_label = "duplicate_heavy"
 case_tags = ["duplicate-heavy", "markdup"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.bam.synthetic.duplicate-heavy.v1"
+note = "synthetic duplicate labels provide controlled duplicate burden truth"
 
 [[datasets]]
 dataset_id = "bam_low_coverage"
@@ -33,6 +44,9 @@ fixture = "fixtures/bam/low_coverage"
 read_layout = "paired"
 class_label = "low_coverage"
 case_tags = ["low-coverage", "sparse"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; low-coverage class is used to verify warning calibration only"
 
 [[datasets]]
 dataset_id = "bam_damage_like"
@@ -40,6 +54,9 @@ fixture = "fixtures/bam/damage_like"
 read_layout = "paired"
 class_label = "damage_like"
 case_tags = ["damage-like", "ancient-dna"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; damage-like pattern is heuristic and must remain caveated"
 
 [[datasets]]
 dataset_id = "bam_reference_mismatch"
@@ -47,3 +64,6 @@ fixture = "fixtures/bam/reference_mismatch"
 read_layout = "paired"
 class_label = "reference_mismatch"
 case_tags = ["reference-mismatch", "contig-alias"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; mismatch fixture validates reference compatibility diagnostics"

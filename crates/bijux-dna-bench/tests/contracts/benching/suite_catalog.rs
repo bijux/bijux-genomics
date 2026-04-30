@@ -411,3 +411,48 @@ fn checked_in_corpus_catalog_contains_vcf_local_medium_stress_matrix() -> Result
     }
     Ok(())
 }
+
+#[test]
+fn checked_in_corpus_catalog_labels_truth_set_presence_and_absence() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let mut has_available_truth = false;
+    let mut has_unavailable_truth = false;
+
+    for corpus in &corpora {
+        for dataset in &corpus.datasets {
+            if dataset.truth_set.note.trim().is_empty() {
+                anyhow::bail!(
+                    "dataset {} in corpus {} must document truth_set note",
+                    dataset.dataset_id,
+                    corpus.corpus_id
+                );
+            }
+            match dataset.truth_set.status {
+                bijux_dna_bench::TruthSetStatus::Available => {
+                    has_available_truth = true;
+                    assert!(
+                        dataset.truth_set.truth_set_id.is_some(),
+                        "available truth_set must include truth_set_id for {}",
+                        dataset.dataset_id
+                    );
+                }
+                bijux_dna_bench::TruthSetStatus::Unavailable => {
+                    has_unavailable_truth = true;
+                    assert!(
+                        dataset
+                            .truth_set
+                            .note
+                            .to_ascii_lowercase()
+                            .contains("no truth set"),
+                        "unavailable truth_set note must state absence for {}",
+                        dataset.dataset_id
+                    );
+                }
+            }
+        }
+    }
+
+    assert!(has_available_truth, "corpus catalog must include at least one available truth set");
+    assert!(has_unavailable_truth, "corpus catalog must include at least one unavailable truth set");
+    Ok(())
+}

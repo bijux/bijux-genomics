@@ -12,6 +12,10 @@ fixture = "fixtures/vcf/multisample_filtering"
 read_layout = "paired"
 class_label = "multisample_filtering"
 case_tags = ["multisample-filtering", "cohort-qc"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.vcf.synthetic.multisample-filtering.v1"
+note = "controlled cohort labels provide deterministic filter-impact truth"
 
 [[datasets]]
 dataset_id = "vcf_normalization_stress"
@@ -19,6 +23,10 @@ fixture = "fixtures/vcf/normalization_stress"
 read_layout = "paired"
 class_label = "normalization"
 case_tags = ["normalization", "left-align"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.vcf.synthetic.normalization-stress.v1"
+note = "synthetic normalization truth validates canonicalization invariants"
 
 [[datasets]]
 dataset_id = "vcf_annotation_payload"
@@ -26,6 +34,9 @@ fixture = "fixtures/vcf/annotation_payload"
 read_layout = "paired"
 class_label = "annotation"
 case_tags = ["annotation", "functional"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; annotation payloads depend on external knowledge bases"
 
 [[datasets]]
 dataset_id = "vcf_evidence_large_report"
@@ -33,3 +44,6 @@ fixture = "fixtures/vcf/evidence_large_report"
 read_layout = "paired"
 class_label = "evidence_size"
 case_tags = ["evidence-size", "report-volume"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; evidence-size fixture targets report serialization scaling"

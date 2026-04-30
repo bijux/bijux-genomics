@@ -12,6 +12,9 @@ fixture = "fixtures/bam/sort_io_stress"
 read_layout = "paired"
 class_label = "sort"
 case_tags = ["sort", "io-stress"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; sort corpus stresses throughput and determinism boundaries"
 
 [[datasets]]
 dataset_id = "bam_index_random_seek"
@@ -19,6 +22,9 @@ fixture = "fixtures/bam/index_random_seek"
 read_layout = "paired"
 class_label = "index"
 case_tags = ["index", "seek-pattern"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; index probe is for access-pattern stability and not biological truth"
 
 [[datasets]]
 dataset_id = "bam_markdup_molecule_mix"
@@ -26,6 +32,10 @@ fixture = "fixtures/bam/markdup_molecule_mix"
 read_layout = "paired"
 class_label = "markdup"
 case_tags = ["markdup", "duplicate-heavy"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.bam.synthetic.markdup-molecule-mix.v1"
+note = "synthetic molecule identifiers define duplicate truth boundaries"
 
 [[datasets]]
 dataset_id = "bam_coverage_depth_gradient"
@@ -33,6 +43,10 @@ fixture = "fixtures/bam/coverage_depth_gradient"
 read_layout = "paired"
 class_label = "coverage"
 case_tags = ["coverage", "depth-gradient"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.bam.synthetic.coverage-depth-gradient.v1"
+note = "controlled depth bins provide deterministic coverage truth references"
 
 [[datasets]]
 dataset_id = "bam_damage_profile_shift"
@@ -40,3 +54,6 @@ fixture = "fixtures/bam/damage_profile_shift"
 read_layout = "paired"
 class_label = "damage"
 case_tags = ["damage", "authenticity-caveat"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; damage-profile signals are advisory and uncertainty-driven"
