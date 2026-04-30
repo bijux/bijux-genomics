@@ -32,6 +32,7 @@ mod prepare_primer_bank;
 mod normalize_read_names;
 mod repair_pairs;
 mod subsample_reads;
+mod trim_reads;
 mod validate_reads;
 
 pub use header_inspection::{
@@ -60,6 +61,7 @@ pub use provenance_snapshot::capture_provenance_snapshot;
 pub use qc_manifest::materialize_qc_manifest;
 pub use repair_pairs::repair_pairs;
 pub use subsample_reads::{subsample_reads, SubsampleTarget};
+pub use trim_reads::trim_reads;
 pub use validate_reads::validate_reads;
 
 /// Validate that a stage can accept the provided input kind.
