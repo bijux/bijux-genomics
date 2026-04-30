@@ -17,6 +17,7 @@ mod asset_verification;
 mod build_contaminant_db;
 mod build_rrna_db;
 mod build_taxonomy_db;
+mod chunked_preprocess;
 mod concatenate_lanes;
 mod deinterleave_reads;
 mod deplete_host;
@@ -48,6 +49,9 @@ pub use asset_verification::{ensure_assets_verified, verify_assets};
 pub use build_contaminant_db::build_contaminant_db;
 pub use build_rrna_db::build_rrna_db;
 pub use build_taxonomy_db::build_taxonomy_db;
+pub use chunked_preprocess::{
+    build_chunked_preprocess_contract, verify_chunked_preprocess_equivalence,
+};
 pub use concatenate_lanes::{concatenate_lanes, LaneInput};
 pub use deinterleave_reads::deinterleave_reads;
 pub use deplete_host::deplete_host;

@@ -15,6 +15,7 @@ pub use runtime::{
     deplete_rrna, screen_taxonomy, subsample_reads, detect_instrument_artifacts,
     detect_adapters, detect_duplicates_premerge, estimate_library_complexity_prealign,
     extract_umis, cluster_otus, infer_asvs, normalize_abundance, normalize_primers,
-    remove_chimeras, DemultiplexRule, LaneInput, SubsampleTarget, trim_reads, validate_reads,
+    remove_chimeras, build_chunked_preprocess_contract, verify_chunked_preprocess_equivalence,
+    DemultiplexRule, LaneInput, SubsampleTarget, trim_reads, validate_reads,
     HeaderInspection, MergeSuitability, NormalizedOutputs,
 };
