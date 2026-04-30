@@ -1,13 +1,19 @@
 ---
 source: crates/bijux-dna-api/tests/schemas/v1_cross_api_stability.rs
-assertion_line: 143
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
+  "checkpoint_path": null,
   "correlation_id": null,
   "evidence_bundle_path": null,
+  "executor_descriptor_path": null,
+  "failure_path": null,
   "has_failures": false,
   "manifest_path": "<temp>/run_manifest.json",
+  "mode": null,
   "report_path": null,
-  "run_dir": "<temp>"
+  "run_dir": "<temp>",
+  "run_state_path": null,
+  "runtime_policy_path": null,
+  "state": null
 }

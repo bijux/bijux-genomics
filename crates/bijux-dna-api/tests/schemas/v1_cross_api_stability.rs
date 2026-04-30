@@ -89,8 +89,15 @@ fn plan_response_schema_is_stable() -> anyhow::Result<()> {
 fn execute_response_schema_is_stable() -> anyhow::Result<()> {
     let response = ExecuteResponse {
         run_id: "run-1".to_string(),
-        correlation_id: "run:run-1".to_string(),
+        correlation_id: "enforced:run-1".to_string(),
         manifest_path: PathBuf::from("runs/run-1/run_manifest.json"),
+        run_state_path: PathBuf::from("runs/run-1/run_state.json"),
+        runtime_policy_path: PathBuf::from("runs/run-1/runtime_policy.json"),
+        executor_descriptor_path: PathBuf::from("runs/run-1/executor_descriptor.json"),
+        checkpoint_path: PathBuf::from("runs/run-1/checkpoints/checkpoint.json"),
+        failure_path: None,
+        mode: bijux_dna_runtime::run_layout::RunExecutionModeV1::Enforced,
+        state: bijux_dna_runtime::run_layout::RunLifecycleStateV1::Succeeded,
         report_path: Some(PathBuf::from("runs/run-1/run_artifacts/report.html")),
         evidence_bundle_path: PathBuf::from("runs/run-1/evidence_bundle.json"),
     };
@@ -138,7 +145,14 @@ fn status_schema_is_stable() -> anyhow::Result<()> {
         "manifest_path": status.manifest_path,
         "report_path": status.report_path,
         "evidence_bundle_path": status.evidence_bundle_path,
+        "run_state_path": status.run_state_path,
+        "runtime_policy_path": status.runtime_policy_path,
+        "executor_descriptor_path": status.executor_descriptor_path,
+        "checkpoint_path": status.checkpoint_path,
+        "failure_path": status.failure_path,
         "correlation_id": status.correlation_id,
+        "mode": status.mode,
+        "state": status.state,
         "has_failures": status.has_failures,
     });
     let root = temp

@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::run::{
@@ -12,10 +12,20 @@ use bijux_dna_core::prelude::{
 };
 
 fn minimal_graph(run_dir: &Path) -> Result<ExecutionGraph> {
+    std::fs::create_dir_all(run_dir)?;
+    let reads = run_dir.join("reads.fastq");
+    let validated = run_dir.join("validated.fastq");
+    std::fs::write(&reads, b"@read\nACGT\n+\n!!!!\n")?;
     let step = ExecutionStep {
         step_id: StepId::new("fastq.validate_reads"),
         stage_id: StageId::new("fastq.validate_reads"),
-        command: CommandSpecV1 { template: vec!["echo".to_string(), "hello".to_string()] },
+        command: CommandSpecV1 {
+            template: vec![
+                "sh".to_string(),
+                "-c".to_string(),
+                format!("printf 'ACGT\\n' > {}", validated.display()),
+            ],
+        },
         image: ContainerImageRefV1 {
             image: "example/validator:1".to_string(),
             digest: Some("sha256:deadbeef".to_string()),
@@ -24,12 +34,12 @@ fn minimal_graph(run_dir: &Path) -> Result<ExecutionGraph> {
         io: StageIO {
             inputs: vec![ArtifactSpec::required(
                 ArtifactId::new("reads"),
-                PathBuf::from("reads.fastq"),
+                reads,
                 ArtifactRole::Reads,
             )],
             outputs: vec![ArtifactSpec::required(
                 ArtifactId::new("validated"),
-                PathBuf::from("validated.fastq"),
+                validated,
                 ArtifactRole::Reads,
             )],
         },
@@ -47,10 +57,6 @@ fn minimal_graph(run_dir: &Path) -> Result<ExecutionGraph> {
     )?)
 }
 
-fn docker_contracts_enabled() -> bool {
-    matches!(std::env::var("BIJUX_DNA_DOCKER_CONTRACTS").as_deref(), Ok("1" | "true" | "yes"))
-}
-
 #[test]
 fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
     let temp = tempfile::tempdir()?;
@@ -65,8 +71,8 @@ fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
     assert!(response.manifest_path.exists());
     assert!(response.run_summary_path.exists());
     assert!(response.evidence_bundle_path.exists());
-    assert!(response.correlation_id.starts_with("dry-run:"));
-    assert!(temp.path().join("run_summary.json").exists());
+    assert!(response.correlation_id.starts_with("dry_run:"));
+    assert!(temp.path().join("summary").join("run_summary.json").exists());
     Ok(())
 }
 
@@ -123,16 +129,13 @@ fn dry_run_manifest_records_planned_stages() -> Result<()> {
 
 #[test]
 fn execute_emits_run_summary_artifact() -> Result<()> {
-    if !docker_contracts_enabled() {
-        return Ok(());
-    }
-
     let temp = tempfile::tempdir()?;
     let graph = minimal_graph(temp.path())?;
     let response = execute(&ExecuteRequest {
         graph,
-        runner: RuntimeKind::Docker,
+        runner: RuntimeKind::Local,
         run_dir: temp.path().to_path_buf(),
+        mode: bijux_dna_runtime::run_layout::RunExecutionModeV1::Enforced,
     })?;
     let run_dir = response
         .manifest_path
@@ -181,6 +184,7 @@ fn execute_fails_fast_when_runner_contract_missing_for_stage() {
         graph,
         runner: RuntimeKind::Docker,
         run_dir: temp.path().join("run"),
+        mode: bijux_dna_runtime::run_layout::RunExecutionModeV1::Enforced,
     }) else {
         panic!("unknown stage prefix must fail before execution");
     };
