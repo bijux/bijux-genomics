@@ -398,6 +398,7 @@ name = "bijux-dna-dev"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-api",
  "bijux-dna-core",
  "bijux-dna-infra",
  "bijux-dna-policies",

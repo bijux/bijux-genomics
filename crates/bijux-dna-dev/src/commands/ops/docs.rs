@@ -1,9 +1,9 @@
 use super::{
     ensure_generated_header, ensure_generated_header_path, ensure_help_only, failure_lines, fs,
-    generate_compatibility_matrix, generate_docs_graph, generate_domain_coverage_doc,
-    generate_repo_root_map, generate_tool_index, glob_paths, read_utf8, rg_lines, run_program,
-    success_line, temp_subdir, trim_quoted, write_utf8, BTreeMap, BTreeSet, Context,
-    OpsCommandOutcome, Regex, Result, WalkDir, Workspace,
+    generate_compatibility_matrix, generate_compatibility_reference_docs, generate_docs_graph,
+    generate_domain_coverage_doc, generate_repo_root_map, generate_tool_index, glob_paths,
+    read_utf8, rg_lines, run_program, success_line, temp_subdir, trim_quoted, write_utf8,
+    BTreeMap, BTreeSet, Context, OpsCommandOutcome, Regex, Result, WalkDir, Workspace,
 };
 use std::path::Path;
 
@@ -521,6 +521,7 @@ pub(super) fn docs_check_generated_docs(
         workspace,
         &temp_root.join("50-reference/COMPATIBILITY_MATRIX.md"),
     )?;
+    generate_compatibility_reference_docs(workspace, &temp_root.join("50-reference"))?;
     generate_docs_graph(workspace, &temp_root.join("DOCS_GRAPH.toml"))?;
     for (actual, expected) in [
         (
@@ -542,6 +543,22 @@ pub(super) fn docs_check_generated_docs(
         (
             workspace.path("docs/50-reference/COMPATIBILITY_MATRIX.md"),
             temp_root.join("50-reference/COMPATIBILITY_MATRIX.md"),
+        ),
+        (
+            workspace.path("docs/50-reference/SCHEMA_REGISTRY.md"),
+            temp_root.join("50-reference/SCHEMA_REGISTRY.md"),
+        ),
+        (
+            workspace.path("docs/50-reference/API_VERSIONING.md"),
+            temp_root.join("50-reference/API_VERSIONING.md"),
+        ),
+        (
+            workspace.path("docs/50-reference/DEPRECATION_DASHBOARD.md"),
+            temp_root.join("50-reference/DEPRECATION_DASHBOARD.md"),
+        ),
+        (
+            workspace.path("docs/50-reference/UPGRADE_GUIDE.md"),
+            temp_root.join("50-reference/UPGRADE_GUIDE.md"),
         ),
         (workspace.path("docs/DOCS_GRAPH.toml"), temp_root.join("DOCS_GRAPH.toml")),
     ] {

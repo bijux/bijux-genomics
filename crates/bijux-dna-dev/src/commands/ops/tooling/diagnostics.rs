@@ -1,10 +1,11 @@
 #![allow(clippy::too_many_lines)]
 
 use super::{
-    anyhow, ensure_help_only, env_or_default, generate_compatibility_matrix, generate_docs_graph,
-    generate_domain_coverage_doc, generate_repo_root_map, generate_tool_index, json, json_u64,
-    read_json_value, read_utf8, resolve_optional_output_arg, resolve_workspace_path, run_check_ids,
-    run_native_ops_command, run_program, run_program_with_env, success_line, toml_to_json_value,
+    anyhow, ensure_help_only, env_or_default, generate_compatibility_matrix,
+    generate_compatibility_reference_docs, generate_docs_graph, generate_domain_coverage_doc,
+    generate_repo_root_map, generate_tool_index, json, json_u64, read_json_value, read_utf8,
+    resolve_optional_output_arg, resolve_workspace_path, run_check_ids, run_native_ops_command,
+    run_program, run_program_with_env, success_line, toml_to_json_value,
     tooling_check_config_snapshot, trim_quoted, value_string, walk_file_list, write_json_pretty,
     write_utf8, BTreeMap, BTreeSet, ContainerApplication, Context, DomainApplication,
     NativeOpsCommandKey, OpsCommandOutcome, Path, PathBuf, Regex, Result, TomlValue, Value,
@@ -1511,6 +1512,7 @@ pub(in super::super) fn tooling_generate_docs(
         workspace,
         &out_root.join("50-reference/COMPATIBILITY_MATRIX.md"),
     )?;
+    generate_compatibility_reference_docs(workspace, &out_root.join("50-reference"))?;
     generate_docs_graph(workspace, &out_root.join("DOCS_GRAPH.toml"))?;
     success_line(format!("generated docs into {}", out_root.display()))
 }

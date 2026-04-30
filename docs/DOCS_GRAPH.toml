@@ -208,6 +208,7 @@ children = [
 [[edge]]
 from = "docs/50-reference/index.md"
 children = [
+  "docs/50-reference/API_VERSIONING.md",
   "docs/50-reference/BIJUX_ANALYZE_CONTRACT.md",
   "docs/50-reference/BIJUX_CONTRACT.md",
   "docs/50-reference/COMPATIBILITY_MATRIX.md",
@@ -215,6 +216,7 @@ children = [
   "docs/50-reference/CONTRACT_COMPATIBILITY.md",
   "docs/50-reference/CONTRACT_VERSIONING.md",
   "docs/50-reference/CRATE_MAP.md",
+  "docs/50-reference/DEPRECATION_DASHBOARD.md",
   "docs/50-reference/DESIGN_AUTHORITY.md",
   "docs/50-reference/DOMAIN_TEMPLATE_CHECKLIST.md",
   "docs/50-reference/EXAMPLES.md",
@@ -228,7 +230,9 @@ children = [
   "docs/50-reference/PIPELINES.md",
   "docs/50-reference/REFERENCE_INDEX.md",
   "docs/50-reference/SCHEMAS_INDEX.md",
+  "docs/50-reference/SCHEMA_REGISTRY.md",
   "docs/50-reference/TOOL_ADMISSION.md",
+  "docs/50-reference/UPGRADE_GUIDE.md",
   "docs/50-reference/VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md",
 ]
 

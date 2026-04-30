@@ -9,6 +9,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::id_catalog;
 use chrono::Utc;
 use regex::Regex;
+use serde::Deserialize;
 use serde_json::{json, Value};
 use toml::Value as TomlValue;
 use walkdir::WalkDir;
@@ -647,6 +648,239 @@ fn generate_compatibility_matrix(workspace: &Workspace, out: &Path) -> Result<()
         ));
     }
     write_utf8(out, &format!("{}\n", lines.join("\n")))
+}
+
+#[derive(Debug, Deserialize)]
+struct CompatibilityDeprecationsConfig {
+    schema_version: String,
+    deprecation: Vec<CompatibilityDeprecationRow>,
+}
+
+#[derive(Debug, Deserialize)]
+struct CompatibilityDeprecationRow {
+    kind: String,
+    subject: String,
+    replacement: String,
+    deadline: String,
+    migration_test_status: String,
+    source: String,
+    notes: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReleaseChangesConfig {
+    schema_version: String,
+    release_id: String,
+    title: String,
+    area_status: ReleaseAreaStatus,
+    change: Vec<ReleaseChangeRow>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReleaseAreaStatus {
+    schemas: bool,
+    defaults: bool,
+    tools: bool,
+    containers: bool,
+    evidence_expectations: bool,
+    api: bool,
+    errors: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReleaseChangeRow {
+    area: String,
+    subject: String,
+    changed: bool,
+    summary: String,
+    migration: String,
+    test: String,
+}
+
+fn generate_compatibility_reference_docs(workspace: &Workspace, out_root: &Path) -> Result<()> {
+    generate_schema_registry_doc(workspace, &out_root.join("SCHEMA_REGISTRY.md"))?;
+    generate_api_versioning_doc(workspace, &out_root.join("API_VERSIONING.md"))?;
+    generate_deprecation_dashboard_doc(workspace, &out_root.join("DEPRECATION_DASHBOARD.md"))?;
+    generate_upgrade_guide_doc(workspace, &out_root.join("UPGRADE_GUIDE.md"))?;
+    Ok(())
+}
+
+fn generate_schema_registry_doc(_workspace: &Workspace, out: &Path) -> Result<()> {
+    let mut lines = vec![
+        "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-docs -->".to_string(),
+        String::new(),
+        "# SCHEMA_REGISTRY".to_string(),
+        String::new(),
+        "## Purpose".to_string(),
+        "Generated registry of governed workflow, plan, runtime, evidence, metric, report, and error compatibility surfaces.".to_string(),
+        String::new(),
+        "## Schema Families".to_string(),
+        "| Family | Schema | Semantic Version | Surface | Compatibility | Migration Rule | Owner |".to_string(),
+        "|---|---|---|---|---|---|---|".to_string(),
+    ];
+    for entry in bijux_dna_core::contract::governed_schema_registry() {
+        lines.push(format!(
+            "| `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` |",
+            entry.schema_family,
+            entry.schema_version,
+            entry.semantic_version,
+            serde_json::to_string(&entry.surface_kind)?.trim_matches('"'),
+            serde_json::to_string(&entry.compatibility_class)?.trim_matches('"'),
+            serde_json::to_string(&entry.migration_rule)?.trim_matches('"'),
+            entry.owner_crate
+        ));
+    }
+    lines.extend([
+        String::new(),
+        "## Durable Error Codes".to_string(),
+        "| Error ID | Area | Wire Code | Owner | Remediation |".to_string(),
+        "|---|---|---|---|---|".to_string(),
+    ]);
+    for entry in bijux_dna_core::contract::governed_error_code_registry() {
+        lines.push(format!(
+            "| `{}` | `{}` | `{}` | `{}` | {} |",
+            entry.error_id,
+            serde_json::to_string(&entry.area)?.trim_matches('"'),
+            entry.wire_code,
+            entry.owner_surface,
+            entry.remediation
+        ));
+    }
+    write_utf8(out, &format!("{}\n", lines.join("\n")))?;
+    Ok(())
+}
+
+fn generate_api_versioning_doc(_workspace: &Workspace, out: &Path) -> Result<()> {
+    let inventory = bijux_dna_api::v1::api::route_version_inventory();
+    let mut lines = vec![
+        "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-docs -->".to_string(),
+        String::new(),
+        "# API_VERSIONING".to_string(),
+        String::new(),
+        "## Purpose".to_string(),
+        "Generated inventory linking stable v1 API routes to the governed workflow, plan, runtime, and evidence schemas they read or surface.".to_string(),
+        String::new(),
+        format!("- Inventory schema: `{}`", inventory.schema_version),
+        format!("- API version: `{}`", inventory.api_version),
+        String::new(),
+        "| Route | Response Struct | Reads | Writes |".to_string(),
+        "|---|---|---|---|".to_string(),
+    ];
+    for route in inventory.routes {
+        let reads = if route.reads_schema_families.is_empty() {
+            "-".to_string()
+        } else {
+            route.reads_schema_families.join(", ")
+        };
+        let writes = if route.writes_schema_families.is_empty() {
+            "-".to_string()
+        } else {
+            route.writes_schema_families.join(", ")
+        };
+        lines.push(format!(
+            "| `{}` | `{}` | `{}` | `{}` |",
+            route.route_id, route.response_struct, reads, writes
+        ));
+    }
+    write_utf8(out, &format!("{}\n", lines.join("\n")))?;
+    Ok(())
+}
+
+fn generate_deprecation_dashboard_doc(workspace: &Workspace, out: &Path) -> Result<()> {
+    let cfg: CompatibilityDeprecationsConfig = toml::from_str(&read_utf8(
+        &workspace.path("configs/ci/compatibility/deprecations.toml"),
+    )?)?;
+    let mut lines = vec![
+        "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-docs -->".to_string(),
+        String::new(),
+        "# DEPRECATION_DASHBOARD".to_string(),
+        String::new(),
+        "## Purpose".to_string(),
+        "Generated dashboard of deprecated stage ids, tool ids, metric ids, params, and fields with replacement and migration coverage.".to_string(),
+        String::new(),
+        format!("- Source schema: `{}`", cfg.schema_version),
+        String::new(),
+        "| Kind | Subject | Replacement | Deadline | Migration Test Status | Source | Notes |".to_string(),
+        "|---|---|---|---|---|---|---|".to_string(),
+    ];
+    for row in cfg.deprecation {
+        lines.push(format!(
+            "| `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | {} |",
+            row.kind,
+            row.subject,
+            row.replacement,
+            row.deadline,
+            row.migration_test_status,
+            row.source,
+            row.notes
+        ));
+    }
+    write_utf8(out, &format!("{}\n", lines.join("\n")))?;
+    Ok(())
+}
+
+fn generate_upgrade_guide_doc(workspace: &Workspace, out: &Path) -> Result<()> {
+    let cfg: ReleaseChangesConfig = toml::from_str(&read_utf8(
+        &workspace.path("configs/ci/compatibility/release_changes.toml"),
+    )?)?;
+    let mut lines = vec![
+        "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-docs -->".to_string(),
+        String::new(),
+        "# UPGRADE_GUIDE".to_string(),
+        String::new(),
+        format!("Release: `{}`", cfg.release_id),
+        String::new(),
+        format!("Title: {}", cfg.title),
+        String::new(),
+        format!("Source schema: `{}`", cfg.schema_version),
+        String::new(),
+        "## Area Status".to_string(),
+        format!("- Schemas changed: `{}`", cfg.area_status.schemas),
+        format!("- Defaults changed: `{}`", cfg.area_status.defaults),
+        format!("- Tools changed: `{}`", cfg.area_status.tools),
+        format!("- Containers changed: `{}`", cfg.area_status.containers),
+        format!(
+            "- Evidence expectations changed: `{}`",
+            cfg.area_status.evidence_expectations
+        ),
+        format!("- API changed: `{}`", cfg.area_status.api),
+        format!("- Error registry changed: `{}`", cfg.area_status.errors),
+        String::new(),
+        "## Changes".to_string(),
+    ];
+    let areas = [
+        ("schemas", "Schemas"),
+        ("defaults", "Defaults"),
+        ("tools", "Tools"),
+        ("containers", "Containers"),
+        ("evidence_expectations", "Evidence Expectations"),
+        ("api", "API"),
+        ("errors", "Errors"),
+    ];
+    for (area_id, heading) in areas {
+        lines.push(String::new());
+        lines.push(format!("### {heading}"));
+        let matching = cfg
+            .change
+            .iter()
+            .filter(|row| row.area == area_id && row.changed)
+            .collect::<Vec<_>>();
+        if matching.is_empty() {
+            lines.push("No governed changes declared in this release.".to_string());
+            continue;
+        }
+        for row in matching {
+            lines.push(format!("- `{}`: {}", row.subject, row.summary));
+            lines.push(format!("  Migration: {}", row.migration));
+            lines.push(format!("  Test: `{}`", row.test));
+        }
+    }
+    write_utf8(out, &format!("{}\n", lines.join("\n")))?;
+    Ok(())
 }
 
 fn generate_docs_graph(workspace: &Workspace, out: &Path) -> Result<()> {
