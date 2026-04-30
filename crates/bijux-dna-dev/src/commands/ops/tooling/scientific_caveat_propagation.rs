@@ -5,7 +5,7 @@ use super::{
 use bijux_dna_domain_bam::{
     bam_adna_workflow_contract, estimate_endogenous_content, execute_ancient_damage_evidence,
     evaluate_kinship_prerequisites, execute_mitochondrial_contamination_workflow,
-    execute_pmd_authenticity_advisory,
+    execute_nuclear_contamination_workflow, execute_pmd_authenticity_advisory,
 };
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
 use bijux_dna_domain_vcf::{
@@ -23,6 +23,7 @@ enum ScenarioId {
     PopulationStructure,
     Demography,
     DamageAwareVariant,
+    ContaminationPropagation,
 }
 
 impl ScenarioId {
@@ -34,6 +35,7 @@ impl ScenarioId {
             Self::PopulationStructure => "g184_population_structure_caveat_library",
             Self::Demography => "g185_demography_caveat_library",
             Self::DamageAwareVariant => "g186_damage_aware_variant_caveat_library",
+            Self::ContaminationPropagation => "g187_contamination_propagation_model",
         }
     }
 
@@ -45,6 +47,7 @@ impl ScenarioId {
             Self::PopulationStructure => "G184",
             Self::Demography => "G185",
             Self::DamageAwareVariant => "G186",
+            Self::ContaminationPropagation => "G187",
         }
     }
 
@@ -56,6 +59,7 @@ impl ScenarioId {
             Self::PopulationStructure,
             Self::Demography,
             Self::DamageAwareVariant,
+            Self::ContaminationPropagation,
         ]
     }
 
@@ -71,6 +75,9 @@ impl ScenarioId {
             }
             "g185_demography_caveat_library" | "G185" => Some(Self::Demography),
             "g186_damage_aware_variant_caveat_library" | "G186" => Some(Self::DamageAwareVariant),
+            "g187_contamination_propagation_model" | "G187" => {
+                Some(Self::ContaminationPropagation)
+            }
             _ => None,
         }
     }
@@ -193,6 +200,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::PopulationStructure => scenario_population_structure_caveat_library(),
         ScenarioId::Demography => scenario_demography_caveat_library(),
         ScenarioId::DamageAwareVariant => scenario_damage_aware_variant_caveat_library(),
+        ScenarioId::ContaminationPropagation => scenario_contamination_propagation_model(),
     };
 
     match result {
@@ -588,6 +596,75 @@ fn scenario_damage_aware_variant_caveat_library() -> Result<(Vec<String>, serde_
     ))
 }
 
+fn scenario_contamination_propagation_model() -> Result<(Vec<String>, serde_json::Value)> {
+    let mut metrics = base_adna_metrics();
+    metrics.coverage.mean = 8.5;
+    metrics.contamination.estimate = 0.14;
+    metrics.contamination.ci_low = 0.10;
+    metrics.contamination.ci_high = 0.18;
+
+    let mito = execute_mitochondrial_contamination_workflow(&metrics, true, true, 3.0);
+    let nuclear = execute_nuclear_contamination_workflow(&metrics, true, true, true, 3.0);
+    if !mito.prerequisites_passed || !nuclear.prerequisites_passed {
+        return Err(anyhow!(
+            "contamination propagation model expected mitochondrial and nuclear prerequisites to pass"
+        ));
+    }
+
+    let risk_class = if metrics.contamination.estimate >= 0.10 {
+        "high"
+    } else if metrics.contamination.estimate >= 0.03 {
+        "moderate"
+    } else {
+        "low"
+    };
+
+    let caveat_library = vec![
+        json!({
+            "topic": "fastq_contamination_signal",
+            "caveat": "prealignment host/taxonomy depletion residuals indicate contamination risk but are not final contamination estimates",
+            "propagation_targets": ["fastq.materialize_qc_manifest", "bam.contamination"],
+        }),
+        json!({
+            "topic": "bam_mitochondrial_contamination",
+            "scope": mito.scope,
+            "estimate": mito.estimate,
+            "ci_low": mito.ci_low,
+            "ci_high": mito.ci_high,
+            "propagation_targets": ["vcf.call_variants", "report.contamination_summary"],
+        }),
+        json!({
+            "topic": "bam_nuclear_contamination",
+            "scope": nuclear.scope,
+            "estimate": nuclear.estimate,
+            "ci_low": nuclear.ci_low,
+            "ci_high": nuclear.ci_high,
+            "propagation_targets": ["vcf.call_variants", "vcf.population_handoff", "report.population_summary"],
+        }),
+        json!({
+            "topic": "population_downstream_risk",
+            "risk_class": risk_class,
+            "caveat": "population and kinship outputs must carry contamination caveats when estimates exceed threshold",
+            "propagation_targets": ["vcf.pca", "vcf.admixture", "vcf.kinship", "report.publication_flags"],
+        }),
+    ];
+
+    Ok((
+        vec![
+            "contamination propagation model carries risk from prealignment signals through BAM mt/nuclear estimates into VCF/population outputs"
+                .to_string(),
+            "mitochondrial and nuclear contamination scopes remain distinct while sharing downstream caveat propagation"
+                .to_string(),
+        ],
+        json!({
+            "risk_class": risk_class,
+            "mitochondrial": mito,
+            "nuclear": nuclear,
+            "caveat_library": caveat_library,
+        }),
+    ))
+}
+
 fn base_adna_metrics() -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
     metrics.damage.c_to_t_5p = 0.18;
@@ -608,7 +685,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G181", "G182", "G183", "G184", "G185", "G186"]);
+        assert_eq!(ids, vec!["G181", "G182", "G183", "G184", "G185", "G186", "G187"]);
     }
 
     #[test]
@@ -868,5 +945,47 @@ mod tests {
                 .and_then(serde_json::Value::as_str)
                 == Some("downstream_guardrail")
         }));
+    }
+
+    #[test]
+    fn g187_contamination_model_contains_mito_and_nuclear_scopes() {
+        let report = run_scenario(&ScenarioId::ContaminationPropagation);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G187");
+        let mito_scope = report
+            .evidence
+            .get("mitochondrial")
+            .and_then(|row| row.get("scope"))
+            .and_then(serde_json::Value::as_str);
+        let nuclear_scope = report
+            .evidence
+            .get("nuclear")
+            .and_then(|row| row.get("scope"))
+            .and_then(serde_json::Value::as_str);
+        assert_eq!(mito_scope, Some("mitochondrial"));
+        assert_eq!(nuclear_scope, Some("nuclear"));
+    }
+
+    #[test]
+    fn g187_population_risk_caveat_is_propagated() {
+        let report = run_scenario(&ScenarioId::ContaminationPropagation);
+        assert_eq!(report.status, "passed");
+        let library = report
+            .evidence
+            .get("caveat_library")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let risk_entry = library.iter().find(|entry| {
+            entry.get("topic").and_then(serde_json::Value::as_str)
+                == Some("population_downstream_risk")
+        });
+        assert!(risk_entry.is_some());
+        assert_eq!(
+            risk_entry
+                .and_then(|entry| entry.get("risk_class"))
+                .and_then(serde_json::Value::as_str),
+            Some("high")
+        );
     }
 }
