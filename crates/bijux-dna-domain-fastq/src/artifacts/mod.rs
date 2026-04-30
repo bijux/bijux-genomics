@@ -16,6 +16,7 @@ mod filter_low_complexity;
 mod filter_reads;
 mod index_reference;
 mod infer_asvs;
+mod interleave_reads;
 mod merge_pairs;
 mod materialize_qc_manifest;
 mod naming;
@@ -83,6 +84,7 @@ pub use index_reference::{
     IndexReferenceFileEntryV1, IndexReferenceReportV1, INDEX_REFERENCE_REPORT_SCHEMA_VERSION,
 };
 pub use infer_asvs::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
+pub use interleave_reads::{InterleaveReadsReportV1, INTERLEAVE_READS_REPORT_SCHEMA_VERSION};
 pub use merge_pairs::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
 pub use materialize_qc_manifest::{
     MaterializeQcManifestReportV1, QcManifestEntryV1,
