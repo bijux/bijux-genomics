@@ -199,6 +199,12 @@ jobs:
           ARTIFACT_PATH: ${{ matrix.artifact_path }}
           MATRIX_PUSH_LATEST: ${{ matrix.push_latest }}
           INPUT_PUSH_LATEST: ${{ inputs.push_latest }}
+          SMOKE_VERSION_CMD: ${{ matrix.smoke_version_cmd }}
+          SMOKE_HELP_CMD: ${{ matrix.smoke_help_cmd }}
+          SMOKE_REQUIRE_HELP: ${{ matrix.smoke_require_help }}
+          SMOKE_MINIMAL_CMD: ${{ matrix.smoke_minimal_cmd }}
+          SMOKE_MINIMAL_EXIT_CODE: ${{ matrix.smoke_minimal_exit_code }}
+          SMOKE_PROBES_JSON: ${{ toJson(matrix.smoke_probes) }}
         run: |
           set -euo pipefail
 
@@ -213,6 +219,7 @@ jobs:
 
           sha_tag="sha-${GITHUB_SHA::12}"
           result_path="artifacts/containers/ghcr/workflow/apptainer/${TOOL_ID}.json"
+          smoke_path="artifacts/containers/ghcr/workflow/apptainer/${TOOL_ID}.smoke_proof.json"
 
           make _ghcr-apptainer-build-one TOOL_ID="${TOOL_ID}"
 
@@ -239,7 +246,88 @@ jobs:
             push_latest_applied="true"
           fi
 
-          python3 - <<'PY' "${ARTIFACT_PATH}" "${result_path}" "${PACKAGE_REF}" "${TOOL_ID}" "${TOOL_VERSION}" "${sha_tag}" "${push_latest_applied}"
+          python3 - <<'PY' "${smoke_path}" "${ARTIFACT_PATH}" "${PACKAGE_REF}" "${TOOL_VERSION}" "${SMOKE_PROBES_JSON}" "${SMOKE_VERSION_CMD}" "${SMOKE_HELP_CMD}" "${SMOKE_REQUIRE_HELP}" "${SMOKE_MINIMAL_CMD}" "${SMOKE_MINIMAL_EXIT_CODE}"
+          import hashlib
+          import json
+          import pathlib
+          import subprocess
+          import sys
+
+          smoke_path = pathlib.Path(sys.argv[1])
+          artifact_path = pathlib.Path(sys.argv[2])
+          package_ref = sys.argv[3]
+          tool_version = sys.argv[4]
+          probes_json = sys.argv[5]
+          smoke_version_cmd = sys.argv[6].strip()
+          smoke_help_cmd = sys.argv[7].strip()
+          require_help = sys.argv[8].strip().lower() == "true"
+          smoke_minimal_cmd = sys.argv[9].strip()
+          minimal_exit_code_raw = sys.argv[10].strip()
+          try:
+              minimal_exit_code = int(minimal_exit_code_raw) if minimal_exit_code_raw else 0
+          except ValueError:
+              minimal_exit_code = 0
+
+          try:
+              probes = json.loads(probes_json) if probes_json.strip() else []
+          except json.JSONDecodeError:
+              probes = []
+          if not isinstance(probes, list):
+              probes = []
+
+          commands = []
+          for probe in probes:
+              if isinstance(probe, str) and probe.strip():
+                  commands.append({"kind": "probe", "command": probe.strip(), "expected_exit_code": 0})
+          if not commands:
+              if smoke_version_cmd:
+                  commands.append({"kind": "version", "command": smoke_version_cmd, "expected_exit_code": 0})
+              if require_help and smoke_help_cmd:
+                  commands.append({"kind": "help", "command": smoke_help_cmd, "expected_exit_code": 0})
+          if smoke_minimal_cmd:
+              commands.append({"kind": "minimal", "command": smoke_minimal_cmd, "expected_exit_code": minimal_exit_code})
+
+          if not commands:
+              raise SystemExit("missing smoke commands for apptainer publication")
+
+          results = []
+          for entry in commands:
+              command = entry["command"]
+              expected = int(entry["expected_exit_code"])
+              proc = subprocess.run(
+                  ["apptainer", "exec", "--containall", "--cleanenv", str(artifact_path), "sh", "-lc", command],
+                  capture_output=True,
+                  text=True,
+              )
+              output = (proc.stdout or "") + (proc.stderr or "")
+              first_line = next((line.strip() for line in output.splitlines() if line.strip()), "")
+              results.append(
+                  {
+                      "kind": entry["kind"],
+                      "command": command,
+                      "expected_exit_code": expected,
+                      "exit_code": proc.returncode,
+                      "ok": proc.returncode == expected,
+                      "output_sha256": hashlib.sha256(output.encode("utf-8")).hexdigest(),
+                      "output_first_line": first_line,
+                  }
+              )
+
+          smoke_payload = {
+              "schema_version": "bijux.container.publish_smoke_proof.v1",
+              "runtime": "apptainer",
+              "image": f"oras://{package_ref}:{tool_version}",
+              "artifact_path": str(artifact_path),
+              "checked_commands": results,
+              "ok": all(row["ok"] for row in results),
+          }
+          smoke_path.write_text(json.dumps(smoke_payload, indent=2) + "\n")
+          if not smoke_payload["ok"]:
+              raise SystemExit("apptainer smoke proof failed")
+          print(json.dumps(smoke_payload, indent=2))
+          PY
+
+          python3 - <<'PY' "${ARTIFACT_PATH}" "${result_path}" "${smoke_path}" "${PACKAGE_REF}" "${TOOL_ID}" "${TOOL_VERSION}" "${sha_tag}" "${push_latest_applied}"
           import hashlib
           import json
           import pathlib
@@ -247,15 +335,20 @@ jobs:
 
           artifact_path = pathlib.Path(sys.argv[1])
           result_path = pathlib.Path(sys.argv[2])
+          smoke_path = pathlib.Path(sys.argv[3])
           artifact_sha256 = hashlib.sha256(artifact_path.read_bytes()).hexdigest()
+          smoke = json.loads(smoke_path.read_text())
           result = {
-              "tool_id": sys.argv[4],
-              "package_ref": sys.argv[3],
+              "tool_id": sys.argv[5],
+              "package_ref": sys.argv[4],
               "artifact_path": str(artifact_path),
               "artifact_sha256": artifact_sha256,
-              "tool_version": sys.argv[5],
-              "sha_tag": sys.argv[6],
-              "push_latest_applied": sys.argv[7] == "true",
+              "tool_version": sys.argv[6],
+              "sha_tag": sys.argv[7],
+              "push_latest_applied": sys.argv[8] == "true",
+              "smoke_proof_path": str(smoke_path),
+              "smoke_proof_sha256": hashlib.sha256(smoke_path.read_bytes()).hexdigest(),
+              "smoke_ok": smoke.get("ok", False),
           }
           result_path.write_text(json.dumps(result, indent=2) + "\n")
           print(json.dumps(result, indent=2))
@@ -266,5 +359,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: ghcr-apptainer-publish-${{ matrix.tool_id }}
-          path: artifacts/containers/ghcr/workflow/apptainer/${{ matrix.tool_id }}.json
+          path: |
+            artifacts/containers/ghcr/workflow/apptainer/${{ matrix.tool_id }}.json
+            artifacts/containers/ghcr/workflow/apptainer/${{ matrix.tool_id }}.smoke_proof.json
           if-no-files-found: error
