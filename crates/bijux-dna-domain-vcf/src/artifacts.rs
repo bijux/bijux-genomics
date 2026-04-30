@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 pub const VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION: &str = "bijux.vcf.scientific_drift.report.v1";
 pub const VCF_VALIDATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.validation_summary.v1";
+pub const VCF_STATS_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.stats_workflow.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -82,6 +83,26 @@ pub struct VcfValidationSummaryV1 {
     pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfStatsWorkflowSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub variant_count: u64,
+    pub sample_count: u32,
+    pub snv_count: u64,
+    pub indel_count: u64,
+    #[serde(default)]
+    pub ti_tv_ratio: Option<f64>,
+    pub missing_genotype_calls: u64,
+    #[serde(default)]
+    pub filter_counts: BTreeMap<String, u64>,
+    #[serde(default)]
+    pub per_sample_missingness: BTreeMap<String, f64>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -317,6 +338,95 @@ pub fn execute_vcf_validation(
     })
 }
 
+fn is_transition(ref_allele: &str, alt_allele: &str) -> bool {
+    matches!((ref_allele, alt_allele), ("A", "G") | ("G", "A") | ("C", "T") | ("T", "C"))
+}
+
+fn parse_gt_from_sample<'a>(format: &'a str, sample_payload: &'a str) -> Option<&'a str> {
+    let keys = format.split(':').collect::<Vec<_>>();
+    let values = sample_payload.split(':').collect::<Vec<_>>();
+    let gt_index = keys.iter().position(|key| *key == "GT")?;
+    values.get(gt_index).copied()
+}
+
+fn genotype_is_missing(gt: &str) -> bool {
+    matches!(gt, "." | "./." | ".|." | "./" | ".|")
+}
+
+/// Build a bcftools-style stats summary for tiny fixture-safe VCF records.
+///
+/// # Errors
+/// Returns an error when the VCF cannot be parsed.
+pub fn execute_vcf_stats_workflow(input_vcf: &Path) -> Result<VcfStatsWorkflowSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut snv_count = 0_u64;
+    let mut indel_count = 0_u64;
+    let mut transitions = 0_u64;
+    let mut transversions = 0_u64;
+    let mut missing_genotype_calls = 0_u64;
+    let mut filter_counts = BTreeMap::<String, u64>::new();
+    let mut missing_by_sample = vec![0_u64; doc.samples.len()];
+    let mut total_by_sample = vec![0_u64; doc.samples.len()];
+    for record in &doc.records {
+        *filter_counts.entry(record.filter.clone()).or_insert(0) += 1;
+        let is_snv_site =
+            record.alt_alleles.iter().all(|alt| record.ref_allele.len() == 1 && alt.len() == 1);
+        if is_snv_site {
+            snv_count += 1;
+            for alt in &record.alt_alleles {
+                if is_transition(&record.ref_allele, alt) {
+                    transitions += 1;
+                } else {
+                    transversions += 1;
+                }
+            }
+        } else {
+            indel_count += 1;
+        }
+        if let Some(format) = &record.format {
+            for (sample_index, payload) in record.samples.iter().enumerate() {
+                total_by_sample[sample_index] += 1;
+                if let Some(gt) = parse_gt_from_sample(format, payload) {
+                    if genotype_is_missing(gt) {
+                        missing_genotype_calls += 1;
+                        missing_by_sample[sample_index] += 1;
+                    }
+                }
+            }
+        }
+    }
+    let ti_tv_ratio =
+        if transversions > 0 { Some(transitions as f64 / transversions as f64) } else { None };
+    let per_sample_missingness = doc
+        .samples
+        .iter()
+        .enumerate()
+        .map(|(index, sample)| {
+            let total = total_by_sample[index];
+            let missing = missing_by_sample[index];
+            let ratio = if total > 0 { missing as f64 / total as f64 } else { 0.0 };
+            (sample.clone(), ratio)
+        })
+        .collect::<BTreeMap<_, _>>();
+    Ok(VcfStatsWorkflowSummaryV1 {
+        schema_version: VCF_STATS_WORKFLOW_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.stats".to_string(),
+        variant_count: doc.records.len() as u64,
+        sample_count: doc.samples.len() as u32,
+        snv_count,
+        indel_count,
+        ti_tv_ratio,
+        missing_genotype_calls,
+        filter_counts,
+        per_sample_missingness,
+        caveats: vec![
+            "Ti/Tv is reported only when both transitions and transversions are observed"
+                .to_string(),
+            "missingness is derived from GT fields in fixture-safe records".to_string(),
+        ],
+    })
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -510,5 +620,35 @@ chr1\t10\t.\tC\tT\t55\tPASS\tDP=9\tGT\t1/1\t0/1\n",
         assert!(summary.refusal_codes.contains(&"unsorted_records".to_string()));
         assert!(summary.refusal_codes.contains(&"missing_index".to_string()));
         assert!(summary.refusal_codes.contains(&"reference_build_mismatch".to_string()));
+    }
+
+    #[test]
+    fn execute_vcf_stats_workflow_reports_variant_filters_and_missingness() {
+        let temp = unique_temp_dir("vcf-stats");
+        let input = temp.join("stats.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.3\n\
+##contig=<ID=chr1,length=1000>\n\
+##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n\
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\ts2\n\
+chr1\t10\t.\tA\tG\t42\tPASS\tDP=8\tGT\t0/1\t./.\n\
+chr1\t20\t.\tC\tA\t55\tq10\tDP=9\tGT\t1/1\t0/1\n\
+chr1\t30\t.\tAT\tA\t60\tPASS\tDP=7\tGT\t0/1\t0/0\n",
+        )
+        .expect("write stats VCF fixture");
+
+        let summary = execute_vcf_stats_workflow(&input).expect("build stats summary");
+        assert_eq!(summary.variant_count, 3);
+        assert_eq!(summary.sample_count, 2);
+        assert_eq!(summary.snv_count, 2);
+        assert_eq!(summary.indel_count, 1);
+        assert_eq!(summary.missing_genotype_calls, 1);
+        assert_eq!(summary.filter_counts.get("PASS"), Some(&2));
+        assert_eq!(summary.filter_counts.get("q10"), Some(&1));
+        assert_eq!(summary.per_sample_missingness.get("s1"), Some(&0.0));
+        assert_eq!(summary.per_sample_missingness.get("s2"), Some(&(1.0 / 3.0)));
+        assert_eq!(summary.ti_tv_ratio, Some(1.0));
     }
 }
