@@ -50,6 +50,8 @@ mod mod_contracts_tooling_bank_loader_ownership_policy_rs;
 mod mod_contracts_tooling_bench_layout_policy_rs;
 #[path = "contracts/tooling/governance_examples/benchmark_suite_support_policy.rs"]
 mod mod_contracts_tooling_benchmark_suite_support_policy_rs;
+#[path = "contracts/tooling/governance_examples/canonical_examples_policy.rs"]
+mod mod_contracts_tooling_canonical_examples_policy_rs;
 #[path = "contracts/tooling/governance_config/backlog_metadata_policy.rs"]
 mod mod_contracts_tooling_backlog_metadata_policy_rs;
 #[path = "contracts/tooling/governance_core/binding_decision_record_policy.rs"]
