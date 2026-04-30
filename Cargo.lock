@@ -403,6 +403,7 @@ dependencies = [
  "bijux-dna-db-ena",
  "bijux-dna-db-ref",
  "bijux-dna-domain-bam",
+ "bijux-dna-domain-vcf",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "chrono",

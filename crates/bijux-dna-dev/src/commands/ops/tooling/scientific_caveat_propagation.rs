@@ -7,28 +7,35 @@ use bijux_dna_domain_bam::{
     execute_mitochondrial_contamination_workflow, execute_pmd_authenticity_advisory,
 };
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
+use bijux_dna_domain_vcf::{
+    evaluate_diploid_calling_boundary, evaluate_genotype_likelihood_workflow_boundary,
+    evaluate_pseudohaploid_calling_boundary,
+};
 use serde::Serialize;
 
 #[derive(Debug, Clone, Copy)]
 enum ScenarioId {
     AncientDnaAuthenticity,
+    LowPassGenotype,
 }
 
 impl ScenarioId {
     fn as_str(self) -> &'static str {
         match self {
             Self::AncientDnaAuthenticity => "g181_ancient_dna_authenticity_caveat_library",
+            Self::LowPassGenotype => "g182_low_pass_genotype_caveat_library",
         }
     }
 
     fn goal_id(self) -> &'static str {
         match self {
             Self::AncientDnaAuthenticity => "G181",
+            Self::LowPassGenotype => "G182",
         }
     }
 
     fn all() -> Vec<Self> {
-        vec![Self::AncientDnaAuthenticity]
+        vec![Self::AncientDnaAuthenticity, Self::LowPassGenotype]
     }
 
     fn from_raw(raw: &str) -> Option<Self> {
@@ -36,6 +43,7 @@ impl ScenarioId {
             "g181_ancient_dna_authenticity_caveat_library" | "G181" => {
                 Some(Self::AncientDnaAuthenticity)
             }
+            "g182_low_pass_genotype_caveat_library" | "G182" => Some(Self::LowPassGenotype),
             _ => None,
         }
     }
@@ -153,6 +161,7 @@ fn parse_args(workspace: &Workspace, args: &[String]) -> Result<ScenarioRunConfi
 fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
     let result = match scenario {
         ScenarioId::AncientDnaAuthenticity => scenario_ancient_dna_authenticity_caveat_library(),
+        ScenarioId::LowPassGenotype => scenario_low_pass_genotype_caveat_library(),
     };
 
     match result {
@@ -252,6 +261,74 @@ fn scenario_ancient_dna_authenticity_caveat_library() -> Result<(Vec<String>, se
     ))
 }
 
+fn scenario_low_pass_genotype_caveat_library() -> Result<(Vec<String>, serde_json::Value)> {
+    let mean_coverage = 0.8;
+    let missingness_rate = 0.34;
+
+    let diploid =
+        evaluate_diploid_calling_boundary(true, true, Some("diploid"), mean_coverage, 5.0);
+    let pseudohaploid = evaluate_pseudohaploid_calling_boundary(
+        true,
+        true,
+        Some("random_read_sampling"),
+        Some("pseudohaploid"),
+        true,
+    );
+    let gl_boundary =
+        evaluate_genotype_likelihood_workflow_boundary(true, true, true, true, true);
+
+    let caveat_library = vec![
+        json!({
+            "topic": "coverage_uncertainty",
+            "mode": diploid.mode,
+            "prerequisites_passed": diploid.prerequisites_passed,
+            "refusal_codes": diploid.refusal_codes,
+            "caveats": diploid.caveats,
+        }),
+        json!({
+            "topic": "gl_uncertainty",
+            "prerequisites_passed": gl_boundary.prerequisites_passed,
+            "refusal_codes": gl_boundary.refusal_codes,
+            "caveats": gl_boundary.caveats,
+        }),
+        json!({
+            "topic": "imputation_uncertainty",
+            "panel_required": true,
+            "info_threshold_minimum": 0.30,
+            "caveat": "low-pass imputation requires panel/map compatibility and uncertainty disclosure",
+        }),
+        json!({
+            "topic": "missingness",
+            "missingness_rate": missingness_rate,
+            "caveat": "high missingness can bias cohort allele-frequency and downstream PCA projections",
+        }),
+    ];
+
+    if pseudohaploid.prerequisites_passed && !diploid.prerequisites_passed && missingness_rate > 0.2
+    {
+        Ok((
+            vec![
+                "low-pass caveat library captures diploid refusal while permitting pseudohaploid and GL-aware paths"
+                    .to_string(),
+                "uncertainty remains structured across coverage, GL, imputation, and missingness surfaces"
+                    .to_string(),
+            ],
+            json!({
+                "mean_coverage": mean_coverage,
+                "diploid_boundary": diploid,
+                "pseudohaploid_boundary": pseudohaploid,
+                "gl_boundary": gl_boundary,
+                "missingness_rate": missingness_rate,
+                "caveat_library": caveat_library,
+            }),
+        ))
+    } else {
+        Err(anyhow!(
+            "low-pass caveat scenario expected diploid refusal with retained pseudo-haploid and GL propagation paths"
+        ))
+    }
+}
+
 fn base_adna_metrics() -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
     metrics.damage.c_to_t_5p = 0.18;
@@ -272,7 +349,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G181"]);
+        assert_eq!(ids, vec!["G181", "G182"]);
     }
 
     #[test]
@@ -329,5 +406,41 @@ mod tests {
         assert!(refusal_codes
             .iter()
             .any(|entry| entry.as_str() == Some("coverage_below_minimum_for_mito_contamination")));
+    }
+
+    #[test]
+    fn g182_low_pass_library_preserves_coverage_gl_imputation_missingness_topics() {
+        let report = run_scenario(&ScenarioId::LowPassGenotype);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G182");
+        let library = report
+            .evidence
+            .get("caveat_library")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let topics = library
+            .iter()
+            .filter_map(|entry| entry.get("topic").and_then(serde_json::Value::as_str))
+            .collect::<Vec<_>>();
+        assert!(topics.contains(&"coverage_uncertainty"));
+        assert!(topics.contains(&"gl_uncertainty"));
+        assert!(topics.contains(&"imputation_uncertainty"));
+        assert!(topics.contains(&"missingness"));
+    }
+
+    #[test]
+    fn g182_diploid_boundary_records_low_coverage_refusal() {
+        let report = run_scenario(&ScenarioId::LowPassGenotype);
+        assert_eq!(report.status, "passed");
+        let diploid = report.evidence.get("diploid_boundary").cloned().unwrap_or_default();
+        let refusals = diploid
+            .get("refusal_codes")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(refusals
+            .iter()
+            .any(|entry| entry.as_str() == Some("coverage_below_diploid_minimum")));
     }
 }
