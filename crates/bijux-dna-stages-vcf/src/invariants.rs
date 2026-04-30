@@ -113,6 +113,21 @@ fn has_minimal_headers(header_lines: &[String]) -> bool {
     has_fileformat && has_chrom
 }
 
+fn parse_definition_id(line: &str, prefix: &str) -> Option<String> {
+    let inner = line.strip_prefix(prefix)?;
+    let id = inner.split("ID=").nth(1)?.split([',', '>']).next()?.trim();
+    if id.is_empty() {
+        return None;
+    }
+    Some(id.to_string())
+}
+
+fn definition_has_required_fields(line: &str) -> bool {
+    ["ID=", "Number=", "Type=", "Description="]
+        .iter()
+        .all(|required| line.contains(required))
+}
+
 fn detect_regime(records: &[String]) -> RegimeDetection {
     let mut has_gt = false;
     let mut has_gl = false;
@@ -214,11 +229,51 @@ pub fn run_vcf_preflight(
         bail!("vcf.validate_inputs refusal: missing minimal header fields");
     }
 
+    summary.checked.push("info_format_definitions".to_string());
+    let mut declared_info_ids = BTreeSet::new();
+    let mut declared_format_ids = BTreeSet::new();
+    let mut declared_contig_ids = BTreeSet::new();
+    for line in &header_lines {
+        if line.starts_with("##INFO=<") {
+            if !definition_has_required_fields(line) {
+                summary.refused.push("info_format_definitions".to_string());
+                bail!("vcf.validate_inputs refusal: malformed INFO definition");
+            }
+            let Some(id) = parse_definition_id(line, "##INFO=<") else {
+                summary.refused.push("info_format_definitions".to_string());
+                bail!("vcf.validate_inputs refusal: INFO definition missing ID");
+            };
+            if !declared_info_ids.insert(id) {
+                summary.refused.push("info_format_definitions".to_string());
+                bail!("vcf.validate_inputs refusal: duplicate INFO definition");
+            }
+        } else if line.starts_with("##FORMAT=<") {
+            if !definition_has_required_fields(line) {
+                summary.refused.push("info_format_definitions".to_string());
+                bail!("vcf.validate_inputs refusal: malformed FORMAT definition");
+            }
+            let Some(id) = parse_definition_id(line, "##FORMAT=<") else {
+                summary.refused.push("info_format_definitions".to_string());
+                bail!("vcf.validate_inputs refusal: FORMAT definition missing ID");
+            };
+            if !declared_format_ids.insert(id) {
+                summary.refused.push("info_format_definitions".to_string());
+                bail!("vcf.validate_inputs refusal: duplicate FORMAT definition");
+            }
+        } else if line.starts_with("##contig=<") {
+            let Some(id) = parse_definition_id(line, "##contig=<") else {
+                summary.refused.push("contig_header_coverage".to_string());
+                bail!("vcf.validate_inputs refusal: contig definition missing ID");
+            };
+            declared_contig_ids.insert(id);
+        }
+    }
+
     let sample_header = header_lines
         .iter()
         .find(|l| l.starts_with("#CHROM\t"))
         .ok_or_else(|| anyhow!("missing #CHROM header"))?;
-    let mut sample_ids = sample_header.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>();
+    let sample_ids = sample_header.split('\t').skip(9).map(str::to_string).collect::<Vec<_>>();
     summary.checked.push("sample_ids_valid".to_string());
     if sample_ids.iter().any(|s| s.trim().is_empty()) {
         summary.refused.push("sample_ids_valid".to_string());
@@ -236,6 +291,18 @@ pub fn run_vcf_preflight(
     if record_contigs.is_empty() {
         summary.refused.push("contig_set_present".to_string());
         bail!("vcf.validate_inputs refusal: no records/contigs present");
+    }
+
+    summary.checked.push("contig_header_coverage".to_string());
+    if declared_contig_ids.is_empty() {
+        summary.refused.push("contig_header_coverage".to_string());
+        bail!("vcf.validate_inputs refusal: missing ##contig headers");
+    }
+    for contig in &record_contigs {
+        if !declared_contig_ids.contains(contig) {
+            summary.refused.push("contig_header_coverage".to_string());
+            bail!("vcf.validate_inputs refusal: record contig missing from ##contig headers");
+        }
     }
 
     summary.checked.push("build_declared_vs_inferred".to_string());
@@ -332,8 +399,8 @@ pub fn run_vcf_preflight(
         ra.cmp(&rb).then(ka.1.cmp(&kb.1)).then(ka.2.cmp(&kb.2)).then(ka.3.cmp(&kb.3))
     });
     if sorted != records {
-        summary.fixed.push("sorted_by_contig_and_pos".to_string());
-        records = sorted;
+        summary.refused.push("sorted_by_contig_and_pos".to_string());
+        bail!("vcf.validate_inputs refusal: records are not sorted by contig/position");
     }
 
     summary.checked.push("ploidy_declaration_consistent".to_string());
@@ -377,7 +444,6 @@ pub fn run_vcf_preflight(
         }
     }
 
-    sample_ids.sort();
     summary.fixed.push("deterministic_header_normalization".to_string());
     let mut fileformat = vec![];
     let mut contigs = vec![];
@@ -407,6 +473,34 @@ pub fn run_vcf_preflight(
     let contract = VcfPathContract::canonical(artifact_dir);
     let normalized_input = contract.vcf_gz.clone();
     let normalized_plain = artifact_dir.join("normalized.vcf");
+    for line in &records {
+        let Some(fields) = parse_record_fields(line) else {
+            continue;
+        };
+        for token in fields[7].split(';').filter(|token| !token.is_empty() && *token != ".") {
+            let key = token.split('=').next().unwrap_or_default();
+            if !declared_info_ids.contains(key)
+                && !config.allowed_missing_fields.iter().any(|allowed| allowed == key)
+            {
+                summary.refused.push("info_format_definitions".to_string());
+                bail!(
+                    "vcf.validate_inputs refusal: INFO field {key} is used without header declaration"
+                );
+            }
+        }
+        if let Some(format_keys) = fields.get(8) {
+            for key in format_keys.split(':').filter(|key| !key.is_empty()) {
+                if !declared_format_ids.contains(key)
+                    && !config.allowed_missing_fields.iter().any(|allowed| allowed == key)
+                {
+                    summary.refused.push("info_format_definitions".to_string());
+                    bail!(
+                        "vcf.validate_inputs refusal: FORMAT field {key} is used without header declaration"
+                    );
+                }
+            }
+        }
+    }
     let normalized_payload = format!("{}\n{}\n", normalized_header.join("\n"), records.join("\n"));
     atomic_write_bytes(&normalized_plain, normalized_payload.as_bytes())?;
 

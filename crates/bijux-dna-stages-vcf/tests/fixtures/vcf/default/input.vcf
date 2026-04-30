@@ -1,5 +1,7 @@
 ##fileformat=VCFv4.2
+##contig=<ID=1,length=248956422>
 ##INFO=<ID=DP,Number=1,Type=Integer,Description="Depth">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1
 1	101	.	A	G	60	PASS	DP=8	GT	0/1
 1	105	.	C	T	42	PASS	DP=13	GT	0/1
