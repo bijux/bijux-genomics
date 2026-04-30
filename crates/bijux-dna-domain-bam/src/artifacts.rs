@@ -36,6 +36,7 @@ pub const BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION: &str = "bijux.bam.authentici
 pub const BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.contamination_evidence.v1";
 pub const BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION: &str = "bijux.bam.endogenous_content.v1";
 pub const BAM_SEX_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.sex_evidence.v1";
+pub const BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION: &str = "bijux.bam.haplogroup_readiness.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -502,6 +503,24 @@ pub struct BamSexInferenceEvidenceV1 {
     pub confidence: f64,
     #[serde(default)]
     pub x_to_y_ratio: Option<f64>,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamHaplogroupReadinessV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub ready: bool,
+    #[serde(default)]
+    pub reference_build: Option<String>,
+    pub minimum_coverage: f64,
+    pub observed_mean_coverage: f64,
+    #[serde(default)]
+    pub contamination_estimate: Option<f64>,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
     #[serde(default)]
@@ -2471,6 +2490,46 @@ pub fn evaluate_sex_inference_par_aware(
     }
 }
 
+/// Evaluate whether BAM evidence is ready for downstream haplogroup inference workflows.
+#[must_use]
+pub fn evaluate_haplogroup_readiness(
+    metrics: &BamMetricsV1,
+    reference_build: Option<&str>,
+    contamination_context_available: bool,
+) -> BamHaplogroupReadinessV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    let minimum_coverage = metrics.haplogroup_sufficiency.min_coverage;
+    if reference_build.is_none() {
+        refusal_codes.push("reference_build_required".to_string());
+    }
+    if !contamination_context_available {
+        refusal_codes.push("contamination_context_required".to_string());
+    }
+    if !metrics.haplogroup_sufficiency.sufficient {
+        refusal_codes.push("haplogroup_sufficiency_not_met".to_string());
+    }
+    if metrics.coverage.mean < minimum_coverage {
+        refusal_codes.push("coverage_below_haplogroup_minimum".to_string());
+    }
+    let ready = refusal_codes.is_empty();
+    BamHaplogroupReadinessV1 {
+        schema_version: BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.haplogroups".to_string(),
+        ready,
+        reference_build: reference_build.map(ToOwned::to_owned),
+        minimum_coverage,
+        observed_mean_coverage: metrics.coverage.mean,
+        contamination_estimate: contamination_context_available
+            .then_some(metrics.contamination.estimate),
+        refusal_codes,
+        caveats: vec![
+            "haplogroup interpretation depends on organellar/Y reference compatibility".to_string(),
+            "contamination estimates must be interpreted alongside haplogroup confidence"
+                .to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn bam_adna_workflow_contract() -> BamAdnaWorkflowV1 {
     BamAdnaWorkflowV1 {
@@ -2995,6 +3054,25 @@ mod tests {
         assert!(refused
             .refusal_codes
             .contains(&"coverage_below_sex_inference_minimum".to_string()));
+    }
+
+    #[test]
+    fn evaluate_haplogroup_readiness_requires_reference_and_contamination_context() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.coverage.mean = 11.0;
+        metrics.haplogroup_sufficiency.sufficient = true;
+        metrics.haplogroup_sufficiency.min_coverage = 8.0;
+        metrics.contamination.estimate = 0.02;
+
+        let ready = evaluate_haplogroup_readiness(&metrics, Some("GRCh38"), true);
+        assert!(ready.ready);
+        assert_eq!(ready.reference_build.as_deref(), Some("GRCh38"));
+        assert_eq!(ready.contamination_estimate, Some(0.02));
+
+        let refused = evaluate_haplogroup_readiness(&metrics, None, false);
+        assert!(!refused.ready);
+        assert!(refused.refusal_codes.contains(&"reference_build_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"contamination_context_required".to_string()));
     }
 
     fn unique_temp_dir(label: &str) -> PathBuf {
