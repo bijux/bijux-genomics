@@ -244,6 +244,96 @@ pub struct RunFailureV1 {
     pub retryable: bool,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactScientificContextV1 {
+    pub domain: String,
+    pub meaning: String,
+    pub safe_to_use: bool,
+    #[serde(default)]
+    pub advisory_only: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactIdentityV1 {
+    pub artifact_id: String,
+    pub name: String,
+    pub role: String,
+    pub path: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub producing_stage_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub producing_command: Vec<String>,
+    #[serde(default)]
+    pub input_lineage: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub schema_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub replay_source_run_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scientific_context: Option<ArtifactScientificContextV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ArtifactInventoryV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub replay_source_run_id: Option<String>,
+    #[serde(default)]
+    pub artifacts: Vec<ArtifactIdentityV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CacheDecisionV1 {
+    pub stage_id: String,
+    pub status: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cache_key: Option<CacheKey>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason_code: Option<String>,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReplayManifestV1 {
+    pub schema_version: String,
+    pub replay_run_id: String,
+    pub original_run_id: String,
+    #[serde(default)]
+    pub selected_stage_ids: Vec<String>,
+    #[serde(default)]
+    pub reused_artifact_ids: Vec<String>,
+    #[serde(default)]
+    pub rerun_stage_ids: Vec<String>,
+    #[serde(default)]
+    pub expected_outputs: Vec<String>,
+    #[serde(default)]
+    pub cache_decisions: Vec<CacheDecisionV1>,
+    #[serde(default)]
+    pub environment_differences: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HashLedgerEntryV1 {
+    pub record_id: String,
+    pub kind: String,
+    pub path: PathBuf,
+    pub sha256: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub previous_entry_sha256: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HashLedgerV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub root_sha256: String,
+    #[serde(default)]
+    pub entries: Vec<HashLedgerEntryV1>,
+}
+
 #[derive(Debug, Clone)]
 pub struct RunLayout {
     pub run_dir: PathBuf,
@@ -267,6 +357,12 @@ pub struct RunLayout {
     pub checkpoint_path: PathBuf,
     pub failure_path: PathBuf,
     pub run_summary_path: PathBuf,
+    pub run_summary_text_path: PathBuf,
+    pub artifact_inventory_path: PathBuf,
+    pub artifact_inventory_text_path: PathBuf,
+    pub replay_manifest_path: PathBuf,
+    pub hash_ledger_path: PathBuf,
+    pub evidence_verification_path: PathBuf,
     pub evidence_bundle_path: PathBuf,
 }
 
@@ -295,6 +391,12 @@ pub struct RunLayoutV1 {
     pub checkpoint_path: String,
     pub failure_path: String,
     pub run_summary_path: String,
+    pub run_summary_text_path: String,
+    pub artifact_inventory_path: String,
+    pub artifact_inventory_text_path: String,
+    pub replay_manifest_path: String,
+    pub hash_ledger_path: String,
+    pub evidence_verification_path: String,
     pub evidence_bundle_path: String,
 }
 
@@ -322,6 +424,12 @@ impl RunLayout {
             checkpoint_path: checkpoints_dir.join("checkpoint.json"),
             failure_path: run_dir.join("run_failure.json"),
             run_summary_path: summary_dir.join("run_summary.json"),
+            run_summary_text_path: summary_dir.join("run_summary.txt"),
+            artifact_inventory_path: run_dir.join("artifact_inventory.json"),
+            artifact_inventory_text_path: run_dir.join("artifact_inventory.txt"),
+            replay_manifest_path: run_dir.join("replay_manifest.json"),
+            hash_ledger_path: run_dir.join("hash_ledger.json"),
+            evidence_verification_path: run_dir.join("evidence_verification.json"),
             evidence_bundle_path: run_dir.join("evidence_bundle.json"),
             stages_dir,
             manifests_dir,
@@ -359,6 +467,12 @@ impl RunLayout {
             checkpoint_path: self.checkpoint_path.display().to_string(),
             failure_path: self.failure_path.display().to_string(),
             run_summary_path: self.run_summary_path.display().to_string(),
+            run_summary_text_path: self.run_summary_text_path.display().to_string(),
+            artifact_inventory_path: self.artifact_inventory_path.display().to_string(),
+            artifact_inventory_text_path: self.artifact_inventory_text_path.display().to_string(),
+            replay_manifest_path: self.replay_manifest_path.display().to_string(),
+            hash_ledger_path: self.hash_ledger_path.display().to_string(),
+            evidence_verification_path: self.evidence_verification_path.display().to_string(),
             evidence_bundle_path: self.evidence_bundle_path.display().to_string(),
         }
     }

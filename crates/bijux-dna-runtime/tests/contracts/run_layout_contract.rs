@@ -26,6 +26,12 @@ fn run_layout_paths_match_contract() {
     assert!(layout.checkpoint_path.ends_with("checkpoints/checkpoint.json"));
     assert!(layout.failure_path.ends_with("run_failure.json"));
     assert!(layout.run_summary_path.ends_with("summary/run_summary.json"));
+    assert!(layout.run_summary_text_path.ends_with("summary/run_summary.txt"));
+    assert!(layout.artifact_inventory_path.ends_with("artifact_inventory.json"));
+    assert!(layout.artifact_inventory_text_path.ends_with("artifact_inventory.txt"));
+    assert!(layout.replay_manifest_path.ends_with("replay_manifest.json"));
+    assert!(layout.hash_ledger_path.ends_with("hash_ledger.json"));
+    assert!(layout.evidence_verification_path.ends_with("evidence_verification.json"));
     assert!(layout.evidence_bundle_path.ends_with("evidence_bundle.json"));
     assert!(layout.summary_dir.ends_with("summary"));
 }

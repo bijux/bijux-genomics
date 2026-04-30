@@ -6,8 +6,8 @@ use chrono::{DateTime, Utc};
 use crate::recording::write_canonical_json;
 
 use super::{
-    RunCheckpointV1, RunEnvironment, RunExecutorDescriptorV1, RunFailureV1, RunLayout,
-    RunManifest, RunStateV1, RuntimePolicyV1,
+    ArtifactInventoryV1, HashLedgerV1, ReplayManifestV1, RunCheckpointV1, RunEnvironment,
+    RunExecutorDescriptorV1, RunFailureV1, RunLayout, RunManifest, RunStateV1, RuntimePolicyV1,
 };
 
 /// Write the environment fingerprint.
@@ -83,6 +83,33 @@ pub fn write_checkpoint(layout: &RunLayout, checkpoint: &RunCheckpointV1) -> Res
 /// Returns an error if serialization or writing fails.
 pub fn write_failure_record(layout: &RunLayout, failure: &RunFailureV1) -> Result<()> {
     write_canonical_json(&layout.failure_path, failure)?;
+    Ok(())
+}
+
+/// Write the governed artifact inventory.
+///
+/// # Errors
+/// Returns an error if serialization or writing fails.
+pub fn write_artifact_inventory(layout: &RunLayout, inventory: &ArtifactInventoryV1) -> Result<()> {
+    write_canonical_json(&layout.artifact_inventory_path, inventory)?;
+    Ok(())
+}
+
+/// Write the governed replay manifest.
+///
+/// # Errors
+/// Returns an error if serialization or writing fails.
+pub fn write_replay_manifest(layout: &RunLayout, manifest: &ReplayManifestV1) -> Result<()> {
+    write_canonical_json(&layout.replay_manifest_path, manifest)?;
+    Ok(())
+}
+
+/// Write the tamper-evident hash ledger.
+///
+/// # Errors
+/// Returns an error if serialization or writing fails.
+pub fn write_hash_ledger(layout: &RunLayout, ledger: &HashLedgerV1) -> Result<()> {
+    write_canonical_json(&layout.hash_ledger_path, ledger)?;
     Ok(())
 }
 

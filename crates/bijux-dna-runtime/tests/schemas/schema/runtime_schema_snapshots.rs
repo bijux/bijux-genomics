@@ -36,6 +36,12 @@ fn run_layout_schema_snapshot() {
         checkpoint_path: "checkpoint.json".to_string(),
         failure_path: "run_failure.json".to_string(),
         run_summary_path: "run_summary.json".to_string(),
+        run_summary_text_path: "run_summary.txt".to_string(),
+        artifact_inventory_path: "artifact_inventory.json".to_string(),
+        artifact_inventory_text_path: "artifact_inventory.txt".to_string(),
+        replay_manifest_path: "replay_manifest.json".to_string(),
+        hash_ledger_path: "hash_ledger.json".to_string(),
+        evidence_verification_path: "evidence_verification.json".to_string(),
         evidence_bundle_path: "evidence_bundle.json".to_string(),
     };
     let expected = include_str!("../../fixtures/runtime_schema/default/run_layout_v1.json");
