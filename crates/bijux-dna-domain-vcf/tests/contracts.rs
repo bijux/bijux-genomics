@@ -1,5 +1,10 @@
 mod contracts {
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
+
     use bijux_dna_domain_vcf::{
+        build_vcf_scientific_drift_report, required_vcf_bench_corpus_scenarios,
+        vcf_bench_corpus_manifest, VcfBenchCorpusId, VcfScientificDriftSnapshotV1,
         contracts::{
             refuse_unsupported_regime_transition, stage_artifact_contract, stage_failure_modes,
             stage_artifact_class_contract, stage_io_contract, stage_metrics_contract,
@@ -24,6 +29,23 @@ mod contracts {
         VcfDomainStage, VcfStage, VcfStatsMetricsV1, VCF_METRICS_CATALOG, VCF_PARAMS_CATALOG,
         VCF_STAGE_ORDER_DOWNSTREAM,
     };
+
+    fn assert_snapshot_json(name: &str, value: &serde_json::Value) {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("snapshots")
+            .join(format!("bijux-dna-domain-vcf__contracts__{name}.json"));
+        let actual = serde_json::to_string_pretty(value).expect("serialize snapshot json");
+        if std::env::var("UPDATE_SNAPSHOTS").ok().as_deref() == Some("1") {
+            std::fs::create_dir_all(path.parent().expect("snapshot parent"))
+                .expect("create snapshot dir");
+            std::fs::write(&path, format!("{actual}\n")).expect("write snapshot");
+            return;
+        }
+        let expected = std::fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read snapshot {}: {err}", path.display()));
+        assert_eq!(actual, expected.trim_end(), "snapshot mismatch for {}", path.display());
+    }
 
     #[test]
     fn vcf_stage_catalog_is_stable() {
@@ -258,6 +280,71 @@ mod contracts {
             },
         );
         assert_eq!(selected.map(|p| p.panel_id.as_str()), Some("1000g_phase3"));
+    }
+
+    #[test]
+    fn production_vcf_corpus_manifest_covers_required_scenarios() {
+        let manifest = vcf_bench_corpus_manifest(VcfBenchCorpusId::ProductionRegression);
+        let required = required_vcf_bench_corpus_scenarios();
+        assert_eq!(manifest.schema_version, "bijux.vcf.bench_corpus_manifest.v1");
+        assert!(manifest.covered_cases.contains(&"panel_mismatch".to_string()));
+        for scenario in required {
+            assert!(
+                manifest.scenarios_covered.contains(&scenario),
+                "missing governed VCF corpus scenario {scenario:?}"
+            );
+        }
+        assert!(manifest.datasets.iter().any(|dataset| {
+            dataset.dataset_id == "SYNTHETIC_LOWCOV_GL"
+                && dataset.scientific_scope == "likelihood_workflow_regression"
+        }));
+    }
+
+    #[test]
+    fn vcf_scientific_drift_report_snapshot_stays_stable() {
+        let baseline = VcfScientificDriftSnapshotV1 {
+            label: "baseline".to_string(),
+            stage_id: "vcf.postprocess".to_string(),
+            tool_id: "bcftools".to_string(),
+            backend_version: Some("1.20".to_string()),
+            defaults_fingerprint: Some("defaults-a".to_string()),
+            normalization_policy_id: Some("diploid_production".to_string()),
+            filter_policy_id: Some("strict_filter_a".to_string()),
+            metrics: BTreeMap::from([
+                ("variants_total".to_string(), 1200.0),
+                ("annotation_coverage".to_string(), 0.92),
+                ("missingness_post".to_string(), 0.03),
+            ]),
+            artifacts: BTreeMap::from([
+                ("normalized_vcf".to_string(), "sha256:a".to_string()),
+                ("stats_json".to_string(), "sha256:b".to_string()),
+            ]),
+            caveats: vec!["baseline generated from promoted defaults".to_string()],
+        };
+        let candidate = VcfScientificDriftSnapshotV1 {
+            label: "candidate".to_string(),
+            stage_id: "vcf.postprocess".to_string(),
+            tool_id: "bcftools".to_string(),
+            backend_version: Some("1.21".to_string()),
+            defaults_fingerprint: Some("defaults-b".to_string()),
+            normalization_policy_id: Some("lowcov_gl_production".to_string()),
+            filter_policy_id: Some("strict_filter_b".to_string()),
+            metrics: BTreeMap::from([
+                ("variants_total".to_string(), 1175.0),
+                ("annotation_coverage".to_string(), 0.89),
+                ("missingness_post".to_string(), 0.05),
+            ]),
+            artifacts: BTreeMap::from([
+                ("normalized_vcf".to_string(), "sha256:c".to_string()),
+                ("stats_json".to_string(), "sha256:d".to_string()),
+            ]),
+            caveats: vec!["candidate uses stronger normalization and filtering".to_string()],
+        };
+        let report = build_vcf_scientific_drift_report(&baseline, &candidate);
+        assert_snapshot_json(
+            "vcf_scientific_drift_report",
+            &serde_json::to_value(report).expect("serialize scientific drift report"),
+        );
     }
 
     #[test]
