@@ -1734,6 +1734,61 @@ pub fn apply_duplicate_policy_tiny_bam(
     Ok((policy, comparison))
 }
 
+/// Filter tiny BAM/SAM fixtures by MAPQ and emit retained/removed evidence.
+///
+/// # Errors
+/// Returns an error if input parsing fails or output writing fails.
+pub fn filter_tiny_bam_by_mapq(
+    input_bam: &Path,
+    output_bam: &Path,
+    mapq_threshold: u8,
+) -> Result<BamMapqFilterSummaryV1> {
+    let input = parse_tiny_sam(input_bam)?;
+    let before = flagstat_from_records(&input.records);
+    let filtered_records = input
+        .records
+        .iter()
+        .filter(|record| !record.is_mapped() || record.mapq >= mapq_threshold)
+        .cloned()
+        .collect::<Vec<_>>();
+    let output = TinySamDocument {
+        sort_order: input.sort_order.clone(),
+        references: input.references.clone(),
+        read_groups: input.read_groups.clone(),
+        read_group_samples: input.read_group_samples.clone(),
+        records: filtered_records.clone(),
+    };
+    write_tiny_sam_from_document(
+        output_bam,
+        &output,
+        input.sort_order.as_deref().unwrap_or("unsorted"),
+    )?;
+    let after = flagstat_from_records(&filtered_records);
+    let mapped_reads_removed = match (before.mapped_reads, after.mapped_reads) {
+        (Some(before_mapped), Some(after_mapped)) if before_mapped >= after_mapped => {
+            Some(before_mapped - after_mapped)
+        }
+        _ => None,
+    };
+    let mapped_fraction_retained = match (before.mapped_reads, after.mapped_reads) {
+        (Some(before_mapped), Some(after_mapped)) if before_mapped > 0 => {
+            Some(after_mapped as f64 / before_mapped as f64)
+        }
+        _ => None,
+    };
+    Ok(BamMapqFilterSummaryV1 {
+        schema_version: BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.mapq_filter".to_string(),
+        mapq_threshold,
+        input_bam: input_bam.to_path_buf(),
+        output_bam: output_bam.to_path_buf(),
+        flagstat_before: before,
+        flagstat_after: after,
+        mapped_reads_removed,
+        mapped_fraction_retained,
+    })
+}
+
 #[must_use]
 pub fn compare_bam_duplicate_methods(
     stage_id: &str,
@@ -2539,5 +2594,32 @@ r03\t0\tchr1\t7\t40\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg1\n",
             .any(|note| note.contains("removed from output alignment")));
         let removed = parse_tiny_sam(&removed_output).expect("parse removed output");
         assert_eq!(removed.records.len(), 2);
+    }
+
+    #[test]
+    fn filter_tiny_bam_by_mapq_tracks_retained_and_removed_reads() {
+        let temp = unique_temp_dir("bam-mapq-filter");
+        let input = temp.join("input.sam");
+        let output = temp.join("filtered.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:50\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t45\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t7\t10\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg1\n\
+r03\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write mapq fixture");
+
+        let summary = filter_tiny_bam_by_mapq(&input, &output, 30).expect("filter MAPQ");
+        assert_eq!(summary.mapq_threshold, 30);
+        assert_eq!(summary.flagstat_before.mapped_reads, Some(2));
+        assert_eq!(summary.flagstat_after.mapped_reads, Some(1));
+        assert_eq!(summary.mapped_reads_removed, Some(1));
+        assert_eq!(summary.mapped_fraction_retained, Some(0.5));
+
+        let filtered = parse_tiny_sam(&output).expect("parse filtered output");
+        assert_eq!(filtered.records.len(), 2);
     }
 }
