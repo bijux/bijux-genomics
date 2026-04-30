@@ -33,6 +33,7 @@ pub const BAM_RESOURCE_PLAN_SCHEMA_VERSION: &str = "bijux.bam.resource_plan.v1";
 pub const BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION: &str = "bijux.bam.bench_corpus_manifest.v1";
 pub const BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.damage_evidence.v1";
 pub const BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION: &str = "bijux.bam.authenticity_advisory.v1";
+pub const BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.contamination_evidence.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -449,6 +450,27 @@ pub struct BamAuthenticityAdvisoryV1 {
     pub advisory_boundary: BamAdvisoryBoundaryV1,
     #[serde(default)]
     pub assumptions: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamContaminationEvidenceV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub scope: String,
+    pub tool: String,
+    pub prerequisites_passed: bool,
+    #[serde(default)]
+    pub estimate: Option<f64>,
+    #[serde(default)]
+    pub ci_low: Option<f64>,
+    #[serde(default)]
+    pub ci_high: Option<f64>,
+    pub advisory_boundary: BamAdvisoryBoundaryV1,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -2216,6 +2238,61 @@ pub fn execute_pmd_authenticity_advisory(metrics: &BamMetricsV1) -> BamAuthentic
     }
 }
 
+/// Execute mitochondrial contamination evidence with explicit prerequisite checks.
+#[must_use]
+pub fn execute_mitochondrial_contamination_workflow(
+    metrics: &BamMetricsV1,
+    has_mito_reference: bool,
+    has_damage_context: bool,
+    minimum_mean_coverage: f64,
+) -> BamContaminationEvidenceV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if !has_mito_reference {
+        refusal_codes.push("mitochondrial_reference_required".to_string());
+    }
+    if !has_damage_context {
+        refusal_codes.push("damage_context_required".to_string());
+    }
+    if metrics.coverage.mean < minimum_mean_coverage {
+        refusal_codes.push("coverage_below_minimum_for_mito_contamination".to_string());
+    }
+    let prerequisites_passed = refusal_codes.is_empty();
+    BamContaminationEvidenceV1 {
+        schema_version: BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.contamination".to_string(),
+        scope: "mitochondrial".to_string(),
+        tool: "schmutzi".to_string(),
+        prerequisites_passed,
+        estimate: prerequisites_passed.then_some(metrics.contamination.estimate),
+        ci_low: prerequisites_passed.then_some(metrics.contamination.ci_low),
+        ci_high: prerequisites_passed.then_some(metrics.contamination.ci_high),
+        advisory_boundary: BamAdvisoryBoundaryV1 {
+            schema_version: BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.contamination".to_string(),
+            advisory_only: true,
+            scientific_scope: "mitochondrial_contamination_estimation".to_string(),
+            evidence_inputs: vec![
+                "mitochondrial_reference".to_string(),
+                "damage_context".to_string(),
+                "aligned_bam".to_string(),
+            ],
+            safe_for_claims: vec![
+                "contamination_estimate_reported".to_string(),
+                "mitochondrial_scope_only".to_string(),
+            ],
+            unsafe_for_claims: vec![
+                "nuclear_contamination_absence".to_string(),
+                "sample_authenticity_certification".to_string(),
+            ],
+        },
+        refusal_codes,
+        caveats: vec![
+            "mitochondrial contamination does not prove nuclear contamination state".to_string(),
+            "estimates depend on reference and damage-model assumptions".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn bam_adna_workflow_contract() -> BamAdnaWorkflowV1 {
     BamAdnaWorkflowV1 {
@@ -2652,6 +2729,29 @@ mod tests {
             .advisory_boundary
             .unsafe_for_claims
             .contains(&"authenticity_certification".to_string()));
+    }
+
+    #[test]
+    fn execute_mitochondrial_contamination_workflow_requires_context() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.coverage.mean = 2.5;
+        metrics.contamination.estimate = 0.03;
+        metrics.contamination.ci_low = 0.01;
+        metrics.contamination.ci_high = 0.05;
+
+        let ready = execute_mitochondrial_contamination_workflow(&metrics, true, true, 1.0);
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.scope, "mitochondrial");
+        assert_eq!(ready.tool, "schmutzi");
+        assert_eq!(ready.estimate, Some(0.03));
+
+        let refused = execute_mitochondrial_contamination_workflow(&metrics, false, false, 3.0);
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"mitochondrial_reference_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"damage_context_required".to_string()));
+        assert!(refused
+            .refusal_codes
+            .contains(&"coverage_below_minimum_for_mito_contamination".to_string()));
     }
 
     fn unique_temp_dir(label: &str) -> PathBuf {
