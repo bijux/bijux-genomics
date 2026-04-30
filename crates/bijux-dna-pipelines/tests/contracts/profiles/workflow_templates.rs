@@ -1,4 +1,5 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::PathBuf;
 
 use anyhow::Result;
 use bijux_dna_core::contract::{
@@ -11,7 +12,7 @@ use bijux_dna_pipelines::cross::{
 use bijux_dna_pipelines::{
     build_batch_workflow_graph, evaluate_template_admission, parse_sample_sheet,
     sample_sheet_to_workflow_manifests, summarize_cross_domain_evidence,
-    validate_template_overrides,
+    validate_sample_sheet_preflight, validate_template_overrides,
 };
 
 #[test]
@@ -167,4 +168,31 @@ fn templates_are_indexed_by_pipeline_id() {
     let templates = cross_workflow_templates_for_pipeline("fastq-to-vcf__minimal__v1");
     assert_eq!(templates.len(), 1);
     assert_eq!(templates[0].template_id, "cross.fastq_to_vcf_minimal");
+}
+
+#[test]
+fn sample_sheet_preflight_rejects_refusal_conditions_before_planning() -> Result<()> {
+    let template = cross_workflow_template_by_id("cross.fastq_to_vcf_minimal")
+        .expect("cross template must exist");
+    let sheet = parse_sample_sheet(
+        &template.template_id,
+        "run_id,batch_id,sample_id,library_id,lane_id,layout_mode,reference_id,workflow_mode,r1,r2,expected_outputs\nRUN01,BATCH_A,S1,LIB1,L01A,paired_end,GRCh38,minimal,reads/S1_R1.fastq.gz,reads/S1_R2.fastq.gz,bam;vcf\nRUN01,BATCH_A,S1,LIB1,L001,single_end,GRCh37,minimal,reads/S1_bad_R1.fastq.gz,,vcf",
+    )?;
+    let available_inputs = BTreeSet::from([
+        PathBuf::from("reads/S1_R1.fastq.gz"),
+        PathBuf::from("reads/S1_R2.fastq.gz"),
+    ]);
+    let known_references = BTreeSet::from(["GRCh38".to_string()]);
+
+    let preflight =
+        validate_sample_sheet_preflight(&template, &sheet, &available_inputs, &known_references);
+
+    assert!(!preflight.valid);
+    assert_eq!(preflight.records_evaluated, 2);
+    assert!(preflight.refusal_codes.contains(&"duplicate_run_id".to_string()));
+    assert!(preflight.refusal_codes.contains(&"invalid_lane_id".to_string()));
+    assert!(preflight.refusal_codes.contains(&"missing_input_file".to_string()));
+    assert!(preflight.refusal_codes.contains(&"reference_id_mismatch".to_string()));
+    assert!(preflight.refusal_codes.contains(&"conflicting_layout_for_sample".to_string()));
+    Ok(())
 }

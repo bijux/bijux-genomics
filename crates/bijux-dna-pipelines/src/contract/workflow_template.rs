@@ -131,6 +131,17 @@ pub struct SampleSheetV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct SampleSheetPreflightV1 {
+    pub schema_version: String,
+    pub template_id: String,
+    pub records_evaluated: usize,
+    pub valid: bool,
+    pub refusal_codes: Vec<String>,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct WorkflowBatchNodeV1 {
     pub node_id: String,
     pub stage_id: String,
@@ -387,6 +398,82 @@ pub fn sample_sheet_to_workflow_manifests(
 }
 
 #[must_use]
+pub fn validate_sample_sheet_preflight(
+    template: &CrossWorkflowTemplateV1,
+    sheet: &SampleSheetV1,
+    available_inputs: &BTreeSet<PathBuf>,
+    known_reference_ids: &BTreeSet<String>,
+) -> SampleSheetPreflightV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    let mut notes = Vec::<String>::new();
+    if sheet.template_id != template.template_id {
+        refusal_codes.push("template_id_mismatch".to_string());
+        notes.push(format!(
+            "sample sheet template {} does not match {}",
+            sheet.template_id, template.template_id
+        ));
+    }
+
+    let mut seen_run_ids = BTreeSet::<String>::new();
+    let mut sample_layouts = BTreeMap::<String, ReadLayoutMode>::new();
+    for record in &sheet.records {
+        if !seen_run_ids.insert(record.run_id.clone()) {
+            refusal_codes.push("duplicate_run_id".to_string());
+            notes.push(format!("run_id {} appears more than once", record.run_id));
+        }
+        if !lane_id_is_valid(&record.lane_id) {
+            refusal_codes.push("invalid_lane_id".to_string());
+            notes.push(format!(
+                "sample {} lane {} is not in the expected L### format",
+                record.sample_id, record.lane_id
+            ));
+        }
+        if !available_inputs.contains(&record.r1) {
+            refusal_codes.push("missing_input_file".to_string());
+            notes.push(format!("missing input file {}", record.r1.display()));
+        }
+        if let Some(r2) = &record.r2 {
+            if !available_inputs.contains(r2) {
+                refusal_codes.push("missing_input_file".to_string());
+                notes.push(format!("missing input file {}", r2.display()));
+            }
+        }
+        if !known_reference_ids.is_empty() && !known_reference_ids.contains(&record.reference_id) {
+            refusal_codes.push("reference_id_mismatch".to_string());
+            notes.push(format!(
+                "reference {} is not present in known references",
+                record.reference_id
+            ));
+        }
+        if let Some(existing_layout) = sample_layouts.get(&record.sample_id) {
+            if *existing_layout != record.layout_mode {
+                refusal_codes.push("conflicting_layout_for_sample".to_string());
+                notes.push(format!(
+                    "sample {} declares both {} and {}",
+                    record.sample_id,
+                    layout_mode_id(*existing_layout),
+                    layout_mode_id(record.layout_mode)
+                ));
+            }
+        } else {
+            sample_layouts.insert(record.sample_id.clone(), record.layout_mode);
+        }
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    notes.sort();
+    notes.dedup();
+    SampleSheetPreflightV1 {
+        schema_version: "bijux.cross.sample_sheet_preflight.v1".to_string(),
+        template_id: template.template_id.clone(),
+        records_evaluated: sheet.records.len(),
+        valid: refusal_codes.is_empty(),
+        refusal_codes,
+        notes,
+    }
+}
+
+#[must_use]
 pub fn build_batch_workflow_graph(
     template: &CrossWorkflowTemplateV1,
     sheet: &SampleSheetV1,
@@ -637,6 +724,12 @@ fn layout_mode_id(layout_mode: ReadLayoutMode) -> &'static str {
         ReadLayoutMode::Merged => "merged",
         ReadLayoutMode::Unknown => "unknown",
     }
+}
+
+fn lane_id_is_valid(lane_id: &str) -> bool {
+    lane_id.len() == 4
+        && lane_id.starts_with('L')
+        && lane_id.as_bytes()[1..].iter().all(u8::is_ascii_digit)
 }
 
 #[cfg(test)]
