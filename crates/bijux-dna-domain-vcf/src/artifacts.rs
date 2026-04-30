@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 pub const VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION: &str = "bijux.vcf.scientific_drift.report.v1";
 pub const VCF_VALIDATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.validation_summary.v1";
 pub const VCF_STATS_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.stats_workflow.v1";
+pub const VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION: &str = "bijux.vcf.filter_consequence.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -101,6 +102,22 @@ pub struct VcfStatsWorkflowSummaryV1 {
     pub filter_counts: BTreeMap<String, u64>,
     #[serde(default)]
     pub per_sample_missingness: BTreeMap<String, f64>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfFilterConsequenceV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub filter_expression: String,
+    pub variants_in: u64,
+    pub variants_retained: u64,
+    pub variants_removed: u64,
+    #[serde(default)]
+    pub reason_counts: BTreeMap<String, u64>,
+    pub output_subset_identity: String,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -427,6 +444,74 @@ pub fn execute_vcf_stats_workflow(input_vcf: &Path) -> Result<VcfStatsWorkflowSu
     })
 }
 
+/// Apply fixture-safe VCF filtering and report explainable retained/removed consequences.
+///
+/// # Errors
+/// Returns an error when the VCF cannot be parsed.
+pub fn execute_vcf_filter_with_explainable_consequences(
+    input_vcf: &Path,
+    min_qual: Option<f64>,
+    max_missing_genotype_fraction: Option<f64>,
+) -> Result<VcfFilterConsequenceV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut reason_counts = BTreeMap::<String, u64>::new();
+    let mut retained = 0_u64;
+    for record in &doc.records {
+        let mut reasons = Vec::<String>::new();
+        if let Some(threshold) = min_qual {
+            if record.qual.is_some_and(|qual| qual < threshold) {
+                reasons.push("low_qual".to_string());
+            }
+        }
+        if let (Some(max_fraction), Some(format)) = (max_missing_genotype_fraction, &record.format)
+        {
+            let mut missing_calls = 0_u64;
+            let mut total_calls = 0_u64;
+            for payload in &record.samples {
+                total_calls += 1;
+                if parse_gt_from_sample(format, payload).is_some_and(genotype_is_missing) {
+                    missing_calls += 1;
+                }
+            }
+            let missing_fraction =
+                if total_calls > 0 { missing_calls as f64 / total_calls as f64 } else { 0.0 };
+            if missing_fraction > max_fraction {
+                reasons.push("missingness_above_threshold".to_string());
+            }
+        }
+        if reasons.is_empty() {
+            retained += 1;
+        } else {
+            for reason in reasons {
+                *reason_counts.entry(reason).or_insert(0) += 1;
+            }
+        }
+    }
+    let variants_in = doc.records.len() as u64;
+    let variants_removed = variants_in.saturating_sub(retained);
+    let filter_expression = format!(
+        "qual>={};missing_fraction<={}",
+        min_qual.map_or_else(|| "none".to_string(), |value| value.to_string()),
+        max_missing_genotype_fraction.map_or_else(|| "none".to_string(), |value| value.to_string())
+    );
+    let output_subset_identity =
+        format!("vcf.filter:{}:{}:{}", variants_in, retained, filter_expression);
+    Ok(VcfFilterConsequenceV1 {
+        schema_version: VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.filter".to_string(),
+        filter_expression,
+        variants_in,
+        variants_retained: retained,
+        variants_removed,
+        reason_counts,
+        output_subset_identity,
+        caveats: vec![
+            "reason counts are per-rule and a single site can contribute to multiple reasons"
+                .to_string(),
+        ],
+    })
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -650,5 +735,33 @@ chr1\t30\t.\tAT\tA\t60\tPASS\tDP=7\tGT\t0/1\t0/0\n",
         assert_eq!(summary.per_sample_missingness.get("s1"), Some(&0.0));
         assert_eq!(summary.per_sample_missingness.get("s2"), Some(&(1.0 / 3.0)));
         assert_eq!(summary.ti_tv_ratio, Some(1.0));
+    }
+
+    #[test]
+    fn execute_vcf_filter_with_explainable_consequences_reports_reason_breakdown() {
+        let temp = unique_temp_dir("vcf-filter-consequences");
+        let input = temp.join("filter.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.3\n\
+##contig=<ID=chr1,length=1000>\n\
+##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n\
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\ts2\n\
+chr1\t10\t.\tA\tG\t20\tPASS\tDP=8\tGT\t0/1\t0/1\n\
+chr1\t20\t.\tC\tT\t60\tPASS\tDP=8\tGT\t./.\t./.\n\
+chr1\t30\t.\tG\tA\t65\tPASS\tDP=8\tGT\t0/0\t0/1\n",
+        )
+        .expect("write filter VCF fixture");
+
+        let summary =
+            execute_vcf_filter_with_explainable_consequences(&input, Some(30.0), Some(0.5))
+                .expect("filter with explanations");
+        assert_eq!(summary.variants_in, 3);
+        assert_eq!(summary.variants_retained, 1);
+        assert_eq!(summary.variants_removed, 2);
+        assert_eq!(summary.reason_counts.get("low_qual"), Some(&1));
+        assert_eq!(summary.reason_counts.get("missingness_above_threshold"), Some(&1));
+        assert!(summary.output_subset_identity.starts_with("vcf.filter:3:1:"));
     }
 }

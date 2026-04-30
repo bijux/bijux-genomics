@@ -11,11 +11,13 @@ pub mod stage_baseline;
 pub mod taxonomy;
 
 pub use artifacts::{
-    build_vcf_scientific_drift_report, execute_vcf_stats_workflow, execute_vcf_validation,
+    build_vcf_scientific_drift_report, execute_vcf_filter_with_explainable_consequences,
+    execute_vcf_stats_workflow, execute_vcf_validation, VcfFilterConsequenceV1,
     VcfScientificDriftArtifactDeltaV1, VcfScientificDriftChangeKind,
     VcfScientificDriftMetricDeltaV1, VcfScientificDriftReportV1, VcfScientificDriftSnapshotV1,
-    VcfStatsWorkflowSummaryV1, VcfValidationSummaryV1, VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION,
-    VCF_STATS_WORKFLOW_SCHEMA_VERSION, VCF_VALIDATION_SUMMARY_SCHEMA_VERSION,
+    VcfStatsWorkflowSummaryV1, VcfValidationSummaryV1, VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION,
+    VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION, VCF_STATS_WORKFLOW_SCHEMA_VERSION,
+    VCF_VALIDATION_SUMMARY_SCHEMA_VERSION,
 };
 pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1};
 pub use registry_emit::{param_registry_toml, required_tools_toml};
