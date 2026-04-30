@@ -71,6 +71,7 @@ pub enum NativeOpsCommandKey {
     ToolingAcquireReference,
     ToolingReferenceExternalData,
     ToolingScientificCaveatPropagation,
+    ToolingOperatorWorkflowMaturity,
     ToolingArchitectureReport,
     ToolingBenchmarkSmokeLevel1,
     ToolingBenchmarkIntegrityMini,

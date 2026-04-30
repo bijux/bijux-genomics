@@ -25,6 +25,7 @@ mod certification;
 mod ci;
 mod config_docs;
 mod diagnostics;
+mod operator_workflow_maturity;
 mod reference_external_data;
 mod scientific_caveat_propagation;
 
@@ -58,5 +59,6 @@ pub(super) use self::diagnostics::{
     tooling_repo_doctor, tooling_run_bijux, tooling_setup_docs_venv,
     tooling_simulate_coverage_regime,
 };
+pub(super) use self::operator_workflow_maturity::tooling_operator_workflow_maturity;
 pub(super) use self::reference_external_data::tooling_reference_external_data;
 pub(super) use self::scientific_caveat_propagation::tooling_scientific_caveat_propagation;

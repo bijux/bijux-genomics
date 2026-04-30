@@ -321,6 +321,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingScientificCaveatPropagation,
         ),
         native(
+            "operator-workflow-maturity",
+            "Run governed operator workflow maturity scenario suite for goals G191-G200.",
+            NativeOpsCommandKey::ToolingOperatorWorkflowMaturity,
+        ),
+        native(
             "architecture-report",
             "Generate a compact workspace architecture drift report under artifacts/architecture.",
             NativeOpsCommandKey::ToolingArchitectureReport,

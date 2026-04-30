@@ -117,6 +117,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingScientificCaveatPropagation => {
             tooling::tooling_scientific_caveat_propagation(workspace, args)
         }
+        NativeOpsCommandKey::ToolingOperatorWorkflowMaturity => {
+            tooling::tooling_operator_workflow_maturity(workspace, args)
+        }
         NativeOpsCommandKey::ToolingArchitectureReport => {
             tooling::tooling_architecture_report(workspace, args)
         }
