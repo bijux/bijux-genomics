@@ -50,6 +50,18 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
     if let Some(Ok(hash)) = bijux_dna_domain_bam::stage_contract_hash(request.stage_id) {
         details.insert("contract_hash".to_string(), Value::String(hash));
     }
+    let input_bytes = request
+        .bam
+        .and_then(|path| std::fs::metadata(path).ok())
+        .map_or(0, |metadata| metadata.len());
+    details.insert(
+        "resource_plan".to_string(),
+        serde_json::to_value(bijux_dna_domain_bam::estimate_bam_stage_resources(
+            request.stage_id,
+            input_bytes,
+        ))
+        .unwrap_or_else(|error| serde_json::json!({ "serialization_error": error.to_string() })),
+    );
     plan.reason = PlanDecisionReason::new(
         PlanReasonKind::Default,
         format!("tool {} selected by planner", plan.tool_id.0),
