@@ -1,0 +1,32 @@
+# schema_version = 1
+# owner = architecture
+
+[scientific]
+authoritative_paths = [
+  "domain",
+  "science/specs",
+  "docs/20-science",
+]
+owned_fields = [
+  "scientific_thresholds",
+  "reference_compatibility",
+  "sample_assumptions",
+  "advisory_findings",
+  "enforced_findings",
+]
+
+[operational]
+authoritative_paths = [
+  "configs/runtime",
+  "configs/logging",
+  "configs/hpc",
+]
+owned_fields = [
+  "timeout_seconds",
+  "retry_policy",
+  "executor",
+  "storage",
+  "run_base_dir",
+  "platform",
+  "artifact_root",
+]

@@ -108,6 +108,8 @@ mod mod_contracts_tooling_examples_cli_command_policy_rs;
 mod mod_contracts_tooling_examples_golden_hygiene_policy_rs;
 #[path = "contracts/tooling/governance_core/fixture_privacy_policy.rs"]
 mod mod_contracts_tooling_fixture_privacy_policy_rs;
+#[path = "contracts/tooling/governance_core/policy_layer_split_policy.rs"]
+mod mod_contracts_tooling_policy_layer_split_policy_rs;
 #[path = "contracts/tooling/governance_quality/generated_configs_policy.rs"]
 mod mod_contracts_tooling_generated_configs_policy_rs;
 #[path = "contracts/tooling/governance_quality/image_catalog_completeness_policy.rs"]
