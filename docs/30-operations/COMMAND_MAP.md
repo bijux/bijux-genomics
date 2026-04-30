@@ -16,9 +16,13 @@ Authority:
 - List governed profiles:
   `cargo run -q -p bijux-dna -- plan list`
 - Explain a governed profile:
-  `cargo run -q -p bijux-dna -- plan explain`
+  `cargo run -q -p bijux-dna -- plan explain-profile`
 - Validate profile invariants:
   `cargo run -q -p bijux-dna -- plan validate-profile`
+- Explain a cross-domain template-backed profile:
+  `cargo run -q -p bijux-dna -- plan explain-profile fastq-to-vcf__minimal__v1`
+- Validate cross-domain template registry alignment:
+  `cargo run -q -p bijux-dna -- plan validate-profile bam-to-vcf__default__v1`
 
 ## Explain
 - Summarize governed runs:
