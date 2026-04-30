@@ -606,8 +606,30 @@ pub struct BamStageResourcePlanV1 {
     pub memory_gb: u32,
     pub disk_gb: u32,
     pub scratch_gb: u32,
+    pub walltime_minutes: u32,
+    pub io_profile: String,
+    pub input_origin: BamInputOriginV1,
+    pub input_scale: BamInputScaleV1,
     pub requires_index: bool,
     pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BamInputOriginV1 {
+    Real,
+    Synthetic,
+}
+
+#[derive(
+    Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum BamInputScaleV1 {
+    Tiny,
+    Small,
+    Medium,
+    Large,
 }
 
 #[derive(
@@ -2726,49 +2748,104 @@ pub fn bam_scientific_report_contract_for_stage(
 
 #[must_use]
 pub fn estimate_bam_stage_resources(stage_id: &str, input_bytes: u64) -> BamStageResourcePlanV1 {
+    estimate_bam_stage_resources_with_origin(stage_id, input_bytes, BamInputOriginV1::Real)
+}
+
+#[must_use]
+pub fn estimate_bam_stage_resources_with_origin(
+    stage_id: &str,
+    input_bytes: u64,
+    input_origin: BamInputOriginV1,
+) -> BamStageResourcePlanV1 {
+    const MIB: u64 = 1024_u64 * 1024_u64;
     let gib = 1024_u64 * 1024_u64 * 1024_u64;
     let size_gb = input_bytes.div_ceil(gib).max(1) as u32;
-    let (cpu_threads, memory_gb, disk_gb, scratch_gb, requires_index, note) = match stage_id {
-        "bam.markdup" => (
-            4,
+    let input_scale = if input_bytes <= 256_u64 * MIB {
+        BamInputScaleV1::Tiny
+    } else if input_bytes <= 4_u64 * gib {
+        BamInputScaleV1::Small
+    } else if input_bytes <= 40_u64 * gib {
+        BamInputScaleV1::Medium
+    } else {
+        BamInputScaleV1::Large
+    };
+    let (
+        mut cpu_threads,
+        mut memory_gb,
+        mut disk_gb,
+        mut scratch_gb,
+        mut walltime_minutes,
+        io_profile,
+        requires_index,
+        note,
+    ) = match stage_id {
+        "bam.sort_index" | "bam.sort" => (
+            4_u32,
             size_gb.saturating_mul(2).max(4),
             size_gb.saturating_mul(3).max(8),
             size_gb.saturating_mul(2).max(6),
+            size_gb.saturating_mul(14).max(20),
+            "io_heavy_sequential_plus_temp_shuffle",
+            true,
+            "sorting/indexing scales with temporary shards and deterministic merge passes",
+        ),
+        "bam.markdup" => (
+            4_u32,
+            size_gb.saturating_mul(2).max(4),
+            size_gb.saturating_mul(3).max(8),
+            size_gb.saturating_mul(2).max(6),
+            size_gb.saturating_mul(12).max(18),
+            "io_heavy_coordinate_streaming",
             true,
             "duplicate marking scales with coordinate-sorted temporary shards",
         ),
         "bam.coverage" => (
-            2,
+            2_u32,
             size_gb.max(2),
             size_gb.max(2),
             size_gb.max(1),
+            size_gb.saturating_mul(8).max(12),
+            "mixed_random_and_streaming_reads",
             true,
             "coverage requires indexed random access for deterministic summaries",
         ),
         "bam.damage" => (
-            2,
+            2_u32,
             size_gb.max(2),
             size_gb.max(2),
             size_gb.max(2),
+            size_gb.saturating_mul(10).max(15),
+            "streaming_reads_with_sidecar_metrics",
             true,
             "damage tools stream BAM plus sidecar summaries",
         ),
         "bam.endogenous_content" => (
-            2,
+            2_u32,
             size_gb.max(2),
             size_gb.max(2),
             size_gb.max(1),
+            size_gb.saturating_mul(7).max(10),
+            "indexed_depth_pass",
             true,
             "endogenous estimation reuses indexed depth calculations",
         ),
         _ => (
-            4,
+            4_u32,
             size_gb.saturating_mul(2).max(4),
             size_gb.saturating_mul(2).max(4),
             size_gb.saturating_mul(2).max(4),
+            size_gb.saturating_mul(9).max(14),
+            "balanced_compute_and_io",
             true,
             "sorting/indexing/validation chain dominates temporary storage",
         ),
+    };
+    if matches!(input_origin, BamInputOriginV1::Synthetic) {
+        cpu_threads = cpu_threads.saturating_sub(1).max(1);
+        memory_gb = memory_gb.max(2).div_ceil(2);
+        disk_gb = disk_gb.max(2).div_ceil(2);
+        scratch_gb = scratch_gb.max(2).div_ceil(2);
+        walltime_minutes = walltime_minutes.max(4).div_ceil(2);
     };
     BamStageResourcePlanV1 {
         schema_version: BAM_RESOURCE_PLAN_SCHEMA_VERSION.to_string(),
@@ -2778,6 +2855,10 @@ pub fn estimate_bam_stage_resources(stage_id: &str, input_bytes: u64) -> BamStag
         memory_gb,
         disk_gb,
         scratch_gb,
+        walltime_minutes,
+        io_profile: io_profile.to_string(),
+        input_origin,
+        input_scale,
         requires_index,
         notes: vec![note.to_string()],
     }
@@ -3540,5 +3621,39 @@ r02\t0\tchr1\t11\t45\t10M\t*\t0\t0\tTTTTGGGGCC\tFFFFFFFFFF\tRG:Z:rg1\n",
         let regime = summary.regime.expect("coverage regime");
         assert_eq!(regime.regime_class, BamCoverageRegimeClassV1::LowPass);
         assert!((regime.breadth_1x - 1.0).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn estimate_bam_stage_resources_distinguishes_real_and_synthetic_inputs() {
+        let real = estimate_bam_stage_resources_with_origin(
+            "bam.markdup",
+            48_u64 * 1024 * 1024 * 1024,
+            BamInputOriginV1::Real,
+        );
+        let synthetic = estimate_bam_stage_resources_with_origin(
+            "bam.markdup",
+            48_u64 * 1024 * 1024 * 1024,
+            BamInputOriginV1::Synthetic,
+        );
+
+        assert_eq!(real.input_scale, BamInputScaleV1::Large);
+        assert_eq!(real.input_origin, BamInputOriginV1::Real);
+        assert_eq!(synthetic.input_origin, BamInputOriginV1::Synthetic);
+        assert!(real.memory_gb > synthetic.memory_gb);
+        assert!(real.disk_gb > synthetic.disk_gb);
+        assert!(real.scratch_gb > synthetic.scratch_gb);
+        assert!(real.walltime_minutes > synthetic.walltime_minutes);
+    }
+
+    #[test]
+    fn estimate_bam_stage_resources_captures_stage_specific_io_and_walltime() {
+        let sort = estimate_bam_stage_resources("bam.sort_index", 8_u64 * 1024 * 1024 * 1024);
+        let coverage = estimate_bam_stage_resources("bam.coverage", 8_u64 * 1024 * 1024 * 1024);
+        let damage = estimate_bam_stage_resources("bam.damage", 8_u64 * 1024 * 1024 * 1024);
+
+        assert!(sort.walltime_minutes > coverage.walltime_minutes);
+        assert_eq!(sort.io_profile, "io_heavy_sequential_plus_temp_shuffle");
+        assert_eq!(coverage.io_profile, "mixed_random_and_streaming_reads");
+        assert_eq!(damage.io_profile, "streaming_reads_with_sidecar_metrics");
     }
 }
