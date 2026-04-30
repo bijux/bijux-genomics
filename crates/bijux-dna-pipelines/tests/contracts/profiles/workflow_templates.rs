@@ -9,6 +9,9 @@ use bijux_dna_core::contract::{
 use bijux_dna_pipelines::cross::{
     cross_workflow_template_by_id, cross_workflow_templates_for_pipeline,
 };
+use bijux_dna_pipelines::fastq::{
+    fastq_workflow_template_by_id, fastq_workflow_templates_for_pipeline,
+};
 use bijux_dna_pipelines::{
     build_batch_workflow_graph, build_cross_domain_evidence_narrative,
     evaluate_batch_fan_semantics, evaluate_template_admission, parse_sample_sheet,
@@ -441,4 +444,120 @@ fn evidence_narrative_builder_connects_plan_handoff_and_failures() {
         .caveats
         .iter()
         .any(|value| value.contains("alignment failure blocked downstream calling")));
+}
+
+#[test]
+fn fastq_iteration_11_templates_expose_goal_stage_surfaces() {
+    let cases = [
+        (
+            "fastq.qc_only_review",
+            vec![
+                "fastq.validate_reads",
+                "fastq.profile_read_lengths",
+                "fastq.profile_overrepresented_sequences",
+                "fastq.report_qc",
+            ],
+        ),
+        (
+            "fastq.trim_qc",
+            vec![
+                "fastq.detect_adapters",
+                "fastq.trim_reads",
+                "fastq.filter_reads",
+                "fastq.report_qc",
+            ],
+        ),
+        (
+            "fastq.umi_aware_preprocessing",
+            vec![
+                "fastq.extract_umis",
+                "fastq.remove_duplicates",
+                "fastq.trim_reads",
+                "fastq.report_qc",
+            ],
+        ),
+        (
+            "fastq.host_depletion",
+            vec!["core.prepare_reference", "fastq.deplete_host", "fastq.report_qc"],
+        ),
+        (
+            "fastq.rrna_depletion",
+            vec!["core.prepare_reference", "fastq.deplete_rrna", "fastq.report_qc"],
+        ),
+        (
+            "fastq.contaminant_depletion",
+            vec![
+                "core.prepare_reference",
+                "fastq.deplete_reference_contaminants",
+                "fastq.report_qc",
+            ],
+        ),
+        (
+            "fastq.edna_metabarcoding",
+            vec![
+                "fastq.normalize_primers",
+                "fastq.remove_chimeras",
+                "fastq.cluster_otus",
+                "fastq.infer_asvs",
+                "fastq.screen_taxonomy",
+                "fastq.report_qc",
+            ],
+        ),
+        (
+            "fastq.ancient_dna_preprocessing",
+            vec![
+                "fastq.merge_pairs",
+                "fastq.trim_terminal_damage",
+                "fastq.filter_low_complexity",
+                "fastq.report_qc",
+            ],
+        ),
+        (
+            "fastq.adapter_primer_bank_review",
+            vec![
+                "fastq.detect_adapters",
+                "fastq.normalize_primers",
+                "fastq.profile_reads",
+                "fastq.report_qc",
+            ],
+        ),
+        (
+            "fastq.preprocessing_policy_diff",
+            vec![
+                "fastq.trim_reads",
+                "fastq.filter_reads",
+                "fastq.profile_reads",
+                "fastq.report_qc",
+            ],
+        ),
+    ];
+
+    for (template_id, stages) in cases {
+        let template =
+            fastq_workflow_template_by_id(template_id).expect("FASTQ workflow template must exist");
+        for stage in stages {
+            assert!(
+                template.requested_stages.iter().any(|entry| entry == stage),
+                "template {template_id} must include stage {stage}"
+            );
+        }
+    }
+}
+
+#[test]
+fn fastq_iteration_11_templates_are_indexed_by_pipeline_ids() {
+    assert_eq!(
+        fastq_workflow_templates_for_pipeline("fastq-to-fastq__trim_qc__v1")
+            .iter()
+            .map(|template| template.template_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["fastq.trim_qc", "fastq.preprocessing_policy_diff"],
+    );
+    assert_eq!(
+        fastq_workflow_templates_for_pipeline("fastq-to-fastq__reference_adna__v1")
+            .iter()
+            .map(|template| template.template_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["fastq.ancient_dna_preprocessing"],
+    );
 }
