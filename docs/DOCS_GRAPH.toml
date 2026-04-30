@@ -176,6 +176,7 @@ children = [
   "docs/30-operations/REPORT_CONTRACT.md",
   "docs/30-operations/REPRODUCIBILITY.md",
   "docs/30-operations/RUN_ARTIFACTS.md",
+  "docs/30-operations/RUN_OPERATIONS.md",
   "docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md",
   "docs/30-operations/SECURITY.md",
   "docs/30-operations/SECURITY_POLICY.md",

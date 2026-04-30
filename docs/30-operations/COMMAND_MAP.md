@@ -41,6 +41,8 @@ Authority:
   `cargo run -q -p bijux-dna -- status --contracts`
 - Search analyzed runs:
   `cargo run -q -p bijux-dna -- analyze runs`
+- Run operations evidence paths and recovery steps:
+  [RUN_OPERATIONS.md](RUN_OPERATIONS.md)
 
 ## Verify
 - Verify an evidence bundle:
