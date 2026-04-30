@@ -119,6 +119,8 @@ fn cli_planning_outputs_match_library_api_for_representative_domains() {
 
     let fastq_profile = "fastq-to-fastq__default__v1";
     let bam_profile = "bam-to-bam__adna_capture__v1";
+    let cross_explain_profile = "fastq-to-vcf__minimal__v1";
+    let cross_validate_profile = "bam-to-vcf__default__v1";
     let vcf_profile = "vcf-to-vcf__minimal__v1";
 
     assert!(
@@ -142,6 +144,24 @@ fn cli_planning_outputs_match_library_api_for_representative_domains() {
     let bam_api = validate_pipeline_profile(bam_profile).expect("bam validate profile");
     assert_eq!(bam_cli, bam_api, "bam validate-profile parity drift");
 
+    let cross_explain_cli =
+        run_cli_json(&workspace, &["plan", "explain-profile", cross_explain_profile]);
+    let cross_explain_api =
+        explain_pipeline_profile(cross_explain_profile).expect("cross explain profile");
+    assert_eq!(
+        cross_explain_cli, cross_explain_api,
+        "cross explain-profile parity drift"
+    );
+
+    let cross_validate_cli =
+        run_cli_json(&workspace, &["plan", "validate-profile", cross_validate_profile]);
+    let cross_validate_api =
+        validate_pipeline_profile(cross_validate_profile).expect("cross validate profile");
+    assert_eq!(
+        cross_validate_cli, cross_validate_api,
+        "cross validate-profile parity drift"
+    );
+
     let vcf_cli = run_cli_json(&workspace, &["vcf", "plan", "--profile", vcf_profile]);
     let vcf_api = bijux_dna_api::v1::api::vcf::plan(vcf_profile);
     assert_eq!(vcf_cli, vcf_api, "vcf plan parity drift");
@@ -149,6 +169,8 @@ fn cli_planning_outputs_match_library_api_for_representative_domains() {
     let rendered = serde_json::to_string_pretty(&serde_json::json!({
         "fastq_explain_profile": fastq_cli,
         "bam_validate_profile": bam_cli,
+        "cross_explain_profile": cross_explain_cli,
+        "cross_validate_profile": cross_validate_cli,
         "vcf_plan": vcf_cli,
     }))
     .expect("serialize parity snapshot");
