@@ -160,6 +160,8 @@ mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
 mod mod_contracts_tooling_root_architecture_contract_policy_rs;
 #[path = "contracts/tooling/docs/root_docs_navigation_policy.rs"]
 mod mod_contracts_tooling_root_docs_navigation_policy_rs;
+#[path = "contracts/tooling/docs/truth_source_docs_policy.rs"]
+mod mod_contracts_tooling_truth_source_docs_policy_rs;
 #[path = "contracts/tooling/root/root_layout_policy.rs"]
 mod mod_contracts_tooling_root_layout_policy_rs;
 #[path = "contracts/tooling/root/root_migration_guard_policy.rs"]
