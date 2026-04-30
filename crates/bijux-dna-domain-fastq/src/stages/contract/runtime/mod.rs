@@ -15,6 +15,7 @@ mod provenance_snapshot;
 mod qc_manifest;
 mod asset_verification;
 mod prepare_adapter_bank;
+mod prepare_primer_bank;
 
 pub use header_inspection::{
     ensure_umi_headers, inspect_headers, log_header_warnings, HeaderInspection,
@@ -24,6 +25,7 @@ pub use layout_classification::{classify_layout, ensure_layout_is_coherent};
 pub use merge_suitability::{assess_merge_suitability, MergeSuitability};
 pub use output_normalization::{find_first_fastq, normalize_outputs, NormalizedOutputs};
 pub use prepare_adapter_bank::prepare_adapter_bank;
+pub use prepare_primer_bank::prepare_primer_bank;
 pub use provenance_snapshot::capture_provenance_snapshot;
 pub use qc_manifest::materialize_qc_manifest;
 
