@@ -3,7 +3,10 @@ use std::collections::BTreeMap;
 use bijux_dna_core::contract::ContractVersion;
 use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_runtime::observability::RunProvenanceV1;
-use bijux_dna_runtime::run_layout::{RunLayoutV1, RunManifest};
+use bijux_dna_runtime::run_layout::{
+    ExecutorDescriptorV1, RunExecutionModeV1, RunFailureV1, RunLayoutV1, RunLifecycleStateV1,
+    RunManifest, RunStateV1,
+};
 
 #[path = "../../support/workspace_paths.rs"]
 mod support;
@@ -134,6 +137,69 @@ fn run_manifest_schema_snapshot() {
     )
     .unwrap_or_else(|err| panic!("utf8: {err}"));
     assert_eq!(actual, expected);
+}
+
+#[test]
+fn run_state_schema_snapshot() {
+    let state = RunStateV1 {
+        schema_version: "bijux.run_state.v1".to_string(),
+        run_id: "run-1".to_string(),
+        mode: RunExecutionModeV1::Enforced,
+        state: RunLifecycleStateV1::Succeeded,
+        transitions: Vec::new(),
+        manifest_path: Some("run_manifest.json".into()),
+        checkpoint_path: Some("checkpoints/checkpoint.json".into()),
+        failure_path: None,
+    };
+    let expected = include_str!("../../fixtures/runtime_schema/default/run_state_v1.json");
+    let actual = String::from_utf8(
+        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&state)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
+    )
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    assert_eq!(actual.trim_end(), expected.trim_end());
+}
+
+#[test]
+fn run_failure_schema_snapshot() {
+    let failure = RunFailureV1 {
+        schema_version: "bijux.run_failure.v1".to_string(),
+        run_id: "run-1".to_string(),
+        mode: RunExecutionModeV1::Enforced,
+        state: RunLifecycleStateV1::Failed,
+        failure_code: "runner_execution_failed".to_string(),
+        message: "step failed after retries: fastq.validate_reads".to_string(),
+        stage_id: Some("fastq.validate_reads".to_string()),
+        step_id: Some("fastq.validate_reads".to_string()),
+        attempt: None,
+        observed_at: "2024-01-01T00:00:10Z".to_string(),
+        retryable: true,
+    };
+    let expected = include_str!("../../fixtures/runtime_schema/default/run_failure_v1.json");
+    let actual = String::from_utf8(
+        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&failure)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
+    )
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    assert_eq!(actual.trim_end(), expected.trim_end());
+}
+
+#[test]
+fn executor_descriptor_schema_snapshot() {
+    let descriptor = ExecutorDescriptorV1::Hpc {
+        scheduler: "slurm".to_string(),
+        submission_mode: "batch".to_string(),
+        scratch_layout_policy: "stage_scoped_scratch".to_string(),
+        container_runtime: Some("apptainer".to_string()),
+    };
+    let expected =
+        include_str!("../../fixtures/runtime_schema/default/executor_descriptor_v1.json");
+    let actual = String::from_utf8(
+        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&descriptor)
+            .unwrap_or_else(|err| panic!("canonical: {err}")),
+    )
+    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    assert_eq!(actual.trim_end(), expected.trim_end());
 }
 
 #[test]
