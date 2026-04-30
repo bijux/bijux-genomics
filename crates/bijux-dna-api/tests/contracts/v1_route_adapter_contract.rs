@@ -214,3 +214,28 @@ fn dry_run_adapter_declares_runtime_and_evidence_outputs() {
     assert!(dry_run.writes_schema_families.contains(&"artifact_inventory".to_string()));
     assert!(std::any::type_name::<DryRunResponse>().ends_with("DryRunResponse"));
 }
+
+#[test]
+fn iteration16_inspection_surfaces_export_typed_contracts() {
+    use bijux_dna_api::v1::api::{
+        CacheExplainResponseV1, EvidenceGapResponseV1, OperatorDiagnosisResponseV1,
+        ReplayExplainResponseV1, RunBrowserResponseV1, RunLineageQueryResponseV1,
+        SignedBundleResponseV1, SignedBundleVerifyResponseV1,
+    };
+
+    for type_name in [
+        std::any::type_name::<RunBrowserResponseV1>(),
+        std::any::type_name::<RunLineageQueryResponseV1>(),
+        std::any::type_name::<CacheExplainResponseV1>(),
+        std::any::type_name::<ReplayExplainResponseV1>(),
+        std::any::type_name::<EvidenceGapResponseV1>(),
+        std::any::type_name::<OperatorDiagnosisResponseV1>(),
+        std::any::type_name::<SignedBundleResponseV1>(),
+        std::any::type_name::<SignedBundleVerifyResponseV1>(),
+    ] {
+        assert!(
+            type_name.starts_with("bijux_dna_api::"),
+            "type should be exported from bijux_dna_api crate: {type_name}"
+        );
+    }
+}
