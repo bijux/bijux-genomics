@@ -612,7 +612,7 @@
         let input = dir.path().join("gl_pipeline_input.vcf");
         std::fs::write(
             &input,
-            "##fileformat=VCFv4.2\n##reference=GRCh38\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t1\t.\tA\tG\t60\tPASS\t.\tGT:GL\t0/1:0.0,-1.0,-2.0\n",
+            "##fileformat=VCFv4.2\n##reference=GRCh38\n##contig=<ID=1,length=248956422>\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n##FORMAT=<ID=GL,Number=G,Type=Float,Description=\"Genotype likelihoods\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t1\t.\tA\tG\t60\tPASS\t.\tGT:GL\t0/1:0.0,-1.0,-2.0\n",
         )
         .unwrap_or_else(|err| panic!("write gl pipeline fixture: {err}"));
         let species = SpeciesContext {
