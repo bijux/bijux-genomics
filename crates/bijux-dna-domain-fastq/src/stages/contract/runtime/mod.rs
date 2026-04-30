@@ -26,6 +26,7 @@ mod demultiplex_reads;
 mod detect_duplicates_premerge;
 mod detect_adapters;
 mod detect_instrument_artifacts;
+mod edna_branch;
 mod estimate_library_complexity_prealign;
 mod extract_umis;
 mod fastq_io;
@@ -56,6 +57,9 @@ pub use demultiplex_reads::{demultiplex_reads, DemultiplexRule};
 pub use detect_adapters::detect_adapters;
 pub use detect_duplicates_premerge::detect_duplicates_premerge;
 pub use detect_instrument_artifacts::detect_instrument_artifacts;
+pub use edna_branch::{
+    cluster_otus, infer_asvs, normalize_abundance, normalize_primers, remove_chimeras,
+};
 pub use estimate_library_complexity_prealign::estimate_library_complexity_prealign;
 pub use extract_umis::extract_umis;
 pub use interleave_reads::interleave_reads;
