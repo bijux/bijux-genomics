@@ -53,3 +53,10 @@ comparison_id = "vcf.normalize.local"
 stage_id = "vcf.filter"
 tools = ["bcftools", "gatk"]
 caveat = "normalization and filter backend differences are evaluated as engineering drift signals, not scientific ranking"
+
+[[drift_scenarios]]
+scenario_id = "vcf.backend.version.local"
+drift_axis = "backend-version"
+baseline_label = "bcftools-1.18"
+candidate_label = "bcftools-1.20"
+caveat = "local backend-version drift is monitored as engineering evidence and not biological truth"

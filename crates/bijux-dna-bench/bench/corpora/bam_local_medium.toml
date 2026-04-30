@@ -63,3 +63,10 @@ comparison_id = "bam.markdup.local"
 stage_id = "bam.mark_duplicates"
 tools = ["samtools", "picard"]
 caveat = "duplicate-method comparison is workflow-specific and not a universal biological ranking"
+
+[[drift_scenarios]]
+scenario_id = "bam.defaults.shift.local"
+drift_axis = "defaults"
+baseline_label = "bam-defaults.v1"
+candidate_label = "bam-defaults.v2"
+caveat = "default drift is used for release regression tracking and not for scientific claims"

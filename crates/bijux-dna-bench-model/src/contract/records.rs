@@ -4,7 +4,7 @@
 use crate::diagnostics::BenchError;
 use crate::model::{
     BackendComparisonSpec, BenchmarkCorpusManifest, BenchmarkObservation, BenchmarkSummary,
-    CorpusDatasetSpec, MetricSummary, SummaryRow, TruthSetHook, TruthSetStatus,
+    CorpusDatasetSpec, DriftScenarioSpec, MetricSummary, SummaryRow, TruthSetHook, TruthSetStatus,
 };
 use crate::policy::{GateDecision, GateViolation};
 
@@ -42,6 +42,16 @@ pub fn validate_corpus_manifest(corpus: &BenchmarkCorpusManifest) -> Result<(), 
     }
     for comparison in &corpus.backend_comparisons {
         validate_backend_comparison(comparison)?;
+    }
+    let mut scenario_ids = std::collections::BTreeSet::new();
+    for scenario in &corpus.drift_scenarios {
+        validate_drift_scenario(scenario)?;
+        if !scenario_ids.insert(scenario.scenario_id.as_str()) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "corpus must not repeat drift scenario_id {}",
+                scenario.scenario_id
+            )));
+        }
     }
     Ok(())
 }
@@ -192,6 +202,15 @@ fn validate_backend_comparison(comparison: &BackendComparisonSpec) -> Result<(),
     Ok(())
 }
 
+fn validate_drift_scenario(scenario: &DriftScenarioSpec) -> Result<(), BenchError> {
+    required_text(&scenario.scenario_id, "corpus drift scenario_id")?;
+    required_text(&scenario.drift_axis, "corpus drift drift_axis")?;
+    required_text(&scenario.baseline_label, "corpus drift baseline_label")?;
+    required_text(&scenario.candidate_label, "corpus drift candidate_label")?;
+    required_text(&scenario.caveat, "corpus drift caveat")?;
+    Ok(())
+}
+
 fn validate_metric_summary(metric: &MetricSummary) -> Result<(), BenchError> {
     required_text(&metric.metric_id, "summary metric_id")?;
     if metric.stats.n != metric.n {
@@ -268,7 +287,8 @@ mod tests {
     use crate::contract::{CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
     use crate::model::{
         BackendComparisonSpec, BenchmarkCorpusManifest, BenchmarkSummary, CorpusDatasetSpec,
-        CorpusDomain, CorpusScale, MetricSummary, SummaryRow, TruthSetHook, TruthSetStatus,
+        CorpusDomain, CorpusScale, DriftScenarioSpec, MetricSummary, SummaryRow, TruthSetHook,
+        TruthSetStatus,
     };
     use crate::policy::{GateDecision, GateViolation};
     use crate::stats::robust_estimators::RobustStats;
@@ -358,6 +378,14 @@ mod tests {
                 stage_id: "fastq.trim_reads".to_string(),
                 tools: vec!["fastp".to_string(), "cutadapt".to_string()],
                 caveat: "backend deltas are operational comparisons, not biological accuracy proofs"
+                    .to_string(),
+            }],
+            drift_scenarios: vec![DriftScenarioSpec {
+                scenario_id: "fastq.trim_reads.policy-shift".to_string(),
+                drift_axis: "policy-revision".to_string(),
+                baseline_label: "policy.v1".to_string(),
+                candidate_label: "policy.v2".to_string(),
+                caveat: "drift scenario highlights engineering deltas and not biological validity"
                     .to_string(),
             }],
         }
@@ -563,6 +591,19 @@ mod tests {
         };
 
         assert!(err.to_string().contains("at least two tools"));
+        Ok(())
+    }
+
+    #[test]
+    fn corpus_rejects_duplicate_drift_scenario_ids() -> anyhow::Result<()> {
+        let mut corpus = valid_corpus();
+        corpus.drift_scenarios.push(corpus.drift_scenarios[0].clone());
+
+        let Err(err) = validate_corpus_manifest(&corpus) else {
+            bail!("corpus with duplicate drift scenario ids should fail");
+        };
+
+        assert!(err.to_string().contains("must not repeat drift scenario_id"));
         Ok(())
     }
 }

@@ -9,7 +9,7 @@ pub use crate::workflow::{
 pub use bijux_dna_bench_model::{
     AnalysisRequirements, BackendComparisonSpec, BenchError, BenchmarkCorpusManifest, BenchmarkDecision,
     BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary, CorpusDatasetSpec, CorpusDomain, CorpusScale,
-    DatasetSpec, DecisionRationale, DiversityRequirements, GateDecision, GatePolicy, GatePolicyOverrides,
-    GateViolation, MetricSummary, MetricsEnvelope, ReplicatePolicy, StratificationRequirement, SummaryRow,
-    TruthSetHook, TruthSetStatus,
+    DatasetSpec, DecisionRationale, DiversityRequirements, DriftScenarioSpec, GateDecision, GatePolicy,
+    GatePolicyOverrides, GateViolation, MetricSummary, MetricsEnvelope, ReplicatePolicy,
+    StratificationRequirement, SummaryRow, TruthSetHook, TruthSetStatus,
 };

@@ -15,8 +15,8 @@ pub use graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]
 pub use corpus::{
-    BackendComparisonSpec, BenchmarkCorpusManifest, CorpusDatasetSpec, CorpusDomain, CorpusScale, TruthSetHook,
-    TruthSetStatus,
+    BackendComparisonSpec, BenchmarkCorpusManifest, CorpusDatasetSpec, CorpusDomain, CorpusScale,
+    DriftScenarioSpec, TruthSetHook, TruthSetStatus,
 };
 #[allow(unused_imports)]
 pub use suite::{BenchmarkParamBinding, BenchmarkStageSpec, BenchmarkSuiteSpec};

@@ -73,3 +73,10 @@ comparison_id = "bam.align.ci"
 stage_id = "bam.align"
 tools = ["bwa", "bowtie2"]
 caveat = "aligner comparison is scenario-specific and cannot be interpreted as universal mapping truth"
+
+[[drift_scenarios]]
+scenario_id = "bam.backend.version.ci"
+drift_axis = "backend-version"
+baseline_label = "samtools-1.18"
+candidate_label = "samtools-1.20"
+caveat = "backend-version drift reflects toolchain change sensitivity and not universal scientific quality"

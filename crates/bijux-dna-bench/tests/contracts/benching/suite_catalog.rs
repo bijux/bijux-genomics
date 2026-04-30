@@ -493,3 +493,27 @@ fn checked_in_corpus_catalog_covers_backend_comparison_cohorts() -> Result<()> {
     }
     Ok(())
 }
+
+#[test]
+fn checked_in_corpus_catalog_covers_scientific_drift_axes() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let mut covered_axes = std::collections::BTreeSet::new();
+    for corpus in &corpora {
+        for scenario in &corpus.drift_scenarios {
+            assert!(
+                !scenario.caveat.trim().is_empty(),
+                "drift scenario {} must include caveat text",
+                scenario.scenario_id
+            );
+            covered_axes.insert(scenario.drift_axis.as_str());
+        }
+    }
+
+    for required_axis in ["defaults", "backend-version", "reference-revision", "policy-revision"] {
+        assert!(
+            covered_axes.contains(required_axis),
+            "corpus drift catalog must include axis {required_axis}"
+        );
+    }
+    Ok(())
+}

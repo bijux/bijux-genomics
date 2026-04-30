@@ -9,7 +9,7 @@ pub use crate::model::graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, Benchm
 pub use crate::model::observation::MetricsEnvelope;
 pub use crate::model::{
     BackendComparisonSpec, BenchmarkCorpusManifest, CorpusDatasetSpec, CorpusDomain, CorpusScale,
-    TruthSetHook, TruthSetStatus,
+    DriftScenarioSpec, TruthSetHook, TruthSetStatus,
 };
 pub use crate::model::suite::{
     AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec, DatasetSpec,

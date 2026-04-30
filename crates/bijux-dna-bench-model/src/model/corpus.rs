@@ -45,6 +45,16 @@ pub struct BackendComparisonSpec {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct DriftScenarioSpec {
+    pub scenario_id: String,
+    pub drift_axis: String,
+    pub baseline_label: String,
+    pub candidate_label: String,
+    pub caveat: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct CorpusDatasetSpec {
     pub dataset_id: String,
     pub fixture: String,
@@ -67,4 +77,6 @@ pub struct BenchmarkCorpusManifest {
     pub datasets: Vec<CorpusDatasetSpec>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub backend_comparisons: Vec<BackendComparisonSpec>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub drift_scenarios: Vec<DriftScenarioSpec>,
 }

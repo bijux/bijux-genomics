@@ -94,3 +94,10 @@ comparison_id = "fastq.trim_reads.ci"
 stage_id = "fastq.trim_reads"
 tools = ["fastp", "cutadapt", "trimmomatic"]
 caveat = "tool deltas are compared on shared synthetic fixtures and must not be read as absolute scientific ranking"
+
+[[drift_scenarios]]
+scenario_id = "fastq.defaults.shift.ci"
+drift_axis = "defaults"
+baseline_label = "default-profile.v1"
+candidate_label = "default-profile.v2"
+caveat = "default-profile drift is tracked for reproducibility and not scientific truth claims"

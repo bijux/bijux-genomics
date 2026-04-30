@@ -63,3 +63,10 @@ comparison_id = "fastq.deplete_host.local"
 stage_id = "fastq.deplete_host"
 tools = ["bowtie2", "bwa"]
 caveat = "host depletion backend differences remain operational evidence and not biological prevalence claims"
+
+[[drift_scenarios]]
+scenario_id = "fastq.policy.revision.local"
+drift_axis = "policy-revision"
+baseline_label = "trim-policy.v1"
+candidate_label = "trim-policy.v2"
+caveat = "policy-revision drift highlights operational output shifts and not biological ranking"

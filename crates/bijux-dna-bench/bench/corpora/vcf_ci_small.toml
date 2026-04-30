@@ -94,3 +94,10 @@ comparison_id = "vcf.call.ci"
 stage_id = "vcf.call"
 tools = ["bcftools", "freebayes"]
 caveat = "caller comparison is constrained to fixture conditions and remains advisory"
+
+[[drift_scenarios]]
+scenario_id = "vcf.reference.revision.ci"
+drift_axis = "reference-revision"
+baseline_label = "ref-mini-r1"
+candidate_label = "ref-mini-r2"
+caveat = "reference-revision drift is tracked as compatibility evidence and not a population inference claim"
