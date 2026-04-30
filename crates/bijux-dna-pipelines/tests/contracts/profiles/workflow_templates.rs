@@ -13,8 +13,8 @@ use bijux_dna_pipelines::{
     build_batch_workflow_graph, evaluate_batch_fan_semantics, evaluate_template_admission,
     parse_sample_sheet, plan_bam_to_vcf_minimal_workflow, plan_fastq_to_bam_ancient_workflow,
     plan_fastq_to_bam_modern_workflow, plan_fastq_to_vcf_minimal_workflow,
-    sample_sheet_to_workflow_manifests, summarize_cross_domain_evidence,
-    validate_sample_sheet_preflight, validate_template_overrides,
+    resolve_batch_failure_policy, sample_sheet_to_workflow_manifests,
+    summarize_cross_domain_evidence, validate_sample_sheet_preflight, validate_template_overrides,
 };
 
 #[test]
@@ -329,4 +329,32 @@ fn batch_fan_semantics_report_flags_overwrite_risk() -> Result<()> {
     assert!(!report.valid);
     assert!(report.refusal_codes.contains(&"non_cohort_fanin_overwrite_risk".to_string()));
     Ok(())
+}
+
+#[test]
+fn failure_policy_resolver_maps_stage_family_to_batch_action() {
+    let template = cross_workflow_template_by_id("cross.fastq_to_vcf_minimal")
+        .expect("cross template must exist");
+    let all_samples = BTreeSet::from(["S1".to_string(), "S2".to_string()]);
+    let failed = BTreeSet::from(["S1".to_string()]);
+
+    let preprocessing =
+        resolve_batch_failure_policy(&template, "preprocessing", &failed, &all_samples)
+            .expect("preprocessing policy");
+    assert_eq!(
+        preprocessing.action,
+        bijux_dna_pipelines::TemplateFailureActionV1::SkipFailedSample
+    );
+    assert_eq!(preprocessing.blocked_samples, vec!["S1".to_string()]);
+    assert_eq!(preprocessing.continued_samples, vec!["S2".to_string()]);
+
+    let alignment = resolve_batch_failure_policy(&template, "alignment", &failed, &all_samples)
+        .expect("alignment policy");
+    assert_eq!(alignment.action, bijux_dna_pipelines::TemplateFailureActionV1::BlockDownstream);
+    assert_eq!(alignment.blocked_samples, vec!["S1".to_string(), "S2".to_string()]);
+
+    let variant = resolve_batch_failure_policy(&template, "variant", &failed, &all_samples)
+        .expect("variant policy");
+    assert_eq!(variant.action, bijux_dna_pipelines::TemplateFailureActionV1::ContinueCohort);
+    assert_eq!(variant.continued_samples, vec!["S1".to_string(), "S2".to_string()]);
 }

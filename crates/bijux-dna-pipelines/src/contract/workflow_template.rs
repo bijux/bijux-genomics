@@ -198,6 +198,18 @@ pub struct WorkflowTemplateAdmissionV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct BatchFailureDecisionV1 {
+    pub schema_version: String,
+    pub template_id: String,
+    pub stage_family: String,
+    pub action: TemplateFailureActionV1,
+    pub blocked_samples: Vec<String>,
+    pub continued_samples: Vec<String>,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct WorkflowEvidenceSummaryStoryV1 {
     pub template_id: String,
     pub sections: Vec<WorkflowEvidenceSummarySectionV1>,
@@ -894,6 +906,55 @@ pub fn evaluate_batch_fan_semantics(
         refusal_codes,
         notes,
     }
+}
+
+pub fn resolve_batch_failure_policy(
+    template: &CrossWorkflowTemplateV1,
+    stage_family: &str,
+    failed_sample_ids: &BTreeSet<String>,
+    all_sample_ids: &BTreeSet<String>,
+) -> Result<BatchFailureDecisionV1> {
+    let Some(policy) =
+        template.failure_policy.iter().find(|entry| entry.stage_family == stage_family)
+    else {
+        bail!(
+            "template {} does not define failure policy for stage family {stage_family}",
+            template.template_id
+        );
+    };
+    let mut blocked_samples = Vec::<String>::new();
+    let mut continued_samples = Vec::<String>::new();
+    match policy.action {
+        TemplateFailureActionV1::BlockDownstream => {
+            blocked_samples.extend(all_sample_ids.iter().cloned());
+        }
+        TemplateFailureActionV1::SkipFailedSample => {
+            blocked_samples.extend(failed_sample_ids.iter().cloned());
+            continued_samples.extend(
+                all_sample_ids
+                    .iter()
+                    .filter(|sample_id| !failed_sample_ids.contains(*sample_id))
+                    .cloned(),
+            );
+        }
+        TemplateFailureActionV1::ContinueCohort => {
+            blocked_samples.extend(failed_sample_ids.iter().cloned());
+            continued_samples.extend(all_sample_ids.iter().cloned());
+        }
+    }
+    blocked_samples.sort();
+    blocked_samples.dedup();
+    continued_samples.sort();
+    continued_samples.dedup();
+    Ok(BatchFailureDecisionV1 {
+        schema_version: "bijux.cross.failure_decision.v1".to_string(),
+        template_id: template.template_id.clone(),
+        stage_family: stage_family.to_string(),
+        action: policy.action,
+        blocked_samples,
+        continued_samples,
+        notes: vec![policy.downstream_effect.clone()],
+    })
 }
 
 pub fn validate_template_overrides(
