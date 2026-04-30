@@ -3,12 +3,13 @@
 
 use crate::diagnostics::BenchError;
 use crate::model::{
-    BackendComparisonSpec, BenchmarkCorpusManifest, BenchmarkObservation, BenchmarkSummary,
-    CorpusDatasetSpec, DriftScenarioSpec, MetricSummary, SummaryRow, TruthSetHook, TruthSetStatus,
+    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkObservation,
+    BenchmarkSummary, CorpusDatasetSpec, DriftScenarioSpec, MetricSummary, SummaryRow, TruthSetHook,
+    TruthSetStatus,
 };
 use crate::policy::{GateDecision, GateViolation};
 
-use super::{CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
+use super::{BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
 
 /// # Errors
 /// Returns an error if corpus schema or required dataset metadata is invalid.
@@ -52,6 +53,44 @@ pub fn validate_corpus_manifest(corpus: &BenchmarkCorpusManifest) -> Result<(), 
                 scenario.scenario_id
             )));
         }
+    }
+    Ok(())
+}
+
+/// # Errors
+/// Returns an error if bundle schema or linkage metadata is invalid.
+pub fn validate_bundle_manifest(bundle: &BenchmarkBundleManifest) -> Result<(), BenchError> {
+    if bundle.schema_version != BUNDLE_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(format!(
+            "bundle schema mismatch: {}",
+            bundle.schema_version
+        )));
+    }
+    required_text(&bundle.bundle_id, "bundle.bundle_id")?;
+    required_text(&bundle.environment_label, "bundle.environment_label")?;
+    if bundle.corpora.is_empty() {
+        return Err(BenchError::InvalidPolicy(
+            "bundle must reference at least one corpus id".to_string(),
+        ));
+    }
+    if bundle.metrics.is_empty() {
+        return Err(BenchError::InvalidPolicy(
+            "bundle must include at least one benchmark metric".to_string(),
+        ));
+    }
+    if bundle.scientific_caveats.is_empty() {
+        return Err(BenchError::InvalidPolicy(
+            "bundle must include at least one scientific caveat".to_string(),
+        ));
+    }
+    for corpus_id in &bundle.corpora {
+        required_text(corpus_id, "bundle corpus id")?;
+    }
+    for metric in &bundle.metrics {
+        required_text(metric, "bundle metric id")?;
+    }
+    for caveat in &bundle.scientific_caveats {
+        required_text(caveat, "bundle caveat")?;
     }
     Ok(())
 }
@@ -284,16 +323,16 @@ mod tests {
     use anyhow::bail;
     use bijux_dna_core::id_catalog::FASTQ_TRIM;
 
-    use crate::contract::{CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
+    use crate::contract::{BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
     use crate::model::{
-        BackendComparisonSpec, BenchmarkCorpusManifest, BenchmarkSummary, CorpusDatasetSpec,
-        CorpusDomain, CorpusScale, DriftScenarioSpec, MetricSummary, SummaryRow, TruthSetHook,
-        TruthSetStatus,
+        BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkSummary,
+        CorpusDatasetSpec, CorpusDomain, CorpusScale, DriftScenarioSpec, MetricSummary, SummaryRow,
+        TruthSetHook, TruthSetStatus,
     };
     use crate::policy::{GateDecision, GateViolation};
     use crate::stats::robust_estimators::RobustStats;
 
-    use super::{validate_corpus_manifest, validate_decision, validate_summary};
+    use super::{validate_bundle_manifest, validate_corpus_manifest, validate_decision, validate_summary};
 
     fn metric_summary(metric_id: &str, n: usize) -> MetricSummary {
         MetricSummary {
@@ -388,6 +427,20 @@ mod tests {
                 caveat: "drift scenario highlights engineering deltas and not biological validity"
                     .to_string(),
             }],
+        }
+    }
+
+    fn valid_bundle() -> BenchmarkBundleManifest {
+        BenchmarkBundleManifest {
+            schema_version: BUNDLE_SCHEMA_V1.to_string(),
+            bundle_id: "bundle.ci.surface".to_string(),
+            corpora: vec!["fastq_ci_small".to_string(), "bam_ci_small".to_string()],
+            environment_label: "ci-linux".to_string(),
+            metrics: vec!["runtime_s".to_string(), "memory_mb".to_string()],
+            scientific_caveats: vec![
+                "bundle metrics are engineering fitness signals and not scientific truth rankings"
+                    .to_string(),
+            ],
         }
     }
 
@@ -604,6 +657,19 @@ mod tests {
         };
 
         assert!(err.to_string().contains("must not repeat drift scenario_id"));
+        Ok(())
+    }
+
+    #[test]
+    fn bundle_rejects_missing_caveats() -> anyhow::Result<()> {
+        let mut bundle = valid_bundle();
+        bundle.scientific_caveats.clear();
+
+        let Err(err) = validate_bundle_manifest(&bundle) else {
+            bail!("bundle without caveats should fail");
+        };
+
+        assert!(err.to_string().contains("must include at least one scientific caveat"));
         Ok(())
     }
 }

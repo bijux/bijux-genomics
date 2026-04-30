@@ -80,3 +80,15 @@ pub struct BenchmarkCorpusManifest {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub drift_scenarios: Vec<DriftScenarioSpec>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkBundleManifest {
+    pub schema_version: String,
+    pub bundle_id: String,
+    pub corpora: Vec<String>,
+    pub environment_label: String,
+    pub metrics: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub scientific_caveats: Vec<String>,
+}

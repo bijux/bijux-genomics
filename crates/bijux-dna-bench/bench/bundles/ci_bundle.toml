@@ -1,0 +1,8 @@
+schema_version = "bijux.bench.bundle.v1"
+bundle_id = "bundle.ci.core"
+corpora = ["fastq_ci_small", "bam_ci_small", "vcf_ci_small"]
+environment_label = "ci-linux-amd64"
+metrics = ["runtime_s", "memory_mb", "failure_rate", "completeness"]
+scientific_caveats = [
+  "ci bundles are engineered for regression visibility and are not publication-grade scientific benchmarks",
+]

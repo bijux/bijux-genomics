@@ -21,3 +21,8 @@ pub fn bench_suites_dir() -> PathBuf {
 pub fn bench_corpora_dir() -> PathBuf {
     bench_data_dir().join("corpora")
 }
+
+#[must_use]
+pub fn bench_bundles_dir() -> PathBuf {
+    bench_data_dir().join("bundles")
+}

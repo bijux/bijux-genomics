@@ -1,0 +1,8 @@
+schema_version = "bijux.bench.bundle.v1"
+bundle_id = "bundle.local.medium"
+corpora = ["fastq_local_medium", "bam_local_medium", "vcf_local_medium"]
+environment_label = "local-workstation-linux"
+metrics = ["runtime_s", "memory_mb", "io_wait_ratio", "artifact_size_mb"]
+scientific_caveats = [
+  "local medium bundles capture environment-sensitive performance and must not be used as direct scientific truth estimates",
+]

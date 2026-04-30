@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use bijux_dna_bench_model::{
-    contract::validate_suite, BenchmarkCorpusManifest, BenchmarkSuiteSpec, CorpusDomain,
+    contract::validate_suite, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkSuiteSpec, CorpusDomain,
     CorpusScale,
 };
 use bijux_dna_domain_fastq::execution_support::{
@@ -34,6 +34,10 @@ fn checked_in_suites() -> Result<Vec<(PathBuf, BenchmarkSuiteSpec)>> {
 
 fn checked_in_corpora() -> Result<Vec<BenchmarkCorpusManifest>> {
     bijux_dna_bench::load_corpus_catalog()
+}
+
+fn checked_in_bundles() -> Result<Vec<BenchmarkBundleManifest>> {
+    bijux_dna_bench::load_bundle_catalog()
 }
 
 #[test]
@@ -514,6 +518,34 @@ fn checked_in_corpus_catalog_covers_scientific_drift_axes() -> Result<()> {
             covered_axes.contains(required_axis),
             "corpus drift catalog must include axis {required_axis}"
         );
+    }
+    Ok(())
+}
+
+#[test]
+fn checked_in_bundle_catalog_links_corpora_with_scientific_caveats() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let bundles = checked_in_bundles()?;
+    let corpus_ids = corpora
+        .iter()
+        .map(|corpus| corpus.corpus_id.as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+
+    assert!(!bundles.is_empty(), "bundle catalog must not be empty");
+    for bundle in bundles {
+        assert!(
+            !bundle.scientific_caveats.is_empty(),
+            "bundle {} must include scientific caveats",
+            bundle.bundle_id
+        );
+        for corpus_id in &bundle.corpora {
+            assert!(
+                corpus_ids.contains(corpus_id.as_str()),
+                "bundle {} references unknown corpus {}",
+                bundle.bundle_id,
+                corpus_id
+            );
+        }
     }
     Ok(())
 }
