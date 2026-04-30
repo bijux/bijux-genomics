@@ -7,4 +7,6 @@ pub use crate::surface::request_contracts::{
     ReplayExplainRequestV1, ReplayExplainResponseV1, RunBrowserFilterV1, RunBrowserRequestV1,
     RunBrowserResponseV1, RunBrowserRowV1, RunControlResponse, RunLineageEdgeV1,
     RunLineageQueryRequestV1, RunLineageQueryResponseV1, RunRequest, RunResult, RunStatus,
+    SignedBundleRequestV1, SignedBundleResponseV1, SignedBundleVerifyRequestV1,
+    SignedBundleVerifyResponseV1,
 };

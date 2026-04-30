@@ -3,7 +3,8 @@ use bijux_dna_api::v1::api::{
     browse_runs, evidence_gap, operator_diagnosis, query_run_lineage, status,
     render_operator_diagnosis_output, render_run_browser_output, EvidenceGapRequestV1,
     OperatorDiagnosisRequestV1, OutputFormatV1, RedactionProfileV1, RunBrowserFilterV1,
-    RunBrowserRequestV1, RunLineageQueryRequestV1,
+    RunBrowserRequestV1, RunLineageQueryRequestV1, SignedBundleRequestV1,
+    SignedBundleVerifyRequestV1, sign_bundle_prototype, verify_signed_bundle_prototype,
 };
 
 #[test]
@@ -678,5 +679,59 @@ fn redaction_profiles_mask_paths_and_sensitive_fields() -> Result<()> {
         .commands
         .iter()
         .all(|command| command.argv.first().is_some()));
+    Ok(())
+}
+
+#[test]
+fn signed_bundle_prototype_can_sign_and_verify_run_contracts() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("run_manifest.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_manifest.v3",
+            "run_id": "signed-run",
+            "failures": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("artifact_inventory.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.artifact_inventory.v1",
+            "run_id": "signed-run",
+            "artifacts": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("hash_ledger.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.hash_ledger.v1",
+            "run_id": "signed-run",
+            "root_sha256": "abc",
+            "entries": []
+        }),
+    )?;
+
+    let signed = sign_bundle_prototype(&SignedBundleRequestV1 {
+        run_dir: temp.path().to_path_buf(),
+        key_id: "prototype-key".to_string(),
+        shared_secret: "s3cr3t".to_string(),
+    })?;
+    assert_eq!(signed.schema_version, "bijux.signed_bundle.v1");
+    assert!(signed.signature_path.exists());
+
+    let verified = verify_signed_bundle_prototype(&SignedBundleVerifyRequestV1 {
+        run_dir: temp.path().to_path_buf(),
+        signature_path: None,
+        shared_secret: "s3cr3t".to_string(),
+    })?;
+    assert!(verified.verified);
+
+    let wrong_secret = verify_signed_bundle_prototype(&SignedBundleVerifyRequestV1 {
+        run_dir: temp.path().to_path_buf(),
+        signature_path: None,
+        shared_secret: "wrong".to_string(),
+    })?;
+    assert!(!wrong_secret.verified);
+    assert_eq!(wrong_secret.reason.as_deref(), Some("signature_mismatch"));
     Ok(())
 }

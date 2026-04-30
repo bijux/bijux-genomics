@@ -36,4 +36,5 @@ pub use reporting::{
     query_run_lineage, render_report, replay_explain, replay_failed_run, replay_manifest,
     run_local_failure_injection, resume_run, status, verify_run_bundle, workspace_edges,
     write_workspace_audit, render_operator_diagnosis_output, render_run_browser_output,
+    sign_bundle_prototype, verify_signed_bundle_prototype,
 };

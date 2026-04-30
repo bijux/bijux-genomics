@@ -514,6 +514,51 @@ pub enum RedactionProfileV1 {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Request to create a prototype signed run-bundle record.
+///
+/// Stability: v1 (stable).
+pub struct SignedBundleRequestV1 {
+    pub run_dir: PathBuf,
+    pub key_id: String,
+    pub shared_secret: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Signed run-bundle prototype response.
+///
+/// Stability: v1 (stable).
+pub struct SignedBundleResponseV1 {
+    pub schema_version: String,
+    pub signature_path: PathBuf,
+    pub key_id: String,
+    pub algorithm: String,
+    pub payload_sha256: String,
+    pub signature: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Request to verify a prototype signed run-bundle record.
+///
+/// Stability: v1 (stable).
+pub struct SignedBundleVerifyRequestV1 {
+    pub run_dir: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub signature_path: Option<PathBuf>,
+    pub shared_secret: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Signature verification response.
+///
+/// Stability: v1 (stable).
+pub struct SignedBundleVerifyResponseV1 {
+    pub schema_version: String,
+    pub verified: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical run-control response.
 ///
 /// Stability: v1 (stable).

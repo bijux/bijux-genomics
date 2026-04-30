@@ -15,7 +15,8 @@ pub use entrypoints::{
     operator_health, pause_run, plan, plan_only, policy_audit, query_run_lineage,
     replay_failed_run, replay_manifest, resume_run, run_local_failure_injection, verify_run_bundle,
     run_fastq_to_bam_profile, run_pipeline, status, cache_explain, replay_explain, evidence_gap,
-    operator_diagnosis, render_operator_diagnosis_output, render_run_browser_output, RunMode,
+    operator_diagnosis, render_operator_diagnosis_output, render_run_browser_output,
+    sign_bundle_prototype, verify_signed_bundle_prototype, RunMode,
 };
 pub use operator_failure::{
     classify_operator_failure, CategorizedError, ErrorCategory, ErrorHintV1, HintSeverity,
@@ -30,6 +31,8 @@ pub use request_contracts::{
     ReplayExplainRequestV1, ReplayExplainResponseV1, RunBrowserFilterV1, RunBrowserRequestV1,
     RunBrowserResponseV1, RunBrowserRowV1, RunControlResponse, RunLineageEdgeV1,
     RunLineageQueryRequestV1, RunLineageQueryResponseV1, RunRequest, RunResult, RunStatus,
+    SignedBundleRequestV1, SignedBundleResponseV1, SignedBundleVerifyRequestV1,
+    SignedBundleVerifyResponseV1,
 };
 pub use runtime_support::{
     atomic_write_bytes, build_tool_execution_spec, ensure_dir, execution_step_from_stage_plan,

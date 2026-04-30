@@ -4,7 +4,8 @@ pub use crate::runtime::run::{
     browse_runs, cache_explain, cancel_run, dry_run, execute, execute_and_report, operator_health,
     pause_run, plan, policy_audit, query_run_lineage, render_report, replay_explain, resume_run,
     status, workspace_edges, write_workspace_audit, evidence_gap, operator_diagnosis,
-    render_operator_diagnosis_output, render_run_browser_output,
+    render_operator_diagnosis_output, render_run_browser_output, sign_bundle_prototype,
+    verify_signed_bundle_prototype,
 };
 pub use crate::surface::explain::{ExplainResponse, ExplainToolSelection, PlanExplainV1};
 pub use crate::surface::request_contracts::{
@@ -16,6 +17,8 @@ pub use crate::surface::request_contracts::{
     RedactionProfileV1, RenderReportRequest, RenderReportResult, RunBrowserFilterV1,
     RunBrowserRequestV1, RunBrowserResponseV1, RunBrowserRowV1, RunControlResponse,
     RunLineageEdgeV1, RunLineageQueryRequestV1, RunLineageQueryResponseV1, RunStatus,
+    SignedBundleRequestV1, SignedBundleResponseV1, SignedBundleVerifyRequestV1,
+    SignedBundleVerifyResponseV1,
 };
 pub use crate::surface::versioning::{route_version_inventory, ApiRouteVersionInventoryV1};
 pub use crate::v1::report::render_report_bundle_html;
