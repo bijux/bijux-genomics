@@ -6,6 +6,7 @@ mod dry_run;
 mod evidence_support;
 mod execute_run;
 mod lifecycle;
+mod local_workflows;
 mod operations;
 mod operator_controls;
 mod plan_response;
@@ -18,6 +19,9 @@ mod workspace_audit;
 
 pub use dry_run::dry_run;
 pub use execute_run::execute;
+pub use local_workflows::{
+    execute_local_bam_workflow, execute_local_fastq_workflow, execute_local_vcf_workflow,
+};
 pub use operator_controls::{cancel_run, operator_health, pause_run, resume_run};
 pub use plan_response::plan;
 pub use rendering::{execute_and_report, render_report};
