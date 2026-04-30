@@ -35,5 +35,5 @@ pub use reporting::{
     explain_successful_replay, operator_diagnosis, operator_health, pause_run, plan, policy_audit,
     query_run_lineage, render_report, replay_explain, replay_failed_run, replay_manifest,
     run_local_failure_injection, resume_run, status, verify_run_bundle, workspace_edges,
-    write_workspace_audit,
+    write_workspace_audit, render_operator_diagnosis_output, render_run_browser_output,
 };

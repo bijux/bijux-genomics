@@ -1,7 +1,8 @@
 use anyhow::Result;
 use bijux_dna_api::v1::api::{
     browse_runs, evidence_gap, operator_diagnosis, query_run_lineage, status,
-    EvidenceGapRequestV1, OperatorDiagnosisRequestV1, RunBrowserFilterV1, RunBrowserRequestV1,
+    render_operator_diagnosis_output, render_run_browser_output, EvidenceGapRequestV1,
+    OperatorDiagnosisRequestV1, OutputFormatV1, RunBrowserFilterV1, RunBrowserRequestV1,
     RunLineageQueryRequestV1,
 };
 
@@ -440,5 +441,81 @@ fn operator_diagnosis_reports_commands_and_runtime_signals() -> Result<()> {
         .commands
         .iter()
         .any(|command| command.command_id == "inspect_failure_record"));
+    Ok(())
+}
+
+#[test]
+fn stable_human_and_json_rendering_are_available_for_browser_and_diagnosis() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let run_dir = temp.path().join("render-run");
+    std::fs::create_dir_all(&run_dir)?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("run_manifest.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_manifest.v3",
+            "run_id": "render-run",
+            "failures": [],
+            "output_artifacts": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("run_state.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_state.v1",
+            "run_id": "render-run",
+            "mode": "enforced",
+            "state": "succeeded",
+            "transitions": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("queue_state.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_queue_state.v1",
+            "run_id": "render-run",
+            "dedup_key": "render",
+            "state": "succeeded",
+            "transitions": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("run_control.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_control.v1",
+            "run_id": "render-run",
+            "requested_action": null,
+            "observed_state": "succeeded",
+            "updated_at": "2026-04-30T00:00:00Z",
+            "audit_log": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("operator_health.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.operator_health.v1",
+            "run_id": "render-run",
+            "overall_ok": true,
+            "checks": []
+        }),
+    )?;
+
+    let browser = browse_runs(&RunBrowserRequestV1 {
+        runs_root: temp.path().to_path_buf(),
+        page_size: 10,
+        page_token: None,
+        filter: RunBrowserFilterV1::default(),
+    })?;
+    let browser_human = render_run_browser_output(&browser, OutputFormatV1::Human)?;
+    let browser_json = render_run_browser_output(&browser, OutputFormatV1::Json)?;
+    assert!(browser_human.contains("run_id=render-run"));
+    assert!(browser_json.contains("\"schema_version\":\"bijux.run_browser.v1\""));
+
+    let diagnosis = operator_diagnosis(&OperatorDiagnosisRequestV1 {
+        run_dir: run_dir.clone(),
+    })?;
+    let diagnosis_human = render_operator_diagnosis_output(&diagnosis, OutputFormatV1::Human)?;
+    let diagnosis_json = render_operator_diagnosis_output(&diagnosis, OutputFormatV1::Json)?;
+    assert!(diagnosis_human.contains("run_id=render-run"));
+    assert!(diagnosis_json.contains("\"schema_version\":\"bijux.operator_diagnosis.v1\""));
     Ok(())
 }

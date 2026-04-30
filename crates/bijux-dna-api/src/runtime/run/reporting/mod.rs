@@ -23,6 +23,7 @@ mod replay;
 mod replay_failed;
 mod replay_success;
 mod run_browser;
+mod stable_output;
 mod status;
 mod summary_artifact;
 mod workspace_audit;
@@ -48,6 +49,7 @@ pub use replay_failed::{assess_failed_replay_eligibility, replay_failed_run};
 pub use replay_success::explain_successful_replay;
 pub use replay_success::replay_explain;
 pub use run_browser::browse_runs;
+pub use stable_output::{render_operator_diagnosis_output, render_run_browser_output};
 pub use status::status;
 pub use workspace_audit::{policy_audit, workspace_edges, write_workspace_audit};
 

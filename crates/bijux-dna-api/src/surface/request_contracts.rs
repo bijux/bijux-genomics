@@ -489,6 +489,16 @@ pub struct OperatorDiagnosisResponseV1 {
     pub commands: Vec<OperatorDiagnosisCommandV1>,
 }
 
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+/// Stable output rendering format.
+///
+/// Stability: v1 (stable).
+pub enum OutputFormatV1 {
+    Human,
+    Json,
+}
+
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical run-control response.
 ///
