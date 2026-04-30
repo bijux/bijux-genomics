@@ -478,6 +478,82 @@ pub struct RunSchedulingDecisionV1 {
     pub warnings: Vec<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuntimeResourceLimitsV1 {
+    pub max_cpu_threads: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_memory_mb: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_scratch_mb: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_walltime_s: Option<u64>,
+    #[serde(default)]
+    pub allowed_io_intensity: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuntimeResourceAdmissionV1 {
+    pub admitted: bool,
+    pub queue_class: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub warnings: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub refusal_codes: Vec<String>,
+}
+
+#[must_use]
+pub fn admit_runtime_resources(
+    request: &RunResourceRequestV1,
+    limits: &RuntimeResourceLimitsV1,
+) -> RuntimeResourceAdmissionV1 {
+    let mut refusal_codes = Vec::new();
+    let mut warnings = Vec::new();
+
+    if request.cpu_threads > limits.max_cpu_threads {
+        refusal_codes.push("cpu_threads_exceed_limit".to_string());
+    }
+    if let (Some(requested), Some(max)) = (request.memory_mb, limits.max_memory_mb) {
+        if requested > max {
+            refusal_codes.push("memory_mb_exceed_limit".to_string());
+        }
+    }
+    if let (Some(requested), Some(max)) = (request.scratch_mb, limits.max_scratch_mb) {
+        if requested > max {
+            refusal_codes.push("scratch_mb_exceed_limit".to_string());
+        }
+    }
+    if let (Some(requested), Some(max)) = (request.walltime_s, limits.max_walltime_s) {
+        if requested > max {
+            refusal_codes.push("walltime_s_exceed_limit".to_string());
+        }
+    }
+
+    if !limits.allowed_io_intensity.is_empty()
+        && !limits.allowed_io_intensity.iter().any(|io_class| io_class == &request.io_intensity)
+    {
+        refusal_codes.push("io_intensity_not_allowed".to_string());
+    }
+
+    if request.container_runtime.is_none() {
+        warnings.push("container_runtime_unspecified".to_string());
+    }
+    if request.walltime_s.is_none() {
+        warnings.push("walltime_unspecified".to_string());
+    }
+
+    let queue_class = if request.cpu_threads >= limits.max_cpu_threads.saturating_div(2).max(1) {
+        "high_resource".to_string()
+    } else {
+        "standard".to_string()
+    };
+    RuntimeResourceAdmissionV1 {
+        admitted: refusal_codes.is_empty(),
+        queue_class,
+        warnings,
+        refusal_codes,
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum RunQueueLifecycleStateV1 {

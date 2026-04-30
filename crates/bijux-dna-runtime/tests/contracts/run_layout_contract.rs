@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
 use bijux_dna_runtime::run_layout::{
-    apptainer_smoke_workflow_plan, create_run_layout, docker_smoke_workflow_plan,
-    evaluate_fallback_safety, executor_descriptor_from_hpc_profile, lunarc_execution_profile,
-    negotiate_executor_capabilities, transition_slurm_submission, ExecutorCapabilitiesV1,
-    FallbackSafetyRequestV1, RunExecutionModeV1, SlurmJobStateV1, SlurmSubmissionRecordV1,
-    StageExecutionRequirementV1,
+    admit_runtime_resources, apptainer_smoke_workflow_plan, create_run_layout,
+    docker_smoke_workflow_plan, evaluate_fallback_safety, executor_descriptor_from_hpc_profile,
+    lunarc_execution_profile, negotiate_executor_capabilities, transition_slurm_submission,
+    ExecutorCapabilitiesV1, FallbackSafetyRequestV1, RunExecutionModeV1, RunResourceRequestV1,
+    RuntimeResourceLimitsV1, SlurmJobStateV1, SlurmSubmissionRecordV1, StageExecutionRequirementV1,
 };
 
 #[test]
@@ -215,4 +215,41 @@ fn fallback_safety_rejects_non_equivalent_outputs_or_missing_evidence_obligation
     let accepted = evaluate_fallback_safety(&safe_request);
     assert!(accepted.safe);
     assert!(accepted.refusal_codes.is_empty());
+}
+
+#[test]
+fn runtime_resource_admission_warns_or_refuses_before_execution() {
+    let limits = RuntimeResourceLimitsV1 {
+        max_cpu_threads: 16,
+        max_memory_mb: Some(64_000),
+        max_scratch_mb: Some(128_000),
+        max_walltime_s: Some(28_800),
+        allowed_io_intensity: vec!["low".to_string(), "medium".to_string(), "high".to_string()],
+    };
+    let request = RunResourceRequestV1 {
+        cpu_threads: 12,
+        memory_mb: Some(32_000),
+        scratch_mb: Some(64_000),
+        walltime_s: Some(14_400),
+        io_intensity: "high".to_string(),
+        container_runtime: Some("apptainer".to_string()),
+    };
+    let admitted = admit_runtime_resources(&request, &limits);
+    assert!(admitted.admitted);
+    assert!(admitted.refusal_codes.is_empty());
+    assert_eq!(admitted.queue_class, "high_resource");
+
+    let denied_request = RunResourceRequestV1 {
+        cpu_threads: 32,
+        memory_mb: Some(128_000),
+        scratch_mb: Some(256_000),
+        walltime_s: Some(36_000),
+        io_intensity: "extreme".to_string(),
+        container_runtime: None,
+    };
+    let denied = admit_runtime_resources(&denied_request, &limits);
+    assert!(!denied.admitted);
+    assert!(denied.refusal_codes.iter().any(|item| item == "cpu_threads_exceed_limit"));
+    assert!(denied.refusal_codes.iter().any(|item| item == "io_intensity_not_allowed"));
+    assert!(denied.warnings.iter().any(|item| item == "container_runtime_unspecified"));
 }
