@@ -130,6 +130,7 @@ pub use artifacts::{RemoveChimerasReportV1, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSIO
 pub use artifacts::{
     ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
 };
+pub use artifacts::{SubsampleReadsReportV1, SUBSAMPLE_READS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{TerminalDamageReportV1, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION};
 pub use artifacts::{TrimPolygReportV1, TRIM_POLYG_REPORT_SCHEMA_VERSION};
 pub use artifacts::{TrimReadsReportV1, TRIM_READS_REPORT_SCHEMA_VERSION};

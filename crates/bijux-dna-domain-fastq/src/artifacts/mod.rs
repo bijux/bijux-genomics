@@ -39,6 +39,7 @@ mod report_qc;
 mod repair_pairs;
 mod scientific_drift;
 mod screen_taxonomy;
+mod subsample_reads;
 mod trim_polyg_tails;
 mod trim_reads;
 mod trim_terminal_damage;
@@ -158,6 +159,7 @@ pub use scientific_drift::{
 pub use screen_taxonomy::{
     ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
 };
+pub use subsample_reads::{SubsampleReadsReportV1, SUBSAMPLE_READS_REPORT_SCHEMA_VERSION};
 pub use trim_polyg_tails::{TrimPolygReportV1, TRIM_POLYG_REPORT_SCHEMA_VERSION};
 pub use trim_reads::{TrimReadsReportV1, TRIM_READS_REPORT_SCHEMA_VERSION};
 pub use trim_terminal_damage::{TerminalDamageReportV1, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION};
