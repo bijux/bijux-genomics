@@ -3,6 +3,7 @@ stage_id: "vcf.damage_filter"
 status: "supported"
 scope: "post_vcf"
 domain: "vcf"
+description: "VCF stage contract for vcf.damage_filter in the governed domain registry."
 inputs:
   - name: "vcf"
     data_type: "vcf"
@@ -16,6 +17,7 @@ outputs:
     cardinality: "One"
 required_inputs: ["vcf"]
 required_outputs: ["damage_filtered_vcf", "damage_bias_audit_report"]
+tool_capability_requirements: []
 metrics:
   - name: "ct_ga_masked_sites"
   - name: "pmd_filtered_reads"
@@ -31,5 +33,6 @@ bank_hooks: ["none"]
 invariants:
   - "tool_pinned"
   - "damage_rules_reported"
-allowed_missingness: []
+allowed_missingness:
+  - "none"
 planned_out_of_scope: []

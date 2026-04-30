@@ -3,6 +3,7 @@ stage_id: "fastq.remove_chimeras"
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 domain: "fastq"
+description: "FASTQ amplicon stage for chimera detection and governed removal reporting."
 inputs:
   - name: "reads"
     data_type: "fastq"

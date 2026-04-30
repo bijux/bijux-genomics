@@ -3,6 +3,7 @@ stage_id: "vcf.roh"
 status: "planned"
 scope: "post_vcf"
 domain: "vcf"
+description: "VCF stage contract for vcf.roh in the governed domain registry."
 inputs:
   - name: "filtered_vcf"
     data_type: "vcf"
@@ -13,6 +14,7 @@ outputs:
     cardinality: "One"
 required_inputs: ["filtered_vcf"]
 required_outputs: ["roh_report"]
+tool_capability_requirements: []
 metrics:
   - name: "roh_count"
   - name: "roh_total_mb"
@@ -27,5 +29,6 @@ assumptions:
   - "roh_outputs_emit_metrics_json_with_schema_bijux.vcf.roh.v1"
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
-allowed_missingness: []
+allowed_missingness:
+  - "none"
 planned_out_of_scope: ["full scientific validation pending downstream admission"]
