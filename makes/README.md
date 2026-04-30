@@ -39,7 +39,7 @@ Target -> implementation mapping (no hidden magic):
 - `doctor` -> `cargo run -q -p bijux-dna-dev -- tooling run repo-doctor --fast` + fast parity checks
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
 - `gate-essential` -> fast architecture + domain schema + planner determinism + runtime/evidence contract lane
-- `gate-execute` -> local runner + governed execute/dry-run/status/replay contract lane
+- `gate-execute` -> local/container runner + governed execute/dry-run/status/replay lane, including runtime operations contracts for backend descriptors, queue state, run leases, run control, and operator health
 - `gate-evidence` -> FASTQ manifest->plan->runtime->artifact->evidence verification lane plus planner-only BAM/VCF evidence contracts
 - `gate-release-essential` -> Level 1 release gate across integrity, canonical smoke execution, dry-run/status evidence coverage, refusal coverage, and advisory/enforced admission checks
 - `ci` -> `make fmt lint audit test coverage` under the shared `artifacts/` contract
