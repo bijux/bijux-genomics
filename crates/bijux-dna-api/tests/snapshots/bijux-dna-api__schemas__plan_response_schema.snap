@@ -128,7 +128,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "plan_manifest": {
     "domain": "core",
-    "graph_hash": "934c4ac4579c0d17d2b467b1c1fd777757f6c050fa34f40c71aac13fbce0b37b",
+    "graph_hash": "a3a14d29db5662da8ae553288a98e5696195100d3a3a7d11aafb55948c75a65d",
     "ordered_steps": [
       {
         "advisory": false,
@@ -140,7 +140,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
             "role": "reads"
           }
         ],
-        "cache_key": "d708d00aaee13e26d6bf6d362d4932a8ac97eca2b06c76eace51d536fcf90c34",
+        "cache_key": "6f2addaa99c7df010879849eb5507369ffe4426c06159bfcd901fb38bd03c98e",
         "effective_parameters_json": {
           "command_template": [
             "echo",
@@ -167,7 +167,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       }
     ],
     "pipeline_id": "fastq-to-fastq__default__v1",
-    "plan_fingerprint": "347671b2fed7efd3f2a4d27856f08b0db1068263d83ec999dfe59590020e4813",
+    "plan_fingerprint": "de66b507315b69b914c7fc72ac2bcc11308b726b91e30c5d94d9c276cd04bb75",
     "planner_version": "planner.test",
     "policy": "PreferAccuracy",
     "profile_id": "default",
