@@ -14,6 +14,8 @@ pub const VCF_REFERENCE_CONTEXT_SCHEMA_VERSION: &str = "bijux.vcf.reference_cont
 pub const VCF_DAMAGE_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.damage_filter_summary.v1";
 pub const VCF_DIPLOID_CALLING_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.diploid.v1";
+pub const VCF_PSEUDOHAPLOID_CALLING_BOUNDARY_SCHEMA_VERSION: &str =
+    "bijux.vcf.calling_boundary.pseudohaploid.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -841,6 +843,49 @@ pub fn evaluate_diploid_calling_boundary(
     }
 }
 
+/// Evaluate pseudohaploid calling prerequisites with explicit uncertainty requirements.
+#[must_use]
+pub fn evaluate_pseudohaploid_calling_boundary(
+    has_input_bam: bool,
+    low_coverage_expected: bool,
+    sampling_strategy: Option<&str>,
+    declared_ploidy: Option<&str>,
+    uncertainty_reported: bool,
+) -> VcfCallingBoundaryV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if !has_input_bam {
+        refusal_codes.push("input_bam_required".to_string());
+    }
+    if !low_coverage_expected {
+        refusal_codes.push("low_coverage_context_required".to_string());
+    }
+    if sampling_strategy.is_none_or(str::is_empty) {
+        refusal_codes.push("sampling_strategy_required".to_string());
+    }
+    if !matches!(declared_ploidy, Some("haploid") | Some("pseudohaploid")) {
+        refusal_codes.push("pseudohaploid_ploidy_required".to_string());
+    }
+    if !uncertainty_reported {
+        refusal_codes.push("uncertainty_reporting_required".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    let prerequisites_passed = refusal_codes.is_empty();
+    VcfCallingBoundaryV1 {
+        schema_version: VCF_PSEUDOHAPLOID_CALLING_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.call_pseudohaploid".to_string(),
+        mode: "pseudohaploid".to_string(),
+        prerequisites_passed,
+        confidence: if prerequisites_passed { 0.75 } else { 0.0 },
+        refusal_codes,
+        assumptions: vec![
+            "pseudohaploid mode is intended for low-coverage contexts".to_string(),
+            "sampling strategy and uncertainty disclosure are required".to_string(),
+        ],
+        caveats: vec!["pseudo-haploid outputs are not diploid genotype replacements".to_string()],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -1214,5 +1259,28 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"reference_context_required".to_string()));
         assert!(refused.refusal_codes.contains(&"diploid_ploidy_required".to_string()));
         assert!(refused.refusal_codes.contains(&"coverage_below_diploid_minimum".to_string()));
+    }
+
+    #[test]
+    fn evaluate_pseudohaploid_calling_boundary_requires_low_coverage_context_and_uncertainty() {
+        let ready = evaluate_pseudohaploid_calling_boundary(
+            true,
+            true,
+            Some("single_read_sampling"),
+            Some("pseudohaploid"),
+            true,
+        );
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.stage_id, "vcf.call_pseudohaploid");
+        assert_eq!(ready.mode, "pseudohaploid");
+
+        let refused =
+            evaluate_pseudohaploid_calling_boundary(false, false, None, Some("diploid"), false);
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"input_bam_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"low_coverage_context_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"sampling_strategy_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"pseudohaploid_ploidy_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"uncertainty_reporting_required".to_string()));
     }
 }

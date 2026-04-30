@@ -12,17 +12,18 @@ pub mod taxonomy;
 
 pub use artifacts::{
     build_vcf_scientific_drift_report, evaluate_diploid_calling_boundary,
-    execute_damage_aware_vcf_filter, execute_vcf_filter_with_explainable_consequences,
-    execute_vcf_normalization_and_decomposition, execute_vcf_stats_workflow,
-    execute_vcf_validation, resolve_vcf_reference_context, VcfCallingBoundaryV1,
-    VcfDamageFilterSummaryV1, VcfFilterConsequenceV1, VcfNormalizationSummaryV1,
-    VcfReferenceContextResolutionV1, VcfScientificDriftArtifactDeltaV1,
+    evaluate_pseudohaploid_calling_boundary, execute_damage_aware_vcf_filter,
+    execute_vcf_filter_with_explainable_consequences, execute_vcf_normalization_and_decomposition,
+    execute_vcf_stats_workflow, execute_vcf_validation, resolve_vcf_reference_context,
+    VcfCallingBoundaryV1, VcfDamageFilterSummaryV1, VcfFilterConsequenceV1,
+    VcfNormalizationSummaryV1, VcfReferenceContextResolutionV1, VcfScientificDriftArtifactDeltaV1,
     VcfScientificDriftChangeKind, VcfScientificDriftMetricDeltaV1, VcfScientificDriftReportV1,
     VcfScientificDriftSnapshotV1, VcfStatsWorkflowSummaryV1, VcfValidationSummaryV1,
     VCF_DAMAGE_FILTER_SUMMARY_SCHEMA_VERSION, VCF_DIPLOID_CALLING_BOUNDARY_SCHEMA_VERSION,
     VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION, VCF_NORMALIZATION_SUMMARY_SCHEMA_VERSION,
-    VCF_REFERENCE_CONTEXT_SCHEMA_VERSION, VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION,
-    VCF_STATS_WORKFLOW_SCHEMA_VERSION, VCF_VALIDATION_SUMMARY_SCHEMA_VERSION,
+    VCF_PSEUDOHAPLOID_CALLING_BOUNDARY_SCHEMA_VERSION, VCF_REFERENCE_CONTEXT_SCHEMA_VERSION,
+    VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION, VCF_STATS_WORKFLOW_SCHEMA_VERSION,
+    VCF_VALIDATION_SUMMARY_SCHEMA_VERSION,
 };
 pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1};
 pub use registry_emit::{param_registry_toml, required_tools_toml};
