@@ -1,4 +1,4 @@
-use crate::model::{EnaQuery, EnaRecord, EnaResultKind};
+use crate::model::{EnaOfflineFixture, EnaQuery, EnaRecord, EnaResultKind};
 use reqwest::blocking::Client;
 
 mod error;
@@ -51,6 +51,42 @@ pub fn build_filereport_url(accession: &str, result: EnaResultKind) -> String {
 /// Returns an error when the filereport payload is empty or missing required columns.
 pub fn parse_filereport_tsv(tsv: &str, query: &EnaQuery) -> Result<Vec<EnaRecord>, EnaClientError> {
     filereport::parse_filereport_tsv(tsv, query)
+}
+
+/// # Errors
+/// Returns an error when fixture schema is unsupported or JSON decoding fails.
+pub fn fetch_records_from_offline_fixture(
+    fixture_raw: &str,
+    query: &EnaQuery,
+) -> Result<Vec<EnaRecord>, EnaClientError> {
+    let fixture: EnaOfflineFixture = serde_json::from_str(fixture_raw)
+        .map_err(|error| EnaClientError::InvalidResponse(error.to_string()))?;
+    if fixture.schema_version != "bijux.ena.offline_fixture.v1" {
+        return Err(EnaClientError::InvalidResponse(format!(
+            "unsupported offline fixture schema {}",
+            fixture.schema_version
+        )));
+    }
+    query.validate()?;
+    let sample_filter = query
+        .samples
+        .iter()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .collect::<std::collections::BTreeSet<_>>();
+    if sample_filter.is_empty() {
+        return Ok(fixture.runs);
+    }
+    Ok(fixture
+        .runs
+        .into_iter()
+        .filter(|record| {
+            record
+                .sample_accession
+                .as_deref()
+                .is_some_and(|sample| sample_filter.contains(sample))
+        })
+        .collect())
 }
 
 #[cfg(test)]
@@ -135,6 +171,86 @@ mod tests {
         };
 
         assert!(error.to_string().contains("invalid ENA query"));
+        Ok(())
+    }
+
+    #[test]
+    fn offline_fixture_fetch_supports_single_paired_and_inconsistent_rows() -> anyhow::Result<()> {
+        let query = EnaQuery {
+            projects: vec!["PRJX".to_string()],
+            samples: vec!["SAMEA1".to_string(), "SAMEA2".to_string()],
+            extra_accessions: Vec::new(),
+            result: EnaResultKind::ReadRun,
+        };
+        let fixture = serde_json::json!({
+            "schema_version": "bijux.ena.offline_fixture.v1",
+            "runs": [
+                {
+                    "study_accession": "PRJX",
+                    "sample_accession": "SAMEA1",
+                    "experiment_accession": "ERX1",
+                    "run_accession": "ERR_SINGLE",
+                    "analysis_accession": null,
+                    "tax_id": "9606",
+                    "scientific_name": "Homo sapiens",
+                    "library_layout": "SINGLE",
+                    "library_source": "GENOMIC",
+                    "library_strategy": "WGS",
+                    "instrument_model": "NovaSeq",
+                    "base_count": 100,
+                    "read_count": 10,
+                    "fastq_bytes": [42],
+                    "fastq_ftp": ["ftp.sra.ebi.ac.uk/vol1/single.fastq.gz"],
+                    "submitted_ftp": [],
+                    "sra_ftp": [],
+                    "bam_ftp": []
+                },
+                {
+                    "study_accession": "PRJX",
+                    "sample_accession": "SAMEA2",
+                    "experiment_accession": "ERX2",
+                    "run_accession": "ERR_PAIRED",
+                    "analysis_accession": null,
+                    "tax_id": "9606",
+                    "scientific_name": "Homo sapiens",
+                    "library_layout": "PAIRED",
+                    "library_source": "GENOMIC",
+                    "library_strategy": "WGS",
+                    "instrument_model": "NovaSeq",
+                    "base_count": 100,
+                    "read_count": 10,
+                    "fastq_bytes": [42, 43],
+                    "fastq_ftp": ["ftp.sra.ebi.ac.uk/vol1/p1.fastq.gz", "ftp.sra.ebi.ac.uk/vol1/p2.fastq.gz"],
+                    "submitted_ftp": [],
+                    "sra_ftp": [],
+                    "bam_ftp": []
+                },
+                {
+                    "study_accession": "PRJX",
+                    "sample_accession": null,
+                    "experiment_accession": "ERX3",
+                    "run_accession": "ERR_INCONSISTENT",
+                    "analysis_accession": null,
+                    "tax_id": "9606",
+                    "scientific_name": "Homo sapiens",
+                    "library_layout": "PAIRED",
+                    "library_source": "GENOMIC",
+                    "library_strategy": "WGS",
+                    "instrument_model": "NovaSeq",
+                    "base_count": 100,
+                    "read_count": 10,
+                    "fastq_bytes": [42],
+                    "fastq_ftp": ["ftp.sra.ebi.ac.uk/vol1/inconsistent.fastq.gz"],
+                    "submitted_ftp": [],
+                    "sra_ftp": [],
+                    "bam_ftp": []
+                }
+            ]
+        });
+        let rows = fetch_records_from_offline_fixture(&fixture.to_string(), &query)?;
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[0].run_accession.as_deref(), Some("ERR_SINGLE"));
+        assert_eq!(rows[1].run_accession.as_deref(), Some("ERR_PAIRED"));
         Ok(())
     }
 }
