@@ -4,6 +4,48 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "capabilities": {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.contamination",
+        "bam.authenticity",
+        "bam.coverage"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "coverage_floor_dependency",
+        "panel_compatibility_dependency"
+      ],
+      "story_order": [
+        "bam_admission",
+        "contamination_prerequisites",
+        "method_disagreement",
+        "qc_summary"
+      ]
+    },
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
     "input_artifacts": [
       "Bam"
     ],
@@ -17,6 +59,20 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "output_domains": [
       "Bam"
     ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.contamination": [
+          "scope",
+          "minimum_mean_coverage"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.authenticity": [
+          "disallow_certification"
+        ]
+      }
+    },
     "produces_outputs": [
       "bam",
       "bam.metrics"
@@ -58,7 +114,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.sex"
     ],
     "supports_benchmarks": true,
-    "supports_sample_sheet": false
+    "supports_sample_sheet": false,
+    "workflow_template_ids": [
+      "bam.contamination_method_comparison_report"
+    ]
   },
   "defaults": {
     "params": {
