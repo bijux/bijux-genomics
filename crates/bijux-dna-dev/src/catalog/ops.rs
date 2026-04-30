@@ -311,6 +311,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingAcquireReference,
         ),
         native(
+            "reference-external-data",
+            "Run governed reference and external-data scenario suite for goals G171-G180.",
+            NativeOpsCommandKey::ToolingReferenceExternalData,
+        ),
+        native(
             "architecture-report",
             "Generate a compact workspace architecture drift report under artifacts/architecture.",
             NativeOpsCommandKey::ToolingArchitectureReport,

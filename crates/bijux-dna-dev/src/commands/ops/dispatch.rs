@@ -111,6 +111,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingAcquireReference => {
             tooling::tooling_acquire_reference(workspace, args)
         }
+        NativeOpsCommandKey::ToolingReferenceExternalData => {
+            tooling::tooling_reference_external_data(workspace, args)
+        }
         NativeOpsCommandKey::ToolingArchitectureReport => {
             tooling::tooling_architecture_report(workspace, args)
         }

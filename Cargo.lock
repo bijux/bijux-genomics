@@ -400,6 +400,8 @@ dependencies = [
  "anyhow",
  "bijux-dna-api",
  "bijux-dna-core",
+ "bijux-dna-db-ena",
+ "bijux-dna-db-ref",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "chrono",
