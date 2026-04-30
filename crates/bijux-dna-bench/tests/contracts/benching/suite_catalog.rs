@@ -387,3 +387,27 @@ fn checked_in_corpus_catalog_contains_bam_local_medium_stress_matrix() -> Result
     }
     Ok(())
 }
+
+#[test]
+fn checked_in_corpus_catalog_contains_vcf_local_medium_stress_matrix() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let Some(vcf_local_medium) = corpora
+        .iter()
+        .find(|corpus| corpus.domain == CorpusDomain::Vcf && corpus.scale == CorpusScale::LocalMedium)
+    else {
+        anyhow::bail!("checked-in corpus catalog must include a vcf local-medium manifest");
+    };
+
+    let tags = vcf_local_medium
+        .datasets
+        .iter()
+        .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    for required in ["multisample-filtering", "normalization", "annotation", "evidence-size"] {
+        assert!(
+            tags.contains(required),
+            "vcf local-medium corpus must cover required stress tag {required}"
+        );
+    }
+    Ok(())
+}
