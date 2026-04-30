@@ -2,7 +2,8 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
-use bijux_dna_core::contract::ArtifactRef;
+use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
+use bijux_dna_core::prelude::ArtifactId;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -762,6 +763,452 @@ pub fn execute_bam_validation(
         validation_report_present: refusal_codes.is_empty(),
         refusal_codes,
     })
+}
+
+#[derive(Debug, Clone)]
+struct TinyFastqRead {
+    id: String,
+    sequence: String,
+}
+
+#[derive(Debug, Clone)]
+struct TinyReferenceContig {
+    name: String,
+    sequence: String,
+}
+
+#[derive(Debug, Clone)]
+struct TinyAlignmentHit {
+    reference_name: String,
+    position: u64,
+    mapq: u8,
+    cigar: String,
+}
+
+fn parse_tiny_fastq(path: &Path) -> Result<Vec<TinyFastqRead>> {
+    let payload = std::fs::read_to_string(path)?;
+    let lines = payload.lines().collect::<Vec<_>>();
+    if lines.len() % 4 != 0 {
+        return Err(anyhow!(
+            "FASTQ {} has {} lines, expected a multiple of four",
+            path.display(),
+            lines.len()
+        ));
+    }
+    let mut reads = Vec::with_capacity(lines.len() / 4);
+    for chunk in lines.chunks(4) {
+        let header = chunk[0];
+        let sequence = chunk[1];
+        let plus = chunk[2];
+        let quality = chunk[3];
+        if !header.starts_with('@') {
+            return Err(anyhow!("FASTQ {} has invalid header line: {header}", path.display()));
+        }
+        if plus != "+" {
+            return Err(anyhow!("FASTQ {} has invalid separator line: {plus}", path.display()));
+        }
+        if sequence.len() != quality.len() {
+            return Err(anyhow!(
+                "FASTQ {} has sequence/quality length mismatch for read {header}",
+                path.display()
+            ));
+        }
+        let id = header
+            .trim_start_matches('@')
+            .split_whitespace()
+            .next()
+            .unwrap_or_default()
+            .to_string();
+        if id.is_empty() {
+            return Err(anyhow!("FASTQ {} has empty read id", path.display()));
+        }
+        reads.push(TinyFastqRead { id, sequence: sequence.to_string() });
+    }
+    Ok(reads)
+}
+
+fn parse_tiny_reference_fasta(reference_fasta: &Path) -> Result<Vec<TinyReferenceContig>> {
+    let payload = std::fs::read_to_string(reference_fasta)?;
+    let mut references = Vec::<TinyReferenceContig>::new();
+    let mut current_name = String::new();
+    let mut current_sequence = String::new();
+    for line in payload.lines() {
+        if let Some(header) = line.strip_prefix('>') {
+            if !current_name.is_empty() {
+                references.push(TinyReferenceContig {
+                    name: current_name.clone(),
+                    sequence: current_sequence.clone(),
+                });
+            }
+            current_name = header.split_whitespace().next().unwrap_or_default().to_string();
+            current_sequence.clear();
+            continue;
+        }
+        current_sequence.push_str(line.trim());
+    }
+    if !current_name.is_empty() {
+        references.push(TinyReferenceContig { name: current_name, sequence: current_sequence });
+    }
+    if references.is_empty() {
+        return Err(anyhow!("reference {} has no FASTA contigs", reference_fasta.display()));
+    }
+    Ok(references)
+}
+
+fn bwa_style_hit(
+    sequence: &str,
+    references: &[TinyReferenceContig],
+    seed_length: Option<u32>,
+) -> Option<TinyAlignmentHit> {
+    let seed = seed_length.unwrap_or(19).max(1) as usize;
+    let prefix_len = usize::min(seed, sequence.len());
+    let prefix = &sequence[..prefix_len];
+    references.iter().find_map(|reference| {
+        reference
+            .sequence
+            .find(prefix)
+            .and_then(|seed_position| reference.sequence.find(sequence).or(Some(seed_position)))
+            .map(|position| TinyAlignmentHit {
+                reference_name: reference.name.clone(),
+                position: position as u64 + 1,
+                mapq: 60,
+                cigar: format!("{}M", sequence.len()),
+            })
+    })
+}
+
+fn bowtie2_style_hit(
+    sequence: &str,
+    references: &[TinyReferenceContig],
+) -> Option<TinyAlignmentHit> {
+    let min_anchor = usize::min(sequence.len(), 18);
+    if min_anchor == 0 {
+        return None;
+    }
+    references.iter().find_map(|reference| {
+        for anchor_len in (min_anchor..=sequence.len()).rev() {
+            for start in 0..=(sequence.len() - anchor_len) {
+                let anchor = &sequence[start..start + anchor_len];
+                if let Some(position) = reference.sequence.find(anchor) {
+                    return Some(TinyAlignmentHit {
+                        reference_name: reference.name.clone(),
+                        position: position as u64 + 1,
+                        mapq: if anchor_len == sequence.len() { 45 } else { 32 },
+                        cigar: format!("{}M", anchor_len),
+                    });
+                }
+            }
+        }
+        None
+    })
+}
+
+#[derive(Debug, Clone, Copy)]
+enum TinyAlignBackend {
+    BwaStyle,
+    Bowtie2Style,
+}
+
+fn alignment_hit_for_backend(
+    backend: TinyAlignBackend,
+    sequence: &str,
+    references: &[TinyReferenceContig],
+    seed_length: Option<u32>,
+) -> Option<TinyAlignmentHit> {
+    match backend {
+        TinyAlignBackend::BwaStyle => bwa_style_hit(sequence, references, seed_length),
+        TinyAlignBackend::Bowtie2Style => bowtie2_style_hit(sequence, references),
+    }
+}
+
+fn alignment_record_with_flags(
+    qname: &str,
+    read_group_id: &str,
+    hit: Option<&TinyAlignmentHit>,
+    paired: bool,
+    first_in_pair: bool,
+    mate_hit: Option<&TinyAlignmentHit>,
+) -> TinySamRecord {
+    let mut flag = 0_u16;
+    if paired {
+        flag |= 0x1;
+    }
+    if first_in_pair {
+        flag |= 0x40;
+    } else if paired {
+        flag |= 0x80;
+    }
+    let this_mapped = hit.is_some();
+    let mate_mapped = mate_hit.is_some();
+    if !this_mapped {
+        flag |= 0x4;
+    }
+    if paired && !mate_mapped {
+        flag |= 0x8;
+    }
+    if paired && this_mapped && mate_mapped {
+        if let (Some(this_hit), Some(other_hit)) = (hit, mate_hit) {
+            if this_hit.reference_name == other_hit.reference_name {
+                flag |= 0x2;
+            }
+        }
+    }
+    TinySamRecord {
+        qname: qname.to_string(),
+        flag,
+        rname: hit.map(|result| result.reference_name.clone()).unwrap_or_else(|| "*".to_string()),
+        pos: hit.map(|result| result.position).unwrap_or(0),
+        mapq: hit.map(|result| result.mapq).unwrap_or(0),
+        cigar: hit.map(|result| result.cigar.clone()).unwrap_or_else(|| "*".to_string()),
+        seq: "*".to_string(),
+        read_group_id: Some(read_group_id.to_string()),
+    }
+}
+
+fn write_tiny_sam_document(
+    output_bam: &Path,
+    references: &[TinyReferenceContig],
+    read_group: &ReadGroupSpec,
+    records: &[TinySamRecord],
+) -> Result<()> {
+    let mut payload = String::new();
+    payload.push_str("@HD\tVN:1.6\tSO:unsorted\n");
+    for reference in references {
+        payload.push_str(&format!("@SQ\tSN:{}\tLN:{}\n", reference.name, reference.sequence.len()));
+    }
+    payload.push_str(&format!(
+        "@RG\tID:{}\tSM:{}\tPL:{}\tLB:{}",
+        read_group.id, read_group.sample, read_group.platform, read_group.library
+    ));
+    if let Some(unit) = &read_group.platform_unit {
+        payload.push_str(&format!("\tPU:{unit}"));
+    }
+    payload.push('\n');
+    for record in records {
+        payload.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t0\t{}\t*\tRG:Z:{}\n",
+            record.qname,
+            record.flag,
+            record.rname,
+            record.pos,
+            record.mapq,
+            record.cigar,
+            record.seq,
+            record.read_group_id.as_deref().unwrap_or(&read_group.id)
+        ));
+    }
+    std::fs::write(output_bam, payload)?;
+    Ok(())
+}
+
+fn mapq_regime_from_records(records: &[TinySamRecord]) -> Option<BamMapqRegimeV1> {
+    let mapped = records.iter().filter(|record| record.is_mapped()).collect::<Vec<_>>();
+    if mapped.is_empty() {
+        return None;
+    }
+    let mean = mapped.iter().map(|record| record.mapq as f64).sum::<f64>() / mapped.len() as f64;
+    let status = if mean < 20.0 {
+        "fail"
+    } else if mean < 30.0 {
+        "warn"
+    } else {
+        "pass"
+    };
+    Some(BamMapqRegimeV1 { mean, warn_below: 30.0, fail_below: 20.0, status: status.to_string() })
+}
+
+fn align_fastq_to_bam_with_backend(
+    backend: TinyAlignBackend,
+    backend_tool_id: &str,
+    preset: Option<&str>,
+    mode: &str,
+    sensitivity_profile: Option<&str>,
+    seed_length: Option<u32>,
+    reference_fasta: &Path,
+    reads_r1: &Path,
+    reads_r2: Option<&Path>,
+    output_root: &Path,
+    sample_id: &str,
+    read_group: &ReadGroupSpec,
+) -> Result<(BamAlignmentProvenanceV1, BamMappingSummaryV1)> {
+    std::fs::create_dir_all(output_root)?;
+    let references = parse_tiny_reference_fasta(reference_fasta)?;
+    let r1_reads = parse_tiny_fastq(reads_r1)?;
+    let r2_reads =
+        if let Some(r2_path) = reads_r2 { Some(parse_tiny_fastq(r2_path)?) } else { None };
+
+    if let Some(right) = &r2_reads {
+        if right.len() != r1_reads.len() {
+            return Err(anyhow!(
+                "paired FASTQ counts differ: R1 has {} reads and R2 has {} reads",
+                r1_reads.len(),
+                right.len()
+            ));
+        }
+    }
+
+    let paired = r2_reads.is_some();
+    let mut records = Vec::<TinySamRecord>::new();
+    for (index, left) in r1_reads.iter().enumerate() {
+        let right = r2_reads.as_ref().and_then(|reads| reads.get(index));
+        let left_hit = alignment_hit_for_backend(backend, &left.sequence, &references, seed_length);
+        let right_hit = right
+            .map(|read| {
+                alignment_hit_for_backend(backend, &read.sequence, &references, seed_length)
+            })
+            .unwrap_or(None);
+        records.push(alignment_record_with_flags(
+            &left.id,
+            &read_group.id,
+            left_hit.as_ref(),
+            paired,
+            true,
+            right_hit.as_ref(),
+        ));
+        if let Some(right_read) = right {
+            let qname =
+                if right_read.id.is_empty() { left.id.as_str() } else { right_read.id.as_str() };
+            records.push(alignment_record_with_flags(
+                qname,
+                &read_group.id,
+                right_hit.as_ref(),
+                true,
+                false,
+                left_hit.as_ref(),
+            ));
+        }
+    }
+
+    let output_bam = output_root.join("align.bam");
+    let output_bai = output_root.join("align.bam.bai");
+    write_tiny_sam_document(&output_bam, &references, read_group, &records)?;
+    std::fs::write(
+        &output_bai,
+        format!(
+            "tiny-bai\tmapped:{}\ttotal:{}\n",
+            records.iter().filter(|record| record.is_mapped()).count(),
+            records.len()
+        ),
+    )?;
+
+    let outputs = vec![
+        ArtifactRef::required(
+            ArtifactId::from_static("align_bam"),
+            output_bam.clone(),
+            ArtifactRole::Bam,
+        ),
+        ArtifactRef::required(
+            ArtifactId::from_static("align_bai"),
+            output_bai.clone(),
+            ArtifactRole::Index,
+        ),
+    ];
+    let output_inventory = bam_artifact_inventory_from_outputs("bam.align", output_root, &outputs);
+    let sample_identity = bam_sample_identity(
+        sample_id,
+        read_group,
+        Some("preserve"),
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+    );
+    let strategy = bam_alignment_strategy_for_tool(backend_tool_id, preset);
+    let post_alignment_chain = strategy
+        .as_ref()
+        .map(|entry| entry.post_alignment_chain.clone())
+        .or_else(|| bam_post_alignment_chain("samtools_coordinate_validate"))
+        .ok_or_else(|| anyhow!("post-alignment chain samtools_coordinate_validate is undefined"))?;
+    let provenance = BamAlignmentProvenanceV1 {
+        schema_version: BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.align".to_string(),
+        backend_tool_id: backend_tool_id.to_string(),
+        strategy_id: strategy.as_ref().map(|entry| entry.strategy_id.clone()),
+        preset: preset
+            .map(ToOwned::to_owned)
+            .or_else(|| strategy.as_ref().map(|entry| entry.default_preset.clone())),
+        mode: Some(mode.to_string()),
+        sensitivity_profile: sensitivity_profile.map(ToOwned::to_owned),
+        seed_length,
+        reference_fasta: reference_fasta.to_path_buf(),
+        reference_digest: None,
+        post_alignment_chain: Some(post_alignment_chain),
+        sample_identity,
+        read_group: read_group.clone(),
+        outputs: output_inventory,
+    };
+
+    let mapping_summary = BamMappingSummaryV1 {
+        schema_version: BAM_MAPPING_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.mapping_summary".to_string(),
+        flagstat: flagstat_from_records(&records),
+        stats_present: true,
+        idxstats_present: true,
+        mapq_regime: mapq_regime_from_records(&records),
+    };
+
+    Ok((provenance, mapping_summary))
+}
+
+/// Align tiny FASTQ fixtures to a tiny reference with BWA-style semantics.
+///
+/// # Errors
+/// Returns an error when FASTQ/FASTA inputs are malformed or outputs cannot be written.
+pub fn align_fastq_to_bam_bwa_style(
+    reference_fasta: &Path,
+    reads_r1: &Path,
+    reads_r2: Option<&Path>,
+    output_root: &Path,
+    sample_id: &str,
+    read_group: &ReadGroupSpec,
+    preset: Option<&str>,
+    seed_length: Option<u32>,
+) -> Result<(BamAlignmentProvenanceV1, BamMappingSummaryV1)> {
+    align_fastq_to_bam_with_backend(
+        TinyAlignBackend::BwaStyle,
+        "bwa",
+        preset,
+        "end_to_end",
+        None,
+        seed_length,
+        reference_fasta,
+        reads_r1,
+        reads_r2,
+        output_root,
+        sample_id,
+        read_group,
+    )
+}
+
+/// Align tiny FASTQ fixtures to a tiny reference with Bowtie2-style local sensitivity semantics.
+///
+/// # Errors
+/// Returns an error when FASTQ/FASTA inputs are malformed or outputs cannot be written.
+pub fn align_fastq_to_bam_bowtie2_style(
+    reference_fasta: &Path,
+    reads_r1: &Path,
+    reads_r2: Option<&Path>,
+    output_root: &Path,
+    sample_id: &str,
+    read_group: &ReadGroupSpec,
+    sensitivity_profile: Option<&str>,
+) -> Result<(BamAlignmentProvenanceV1, BamMappingSummaryV1)> {
+    align_fastq_to_bam_with_backend(
+        TinyAlignBackend::Bowtie2Style,
+        "bowtie2",
+        Some("default"),
+        "local",
+        sensitivity_profile,
+        None,
+        reference_fasta,
+        reads_r1,
+        reads_r2,
+        output_root,
+        sample_id,
+        read_group,
+    )
 }
 
 #[must_use]
@@ -1544,5 +1991,74 @@ r001\t99\tchr1\n",
         let summary = execute_bam_validation(&sam, None, None).expect("validate malformed");
         assert!(!summary.validation_report_present);
         assert!(summary.refusal_codes.contains(&"malformed_alignment_record".to_string()));
+    }
+
+    fn write_fastq(path: &Path, records: &[(&str, &str)]) {
+        let mut payload = String::new();
+        for (id, sequence) in records {
+            payload.push_str(&format!("@{id}\n{sequence}\n+\n{}\n", "I".repeat(sequence.len())));
+        }
+        std::fs::write(path, payload).expect("write FASTQ fixture");
+    }
+
+    #[test]
+    fn align_fastq_to_bam_bwa_style_emits_inventory_and_mapping_summary() {
+        let temp = unique_temp_dir("bam-align-bwa");
+        let reference = temp.join("reference.fa");
+        let reads_r1 = temp.join("reads_R1.fastq");
+        let reads_r2 = temp.join("reads_R2.fastq");
+        std::fs::write(&reference, ">chr1\nACGTACGTACGTACGTACGT\n").expect("write reference");
+        write_fastq(&reads_r1, &[("read1/1", "ACGTAC"), ("read2/1", "TTTTTT")]);
+        write_fastq(&reads_r2, &[("read1/2", "GTACGT"), ("read2/2", "AAAAAA")]);
+
+        let read_group = ReadGroupSpec::with_defaults("sample1");
+        let out = temp.join("align-bwa");
+        let (provenance, summary) = align_fastq_to_bam_bwa_style(
+            &reference,
+            &reads_r1,
+            Some(&reads_r2),
+            &out,
+            "sample1",
+            &read_group,
+            Some("default"),
+            Some(12),
+        )
+        .expect("align with bwa-style backend");
+
+        assert_eq!(provenance.backend_tool_id, "bwa");
+        assert_eq!(provenance.mode.as_deref(), Some("end_to_end"));
+        assert!(provenance.outputs.outputs.iter().any(|entry| entry.name == "align_bam"));
+        assert_eq!(summary.flagstat.total_reads, Some(4));
+        assert!(summary.mapq_regime.is_some());
+        assert!(out.join("align.bam").exists());
+        assert!(out.join("align.bam.bai").exists());
+    }
+
+    #[test]
+    fn align_fastq_to_bam_bowtie2_style_keeps_local_sensitivity_context() {
+        let temp = unique_temp_dir("bam-align-bowtie2");
+        let reference = temp.join("reference.fa");
+        let reads_r1 = temp.join("reads_R1.fastq");
+        std::fs::write(&reference, ">chr1\nAACCGGTTAACCGGTT\n").expect("write reference");
+        write_fastq(&reads_r1, &[("read-local", "GGTTAA"), ("read-unmapped", "TTTTTTTTTT")]);
+
+        let read_group = ReadGroupSpec::with_defaults("sample2");
+        let out = temp.join("align-bowtie2");
+        let (provenance, summary) = align_fastq_to_bam_bowtie2_style(
+            &reference,
+            &reads_r1,
+            None,
+            &out,
+            "sample2",
+            &read_group,
+            Some("very_sensitive_local"),
+        )
+        .expect("align with bowtie2-style backend");
+
+        assert_eq!(provenance.backend_tool_id, "bowtie2");
+        assert_eq!(provenance.mode.as_deref(), Some("local"));
+        assert_eq!(provenance.sensitivity_profile.as_deref(), Some("very_sensitive_local"));
+        assert_eq!(summary.flagstat.total_reads, Some(2));
+        assert_eq!(summary.flagstat.mapped_reads, Some(1));
     }
 }
