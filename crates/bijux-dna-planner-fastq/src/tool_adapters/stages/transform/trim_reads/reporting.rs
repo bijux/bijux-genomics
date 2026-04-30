@@ -16,6 +16,15 @@ pub(super) fn raw_backend_report_path(
     report_json.with_file_name(format!("trim_report.{tool_id}.{extension}"))
 }
 
+pub(super) fn trim_raw_backend_output_path(tool_id: &str, out_dir: &Path) -> Option<PathBuf> {
+    let report_json = out_dir.join("trim_report.json");
+    match tool_id {
+        "fastp" | "cutadapt" => Some(raw_backend_report_path(&report_json, tool_id, "json")),
+        "bbduk" => Some(raw_backend_report_path(&report_json, tool_id, "stats.txt")),
+        _ => None,
+    }
+}
+
 pub(super) fn trim_raw_backend_output(tool_id: &str, report_json: &Path) -> Option<ArtifactRef> {
     match tool_id {
         "fastp" | "cutadapt" => Some(ArtifactRef::optional(

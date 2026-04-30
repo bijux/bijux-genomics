@@ -5,6 +5,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{umi::FastqUmiParams, umi::UMI_SCHEMA_VERSION, PairedMode};
+use bijux_dna_domain_fastq::umi_artifact_paths;
 use bijux_dna_domain_fastq::STAGE_EXTRACT_UMIS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -48,10 +49,15 @@ pub fn plan_umi_with_options(
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_umi_tool_list(std::slice::from_ref(&tool_id))?;
-    let output_r1 = out_dir.join("umi_tools.r1.fastq.gz");
-    let output_r2 = out_dir.join("umi_tools.r2.fastq.gz");
-    let report_json = out_dir.join("umi_report.json");
-    let raw_backend_report = out_dir.join("umi_tools.extract.log");
+    let artifact_paths = umi_artifact_paths(out_dir, true);
+    let output_r1 = artifact_paths.reads_r1;
+    let output_r2 = artifact_paths
+        .reads_r2
+        .ok_or_else(|| anyhow!("paired umi stage must declare an R2 output path"))?;
+    let report_json = artifact_paths.report_json;
+    let raw_backend_report = artifact_paths
+        .raw_backend_report
+        .ok_or_else(|| anyhow!("umi stage must declare a raw backend report path"))?;
     let umi_pattern = options.umi_pattern.as_deref().unwrap_or(DEFAULT_UMI_PATTERN);
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = FastqUmiParams {

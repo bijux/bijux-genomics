@@ -12,6 +12,7 @@ use bijux_dna_domain_fastq::params::{
     },
     PairedMode,
 };
+use bijux_dna_domain_fastq::rrna_depletion_artifact_paths;
 use bijux_dna_domain_fastq::STAGE_DEPLETE_RRNA;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -147,16 +148,12 @@ pub fn plan_rrna_with_options(
 }
 
 fn rrna_plan_paths(paired: bool, out_dir: &Path) -> RrnaPlanPaths {
-    let filtered_reads_r1 = if paired {
-        out_dir.join("rrna_filtered_R1.fastq.gz")
-    } else {
-        out_dir.join("rrna_filtered.fastq.gz")
-    };
+    let named = rrna_depletion_artifact_paths(out_dir, paired);
     RrnaPlanPaths {
-        filtered_reads_r1,
-        filtered_reads_r2: paired.then(|| out_dir.join("rrna_filtered_R2.fastq.gz")),
-        report: out_dir.join("rrna_report.tsv"),
-        metrics: out_dir.join("rrna_report.json"),
+        filtered_reads_r1: named.retained_r1,
+        filtered_reads_r2: named.retained_r2,
+        report: named.report_tsv,
+        metrics: named.report_json,
     }
 }
 

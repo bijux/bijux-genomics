@@ -12,6 +12,7 @@ use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
 use bijux_dna_domain_fastq::params::{trim::TrimEffectiveParams, PairedMode};
+use bijux_dna_domain_fastq::trim_artifact_paths;
 use bijux_dna_domain_fastq::STAGE_TRIM_READS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -141,14 +142,12 @@ pub fn plan_with_options(
 
 fn trim_plan_paths(tool_id: &str, out_dir: &Path, paired: bool) -> Result<TrimPlanPaths> {
     let output_name = trim_output_name(tool_id).ok_or_else(|| anyhow!("unsupported trim tool"))?;
+    let raw_backend_report = reporting::trim_raw_backend_output_path(tool_id, out_dir);
+    let named = trim_artifact_paths(out_dir, paired, output_name, raw_backend_report);
     Ok(TrimPlanPaths {
-        output_r1: if paired {
-            out_dir.join(format!("R1.{output_name}"))
-        } else {
-            out_dir.join(output_name)
-        },
-        output_r2: paired.then(|| out_dir.join(format!("R2.{output_name}"))),
-        report_json: out_dir.join("trim_report.json"),
+        output_r1: named.reads_r1,
+        output_r2: named.reads_r2,
+        report_json: named.report_json,
     })
 }
 

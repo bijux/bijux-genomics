@@ -15,7 +15,8 @@ use bijux_dna_domain_fastq::params::{
     PairedMode,
 };
 use bijux_dna_domain_fastq::{
-    GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION, STAGE_REPORT_QC,
+    qc_bundle_artifact_paths, GovernedQcContributorV1, ReportQcReportV1,
+    REPORT_QC_REPORT_SCHEMA_VERSION, STAGE_REPORT_QC,
 };
 use bijux_dna_stage_contract::{StageIO, StagePlanV1};
 
@@ -124,9 +125,10 @@ pub fn plan_qc_post_with_qc_inputs(
         aggregation_engine,
         aggregation_scope,
     };
-    let multiqc_data = out_dir.join("multiqc_data");
-    let governed_qc_manifest = out_dir.join("governed_qc_inputs_manifest.json");
-    let report_json = out_dir.join("report_qc_report.json");
+    let artifact_paths = qc_bundle_artifact_paths(out_dir);
+    let multiqc_data = artifact_paths.multiqc_data_dir;
+    let governed_qc_manifest = artifact_paths.governed_qc_inputs_manifest;
+    let report_json = artifact_paths.report_json;
     params["governed_qc_inputs_manifest"] = serde_json::json!(governed_qc_manifest.clone());
     params["report_json"] = serde_json::json!(report_json.clone());
     let command_template = qc_post_command(
@@ -141,7 +143,7 @@ pub fn plan_qc_post_with_qc_inputs(
         vec![
             ArtifactRef::required(
                 ArtifactId::from_static("multiqc_report"),
-                out_dir.join("multiqc_report.html"),
+                artifact_paths.multiqc_report,
                 ArtifactRole::ReportHtml,
             ),
             ArtifactRef::required(

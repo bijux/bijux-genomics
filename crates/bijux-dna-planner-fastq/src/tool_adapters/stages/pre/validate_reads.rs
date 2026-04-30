@@ -10,6 +10,7 @@ use bijux_dna_domain_fastq::params::{
     validate::{PairSyncPolicy, ValidateEffectiveParams, ValidationMode, VALIDATE_SCHEMA_VERSION},
     PairedMode,
 };
+use bijux_dna_domain_fastq::validation_artifact_paths;
 use bijux_dna_domain_fastq::STAGE_VALIDATE_READS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
 
@@ -70,8 +71,9 @@ pub fn plan_with_options(
     out_dir: &Path,
     options: &ValidateReadsPlanOptions,
 ) -> Result<StagePlanV1> {
-    let report_path = out_dir.join("validation.json");
-    let validated_reads_manifest = out_dir.join("validated_reads_manifest.json");
+    let artifact_paths = validation_artifact_paths(out_dir, r2.is_some());
+    let report_path = artifact_paths.report_json.clone();
+    let validated_reads_manifest = artifact_paths.validated_reads_manifest.clone();
     let effective_validation_mode = options.validation_mode.clone();
     let effective_pair_sync_policy = validate_pair_sync_policy(&options.pair_sync_policy, r2)?;
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
@@ -244,7 +246,8 @@ fn validation_command(
     out_dir: &Path,
     effective_params: &ValidateEffectiveParams,
 ) -> Result<Vec<String>> {
-    let r1_log = out_dir.join("validation_r1.log");
+    let artifact_paths = validation_artifact_paths(out_dir, r2.is_some());
+    let r1_log = artifact_paths.validation_log_r1.clone();
     let mut commands = vec![
         "set +e".to_string(),
         validation_stream_command(
@@ -257,7 +260,7 @@ fn validation_command(
             effective_params.threads,
         )?,
     ];
-    let r2_log = r2.map(|_| out_dir.join("validation_r2.log"));
+    let r2_log = artifact_paths.validation_log_r2;
     if let Some(r2) = r2 {
         commands.push(validation_stream_command(
             tool,
@@ -428,7 +431,9 @@ fn append_pair_validation_commands(
     let Some(r2) = r2 else {
         return;
     };
-    let r2_log = out_dir.join("validation_r2.log");
+    let r2_log = validation_artifact_paths(out_dir, true)
+        .validation_log_r2
+        .unwrap_or_else(|| out_dir.join("validation_r2.log"));
     commands.push(format!(
         "inspection_r2=$(inspect_fastq_stream {} 2>> {}); inspect_status_r2=$?; true",
         shell_quote(r2),

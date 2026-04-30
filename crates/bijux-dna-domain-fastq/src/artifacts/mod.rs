@@ -10,6 +10,7 @@ mod filter_reads;
 mod index_reference;
 mod infer_asvs;
 mod merge_pairs;
+mod naming;
 mod normalize_abundance;
 mod normalize_primers;
 mod profile_overrepresented_sequences;
@@ -42,6 +43,14 @@ pub use index_reference::{
 };
 pub use infer_asvs::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
 pub use merge_pairs::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
+pub use naming::{
+    contaminant_depletion_artifact_paths, corrected_fastq_artifact_paths,
+    host_depletion_artifact_paths, merge_fastq_artifact_paths, qc_bundle_artifact_paths,
+    rejected_fastq_artifact_paths, rrna_depletion_artifact_paths, singleton_fastq_artifact_path,
+    trim_artifact_paths, umi_artifact_paths, validation_artifact_paths,
+    ContaminantDepletionArtifactPaths, FastqTransformArtifactPaths, HostDepletionArtifactPaths,
+    QcBundleArtifactPaths, RrnaDepletionArtifactPaths, ValidationArtifactPaths,
+};
 pub use normalize_abundance::{
     NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
 };

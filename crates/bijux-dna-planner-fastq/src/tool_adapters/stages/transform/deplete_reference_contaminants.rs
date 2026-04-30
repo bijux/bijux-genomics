@@ -4,6 +4,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::contaminant_depletion_artifact_paths;
 use bijux_dna_domain_fastq::params::{
     screen::{ReferenceContaminantEffectiveParams, REFERENCE_DEPLETION_SCHEMA_VERSION},
     PairedMode,
@@ -92,14 +93,11 @@ pub fn plan_contaminant_screen_with_index_backend(
 ) -> Result<StagePlanV1> {
     let tool_id = tool.tool_id.to_string();
     normalize_contaminant_screen_tool_list(std::slice::from_ref(&tool_id))?;
-    let output_r1 = if r2.is_some() {
-        out_dir.join("contaminant_screened_R1.fastq.gz")
-    } else {
-        out_dir.join("contaminant_screened.fastq.gz")
-    };
-    let output_r2 = r2.map(|_| out_dir.join("contaminant_screened_R2.fastq.gz"));
-    let report = out_dir.join("contaminant_screen_report.json");
-    let raw_backend_report = out_dir.join("bowtie2.contaminant.metrics.txt");
+    let artifact_paths = contaminant_depletion_artifact_paths(out_dir, r2.is_some());
+    let output_r1 = artifact_paths.retained_r1;
+    let output_r2 = artifact_paths.retained_r2;
+    let report = artifact_paths.report_json;
+    let raw_backend_report = artifact_paths.raw_backend_report;
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
     let effective_params = ReferenceContaminantEffectiveParams {
         schema_version: REFERENCE_DEPLETION_SCHEMA_VERSION.to_string(),

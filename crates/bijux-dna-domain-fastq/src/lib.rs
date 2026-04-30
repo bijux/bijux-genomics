@@ -25,6 +25,14 @@ mod stage_tool_governance;
 pub mod stages;
 pub mod types;
 
+pub use artifacts::{
+    contaminant_depletion_artifact_paths, corrected_fastq_artifact_paths,
+    host_depletion_artifact_paths, merge_fastq_artifact_paths, qc_bundle_artifact_paths,
+    rejected_fastq_artifact_paths, rrna_depletion_artifact_paths, singleton_fastq_artifact_path,
+    trim_artifact_paths, umi_artifact_paths, validation_artifact_paths,
+    ContaminantDepletionArtifactPaths, FastqTransformArtifactPaths, HostDepletionArtifactPaths,
+    QcBundleArtifactPaths, RrnaDepletionArtifactPaths, ValidationArtifactPaths,
+};
 pub use artifacts::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
@@ -151,12 +159,13 @@ pub use qc_contract::{
 pub use run::{assess_input_dir, discover_fastq_files};
 pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
 pub use stage_tool_governance::{
-    benchmark_readiness_for_stage_tool, filter_tools_for_input_layout, stage_benchmark_governance,
+    benchmark_readiness_for_stage_tool, declared_input_layouts_for_stage,
+    filter_tools_for_input_layout, stage_accepts_input_layout, stage_benchmark_governance,
     stage_tool_capability_contract, stage_tool_governance_profile,
     stage_tool_governance_profiles_for_stage, stage_tool_maturity, tool_supports_input_layout,
-    BenchmarkReadinessLevel, RuntimeNormalizationLevel, StageBenchmarkGovernance,
-    StageToolBenchmarkContractMaturity, StageToolCapabilityContract, StageToolGovernanceProfile,
-    StageToolMaturityLevel, StageToolNormalizationMaturity,
+    BenchmarkReadinessLevel, FastqStageLayoutPolicy, RuntimeNormalizationLevel,
+    StageBenchmarkGovernance, StageToolBenchmarkContractMaturity, StageToolCapabilityContract,
+    StageToolGovernanceProfile, StageToolMaturityLevel, StageToolNormalizationMaturity,
 };
 pub use stages::{
     assess_merge_suitability, contract_for_stage, ensure_umi_headers, inspect_headers,
@@ -183,8 +192,8 @@ pub use stages::{
 };
 pub use types::{
     AdapterContributionV1, AdapterTrimmingReportV1, FastqArtifact, FastqArtifactKind, FastqLayout,
-    FastqPE, FastqPairedEnd, FastqSE, FastqSampleId, FastqSingleEnd, FastqStats, RetentionReportV1,
-    ToolReferenceV1,
+    FastqPE, FastqPairedEnd, FastqReadLayout, FastqSE, FastqSampleId, FastqSingleEnd, FastqStats,
+    RetentionReportV1, ToolReferenceV1, FASTQ_DECLARED_READ_LAYOUTS,
 };
 
 pub use bench_repository::{
