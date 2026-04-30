@@ -17,6 +17,7 @@ mod asset_verification;
 mod build_contaminant_db;
 mod build_rrna_db;
 mod build_taxonomy_db;
+mod fastq_io;
 mod prepare_adapter_bank;
 mod prepare_host_reference_bundle;
 mod prepare_primer_bank;
