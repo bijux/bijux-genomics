@@ -13,4 +13,16 @@ pub struct ContaminationEffectiveParams {
     pub sex_specific: bool,
     #[serde(default)]
     pub assumptions: Option<String>,
+    #[serde(default)]
+    pub required_reference_digest: Option<String>,
+    #[serde(default)]
+    pub chromosome_system: Option<String>,
+    #[serde(default)]
+    pub minimum_mean_coverage: Option<f64>,
+    #[serde(default = "default_emit_confidence_caveats")]
+    pub emit_confidence_caveats: bool,
+}
+
+fn default_emit_confidence_caveats() -> bool {
+    true
 }

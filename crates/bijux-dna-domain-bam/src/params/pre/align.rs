@@ -48,7 +48,11 @@ impl ReadGroupSpec {
 #[serde(deny_unknown_fields)]
 pub struct AlignEffectiveParams {
     pub aligner: String,
+    #[serde(default = "default_alignment_strategy_id")]
+    pub strategy_id: String,
     pub preset: String,
+    #[serde(default = "default_alignment_mode")]
+    pub mode: String,
     pub threads: u32,
     pub reference: String,
     pub reference_digest: String,
@@ -60,4 +64,12 @@ pub struct AlignEffectiveParams {
     pub seed_length: Option<u32>,
     pub build_indices: bool,
     pub emit_stats: bool,
+}
+
+fn default_alignment_strategy_id() -> String {
+    "bwa_mem_default".to_string()
+}
+
+fn default_alignment_mode() -> String {
+    "end_to_end".to_string()
 }

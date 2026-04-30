@@ -20,6 +20,8 @@ pub fn adna_shotgun_params_json(stage: BamStage) -> serde_json::Value {
             if let Ok(mut params) = serde_json::from_value::<BamEffectiveParams>(value.clone()) {
                 if let BamEffectiveParams::Align(ref mut align) = params {
                     align.preset = "adna_short".to_string();
+                    align.strategy_id = "bwa_aln_adna_short".to_string();
+                    align.mode = "seeded_short_read".to_string();
                 }
                 if let Ok(updated) = serde_json::to_value(params) {
                     value = updated;
@@ -42,6 +44,8 @@ pub fn adna_shotgun_params_json(stage: BamStage) -> serde_json::Value {
                 pmd_threshold_3p: 0.3,
                 trim_5p: 2,
                 trim_3p: 2,
+                damage_tool_profile: Some("ancient_dna_evidence".to_string()),
+                evidence_only: true,
             };
             if let Ok(updated) = serde_json::to_value(params) {
                 value = updated;

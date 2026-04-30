@@ -23,6 +23,8 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 pmd_threshold_3p: 0.3,
                 trim_5p: 2,
                 trim_3p: 2,
+                damage_tool_profile: Some("ancient_dna_evidence".to_string()),
+                evidence_only: true,
             }),
         },
         BamStage::Authenticity => BamStageSpec {
@@ -34,6 +36,8 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
             },
             default_params: BamEffectiveParams::Authenticity(AuthenticityEffectiveParams {
                 mode: "aggregate".to_string(),
+                evidence_only: true,
+                disallow_certification: true,
             }),
         },
         BamStage::Contamination => BamStageSpec {
@@ -49,6 +53,10 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
                 prior: None,
                 sex_specific: false,
                 assumptions: None,
+                required_reference_digest: None,
+                chromosome_system: None,
+                minimum_mean_coverage: Some(0.5),
+                emit_confidence_caveats: true,
             }),
         },
         BamStage::Sex => BamStageSpec {
@@ -61,6 +69,9 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
             default_params: BamEffectiveParams::Sex(SexEffectiveParams {
                 expected_sex: None,
                 method: "rxy".to_string(),
+                chromosome_system: Some("xy".to_string()),
+                minimum_y_sites: Some(100),
+                refuse_without_context: true,
             }),
         },
         BamStage::BiasMitigation => BamStageSpec {
@@ -106,7 +117,10 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
             },
             default_params: BamEffectiveParams::Haplogroups(HaplogroupEffectiveParams {
                 reference_panel: "rcrs.fasta".to_string(),
+                reference_build: "rCRS".to_string(),
                 min_coverage: Some(5.0),
+                population_scope: Some("mitochondrial_haplogroup_reference".to_string()),
+                refuse_without_population_context: true,
             }),
         },
         BamStage::Genotyping => BamStageSpec {
@@ -131,7 +145,10 @@ pub fn stage_spec_downstream(stage: BamStage) -> Option<BamStageSpec> {
             },
             default_params: BamEffectiveParams::Kinship(KinshipEffectiveParams {
                 reference_panel: "panel.vcf".to_string(),
+                reference_build: "grch38".to_string(),
+                population_scope: "human_diploid_panel".to_string(),
                 min_overlap_snps: 200,
+                requires_cohort_context: true,
             }),
         },
         _ => return None,

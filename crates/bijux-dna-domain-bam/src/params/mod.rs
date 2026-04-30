@@ -12,9 +12,9 @@ pub use core::{
 };
 pub use downstream::{
     AuthenticityEffectiveParams, BiasMitigationEffectiveParams, BqsrEffectiveParams,
-    ContaminationEffectiveParams, CoverageEffectiveParams, GenotypingEffectiveParams,
-    HaplogroupEffectiveParams, KinshipEffectiveParams, RecalibrationSkipCriteria,
-    SexEffectiveParams,
+    ContaminationEffectiveParams, CoverageEffectiveParams, EndogenousContentEffectiveParams,
+    GenotypingEffectiveParams, HaplogroupEffectiveParams, KinshipEffectiveParams,
+    RecalibrationSkipCriteria, SexEffectiveParams,
 };
 pub use pre::{
     AlignEffectiveParams, FilterEffectiveParams, QcPreEffectiveParams, ReadGroupSpec,
@@ -40,7 +40,7 @@ pub enum BamEffectiveParams {
     Coverage(CoverageEffectiveParams),
     InsertSize(CoverageEffectiveParams),
     GcBias(CoverageEffectiveParams),
-    EndogenousContent(CoverageEffectiveParams),
+    EndogenousContent(EndogenousContentEffectiveParams),
     OverlapCorrection(FilterEffectiveParams),
     Damage(DamageEffectiveParams),
     Authenticity(AuthenticityEffectiveParams),
