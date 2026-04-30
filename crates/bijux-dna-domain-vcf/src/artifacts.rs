@@ -10,6 +10,7 @@ pub const VCF_VALIDATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.validation_su
 pub const VCF_STATS_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.stats_workflow.v1";
 pub const VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION: &str = "bijux.vcf.filter_consequence.v1";
 pub const VCF_NORMALIZATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.normalization_summary.v1";
+pub const VCF_REFERENCE_CONTEXT_SCHEMA_VERSION: &str = "bijux.vcf.reference_context_resolution.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -134,6 +135,28 @@ pub struct VcfNormalizationSummaryV1 {
     pub split_multiallelic_records: u64,
     pub duplicate_records_after_normalization: u64,
     pub raw_view_preserved: bool,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfReferenceContextResolutionV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub reference_build: String,
+    pub panel_build: String,
+    #[serde(default)]
+    pub genetic_map_build: Option<String>,
+    pub contigs_observed: u32,
+    pub alias_mappings_used: u32,
+    pub fasta_present: bool,
+    pub fai_present: bool,
+    pub panel_compatible: bool,
+    pub genetic_map_compatible: bool,
+    pub passes: bool,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -601,6 +624,71 @@ pub fn execute_vcf_normalization_and_decomposition(
     })
 }
 
+/// Resolve VCF reference context and build compatibility before downstream planning.
+///
+/// # Errors
+/// Returns an error when the VCF cannot be parsed.
+pub fn resolve_vcf_reference_context(
+    input_vcf: &Path,
+    reference_build: &str,
+    panel_build: &str,
+    genetic_map_build: Option<&str>,
+    alias_map: &BTreeMap<String, String>,
+    has_fasta: bool,
+    has_fai: bool,
+    known_reference_contigs: &BTreeSet<String>,
+) -> Result<VcfReferenceContextResolutionV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut refusal_codes = Vec::<String>::new();
+    let mut alias_mappings_used = 0_u32;
+    for contig in &doc.contigs {
+        let canonical = alias_map.get(contig).map_or(contig.as_str(), String::as_str);
+        if canonical != contig {
+            alias_mappings_used += 1;
+        }
+        if !known_reference_contigs.is_empty() && !known_reference_contigs.contains(canonical) {
+            refusal_codes.push("reference_contig_mismatch".to_string());
+        }
+    }
+    if !has_fasta {
+        refusal_codes.push("reference_fasta_missing".to_string());
+    }
+    if !has_fai {
+        refusal_codes.push("reference_fai_missing".to_string());
+    }
+    let panel_compatible = reference_build == panel_build;
+    if !panel_compatible {
+        refusal_codes.push("panel_build_mismatch".to_string());
+    }
+    let genetic_map_compatible = genetic_map_build.is_none_or(|build| build == reference_build);
+    if !genetic_map_compatible {
+        refusal_codes.push("genetic_map_build_mismatch".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    Ok(VcfReferenceContextResolutionV1 {
+        schema_version: VCF_REFERENCE_CONTEXT_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.prepare_reference_panel".to_string(),
+        reference_build: reference_build.to_string(),
+        panel_build: panel_build.to_string(),
+        genetic_map_build: genetic_map_build.map(ToOwned::to_owned),
+        contigs_observed: doc.contigs.len() as u32,
+        alias_mappings_used,
+        fasta_present: has_fasta,
+        fai_present: has_fai,
+        panel_compatible,
+        genetic_map_compatible,
+        passes: refusal_codes.is_empty(),
+        refusal_codes,
+        caveats: vec![
+            "contig aliases are resolved before comparing against reference expectations"
+                .to_string(),
+            "panel and genetic map compatibility are required for downstream phasing/imputation"
+                .to_string(),
+        ],
+    })
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -877,5 +965,55 @@ chr1\t20\t.\tA\tC,G\t60\tPASS\tDP=7\tGT\t0/1\n",
         assert_eq!(summary.split_multiallelic_records, 1);
         assert!(summary.records_changed >= 1);
         assert!(summary.raw_view_preserved);
+    }
+
+    #[test]
+    fn resolve_vcf_reference_context_checks_alias_build_and_asset_compatibility() {
+        let temp = unique_temp_dir("vcf-reference-context");
+        let input = temp.join("context.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.3\n\
+##contig=<ID=1,length=1000>\n\
+##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n\
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n\
+1\t10\t.\tA\tG\t55\tPASS\tDP=9\tGT\t0/1\n",
+        )
+        .expect("write context fixture");
+
+        let alias_map = BTreeMap::from([(String::from("1"), String::from("chr1"))]);
+        let known_reference_contigs = BTreeSet::from([String::from("chr1")]);
+        let ready = resolve_vcf_reference_context(
+            &input,
+            "GRCh38",
+            "GRCh38",
+            Some("GRCh38"),
+            &alias_map,
+            true,
+            true,
+            &known_reference_contigs,
+        )
+        .expect("resolve reference context");
+        assert!(ready.passes);
+        assert_eq!(ready.alias_mappings_used, 1);
+
+        let refused = resolve_vcf_reference_context(
+            &input,
+            "GRCh38",
+            "GRCh37",
+            Some("GRCh37"),
+            &BTreeMap::new(),
+            false,
+            false,
+            &BTreeSet::from([String::from("chr2")]),
+        )
+        .expect("resolve refusal context");
+        assert!(!refused.passes);
+        assert!(refused.refusal_codes.contains(&"reference_contig_mismatch".to_string()));
+        assert!(refused.refusal_codes.contains(&"reference_fasta_missing".to_string()));
+        assert!(refused.refusal_codes.contains(&"reference_fai_missing".to_string()));
+        assert!(refused.refusal_codes.contains(&"panel_build_mismatch".to_string()));
+        assert!(refused.refusal_codes.contains(&"genetic_map_build_mismatch".to_string()));
     }
 }
