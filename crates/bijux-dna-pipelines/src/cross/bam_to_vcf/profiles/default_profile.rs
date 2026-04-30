@@ -7,14 +7,26 @@ use crate::cross::workflow_registry::cross_workflow_templates_for_pipeline;
 use crate::cross::bam_to_vcf::merged_defaults::default_base_defaults;
 use crate::cross::bam_to_vcf::required_stages::required_cross_stages;
 use crate::{
-    ArtifactType, DefaultParams, Domain, MetricsBundle, PipelineCapabilities, PipelineId,
-    PipelineProfile, ReportSection, StabilityTier,
+    ArtifactType, DefaultParams, Domain, EmptyParams, MetricsBundle, PipelineCapabilities,
+    PipelineId, PipelineProfile, ReportSection, StabilityTier,
 };
 
 #[must_use]
 pub fn bam_to_vcf_default_profile() -> PipelineProfile {
-    let (bam_profile, _vcf_profile, mut defaults) = default_base_defaults();
+    let (bam_profile, vcf_profile, mut defaults) = default_base_defaults();
     let required_stages = required_cross_stages(&bam_profile);
+    defaults.tools.insert(
+        StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
+        ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
+    );
+    defaults.params.insert(
+        StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
+        DefaultParams::Empty(EmptyParams::default()),
+    );
+    defaults.rationales.insert(
+        StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
+        "cross-domain reference preparation before BAM-to-VCF calling".to_string(),
+    );
     defaults.tools.insert(
         StageId::from_static("bam.genotyping"),
         ToolId::from_static(id_catalog::TOOL_ANGSD),
@@ -31,6 +43,18 @@ pub fn bam_to_vcf_default_profile() -> PipelineProfile {
         StageId::from_static("bam.genotyping"),
         "cross-domain BAM-to-VCF calling defaults".to_string(),
     );
+    for stage_id in [id_catalog::VCF_FILTER, id_catalog::VCF_STATS] {
+        let stage = StageId::from_static(stage_id);
+        if let Some(tool) = vcf_profile.defaults.tools.get(&stage).cloned() {
+            defaults.tools.insert(stage.clone(), tool);
+        }
+        if let Some(params) = vcf_profile.defaults.params.get(&stage).cloned() {
+            defaults.params.insert(stage.clone(), params);
+        }
+        if let Some(rationale) = vcf_profile.defaults.rationales.get(&stage).cloned() {
+            defaults.rationales.insert(stage, rationale);
+        }
+    }
     let template_ids = cross_workflow_templates_for_pipeline(id_catalog::PIPELINE_BAM_TO_VCF_DEFAULT)
         .into_iter()
         .map(|template| template.template_id)

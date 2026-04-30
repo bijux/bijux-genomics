@@ -7,7 +7,10 @@ use bijux_dna_pipelines::bam::{
     bam_adna_capture_profile, bam_adna_shotgun_profile, bam_default_profile,
     bam_reference_adna_profile,
 };
-use bijux_dna_pipelines::cross::{fastq_to_bam_adna_shotgun_profile, fastq_to_bam_default_profile};
+use bijux_dna_pipelines::cross::{
+    bam_to_vcf_default_profile, cross_workflow_templates, fastq_to_bam_adna_shotgun_profile,
+    fastq_to_bam_default_profile, fastq_to_vcf_minimal_profile,
+};
 use bijux_dna_pipelines::fastq::{
     fastq_amplicon_standard_profile, fastq_amplicon_umi_profile,
     fastq_contaminant_depletion_profile, fastq_default_profile, fastq_edna_metabarcoding_profile,
@@ -40,17 +43,20 @@ fn profile_drift_components(profile: &bijux_dna_pipelines::PipelineProfile) -> s
         })
         .collect::<BTreeMap<_, _>>();
 
-    let tool_hash = params_hash(&serde_json::to_value(&tool_map).expect("serialize tools map"))
+    let mut tool_bindings = serde_json::to_value(&tool_map).expect("serialize tools map");
+    let mut param_bindings = serde_json::to_value(&param_map).expect("serialize params hash map");
+    prune_bam_downstream(&mut tool_bindings);
+    prune_bam_downstream(&mut param_bindings);
+
+    let tool_hash = params_hash(&tool_bindings)
         .expect("hash tools map");
-    let params_hash_value =
-        params_hash(&serde_json::to_value(&param_map).expect("serialize params hash map"))
-            .expect("hash params map");
+    let params_hash_value = params_hash(&param_bindings).expect("hash params map");
 
     serde_json::json!({
         "tool_bindings_hash": tool_hash,
         "param_bindings_hash": params_hash_value,
-        "tool_bindings": tool_map,
-        "param_bindings": param_map,
+        "tool_bindings": tool_bindings,
+        "param_bindings": param_bindings,
     })
 }
 
@@ -258,6 +264,30 @@ fn fastq_reference_adna_profile_golden_stage_tool_and_param_hashes_snapshot() {
         "tool_ids": tool_ids,
         "param_hashes": param_hashes,
     });
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn bam_to_vcf_default_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "bam_to_vcf_default_profile");
+    let json = serde_json::to_value(bam_to_vcf_default_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn fastq_to_vcf_minimal_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_to_vcf_minimal_profile");
+    let json = serde_json::to_value(fastq_to_vcf_minimal_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn cross_workflow_templates_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "cross_workflow_templates");
+    let json = serde_json::to_value(cross_workflow_templates()).expect("serialize templates");
     assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
 }
 

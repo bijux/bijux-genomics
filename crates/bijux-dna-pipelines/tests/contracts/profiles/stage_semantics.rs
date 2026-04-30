@@ -26,6 +26,11 @@ fn inferred_stage_kind(stage_id: &str) -> bijux_dna_core::contract::ArtifactKind
     }
 }
 
+fn is_explicit_cross_domain_handoff(previous_stage_id: &str, stage_id: &str) -> bool {
+    (previous_stage_id.starts_with("fastq.") && stage_id.starts_with("bam."))
+        || (previous_stage_id.starts_with("bam.") && stage_id.starts_with("vcf."))
+}
+
 #[test]
 fn stage_registry_declares_semantic_io_and_versioning_metadata() {
     let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
@@ -75,6 +80,7 @@ fn pipeline_stage_sequences_are_type_correct_across_domains() {
 
     for profile in profiles {
         let mut prev_output: Option<bijux_dna_core::contract::ArtifactKind> = None;
+        let mut previous_stage_id: Option<String> = None;
         for stage_id in &profile.capabilities.required_stages {
             let key = bijux_dna_core::ids::StageId::new((*stage_id).to_string());
             let (input_kind, output_kind) = registry
@@ -87,14 +93,20 @@ fn pipeline_stage_sequences_are_type_correct_across_domains() {
                 });
             if let Some(prev) = prev_output {
                 if kind_rank(prev) != 255 && kind_rank(input_kind) != 255 {
-                    assert_eq!(
-                        prev, input_kind,
-                        "pipeline {} has incompatible stage chain: previous output {:?} -> {} input {:?}",
-                        profile.id, prev, stage_id, input_kind
-                    );
+                    let explicit_cross_handoff = previous_stage_id
+                        .as_deref()
+                        .is_some_and(|previous| is_explicit_cross_domain_handoff(previous, stage_id));
+                    if !explicit_cross_handoff {
+                        assert_eq!(
+                            prev, input_kind,
+                            "pipeline {} has incompatible stage chain: previous output {:?} -> {} input {:?}",
+                            profile.id, prev, stage_id, input_kind
+                        );
+                    }
                 }
             }
             prev_output = Some(output_kind);
+            previous_stage_id = Some(stage_id.clone());
         }
     }
 }

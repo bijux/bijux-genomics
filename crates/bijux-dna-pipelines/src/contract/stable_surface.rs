@@ -14,5 +14,6 @@ pub use super::workflow_template::{
     FanArtifactRuleV1, FanPatternV1, SampleSheetFormatV1, SampleSheetRecordV1, SampleSheetV1,
     TemplateFailureActionV1, TemplateParameterPolicyV1, WorkflowBatchEdgeV1,
     WorkflowBatchGraphV1, WorkflowBatchNodeV1, WorkflowEvidenceSummaryStoryV1,
-    WorkflowTemplateAdmissionCheckV1, WorkflowTemplateAdmissionV1,
+    WorkflowEvidenceSummarySectionV1, WorkflowTemplateAdmissionCheckV1,
+    WorkflowTemplateAdmissionV1,
 };

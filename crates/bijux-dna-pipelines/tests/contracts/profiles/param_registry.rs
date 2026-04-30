@@ -180,6 +180,14 @@ fn supported_stages_do_not_use_wrong_param_kind() {
                     stage,
                     actual_kind
                 );
+            } else if stage.starts_with("vcf.") {
+                assert!(
+                    matches!(params, DefaultParams::Vcf(_)),
+                    "profile {} stage {} must use VCF param kind, got {}",
+                    profile.id,
+                    stage,
+                    actual_kind
+                );
             } else {
                 assert!(
                     fastq_param_kind_compatible(&expected_kind, actual_kind),

@@ -175,8 +175,15 @@ pub struct WorkflowTemplateAdmissionV1 {
 #[serde(deny_unknown_fields)]
 pub struct WorkflowEvidenceSummaryStoryV1 {
     pub template_id: String,
-    pub sections: BTreeMap<String, String>,
+    pub sections: Vec<WorkflowEvidenceSummarySectionV1>,
     pub final_caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct WorkflowEvidenceSummarySectionV1 {
+    pub section_id: String,
+    pub narrative: String,
 }
 
 #[must_use]
@@ -566,8 +573,13 @@ pub fn summarize_cross_domain_evidence(
         .evidence_summary
         .story_order
         .iter()
-        .filter_map(|key| sections.get(key).map(|value| (key.clone(), value.clone())))
-        .collect::<BTreeMap<_, _>>();
+        .filter_map(|key| {
+            sections.get(key).map(|value| WorkflowEvidenceSummarySectionV1 {
+                section_id: key.clone(),
+                narrative: value.clone(),
+            })
+        })
+        .collect::<Vec<_>>();
     let mut caveats = final_caveats.to_vec();
     if caveats.is_empty() {
         caveats.extend(template.evidence_summary.final_caveat_topics.iter().cloned());

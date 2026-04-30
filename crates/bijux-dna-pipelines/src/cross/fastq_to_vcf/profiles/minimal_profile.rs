@@ -13,7 +13,7 @@ use crate::{
 
 #[must_use]
 pub fn fastq_to_vcf_minimal_profile() -> PipelineProfile {
-    let (fastq_profile, _vcf_profile, mut defaults) = minimal_base_defaults();
+    let (fastq_profile, vcf_profile, mut defaults) = minimal_base_defaults();
     let required_stages = required_cross_stages(&fastq_profile);
     defaults.tools.insert(
         StageId::from_static(id_catalog::CORE_PREPARE_REFERENCE),
@@ -39,6 +39,10 @@ pub fn fastq_to_vcf_minimal_profile() -> PipelineProfile {
                 .unwrap_or_else(|err| panic!("failed to parse BAM align defaults: {err}")),
         ),
     );
+    defaults.rationales.insert(
+        StageId::from_static(id_catalog::BAM_ALIGN),
+        "cross-domain FASTQ-to-VCF alignment defaults".to_string(),
+    );
     defaults.tools.insert(
         StageId::from_static("bam.qc_pre"),
         ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
@@ -50,6 +54,26 @@ pub fn fastq_to_vcf_minimal_profile() -> PipelineProfile {
                 .parse_effective_params(&default_params_json(BamStage::QcPre))
                 .unwrap_or_else(|err| panic!("failed to parse BAM qc_pre defaults: {err}")),
         ),
+    );
+    defaults.rationales.insert(
+        StageId::from_static("bam.qc_pre"),
+        "cross-domain BAM sort/index preparation defaults".to_string(),
+    );
+    defaults.tools.insert(
+        StageId::from_static(id_catalog::BAM_MAPPING_SUMMARY),
+        ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
+    );
+    defaults.params.insert(
+        StageId::from_static(id_catalog::BAM_MAPPING_SUMMARY),
+        DefaultParams::Bam(
+            BamStage::MappingSummary
+                .parse_effective_params(&default_params_json(BamStage::MappingSummary))
+                .unwrap_or_else(|err| panic!("failed to parse BAM mapping summary defaults: {err}")),
+        ),
+    );
+    defaults.rationales.insert(
+        StageId::from_static(id_catalog::BAM_MAPPING_SUMMARY),
+        "cross-domain mapping summary defaults before genotyping".to_string(),
     );
     defaults.tools.insert(
         StageId::from_static("bam.genotyping"),
@@ -63,6 +87,22 @@ pub fn fastq_to_vcf_minimal_profile() -> PipelineProfile {
                 .unwrap_or_else(|err| panic!("failed to parse BAM genotyping defaults: {err}")),
         ),
     );
+    defaults.rationales.insert(
+        StageId::from_static("bam.genotyping"),
+        "cross-domain FASTQ-to-VCF calling defaults".to_string(),
+    );
+    for stage_id in [id_catalog::VCF_FILTER, id_catalog::VCF_STATS] {
+        let stage = StageId::from_static(stage_id);
+        if let Some(tool) = vcf_profile.defaults.tools.get(&stage).cloned() {
+            defaults.tools.insert(stage.clone(), tool);
+        }
+        if let Some(params) = vcf_profile.defaults.params.get(&stage).cloned() {
+            defaults.params.insert(stage.clone(), params);
+        }
+        if let Some(rationale) = vcf_profile.defaults.rationales.get(&stage).cloned() {
+            defaults.rationales.insert(stage, rationale);
+        }
+    }
     let template_ids = cross_workflow_templates_for_pipeline(id_catalog::PIPELINE_FASTQ_TO_VCF_MINIMAL)
         .into_iter()
         .map(|template| template.template_id)

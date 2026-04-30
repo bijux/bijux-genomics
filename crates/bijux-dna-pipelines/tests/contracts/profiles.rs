@@ -16,5 +16,7 @@ mod pipeline_ids_unique;
 mod profiles;
 #[path = "profiles/stage_semantics.rs"]
 mod stage_semantics;
+#[path = "profiles/workflow_templates.rs"]
+mod workflow_templates;
 #[path = "profiles/vcf_invariants.rs"]
 mod vcf_invariants;
