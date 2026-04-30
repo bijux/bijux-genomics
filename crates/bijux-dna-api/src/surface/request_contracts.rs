@@ -219,6 +219,18 @@ pub struct RunStatus {
 pub struct PlanRequest {
     pub graph: bijux_dna_core::contract::ExecutionGraph,
     pub profile_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workflow_manifest: Option<bijux_dna_core::contract::WorkflowManifestV1>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub stage_plans: Vec<bijux_dna_stage_contract::StagePlanV1>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub parameter_traces: Vec<bijux_dna_core::contract::ParameterResolutionTraceV1>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub planner_refusals: Vec<bijux_dna_core::contract::PlannerRefusalRecordV1>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub planner_warnings: Vec<bijux_dna_core::contract::PlannerWarningRecordV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub compare_against: Option<bijux_dna_core::contract::PlanManifestV1>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -229,6 +241,10 @@ pub struct PlanResponse {
     pub graph: bijux_dna_core::contract::ExecutionGraph,
     pub graph_hash: String,
     pub manifest: serde_json::Value,
+    pub workflow_manifest: bijux_dna_core::contract::WorkflowManifestV1,
+    pub plan_manifest: bijux_dna_core::contract::PlanManifestV1,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub plan_diff: Option<bijux_dna_core::contract::PlanManifestDiffV1>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

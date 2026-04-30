@@ -6,6 +6,7 @@ mod dry_run;
 mod execute_run;
 mod lifecycle;
 mod plan_response;
+mod planner_manifest_support;
 mod rendering;
 mod replay;
 mod status;
