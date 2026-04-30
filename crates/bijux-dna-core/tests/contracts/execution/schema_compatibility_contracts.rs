@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use bijux_dna_core::contract::{
     governed_api_route_adapters, governed_error_code_registry, governed_schema_registry,
@@ -35,34 +35,15 @@ fn schema_registry_covers_governed_iteration_contracts() {
 
 #[test]
 fn workflow_manifest_v0_upgrades_deterministically() -> anyhow::Result<()> {
-    let legacy = serde_json::json!({
-        "schema_version": "bijux.workflow_manifest.v0",
-        "domain": "fastq",
-        "profile_id": "essential_qc",
-        "inputs": [
-            {
-                "artifact_id": "reads",
-                "role": "reads",
-                "path": "inputs/sample.fastq.gz",
-                "layout": "single_end",
-                "compression": "gzip"
-            }
-        ],
-        "sample_metadata": {
-            "sample_id": "s1"
-        },
-        "requested_stages": [
-            {
-                "stage_id": "fastq.validate_reads",
-                "advisory_only": false
-            }
-        ]
-    });
+    let legacy = fixture_json("workflow_manifest_v0.json")?;
+    let expected: WorkflowManifestV1 =
+        serde_json::from_value(fixture_json("workflow_manifest_v1.json")?)?;
 
     let (first_manifest, first_audit) = migrate_workflow_manifest_value(&legacy)?;
     let (second_manifest, second_audit) = migrate_workflow_manifest_value(&legacy)?;
 
     assert_eq!(first_manifest, second_manifest);
+    assert_eq!(first_manifest, expected);
     assert_eq!(first_audit, second_audit);
     assert_eq!(first_manifest.schema_version, "bijux.workflow_manifest.v1");
     assert!(first_manifest.evidence_expectations.is_empty());
@@ -85,7 +66,7 @@ fn plan_manifest_v0_upgrade_preserves_equivalent_v1_fingerprint() -> anyhow::Res
         "policy": current.policy,
         "workflow_fingerprint": current.workflow_fingerprint,
         "graph_hash": current.graph_hash,
-        "plan_fingerprint": current.plan_fingerprint,
+        "plan_fingerprint": "legacy-placeholder",
         "ordered_steps": current.ordered_steps
     });
 
@@ -98,6 +79,30 @@ fn plan_manifest_v0_upgrade_preserves_equivalent_v1_fingerprint() -> anyhow::Res
         "plan manifest upgraded from governed legacy v0 by materializing empty review surfaces before recomputing the plan fingerprint"
     );
     Ok(())
+}
+
+#[test]
+fn fixture_backed_legacy_plan_explains_expected_fingerprint_change() -> anyhow::Result<()> {
+    let current = current_plan_manifest()?;
+    let legacy = fixture_json("plan_manifest_v0.json")?;
+    let (migrated, audit) = migrate_plan_manifest_value(&legacy)?;
+
+    assert_ne!(migrated.plan_fingerprint, current.plan_fingerprint);
+    assert_ne!(migrated.workflow_fingerprint, current.workflow_fingerprint);
+    assert_eq!(
+        audit.exact_reason,
+        "plan manifest upgraded from governed legacy v0 by materializing empty review surfaces before recomputing the plan fingerprint"
+    );
+    assert_eq!(
+        migrated.workflow_fingerprint,
+        legacy["workflow_fingerprint"].as_str().unwrap_or_default()
+    );
+    Ok(())
+}
+
+fn fixture_json(name: &str) -> anyhow::Result<serde_json::Value> {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/compatibility").join(name);
+    Ok(serde_json::from_str(&std::fs::read_to_string(path)?)?)
 }
 
 #[test]

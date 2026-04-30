@@ -1,0 +1,42 @@
+{
+  "schema_version": "bijux.plan_manifest.v0",
+  "domain": "fastq",
+  "profile_id": "essential_qc",
+  "pipeline_id": "fastq-to-fastq__default__v1",
+  "planner_version": "planner.test",
+  "policy": "PreferAccuracy",
+  "workflow_fingerprint": "788b9368ef4df3e65b267e552d370d0899b3722762ff871f2036fd39d2fc68bf",
+  "graph_hash": "sha256:graph",
+  "plan_fingerprint": "legacy-placeholder",
+  "ordered_steps": [
+    {
+      "step_id": "fastq.validate_reads",
+      "stage_id": "fastq.validate_reads",
+      "dependencies": [],
+      "stage_contract_ref": "fastq.validate_reads@v1",
+      "effective_parameters_json": {
+        "input_path": "/tmp/runtime-root/inputs/sample.fastq.gz"
+      },
+      "environment": {
+        "image": "ghcr.io/bijux/test:1",
+        "image_digest": "sha256:deadbeef",
+        "command": [
+          "bijux-tool",
+          "--reads",
+          "/tmp/runtime-root/inputs/sample.fastq.gz"
+        ],
+        "resources": {
+          "runtime": "local",
+          "threads": 1,
+          "mem_gb": 1,
+          "tmp_gb": 1
+        },
+        "out_dir": "/tmp/runtime-root/stages/validate"
+      },
+      "artifact_promises": [],
+      "reference_asset_ids": [],
+      "cache_key": "cache:reads",
+      "advisory": false
+    }
+  ]
+}

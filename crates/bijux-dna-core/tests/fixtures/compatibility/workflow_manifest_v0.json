@@ -1,0 +1,23 @@
+{
+  "schema_version": "bijux.workflow_manifest.v0",
+  "domain": "fastq",
+  "profile_id": "essential_qc",
+  "inputs": [
+    {
+      "artifact_id": "reads",
+      "role": "reads",
+      "path": "inputs/sample.fastq.gz",
+      "layout": "single_end",
+      "compression": "gzip"
+    }
+  ],
+  "sample_metadata": {
+    "sample_id": "s1"
+  },
+  "requested_stages": [
+    {
+      "stage_id": "fastq.validate_reads",
+      "advisory_only": false
+    }
+  ]
+}
