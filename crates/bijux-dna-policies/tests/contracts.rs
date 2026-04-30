@@ -152,6 +152,8 @@ mod mod_contracts_tooling_planner_tool_id_policy_rs;
 mod mod_contracts_tooling_policies_rs;
 #[path = "contracts/tooling/docs/policy_reference_authority_policy.rs"]
 mod mod_contracts_tooling_policy_reference_authority_policy_rs;
+#[path = "contracts/tooling/docs/compatibility_reference_policy.rs"]
+mod mod_contracts_tooling_compatibility_reference_policy_rs;
 #[path = "contracts/tooling/runtime/production_container_policy.rs"]
 mod mod_contracts_tooling_production_container_policy_rs;
 #[path = "contracts/tooling/runtime/profiles_runtime_policy.rs"]
