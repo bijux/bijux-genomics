@@ -4,7 +4,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
 ---
 {
   "domain": "bam",
-  "graph_hash": "b3b43431c8bb7fb8ce9ef06a37b194422c9f7190fa8d1c344094f1283877da7b",
+  "graph_hash": "83414e8d9ada26461fc37d2906df5f8884cdca0048fa7ff1986c44302fd89f60",
   "ordered_steps": [
     {
       "advisory": false,
@@ -28,7 +28,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "2ba8cef5f82ea247c80f0683f3242646ff8adb4f0881b9700162ace0d2bac2b5",
+      "cache_key": "1be49df1931d327526bc1e56ae7b515d565c38af6f7954c64397232975f2fcd9",
       "effective_parameters_json": {
         "strict": true
       },
@@ -82,7 +82,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "f2746987070e7f9e7729f9e79873f6a28202be80cf4953fce3e3a81b8c0d4a97",
+      "cache_key": "dbd0c607292f88e82b18bd47e2f71b56c7ca2319de92d7367fddb90d380269f1",
       "dependencies": [
         "bam.validate"
       ],
@@ -142,7 +142,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "1ce20d233510278ad358eef0058770fc2b2a67bccb7e2abf75b318c547ebb1f8",
+      "cache_key": "bce44ee8ae116d34b74dda2af30c1329e4014f48eed7160d35fd663b1bf1b790",
       "dependencies": [
         "bam.qc_pre"
       ],
@@ -220,7 +220,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "7aed3095faf7f9757e542620f7a2f5c1843b0da3c5c0778ca073f19f2ce4807f",
+      "cache_key": "48c221e285729742d4dcf452f121917a6afe975c924171c80372ea25b21ad96a",
       "dependencies": [
         "bam.mapping_summary"
       ],
@@ -267,7 +267,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "f0e851ce8ce1336df34c21908af955080deebc5db555a92beb05d1efdb464caa",
+      "cache_key": "3cecec2fc9a67be9618a1bb29bf35156228aceef869e8e76f2a33bad46ee0a5d",
       "dependencies": [
         "bam.filter"
       ],
@@ -320,7 +320,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "a01ca40b5de456b2f91e100d121a08141654f038fb8ada9f37079d4c764101cb",
+      "cache_key": "ffc7fd5ab53796991a3445b2f4acc644db85149fb272ce57d86cc0a645e4cff2",
       "dependencies": [
         "bam.coverage"
       ],
@@ -406,7 +406,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
     }
   ],
   "pipeline_id": "bam-to-bam__default__v1",
-  "plan_fingerprint": "d532c9da6e9dff35ab80603262ed2846680068ee4ccc73a88ea7d40317b366d5",
+  "plan_fingerprint": "3321d55e9d50af73ad8090e5094f65ed784a62a2931c7e55c40081bc2de1ca72",
   "planner_version": "bijux-dna-planner-bam.v1",
   "policy": "PreferAccuracy",
   "profile_id": "bam-to-bam__default__v1",
