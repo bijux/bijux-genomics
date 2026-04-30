@@ -1,6 +1,14 @@
 # GENERATED FILE - DO NOT EDIT
 # Regenerate with: cargo run -p bijux-dna-dev -- examples run generate-index
 examples:
+  - id: bam_essential_alignment_qc
+    domain: bam
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/bam/essential-alignment-qc
   - id: fastq_cluster_otus_bench
     domain: fastq
     corpus_required: corpus-01-mini
