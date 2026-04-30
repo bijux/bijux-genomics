@@ -225,6 +225,28 @@ pub struct WorkflowEvidenceSummarySectionV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct CrossDomainHandoffRequestV1 {
+    pub source_stage_id: String,
+    pub target_stage_id: String,
+    pub source_domain: String,
+    pub target_domain: String,
+    pub artifact_role: ArtifactRole,
+    pub sample_id: String,
+    pub reference_id: String,
+    pub trust_class: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct CrossDomainHandoffValidationV1 {
+    pub schema_version: String,
+    pub accepted: bool,
+    pub refusal_codes: Vec<String>,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct CrossWorkflowSampleExecutionPlanV1 {
     pub sample_id: String,
     pub stage_sequence: Vec<String>,
@@ -955,6 +977,57 @@ pub fn resolve_batch_failure_policy(
         continued_samples,
         notes: vec![policy.downstream_effect.clone()],
     })
+}
+
+#[must_use]
+pub fn validate_cross_domain_handoff(
+    handoff: &CrossDomainHandoffRequestV1,
+) -> CrossDomainHandoffValidationV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    let mut notes = Vec::<String>::new();
+    if handoff.sample_id.trim().is_empty() {
+        refusal_codes.push("missing_sample_identity".to_string());
+        notes.push("handoff requires a non-empty sample_id".to_string());
+    }
+    if handoff.reference_id.trim().is_empty() {
+        refusal_codes.push("missing_reference_identity".to_string());
+        notes.push("handoff requires a non-empty reference_id".to_string());
+    }
+    if matches!(handoff.artifact_role, ArtifactRole::Unknown) {
+        refusal_codes.push("unknown_artifact_role".to_string());
+        notes.push("handoff cannot proceed with unknown artifact role".to_string());
+    }
+    let trust = handoff.trust_class.to_ascii_lowercase();
+    if trust == "simulated" && handoff.target_domain.to_ascii_lowercase() != "advisory" {
+        refusal_codes.push("simulated_artifact_not_allowed".to_string());
+        notes.push("simulated artifacts may only cross into advisory surfaces".to_string());
+    }
+    let source = handoff.source_domain.to_ascii_lowercase();
+    let target = handoff.target_domain.to_ascii_lowercase();
+    let role_family = handoff.artifact_role.family();
+    let allowed = matches!(
+        (source.as_str(), target.as_str(), role_family),
+        ("fastq", "bam", _) | ("bam", "vcf", _) | ("cross", "bam", _) | ("cross", "vcf", _)
+    ) || (source == target);
+    if !allowed {
+        refusal_codes.push("incompatible_domain_handoff".to_string());
+        notes.push(format!(
+            "handoff {} -> {} with role {} is not in the allowed cross-domain contracts",
+            handoff.source_domain,
+            handoff.target_domain,
+            handoff.artifact_role.as_str()
+        ));
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    notes.sort();
+    notes.dedup();
+    CrossDomainHandoffValidationV1 {
+        schema_version: "bijux.cross.handoff_validation.v1".to_string(),
+        accepted: refusal_codes.is_empty(),
+        refusal_codes,
+        notes,
+    }
 }
 
 pub fn validate_template_overrides(

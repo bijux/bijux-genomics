@@ -14,7 +14,8 @@ use bijux_dna_pipelines::{
     parse_sample_sheet, plan_bam_to_vcf_minimal_workflow, plan_fastq_to_bam_ancient_workflow,
     plan_fastq_to_bam_modern_workflow, plan_fastq_to_vcf_minimal_workflow,
     resolve_batch_failure_policy, sample_sheet_to_workflow_manifests,
-    summarize_cross_domain_evidence, validate_sample_sheet_preflight, validate_template_overrides,
+    summarize_cross_domain_evidence, validate_cross_domain_handoff,
+    validate_sample_sheet_preflight, validate_template_overrides, CrossDomainHandoffRequestV1,
 };
 
 #[test]
@@ -357,4 +358,33 @@ fn failure_policy_resolver_maps_stage_family_to_batch_action() {
         .expect("variant policy");
     assert_eq!(variant.action, bijux_dna_pipelines::TemplateFailureActionV1::ContinueCohort);
     assert_eq!(variant.continued_samples, vec!["S1".to_string(), "S2".to_string()]);
+}
+
+#[test]
+fn cross_domain_handoff_validator_enforces_identity_and_trust() {
+    let accepted = validate_cross_domain_handoff(&CrossDomainHandoffRequestV1 {
+        source_stage_id: "bam.genotyping".to_string(),
+        target_stage_id: "vcf.filter".to_string(),
+        source_domain: "bam".to_string(),
+        target_domain: "vcf".to_string(),
+        artifact_role: ArtifactRole::Variant,
+        sample_id: "S10".to_string(),
+        reference_id: "GRCh38".to_string(),
+        trust_class: "production".to_string(),
+    });
+    assert!(accepted.accepted);
+
+    let refused = validate_cross_domain_handoff(&CrossDomainHandoffRequestV1 {
+        source_stage_id: "fastq.validate_reads".to_string(),
+        target_stage_id: "bam.align".to_string(),
+        source_domain: "fastq".to_string(),
+        target_domain: "bam".to_string(),
+        artifact_role: ArtifactRole::Reads,
+        sample_id: "".to_string(),
+        reference_id: "GRCh38".to_string(),
+        trust_class: "simulated".to_string(),
+    });
+    assert!(!refused.accepted);
+    assert!(refused.refusal_codes.contains(&"missing_sample_identity".to_string()));
+    assert!(refused.refusal_codes.contains(&"simulated_artifact_not_allowed".to_string()));
 }
