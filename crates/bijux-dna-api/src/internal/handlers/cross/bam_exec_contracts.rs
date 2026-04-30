@@ -63,6 +63,11 @@ mod tests {
         )?;
         let mut validate_plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Validate);
         validate_plan.io.inputs[0].path = validate_bam;
+        validate_plan.io.inputs.push(ArtifactRef::required(
+            ArtifactId::new("bai"),
+            validate_index.clone(),
+            ArtifactRole::Index,
+        ));
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::Validate,
             &validate_dir,
@@ -76,6 +81,12 @@ mod tests {
                 .get("schema_version")
                 .and_then(serde_json::Value::as_str),
             Some("bijux.bam.validate.v1")
+        );
+        assert_eq!(
+            validate_summary
+                .get("bam_index")
+                .and_then(serde_json::Value::as_str),
+            Some(validate_index.to_string_lossy().as_ref())
         );
 
         let mapping_dir = temp.path().join("mapping_summary");
@@ -108,6 +119,58 @@ mod tests {
                 .get("schema_version")
                 .and_then(serde_json::Value::as_str),
             Some("bijux.bam.mapping_summary.v1")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn mapq_filter_postprocess_emits_typed_summary() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("mapq_filter");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("flagstat.before.txt"),
+            b"20 + 0 in total (QC-passed reads + QC-failed reads)\n15 + 0 mapped (75.00% : N/A)\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("flagstat.after.txt"),
+            b"12 + 0 in total (QC-passed reads + QC-failed reads)\n9 + 0 mapped (75.00% : N/A)\n",
+        )?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::MapqFilter);
+        plan.params = serde_json::json!({ "mapq_threshold": 30 });
+        plan.io.inputs[0].path = stage_dir.join("input.bam");
+        plan.io.outputs[0].path = stage_dir.join("filtered.bam");
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::MapqFilter,
+            &stage_dir,
+            &plan,
+        )?;
+        let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            stage_dir.join("mapq_filter.summary.json"),
+        )?)?;
+        assert_eq!(
+            payload
+                .get("schema_version")
+                .and_then(serde_json::Value::as_str),
+            Some("bijux.bam.mapq_filter.v1")
+        );
+        assert_eq!(
+            payload
+                .get("mapq_threshold")
+                .and_then(serde_json::Value::as_u64),
+            Some(30)
+        );
+        assert_eq!(
+            payload
+                .get("mapped_reads_removed")
+                .and_then(serde_json::Value::as_u64),
+            Some(6)
+        );
+        assert_eq!(
+            payload
+                .get("mapped_fraction_retained")
+                .and_then(serde_json::Value::as_f64),
+            Some(0.6)
         );
         Ok(())
     }
