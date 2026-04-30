@@ -258,6 +258,103 @@ mod tests {
     }
 
     #[test]
+    fn bam_sample_identity_manifest_prefers_declared_read_group_contract() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let bam = temp.path().join("align.bam");
+        std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n@RG\tID:rg1\tSM:sample-a\tPL:ILLUMINA\tLB:lib-a\tPU:pu-a\n")?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Align);
+        plan.params = serde_json::json!({
+            "sample_id": "sample-a",
+            "subject_id": "subject-a",
+            "cohort_id": "cohort-a",
+            "read_group": {
+                "id": "rg1",
+                "sample": "sample-a",
+                "platform": "ILLUMINA",
+                "library": "lib-a",
+                "platform_unit": "pu-a",
+                "lane_id": "L001",
+                "run_id": "run-a"
+            }
+        });
+        let identity = write_bam_sample_identity_manifest(temp.path(), &plan, Some(&bam), Some("preserve"))?;
+        assert_eq!(identity.sample_id, "sample-a");
+        assert_eq!(identity.lane_id.as_deref(), Some("L001"));
+        assert_eq!(identity.subject_id.as_deref(), Some("subject-a"));
+        assert!(temp.path().join("sample_identity.json").exists());
+        Ok(())
+    }
+
+    #[test]
+    fn bam_reference_preflight_records_required_assets_for_bwa() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let reference = temp.path().join("ref.fa");
+        std::fs::write(&reference, b">chr1\nACGT\n")?;
+        std::fs::write(temp.path().join("ref.fa.fai"), b"chr1\t4\t0\t4\t5\n")?;
+        std::fs::write(temp.path().join("ref.fa.dict"), b"@SQ\tSN:chr1\tLN:4\n")?;
+        std::fs::write(temp.path().join("ref.fa.bwt"), b"bwt")?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Align);
+        plan.tool_id = ToolId::new("bwa");
+        plan.params = serde_json::json!({
+            "reference_digest": "sha256:ref"
+        });
+        write_bam_reference_preflight(
+            temp.path(),
+            bijux_dna_planner_bam::stage_api::BamStage::Align,
+            &plan,
+            &reference,
+        )?;
+        let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("reference_preflight.json"),
+        )?)?;
+        assert_eq!(payload.get("passes").and_then(serde_json::Value::as_bool), Some(true));
+        assert!(payload
+            .get("required_assets")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|assets| assets.iter().any(|asset| {
+                asset.get("asset_kind").and_then(serde_json::Value::as_str) == Some("bwa_index")
+            })));
+        Ok(())
+    }
+
+    #[test]
+    fn bam_alignment_provenance_captures_seed_and_identity() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Align);
+        plan.params = serde_json::json!({
+            "sample_id": "sample-a",
+            "reference": "ref.fa",
+            "reference_digest": "sha256:ref",
+            "preset": "modern_default",
+            "sensitivity_profile": "very_sensitive",
+            "seed_length": 21,
+            "read_group": {
+                "id": "rg1",
+                "sample": "sample-a",
+                "platform": "ILLUMINA",
+                "library": "lib-a",
+                "platform_unit": "pu-a",
+                "lane_id": "L001",
+                "run_id": "run-a"
+            }
+        });
+        let identity = write_bam_sample_identity_manifest(temp.path(), &plan, None, Some("regenerate"))?;
+        write_bam_alignment_provenance(temp.path(), &plan, identity)?;
+        let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("alignment_provenance.json"),
+        )?)?;
+        assert_eq!(
+            payload.get("seed_length").and_then(serde_json::Value::as_u64),
+            Some(21)
+        );
+        assert_eq!(
+            payload.pointer("/sample_identity/sample_id").and_then(serde_json::Value::as_str),
+            Some("sample-a")
+        );
+        Ok(())
+    }
+
+    #[test]
     fn validate_stage_hard_fails_without_bam_index() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let stage_dir = temp.path().join("validate");
