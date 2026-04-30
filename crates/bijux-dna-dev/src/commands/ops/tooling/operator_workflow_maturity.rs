@@ -9,6 +9,7 @@ enum ScenarioId {
     RunComparisonCommand,
     ArtifactRetentionSimulation,
     ArtifactDedupLineage,
+    CacheCorruptionQuarantine,
 }
 
 impl ScenarioId {
@@ -18,6 +19,7 @@ impl ScenarioId {
             Self::RunComparisonCommand => "g192_run_comparison_command",
             Self::ArtifactRetentionSimulation => "g193_artifact_retention_simulation",
             Self::ArtifactDedupLineage => "g194_artifact_deduplication_lineage",
+            Self::CacheCorruptionQuarantine => "g195_cache_corruption_quarantine",
         }
     }
 
@@ -27,6 +29,7 @@ impl ScenarioId {
             Self::RunComparisonCommand => "G192",
             Self::ArtifactRetentionSimulation => "G193",
             Self::ArtifactDedupLineage => "G194",
+            Self::CacheCorruptionQuarantine => "G195",
         }
     }
 
@@ -36,6 +39,7 @@ impl ScenarioId {
             Self::RunComparisonCommand,
             Self::ArtifactRetentionSimulation,
             Self::ArtifactDedupLineage,
+            Self::CacheCorruptionQuarantine,
         ]
     }
 
@@ -47,6 +51,7 @@ impl ScenarioId {
                 Some(Self::ArtifactRetentionSimulation)
             }
             "g194_artifact_deduplication_lineage" | "G194" => Some(Self::ArtifactDedupLineage),
+            "g195_cache_corruption_quarantine" | "G195" => Some(Self::CacheCorruptionQuarantine),
             _ => None,
         }
     }
@@ -167,6 +172,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::RunComparisonCommand => scenario_run_comparison_command(),
         ScenarioId::ArtifactRetentionSimulation => scenario_artifact_retention_simulation(),
         ScenarioId::ArtifactDedupLineage => scenario_artifact_dedup_lineage(),
+        ScenarioId::CacheCorruptionQuarantine => scenario_cache_corruption_quarantine(),
     };
 
     match result {
@@ -443,6 +449,58 @@ fn scenario_artifact_dedup_lineage() -> Result<(Vec<String>, serde_json::Value)>
     ))
 }
 
+fn scenario_cache_corruption_quarantine() -> Result<(Vec<String>, serde_json::Value)> {
+    let entries = vec![
+        json!({"cache_key":"ck_ref_01","artifact_id":"aligned_bam","expected_sha":"sha_ok_a","observed_sha":"sha_ok_a","expected_size":14800000000_u64,"observed_size":14800000000_u64}),
+        json!({"cache_key":"ck_ref_02","artifact_id":"variants_vcf","expected_sha":"sha_ok_b","observed_sha":"sha_bad_b","expected_size":4100000_u64,"observed_size":4100000_u64}),
+        json!({"cache_key":"ck_ref_03","artifact_id":"coverage_json","expected_sha":"sha_ok_c","observed_sha":"sha_ok_c","expected_size":120000_u64,"observed_size":0_u64}),
+        json!({"cache_key":"ck_ref_04","artifact_id":"qc_manifest","expected_sha":"sha_ok_d","observed_sha":"sha_ok_d","expected_size":52000_u64,"observed_size":52000_u64}),
+    ];
+
+    let mut valid_entries = Vec::<String>::new();
+    let mut quarantined_entries = Vec::<serde_json::Value>::new();
+    for entry in &entries {
+        let cache_key = entry["cache_key"].as_str().unwrap_or_default().to_string();
+        let sha_ok = entry["expected_sha"] == entry["observed_sha"];
+        let size_ok = entry["expected_size"] == entry["observed_size"] && entry["observed_size"].as_u64().unwrap_or(0) > 0;
+        if sha_ok && size_ok {
+            valid_entries.push(cache_key);
+        } else {
+            let reason = if !sha_ok {
+                "sha_mismatch"
+            } else {
+                "size_mismatch_or_empty_payload"
+            };
+            quarantined_entries.push(json!({
+                "cache_key": cache_key,
+                "artifact_id": entry["artifact_id"],
+                "reason": reason,
+                "quarantine_path": format!("artifacts/cache/quarantine/{cache_key}"),
+            }));
+        }
+    }
+
+    if quarantined_entries.len() < 2 {
+        return Err(anyhow!(
+            "cache corruption quarantine scenario expected multiple corrupt cache entries"
+        ));
+    }
+
+    Ok((
+        vec![
+            "cache corruption quarantine isolates corrupt entries while preserving valid cache evidence".to_string(),
+            "quarantine records include cache key, artifact identity, and reason for deterministic triage".to_string(),
+        ],
+        json!({
+            "entry_count": entries.len(),
+            "valid_entry_count": valid_entries.len(),
+            "quarantine_count": quarantined_entries.len(),
+            "valid_entries": valid_entries,
+            "quarantined_entries": quarantined_entries
+        }),
+    ))
+}
+
 fn diff_strings(left: &serde_json::Value, right: &serde_json::Value) -> serde_json::Value {
     let left_rows = left
         .as_array()
@@ -478,7 +536,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G191", "G192", "G193", "G194"]);
+        assert_eq!(ids, vec!["G191", "G192", "G193", "G194", "G195"]);
     }
 
     #[test]
@@ -548,5 +606,20 @@ mod tests {
                 .and_then(serde_json::Value::as_array)
                 .is_some_and(|producers| producers.len() >= 2)
         }));
+    }
+
+    #[test]
+    fn g195_quarantine_marks_sha_and_size_corruption_without_dropping_valid_entries() {
+        let report = run_scenario(&ScenarioId::CacheCorruptionQuarantine);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G195");
+        assert_eq!(
+            report.evidence["quarantine_count"].as_u64().unwrap_or_default(),
+            2
+        );
+        assert_eq!(
+            report.evidence["valid_entry_count"].as_u64().unwrap_or_default(),
+            2
+        );
     }
 }
