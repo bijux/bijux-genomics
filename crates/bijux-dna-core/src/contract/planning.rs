@@ -475,11 +475,11 @@ pub fn build_plan_manifest(input: PlanManifestBuildInputV1) -> Result<PlanManife
     let dependency_map = dependency_map(&input.graph);
     let order = input.graph.topological_step_ids()?;
     let advisory_steps = advisory_step_ids(&input.warning_records);
-    let step_set = input
+    let stage_set = input
         .graph
         .steps()
         .iter()
-        .map(|step| step.step_id.to_string())
+        .map(|step| step.stage_id.to_string())
         .collect::<BTreeSet<_>>();
 
     let mut ordered_steps = Vec::with_capacity(order.len());
@@ -500,7 +500,7 @@ pub fn build_plan_manifest(input: PlanManifestBuildInputV1) -> Result<PlanManife
 
     let stage_decisions = workflow_stage_decisions(
         &input.workflow_manifest,
-        &step_set,
+        &stage_set,
         &input.refusal_records,
         &advisory_steps,
     );
@@ -529,6 +529,33 @@ pub fn build_plan_manifest(input: PlanManifestBuildInputV1) -> Result<PlanManife
     };
     manifest.refresh_fingerprint()?;
     Ok(manifest)
+}
+
+#[must_use]
+pub fn planner_refusal_from_message(
+    stage_id: Option<&str>,
+    message: &str,
+) -> PlannerRefusalRecordV1 {
+    let lower = message.to_ascii_lowercase();
+    let code = if lower.contains("reference") {
+        PlannerRefusalCodeV1::MissingReference
+    } else if lower.contains("layout") {
+        PlannerRefusalCodeV1::IncompatibleLayout
+    } else if lower.contains("fan-in") {
+        PlannerRefusalCodeV1::ImpossibleFanIn
+    } else if lower.contains("fan-out") {
+        PlannerRefusalCodeV1::ImpossibleFanOut
+    } else if lower.contains("tool") || lower.contains("backend") {
+        PlannerRefusalCodeV1::UnsupportedBackend
+    } else {
+        PlannerRefusalCodeV1::MissingStageSupport
+    };
+    PlannerRefusalRecordV1 {
+        code,
+        stage_id: stage_id.map(std::string::ToString::to_string),
+        message: message.to_string(),
+        remediation: None,
+    }
 }
 
 #[must_use]
@@ -720,7 +747,7 @@ fn cross_domain_handoff(from_step: &ExecutionStep, to_step: &ExecutionStep) -> C
 
 fn workflow_stage_decisions(
     workflow: &WorkflowManifestV1,
-    step_ids: &BTreeSet<String>,
+    stage_ids: &BTreeSet<String>,
     refusals: &[PlannerRefusalRecordV1],
     advisory_steps: &BTreeSet<String>,
 ) -> Vec<WorkflowStageDecisionV1> {
@@ -728,7 +755,7 @@ fn workflow_stage_decisions(
         .requested_stages
         .iter()
         .map(|request| {
-            let included = step_ids.contains(&request.stage_id);
+            let included = stage_ids.contains(&request.stage_id);
             let refusal = refusals
                 .iter()
                 .find(|record| record.stage_id.as_deref() == Some(request.stage_id.as_str()));

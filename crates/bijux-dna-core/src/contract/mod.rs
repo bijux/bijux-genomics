@@ -20,7 +20,8 @@ pub use execution::{
     RunRecordV1, StageExecutionRecordV1, StageIO,
 };
 pub use planning::{
-    build_plan_manifest, diff_plan_manifests, validate_cross_domain_handoffs,
+    build_plan_manifest, diff_plan_manifests, planner_refusal_from_message,
+    validate_cross_domain_handoffs,
     CrossDomainHandoffCheckV1, CrossDomainHandoffV1, ParameterResolutionTraceV1,
     PlanArtifactPromiseV1, PlanEnvironmentContractV1, PlanFieldChangeV1, PlanManifestBuildInputV1,
     PlanManifestDiffV1, PlanManifestStepV1, PlanManifestV1, PlannerParameterSourceV1,
