@@ -11,6 +11,7 @@ enum ScenarioId {
     ArtifactDedupLineage,
     CacheCorruptionQuarantine,
     BundlePortabilityCheck,
+    OfflineReviewProfile,
 }
 
 impl ScenarioId {
@@ -22,6 +23,7 @@ impl ScenarioId {
             Self::ArtifactDedupLineage => "g194_artifact_deduplication_lineage",
             Self::CacheCorruptionQuarantine => "g195_cache_corruption_quarantine",
             Self::BundlePortabilityCheck => "g196_bundle_portability_check",
+            Self::OfflineReviewProfile => "g197_offline_review_profile",
         }
     }
 
@@ -33,6 +35,7 @@ impl ScenarioId {
             Self::ArtifactDedupLineage => "G194",
             Self::CacheCorruptionQuarantine => "G195",
             Self::BundlePortabilityCheck => "G196",
+            Self::OfflineReviewProfile => "G197",
         }
     }
 
@@ -44,6 +47,7 @@ impl ScenarioId {
             Self::ArtifactDedupLineage,
             Self::CacheCorruptionQuarantine,
             Self::BundlePortabilityCheck,
+            Self::OfflineReviewProfile,
         ]
     }
 
@@ -57,6 +61,7 @@ impl ScenarioId {
             "g194_artifact_deduplication_lineage" | "G194" => Some(Self::ArtifactDedupLineage),
             "g195_cache_corruption_quarantine" | "G195" => Some(Self::CacheCorruptionQuarantine),
             "g196_bundle_portability_check" | "G196" => Some(Self::BundlePortabilityCheck),
+            "g197_offline_review_profile" | "G197" => Some(Self::OfflineReviewProfile),
             _ => None,
         }
     }
@@ -179,6 +184,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::ArtifactDedupLineage => scenario_artifact_dedup_lineage(),
         ScenarioId::CacheCorruptionQuarantine => scenario_cache_corruption_quarantine(),
         ScenarioId::BundlePortabilityCheck => scenario_bundle_portability_check(),
+        ScenarioId::OfflineReviewProfile => scenario_offline_review_profile(),
     };
 
     match result {
@@ -563,6 +569,56 @@ fn scenario_bundle_portability_check() -> Result<(Vec<String>, serde_json::Value
     ))
 }
 
+fn scenario_offline_review_profile() -> Result<(Vec<String>, serde_json::Value)> {
+    let profile = json!({
+        "profile_id": "offline_review_minimal_v1",
+        "network_allowed": false,
+        "required_files": [
+            "run_manifest.json",
+            "artifact_inventory.json",
+            "evidence_bundle.json",
+            "evidence_verification.json",
+            "reports/final_report.json"
+        ],
+        "verification_steps": [
+            "verify hash ledger",
+            "verify evidence bundle",
+            "verify artifact inventory trust classes",
+            "render local report bundle"
+        ],
+        "blocked_when_missing": [
+            "evidence_verification.json",
+            "artifact_inventory.json"
+        ]
+    });
+
+    let required = profile["required_files"].as_array().cloned().unwrap_or_default();
+    let steps = profile["verification_steps"].as_array().cloned().unwrap_or_default();
+    let no_network = profile["network_allowed"].as_bool() == Some(false);
+    let has_evidence_verification = required
+        .iter()
+        .any(|entry| entry.as_str() == Some("evidence_verification.json"));
+    if !no_network || !has_evidence_verification || steps.len() < 3 {
+        return Err(anyhow!(
+            "offline review profile must disable network and require evidence verification artifacts"
+        ));
+    }
+
+    Ok((
+        vec![
+            "offline review profile codifies no-network verification with required local evidence inputs".to_string(),
+            "profile makes missing evidence blocking conditions explicit for reviewer safety".to_string(),
+        ],
+        json!({
+            "profile_id": profile["profile_id"],
+            "network_allowed": profile["network_allowed"],
+            "required_file_count": required.len(),
+            "verification_step_count": steps.len(),
+            "blocked_when_missing": profile["blocked_when_missing"],
+        }),
+    ))
+}
+
 fn diff_strings(left: &serde_json::Value, right: &serde_json::Value) -> serde_json::Value {
     let left_rows = left
         .as_array()
@@ -598,7 +654,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G191", "G192", "G193", "G194", "G195", "G196"]);
+        assert_eq!(ids, vec!["G191", "G192", "G193", "G194", "G195", "G196", "G197"]);
     }
 
     #[test]
@@ -695,5 +751,17 @@ mod tests {
             Some(true)
         );
         assert!(report.evidence["required_file_count"].as_u64().unwrap_or_default() >= 4);
+    }
+
+    #[test]
+    fn g197_offline_review_profile_requires_evidence_files_and_no_network() {
+        let report = run_scenario(&ScenarioId::OfflineReviewProfile);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G197");
+        assert_eq!(
+            report.evidence["network_allowed"].as_bool(),
+            Some(false)
+        );
+        assert!(report.evidence["required_file_count"].as_u64().unwrap_or_default() >= 5);
     }
 }
