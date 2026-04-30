@@ -8,12 +8,27 @@ use bijux_dna_environment::api::RuntimeKind;
 use super::effects::{runner_failure, RunnerEffectKind};
 use super::identity::{infer_tool_version_from_image, runtime_platform_identity};
 
+fn selected_environment(out_dir: &Path) -> std::collections::BTreeMap<String, String> {
+    let mut environment = std::collections::BTreeMap::from([(
+        "working_directory".to_string(),
+        out_dir.display().to_string(),
+    )]);
+    for key in ["TMPDIR", "PATH", "BIJUX_ALLOW_NETWORK"] {
+        if let Ok(value) = std::env::var(key) {
+            environment.insert(key.to_string(), value);
+        }
+    }
+    environment
+}
+
 pub(super) fn write_minimum_run_artifacts(
     step: &ExecutionStep,
     input_hashes: &[String],
     output_hashes: &[String],
     runner: RuntimeKind,
     command: &str,
+    stdout: &str,
+    stderr: &str,
     run_id: &str,
     params_fingerprint: &str,
 ) -> Result<()> {
@@ -48,6 +63,36 @@ pub(super) fn write_minimum_run_artifacts(
             command,
             &tool_invocation_path,
         )?;
+    }
+
+    let command_path = run_artifacts_dir.join("command.txt");
+    if !command_path.exists() {
+        bijux_dna_infra::write_bytes(&command_path, command.as_bytes())
+            .map_err(|err| runner_failure(RunnerEffectKind::TelemetryWrite, err.to_string()))?;
+    }
+
+    let stdout_log_path = run_artifacts_dir.join("stdout.log");
+    if !stdout_log_path.exists() {
+        bijux_dna_infra::write_bytes(&stdout_log_path, stdout.as_bytes())
+            .map_err(|err| runner_failure(RunnerEffectKind::TelemetryWrite, err.to_string()))?;
+    }
+
+    let stderr_log_path = run_artifacts_dir.join("stderr.log");
+    if !stderr_log_path.exists() {
+        bijux_dna_infra::write_bytes(&stderr_log_path, stderr.as_bytes())
+            .map_err(|err| runner_failure(RunnerEffectKind::TelemetryWrite, err.to_string()))?;
+    }
+
+    let working_directory_path = run_artifacts_dir.join("working_directory.txt");
+    if !working_directory_path.exists() {
+        let working_directory = step
+            .out_dir
+            .canonicalize()
+            .unwrap_or_else(|_| step.out_dir.clone())
+            .display()
+            .to_string();
+        bijux_dna_infra::write_bytes(&working_directory_path, working_directory.as_bytes())
+            .map_err(|err| runner_failure(RunnerEffectKind::TelemetryWrite, err.to_string()))?;
     }
 
     let stage_report_path = run_artifacts_dir.join("stage_report.json");
@@ -85,7 +130,7 @@ pub(super) fn write_minimum_run_artifacts(
                 .map(|output| output.path.display().to_string())
                 .collect::<Vec<_>>(),
             "subreports": [],
-            "log_paths": [],
+            "log_paths": [stdout_log_path, stderr_log_path],
         });
         bijux_dna_infra::atomic_write_json(&stage_report_path, &payload)
             .context("write stage_report.json")?;
@@ -129,7 +174,7 @@ fn write_tool_invocation(
         params_provenance,
         params_provenance_normalized,
         resources: step.resources.clone(),
-        environment: std::collections::BTreeMap::new(),
+        environment: selected_environment(&step.out_dir),
         input_hashes: input_hashes.to_vec(),
         output_hashes: output_hashes.to_vec(),
         executed_command: Some(command.to_string()),

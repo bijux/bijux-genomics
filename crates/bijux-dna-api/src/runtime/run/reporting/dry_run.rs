@@ -11,7 +11,7 @@ use bijux_dna_environment::api::RuntimeKind;
 use bijux_dna_runtime::run_layout::{
     CancellationPolicyV1, CheckpointPolicyV1, ExecutorDescriptorV1, RunCheckpointV1,
     RunExecutionModeV1, RunExecutorDescriptorV1, RunLifecycleStateV1, RunStateTransitionV1,
-    RunStateV1, RuntimePolicyV1,
+    RunStateV1, RuntimePolicyV1, RunEnvironment, ToolImageDigest,
 };
 
 /// # Errors
@@ -82,6 +82,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
             resume_from_latest_completed_stage: true,
         },
     };
+    let environment = run_environment(&request.graph);
     let (_lease_lock, lease) = acquire_run_lease(&layout, &run_id)?;
     let released_lease = release_run_lease(&lease);
     let backend_descriptor =
@@ -145,6 +146,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     bijux_dna_runtime::run_layout::write_lease(&layout, &released_lease)?;
     bijux_dna_runtime::run_layout::write_control_state(&layout, &control_state)?;
     bijux_dna_runtime::run_layout::write_runtime_policy(&layout, &runtime_policy)?;
+    bijux_dna_runtime::run_layout::write_environment(&layout, &environment)?;
     bijux_dna_runtime::run_layout::write_checkpoint(&layout, &checkpoint)?;
     if let Some(slurm_submission) = slurm_submission.as_ref() {
         bijux_dna_runtime::run_layout::write_slurm_submission(&layout, slurm_submission)?;
@@ -203,6 +205,12 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
                 "runtime_policy",
                 "bijux.runtime_policy.v1",
                 &layout.runtime_policy_path,
+            )?,
+            artifact_entry(
+                &layout.run_dir,
+                "environment",
+                "bijux.run_environment.v1",
+                &layout.environment_path,
             )?,
             artifact_entry(
                 &layout.run_dir,
@@ -404,4 +412,29 @@ fn artifact_entry(
         "path": summary_artifact::relative_path_string(base_dir, path),
         "sha256": bijux_dna_infra::hash_file_sha256(path)?,
     }))
+}
+
+fn run_environment(graph: &bijux_dna_core::contract::ExecutionGraph) -> RunEnvironment {
+    let hostname = std::env::var("HOSTNAME")
+        .or_else(|_| std::env::var("COMPUTERNAME"))
+        .unwrap_or_else(|_| "unknown".to_string());
+    let mut tool_images = graph
+        .steps()
+        .iter()
+        .map(|step| ToolImageDigest {
+            tool: step.image.image.clone(),
+            image: step.image.image.clone(),
+            digest: step.image.digest.clone().unwrap_or_else(|| "unresolved".to_string()),
+        })
+        .collect::<Vec<_>>();
+    tool_images.sort_by(|left, right| left.tool.cmp(&right.tool));
+    tool_images.dedup_by(|left, right| left.tool == right.tool && left.digest == right.digest);
+    RunEnvironment {
+        hostname,
+        os: std::env::consts::OS.to_string(),
+        arch: std::env::consts::ARCH.to_string(),
+        runner: "local".to_string(),
+        platform: format!("{}-{}", std::env::consts::OS, std::env::consts::ARCH),
+        tool_images,
+    }
 }

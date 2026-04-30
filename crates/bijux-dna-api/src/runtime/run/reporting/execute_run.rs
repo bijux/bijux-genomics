@@ -15,8 +15,9 @@ use bijux_dna_runtime::run_layout::{
     CancellationPolicyV1, CheckpointPolicyV1, ExecutorDescriptorV1, RunCheckpointV1,
     RunExecutionModeV1, RunExecutorDescriptorV1, RunFailureV1, RunLifecycleStateV1,
     RunQueueLifecycleStateV1, RunQueueTransitionV1, RunStateTransitionV1, RunStateV1,
-    RuntimePolicyV1,
+    RuntimePolicyV1, RunEnvironment, ToolImageDigest,
 };
+use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_runtime::{ensure_stage_supported_by_runner, RunnerContractKind};
 use std::sync::{Arc, Mutex};
 
@@ -45,6 +46,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
         maybe_mock_slurm_submission(&layout, &run_id, request.runner, &scheduling_decision);
     let executor_descriptor = executor_descriptor(&run_id, request.mode, request.runner);
     let runtime_policy = runtime_policy(&run_id, request.mode, &request.graph);
+    let environment = run_environment(request.runner, &request.graph);
     let queue_state = Arc::new(Mutex::new(initial_queue_state(&run_id, &request.graph)));
     let mut control_state = default_control_state(&run_id);
     let mut transitions = vec![
@@ -77,6 +79,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
     bijux_dna_runtime::run_layout::write_lease(&layout, &lease)?;
     bijux_dna_runtime::run_layout::write_control_state(&layout, &control_state)?;
     bijux_dna_runtime::run_layout::write_runtime_policy(&layout, &runtime_policy)?;
+    bijux_dna_runtime::run_layout::write_environment(&layout, &environment)?;
     bijux_dna_runtime::run_layout::write_checkpoint(&layout, &prepared_checkpoint)?;
     if let Some(slurm_submission) = slurm_submission.as_ref() {
         bijux_dna_runtime::run_layout::write_slurm_submission(&layout, slurm_submission)?;
@@ -639,6 +642,35 @@ fn runtime_policy(
     }
 }
 
+fn run_environment(
+    runner: RuntimeKind,
+    graph: &bijux_dna_core::contract::ExecutionGraph,
+) -> RunEnvironment {
+    let hostname = std::env::var("HOSTNAME")
+        .or_else(|_| std::env::var("COMPUTERNAME"))
+        .unwrap_or_else(|_| "unknown".to_string());
+    let mut tool_images = graph
+        .steps()
+        .iter()
+        .map(|step| ToolImageDigest {
+            tool: step.image.image.clone(),
+            image: step.image.image.clone(),
+            digest: step.image.digest.clone().unwrap_or_else(|| "unresolved".to_string()),
+        })
+        .collect::<Vec<_>>();
+    tool_images.sort_by(|left, right| left.tool.cmp(&right.tool));
+    tool_images.dedup_by(|left, right| left.tool == right.tool && left.digest == right.digest);
+
+    RunEnvironment {
+        hostname,
+        os: std::env::consts::OS.to_string(),
+        arch: std::env::consts::ARCH.to_string(),
+        runner: runner.to_string(),
+        platform: format!("{}-{}", std::env::consts::OS, std::env::consts::ARCH),
+        tool_images,
+    }
+}
+
 fn write_run_state(
     layout: &bijux_dna_runtime::run_layout::RunLayout,
     run_id: &str,
@@ -693,6 +725,12 @@ fn write_manifest(
             "runtime_policy",
             "bijux.runtime_policy.v1",
             &layout.runtime_policy_path,
+        )?,
+        artifact_entry(
+            &layout.run_dir,
+            "environment",
+            "bijux.run_environment.v1",
+            &layout.environment_path,
         )?,
         artifact_entry(
             &layout.run_dir,
@@ -789,7 +827,7 @@ fn write_manifest(
         "cache_key": serde_json::Value::Null,
         "toolchain_versions": [],
         "dataset_fingerprints": [],
-        "tool_invocations": [],
+        "tool_invocations": collect_tool_invocations(graph, mode),
         "output_artifacts": artifacts,
         "stages": summary_artifact::planned_stage_manifest(graph),
         "failures": failure.into_iter().map(|entry| serde_json::json!({
@@ -802,6 +840,70 @@ fn write_manifest(
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_dna_infra::atomic_write_bytes(&layout.manifest_path, payload.as_slice())?;
     Ok(())
+}
+
+fn collect_tool_invocations(
+    graph: &bijux_dna_core::contract::ExecutionGraph,
+    mode: RunExecutionModeV1,
+) -> Vec<ToolInvocationV1> {
+    graph
+        .steps()
+        .iter()
+        .map(|step| {
+            let path = step.out_dir.join("run_artifacts").join("tool_invocation.json");
+            if path.exists() {
+                if let Ok(raw) = std::fs::read_to_string(&path) {
+                    if let Ok(parsed) = serde_json::from_str::<ToolInvocationV1>(&raw) {
+                        return parsed;
+                    }
+                }
+            }
+            synthesize_invocation(step, mode)
+        })
+        .collect()
+}
+
+fn synthesize_invocation(
+    step: &bijux_dna_core::contract::ExecutionStep,
+    mode: RunExecutionModeV1,
+) -> ToolInvocationV1 {
+    let params = serde_json::json!({ "command_template": step.command.template });
+    let params_provenance = serde_json::json!({
+        "tool_params": params.clone(),
+        "defaults": serde_json::json!({}),
+        "overrides": serde_json::json!({}),
+        "effective_params": params.clone(),
+    });
+    let params_provenance_normalized =
+        bijux_dna_core::contract::canonical::canonicalize_json_value(&params_provenance);
+    ToolInvocationV1 {
+        schema_version: "bijux.tool_invocation.v1".to_string(),
+        contract_version: bijux_dna_core::contract::ContractVersion::v1(),
+        stage_id: step.stage_id.clone(),
+        tool_id: bijux_dna_core::ids::ToolId::new(step.image.image.clone()),
+        tool_version: step.image.image.clone(),
+        resolved_tool_version: None,
+        image_digest: step.image.digest.clone().unwrap_or_else(|| step.image.image.clone()),
+        runner_kind: "run-manifest".to_string(),
+        platform: format!("mode:{mode}"),
+        parameters_json: params.clone(),
+        parameters_json_normalized: params.clone(),
+        effective_params_json: params,
+        effective_params_json_normalized: serde_json::json!({}),
+        params_provenance,
+        params_provenance_normalized,
+        adapter_bank: None,
+        banks: None,
+        bank_assets: None,
+        resources: step.resources.clone(),
+        environment: std::collections::BTreeMap::from([(
+            "working_directory".to_string(),
+            step.out_dir.display().to_string(),
+        )]),
+        input_hashes: Vec::new(),
+        output_hashes: Vec::new(),
+        executed_command: Some(step.command.template.join(" ")),
+    }
 }
 
 fn artifact_entry(
