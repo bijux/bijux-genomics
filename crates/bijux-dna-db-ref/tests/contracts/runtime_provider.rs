@@ -1,10 +1,11 @@
 use bijux_dna_db_ref::public_api::{
-    enforce_declared_build_and_contigs, normalize_contig_name, resolve_default_reference_set,
-    resolve_genetic_map_bank, resolve_map, resolve_map_lock, resolve_organellar_policy,
-    resolve_panel, resolve_panel_lock, resolve_reference_bank, resolve_reference_bundle,
-    resolve_reference_bundle_contract, resolve_sex_chromosome_rule, resolve_species_authority,
-    resolve_species_context, resolve_sex_par_organellar_assets, validate_reference_index_qa,
-    materialize_vcf_panel_assets, resolve_contig_aliases_for_assets,
+    enforce_declared_build_and_contigs, materialize_contaminant_databases,
+    materialize_vcf_panel_assets, normalize_contig_name, resolve_contig_aliases_for_assets,
+    resolve_default_reference_set, resolve_genetic_map_bank, resolve_map, resolve_map_lock,
+    resolve_organellar_policy, resolve_panel, resolve_panel_lock, resolve_reference_bank,
+    resolve_reference_bundle, resolve_reference_bundle_contract, resolve_sex_chromosome_rule,
+    resolve_sex_par_organellar_assets, resolve_species_authority, resolve_species_context,
+    validate_reference_index_qa,
     validate_imputation_tool_compatibility,
     CatalogCompatibility, PanelCatalogEntry,
 };
@@ -199,4 +200,17 @@ fn sex_par_organellar_assets_contract_exposes_required_policy_fields() {
         .unwrap_or_else(|err| panic!("resolve sex/par/organellar assets: {err}"));
     assert!(report.par_region_count > 0);
     assert_eq!(report.mitochondrion_id, "MT");
+}
+
+#[test]
+fn contaminant_db_materialization_contract_emits_three_depletion_bundles() {
+    let temp = std::env::temp_dir().join(format!(
+        "bijux-db-ref-contaminant-assets-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp)
+        .unwrap_or_else(|err| panic!("create temp directory {}: {err}", temp.display()));
+    let report = materialize_contaminant_databases(&temp)
+        .unwrap_or_else(|err| panic!("materialize contaminant databases: {err}"));
+    assert_eq!(report.bundles.len(), 3);
 }

@@ -11,10 +11,10 @@ pub use maps::{resolve_map, resolve_map_lock};
 pub use panels::{resolve_panel, resolve_panel_lock};
 pub(crate) use reference_assets::resolve_bundle_entry;
 pub use reference_assets::{
-    materialize_reference_bank, materialize_vcf_panel_assets, normalize_contig_name, reference_provenance,
-    resolve_default_reference_set, resolve_genetic_map_bank, resolve_organellar_policy,
-    resolve_reference_bank, resolve_reference_bundle, resolve_reference_bundle_contract,
-    validate_reference_index_qa,
+    materialize_contaminant_databases, materialize_reference_bank, materialize_vcf_panel_assets,
+    normalize_contig_name, reference_provenance, resolve_default_reference_set,
+    resolve_genetic_map_bank, resolve_organellar_policy, resolve_reference_bank,
+    resolve_reference_bundle, resolve_reference_bundle_contract, validate_reference_index_qa,
 };
 pub use species::{
     enforce_declared_build_and_contigs, resolve_contig_aliases_for_assets, resolve_contig_map,

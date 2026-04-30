@@ -139,3 +139,18 @@ pub struct VcfPanelMaterializationReport {
     pub compatible_tool_tags: Vec<String>,
     pub materialized_files: Vec<String>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct MaterializedDbBundle {
+    pub bundle_id: String,
+    pub lock_family: String,
+    pub db_path: PathBuf,
+    pub required_fields: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ContaminantDbMaterializationReport {
+    pub schema_version: String,
+    pub materialization_root: PathBuf,
+    pub bundles: Vec<MaterializedDbBundle>,
+}

@@ -4,13 +4,14 @@ use anyhow::{anyhow, bail, Context, Result};
 
 use crate::resolution::validate_sha256;
 use crate::runtime_config::{
-    load_toml, workspace_root, BundlesConfig, GeneticMapBankConfig, OrganellarPolicyConfig,
-    ReferenceBankConfig, ReferenceSetConfig,
+    load_toml, workspace_root, AssetHydrationConfig, AssetLocksConfig, BundlesConfig,
+    GeneticMapBankConfig, OrganellarPolicyConfig, ReferenceBankConfig, ReferenceSetConfig,
 };
 use crate::{
-    BundleEntry, ContigNormalizationPolicy, GeneticMapBankEntry, MaterializedIndexArtifact,
-    OrganellarPolicy, ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport,
-    ReferenceIndexQaReport, ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
+    BundleEntry, ContaminantDbMaterializationReport, ContigNormalizationPolicy,
+    GeneticMapBankEntry, MaterializedDbBundle, MaterializedIndexArtifact, OrganellarPolicy,
+    ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport, ReferenceIndexQaReport,
+    ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
     VcfPanelMaterializationReport,
 };
 
@@ -373,6 +374,61 @@ pub fn materialize_vcf_panel_assets(
     })
 }
 
+/// # Errors
+/// Returns an error if contaminant/host/rRNA asset bundles or lock families are invalid.
+pub fn materialize_contaminant_databases(
+    materialization_root: &Path,
+) -> Result<ContaminantDbMaterializationReport> {
+    let hydration_path = workspace_root().join("configs/runtime/asset_hydration.toml");
+    let locks_path = workspace_root().join("configs/runtime/asset_locks.toml");
+    let hydration: AssetHydrationConfig = load_toml(&hydration_path)?;
+    let locks: AssetLocksConfig = load_toml(&locks_path)?;
+
+    let selected = ["human_host_depletion_grch38", "rrna_depletion_common", "common_lab_contaminants"];
+    let mut bundles = Vec::new();
+    for id in selected {
+        let bundle = hydration
+            .asset_bundle
+            .iter()
+            .find(|entry| entry.id == id)
+            .ok_or_else(|| anyhow!("asset hydration bundle missing for {id}"))?;
+        let lock = locks
+            .lock_family
+            .iter()
+            .find(|entry| entry.id == bundle.lock_family)
+            .ok_or_else(|| anyhow!("asset lock family missing for {}", bundle.lock_family))?;
+        if lock.required_fields.is_empty() {
+            bail!("asset lock family {} must declare required_fields", lock.id);
+        }
+        if bundle.stage_ids.is_empty() {
+            bail!("asset bundle {} must declare stage_ids", bundle.id);
+        }
+        let db_dir = materialization_root.join(&bundle.id);
+        std::fs::create_dir_all(&db_dir).with_context(|| format!("create {}", db_dir.display()))?;
+        let db_path = db_dir.join("database.locked.txt");
+        std::fs::write(
+            &db_path,
+            format!(
+                "bundle_id={}\nlock_family={}\nmaterialization_root={}\noffline_source={}\n",
+                bundle.id, bundle.lock_family, bundle.materialization_root, bundle.offline_replay_source
+            ),
+        )
+        .with_context(|| format!("write {}", db_path.display()))?;
+        bundles.push(MaterializedDbBundle {
+            bundle_id: bundle.id.clone(),
+            lock_family: bundle.lock_family.clone(),
+            db_path,
+            required_fields: lock.required_fields.clone(),
+        });
+    }
+
+    Ok(ContaminantDbMaterializationReport {
+        schema_version: "bijux.contaminant_db_materialization.v1".to_string(),
+        materialization_root: materialization_root.to_path_buf(),
+        bundles,
+    })
+}
+
 pub(crate) fn resolve_bundle_entry(species: &str, build: &str) -> Result<BundleEntry> {
     let path = workspace_root().join("configs/runtime/reference_bundles.toml");
     let cfg: BundlesConfig = load_toml(&path)?;
@@ -441,7 +497,7 @@ fn write_index_artifact(
 #[cfg(test)]
 mod tests {
     use super::{
-        materialize_reference_bank, materialize_vcf_panel_assets,
+        materialize_contaminant_databases, materialize_reference_bank, materialize_vcf_panel_assets,
         resolve_reference_bundle_contract, validate_bundle_contigs, validate_bundle_digests,
         validate_reference_index_qa,
     };
@@ -618,6 +674,17 @@ mod tests {
         assert_eq!(report.panel_id, "hsapiens_grch38_mini");
         assert_eq!(report.map_id, "hsapiens_grch38_chr_map");
         assert!(!report.materialized_files.is_empty());
+    }
+
+    #[test]
+    fn contaminant_db_materialization_builds_host_rrna_and_contaminant_bundles() {
+        let temp = make_temp_dir("contaminant-db-materialization");
+        let report = materialize_contaminant_databases(&temp)
+            .unwrap_or_else(|error| panic!("materialize contaminant databases: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.contaminant_db_materialization.v1");
+        assert_eq!(report.bundles.len(), 3);
+        assert!(report.bundles.iter().all(|bundle| bundle.db_path.exists()));
     }
 
     fn make_temp_dir(label: &str) -> PathBuf {
