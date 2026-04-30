@@ -22,6 +22,7 @@ pub const VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.phasing.v1";
 pub const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.imputation.v1";
+pub const VCF_COHORT_QC_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.cohort_qc.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -256,6 +257,41 @@ pub struct VcfImputationWorkflowBoundaryV1 {
     pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub assumptions: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfCohortQcSampleCaveatV1 {
+    pub sample_id: String,
+    pub missingness: f64,
+    pub heterozygosity: Option<f64>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfCohortQcWorkflowSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub prerequisites_passed: bool,
+    pub sample_count: u32,
+    pub minimum_sample_count: u32,
+    pub missingness_threshold: f64,
+    pub heterozygosity_lower: f64,
+    pub heterozygosity_upper: f64,
+    pub high_missingness_samples: u32,
+    pub heterozygosity_outlier_samples: u32,
+    pub relatedness_flagged_pairs: u32,
+    pub variants_in: u64,
+    pub variants_after_filter: u64,
+    pub variants_removed_by_filter: u64,
+    #[serde(default)]
+    pub per_sample: Vec<VcfCohortQcSampleCaveatV1>,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -1112,6 +1148,89 @@ pub fn evaluate_imputation_workflow_boundary(
     }
 }
 
+/// Build a cohort QC summary with explicit per-sample caveats and cohort-level readiness flags.
+#[must_use]
+pub fn execute_cohort_qc_workflow(
+    sample_missingness: &BTreeMap<String, f64>,
+    sample_heterozygosity: &BTreeMap<String, f64>,
+    related_pairs: &[(String, String, f64)],
+    minimum_sample_count: u32,
+    missingness_threshold: f64,
+    heterozygosity_lower: f64,
+    heterozygosity_upper: f64,
+    variants_in: u64,
+    variants_after_filter: u64,
+) -> VcfCohortQcWorkflowSummaryV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    let sample_count = sample_missingness.len() as u32;
+    if sample_count < minimum_sample_count {
+        refusal_codes.push("cohort_sample_count_below_minimum".to_string());
+    }
+    if sample_missingness.is_empty() {
+        refusal_codes.push("missingness_metrics_required".to_string());
+    }
+    if sample_heterozygosity.is_empty() {
+        refusal_codes.push("heterozygosity_metrics_required".to_string());
+    }
+    if variants_after_filter > variants_in {
+        refusal_codes.push("filter_variant_counts_incoherent".to_string());
+    }
+
+    let mut high_missingness_samples = 0_u32;
+    let mut heterozygosity_outlier_samples = 0_u32;
+    let mut per_sample = Vec::<VcfCohortQcSampleCaveatV1>::new();
+    for (sample_id, missingness) in sample_missingness {
+        let heterozygosity = sample_heterozygosity.get(sample_id).copied();
+        let mut caveats = Vec::<String>::new();
+        if *missingness > missingness_threshold {
+            high_missingness_samples += 1;
+            caveats.push("missingness_above_threshold".to_string());
+        }
+        if let Some(value) = heterozygosity {
+            if !(heterozygosity_lower..=heterozygosity_upper).contains(&value) {
+                heterozygosity_outlier_samples += 1;
+                caveats.push("heterozygosity_outlier".to_string());
+            }
+        } else {
+            caveats.push("heterozygosity_missing".to_string());
+        }
+        per_sample.push(VcfCohortQcSampleCaveatV1 {
+            sample_id: sample_id.clone(),
+            missingness: *missingness,
+            heterozygosity,
+            caveats,
+        });
+    }
+    per_sample.sort_by(|left, right| left.sample_id.cmp(&right.sample_id));
+    let relatedness_flagged_pairs =
+        related_pairs.iter().filter(|(_, _, kinship)| *kinship >= 0.0884).count() as u32;
+    let variants_removed_by_filter = variants_in.saturating_sub(variants_after_filter);
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    VcfCohortQcWorkflowSummaryV1 {
+        schema_version: VCF_COHORT_QC_WORKFLOW_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.qc".to_string(),
+        prerequisites_passed: refusal_codes.is_empty(),
+        sample_count,
+        minimum_sample_count,
+        missingness_threshold,
+        heterozygosity_lower,
+        heterozygosity_upper,
+        high_missingness_samples,
+        heterozygosity_outlier_samples,
+        relatedness_flagged_pairs,
+        variants_in,
+        variants_after_filter,
+        variants_removed_by_filter,
+        per_sample,
+        refusal_codes,
+        caveats: vec![
+            "relatedness flags are triage signals and require context-aware follow-up".to_string(),
+            "cohort QC summaries should not be interpreted as ancestry conclusions".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -1586,5 +1705,59 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"diploid_input_required".to_string()));
         assert!(refused.refusal_codes.contains(&"simulation_label_required".to_string()));
         assert!(refused.refusal_codes.contains(&"imputation_info_below_threshold".to_string()));
+    }
+
+    #[test]
+    fn execute_cohort_qc_workflow_reports_missingness_heterozygosity_relatedness_and_filter_impact()
+    {
+        let sample_missingness = BTreeMap::from([
+            (String::from("s1"), 0.01_f64),
+            (String::from("s2"), 0.12_f64),
+            (String::from("s3"), 0.03_f64),
+        ]);
+        let sample_heterozygosity =
+            BTreeMap::from([(String::from("s1"), 0.22_f64), (String::from("s2"), 0.48_f64)]);
+        let related_pairs = vec![
+            (String::from("s1"), String::from("s2"), 0.10_f64),
+            (String::from("s2"), String::from("s3"), 0.02_f64),
+        ];
+
+        let summary = execute_cohort_qc_workflow(
+            &sample_missingness,
+            &sample_heterozygosity,
+            &related_pairs,
+            2,
+            0.05,
+            0.15,
+            0.35,
+            1200,
+            980,
+        );
+        assert!(summary.prerequisites_passed);
+        assert_eq!(summary.sample_count, 3);
+        assert_eq!(summary.high_missingness_samples, 1);
+        assert_eq!(summary.heterozygosity_outlier_samples, 1);
+        assert_eq!(summary.relatedness_flagged_pairs, 1);
+        assert_eq!(summary.variants_removed_by_filter, 220);
+        let s3 =
+            summary.per_sample.iter().find(|sample| sample.sample_id == "s3").expect("sample s3");
+        assert!(s3.caveats.contains(&"heterozygosity_missing".to_string()));
+
+        let refused = execute_cohort_qc_workflow(
+            &BTreeMap::new(),
+            &BTreeMap::new(),
+            &[],
+            2,
+            0.05,
+            0.15,
+            0.35,
+            10,
+            12,
+        );
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"cohort_sample_count_below_minimum".to_string()));
+        assert!(refused.refusal_codes.contains(&"missingness_metrics_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"heterozygosity_metrics_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"filter_variant_counts_incoherent".to_string()));
     }
 }
