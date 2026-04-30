@@ -3,11 +3,13 @@ use super::{
     PathBuf, Result, Workspace,
 };
 use bijux_dna_domain_bam::{
-    bam_adna_workflow_contract, estimate_endogenous_content, execute_ancient_damage_evidence,
-    evaluate_kinship_prerequisites, execute_mitochondrial_contamination_workflow,
-    execute_nuclear_contamination_workflow, execute_pmd_authenticity_advisory,
+    bam_adna_workflow_contract, bam_sample_identity, estimate_endogenous_content,
+    execute_ancient_damage_evidence, evaluate_kinship_prerequisites,
+    execute_mitochondrial_contamination_workflow, execute_nuclear_contamination_workflow,
+    execute_pmd_authenticity_advisory, propagate_bam_sample_identity,
 };
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
+use bijux_dna_domain_bam::params::ReadGroupSpec;
 use bijux_dna_domain_vcf::{
     execute_damage_aware_vcf_filter,
     evaluate_diploid_calling_boundary, evaluate_genotype_likelihood_workflow_boundary,
@@ -24,6 +26,7 @@ enum ScenarioId {
     Demography,
     DamageAwareVariant,
     ContaminationPropagation,
+    SampleIdentityConflict,
 }
 
 impl ScenarioId {
@@ -36,6 +39,7 @@ impl ScenarioId {
             Self::Demography => "g185_demography_caveat_library",
             Self::DamageAwareVariant => "g186_damage_aware_variant_caveat_library",
             Self::ContaminationPropagation => "g187_contamination_propagation_model",
+            Self::SampleIdentityConflict => "g188_sample_identity_conflict_propagation",
         }
     }
 
@@ -48,6 +52,7 @@ impl ScenarioId {
             Self::Demography => "G185",
             Self::DamageAwareVariant => "G186",
             Self::ContaminationPropagation => "G187",
+            Self::SampleIdentityConflict => "G188",
         }
     }
 
@@ -60,6 +65,7 @@ impl ScenarioId {
             Self::Demography,
             Self::DamageAwareVariant,
             Self::ContaminationPropagation,
+            Self::SampleIdentityConflict,
         ]
     }
 
@@ -77,6 +83,9 @@ impl ScenarioId {
             "g186_damage_aware_variant_caveat_library" | "G186" => Some(Self::DamageAwareVariant),
             "g187_contamination_propagation_model" | "G187" => {
                 Some(Self::ContaminationPropagation)
+            }
+            "g188_sample_identity_conflict_propagation" | "G188" => {
+                Some(Self::SampleIdentityConflict)
             }
             _ => None,
         }
@@ -201,6 +210,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::Demography => scenario_demography_caveat_library(),
         ScenarioId::DamageAwareVariant => scenario_damage_aware_variant_caveat_library(),
         ScenarioId::ContaminationPropagation => scenario_contamination_propagation_model(),
+        ScenarioId::SampleIdentityConflict => scenario_sample_identity_conflict_propagation(),
     };
 
     match result {
@@ -665,6 +675,90 @@ fn scenario_contamination_propagation_model() -> Result<(Vec<String>, serde_json
     ))
 }
 
+fn scenario_sample_identity_conflict_propagation() -> Result<(Vec<String>, serde_json::Value)> {
+    let rg_primary = ReadGroupSpec::with_defaults("sampleA");
+    let prior_identity = bam_sample_identity(
+        "sampleA",
+        &rg_primary,
+        Some("strict"),
+        Some("L001"),
+        Some("libA"),
+        Some("sampleA.pu1"),
+        Some("runA"),
+        Some("subjectA"),
+        Some("cohort1"),
+    );
+
+    let rg_conflict = ReadGroupSpec {
+        id: "sampleB.rg7".to_string(),
+        sample: "sampleB".to_string(),
+        platform: "ILLUMINA".to_string(),
+        library: "libB".to_string(),
+        platform_unit: Some("sampleB.pu7".to_string()),
+        lane_id: Some("L007".to_string()),
+        run_id: Some("runB".to_string()),
+    };
+    let propagated = propagate_bam_sample_identity(
+        &prior_identity,
+        &rg_conflict,
+        "bam.merge_or_reheader",
+    );
+
+    let mut conflict_codes = Vec::<String>::new();
+    if rg_conflict.sample != prior_identity.sample_id {
+        conflict_codes.push("sample_id_mismatch_across_read_groups".to_string());
+    }
+    if propagated.read_group_ids.len() > 1 {
+        conflict_codes.push("multi_read_group_identity_requires_review".to_string());
+    }
+    if conflict_codes.is_empty() {
+        return Err(anyhow!(
+            "sample identity conflict scenario expected cross-read-group identity conflicts"
+        ));
+    }
+
+    let mut metrics = BamMetricsV1::empty();
+    metrics.coverage.mean = 6.0;
+    metrics.contamination.estimate = 0.01;
+    metrics.kinship_sufficiency.sufficient = true;
+    metrics.kinship_sufficiency.overlap_snps = 20_000;
+    let kinship = evaluate_kinship_prerequisites(&metrics, 21_000, false, 0.05, 2.0);
+
+    let caveat_library = vec![
+        json!({
+            "topic": "identity_conflict",
+            "conflict_codes": conflict_codes,
+            "propagation_targets": ["bam.merge", "bam.coverage", "vcf.call_variants", "vcf.kinship"],
+        }),
+        json!({
+            "topic": "read_group_lineage",
+            "read_group_ids": propagated.read_group_ids,
+            "read_group_policy": propagated.read_group_policy,
+            "propagation_targets": ["artifact_inventory", "report.sample_lineage"],
+        }),
+        json!({
+            "topic": "downstream_refusal",
+            "kinship_refusal_codes": kinship.refusal_codes,
+            "propagation_targets": ["vcf.kinship", "report.population_summary", "report.review_queue"],
+        }),
+    ];
+
+    Ok((
+        vec![
+            "sample-identity conflicts are detected across read-group lineage and propagated into downstream refusal surfaces"
+                .to_string(),
+            "kinship prerequisites consume propagated conflict state and refuse unsafe downstream interpretation"
+                .to_string(),
+        ],
+        json!({
+            "prior_identity": prior_identity,
+            "propagated_identity": propagated,
+            "kinship_prerequisites": kinship,
+            "caveat_library": caveat_library,
+        }),
+    ))
+}
+
 fn base_adna_metrics() -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
     metrics.damage.c_to_t_5p = 0.18;
@@ -685,7 +779,10 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G181", "G182", "G183", "G184", "G185", "G186", "G187"]);
+        assert_eq!(
+            ids,
+            vec!["G181", "G182", "G183", "G184", "G185", "G186", "G187", "G188"]
+        );
     }
 
     #[test]
@@ -987,5 +1084,42 @@ mod tests {
                 .and_then(serde_json::Value::as_str),
             Some("high")
         );
+    }
+
+    #[test]
+    fn g188_sample_identity_conflict_sets_kinship_refusal() {
+        let report = run_scenario(&ScenarioId::SampleIdentityConflict);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G188");
+        let kinship = report
+            .evidence
+            .get("kinship_prerequisites")
+            .cloned()
+            .unwrap_or_default();
+        let refusals = kinship
+            .get("refusal_codes")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(refusals
+            .iter()
+            .any(|entry| entry.as_str() == Some("sample_identity_inconsistent")));
+    }
+
+    #[test]
+    fn g188_propagated_identity_contains_multiple_read_groups() {
+        let report = run_scenario(&ScenarioId::SampleIdentityConflict);
+        assert_eq!(report.status, "passed");
+        let propagated = report
+            .evidence
+            .get("propagated_identity")
+            .cloned()
+            .unwrap_or_default();
+        let rg_ids = propagated
+            .get("read_group_ids")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(rg_ids.len() >= 2);
     }
 }
