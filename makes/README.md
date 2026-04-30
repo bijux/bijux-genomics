@@ -13,6 +13,7 @@ Public targets (stable contract):
 - `release-gate`
 - `gate-essential`
 - `gate-execute`
+- `gate-evidence`
 - `refresh-assets-toy`
 - `refresh-assets-golden`
 
@@ -38,6 +39,7 @@ Target -> implementation mapping (no hidden magic):
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
 - `gate-essential` -> fast architecture + domain schema + planner determinism + runtime/evidence contract lane
 - `gate-execute` -> local runner + governed execute/dry-run/status/replay contract lane
+- `gate-evidence` -> FASTQ manifest->plan->runtime->artifact->evidence verification lane plus planner-only BAM/VCF evidence contracts
 - `ci` -> `make fmt lint audit test coverage` under the shared `artifacts/` contract
 
 Rust gate artifact layout:
