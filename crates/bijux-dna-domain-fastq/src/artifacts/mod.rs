@@ -8,6 +8,7 @@ mod correct_errors;
 mod deplete_host;
 mod deplete_reference_contaminants;
 mod deplete_rrna;
+mod deinterleave_reads;
 mod detect_adapters;
 mod detect_duplicates_premerge;
 mod estimate_library_complexity_prealign;
@@ -67,6 +68,7 @@ pub use deplete_reference_contaminants::{
     DepleteReferenceContaminantsReportV1, DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
 };
 pub use deplete_rrna::{DepleteRrnaReportV1, DEPLETE_RRNA_REPORT_SCHEMA_VERSION};
+pub use deinterleave_reads::{DeinterleaveReadsReportV1, DEINTERLEAVE_READS_REPORT_SCHEMA_VERSION};
 pub use detect_adapters::{DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION};
 pub use detect_duplicates_premerge::{
     DetectDuplicatesPremergeReportV1, DETECT_DUPLICATES_PREMERGE_REPORT_SCHEMA_VERSION,
