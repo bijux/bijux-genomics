@@ -1,7 +1,7 @@
 use anyhow::Result;
 use bijux_dna_api::v1::api::run::{
-    execute_local_bam_workflow, execute_local_fastq_workflow, execute_local_vcf_workflow,
-    replay_manifest,
+    environment_identity, execute_local_bam_workflow, execute_local_fastq_workflow,
+    execute_local_vcf_workflow, replay_manifest,
 };
 
 fn assert_governed_run_bundle(response: &bijux_dna_api::v1::api::run::ExecuteResponse) -> Result<()> {
@@ -67,6 +67,26 @@ fn local_fastq_workflow_runs_end_to_end_with_governed_artifacts() -> Result<()> 
     assert!(environment.get("arch").is_some());
     assert!(environment.get("runner").is_some());
     assert!(environment.get("tool_images").is_some());
+    let environment_identity = environment_identity(run_dir)?;
+    let stage_environments = environment_identity
+        .get("stage_environments")
+        .and_then(serde_json::Value::as_array)
+        .cloned()
+        .unwrap_or_default();
+    assert_eq!(
+        environment_identity
+            .get("schema_version")
+            .and_then(serde_json::Value::as_str),
+        Some("bijux.run_environment_identity.v1")
+    );
+    if !stage_environments.is_empty() {
+        assert!(stage_environments.iter().any(|entry| {
+            entry
+                .get("environment")
+                .and_then(serde_json::Value::as_object)
+                .is_some_and(|environment| environment.contains_key("working_directory"))
+        }));
+    }
     assert_governed_run_bundle(&response)?;
     Ok(())
 }

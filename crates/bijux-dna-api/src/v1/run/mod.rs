@@ -9,7 +9,7 @@ mod runtime_support;
 mod stage_assets;
 
 pub use entrypoints::{
-    cancel_run, dry_run, execute, execute_and_report, execute_local_bam_workflow,
+    cancel_run, dry_run, environment_identity, execute, execute_and_report, execute_local_bam_workflow,
     execute_local_fastq_workflow, execute_local_vcf_workflow, execute_run, operator_health,
     pause_run, plan, plan_only, policy_audit, replay_manifest, resume_run,
     run_fastq_to_bam_profile, run_pipeline, status, RunMode,

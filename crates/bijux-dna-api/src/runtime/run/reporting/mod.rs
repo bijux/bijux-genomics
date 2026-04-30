@@ -3,6 +3,7 @@ use super::{
 };
 
 mod dry_run;
+mod environment_identity;
 mod evidence_support;
 mod execute_run;
 mod lifecycle;
@@ -18,6 +19,7 @@ mod summary_artifact;
 mod workspace_audit;
 
 pub use dry_run::dry_run;
+pub use environment_identity::environment_identity;
 pub use execute_run::execute;
 pub use local_workflows::{
     execute_local_bam_workflow, execute_local_fastq_workflow, execute_local_vcf_workflow,
