@@ -5,6 +5,8 @@ mod mod_contracts_canonical_writer_rs;
 mod mod_contracts_docs_layout_rs;
 #[path = "contracts/experimental_registry_alias.rs"]
 mod mod_contracts_experimental_registry_alias_rs;
+#[path = "contracts/inventory_compatibility.rs"]
+mod mod_contracts_inventory_compatibility_rs;
 #[path = "contracts/manifest_integrity.rs"]
 mod mod_contracts_manifest_integrity_rs;
 #[path = "contracts/reference.rs"]

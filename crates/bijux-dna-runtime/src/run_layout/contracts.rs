@@ -5,7 +5,9 @@ use serde::{Deserialize, Serialize};
 use sha2::Digest;
 
 use bijux_dna_core::contract::canonical::to_canonical_json_bytes;
-use bijux_dna_core::contract::{ContractVersion, RetryPolicy};
+use bijux_dna_core::contract::{
+    ContractVersion, ManifestMigrationAuditV1, ManifestMigrationStatusV1, RetryPolicy,
+};
 use bijux_dna_core::prelude::input_assessment::FastqLayout;
 use bijux_dna_core::prelude::{CacheKey, Result as CoreResult};
 
@@ -285,6 +287,32 @@ pub struct ArtifactInventoryV1 {
     pub artifacts: Vec<ArtifactIdentityV1>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+struct ArtifactIdentityLegacyV0 {
+    pub artifact_id: String,
+    pub name: String,
+    pub role: String,
+    pub path: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sha256: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub producing_stage_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub producing_command: Vec<String>,
+    #[serde(default)]
+    pub input_lineage: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub replay_source_run_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+struct ArtifactInventoryLegacyV0 {
+    pub schema_version: String,
+    pub run_id: String,
+    #[serde(default)]
+    pub artifacts: Vec<ArtifactIdentityLegacyV0>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CacheDecisionV1 {
     pub stage_id: String,
@@ -517,6 +545,90 @@ impl RunManifest {
     }
 }
 
+/// # Errors
+/// Returns an error when the inventory schema is unsupported or the payload is malformed.
+pub fn migrate_artifact_inventory_value(
+    value: &serde_json::Value,
+) -> CoreResult<(ArtifactInventoryV1, ManifestMigrationAuditV1)> {
+    let schema_version = value
+        .get("schema_version")
+        .and_then(serde_json::Value::as_str)
+        .ok_or_else(|| {
+            bijux_dna_core::prelude::BijuxError::validation(
+                "artifact_inventory payload missing schema_version",
+            )
+        })?
+        .to_string();
+    match schema_version.as_str() {
+        "bijux.artifact_inventory.v1" => {
+            let inventory: ArtifactInventoryV1 = serde_json::from_value(value.clone())?;
+            Ok((
+                inventory.clone(),
+                migration_audit(
+                    "artifact_inventory",
+                    &schema_version,
+                    Some(&inventory.schema_version),
+                    ManifestMigrationStatusV1::Passthrough,
+                    "artifact inventory already matches the governed v1 schema",
+                    value,
+                    Some(&inventory),
+                )?,
+            ))
+        }
+        "bijux.artifact_inventory.v0" => {
+            let legacy: ArtifactInventoryLegacyV0 = serde_json::from_value(value.clone())?;
+            let inventory = ArtifactInventoryV1 {
+                schema_version: "bijux.artifact_inventory.v1".to_string(),
+                run_id: legacy.run_id,
+                replay_source_run_id: None,
+                artifacts: legacy
+                    .artifacts
+                    .into_iter()
+                    .map(|artifact| ArtifactIdentityV1 {
+                        artifact_id: artifact.artifact_id,
+                        name: artifact.name,
+                        role: artifact.role,
+                        path: artifact.path,
+                        sha256: artifact.sha256,
+                        producing_stage_id: artifact.producing_stage_id,
+                        producing_command: artifact.producing_command,
+                        input_lineage: artifact.input_lineage,
+                        schema_version: None,
+                        replay_source_run_id: artifact.replay_source_run_id,
+                        scientific_context: None,
+                    })
+                    .collect(),
+            };
+            Ok((
+                inventory.clone(),
+                migration_audit(
+                    "artifact_inventory",
+                    &legacy.schema_version,
+                    Some(&inventory.schema_version),
+                    ManifestMigrationStatusV1::Upgraded,
+                    "artifact inventory upgraded from governed legacy v0 by materializing explicit replay and scientific context fields",
+                    value,
+                    Some(&inventory),
+                )?,
+            ))
+        }
+        _ => Err(bijux_dna_core::prelude::BijuxError::validation(format!(
+            "artifact_inventory schema_version {schema_version} is unsupported; supported versions: bijux.artifact_inventory.v0, bijux.artifact_inventory.v1"
+        ))),
+    }
+}
+
+/// # Errors
+/// Returns an error when the file cannot be read, parsed, or migrated.
+pub fn read_supported_artifact_inventory(
+    path: &std::path::Path,
+) -> CoreResult<(ArtifactInventoryV1, ManifestMigrationAuditV1)> {
+    let raw = std::fs::read_to_string(path)
+        .map_err(|err| bijux_dna_core::prelude::BijuxError::Io(format!("read {}: {err}", path.display())))?;
+    let value: serde_json::Value = serde_json::from_str(&raw)?;
+    migrate_artifact_inventory_value(&value)
+}
+
 fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
     let bytes = digest.as_ref();
     let mut hex = String::with_capacity(bytes.len() * 2);
@@ -524,4 +636,32 @@ fn sha256_hex(digest: impl AsRef<[u8]>) -> String {
         let _ = write!(&mut hex, "{byte:02x}");
     }
     hex
+}
+
+fn migration_audit<T: Serialize>(
+    schema_family: &str,
+    from_schema_version: &str,
+    to_schema_version: Option<&str>,
+    status: ManifestMigrationStatusV1,
+    exact_reason: &str,
+    original: &serde_json::Value,
+    migrated: Option<&T>,
+) -> CoreResult<ManifestMigrationAuditV1> {
+    let migrated_payload_sha256 = migrated.map(payload_sha256).transpose()?;
+    Ok(ManifestMigrationAuditV1 {
+        schema_family: schema_family.to_string(),
+        from_schema_version: from_schema_version.to_string(),
+        to_schema_version: to_schema_version.map(str::to_string),
+        status,
+        exact_reason: exact_reason.to_string(),
+        source_payload_sha256: payload_sha256(original)?,
+        migrated_payload_sha256,
+    })
+}
+
+fn payload_sha256<T: Serialize>(value: &T) -> CoreResult<String> {
+    let bytes = to_canonical_json_bytes(value)?;
+    let mut hasher = sha2::Sha256::new();
+    hasher.update(bytes);
+    Ok(sha256_hex(hasher.finalize()))
 }

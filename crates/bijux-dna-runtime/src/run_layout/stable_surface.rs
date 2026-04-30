@@ -10,6 +10,7 @@ pub use super::contracts::{
     RunExecutionModeV1, RunExecutorDescriptorV1, RunFailureV1, RunIndexEntry, RunIndexLine,
     RunLayout, RunLayoutV1, RunLifecycleStateV1, RunManifest, RunStageEntry,
     RunStateTransitionV1, RunStateV1, RuntimePolicyV1, ToolImageDigest,
+    migrate_artifact_inventory_value, read_supported_artifact_inventory,
 };
 pub use super::journal::{append_event, update_run_index};
 pub use super::layout_creation::create_run_layout;
