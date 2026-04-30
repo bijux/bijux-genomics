@@ -11,6 +11,7 @@ Public targets (stable contract):
 - `ci`
 - `doctor`
 - `release-gate`
+- `gate-essential`
 - `refresh-assets-toy`
 - `refresh-assets-golden`
 
@@ -34,6 +35,7 @@ Target -> implementation mapping (no hidden magic):
 - `coverage` -> `makes/bin/rust_gate.sh coverage`
 - `doctor` -> `cargo run -q -p bijux-dna-dev -- tooling run repo-doctor --fast` + fast parity checks
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
+- `gate-essential` -> fast architecture + domain schema + planner determinism + runtime/evidence contract lane
 - `ci` -> `make fmt lint audit test coverage` under the shared `artifacts/` contract
 
 Rust gate artifact layout:

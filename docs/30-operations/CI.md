@@ -16,6 +16,11 @@ Define the canonical CI gate contract and shared artifact invocation for the rep
 - `test`
 - `coverage`
 
+## Fast Local Gate
+- `make gate-essential`
+- Coverage: crate boundaries, domain YAML validation, stage-contract snapshots, planner determinism, runtime layout, and evidence discovery basics.
+- Intended use: local architectural integrity checks during focused iteration without paying the full `make ci` cost.
+
 ## CI Profiles
 - Fast CI profile: `cargo run -q -p bijux-dna-dev -- tooling run ci-fast`
 - Slow CI profile: `cargo run -q -p bijux-dna-dev -- tooling run ci-slow`
@@ -44,6 +49,7 @@ Applies only to the files and workflows referenced in this document.
 
 ## Examples
 - Local: `make ci`
+- Local fast architecture gate: `make gate-essential`
 - HPC profile enabled: `ARTIFACT_ROOT=artifacts make ci`
 - Fast profile: `cargo run -q -p bijux-dna-dev -- tooling run ci-fast`
 - Slow profile: `cargo run -q -p bijux-dna-dev -- tooling run ci-slow`
