@@ -16,8 +16,8 @@ use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::params::umi::{
-    UmiDownstreamPropagation, UmiExtractionLocation, UmiFailedExtractionPolicy,
-    UmiReadNameTransform,
+    UmiDedupPolicy, UmiDownstreamPropagation, UmiExtractionLocation, UmiFailedExtractionPolicy,
+    UmiGroupingPolicy, UmiReadNameTransform,
 };
 use bijux_dna_domain_fastq::{ExtractUmisReportV1, PairedMode, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
@@ -273,6 +273,8 @@ fn prepare_umi_tool_plan<S: ::std::hash::BuildHasher>(
             read_name_transform: None,
             failed_extraction_policy: None,
             downstream_propagation: None,
+            grouping_policy: None,
+            downstream_dedup_policy: None,
         },
     )?;
     let params_hash = stable_params_hash(&plan.params);
@@ -514,6 +516,12 @@ fn build_umi_report(inputs: &UmiReportInputs<'_>) -> ExtractUmisReportV1 {
         downstream_propagation: parse_umi_downstream_propagation(
             inputs.params.get("downstream_propagation").and_then(serde_json::Value::as_str),
         ),
+        grouping_policy: parse_umi_grouping_policy(
+            inputs.params.get("grouping_policy").and_then(serde_json::Value::as_str),
+        ),
+        downstream_dedup_policy: parse_umi_downstream_dedup_policy(
+            inputs.params.get("downstream_dedup_policy").and_then(serde_json::Value::as_str),
+        ),
         input_r1: inputs.r1.display().to_string(),
         input_r2: Some(inputs.r2.display().to_string()),
         output_r1: inputs.output_r1.display().to_string(),
@@ -574,6 +582,20 @@ fn parse_umi_downstream_propagation(value: Option<&str>) -> UmiDownstreamPropaga
     match value.unwrap_or("header_and_report") {
         "header_only" => UmiDownstreamPropagation::HeaderOnly,
         _ => UmiDownstreamPropagation::HeaderAndReport,
+    }
+}
+
+fn parse_umi_grouping_policy(value: Option<&str>) -> UmiGroupingPolicy {
+    match value.unwrap_or("pair_aware") {
+        "exact_header_tag" => UmiGroupingPolicy::ExactHeaderTag,
+        _ => UmiGroupingPolicy::PairAware,
+    }
+}
+
+fn parse_umi_downstream_dedup_policy(value: Option<&str>) -> UmiDedupPolicy {
+    match value.unwrap_or("sequence_identity_recommended") {
+        "coordinate_aware_recommended" => UmiDedupPolicy::CoordinateAwareRecommended,
+        _ => UmiDedupPolicy::SequenceIdentityRecommended,
     }
 }
 
