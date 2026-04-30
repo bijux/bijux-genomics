@@ -7,7 +7,7 @@ use bijux_dna_core::prelude::ArtifactId;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::metrics::{authenticity_score, BamMetricsV1};
+use crate::metrics::{authenticity_score, BamMetricsV1, SexConfidenceClass};
 use crate::params::ReadGroupSpec;
 
 pub const BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION: &str = "bijux.bam.artifact_inventory.v1";
@@ -35,6 +35,7 @@ pub const BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.damage_evidence.
 pub const BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION: &str = "bijux.bam.authenticity_advisory.v1";
 pub const BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.contamination_evidence.v1";
 pub const BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION: &str = "bijux.bam.endogenous_content.v1";
+pub const BAM_SEX_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.sex_evidence.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -486,6 +487,23 @@ pub struct BamEndogenousContentEstimateV1 {
     pub postalignment_fraction: f64,
     pub prealignment_meaning: String,
     pub postalignment_meaning: String,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamSexInferenceEvidenceV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub par_aware: bool,
+    pub prerequisites_passed: bool,
+    pub classification: SexConfidenceClass,
+    pub confidence: f64,
+    #[serde(default)]
+    pub x_to_y_ratio: Option<f64>,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -2411,6 +2429,48 @@ pub fn estimate_endogenous_content(
     }
 }
 
+/// Evaluate sex-inference evidence with PAR-aware and coverage/ploidy guardrails.
+#[must_use]
+pub fn evaluate_sex_inference_par_aware(
+    metrics: &BamMetricsV1,
+    reference_has_par_masks: bool,
+    declared_ploidy: Option<&str>,
+    minimum_mean_coverage: f64,
+) -> BamSexInferenceEvidenceV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if !reference_has_par_masks {
+        refusal_codes.push("par_mask_required".to_string());
+    }
+    if declared_ploidy.is_none() {
+        refusal_codes.push("ploidy_context_required".to_string());
+    }
+    if metrics.coverage.mean < minimum_mean_coverage {
+        refusal_codes.push("coverage_below_sex_inference_minimum".to_string());
+    }
+    if !metrics.sex.sufficient_data {
+        refusal_codes.push("insufficient_sex_signal_data".to_string());
+    }
+    let prerequisites_passed = refusal_codes.is_empty();
+    BamSexInferenceEvidenceV1 {
+        schema_version: BAM_SEX_EVIDENCE_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.sex".to_string(),
+        par_aware: reference_has_par_masks,
+        prerequisites_passed,
+        classification: if prerequisites_passed {
+            metrics.sex.classification
+        } else {
+            SexConfidenceClass::Insufficient
+        },
+        confidence: if prerequisites_passed { metrics.sex.confidence } else { 0.0 },
+        x_to_y_ratio: prerequisites_passed.then_some(metrics.sex.x_to_y_ratio),
+        refusal_codes,
+        caveats: vec![
+            "sex evidence is valid only within declared ploidy/reference assumptions".to_string(),
+            "PAR handling is required to avoid inflated chrX/chrY bias".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn bam_adna_workflow_contract() -> BamAdnaWorkflowV1 {
     BamAdnaWorkflowV1 {
@@ -2911,6 +2971,30 @@ mod tests {
             .any(|item| item.contains("prealignment and postalignment estimates diverge")));
         assert!(estimate.prealignment_meaning.contains("before alignment"));
         assert!(estimate.postalignment_meaning.contains("after alignment"));
+    }
+
+    #[test]
+    fn evaluate_sex_inference_par_aware_enforces_prerequisites() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.coverage.mean = 6.0;
+        metrics.sex.sufficient_data = true;
+        metrics.sex.confidence = 0.81;
+        metrics.sex.x_to_y_ratio = 0.52;
+        metrics.sex.classification = SexConfidenceClass::Male;
+
+        let ready = evaluate_sex_inference_par_aware(&metrics, true, Some("diploid"), 2.0);
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.classification, SexConfidenceClass::Male);
+        assert_eq!(ready.x_to_y_ratio, Some(0.52));
+
+        let refused = evaluate_sex_inference_par_aware(&metrics, false, None, 8.0);
+        assert!(!refused.prerequisites_passed);
+        assert_eq!(refused.classification, SexConfidenceClass::Insufficient);
+        assert!(refused.refusal_codes.contains(&"par_mask_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"ploidy_context_required".to_string()));
+        assert!(refused
+            .refusal_codes
+            .contains(&"coverage_below_sex_inference_minimum".to_string()));
     }
 
     fn unique_temp_dir(label: &str) -> PathBuf {

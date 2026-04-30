@@ -22,7 +22,8 @@ pub use artifacts::{
     bam_sample_identity, bam_scientific_report_contract_for_stage, bam_scientific_report_contracts,
     bam_workflow_template_by_id, bam_workflow_templates, classify_bam_coverage_regime,
     compare_bam_duplicate_methods, estimate_bam_stage_resources, estimate_endogenous_content,
-    evaluate_bam_merge_compatibility, execute_ancient_damage_evidence, execute_bam_validation,
+    evaluate_bam_merge_compatibility, evaluate_sex_inference_par_aware,
+    execute_ancient_damage_evidence, execute_bam_validation,
     execute_mitochondrial_contamination_workflow, execute_nuclear_contamination_workflow,
     execute_pmd_authenticity_advisory, filter_tiny_bam_by_mapq,
     merge_tiny_bam_with_conflict_refusal, propagate_bam_sample_identity,
@@ -38,8 +39,8 @@ pub use artifacts::{
     BamMergeCompatibilityV1, BamMergeInputIdentityV1, BamPostAlignmentChainV1,
     BamReadGroupMappingCountV1, BamReferenceAssetIdentityV1, BamReferencePreflightV1,
     BamSampleIdentityV1, BamScientificReportContractV1, BamScientificReportIdV1,
-    BamStageResourcePlanV1, BamValidationSummaryV1, BamWorkflowModeV1, BamWorkflowTemplateV1,
-    BAM_ADNA_WORKFLOW_SCHEMA_VERSION, BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION,
+    BamSexInferenceEvidenceV1, BamStageResourcePlanV1, BamValidationSummaryV1, BamWorkflowModeV1,
+    BamWorkflowTemplateV1, BAM_ADNA_WORKFLOW_SCHEMA_VERSION, BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION,
     BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION, BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION,
     BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION, BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION,
     BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION, BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION,
@@ -50,8 +51,8 @@ pub use artifacts::{
     BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION, BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION,
     BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION, BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION,
     BAM_RESOURCE_PLAN_SCHEMA_VERSION, BAM_SAMPLE_IDENTITY_SCHEMA_VERSION,
-    BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION, BAM_VALIDATION_SUMMARY_SCHEMA_VERSION,
-    BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
+    BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION, BAM_SEX_EVIDENCE_SCHEMA_VERSION,
+    BAM_VALIDATION_SUMMARY_SCHEMA_VERSION, BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
 };
 pub use invariants::bam_invariant_specs;
 pub use stage_specs::{
