@@ -32,7 +32,14 @@ pub(super) fn status(run_dir: &Path) -> RunStatus {
         manifest_path: manifest,
         report_path: report,
         evidence_bundle_path: None,
+        run_state_path: None,
+        runtime_policy_path: None,
+        executor_descriptor_path: None,
+        checkpoint_path: None,
+        failure_path: None,
         correlation_id: None,
+        mode: None,
+        state: None,
         has_failures,
     }
 }

@@ -2,7 +2,7 @@ use super::Result;
 use anyhow::anyhow;
 use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_engine::Engine;
-use bijux_dna_runner::DockerRunner;
+use bijux_dna_runner::{DockerRunner, LocalRunner};
 use std::path::{Component, Path, PathBuf};
 
 /// Replay or verify a run from a run manifest.
@@ -52,18 +52,9 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
         std::fs::read_to_string(&graph_path).map_err(|err| anyhow!("read graph.json: {err}"))?;
     let graph: ExecutionGraph =
         serde_json::from_str(&graph_raw).map_err(|err| anyhow!("parse graph.json: {err}"))?;
-    let runner = DockerRunner::new(None);
-    let layout = bijux_dna_runtime::run_layout::RunLayout {
-        run_dir: base_dir.to_path_buf(),
-        stages_dir: base_dir.join("stages"),
-        summary_dir: base_dir.join("summary"),
-        assessment_path: base_dir.join("input_assessment.json"),
-        manifest_path: base_dir.join("execution_manifest.json"),
-        environment_path: base_dir.join("environment.json"),
-        metadata_path: base_dir.join("run_metadata.json"),
-        events_path: base_dir.join("events.jsonl"),
-    };
-    Engine::default().execute(&graph, &runner, &layout, None, None)?;
+    let runner = load_runner(base_dir)?;
+    let layout = bijux_dna_runtime::run_layout::RunLayout::from_run_dir(base_dir.to_path_buf());
+    Engine::default().execute(&graph, runner.as_ref(), &layout, None, None)?;
     Ok(())
 }
 
@@ -82,6 +73,32 @@ fn resolve_graph_path(base_dir: &Path, artifacts: &[serde_json::Value]) -> Resul
             },
             |path| resolve_manifest_relative_path(base_dir, path),
         )
+}
+
+fn load_runner(base_dir: &Path) -> Result<Box<dyn bijux_dna_runtime::Runner>> {
+    let descriptor_path = base_dir.join("executor_descriptor.json");
+    if !descriptor_path.exists() {
+        return Ok(Box::new(DockerRunner::new(None)));
+    }
+    let raw = std::fs::read_to_string(&descriptor_path)
+        .map_err(|err| anyhow!("read executor_descriptor.json: {err}"))?;
+    let descriptor: bijux_dna_runtime::run_layout::RunExecutorDescriptorV1 =
+        serde_json::from_str(&raw).map_err(|err| anyhow!("parse executor_descriptor.json: {err}"))?;
+    match descriptor.descriptor {
+        bijux_dna_runtime::run_layout::ExecutorDescriptorV1::Local { .. } => {
+            Ok(Box::new(LocalRunner::new(None)))
+        }
+        bijux_dna_runtime::run_layout::ExecutorDescriptorV1::Container { runtime, .. } => {
+            if runtime == "docker" {
+                Ok(Box::new(DockerRunner::new(None)))
+            } else {
+                Err(anyhow!("replay does not support container runtime {runtime}"))
+            }
+        }
+        bijux_dna_runtime::run_layout::ExecutorDescriptorV1::Hpc { scheduler, .. } => {
+            Err(anyhow!("replay does not support hpc scheduler {scheduler}"))
+        }
+    }
 }
 
 fn resolve_manifest_relative_path(base_dir: &Path, path: &str) -> Result<PathBuf> {

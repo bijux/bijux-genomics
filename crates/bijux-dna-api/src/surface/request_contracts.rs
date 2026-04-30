@@ -208,7 +208,14 @@ pub struct RunStatus {
     pub manifest_path: Option<PathBuf>,
     pub report_path: Option<PathBuf>,
     pub evidence_bundle_path: Option<PathBuf>,
+    pub run_state_path: Option<PathBuf>,
+    pub runtime_policy_path: Option<PathBuf>,
+    pub executor_descriptor_path: Option<PathBuf>,
+    pub checkpoint_path: Option<PathBuf>,
+    pub failure_path: Option<PathBuf>,
     pub correlation_id: Option<String>,
+    pub mode: Option<bijux_dna_runtime::run_layout::RunExecutionModeV1>,
+    pub state: Option<bijux_dna_runtime::run_layout::RunLifecycleStateV1>,
     pub has_failures: bool,
 }
 
@@ -255,6 +262,8 @@ pub struct ExecuteRequest {
     pub graph: bijux_dna_core::contract::ExecutionGraph,
     pub runner: bijux_dna_environment::api::RuntimeKind,
     pub run_dir: PathBuf,
+    #[serde(default)]
+    pub mode: bijux_dna_runtime::run_layout::RunExecutionModeV1,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -265,6 +274,13 @@ pub struct ExecuteResponse {
     pub run_id: String,
     pub correlation_id: String,
     pub manifest_path: PathBuf,
+    pub run_state_path: PathBuf,
+    pub runtime_policy_path: PathBuf,
+    pub executor_descriptor_path: PathBuf,
+    pub checkpoint_path: PathBuf,
+    pub failure_path: Option<PathBuf>,
+    pub mode: bijux_dna_runtime::run_layout::RunExecutionModeV1,
+    pub state: bijux_dna_runtime::run_layout::RunLifecycleStateV1,
     pub report_path: Option<PathBuf>,
     pub evidence_bundle_path: PathBuf,
 }
@@ -287,6 +303,12 @@ pub struct DryRunResponse {
     pub graph_path: PathBuf,
     pub manifest_path: PathBuf,
     pub run_summary_path: PathBuf,
+    pub run_state_path: PathBuf,
+    pub runtime_policy_path: PathBuf,
+    pub executor_descriptor_path: PathBuf,
+    pub checkpoint_path: PathBuf,
+    pub mode: bijux_dna_runtime::run_layout::RunExecutionModeV1,
+    pub state: bijux_dna_runtime::run_layout::RunLifecycleStateV1,
     pub evidence_bundle_path: PathBuf,
     pub correlation_id: String,
 }
