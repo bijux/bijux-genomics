@@ -2,6 +2,7 @@ use super::loading::{
     build_images_toml, build_stages_toml, build_tool_registries_toml, collect_domain_data,
     collect_vcf_image_versions,
 };
+use super::bundle::{build_domain_registry_bundle, write_domain_registry_bundle};
 use super::vcf_emit::write_vcf_generated_views;
 use super::{
     bail, domain_content_hash, ensure_dir, ensure_no_placeholders_in_active_config,
@@ -103,12 +104,17 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &ci_stages_dir,
         &source_commit,
     )?;
+    let registry_bundle = build_domain_registry_bundle(&options.domain_dir, &source_commit)?;
+    let bundle_paths = write_domain_registry_bundle(&options.configs_dir, &registry_bundle)?;
 
     println!("generated: {}", tool_registry_path.display());
     println!("generated: {}", experimental_registry_path.display());
     println!("generated: {}", required_tools_path.display());
     println!("generated: {}", images_path.display());
     println!("generated: {}", stages_path.display());
+    for path in bundle_paths {
+        println!("generated: {}", path.display());
+    }
     Ok(())
 }
 

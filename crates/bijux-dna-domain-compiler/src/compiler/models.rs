@@ -104,7 +104,7 @@ pub(super) struct DomainToolContainer {
     pub(super) digest: String,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(super) struct StagePort {
     pub(super) name: String,
     pub(super) data_type: String,

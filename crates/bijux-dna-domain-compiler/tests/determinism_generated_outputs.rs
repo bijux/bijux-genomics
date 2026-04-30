@@ -25,6 +25,10 @@ fn compiler_outputs_are_stable_across_repeated_runs() -> anyhow::Result<()> {
     compile_domain_configs(&opts_b)?;
 
     let pairs = [
+        ("ci/registry/domain_artifact_contract_snapshots.json", "domain_artifact_contract_snapshots.json"),
+        ("ci/registry/domain_defaults_snapshot.json", "domain_defaults_snapshot.json"),
+        ("ci/registry/domain_metric_catalogs.json", "domain_metric_catalogs.json"),
+        ("ci/registry/domain_registry_release_bundle.json", "domain_registry_release_bundle.json"),
         ("ci/registry/tool_registry.toml", "tool_registry.toml"),
         ("ci/registry/tool_registry_experimental.toml", "tool_registry_experimental.toml"),
         ("ci/registry/tool_registry_vcf.toml", "tool_registry_vcf.toml"),
