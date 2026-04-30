@@ -12,7 +12,7 @@
     "template": [
       "sh",
       "-lc",
-      "set -eu\nmkdir -p 'out'\n'fastp' '--in1' 'reads_R1.fastq.gz' '--out1' 'out/fastp.fastq.gz' '--json' 'out/trim_report.fastp.json' '--thread' '4'\nprintf '%s\\n' '{\"adapter_bank_hash\":null,\"adapter_bank_id\":null,\"adapter_overrides\":null,\"adapter_policy\":\"none\",\"adapter_preset\":null,\"bases_in\":null,\"bases_out\":null,\"contaminant_bank_hash\":null,\"contaminant_bank_id\":null,\"contaminant_policy\":\"none\",\"contaminant_preset\":null,\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":null,\"mean_q_after\":null,\"mean_q_before\":null,\"memory_mb\":null,\"min_length\":30,\"n_policy\":\"retain\",\"output_r1\":\"out/fastp.fastq.gz\",\"output_r2\":null,\"paired_mode\":\"single_end\",\"pairs_in\":null,\"pairs_out\":null,\"polyx_bank_hash\":null,\"polyx_bank_id\":null,\"polyx_policy\":\"none\",\"polyx_preset\":null,\"quality_cutoff\":null,\"raw_backend_report\":\"out/trim_report.fastp.json\",\"raw_backend_report_format\":\"fastp_json\",\"reads_in\":null,\"reads_out\":null,\"runtime_s\":null,\"schema_version\":\"bijux.fastq.trim_reads.report.v2\",\"stage\":\"fastq.trim_reads\",\"stage_id\":\"fastq.trim_reads\",\"threads\":4,\"tool_id\":\"fastp\"}' > 'out/trim_report.json'\n"
+      "set -eu\nmkdir -p 'out'\n'fastp' '--in1' 'reads_R1.fastq.gz' '--out1' 'out/fastp.fastq.gz' '--json' 'out/trim_report.fastp.json' '--thread' '4'\nprintf '%s\\n' '{\"adapter_bank_hash\":null,\"adapter_bank_id\":null,\"adapter_overrides\":null,\"adapter_policy\":\"none\",\"adapter_preset\":null,\"backend_mode\":\"enforced\",\"bases_in\":null,\"bases_out\":null,\"contaminant_bank_hash\":null,\"contaminant_bank_id\":null,\"contaminant_policy\":\"none\",\"contaminant_preset\":null,\"detected_adapter_source\":null,\"effective_trim_params\":{\"adapter_policy\":\"none\",\"contaminant_policy\":\"none\",\"min_length\":30,\"n_policy\":\"retain\",\"polyx_policy\":\"none\",\"quality_cutoff\":null,\"threads\":4},\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":null,\"mean_q_after\":null,\"mean_q_before\":null,\"memory_mb\":null,\"min_length\":30,\"n_policy\":\"retain\",\"output_r1\":\"out/fastp.fastq.gz\",\"output_r2\":null,\"paired_mode\":\"single_end\",\"pairs_in\":null,\"pairs_out\":null,\"polyx_bank_hash\":null,\"polyx_bank_id\":null,\"polyx_policy\":\"none\",\"polyx_preset\":null,\"prepared_adapter_bank\":null,\"quality_cutoff\":null,\"raw_backend_report\":\"out/trim_report.fastp.json\",\"raw_backend_report_format\":\"fastp_json\",\"reads_in\":null,\"reads_out\":null,\"runtime_s\":null,\"schema_version\":\"bijux.fastq.trim_reads.report.v2\",\"stage\":\"fastq.trim_reads\",\"stage_id\":\"fastq.trim_reads\",\"threads\":4,\"tool_id\":\"fastp\",\"trimming_backend\":\"fastp\"}' > 'out/trim_report.json'\n"
     ]
   },
   "resources": {
@@ -76,7 +76,10 @@
     "q_cutoff": null,
     "threads": 4
   },
+  "operating_mode": "enforced",
   "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
   "reason": {
     "kind": "default",
     "summary": "planner default",

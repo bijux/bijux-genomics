@@ -91,7 +91,10 @@
     "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
     "threads": 4
   },
+  "operating_mode": "enforced",
   "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
   "reason": {
     "kind": "default",
     "summary": "planner default",

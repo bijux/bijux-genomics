@@ -80,7 +80,10 @@
     "polyx_threshold": null,
     "threads": 4
   },
+  "operating_mode": "enforced",
   "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
   "reason": {
     "kind": "default",
     "summary": "planner default",
