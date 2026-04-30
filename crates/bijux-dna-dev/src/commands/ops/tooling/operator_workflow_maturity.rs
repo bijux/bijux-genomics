@@ -8,6 +8,7 @@ enum ScenarioId {
     WorkflowImportExport,
     RunComparisonCommand,
     ArtifactRetentionSimulation,
+    ArtifactDedupLineage,
 }
 
 impl ScenarioId {
@@ -16,6 +17,7 @@ impl ScenarioId {
             Self::WorkflowImportExport => "g191_workflow_import_export_package",
             Self::RunComparisonCommand => "g192_run_comparison_command",
             Self::ArtifactRetentionSimulation => "g193_artifact_retention_simulation",
+            Self::ArtifactDedupLineage => "g194_artifact_deduplication_lineage",
         }
     }
 
@@ -24,6 +26,7 @@ impl ScenarioId {
             Self::WorkflowImportExport => "G191",
             Self::RunComparisonCommand => "G192",
             Self::ArtifactRetentionSimulation => "G193",
+            Self::ArtifactDedupLineage => "G194",
         }
     }
 
@@ -32,6 +35,7 @@ impl ScenarioId {
             Self::WorkflowImportExport,
             Self::RunComparisonCommand,
             Self::ArtifactRetentionSimulation,
+            Self::ArtifactDedupLineage,
         ]
     }
 
@@ -42,6 +46,7 @@ impl ScenarioId {
             "g193_artifact_retention_simulation" | "G193" => {
                 Some(Self::ArtifactRetentionSimulation)
             }
+            "g194_artifact_deduplication_lineage" | "G194" => Some(Self::ArtifactDedupLineage),
             _ => None,
         }
     }
@@ -161,6 +166,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::WorkflowImportExport => scenario_workflow_import_export_package(),
         ScenarioId::RunComparisonCommand => scenario_run_comparison_command(),
         ScenarioId::ArtifactRetentionSimulation => scenario_artifact_retention_simulation(),
+        ScenarioId::ArtifactDedupLineage => scenario_artifact_dedup_lineage(),
     };
 
     match result {
@@ -373,6 +379,70 @@ fn scenario_artifact_retention_simulation() -> Result<(Vec<String>, serde_json::
     ))
 }
 
+fn scenario_artifact_dedup_lineage() -> Result<(Vec<String>, serde_json::Value)> {
+    let artifacts = vec![
+        json!({"artifact_id":"run_a.aligned_bam","sha256":"sha_bam_01","producer":"run_a:bam.align_reads","consumers":["run_a:vcf.call_variants"]}),
+        json!({"artifact_id":"run_b.aligned_bam","sha256":"sha_bam_01","producer":"run_b:bam.align_reads","consumers":["run_b:vcf.call_variants","run_b:bam.coverage"]}),
+        json!({"artifact_id":"run_a.qc_manifest","sha256":"sha_qc_01","producer":"run_a:fastq.materialize_qc_manifest","consumers":["run_a:report.final"]}),
+        json!({"artifact_id":"run_b.qc_manifest","sha256":"sha_qc_01","producer":"run_b:fastq.materialize_qc_manifest","consumers":["run_b:report.final"]}),
+        json!({"artifact_id":"run_c.phased_vcf","sha256":"sha_vcf_77","producer":"run_c:vcf.phasing","consumers":["run_c:vcf.imputation"]}),
+    ];
+
+    let mut groups = std::collections::BTreeMap::<String, Vec<serde_json::Value>>::new();
+    for artifact in &artifacts {
+        let digest = artifact["sha256"].as_str().unwrap_or_default().to_string();
+        groups.entry(digest).or_default().push(artifact.clone());
+    }
+
+    let dedup_groups = groups
+        .into_iter()
+        .filter(|(_, rows)| rows.len() > 1)
+        .map(|(sha256, rows)| {
+            let producer_set = rows
+                .iter()
+                .filter_map(|row| row.get("producer").and_then(serde_json::Value::as_str))
+                .collect::<Vec<_>>();
+            let consumer_set = rows
+                .iter()
+                .flat_map(|row| {
+                    row.get("consumers")
+                        .and_then(serde_json::Value::as_array)
+                        .into_iter()
+                        .flatten()
+                        .filter_map(serde_json::Value::as_str)
+                        .map(str::to_string)
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>();
+            json!({
+                "sha256": sha256,
+                "artifact_ids": rows.iter().filter_map(|row| row.get("artifact_id").and_then(serde_json::Value::as_str)).collect::<Vec<_>>(),
+                "producers": producer_set,
+                "consumers": consumer_set,
+                "dedup_target_artifact": rows.first().and_then(|row| row.get("artifact_id")).cloned().unwrap_or(serde_json::Value::Null),
+            })
+        })
+        .collect::<Vec<_>>();
+
+    if dedup_groups.len() < 2 {
+        return Err(anyhow!(
+            "artifact deduplication scenario expected multiple duplicate sha groups"
+        ));
+    }
+
+    Ok((
+        vec![
+            "artifact deduplication groups identical content by digest while retaining producer/consumer lineage for each occurrence".to_string(),
+            "dedup plan preserves traceability so storage optimization does not erase causal provenance".to_string(),
+        ],
+        json!({
+            "artifact_count": artifacts.len(),
+            "dedup_group_count": dedup_groups.len(),
+            "dedup_groups": dedup_groups
+        }),
+    ))
+}
+
 fn diff_strings(left: &serde_json::Value, right: &serde_json::Value) -> serde_json::Value {
     let left_rows = left
         .as_array()
@@ -408,7 +478,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G191", "G192", "G193"]);
+        assert_eq!(ids, vec!["G191", "G192", "G193", "G194"]);
     }
 
     #[test]
@@ -462,5 +532,21 @@ mod tests {
         assert!(archive
             .iter()
             .any(|entry| entry.as_str() == Some("aligned_bam")));
+    }
+
+    #[test]
+    fn g194_dedup_lineage_groups_duplicate_digests_with_producers() {
+        let report = run_scenario(&ScenarioId::ArtifactDedupLineage);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G194");
+        let groups = report.evidence["dedup_groups"].as_array().cloned().unwrap_or_default();
+        assert!(groups.iter().any(|row| {
+            row.get("sha256").and_then(serde_json::Value::as_str) == Some("sha_bam_01")
+        }));
+        assert!(groups.iter().any(|row| {
+            row.get("producers")
+                .and_then(serde_json::Value::as_array)
+                .is_some_and(|producers| producers.len() >= 2)
+        }));
     }
 }
