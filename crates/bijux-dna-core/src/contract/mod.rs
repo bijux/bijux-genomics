@@ -22,10 +22,11 @@ pub use execution::{
     RunRecordV1, StageExecutionRecordV1, StageIO,
 };
 pub use compatibility::{
-    governed_api_route_adapters, governed_schema_registry, migrate_plan_manifest_value,
-    migrate_workflow_manifest_value, schema_registry_entry, ApiRouteAdapterV1,
-    ManifestMigrationAuditV1, ManifestMigrationStatusV1, SchemaCompatibilityClassV1,
-    SchemaMigrationRuleV1, SchemaRegistryEntryV1, SchemaSurfaceKindV1,
+    governed_api_route_adapters, governed_error_code_registry, governed_schema_registry,
+    migrate_plan_manifest_value, migrate_workflow_manifest_value, schema_registry_entry,
+    ApiRouteAdapterV1, ErrorRegistryEntryV1, GovernedErrorAreaV1, ManifestMigrationAuditV1,
+    ManifestMigrationStatusV1, SchemaCompatibilityClassV1, SchemaMigrationRuleV1,
+    SchemaRegistryEntryV1, SchemaSurfaceKindV1,
 };
 pub use planning::{
     build_plan_manifest, diff_plan_manifests, planner_refusal_from_message,

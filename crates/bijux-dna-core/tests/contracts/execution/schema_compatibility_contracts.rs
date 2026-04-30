@@ -2,11 +2,12 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 
 use bijux_dna_core::contract::{
-    governed_api_route_adapters, governed_schema_registry, migrate_plan_manifest_value,
-    migrate_workflow_manifest_value, ArtifactRole, CompressionSupport, PlanEnvironmentContractV1,
-    PlanManifestStepV1, PlanPolicy, ReadLayoutMode, ToolConstraints, WorkflowInputArtifactV1,
-    WorkflowManifestV1,
+    governed_api_route_adapters, governed_error_code_registry, governed_schema_registry,
+    migrate_plan_manifest_value, migrate_workflow_manifest_value, ArtifactRole,
+    CompressionSupport, PlanEnvironmentContractV1, PlanManifestStepV1, PlanPolicy,
+    ReadLayoutMode, ToolConstraints, WorkflowInputArtifactV1, WorkflowManifestV1,
 };
+use insta::Settings;
 
 #[test]
 fn schema_registry_covers_governed_iteration_contracts() {
@@ -126,6 +127,40 @@ fn api_route_adapters_link_v1_routes_to_governed_schema_families() {
             && entry.writes_schema_families.contains(&"evidence_bundle".to_string())
             && entry.writes_schema_families.contains(&"run_state".to_string())
     }));
+}
+
+#[test]
+fn error_registry_covers_governed_categories_with_remediation() {
+    let errors = governed_error_code_registry();
+    let areas = errors
+        .iter()
+        .map(|entry| serde_json::to_string(&entry.area).unwrap_or_else(|err| panic!("serialize area: {err}")))
+        .collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(
+        areas,
+        std::collections::BTreeSet::from([
+            "\"contract\"".to_string(),
+            "\"scientific\"".to_string(),
+            "\"runtime\"".to_string(),
+            "\"infrastructure\"".to_string(),
+            "\"api\"".to_string(),
+            "\"cache\"".to_string(),
+        ])
+    );
+    assert!(errors.iter().all(|entry| !entry.remediation.trim().is_empty()));
+    assert!(errors.iter().all(|entry| !entry.wire_code.trim().is_empty()));
+}
+
+#[test]
+fn error_registry_snapshot_is_stable() -> anyhow::Result<()> {
+    let json = serde_json::to_string_pretty(&governed_error_code_registry())?;
+    let mut settings = Settings::new();
+    settings.set_prepend_module_to_snapshot(false);
+    settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("snapshots"));
+    settings.bind(|| {
+        insta::assert_snapshot!("bijux-dna-core__contracts__governed_error_registry", json);
+    });
+    Ok(())
 }
 
 fn current_plan_manifest() -> anyhow::Result<bijux_dna_core::contract::PlanManifestV1> {

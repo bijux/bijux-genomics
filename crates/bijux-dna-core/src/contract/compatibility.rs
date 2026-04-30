@@ -96,6 +96,40 @@ pub struct ApiRouteAdapterV1 {
     pub writes_schema_families: Vec<String>,
 }
 
+/// High-level governance area for a durable error code.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum GovernedErrorAreaV1 {
+    /// Contract and schema violations.
+    Contract,
+    /// Scientific or domain-truth violations.
+    Scientific,
+    /// Runtime execution and orchestration failures.
+    Runtime,
+    /// Filesystem, process, or infrastructure failures.
+    Infrastructure,
+    /// API request and adapter surface failures.
+    Api,
+    /// Cache eligibility and replay identity failures.
+    Cache,
+}
+
+/// Durable registry entry for one governed error code.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct ErrorRegistryEntryV1 {
+    /// Durable error identifier used by tests and release review.
+    pub error_id: String,
+    /// Reviewed governance area for the error.
+    pub area: GovernedErrorAreaV1,
+    /// Concrete wire or operator-facing error code.
+    pub wire_code: String,
+    /// Owning crate or surface for the canonical implementation.
+    pub owner_surface: String,
+    /// Required remediation guidance for operators and migration docs.
+    pub remediation: String,
+}
+
 /// Outcome of a governed manifest migration attempt.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -322,6 +356,55 @@ pub fn governed_api_route_adapters() -> Vec<ApiRouteAdapterV1> {
     ]
 }
 
+/// Return the governed durable error-code registry used by compatibility docs and release review.
+#[must_use]
+pub fn governed_error_code_registry() -> Vec<ErrorRegistryEntryV1> {
+    vec![
+        error_entry(
+            "contract.execution_output_mismatch",
+            GovernedErrorAreaV1::Contract,
+            "execution_output_mismatch",
+            "bijux-dna-core",
+            "Refresh the stage contract outputs or the emitting stage so runtime outputs and governed artifact promises match exactly.",
+        ),
+        error_entry(
+            "scientific.invariant_violation",
+            GovernedErrorAreaV1::Scientific,
+            "invariant_violation",
+            "bijux-dna-runtime",
+            "Inspect the stage scientific contract, reference context, and invariant evidence before admitting the run as enforced.",
+        ),
+        error_entry(
+            "runtime.runner_execution_failed",
+            GovernedErrorAreaV1::Runtime,
+            "runner_execution_failed",
+            "bijux-dna-api",
+            "Inspect run_failure.json, tool invocation logs, and telemetry for the failing stage before retrying or replaying the run.",
+        ),
+        error_entry(
+            "infrastructure.io_error",
+            GovernedErrorAreaV1::Infrastructure,
+            "io_error",
+            "bijux-dna-core",
+            "Verify governed paths exist under the run layout and that the active runtime has permission to read and write them.",
+        ),
+        error_entry(
+            "api.invalid_request",
+            GovernedErrorAreaV1::Api,
+            "invalid_request",
+            "bijux-dna-api",
+            "Rebuild the request from the v1 contract surface and confirm the workflow, plan, and runtime schemas match the reviewed adapters.",
+        ),
+        error_entry(
+            "cache.cache_key_mismatch",
+            GovernedErrorAreaV1::Cache,
+            "cache_key_mismatch",
+            "bijux-dna-core",
+            "Regenerate the plan manifest and compare cache identity fields, reference assets, and policy surfaces before reusing cached artifacts.",
+        ),
+    ]
+}
+
 /// Look up one reviewed schema registry entry by its wire schema identifier.
 #[must_use]
 pub fn schema_registry_entry(schema_version: &str) -> Option<SchemaRegistryEntryV1> {
@@ -468,6 +551,22 @@ fn schema_entry(
         migration_rule,
         owner_crate: owner_crate.to_string(),
         notes: notes.to_string(),
+    }
+}
+
+fn error_entry(
+    error_id: &str,
+    area: GovernedErrorAreaV1,
+    wire_code: &str,
+    owner_surface: &str,
+    remediation: &str,
+) -> ErrorRegistryEntryV1 {
+    ErrorRegistryEntryV1 {
+        error_id: error_id.to_string(),
+        area,
+        wire_code: wire_code.to_string(),
+        owner_surface: owner_surface.to_string(),
+        remediation: remediation.to_string(),
     }
 }
 
