@@ -3,15 +3,15 @@ use std::path::Path;
 use anyhow::{anyhow, Context, Result};
 
 use bijux_dna_core::contract::{
-    Cardinality, ExecutionContract, PortSpec, StageId, StageSpec, ToolConstraints, ToolManifest,
-    ToolRegistry, ToolRole,
+    ArtifactRole, BackendVersionPolicy, Cardinality, ExecutionContract, PortSpec, StageId,
+    StageOperatingMode, StageSpec, ToolConstraints, ToolManifest, ToolRegistry, ToolRole,
 };
 use bijux_dna_core::ids::ToolId;
 use bijux_dna_core::prelude::tooling::{ReadCountChangePolicy, StageBehavior};
 
 use super::classification::{
     artifact_kind_from_stage, list_strings, output_artifact_kind_from_stage, parse_stage_semver,
-    stable_produced_artifacts, stage_scale_from_row, stage_semantic_from_id,
+    stable_produced_artifacts, stage_family_from_id, stage_scale_from_row, stage_semantic_from_id,
 };
 use super::source::experimental_manifests_enabled;
 
@@ -60,6 +60,7 @@ pub(super) fn read_generated_registry(registry_path: &Path) -> Result<ToolRegist
         let output_kind = output_artifact_kind_from_stage(stage_id_raw);
         let spec = StageSpec {
             stage_id,
+            stage_family: stage_family_from_id(stage_id_raw),
             semantic_kind: stage_semantic_from_id(stage_id_raw),
             input_kind,
             output_kind,
@@ -67,11 +68,29 @@ pub(super) fn read_generated_registry(registry_path: &Path) -> Result<ToolRegist
             stage_semver: parse_stage_semver(&stage),
             runtime_scale: stage_scale_from_row(&stage),
             inputs: vec![PortSpec {
+                artifact_role: match input_kind {
+                    bijux_dna_core::contract::ArtifactKind::Fastq => ArtifactRole::Reads,
+                    bijux_dna_core::contract::ArtifactKind::Bam => ArtifactRole::Bam,
+                    bijux_dna_core::contract::ArtifactKind::Vcf => ArtifactRole::Variant,
+                    bijux_dna_core::contract::ArtifactKind::Index => ArtifactRole::Index,
+                    bijux_dna_core::contract::ArtifactKind::Metrics => ArtifactRole::MetricsJson,
+                    bijux_dna_core::contract::ArtifactKind::Report => ArtifactRole::ReportJson,
+                    bijux_dna_core::contract::ArtifactKind::Unknown => ArtifactRole::Unknown,
+                },
                 name: format!("{}_in", stage_id_raw.replace('.', "_")),
                 data_type: format!("{input_kind:?}").to_lowercase(),
                 cardinality: Cardinality::Many,
             }],
             outputs: vec![PortSpec {
+                artifact_role: match output_kind {
+                    bijux_dna_core::contract::ArtifactKind::Fastq => ArtifactRole::Reads,
+                    bijux_dna_core::contract::ArtifactKind::Bam => ArtifactRole::Bam,
+                    bijux_dna_core::contract::ArtifactKind::Vcf => ArtifactRole::Variant,
+                    bijux_dna_core::contract::ArtifactKind::Index => ArtifactRole::Index,
+                    bijux_dna_core::contract::ArtifactKind::Metrics => ArtifactRole::MetricsJson,
+                    bijux_dna_core::contract::ArtifactKind::Report => ArtifactRole::ReportJson,
+                    bijux_dna_core::contract::ArtifactKind::Unknown => ArtifactRole::Unknown,
+                },
                 name: format!("{}_out", stage_id_raw.replace('.', "_")),
                 data_type: format!("{output_kind:?}").to_lowercase(),
                 cardinality: Cardinality::Many,
@@ -79,6 +98,11 @@ pub(super) fn read_generated_registry(registry_path: &Path) -> Result<ToolRegist
             parameters: Vec::new(),
             metrics: Vec::new(),
             description: Some("generated from configs/ci/registry/tool_registry.toml".to_string()),
+            environment_requirements: Default::default(),
+            report_contracts: Vec::new(),
+            capability_contract: Default::default(),
+            refusal_codes: Vec::new(),
+            operating_mode: StageOperatingMode::Enforced,
             behavior: StageBehavior {
                 idempotent: stage.get("idempotent").and_then(toml::Value::as_bool).unwrap_or(true),
                 mutates_fastq: false,
@@ -114,6 +138,13 @@ pub(super) fn read_generated_registry(registry_path: &Path) -> Result<ToolRegist
                 metrics_parser: None,
                 constraints: ToolConstraints::default(),
                 execution_contract: ExecutionContract::default(),
+                supported_modes: vec![
+                    StageOperatingMode::Simulation,
+                    StageOperatingMode::Advisory,
+                    StageOperatingMode::Enforced,
+                ],
+                backend_version_policy: BackendVersionPolicy::Pinned,
+                capability_contract: Default::default(),
             });
         }
     }
