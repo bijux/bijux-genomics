@@ -11,8 +11,6 @@ bijux-dna-api.workspace = true
 bijux-dna-core.workspace = true
 bijux-dna-db-ena.workspace = true
 bijux-dna-db-ref = { path = "../bijux-dna-db-ref" }
-bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
-bijux-dna-domain-vcf = { path = "../bijux-dna-domain-vcf" }
 bijux-dna-infra.workspace = true
 chrono.workspace = true
 clap.workspace = true
