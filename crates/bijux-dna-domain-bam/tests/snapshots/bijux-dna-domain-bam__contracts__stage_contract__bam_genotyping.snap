@@ -22,16 +22,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   ],
   "io": {
     "deterministic": true,
-    "duplicate_policy": "no_duplicate_marking",
+    "duplicate_policy": "preserves_duplicates",
     "emits_bam": false,
     "emits_report": true,
-    "indexing": "index_optional",
+    "indexing": "requires_index_and_refuses_missing_index",
     "input_kind": "bam",
     "mapping_quality_policy": "no_mapping_quality_filter",
     "nondeterminism_reason": null,
     "output_kind": "report",
     "read_group_policy": "requires_read_groups_for_sample_metadata",
-    "sorting": "accepts_unsorted_bam"
+    "sorting": "requires_coordinate_sorted_input"
   },
   "outputs": [
     "genotyping_report",

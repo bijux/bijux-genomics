@@ -2,7 +2,9 @@
 fn params_and_metrics_canonical() {
     let params = bijux_dna_domain_bam::params::AlignEffectiveParams {
         aligner: "bwa".to_string(),
+        strategy_id: "bwa_mem_default".to_string(),
         preset: "default".to_string(),
+        mode: "end_to_end".to_string(),
         threads: 4,
         reference: "ref".to_string(),
         reference_digest: "sha256:ref".to_string(),
