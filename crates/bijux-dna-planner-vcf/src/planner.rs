@@ -25,6 +25,8 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
     let ResolvedPlanningContext {
         species: resolved_species,
         bundle,
+        reference_bank: _reference_bank,
+        contig_map: _contig_map,
         panel_catalog,
         map_catalog,
         resolved_coverage,

@@ -1,12 +1,14 @@
 use anyhow::{bail, Result};
 use bijux_dna_db_ref::{
-    ref_service, resolve_species_context, MapCatalogEntry, PanelCatalogEntry, ReferenceBundle,
+    ref_service, resolve_contig_map, resolve_reference_bank, resolve_species_context, ContigMap,
+    MapCatalogEntry, PanelCatalogEntry, ReferenceBankEntry, ReferenceBundle,
     ResolvedSpeciesContext,
 };
 use bijux_dna_domain_vcf::contracts::{
     DefaultPanelSelectionPolicy, PanelSelectionPolicy, ReferencePanelGovernance,
 };
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
+use serde::Serialize;
 
 use crate::api::{VcfPanelLock, VcfPipelineInputs};
 use crate::coverage::classify_coverage_regime;
@@ -15,10 +17,28 @@ use crate::coverage::classify_coverage_regime;
 pub struct ResolvedPlanningContext {
     pub species: ResolvedSpeciesContext,
     pub bundle: ReferenceBundle,
+    pub reference_bank: ReferenceBankEntry,
+    pub contig_map: ContigMap,
     pub panel_catalog: PanelCatalogEntry,
     pub map_catalog: MapCatalogEntry,
     pub resolved_coverage: CoverageRegime,
     pub selected_panel: Option<VcfPanelLock>,
+}
+
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
+pub struct ReferenceContextReport {
+    pub schema_version: String,
+    pub species_id: String,
+    pub build_id: String,
+    pub bundle_id: String,
+    pub bundle_lock_sha256: String,
+    pub fasta_sha256: String,
+    pub contig_naming_scheme: String,
+    pub alias_count: usize,
+    pub normalization_policy: String,
+    pub panel_id: String,
+    pub map_id: String,
+    pub vcf_index_required: bool,
 }
 
 /// # Errors
@@ -65,7 +85,15 @@ pub fn resolve(inputs: &VcfPipelineInputs) -> Result<ResolvedPlanningContext> {
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
     )?;
+    let reference_bank = resolve_reference_bank(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )?;
     let bundle = refs.resolve_reference_bundle(
+        &inputs.species_context.species_id,
+        &inputs.species_context.build_id,
+    )?;
+    let contig_map = resolve_contig_map(
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
     )?;
@@ -93,13 +121,60 @@ pub fn resolve(inputs: &VcfPipelineInputs) -> Result<ResolvedPlanningContext> {
             "reference bundle drift detected: species context digest does not match bundle digest"
         );
     }
+    if reference_bank.build_id != inputs.species_context.build_id
+        || reference_bank.species_id != inputs.species_context.species_id
+    {
+        bail!("reference bank drift detected: species/build does not match VCF planner inputs");
+    }
+    if contig_map.build_id != inputs.species_context.build_id
+        || contig_map.species_id != inputs.species_context.species_id
+    {
+        bail!("contig map drift detected: species/build does not match VCF planner inputs");
+    }
+    if panel_catalog.build_id != inputs.species_context.build_id {
+        bail!("panel catalog drift detected: build does not match VCF planner inputs");
+    }
+    if map_catalog.build_id != inputs.species_context.build_id {
+        bail!("map catalog drift detected: build does not match VCF planner inputs");
+    }
     let selected_panel = resolve_panel_lock(inputs)?;
+    if let Some(panel) = &selected_panel {
+        if panel.reference_build != inputs.species_context.build_id {
+            bail!("panel lock drift detected: selected panel build does not match planner build");
+        }
+    }
     Ok(ResolvedPlanningContext {
         species,
         bundle,
+        reference_bank,
+        contig_map,
         panel_catalog,
         map_catalog,
         resolved_coverage,
         selected_panel,
     })
+}
+
+#[must_use]
+pub fn reference_context_report(context: &ResolvedPlanningContext) -> ReferenceContextReport {
+    ReferenceContextReport {
+        schema_version: "bijux.vcf.reference_context_report.v1".to_string(),
+        species_id: context.species.context.species_id.clone(),
+        build_id: context.species.context.build_id.clone(),
+        bundle_id: context.bundle.bundle_id.clone(),
+        bundle_lock_sha256: context.bundle.bundle_lock_sha256.clone(),
+        fasta_sha256: context.reference_bank.fasta_sha256.clone(),
+        contig_naming_scheme: context.contig_map.naming_convention.clone(),
+        alias_count: context.contig_map.aliases.len(),
+        normalization_policy: format!("{:?}", context.bundle.normalization_policy),
+        panel_id: context.panel_catalog.id.clone(),
+        map_id: context.map_catalog.id.clone(),
+        vcf_index_required: true,
+    }
+}
+
+/// # Errors
+/// Returns an error if the reference context cannot be resolved for the planner inputs.
+pub fn resolve_reference_context_report(inputs: &VcfPipelineInputs) -> Result<ReferenceContextReport> {
+    resolve(inputs).map(|context| reference_context_report(&context))
 }

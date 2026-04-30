@@ -39,6 +39,7 @@
   "stage_plans": [
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -95,6 +96,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_prepare_reference_panel",
       "params": {
         "normalize": true,
@@ -117,6 +119,7 @@
         "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
@@ -139,6 +142,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "angsd",
@@ -180,6 +184,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_call_gl",
       "params": {
         "coverage_regime": "low_cov_gl",
@@ -194,6 +199,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "angsd"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
@@ -216,6 +222,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -260,6 +267,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_damage_filter",
       "params": {
         "damage_audit": true,
@@ -276,6 +284,7 @@
         "schema_version": "bijux.vcf.damage_filter.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
@@ -298,6 +307,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -339,6 +349,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_filter",
       "params": {
         "coverage_regime": "low_cov_gl",
@@ -353,6 +364,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
@@ -375,6 +387,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -423,6 +436,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_gl_propagation",
       "params": {
         "propagation_scope": "post_filter_pre_impute",
@@ -442,6 +456,7 @@
         "schema_version": "bijux.vcf.gl_propagation.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
@@ -464,6 +479,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "glimpse",
@@ -1124,6 +1140,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_impute",
       "params": {
         "buffer_mb": 0.2,
@@ -1755,6 +1772,7 @@
         "tool": "glimpse",
         "window_size_mb": 2.0
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
@@ -1777,6 +1795,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -1818,6 +1837,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_postprocess",
       "params": {
         "coverage_regime": "low_cov_gl",
@@ -1832,6 +1852,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
@@ -1854,6 +1875,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "plink2",
@@ -1902,6 +1924,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_population_structure",
       "params": {
         "components": 10,
@@ -1922,6 +1945,7 @@
         "schema_version": "bijux.vcf.population_structure.params.v1",
         "tool": "plink2"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",
@@ -1944,6 +1968,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -1985,6 +2010,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_stats",
       "params": {
         "coverage_regime": "low_cov_gl",
@@ -1999,6 +2025,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "low_cov_gl",

@@ -27,6 +27,7 @@
   "stage_plans": [
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -83,6 +84,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_prepare_reference_panel",
       "params": {
         "normalize": true,
@@ -105,6 +107,7 @@
         "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",
@@ -127,6 +130,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -168,6 +172,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_call_diploid",
       "params": {
         "coverage_regime": "diploid",
@@ -182,6 +187,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",
@@ -204,6 +210,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "beagle",
@@ -863,6 +870,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_impute",
       "params": {
         "chunking": {
@@ -1493,6 +1501,7 @@
         "schema_version": "bijux.vcf.impute.params.v1",
         "tool": "beagle"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",
@@ -1515,6 +1524,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "germline",
@@ -1563,6 +1573,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_ibd",
       "params": {
         "min_samples": 2,
@@ -1582,6 +1593,7 @@
         "schema_version": "bijux.vcf.ibd.params.v1",
         "tool": "germline"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",
@@ -1604,6 +1616,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "ibdne",
@@ -1647,6 +1660,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_demography",
       "params": {
         "generation_time_years": 29,
@@ -1662,6 +1676,7 @@
         "schema_version": "bijux.vcf.demography.params.v1",
         "tool": "ibdne"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",
@@ -1684,6 +1699,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -1725,6 +1741,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_stats",
       "params": {
         "coverage_regime": "diploid",
@@ -1739,6 +1756,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",

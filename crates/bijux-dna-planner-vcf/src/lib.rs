@@ -34,5 +34,8 @@ pub use chunk_plan::RegionChunkPlan;
 pub use explain::explain_vcf_plan;
 pub use explain_model::{PlannerExplainStage, PlannerExplainV1};
 pub use planner::{plan_vcf_minimal, plan_vcf_pipeline, plan_vcf_stage_plans};
+pub use reference_context::{
+    reference_context_report, resolve_reference_context_report, ReferenceContextReport,
+};
 
 pub const PLANNER_VERSION: &str = "bijux-dna-planner-vcf.v2";

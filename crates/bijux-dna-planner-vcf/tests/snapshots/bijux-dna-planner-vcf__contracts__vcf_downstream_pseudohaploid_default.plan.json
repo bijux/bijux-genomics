@@ -23,6 +23,7 @@
   "stage_plans": [
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "angsd",
@@ -64,6 +65,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_call_pseudohaploid",
       "params": {
         "coverage_regime": "pseudohaploid",
@@ -78,6 +80,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "angsd"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "pseudohaploid",
@@ -100,6 +103,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -144,6 +148,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_damage_filter",
       "params": {
         "damage_audit": true,
@@ -160,6 +165,7 @@
         "schema_version": "bijux.vcf.damage_filter.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "pseudohaploid",
@@ -182,6 +188,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -223,6 +230,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_filter",
       "params": {
         "coverage_regime": "pseudohaploid",
@@ -237,6 +245,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "pseudohaploid",
@@ -259,6 +268,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "plink2",
@@ -304,6 +314,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_roh",
       "params": {
         "het_per_window": 1,
@@ -320,6 +331,7 @@
         "schema_version": "bijux.vcf.roh.params.v1",
         "tool": "plink2"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "pseudohaploid",
@@ -342,6 +354,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -383,6 +396,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_stats",
       "params": {
         "coverage_regime": "pseudohaploid",
@@ -397,6 +411,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "pseudohaploid",

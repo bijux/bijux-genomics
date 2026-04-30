@@ -10,8 +10,8 @@ use bijux_dna_domain_vcf::contracts::{
 };
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 use bijux_dna_planner_vcf::{
-    explain_vcf_plan, plan_vcf_pipeline, plan_vcf_stage_plans, ChunkPlanSettings, VcfPanelLock,
-    VcfPipelineInputs,
+    explain_vcf_plan, plan_vcf_pipeline, plan_vcf_stage_plans, resolve_reference_context_report,
+    ChunkPlanSettings, VcfPanelLock, VcfPipelineInputs,
 };
 
 fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
@@ -257,6 +257,37 @@ fn vcf_planner_refuses_unknown_param_override_stage() {
         err.to_string().contains("unknown stage_param_overrides key vcf.not_real"),
         "unexpected planner refusal: {err}"
     );
+}
+
+#[test]
+fn vcf_reference_context_report_surfaces_build_alias_and_checksum_contracts() {
+    let report = resolve_reference_context_report(&base_inputs(CoverageRegime::Diploid))
+        .unwrap_or_else(|err| panic!("resolve reference context report: {err}"));
+
+    assert_eq!(report.schema_version, "bijux.vcf.reference_context_report.v1");
+    assert_eq!(report.build_id, "GRCh38");
+    assert!(!report.contig_naming_scheme.is_empty());
+    assert_eq!(report.fasta_sha256.len(), 64);
+    assert!(report.alias_count > 0);
+    assert_eq!(report.panel_id, "hsapiens_grch38_mini");
+    assert_eq!(report.map_id, "hsapiens_grch38_chr_map");
+    assert!(report.vcf_index_required);
+}
+
+#[test]
+fn vcf_explain_surfaces_artifact_classes_and_guardrails() {
+    let plans = plan_vcf_stage_plans(&base_inputs(CoverageRegime::Diploid))
+        .unwrap_or_else(|err| panic!("stage plans: {err}"));
+    let explain = explain_vcf_plan(&base_inputs(CoverageRegime::Diploid), &plans);
+
+    assert_eq!(explain.reference_context.schema_version, "bijux.vcf.reference_context_report.v1");
+    assert!(!explain.panel_boundary_contracts.is_empty());
+    assert!(!explain.population_guardrail_contracts.is_empty());
+    assert!(explain.stages.iter().any(|stage| {
+        stage.stage_id == "vcf.call_diploid"
+            && !stage.artifact_classes.is_empty()
+            && stage.calling_mode_contract.is_some()
+    }));
 }
 
 #[test]

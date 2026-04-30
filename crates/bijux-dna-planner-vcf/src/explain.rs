@@ -1,4 +1,8 @@
 use bijux_dna_db_ref::{resolve_coverage_profile, resolve_reference_bundle};
+use bijux_dna_domain_vcf::contracts::{
+    stage_artifact_class_contract, vcf_calling_mode_contracts, vcf_panel_boundary_contracts,
+    vcf_population_guardrail_contracts,
+};
 use bijux_dna_stage_contract::StagePlanV1;
 
 use crate::api::VcfPipelineInputs;
@@ -7,10 +11,11 @@ use crate::coverage::{
     classify_coverage_regime, damage_aware_policy_for_regime, CoverageThresholds,
 };
 use crate::explain_model::{PlannerExplainStage, PlannerExplainV1};
-use crate::reference_context::resolve_panel_lock;
+use crate::reference_context::{resolve, resolve_panel_lock, ReferenceContextReport};
 
 #[must_use]
 pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> PlannerExplainV1 {
+    let resolved_context = resolve(inputs).ok();
     let bundle = resolve_reference_bundle(
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
@@ -42,13 +47,66 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
         plan_region_chunks(&inputs.species_context, &inputs.chunking).map(|c| c.len()).unwrap_or(0);
     let stages = plans
         .iter()
-        .map(|plan| PlannerExplainStage {
-            stage_id: plan.stage_id.to_string(),
-            selected_tool: plan.tool_id.to_string(),
-            reason: plan.reason.summary.clone(),
-            coverage_regime: resolved_coverage_regime,
-            params_surface: plan.effective_params.clone(),
+        .map(|plan| {
+            let stage = bijux_dna_domain_vcf::VcfDomainStage::try_from(plan.stage_id.to_string().as_str())
+                .ok();
+            let artifact_classes = stage
+                .map(stage_artifact_class_contract)
+                .map(|contract| contract.artifact_classes.iter().copied().collect::<Vec<_>>())
+                .unwrap_or_default();
+            let calling_mode_contract = stage.and_then(|stage_id| {
+                vcf_calling_mode_contracts()
+                    .iter()
+                    .copied()
+                    .find(|contract| contract.stage == stage_id)
+            });
+            PlannerExplainStage {
+                stage_id: plan.stage_id.to_string(),
+                selected_tool: plan.tool_id.to_string(),
+                reason: plan.reason.summary.clone(),
+                coverage_regime: resolved_coverage_regime,
+                params_surface: plan.effective_params.clone(),
+                artifact_classes,
+                calling_mode_contract,
+            }
         })
+        .collect::<Vec<_>>();
+    let reference_context = resolved_context
+        .as_ref()
+        .map(crate::reference_context::reference_context_report)
+        .unwrap_or_else(|| ReferenceContextReport {
+            schema_version: "bijux.vcf.reference_context_report.v1".to_string(),
+            species_id: inputs.species_context.species_id.clone(),
+            build_id: inputs.species_context.build_id.clone(),
+            bundle_id: bundle
+                .as_ref()
+                .map(|value| value.bundle_id.clone())
+                .unwrap_or_else(|| "unresolved".to_string()),
+            bundle_lock_sha256: bundle
+                .as_ref()
+                .map(|value| value.bundle_lock_sha256.clone())
+                .unwrap_or_else(|| "unresolved".to_string()),
+            fasta_sha256: "unresolved".to_string(),
+            contig_naming_scheme: "unresolved".to_string(),
+            alias_count: 0,
+            normalization_policy: bundle
+                .as_ref()
+                .map(|value| format!("{:?}", value.normalization_policy))
+                .unwrap_or_else(|| "unresolved".to_string()),
+            panel_id: "unresolved".to_string(),
+            map_id: "unresolved".to_string(),
+            vcf_index_required: true,
+        });
+    let planned_stage_ids = stages.iter().map(|stage| stage.stage_id.as_str()).collect::<Vec<_>>();
+    let panel_boundary_contracts = vcf_panel_boundary_contracts()
+        .iter()
+        .copied()
+        .filter(|contract| planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str()))
+        .collect::<Vec<_>>();
+    let population_guardrail_contracts = vcf_population_guardrail_contracts()
+        .iter()
+        .copied()
+        .filter(|contract| planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str()))
         .collect::<Vec<_>>();
     PlannerExplainV1 {
         schema_version: "bijux.vcf.planner_explain.v1".to_string(),
@@ -90,7 +148,10 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
             .unwrap_or_else(|| "unresolved".to_string()),
         resolved_coverage_profile,
         damage_aware_policy: damage_aware_policy_for_regime(resolved_coverage_regime),
+        reference_context: reference_context.clone(),
         selected_panel,
+        panel_boundary_contracts,
+        population_guardrail_contracts,
         decision_traces: vec![
             serde_json::json!({
                 "id": "decision.backend_selection",
@@ -120,6 +181,7 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
             serde_json::json!({
                 "id": "decision.reference_bundle_resolution",
                 "reason": "resolve species/build -> canonical bundle + lock",
+                "reference_context": reference_context.clone(),
             }),
             serde_json::json!({
                 "id": "decision.coverage_regime",
