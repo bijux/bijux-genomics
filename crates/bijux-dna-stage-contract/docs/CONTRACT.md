@@ -27,6 +27,9 @@ Non-breaking changes may use a minor bump when callers can safely ignore them:
 - **Plan**: a planned set of steps (this crate).
 - **Run**: an executed plan with runtime artifacts (runtime/runner crates).
 - **Execution plan**: the serialized plan JSON defined by this crate.
+- **Canonical stage contract**: the typed stage/backend agreement that binds
+  semantic stage ID, backend tool ID, artifact roles, capability claims,
+  report contracts, refusal codes, and operating mode before execution.
 
 ## No execution detail
 This crate defines planning contracts only; execution belongs in core/runtime.
@@ -48,6 +51,27 @@ For execution manifests and run contracts, `bijux-dna-core` is the authority.
 - `tool_id` and `tool_version`: selected tool metadata for planning only.
 - `inputs` and `outputs`: artifact IDs plus relative paths for each step.
 - `params`: explicit parameters for the step; hidden defaults are not allowed.
+
+## Canonical Stage Contract Fixtures
+
+The executable stage-contract examples live under `tests/fixtures/docs/` and are
+validated by the schema suite:
+
+- `tests/fixtures/docs/fastq_trim_stage_contract.json`
+- `tests/fixtures/docs/bam_align_stage_contract.json`
+- `tests/fixtures/docs/vcf_filter_stage_contract.json`
+
+Each fixture demonstrates the same canonical contract shape with different
+semantic stages and backend tools:
+
+- FASTQ trimming: semantic stage `fastq.trim_reads` distinct from backend
+  `fastp`.
+- BAM alignment: semantic stage `bam.align` distinct from backend `bwa`.
+- VCF filtering: semantic stage `vcf.filter` distinct from backend `bcftools`.
+
+These fixtures also exercise typed artifact roles, deterministic parameter
+aliases/defaults, refusal codes, report-contract typing, and
+simulation/advisory/enforced operating semantics.
 
 ## Contract Promise
 

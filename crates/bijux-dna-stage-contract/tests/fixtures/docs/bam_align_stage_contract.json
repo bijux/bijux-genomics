@@ -1,0 +1,98 @@
+{
+  "backend_tool_id": "bwa",
+  "backend_version_policy": "pinned",
+  "capability_contract": {
+    "compression": [
+      "bgzf"
+    ],
+    "index": "required",
+    "layouts": [
+      "paired_end"
+    ],
+    "output_formats": [
+      "bam",
+      "json"
+    ],
+    "reference": "required",
+    "unsupported_parameter_combinations": []
+  },
+  "environment_requirements": {
+    "executables": [
+      "bwa",
+      "samtools"
+    ],
+    "mounts": [
+      "reference_bank"
+    ],
+    "variables": [
+      "TMPDIR"
+    ]
+  },
+  "input_artifacts": [
+    {
+      "artifact_role": "reads",
+      "cardinality": "Many",
+      "data_type": "fastq",
+      "name": "reads"
+    },
+    {
+      "artifact_role": "reference",
+      "cardinality": "One",
+      "data_type": "fasta",
+      "name": "reference_fasta"
+    },
+    {
+      "artifact_role": "index",
+      "cardinality": "One",
+      "data_type": "index",
+      "name": "reference_index"
+    }
+  ],
+  "operating_mode": "enforced",
+  "output_artifacts": [
+    {
+      "artifact_role": "bam",
+      "cardinality": "One",
+      "data_type": "bam",
+      "name": "aligned_bam"
+    },
+    {
+      "artifact_role": "report_json",
+      "cardinality": "One",
+      "data_type": "json",
+      "name": "align_report_json"
+    }
+  ],
+  "parameters": [
+    {
+      "aliases": [],
+      "default": "4",
+      "name": "threads",
+      "param_type": "integer"
+    }
+  ],
+  "refusal_codes": [
+    "missing_reference",
+    "missing_index",
+    "backend_unavailable"
+  ],
+  "report_contracts": [
+    {
+      "advisory_fields": [
+        "notes"
+      ],
+      "kind": "coverage",
+      "report_id": "bam.align.report",
+      "required_fields": [
+        "stage_id",
+        "tool_id",
+        "reference_name"
+      ],
+      "schema_version": "bijux.bam.align.report.v1",
+      "severity": "warning"
+    }
+  ],
+  "semantic_kind": "transform",
+  "stage_family": "bam",
+  "stage_id": "bam.align"
+}
