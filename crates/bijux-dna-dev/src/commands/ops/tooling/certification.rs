@@ -93,6 +93,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
             "vcf_damage_aware_genotype_mini",
             "vcf_downstream_vcf_full_mini",
             "vcf_downstream_demography_mini",
+            "vcf_essential_qc",
             "vcf_imputation_mini",
         ] {
             execution = merge_outcomes(
@@ -270,6 +271,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
                 "vcf_downstream_demography_mini",
                 workspace.path("examples/vcf/downstream-demography-mini"),
             ),
+            ("vcf_essential_qc", workspace.path("examples/vcf/essential-qc")),
             ("vcf_imputation_mini", workspace.path("examples/vcf/imputation-mini")),
         ] {
             let artifact_root = workspace.path("artifacts/examples").join(example_id);

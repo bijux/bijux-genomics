@@ -241,6 +241,14 @@ examples:
       - explain.json
       - report.json
     path: examples/vcf/downstream-vcf-full-mini
+  - id: vcf_essential_qc
+    domain: vcf
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/vcf/essential-qc
   - id: vcf_imputation_mini
     domain: vcf
     corpus_required: corpus-01-mini
