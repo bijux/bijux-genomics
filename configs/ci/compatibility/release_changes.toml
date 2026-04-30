@@ -1,0 +1,67 @@
+# schema_version = 1
+# owner = bijux-dna-dev
+# purpose = Machine-readable release-change inventory for upgrade guide generation.
+# authority = bijux-dna-dev
+# stability = stable
+# last_updated = 2026-04-30
+
+schema_version = "bijux.release_changes.v1"
+release_id = "feat-deep-foundation-compatibility"
+title = "Compatibility and upgrade discipline"
+
+[area_status]
+schemas = true
+defaults = false
+tools = false
+containers = false
+evidence_expectations = true
+api = true
+errors = true
+
+[[change]]
+area = "schemas"
+subject = "workflow_manifest"
+changed = true
+summary = "Legacy v0 workflow manifests upgrade deterministically to bijux.workflow_manifest.v1."
+migration = "Use bijux-dna-core manifest migration helpers before persisting or diffing imported workflow manifests."
+test = "workflow_manifest_v0_upgrades_deterministically"
+
+[[change]]
+area = "schemas"
+subject = "plan_manifest"
+changed = true
+summary = "Legacy v0 plan manifests upgrade to bijux.plan_manifest.v1 and recompute the plan fingerprint."
+migration = "Equivalent payloads preserve the v1 fingerprint; frozen legacy fixtures with stale workflow_fingerprint values must explain the expected drift."
+test = "plan_manifest_v0_upgrade_preserves_equivalent_v1_fingerprint"
+
+[[change]]
+area = "schemas"
+subject = "artifact_inventory"
+changed = true
+summary = "Runtime readers accept bijux.artifact_inventory.v0 and normalize it to bijux.artifact_inventory.v1."
+migration = "Use read_supported_artifact_inventory for compatibility reads and keep v1 as the write format."
+test = "artifact_inventory_reader_accepts_supported_legacy_fixture"
+
+[[change]]
+area = "evidence_expectations"
+subject = "evidence_bundle_profiles"
+changed = true
+summary = "Draft, operational, certification, and publication evidence lanes now declare required paths and tolerated gaps."
+migration = "Validate bundles against the target lane before certification or publication review."
+test = "draft_profile_tolerates_missing_publication_material"
+
+[[change]]
+area = "api"
+subject = "v1_route_inventory"
+changed = true
+summary = "The v1 plan, dry-run, execute, and status routes now publish a governed route-version inventory tied to workflow, plan, runtime, and evidence schemas."
+migration = "Review route_version_inventory and refresh the snapshot if a route changes its governed model families."
+test = "route_version_inventory_schema_is_stable"
+
+[[change]]
+area = "errors"
+subject = "durable_error_registry"
+changed = true
+summary = "Contract, scientific, runtime, infrastructure, API, and cache errors now have durable ids with reviewed remediation text."
+migration = "Use the governed wire codes and remediation text in operator triage and release notes."
+test = "error_registry_snapshot_is_stable"

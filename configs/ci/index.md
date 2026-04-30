@@ -4,6 +4,7 @@ Purpose: CI contract configuration root.
 
 Layout:
 - `artifacts/planning/`: backlog cards, scoreboard, and issue-routing labels.
+- `configs/ci/compatibility/`: compatibility release inputs and deprecation dashboard sources.
 - `configs/ci/registry/`: tool/domain registries and lockfile.
 - `configs/ci/stages/`: stage catalogs.
 - `configs/ci/tools/`: required tools and image catalog.
