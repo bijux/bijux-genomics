@@ -89,3 +89,10 @@ Before touching a run:
   `cargo test -p bijux-dna-api --test contracts v1_dry_run_manifest -- --nocapture`
 - Execute gate:
   `cargo run -q -p bijux-dna-dev -- tooling run cargo-targets essential-execute`
+
+## Reference and External Data Scenarios
+
+- Scenario suite command:
+  `cargo run -q -p bijux-dna-dev -- tooling run reference-external-data`
+- Scenario operations guide:
+  [REFERENCE_EXTERNAL_DATA_SCENARIOS.md](./REFERENCE_EXTERNAL_DATA_SCENARIOS.md)
