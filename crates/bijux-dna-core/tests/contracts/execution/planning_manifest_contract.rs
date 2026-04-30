@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 use bijux_dna_core::contract::{
     build_plan_manifest, diff_plan_manifests, validate_cross_domain_handoffs, ArtifactRef,
@@ -180,6 +181,148 @@ fn build_plan_manifest_is_deterministic_for_shuffled_graph_inputs() -> anyhow::R
     assert_eq!(manifest_a.ordered_steps[0].step_id, "fastq.validate_reads");
     assert_eq!(manifest_a.ordered_steps[1].step_id, "fastq.trim_reads");
     assert!(manifest_a.ordered_steps[1].advisory);
+    Ok(())
+}
+
+#[test]
+fn build_plan_manifest_ignores_temp_root_path_noise() -> anyhow::Result<()> {
+    let temp_a = tempfile::tempdir()?;
+    let temp_b = tempfile::tempdir()?;
+
+    let graph_for_root = |root: &std::path::Path| -> anyhow::Result<ExecutionGraph> {
+        let sample = root.join("sample.bam");
+        let filtered = root.join("out/bam_filter/filtered.bam");
+        let summary = root.join("out/bam_filter/filter.summary.json");
+        let step = ExecutionStep {
+            step_id: StepId::from_static("bam.filter"),
+            stage_id: StageId::from_static("bam.filter"),
+            image: ContainerImageRefV1 {
+                image: "bijux/bam-filter".to_string(),
+                digest: Some("sha256:bam-filter".to_string()),
+            },
+            command: CommandSpecV1 {
+                template: vec![
+                    "/bin/sh".to_string(),
+                    "-c".to_string(),
+                    format!(
+                        "samtools view -b {} > {} && echo {}",
+                        sample.display(),
+                        filtered.display(),
+                        summary.display(),
+                    ),
+                ],
+            },
+            resources: ToolConstraints {
+                runtime: "docker".to_string(),
+                mem_gb: 2,
+                tmp_gb: 1,
+                threads: 1,
+            },
+            io: StageIO {
+                inputs: vec![ArtifactRef::required(
+                    ArtifactId::new("bam.input"),
+                    sample,
+                    ArtifactRole::Bam,
+                )],
+                outputs: vec![
+                    ArtifactRef::required(
+                        ArtifactId::new("bam.output"),
+                        filtered,
+                        ArtifactRole::Bam,
+                    ),
+                    ArtifactRef::required(
+                        ArtifactId::new("summary.output"),
+                        summary,
+                        ArtifactRole::ReportJson,
+                    ),
+                ],
+            },
+            out_dir: root.join("out/bam_filter"),
+            aux_images: BTreeMap::new(),
+            expected_artifact_ids: Vec::new(),
+            metrics_schema_ids: Vec::new(),
+        };
+        Ok(ExecutionGraph::new(
+            "bam-to-bam__default__v1",
+            "planner-bam",
+            PlanPolicy::PreferAccuracy,
+            vec![step],
+            Vec::new(),
+        )?)
+    };
+
+    let workflow_for_root = |root: &std::path::Path| -> WorkflowManifestV1 {
+        let mut manifest = WorkflowManifestV1::new("bam", "bam-to-bam__default__v1");
+        manifest.inputs = vec![WorkflowInputArtifactV1 {
+            artifact_id: "bam".to_string(),
+            role: ArtifactRole::Bam,
+            path: root.join("sample.bam"),
+            layout: None,
+            compression: None,
+            format_id: Some("bam".to_string()),
+        }];
+        manifest.requested_stages = vec![WorkflowStageRequestV1 {
+            stage_id: "bam.filter".to_string(),
+            advisory_only: false,
+        }];
+        manifest
+    };
+
+    let params_for_root = |root: &std::path::Path| {
+        BTreeMap::from([(
+            "bam.filter".to_string(),
+            serde_json::json!({
+                "input_bam": root.join("sample.bam"),
+                "output_bam": root.join("out/bam_filter/filtered.bam"),
+            }),
+        )])
+    };
+
+    let manifest_a = build_plan_manifest(PlanManifestBuildInputV1 {
+        workflow_manifest: workflow_for_root(temp_a.path()),
+        graph: graph_for_root(temp_a.path())?,
+        stage_contract_refs: vec![("bam.filter".to_string(), "sha256:bam-filter".to_string())],
+        effective_parameters_by_step: params_for_root(temp_a.path()),
+        parameter_traces: vec![ParameterResolutionTraceV1 {
+            step_id: "bam.filter".to_string(),
+            stage_id: "bam.filter".to_string(),
+            parameter: "input_bam".to_string(),
+            source: PlannerParameterSourceV1::PlannerInferred,
+            resolved_value: serde_json::Value::String(
+                PathBuf::from(temp_a.path()).join("sample.bam").display().to_string(),
+            ),
+            detail: format!(
+                "planned from {}",
+                PathBuf::from(temp_a.path()).join("sample.bam").display()
+            ),
+        }],
+        refusal_records: Vec::new(),
+        warning_records: Vec::new(),
+    })?;
+    let manifest_b = build_plan_manifest(PlanManifestBuildInputV1 {
+        workflow_manifest: workflow_for_root(temp_b.path()),
+        graph: graph_for_root(temp_b.path())?,
+        stage_contract_refs: vec![("bam.filter".to_string(), "sha256:bam-filter".to_string())],
+        effective_parameters_by_step: params_for_root(temp_b.path()),
+        parameter_traces: vec![ParameterResolutionTraceV1 {
+            step_id: "bam.filter".to_string(),
+            stage_id: "bam.filter".to_string(),
+            parameter: "input_bam".to_string(),
+            source: PlannerParameterSourceV1::PlannerInferred,
+            resolved_value: serde_json::Value::String(
+                PathBuf::from(temp_b.path()).join("sample.bam").display().to_string(),
+            ),
+            detail: format!(
+                "planned from {}",
+                PathBuf::from(temp_b.path()).join("sample.bam").display()
+            ),
+        }],
+        refusal_records: Vec::new(),
+        warning_records: Vec::new(),
+    })?;
+
+    assert_eq!(manifest_a.graph_hash, manifest_b.graph_hash);
+    assert_eq!(manifest_a.plan_fingerprint, manifest_b.plan_fingerprint);
     Ok(())
 }
 
