@@ -1,5 +1,6 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": [
       "/bin/sh",
@@ -8,8 +9,11 @@
     ]
   },
   "effective_params": {
+    "chromosome_system": "xy",
     "expected_sex": null,
-    "method": "rxy"
+    "method": "rxy",
+    "minimum_y_sites": 100,
+    "refuse_without_context": true
   },
   "image": {
     "digest": null,
@@ -45,16 +49,34 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
+    "chromosome_system": "xy",
     "expected_sex": null,
-    "method": "rxy"
+    "method": "rxy",
+    "minimum_y_sites": 100,
+    "refuse_without_context": true
   },
+  "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "1ffa7609929d496d22253472456e17adc0c88ef4bec9b6595d8b25e4b88f54f1",
-      "defaults_diff": {}
+      "contract_hash": "95cb458e4000cd81885d34c6d5a6a22231cc192abd4c79075d124bc86846cb43",
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 4,
+        "disk_gb": 4,
+        "input_bytes": 0,
+        "memory_gb": 4,
+        "notes": [
+          "sorting/indexing/validation chain dominates temporary storage"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 4,
+        "stage_id": "bam.sex"
+      }
     },
     "kind": "default",
     "summary": "tool rxy selected by planner"

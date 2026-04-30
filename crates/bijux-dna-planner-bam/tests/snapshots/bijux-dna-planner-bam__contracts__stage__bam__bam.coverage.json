@@ -1,5 +1,6 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": [
       "/bin/sh",
@@ -13,6 +14,7 @@
       3,
       5
     ],
+    "regime_mode": "advisory_and_enforced",
     "regions": null
   },
   "image": {
@@ -43,6 +45,7 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -51,12 +54,27 @@
       3,
       5
     ],
+    "regime_mode": "advisory_and_enforced",
     "regions": null
   },
+  "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "68cdf8efdd21ef4aa41700fadbcc2dbd58a334ede96e14693b27917406c4893b",
-      "defaults_diff": {}
+      "contract_hash": "ef1d25b13f1adfd2a5752610aad3ce626bd5e5936b28da60140af049649cbc67",
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 2,
+        "disk_gb": 2,
+        "input_bytes": 0,
+        "memory_gb": 2,
+        "notes": [
+          "coverage requires indexed random access for deterministic summaries"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 1,
+        "stage_id": "bam.coverage"
+      }
     },
     "kind": "default",
     "summary": "tool mosdepth selected by planner"

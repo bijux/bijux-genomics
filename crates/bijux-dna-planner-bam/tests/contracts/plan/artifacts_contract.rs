@@ -146,7 +146,11 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     assert_audit_outputs(BamStage::Complexity, &complexity);
 
     let coverage_params =
-        CoverageEffectiveParams { regions: None, depth_thresholds: vec![1, 3, 5] };
+        CoverageEffectiveParams {
+            regions: None,
+            depth_thresholds: vec![1, 3, 5],
+            regime_mode: "advisory_and_enforced".to_string(),
+        };
     let coverage = bijux_dna_planner_bam::tool_adapters::bam::coverage::plan(
         &dummy_tool("mosdepth"),
         bam,
@@ -161,6 +165,8 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
         pmd_threshold_3p: 0.3,
         trim_5p: 2,
         trim_3p: 2,
+        damage_tool_profile: Some("ancient".to_string()),
+        evidence_only: true,
     };
     let damage = bijux_dna_planner_bam::tool_adapters::bam::damage::plan(
         &dummy_tool("pydamage"),
@@ -170,8 +176,11 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     )?;
     assert_audit_outputs(BamStage::Damage, &damage);
 
-    let authenticity_params =
-        bijux_dna_domain_bam::params::AuthenticityEffectiveParams { mode: "aggregate".to_string() };
+    let authenticity_params = bijux_dna_domain_bam::params::AuthenticityEffectiveParams {
+        mode: "aggregate".to_string(),
+        evidence_only: true,
+        disallow_certification: true,
+    };
     let authenticity = bijux_dna_planner_bam::tool_adapters::bam::authenticity::plan(
         &dummy_tool("auth"),
         bam,
@@ -186,6 +195,10 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
         prior: None,
         sex_specific: false,
         assumptions: None,
+        required_reference_digest: Some("sha256:panel".to_string()),
+        chromosome_system: Some("xy".to_string()),
+        minimum_mean_coverage: Some(0.75),
+        emit_confidence_caveats: true,
     };
     let contamination = bijux_dna_planner_bam::tool_adapters::bam::contamination::plan(
         &dummy_tool("authentic"),
@@ -195,7 +208,13 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     )?;
     assert_audit_outputs(BamStage::Contamination, &contamination);
 
-    let sex_params = SexEffectiveParams { expected_sex: None, method: "rxy".to_string() };
+    let sex_params = SexEffectiveParams {
+        expected_sex: None,
+        method: "rxy".to_string(),
+        chromosome_system: Some("xy".to_string()),
+        minimum_y_sites: Some(100),
+        refuse_without_context: true,
+    };
     let sex = bijux_dna_planner_bam::tool_adapters::bam::sex::plan(
         &dummy_tool("rxy"),
         bam,
@@ -237,7 +256,10 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     {
         let haplo_params = HaplogroupEffectiveParams {
             reference_panel: "rcrs.fasta".to_string(),
+            reference_build: "GRCh38".to_string(),
             min_coverage: Some(5.0),
+            population_scope: Some("ancient_eurasia".to_string()),
+            refuse_without_population_context: true,
         };
         let haplogroups = bijux_dna_planner_bam::tool_adapters::bam::haplogroups::plan(
             &dummy_tool("yleaf"),
@@ -262,7 +284,10 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
 
         let kinship_params = KinshipEffectiveParams {
             reference_panel: "panel.vcf".to_string(),
+            reference_build: "GRCh38".to_string(),
+            population_scope: "ancient_eurasia".to_string(),
             min_overlap_snps: 200,
+            requires_cohort_context: true,
         };
         let kinship = bijux_dna_planner_bam::tool_adapters::bam::kinship::plan(
             &dummy_tool("king"),

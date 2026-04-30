@@ -18,3 +18,5 @@ mod plan_snapshots;
 mod planner_manifest_contract;
 #[path = "plan/toy_bam_run.rs"]
 mod toy_bam_run;
+#[path = "plan/workflow_governance.rs"]
+mod workflow_governance;

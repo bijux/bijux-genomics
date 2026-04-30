@@ -1,5 +1,6 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": [
       "/bin/sh",
@@ -79,6 +80,7 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -89,10 +91,24 @@
     "min_length": 30,
     "remove_duplicates": false
   },
+  "provenance": null,
   "reason": {
     "details": {
       "contract_hash": "2394b3e4ed23d88c649b070d085c12a67b5498aa1da9fafa580d4ee2a6228811",
-      "defaults_diff": {}
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 4,
+        "disk_gb": 4,
+        "input_bytes": 0,
+        "memory_gb": 4,
+        "notes": [
+          "sorting/indexing/validation chain dominates temporary storage"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 4,
+        "stage_id": "bam.filter"
+      }
     },
     "kind": "default",
     "summary": "tool samtools selected by planner"

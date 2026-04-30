@@ -133,6 +133,7 @@ fn coverage_params_complete() -> Result<()> {
     let params = bijux_dna_domain_bam::params::CoverageEffectiveParams {
         regions: None,
         depth_thresholds: vec![1, 3, 5],
+        regime_mode: "advisory_and_enforced".to_string(),
     };
     let plan = bijux_dna_planner_bam::tool_adapters::bam::coverage::plan(
         &dummy_tool("mosdepth"),
@@ -140,7 +141,7 @@ fn coverage_params_complete() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_keys(&plan.effective_params, &["regions", "depth_thresholds"])?;
+    assert_keys(&plan.effective_params, &["regions", "depth_thresholds", "regime_mode"])?;
     Ok(())
 }
 
@@ -152,6 +153,8 @@ fn damage_params_complete() -> Result<()> {
         pmd_threshold_3p: 0.3,
         trim_5p: 2,
         trim_3p: 2,
+        damage_tool_profile: Some("ancient".to_string()),
+        evidence_only: true,
     };
     let plan = bijux_dna_planner_bam::tool_adapters::bam::damage::plan(
         &dummy_tool("pydamage"),
@@ -161,22 +164,33 @@ fn damage_params_complete() -> Result<()> {
     )?;
     assert_keys(
         &plan.effective_params,
-        &["udg_model", "pmd_threshold_5p", "pmd_threshold_3p", "trim_5p", "trim_3p"],
+        &[
+            "udg_model",
+            "pmd_threshold_5p",
+            "pmd_threshold_3p",
+            "trim_5p",
+            "trim_3p",
+            "damage_tool_profile",
+            "evidence_only",
+        ],
     )?;
     Ok(())
 }
 
 #[test]
 fn authenticity_params_complete() -> Result<()> {
-    let params =
-        bijux_dna_domain_bam::params::AuthenticityEffectiveParams { mode: "aggregate".to_string() };
+    let params = bijux_dna_domain_bam::params::AuthenticityEffectiveParams {
+        mode: "aggregate".to_string(),
+        evidence_only: true,
+        disallow_certification: true,
+    };
     let plan = bijux_dna_planner_bam::tool_adapters::bam::authenticity::plan(
         &dummy_tool("auth"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_keys(&plan.effective_params, &["mode"])?;
+    assert_keys(&plan.effective_params, &["mode", "evidence_only", "disallow_certification"])?;
     Ok(())
 }
 
@@ -188,6 +202,10 @@ fn contamination_params_complete() -> Result<()> {
         prior: None,
         sex_specific: false,
         assumptions: None,
+        required_reference_digest: Some("sha256:panel".to_string()),
+        chromosome_system: Some("xy".to_string()),
+        minimum_mean_coverage: Some(0.75),
+        emit_confidence_caveats: true,
     };
     let plan = bijux_dna_planner_bam::tool_adapters::bam::contamination::plan(
         &dummy_tool("authentic"),
@@ -197,7 +215,17 @@ fn contamination_params_complete() -> Result<()> {
     )?;
     assert_keys(
         &plan.effective_params,
-        &["reference_panels", "scope", "prior", "sex_specific", "assumptions"],
+        &[
+            "reference_panels",
+            "scope",
+            "prior",
+            "sex_specific",
+            "assumptions",
+            "required_reference_digest",
+            "chromosome_system",
+            "minimum_mean_coverage",
+            "emit_confidence_caveats",
+        ],
     )?;
     Ok(())
 }
@@ -207,6 +235,9 @@ fn sex_params_complete() -> Result<()> {
     let params = bijux_dna_domain_bam::params::SexEffectiveParams {
         expected_sex: None,
         method: "rxy".to_string(),
+        chromosome_system: Some("xy".to_string()),
+        minimum_y_sites: Some(100),
+        refuse_without_context: true,
     };
     let plan = bijux_dna_planner_bam::tool_adapters::bam::sex::plan(
         &dummy_tool("rxy"),
@@ -214,7 +245,16 @@ fn sex_params_complete() -> Result<()> {
         Path::new("out"),
         &params,
     )?;
-    assert_keys(&plan.effective_params, &["expected_sex", "method"])?;
+    assert_keys(
+        &plan.effective_params,
+        &[
+            "expected_sex",
+            "method",
+            "chromosome_system",
+            "minimum_y_sites",
+            "refuse_without_context",
+        ],
+    )?;
     Ok(())
 }
 
@@ -258,17 +298,29 @@ fn recalibration_params_complete() -> Result<()> {
 #[test]
 #[cfg(feature = "bam_downstream")]
 fn haplogroups_params_complete() -> Result<()> {
-    let params = bijux_dna_domain_bam::params::HaplogroupEffectiveParams {
-        reference_panel: "mito_default".to_string(),
-        min_coverage: Some(1.0),
-    };
+        let params = bijux_dna_domain_bam::params::HaplogroupEffectiveParams {
+            reference_panel: "mito_default".to_string(),
+            reference_build: "GRCh38".to_string(),
+            min_coverage: Some(1.0),
+            population_scope: Some("ancient_eurasia".to_string()),
+            refuse_without_population_context: true,
+        };
     let plan = bijux_dna_planner_bam::tool_adapters::bam::haplogroups::plan(
         &dummy_tool("haplogrep"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_keys(&plan.effective_params, &["reference_panel", "min_coverage"])?;
+        assert_keys(
+            &plan.effective_params,
+            &[
+                "reference_panel",
+                "reference_build",
+                "min_coverage",
+                "population_scope",
+                "refuse_without_population_context",
+            ],
+        )?;
     Ok(())
 }
 
@@ -293,17 +345,29 @@ fn genotyping_params_complete() -> Result<()> {
 #[test]
 #[cfg(feature = "bam_downstream")]
 fn kinship_params_complete() -> Result<()> {
-    let params = bijux_dna_domain_bam::params::KinshipEffectiveParams {
-        reference_panel: "king_default".to_string(),
-        min_overlap_snps: 1000,
-    };
+        let params = bijux_dna_domain_bam::params::KinshipEffectiveParams {
+            reference_panel: "king_default".to_string(),
+            reference_build: "GRCh38".to_string(),
+            population_scope: "ancient_eurasia".to_string(),
+            min_overlap_snps: 1000,
+            requires_cohort_context: true,
+        };
     let plan = bijux_dna_planner_bam::tool_adapters::bam::kinship::plan(
         &dummy_tool("king"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-    assert_keys(&plan.effective_params, &["reference_panel", "min_overlap_snps"])?;
+        assert_keys(
+            &plan.effective_params,
+            &[
+                "reference_panel",
+                "reference_build",
+                "population_scope",
+                "min_overlap_snps",
+                "requires_cohort_context",
+            ],
+        )?;
     Ok(())
 }
 
@@ -312,7 +376,10 @@ fn kinship_params_complete() -> Result<()> {
 fn kinship_rejects_empty_reference_panel() {
     let params = bijux_dna_domain_bam::params::KinshipEffectiveParams {
         reference_panel: String::new(),
+        reference_build: "GRCh38".to_string(),
+        population_scope: "ancient_eurasia".to_string(),
         min_overlap_snps: 1000,
+        requires_cohort_context: true,
     };
     let result = bijux_dna_planner_bam::tool_adapters::bam::kinship::plan(
         &dummy_tool("king"),
@@ -328,7 +395,10 @@ fn kinship_rejects_empty_reference_panel() {
 fn kinship_rejects_zero_overlap_threshold() {
     let params = bijux_dna_domain_bam::params::KinshipEffectiveParams {
         reference_panel: "king_default".to_string(),
+        reference_build: "GRCh38".to_string(),
+        population_scope: "ancient_eurasia".to_string(),
         min_overlap_snps: 0,
+        requires_cohort_context: true,
     };
     let result = bijux_dna_planner_bam::tool_adapters::bam::kinship::plan(
         &dummy_tool("king"),

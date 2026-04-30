@@ -1,5 +1,6 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": [
       "/bin/sh",
@@ -54,6 +55,7 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -63,10 +65,24 @@
       2000000
     ]
   },
+  "provenance": null,
   "reason": {
     "details": {
       "contract_hash": "e2944bad5ac012652771be12c62b7c9c18d96ab09ba6e566ce98e29ad018df9d",
-      "defaults_diff": {}
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 4,
+        "disk_gb": 4,
+        "input_bytes": 0,
+        "memory_gb": 4,
+        "notes": [
+          "sorting/indexing/validation chain dominates temporary storage"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 4,
+        "stage_id": "bam.complexity"
+      }
     },
     "kind": "default",
     "summary": "tool preseq selected by planner"

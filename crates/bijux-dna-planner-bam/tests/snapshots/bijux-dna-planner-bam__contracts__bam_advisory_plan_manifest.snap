@@ -267,7 +267,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "3cecec2fc9a67be9618a1bb29bf35156228aceef869e8e76f2a33bad46ee0a5d",
+      "cache_key": "faba7b87bdf939c2b1a845f97753a58d8874fc39aac7250105e7c29f810b4a2d",
       "dependencies": [
         "bam.filter"
       ],
@@ -277,6 +277,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           3,
           5
         ],
+        "regime_mode": "advisory_and_enforced",
         "regions": null
       },
       "environment": {
@@ -320,11 +321,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
           "role": "metrics_json"
         }
       ],
-      "cache_key": "ffc7fd5ab53796991a3445b2f4acc644db85149fb272ce57d86cc0a645e4cff2",
+      "cache_key": "3327475f0043fbfdb662d86beae6e00444047414df688cd04849cb38fcbc1b96",
       "dependencies": [
         "bam.coverage"
       ],
       "effective_parameters_json": {
+        "damage_tool_profile": "ancient_dna_evidence",
+        "evidence_only": true,
         "pmd_threshold_3p": 0.3,
         "pmd_threshold_5p": 0.3,
         "trim_3p": 2,
@@ -398,15 +401,15 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
     },
     {
       "detail": "derived from stage effective params",
-      "parameter": "pmd_threshold_3p",
-      "resolved_value": 0.3,
+      "parameter": "damage_tool_profile",
+      "resolved_value": "ancient_dna_evidence",
       "source": "planner_inferred",
       "stage_id": "bam.damage",
       "step_id": "bam.damage"
     }
   ],
   "pipeline_id": "bam-to-bam__default__v1",
-  "plan_fingerprint": "06f4dc3164d9f611de381eff13528d4d9c3939f28610537e3af54bd37a71a1f3",
+  "plan_fingerprint": "4219f27eb1e4dd25e1d8f04fc5978f777f5a92cd3b75b507437539bc287adecd",
   "planner_version": "bijux-dna-planner-bam.v1",
   "policy": "PreferAccuracy",
   "profile_id": "bam-to-bam__default__v1",

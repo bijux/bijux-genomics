@@ -1,5 +1,6 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": [
       "/bin/sh",
@@ -8,6 +9,8 @@
     ]
   },
   "effective_params": {
+    "damage_tool_profile": "ancient_dna_evidence",
+    "evidence_only": true,
     "pmd_threshold_3p": 0.3,
     "pmd_threshold_5p": 0.3,
     "trim_3p": 2,
@@ -48,19 +51,36 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
+    "damage_tool_profile": "ancient_dna_evidence",
+    "evidence_only": true,
     "pmd_threshold_3p": 0.3,
     "pmd_threshold_5p": 0.3,
     "trim_3p": 2,
     "trim_5p": 2,
     "udg_model": "non_udg"
   },
+  "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "d93035bed65270346d260e61a76b68bc3c97fa3eeebec933eb176b7fec444175",
-      "defaults_diff": {}
+      "contract_hash": "12753147dfcd4d911da3cac738cbac552b94aba5fd5b39ae5a1d21ad3391a461",
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 2,
+        "disk_gb": 2,
+        "input_bytes": 0,
+        "memory_gb": 2,
+        "notes": [
+          "damage tools stream BAM plus sidecar summaries"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 2,
+        "stage_id": "bam.damage"
+      }
     },
     "kind": "default",
     "summary": "tool mapdamage2 selected by planner"

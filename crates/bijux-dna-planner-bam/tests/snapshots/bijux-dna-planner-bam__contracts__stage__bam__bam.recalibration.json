@@ -1,5 +1,6 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": [
       "/bin/sh",
@@ -61,6 +62,7 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -71,10 +73,24 @@
       "min_mean_coverage": 2.0
     }
   },
+  "provenance": null,
   "reason": {
     "details": {
       "contract_hash": "7fc076ac470ce8b4fd99480f80a7fe0b9068820c50af9deae5079b52b8f9edec",
-      "defaults_diff": {}
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 4,
+        "disk_gb": 4,
+        "input_bytes": 0,
+        "memory_gb": 4,
+        "notes": [
+          "sorting/indexing/validation chain dominates temporary storage"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 4,
+        "stage_id": "bam.recalibration"
+      }
     },
     "kind": "default",
     "summary": "tool gatk selected by planner"
