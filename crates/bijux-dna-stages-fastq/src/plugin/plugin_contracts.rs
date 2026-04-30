@@ -54,7 +54,10 @@ fn plan(stage_id: &'static str) -> bijux_dna_stage_contract::StagePlanV1 {
         out_dir: PathBuf::from("out"),
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
         aux_images: std::collections::BTreeMap::new(),
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::default(),
     }
 }
@@ -1051,7 +1054,10 @@ fn parse_outputs_surfaces_low_complexity_semantics() {
         out_dir: temp.path().to_path_buf(),
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
         aux_images: std::collections::BTreeMap::new(),
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::default(),
     };
     let outputs = plan.io.outputs.clone();
@@ -1175,7 +1181,10 @@ fn parse_outputs_surfaces_extract_umis_semantics() {
         out_dir: temp.path().to_path_buf(),
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
         aux_images: std::collections::BTreeMap::new(),
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::default(),
     };
     let outputs = plan.io.outputs.clone();
