@@ -12,7 +12,7 @@ pub use runtime::{
     prepare_primer_bank, build_contaminant_db, build_rrna_db, build_taxonomy_db,
     normalize_read_names, repair_pairs, interleave_reads, deinterleave_reads,
     concatenate_lanes, demultiplex_reads, subsample_reads, detect_instrument_artifacts,
-    detect_duplicates_premerge, estimate_library_complexity_prealign, DemultiplexRule, LaneInput,
-    SubsampleTarget, validate_reads,
+    detect_adapters, detect_duplicates_premerge, estimate_library_complexity_prealign,
+    DemultiplexRule, LaneInput, SubsampleTarget, validate_reads,
     HeaderInspection, MergeSuitability, NormalizedOutputs,
 };
