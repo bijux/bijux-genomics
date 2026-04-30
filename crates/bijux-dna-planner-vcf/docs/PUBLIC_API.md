@@ -12,6 +12,8 @@ None.
 - `RegionChunkPlan`
 - `PlannerExplainStage`
 - `PlannerExplainV1`
+  This includes reference context, panel and cohort contracts, reporting contracts, and decision
+  traces for governed production review.
 - `PLANNER_VERSION`
 - `explain_vcf_plan`
 - `plan_vcf_stage_plans`
