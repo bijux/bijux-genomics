@@ -4,7 +4,13 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, StageId, StageVersion, ToolExecutionSpecV1,
 };
-use bijux_dna_domain_fastq::params::{umi::FastqUmiParams, umi::UMI_SCHEMA_VERSION, PairedMode};
+use bijux_dna_domain_fastq::params::{
+    umi::{
+        FastqUmiParams, UmiDownstreamPropagation, UmiExtractionLocation, UmiFailedExtractionPolicy,
+        UmiReadNameTransform, UMI_SCHEMA_VERSION,
+    },
+    PairedMode,
+};
 use bijux_dna_domain_fastq::umi_artifact_paths;
 use bijux_dna_domain_fastq::STAGE_EXTRACT_UMIS;
 use bijux_dna_stage_contract::{ArtifactRef, StageIO, StagePlanV1};
@@ -32,8 +38,14 @@ pub fn plan_umi(
     out_dir: &Path,
     umi_pattern: Option<&str>,
 ) -> Result<StagePlanV1> {
-    let options =
-        ExtractUmisPlanOptions { threads: None, umi_pattern: umi_pattern.map(ToOwned::to_owned) };
+    let options = ExtractUmisPlanOptions {
+        threads: None,
+        umi_pattern: umi_pattern.map(ToOwned::to_owned),
+        extraction_location: None,
+        read_name_transform: None,
+        failed_extraction_policy: None,
+        downstream_propagation: None,
+    };
     plan_umi_with_options(tool, r1, r2, out_dir, &options)
 }
 
@@ -60,11 +72,27 @@ pub fn plan_umi_with_options(
         .ok_or_else(|| anyhow!("umi stage must declare a raw backend report path"))?;
     let umi_pattern = options.umi_pattern.as_deref().unwrap_or(DEFAULT_UMI_PATTERN);
     let effective_threads = options.threads.unwrap_or(tool.resources.threads).max(1);
+    let extraction_location = parse_extraction_location(
+        options.extraction_location.as_deref().unwrap_or("read1_prefix"),
+    )?;
+    let read_name_transform = parse_read_name_transform(
+        options.read_name_transform.as_deref().unwrap_or("append_to_header"),
+    )?;
+    let failed_extraction_policy = parse_failed_extraction_policy(
+        options.failed_extraction_policy.as_deref().unwrap_or("refuse_stage"),
+    )?;
+    let downstream_propagation = parse_downstream_propagation(
+        options.downstream_propagation.as_deref().unwrap_or("header_and_report"),
+    )?;
     let effective_params = FastqUmiParams {
         schema_version: UMI_SCHEMA_VERSION.to_string(),
         paired_mode: PairedMode::PairedEnd,
         threads: effective_threads,
         umi_pattern: Some(umi_pattern.to_string()),
+        extraction_location,
+        read_name_transform,
+        failed_extraction_policy,
+        downstream_propagation,
     };
     let mut resources = tool.resources.clone();
     resources.threads = effective_threads;
@@ -136,7 +164,11 @@ pub fn plan_umi_with_options(
             "raw_backend_report": raw_backend_report,
             "raw_backend_report_format": "umi_tools_log",
             "threads": effective_threads,
-            "umi_pattern": umi_pattern
+            "umi_pattern": umi_pattern,
+            "extraction_location": effective_params.extraction_location,
+            "read_name_transform": effective_params.read_name_transform,
+            "failed_extraction_policy": effective_params.failed_extraction_policy,
+            "downstream_propagation": effective_params.downstream_propagation
         }),
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize umi effective params: {error}"))?,
@@ -166,9 +198,45 @@ fn normalize_tools_with_allowlist(
     Ok(normalized)
 }
 
+fn parse_extraction_location(value: &str) -> Result<UmiExtractionLocation> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "read1_prefix" => Ok(UmiExtractionLocation::Read1Prefix),
+        "read2_prefix" => Ok(UmiExtractionLocation::Read2Prefix),
+        "index_read" => Ok(UmiExtractionLocation::IndexRead),
+        "header_tag" => Ok(UmiExtractionLocation::HeaderTag),
+        _ => Err(anyhow!("unsupported extraction_location: {value}")),
+    }
+}
+
+fn parse_read_name_transform(value: &str) -> Result<UmiReadNameTransform> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "append_to_header" => Ok(UmiReadNameTransform::AppendToHeader),
+        "replace_header" => Ok(UmiReadNameTransform::ReplaceHeader),
+        "none" => Ok(UmiReadNameTransform::None),
+        _ => Err(anyhow!("unsupported read_name_transform: {value}")),
+    }
+}
+
+fn parse_failed_extraction_policy(value: &str) -> Result<UmiFailedExtractionPolicy> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "refuse_stage" => Ok(UmiFailedExtractionPolicy::RefuseStage),
+        "retain_unmodified" => Ok(UmiFailedExtractionPolicy::RetainUnmodified),
+        "route_to_rejected" => Ok(UmiFailedExtractionPolicy::RouteToRejected),
+        _ => Err(anyhow!("unsupported failed_extraction_policy: {value}")),
+    }
+}
+
+fn parse_downstream_propagation(value: &str) -> Result<UmiDownstreamPropagation> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "header_only" => Ok(UmiDownstreamPropagation::HeaderOnly),
+        "header_and_report" => Ok(UmiDownstreamPropagation::HeaderAndReport),
+        _ => Err(anyhow!("unsupported downstream_propagation: {value}")),
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::plan_umi;
+    use super::{plan_umi, plan_umi_with_options};
     use bijux_dna_core::id_catalog;
     use bijux_dna_core::prelude::{
         CommandSpecV1, ContainerImageRefV1, ToolConstraints, ToolExecutionSpecV1, ToolId,
@@ -220,5 +288,30 @@ mod tests {
         assert!(plan.command.template.iter().any(|token| token == "reads_R1.fastq.gz"));
         assert!(plan.command.template.iter().any(|token| token == "out/umi_tools.extract.log"));
         assert!(plan.command.template.iter().any(|token| token == "NNNNCCCC"));
+    }
+
+    #[test]
+    fn plan_umi_surfaces_first_class_extraction_semantics() {
+        let plan = plan_umi_with_options(
+            &tool(),
+            Path::new("reads_R1.fastq.gz"),
+            Path::new("reads_R2.fastq.gz"),
+            Path::new("out"),
+            &crate::ExtractUmisStageParams {
+                threads: Some(4),
+                umi_pattern: Some("NNNNCCCC".to_string()),
+                extraction_location: Some("read2_prefix".to_string()),
+                read_name_transform: Some("append_to_header".to_string()),
+                failed_extraction_policy: Some("retain_unmodified".to_string()),
+                downstream_propagation: Some("header_only".to_string()),
+            },
+        )
+        .expect("plan");
+        assert_eq!(plan.params["extraction_location"], serde_json::json!("read2_prefix"));
+        assert_eq!(plan.params["failed_extraction_policy"], serde_json::json!("retain_unmodified"));
+        assert_eq!(
+            plan.effective_params["downstream_propagation"],
+            serde_json::json!("header_only")
+        );
     }
 }

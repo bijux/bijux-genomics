@@ -97,6 +97,10 @@ pub struct FilterLowComplexityStageParams {
 pub struct ExtractUmisStageParams {
     pub threads: Option<u32>,
     pub umi_pattern: Option<String>,
+    pub extraction_location: Option<String>,
+    pub read_name_transform: Option<String>,
+    pub failed_extraction_policy: Option<String>,
+    pub downstream_propagation: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]

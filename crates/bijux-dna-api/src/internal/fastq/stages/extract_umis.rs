@@ -15,6 +15,10 @@ use bijux_dna_core::prelude::measure::ExecutionMetrics;
 use bijux_dna_core::prelude::measure::SeqkitMetrics;
 use bijux_dna_core::prelude::params_hash;
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
+use bijux_dna_domain_fastq::params::umi::{
+    UmiDownstreamPropagation, UmiExtractionLocation, UmiFailedExtractionPolicy,
+    UmiReadNameTransform,
+};
 use bijux_dna_domain_fastq::{ExtractUmisReportV1, PairedMode, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 use bijux_dna_environment::api::{PlatformSpec, RuntimeKind, ToolImageSpec};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
@@ -494,6 +498,18 @@ fn build_umi_report(inputs: &UmiReportInputs<'_>) -> ExtractUmisReportV1 {
             .and_then(serde_json::Value::as_str)
             .unwrap_or("NNNNNNNN")
             .to_string(),
+        extraction_location: parse_umi_extraction_location(
+            inputs.params.get("extraction_location").and_then(serde_json::Value::as_str),
+        ),
+        read_name_transform: parse_umi_read_name_transform(
+            inputs.params.get("read_name_transform").and_then(serde_json::Value::as_str),
+        ),
+        failed_extraction_policy: parse_umi_failed_extraction_policy(
+            inputs.params.get("failed_extraction_policy").and_then(serde_json::Value::as_str),
+        ),
+        downstream_propagation: parse_umi_downstream_propagation(
+            inputs.params.get("downstream_propagation").and_then(serde_json::Value::as_str),
+        ),
         input_r1: inputs.r1.display().to_string(),
         input_r2: Some(inputs.r2.display().to_string()),
         output_r1: inputs.output_r1.display().to_string(),
@@ -506,6 +522,7 @@ fn build_umi_report(inputs: &UmiReportInputs<'_>) -> ExtractUmisReportV1 {
         pairs_in,
         pairs_out,
         reads_with_umi,
+        failed_extractions: Some(reads_in.saturating_sub(reads_with_umi)),
         mean_q_before: weighted_mean_q(inputs.input_stats_r1, inputs.input_stats_r2),
         mean_q_after: weighted_mean_q(inputs.output_stats_r1, inputs.output_stats_r2),
         runtime_s: Some(inputs.execution.runtime_s),
@@ -521,6 +538,38 @@ fn build_umi_report(inputs: &UmiReportInputs<'_>) -> ExtractUmisReportV1 {
             "reads_with_umi_fraction": if reads_in == 0 { 0.0 } else { u64_to_f64(reads_with_umi) / u64_to_f64(reads_in) },
             "raw_backend_report_present": raw_backend_report.is_some(),
         })),
+    }
+}
+
+fn parse_umi_extraction_location(value: Option<&str>) -> UmiExtractionLocation {
+    match value.unwrap_or("read1_prefix") {
+        "read2_prefix" => UmiExtractionLocation::Read2Prefix,
+        "index_read" => UmiExtractionLocation::IndexRead,
+        "header_tag" => UmiExtractionLocation::HeaderTag,
+        _ => UmiExtractionLocation::Read1Prefix,
+    }
+}
+
+fn parse_umi_read_name_transform(value: Option<&str>) -> UmiReadNameTransform {
+    match value.unwrap_or("append_to_header") {
+        "replace_header" => UmiReadNameTransform::ReplaceHeader,
+        "none" => UmiReadNameTransform::None,
+        _ => UmiReadNameTransform::AppendToHeader,
+    }
+}
+
+fn parse_umi_failed_extraction_policy(value: Option<&str>) -> UmiFailedExtractionPolicy {
+    match value.unwrap_or("refuse_stage") {
+        "retain_unmodified" => UmiFailedExtractionPolicy::RetainUnmodified,
+        "route_to_rejected" => UmiFailedExtractionPolicy::RouteToRejected,
+        _ => UmiFailedExtractionPolicy::RefuseStage,
+    }
+}
+
+fn parse_umi_downstream_propagation(value: Option<&str>) -> UmiDownstreamPropagation {
+    match value.unwrap_or("header_and_report") {
+        "header_only" => UmiDownstreamPropagation::HeaderOnly,
+        _ => UmiDownstreamPropagation::HeaderAndReport,
     }
 }
 
