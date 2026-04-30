@@ -1360,6 +1360,33 @@ pub fn bam_sample_identity(
     }
 }
 
+/// Propagate BAM sample identity through a stage while preserving declared metadata lineage.
+#[must_use]
+pub fn propagate_bam_sample_identity(
+    prior: &BamSampleIdentityV1,
+    read_group: &ReadGroupSpec,
+    stage_id: &str,
+) -> BamSampleIdentityV1 {
+    let mut read_group_ids = prior.read_group_ids.clone();
+    if !read_group_ids.iter().any(|id| id == &read_group.id) {
+        read_group_ids.push(read_group.id.clone());
+        read_group_ids.sort_unstable();
+    }
+    BamSampleIdentityV1 {
+        schema_version: BAM_SAMPLE_IDENTITY_SCHEMA_VERSION.to_string(),
+        sample_id: prior.sample_id.clone(),
+        lane_id: prior.lane_id.clone().or_else(|| read_group.lane_id.clone()),
+        library_id: prior.library_id.clone().or_else(|| read_group.library_id()),
+        platform: prior.platform.clone().or_else(|| Some(read_group.platform.clone())),
+        platform_unit: prior.platform_unit.clone().or_else(|| read_group.platform_unit.clone()),
+        run_id: prior.run_id.clone().or_else(|| read_group.run_id.clone()),
+        subject_id: prior.subject_id.clone(),
+        cohort_id: prior.cohort_id.clone(),
+        read_group_policy: Some(format!("propagate:{stage_id}")),
+        read_group_ids,
+    }
+}
+
 #[must_use]
 pub fn bam_post_alignment_chain(chain_id: &str) -> Option<BamPostAlignmentChainV1> {
     match chain_id {
@@ -2184,5 +2211,40 @@ r01\t0\tchr1\t1\t40\t6M\t*\t0\t0\tGTACGT\tFFFFFF\tRG:Z:rg1\n",
 
         let validation = execute_bam_validation(&output, Some(&index), None).expect("validate");
         assert!(validation.validation_report_present);
+    }
+
+    #[test]
+    fn propagate_bam_sample_identity_preserves_lineage_fields() {
+        let read_group = ReadGroupSpec {
+            id: "rg-lane2".to_string(),
+            sample: "sample-z".to_string(),
+            platform: "ILLUMINA".to_string(),
+            library: "lib-z".to_string(),
+            platform_unit: Some("pu-z".to_string()),
+            lane_id: Some("L002".to_string()),
+            run_id: Some("run-z".to_string()),
+        };
+        let prior = BamSampleIdentityV1 {
+            schema_version: BAM_SAMPLE_IDENTITY_SCHEMA_VERSION.to_string(),
+            sample_id: "sample-z".to_string(),
+            lane_id: Some("L001".to_string()),
+            library_id: Some("lib-z".to_string()),
+            platform: Some("ILLUMINA".to_string()),
+            platform_unit: Some("pu-z".to_string()),
+            run_id: Some("run-z".to_string()),
+            subject_id: Some("subject-z".to_string()),
+            cohort_id: Some("cohort-z".to_string()),
+            read_group_policy: Some("preserve".to_string()),
+            read_group_ids: vec!["rg-lane1".to_string()],
+        };
+
+        let propagated = propagate_bam_sample_identity(&prior, &read_group, "bam.align");
+        assert_eq!(propagated.sample_id, "sample-z");
+        assert_eq!(propagated.lane_id.as_deref(), Some("L001"));
+        assert_eq!(propagated.library_id.as_deref(), Some("lib-z"));
+        assert_eq!(propagated.subject_id.as_deref(), Some("subject-z"));
+        assert_eq!(propagated.cohort_id.as_deref(), Some("cohort-z"));
+        assert_eq!(propagated.read_group_ids, vec!["rg-lane1".to_string(), "rg-lane2".to_string()]);
+        assert_eq!(propagated.read_group_policy.as_deref(), Some("propagate:bam.align"));
     }
 }
