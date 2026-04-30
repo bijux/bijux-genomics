@@ -46,6 +46,9 @@ pub use artifacts::{
     GovernedQcManifestContributorV1, GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
 };
 pub use artifacts::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
+pub use artifacts::{
+    ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
+};
 pub use artifacts::{CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
 pub use artifacts::{

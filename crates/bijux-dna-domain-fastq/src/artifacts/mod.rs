@@ -1,3 +1,4 @@
+mod classify_layout;
 mod cluster_otus;
 mod correct_errors;
 mod deplete_host;
@@ -31,6 +32,9 @@ mod trim_terminal_damage;
 mod validate_reads;
 
 pub use cluster_otus::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
+pub use classify_layout::{
+    ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
+};
 pub use correct_errors::{CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION};
 pub use deplete_host::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
 pub use deplete_reference_contaminants::{
