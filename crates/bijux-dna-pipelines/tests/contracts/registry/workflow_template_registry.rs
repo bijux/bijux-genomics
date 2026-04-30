@@ -1,3 +1,6 @@
+use bijux_dna_pipelines::bam::{
+    bam_workflow_template_by_id, bam_workflow_templates, bam_workflow_templates_for_pipeline,
+};
 use bijux_dna_pipelines::cross::{
     cross_workflow_template_by_id, cross_workflow_templates, cross_workflow_templates_for_pipeline,
 };
@@ -44,5 +47,26 @@ fn fastq_workflow_template_registry_is_distinct_and_lookupable() {
             .map(|template| template.template_id)
             .collect::<Vec<_>>(),
         vec!["fastq.trim_qc".to_string(), "fastq.preprocessing_policy_diff".to_string(),]
+    );
+}
+
+#[test]
+fn bam_workflow_template_registry_is_distinct_and_lookupable() {
+    let templates = bam_workflow_templates();
+    let mut ids =
+        templates.iter().map(|template| template.template_id.as_str()).collect::<Vec<_>>();
+    let mut sorted = ids.clone();
+    ids.sort_unstable();
+    sorted.sort_unstable();
+    sorted.dedup();
+
+    assert_eq!(ids, sorted, "BAM workflow template ids must stay unique");
+    assert!(bam_workflow_template_by_id("bam.modern_wgs_qc").is_some());
+    assert_eq!(
+        bam_workflow_templates_for_pipeline("bam-to-bam__adna_capture__v1")
+            .into_iter()
+            .map(|template| template.template_id)
+            .collect::<Vec<_>>(),
+        vec!["bam.targeted_amplicon_qc".to_string()]
     );
 }

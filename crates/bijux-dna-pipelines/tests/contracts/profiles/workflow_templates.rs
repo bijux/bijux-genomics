@@ -6,6 +6,7 @@ use bijux_dna_core::contract::{
     ArtifactRole, CompressionSupport, ReadLayoutMode, WorkflowInputArtifactV1, WorkflowManifestV1,
     WorkflowReferenceAssetV1,
 };
+use bijux_dna_pipelines::bam::{bam_workflow_template_by_id, bam_workflow_templates_for_pipeline};
 use bijux_dna_pipelines::cross::{
     cross_workflow_template_by_id, cross_workflow_templates_for_pipeline,
 };
@@ -559,5 +560,86 @@ fn fastq_iteration_11_templates_are_indexed_by_pipeline_ids() {
             .map(|template| template.template_id.as_str())
             .collect::<Vec<_>>(),
         vec!["fastq.ancient_dna_preprocessing"],
+    );
+}
+
+#[test]
+fn bam_iteration_12_templates_expose_goal_stage_surfaces() {
+    let cases = [
+        (
+            "bam.modern_wgs_qc",
+            vec!["bam.validate", "bam.mapping_summary", "bam.duplication_metrics", "bam.coverage"],
+        ),
+        (
+            "bam.ancient_dna_qc",
+            vec!["bam.damage", "bam.authenticity", "bam.contamination", "bam.coverage"],
+        ),
+        ("bam.low_pass_readiness", vec!["bam.validate", "bam.coverage", "bam.filter"]),
+        (
+            "bam.targeted_amplicon_qc",
+            vec![
+                "bam.mapping_summary",
+                "bam.duplication_metrics",
+                "bam.coverage",
+                "bam.endogenous_content",
+            ],
+        ),
+        (
+            "bam.aligner_comparison_report",
+            vec!["bam.mapping_summary", "bam.qc_pre", "bam.coverage"],
+        ),
+        (
+            "bam.duplicate_method_comparison_report",
+            vec!["bam.duplication_metrics", "bam.filter", "bam.coverage"],
+        ),
+        (
+            "bam.contamination_method_comparison_report",
+            vec!["bam.contamination", "bam.authenticity", "bam.coverage"],
+        ),
+        (
+            "bam.batch_merge_workflow",
+            vec!["bam.validate", "bam.mapping_summary", "bam.filter", "bam.coverage"],
+        ),
+        ("bam.coverage_review_report", vec!["bam.mapping_summary", "bam.coverage", "bam.qc_pre"]),
+        (
+            "bam.large_file_performance_profile",
+            vec!["bam.filter", "bam.mapping_summary", "bam.coverage"],
+        ),
+    ];
+
+    for (template_id, stages) in cases {
+        let template =
+            bam_workflow_template_by_id(template_id).expect("BAM workflow template must exist");
+        for stage in stages {
+            assert!(
+                template.requested_stages.iter().any(|entry| entry == stage),
+                "template {template_id} must include stage {stage}"
+            );
+        }
+    }
+}
+
+#[test]
+fn bam_iteration_12_templates_are_indexed_by_pipeline_ids() {
+    assert_eq!(
+        bam_workflow_templates_for_pipeline("bam-to-bam__adna_shotgun__v1")
+            .iter()
+            .map(|template| template.template_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["bam.ancient_dna_qc"],
+    );
+    assert_eq!(
+        bam_workflow_templates_for_pipeline("bam-to-bam__adna_capture__v1")
+            .iter()
+            .map(|template| template.template_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["bam.targeted_amplicon_qc"],
+    );
+    assert_eq!(
+        bam_workflow_templates_for_pipeline("bam-to-bam__reference_adna__v1")
+            .iter()
+            .map(|template| template.template_id.as_str())
+            .collect::<Vec<_>>(),
+        vec!["bam.contamination_method_comparison_report"],
     );
 }
