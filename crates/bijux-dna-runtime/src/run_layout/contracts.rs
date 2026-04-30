@@ -276,6 +276,15 @@ pub struct RunSmokeWorkflowPlanV1 {
     pub log_capture_policy: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunSmokeWorkflowValidationV1 {
+    pub valid: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub refusal_codes: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub warnings: Vec<String>,
+}
+
 #[must_use]
 pub fn docker_smoke_workflow_plan(
     run_id: &str,
@@ -332,6 +341,36 @@ pub fn apptainer_smoke_workflow_plan(
         expected_artifacts: vec!["smoke.stdout".to_string(), "smoke.exit_code".to_string()],
         log_capture_policy: "capture_stdout_stderr_and_runtime_logs".to_string(),
     }
+}
+
+#[must_use]
+pub fn validate_smoke_workflow_plan(plan: &RunSmokeWorkflowPlanV1) -> RunSmokeWorkflowValidationV1 {
+    let mut refusal_codes = Vec::new();
+    let mut warnings = Vec::new();
+
+    if plan.runner != "docker" && plan.runner != "apptainer" {
+        refusal_codes.push("unsupported_smoke_runner".to_string());
+    }
+    if !plan.image_identity.contains("@sha256:") {
+        refusal_codes.push("missing_image_digest_identity".to_string());
+    }
+    if plan.command.is_empty() {
+        refusal_codes.push("missing_smoke_command".to_string());
+    }
+    if !plan.mounts.iter().any(|mount| mount.access == "read_only") {
+        refusal_codes.push("missing_read_only_mount".to_string());
+    }
+    if !plan.mounts.iter().any(|mount| mount.access == "read_write") {
+        refusal_codes.push("missing_read_write_mount".to_string());
+    }
+    if !plan.expected_artifacts.iter().any(|artifact| artifact == "smoke.stdout") {
+        warnings.push("missing_smoke_stdout_artifact".to_string());
+    }
+    if !plan.expected_artifacts.iter().any(|artifact| artifact == "smoke.exit_code") {
+        warnings.push("missing_smoke_exit_code_artifact".to_string());
+    }
+
+    RunSmokeWorkflowValidationV1 { valid: refusal_codes.is_empty(), refusal_codes, warnings }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

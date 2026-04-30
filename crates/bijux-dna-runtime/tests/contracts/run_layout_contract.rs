@@ -5,10 +5,10 @@ use bijux_dna_runtime::run_layout::{
     create_run_layout, docker_smoke_workflow_plan, evaluate_fallback_safety,
     executor_descriptor_from_hpc_profile, lunarc_execution_profile,
     negotiate_executor_capabilities, restore_queue_state_for_resume, transition_slurm_submission,
-    validate_run_layout_storage_isolation, ExecutorCapabilitiesV1, FallbackSafetyRequestV1,
-    RunCheckpointV1, RunControlActionV1, RunControlStateV1, RunExecutionModeV1,
-    RunQueueLifecycleStateV1, RunQueueStateV1, RunResourceRequestV1, RuntimeResourceLimitsV1,
-    SlurmJobStateV1, SlurmSubmissionRecordV1, StageExecutionRequirementV1,
+    validate_run_layout_storage_isolation, validate_smoke_workflow_plan, ExecutorCapabilitiesV1,
+    FallbackSafetyRequestV1, RunCheckpointV1, RunControlActionV1, RunControlStateV1,
+    RunExecutionModeV1, RunQueueLifecycleStateV1, RunQueueStateV1, RunResourceRequestV1,
+    RuntimeResourceLimitsV1, SlurmJobStateV1, SlurmSubmissionRecordV1, StageExecutionRequirementV1,
 };
 
 #[test]
@@ -83,6 +83,25 @@ fn apptainer_smoke_workflow_plan_captures_sif_identity_bindings_and_logs() {
         plan.log_capture_policy.contains("runtime_logs"),
         "apptainer smoke plan should preserve runtime log capture policy",
     );
+}
+
+#[test]
+fn smoke_workflow_validation_refuses_missing_digest_and_mount_policies() {
+    let valid_plan = docker_smoke_workflow_plan(
+        "run-131",
+        "docker.io/bijuxdna/smoke@sha256:1234",
+        PathBuf::from("/tmp/bijux/smoke"),
+    );
+    let valid = validate_smoke_workflow_plan(&valid_plan);
+    assert!(valid.valid);
+
+    let mut invalid_plan = valid_plan.clone();
+    invalid_plan.image_identity = "docker.io/bijuxdna/smoke:latest".to_string();
+    invalid_plan.mounts.clear();
+    let denied = validate_smoke_workflow_plan(&invalid_plan);
+    assert!(!denied.valid);
+    assert!(denied.refusal_codes.iter().any(|item| item == "missing_image_digest_identity"));
+    assert!(denied.refusal_codes.iter().any(|item| item == "missing_read_only_mount"));
 }
 
 #[test]
