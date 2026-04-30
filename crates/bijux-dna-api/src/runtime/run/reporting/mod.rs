@@ -6,6 +6,7 @@ mod dry_run;
 mod cache_explain;
 mod environment_identity;
 mod evidence_support;
+mod failure_injection;
 mod execute_run;
 mod lifecycle;
 mod local_workflows;
@@ -25,6 +26,7 @@ pub use dry_run::dry_run;
 pub use cache_explain::explain_cache_hit_miss;
 pub use environment_identity::environment_identity;
 pub use execute_run::execute;
+pub use failure_injection::run_local_failure_injection;
 pub use local_workflows::{
     execute_local_bam_workflow, execute_local_fastq_workflow, execute_local_vcf_workflow,
 };
