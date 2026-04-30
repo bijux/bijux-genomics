@@ -3,8 +3,9 @@ use std::fs;
 use std::path::PathBuf;
 
 use bijux_dna_analyze::exports::{
-    build_evidence_bundle, compare_evidence_bundles, verify_evidence_bundle,
-    summarize_facts, write_evidence_bundle_json, write_run_summary_json, write_stage_summary_csv,
+    build_evidence_bundle, compare_evidence_bundles, validate_evidence_bundle_profile,
+    verify_evidence_bundle, summarize_facts, write_evidence_bundle_json, write_run_summary_json,
+    write_stage_summary_csv, EvidenceBundleProfileV1,
 };
 use bijux_dna_analyze::load::load_facts;
 
@@ -272,6 +273,7 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
             "schema_version": "bijux.run_manifest.v3",
             "run_id": "run-1",
             "correlation_id": "corr-run-1",
+            "mode": "enforced",
             "graph_hash": "sha256:graph",
             "cache_key": { "semantic_hash": "sha256:sem", "params_hash": "sha256:param", "tool_version": "0.23.4", "image_digest": "sha256:img" },
             "dataset_fingerprints": ["sha256:input"],
@@ -282,6 +284,52 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
                 { "name": "validated_reads", "path": "validated.fastq", "sha256": artifact_hash }
             ],
             "execution_replay_identity": { "tool_image_digest": "sha256:img" }
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &dir.path().join("plan_manifest.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.plan_manifest.v1",
+            "pipeline_id": "fastq-to-fastq__default__v1"
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &dir.path().join("run_state.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_state.v1",
+            "run_id": "run-1",
+            "mode": "enforced",
+            "state": "succeeded",
+            "transitions": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &dir.path().join("runtime_policy.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.runtime_policy.v1",
+            "run_id": "run-1",
+            "mode": "enforced",
+            "deterministic_scheduler": true,
+            "retry_policy": { "max_attempts": 1, "retry_on_exit_codes": [] },
+            "cancellation": {
+                "supports_external_cancellation": false,
+                "checkpoint_before_cancel": false
+            },
+            "checkpoint": {
+                "strategy": "none",
+                "granularity": "stage",
+                "resume_from_latest_completed_stage": false
+            }
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &dir.path().join("evidence_verification.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.evidence_verification.v1",
+            "verified": true,
+            "checks": [],
+            "missing_paths": [],
+            "gap_count": 0
         }),
     )?;
     let manifest_hash = bijux_dna_infra::hash_file_sha256(&dir.path().join("run_manifest.json"))?;
@@ -326,6 +374,10 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
     let bundle_path = write_evidence_bundle_json(dir.path(), Some(&facts_path))?;
     let verification = verify_evidence_bundle(&bundle_path)?;
     assert!(verification.verified, "verification failed: {:?}", verification.checks);
+    let operational = validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Operational);
+    assert!(operational.ok, "operational profile failed: {:?}", operational.checks);
+    let publication = validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Publication);
+    assert!(publication.ok, "publication profile failed: {:?}", publication.checks);
     Ok(())
 }
 
@@ -369,4 +421,84 @@ fn evidence_bundle_comparison_surfaces_artifact_drift() -> anyhow::Result<()> {
         .iter()
         .any(|hint| hint.contains("artifact inventory or hashes changed")));
     Ok(())
+}
+
+#[test]
+fn draft_profile_tolerates_missing_publication_material() {
+    let bundle = bijux_dna_analyze::exports::EvidenceBundleV1 {
+        schema_version: "bijux.evidence_bundle.v1".to_string(),
+        run_id: "run-1".to_string(),
+        correlation_id: "corr-1".to_string(),
+        sources: bijux_dna_analyze::exports::EvidenceSourcesV1 {
+            manifest_path: Some("run_manifest.json".to_string()),
+            plan_manifest_path: None,
+            report_path: None,
+            run_summary_path: None,
+            facts_path: None,
+            graph_path: None,
+            environment_path: None,
+            runtime_policy_path: None,
+            run_state_path: None,
+            executor_descriptor_path: None,
+            checkpoint_path: None,
+            failure_path: None,
+            artifact_inventory_path: Some("artifact_inventory.json".to_string()),
+            replay_manifest_path: None,
+            hash_ledger_path: None,
+            evidence_verification_path: None,
+            telemetry_paths: vec!["telemetry/events.jsonl".to_string()],
+        },
+        compact_summary: bijux_dna_analyze::exports::EvidenceCompactSummaryV1 {
+            stage_count: 1,
+            artifact_count: 1,
+            failed_stage_count: 0,
+            advisory_gap_count: 2,
+            final_outputs: vec!["reads.cleaned".to_string()],
+            stage_ids: vec!["fastq.trim_reads".to_string()],
+        },
+        health: bijux_dna_analyze::exports::EvidenceHealthV1 {
+            status: "advisory".to_string(),
+            auditable: true,
+            checks: Vec::new(),
+            gaps: vec![
+                bijux_dna_analyze::exports::EvidenceGapV1 {
+                    code: "missing_hash_ledger".to_string(),
+                    severity: bijux_dna_analyze::exports::EvidenceSeverityV1::Advisory,
+                    message: "hash ledger not written yet".to_string(),
+                    path: Some("hash_ledger.json".to_string()),
+                    blocks_audit: false,
+                },
+                bijux_dna_analyze::exports::EvidenceGapV1 {
+                    code: "missing_report".to_string(),
+                    severity: bijux_dna_analyze::exports::EvidenceSeverityV1::Advisory,
+                    message: "report not written yet".to_string(),
+                    path: Some("report.json".to_string()),
+                    blocks_audit: false,
+                },
+            ],
+        },
+        metrics: bijux_dna_analyze::exports::EvidenceMetricsV1 {
+            queue_time_ms: None,
+            run_time_s: 1.0,
+            retry_count: 0,
+            cache_hit_count: 0,
+            cache_miss_count: 1,
+            total_timeline_events: 1,
+            scientific_failure_classes: std::collections::BTreeMap::new(),
+        },
+        timeline: Vec::new(),
+        artifacts: Vec::new(),
+        provenance_graph: bijux_dna_analyze::exports::EvidenceProvenanceGraphV1 {
+            nodes: Vec::new(),
+            edges: Vec::new(),
+        },
+    };
+
+    let draft = validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Draft);
+    assert!(draft.ok);
+    assert!(draft.blocking_gap_codes.is_empty());
+
+    let publication = validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Publication);
+    assert!(!publication.ok);
+    assert!(!publication.required_paths_present || !publication.blocking_gap_codes.is_empty());
 }

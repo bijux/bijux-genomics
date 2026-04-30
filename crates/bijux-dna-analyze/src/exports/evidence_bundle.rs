@@ -25,6 +25,15 @@ pub enum EvidenceSeverityV1 {
     Blocking,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum EvidenceBundleProfileV1 {
+    Draft,
+    Operational,
+    Certification,
+    Publication,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EvidenceTimelineEventV1 {
     pub category: EvidenceTimelineCategoryV1,
@@ -189,6 +198,24 @@ pub struct EvidenceComparisonV1 {
     pub runtime_delta_s: f64,
     pub evidence_gap_delta: i64,
     pub policy_change_hints: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvidenceProfileCheckV1 {
+    pub check_id: String,
+    pub ok: bool,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvidenceProfileValidationV1 {
+    pub schema_version: String,
+    pub profile: EvidenceBundleProfileV1,
+    pub ok: bool,
+    pub required_paths_present: bool,
+    pub tolerated_gap_codes: Vec<String>,
+    pub blocking_gap_codes: Vec<String>,
+    pub checks: Vec<EvidenceProfileCheckV1>,
 }
 
 #[derive(Debug, Clone)]
@@ -511,6 +538,40 @@ pub fn compare_evidence_bundles(left: &Path, right: &Path) -> Result<EvidenceCom
         evidence_gap_delta: right_bundle.health.gaps.len() as i64 - left_bundle.health.gaps.len() as i64,
         policy_change_hints,
     })
+}
+
+#[must_use]
+pub fn validate_evidence_bundle_profile(
+    bundle: &EvidenceBundleV1,
+    profile: EvidenceBundleProfileV1,
+) -> EvidenceProfileValidationV1 {
+    let mut checks = Vec::new();
+    let mut required_paths_present = true;
+    for (check_id, ok, message) in profile_requirements(bundle, profile) {
+        if !ok {
+            required_paths_present = false;
+        }
+        checks.push(EvidenceProfileCheckV1 { check_id, ok, message });
+    }
+
+    let tolerated_gap_codes = tolerated_gap_codes(profile);
+    let (tolerated, blocking): (Vec<_>, Vec<_>) = bundle
+        .health
+        .gaps
+        .iter()
+        .map(|gap| gap.code.clone())
+        .partition(|code| tolerated_gap_codes.contains(code));
+    let ok = required_paths_present && blocking.is_empty();
+
+    EvidenceProfileValidationV1 {
+        schema_version: "bijux.evidence_profile_validation.v1".to_string(),
+        profile,
+        ok,
+        required_paths_present,
+        tolerated_gap_codes: tolerated,
+        blocking_gap_codes: blocking,
+        checks,
+    }
 }
 
 fn discover_inputs(base_dir: &Path, facts_path: Option<&Path>) -> EvidenceInputs {
@@ -1171,35 +1232,102 @@ fn load_telemetry_events(paths: &[PathBuf]) -> Result<Vec<TelemetryEventV1>> {
 }
 
 fn verify_artifact_inventory_contract(path: &Path) -> (bool, String) {
-    let Ok(raw) = std::fs::read_to_string(path) else {
+    let Ok((inventory, audit)) = bijux_dna_runtime::run_layout::read_supported_artifact_inventory(path) else {
         return (false, format!("artifact inventory missing at {}", path.display()));
     };
-    let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) else {
-        return (false, format!("artifact inventory is not valid json at {}", path.display()));
-    };
-    let schema_ok = value
-        .get("schema_version")
-        .and_then(serde_json::Value::as_str)
-        == Some("bijux.artifact_inventory.v1");
-    let artifacts = value.get("artifacts").and_then(serde_json::Value::as_array);
-    let role_complete = artifacts.is_some_and(|rows| {
-        rows.iter().all(|row| {
-            row.get("role")
-                .and_then(serde_json::Value::as_str)
-                .is_some_and(|role| !role.trim().is_empty())
-        })
-    });
-    let lineage_complete = artifacts.is_some_and(|rows| {
-        rows.iter().all(|row| row.get("input_lineage").is_some())
-    });
+    let role_complete = inventory.artifacts.iter().all(|row| !row.role.trim().is_empty());
+    let lineage_complete = inventory.artifacts.iter().all(|row| !row.input_lineage.is_empty());
     (
-        schema_ok && role_complete && lineage_complete,
-        if schema_ok && role_complete && lineage_complete {
-            "artifact inventory schema, roles, and lineage are complete".to_string()
+        role_complete && lineage_complete,
+        if role_complete && lineage_complete {
+            format!(
+                "artifact inventory accepted via {} and lineage is complete",
+                audit.from_schema_version
+            )
         } else {
-            "artifact inventory is missing schema, role, or lineage detail".to_string()
+            format!(
+                "artifact inventory accepted via {} but role or lineage detail is incomplete",
+                audit.from_schema_version
+            )
         },
     )
+}
+
+fn profile_requirements(
+    bundle: &EvidenceBundleV1,
+    profile: EvidenceBundleProfileV1,
+) -> Vec<(String, bool, String)> {
+    let required_paths = match profile {
+        EvidenceBundleProfileV1::Draft => vec![
+            ("manifest_path", bundle.sources.manifest_path.as_deref()),
+            ("artifact_inventory_path", bundle.sources.artifact_inventory_path.as_deref()),
+        ],
+        EvidenceBundleProfileV1::Operational => vec![
+            ("manifest_path", bundle.sources.manifest_path.as_deref()),
+            ("plan_manifest_path", bundle.sources.plan_manifest_path.as_deref()),
+            ("run_state_path", bundle.sources.run_state_path.as_deref()),
+            ("runtime_policy_path", bundle.sources.runtime_policy_path.as_deref()),
+            ("artifact_inventory_path", bundle.sources.artifact_inventory_path.as_deref()),
+            ("evidence_verification_path", bundle.sources.evidence_verification_path.as_deref()),
+        ],
+        EvidenceBundleProfileV1::Certification => vec![
+            ("manifest_path", bundle.sources.manifest_path.as_deref()),
+            ("plan_manifest_path", bundle.sources.plan_manifest_path.as_deref()),
+            ("run_state_path", bundle.sources.run_state_path.as_deref()),
+            ("runtime_policy_path", bundle.sources.runtime_policy_path.as_deref()),
+            ("report_path", bundle.sources.report_path.as_deref()),
+            ("run_summary_path", bundle.sources.run_summary_path.as_deref()),
+            ("artifact_inventory_path", bundle.sources.artifact_inventory_path.as_deref()),
+            ("hash_ledger_path", bundle.sources.hash_ledger_path.as_deref()),
+            ("evidence_verification_path", bundle.sources.evidence_verification_path.as_deref()),
+        ],
+        EvidenceBundleProfileV1::Publication => vec![
+            ("manifest_path", bundle.sources.manifest_path.as_deref()),
+            ("plan_manifest_path", bundle.sources.plan_manifest_path.as_deref()),
+            ("report_path", bundle.sources.report_path.as_deref()),
+            ("run_summary_path", bundle.sources.run_summary_path.as_deref()),
+            ("facts_path", bundle.sources.facts_path.as_deref()),
+            ("artifact_inventory_path", bundle.sources.artifact_inventory_path.as_deref()),
+            ("hash_ledger_path", bundle.sources.hash_ledger_path.as_deref()),
+            ("evidence_verification_path", bundle.sources.evidence_verification_path.as_deref()),
+        ],
+    };
+    required_paths
+        .into_iter()
+        .map(|(check_id, value)| {
+            let ok = value.is_some();
+            (
+                format!("{check_id}_required"),
+                ok,
+                if ok {
+                    format!("{check_id} is present for {:?} evidence bundles", profile)
+                } else {
+                    format!("{check_id} is required for {:?} evidence bundles", profile)
+                },
+            )
+        })
+        .chain(std::iter::once((
+            "telemetry_required".to_string(),
+            !bundle.sources.telemetry_paths.is_empty(),
+            if bundle.sources.telemetry_paths.is_empty() {
+                format!("telemetry paths are required for {:?} evidence bundles", profile)
+            } else {
+                format!("telemetry paths are present for {:?} evidence bundles", profile)
+            },
+        )))
+        .collect()
+}
+
+fn tolerated_gap_codes(profile: EvidenceBundleProfileV1) -> Vec<String> {
+    match profile {
+        EvidenceBundleProfileV1::Draft => vec![
+            "missing_hash_ledger".to_string(),
+            "missing_report".to_string(),
+            "missing_run_summary".to_string(),
+        ],
+        EvidenceBundleProfileV1::Operational => vec!["missing_hash_ledger".to_string()],
+        EvidenceBundleProfileV1::Certification | EvidenceBundleProfileV1::Publication => Vec::new(),
+    }
 }
 
 fn verify_hash_ledger_contract(base_dir: &Path, path: &Path) -> (bool, String) {
