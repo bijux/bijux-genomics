@@ -37,6 +37,7 @@ pub const BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.contamina
 pub const BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION: &str = "bijux.bam.endogenous_content.v1";
 pub const BAM_SEX_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.sex_evidence.v1";
 pub const BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION: &str = "bijux.bam.haplogroup_readiness.v1";
+pub const BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION: &str = "bijux.bam.kinship_prerequisites.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -521,6 +522,24 @@ pub struct BamHaplogroupReadinessV1 {
     pub observed_mean_coverage: f64,
     #[serde(default)]
     pub contamination_estimate: Option<f64>,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamKinshipPrerequisitesV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub ready: bool,
+    pub minimum_mean_coverage: f64,
+    pub observed_mean_coverage: f64,
+    pub marker_overlap_snps: u32,
+    pub sample_identity_consistent: bool,
+    pub contamination_estimate: f64,
+    pub max_contamination: f64,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
     #[serde(default)]
@@ -2530,6 +2549,52 @@ pub fn evaluate_haplogroup_readiness(
     }
 }
 
+/// Evaluate BAM-side prerequisites required before kinship/relatedness workflows.
+#[must_use]
+pub fn evaluate_kinship_prerequisites(
+    metrics: &BamMetricsV1,
+    marker_overlap_snps: u32,
+    sample_identity_consistent: bool,
+    max_contamination: f64,
+    minimum_mean_coverage: f64,
+) -> BamKinshipPrerequisitesV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if metrics.coverage.mean < minimum_mean_coverage {
+        refusal_codes.push("coverage_below_kinship_minimum".to_string());
+    }
+    if marker_overlap_snps < metrics.kinship_sufficiency.overlap_snps {
+        refusal_codes.push("marker_overlap_below_required_minimum".to_string());
+    }
+    if !sample_identity_consistent {
+        refusal_codes.push("sample_identity_inconsistent".to_string());
+    }
+    if metrics.contamination.estimate > max_contamination {
+        refusal_codes.push("contamination_above_kinship_limit".to_string());
+    }
+    if !metrics.kinship_sufficiency.sufficient {
+        refusal_codes.push("kinship_sufficiency_not_met".to_string());
+    }
+    let ready = refusal_codes.is_empty();
+    BamKinshipPrerequisitesV1 {
+        schema_version: BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.kinship".to_string(),
+        ready,
+        minimum_mean_coverage,
+        observed_mean_coverage: metrics.coverage.mean,
+        marker_overlap_snps,
+        sample_identity_consistent,
+        contamination_estimate: metrics.contamination.estimate,
+        max_contamination,
+        refusal_codes,
+        caveats: vec![
+            "kinship results are sensitive to marker overlap and contamination assumptions"
+                .to_string(),
+            "sample identity and cohort context must remain consistent across merged inputs"
+                .to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn bam_adna_workflow_contract() -> BamAdnaWorkflowV1 {
     BamAdnaWorkflowV1 {
@@ -3073,6 +3138,29 @@ mod tests {
         assert!(!refused.ready);
         assert!(refused.refusal_codes.contains(&"reference_build_required".to_string()));
         assert!(refused.refusal_codes.contains(&"contamination_context_required".to_string()));
+    }
+
+    #[test]
+    fn evaluate_kinship_prerequisites_checks_coverage_markers_identity_and_contamination() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.coverage.mean = 7.5;
+        metrics.contamination.estimate = 0.02;
+        metrics.kinship_sufficiency.sufficient = true;
+        metrics.kinship_sufficiency.overlap_snps = 20_000;
+
+        let ready = evaluate_kinship_prerequisites(&metrics, 22_000, true, 0.05, 4.0);
+        assert!(ready.ready);
+        assert_eq!(ready.marker_overlap_snps, 22_000);
+        assert!(ready.refusal_codes.is_empty());
+
+        let refused = evaluate_kinship_prerequisites(&metrics, 5_000, false, 0.01, 9.0);
+        assert!(!refused.ready);
+        assert!(refused.refusal_codes.contains(&"coverage_below_kinship_minimum".to_string()));
+        assert!(refused
+            .refusal_codes
+            .contains(&"marker_overlap_below_required_minimum".to_string()));
+        assert!(refused.refusal_codes.contains(&"sample_identity_inconsistent".to_string()));
+        assert!(refused.refusal_codes.contains(&"contamination_above_kinship_limit".to_string()));
     }
 
     fn unique_temp_dir(label: &str) -> PathBuf {
