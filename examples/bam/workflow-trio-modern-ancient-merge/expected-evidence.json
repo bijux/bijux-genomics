@@ -1,0 +1,16 @@
+{
+  "schema_version": "bijux.example.expected_evidence.v1",
+  "example_id": "bam_workflow_trio_modern_ancient_merge",
+  "evidence": [
+    "sample_identity.json",
+    "mapping_summary.json",
+    "coverage.regime.json",
+    "damage.unified_metrics.json",
+    "authenticity.advisory.json",
+    "contamination.summary.json",
+    "endogenous_content.summary.json",
+    "merge.compatibility.json",
+    "kinship.prerequisites.json"
+  ],
+  "label": "fixture-safe BAM trio evidence expectations"
+}

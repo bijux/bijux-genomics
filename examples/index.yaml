@@ -15,6 +15,20 @@ examples:
     expected_plan: golden/plan.json
     expected_evidence: expected-evidence.json
     path: examples/bam/essential-alignment-qc
+  - id: bam_workflow_trio_modern_ancient_merge
+    domain: bam
+    corpus_required: corpus-01-mini
+    canonical_example: false
+    workflow_class: workflow_trio_modern_ancient_merge
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    tiny_inputs_contract: tiny-inputs.json
+    workflow_manifest: workflow-manifest.json
+    expected_plan: golden/plan.json
+    expected_evidence: expected-evidence.json
+    path: examples/bam/workflow-trio-modern-ancient-merge
   - id: fastq_cluster_otus_bench
     domain: fastq
     corpus_required: corpus-01-mini

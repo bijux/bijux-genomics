@@ -1,0 +1,25 @@
+{
+  "example_id": "bam_workflow_trio_modern_ancient_merge",
+  "status": "ok",
+  "profile_id": "bam-to-bam__adna_shotgun__v1",
+  "artifacts": [
+    "plan.json",
+    "explain.json",
+    "report.json"
+  ],
+  "track_assertions": {
+    "modern_wgs_qc": {
+      "mapping_summary_before_coverage": true,
+      "duplicate_policy_evidence_present": true
+    },
+    "ancient_damage_contamination": {
+      "damage_is_advisory": true,
+      "authenticity_is_non_certifying": true,
+      "contamination_requires_prerequisites": true
+    },
+    "merge_coverage_lineage": {
+      "merge_compatibility_recorded": true,
+      "coverage_scope_separated_from_merge_claims": true
+    }
+  }
+}
