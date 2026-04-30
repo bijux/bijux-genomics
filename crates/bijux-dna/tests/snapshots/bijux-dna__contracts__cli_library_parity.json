@@ -1,0 +1,190 @@
+{
+  "bam_validate_profile": {
+    "invariants_preset": "adna",
+    "invariants_version": "bam-invariants.v1",
+    "profile_id": "bam-to-bam__adna_capture__v1",
+    "valid": true,
+    "violations": []
+  },
+  "fastq_explain_profile": {
+    "default_rationale": {
+      "fastq.correct_errors": "pipeline default",
+      "fastq.detect_adapters": "pipeline default",
+      "fastq.extract_umis": "pipeline default",
+      "fastq.filter_reads": "pipeline default",
+      "fastq.merge_pairs": "pipeline default",
+      "fastq.profile_overrepresented_sequences": "pipeline default",
+      "fastq.profile_read_lengths": "pipeline default",
+      "fastq.profile_reads": "pipeline default",
+      "fastq.report_qc": "pipeline default",
+      "fastq.screen_taxonomy": "pipeline default",
+      "fastq.trim_polyg_tails": "pipeline default",
+      "fastq.trim_reads": "pipeline default",
+      "fastq.validate_reads": "pipeline default"
+    },
+    "effective_params": {
+      "fastq.correct_errors": {
+        "conservative_mode": false,
+        "correction_engine": "rcorrector",
+        "genome_size": null,
+        "kmer_size": null,
+        "max_memory_gb": null,
+        "musket_kmer_budget": null,
+        "paired_mode": "single_end",
+        "quality_encoding": "phred33",
+        "schema_version": "bijux.fastq.params.correct.v1",
+        "threads": 1,
+        "trusted_kmer_artifact": null
+      },
+      "fastq.detect_adapters": {
+        "evidence_artifact_id": "report_json",
+        "evidence_engine": "fastqc",
+        "evidence_format": "fastqc_summary",
+        "evidence_scope": "full_input",
+        "inspection_mode": "evidence_only",
+        "paired_mode": "single_end",
+        "report_only": true,
+        "sample_reads": null,
+        "schema_version": "bijux.fastq.params.detect_adapters.v1",
+        "threads": 1
+      },
+      "fastq.extract_umis": {
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.umi.v1",
+        "threads": 1,
+        "umi_pattern": null
+      },
+      "fastq.filter_reads": {
+        "contaminant_db": null,
+        "entropy_threshold": null,
+        "low_complexity_threshold": null,
+        "max_n": null,
+        "max_n_count": null,
+        "max_n_fraction": null,
+        "n_policy": null,
+        "paired_mode": "single_end",
+        "polyx_policy": null,
+        "threads": 1
+      },
+      "fastq.merge_pairs": {
+        "merge_engine": "pear",
+        "merge_overlap": null,
+        "min_len": null,
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.merge_pairs.v1",
+        "threads": 6,
+        "unmerged_read_policy": "emit_unmerged_pairs"
+      },
+      "fastq.profile_overrepresented_sequences": {
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.overrepresented_profile.v1",
+        "threads": 2,
+        "top_k": 50
+      },
+      "fastq.profile_read_lengths": {
+        "histogram_bins": 100,
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.read_length_profile.v1",
+        "threads": 2
+      },
+      "fastq.profile_reads": {
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.stats.v1",
+        "threads": 2
+      },
+      "fastq.report_qc": {
+        "aggregation_engine": "multiqc",
+        "aggregation_scope": "governed_qc_artifacts",
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.report_qc.v1"
+      },
+      "fastq.screen_taxonomy": {
+        "assignment_format": "kraken_assignments",
+        "classifier": "kraken2",
+        "contaminant_db": null,
+        "database_artifact_id": "taxonomy_db",
+        "database_build_id": null,
+        "database_catalog_id": "taxonomy_reference",
+        "database_digest": null,
+        "database_namespace": "read_screening",
+        "database_scope": "read_screening",
+        "emit_unclassified": true,
+        "minimum_confidence": null,
+        "paired_mode": "single_end",
+        "report_format": "kraken_report",
+        "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
+        "threads": 4
+      },
+      "fastq.trim_polyg_tails": {
+        "min_polyg_run": 10,
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.trim_polyg_tails.v1",
+        "threads": 4,
+        "trim_polyg": true
+      },
+      "fastq.trim_reads": {
+        "adapter_policy": "none",
+        "contaminant_policy": null,
+        "min_len": 30,
+        "n_policy": null,
+        "paired_mode": "single_end",
+        "polyx_policy": null,
+        "q_cutoff": null,
+        "threads": 1
+      },
+      "fastq.validate_reads": {
+        "pair_sync_policy": "not_applicable",
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.validate_reads.v1",
+        "threads": 4,
+        "validation_mode": "strict"
+      }
+    },
+    "effective_tools": {
+      "fastq.correct_errors": "rcorrector",
+      "fastq.detect_adapters": "fastqc",
+      "fastq.extract_umis": "umi_tools",
+      "fastq.filter_reads": "fastp",
+      "fastq.merge_pairs": "pear",
+      "fastq.profile_overrepresented_sequences": "fastqc",
+      "fastq.profile_read_lengths": "seqkit_stats",
+      "fastq.profile_reads": "seqkit_stats",
+      "fastq.report_qc": "multiqc",
+      "fastq.screen_taxonomy": "kraken2",
+      "fastq.trim_polyg_tails": "fastp",
+      "fastq.trim_reads": "fastp",
+      "fastq.validate_reads": "fastqvalidator"
+    },
+    "invariants": {
+      "invariants_preset": null,
+      "invariants_version": "fastq-invariants.v2",
+      "profile_id": "fastq-to-fastq__default__v1",
+      "valid": true,
+      "violations": []
+    },
+    "library_model": {
+      "assay_kind": "unknown",
+      "layout": "single_end",
+      "platform_hint": "illumina",
+      "udg_treatment": "unknown"
+    },
+    "profile_id_input": "fastq-to-fastq__default__v1",
+    "profile_id_resolved": "fastq-to-fastq__default__v1",
+    "rationale_links": [
+      "docs/20-science/SCIENTIFIC_DEFAULTS.md",
+      "docs/20-science/SCIENTIFIC_DECISIONS.md",
+      "crates/bijux-dna-pipelines/docs/PROFILE_RATIONALE.md"
+    ]
+  },
+  "vcf_plan": {
+    "command": "vcf.plan",
+    "planner_version": "api.vcf.plan.v1",
+    "requested_profile": "vcf-to-vcf__minimal__v1",
+    "resolved_profile": "vcf-to-vcf__minimal__v1",
+    "stages": [
+      "vcf.call",
+      "vcf.filter",
+      "vcf.stats"
+    ]
+  }
+}

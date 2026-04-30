@@ -112,6 +112,8 @@ mod mod_contracts_tooling_fixture_privacy_policy_rs;
 mod mod_contracts_tooling_policy_layer_split_policy_rs;
 #[path = "contracts/tooling/governance_core/public_api_stability_tiers_policy.rs"]
 mod mod_contracts_tooling_public_api_stability_tiers_policy_rs;
+#[path = "contracts/tooling/governance_core/workflow_truth_boundary_policy.rs"]
+mod mod_contracts_tooling_workflow_truth_boundary_policy_rs;
 #[path = "contracts/tooling/governance_quality/generated_configs_policy.rs"]
 mod mod_contracts_tooling_generated_configs_policy_rs;
 #[path = "contracts/tooling/governance_quality/image_catalog_completeness_policy.rs"]
