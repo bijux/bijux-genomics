@@ -16,6 +16,8 @@ mod no_parsing;
 mod plan_json;
 #[path = "plan/plan_snapshots.rs"]
 mod plan_snapshots;
+#[path = "plan/planner_manifest_contract.rs"]
+mod planner_manifest_contract;
 #[path = "plan/report_qc.rs"]
 mod report_qc;
 #[path = "plan/rrna_flow.rs"]
