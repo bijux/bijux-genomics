@@ -340,3 +340,26 @@ fn checked_in_corpus_catalog_contains_vcf_ci_small_case_matrix() -> Result<()> {
     }
     Ok(())
 }
+
+#[test]
+fn checked_in_corpus_catalog_contains_fastq_local_medium_stress_matrix() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let Some(fastq_local_medium) = corpora.iter().find(|corpus| {
+        corpus.domain == CorpusDomain::Fastq && corpus.scale == CorpusScale::LocalMedium
+    }) else {
+        anyhow::bail!("checked-in corpus catalog must include a fastq local-medium manifest");
+    };
+
+    let tags = fastq_local_medium
+        .datasets
+        .iter()
+        .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    for required in ["chunking", "edna", "depletion", "aggregate-qc"] {
+        assert!(
+            tags.contains(required),
+            "fastq local-medium corpus must cover required stress tag {required}"
+        );
+    }
+    Ok(())
+}

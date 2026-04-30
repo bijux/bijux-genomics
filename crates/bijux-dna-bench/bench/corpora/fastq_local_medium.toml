@@ -1,0 +1,42 @@
+schema_version = "bijux.bench.corpus.v1"
+corpus_id = "fastq_local_medium"
+domain = "fastq"
+scale = "local-medium"
+scientific_caveats = [
+  "local-medium FASTQ fixtures are still synthetic reductions and should be interpreted as engineering stress probes",
+]
+
+[[datasets]]
+dataset_id = "fastq_chunking_10m"
+fixture = "fixtures/fastq/chunking_10m"
+read_layout = "paired"
+class_label = "chunking"
+case_tags = ["chunking", "high-volume"]
+
+[[datasets]]
+dataset_id = "fastq_edna_primer_mix"
+fixture = "fixtures/fastq/edna_primer_mix"
+read_layout = "paired"
+class_label = "edna"
+case_tags = ["edna", "primer-mix"]
+
+[[datasets]]
+dataset_id = "fastq_host_depletion_panel"
+fixture = "fixtures/fastq/host_depletion_panel"
+read_layout = "paired"
+class_label = "host_depletion"
+case_tags = ["depletion", "host"]
+
+[[datasets]]
+dataset_id = "fastq_rrna_depletion_panel"
+fixture = "fixtures/fastq/rrna_depletion_panel"
+read_layout = "paired"
+class_label = "rrna_depletion"
+case_tags = ["depletion", "rrna"]
+
+[[datasets]]
+dataset_id = "fastq_aggregate_qc_report"
+fixture = "fixtures/fastq/aggregate_qc_report"
+read_layout = "paired"
+class_label = "aggregate_qc"
+case_tags = ["aggregate-qc", "reporting"]
