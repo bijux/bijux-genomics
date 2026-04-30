@@ -1,18 +1,18 @@
 use super::Result;
 use anyhow::{Context, Result as AnyhowResult};
+use crate::request_args::{
+    CacheExplainRequestV1, CacheExplainResponseV1, CacheKeyFingerprintV1, CacheMissReasonV1,
+};
 use bijux_dna_runtime::run_layout::ArtifactInventoryV1;
 use std::path::Path;
 
-/// Explain cache key and cache miss reasons between two run bundles.
+/// Typed cache explainability API.
 ///
 /// # Errors
 /// Returns an error if required contracts cannot be loaded.
-pub fn explain_cache_hit_miss(
-    original_run_dir: &Path,
-    replay_run_dir: &Path,
-) -> Result<serde_json::Value> {
-    let original = fingerprint(original_run_dir)?;
-    let replay = fingerprint(replay_run_dir)?;
+pub fn cache_explain(request: &CacheExplainRequestV1) -> Result<CacheExplainResponseV1> {
+    let original = fingerprint(&request.original_run_dir)?;
+    let replay = fingerprint(&request.replay_run_dir)?;
     let mut miss_reasons = Vec::new();
     if original.manifest_schema != replay.manifest_schema {
         miss_reasons.push(reason("schema_changed", "manifest schema version changed"));
@@ -36,27 +36,31 @@ pub fn explain_cache_hit_miss(
         miss_reasons.push(reason("artifact_identity_changed", "artifact inventory changed"));
     }
     let status = if miss_reasons.is_empty() { "hit" } else { "miss" };
-    Ok(serde_json::json!({
-        "schema_version": "bijux.cache_explain.v1",
-        "status": status,
-        "original_cache_key": original,
-        "replay_cache_key": replay,
-        "unsafe_miss_reasons": miss_reasons,
-    }))
+    Ok(CacheExplainResponseV1 {
+        schema_version: "bijux.cache_explain.v1".to_string(),
+        status: status.to_string(),
+        original_cache_key: original,
+        replay_cache_key: replay,
+        unsafe_miss_reasons: miss_reasons,
+    })
 }
 
-#[derive(Debug, Clone, serde::Serialize)]
-struct CacheFingerprint {
-    manifest_schema: String,
-    graph_hash: String,
-    reference_hash: String,
-    backend_sha256: String,
-    runtime_policy_sha256: String,
-    environment_sha256: String,
-    artifact_inventory_sha256: String,
+/// Explain cache key and cache miss reasons between two run bundles.
+///
+/// # Errors
+/// Returns an error if required contracts cannot be loaded.
+pub fn explain_cache_hit_miss(
+    original_run_dir: &Path,
+    replay_run_dir: &Path,
+) -> Result<serde_json::Value> {
+    let response = cache_explain(&CacheExplainRequestV1 {
+        original_run_dir: original_run_dir.to_path_buf(),
+        replay_run_dir: replay_run_dir.to_path_buf(),
+    })?;
+    Ok(serde_json::to_value(response)?)
 }
 
-fn fingerprint(run_dir: &Path) -> AnyhowResult<CacheFingerprint> {
+fn fingerprint(run_dir: &Path) -> AnyhowResult<CacheKeyFingerprintV1> {
     let layout = bijux_dna_runtime::run_layout::RunLayout::from_run_dir(run_dir.to_path_buf());
     let manifest: serde_json::Value =
         serde_json::from_slice(&std::fs::read(&layout.manifest_path)?).context("parse manifest")?;
@@ -70,7 +74,7 @@ fn fingerprint(run_dir: &Path) -> AnyhowResult<CacheFingerprint> {
         .collect::<Vec<_>>()
         .join(",");
 
-    Ok(CacheFingerprint {
+    Ok(CacheKeyFingerprintV1 {
         manifest_schema: manifest
             .get("schema_version")
             .and_then(serde_json::Value::as_str)
@@ -89,9 +93,9 @@ fn fingerprint(run_dir: &Path) -> AnyhowResult<CacheFingerprint> {
     })
 }
 
-fn reason(reason_code: &str, message: &str) -> serde_json::Value {
-    serde_json::json!({
-        "reason_code": reason_code,
-        "message": message,
-    })
+fn reason(reason_code: &str, message: &str) -> CacheMissReasonV1 {
+    CacheMissReasonV1 {
+        reason_code: reason_code.to_string(),
+        message: message.to_string(),
+    }
 }

@@ -1,16 +1,18 @@
 //! Public front door for the Bijux API.
 
 pub use crate::runtime::run::{
-    browse_runs, cancel_run, dry_run, execute, execute_and_report, operator_health, pause_run,
-    plan, policy_audit, query_run_lineage, render_report, resume_run, status, workspace_edges,
-    write_workspace_audit,
+    browse_runs, cache_explain, cancel_run, dry_run, execute, execute_and_report, operator_health,
+    pause_run, plan, policy_audit, query_run_lineage, render_report, replay_explain, resume_run,
+    status, workspace_edges, write_workspace_audit,
 };
 pub use crate::surface::explain::{ExplainResponse, ExplainToolSelection, PlanExplainV1};
 pub use crate::surface::request_contracts::{
+    CacheExplainRequestV1, CacheExplainResponseV1, CacheKeyFingerprintV1, CacheMissReasonV1,
     DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, PlanRequest, PlanResponse,
-    OperatorHealthResponse, RenderReportRequest, RenderReportResult, RunBrowserFilterV1,
-    RunBrowserRequestV1, RunBrowserResponseV1, RunBrowserRowV1, RunControlResponse,
-    RunLineageEdgeV1, RunLineageQueryRequestV1, RunLineageQueryResponseV1, RunStatus,
+    OperatorHealthResponse, ReplayExplainRequestV1, ReplayExplainResponseV1, RenderReportRequest,
+    RenderReportResult, RunBrowserFilterV1, RunBrowserRequestV1, RunBrowserResponseV1,
+    RunBrowserRowV1, RunControlResponse, RunLineageEdgeV1, RunLineageQueryRequestV1,
+    RunLineageQueryResponseV1, RunStatus,
 };
 pub use crate::surface::versioning::{route_version_inventory, ApiRouteVersionInventoryV1};
 pub use crate::v1::report::render_report_bundle_html;

@@ -1,6 +1,6 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::run::{
-    execute_local_fastq_workflow, explain_cache_hit_miss,
+    cache_explain, execute_local_fastq_workflow, explain_cache_hit_miss, CacheExplainRequestV1,
 };
 
 #[test]
@@ -39,5 +39,29 @@ fn cache_explain_reports_policy_and_environment_miss_reasons() -> Result<()> {
         .unwrap_or_default();
     assert!(reasons.iter().any(|entry| entry.get("reason_code") == Some(&serde_json::json!("policy_changed"))));
     assert!(reasons.iter().any(|entry| entry.get("reason_code") == Some(&serde_json::json!("environment_changed"))));
+    Ok(())
+}
+
+#[test]
+fn cache_explain_typed_api_surfaces_stable_contract() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let original = execute_local_fastq_workflow(&temp.path().join("original"))?;
+    let replay = execute_local_fastq_workflow(&temp.path().join("replay"))?;
+    let response = cache_explain(&CacheExplainRequestV1 {
+        original_run_dir: original
+            .manifest_path
+            .parent()
+            .ok_or_else(|| anyhow!("original manifest missing parent"))?
+            .to_path_buf(),
+        replay_run_dir: replay
+            .manifest_path
+            .parent()
+            .ok_or_else(|| anyhow!("replay manifest missing parent"))?
+            .to_path_buf(),
+    })?;
+
+    assert_eq!(response.schema_version, "bijux.cache_explain.v1");
+    assert!(matches!(response.status.as_str(), "hit" | "miss"));
+    assert!(!response.original_cache_key.graph_hash.is_empty());
     Ok(())
 }

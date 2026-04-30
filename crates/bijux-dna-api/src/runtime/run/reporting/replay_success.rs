@@ -1,26 +1,25 @@
 use super::Result;
+use crate::request_args::{ReplayExplainRequestV1, ReplayExplainResponseV1};
 use anyhow::{anyhow, Context};
 use bijux_dna_runtime::run_layout::{ArtifactInventoryV1, ReplayManifestV1};
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-/// Explain artifact reuse and drift for a successful replay.
+/// Typed replay explainability API.
 ///
 /// # Errors
 /// Returns an error if replay or inventory contracts are missing or invalid.
-pub fn explain_successful_replay(
-    original_run_dir: &Path,
-    replay_run_dir: &Path,
-) -> Result<serde_json::Value> {
+pub fn replay_explain(request: &ReplayExplainRequestV1) -> Result<ReplayExplainResponseV1> {
     let replay_layout =
-        bijux_dna_runtime::run_layout::RunLayout::from_run_dir(replay_run_dir.to_path_buf());
+        bijux_dna_runtime::run_layout::RunLayout::from_run_dir(request.replay_run_dir.to_path_buf());
     let replay_manifest: ReplayManifestV1 = serde_json::from_slice(
         &std::fs::read(&replay_layout.replay_manifest_path)
             .with_context(|| format!("read {}", replay_layout.replay_manifest_path.display()))?,
     )
     .context("parse replay manifest")?;
-    let original_layout =
-        bijux_dna_runtime::run_layout::RunLayout::from_run_dir(original_run_dir.to_path_buf());
+    let original_layout = bijux_dna_runtime::run_layout::RunLayout::from_run_dir(
+        request.original_run_dir.to_path_buf(),
+    );
     let original_inventory = load_inventory(&original_layout.artifact_inventory_path)?;
     let replay_inventory = load_inventory(&replay_layout.artifact_inventory_path)?;
 
@@ -57,18 +56,33 @@ pub fn explain_successful_replay(
         return Err(anyhow!("replay manifest original_run_id must not be empty"));
     }
 
-    Ok(serde_json::json!({
-        "schema_version": "bijux.replay_success_explain.v1",
-        "original_run_dir": original_run_dir.display().to_string(),
-        "replay_run_dir": replay_run_dir.display().to_string(),
-        "original_run_id": replay_manifest.original_run_id,
-        "replay_run_id": replay_manifest.replay_run_id,
-        "rerun_stage_ids": replay_manifest.rerun_stage_ids,
-        "reused_outputs": reused_outputs,
-        "unchanged_outputs": unchanged_outputs,
-        "changed_outputs": changed_outputs,
-        "unverifiable_outputs": unverifiable_outputs,
-    }))
+    Ok(ReplayExplainResponseV1 {
+        schema_version: "bijux.replay_success_explain.v1".to_string(),
+        original_run_dir: request.original_run_dir.display().to_string(),
+        replay_run_dir: request.replay_run_dir.display().to_string(),
+        original_run_id: replay_manifest.original_run_id,
+        replay_run_id: replay_manifest.replay_run_id,
+        rerun_stage_ids: replay_manifest.rerun_stage_ids,
+        reused_outputs,
+        unchanged_outputs,
+        changed_outputs,
+        unverifiable_outputs,
+    })
+}
+
+/// Explain artifact reuse and drift for a successful replay.
+///
+/// # Errors
+/// Returns an error if replay or inventory contracts are missing or invalid.
+pub fn explain_successful_replay(
+    original_run_dir: &Path,
+    replay_run_dir: &Path,
+) -> Result<serde_json::Value> {
+    let response = replay_explain(&ReplayExplainRequestV1 {
+        original_run_dir: original_run_dir.to_path_buf(),
+        replay_run_dir: replay_run_dir.to_path_buf(),
+    })?;
+    Ok(serde_json::to_value(response)?)
 }
 
 fn load_inventory(path: &Path) -> Result<ArtifactInventoryV1> {

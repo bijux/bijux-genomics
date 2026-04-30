@@ -339,6 +339,82 @@ pub struct RunLineageQueryResponseV1 {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for cache-hit and cache-miss explainability.
+///
+/// Stability: v1 (stable).
+pub struct CacheExplainRequestV1 {
+    pub original_run_dir: PathBuf,
+    pub replay_run_dir: PathBuf,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Stable cache key fingerprint fields used for hit/miss comparison.
+///
+/// Stability: v1 (stable).
+pub struct CacheKeyFingerprintV1 {
+    pub manifest_schema: String,
+    pub graph_hash: String,
+    pub reference_hash: String,
+    pub backend_sha256: String,
+    pub runtime_policy_sha256: String,
+    pub environment_sha256: String,
+    pub artifact_inventory_sha256: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// One explainable cache miss reason.
+///
+/// Stability: v1 (stable).
+pub struct CacheMissReasonV1 {
+    pub reason_code: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Cache-hit/cache-miss explainability response.
+///
+/// Stability: v1 (stable).
+pub struct CacheExplainResponseV1 {
+    pub schema_version: String,
+    pub status: String,
+    pub original_cache_key: CacheKeyFingerprintV1,
+    pub replay_cache_key: CacheKeyFingerprintV1,
+    #[serde(default)]
+    pub unsafe_miss_reasons: Vec<CacheMissReasonV1>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for replay reuse/drift explainability.
+///
+/// Stability: v1 (stable).
+pub struct ReplayExplainRequestV1 {
+    pub original_run_dir: PathBuf,
+    pub replay_run_dir: PathBuf,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Replay reuse/drift explainability response.
+///
+/// Stability: v1 (stable).
+pub struct ReplayExplainResponseV1 {
+    pub schema_version: String,
+    pub original_run_dir: String,
+    pub replay_run_dir: String,
+    pub original_run_id: String,
+    pub replay_run_id: String,
+    #[serde(default)]
+    pub rerun_stage_ids: Vec<String>,
+    #[serde(default)]
+    pub reused_outputs: Vec<String>,
+    #[serde(default)]
+    pub unchanged_outputs: Vec<String>,
+    #[serde(default)]
+    pub changed_outputs: Vec<String>,
+    #[serde(default)]
+    pub unverifiable_outputs: Vec<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical run-control response.
 ///
 /// Stability: v1 (stable).

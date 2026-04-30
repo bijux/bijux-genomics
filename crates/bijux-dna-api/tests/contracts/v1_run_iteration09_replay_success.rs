@@ -1,6 +1,7 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::run::{
-    execute_local_fastq_workflow, explain_successful_replay,
+    execute_local_fastq_workflow, explain_successful_replay, replay_explain,
+    ReplayExplainRequestV1,
 };
 
 #[test]
@@ -49,5 +50,29 @@ fn replay_success_explain_reports_reuse_and_drift_sets() -> Result<()> {
             .and_then(serde_json::Value::as_array)
             .is_some()
     );
+    Ok(())
+}
+
+#[test]
+fn replay_explain_typed_api_surfaces_stable_contract() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let original = execute_local_fastq_workflow(&temp.path().join("original"))?;
+    let replay = execute_local_fastq_workflow(&temp.path().join("replay"))?;
+    let response = replay_explain(&ReplayExplainRequestV1 {
+        original_run_dir: original
+            .manifest_path
+            .parent()
+            .ok_or_else(|| anyhow!("original manifest missing parent"))?
+            .to_path_buf(),
+        replay_run_dir: replay
+            .manifest_path
+            .parent()
+            .ok_or_else(|| anyhow!("replay manifest missing parent"))?
+            .to_path_buf(),
+    })?;
+
+    assert_eq!(response.schema_version, "bijux.replay_success_explain.v1");
+    assert!(!response.replay_run_id.is_empty());
+    assert!(!response.rerun_stage_ids.is_empty());
     Ok(())
 }
