@@ -9,10 +9,10 @@ mod runtime_support;
 mod stage_assets;
 
 pub use entrypoints::{
-    cancel_run, dry_run, environment_identity, execute, execute_and_report,
-    execute_local_bam_workflow, execute_local_fastq_workflow, execute_local_vcf_workflow,
-    execute_run, explain_successful_replay, operator_health, pause_run, plan, plan_only,
-    policy_audit, replay_manifest, resume_run,
+    assess_failed_replay_eligibility, cancel_run, dry_run, environment_identity, execute,
+    execute_and_report, execute_local_bam_workflow, execute_local_fastq_workflow,
+    execute_local_vcf_workflow, execute_run, explain_successful_replay, operator_health, pause_run,
+    plan, plan_only, policy_audit, replay_failed_run, replay_manifest, resume_run,
     run_fastq_to_bam_profile, run_pipeline, status, RunMode,
 };
 pub use operator_failure::{
