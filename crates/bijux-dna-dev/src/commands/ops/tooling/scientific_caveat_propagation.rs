@@ -4,7 +4,8 @@ use super::{
 };
 use bijux_dna_domain_bam::{
     bam_adna_workflow_contract, estimate_endogenous_content, execute_ancient_damage_evidence,
-    execute_mitochondrial_contamination_workflow, execute_pmd_authenticity_advisory,
+    evaluate_kinship_prerequisites, execute_mitochondrial_contamination_workflow,
+    execute_pmd_authenticity_advisory,
 };
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
 use bijux_dna_domain_vcf::{
@@ -19,6 +20,7 @@ enum ScenarioId {
     LowPassGenotype,
     EdnaTaxonomy,
     PopulationStructure,
+    Demography,
 }
 
 impl ScenarioId {
@@ -28,6 +30,7 @@ impl ScenarioId {
             Self::LowPassGenotype => "g182_low_pass_genotype_caveat_library",
             Self::EdnaTaxonomy => "g183_edna_taxonomy_caveat_library",
             Self::PopulationStructure => "g184_population_structure_caveat_library",
+            Self::Demography => "g185_demography_caveat_library",
         }
     }
 
@@ -37,6 +40,7 @@ impl ScenarioId {
             Self::LowPassGenotype => "G182",
             Self::EdnaTaxonomy => "G183",
             Self::PopulationStructure => "G184",
+            Self::Demography => "G185",
         }
     }
 
@@ -46,6 +50,7 @@ impl ScenarioId {
             Self::LowPassGenotype,
             Self::EdnaTaxonomy,
             Self::PopulationStructure,
+            Self::Demography,
         ]
     }
 
@@ -59,6 +64,7 @@ impl ScenarioId {
             "g184_population_structure_caveat_library" | "G184" => {
                 Some(Self::PopulationStructure)
             }
+            "g185_demography_caveat_library" | "G185" => Some(Self::Demography),
             _ => None,
         }
     }
@@ -179,6 +185,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::LowPassGenotype => scenario_low_pass_genotype_caveat_library(),
         ScenarioId::EdnaTaxonomy => scenario_edna_taxonomy_caveat_library(),
         ScenarioId::PopulationStructure => scenario_population_structure_caveat_library(),
+        ScenarioId::Demography => scenario_demography_caveat_library(),
     };
 
     match result {
@@ -471,6 +478,63 @@ fn scenario_population_structure_caveat_library() -> Result<(Vec<String>, serde_
     ))
 }
 
+fn scenario_demography_caveat_library() -> Result<(Vec<String>, serde_json::Value)> {
+    let mut metrics = base_adna_metrics();
+    metrics.kinship_sufficiency.sufficient = false;
+    metrics.kinship_sufficiency.overlap_snps = 50_000;
+    metrics.contamination.estimate = 0.11;
+    metrics.coverage.mean = 0.85;
+
+    let kinship =
+        evaluate_kinship_prerequisites(&metrics, 12_000, true, 0.05, 2.0);
+
+    let caveat_library = vec![
+        json!({
+            "topic": "model_assumptions",
+            "caveat": "demography models depend on explicit assumptions (population size priors, migration model, and ascertainment context)",
+            "propagation_targets": ["vcf.demography", "report.methods_summary", "report.review_notes"],
+        }),
+        json!({
+            "topic": "marker_density",
+            "caveat": "marker overlap and density are below robust-demography thresholds in this scenario",
+            "marker_overlap_snps": kinship.marker_overlap_snps,
+            "required_overlap_snps": metrics.kinship_sufficiency.overlap_snps,
+            "refusal_codes": kinship.refusal_codes,
+            "propagation_targets": ["vcf.demography", "report.demography_summary"],
+        }),
+        json!({
+            "topic": "underpowered_cohort",
+            "caveat": "cohort evidence is underpowered; estimates should be treated as exploratory",
+            "coverage_mean": kinship.observed_mean_coverage,
+            "contamination_estimate": kinship.contamination_estimate,
+            "propagation_targets": ["report.demography_summary", "report.publication_flags"],
+        }),
+    ];
+
+    let refusals = kinship.refusal_codes.clone();
+    if !refusals
+        .iter()
+        .any(|code| code == "marker_overlap_below_required_minimum")
+    {
+        return Err(anyhow!(
+            "demography caveat scenario must propagate marker-overlap refusal"
+        ));
+    }
+
+    Ok((
+        vec![
+            "demography caveat library captures model assumptions, marker-density limits, and underpowered-cohort interpretation boundaries"
+                .to_string(),
+            "kinship prerequisite refusals are propagated into demography-facing caveat entries"
+                .to_string(),
+        ],
+        json!({
+            "kinship_prerequisites": kinship,
+            "caveat_library": caveat_library,
+        }),
+    ))
+}
+
 fn base_adna_metrics() -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
     metrics.damage.c_to_t_5p = 0.18;
@@ -491,7 +555,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G181", "G182", "G183", "G184"]);
+        assert_eq!(ids, vec!["G181", "G182", "G183", "G184", "G185"]);
     }
 
     #[test]
@@ -673,5 +737,44 @@ mod tests {
         assert!(refusals
             .iter()
             .any(|entry| entry.as_str() == Some("sample_count_below_phasing_minimum")));
+    }
+
+    #[test]
+    fn g185_demography_library_contains_required_topics() {
+        let report = run_scenario(&ScenarioId::Demography);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G185");
+        let library = report
+            .evidence
+            .get("caveat_library")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let topics = library
+            .iter()
+            .filter_map(|entry| entry.get("topic").and_then(serde_json::Value::as_str))
+            .collect::<Vec<_>>();
+        assert!(topics.contains(&"model_assumptions"));
+        assert!(topics.contains(&"marker_density"));
+        assert!(topics.contains(&"underpowered_cohort"));
+    }
+
+    #[test]
+    fn g185_demography_propagates_marker_overlap_refusal() {
+        let report = run_scenario(&ScenarioId::Demography);
+        assert_eq!(report.status, "passed");
+        let prerequisites = report
+            .evidence
+            .get("kinship_prerequisites")
+            .cloned()
+            .unwrap_or_default();
+        let refusals = prerequisites
+            .get("refusal_codes")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(refusals
+            .iter()
+            .any(|entry| entry.as_str() == Some("marker_overlap_below_required_minimum")));
     }
 }
