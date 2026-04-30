@@ -73,6 +73,7 @@ pub fn vcf_reference_basic_profile() -> PipelineProfile {
     profile.id = PipelineId::from_static(id_catalog::PIPELINE_VCF_REFERENCE_BASIC);
     profile.description = "Reference-grade VCF baseline profile";
     profile.stability = StabilityTier::Stable;
+    profile.capabilities = vcf_capabilities(id_catalog::PIPELINE_VCF_REFERENCE_BASIC);
     if let Some(DefaultParams::Vcf(VcfEffectiveParams::Call(call))) =
         profile.defaults.params.get_mut(&StageId::from_static(id_catalog::VCF_CALL))
     {
