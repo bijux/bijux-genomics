@@ -59,6 +59,7 @@ fn validate_execution_outputs_covers_contract_paths() {
         optional_outputs: Vec::new(),
         forbidden_outputs: vec!["*.tmp".to_string()],
         forbid_unexpected_outputs: false,
+        ..ExecutionContract::default()
     };
     assert!(validate_execution_outputs(&ok_contract, root.path()).is_ok());
 
@@ -69,6 +70,7 @@ fn validate_execution_outputs_covers_contract_paths() {
         optional_outputs: Vec::new(),
         forbidden_outputs: Vec::new(),
         forbid_unexpected_outputs: false,
+        ..ExecutionContract::default()
     };
     assert!(validate_execution_outputs(&missing_expected, root.path()).is_err());
 
@@ -79,6 +81,7 @@ fn validate_execution_outputs_covers_contract_paths() {
         optional_outputs: Vec::new(),
         forbidden_outputs: vec!["*.fastq.gz".to_string()],
         forbid_unexpected_outputs: false,
+        ..ExecutionContract::default()
     };
     assert!(validate_execution_outputs(&forbidden, root.path()).is_err());
 
@@ -89,6 +92,7 @@ fn validate_execution_outputs_covers_contract_paths() {
         optional_outputs: vec!["nested/*.fastq.gz".to_string()],
         forbidden_outputs: Vec::new(),
         forbid_unexpected_outputs: true,
+        ..ExecutionContract::default()
     };
     assert!(validate_execution_outputs(&strict, root.path()).is_ok());
 

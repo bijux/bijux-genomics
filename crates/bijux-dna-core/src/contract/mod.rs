@@ -13,9 +13,9 @@ pub use crate::ids::{
     ToolVersion,
 };
 pub use execution::{
-    validate_execution_outputs, ArtifactRef, ArtifactRole, ArtifactSpec, ExecutionEdge,
-    ExecutionGraph, ExecutionManifest, ExecutionStep, PlanPolicy, RetryPolicy, RunRecordV1,
-    StageExecutionRecordV1, StageIO,
+    validate_execution_outputs, ArtifactRef, ArtifactRole, ArtifactRoleFamily, ArtifactSpec,
+    ExecutionEdge, ExecutionGraph, ExecutionManifest, ExecutionStep, PlanPolicy, RetryPolicy,
+    RunRecordV1, StageExecutionRecordV1, StageIO,
 };
 pub use run::{
     list_runs, query_latest_runs, query_run, query_runs, query_stage_rows, run_dir,
@@ -25,10 +25,14 @@ pub use run::{
     ToolProvenanceV1,
 };
 pub use tooling::{
-    objective_spec, select_stage, ArtifactKind, BenchResultRecord, BenchResultStatus, Cardinality,
-    Disqualification, ExecutionContract, ImageRequirements, Objective, ObjectiveSpec,
-    ObjectiveWeights, PathSpec, PortSpec, RuntimeScale, StageParameterSpec, StageSelection,
-    StageSemanticKind, StageSpec, ToolConstraints, ToolExecutionSpecV1, ToolManifest, ToolRegistry,
-    ToolRole, ToolScore,
+    merged_capability_contract, objective_spec, select_stage, ArtifactKind, BackendVersionPolicy,
+    BenchResultRecord, BenchResultStatus, CanonicalStageContractV1, CanonicalStageParametersV1,
+    Cardinality, CompressionSupport, Disqualification, ExecutionContract, ImageRequirements,
+    IndexRequirement, Objective, ObjectiveSpec, ObjectiveWeights, PathSpec, PortSpec,
+    ReadLayoutMode, ReferenceRequirement, ReportSeverity, RuntimeScale, StageCapabilitySpec,
+    StageEnvironmentRequirements, StageFamily, StageOperatingMode, StageParameterSpec,
+    StageRefusalCode, StageReportContract, StageReportKind, StageSelection, StageSemanticKind,
+    StageSpec, ToolConstraints, ToolExecutionSpecV1, ToolManifest, ToolRegistry, ToolRole,
+    ToolScore, UnsupportedParameterCombination,
 };
 pub use version::ContractVersion;

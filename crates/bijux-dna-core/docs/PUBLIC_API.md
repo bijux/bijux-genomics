@@ -42,6 +42,6 @@ on stable contracts without importing implementation layout by accident.
 
 ## Stability Tiers
 
-- Stable: the Public Modules and curated public surface documented in this file.
-- Experimental: new curated helpers are experimental until they are added to the public surface snapshots and called out here.
-- Internal: implementation helpers and any item not exposed through `contract`, `id_catalog`, `ids`, `metrics`, `prelude`, or `public_api`.
+Stable: the Public Modules and curated public surface documented in this file.
+Experimental: new curated helpers are experimental until they are added to the public surface snapshots and called out here.
+Internal: implementation helpers and any item not exposed through `contract`, `id_catalog`, `ids`, `metrics`, `prelude`, or `public_api`.

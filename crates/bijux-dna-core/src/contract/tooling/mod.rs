@@ -8,6 +8,7 @@ use sha2::Digest;
 use std::fmt::Write as _;
 
 use crate::contract::canonical::to_canonical_json_bytes;
+use crate::contract::ArtifactRole;
 use crate::foundation::Result;
 use crate::ids::{StageId, ToolId, ToolVersion};
 
@@ -35,19 +36,23 @@ pub enum Cardinality {
     Many,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct PortSpec {
     pub name: String,
     pub data_type: String,
     pub cardinality: Cardinality,
+    #[serde(default)]
+    pub artifact_role: ArtifactRole,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct StageParameterSpec {
     pub name: String,
     pub param_type: String,
     #[serde(default)]
     pub default: Option<String>,
+    #[serde(default)]
+    pub aliases: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -67,6 +72,16 @@ pub enum StageSemanticKind {
     Qc,
     Report,
     Index,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum StageFamily {
+    #[default]
+    Fastq,
+    Bam,
+    Vcf,
+    Cross,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -92,6 +107,152 @@ pub enum RuntimeScale {
     Large,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum StageOperatingMode {
+    Simulation,
+    Advisory,
+    #[default]
+    Enforced,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum BackendVersionPolicy {
+    Floating,
+    #[default]
+    Pinned,
+    DigestPinned,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum ReportSeverity {
+    Info,
+    #[default]
+    Warning,
+    Error,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum StageReportKind {
+    #[default]
+    Qc,
+    Contamination,
+    Damage,
+    Coverage,
+    Normalization,
+    Imputation,
+    PopulationSummary,
+    Generic,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, Ord, PartialOrd)]
+#[serde(rename_all = "snake_case")]
+pub enum ReadLayoutMode {
+    SingleEnd,
+    PairedEnd,
+    Interleaved,
+    Deinterleaved,
+    Merged,
+    #[default]
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, Ord, PartialOrd)]
+#[serde(rename_all = "snake_case")]
+pub enum CompressionSupport {
+    None,
+    Gzip,
+    Bgzf,
+    #[default]
+    Unknown,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum ReferenceRequirement {
+    #[default]
+    None,
+    Optional,
+    Required,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum IndexRequirement {
+    #[default]
+    None,
+    Optional,
+    Required,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq, Ord, PartialOrd)]
+pub struct UnsupportedParameterCombination {
+    #[serde(default)]
+    pub parameters: BTreeMap<String, String>,
+    #[serde(default)]
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct StageCapabilitySpec {
+    #[serde(default)]
+    pub layouts: Vec<ReadLayoutMode>,
+    #[serde(default)]
+    pub compression: Vec<CompressionSupport>,
+    #[serde(default)]
+    pub reference: ReferenceRequirement,
+    #[serde(default)]
+    pub index: IndexRequirement,
+    #[serde(default)]
+    pub output_formats: Vec<String>,
+    #[serde(default)]
+    pub unsupported_parameter_combinations: Vec<UnsupportedParameterCombination>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct StageEnvironmentRequirements {
+    #[serde(default)]
+    pub variables: Vec<String>,
+    #[serde(default)]
+    pub mounts: Vec<String>,
+    #[serde(default)]
+    pub executables: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct StageReportContract {
+    pub report_id: String,
+    #[serde(default)]
+    pub kind: StageReportKind,
+    pub schema_version: String,
+    #[serde(default)]
+    pub required_fields: Vec<String>,
+    #[serde(default)]
+    pub advisory_fields: Vec<String>,
+    #[serde(default)]
+    pub severity: ReportSeverity,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum StageRefusalCode {
+    IncompatibleInputs,
+    MissingReference,
+    UnsupportedLayout,
+    MissingIndex,
+    UnsafeOverride,
+    BackendUnavailable,
+    ScientificIncoherence,
+    UntypedArtifactRole,
+    MalformedReport,
+    UnsupportedMode,
+    #[default]
+    Unknown,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ImageRequirements {
     #[serde(default)]
@@ -103,6 +264,8 @@ pub struct ImageRequirements {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct StageSpec {
     pub stage_id: StageId,
+    #[serde(default)]
+    pub stage_family: StageFamily,
     #[serde(default)]
     pub semantic_kind: StageSemanticKind,
     #[serde(default)]
@@ -125,6 +288,16 @@ pub struct StageSpec {
     pub metrics: Vec<StageMetricSpec>,
     #[serde(default)]
     pub description: Option<String>,
+    #[serde(default)]
+    pub environment_requirements: StageEnvironmentRequirements,
+    #[serde(default)]
+    pub report_contracts: Vec<StageReportContract>,
+    #[serde(default)]
+    pub capability_contract: StageCapabilitySpec,
+    #[serde(default)]
+    pub refusal_codes: Vec<StageRefusalCode>,
+    #[serde(default)]
+    pub operating_mode: StageOperatingMode,
     #[serde(flatten, default)]
     pub behavior: StageBehavior,
     #[serde(default)]
@@ -206,6 +379,112 @@ impl StageSpec {
         }
         Ok(hex)
     }
+
+    #[must_use]
+    pub fn canonical_contract(&self, tool_manifest: &ToolManifest) -> CanonicalStageContractV1 {
+        CanonicalStageContractV1 {
+            stage_id: self.stage_id.clone(),
+            stage_family: self.stage_family,
+            semantic_kind: self.semantic_kind,
+            backend_tool_id: tool_manifest.tool_id.clone(),
+            backend_version_policy: tool_manifest.backend_version_policy,
+            input_artifacts: self.inputs.clone(),
+            output_artifacts: self.outputs.clone(),
+            parameters: self.parameters.clone(),
+            environment_requirements: self.environment_requirements.clone(),
+            report_contracts: self.report_contracts.clone(),
+            refusal_codes: self.refusal_codes.clone(),
+            operating_mode: self.operating_mode,
+            capability_contract: merged_capability_contract(
+                &self.capability_contract,
+                &tool_manifest.capability_contract,
+            ),
+        }
+    }
+
+    /// # Errors
+    /// Returns an error if canonical JSON serialization fails.
+    pub fn canonicalize_parameters(
+        &self,
+        params: &BTreeMap<String, String>,
+    ) -> Result<CanonicalStageParametersV1> {
+        let mut normalized = BTreeMap::<String, String>::new();
+        let mut applied_defaults = Vec::new();
+        let mut resolved_aliases = BTreeMap::new();
+        let alias_to_name = self
+            .parameters
+            .iter()
+            .flat_map(|spec| {
+                spec.aliases.iter().map(|alias| (alias.to_ascii_lowercase(), spec.name.clone()))
+            })
+            .collect::<BTreeMap<_, _>>();
+
+        for (raw_name, raw_value) in params {
+            let canonical_name = alias_to_name
+                .get(&raw_name.to_ascii_lowercase())
+                .cloned()
+                .unwrap_or_else(|| raw_name.clone());
+            if canonical_name != *raw_name {
+                resolved_aliases.insert(raw_name.clone(), canonical_name.clone());
+            }
+            normalized.insert(canonical_name, raw_value.clone());
+        }
+
+        for spec in &self.parameters {
+            if normalized.contains_key(&spec.name) {
+                continue;
+            }
+            if let Some(default) = &spec.default {
+                normalized.insert(spec.name.clone(), default.clone());
+                applied_defaults.push(spec.name.clone());
+            }
+        }
+
+        let normalized_json = crate::contract::canonical::parameters_json_canonicalization(
+            &serde_json::json!(normalized),
+        );
+        let hash = crate::foundation::hashing::params_hash(&normalized_json)?;
+        Ok(CanonicalStageParametersV1 { normalized_json, hash, applied_defaults, resolved_aliases })
+    }
+}
+
+#[must_use]
+pub fn merged_capability_contract(
+    stage: &StageCapabilitySpec,
+    tool: &StageCapabilitySpec,
+) -> StageCapabilitySpec {
+    StageCapabilitySpec {
+        layouts: merge_unique(&stage.layouts, &tool.layouts),
+        compression: merge_unique(&stage.compression, &tool.compression),
+        reference: if matches!(tool.reference, ReferenceRequirement::None) {
+            stage.reference
+        } else {
+            tool.reference
+        },
+        index: if matches!(tool.index, IndexRequirement::None) { stage.index } else { tool.index },
+        output_formats: merge_unique(&stage.output_formats, &tool.output_formats),
+        unsupported_parameter_combinations: stage
+            .unsupported_parameter_combinations
+            .iter()
+            .cloned()
+            .chain(tool.unsupported_parameter_combinations.iter().cloned())
+            .collect(),
+    }
+}
+
+fn merge_unique<T>(left: &[T], right: &[T]) -> Vec<T>
+where
+    T: Clone + Ord + PartialEq,
+{
+    let mut merged = left.iter().cloned().collect::<Vec<_>>();
+    for item in right {
+        if merged.contains(item) {
+            continue;
+        }
+        merged.push(item.clone());
+    }
+    merged.sort();
+    merged
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
@@ -231,6 +510,8 @@ pub struct ExecutionContract {
     pub forbidden_outputs: Vec<String>,
     #[serde(default)]
     pub forbid_unexpected_outputs: bool,
+    #[serde(default)]
+    pub requires_provenance: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -249,6 +530,39 @@ pub struct ToolManifest {
     pub constraints: ToolConstraints,
     #[serde(default)]
     pub execution_contract: ExecutionContract,
+    #[serde(default)]
+    pub supported_modes: Vec<StageOperatingMode>,
+    #[serde(default)]
+    pub backend_version_policy: BackendVersionPolicy,
+    #[serde(default)]
+    pub capability_contract: StageCapabilitySpec,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CanonicalStageContractV1 {
+    pub stage_id: StageId,
+    pub stage_family: StageFamily,
+    pub semantic_kind: StageSemanticKind,
+    pub backend_tool_id: ToolId,
+    pub backend_version_policy: BackendVersionPolicy,
+    pub input_artifacts: Vec<PortSpec>,
+    pub output_artifacts: Vec<PortSpec>,
+    pub parameters: Vec<StageParameterSpec>,
+    pub environment_requirements: StageEnvironmentRequirements,
+    pub report_contracts: Vec<StageReportContract>,
+    pub refusal_codes: Vec<StageRefusalCode>,
+    pub operating_mode: StageOperatingMode,
+    pub capability_contract: StageCapabilitySpec,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct CanonicalStageParametersV1 {
+    pub normalized_json: serde_json::Value,
+    pub hash: String,
+    #[serde(default)]
+    pub applied_defaults: Vec<String>,
+    #[serde(default)]
+    pub resolved_aliases: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

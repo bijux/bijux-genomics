@@ -3,7 +3,8 @@ use std::path::PathBuf;
 
 use bijux_dna_core::contract::execution::{ExecutionEdge, ExecutionGraph, ExecutionStep};
 use bijux_dna_core::contract::{
-    ArtifactRole, ContractVersion, PlanPolicy, StageIO, ToolConstraints,
+    ArtifactRole, ContractVersion, PlanPolicy, StageIO, StageParameterSpec, StageSpec,
+    ToolConstraints,
 };
 use bijux_dna_core::metrics::{
     parse_derived_metric_id, parse_metric_id, validate_derived_metric_id_str,
@@ -47,13 +48,19 @@ fn artifact_roles_and_specs_cover_enum_and_constructor_paths() {
         ArtifactRole::TrimmedReads,
         ArtifactRole::Bam,
         ArtifactRole::DedupBam,
+        ArtifactRole::Alignment,
+        ArtifactRole::Variant,
         ArtifactRole::ReportJson,
+        ArtifactRole::Report,
         ArtifactRole::Log,
         ArtifactRole::Reference,
         ArtifactRole::Index,
         ArtifactRole::MetricsJson,
         ArtifactRole::MetricsEnvelope,
+        ArtifactRole::Metrics,
         ArtifactRole::StageReport,
+        ArtifactRole::Provenance,
+        ArtifactRole::Evidence,
         ArtifactRole::SummaryJson,
         ArtifactRole::SummaryTsv,
         ArtifactRole::ReportHtml,
@@ -64,13 +71,19 @@ fn artifact_roles_and_specs_cover_enum_and_constructor_paths() {
         "trimmed_reads",
         "bam",
         "dedup_bam",
+        "alignment",
+        "variant",
         "report_json",
+        "report",
         "log",
         "reference",
         "index",
         "metrics_json",
         "metrics_envelope",
+        "metrics",
         "stage_report",
+        "provenance",
+        "evidence",
         "summary_json",
         "summary_tsv",
         "report_html",
@@ -95,6 +108,57 @@ fn artifact_roles_and_specs_cover_enum_and_constructor_paths() {
     );
     assert!(optional.optional);
     assert_eq!(optional.path, PathBuf::from("report.json"));
+}
+
+#[test]
+fn stage_parameter_canonicalization_resolves_aliases_and_defaults() {
+    let stage = StageSpec {
+        stage_id: bijux_dna_core::ids::StageId::new("fastq.trim_reads"),
+        stage_family: bijux_dna_core::contract::StageFamily::Fastq,
+        semantic_kind: bijux_dna_core::contract::StageSemanticKind::Filter,
+        input_kind: bijux_dna_core::contract::ArtifactKind::Fastq,
+        output_kind: bijux_dna_core::contract::ArtifactKind::Fastq,
+        produced_artifacts: vec!["trimmed_reads".to_string()],
+        stage_semver: "1.0.0".to_string(),
+        runtime_scale: bijux_dna_core::contract::RuntimeScale::Small,
+        inputs: Vec::new(),
+        outputs: Vec::new(),
+        parameters: vec![
+            StageParameterSpec {
+                name: "min_quality".to_string(),
+                param_type: "integer".to_string(),
+                default: Some("20".to_string()),
+                aliases: vec!["quality".to_string()],
+            },
+            StageParameterSpec {
+                name: "trim_poly_g".to_string(),
+                param_type: "bool".to_string(),
+                default: Some("false".to_string()),
+                aliases: Vec::new(),
+            },
+        ],
+        metrics: Vec::new(),
+        description: None,
+        environment_requirements: Default::default(),
+        report_contracts: Vec::new(),
+        capability_contract: Default::default(),
+        refusal_codes: Vec::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        behavior: Default::default(),
+        image_requirements: None,
+        extends: None,
+    };
+
+    let canonical = stage
+        .canonicalize_parameters(&BTreeMap::from([("quality".to_string(), "30".to_string())]))
+        .unwrap_or_else(|err| panic!("canonicalize parameters: {err}"));
+
+    assert_eq!(
+        canonical.normalized_json,
+        serde_json::json!({"min_quality": "30", "trim_poly_g": "false"})
+    );
+    assert_eq!(canonical.resolved_aliases.get("quality").map(String::as_str), Some("min_quality"));
+    assert_eq!(canonical.applied_defaults, vec!["trim_poly_g".to_string()]);
 }
 
 #[test]
