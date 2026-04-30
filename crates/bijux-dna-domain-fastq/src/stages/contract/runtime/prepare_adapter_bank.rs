@@ -1,11 +1,12 @@
 use std::collections::BTreeSet;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 
 use crate::artifacts::{PrepareAdapterBankReportV1, PREPARE_ADAPTER_BANK_REPORT_SCHEMA_VERSION};
 use crate::banks::{
-    adapter_categories, resolve_adapter_selection, resolve_effective_adapters, AdapterSelection,
+    adapter_bank_path, adapter_categories, adapter_presets_path, load_adapter_bank,
+    load_adapter_presets, parse_adapter_preset_name, resolve_effective_adapters, AdapterSelection,
 };
 
 /// Prepare and fingerprint the governed adapter bank selection.
@@ -19,7 +20,7 @@ pub fn prepare_adapter_bank(
     enable_adapters: &[String],
     disable_adapters: &[String],
 ) -> Result<PrepareAdapterBankReportV1> {
-    let selection = resolve_adapter_selection(
+    let selection = resolve_selection_with_repo_paths(
         adapter_preset,
         legacy_adapter_bank,
         adapter_bank_file,
@@ -32,6 +33,38 @@ pub fn prepare_adapter_bank(
         enable_adapters,
         disable_adapters,
     ))
+}
+
+fn resolve_selection_with_repo_paths(
+    adapter_preset: Option<&str>,
+    legacy_adapter_bank: Option<&str>,
+    adapter_bank_file: Option<&Path>,
+) -> Result<AdapterSelection> {
+    let repo_root = repository_root();
+    let preset_name = parse_adapter_preset_name(adapter_preset, legacy_adapter_bank)?;
+    let bank_path = adapter_bank_file
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| repo_root.join(adapter_bank_path()));
+    let presets_path = repo_root.join(adapter_presets_path());
+    let bank = load_adapter_bank(&bank_path)?;
+    let presets = load_adapter_presets(&presets_path, &bank)?;
+    let bank_checksum = bijux_dna_infra::hash_file_sha256(&bank_path)?;
+    let presets_checksum = bijux_dna_infra::hash_file_sha256(&presets_path)?;
+    Ok(AdapterSelection {
+        bank,
+        presets,
+        preset_name,
+        bank_checksum,
+        presets_checksum,
+    })
+}
+
+fn repository_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(|path| path.parent())
+        .unwrap_or_else(|| Path::new("."))
+        .to_path_buf()
 }
 
 fn build_prepare_adapter_bank_report(
@@ -71,27 +104,9 @@ fn build_prepare_adapter_bank_report(
 #[cfg(test)]
 mod tests {
     use super::prepare_adapter_bank;
-    use std::path::PathBuf;
-
-    struct CwdGuard {
-        previous_dir: PathBuf,
-    }
-
-    impl Drop for CwdGuard {
-        fn drop(&mut self) {
-            let _ = std::env::set_current_dir(&self.previous_dir);
-        }
-    }
 
     #[test]
     fn prepare_adapter_bank_resolves_default_preset() -> anyhow::Result<()> {
-        let _guard = CwdGuard { previous_dir: std::env::current_dir()? };
-        let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .and_then(|path| path.parent())
-            .ok_or_else(|| anyhow::anyhow!("derive repository root from CARGO_MANIFEST_DIR"))?
-            .to_path_buf();
-        std::env::set_current_dir(&repo_root)?;
         let report = prepare_adapter_bank(None, None, None, &[], &[])?;
         assert_eq!(report.stage_id, "fastq.prepare_adapter_bank");
         assert!(!report.enabled_adapter_ids.is_empty());

@@ -13,7 +13,9 @@ pub fn prepare_primer_bank(
     governance_file: Option<&Path>,
     assay_family: Option<&str>,
 ) -> Result<PreparePrimerBankReportV1> {
-    let governance_path = governance_file.map(Path::to_path_buf).unwrap_or_else(amplicon_governance_path);
+    let governance_path = governance_file
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| repository_root().join(amplicon_governance_path()));
     let bank = load_primer_bank(&governance_path)?;
     let governance_hash = bijux_dna_infra::hash_file_sha256(&governance_path)
         .map_err(|err| anyhow!("hash {}: {err}", governance_path.display()))?;
@@ -40,31 +42,20 @@ pub fn prepare_primer_bank(
     })
 }
 
+fn repository_root() -> std::path::PathBuf {
+    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(|path| path.parent())
+        .unwrap_or_else(|| Path::new("."))
+        .to_path_buf()
+}
+
 #[cfg(test)]
 mod tests {
     use super::prepare_primer_bank;
-    use std::path::PathBuf;
-
-    struct CwdGuard {
-        previous_dir: PathBuf,
-    }
-
-    impl Drop for CwdGuard {
-        fn drop(&mut self) {
-            let _ = std::env::set_current_dir(&self.previous_dir);
-        }
-    }
 
     #[test]
     fn prepare_primer_bank_loads_governed_bank() -> anyhow::Result<()> {
-        let _guard = CwdGuard { previous_dir: std::env::current_dir()? };
-        let repo_root = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .and_then(|path| path.parent())
-            .ok_or_else(|| anyhow::anyhow!("derive repository root from CARGO_MANIFEST_DIR"))?
-            .to_path_buf();
-        std::env::set_current_dir(repo_root)?;
-
         let report = prepare_primer_bank(None, None)?;
         assert_eq!(report.stage_id, "fastq.prepare_primer_bank");
         assert!(report.primer_set_count > 0);
