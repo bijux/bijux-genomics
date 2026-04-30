@@ -470,18 +470,25 @@ fn write_bam_alignment_provenance(
     let read_group = planned_read_group_spec(plan).unwrap_or_else(|| {
         bijux_dna_domain_bam::params::ReadGroupSpec::with_defaults(&sample_identity.sample_id)
     });
+    let strategy = bijux_dna_domain_bam::bam_alignment_strategy_for_tool(
+        plan.tool_id.as_str(),
+        plan_string(plan, "preset").as_deref(),
+    );
     let payload = bijux_dna_domain_bam::BamAlignmentProvenanceV1 {
         schema_version: bijux_dna_domain_bam::BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION
             .to_string(),
         stage_id: plan.stage_id.to_string(),
         backend_tool_id: plan.tool_id.to_string(),
+        strategy_id: strategy.as_ref().map(|entry| entry.strategy_id.clone()),
         preset: plan_string(plan, "preset"),
+        mode: plan_string(plan, "mode"),
         sensitivity_profile: plan_string(plan, "sensitivity_profile"),
         seed_length: plan.params.get("seed_length").and_then(serde_json::Value::as_u64).map(|v| v as u32),
         reference_fasta: PathBuf::from(
             plan_string(plan, "reference").unwrap_or_else(|| "reference.fasta".to_string()),
         ),
         reference_digest: plan_string(plan, "reference_digest"),
+        post_alignment_chain: strategy.map(|entry| entry.post_alignment_chain),
         sample_identity,
         read_group,
         outputs: bijux_dna_domain_bam::bam_artifact_inventory_from_outputs(

@@ -35,6 +35,17 @@ fn stage_postprocess(
             let depth_path = stage_dir.join("coverage.depth.txt");
             let mean_depth = parse_mean_depth_from_depth_file(&depth_path)?;
             let path = stage_dir.join("coverage.regime.json");
+            let regime = mean_depth
+                .map(|value| bijux_dna_domain_bam::classify_bam_coverage_regime(value, 0.0));
+            let coverage_family = regime.as_ref().map(|entry| match entry.regime_class {
+                bijux_dna_domain_bam::BamCoverageRegimeClassV1::Unusable => "unusable",
+                bijux_dna_domain_bam::BamCoverageRegimeClassV1::Sparse => "sparse",
+                bijux_dna_domain_bam::BamCoverageRegimeClassV1::LowPass => "low_pass",
+                bijux_dna_domain_bam::BamCoverageRegimeClassV1::TargetLike => "target_like",
+                bijux_dna_domain_bam::BamCoverageRegimeClassV1::WholeGenomeLike => {
+                    "whole_genome_like"
+                }
+            });
             let payload = bijux_dna_domain_bam::BamCoverageSummaryV1 {
                 schema_version: bijux_dna_domain_bam::BAM_COVERAGE_SUMMARY_SCHEMA_VERSION
                     .to_string(),
@@ -42,8 +53,9 @@ fn stage_postprocess(
                 has_mosdepth_summary: stage_dir.join("coverage.mosdepth.summary.txt").exists(),
                 has_samtools_depth: depth_path.exists(),
                 mean_depth,
-                coverage_regime: mean_depth.map(|value| classify_mean_depth(value).to_string()),
-                coverage_family: mean_depth.map(|value| coverage_regime_family(value).to_string()),
+                coverage_regime: regime.as_ref().map(|entry| entry.regime_id.clone()),
+                coverage_family: coverage_family.map(ToOwned::to_owned),
+                regime,
                 depth_thresholds: plan
                     .params
                     .get("depth_thresholds")
@@ -213,6 +225,7 @@ fn stage_postprocess(
                 library_semantics: vec![
                     "reports duplicate burden without mutating BAM outputs".to_string(),
                 ],
+                comparison_ready_with: vec!["picard".to_string(), "samtools".to_string()],
             };
             bijux_dna_infra::atomic_write_json(&path, &payload)
                 .with_context(|| format!("write {}", path.display()))?;
@@ -239,6 +252,7 @@ fn stage_postprocess(
                     "ssdna: use conservative duplicate handling and inspect authenticity evidence before removal"
                         .to_string(),
                 ],
+                comparison_ready_with: vec!["picard".to_string(), "samtools".to_string()],
             };
             bijux_dna_infra::atomic_write_json(&path, &payload)
                 .with_context(|| format!("write {}", path.display()))?;
