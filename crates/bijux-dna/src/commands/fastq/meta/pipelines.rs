@@ -156,6 +156,9 @@ pub(crate) fn handle_pipelines_command(
                             profile.id.as_str(),
                         )
                     }
+                    "bam-to-vcf__default__v1" | "fastq-to-vcf__minimal__v1" => {
+                        profile.capabilities.required_stages.clone()
+                    }
                     "bam-to-bam__default__v1"
                     | "bam-to-bam__adna_shotgun__v1"
                     | "bam-to-bam__adna_capture__v1" => {
