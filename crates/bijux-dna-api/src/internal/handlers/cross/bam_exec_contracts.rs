@@ -134,6 +134,7 @@ mod tests {
             &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Damage),
         )?;
         assert!(damage_dir.join("damage.unified_metrics.json").exists());
+        assert!(damage_dir.join("advisory_boundary.json").exists());
 
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::Authenticity,
@@ -152,6 +153,64 @@ mod tests {
                 .get("schema_version")
                 .and_then(serde_json::Value::as_str),
             Some("bijux.bam.authenticity.v1")
+        );
+        assert!(authenticity_dir.join("advisory_boundary.json").exists());
+        Ok(())
+    }
+
+    #[test]
+    fn duplicate_policy_outputs_are_typed_and_stage_specific() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let dup_dir = temp.path().join("duplication_metrics");
+        let markdup_dir = temp.path().join("markdup");
+        bijux_dna_infra::ensure_dir(&dup_dir)?;
+        bijux_dna_infra::ensure_dir(&markdup_dir)?;
+
+        let mut dup_plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics);
+        dup_plan.params = serde_json::json!({
+            "optical_duplicates": "mark_only",
+            "umi_policy": "ignore",
+            "duplicate_action": "mark"
+        });
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics,
+            &dup_dir,
+            &dup_plan,
+        )?;
+        let duplication_policy: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            dup_dir.join("duplication.policy.json"),
+        )?)?;
+        assert_eq!(
+            duplication_policy.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bam.duplicate_policy.v1")
+        );
+        assert_eq!(
+            duplication_policy.get("policy_scope").and_then(serde_json::Value::as_str),
+            Some("observation_only")
+        );
+
+        let mut markdup_plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Markdup);
+        markdup_plan.params = serde_json::json!({
+            "library_type": "ssdna",
+            "optical_duplicates": "remove",
+            "umi_policy": "use_tag",
+            "duplicate_action": "remove"
+        });
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::Markdup,
+            &markdup_dir,
+            &markdup_plan,
+        )?;
+        let markdup_policy: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            markdup_dir.join("markdup.policy.json"),
+        )?)?;
+        assert_eq!(
+            markdup_policy.get("library_type").and_then(serde_json::Value::as_str),
+            Some("ssdna")
+        );
+        assert_eq!(
+            markdup_policy.get("policy_scope").and_then(serde_json::Value::as_str),
+            Some("pcr_vs_optical")
         );
         Ok(())
     }

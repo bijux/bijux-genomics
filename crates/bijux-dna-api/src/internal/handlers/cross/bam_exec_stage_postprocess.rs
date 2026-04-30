@@ -1,3 +1,29 @@
+fn json_string(value: Option<&serde_json::Value>) -> Option<String> {
+    value.and_then(serde_json::Value::as_str).map(ToOwned::to_owned)
+}
+
+fn write_advisory_boundary(
+    stage_dir: &Path,
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    scientific_scope: &str,
+    evidence_inputs: &[&str],
+    safe_for_claims: &[String],
+    unsafe_for_claims: &[String],
+) -> Result<()> {
+    let payload = bijux_dna_domain_bam::BamAdvisoryBoundaryV1 {
+        schema_version: bijux_dna_domain_bam::BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage.as_str().to_string(),
+        advisory_only: true,
+        scientific_scope: scientific_scope.to_string(),
+        evidence_inputs: evidence_inputs.iter().map(|value| (*value).to_string()).collect(),
+        safe_for_claims: safe_for_claims.to_vec(),
+        unsafe_for_claims: unsafe_for_claims.to_vec(),
+    };
+    let path = stage_dir.join("advisory_boundary.json");
+    bijux_dna_infra::atomic_write_json(&path, &payload)
+        .with_context(|| format!("write {}", path.display()))
+}
+
 #[allow(clippy::too_many_lines)]
 fn stage_postprocess(
     stage: bijux_dna_planner_bam::stage_api::BamStage,
@@ -119,15 +145,21 @@ fn stage_postprocess(
         }
         bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics => {
             let path = stage_dir.join("duplication.policy.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "optical_duplicates": plan.params.get("optical_duplicates").cloned(),
-                    "umi_policy": plan.params.get("umi_policy").cloned(),
-                    "duplicate_action": plan.params.get("duplicate_action").cloned(),
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            let payload = bijux_dna_domain_bam::BamDuplicatePolicyV1 {
+                schema_version: bijux_dna_domain_bam::BAM_DUPLICATE_POLICY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                library_type: None,
+                optical_duplicates: json_string(plan.params.get("optical_duplicates")),
+                umi_policy: json_string(plan.params.get("umi_policy")),
+                duplicate_action: json_string(plan.params.get("duplicate_action")),
+                policy_scope: "observation_only".to_string(),
+                library_semantics: vec![
+                    "reports duplicate burden without mutating BAM outputs".to_string(),
+                ],
+            };
+            bijux_dna_infra::atomic_write_json(&path, &payload)
+                .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Markdup => {
             let library_type = plan
@@ -136,21 +168,24 @@ fn stage_postprocess(
                 .and_then(serde_json::Value::as_str)
                 .unwrap_or("dsdna");
             let path = stage_dir.join("markdup.policy.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "library_type": library_type,
-                    "optical_duplicates": plan.params.get("optical_duplicates").cloned(),
-                    "umi_policy": plan.params.get("umi_policy").cloned(),
-                    "duplicate_action": plan.params.get("duplicate_action").cloned(),
-                    "policy_scope": "pcr_vs_optical",
-                    "library_semantics": {
-                        "dsdna": "PCR/optical duplicate marking/removal is default",
-                        "ssdna": "conservative interpretation; avoid over-removal of authentic short fragments"
-                    },
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            let payload = bijux_dna_domain_bam::BamDuplicatePolicyV1 {
+                schema_version: bijux_dna_domain_bam::BAM_DUPLICATE_POLICY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                library_type: Some(library_type.to_string()),
+                optical_duplicates: json_string(plan.params.get("optical_duplicates")),
+                umi_policy: json_string(plan.params.get("umi_policy")),
+                duplicate_action: json_string(plan.params.get("duplicate_action")),
+                policy_scope: "pcr_vs_optical".to_string(),
+                library_semantics: vec![
+                    "dsdna: PCR and optical duplicate marking or removal is the default interpretation"
+                        .to_string(),
+                    "ssdna: use conservative duplicate handling and inspect authenticity evidence before removal"
+                        .to_string(),
+                ],
+            };
+            bijux_dna_infra::atomic_write_json(&path, &payload)
+                .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::InsertSize => {
             let parsed = if stage_dir.join("insert_size.metrics.txt").exists() {
@@ -253,10 +288,32 @@ fn stage_postprocess(
         bijux_dna_planner_bam::stage_api::BamStage::Damage => {
             write_udg_metadata(stage_dir, plan)?;
             write_damage_unified(stage_dir)?;
+            write_advisory_boundary(
+                stage_dir,
+                stage,
+                "terminal_damage_and_deamination",
+                &["damage.unified_metrics.json", "udg_metadata.json"],
+                &["damage pattern observation".to_string()],
+                &[
+                    "sample authenticity certification".to_string(),
+                    "sample age assignment".to_string(),
+                ],
+            )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Authenticity => {
             write_udg_metadata(stage_dir, plan)?;
             write_authenticity_composite(stage_dir)?;
+            write_advisory_boundary(
+                stage_dir,
+                stage,
+                "ancient_dna_authenticity",
+                &["authenticity.json", "authenticity_composite.json", "udg_metadata.json"],
+                &["authenticity signal review".to_string()],
+                &[
+                    "automatic authenticity certification".to_string(),
+                    "automatic contamination clearance".to_string(),
+                ],
+            )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::BiasMitigation => {
             write_udg_metadata(stage_dir, plan)?;
@@ -375,6 +432,17 @@ fn stage_postprocess(
                 }),
             )
             .with_context(|| format!("write {}", stratified_path.display()))?;
+            write_advisory_boundary(
+                stage_dir,
+                stage,
+                "contamination_estimation",
+                &["contamination.summary.json", "contamination.stratified.json"],
+                &["contamination estimate review".to_string()],
+                &[
+                    "sample authenticity certification".to_string(),
+                    "population suitability certification without operator review".to_string(),
+                ],
+            )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Haplogroups => {
             let path = stage_dir.join("haplogroups.normalized.json");
