@@ -3,11 +3,42 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
-use bijux_dna_core::contract::{StageIO, ToolConstraints};
+use bijux_dna_core::contract::ArtifactRole;
+use bijux_dna_core::contract::{
+    BackendVersionPolicy, CanonicalStageContractV1, StageFamily, StageIO, StageOperatingMode,
+    StageReportContract, StageSemanticKind, ToolConstraints,
+};
 use bijux_dna_core::ids::{StageId, StageVersion, StepId, ToolId};
 use bijux_dna_core::prelude::{CommandSpecV1, ContainerImageRefV1};
 
 use super::reason::PlanDecisionReason;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StageArtifactPromiseV1 {
+    pub artifact_id: String,
+    pub role: ArtifactRole,
+    pub path: String,
+    pub optional: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct StageProvenanceV1 {
+    pub stage_id: StageId,
+    pub stage_family: StageFamily,
+    pub semantic_kind: StageSemanticKind,
+    pub backend_tool_id: ToolId,
+    pub backend_version_policy: BackendVersionPolicy,
+    pub operating_mode: StageOperatingMode,
+    pub tool_surface: String,
+    pub effective_parameters_json: serde_json::Value,
+    pub effective_parameters_hash: String,
+    pub input_artifact_ids: Vec<String>,
+    pub output_promises: Vec<StageArtifactPromiseV1>,
+    #[serde(default)]
+    pub report_contracts: Vec<StageReportContract>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -27,7 +58,13 @@ pub struct StagePlanV1 {
     #[serde(default)]
     pub effective_params: serde_json::Value,
     #[serde(default)]
+    pub operating_mode: StageOperatingMode,
+    #[serde(default)]
     pub aux_images: BTreeMap<String, ContainerImageRefV1>,
+    #[serde(default)]
+    pub canonical_contract: Option<CanonicalStageContractV1>,
+    #[serde(default)]
+    pub provenance: Option<StageProvenanceV1>,
     #[serde(default)]
     pub reason: PlanDecisionReason,
 }

@@ -13,6 +13,7 @@ pub(super) fn parse_stage_outputs(
     Ok(StagePluginOutputV1 {
         metrics: envelope,
         artifacts: outputs.to_vec(),
+        operating_mode: plan.operating_mode,
         report_parts: Vec::new(),
         warnings: Vec::new(),
         invariants: Vec::new(),

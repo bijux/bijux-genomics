@@ -72,6 +72,7 @@ impl StagePlugin for FastqStagePlugin {
         Ok(StagePluginOutputV1 {
             metrics: envelope,
             artifacts: context.artifacts,
+            operating_mode: plan.operating_mode,
             report_parts,
             warnings,
             invariants,
