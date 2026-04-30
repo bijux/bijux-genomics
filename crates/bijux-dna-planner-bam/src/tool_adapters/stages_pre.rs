@@ -203,7 +203,13 @@ pub mod align {
                     "sample": effective.read_group.sample,
                     "platform": effective.read_group.platform,
                     "library": effective.read_group.library,
+                    "platform_unit": effective.read_group.platform_unit,
+                    "lane_id": effective.read_group.lane_id,
+                    "run_id": effective.read_group.run_id,
                 }
+                ,
+                "sensitivity_profile": effective.sensitivity_profile,
+                "seed_length": effective.seed_length
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
                 serde_json::to_value(&effective).map_err(|error| {

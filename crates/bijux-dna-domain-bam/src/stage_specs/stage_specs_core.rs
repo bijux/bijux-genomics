@@ -186,6 +186,8 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 reference_digest: "unknown".to_string(),
                 rg_policy: crate::types::ReadGroupPolicy::Regenerate,
                 read_group: ReadGroupSpec::with_defaults("sample"),
+                sensitivity_profile: Some("default".to_string()),
+                seed_length: None,
                 build_indices: false,
                 emit_stats: true,
             }),

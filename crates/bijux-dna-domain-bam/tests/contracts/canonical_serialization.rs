@@ -8,6 +8,8 @@ fn params_and_metrics_canonical() {
         reference_digest: "sha256:ref".to_string(),
         rg_policy: bijux_dna_domain_bam::types::ReadGroupPolicy::Preserve,
         read_group: bijux_dna_domain_bam::params::ReadGroupSpec::with_defaults("sample"),
+        sensitivity_profile: Some("default".to_string()),
+        seed_length: Some(19),
         build_indices: true,
         emit_stats: true,
     };

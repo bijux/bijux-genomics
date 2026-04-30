@@ -126,6 +126,8 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
         reference_digest: "sha256:dummy".to_string(),
         rg_policy: bijux_dna_domain_bam::types::ReadGroupPolicy::Regenerate,
         read_group: bijux_dna_domain_bam::params::ReadGroupSpec::with_defaults("sample"),
+        sensitivity_profile: Some("default".to_string()),
+        seed_length: Some(19),
         build_indices: true,
         emit_stats: true,
     };

@@ -3,6 +3,7 @@
 //! Owns: BAM stage semantics, effective params, and canonical metrics schema.
 //! Must NOT depend on: bijux-dna-engine or runtime/container execution logic.
 
+mod artifacts;
 pub mod alignment;
 pub mod defaults;
 pub mod invariants;
@@ -14,6 +15,19 @@ pub mod stage_specs;
 pub mod types;
 
 pub use invariants::bam_invariant_specs;
+pub use artifacts::{
+    bam_artifact_inventory_from_outputs, bam_sample_identity, bam_workflow_template_by_id,
+    bam_workflow_templates, BamAdvisoryBoundaryV1, BamAlignmentProvenanceV1,
+    BamArtifactEntryV1, BamArtifactInventoryV1, BamCoverageSummaryV1, BamDuplicatePolicyV1,
+    BamFlagstatCountsV1, BamMapqRegimeV1, BamMappingSummaryV1, BamReferenceAssetIdentityV1,
+    BamReferencePreflightV1, BamSampleIdentityV1, BamValidationSummaryV1,
+    BamWorkflowModeV1, BamWorkflowTemplateV1, BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION,
+    BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION, BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION,
+    BAM_COVERAGE_SUMMARY_SCHEMA_VERSION, BAM_DUPLICATE_POLICY_SCHEMA_VERSION,
+    BAM_MAPPING_SUMMARY_SCHEMA_VERSION, BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION,
+    BAM_SAMPLE_IDENTITY_SCHEMA_VERSION, BAM_VALIDATION_SUMMARY_SCHEMA_VERSION,
+    BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
+};
 pub use stage_specs::{
     contract_for_stage, required_audit_artifacts, stage_contract_hash, stage_contract_json,
     stage_spec, stage_spec_opt, stage_specs, ArtifactPolicy, AuditArtifact, BamArtifactKind,

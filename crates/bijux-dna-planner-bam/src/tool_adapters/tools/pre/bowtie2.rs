@@ -3,13 +3,17 @@ use std::path::Path;
 use bijux_dna_domain_bam::params::AlignEffectiveParams;
 
 fn rg_string(params: &AlignEffectiveParams) -> String {
-    format!(
+    let mut rg = format!(
         "@RG\\tID:{}\\tSM:{}\\tPL:{}\\tLB:{}",
         params.read_group.id,
         params.read_group.sample,
         params.read_group.platform,
         params.read_group.library
-    )
+    );
+    if let Some(platform_unit) = params.read_group.platform_unit.as_deref() {
+        rg.push_str(&format!("\\tPU:{platform_unit}"));
+    }
+    rg
 }
 
 fn preset_flags(preset: &str) -> &'static str {
@@ -37,7 +41,10 @@ pub fn align_args(
     let metrics = out_dir.join("align.metrics.json");
     let rg = rg_string(params);
     let index_prefix = reference.display();
-    let preset_flags = preset_flags(&params.preset);
+    let mut preset_flags = preset_flags(&params.preset).to_string();
+    if let Some(seed_length) = params.seed_length {
+        preset_flags.push_str(&format!(" -L {seed_length}"));
+    }
     let build_index = if params.build_indices {
         format!(
             "if [ ! -f {ref}.fai ]; then samtools faidx {ref}; fi; \
@@ -75,7 +82,7 @@ pub fn align_args(
     samtools index {out} && \
     samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
     samtools stats {out} > {stats} && \
-    python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bowtie2\",\"preset\":\"{preset}\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
+    python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bowtie2\",\"preset\":\"{preset}\",\"sensitivity_profile\":{sensitivity_profile},\"seed_length\":{seed_length},\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
         build = build_index,
         align = align,
         out = out_bam.display(),
@@ -84,6 +91,8 @@ pub fn align_args(
         stats = stats.display(),
         metrics = metrics.display(),
         preset = params.preset,
+        sensitivity_profile = serde_json::to_string(&params.sensitivity_profile).unwrap_or_else(|_| "null".to_string()),
+        seed_length = params.seed_length.map_or_else(|| "null".to_string(), |value| value.to_string()),
         ref = reference.display(),
         rg = rg
     );

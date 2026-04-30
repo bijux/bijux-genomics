@@ -42,6 +42,12 @@ pub(super) fn plan_alignment_qc_stage(
                         bijux_dna_planner_bam::stage_api::params::ReadGroupSpec::with_defaults(
                             sample_id,
                         ),
+                    sensitivity_profile: Some(
+                        args.alignment_sensitivity_profile
+                            .clone()
+                            .unwrap_or_else(|| "default".to_string()),
+                    ),
+                    seed_length: args.alignment_seed_length,
                     build_indices: args.build_reference_indices,
                     emit_stats: true,
                 },
@@ -63,8 +69,23 @@ pub(super) fn plan_alignment_qc_stage(
             if let Some(rg) = &args.rg_lb {
                 params.read_group.library.clone_from(rg);
             }
+            if let Some(rg) = &args.rg_pu {
+                params.read_group.platform_unit = Some(rg.clone());
+            }
+            if let Some(value) = &args.lane_id {
+                params.read_group.lane_id = Some(value.clone());
+            }
+            if let Some(value) = &args.run_id {
+                params.read_group.run_id = Some(value.clone());
+            }
             if let Some(policy) = args.rg_policy.as_deref() {
                 params.rg_policy = parse_read_group_policy(policy)?;
+            }
+            if let Some(value) = &args.alignment_sensitivity_profile {
+                params.sensitivity_profile = Some(value.clone());
+            }
+            if let Some(value) = args.alignment_seed_length {
+                params.seed_length = Some(value);
             }
             params.aligner = spec.tool_id.to_string();
             params.build_indices = args.build_reference_indices;
