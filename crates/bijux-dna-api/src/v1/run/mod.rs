@@ -6,6 +6,7 @@ mod entrypoints;
 mod operator_failure;
 mod request_contracts;
 mod runtime_support;
+mod stage_assets;
 
 pub use entrypoints::{
     dry_run, execute, execute_and_report, execute_run, plan, plan_only, policy_audit,
@@ -26,4 +27,8 @@ pub use runtime_support::{
     temp_dir_in, write_bytes, CommandOutputV1, DryRunExecutor, ExecutionManifest, Executor,
     FactsRowV1, PathSpec, Profile, RunSpec, RuntimeKind, StageId, StagePlanV1, ToolId,
     ToolRegistry, ToolRole, RUN_LAYOUT_CONTRACT,
+};
+pub use stage_assets::{
+    stage_external_asset_requirement, stage_requires_local_assets, StageAssetClass,
+    StageExternalAssetRequirement,
 };

@@ -1,7 +1,9 @@
 use std::path::{Component, Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_api::v1::api::run::{load_manifests, load_profile, resolve_run_base_dir};
+use bijux_dna_api::v1::api::run::{
+    load_manifests, load_profile, resolve_run_base_dir, stage_external_asset_requirement,
+};
 use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
 
 use crate::commands::router::argv::parse_cli_from_argv;
@@ -140,9 +142,9 @@ fn enforce_offline_runtime_policy() -> Result<()> {
 }
 
 fn ensure_stage_bank_requirements(cwd: &Path, stage_id: &str) -> Result<()> {
-    if !stage_requires_banks(stage_id) {
+    let Some(requirement) = stage_external_asset_requirement(stage_id) else {
         return Ok(());
-    }
+    };
     let mut candidates = Vec::new();
     if let Ok(hpc_root) =
         crate::commands::hpc::load_hpc_config().map(|cfg| cfg.resolve_paths().root)
@@ -166,18 +168,11 @@ fn ensure_stage_bank_requirements(cwd: &Path, stage_id: &str) -> Result<()> {
     }
     if found.is_none() {
         return Err(anyhow!(
-            "stage `{stage_id}` requires DB/banks but no non-empty banks directory was found"
+            "stage `{stage_id}` requires a governed {} but no non-empty banks/assets directory was found",
+            requirement.asset_class.label()
         ));
     }
     Ok(())
-}
-
-fn stage_requires_banks(stage_id: &str) -> bool {
-    let key = stage_id.to_ascii_lowercase();
-    key.contains("screen")
-        || key.contains("host_depletion")
-        || key.contains("prepare_reference")
-        || key.contains("detect_adapters")
 }
 
 fn handle_observability_commands(dna_command: &cli::DnaCommand, cwd: &Path) -> Result<bool> {
