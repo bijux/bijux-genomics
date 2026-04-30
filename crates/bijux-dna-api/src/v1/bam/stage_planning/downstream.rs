@@ -29,7 +29,10 @@ pub(super) fn plan_downstream_stage(
                 ) => params,
                 _ => bijux_dna_planner_bam::stage_api::params::HaplogroupEffectiveParams {
                     reference_panel: "mito_default".to_string(),
+                    reference_build: "rCRS".to_string(),
                     min_coverage: None,
+                    population_scope: Some("mitochondrial_haplogroup_reference".to_string()),
+                    refuse_without_population_context: true,
                 },
             };
             if let Some(value) = args.haplogroup_panel.clone() {
@@ -97,7 +100,10 @@ pub(super) fn plan_downstream_stage(
                 }
                 _ => bijux_dna_planner_bam::stage_api::params::KinshipEffectiveParams {
                     reference_panel: "king_default".to_string(),
+                    reference_build: "grch38".to_string(),
+                    population_scope: "human_diploid_panel".to_string(),
                     min_overlap_snps: 1000,
+                    requires_cohort_context: true,
                 },
             };
             if let Some(value) = args.kinship_panel.clone() {
