@@ -17,6 +17,17 @@ pub const BAM_COVERAGE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bam.coverage_summar
 pub const BAM_DUPLICATE_POLICY_SCHEMA_VERSION: &str = "bijux.bam.duplicate_policy.v1";
 pub const BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION: &str = "bijux.bam.advisory_boundary.v1";
 pub const BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION: &str = "bijux.bam.workflow_template.v1";
+pub const BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION: &str = "bijux.bam.alignment_strategy.v1";
+pub const BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION: &str = "bijux.bam.merge_compatibility.v1";
+pub const BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION: &str = "bijux.bam.post_alignment_chain.v1";
+pub const BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION: &str = "bijux.bam.duplicate_comparison.v1";
+pub const BAM_COVERAGE_REGIME_SCHEMA_VERSION: &str = "bijux.bam.coverage_regime.v1";
+pub const BAM_ADNA_WORKFLOW_SCHEMA_VERSION: &str = "bijux.bam.adna_workflow.v1";
+pub const BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION: &str =
+    "bijux.bam.contamination_workflow.v1";
+pub const BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION: &str = "bijux.bam.scientific_report.v1";
+pub const BAM_RESOURCE_PLAN_SCHEMA_VERSION: &str = "bijux.bam.resource_plan.v1";
+pub const BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION: &str = "bijux.bam.bench_corpus_manifest.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -153,6 +164,131 @@ pub struct BamMapqFilterSummaryV1 {
     pub mapped_fraction_retained: Option<f64>,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BamAlignmentSuitabilityV1 {
+    GeneralShortRead,
+    WholeGenomeLike,
+    TargetedCapture,
+    AncientShortFragments,
+    SensitiveLocalRescue,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamPostAlignmentChainV1 {
+    pub schema_version: String,
+    pub chain_id: String,
+    pub sorting_mode: String,
+    pub index_type: String,
+    pub validate_before_downstream: bool,
+    pub coordinate_sorted_required_for: Vec<String>,
+    pub downstream_refusal_stages: Vec<String>,
+    pub required_tools: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAlignmentStrategyV1 {
+    pub schema_version: String,
+    pub strategy_id: String,
+    pub tool_id: String,
+    pub default_preset: String,
+    pub mode: String,
+    pub supported_inputs: Vec<String>,
+    pub required_reference_assets: Vec<String>,
+    pub suitability: Vec<BamAlignmentSuitabilityV1>,
+    pub hidden_default_allowed: bool,
+    pub post_alignment_chain: BamPostAlignmentChainV1,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamMergeInputIdentityV1 {
+    pub sample_id: String,
+    #[serde(default)]
+    pub read_group_ids: Vec<String>,
+    #[serde(default)]
+    pub reference_digest: Option<String>,
+    #[serde(default)]
+    pub sequencing_platform: Option<String>,
+    #[serde(default)]
+    pub library_id: Option<String>,
+    #[serde(default)]
+    pub lane_id: Option<String>,
+    #[serde(default)]
+    pub platform_unit: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamMergeCompatibilityV1 {
+    pub schema_version: String,
+    pub compatible: bool,
+    #[serde(default)]
+    pub merged_sample_id: Option<String>,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamDuplicateMethodMetricsV1 {
+    pub method: String,
+    #[serde(default)]
+    pub duplicate_reads: Option<u64>,
+    #[serde(default)]
+    pub duplicate_fraction: Option<f64>,
+    #[serde(default)]
+    pub optical_duplicates: Option<String>,
+    #[serde(default)]
+    pub duplicate_action: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamDuplicateComparisonV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub method_a: BamDuplicateMethodMetricsV1,
+    pub method_b: BamDuplicateMethodMetricsV1,
+    pub comparable: bool,
+    #[serde(default)]
+    pub duplicate_reads_delta: Option<i64>,
+    #[serde(default)]
+    pub duplicate_fraction_delta: Option<f64>,
+    pub policy_explicit: bool,
+    #[serde(default)]
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BamCoverageRegimeClassV1 {
+    Unusable,
+    Sparse,
+    LowPass,
+    TargetLike,
+    WholeGenomeLike,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamCoverageRegimeV1 {
+    pub schema_version: String,
+    pub regime_id: String,
+    pub advisory_label: String,
+    pub enforced_label: String,
+    pub regime_class: BamCoverageRegimeClassV1,
+    pub mean_depth: f64,
+    pub breadth_1x: f64,
+    pub usable_for: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct BamCoverageSummaryV1 {
@@ -167,6 +303,8 @@ pub struct BamCoverageSummaryV1 {
     #[serde(default)]
     pub coverage_family: Option<String>,
     #[serde(default)]
+    pub regime: Option<BamCoverageRegimeV1>,
+    #[serde(default)]
     pub depth_thresholds: Vec<u32>,
 }
 
@@ -177,7 +315,11 @@ pub struct BamAlignmentProvenanceV1 {
     pub stage_id: String,
     pub backend_tool_id: String,
     #[serde(default)]
+    pub strategy_id: Option<String>,
+    #[serde(default)]
     pub preset: Option<String>,
+    #[serde(default)]
+    pub mode: Option<String>,
     #[serde(default)]
     pub sensitivity_profile: Option<String>,
     #[serde(default)]
@@ -185,6 +327,8 @@ pub struct BamAlignmentProvenanceV1 {
     pub reference_fasta: PathBuf,
     #[serde(default)]
     pub reference_digest: Option<String>,
+    #[serde(default)]
+    pub post_alignment_chain: Option<BamPostAlignmentChainV1>,
     pub sample_identity: BamSampleIdentityV1,
     pub read_group: ReadGroupSpec,
     pub outputs: BamArtifactInventoryV1,
@@ -206,6 +350,8 @@ pub struct BamDuplicatePolicyV1 {
     pub policy_scope: String,
     #[serde(default)]
     pub library_semantics: Vec<String>,
+    #[serde(default)]
+    pub comparison_ready_with: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -240,6 +386,112 @@ pub struct BamWorkflowTemplateV1 {
     pub summary: String,
     pub required_stages: Vec<String>,
     pub advisory_stages: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamAdnaWorkflowV1 {
+    pub schema_version: String,
+    pub workflow_id: String,
+    pub damage_tools: Vec<String>,
+    pub authenticity_tools: Vec<String>,
+    pub evidence_only: bool,
+    pub authenticity_caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamContaminationToolContractV1 {
+    pub tool_id: String,
+    pub supported_scope: String,
+    pub required_inputs: Vec<String>,
+    pub emits_confidence: bool,
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamContaminationWorkflowV1 {
+    pub schema_version: String,
+    pub workflow_id: String,
+    pub tools: Vec<BamContaminationToolContractV1>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BamScientificReportIdV1 {
+    EndogenousContent,
+    Sex,
+    Haplogroups,
+    Kinship,
+}
+
+impl BamScientificReportIdV1 {
+    #[must_use]
+    pub const fn stage_id(self) -> &'static str {
+        match self {
+            Self::EndogenousContent => "bam.endogenous_content",
+            Self::Sex => "bam.sex",
+            Self::Haplogroups => "bam.haplogroups",
+            Self::Kinship => "bam.kinship",
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamScientificReportContractV1 {
+    pub schema_version: String,
+    pub report_id: BamScientificReportIdV1,
+    pub optional: bool,
+    pub suitable_scopes: Vec<String>,
+    pub required_population_or_reference_context: Vec<String>,
+    pub refusal_when_missing: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamStageResourcePlanV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_bytes: u64,
+    pub cpu_threads: u32,
+    pub memory_gb: u32,
+    pub disk_gb: u32,
+    pub scratch_gb: u32,
+    pub requires_index: bool,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq, PartialOrd, Ord)]
+#[serde(rename_all = "snake_case")]
+pub enum BamBenchDatasetScenarioV1 {
+    TinyAligned,
+    UnmappedHeavy,
+    DuplicateHeavy,
+    LowCoverage,
+    DamageLike,
+    ReferenceMismatch,
+    MissingIndex,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamBenchCorpusDatasetManifestEntryV1 {
+    pub dataset_id: String,
+    pub scientific_scope: String,
+    pub requires_index: bool,
+    pub scenarios: Vec<BamBenchDatasetScenarioV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamBenchCorpusManifestV1 {
+    pub schema_version: String,
+    pub corpus_id: String,
+    pub scenarios_covered: Vec<BamBenchDatasetScenarioV1>,
+    pub ci_subset: Vec<String>,
+    pub datasets: Vec<BamBenchCorpusDatasetManifestEntryV1>,
 }
 
 #[must_use]
@@ -300,6 +552,500 @@ pub fn bam_sample_identity(
         cohort_id: cohort_id.map(ToOwned::to_owned),
         read_group_policy: read_group_policy.map(ToOwned::to_owned),
         read_group_ids: vec![read_group.id.clone()],
+    }
+}
+
+#[must_use]
+pub fn bam_post_alignment_chain(chain_id: &str) -> Option<BamPostAlignmentChainV1> {
+    match chain_id {
+        "samtools_coordinate_validate" => Some(BamPostAlignmentChainV1 {
+            schema_version: BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION.to_string(),
+            chain_id: chain_id.to_string(),
+            sorting_mode: "coordinate".to_string(),
+            index_type: "bai".to_string(),
+            validate_before_downstream: true,
+            coordinate_sorted_required_for: vec![
+                "bam.markdup".to_string(),
+                "bam.duplication_metrics".to_string(),
+                "bam.coverage".to_string(),
+                "bam.damage".to_string(),
+                "bam.contamination".to_string(),
+            ],
+            downstream_refusal_stages: vec![
+                "bam.coverage".to_string(),
+                "bam.damage".to_string(),
+                "bam.contamination".to_string(),
+                "bam.kinship".to_string(),
+            ],
+            required_tools: vec![
+                "samtools sort".to_string(),
+                "samtools index".to_string(),
+                "samtools quickcheck".to_string(),
+            ],
+        }),
+        _ => None,
+    }
+}
+
+#[must_use]
+pub fn bam_alignment_strategies() -> Vec<BamAlignmentStrategyV1> {
+    let chain = bam_post_alignment_chain("samtools_coordinate_validate")
+        .expect("samtools post-alignment chain");
+    vec![
+        BamAlignmentStrategyV1 {
+            schema_version: BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION.to_string(),
+            strategy_id: "bwa_mem_default".to_string(),
+            tool_id: "bwa".to_string(),
+            default_preset: "default".to_string(),
+            mode: "end_to_end".to_string(),
+            supported_inputs: vec!["single_end".to_string(), "paired_end".to_string()],
+            required_reference_assets: vec![
+                "reference_fasta".to_string(),
+                "reference_fai".to_string(),
+                "reference_dict".to_string(),
+                "bwa_index".to_string(),
+            ],
+            suitability: vec![
+                BamAlignmentSuitabilityV1::GeneralShortRead,
+                BamAlignmentSuitabilityV1::WholeGenomeLike,
+                BamAlignmentSuitabilityV1::TargetedCapture,
+            ],
+            hidden_default_allowed: false,
+            post_alignment_chain: chain.clone(),
+        },
+        BamAlignmentStrategyV1 {
+            schema_version: BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION.to_string(),
+            strategy_id: "bwa_aln_adna_short".to_string(),
+            tool_id: "bwa".to_string(),
+            default_preset: "adna_short".to_string(),
+            mode: "seeded_short_read".to_string(),
+            supported_inputs: vec!["single_end".to_string(), "paired_end".to_string()],
+            required_reference_assets: vec![
+                "reference_fasta".to_string(),
+                "reference_fai".to_string(),
+                "reference_dict".to_string(),
+                "bwa_index".to_string(),
+            ],
+            suitability: vec![
+                BamAlignmentSuitabilityV1::AncientShortFragments,
+                BamAlignmentSuitabilityV1::SensitiveLocalRescue,
+            ],
+            hidden_default_allowed: false,
+            post_alignment_chain: chain.clone(),
+        },
+        BamAlignmentStrategyV1 {
+            schema_version: BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION.to_string(),
+            strategy_id: "bowtie2_very_sensitive_local".to_string(),
+            tool_id: "bowtie2".to_string(),
+            default_preset: "default".to_string(),
+            mode: "local".to_string(),
+            supported_inputs: vec!["single_end".to_string(), "paired_end".to_string()],
+            required_reference_assets: vec![
+                "reference_fasta".to_string(),
+                "reference_fai".to_string(),
+                "reference_dict".to_string(),
+                "bowtie2_index".to_string(),
+            ],
+            suitability: vec![
+                BamAlignmentSuitabilityV1::GeneralShortRead,
+                BamAlignmentSuitabilityV1::SensitiveLocalRescue,
+                BamAlignmentSuitabilityV1::TargetedCapture,
+            ],
+            hidden_default_allowed: false,
+            post_alignment_chain: chain,
+        },
+    ]
+}
+
+#[must_use]
+pub fn bam_alignment_strategy_for_tool(
+    tool_id: &str,
+    preset: Option<&str>,
+) -> Option<BamAlignmentStrategyV1> {
+    let preset = preset.unwrap_or("default");
+    bam_alignment_strategies()
+        .into_iter()
+        .find(|strategy| match (tool_id, strategy.tool_id.as_str()) {
+            ("bwa", "bwa") if preset == "adna_short" => {
+                strategy.strategy_id == "bwa_aln_adna_short"
+            }
+            ("bwa", "bwa") => strategy.strategy_id == "bwa_mem_default",
+            ("bowtie2", "bowtie2") => strategy.strategy_id == "bowtie2_very_sensitive_local",
+            _ => false,
+        })
+}
+
+#[must_use]
+pub fn evaluate_bam_merge_compatibility(
+    inputs: &[BamMergeInputIdentityV1],
+) -> BamMergeCompatibilityV1 {
+    let mut refusal_codes = Vec::new();
+    let mut notes = Vec::new();
+    if inputs.is_empty() {
+        refusal_codes.push("merge_requires_at_least_one_input".to_string());
+    }
+    let sample_ids = inputs.iter().map(|input| input.sample_id.as_str()).collect::<Vec<_>>();
+    if sample_ids.windows(2).any(|pair| pair[0] != pair[1]) {
+        refusal_codes.push("merge_sample_id_conflict".to_string());
+    }
+    let reference_digests = inputs
+        .iter()
+        .filter_map(|input| input.reference_digest.as_deref())
+        .collect::<Vec<_>>();
+    if reference_digests.windows(2).any(|pair| pair[0] != pair[1]) {
+        refusal_codes.push("merge_reference_digest_conflict".to_string());
+    }
+    let platforms =
+        inputs.iter().filter_map(|input| input.sequencing_platform.as_deref()).collect::<Vec<_>>();
+    if platforms.windows(2).any(|pair| pair[0] != pair[1]) {
+        refusal_codes.push("merge_platform_conflict".to_string());
+    }
+    let libraries =
+        inputs.iter().filter_map(|input| input.library_id.as_deref()).collect::<Vec<_>>();
+    if libraries.windows(2).any(|pair| pair[0] != pair[1]) {
+        refusal_codes.push("merge_library_conflict".to_string());
+    }
+    let read_groups_present = inputs.iter().all(|input| !input.read_group_ids.is_empty());
+    if !read_groups_present {
+        refusal_codes.push("merge_read_group_missing".to_string());
+    } else {
+        notes.push("read groups preserved per compatible lane/library input".to_string());
+    }
+    BamMergeCompatibilityV1 {
+        schema_version: BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION.to_string(),
+        compatible: refusal_codes.is_empty(),
+        merged_sample_id: inputs.first().map(|input| input.sample_id.clone()),
+        refusal_codes,
+        notes,
+    }
+}
+
+#[must_use]
+pub fn compare_bam_duplicate_methods(
+    stage_id: &str,
+    method_a: BamDuplicateMethodMetricsV1,
+    method_b: BamDuplicateMethodMetricsV1,
+) -> BamDuplicateComparisonV1 {
+    let duplicate_reads_delta = match (method_a.duplicate_reads, method_b.duplicate_reads) {
+        (Some(a), Some(b)) => Some(a as i64 - b as i64),
+        _ => None,
+    };
+    let duplicate_fraction_delta = match (method_a.duplicate_fraction, method_b.duplicate_fraction)
+    {
+        (Some(a), Some(b)) => Some(a - b),
+        _ => None,
+    };
+    let policy_explicit =
+        method_a.duplicate_action.is_some() && method_b.duplicate_action.is_some();
+    let comparable = duplicate_reads_delta.is_some() || duplicate_fraction_delta.is_some();
+    let mut notes = Vec::new();
+    if !policy_explicit {
+        notes.push("duplicate action must stay explicit for cross-tool comparison".to_string());
+    }
+    BamDuplicateComparisonV1 {
+        schema_version: BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        method_a,
+        method_b,
+        comparable,
+        duplicate_reads_delta,
+        duplicate_fraction_delta,
+        policy_explicit,
+        notes,
+    }
+}
+
+#[must_use]
+pub fn classify_bam_coverage_regime(mean_depth: f64, breadth_1x: f64) -> BamCoverageRegimeV1 {
+    let (regime_id, advisory_label, enforced_label, regime_class, usable_for, caveats) =
+        if mean_depth < 0.2 || breadth_1x < 0.1 {
+            (
+                "unusable",
+                "insufficient_signal",
+                "refuse_downstream",
+                BamCoverageRegimeClassV1::Unusable,
+                Vec::new(),
+                vec!["coverage is too low for reliable downstream interpretation".to_string()],
+            )
+        } else if mean_depth < 1.0 {
+            (
+                "sparse",
+                "sparse_signal",
+                "advisory_only",
+                BamCoverageRegimeClassV1::Sparse,
+                vec!["damage_screening".to_string()],
+                vec!["site-level interpretation is unstable".to_string()],
+            )
+        } else if mean_depth < 5.0 {
+            (
+                "low_pass",
+                "low_pass_signal",
+                "guardrail_required",
+                BamCoverageRegimeClassV1::LowPass,
+                vec![
+                    "damage_screening".to_string(),
+                    "contamination_screening".to_string(),
+                    "sex_screening".to_string(),
+                ],
+                vec!["population-scale inference requires explicit caveats".to_string()],
+            )
+        } else if breadth_1x >= 0.8 && mean_depth >= 15.0 {
+            (
+                "whole_genome_like",
+                "whole_genome_like",
+                "fully_supported",
+                BamCoverageRegimeClassV1::WholeGenomeLike,
+                vec![
+                    "coverage_reporting".to_string(),
+                    "variant_readiness".to_string(),
+                    "kinship".to_string(),
+                ],
+                Vec::new(),
+            )
+        } else {
+            (
+                "target_like",
+                "target_like_signal",
+                "panel_specific_support",
+                BamCoverageRegimeClassV1::TargetLike,
+                vec![
+                    "coverage_reporting".to_string(),
+                    "haplogroups".to_string(),
+                    "targeted_qc".to_string(),
+                ],
+                vec!["whole-genome-style uniformity assumptions do not hold".to_string()],
+            )
+        };
+    BamCoverageRegimeV1 {
+        schema_version: BAM_COVERAGE_REGIME_SCHEMA_VERSION.to_string(),
+        regime_id: regime_id.to_string(),
+        advisory_label: advisory_label.to_string(),
+        enforced_label: enforced_label.to_string(),
+        regime_class,
+        mean_depth,
+        breadth_1x,
+        usable_for,
+        caveats,
+    }
+}
+
+#[must_use]
+pub fn bam_adna_workflow_contract() -> BamAdnaWorkflowV1 {
+    BamAdnaWorkflowV1 {
+        schema_version: BAM_ADNA_WORKFLOW_SCHEMA_VERSION.to_string(),
+        workflow_id: "ancient_dna_damage_and_authenticity".to_string(),
+        damage_tools: vec![
+            "mapdamage2".to_string(),
+            "damageprofiler".to_string(),
+            "pmdtools".to_string(),
+            "pydamage".to_string(),
+        ],
+        authenticity_tools: vec!["authenticct".to_string(), "pmdtools".to_string()],
+        evidence_only: true,
+        authenticity_caveats: vec![
+            "damage signatures are evidence and must not be reported as authenticity certification"
+                .to_string(),
+            "tool outputs require context from contamination, fragment length, and library prep"
+                .to_string(),
+        ],
+    }
+}
+
+#[must_use]
+pub fn bam_contamination_workflow_contract() -> BamContaminationWorkflowV1 {
+    BamContaminationWorkflowV1 {
+        schema_version: BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION.to_string(),
+        workflow_id: "bam_contamination_assessment".to_string(),
+        tools: vec![
+            BamContaminationToolContractV1 {
+                tool_id: "schmutzi".to_string(),
+                supported_scope: "mitochondrial_or_both".to_string(),
+                required_inputs: vec![
+                    "mitochondrial_reference".to_string(),
+                    "aligned_bam".to_string(),
+                    "damage_context".to_string(),
+                ],
+                emits_confidence: true,
+                caveats: vec!["nuclear contamination is not estimated by schmutzi alone".to_string()],
+            },
+            BamContaminationToolContractV1 {
+                tool_id: "verifybamid2".to_string(),
+                supported_scope: "nuclear_or_both".to_string(),
+                required_inputs: vec![
+                    "reference_panel".to_string(),
+                    "aligned_bam".to_string(),
+                    "sex_or_chromosome_context".to_string(),
+                    "minimum_coverage_context".to_string(),
+                ],
+                emits_confidence: true,
+                caveats: vec!["sex chromosome assumptions must be declared explicitly".to_string()],
+            },
+            BamContaminationToolContractV1 {
+                tool_id: "contammix".to_string(),
+                supported_scope: "nuclear_or_both".to_string(),
+                required_inputs: vec![
+                    "reference_panel".to_string(),
+                    "aligned_bam".to_string(),
+                    "minimum_coverage_context".to_string(),
+                ],
+                emits_confidence: true,
+                caveats: vec!["results are panel-dependent and must carry coverage caveats".to_string()],
+            },
+        ],
+    }
+}
+
+#[must_use]
+pub fn bam_scientific_report_contracts() -> Vec<BamScientificReportContractV1> {
+    vec![
+        BamScientificReportContractV1 {
+            schema_version: BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION.to_string(),
+            report_id: BamScientificReportIdV1::EndogenousContent,
+            optional: true,
+            suitable_scopes: vec!["host_alignment_qc".to_string()],
+            required_population_or_reference_context: vec!["host_reference_scope".to_string()],
+            refusal_when_missing: vec!["host_reference_scope_required".to_string()],
+        },
+        BamScientificReportContractV1 {
+            schema_version: BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION.to_string(),
+            report_id: BamScientificReportIdV1::Sex,
+            optional: true,
+            suitable_scopes: vec!["human_chrxy".to_string(), "chrxy_like_reference".to_string()],
+            required_population_or_reference_context: vec![
+                "chromosome_system".to_string(),
+                "minimum_y_sites".to_string(),
+            ],
+            refusal_when_missing: vec!["sex_context_required".to_string()],
+        },
+        BamScientificReportContractV1 {
+            schema_version: BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION.to_string(),
+            report_id: BamScientificReportIdV1::Haplogroups,
+            optional: true,
+            suitable_scopes: vec!["human_mitochondrial".to_string()],
+            required_population_or_reference_context: vec![
+                "reference_panel".to_string(),
+                "reference_build".to_string(),
+                "population_scope".to_string(),
+            ],
+            refusal_when_missing: vec!["haplogroup_context_required".to_string()],
+        },
+        BamScientificReportContractV1 {
+            schema_version: BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION.to_string(),
+            report_id: BamScientificReportIdV1::Kinship,
+            optional: true,
+            suitable_scopes: vec!["human_cohort".to_string()],
+            required_population_or_reference_context: vec![
+                "reference_panel".to_string(),
+                "reference_build".to_string(),
+                "population_scope".to_string(),
+                "cohort_context".to_string(),
+            ],
+            refusal_when_missing: vec!["kinship_context_required".to_string()],
+        },
+    ]
+}
+
+#[must_use]
+pub fn bam_scientific_report_contract_for_stage(
+    stage_id: &str,
+) -> Option<BamScientificReportContractV1> {
+    bam_scientific_report_contracts()
+        .into_iter()
+        .find(|contract| contract.report_id.stage_id() == stage_id)
+}
+
+#[must_use]
+pub fn estimate_bam_stage_resources(stage_id: &str, input_bytes: u64) -> BamStageResourcePlanV1 {
+    let gib = 1024_u64 * 1024_u64 * 1024_u64;
+    let size_gb = input_bytes.div_ceil(gib).max(1) as u32;
+    let (cpu_threads, memory_gb, disk_gb, scratch_gb, requires_index, note) = match stage_id {
+        "bam.markdup" => (4, size_gb.saturating_mul(2).max(4), size_gb.saturating_mul(3).max(8), size_gb.saturating_mul(2).max(6), true, "duplicate marking scales with coordinate-sorted temporary shards"),
+        "bam.coverage" => (2, size_gb.max(2), size_gb.max(2), size_gb.max(1), true, "coverage requires indexed random access for deterministic summaries"),
+        "bam.damage" => (2, size_gb.max(2), size_gb.max(2), size_gb.max(2), true, "damage tools stream BAM plus sidecar summaries"),
+        "bam.endogenous_content" => (2, size_gb.max(2), size_gb.max(2), size_gb.max(1), true, "endogenous estimation reuses indexed depth calculations"),
+        _ => (4, size_gb.saturating_mul(2).max(4), size_gb.saturating_mul(2).max(4), size_gb.saturating_mul(2).max(4), true, "sorting/indexing/validation chain dominates temporary storage"),
+    };
+    BamStageResourcePlanV1 {
+        schema_version: BAM_RESOURCE_PLAN_SCHEMA_VERSION.to_string(),
+        stage_id: stage_id.to_string(),
+        input_bytes,
+        cpu_threads,
+        memory_gb,
+        disk_gb,
+        scratch_gb,
+        requires_index,
+        notes: vec![note.to_string()],
+    }
+}
+
+#[must_use]
+pub fn required_bam_bench_corpus_scenarios() -> Vec<BamBenchDatasetScenarioV1> {
+    vec![
+        BamBenchDatasetScenarioV1::TinyAligned,
+        BamBenchDatasetScenarioV1::UnmappedHeavy,
+        BamBenchDatasetScenarioV1::DuplicateHeavy,
+        BamBenchDatasetScenarioV1::LowCoverage,
+        BamBenchDatasetScenarioV1::DamageLike,
+        BamBenchDatasetScenarioV1::ReferenceMismatch,
+        BamBenchDatasetScenarioV1::MissingIndex,
+    ]
+}
+
+#[must_use]
+pub fn bam_bench_corpus_manifest() -> BamBenchCorpusManifestV1 {
+    BamBenchCorpusManifestV1 {
+        schema_version: BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION.to_string(),
+        corpus_id: "bam_production_regression".to_string(),
+        scenarios_covered: required_bam_bench_corpus_scenarios(),
+        ci_subset: vec![
+            "SYNTHETIC_TINY_ALIGNED".to_string(),
+            "SYNTHETIC_DUPLICATE_HEAVY".to_string(),
+            "SYNTHETIC_MISSING_INDEX".to_string(),
+        ],
+        datasets: vec![
+            BamBenchCorpusDatasetManifestEntryV1 {
+                dataset_id: "SYNTHETIC_TINY_ALIGNED".to_string(),
+                scientific_scope: "alignment_baseline".to_string(),
+                requires_index: true,
+                scenarios: vec![BamBenchDatasetScenarioV1::TinyAligned],
+            },
+            BamBenchCorpusDatasetManifestEntryV1 {
+                dataset_id: "SYNTHETIC_UNMAPPED_HEAVY".to_string(),
+                scientific_scope: "mapping_failure_regression".to_string(),
+                requires_index: true,
+                scenarios: vec![BamBenchDatasetScenarioV1::UnmappedHeavy],
+            },
+            BamBenchCorpusDatasetManifestEntryV1 {
+                dataset_id: "SYNTHETIC_DUPLICATE_HEAVY".to_string(),
+                scientific_scope: "duplicate_policy_regression".to_string(),
+                requires_index: true,
+                scenarios: vec![BamBenchDatasetScenarioV1::DuplicateHeavy],
+            },
+            BamBenchCorpusDatasetManifestEntryV1 {
+                dataset_id: "SYNTHETIC_LOW_COVERAGE".to_string(),
+                scientific_scope: "coverage_regime_regression".to_string(),
+                requires_index: true,
+                scenarios: vec![BamBenchDatasetScenarioV1::LowCoverage],
+            },
+            BamBenchCorpusDatasetManifestEntryV1 {
+                dataset_id: "SYNTHETIC_DAMAGE_LIKE".to_string(),
+                scientific_scope: "ancient_dna_regression".to_string(),
+                requires_index: true,
+                scenarios: vec![BamBenchDatasetScenarioV1::DamageLike],
+            },
+            BamBenchCorpusDatasetManifestEntryV1 {
+                dataset_id: "SYNTHETIC_REFERENCE_MISMATCH".to_string(),
+                scientific_scope: "reference_guardrail_regression".to_string(),
+                requires_index: true,
+                scenarios: vec![BamBenchDatasetScenarioV1::ReferenceMismatch],
+            },
+            BamBenchCorpusDatasetManifestEntryV1 {
+                dataset_id: "SYNTHETIC_MISSING_INDEX".to_string(),
+                scientific_scope: "index_guardrail_regression".to_string(),
+                requires_index: false,
+                scenarios: vec![BamBenchDatasetScenarioV1::MissingIndex],
+            },
+        ],
     }
 }
 
