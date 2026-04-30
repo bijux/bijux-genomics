@@ -4,10 +4,11 @@ mod compiler;
 
 pub use compiler::bundle::{
     build_domain_registry_bundle, domain_artifact_contract_snapshots, domain_defaults_snapshot,
-    domain_deprecation_catalogs, domain_invariant_catalogs, domain_metric_catalogs,
-    load_domain_registry_bundle, query_domain_registry_bundle, write_domain_registry_bundle,
-    ArtifactContractSnapshot, ArtifactRoleSnapshot, CompiledDomainDefaultsSnapshot,
-    CompiledDomainRegistry, DefaultSettingsContract, DomainDeprecationCatalog,
+    domain_deprecation_catalogs, domain_evidence_catalogs, domain_invariant_catalogs,
+    domain_metric_catalogs, load_domain_registry_bundle, query_domain_registry_bundle,
+    write_domain_registry_bundle, ArtifactContractSnapshot, ArtifactRoleSnapshot,
+    CompiledDomainDefaultsSnapshot, CompiledDomainRegistry, DefaultSettingsContract,
+    DomainDeprecationCatalog, DomainEvidenceCatalog, DomainEvidenceContract,
     DomainInvariantCatalog, DomainMetricCatalog, DomainMetricEntry, DomainRegistryQuery,
     DomainRegistryQueryKind, DomainRegistryReleaseBundle, DomainRegistrySchemas,
     DomainStageContract, DomainToolContract, RegistryDeprecationRecord, RegistryFixtureBinding,

@@ -188,6 +188,21 @@ pub struct DomainInvariantCatalog {
     pub stage_invariants: BTreeMap<String, Vec<String>>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DomainEvidenceContract {
+    pub stage_id: String,
+    pub evidence_status: String,
+    pub defaults_source: String,
+    pub assumptions: Vec<String>,
+    pub invariants: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DomainEvidenceCatalog {
+    pub domain_id: String,
+    pub evidence: Vec<DomainEvidenceContract>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DomainRegistryQueryKind {
     Domains,
@@ -197,6 +212,7 @@ pub enum DomainRegistryQueryKind {
     Artifacts,
     Defaults,
     Deprecations,
+    Evidence,
     Fixtures,
 }
 
@@ -843,6 +859,27 @@ pub fn domain_invariant_catalogs(bundle: &DomainRegistryReleaseBundle) -> Vec<Do
         .collect()
 }
 
+pub fn domain_evidence_catalogs(bundle: &DomainRegistryReleaseBundle) -> Vec<DomainEvidenceCatalog> {
+    bundle
+        .domains
+        .iter()
+        .map(|domain| DomainEvidenceCatalog {
+            domain_id: domain.domain_id.clone(),
+            evidence: domain
+                .stages
+                .iter()
+                .map(|stage| DomainEvidenceContract {
+                    stage_id: stage.stage_id.clone(),
+                    evidence_status: stage.evidence_status.clone(),
+                    defaults_source: stage.defaults_source.clone(),
+                    assumptions: stage.assumptions.clone(),
+                    invariants: stage.invariants.clone(),
+                })
+                .collect(),
+        })
+        .collect()
+}
+
 pub fn write_domain_registry_bundle(
     configs_dir: &Path,
     bundle: &DomainRegistryReleaseBundle,
@@ -856,6 +893,7 @@ pub fn write_domain_registry_bundle(
     let metrics_path = registry_dir.join("domain_metric_catalogs.json");
     let deprecations_path = registry_dir.join("domain_deprecations_snapshot.json");
     let invariants_path = registry_dir.join("domain_invariant_catalogs.json");
+    let evidence_path = registry_dir.join("domain_evidence_contracts.json");
 
     write_string(
         &release_bundle_path,
@@ -892,6 +930,12 @@ pub fn write_domain_registry_bundle(
             .context("serialize invariant catalogs")?,
     )
     .with_context(|| format!("write {}", invariants_path.display()))?;
+    write_string(
+        &evidence_path,
+        &serde_json::to_string_pretty(&domain_evidence_catalogs(bundle))
+            .context("serialize evidence catalogs")?,
+    )
+    .with_context(|| format!("write {}", evidence_path.display()))?;
 
     Ok(vec![
         release_bundle_path,
@@ -900,6 +944,7 @@ pub fn write_domain_registry_bundle(
         metrics_path,
         deprecations_path,
         invariants_path,
+        evidence_path,
     ])
 }
 
@@ -959,6 +1004,21 @@ pub fn query_domain_registry_bundle(
             domains
                 .iter()
                 .flat_map(|domain| domain.deprecations.iter())
+                .collect::<Vec<_>>()
+        ),
+        DomainRegistryQueryKind::Evidence => serde_json::json!(
+            domains
+                .iter()
+                .flat_map(|domain| {
+                    domain.stages.iter().map(|stage| DomainEvidenceContract {
+                        stage_id: stage.stage_id.clone(),
+                        evidence_status: stage.evidence_status.clone(),
+                        defaults_source: stage.defaults_source.clone(),
+                        assumptions: stage.assumptions.clone(),
+                        invariants: stage.invariants.clone(),
+                    })
+                })
+                .filter(|evidence| query.stage_id.as_deref().is_none_or(|wanted| evidence.stage_id == wanted))
                 .collect::<Vec<_>>()
         ),
         DomainRegistryQueryKind::Fixtures => serde_json::json!(

@@ -28,6 +28,7 @@ fn compiler_outputs_are_stable_across_repeated_runs() -> anyhow::Result<()> {
         ("ci/registry/domain_artifact_contract_snapshots.json", "domain_artifact_contract_snapshots.json"),
         ("ci/registry/domain_deprecations_snapshot.json", "domain_deprecations_snapshot.json"),
         ("ci/registry/domain_defaults_snapshot.json", "domain_defaults_snapshot.json"),
+        ("ci/registry/domain_evidence_contracts.json", "domain_evidence_contracts.json"),
         ("ci/registry/domain_invariant_catalogs.json", "domain_invariant_catalogs.json"),
         ("ci/registry/domain_metric_catalogs.json", "domain_metric_catalogs.json"),
         ("ci/registry/domain_registry_release_bundle.json", "domain_registry_release_bundle.json"),

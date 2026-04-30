@@ -16,6 +16,7 @@ enum QueryKindArg {
     Artifacts,
     Defaults,
     Deprecations,
+    Evidence,
     Fixtures,
 }
 
@@ -29,6 +30,7 @@ impl From<QueryKindArg> for DomainRegistryQueryKind {
             QueryKindArg::Artifacts => Self::Artifacts,
             QueryKindArg::Defaults => Self::Defaults,
             QueryKindArg::Deprecations => Self::Deprecations,
+            QueryKindArg::Evidence => Self::Evidence,
             QueryKindArg::Fixtures => Self::Fixtures,
         }
     }

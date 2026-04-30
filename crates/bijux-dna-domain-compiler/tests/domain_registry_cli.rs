@@ -67,3 +67,31 @@ fn domain_registry_query_binary_filters_stage_registry_rows() -> anyhow::Result<
     );
     Ok(())
 }
+
+#[test]
+fn domain_registry_query_binary_exposes_evidence_contracts() -> anyhow::Result<()> {
+    let root = support::repo_root();
+    let json = command_output(
+        Command::new(env!("CARGO_BIN_EXE_domain_registry_query"))
+            .arg("--domain-dir")
+            .arg(root.join("domain"))
+            .arg("--kind")
+            .arg("evidence")
+            .arg("--stage-id")
+            .arg("vcf.call"),
+    )?;
+    let rows = json.as_array().expect("evidence query must return array");
+    assert_eq!(rows.len(), 1);
+    let row = &rows[0];
+    assert_eq!(
+        row.get("defaults_source").and_then(serde_json::Value::as_str),
+        Some("doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md")
+    );
+    assert!(
+        row.get("invariants")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|invariants| !invariants.is_empty()),
+        "evidence query must preserve invariant-backed evidence contracts"
+    );
+    Ok(())
+}
