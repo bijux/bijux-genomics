@@ -32,6 +32,17 @@ layers.
 
 `docs/COMMANDS.md` is the SSOT for callable operations managed by this crate.
 
+## Release Example
+
+Run the release-surface example from the repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo run -q -p bijux-dna-stages-bam --example bam_release_surface
+```
+
+The example prints the governed BAM implemented-stage set and asserts presence
+of alignment, mapping-summary, and coverage stages used in release evidence.
+
 Managed operations:
 
 - `list-bam-stages`
