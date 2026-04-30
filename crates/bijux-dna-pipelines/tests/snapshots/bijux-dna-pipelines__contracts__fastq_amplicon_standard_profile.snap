@@ -4,6 +4,49 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "capabilities": {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters",
+        "fastq.normalize_primers",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "bank_version_drift",
+        "assay_coverage_gap"
+      ],
+      "story_order": [
+        "read_admission",
+        "bank_comparison",
+        "assay_applicability",
+        "qc_summary"
+      ]
+    },
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
     "input_artifacts": [
       "FastqReads"
     ],
@@ -17,6 +60,23 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "output_domains": [
       "Fastq"
     ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.detect_adapters": [
+          "seed_mismatches"
+        ],
+        "fastq.normalize_primers": [
+          "primer_bank_id",
+          "assay_id"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "fastq.normalize_primers": [
+          "primer_version"
+        ]
+      }
+    },
     "produces_outputs": [
       "fastq",
       "fastq.metrics"
@@ -54,7 +114,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.report_qc"
     ],
     "supports_benchmarks": true,
-    "supports_sample_sheet": false
+    "supports_sample_sheet": false,
+    "workflow_template_ids": [
+      "fastq.adapter_primer_bank_review"
+    ]
   },
   "defaults": {
     "params": {
