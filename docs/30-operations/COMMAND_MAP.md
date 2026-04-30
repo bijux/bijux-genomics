@@ -47,6 +47,15 @@ Authority:
 ## Verify
 - Verify an evidence bundle:
   `cargo run -q -p bijux-dna -- analyze evidence verify --run-id <run-id>`
+- Verify external evidence/profile bundles from any checkout:
+  `cargo run -q -p bijux-dna-analyze --bin bijux-dna-verify -- verify-evidence <evidence_bundle.json>`
+  `cargo run -q -p bijux-dna-analyze --bin bijux-dna-verify -- verify-profile <profile_bundle.json>`
+- Generate methods/profile release outputs:
+  `cargo run -q -p bijux-dna-analyze --bin bijux-dna-verify -- write-methods <run-dir> [facts.jsonl]`
+  `cargo run -q -p bijux-dna-analyze --bin bijux-dna-verify -- write-profile <run-dir> [profile] [facts.jsonl]`
+- Reviewer challenge workflow:
+  `cargo run -q -p bijux-dna-analyze --bin bijux-dna-verify -- challenge-submit <run-dir> <artifact_id> <evidence_path> <report_field> <caveat> <question> <requested_by>`
+  `cargo run -q -p bijux-dna-analyze --bin bijux-dna-verify -- challenge-list <run-dir>`
 
 ## Replay
 - Validate replayability from a recorded manifest:
@@ -66,5 +75,6 @@ Authority:
 
 Notes:
 - Use [examples/index.yaml](../../examples/index.yaml) to discover governed canonical example ids.
+- Use [RELEASE_RUNNABLE_EXAMPLES.md](RELEASE_RUNNABLE_EXAMPLES.md) for manifest/output/caveat links and release-facing example command paths.
 - Use [artifacts/planning/scoreboard.yaml](../../artifacts/planning/scoreboard.yaml) and
   [artifacts/planning/cards.yaml](../../artifacts/planning/cards.yaml) for Level 1 closure scope instead of manually copying goal tables here.
