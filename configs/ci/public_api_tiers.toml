@@ -1,0 +1,13 @@
+# schema_version = 1
+# owner = architecture
+
+runtime_facing_crates = [
+  "bijux-dna-api",
+  "bijux-dna-runtime",
+  "bijux-dna-runner",
+  "bijux-dna-engine",
+  "bijux-dna-pipelines",
+  "bijux-dna-stage-contract",
+  "bijux-dna-environment",
+  "bijux-dna-core",
+]

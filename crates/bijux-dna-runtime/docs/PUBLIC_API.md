@@ -29,3 +29,9 @@
 - `src/lib.rs` controls public module visibility and root re-exports.
 - `stable_surface.rs` files curate module-level stable exports.
 - `docs/RUNTIME_CONTRACT.md` defines behavioral stability.
+
+## Stability Tiers
+
+- Stable: the root exports and public modules listed above when consumed through the documented crate-root paths.
+- Experimental: no experimental runtime namespace is exported today; new opt-in surfaces must be listed here before downstream use.
+- Internal: helper modules, private support code, and any item not listed under Root Exports or Public Modules.

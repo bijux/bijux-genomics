@@ -23,3 +23,9 @@ The public API is the stable contract surface exported from `src/lib.rs` and mir
 - `src/public_api/stable_surface.rs` must mirror the durable root exports consumed by downstream crates.
 - New public modules require a docs update here and an architecture-tree review.
 - Public contract field changes require snapshot review and an explicit pipeline contract change.
+
+## Stability Tiers
+
+- Stable: the public modules and root reexports documented in this file.
+- Experimental: profile/template helpers are experimental until they are promoted into the documented root reexports or stable module contracts.
+- Internal: composition helpers and defaults plumbing that are not re-exported through `src/lib.rs` or `src/public_api/stable_surface.rs`.

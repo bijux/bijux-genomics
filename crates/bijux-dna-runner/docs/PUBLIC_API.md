@@ -34,3 +34,9 @@
 - `src/lib.rs` controls public module visibility and root re-exports.
 - `src/public_api/stable_surface.rs` curates facade exports.
 - `src/backend/stable_surface.rs` and `src/backend/docker/stable_surface.rs` curate backend exports.
+
+## Stability Tiers
+
+- Stable: `api`, `DockerRunner`, and the documented facade exports above.
+- Experimental: backend-specific additions are experimental until they are listed under Facade Exports or Root Exports in this file.
+- Internal: support modules and any runner/backend helper not re-exported through the documented stable surfaces.

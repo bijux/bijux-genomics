@@ -42,3 +42,9 @@ or an equivalent runtime-owned setup before calling the engine.
 - `tests/contracts/execution_orchestration_contracts.rs` covers public
   `Engine`, `EngineConfig`, `CancellationToken`, `EngineEvent`, `EngineHooks`,
   and run-layout precondition behavior.
+
+## Stability Tiers
+
+- Stable: the `Engine` root surface and the types listed under Stable Root Exports.
+- Experimental: new engine entrypoints remain experimental until they are added to `src/public_api/stable_surface.rs` and this document.
+- Internal: executor internals, graph preparation helpers, recording writers, and any module outside the curated public surface.

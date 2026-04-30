@@ -77,3 +77,9 @@ enforced by `tests/schemas/schema/public_type_snapshots.rs`.
 
 Schema payload snapshots live under `tests/fixtures/stage_contract_schema/` and
 are enforced by `tests/schemas/schema/schema_snapshots.rs`.
+
+## Stability Tiers
+
+- Stable: the public modules, root re-exports, and Public Types documented in this file.
+- Experimental: future contract helpers are experimental until listed here and covered by the public type/schema snapshots.
+- Internal: planner/runtime support code and any item not exposed through the documented public modules or root re-exports.

@@ -41,3 +41,9 @@ The following modules are intentionally private implementation detail:
 - `src/surface/`
 
 They may change when the v1 public contract remains stable.
+
+## Stability Tiers
+
+- Stable: `pub mod v1`, `bijux_dna_api::v1::api`, and the contract types/operations documented above.
+- Experimental: no experimental public namespace is exported today; any future one must be called out explicitly here before use.
+- Internal: `src/internal/`, `src/runtime/`, `src/support/`, `src/surface/`, and any item not re-exported through `v1::api`.
