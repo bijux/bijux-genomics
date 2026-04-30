@@ -19,6 +19,7 @@ pub fn resolve_image_for_run(
 ) -> Result<ResolvedImage> {
     let image = resolve_image(spec, platform)?;
     match platform.runner {
+        RuntimeKind::Local => Ok(image),
         RuntimeKind::Docker => resolve_docker_image_for_run(spec, platform, image),
         RuntimeKind::Apptainer | RuntimeKind::Singularity => {
             resolve_apptainer_image_for_run(spec, platform, image)
