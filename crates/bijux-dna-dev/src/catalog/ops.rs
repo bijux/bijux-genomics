@@ -316,6 +316,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingReferenceExternalData,
         ),
         native(
+            "scientific-caveat-propagation",
+            "Run governed scientific-caveat propagation scenario suite for goals G181-G190.",
+            NativeOpsCommandKey::ToolingScientificCaveatPropagation,
+        ),
+        native(
             "architecture-report",
             "Generate a compact workspace architecture drift report under artifacts/architecture.",
             NativeOpsCommandKey::ToolingArchitectureReport,

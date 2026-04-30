@@ -26,6 +26,7 @@ mod ci;
 mod config_docs;
 mod diagnostics;
 mod reference_external_data;
+mod scientific_caveat_propagation;
 
 pub(super) use self::acquisition::{
     tooling_acquire_maps, tooling_acquire_panels, tooling_acquire_reference,
@@ -58,3 +59,4 @@ pub(super) use self::diagnostics::{
     tooling_simulate_coverage_regime,
 };
 pub(super) use self::reference_external_data::tooling_reference_external_data;
+pub(super) use self::scientific_caveat_propagation::tooling_scientific_caveat_propagation;

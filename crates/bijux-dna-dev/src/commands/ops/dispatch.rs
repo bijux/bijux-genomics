@@ -114,6 +114,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingReferenceExternalData => {
             tooling::tooling_reference_external_data(workspace, args)
         }
+        NativeOpsCommandKey::ToolingScientificCaveatPropagation => {
+            tooling::tooling_scientific_caveat_propagation(workspace, args)
+        }
         NativeOpsCommandKey::ToolingArchitectureReport => {
             tooling::tooling_architecture_report(workspace, args)
         }
