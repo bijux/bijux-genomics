@@ -1,3 +1,4 @@
+mod build_contaminant_db;
 mod capture_provenance_snapshot;
 mod classify_layout;
 mod cluster_otus;
@@ -39,6 +40,10 @@ mod verify_assets;
 pub use cluster_otus::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
 pub use classify_layout::{
     ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
+};
+pub use build_contaminant_db::{
+    BuildContaminantDbReportV1, BuildContaminantDbSourceEntryV1,
+    BUILD_CONTAMINANT_DB_REPORT_SCHEMA_VERSION,
 };
 pub use capture_provenance_snapshot::{
     CaptureProvenanceSnapshotReportV1, ProvenanceFileEntryV1, ProvenanceStageEntryV1,
