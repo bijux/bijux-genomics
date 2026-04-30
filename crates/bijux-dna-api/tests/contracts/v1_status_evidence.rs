@@ -1,7 +1,8 @@
 use anyhow::Result;
 use bijux_dna_api::v1::api::{
-    browse_runs, evidence_gap, query_run_lineage, status, EvidenceGapRequestV1,
-    RunBrowserFilterV1, RunBrowserRequestV1, RunLineageQueryRequestV1,
+    browse_runs, evidence_gap, operator_diagnosis, query_run_lineage, status,
+    EvidenceGapRequestV1, OperatorDiagnosisRequestV1, RunBrowserFilterV1, RunBrowserRequestV1,
+    RunLineageQueryRequestV1,
 };
 
 #[test]
@@ -359,5 +360,85 @@ fn evidence_gap_reports_missing_paths_failed_checks_and_unsafe_artifacts() -> Re
         .iter()
         .any(|id| id == "runtime_policy"));
     assert!(response.unsafe_artifacts.iter().any(|id| id == "run_failure"));
+    Ok(())
+}
+
+#[test]
+fn operator_diagnosis_reports_commands_and_runtime_signals() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("run_state.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_state.v1",
+            "run_id": "diag-run",
+            "mode": "enforced",
+            "state": "running",
+            "transitions": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("queue_state.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_queue_state.v1",
+            "run_id": "diag-run",
+            "dedup_key": "dedup-1",
+            "state": "running",
+            "transitions": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("run_control.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_control.v1",
+            "run_id": "diag-run",
+            "requested_action": "pause",
+            "observed_state": "running",
+            "updated_at": "2026-04-30T00:00:00Z",
+            "audit_log": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("operator_health.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.operator_health.v1",
+            "run_id": "diag-run",
+            "overall_ok": true,
+            "checks": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("run_failure.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_failure.v1",
+            "run_id": "diag-run",
+            "mode": "enforced",
+            "state": "failed",
+            "failure_code": "timeout",
+            "message": "timeout",
+            "observed_at": "2026-04-30T00:00:00Z",
+            "retryable": true
+        }),
+    )?;
+
+    let response = operator_diagnosis(&OperatorDiagnosisRequestV1 {
+        run_dir: temp.path().to_path_buf(),
+    })?;
+
+    assert_eq!(response.schema_version, "bijux.operator_diagnosis.v1");
+    assert_eq!(response.run_id, "diag-run");
+    assert_eq!(
+        response.queue_state,
+        Some(bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1::Running)
+    );
+    assert_eq!(
+        response.requested_action,
+        Some(bijux_dna_runtime::run_layout::RunControlActionV1::Pause)
+    );
+    assert!(response.health_ok);
+    assert!(response.has_failure_record);
+    assert!(response
+        .commands
+        .iter()
+        .any(|command| command.command_id == "inspect_failure_record"));
     Ok(())
 }

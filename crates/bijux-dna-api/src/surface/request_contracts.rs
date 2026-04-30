@@ -451,6 +451,45 @@ pub struct EvidenceGapResponseV1 {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for operator diagnosis command generation.
+///
+/// Stability: v1 (stable).
+pub struct OperatorDiagnosisRequestV1 {
+    pub run_dir: PathBuf,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// One operator diagnosis command with purpose and evidence source.
+///
+/// Stability: v1 (stable).
+pub struct OperatorDiagnosisCommandV1 {
+    pub command_id: String,
+    #[serde(default)]
+    pub argv: Vec<String>,
+    pub purpose: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evidence_path: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Operator diagnosis response.
+///
+/// Stability: v1 (stable).
+pub struct OperatorDiagnosisResponseV1 {
+    pub schema_version: String,
+    pub run_dir: PathBuf,
+    pub run_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub queue_state: Option<bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub requested_action: Option<bijux_dna_runtime::run_layout::RunControlActionV1>,
+    pub health_ok: bool,
+    pub has_failure_record: bool,
+    #[serde(default)]
+    pub commands: Vec<OperatorDiagnosisCommandV1>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical run-control response.
 ///
 /// Stability: v1 (stable).

@@ -15,7 +15,7 @@ pub use entrypoints::{
     operator_health, pause_run, plan, plan_only, policy_audit, query_run_lineage,
     replay_failed_run, replay_manifest, resume_run, run_local_failure_injection, verify_run_bundle,
     run_fastq_to_bam_profile, run_pipeline, status, cache_explain, replay_explain, evidence_gap,
-    RunMode,
+    operator_diagnosis, RunMode,
 };
 pub use operator_failure::{
     classify_operator_failure, CategorizedError, ErrorCategory, ErrorHintV1, HintSeverity,
@@ -25,6 +25,7 @@ pub use request_contracts::{
     CacheExplainRequestV1, CacheExplainResponseV1, CacheKeyFingerprintV1, CacheMissReasonV1,
     DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, ExecuteRunRequest,
     ExecuteRunResult, EvidenceCheckFailureV1, EvidenceGapRequestV1, EvidenceGapResponseV1,
+    OperatorDiagnosisCommandV1, OperatorDiagnosisRequestV1, OperatorDiagnosisResponseV1,
     OperatorHealthResponse, PlanRequest, PlanResponse, ReplayExplainRequestV1,
     ReplayExplainResponseV1, RunBrowserFilterV1, RunBrowserRequestV1, RunBrowserResponseV1,
     RunBrowserRowV1, RunControlResponse, RunLineageEdgeV1, RunLineageQueryRequestV1,

@@ -14,6 +14,7 @@ mod execute_run;
 mod lifecycle;
 mod local_workflows;
 mod operations;
+mod operator_diagnosis;
 mod operator_controls;
 mod plan_response;
 mod planner_manifest_support;
@@ -38,6 +39,7 @@ pub use lineage_query::query_run_lineage;
 pub use local_workflows::{
     execute_local_bam_workflow, execute_local_fastq_workflow, execute_local_vcf_workflow,
 };
+pub use operator_diagnosis::operator_diagnosis;
 pub use operator_controls::{cancel_run, operator_health, pause_run, resume_run};
 pub use plan_response::plan;
 pub use rendering::{execute_and_report, render_report};

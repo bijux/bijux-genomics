@@ -32,7 +32,8 @@ pub use reporting::{
     assess_failed_replay_eligibility, browse_runs, cache_explain, cancel_run, dry_run,
     environment_identity, evidence_gap, execute, execute_and_report, execute_local_bam_workflow,
     execute_local_fastq_workflow, execute_local_vcf_workflow, explain_cache_hit_miss,
-    explain_successful_replay, operator_health, pause_run, plan, policy_audit, query_run_lineage,
-    render_report, replay_explain, replay_failed_run, replay_manifest, run_local_failure_injection,
-    resume_run, status, verify_run_bundle, workspace_edges, write_workspace_audit,
+    explain_successful_replay, operator_diagnosis, operator_health, pause_run, plan, policy_audit,
+    query_run_lineage, render_report, replay_explain, replay_failed_run, replay_manifest,
+    run_local_failure_injection, resume_run, status, verify_run_bundle, workspace_edges,
+    write_workspace_audit,
 };
