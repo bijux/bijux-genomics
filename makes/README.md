@@ -12,6 +12,7 @@ Public targets (stable contract):
 - `doctor`
 - `release-gate`
 - `gate-essential`
+- `gate-execute`
 - `refresh-assets-toy`
 - `refresh-assets-golden`
 
@@ -36,6 +37,7 @@ Target -> implementation mapping (no hidden magic):
 - `doctor` -> `cargo run -q -p bijux-dna-dev -- tooling run repo-doctor --fast` + fast parity checks
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
 - `gate-essential` -> fast architecture + domain schema + planner determinism + runtime/evidence contract lane
+- `gate-execute` -> local runner + governed execute/dry-run/status/replay contract lane
 - `ci` -> `make fmt lint audit test coverage` under the shared `artifacts/` contract
 
 Rust gate artifact layout:
