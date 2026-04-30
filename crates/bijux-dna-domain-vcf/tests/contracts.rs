@@ -2,13 +2,17 @@ mod contracts {
     use bijux_dna_domain_vcf::{
         contracts::{
             refuse_unsupported_regime_transition, stage_artifact_contract, stage_failure_modes,
-            stage_io_contract, stage_metrics_contract, validate_entry_vcf_invariants,
-            validate_panel_map_invariants, validate_reference_panel_governance,
-            validate_species_context, validate_vcf_invariants, ContigSpec,
+            stage_artifact_class_contract, stage_io_contract, stage_metrics_contract,
+            validate_entry_vcf_invariants, validate_panel_map_invariants,
+            validate_reference_panel_governance, validate_species_context,
+            validate_vcf_invariants, vcf_calling_mode_contracts, vcf_panel_boundary_contracts,
+            vcf_population_guardrail_contracts, ContigSpec,
             DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy, EntryVcfInvariantState,
             PanelMapInvariantState, PanelSelectionContext, PanelSelectionPolicy,
-            ReferencePanelGovernance, SpeciesContext, VcfInvariantState,
-            DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE,
+            ReferencePanelGovernance, SpeciesContext, VcfArtifactClass, VcfInvariantState,
+            VCF_FILTER_EVIDENCE_CONTRACT, VCF_NORMALIZATION_CONTRACT,
+            VCF_REFERENCE_CONTEXT_CONTRACT, VCF_STATS_REPORT_CONTRACT,
+            VCF_VALIDATION_CONTRACT, DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE,
         },
         coverage::domain_coverage_report,
         param_registry_toml, required_tools_toml, validate_downstream_transition, CoverageRegime,
@@ -82,6 +86,79 @@ mod contracts {
 
         let failure_modes = stage_failure_modes(VcfDomainStage::Phasing);
         assert!(failure_modes.iter().any(|m| m.code == "insufficient_markers"));
+    }
+
+    #[test]
+    fn vcf_workflow_surface_contracts_are_governed_and_explicit() {
+        assert!(
+            VCF_VALIDATION_CONTRACT
+                .rejects
+                .contains(&"bad_info_or_format_definitions")
+        );
+        assert!(
+            VCF_REFERENCE_CONTEXT_CONTRACT
+                .required_context
+                .contains(&"alias_map")
+        );
+        assert!(
+            VCF_FILTER_EVIDENCE_CONTRACT
+                .preserved_fields
+                .contains(&"damage_filter_policy")
+        );
+        assert!(
+            VCF_NORMALIZATION_CONTRACT
+                .declared_behaviors
+                .contains(&"multiallelic_decomposition")
+        );
+        assert!(
+            VCF_STATS_REPORT_CONTRACT
+                .stable_metric_ids
+                .contains(&"annotation_coverage")
+        );
+    }
+
+    #[test]
+    fn vcf_artifact_classes_and_calling_modes_cover_core_surfaces() {
+        let postprocess_artifacts = stage_artifact_class_contract(VcfDomainStage::Postprocess);
+        assert!(
+            postprocess_artifacts
+                .artifact_classes
+                .contains(&VcfArtifactClass::NormalizedVcf)
+        );
+        assert!(
+            postprocess_artifacts
+                .artifact_classes
+                .contains(&VcfArtifactClass::AnnotationReport)
+        );
+
+        let calling_modes = vcf_calling_mode_contracts();
+        assert!(calling_modes.iter().any(|contract| {
+            contract.stage == VcfDomainStage::CallDiploid
+                && contract.assumptions.contains(&"diploid_gt_fields")
+        }));
+        assert!(calling_modes.iter().any(|contract| {
+            contract.stage == VcfDomainStage::CallGl
+                && contract.refusal_rules.contains(&"gl_fields_required")
+        }));
+    }
+
+    #[test]
+    fn vcf_panel_and_population_boundaries_require_explicit_context() {
+        let panel = vcf_panel_boundary_contracts();
+        assert!(panel.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Impute
+                && contract.required_context.contains(&"panel_identity")
+        }));
+
+        let population = vcf_population_guardrail_contracts();
+        assert!(population.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Pca
+                && contract.required_inputs.contains(&"ld_pruning_policy")
+        }));
+        assert!(population.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Demography
+                && contract.report_caveats.contains(&"demography_estimates_are_model_based")
+        }));
     }
 
     #[test]
