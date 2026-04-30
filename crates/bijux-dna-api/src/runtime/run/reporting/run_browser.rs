@@ -31,14 +31,18 @@ pub fn browse_runs(request: &RunBrowserRequestV1) -> Result<RunBrowserResponseV1
     let next_page_token = (end < rows.len()).then(|| end.to_string());
     let page_rows = rows[offset..end].to_vec();
 
-    Ok(RunBrowserResponseV1 {
+    let response = RunBrowserResponseV1 {
         schema_version: "bijux.run_browser.v1".to_string(),
         runs_root: request.runs_root.clone(),
         total_rows: rows.len(),
         page_size,
         next_page_token,
         rows: page_rows,
-    })
+    };
+    Ok(super::redaction::redact_run_browser(
+        response,
+        request.redaction_profile,
+    ))
 }
 
 fn collect_rows(runs_root: &Path) -> Result<Vec<RunBrowserRowV1>> {

@@ -26,10 +26,10 @@ pub use request_contracts::{
     DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, ExecuteRunRequest,
     ExecuteRunResult, EvidenceCheckFailureV1, EvidenceGapRequestV1, EvidenceGapResponseV1,
     OperatorDiagnosisCommandV1, OperatorDiagnosisRequestV1, OperatorDiagnosisResponseV1,
-    OperatorHealthResponse, OutputFormatV1, PlanRequest, PlanResponse, ReplayExplainRequestV1,
-    ReplayExplainResponseV1, RunBrowserFilterV1, RunBrowserRequestV1, RunBrowserResponseV1,
-    RunBrowserRowV1, RunControlResponse, RunLineageEdgeV1, RunLineageQueryRequestV1,
-    RunLineageQueryResponseV1, RunRequest, RunResult, RunStatus,
+    OperatorHealthResponse, OutputFormatV1, PlanRequest, PlanResponse, RedactionProfileV1,
+    ReplayExplainRequestV1, ReplayExplainResponseV1, RunBrowserFilterV1, RunBrowserRequestV1,
+    RunBrowserResponseV1, RunBrowserRowV1, RunControlResponse, RunLineageEdgeV1,
+    RunLineageQueryRequestV1, RunLineageQueryResponseV1, RunRequest, RunResult, RunStatus,
 };
 pub use runtime_support::{
     atomic_write_bytes, build_tool_execution_spec, ensure_dir, execution_step_from_stage_plan,

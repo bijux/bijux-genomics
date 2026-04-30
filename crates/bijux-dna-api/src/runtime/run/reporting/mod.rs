@@ -18,6 +18,7 @@ mod operator_diagnosis;
 mod operator_controls;
 mod plan_response;
 mod planner_manifest_support;
+mod redaction;
 mod rendering;
 mod replay;
 mod replay_failed;

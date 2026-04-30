@@ -2,8 +2,8 @@ use anyhow::Result;
 use bijux_dna_api::v1::api::{
     browse_runs, evidence_gap, operator_diagnosis, query_run_lineage, status,
     render_operator_diagnosis_output, render_run_browser_output, EvidenceGapRequestV1,
-    OperatorDiagnosisRequestV1, OutputFormatV1, RunBrowserFilterV1, RunBrowserRequestV1,
-    RunLineageQueryRequestV1,
+    OperatorDiagnosisRequestV1, OutputFormatV1, RedactionProfileV1, RunBrowserFilterV1,
+    RunBrowserRequestV1, RunLineageQueryRequestV1,
 };
 
 #[test]
@@ -245,6 +245,7 @@ fn run_browser_lists_run_rows_with_runtime_state() -> Result<()> {
         page_size: 0,
         page_token: None,
         filter: RunBrowserFilterV1::default(),
+        redaction_profile: None,
     })?;
 
     assert_eq!(response.schema_version, "bijux.run_browser.v1");
@@ -423,6 +424,7 @@ fn operator_diagnosis_reports_commands_and_runtime_signals() -> Result<()> {
 
     let response = operator_diagnosis(&OperatorDiagnosisRequestV1 {
         run_dir: temp.path().to_path_buf(),
+        redaction_profile: None,
     })?;
 
     assert_eq!(response.schema_version, "bijux.operator_diagnosis.v1");
@@ -504,6 +506,7 @@ fn stable_human_and_json_rendering_are_available_for_browser_and_diagnosis() -> 
         page_size: 10,
         page_token: None,
         filter: RunBrowserFilterV1::default(),
+        redaction_profile: None,
     })?;
     let browser_human = render_run_browser_output(&browser, OutputFormatV1::Human)?;
     let browser_json = render_run_browser_output(&browser, OutputFormatV1::Json)?;
@@ -512,6 +515,7 @@ fn stable_human_and_json_rendering_are_available_for_browser_and_diagnosis() -> 
 
     let diagnosis = operator_diagnosis(&OperatorDiagnosisRequestV1 {
         run_dir: run_dir.clone(),
+        redaction_profile: None,
     })?;
     let diagnosis_human = render_operator_diagnosis_output(&diagnosis, OutputFormatV1::Human)?;
     let diagnosis_json = render_operator_diagnosis_output(&diagnosis, OutputFormatV1::Json)?;
@@ -544,6 +548,7 @@ fn run_browser_supports_filtering_and_pagination_for_large_history() -> Result<(
         page_size: 2,
         page_token: None,
         filter: RunBrowserFilterV1::default(),
+        redaction_profile: None,
     })?;
     assert_eq!(page1.total_rows, 3);
     assert_eq!(page1.rows.len(), 2);
@@ -554,6 +559,7 @@ fn run_browser_supports_filtering_and_pagination_for_large_history() -> Result<(
         page_size: 2,
         page_token: page1.next_page_token.clone(),
         filter: RunBrowserFilterV1::default(),
+        redaction_profile: None,
     })?;
     assert_eq!(page2.rows.len(), 1);
     assert!(page2.next_page_token.is_none());
@@ -571,9 +577,106 @@ fn run_browser_supports_filtering_and_pagination_for_large_history() -> Result<(
             mode: None,
             has_failures: Some(false),
         },
+        redaction_profile: None,
     })?;
     assert_eq!(filtered.total_rows, 1);
     assert_eq!(filtered.rows.len(), 1);
     assert_eq!(filtered.rows[0].run_id, "run-2");
+    Ok(())
+}
+
+#[test]
+fn redaction_profiles_mask_paths_and_sensitive_fields() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let run_dir = temp.path().join("redaction-run");
+    std::fs::create_dir_all(&run_dir)?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("run_manifest.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_manifest.v3",
+            "run_id": "redaction-run",
+            "correlation_id": "secret-correlation",
+            "failures": [],
+            "output_artifacts": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("run_state.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_state.v1",
+            "run_id": "redaction-run",
+            "mode": "enforced",
+            "state": "succeeded",
+            "transitions": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("queue_state.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_queue_state.v1",
+            "run_id": "redaction-run",
+            "dedup_key": "redaction",
+            "state": "succeeded",
+            "transitions": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("run_control.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_control.v1",
+            "run_id": "redaction-run",
+            "requested_action": null,
+            "observed_state": "succeeded",
+            "updated_at": "2026-04-30T00:00:00Z",
+            "audit_log": []
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &run_dir.join("operator_health.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.operator_health.v1",
+            "run_id": "redaction-run",
+            "overall_ok": true,
+            "checks": []
+        }),
+    )?;
+
+    let collaborator = browse_runs(&RunBrowserRequestV1 {
+        runs_root: temp.path().to_path_buf(),
+        page_size: 10,
+        page_token: None,
+        filter: RunBrowserFilterV1::default(),
+        redaction_profile: Some(RedactionProfileV1::Collaborator),
+    })?;
+    assert_eq!(collaborator.rows.len(), 1);
+    assert_eq!(collaborator.rows[0].run_dir, std::path::PathBuf::from("redaction-run"));
+    assert_eq!(
+        collaborator.rows[0].correlation_id.as_deref(),
+        Some("secret-correlation")
+    );
+
+    let external = browse_runs(&RunBrowserRequestV1 {
+        runs_root: temp.path().to_path_buf(),
+        page_size: 10,
+        page_token: None,
+        filter: RunBrowserFilterV1::default(),
+        redaction_profile: Some(RedactionProfileV1::External),
+    })?;
+    assert_eq!(
+        external.rows[0].run_dir,
+        std::path::PathBuf::from("<redacted-path>")
+    );
+    assert!(external.rows[0].correlation_id.is_none());
+
+    let diagnosis = operator_diagnosis(&OperatorDiagnosisRequestV1 {
+        run_dir: run_dir.clone(),
+        redaction_profile: Some(RedactionProfileV1::External),
+    })?;
+    assert_eq!(diagnosis.run_id, "redacted-run");
+    assert_eq!(diagnosis.run_dir, std::path::PathBuf::from("<redacted-path>"));
+    assert!(diagnosis
+        .commands
+        .iter()
+        .all(|command| command.argv.first().is_some()));
     Ok(())
 }

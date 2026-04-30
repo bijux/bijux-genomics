@@ -88,7 +88,7 @@ pub fn operator_diagnosis(request: &OperatorDiagnosisRequestV1) -> Result<Operat
         ));
     }
 
-    Ok(OperatorDiagnosisResponseV1 {
+    let response = OperatorDiagnosisResponseV1 {
         schema_version: "bijux.operator_diagnosis.v1".to_string(),
         run_dir: request.run_dir.clone(),
         run_id,
@@ -97,7 +97,11 @@ pub fn operator_diagnosis(request: &OperatorDiagnosisRequestV1) -> Result<Operat
         health_ok: health_report.as_ref().is_some_and(|value| value.overall_ok),
         has_failure_record: layout.failure_path.exists(),
         commands,
-    })
+    };
+    Ok(super::redaction::redact_operator_diagnosis(
+        response,
+        request.redaction_profile,
+    ))
 }
 
 fn command(

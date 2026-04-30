@@ -13,9 +13,9 @@ pub use crate::surface::request_contracts::{
     EvidenceGapResponseV1, ExecuteRequest, ExecuteResponse, PlanRequest, PlanResponse,
     OperatorDiagnosisCommandV1, OperatorDiagnosisRequestV1, OperatorDiagnosisResponseV1,
     OperatorHealthResponse, OutputFormatV1, ReplayExplainRequestV1, ReplayExplainResponseV1,
-    RenderReportRequest, RenderReportResult, RunBrowserFilterV1, RunBrowserRequestV1,
-    RunBrowserResponseV1, RunBrowserRowV1, RunControlResponse, RunLineageEdgeV1,
-    RunLineageQueryRequestV1, RunLineageQueryResponseV1, RunStatus,
+    RedactionProfileV1, RenderReportRequest, RenderReportResult, RunBrowserFilterV1,
+    RunBrowserRequestV1, RunBrowserResponseV1, RunBrowserRowV1, RunControlResponse,
+    RunLineageEdgeV1, RunLineageQueryRequestV1, RunLineageQueryResponseV1, RunStatus,
 };
 pub use crate::surface::versioning::{route_version_inventory, ApiRouteVersionInventoryV1};
 pub use crate::v1::report::render_report_bundle_html;

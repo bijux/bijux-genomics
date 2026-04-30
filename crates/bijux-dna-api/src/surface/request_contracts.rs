@@ -265,6 +265,8 @@ pub struct RunBrowserRequestV1 {
     pub page_token: Option<String>,
     #[serde(default)]
     pub filter: RunBrowserFilterV1,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub redaction_profile: Option<RedactionProfileV1>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -456,6 +458,8 @@ pub struct EvidenceGapResponseV1 {
 /// Stability: v1 (stable).
 pub struct OperatorDiagnosisRequestV1 {
     pub run_dir: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub redaction_profile: Option<RedactionProfileV1>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -497,6 +501,16 @@ pub struct OperatorDiagnosisResponseV1 {
 pub enum OutputFormatV1 {
     Human,
     Json,
+}
+
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+/// Stable redaction profiles for operator-facing surfaces.
+///
+/// Stability: v1 (stable).
+pub enum RedactionProfileV1 {
+    Collaborator,
+    External,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
