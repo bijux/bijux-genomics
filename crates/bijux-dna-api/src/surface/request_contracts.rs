@@ -217,12 +217,38 @@ pub struct RunStatus {
     pub run_state_path: Option<PathBuf>,
     pub runtime_policy_path: Option<PathBuf>,
     pub executor_descriptor_path: Option<PathBuf>,
+    pub backend_descriptor_path: Option<PathBuf>,
+    pub scheduling_decision_path: Option<PathBuf>,
+    pub queue_state_path: Option<PathBuf>,
+    pub lease_path: Option<PathBuf>,
+    pub control_state_path: Option<PathBuf>,
+    pub health_report_path: Option<PathBuf>,
+    pub slurm_submission_path: Option<PathBuf>,
     pub checkpoint_path: Option<PathBuf>,
     pub failure_path: Option<PathBuf>,
     pub correlation_id: Option<String>,
     pub mode: Option<bijux_dna_runtime::run_layout::RunExecutionModeV1>,
     pub state: Option<bijux_dna_runtime::run_layout::RunLifecycleStateV1>,
     pub has_failures: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Canonical run-control response.
+///
+/// Stability: v1 (stable).
+pub struct RunControlResponse {
+    pub control_state_path: PathBuf,
+    pub queue_state_path: Option<PathBuf>,
+    pub state: bijux_dna_runtime::run_layout::RunControlStateV1,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Canonical operator-health response.
+///
+/// Stability: v1 (stable).
+pub struct OperatorHealthResponse {
+    pub health_report_path: PathBuf,
+    pub report: bijux_dna_runtime::run_layout::OperatorHealthReportV1,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -283,6 +309,13 @@ pub struct ExecuteResponse {
     pub run_state_path: PathBuf,
     pub runtime_policy_path: PathBuf,
     pub executor_descriptor_path: PathBuf,
+    pub backend_descriptor_path: PathBuf,
+    pub scheduling_decision_path: PathBuf,
+    pub queue_state_path: PathBuf,
+    pub lease_path: PathBuf,
+    pub control_state_path: PathBuf,
+    pub health_report_path: PathBuf,
+    pub slurm_submission_path: Option<PathBuf>,
     pub checkpoint_path: PathBuf,
     pub failure_path: Option<PathBuf>,
     pub mode: bijux_dna_runtime::run_layout::RunExecutionModeV1,
@@ -318,6 +351,12 @@ pub struct DryRunResponse {
     pub run_state_path: PathBuf,
     pub runtime_policy_path: PathBuf,
     pub executor_descriptor_path: PathBuf,
+    pub backend_descriptor_path: PathBuf,
+    pub scheduling_decision_path: PathBuf,
+    pub queue_state_path: PathBuf,
+    pub lease_path: PathBuf,
+    pub control_state_path: PathBuf,
+    pub health_report_path: PathBuf,
     pub checkpoint_path: PathBuf,
     pub mode: bijux_dna_runtime::run_layout::RunExecutionModeV1,
     pub state: bijux_dna_runtime::run_layout::RunLifecycleStateV1,
@@ -326,5 +365,6 @@ pub struct DryRunResponse {
     pub artifact_inventory_path: PathBuf,
     pub replay_manifest_path: PathBuf,
     pub hash_ledger_path: PathBuf,
+    pub slurm_submission_path: Option<PathBuf>,
     pub correlation_id: String,
 }

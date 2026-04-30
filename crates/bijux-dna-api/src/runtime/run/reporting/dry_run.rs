@@ -1,8 +1,13 @@
 use super::evidence_support::materialize_governed_evidence;
+use super::operations::{
+    acquire_run_lease, build_backend_record, build_health_report, build_scheduling_decision,
+    default_control_state, initial_queue_state, maybe_mock_slurm_submission, release_run_lease,
+};
 use super::planner_manifest_support::plan_manifest_from_request;
 use super::{summary_artifact, Result};
-use crate::request_args::{DryRunRequest, DryRunResponse};
 use crate::request_args::PlanRequest;
+use crate::request_args::{DryRunRequest, DryRunResponse};
+use bijux_dna_environment::api::RuntimeKind;
 use bijux_dna_runtime::run_layout::{
     CancellationPolicyV1, CheckpointPolicyV1, ExecutorDescriptorV1, RunCheckpointV1,
     RunExecutionModeV1, RunExecutorDescriptorV1, RunLifecycleStateV1, RunStateTransitionV1,
@@ -77,6 +82,28 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
             resume_from_latest_completed_stage: true,
         },
     };
+    let (_lease_lock, lease) = acquire_run_lease(&layout, &run_id)?;
+    let released_lease = release_run_lease(&lease);
+    let backend_descriptor =
+        build_backend_record(&run_id, RunExecutionModeV1::DryRun, RuntimeKind::Local, &request.graph, &layout);
+    let scheduling_decision =
+        build_scheduling_decision(&run_id, &request.graph, RuntimeKind::Local);
+    let mut queue_state = initial_queue_state(&run_id, &request.graph);
+    queue_state.state = bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1::Succeeded;
+    queue_state.transitions.push(
+        bijux_dna_runtime::run_layout::RunQueueTransitionV1 {
+            from_state: Some(bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1::Queued),
+            to_state: bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1::Succeeded,
+            occurred_at: bijux_dna_runtime::run_layout::now_string(),
+            detail: Some("dry-run completed without process execution".to_string()),
+        },
+    );
+    let mut control_state = default_control_state(&run_id);
+    control_state.observed_state =
+        bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1::Succeeded;
+    control_state.updated_at = bijux_dna_runtime::run_layout::now_string();
+    let slurm_submission =
+        maybe_mock_slurm_submission(&layout, &run_id, RuntimeKind::Local, &scheduling_decision);
     let checkpoint = RunCheckpointV1 {
         schema_version: "bijux.run_checkpoint.v1".to_string(),
         run_id: run_id.clone(),
@@ -112,8 +139,16 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         },
     ];
     bijux_dna_runtime::run_layout::write_executor_descriptor(&layout, &executor_descriptor)?;
+    bijux_dna_runtime::run_layout::write_backend_descriptor(&layout, &backend_descriptor)?;
+    bijux_dna_runtime::run_layout::write_scheduling_decision(&layout, &scheduling_decision)?;
+    bijux_dna_runtime::run_layout::write_queue_state(&layout, &queue_state)?;
+    bijux_dna_runtime::run_layout::write_lease(&layout, &released_lease)?;
+    bijux_dna_runtime::run_layout::write_control_state(&layout, &control_state)?;
     bijux_dna_runtime::run_layout::write_runtime_policy(&layout, &runtime_policy)?;
     bijux_dna_runtime::run_layout::write_checkpoint(&layout, &checkpoint)?;
+    if let Some(slurm_submission) = slurm_submission.as_ref() {
+        bijux_dna_runtime::run_layout::write_slurm_submission(&layout, slurm_submission)?;
+    }
     bijux_dna_runtime::run_layout::write_run_state(
         &layout,
         &RunStateV1 {
@@ -177,10 +212,47 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
             )?,
             artifact_entry(
                 &layout.run_dir,
+                "backend_descriptor",
+                "bijux.run_backend.v1",
+                &layout.backend_descriptor_path,
+            )?,
+            artifact_entry(
+                &layout.run_dir,
+                "scheduling_decision",
+                "bijux.run_scheduling_decision.v1",
+                &layout.scheduling_decision_path,
+            )?,
+            artifact_entry(
+                &layout.run_dir,
+                "queue_state",
+                "bijux.run_queue_state.v1",
+                &layout.queue_state_path,
+            )?,
+            artifact_entry(
+                &layout.run_dir,
+                "run_lease",
+                "bijux.run_lease.v1",
+                &layout.lease_path,
+            )?,
+            artifact_entry(
+                &layout.run_dir,
+                "run_control",
+                "bijux.run_control.v1",
+                &layout.control_state_path,
+            )?,
+            artifact_entry(
+                &layout.run_dir,
                 "checkpoint",
                 "bijux.run_checkpoint.v1",
                 &layout.checkpoint_path,
             )?,
+            serde_json::json!({
+                "name": "operator_health",
+                "kind": "operator_health",
+                "schema": "bijux.operator_health.v1",
+                "path": summary_artifact::relative_path_string(&layout.run_dir, &layout.health_report_path),
+                "sha256": serde_json::Value::Null,
+            }),
             artifact_entry(
                 &layout.run_dir,
                 "run_summary",
@@ -200,6 +272,26 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     });
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_dna_infra::atomic_write_bytes(&layout.manifest_path, payload.as_slice())?;
+    let health_report = build_health_report(&layout, &run_id, RuntimeKind::Local);
+    bijux_dna_runtime::run_layout::write_health_report(&layout, &health_report)?;
+    summary_artifact::attach_output_artifact(
+        &layout.manifest_path,
+        &request.run_dir,
+        &correlation_id,
+        "operator_health",
+        "bijux.operator_health.v1",
+        &layout.health_report_path,
+    )?;
+    if slurm_submission.is_some() {
+        summary_artifact::attach_output_artifact(
+            &layout.manifest_path,
+            &request.run_dir,
+            &correlation_id,
+            "slurm_submission",
+            "bijux.slurm_submission.v1",
+            &layout.slurm_submission_path,
+        )?;
+    }
 
     let governed = materialize_governed_evidence(
         &layout,
@@ -280,6 +372,12 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         run_state_path: layout.run_state_path,
         runtime_policy_path: layout.runtime_policy_path,
         executor_descriptor_path: layout.executor_descriptor_path,
+        backend_descriptor_path: layout.backend_descriptor_path,
+        scheduling_decision_path: layout.scheduling_decision_path,
+        queue_state_path: layout.queue_state_path,
+        lease_path: layout.lease_path,
+        control_state_path: layout.control_state_path,
+        health_report_path: layout.health_report_path,
         checkpoint_path: layout.checkpoint_path,
         mode: RunExecutionModeV1::DryRun,
         state: RunLifecycleStateV1::Succeeded,
@@ -288,6 +386,7 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         artifact_inventory_path: layout.artifact_inventory_path,
         replay_manifest_path: layout.replay_manifest_path,
         hash_ledger_path: layout.hash_ledger_path,
+        slurm_submission_path: slurm_submission.map(|_| layout.slurm_submission_path),
         correlation_id,
     })
 }

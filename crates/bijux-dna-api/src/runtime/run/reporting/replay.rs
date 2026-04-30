@@ -2,7 +2,8 @@ use super::Result;
 use anyhow::anyhow;
 use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_engine::Engine;
-use bijux_dna_runner::{DockerRunner, LocalRunner};
+use bijux_dna_environment::api::RuntimeKind;
+use bijux_dna_runner::{ApptainerRunner, DockerRunner, LocalRunner};
 use std::path::{Component, Path, PathBuf};
 
 /// Replay or verify a run from a run manifest.
@@ -89,10 +90,11 @@ fn load_runner(base_dir: &Path) -> Result<Box<dyn bijux_dna_runtime::Runner>> {
             Ok(Box::new(LocalRunner::new(None)))
         }
         bijux_dna_runtime::run_layout::ExecutorDescriptorV1::Container { runtime, .. } => {
-            if runtime == "docker" {
-                Ok(Box::new(DockerRunner::new(None)))
-            } else {
-                Err(anyhow!("replay does not support container runtime {runtime}"))
+            match runtime.as_str() {
+                "docker" => Ok(Box::new(DockerRunner::new(None))),
+                "apptainer" => Ok(Box::new(ApptainerRunner::new(RuntimeKind::Apptainer, None))),
+                "singularity" => Ok(Box::new(ApptainerRunner::new(RuntimeKind::Singularity, None))),
+                _ => Err(anyhow!("replay does not support container runtime {runtime}")),
             }
         }
         bijux_dna_runtime::run_layout::ExecutorDescriptorV1::Hpc { scheduler, .. } => {

@@ -51,6 +51,31 @@ pub fn status(run_dir: &Path) -> Result<RunStatus> {
         .executor_descriptor_path
         .exists()
         .then_some(layout.executor_descriptor_path);
+    status.backend_descriptor_path = layout
+        .backend_descriptor_path
+        .exists()
+        .then_some(layout.backend_descriptor_path);
+    status.scheduling_decision_path = layout
+        .scheduling_decision_path
+        .exists()
+        .then_some(layout.scheduling_decision_path);
+    status.queue_state_path = layout
+        .queue_state_path
+        .exists()
+        .then_some(layout.queue_state_path);
+    status.lease_path = layout.lease_path.exists().then_some(layout.lease_path);
+    status.control_state_path = layout
+        .control_state_path
+        .exists()
+        .then_some(layout.control_state_path);
+    status.health_report_path = layout
+        .health_report_path
+        .exists()
+        .then_some(layout.health_report_path);
+    status.slurm_submission_path = layout
+        .slurm_submission_path
+        .exists()
+        .then_some(layout.slurm_submission_path);
     status.checkpoint_path = layout.checkpoint_path.exists().then_some(layout.checkpoint_path);
     status.failure_path = layout.failure_path.exists().then_some(layout.failure_path);
     status.correlation_id = correlation_id;

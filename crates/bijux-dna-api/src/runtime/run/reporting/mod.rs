@@ -6,6 +6,8 @@ mod dry_run;
 mod evidence_support;
 mod execute_run;
 mod lifecycle;
+mod operations;
+mod operator_controls;
 mod plan_response;
 mod planner_manifest_support;
 mod rendering;
@@ -16,6 +18,7 @@ mod workspace_audit;
 
 pub use dry_run::dry_run;
 pub use execute_run::execute;
+pub use operator_controls::{cancel_run, operator_health, pause_run, resume_run};
 pub use plan_response::plan;
 pub use rendering::{execute_and_report, render_report};
 pub use replay::replay_manifest;
