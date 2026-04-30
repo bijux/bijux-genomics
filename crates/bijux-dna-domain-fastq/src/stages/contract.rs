@@ -13,6 +13,6 @@ pub use runtime::{
     normalize_read_names, repair_pairs, interleave_reads, deinterleave_reads,
     concatenate_lanes, demultiplex_reads, subsample_reads, detect_instrument_artifacts,
     detect_adapters, detect_duplicates_premerge, estimate_library_complexity_prealign,
-    DemultiplexRule, LaneInput, SubsampleTarget, trim_reads, validate_reads,
+    extract_umis, DemultiplexRule, LaneInput, SubsampleTarget, trim_reads, validate_reads,
     HeaderInspection, MergeSuitability, NormalizedOutputs,
 };
