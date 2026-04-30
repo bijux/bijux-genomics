@@ -20,6 +20,13 @@ config files. The contracts below are the review checklist for any change to com
 - `ci/registry/tool_registry.toml`
 - `ci/registry/tool_registry_experimental.toml`
 - `ci/registry/tool_registry_vcf.toml`
+- `ci/registry/domain_registry_release_bundle.json`
+- `ci/registry/domain_defaults_snapshot.json`
+- `ci/registry/domain_artifact_contract_snapshots.json`
+- `ci/registry/domain_metric_catalogs.json`
+- `ci/registry/domain_deprecations_snapshot.json`
+- `ci/registry/domain_invariant_catalogs.json`
+- `ci/registry/domain_evidence_contracts.json`
 - `ci/stages/stages.toml`
 - `ci/stages/stages_vcf.toml`
 - `ci/tools/images.toml`
@@ -28,6 +35,10 @@ config files. The contracts below are the review checklist for any change to com
 Generated files must include the compiler header, source hash, schema version, owner, authority,
 purpose, and stable ordering. Active generated configs must not contain unsupported placeholder
 tokens.
+
+`write_domain_registry_bundle` must write only the declared JSON bundle surfaces beneath
+`configs/ci/registry/`. `load_domain_registry_bundle` and `query_domain_registry_bundle` must be
+read-only over an existing release bundle.
 
 ## Scope contracts
 
@@ -40,4 +51,6 @@ tokens.
 
 Validation or compilation must fail for missing required source files, duplicate IDs, invalid
 status values, unknown stage/tool references, incomplete supported provenance, invalid shared-tool
-domain mappings, and unsupported generated output vocabulary.
+domain mappings, deprecated tool replacements that point outside the domain/tool inventory, stage
+schemas that omit governed required fields, inconsistent tool fixture claims, and unsupported
+generated output vocabulary.
