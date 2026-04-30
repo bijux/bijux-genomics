@@ -4,7 +4,8 @@ use bijux_dna_db_ref::public_api::{
     resolve_panel, resolve_panel_lock, resolve_reference_bank, resolve_reference_bundle,
     resolve_reference_bundle_contract, resolve_sex_chromosome_rule, resolve_species_authority,
     resolve_species_context, validate_reference_index_qa, materialize_vcf_panel_assets,
-    validate_imputation_tool_compatibility, CatalogCompatibility, PanelCatalogEntry,
+    resolve_contig_aliases_for_assets, validate_imputation_tool_compatibility,
+    CatalogCompatibility, PanelCatalogEntry,
 };
 
 #[test]
@@ -175,4 +176,18 @@ fn vcf_panel_materialization_contract_reports_materialized_files() {
     )
     .unwrap_or_else(|err| panic!("materialize vcf panel assets: {err}"));
     assert!(!report.materialized_files.is_empty());
+}
+
+#[test]
+fn contig_alias_resolution_contract_normalizes_aliases_for_assets() {
+    let report = resolve_contig_aliases_for_assets(
+        "Canis lupus",
+        "CanFam4",
+        &["chr1".to_string(), "chr2".to_string()],
+        None,
+        None,
+    )
+    .unwrap_or_else(|err| panic!("resolve contig aliases for assets: {err}"));
+    assert_eq!(report.rows.len(), 2);
+    assert_eq!(report.rows[0].normalized, "1");
 }

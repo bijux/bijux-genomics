@@ -7,6 +7,6 @@ pub use reference_assets::{
     ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet, VcfPanelMaterializationReport,
 };
 pub use species::{
-    BuildId, ContigMap, ParRegion, ResolvedSpeciesContext, SexChromosomeRule,
-    SpeciesAuthorityEntry, SupportedFeatures,
+    BuildId, ContigAliasResolutionReport, ContigAliasResolutionRow, ContigMap, ParRegion,
+    ResolvedSpeciesContext, SexChromosomeRule, SpeciesAuthorityEntry, SupportedFeatures,
 };

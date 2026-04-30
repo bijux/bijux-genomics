@@ -54,3 +54,20 @@ pub struct SupportedFeatures {
     pub sex_chr: bool,
     pub imputation: bool,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ContigAliasResolutionRow {
+    pub input: String,
+    pub normalized: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ContigAliasResolutionReport {
+    pub schema_version: String,
+    pub species_id: String,
+    pub build_id: String,
+    pub bundle_id: String,
+    pub rows: Vec<ContigAliasResolutionRow>,
+    pub panel_id: Option<String>,
+    pub map_id: Option<String>,
+}
