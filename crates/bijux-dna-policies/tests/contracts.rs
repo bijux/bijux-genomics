@@ -106,6 +106,8 @@ mod mod_contracts_tooling_domain_catalog_symmetry_policy_rs;
 mod mod_contracts_tooling_domain_truth_fixture_policy_rs;
 #[path = "contracts/tooling/governance_core/error_boundary_policy.rs"]
 mod mod_contracts_tooling_error_boundary_policy_rs;
+#[path = "contracts/tooling/governance_core/genomics_pr_template_policy.rs"]
+mod mod_contracts_tooling_genomics_pr_template_policy_rs;
 #[path = "contracts/tooling/governance_examples/examples_cli_command_policy.rs"]
 mod mod_contracts_tooling_examples_cli_command_policy_rs;
 #[path = "contracts/tooling/governance_examples/examples_golden_hygiene_policy.rs"]
