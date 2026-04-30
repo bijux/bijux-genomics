@@ -4,6 +4,51 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "capabilities": {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.extract_umis",
+        "fastq.remove_duplicates",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "umi_pattern_assumptions",
+        "deduplication_bias"
+      ],
+      "story_order": [
+        "read_admission",
+        "umi_provenance",
+        "dedup_effect",
+        "qc_summary"
+      ]
+    },
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
     "input_artifacts": [
       "FastqReads"
     ],
@@ -17,6 +62,24 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "output_domains": [
       "Fastq"
     ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.extract_umis": [
+          "pattern",
+          "allow_partial"
+        ],
+        "fastq.remove_duplicates": [
+          "method",
+          "umi_edit_distance"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "fastq.extract_umis": [
+          "barcode_slot_order"
+        ]
+      }
+    },
     "produces_outputs": [
       "fastq",
       "fastq.metrics"
@@ -55,7 +118,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.filter_reads"
     ],
     "supports_benchmarks": true,
-    "supports_sample_sheet": false
+    "supports_sample_sheet": false,
+    "workflow_template_ids": [
+      "fastq.umi_aware_preprocessing"
+    ]
   },
   "defaults": {
     "params": {
