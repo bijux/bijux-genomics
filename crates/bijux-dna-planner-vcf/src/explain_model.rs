@@ -1,8 +1,11 @@
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 use bijux_dna_domain_vcf::{
     contracts::{
-        VcfArtifactClass, VcfCallingModeContract, VcfPanelBoundaryContract,
-        VcfPopulationGuardrailContract,
+        VcfArtifactClass, VcfCallingModeContract, VcfCohortAnalysisBoundaryContract,
+        VcfCohortValidationContract, VcfDamageFilterContract, VcfLikelihoodWorkflowContract,
+        VcfNormalizationPolicyMatrixContract, VcfPanelBoundaryContract,
+        VcfPhasingImputationBoundaryContract, VcfPopulationGuardrailContract,
+        VcfProductionCorpusContract, VcfReportCoverageContract, VcfScientificDriftContract,
     },
 };
 use serde::Serialize;
@@ -38,8 +41,17 @@ pub struct PlannerExplainV1 {
     pub damage_aware_policy: serde_json::Value,
     pub reference_context: ReferenceContextReport,
     pub selected_panel: Option<VcfPanelLock>,
+    pub normalization_policy_matrix: VcfNormalizationPolicyMatrixContract,
+    pub cohort_validation_contract: VcfCohortValidationContract,
+    pub likelihood_workflow_contracts: Vec<VcfLikelihoodWorkflowContract>,
     pub panel_boundary_contracts: Vec<VcfPanelBoundaryContract>,
+    pub phasing_imputation_boundary_contracts: Vec<VcfPhasingImputationBoundaryContract>,
+    pub damage_filter_contract: VcfDamageFilterContract,
     pub population_guardrail_contracts: Vec<VcfPopulationGuardrailContract>,
+    pub cohort_analysis_boundary_contracts: Vec<VcfCohortAnalysisBoundaryContract>,
+    pub report_coverage_contract: VcfReportCoverageContract,
+    pub production_corpus_contract: VcfProductionCorpusContract,
+    pub scientific_drift_contract: VcfScientificDriftContract,
     pub decision_traces: Vec<serde_json::Value>,
     pub stages: Vec<PlannerExplainStage>,
 }
