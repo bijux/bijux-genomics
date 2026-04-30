@@ -32,6 +32,101 @@ pub enum EvidenceBundleProfileV1 {
     Operational,
     Certification,
     Publication,
+    PublicationStrict,
+    CollaboratorRedacted,
+    ArchiveRetention,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum EvidenceCitationTypeV1 {
+    Tool,
+    Reference,
+    Defaults,
+    Method,
+    Other,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvidenceCitationV1 {
+    pub citation_id: String,
+    pub citation: String,
+    pub citation_type: EvidenceCitationTypeV1,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tool_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvidenceMethodsToolV1 {
+    pub stage_id: String,
+    pub tool_id: String,
+    pub tool_version: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub image_digest: Option<String>,
+    pub params_hash: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvidenceMethodsSummaryV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub correlation_id: String,
+    pub stage_count: usize,
+    #[serde(default)]
+    pub tools: Vec<EvidenceMethodsToolV1>,
+    #[serde(default)]
+    pub assumptions: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+    pub citation_count: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvidenceBundleFileDigestV1 {
+    pub path: String,
+    pub sha256: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvidenceArchiveMigrationV1 {
+    pub manifest_schema_version: String,
+    pub evidence_schema_version: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub artifact_inventory_schema_version: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hash_ledger_schema_version: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvidenceProfileBundleV1 {
+    pub schema_version: String,
+    pub profile: EvidenceBundleProfileV1,
+    pub generated_at: String,
+    pub run_id: String,
+    pub correlation_id: String,
+    pub evidence_bundle: EvidenceBundleV1,
+    pub evidence_verification: EvidenceVerificationV1,
+    pub profile_validation: EvidenceProfileValidationV1,
+    #[serde(default)]
+    pub required_files: Vec<EvidenceBundleFileDigestV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub signature_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub archive_migration: Option<EvidenceArchiveMigrationV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EvidenceProfileBundleVerificationV1 {
+    pub schema_version: String,
+    pub verified: bool,
+    #[serde(default)]
+    pub missing_paths: Vec<String>,
+    #[serde(default)]
+    pub hash_mismatches: Vec<String>,
+    pub evidence_verified: bool,
+    pub profile_valid: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -175,6 +270,10 @@ pub struct EvidenceBundleV1 {
     pub timeline: Vec<EvidenceTimelineEventV1>,
     pub artifacts: Vec<EvidenceArtifactV1>,
     pub provenance_graph: EvidenceProvenanceGraphV1,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub citations: Vec<EvidenceCitationV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub methods_summary: Option<EvidenceMethodsSummaryV1>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -287,6 +386,16 @@ pub fn build_evidence_bundle(base_dir: &Path, facts_path: Option<&Path>) -> Resu
     let health = build_health(base_dir, &inputs, manifest.as_ref(), report.as_ref(), summary.as_ref(), facts.as_deref(), &artifacts);
     let metrics = build_metrics(&timeline, report.as_ref(), summary.as_ref(), facts.as_deref(), &health);
     let compact_summary = build_compact_summary(summary.as_ref(), manifest.as_ref(), facts.as_deref(), &artifacts, &health);
+    let citations = build_citations(report.as_ref(), summary.as_ref());
+    let methods_summary = Some(build_methods_summary(
+        &run_id,
+        &correlation_id,
+        summary.as_ref(),
+        facts.as_deref(),
+        report.as_ref(),
+        &health,
+        &citations,
+    ));
 
     Ok(EvidenceBundleV1 {
         schema_version: "bijux.evidence_bundle.v1".to_string(),
@@ -324,6 +433,8 @@ pub fn build_evidence_bundle(base_dir: &Path, facts_path: Option<&Path>) -> Resu
         timeline,
         artifacts,
         provenance_graph,
+        citations,
+        methods_summary,
     })
 }
 
@@ -336,6 +447,21 @@ pub fn write_evidence_bundle_json(base_dir: &Path, facts_path: Option<&Path>) ->
     let path = base_dir.join("evidence_bundle.json");
     bijux_dna_infra::atomic_write_json(&path, &bundle)
         .with_context(|| format!("write evidence bundle {}", path.display()))?;
+    Ok(path)
+}
+
+/// Write a deterministic methods-summary JSON generated from evidence inputs.
+///
+/// # Errors
+/// Returns an error if evidence construction or writing fails.
+pub fn write_methods_summary_json(base_dir: &Path, facts_path: Option<&Path>) -> Result<PathBuf> {
+    let bundle = build_evidence_bundle(base_dir, facts_path)?;
+    let Some(summary) = bundle.methods_summary else {
+        return Err(anyhow!("methods summary generation failed"));
+    };
+    let path = base_dir.join("methods_summary.json");
+    bijux_dna_infra::atomic_write_json(&path, &summary)
+        .with_context(|| format!("write methods summary {}", path.display()))?;
     Ok(path)
 }
 
@@ -1231,6 +1357,157 @@ fn load_telemetry_events(paths: &[PathBuf]) -> Result<Vec<TelemetryEventV1>> {
     Ok(events)
 }
 
+fn build_methods_summary(
+    run_id: &str,
+    correlation_id: &str,
+    summary: Option<&crate::model::RunSummaryV1>,
+    facts: Option<&[FactsRowV1]>,
+    report: Option<&serde_json::Value>,
+    health: &EvidenceHealthV1,
+    citations: &[EvidenceCitationV1],
+) -> EvidenceMethodsSummaryV1 {
+    let mut tools: BTreeMap<(String, String), EvidenceMethodsToolV1> = BTreeMap::new();
+    if let Some(summary) = summary {
+        for row in &summary.stage_rows {
+            let key = (row.stage_id.clone(), row.tool_id.clone());
+            tools.entry(key).or_insert_with(|| EvidenceMethodsToolV1 {
+                stage_id: row.stage_id.clone(),
+                tool_id: row.tool_id.clone(),
+                tool_version: row.tool_version.clone(),
+                image_digest: row.image_digest.clone(),
+                params_hash: row.params_hash.clone(),
+            });
+        }
+    }
+    if let Some(facts) = facts {
+        for row in facts {
+            let key = (row.stage_id.clone(), row.tool_id.clone());
+            tools.entry(key).or_insert_with(|| EvidenceMethodsToolV1 {
+                stage_id: row.stage_id.clone(),
+                tool_id: row.tool_id.clone(),
+                tool_version: row.tool_version.clone(),
+                image_digest: row.image_digest.clone(),
+                params_hash: row.params_hash.clone(),
+            });
+        }
+    }
+
+    let assumptions = report
+        .and_then(|value| value.get("sections"))
+        .and_then(|value| value.get("method_assumptions"))
+        .and_then(|value| value.get("assumptions"))
+        .and_then(serde_json::Value::as_array)
+        .map_or_else(Vec::new, |rows| {
+            rows.iter()
+                .filter_map(serde_json::Value::as_str)
+                .map(str::to_string)
+                .collect::<Vec<_>>()
+        });
+    let caveats = health.gaps.iter().map(|gap| gap.message.clone()).collect::<Vec<_>>();
+    EvidenceMethodsSummaryV1 {
+        schema_version: "bijux.methods_summary.v1".to_string(),
+        run_id: run_id.to_string(),
+        correlation_id: correlation_id.to_string(),
+        stage_count: tools.len(),
+        tools: tools.into_values().collect(),
+        assumptions,
+        caveats,
+        citation_count: citations.len(),
+    }
+}
+
+fn build_citations(
+    report: Option<&serde_json::Value>,
+    summary: Option<&crate::model::RunSummaryV1>,
+) -> Vec<EvidenceCitationV1> {
+    let mut citations = Vec::new();
+    let mut seen = BTreeSet::new();
+    let stage_tools = summary
+        .map(|value| {
+            value
+                .stage_rows
+                .iter()
+                .map(|row| (row.stage_id.clone(), row.tool_id.clone()))
+                .collect::<BTreeMap<_, _>>()
+        })
+        .unwrap_or_default();
+
+    let Some(report) = report else {
+        return citations;
+    };
+    if let Some(tool_provenance) = report
+        .get("sections")
+        .and_then(|value| value.get("pipeline_defaults"))
+        .and_then(|value| value.get("defaults_ledger"))
+        .and_then(|value| value.get("tool_provenance"))
+        .and_then(serde_json::Value::as_object)
+    {
+        for (stage_id, payload) in tool_provenance {
+            if let Some(rows) = payload.get("citations").and_then(serde_json::Value::as_array) {
+                for citation in rows.iter().filter_map(serde_json::Value::as_str) {
+                    let key = format!("defaults:{stage_id}:{citation}");
+                    if !seen.insert(key.clone()) {
+                        continue;
+                    }
+                    citations.push(EvidenceCitationV1 {
+                        citation_id: key,
+                        citation: citation.to_string(),
+                        citation_type: EvidenceCitationTypeV1::Defaults,
+                        stage_id: Some(stage_id.clone()),
+                        tool_id: stage_tools.get(stage_id).cloned(),
+                    });
+                }
+            }
+        }
+    }
+    if let Some(global) = report
+        .get("sections")
+        .and_then(|value| value.get("pipeline_defaults"))
+        .and_then(|value| value.get("defaults_ledger"))
+        .and_then(|value| value.get("citations"))
+        .and_then(serde_json::Value::as_object)
+    {
+        for (key, value) in global {
+            let entries = match value {
+                serde_json::Value::String(single) => vec![single.to_string()],
+                serde_json::Value::Array(rows) => rows
+                    .iter()
+                    .filter_map(serde_json::Value::as_str)
+                    .map(str::to_string)
+                    .collect::<Vec<_>>(),
+                _ => Vec::new(),
+            };
+            for citation in entries {
+                let citation_id = format!("global:{key}:{citation}");
+                if !seen.insert(citation_id.clone()) {
+                    continue;
+                }
+                citations.push(EvidenceCitationV1 {
+                    citation_id,
+                    citation,
+                    citation_type: EvidenceCitationTypeV1::Reference,
+                    stage_id: None,
+                    tool_id: None,
+                });
+            }
+        }
+    }
+
+    citations.sort_by(|left, right| {
+        (
+            left.stage_id.as_deref().unwrap_or(""),
+            left.tool_id.as_deref().unwrap_or(""),
+            left.citation.as_str(),
+        )
+            .cmp(&(
+                right.stage_id.as_deref().unwrap_or(""),
+                right.tool_id.as_deref().unwrap_or(""),
+                right.citation.as_str(),
+            ))
+    });
+    citations
+}
+
 fn verify_artifact_inventory_contract(path: &Path) -> (bool, String) {
     let Ok((inventory, audit)) = bijux_dna_runtime::run_layout::read_supported_artifact_inventory(path) else {
         return (false, format!("artifact inventory missing at {}", path.display()));
@@ -1291,6 +1568,34 @@ fn profile_requirements(
             ("hash_ledger_path", bundle.sources.hash_ledger_path.as_deref()),
             ("evidence_verification_path", bundle.sources.evidence_verification_path.as_deref()),
         ],
+        EvidenceBundleProfileV1::PublicationStrict => vec![
+            ("manifest_path", bundle.sources.manifest_path.as_deref()),
+            ("plan_manifest_path", bundle.sources.plan_manifest_path.as_deref()),
+            ("report_path", bundle.sources.report_path.as_deref()),
+            ("run_summary_path", bundle.sources.run_summary_path.as_deref()),
+            ("facts_path", bundle.sources.facts_path.as_deref()),
+            ("artifact_inventory_path", bundle.sources.artifact_inventory_path.as_deref()),
+            ("hash_ledger_path", bundle.sources.hash_ledger_path.as_deref()),
+            ("evidence_verification_path", bundle.sources.evidence_verification_path.as_deref()),
+        ],
+        EvidenceBundleProfileV1::CollaboratorRedacted => vec![
+            ("manifest_path", bundle.sources.manifest_path.as_deref()),
+            ("report_path", bundle.sources.report_path.as_deref()),
+            ("run_summary_path", bundle.sources.run_summary_path.as_deref()),
+            ("artifact_inventory_path", bundle.sources.artifact_inventory_path.as_deref()),
+            ("hash_ledger_path", bundle.sources.hash_ledger_path.as_deref()),
+        ],
+        EvidenceBundleProfileV1::ArchiveRetention => vec![
+            ("manifest_path", bundle.sources.manifest_path.as_deref()),
+            ("plan_manifest_path", bundle.sources.plan_manifest_path.as_deref()),
+            ("report_path", bundle.sources.report_path.as_deref()),
+            ("run_summary_path", bundle.sources.run_summary_path.as_deref()),
+            ("facts_path", bundle.sources.facts_path.as_deref()),
+            ("artifact_inventory_path", bundle.sources.artifact_inventory_path.as_deref()),
+            ("replay_manifest_path", bundle.sources.replay_manifest_path.as_deref()),
+            ("hash_ledger_path", bundle.sources.hash_ledger_path.as_deref()),
+            ("evidence_verification_path", bundle.sources.evidence_verification_path.as_deref()),
+        ],
     };
     required_paths
         .into_iter()
@@ -1315,6 +1620,33 @@ fn profile_requirements(
                 format!("telemetry paths are present for {:?} evidence bundles", profile)
             },
         )))
+        .chain(matches!(profile, EvidenceBundleProfileV1::PublicationStrict).then_some((
+            "strict_publication_methods_summary_required".to_string(),
+            bundle.methods_summary.is_some(),
+            if bundle.methods_summary.is_some() {
+                "methods summary present for strict publication bundle".to_string()
+            } else {
+                "methods summary is required for strict publication bundle".to_string()
+            },
+        )))
+        .chain(matches!(profile, EvidenceBundleProfileV1::PublicationStrict).then_some((
+            "strict_publication_citations_required".to_string(),
+            !bundle.citations.is_empty(),
+            if bundle.citations.is_empty() {
+                "citations are required for strict publication bundle".to_string()
+            } else {
+                "citations present for strict publication bundle".to_string()
+            },
+        )))
+        .chain(matches!(profile, EvidenceBundleProfileV1::PublicationStrict).then_some((
+            "strict_publication_no_gaps".to_string(),
+            bundle.health.gaps.is_empty(),
+            if bundle.health.gaps.is_empty() {
+                "strict publication bundle has no evidence gaps".to_string()
+            } else {
+                "strict publication bundle must not contain evidence gaps".to_string()
+            },
+        )))
         .collect()
 }
 
@@ -1326,7 +1658,11 @@ fn tolerated_gap_codes(profile: EvidenceBundleProfileV1) -> Vec<String> {
             "missing_run_summary".to_string(),
         ],
         EvidenceBundleProfileV1::Operational => vec!["missing_hash_ledger".to_string()],
-        EvidenceBundleProfileV1::Certification | EvidenceBundleProfileV1::Publication => Vec::new(),
+        EvidenceBundleProfileV1::Certification
+        | EvidenceBundleProfileV1::Publication
+        | EvidenceBundleProfileV1::PublicationStrict
+        | EvidenceBundleProfileV1::CollaboratorRedacted
+        | EvidenceBundleProfileV1::ArchiveRetention => Vec::new(),
     }
 }
 

@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use bijux_dna_analyze::exports::{
     build_evidence_bundle, compare_evidence_bundles, validate_evidence_bundle_profile,
     verify_evidence_bundle, summarize_facts, write_evidence_bundle_json, write_run_summary_json,
-    write_stage_summary_csv, EvidenceBundleProfileV1,
+    write_methods_summary_json, write_stage_summary_csv, EvidenceBundleProfileV1,
 };
 use bijux_dna_analyze::load::load_facts;
 
@@ -365,6 +365,11 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
     assert!(bundle.timeline.iter().any(|event| event.event == "cache_key_declared"));
     assert!(bundle.timeline.iter().any(|event| event.event == "artifact_written" || event.event == "stage_start"));
     assert!(bundle.health.gaps.is_empty(), "unexpected gaps: {:?}", bundle.health.gaps);
+    assert!(bundle.methods_summary.as_ref().is_some_and(|summary| summary.stage_count >= 1));
+    assert_eq!(
+        bundle.methods_summary.as_ref().map(|summary| summary.citation_count),
+        Some(bundle.citations.len())
+    );
     assert!(bundle
         .provenance_graph
         .nodes
@@ -378,6 +383,12 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
     assert!(operational.ok, "operational profile failed: {:?}", operational.checks);
     let publication = validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Publication);
     assert!(publication.ok, "publication profile failed: {:?}", publication.checks);
+
+    let methods_summary_path = write_methods_summary_json(dir.path(), Some(&facts_path))?;
+    let methods_summary: serde_json::Value =
+        serde_json::from_str(&std::fs::read_to_string(&methods_summary_path)?)?;
+    assert_eq!(methods_summary["schema_version"], "bijux.methods_summary.v1");
+    assert!(methods_summary["stage_count"].as_u64().is_some_and(|count| count >= 1));
     Ok(())
 }
 
@@ -492,6 +503,8 @@ fn draft_profile_tolerates_missing_publication_material() {
             nodes: Vec::new(),
             edges: Vec::new(),
         },
+        citations: Vec::new(),
+        methods_summary: None,
     };
 
     let draft = validate_evidence_bundle_profile(&bundle, EvidenceBundleProfileV1::Draft);
