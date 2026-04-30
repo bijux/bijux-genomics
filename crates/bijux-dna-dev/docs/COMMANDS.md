@@ -408,6 +408,7 @@ image-qa
 inventory
 lint-fast
 make-help
+operator-workflow-maturity
 reference-external-data
 repo-doctor
 scientific-caveat-propagation
