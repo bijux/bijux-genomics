@@ -2,8 +2,10 @@ use std::path::PathBuf;
 
 use bijux_dna_runtime::run_layout::{
     apptainer_smoke_workflow_plan, create_run_layout, docker_smoke_workflow_plan,
-    executor_descriptor_from_hpc_profile, lunarc_execution_profile, transition_slurm_submission,
-    RunExecutionModeV1, SlurmJobStateV1, SlurmSubmissionRecordV1,
+    evaluate_fallback_safety, executor_descriptor_from_hpc_profile, lunarc_execution_profile,
+    negotiate_executor_capabilities, transition_slurm_submission, ExecutorCapabilitiesV1,
+    FallbackSafetyRequestV1, RunExecutionModeV1, SlurmJobStateV1, SlurmSubmissionRecordV1,
+    StageExecutionRequirementV1,
 };
 
 #[test]
@@ -150,4 +152,67 @@ fn lunarc_profile_uses_site_isolated_configuration_and_hpc_descriptor_shape() {
         }
         _ => panic!("lunarc profile must resolve to an HPC executor descriptor"),
     }
+}
+
+#[test]
+fn executor_capability_negotiation_marks_stage_runnable_only_when_contracts_match() {
+    let requirement = StageExecutionRequirementV1 {
+        stage_id: "fastq.trim_reads".to_string(),
+        requires_local_runtime: false,
+        required_container_runtime: Some("docker".to_string()),
+        required_scheduler: None,
+        required_evidence_topics: vec!["tool_provenance".to_string(), "runtime_logs".to_string()],
+    };
+    let available = ExecutorCapabilitiesV1 {
+        runner: "docker".to_string(),
+        supports_local_runtime: true,
+        container_runtimes: vec!["docker".to_string()],
+        schedulers: vec![],
+        evidence_topics: vec!["tool_provenance".to_string()],
+    };
+    let decision = negotiate_executor_capabilities(&requirement, &available);
+    assert!(decision.admitted, "runtime capability should be admitted");
+    assert!(
+        decision.warnings.iter().any(|item| item.contains("runtime_logs")),
+        "missing evidence topics should appear as warnings",
+    );
+
+    let unavailable = ExecutorCapabilitiesV1 {
+        runner: "local".to_string(),
+        supports_local_runtime: true,
+        container_runtimes: vec![],
+        schedulers: vec![],
+        evidence_topics: vec![],
+    };
+    let denied = negotiate_executor_capabilities(&requirement, &unavailable);
+    assert!(!denied.admitted);
+    assert!(denied.refusal_codes.iter().any(|item| item == "missing_container_runtime"));
+}
+
+#[test]
+fn fallback_safety_rejects_non_equivalent_outputs_or_missing_evidence_obligations() {
+    let unsafe_request = FallbackSafetyRequestV1 {
+        primary_runner: "docker".to_string(),
+        fallback_runner: "apptainer".to_string(),
+        output_contract_hash: "sha256:abc".to_string(),
+        fallback_output_contract_hash: "sha256:def".to_string(),
+        evidence_obligations: vec!["tool_provenance".to_string(), "runtime_logs".to_string()],
+        fallback_evidence_topics: vec!["tool_provenance".to_string()],
+    };
+    let denied = evaluate_fallback_safety(&unsafe_request);
+    assert!(!denied.safe);
+    assert!(denied.refusal_codes.iter().any(|item| item == "fallback_output_contract_mismatch"));
+    assert!(denied.refusal_codes.iter().any(|item| item == "fallback_evidence_obligation_gap"));
+
+    let safe_request = FallbackSafetyRequestV1 {
+        primary_runner: "docker".to_string(),
+        fallback_runner: "docker".to_string(),
+        output_contract_hash: "sha256:abc".to_string(),
+        fallback_output_contract_hash: "sha256:abc".to_string(),
+        evidence_obligations: vec!["tool_provenance".to_string()],
+        fallback_evidence_topics: vec!["tool_provenance".to_string(), "runtime_logs".to_string()],
+    };
+    let accepted = evaluate_fallback_safety(&safe_request);
+    assert!(accepted.safe);
+    assert!(accepted.refusal_codes.is_empty());
 }

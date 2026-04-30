@@ -349,6 +349,124 @@ pub struct RunResourceRequestV1 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StageExecutionRequirementV1 {
+    pub stage_id: String,
+    pub requires_local_runtime: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub required_container_runtime: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub required_scheduler: Option<String>,
+    #[serde(default)]
+    pub required_evidence_topics: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutorCapabilitiesV1 {
+    pub runner: String,
+    pub supports_local_runtime: bool,
+    #[serde(default)]
+    pub container_runtimes: Vec<String>,
+    #[serde(default)]
+    pub schedulers: Vec<String>,
+    #[serde(default)]
+    pub evidence_topics: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ExecutorCapabilityDecisionV1 {
+    pub admitted: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub refusal_codes: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub warnings: Vec<String>,
+}
+
+#[must_use]
+pub fn negotiate_executor_capabilities(
+    requirement: &StageExecutionRequirementV1,
+    capabilities: &ExecutorCapabilitiesV1,
+) -> ExecutorCapabilityDecisionV1 {
+    let mut refusal_codes = Vec::new();
+    let mut warnings = Vec::new();
+
+    if requirement.requires_local_runtime && !capabilities.supports_local_runtime {
+        refusal_codes.push("missing_local_runtime".to_string());
+    }
+    if let Some(required_runtime) = &requirement.required_container_runtime {
+        if !capabilities.container_runtimes.iter().any(|runtime| runtime == required_runtime) {
+            refusal_codes.push("missing_container_runtime".to_string());
+        }
+    }
+    if let Some(required_scheduler) = &requirement.required_scheduler {
+        if !capabilities.schedulers.iter().any(|scheduler| scheduler == required_scheduler) {
+            refusal_codes.push("missing_scheduler".to_string());
+        }
+    }
+
+    for topic in &requirement.required_evidence_topics {
+        if !capabilities.evidence_topics.iter().any(|item| item == topic) {
+            warnings.push(format!("missing_evidence_topic:{topic}"));
+        }
+    }
+
+    ExecutorCapabilityDecisionV1 { admitted: refusal_codes.is_empty(), refusal_codes, warnings }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FallbackSafetyRequestV1 {
+    pub primary_runner: String,
+    pub fallback_runner: String,
+    pub output_contract_hash: String,
+    pub fallback_output_contract_hash: String,
+    #[serde(default)]
+    pub evidence_obligations: Vec<String>,
+    #[serde(default)]
+    pub fallback_evidence_topics: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FallbackSafetyDecisionV1 {
+    pub safe: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub refusal_codes: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub notes: Vec<String>,
+}
+
+#[must_use]
+pub fn evaluate_fallback_safety(request: &FallbackSafetyRequestV1) -> FallbackSafetyDecisionV1 {
+    let mut refusal_codes = Vec::new();
+    let mut notes = Vec::new();
+
+    if request.output_contract_hash != request.fallback_output_contract_hash {
+        refusal_codes.push("fallback_output_contract_mismatch".to_string());
+    }
+
+    let missing_topics = request
+        .evidence_obligations
+        .iter()
+        .filter(|required| !request.fallback_evidence_topics.iter().any(|topic| topic == *required))
+        .map(|missing| missing.to_string())
+        .collect::<Vec<_>>();
+    if !missing_topics.is_empty() {
+        refusal_codes.push("fallback_evidence_obligation_gap".to_string());
+        notes.push(format!(
+            "fallback runner {} misses evidence topics: {}",
+            request.fallback_runner,
+            missing_topics.join(",")
+        ));
+    }
+    if refusal_codes.is_empty() {
+        notes.push(format!(
+            "fallback from {} to {} preserves output and evidence obligations",
+            request.primary_runner, request.fallback_runner
+        ));
+    }
+
+    FallbackSafetyDecisionV1 { safe: refusal_codes.is_empty(), refusal_codes, notes }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunSchedulingDecisionV1 {
     pub schema_version: String,
     pub run_id: String,
