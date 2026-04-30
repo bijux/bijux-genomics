@@ -118,3 +118,12 @@ pub struct ReferenceBundleResolverReport {
     pub map_bank_id: Option<String>,
     pub compatibility_checked_tool: Option<String>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ReferenceIndexQaReport {
+    pub schema_version: String,
+    pub species_id: String,
+    pub build_id: String,
+    pub materialization_root: PathBuf,
+    pub verified_artifacts: Vec<String>,
+}

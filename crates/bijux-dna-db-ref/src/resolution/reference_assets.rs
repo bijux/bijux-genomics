@@ -10,7 +10,7 @@ use crate::runtime_config::{
 use crate::{
     BundleEntry, ContigNormalizationPolicy, GeneticMapBankEntry, MaterializedIndexArtifact,
     OrganellarPolicy, ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport,
-    ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
+    ReferenceIndexQaReport, ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
 };
 
 /// # Errors
@@ -272,6 +272,53 @@ pub fn resolve_reference_bundle_contract(
     })
 }
 
+/// # Errors
+/// Returns an error if tiny reference index fixtures cannot be materialized or verified.
+pub fn validate_reference_index_qa(
+    species: &str,
+    build: &str,
+    materialization_root: &Path,
+) -> Result<ReferenceIndexQaReport> {
+    let report = materialize_reference_bank(species, build, materialization_root, true, true)?;
+    let normalized = report.materialization_root.join("normalized");
+    let derived = report.materialization_root.join("derived");
+    std::fs::create_dir_all(&derived).with_context(|| format!("create {}", derived.display()))?;
+
+    let vcf = derived.join("tiny_variants.vcf.gz");
+    let tbi = derived.join("tiny_variants.vcf.gz.tbi");
+    std::fs::write(
+        &vcf,
+        b"##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n1\t1\t.\tA\tG\t.\tPASS\t.\n",
+    )
+    .with_context(|| format!("write {}", vcf.display()))?;
+    std::fs::write(&tbi, b"synthetic-tabix-index\n")
+        .with_context(|| format!("write {}", tbi.display()))?;
+
+    let expected_paths = [
+        normalized.join("reference.fa.fai"),
+        normalized.join("reference.fa.bwt"),
+        normalized.join("reference.fa.1.bt2"),
+        normalized.join("reference.dict"),
+        vcf,
+        tbi,
+    ];
+    let mut verified = Vec::new();
+    for path in expected_paths {
+        if !path.is_file() {
+            bail!("index QA missing required artifact {}", path.display());
+        }
+        verified.push(path.display().to_string());
+    }
+
+    Ok(ReferenceIndexQaReport {
+        schema_version: "bijux.reference_index_qa.v1".to_string(),
+        species_id: species.to_string(),
+        build_id: build.to_string(),
+        materialization_root: report.materialization_root,
+        verified_artifacts: verified,
+    })
+}
+
 pub(crate) fn resolve_bundle_entry(species: &str, build: &str) -> Result<BundleEntry> {
     let path = workspace_root().join("configs/runtime/reference_bundles.toml");
     let cfg: BundlesConfig = load_toml(&path)?;
@@ -341,7 +388,7 @@ fn write_index_artifact(
 mod tests {
     use super::{
         materialize_reference_bank, resolve_reference_bundle_contract, validate_bundle_contigs,
-        validate_bundle_digests,
+        validate_bundle_digests, validate_reference_index_qa,
     };
     use crate::runtime_config::{BundleEntry, ContigEntry, SupportedFeatureEntry};
     use std::collections::BTreeMap;
@@ -488,6 +535,16 @@ mod tests {
         };
 
         assert!(error.to_string().contains("requires a resolved panel"));
+    }
+
+    #[test]
+    fn reference_index_qa_materializes_and_verifies_expected_indexes() {
+        let temp = make_temp_dir("reference-index-qa");
+        let report = validate_reference_index_qa("Homo sapiens", "GRCh38", &temp)
+            .unwrap_or_else(|error| panic!("validate reference index qa: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.reference_index_qa.v1");
+        assert_eq!(report.verified_artifacts.len(), 6);
     }
 
     fn make_temp_dir(label: &str) -> PathBuf {

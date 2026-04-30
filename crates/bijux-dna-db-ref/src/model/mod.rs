@@ -3,7 +3,7 @@ mod species;
 
 pub use reference_assets::{
     ContigNormalizationPolicy, GeneticMapBankEntry, MaterializedIndexArtifact, OrganellarPolicy,
-    ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport,
+    ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport, ReferenceIndexQaReport,
     ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
 };
 pub use species::{
