@@ -9,8 +9,9 @@ mod runtime_support;
 mod stage_assets;
 
 pub use entrypoints::{
-    dry_run, execute, execute_and_report, execute_run, plan, plan_only, policy_audit,
-    replay_manifest, run_fastq_to_bam_profile, run_pipeline, status, RunMode,
+    cancel_run, dry_run, execute, execute_and_report, execute_run, operator_health, pause_run,
+    plan, plan_only, policy_audit, replay_manifest, resume_run, run_fastq_to_bam_profile,
+    run_pipeline, status, RunMode,
 };
 pub use operator_failure::{
     classify_operator_failure, CategorizedError, ErrorCategory, ErrorHintV1, HintSeverity,
@@ -18,7 +19,8 @@ pub use operator_failure::{
 };
 pub use request_contracts::{
     DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, ExecuteRunRequest,
-    ExecuteRunResult, PlanRequest, PlanResponse, RunRequest, RunResult, RunStatus,
+    ExecuteRunResult, OperatorHealthResponse, PlanRequest, PlanResponse, RunControlResponse,
+    RunRequest, RunResult, RunStatus,
 };
 pub use runtime_support::{
     atomic_write_bytes, build_tool_execution_spec, ensure_dir, execution_step_from_stage_plan,

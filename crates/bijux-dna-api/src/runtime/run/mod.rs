@@ -23,8 +23,13 @@ use planning::{
 };
 
 pub use execution::execute_run;
-pub use planning::{plan_only, plan_run, run_pipeline, select_pipeline, select_pipelines, RunMode};
+pub use planning::{
+    explain_pipeline_profile, plan_only, plan_run, run_pipeline, select_pipeline,
+    select_pipelines, stage_external_asset_requirement, stage_requires_local_assets,
+    validate_pipeline_profile, RunMode, StageAssetClass, StageExternalAssetRequirement,
+};
 pub use reporting::{
-    dry_run, execute, execute_and_report, plan, policy_audit, render_report, replay_manifest,
-    status, workspace_edges, write_workspace_audit,
+    cancel_run, dry_run, execute, execute_and_report, operator_health, pause_run, plan,
+    policy_audit, render_report, replay_manifest, resume_run, status, workspace_edges,
+    write_workspace_audit,
 };

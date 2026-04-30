@@ -1,13 +1,13 @@
 //! Public front door for the Bijux API.
 
 pub use crate::runtime::run::{
-    dry_run, execute, execute_and_report, plan, policy_audit, render_report, status,
-    workspace_edges, write_workspace_audit,
+    cancel_run, dry_run, execute, execute_and_report, operator_health, pause_run, plan,
+    policy_audit, render_report, resume_run, status, workspace_edges, write_workspace_audit,
 };
 pub use crate::surface::explain::{ExplainResponse, ExplainToolSelection, PlanExplainV1};
 pub use crate::surface::request_contracts::{
     DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, PlanRequest, PlanResponse,
-    RenderReportRequest, RenderReportResult, RunStatus,
+    OperatorHealthResponse, RenderReportRequest, RenderReportResult, RunControlResponse, RunStatus,
 };
 pub use crate::surface::versioning::{route_version_inventory, ApiRouteVersionInventoryV1};
 pub use crate::v1::report::render_report_bundle_html;
