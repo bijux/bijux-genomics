@@ -1,4 +1,4 @@
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
@@ -1001,6 +1001,38 @@ fn write_tiny_sam_document(
     Ok(())
 }
 
+fn write_tiny_sam_from_document(
+    output_bam: &Path,
+    document: &TinySamDocument,
+    sort_order: &str,
+) -> Result<()> {
+    let mut payload = String::new();
+    payload.push_str(&format!("@HD\tVN:1.6\tSO:{sort_order}\n"));
+    for reference in &document.references {
+        payload.push_str(&format!("@SQ\tSN:{reference}\tLN:1\n"));
+    }
+    let sample =
+        document.read_group_samples.first().cloned().unwrap_or_else(|| "unknown".to_string());
+    for read_group in &document.read_groups {
+        payload.push_str(&format!("@RG\tID:{read_group}\tSM:{sample}\n"));
+    }
+    for record in &document.records {
+        payload.push_str(&format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t*\t0\t0\t{}\t*\tRG:Z:{}\n",
+            record.qname,
+            record.flag,
+            record.rname,
+            record.pos,
+            record.mapq,
+            record.cigar,
+            record.seq,
+            record.read_group_id.as_deref().unwrap_or("unknown"),
+        ));
+    }
+    std::fs::write(output_bam, payload)?;
+    Ok(())
+}
+
 fn mapq_regime_from_records(records: &[TinySamRecord]) -> Option<BamMapqRegimeV1> {
     let mapped = records.iter().filter(|record| record.is_mapped()).collect::<Vec<_>>();
     if mapped.is_empty() {
@@ -1209,6 +1241,67 @@ pub fn align_fastq_to_bam_bowtie2_style(
         sample_id,
         read_group,
     )
+}
+
+/// Sort tiny SAM/BAM fixtures by coordinate and emit a deterministic index sidecar.
+///
+/// # Errors
+/// Returns an error if input parsing or output materialization fails.
+pub fn sort_and_index_tiny_bam(
+    input_bam: &Path,
+    output_bam: &Path,
+    output_bai: &Path,
+) -> Result<BamArtifactInventoryV1> {
+    let mut document = parse_tiny_sam(input_bam)?;
+    let mut reference_rank = HashMap::<String, usize>::new();
+    for (index, reference) in document.references.iter().enumerate() {
+        reference_rank.insert(reference.clone(), index);
+    }
+    let fallback_rank = reference_rank.len() + 1;
+    document.records.sort_by(|left, right| {
+        let left_rank = if left.is_mapped() {
+            *reference_rank.get(&left.rname).unwrap_or(&fallback_rank)
+        } else {
+            fallback_rank
+        };
+        let right_rank = if right.is_mapped() {
+            *reference_rank.get(&right.rname).unwrap_or(&fallback_rank)
+        } else {
+            fallback_rank
+        };
+        (left_rank, left.pos, left.qname.as_str()).cmp(&(
+            right_rank,
+            right.pos,
+            right.qname.as_str(),
+        ))
+    });
+    write_tiny_sam_from_document(output_bam, &document, "coordinate")?;
+
+    let mut mapped_by_reference = HashMap::<String, u64>::new();
+    for record in document.records.iter().filter(|entry| entry.is_mapped()) {
+        *mapped_by_reference.entry(record.rname.clone()).or_insert(0) += 1;
+    }
+    let mut index_payload = String::new();
+    for reference in &document.references {
+        let count = mapped_by_reference.get(reference).copied().unwrap_or(0);
+        index_payload.push_str(&format!("{reference}\t{count}\n"));
+    }
+    std::fs::write(output_bai, index_payload)?;
+
+    let output_root = output_bam.parent().unwrap_or_else(|| Path::new("."));
+    let outputs = vec![
+        ArtifactRef::required(
+            ArtifactId::from_static("sorted_bam"),
+            output_bam.to_path_buf(),
+            ArtifactRole::Bam,
+        ),
+        ArtifactRef::required(
+            ArtifactId::from_static("sorted_bai"),
+            output_bai.to_path_buf(),
+            ArtifactRole::Index,
+        ),
+    ];
+    Ok(bam_artifact_inventory_from_outputs("bam.sort_index", output_root, &outputs))
 }
 
 #[must_use]
@@ -2060,5 +2153,36 @@ r001\t99\tchr1\n",
         assert_eq!(provenance.sensitivity_profile.as_deref(), Some("very_sensitive_local"));
         assert_eq!(summary.flagstat.total_reads, Some(2));
         assert_eq!(summary.flagstat.mapped_reads, Some(1));
+    }
+
+    #[test]
+    fn sort_and_index_tiny_bam_produces_coordinate_order_and_index() {
+        let temp = unique_temp_dir("bam-sort-index");
+        let input = temp.join("unsorted.sam");
+        let output = temp.join("sorted.bam");
+        let index = temp.join("sorted.bam.bai");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:unsorted\n\
+@SQ\tSN:chr1\tLN:50\n\
+@RG\tID:rg1\tSM:sample1\n\
+r10\t0\tchr1\t10\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r01\t0\tchr1\t1\t40\t6M\t*\t0\t0\tGTACGT\tFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write unsorted SAM fixture");
+
+        let inventory = sort_and_index_tiny_bam(&input, &output, &index).expect("sort and index");
+        assert_eq!(inventory.stage_id, "bam.sort_index");
+        assert!(output.exists());
+        assert!(index.exists());
+
+        let sorted_payload = std::fs::read_to_string(&output).expect("read sorted output");
+        let record_lines =
+            sorted_payload.lines().filter(|line| !line.starts_with('@')).collect::<Vec<_>>();
+        assert!(record_lines[0].starts_with("r01\t"));
+        assert!(record_lines[1].starts_with("r10\t"));
+
+        let validation = execute_bam_validation(&output, Some(&index), None).expect("validate");
+        assert!(validation.validation_report_present);
     }
 }
