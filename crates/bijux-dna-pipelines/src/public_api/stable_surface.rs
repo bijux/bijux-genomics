@@ -7,10 +7,11 @@ pub use crate::registry;
 pub use crate::vcf;
 pub use crate::{
     build_batch_workflow_graph, evaluate_template_admission, merge_effective_defaults,
-    parse_sample_sheet, sample_sheet_to_workflow_manifests, summarize_cross_domain_evidence,
-    validate_pipeline_id, validate_pipeline_id_str, validate_sample_sheet_preflight,
-    validate_template_overrides, ArtifactType, BatchNodeScopeV1, BatchWorkflowSemanticsV1,
-    CrossDomainEvidenceSummaryV1, CrossDomainFailurePolicyV1, CrossWorkflowTemplateV1,
+    parse_sample_sheet, plan_fastq_to_bam_modern_workflow, sample_sheet_to_workflow_manifests,
+    summarize_cross_domain_evidence, validate_pipeline_id, validate_pipeline_id_str,
+    validate_sample_sheet_preflight, validate_template_overrides, ArtifactType, BatchNodeScopeV1,
+    BatchWorkflowSemanticsV1, CrossDomainEvidenceSummaryV1, CrossDomainFailurePolicyV1,
+    CrossWorkflowExecutionPlanV1, CrossWorkflowSampleExecutionPlanV1, CrossWorkflowTemplateV1,
     DefaultParams, DefaultProvenanceV1, DefaultsLedgerV1, Domain, EffectiveDefaults, EmptyParams,
     FanArtifactRuleV1, FanPatternV1, InvariantSeverity, InvariantViolationV1, InvariantsPreset,
     InvariantsReportV1, MetricsBundle, PipelineCapabilities, PipelineContract, PipelineId,

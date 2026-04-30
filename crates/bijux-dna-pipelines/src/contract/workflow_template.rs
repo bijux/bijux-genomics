@@ -6,6 +6,7 @@ use bijux_dna_core::contract::{
     ArtifactRole, CompressionSupport, ReadLayoutMode, WorkflowInputArtifactV1, WorkflowManifestV1,
     WorkflowReferenceAssetV1, WorkflowStageRequestV1,
 };
+use bijux_dna_core::prelude::id_catalog;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -198,6 +199,26 @@ pub struct WorkflowEvidenceSummaryStoryV1 {
 pub struct WorkflowEvidenceSummarySectionV1 {
     pub section_id: String,
     pub narrative: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct CrossWorkflowSampleExecutionPlanV1 {
+    pub sample_id: String,
+    pub stage_sequence: Vec<String>,
+    pub handoff_sequence: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct CrossWorkflowExecutionPlanV1 {
+    pub schema_version: String,
+    pub template_id: String,
+    pub pipeline_id: String,
+    pub shared_reference_stages: Vec<String>,
+    pub sample_plans: Vec<CrossWorkflowSampleExecutionPlanV1>,
+    pub cohort_stages: Vec<String>,
+    pub caveats: Vec<String>,
 }
 
 #[must_use]
@@ -471,6 +492,67 @@ pub fn validate_sample_sheet_preflight(
         refusal_codes,
         notes,
     }
+}
+
+pub fn plan_fastq_to_bam_modern_workflow(
+    template: &CrossWorkflowTemplateV1,
+    sheet: &SampleSheetV1,
+) -> Result<CrossWorkflowExecutionPlanV1> {
+    if template.template_id != "cross.fastq_to_bam_modern" {
+        bail!("template {} is not the modern FASTQ-to-BAM workflow", template.template_id);
+    }
+    let required_chain = [
+        id_catalog::FASTQ_VALIDATE_READS,
+        id_catalog::FASTQ_TRIM,
+        id_catalog::CORE_PREPARE_REFERENCE,
+        id_catalog::BAM_ALIGN,
+        id_catalog::BAM_QC_PRE,
+        id_catalog::BAM_MAPPING_SUMMARY,
+        id_catalog::BAM_COVERAGE,
+    ];
+    for stage_id in required_chain {
+        if !template.requested_stages.iter().any(|configured| configured == stage_id) {
+            bail!("modern FASTQ-to-BAM template is missing required stage {stage_id}");
+        }
+    }
+    let sample_stage_sequence = vec![
+        id_catalog::FASTQ_VALIDATE_READS.to_string(),
+        id_catalog::FASTQ_TRIM.to_string(),
+        id_catalog::BAM_ALIGN.to_string(),
+        "bam.sort".to_string(),
+        "bam.index".to_string(),
+        id_catalog::BAM_QC_PRE.to_string(),
+        id_catalog::BAM_MAPPING_SUMMARY.to_string(),
+        id_catalog::BAM_COVERAGE.to_string(),
+    ];
+    let handoff_sequence = vec![
+        "fastq.trim_reads->bam.align".to_string(),
+        "bam.align->bam.sort".to_string(),
+        "bam.index->bam.qc_pre".to_string(),
+    ];
+    let sample_plans = sheet
+        .records
+        .iter()
+        .map(|record| CrossWorkflowSampleExecutionPlanV1 {
+            sample_id: record.sample_id.clone(),
+            stage_sequence: sample_stage_sequence.clone(),
+            handoff_sequence: handoff_sequence.clone(),
+        })
+        .collect::<Vec<_>>();
+
+    Ok(CrossWorkflowExecutionPlanV1 {
+        schema_version: "bijux.cross.workflow_execution_plan.v1".to_string(),
+        template_id: template.template_id.clone(),
+        pipeline_id: template.pipeline_id.clone(),
+        shared_reference_stages: vec![id_catalog::CORE_PREPARE_REFERENCE.to_string()],
+        sample_plans,
+        cohort_stages: vec![id_catalog::BAM_MAPPING_SUMMARY.to_string()],
+        caveats: vec![
+            "sort/index are explicit execution boundaries between alignment and BAM QC".to_string(),
+            "coverage summaries remain sample-scoped even when cohort reports are emitted"
+                .to_string(),
+        ],
+    })
 }
 
 #[must_use]

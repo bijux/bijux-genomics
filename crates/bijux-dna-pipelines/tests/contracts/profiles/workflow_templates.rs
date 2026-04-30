@@ -11,8 +11,8 @@ use bijux_dna_pipelines::cross::{
 };
 use bijux_dna_pipelines::{
     build_batch_workflow_graph, evaluate_template_admission, parse_sample_sheet,
-    sample_sheet_to_workflow_manifests, summarize_cross_domain_evidence,
-    validate_sample_sheet_preflight, validate_template_overrides,
+    plan_fastq_to_bam_modern_workflow, sample_sheet_to_workflow_manifests,
+    summarize_cross_domain_evidence, validate_sample_sheet_preflight, validate_template_overrides,
 };
 
 #[test]
@@ -194,5 +194,40 @@ fn sample_sheet_preflight_rejects_refusal_conditions_before_planning() -> Result
     assert!(preflight.refusal_codes.contains(&"missing_input_file".to_string()));
     assert!(preflight.refusal_codes.contains(&"reference_id_mismatch".to_string()));
     assert!(preflight.refusal_codes.contains(&"conflicting_layout_for_sample".to_string()));
+    Ok(())
+}
+
+#[test]
+fn fastq_to_bam_modern_plan_exposes_stage_and_handoff_order() -> Result<()> {
+    let template = cross_workflow_template_by_id("cross.fastq_to_bam_modern")
+        .expect("cross template must exist");
+    let sheet = parse_sample_sheet(
+        &template.template_id,
+        "run_id,batch_id,sample_id,library_id,lane_id,layout_mode,reference_id,workflow_mode,r1,r2,expected_outputs\nRUN11,BATCH_M,S11,LIB11,L001,paired_end,GRCh38,modern,reads/S11_R1.fastq.gz,reads/S11_R2.fastq.gz,bam;metrics_bundle",
+    )?;
+    let plan = plan_fastq_to_bam_modern_workflow(&template, &sheet)?;
+
+    assert_eq!(plan.sample_plans.len(), 1);
+    assert_eq!(
+        plan.sample_plans[0].stage_sequence,
+        vec![
+            "fastq.validate_reads".to_string(),
+            "fastq.trim_reads".to_string(),
+            "bam.align".to_string(),
+            "bam.sort".to_string(),
+            "bam.index".to_string(),
+            "bam.qc_pre".to_string(),
+            "bam.mapping_summary".to_string(),
+            "bam.coverage".to_string(),
+        ]
+    );
+    assert_eq!(
+        plan.sample_plans[0].handoff_sequence,
+        vec![
+            "fastq.trim_reads->bam.align".to_string(),
+            "bam.align->bam.sort".to_string(),
+            "bam.index->bam.qc_pre".to_string(),
+        ]
+    );
     Ok(())
 }
