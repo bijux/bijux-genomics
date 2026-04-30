@@ -275,8 +275,12 @@ fn validation_command(
         "cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; }"
             .to_string(),
     );
-    commands
-        .push("count_fastq_reads() { cat_fastq \"$1\" | awk 'END { print NR / 4 }'; }".to_string());
+    commands.push(
+        "path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; }".to_string(),
+    );
+    commands.push(
+        "inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; }".to_string(),
+    );
     commands.push("strict_pass=true".to_string());
     commands.push("exit_code=0".to_string());
     commands.push("pair_sync_checked=false".to_string());
@@ -284,10 +288,21 @@ fn validation_command(
     commands.push("pair_count_match=null".to_string());
     commands.push("failure_class=none".to_string());
     commands.push("validated_pairs=null".to_string());
-    commands.push(format!("validated_reads_r1=$(count_fastq_reads {})", shell_quote(r1),));
+    commands.push(format!(
+        "inspection_r1=$(inspect_fastq_stream {} 2>> {}); inspect_status_r1=$?; true",
+        shell_quote(r1),
+        shell_quote(&r1_log),
+    ));
+    commands.push("validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1)".to_string());
+    commands.push("inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2)".to_string());
     commands.push("validated_reads_r2=null".to_string());
+    commands.push("inspection_class_r2=none".to_string());
     commands.push(
         "if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi".to_string(),
+    );
+    commands.push(
+        "if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi"
+            .to_string(),
     );
     commands.push(
         "if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi"
@@ -298,15 +313,20 @@ fn validation_command(
         commands.push("exit_code=0".to_string());
     }
     commands.push(
-        "if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then failure_class=validator_error; fi"
+        "if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi"
+            .to_string(),
+    );
+    commands.push("if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi".to_string());
+    commands.push(
+        "if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi"
             .to_string(),
     );
     commands.push(
-        "if [ \"$pair_count_match\" = \"false\" ]; then failure_class=pair_count_mismatch; fi"
+        "if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi"
             .to_string(),
     );
     commands.push(
-        "if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ]; then failure_class=header_sync_mismatch; fi"
+        "if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi"
             .to_string(),
     );
     commands.push(validation_lineage_command(
@@ -408,7 +428,18 @@ fn append_pair_validation_commands(
     let Some(r2) = r2 else {
         return;
     };
-    commands.push(format!("validated_reads_r2=$(count_fastq_reads {})", shell_quote(r2),));
+    let r2_log = out_dir.join("validation_r2.log");
+    commands.push(format!(
+        "inspection_r2=$(inspect_fastq_stream {} 2>> {}); inspect_status_r2=$?; true",
+        shell_quote(r2),
+        shell_quote(&r2_log),
+    ));
+    commands.push("validated_reads_r2=$(printf '%s' \"$inspection_r2\" | cut -f1)".to_string());
+    commands.push("inspection_class_r2=$(printf '%s' \"$inspection_r2\" | cut -f2)".to_string());
+    commands.push(
+        "if [ \"$inspect_status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r2; fi; fi"
+            .to_string(),
+    );
     commands.push("validated_pairs=$validated_reads_r1".to_string());
     if effective_params.pair_sync_policy == PairSyncPolicy::RequireHeaderSync {
         append_header_sync_commands(commands, r1, r2, out_dir);
@@ -656,7 +687,8 @@ mod tests {
         assert!(plan.command.template[2].contains("\"pair_sync_pass\":"));
         assert!(plan.command.template[2].contains("\"validation_mode\":\"strict\""));
         assert!(plan.command.template[2].contains("\"pair_sync_policy\":\"require_header_sync\""));
-        assert!(plan.command.template[2].contains("count_fastq_reads()"));
+        assert!(plan.command.template[2].contains("inspect_fastq_stream()"));
+        assert!(plan.command.template[2].contains("path_uses_supported_fastq_compression()"));
         assert!(plan.command.template[2].contains("validated_pairs=$validated_reads_r1"));
         assert!(plan.command.template[2].contains("cmp -s"));
         assert!(plan.command.template[2]
@@ -688,6 +720,10 @@ mod tests {
         assert!(script.contains("\"tool_id\":\"seqtk\""));
         assert!(script.contains("\"validated_inputs\":1"));
         assert!(script.contains("\"validated_reads_r1\":%%s"));
+        assert!(script.contains("unsupported_compression"));
+        assert!(script.contains("empty_input"));
+        assert!(script.contains("malformed_record"));
+        assert!(script.contains("invalid_quality_encoding"));
         assert!(script.contains("\"status_r1\":%%s"));
         assert!(script.contains("\"status_r2\":%%s"));
         assert!(script.contains("pair_sync_checked=false"));

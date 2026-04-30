@@ -50,6 +50,40 @@ fn parse_validation_report_parses_governed_validate_json() -> Result<()> {
 }
 
 #[test]
+fn parse_validation_report_accepts_structural_failure_taxonomy() -> Result<()> {
+    let parsed = parse_validation_report(
+        &serde_json::json!({
+            "schema_version": VALIDATION_REPORT_SCHEMA_VERSION,
+            "stage": "fastq.validate_reads",
+            "stage_id": "fastq.validate_reads",
+            "tool_id": "fastqvalidator",
+            "validation_mode": "strict",
+            "pair_sync_policy": "not_applicable",
+            "input_r1": "reads.fastq.zst",
+            "input_r2": null,
+            "validation_log_r1": "validation_r1.log",
+            "validation_log_r2": null,
+            "validated_inputs": 1,
+            "validated_reads_r1": 0,
+            "validated_reads_r2": null,
+            "validated_pairs": null,
+            "status_r1": 0,
+            "status_r2": 0,
+            "pair_sync_checked": false,
+            "pair_sync_pass": null,
+            "pair_count_match": null,
+            "failure_class": "unsupported_compression",
+            "strict_pass": false,
+            "exit_code": 90
+        })
+        .to_string(),
+    )?;
+    assert_eq!(parsed.failure_class, ValidateFailureClass::UnsupportedCompression);
+    assert_eq!(parsed.validated_reads_r1, 0);
+    Ok(())
+}
+
+#[test]
 fn parse_validated_reads_manifest_parses_governed_lineage_json() -> Result<()> {
     let parsed = parse_validated_reads_manifest(
         &serde_json::json!({

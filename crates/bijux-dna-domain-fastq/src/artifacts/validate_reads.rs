@@ -13,6 +13,10 @@ pub const VALIDATED_READS_MANIFEST_SCHEMA_VERSION: &str = "bijux.fastq.validate.
 #[serde(rename_all = "snake_case")]
 pub enum ValidateFailureClass {
     None,
+    UnsupportedCompression,
+    EmptyInput,
+    MalformedRecord,
+    InvalidQualityEncoding,
     ValidatorError,
     PairCountMismatch,
     HeaderSyncMismatch,
