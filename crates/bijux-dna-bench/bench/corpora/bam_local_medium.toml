@@ -1,0 +1,42 @@
+schema_version = "bijux.bench.corpus.v1"
+corpus_id = "bam_local_medium"
+domain = "bam"
+scale = "local-medium"
+scientific_caveats = [
+  "local-medium BAM fixtures exercise engineering performance boundaries and should not be interpreted as full production distributions",
+]
+
+[[datasets]]
+dataset_id = "bam_sort_io_stress"
+fixture = "fixtures/bam/sort_io_stress"
+read_layout = "paired"
+class_label = "sort"
+case_tags = ["sort", "io-stress"]
+
+[[datasets]]
+dataset_id = "bam_index_random_seek"
+fixture = "fixtures/bam/index_random_seek"
+read_layout = "paired"
+class_label = "index"
+case_tags = ["index", "seek-pattern"]
+
+[[datasets]]
+dataset_id = "bam_markdup_molecule_mix"
+fixture = "fixtures/bam/markdup_molecule_mix"
+read_layout = "paired"
+class_label = "markdup"
+case_tags = ["markdup", "duplicate-heavy"]
+
+[[datasets]]
+dataset_id = "bam_coverage_depth_gradient"
+fixture = "fixtures/bam/coverage_depth_gradient"
+read_layout = "paired"
+class_label = "coverage"
+case_tags = ["coverage", "depth-gradient"]
+
+[[datasets]]
+dataset_id = "bam_damage_profile_shift"
+fixture = "fixtures/bam/damage_profile_shift"
+read_layout = "paired"
+class_label = "damage"
+case_tags = ["damage", "authenticity-caveat"]

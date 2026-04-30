@@ -363,3 +363,27 @@ fn checked_in_corpus_catalog_contains_fastq_local_medium_stress_matrix() -> Resu
     }
     Ok(())
 }
+
+#[test]
+fn checked_in_corpus_catalog_contains_bam_local_medium_stress_matrix() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let Some(bam_local_medium) = corpora
+        .iter()
+        .find(|corpus| corpus.domain == CorpusDomain::Bam && corpus.scale == CorpusScale::LocalMedium)
+    else {
+        anyhow::bail!("checked-in corpus catalog must include a bam local-medium manifest");
+    };
+
+    let tags = bam_local_medium
+        .datasets
+        .iter()
+        .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    for required in ["sort", "index", "markdup", "coverage", "damage"] {
+        assert!(
+            tags.contains(required),
+            "bam local-medium corpus must cover required stress tag {required}"
+        );
+    }
+    Ok(())
+}
