@@ -31,5 +31,6 @@ pub use planning::{
 pub use reporting::{
     cancel_run, dry_run, environment_identity, execute, execute_and_report, execute_local_bam_workflow,
     execute_local_fastq_workflow, execute_local_vcf_workflow, operator_health, pause_run, plan,
-    policy_audit, render_report, replay_manifest, resume_run, status, workspace_edges, write_workspace_audit,
+    policy_audit, render_report, replay_manifest, explain_successful_replay, resume_run, status, workspace_edges,
+    write_workspace_audit,
 };
