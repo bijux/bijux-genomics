@@ -2,6 +2,8 @@
 //!
 //! Stability: v1 (stable).
 
+use anyhow::{anyhow, Result};
+
 pub use crate::runtime::run::plan_run;
 pub use crate::runtime::run::{select_pipeline, select_pipelines};
 pub use crate::surface::explain::{
@@ -37,4 +39,85 @@ pub use bijux_dna_planner_fastq::{
 #[must_use]
 pub fn explain(plan: &ExecutionGraph) -> PlanExplainV1 {
     PlanExplainV1::from_plan(plan)
+}
+
+/// Build the canonical explain-profile payload for a governed pipeline profile.
+///
+/// # Errors
+/// Returns an error when the profile id is unknown.
+pub fn explain_pipeline_profile(profile_id: &str) -> Result<serde_json::Value> {
+    let profile = find_pipeline_profile(profile_id)?;
+    let invariants = profile_invariants_json(&profile)?;
+    Ok(serde_json::json!({
+        "profile_id_input": profile_id,
+        "profile_id_resolved": profile.id,
+        "library_model": profile.library_model,
+        "effective_params": profile.defaults.params,
+        "effective_tools": profile.defaults.tools,
+        "default_rationale": profile.defaults.rationales,
+        "rationale_links": [
+            "docs/20-science/SCIENTIFIC_DEFAULTS.md",
+            "docs/20-science/SCIENTIFIC_DECISIONS.md",
+            "crates/bijux-dna-pipelines/docs/PROFILE_RATIONALE.md"
+        ],
+        "invariants": invariants,
+    }))
+}
+
+/// Build the canonical validate-profile payload for a governed pipeline profile.
+///
+/// # Errors
+/// Returns an error when the profile id is unknown.
+pub fn validate_pipeline_profile(profile_id: &str) -> Result<serde_json::Value> {
+    let profile = find_pipeline_profile(profile_id)?;
+    let (has_fastq, has_bam, has_vcf) = profile_domain_flags(&profile);
+    match (has_fastq, has_bam, has_vcf) {
+        (true, false, false) => Ok(serde_json::to_value(validate_fastq_profile(&profile))?),
+        (false, true, false) => Ok(serde_json::to_value(validate_bam_profile(&profile))?),
+        (false, false, true) => Ok(serde_json::to_value(validate_vcf_profile(&profile))?),
+        _ => Ok(serde_json::json!({
+            "profile_id": profile.id,
+            "valid": false,
+            "violations": [{
+                "code": "unsupported_domain_mix",
+                "message": "profile must map to exactly one of fastq or bam domains for validate-profile"
+            }]
+        })),
+    }
+}
+
+fn find_pipeline_profile(profile_id: &str) -> Result<PipelineProfile> {
+    select_pipelines(None, true)
+        .into_iter()
+        .find(|profile| profile.id.as_str() == profile_id)
+        .ok_or_else(|| anyhow!("unknown pipeline profile: {profile_id}"))
+}
+
+fn profile_domain_flags(profile: &PipelineProfile) -> (bool, bool, bool) {
+    let has_fastq = profile
+        .capabilities
+        .required_stages
+        .iter()
+        .any(|stage| stage.starts_with("fastq."));
+    let has_bam = profile
+        .capabilities
+        .required_stages
+        .iter()
+        .any(|stage| stage.starts_with("bam."));
+    let has_vcf = profile
+        .capabilities
+        .required_stages
+        .iter()
+        .any(|stage| stage.starts_with("vcf."));
+    (has_fastq, has_bam, has_vcf)
+}
+
+fn profile_invariants_json(profile: &PipelineProfile) -> Result<serde_json::Value> {
+    let (has_fastq, has_bam, has_vcf) = profile_domain_flags(profile);
+    match (has_fastq, has_bam, has_vcf) {
+        (true, false, false) => Ok(serde_json::to_value(validate_fastq_profile(profile))?),
+        (false, true, false) => Ok(serde_json::to_value(validate_bam_profile(profile))?),
+        (false, false, true) => Ok(serde_json::to_value(validate_vcf_profile(profile))?),
+        _ => Ok(serde_json::Value::Null),
+    }
 }

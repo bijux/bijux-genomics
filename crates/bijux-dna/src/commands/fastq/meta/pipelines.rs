@@ -66,83 +66,16 @@ pub(crate) fn handle_pipelines_command(
         }
         PipelinesCommand::ExplainProfile { id } => {
             let resolved_id = resolve_profile_alias(id);
-            let profile = bijux_dna_api::v1::api::plan::select_pipelines(None, true)
-                .into_iter()
-                .find(|profile| profile.id.as_str() == resolved_id)
-                .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
-            let has_fastq = profile
-                .capabilities
-                .required_stages
-                .iter()
-                .any(|stage| stage.starts_with("fastq."));
-            let has_bam =
-                profile.capabilities.required_stages.iter().any(|stage| stage.starts_with("bam."));
-            let has_vcf =
-                profile.capabilities.required_stages.iter().any(|stage| stage.starts_with("vcf."));
-            let invariants = match (has_fastq, has_bam, has_vcf) {
-                (true, false, false) => serde_json::to_value(
-                    bijux_dna_api::v1::api::plan::validate_fastq_profile(&profile),
-                )?,
-                (false, true, false) => serde_json::to_value(
-                    bijux_dna_api::v1::api::plan::validate_bam_profile(&profile),
-                )?,
-                (false, false, true) => serde_json::to_value(
-                    bijux_dna_api::v1::api::plan::validate_vcf_profile(&profile),
-                )?,
-                _ => serde_json::Value::Null,
-            };
-            let payload = serde_json::json!({
-                "profile_id_input": id,
-                "profile_id_resolved": resolved_id,
-                "library_model": profile.library_model,
-                "effective_params": profile.defaults.params,
-                "effective_tools": profile.defaults.tools,
-                "default_rationale": profile.defaults.rationales,
-                "rationale_links": [
-                    "docs/20-science/SCIENTIFIC_DEFAULTS.md",
-                    "docs/20-science/SCIENTIFIC_DECISIONS.md",
-                    "crates/bijux-dna-pipelines/docs/PROFILE_RATIONALE.md"
-                ],
-                "invariants": invariants,
-            });
-            render::json::print_pretty(&payload)?;
+            render::json::print_pretty(
+                &bijux_dna_api::v1::api::plan::explain_pipeline_profile(&resolved_id)?,
+            )?;
             Ok(true)
         }
         PipelinesCommand::ValidateProfile { id } => {
             let resolved_id = resolve_profile_alias(id);
-            let profile = bijux_dna_api::v1::api::plan::select_pipelines(None, true)
-                .into_iter()
-                .find(|profile| profile.id.as_str() == resolved_id)
-                .ok_or_else(|| anyhow!("unknown pipeline profile: {id}"))?;
-            let has_fastq = profile
-                .capabilities
-                .required_stages
-                .iter()
-                .any(|stage| stage.starts_with("fastq."));
-            let has_bam =
-                profile.capabilities.required_stages.iter().any(|stage| stage.starts_with("bam."));
-            let has_vcf =
-                profile.capabilities.required_stages.iter().any(|stage| stage.starts_with("vcf."));
-            let payload = match (has_fastq, has_bam, has_vcf) {
-                (true, false, false) => serde_json::to_value(
-                    bijux_dna_api::v1::api::plan::validate_fastq_profile(&profile),
-                )?,
-                (false, true, false) => serde_json::to_value(
-                    bijux_dna_api::v1::api::plan::validate_bam_profile(&profile),
-                )?,
-                (false, false, true) => serde_json::to_value(
-                    bijux_dna_api::v1::api::plan::validate_vcf_profile(&profile),
-                )?,
-                _ => serde_json::json!({
-                    "profile_id": resolved_id,
-                    "valid": false,
-                    "violations": [{
-                        "code": "unsupported_domain_mix",
-                        "message": "profile must map to exactly one of fastq or bam domains for validate-profile"
-                    }]
-                }),
-            };
-            render::json::print_pretty(&payload)?;
+            render::json::print_pretty(
+                &bijux_dna_api::v1::api::plan::validate_pipeline_profile(&resolved_id)?,
+            )?;
             Ok(true)
         }
         PipelinesCommand::ProfileDiff { left, right } => {
