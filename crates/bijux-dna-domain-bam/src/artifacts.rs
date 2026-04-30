@@ -1550,6 +1550,80 @@ pub fn evaluate_bam_merge_compatibility(
     }
 }
 
+/// Merge tiny BAM/SAM fixtures only when compatibility proof passes.
+///
+/// # Errors
+/// Returns an error when input files cannot be read or output cannot be written.
+pub fn merge_tiny_bam_with_conflict_refusal(
+    input_bams: &[PathBuf],
+    input_identities: &[BamMergeInputIdentityV1],
+    output_bam: &Path,
+) -> Result<BamMergeCompatibilityV1> {
+    if input_bams.len() != input_identities.len() {
+        return Err(anyhow!(
+            "merge requires one identity per input BAM ({} BAMs, {} identities)",
+            input_bams.len(),
+            input_identities.len()
+        ));
+    }
+    let mut compatibility = evaluate_bam_merge_compatibility(input_identities);
+    if !compatibility.compatible {
+        compatibility.notes.push("merge output refused due to compatibility conflicts".to_string());
+        return Ok(compatibility);
+    }
+
+    let mut merged = TinySamDocument {
+        sort_order: Some("coordinate".to_string()),
+        ..TinySamDocument::default()
+    };
+    for input in input_bams {
+        let document = parse_tiny_sam(input)?;
+        for reference in &document.references {
+            if !merged.references.iter().any(|entry| entry == reference) {
+                merged.references.push(reference.clone());
+            }
+        }
+        for read_group in &document.read_groups {
+            if !merged.read_groups.iter().any(|entry| entry == read_group) {
+                merged.read_groups.push(read_group.clone());
+            }
+        }
+        for sample in &document.read_group_samples {
+            if !merged.read_group_samples.iter().any(|entry| entry == sample) {
+                merged.read_group_samples.push(sample.clone());
+            }
+        }
+        merged.records.extend(document.records);
+    }
+
+    let mut reference_rank = HashMap::<String, usize>::new();
+    for (index, reference) in merged.references.iter().enumerate() {
+        reference_rank.insert(reference.clone(), index);
+    }
+    let fallback_rank = reference_rank.len() + 1;
+    merged.records.sort_by(|left, right| {
+        let left_rank = if left.is_mapped() {
+            *reference_rank.get(&left.rname).unwrap_or(&fallback_rank)
+        } else {
+            fallback_rank
+        };
+        let right_rank = if right.is_mapped() {
+            *reference_rank.get(&right.rname).unwrap_or(&fallback_rank)
+        } else {
+            fallback_rank
+        };
+        (left_rank, left.pos, left.qname.as_str()).cmp(&(
+            right_rank,
+            right.pos,
+            right.qname.as_str(),
+        ))
+    });
+    write_tiny_sam_from_document(output_bam, &merged, "coordinate")?;
+
+    compatibility.notes.push("merge output materialized".to_string());
+    Ok(compatibility)
+}
+
 #[must_use]
 pub fn compare_bam_duplicate_methods(
     stage_id: &str,
@@ -2246,5 +2320,73 @@ r01\t0\tchr1\t1\t40\t6M\t*\t0\t0\tGTACGT\tFFFFFF\tRG:Z:rg1\n",
         assert_eq!(propagated.cohort_id.as_deref(), Some("cohort-z"));
         assert_eq!(propagated.read_group_ids, vec!["rg-lane1".to_string(), "rg-lane2".to_string()]);
         assert_eq!(propagated.read_group_policy.as_deref(), Some("propagate:bam.align"));
+    }
+
+    #[test]
+    fn merge_tiny_bam_with_conflict_refusal_materializes_only_compatible_inputs() {
+        let temp = unique_temp_dir("bam-merge");
+        let lane1 = temp.join("lane1.sam");
+        let lane2 = temp.join("lane2.sam");
+        let merged = temp.join("merged.sam");
+        std::fs::write(
+            &lane1,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:50\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write lane1");
+        std::fs::write(
+            &lane2,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:50\n\
+@RG\tID:rg2\tSM:sampleA\n\
+r02\t0\tchr1\t5\t40\t6M\t*\t0\t0\tGTACGT\tFFFFFF\tRG:Z:rg2\n",
+        )
+        .expect("write lane2");
+
+        let identities = vec![
+            BamMergeInputIdentityV1 {
+                sample_id: "sampleA".to_string(),
+                read_group_ids: vec!["rg1".to_string()],
+                reference_digest: Some("sha256:ref".to_string()),
+                sequencing_platform: Some("ILLUMINA".to_string()),
+                library_id: Some("lib1".to_string()),
+                lane_id: Some("L001".to_string()),
+                platform_unit: Some("pu1".to_string()),
+            },
+            BamMergeInputIdentityV1 {
+                sample_id: "sampleA".to_string(),
+                read_group_ids: vec!["rg2".to_string()],
+                reference_digest: Some("sha256:ref".to_string()),
+                sequencing_platform: Some("ILLUMINA".to_string()),
+                library_id: Some("lib1".to_string()),
+                lane_id: Some("L002".to_string()),
+                platform_unit: Some("pu2".to_string()),
+            },
+        ];
+        let compatibility = merge_tiny_bam_with_conflict_refusal(
+            &[lane1.clone(), lane2.clone()],
+            &identities,
+            &merged,
+        )
+        .expect("merge compatible inputs");
+        assert!(compatibility.compatible);
+        assert!(merged.exists());
+
+        let conflict = merge_tiny_bam_with_conflict_refusal(
+            &[lane1, lane2],
+            &[
+                identities[0].clone(),
+                BamMergeInputIdentityV1 {
+                    sample_id: "sampleB".to_string(),
+                    ..identities[1].clone()
+                },
+            ],
+            &temp.join("should-not-exist.sam"),
+        )
+        .expect("evaluate conflict");
+        assert!(!conflict.compatible);
+        assert!(conflict.refusal_codes.contains(&"merge_sample_id_conflict".to_string()));
     }
 }
