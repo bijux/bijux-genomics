@@ -15,6 +15,21 @@ pub(super) fn validate_adapter_bank(bank: &AdapterBankV1) -> Result<()> {
     if bank.version.trim().is_empty() {
         return Err(anyhow!("adapter bank missing version"));
     }
+    if bank.license.trim().is_empty() {
+        return Err(anyhow!("adapter bank missing license"));
+    }
+    if bank.source_document.trim().is_empty() {
+        return Err(anyhow!("adapter bank missing source_document"));
+    }
+    if bank.source_checksum_sha256.trim().len() != 64 {
+        return Err(anyhow!("adapter bank missing source_checksum_sha256"));
+    }
+    if bank.applicable_assays.is_empty() {
+        return Err(anyhow!("adapter bank missing applicable_assays"));
+    }
+    if bank.selection_logic.trim().is_empty() {
+        return Err(anyhow!("adapter bank missing selection_logic"));
+    }
     if bank.provenance_status != "complete" {
         return Err(anyhow!(
             "adapter bank provenance_status must be `complete` for supported scope"
@@ -59,6 +74,12 @@ pub(super) fn validate_adapter_presets(
         }
         if preset.rationale.trim().is_empty() {
             return Err(anyhow!("preset {} missing rationale", preset.name));
+        }
+        if preset.selection_logic.trim().is_empty() {
+            return Err(anyhow!("preset {} missing selection_logic", preset.name));
+        }
+        if preset.applicable_assays.is_empty() && preset.name != "none" {
+            return Err(anyhow!("preset {} missing applicable_assays", preset.name));
         }
         if preset.sequences.is_empty() && preset.name != "none" {
             return Err(anyhow!("preset {} missing sequences", preset.name));
@@ -141,6 +162,12 @@ mod tests {
             bank_id: "adapter-bank".to_string(),
             version: "2026-01-01".to_string(),
             provenance_status: "complete".to_string(),
+            license: "CC-BY-4.0".to_string(),
+            source_document: "assets/reference/EVIDENCE.md".to_string(),
+            source_checksum_sha256:
+                "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef".to_string(),
+            applicable_assays: vec!["shotgun".to_string()],
+            selection_logic: "select explicit preset by assay or library-prep family".to_string(),
             adapters: vec![adapter],
         }
     }
@@ -204,10 +231,13 @@ mod tests {
         AdapterPresetV1 {
             name: "truseq".to_string(),
             description: None,
+            applicable_assays: vec!["shotgun".to_string()],
             tags: vec!["truseq".to_string()],
             adapter_ids: Vec::new(),
             sequences: sequences.clone(),
             rationale: "default Illumina preset".to_string(),
+            selection_logic: "select when assay uses standard Illumina shotgun library prep"
+                .to_string(),
             references: Vec::new(),
             notes: Vec::new(),
             hash: hash_preset_sequences(&sequences),
@@ -242,5 +272,15 @@ mod tests {
         );
 
         assert!(err.to_string().contains("repeats adapter id"));
+    }
+
+    #[test]
+    fn adapter_bank_rejects_missing_license() {
+        let mut bank = valid_bank_with(valid_adapter());
+        bank.license.clear();
+
+        let err = assert_err(validate_adapter_bank(&bank), "license is required");
+
+        assert!(err.to_string().contains("missing license"));
     }
 }

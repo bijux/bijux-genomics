@@ -1,7 +1,19 @@
+[bank]
+schema_version = "bijux.fastq.primer_bank.v1"
+bank_id = "bijux-dna-fastq-primer-bank"
+version = "1"
+provenance_status = "complete"
+license = "CC-BY-4.0"
+source_document = "assets/reference/EVIDENCE.md"
+source_checksum_sha256 = "3b7d30dc1f08f9d9f13ef6ba9d7a57d9f7441f6e4248d6380a66fddf8662ef31"
+applicable_assays = ["amplicon_standard", "amplicon_umi", "edna_metabarcoding"]
+selection_logic = "Select primer banks only by explicit marker contract and checksum-locked literature-backed primer set; missing provenance blocks production."
+
 [markers.16S]
 primer_set_id = "16S_universal_v1"
 primer_fasta = "assets/reference/primers/16S_universal_v1.fasta"
 primer_sha256 = "6247ebb9c7729a2561b82c1e443921a372e597ff8b47e68274b84956a964735f"
+applicable_assays = ["amplicon_standard", "amplicon_umi"]
 expected_amplicon_min_bp = 120
 expected_amplicon_max_bp = 320
 
@@ -9,6 +21,7 @@ expected_amplicon_max_bp = 320
 primer_set_id = "COI_folmer_v1"
 primer_fasta = "assets/reference/primers/COI_folmer_v1.fasta"
 primer_sha256 = "698ce1754083d57a6c4d77317b41b34d3cd8838714f9f7aa303253a03012c30b"
+applicable_assays = ["edna_metabarcoding"]
 expected_amplicon_min_bp = 240
 expected_amplicon_max_bp = 720
 
@@ -16,6 +29,7 @@ expected_amplicon_max_bp = 720
 primer_set_id = "ITS2_plant_v1"
 primer_fasta = "assets/reference/primers/ITS2_plant_v1.fasta"
 primer_sha256 = "72af9752d4c421160da1f6559a7d55d876a1cc934098a7b22fdae2f8b9a2e7de"
+applicable_assays = ["amplicon_standard", "edna_metabarcoding"]
 expected_amplicon_min_bp = 150
 expected_amplicon_max_bp = 450
 

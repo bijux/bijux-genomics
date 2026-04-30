@@ -2,11 +2,13 @@ schema_version: bijux.adapter_presets.v1
 presets:
 - name: illumina-default
   description: Default Illumina adapter set (TruSeq + Nextera core).
+  applicable_assays: [shotgun, ancient_dna]
   tags:
   - truseq
   - nextera
   adapter_ids: []
   rationale: Default Illumina adapters for general FASTQ preprocessing.
+  selection_logic: Select when the workflow declares modern Illumina shotgun or aDNA preprocessing without a custom adapter policy.
   references:
   - Internal default policy
   notes:
@@ -19,10 +21,12 @@ presets:
   - GTCTCGTGGGCTCGG
 - name: ssdna
   description: ssDNA adapters for single-stranded workflows.
+  applicable_assays: [ancient_dna]
   tags:
   - ssdna
   adapter_ids: []
   rationale: Default ssDNA adapter policy.
+  selection_logic: Select when the workflow declares single-stranded or splint-aware degraded-DNA libraries.
   references:
   - Library prep protocol notes
   notes:
@@ -33,9 +37,11 @@ presets:
   - NNNNNNGGTACNNNNN
 - name: none
   description: Disable adapter trimming.
+  applicable_assays: [shotgun, ancient_dna, amplicon, edna_metabarcoding]
   tags: []
   adapter_ids: []
   rationale: Explicitly disable adapter trimming.
+  selection_logic: Select only when upstream evidence proves adapters are absent and the workflow keeps that decision auditable.
   references: []
   notes:
   - Use when adapters are known to be absent.
@@ -43,10 +49,12 @@ presets:
   sequences: []
 - name: custom-file
   description: Custom adapter preset from user-supplied bank file.
+  applicable_assays: [shotgun, ancient_dna, amplicon, edna_metabarcoding]
   tags:
   - custom
   adapter_ids: []
   rationale: Use adapters from a custom bank file.
+  selection_logic: Select only from an explicit user-supplied bank file with complete provenance.
   references: []
   notes:
   - Populate via --adapter-bank-file.
@@ -56,10 +64,12 @@ presets:
   - GATCGGAAGAGCACACGTCT
 - name: minimal-illumina
   description: Minimal Illumina adapter set (baseline TruSeq only).
+  applicable_assays: [shotgun]
   tags:
   - truseq
   adapter_ids: []
   rationale: Minimal trimming for Illumina libraries.
+  selection_logic: Select when shotgun libraries need conservative baseline adapter trimming only.
   references:
   - Internal best practice
   notes:
@@ -70,12 +80,14 @@ presets:
   - AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
 - name: ancientdna-illumina
   description: Best-practice preset for aDNA trimming (default).
+  applicable_assays: [ancient_dna]
   tags:
   - truseq
   - nextera
   - partial
   adapter_ids: []
   rationale: Balanced trimming for degraded aDNA Illumina libraries.
+  selection_logic: Select when the workflow declares degraded aDNA and needs partial-adapter rescue alongside Illumina motifs.
   references:
   - Internal aDNA pipeline guidelines
   notes:
@@ -90,10 +102,12 @@ presets:
   - GTCTCGTGGGCTCGG
 - name: ssdna-splint
   description: ssDNA splint adapters for single-stranded workflows.
+  applicable_assays: [ancient_dna]
   tags:
   - ssdna
   adapter_ids: []
   rationale: Include ssDNA splint adapters.
+  selection_logic: Select when single-stranded library prep explicitly requires splint trimming.
   references:
   - Library prep protocol notes
   notes:
@@ -104,10 +118,12 @@ presets:
   - NNNNNNGGTACNNNNN
 - name: nextera
   description: Nextera tagmentation adapters.
+  applicable_assays: [shotgun]
   tags:
   - nextera
   adapter_ids: []
   rationale: Target Nextera tagmentation adapters.
+  selection_logic: Select when tagmentation-based shotgun libraries are declared explicitly.
   references:
   - Illumina Nextera documentation
   notes:
@@ -118,10 +134,12 @@ presets:
   - GTCTCGTGGGCTCGG
 - name: custom
   description: Custom adapter preset (user managed).
+  applicable_assays: [shotgun, ancient_dna, amplicon, edna_metabarcoding]
   tags:
   - custom
   adapter_ids: []
   rationale: Explicit custom adapter selection.
+  selection_logic: Select only under explicit user governance with complete custom adapter provenance.
   references: []
   notes:
   - Populate via --adapter-bank-file or overrides.
