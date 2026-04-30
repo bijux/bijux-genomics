@@ -1,6 +1,8 @@
 //! Contract bible for Bijux (stable, serialized interfaces).
 
 pub mod canonical;
+/// Governed schema compatibility and manifest migration rules.
+pub mod compatibility;
 pub mod execution;
 /// Workflow and plan manifest contracts shared across planners and API surfaces.
 pub mod planning;
@@ -18,6 +20,12 @@ pub use execution::{
     validate_execution_outputs, ArtifactRef, ArtifactRole, ArtifactRoleFamily, ArtifactSpec,
     ExecutionEdge, ExecutionGraph, ExecutionManifest, ExecutionStep, PlanPolicy, RetryPolicy,
     RunRecordV1, StageExecutionRecordV1, StageIO,
+};
+pub use compatibility::{
+    governed_api_route_adapters, governed_schema_registry, migrate_plan_manifest_value,
+    migrate_workflow_manifest_value, schema_registry_entry, ApiRouteAdapterV1,
+    ManifestMigrationAuditV1, ManifestMigrationStatusV1, SchemaCompatibilityClassV1,
+    SchemaMigrationRuleV1, SchemaRegistryEntryV1, SchemaSurfaceKindV1,
 };
 pub use planning::{
     build_plan_manifest, diff_plan_manifests, planner_refusal_from_message,
