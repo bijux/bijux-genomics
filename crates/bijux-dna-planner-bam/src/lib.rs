@@ -61,6 +61,15 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
 /// # Errors
 /// Returns an error if pipeline planning fails.
 #[allow(non_snake_case)]
+pub fn plan_bam_to_bam__default__v1(inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
+    let profile = profile_catalog::profile_by_id("bam-to-bam__default__v1")
+        .ok_or_else(|| anyhow!("missing builtin BAM profile bam-to-bam__default__v1"))?;
+    build_bam_plan(&profile, inputs)
+}
+
+/// # Errors
+/// Returns an error if pipeline planning fails.
+#[allow(non_snake_case)]
 pub fn plan_bam_to_bam__adna_shotgun__v1(inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
     let profile = profile_catalog::adna_shotgun_profile();
     build_bam_plan(&profile, inputs)
@@ -76,6 +85,29 @@ pub fn plan_bam_to_bam__adna_capture__v1(inputs: &BamPipelineInputs) -> Result<E
 
 pub fn pipeline_id_catalog(profile_id: &str) -> Vec<String> {
     profile_catalog::pipeline_id_catalog(profile_id)
+}
+
+#[must_use]
+pub fn bam_workflow_template_catalog() -> Vec<bijux_dna_domain_bam::BamWorkflowTemplateV1> {
+    bijux_dna_domain_bam::bam_workflow_templates()
+}
+
+/// # Errors
+/// Returns an error if the template is unknown or the underlying profile cannot be resolved.
+pub fn plan_bam_workflow_template(
+    template_id: &str,
+    inputs: &BamPipelineInputs,
+) -> Result<ExecutionGraph> {
+    let template = bijux_dna_domain_bam::bam_workflow_template_by_id(template_id)
+        .ok_or_else(|| anyhow!("unknown bam workflow template: {template_id}"))?;
+    let profile = profile_catalog::profile_by_id(&template.profile_id).ok_or_else(|| {
+        anyhow!(
+            "bam workflow template {} references unknown profile {}",
+            template.template_id,
+            template.profile_id
+        )
+    })?;
+    build_bam_plan(&profile, inputs)
 }
 
 fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
