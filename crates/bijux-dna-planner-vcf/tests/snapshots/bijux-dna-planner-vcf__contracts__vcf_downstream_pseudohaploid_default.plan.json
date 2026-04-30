@@ -32,6 +32,23 @@
       },
       "effective_params": {
         "coverage_regime": "pseudohaploid",
+        "likelihood_contract": {
+          "accepted_tools": [
+            "angsd",
+            "bcftools"
+          ],
+          "coverage_regime": "pseudohaploid",
+          "low_coverage_assumptions": [
+            "single_allele_sampling_is_explicit",
+            "heterozygosity_is_not_estimated_from_output_gt"
+          ],
+          "output_caveats": [
+            "pseudo_haploid_calls_are_not_diploid_genotypes",
+            "downstream_population_models_must_accept_pseudohaploid_inputs"
+          ],
+          "stage": "call_pseudohaploid"
+        },
+        "normalization_policy_id": "pseudohaploid_production",
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -40,7 +57,7 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
-        "schema_version": "bijux.vcf.stage.params.v1",
+        "schema_version": "bijux.vcf.likelihood_workflow.params.v1",
         "tool": "angsd"
       },
       "image": {
@@ -69,6 +86,23 @@
       "out_dir": "out/vcf_call_pseudohaploid",
       "params": {
         "coverage_regime": "pseudohaploid",
+        "likelihood_contract": {
+          "accepted_tools": [
+            "angsd",
+            "bcftools"
+          ],
+          "coverage_regime": "pseudohaploid",
+          "low_coverage_assumptions": [
+            "single_allele_sampling_is_explicit",
+            "heterozygosity_is_not_estimated_from_output_gt"
+          ],
+          "output_caveats": [
+            "pseudo_haploid_calls_are_not_diploid_genotypes",
+            "downstream_population_models_must_accept_pseudohaploid_inputs"
+          ],
+          "stage": "call_pseudohaploid"
+        },
+        "normalization_policy_id": "pseudohaploid_production",
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -77,7 +111,7 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
-        "schema_version": "bijux.vcf.stage.params.v1",
+        "schema_version": "bijux.vcf.likelihood_workflow.params.v1",
         "tool": "angsd"
       },
       "provenance": null,
@@ -112,7 +146,27 @@
         ]
       },
       "effective_params": {
+        "action_scope": "site_and_genotype",
         "damage_audit": true,
+        "damage_contract": {
+          "declared_actions": [
+            "remove_sites",
+            "mask_genotype_calls",
+            "annotate_damage_risk"
+          ],
+          "execution_modes": [
+            "advisory",
+            "enforced"
+          ],
+          "required_provenance": [
+            "damage_mask_mode",
+            "pmd_threshold",
+            "udg_regime",
+            "site_or_genotype_scope"
+          ],
+          "schema_version": "bijux.vcf.damage_filter_contract.v1"
+        },
+        "execution_mode": "enforced",
         "mask_ct_ga_transitions": true,
         "pmd_threshold": 3,
         "reference_provenance": {
@@ -151,7 +205,27 @@
       "operating_mode": "enforced",
       "out_dir": "out/vcf_damage_filter",
       "params": {
+        "action_scope": "site_and_genotype",
         "damage_audit": true,
+        "damage_contract": {
+          "declared_actions": [
+            "remove_sites",
+            "mask_genotype_calls",
+            "annotate_damage_risk"
+          ],
+          "execution_modes": [
+            "advisory",
+            "enforced"
+          ],
+          "required_provenance": [
+            "damage_mask_mode",
+            "pmd_threshold",
+            "udg_regime",
+            "site_or_genotype_scope"
+          ],
+          "schema_version": "bijux.vcf.damage_filter_contract.v1"
+        },
+        "execution_mode": "enforced",
         "mask_ct_ga_transitions": true,
         "pmd_threshold": 3,
         "reference_provenance": {
@@ -278,6 +352,16 @@
         ]
       },
       "effective_params": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "marker_density_floor_declared",
+          "method_assumptions": [
+            "roh_segments_depend_on_variant_density",
+            "pseudohaploid_low_coverage_requires_explicit_support"
+          ],
+          "minimum_cohort_requirement": "single_sample_or_larger_with_explicit_coverage_regime",
+          "missingness_requirement": "missingness_below_roh_threshold",
+          "stage": "roh"
+        },
         "het_per_window": 1,
         "max_gap_kb": 100,
         "min_kb": 500,
@@ -317,6 +401,16 @@
       "operating_mode": "enforced",
       "out_dir": "out/vcf_roh",
       "params": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "marker_density_floor_declared",
+          "method_assumptions": [
+            "roh_segments_depend_on_variant_density",
+            "pseudohaploid_low_coverage_requires_explicit_support"
+          ],
+          "minimum_cohort_requirement": "single_sample_or_larger_with_explicit_coverage_regime",
+          "missingness_requirement": "missingness_below_roh_threshold",
+          "stage": "roh"
+        },
         "het_per_window": 1,
         "max_gap_kb": 100,
         "min_kb": 500,
@@ -363,6 +457,11 @@
       },
       "effective_params": {
         "coverage_regime": "pseudohaploid",
+        "per_sample_sections": [
+          "missingness_by_sample",
+          "called_variants_by_sample",
+          "filter_outliers_by_sample"
+        ],
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -371,7 +470,15 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
-        "schema_version": "bijux.vcf.stage.params.v1",
+        "report_sections": [
+          "variant_counts",
+          "pass_rates",
+          "missingness",
+          "filter_impact",
+          "annotation_coverage",
+          "per_sample_summary"
+        ],
+        "schema_version": "bijux.vcf.reporting.params.v1",
         "tool": "bcftools"
       },
       "image": {
@@ -400,6 +507,11 @@
       "out_dir": "out/vcf_stats",
       "params": {
         "coverage_regime": "pseudohaploid",
+        "per_sample_sections": [
+          "missingness_by_sample",
+          "called_variants_by_sample",
+          "filter_outliers_by_sample"
+        ],
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -408,7 +520,15 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
-        "schema_version": "bijux.vcf.stage.params.v1",
+        "report_sections": [
+          "variant_counts",
+          "pass_rates",
+          "missingness",
+          "filter_impact",
+          "annotation_coverage",
+          "per_sample_summary"
+        ],
+        "schema_version": "bijux.vcf.reporting.params.v1",
         "tool": "bcftools"
       },
       "provenance": null,

@@ -1,6 +1,64 @@
 {
   "backend_selection_reason": "selected backend family from resolved coverage regime Diploid and stage/tool compatibility",
   "chunking_selection_reason": "diploid defaults to larger chunks for throughput",
+  "cohort_analysis_boundary_contracts": [
+    {
+      "marker_density_requirement": "marker_density_floor_declared",
+      "method_assumptions": [
+        "roh_segments_depend_on_variant_density",
+        "pseudohaploid_low_coverage_requires_explicit_support"
+      ],
+      "minimum_cohort_requirement": "single_sample_or_larger_with_explicit_coverage_regime",
+      "missingness_requirement": "missingness_below_roh_threshold",
+      "stage": "roh"
+    },
+    {
+      "marker_density_requirement": "marker_density_floor_declared",
+      "method_assumptions": [
+        "phase_or_gl_readiness_is_required",
+        "segments_are_model_dependent"
+      ],
+      "minimum_cohort_requirement": "at_least_two_samples",
+      "missingness_requirement": "missingness_below_ibd_threshold",
+      "stage": "ibd"
+    },
+    {
+      "marker_density_requirement": "ibd_input_density_must_pass_upstream_gate",
+      "method_assumptions": [
+        "demography_requires_ibdne_ready_segments",
+        "sparse_ibd_reduces_confidence"
+      ],
+      "minimum_cohort_requirement": "ibd_segments_and_multi_sample_cohort_required",
+      "missingness_requirement": "upstream_ibd_missingness_gate_must_pass",
+      "stage": "demography"
+    }
+  ],
+  "cohort_validation_contract": {
+    "checked_before_analysis": [
+      "sample_count",
+      "duplicate_sample_ids",
+      "missingness_profile",
+      "sex_and_ploidy_assumptions",
+      "relatedness_flags",
+      "panel_compatibility"
+    ],
+    "cohort_analysis_stages": [
+      "pca",
+      "admixture",
+      "population_structure",
+      "roh",
+      "ibd",
+      "demography"
+    ],
+    "refusal_reasons": [
+      "duplicate_sample_ids",
+      "sample_count_below_stage_minimum",
+      "missingness_above_readiness_threshold",
+      "ploidy_assumptions_not_declared",
+      "panel_compatibility_not_confirmed"
+    ],
+    "schema_version": "bijux.vcf.cohort_validation.v1"
+  },
   "coverage_regime": "diploid",
   "coverage_resolution_reason": "mean_depth_x absent; using caller-requested coverage_regime",
   "damage_aware_policy": {
@@ -20,6 +78,24 @@
       "udg": "standard"
     }
   },
+  "damage_filter_contract": {
+    "declared_actions": [
+      "remove_sites",
+      "mask_genotype_calls",
+      "annotate_damage_risk"
+    ],
+    "execution_modes": [
+      "advisory",
+      "enforced"
+    ],
+    "required_provenance": [
+      "damage_mask_mode",
+      "pmd_threshold",
+      "udg_regime",
+      "site_or_genotype_scope"
+    ],
+    "schema_version": "bijux.vcf.damage_filter_contract.v1"
+  },
   "decision_traces": [
     {
       "id": "decision.backend_selection",
@@ -30,6 +106,7 @@
     {
       "id": "decision.panel_selection",
       "reason": "build/license/ancestry constraints",
+      "required_by_stage_set": true,
       "why_panel_chosen": "panel selected by policy from species/build and license constraints"
     },
     {
@@ -96,9 +173,50 @@
         }
       },
       "reason": "regime-specific filtering/masking policy and UDG threshold profile"
+    },
+    {
+      "id": "decision.vcf_iteration16_contracts",
+      "likelihood_stage_count": 3,
+      "normalization_policy_ids": [
+        "diploid_production",
+        "lowcov_gl_production",
+        "pseudohaploid_production"
+      ],
+      "production_corpus_case_count": 7,
+      "reason": "planner surfaces production contracts for normalization, cohort analysis, imputation boundaries, reporting, and scientific drift"
     }
   ],
+  "likelihood_workflow_contracts": [],
   "map_selection_reason": "map compatibility enforced by species/build/contig digest (Homo sapiens/GRCh38)",
+  "normalization_policy_matrix": {
+    "policy_rows": [
+      {
+        "duplicate_handling": "refuse_duplicate_records",
+        "left_normalize": true,
+        "policy_id": "diploid_production",
+        "raw_fixture_expectation": "raw_vs_normalized_diploid_fixture",
+        "reference_check": "strict_reference_allele_match",
+        "split_multiallelic": true
+      },
+      {
+        "duplicate_handling": "retain_likelihood_safe_records_only",
+        "left_normalize": true,
+        "policy_id": "lowcov_gl_production",
+        "raw_fixture_expectation": "raw_vs_normalized_gl_fixture",
+        "reference_check": "strict_reference_allele_match",
+        "split_multiallelic": true
+      },
+      {
+        "duplicate_handling": "refuse_duplicate_records",
+        "left_normalize": true,
+        "policy_id": "pseudohaploid_production",
+        "raw_fixture_expectation": "raw_vs_normalized_pseudohaploid_fixture",
+        "reference_check": "strict_reference_allele_match",
+        "split_multiallelic": false
+      }
+    ],
+    "schema_version": "bijux.vcf.normalization_policy_matrix.v1"
+  },
   "panel_boundary_contracts": [
     {
       "execution_mode": "enforced",
@@ -132,6 +250,61 @@
     }
   ],
   "panel_selection_reason": "panel selected by build/license/ancestry policy",
+  "phasing_imputation_boundary_contracts": [
+    {
+      "accepted_tools": [
+        "shapeit5",
+        "eagle",
+        "beagle"
+      ],
+      "refusal_reasons": [
+        "panel_identity_missing",
+        "map_lock_missing",
+        "build_compatibility_failed",
+        "confidence_outputs_not_declared"
+      ],
+      "required_context": [
+        "panel_identity",
+        "build_compatibility",
+        "map_file",
+        "sample_eligibility"
+      ],
+      "required_outputs": [
+        "phased_vcf",
+        "phase_block_stats",
+        "switch_error_proxy",
+        "phasing_manifest"
+      ],
+      "stage": "phasing"
+    },
+    {
+      "accepted_tools": [
+        "glimpse",
+        "beagle",
+        "impute5",
+        "minimac4"
+      ],
+      "refusal_reasons": [
+        "panel_identity_missing",
+        "map_lock_missing",
+        "panel_build_mismatch",
+        "confidence_outputs_not_declared"
+      ],
+      "required_context": [
+        "panel_identity",
+        "build_compatibility",
+        "map_file",
+        "chunk_plan"
+      ],
+      "required_outputs": [
+        "imputed_vcf",
+        "imputation_qc",
+        "imputation_acceptance",
+        "panel_mismatch_diagnostics"
+      ],
+      "stage": "impute"
+    }
+  ],
   "planner_version": "bijux-dna-planner-vcf.v2",
   "population_guardrail_contracts": [
     {
@@ -183,6 +356,39 @@
       "stage": "demography"
     }
   ],
+  "production_corpus_contract": {
+    "covered_cases": [
+      {
+        "case_id": "bad_headers",
+        "expectation": "preflight_refuses_malformed_or_undeclared_headers"
+      },
+      {
+        "case_id": "contig_aliases",
+        "expectation": "alias_handling_is_explicit_and_build_locked"
+      },
+      {
+        "case_id": "multi_sample_cohort",
+        "expectation": "cohort_validation_and_per_sample_reports_are_exercised"
+      },
+      {
+        "case_id": "low_coverage_gl",
+        "expectation": "gl_workflows_declare_likelihood_assumptions"
+      },
+      {
+        "case_id": "phased_inputs",
+        "expectation": "phase_sensitive_analyses_have_confidence_outputs"
+      },
+      {
+        "case_id": "imputed_inputs",
+        "expectation": "imputation_acceptance_and_panel_identity_are_tracked"
+      },
+      {
+        "case_id": "panel_mismatch",
+        "expectation": "panel_build_or_identity_mismatches_refuse_before_runtime"
+      }
+    ],
+    "schema_version": "bijux.vcf.production_corpus.v1"
+  },
   "reference_context": {
     "alias_count": 6,
     "build_id": "GRCh38",
@@ -197,11 +403,48 @@
     "species_id": "Homo sapiens",
     "vcf_index_required": true
   },
+  "report_coverage_contract": {
+    "per_sample_sections": [
+      "missingness_by_sample",
+      "called_variants_by_sample",
+      "filter_outliers_by_sample"
+    ],
+    "report_sections": [
+      "variant_counts",
+      "pass_rates",
+      "missingness",
+      "filter_impact",
+      "annotation_coverage",
+      "per_sample_summary"
+    ],
+    "schema_version": "bijux.vcf.report_coverage.v1"
+  },
   "resolved_coverage_profile": "modern_wgs_shotgun",
   "resolved_coverage_regime": "diploid",
   "resolved_reference_bundle_id": "hsapiens_grch38_primary",
   "resolved_reference_lock": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
   "schema_version": "bijux.vcf.planner_explain.v1",
+  "scientific_drift_contract": {
+    "downstream_risks": [
+      "variant_count_shift",
+      "pass_rate_shift",
+      "population_analysis_instability",
+      "annotation_coverage_shift"
+    ],
+    "required_report_sections": [
+      "before_after_variant_counts",
+      "filter_delta_summary",
+      "downstream_risk_summary"
+    ],
+    "schema_version": "bijux.vcf.scientific_drift.v1",
+    "tracked_change_surfaces": [
+      "filter_defaults",
+      "normalization_policy",
+      "damage_thresholds",
+      "phasing_backend",
+      "imputation_backend"
+    ]
+  },
   "selected_panel": {
     "index_checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "license_id": "CC-BY-4.0",
@@ -218,7 +461,21 @@
       "calling_mode_contract": null,
       "coverage_regime": "diploid",
       "params_surface": {
+        "license_policy": "panel_license_must_match_operator_constraints",
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
+        "normalization_policy": {
+          "duplicate_handling": "refuse_duplicate_records",
+          "left_normalize": true,
+          "policy_id": "diploid_production",
+          "raw_fixture_expectation": "raw_vs_normalized_diploid_fixture",
+          "reference_check": "strict_reference_allele_match",
+          "split_multiallelic": true
+        },
         "normalize": true,
+        "panel_id": "1000g_phase3",
+        "panel_identity_required": true,
+        "panel_identity_source": "panel_lock",
         "panel_lock": {
           "index_checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "license_id": "CC-BY-4.0",
@@ -226,6 +483,11 @@
           "panel_id": "1000g_phase3",
           "reference_build": "GRCh38"
         },
+        "prepared_outputs": [
+          "panel_manifest",
+          "overlap_report",
+          "chunks_plan"
+        ],
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -287,7 +549,27 @@
       "calling_mode_contract": null,
       "coverage_regime": "diploid",
       "params_surface": {
+        "action_scope": "site_and_genotype",
         "damage_audit": true,
+        "damage_contract": {
+          "declared_actions": [
+            "remove_sites",
+            "mask_genotype_calls",
+            "annotate_damage_risk"
+          ],
+          "execution_modes": [
+            "advisory",
+            "enforced"
+          ],
+          "required_provenance": [
+            "damage_mask_mode",
+            "pmd_threshold",
+            "udg_regime",
+            "site_or_genotype_scope"
+          ],
+          "schema_version": "bijux.vcf.damage_filter_contract.v1"
+        },
+        "execution_mode": "enforced",
         "mask_ct_ga_transitions": true,
         "pmd_threshold": 3,
         "reference_provenance": {
@@ -338,6 +620,32 @@
       "coverage_regime": "diploid",
       "params_surface": {
         "allow_gl_only_input": false,
+        "boundary_contract": {
+          "accepted_tools": [
+            "shapeit5",
+            "eagle",
+            "beagle"
+          ],
+          "refusal_reasons": [
+            "panel_identity_missing",
+            "map_lock_missing",
+            "build_compatibility_failed",
+            "confidence_outputs_not_declared"
+          ],
+          "required_context": [
+            "panel_identity",
+            "build_compatibility",
+            "map_file",
+            "sample_eligibility"
+          ],
+          "required_outputs": [
+            "phased_vcf",
+            "phase_block_stats",
+            "switch_error_proxy",
+            "phasing_manifest"
+          ],
+          "stage": "phasing"
+        },
         "chunking": {
           "chr_exclude": [],
           "chr_include": [],
@@ -953,9 +1261,18 @@
             "start": 240100001
           }
         ],
+        "confidence_outputs": [
+          "phased_vcf",
+          "phase_block_stats",
+          "switch_error_proxy",
+          "phasing_manifest"
+        ],
         "map_coordinate_system": "bp",
         "map_id": "hsapiens_grch38_chr_map",
         "max_iterations": 10,
+        "panel_build_required": "GRCh38",
+        "panel_id": "1000g_phase3",
+        "panel_identity_required": true,
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -982,6 +1299,33 @@
       "calling_mode_contract": null,
       "coverage_regime": "diploid",
       "params_surface": {
+        "boundary_contract": {
+          "accepted_tools": [
+            "glimpse",
+            "beagle",
+            "impute5",
+            "minimac4"
+          ],
+          "refusal_reasons": [
+            "panel_identity_missing",
+            "map_lock_missing",
+            "panel_build_mismatch",
+            "confidence_outputs_not_declared"
+          ],
+          "required_context": [
+            "panel_identity",
+            "build_compatibility",
+            "map_file",
+            "chunk_plan"
+          ],
+          "required_outputs": [
+            "imputed_vcf",
+            "imputation_qc",
+            "imputation_acceptance",
+            "panel_mismatch_diagnostics"
+          ],
+          "stage": "impute"
+        },
         "chunking": {
           "chr_exclude": [],
           "chr_include": [],
@@ -1597,7 +1941,19 @@
             "start": 240100001
           }
         ],
+        "confidence_outputs": [
+          "imputed_vcf",
+          "imputation_qc",
+          "imputation_acceptance",
+          "panel_mismatch_diagnostics"
+        ],
+        "imputation_acceptance_mode": "qc_gated",
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
         "min_rsq": 0.3,
+        "panel_build_required": "GRCh38",
+        "panel_id": "1000g_phase3",
+        "panel_identity_required": true,
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -1626,6 +1982,14 @@
       "coverage_regime": "diploid",
       "params_surface": {
         "coverage_regime": "diploid",
+        "normalization_policy": {
+          "duplicate_handling": "refuse_duplicate_records",
+          "left_normalize": true,
+          "policy_id": "diploid_production",
+          "raw_fixture_expectation": "raw_vs_normalized_diploid_fixture",
+          "reference_check": "strict_reference_allele_match",
+          "split_multiallelic": true
+        },
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -1634,7 +1998,16 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
-        "schema_version": "bijux.vcf.stage.params.v1",
+        "report_sections": [
+          "variant_counts",
+          "pass_rates",
+          "missingness",
+          "filter_impact",
+          "annotation_coverage",
+          "per_sample_summary"
+        ],
+        "retain_raw_view": true,
+        "schema_version": "bijux.vcf.postprocess.params.v1",
         "tool": "bcftools"
       },
       "reason": "coverage regime Diploid selected tool bcftools for vcf.postprocess (coverage_regime_default)",
@@ -1654,7 +2027,27 @@
           "eigenval",
           "cluster_assignments"
         ],
+        "guardrail_contract": {
+          "report_caveats": [
+            "cohort_composition_changes_output",
+            "projection_without_context_is_advisory"
+          ],
+          "required_inputs": [
+            "sample_metadata_manifest",
+            "ld_pruning_policy",
+            "maf_threshold",
+            "missingness_threshold"
+          ],
+          "stage": "population_structure"
+        },
+        "interpretation_caveats": [
+          "cohort_composition_changes_output",
+          "projection_without_context_is_advisory"
+        ],
         "ld_prune": true,
+        "ld_pruning_policy": "plink2_indep_pairwise",
+        "maf_threshold": 0.01,
+        "missingness_threshold": 0.1,
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -1663,6 +2056,8 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
+        "sample_inclusion_policy": "header_samples_intersect_metadata_manifest",
+        "sample_metadata_manifest_required": true,
         "schema_version": "bijux.vcf.population_structure.params.v1",
         "tool": "plink2"
       },
@@ -1677,6 +2072,16 @@
       "calling_mode_contract": null,
       "coverage_regime": "diploid",
       "params_surface": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "marker_density_floor_declared",
+          "method_assumptions": [
+            "roh_segments_depend_on_variant_density",
+            "pseudohaploid_low_coverage_requires_explicit_support"
+          ],
+          "minimum_cohort_requirement": "single_sample_or_larger_with_explicit_coverage_regime",
+          "missingness_requirement": "missingness_below_roh_threshold",
+          "stage": "roh"
+        },
         "het_per_window": 1,
         "max_gap_kb": 100,
         "min_kb": 500,
@@ -1702,6 +2107,16 @@
       "calling_mode_contract": null,
       "coverage_regime": "diploid",
       "params_surface": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "marker_density_floor_declared",
+          "method_assumptions": [
+            "phase_or_gl_readiness_is_required",
+            "segments_are_model_dependent"
+          ],
+          "minimum_cohort_requirement": "at_least_two_samples",
+          "missingness_requirement": "missingness_below_ibd_threshold",
+          "stage": "ibd"
+        },
         "min_samples": 2,
         "min_segment_cm": 3.0,
         "reference_provenance": {
@@ -1730,6 +2145,16 @@
       "calling_mode_contract": null,
       "coverage_regime": "diploid",
       "params_surface": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "ibd_input_density_must_pass_upstream_gate",
+          "method_assumptions": [
+            "demography_requires_ibdne_ready_segments",
+            "sparse_ibd_reduces_confidence"
+          ],
+          "minimum_cohort_requirement": "ibd_segments_and_multi_sample_cohort_required",
+          "missingness_requirement": "upstream_ibd_missingness_gate_must_pass",
+          "stage": "demography"
+        },
         "generation_time_years": 29,
         "reference_provenance": {
           "build_id": "GRCh38",
@@ -1755,6 +2180,11 @@
       "coverage_regime": "diploid",
       "params_surface": {
         "coverage_regime": "diploid",
+        "per_sample_sections": [
+          "missingness_by_sample",
+          "called_variants_by_sample",
+          "filter_outliers_by_sample"
+        ],
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -1763,7 +2193,15 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
-        "schema_version": "bijux.vcf.stage.params.v1",
+        "report_sections": [
+          "variant_counts",
+          "pass_rates",
+          "missingness",
+          "filter_impact",
+          "annotation_coverage",
+          "per_sample_summary"
+        ],
+        "schema_version": "bijux.vcf.reporting.params.v1",
         "tool": "bcftools"
       },
       "reason": "coverage regime Diploid selected tool bcftools for vcf.stats (coverage_regime_default)",
