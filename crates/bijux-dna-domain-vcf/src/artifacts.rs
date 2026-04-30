@@ -28,6 +28,7 @@ pub const VCF_ROH_IBD_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.roh_ib
 pub const VCF_DEMOGRAPHY_REFUSAL_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.demography_refusal.v1";
 pub const VCF_PANEL_REFERENCE_DRIFT_REPORT_SCHEMA_VERSION: &str =
     "bijux.vcf.panel_reference_drift.v1";
+pub const VCF_STRUCTURAL_VARIANT_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.structural_variant.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -382,6 +383,25 @@ pub struct VcfPanelReferenceDriftReportV1 {
     #[serde(default)]
     pub invalidated_outputs: Vec<String>,
     pub requires_reprocessing: bool,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfStructuralVariantBoundaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub has_structural_variants: bool,
+    pub explicit_sv_mode: bool,
+    pub backend: Option<String>,
+    pub requested_operation: String,
+    pub support_declared: bool,
+    #[serde(default)]
+    pub supported_sv_types: Vec<String>,
+    pub prerequisites_passed: bool,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -1543,6 +1563,54 @@ pub fn build_panel_reference_drift_report(
     }
 }
 
+/// Evaluate structural-variant support boundaries and refuse unsafe coercion into small-variant semantics.
+#[must_use]
+pub fn evaluate_structural_variant_support_boundary(
+    has_structural_variants: bool,
+    explicit_sv_mode: bool,
+    backend: Option<&str>,
+    supported_sv_types: &[&str],
+    requested_operation: &str,
+    treat_as_small_variant: bool,
+) -> VcfStructuralVariantBoundaryV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    let support_declared = !supported_sv_types.is_empty();
+    if has_structural_variants && !explicit_sv_mode {
+        refusal_codes.push("explicit_sv_mode_required".to_string());
+    }
+    if has_structural_variants && backend.is_none_or(str::is_empty) {
+        refusal_codes.push("sv_backend_required".to_string());
+    }
+    if has_structural_variants && !support_declared {
+        refusal_codes.push("supported_sv_types_required".to_string());
+    }
+    if !matches!(requested_operation, "call" | "filter" | "annotate" | "summarize") {
+        refusal_codes.push("unsupported_sv_operation".to_string());
+    }
+    if has_structural_variants && treat_as_small_variant {
+        refusal_codes.push("small_variant_coercion_forbidden".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    VcfStructuralVariantBoundaryV1 {
+        schema_version: VCF_STRUCTURAL_VARIANT_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.postprocess".to_string(),
+        has_structural_variants,
+        explicit_sv_mode,
+        backend: backend.map(ToOwned::to_owned),
+        requested_operation: requested_operation.to_string(),
+        support_declared,
+        supported_sv_types: supported_sv_types.iter().map(|kind| (*kind).to_string()).collect(),
+        prerequisites_passed: refusal_codes.is_empty(),
+        refusal_codes,
+        caveats: vec![
+            "SV handling boundaries prevent accidental interpretation as small-variant VCF"
+                .to_string(),
+            "SV tool semantics differ by caller and must be surfaced explicitly".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -2167,5 +2235,29 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(!stable.requires_reprocessing);
         assert!(stable.changed_surfaces.is_empty());
         assert!(stable.invalidated_outputs.is_empty());
+    }
+
+    #[test]
+    fn evaluate_structural_variant_support_boundary_requires_explicit_sv_support() {
+        let ready = evaluate_structural_variant_support_boundary(
+            true,
+            true,
+            Some("sniffles2"),
+            &["DEL", "INS", "INV"],
+            "call",
+            false,
+        );
+        assert!(ready.prerequisites_passed);
+        assert!(ready.support_declared);
+        assert_eq!(ready.stage_id, "vcf.postprocess");
+
+        let refused =
+            evaluate_structural_variant_support_boundary(true, false, None, &[], "unknown", true);
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"explicit_sv_mode_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"sv_backend_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"supported_sv_types_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"unsupported_sv_operation".to_string()));
+        assert!(refused.refusal_codes.contains(&"small_variant_coercion_forbidden".to_string()));
     }
 }
