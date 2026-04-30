@@ -8,5 +8,6 @@ mod profile_manifest;
 mod projections;
 mod stable_surface;
 mod vocabulary;
+mod workflow_template;
 
 pub use stable_surface::*;

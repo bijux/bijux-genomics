@@ -86,6 +86,13 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
                 "vcf.tbi",
             ],
             supports_benchmarks: false,
+            supports_sample_sheet: false,
+            workflow_template_ids: Vec::new(),
+            batch_semantics: None,
+            fan_artifact_rules: Vec::new(),
+            failure_policy: Vec::new(),
+            evidence_summary: None,
+            parameter_policy: None,
         },
     }
 }

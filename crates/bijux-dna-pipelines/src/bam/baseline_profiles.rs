@@ -50,6 +50,13 @@ pub fn bam_default_profile() -> PipelineProfile {
                 "invariants_report.json",
             ],
             supports_benchmarks: true,
+            supports_sample_sheet: false,
+            workflow_template_ids: Vec::new(),
+            batch_semantics: None,
+            fan_artifact_rules: Vec::new(),
+            failure_policy: Vec::new(),
+            evidence_summary: None,
+            parameter_policy: None,
         },
     }
 }

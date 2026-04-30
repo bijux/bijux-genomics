@@ -18,6 +18,12 @@ pub use contract::{
     ArtifactType, Domain, EffectiveDefaults, InvariantSeverity, InvariantViolationV1,
     InvariantsPreset, InvariantsReportV1, MetricsBundle, PipelineCapabilities, PipelineContract,
     PipelineProfile, ProfileManifestV1, ReportSection, StabilityTier,
+    BatchNodeScopeV1, BatchWorkflowSemanticsV1, CrossDomainEvidenceSummaryV1,
+    CrossDomainFailurePolicyV1, CrossWorkflowTemplateV1, FanArtifactRuleV1, FanPatternV1,
+    SampleSheetFormatV1, SampleSheetRecordV1, SampleSheetV1, TemplateFailureActionV1,
+    TemplateParameterPolicyV1, WorkflowBatchEdgeV1, WorkflowBatchGraphV1,
+    WorkflowBatchNodeV1, WorkflowEvidenceSummaryStoryV1, WorkflowTemplateAdmissionCheckV1,
+    WorkflowTemplateAdmissionV1,
 };
 pub use defaults::merge_effective_defaults;
 pub use defaults::{DefaultParams, DefaultProvenanceV1, DefaultsLedgerV1, EmptyParams};
