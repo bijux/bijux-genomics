@@ -131,6 +131,62 @@ fn stage_postprocess(
                 }
             }
         }
+        bijux_dna_planner_bam::stage_api::BamStage::MapqFilter => {
+            let flagstat_before: bijux_dna_domain_bam::BamFlagstatCountsV1 =
+                serde_json::from_value(parse_flagstat_counts(&stage_dir.join("flagstat.before.txt"))?)?;
+            let flagstat_after: bijux_dna_domain_bam::BamFlagstatCountsV1 =
+                serde_json::from_value(parse_flagstat_counts(&stage_dir.join("flagstat.after.txt"))?)?;
+            let input_bam = plan
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Bam)
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| stage_dir.join("in.bam"));
+            let output_bam = plan
+                .io
+                .outputs
+                .iter()
+                .find(|artifact| {
+                    artifact.role == bijux_dna_core::contract::ArtifactRole::Bam && !artifact.optional
+                })
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| stage_dir.join("filtered.bam"));
+            let mapped_reads_removed = match (
+                flagstat_before.mapped_reads,
+                flagstat_after.mapped_reads,
+            ) {
+                (Some(before), Some(after)) if before >= after => Some(before - after),
+                _ => None,
+            };
+            let mapped_fraction_retained = match (
+                flagstat_before.mapped_reads,
+                flagstat_after.mapped_reads,
+            ) {
+                (Some(before), Some(after)) if before > 0 => Some(after as f64 / before as f64),
+                _ => None,
+            };
+            let payload = bijux_dna_domain_bam::BamMapqFilterSummaryV1 {
+                schema_version: bijux_dna_domain_bam::BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                mapq_threshold: plan
+                    .params
+                    .get("mapq_threshold")
+                    .and_then(serde_json::Value::as_u64)
+                    .and_then(|value| u8::try_from(value).ok())
+                    .unwrap_or(0),
+                input_bam,
+                output_bam,
+                flagstat_before,
+                flagstat_after,
+                mapped_reads_removed,
+                mapped_fraction_retained,
+            };
+            let path = stage_dir.join("mapq_filter.summary.json");
+            bijux_dna_infra::atomic_write_json(&path, &payload)
+                .with_context(|| format!("write {}", path.display()))?;
+        }
         bijux_dna_planner_bam::stage_api::BamStage::Complexity => {
             let path = stage_dir.join("complexity.artifacts.json");
             bijux_dna_infra::atomic_write_json(
