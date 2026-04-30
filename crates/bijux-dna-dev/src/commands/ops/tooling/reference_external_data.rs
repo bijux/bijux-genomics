@@ -18,6 +18,7 @@ enum ScenarioId {
     OrganellarReference,
     MultiReferenceRefusal,
     ReferenceUpdateImpact,
+    ContaminantUpdateImpact,
 }
 
 impl ScenarioId {
@@ -29,6 +30,7 @@ impl ScenarioId {
             Self::OrganellarReference => "g174_organellar_reference",
             Self::MultiReferenceRefusal => "g175_multi_reference_refusal",
             Self::ReferenceUpdateImpact => "g176_reference_update_impact",
+            Self::ContaminantUpdateImpact => "g177_contaminant_update_impact",
         }
     }
 
@@ -40,6 +42,7 @@ impl ScenarioId {
             Self::OrganellarReference => "G174",
             Self::MultiReferenceRefusal => "G175",
             Self::ReferenceUpdateImpact => "G176",
+            Self::ContaminantUpdateImpact => "G177",
         }
     }
 
@@ -51,6 +54,7 @@ impl ScenarioId {
             Self::OrganellarReference,
             Self::MultiReferenceRefusal,
             Self::ReferenceUpdateImpact,
+            Self::ContaminantUpdateImpact,
         ]
     }
 
@@ -62,6 +66,7 @@ impl ScenarioId {
             "g174_organellar_reference" | "G174" => Some(Self::OrganellarReference),
             "g175_multi_reference_refusal" | "G175" => Some(Self::MultiReferenceRefusal),
             "g176_reference_update_impact" | "G176" => Some(Self::ReferenceUpdateImpact),
+            "g177_contaminant_update_impact" | "G177" => Some(Self::ContaminantUpdateImpact),
             _ => None,
         }
     }
@@ -172,6 +177,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::OrganellarReference => scenario_organellar_reference(),
         ScenarioId::MultiReferenceRefusal => scenario_multi_reference_refusal(),
         ScenarioId::ReferenceUpdateImpact => scenario_reference_update_impact(),
+        ScenarioId::ContaminantUpdateImpact => scenario_contaminant_update_impact(),
     };
 
     match result {
@@ -375,6 +381,38 @@ fn scenario_reference_update_impact() -> Result<(Vec<String>, serde_json::Value)
     ))
 }
 
+fn scenario_contaminant_update_impact() -> Result<(Vec<String>, serde_json::Value)> {
+    let changed = vec![
+        "common_lab_contaminants".to_string(),
+        "human_host_depletion_grch38".to_string(),
+    ];
+    let impacted = vec![
+        "fastq.build_contaminant_db",
+        "fastq.deplete_reference_contaminants",
+        "fastq.deplete_host",
+        "fastq.materialize_qc_manifest",
+    ];
+    if changed.is_empty() || impacted.is_empty() {
+        return Err(anyhow!(
+            "contaminant update impact must track changed bundles and impacted stages"
+        ));
+    }
+    Ok((
+        vec![
+            "contaminant-source revision linked to depletion-rate and caveat changes".to_string(),
+            "report enumerates stage surfaces requiring rerun".to_string(),
+        ],
+        json!({
+            "changed_bundles": changed,
+            "impacted_stages": impacted,
+            "required_caveats": [
+                "depletion_rate_shift_requires_review",
+                "cross_run_contaminant_comparison_not_direct"
+            ],
+        }),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{run_scenario, ScenarioId};
@@ -382,7 +420,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G171", "G172", "G173", "G174", "G175", "G176"]);
+        assert_eq!(ids, vec!["G171", "G172", "G173", "G174", "G175", "G176", "G177"]);
     }
 
     #[test]
@@ -461,5 +499,17 @@ mod tests {
             .unwrap_or_default();
         assert!(surfaces.iter().any(|row| row.as_str() == Some("bam.align_reads")));
         assert!(surfaces.iter().any(|row| row.as_str() == Some("vcf.call_variants")));
+    }
+
+    #[test]
+    fn contaminant_update_scenario_lists_changed_bundles() {
+        let report = run_scenario(&ScenarioId::ContaminantUpdateImpact);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G177");
+        let bundles =
+            report.evidence.get("changed_bundles").and_then(serde_json::Value::as_array).cloned().unwrap_or_default();
+        assert!(bundles
+            .iter()
+            .any(|entry| entry.as_str() == Some("common_lab_contaminants")));
     }
 }
