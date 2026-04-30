@@ -29,6 +29,8 @@ pub const VCF_DEMOGRAPHY_REFUSAL_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.demo
 pub const VCF_PANEL_REFERENCE_DRIFT_REPORT_SCHEMA_VERSION: &str =
     "bijux.vcf.panel_reference_drift.v1";
 pub const VCF_STRUCTURAL_VARIANT_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.structural_variant.v1";
+pub const VCF_ANNOTATION_PROVENANCE_WORKFLOW_SCHEMA_VERSION: &str =
+    "bijux.vcf.annotation_provenance.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -399,6 +401,27 @@ pub struct VcfStructuralVariantBoundaryV1 {
     pub support_declared: bool,
     #[serde(default)]
     pub supported_sv_types: Vec<String>,
+    pub prerequisites_passed: bool,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfAnnotationProvenanceWorkflowSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub annotation_source: String,
+    pub annotation_version: String,
+    #[serde(default)]
+    pub requested_fields: Vec<String>,
+    #[serde(default)]
+    pub covered_fields: Vec<String>,
+    pub field_coverage: f64,
+    pub gene_mapping: Option<String>,
+    pub transcript_mapping: Option<String>,
     pub prerequisites_passed: bool,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
@@ -1611,6 +1634,67 @@ pub fn evaluate_structural_variant_support_boundary(
     }
 }
 
+/// Build annotation provenance summary with explicit source/version and field-coverage accounting.
+#[must_use]
+pub fn execute_annotation_provenance_workflow(
+    annotation_source: &str,
+    annotation_version: &str,
+    requested_fields: &[&str],
+    covered_fields: &[&str],
+    gene_mapping: Option<&str>,
+    transcript_mapping: Option<&str>,
+    minimum_field_coverage: f64,
+) -> VcfAnnotationProvenanceWorkflowSummaryV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if annotation_source.is_empty() {
+        refusal_codes.push("annotation_source_required".to_string());
+    }
+    if annotation_version.is_empty() {
+        refusal_codes.push("annotation_version_required".to_string());
+    }
+    if requested_fields.is_empty() {
+        refusal_codes.push("requested_annotation_fields_required".to_string());
+    }
+    if gene_mapping.is_none_or(str::is_empty) {
+        refusal_codes.push("gene_mapping_required".to_string());
+    }
+    if transcript_mapping.is_none_or(str::is_empty) {
+        refusal_codes.push("transcript_mapping_required".to_string());
+    }
+    let requested = requested_fields.iter().map(|field| (*field).to_string()).collect::<Vec<_>>();
+    let mut covered = covered_fields.iter().map(|field| (*field).to_string()).collect::<Vec<_>>();
+    covered.sort();
+    covered.dedup();
+    let covered_count = requested
+        .iter()
+        .filter(|field| covered.iter().any(|covered_field| covered_field == *field))
+        .count() as f64;
+    let requested_count = requested.len() as f64;
+    let field_coverage = if requested_count > 0.0 { covered_count / requested_count } else { 0.0 };
+    if field_coverage < minimum_field_coverage {
+        refusal_codes.push("annotation_field_coverage_below_minimum".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    VcfAnnotationProvenanceWorkflowSummaryV1 {
+        schema_version: VCF_ANNOTATION_PROVENANCE_WORKFLOW_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.postprocess".to_string(),
+        annotation_source: annotation_source.to_string(),
+        annotation_version: annotation_version.to_string(),
+        requested_fields: requested,
+        covered_fields: covered,
+        field_coverage,
+        gene_mapping: gene_mapping.map(ToOwned::to_owned),
+        transcript_mapping: transcript_mapping.map(ToOwned::to_owned),
+        prerequisites_passed: refusal_codes.is_empty(),
+        refusal_codes,
+        caveats: vec![
+            "annotation completeness depends on source release and transcript model".to_string(),
+            "field-level coverage should be reviewed before downstream interpretation".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -2259,5 +2343,40 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"supported_sv_types_required".to_string()));
         assert!(refused.refusal_codes.contains(&"unsupported_sv_operation".to_string()));
         assert!(refused.refusal_codes.contains(&"small_variant_coercion_forbidden".to_string()));
+    }
+
+    #[test]
+    fn execute_annotation_provenance_workflow_tracks_source_version_mapping_and_field_coverage() {
+        let ready = execute_annotation_provenance_workflow(
+            "vep",
+            "110",
+            &["gene", "transcript", "impact"],
+            &["gene", "transcript", "impact"],
+            Some("ensembl_gene"),
+            Some("ensembl_transcript"),
+            0.90,
+        );
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.annotation_source, "vep");
+        assert_eq!(ready.field_coverage, 1.0);
+        assert!(ready.refusal_codes.is_empty());
+
+        let refused = execute_annotation_provenance_workflow(
+            "",
+            "",
+            &["gene", "impact", "clinvar"],
+            &["gene"],
+            None,
+            None,
+            0.80,
+        );
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"annotation_source_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"annotation_version_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"gene_mapping_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"transcript_mapping_required".to_string()));
+        assert!(refused
+            .refusal_codes
+            .contains(&"annotation_field_coverage_below_minimum".to_string()));
     }
 }
