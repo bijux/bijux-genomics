@@ -10,10 +10,10 @@ These v1 operations are exported through `bijux_dna_api::v1::api`.
 | Command | Rust entrypoint | Purpose |
 | --- | --- | --- |
 | `plan` | `plan(PlanRequest)` | Build a stable execution graph plus governed workflow/plan manifest surfaces without running stages. |
-| `execute` | `execute(ExecuteRequest)` | Run a planned request and return an `ExecuteResponse` with manifest and report pointers. |
+| `execute` | `execute(ExecuteRequest)` | Run a planned request in `simulation`, `advisory`, or `enforced` mode and return governed run-state, policy, checkpoint, and failure pointers. |
 | `execute-and-report` | `execute_and_report(ExecuteRequest)` | Run execution and materialize report outputs through one API call. |
-| `dry-run` | `dry_run(DryRunRequest)` | Validate inputs and emit deterministic dry-run graph, run manifest, and plan manifest artifacts. |
-| `status` | `status(run_id)` | Read persisted run state and return `RunStatus`. |
+| `dry-run` | `dry_run(DryRunRequest)` | Validate inputs and emit deterministic dry-run graph, run manifest, plan manifest, run-state, runtime-policy, executor-descriptor, and checkpoint artifacts. |
+| `status` | `status(run_id)` | Read persisted run state and return `RunStatus` with governed runtime contract pointers when present. |
 | `explain` | `explain(plan, defaults_ledger)` | Build the explainability bundle for a planned graph. |
 | `policy-audit` | `policy_audit(...)` | Return the policy-audit owner and commands; policy execution stays in `bijux-dna-dev` and `bijux-dna-policies`. |
 | `render-report` | `render_report(RenderReportRequest)` | Render an existing run report bundle. |

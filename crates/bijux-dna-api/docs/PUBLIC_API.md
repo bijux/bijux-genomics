@@ -32,6 +32,11 @@ enter through `bijux_dna_api::v1::api`.
 - Add or update schema snapshots for any public shape change.
 - Keep `PlanRequest` and `PlanResponse` aligned with the governed workflow and
   plan manifest contracts exported from `bijux-dna-core`.
+- Keep `ExecuteRequest`, `ExecuteResponse`, `DryRunResponse`, and `RunStatus`
+  aligned with the governed run-state, runtime-policy, executor-descriptor,
+  checkpoint, and failure contracts exported from `bijux-dna-runtime`.
+- `execute` now distinguishes `simulation`, `advisory`, and `enforced` modes;
+  `dry-run` remains a separate public operation with its own response contract.
 
 ## Non-Public Surfaces
 
