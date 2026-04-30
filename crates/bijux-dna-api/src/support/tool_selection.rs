@@ -59,6 +59,7 @@ mod tests {
         let mut registry = ToolRegistry::default();
         registry.insert_stage(StageSpec {
             stage_id: stage_id.clone(),
+            stage_family: bijux_dna_core::contract::StageFamily::Fastq,
             semantic_kind: bijux_dna_core::contract::StageSemanticKind::Transform,
             input_kind: bijux_dna_core::contract::ArtifactKind::Fastq,
             output_kind: bijux_dna_core::contract::ArtifactKind::Fastq,
