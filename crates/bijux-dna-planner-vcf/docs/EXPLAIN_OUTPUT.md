@@ -8,11 +8,16 @@ Explain output should make a plan reviewable without executing it. It records wh
 ## Contents
 - Planner version.
 - Coverage regime.
-- Pipeline domain.
-- Stage list with tool, reason, command, inputs, outputs, params, and chunk count.
-- Requested stages and stage tool overrides.
-- Panel lock, panel selection, and species context.
+- Coverage resolution reasons and damage-aware policy.
+- Stage list with tool, reason, contract-shaped params, artifact classes, and calling-mode
+  overlays.
+- Selected panel plus panel-boundary and phasing/imputation boundary contracts when the stage set
+  requires them.
+- Cohort validation, population guardrail, cohort-analysis, report-coverage, production-corpus,
+  and scientific-drift contracts so downstream review has one governed surface.
 - Reference bundle, panel, and map identifiers and checksums.
+- Decision traces that explain backend, panel, map, chunking, coverage, and iteration-specific
+  contract surfacing choices.
 
 ## Stability
 Explain payload shape is part of the public review contract. Changes require snapshot review in `tests/contracts.rs` and documentation updates here.
@@ -20,5 +25,5 @@ Explain payload shape is part of the public review contract. Changes require sna
 ## Non-Goals
 - Runtime metrics.
 - Tool stderr/stdout.
-- Product-level QC interpretation.
+- Product-level scientific interpretation beyond the explicitly surfaced caveats and contracts.
 - Environment discovery results.
