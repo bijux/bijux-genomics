@@ -11,6 +11,6 @@ pub use runtime::{
     capture_provenance_snapshot, prepare_adapter_bank, prepare_host_reference_bundle,
     prepare_primer_bank, build_contaminant_db, build_rrna_db, build_taxonomy_db,
     normalize_read_names, repair_pairs, interleave_reads, deinterleave_reads,
-    concatenate_lanes, LaneInput,
+    concatenate_lanes, demultiplex_reads, DemultiplexRule, LaneInput,
     HeaderInspection, MergeSuitability, NormalizedOutputs,
 };
