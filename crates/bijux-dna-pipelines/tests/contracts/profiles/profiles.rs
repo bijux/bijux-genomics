@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use bijux_dna_core::id_catalog;
 use bijux_dna_pipelines::bam::{
     bam_adna_capture_profile, bam_adna_shotgun_profile, bam_default_profile,
-    bam_reference_adna_profile,
+    bam_reference_adna_profile, bam_workflow_templates,
 };
 use bijux_dna_pipelines::cross::{
     bam_to_vcf_default_profile, cross_workflow_templates, fastq_to_bam_adna_shotgun_profile,
@@ -299,6 +299,14 @@ fn fastq_workflow_templates_snapshot() {
 }
 
 #[test]
+fn bam_workflow_templates_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "bam_workflow_templates");
+    let json = serde_json::to_value(bam_workflow_templates()).expect("serialize templates");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
 fn vcf_reference_basic_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "vcf_reference_basic_profile");
@@ -489,5 +497,33 @@ fn fastq_iteration_11_template_links_cover_adna_and_primer_review_surfaces() {
     assert_eq!(
         fastq_amplicon_standard_profile().capabilities.workflow_template_ids,
         vec!["fastq.adapter_primer_bank_review".to_string()],
+    );
+}
+
+#[test]
+fn bam_iteration_12_template_links_cover_production_surfaces() {
+    assert_eq!(
+        bam_default_profile().capabilities.workflow_template_ids,
+        vec![
+            "bam.modern_wgs_qc".to_string(),
+            "bam.low_pass_readiness".to_string(),
+            "bam.aligner_comparison_report".to_string(),
+            "bam.duplicate_method_comparison_report".to_string(),
+            "bam.batch_merge_workflow".to_string(),
+            "bam.coverage_review_report".to_string(),
+            "bam.large_file_performance_profile".to_string(),
+        ],
+    );
+    assert_eq!(
+        bam_adna_shotgun_profile().capabilities.workflow_template_ids,
+        vec!["bam.ancient_dna_qc".to_string()],
+    );
+    assert_eq!(
+        bam_adna_capture_profile().capabilities.workflow_template_ids,
+        vec!["bam.targeted_amplicon_qc".to_string()],
+    );
+    assert_eq!(
+        bam_reference_adna_profile().capabilities.workflow_template_ids,
+        vec!["bam.contamination_method_comparison_report".to_string()],
     );
 }
