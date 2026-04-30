@@ -10,6 +10,8 @@ parameter, metric, taxonomy, invariant, and generated-registry materialization c
   pseudohaploid calling, damage filtering, and GL propagation.
 - Metrics schemas for call summaries, filter breakdowns, and VCF stats.
 - Stage IO, stage metrics, stage delivery, panel governance, and invariant contracts.
+- Workflow-surface contracts for validation, artifact classes, reference context, filter evidence,
+  normalization semantics, calling modes, stats IDs, panel boundaries, and population guardrails.
 - Coverage reports that mark contract-vs-execution readiness.
 - Deterministic TOML materialization for VCF param registry and required tool registry views.
 
@@ -20,6 +22,8 @@ parameter, metric, taxonomy, invariant, and generated-registry materialization c
   same logical change.
 - Stage taxonomy or downstream order changes require transition tests.
 - Invariant or panel governance changes require explicit failure-mode tests.
+- Workflow-surface contract changes require planner, runtime, or example evidence showing where the
+  new contract is surfaced to operators.
 
 ## Failure Patterns
 

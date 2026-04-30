@@ -24,6 +24,9 @@ private implementation details.
   `VCF_FORBIDDEN_TRANSITIONS`.
 - Metrics: `VcfCallSummaryMetricsV1`, `VcfFilterBreakdownMetricsV1`, and `VcfStatsMetricsV1`.
 - Registry rendering: `param_registry_toml` and `required_tools_toml`.
+- Workflow contracts: validation, artifact-class, reference-context, filter-evidence,
+  normalization, calling-mode, stats-report, panel-boundary, and population-guardrail exports
+  from `contracts`.
 
 ## Stability Rules
 
