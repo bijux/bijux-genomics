@@ -218,6 +218,15 @@ pub struct WorkflowEvidenceSummaryStoryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct CrossDomainEvidenceNarrativeV1 {
+    pub schema_version: String,
+    pub template_id: String,
+    pub paragraphs: Vec<String>,
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct WorkflowEvidenceSummarySectionV1 {
     pub section_id: String,
     pub narrative: String,
@@ -1027,6 +1036,60 @@ pub fn validate_cross_domain_handoff(
         accepted: refusal_codes.is_empty(),
         refusal_codes,
         notes,
+    }
+}
+
+#[must_use]
+pub fn build_cross_domain_evidence_narrative(
+    template: &CrossWorkflowTemplateV1,
+    plan: &CrossWorkflowExecutionPlanV1,
+    handoff: &CrossDomainHandoffValidationV1,
+    failure_decisions: &[BatchFailureDecisionV1],
+) -> CrossDomainEvidenceNarrativeV1 {
+    let sample_count = plan.sample_plans.len();
+    let mut paragraphs = vec![format!(
+        "workflow {} planned {} sample path(s) with shared reference stages: {}",
+        template.template_id,
+        sample_count,
+        plan.shared_reference_stages.join(", ")
+    )];
+    if let Some(first_sample) = plan.sample_plans.first() {
+        paragraphs.push(format!(
+            "sample {} advanced through {}",
+            first_sample.sample_id,
+            first_sample.stage_sequence.join(" -> ")
+        ));
+    }
+    paragraphs.push(if handoff.accepted {
+        "cross-domain handoff checks accepted artifact role, sample identity, reference identity, and trust class".to_string()
+    } else {
+        format!(
+            "cross-domain handoff checks refused transfer due to {}",
+            handoff.refusal_codes.join(", ")
+        )
+    });
+    for decision in failure_decisions {
+        paragraphs.push(format!(
+            "failure policy for {} uses {:?}: blocked [{}], continued [{}]",
+            decision.stage_family,
+            decision.action,
+            decision.blocked_samples.join(", "),
+            decision.continued_samples.join(", ")
+        ));
+    }
+    let mut caveats = template.evidence_summary.final_caveat_topics.clone();
+    caveats.extend(plan.caveats.iter().cloned());
+    caveats.extend(handoff.notes.iter().cloned());
+    for decision in failure_decisions {
+        caveats.extend(decision.notes.iter().cloned());
+    }
+    caveats.sort();
+    caveats.dedup();
+    CrossDomainEvidenceNarrativeV1 {
+        schema_version: "bijux.cross.evidence_narrative.v1".to_string(),
+        template_id: template.template_id.clone(),
+        paragraphs,
+        caveats,
     }
 }
 

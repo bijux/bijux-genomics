@@ -10,8 +10,9 @@ use bijux_dna_pipelines::cross::{
     cross_workflow_template_by_id, cross_workflow_templates_for_pipeline,
 };
 use bijux_dna_pipelines::{
-    build_batch_workflow_graph, evaluate_batch_fan_semantics, evaluate_template_admission,
-    parse_sample_sheet, plan_bam_to_vcf_minimal_workflow, plan_fastq_to_bam_ancient_workflow,
+    build_batch_workflow_graph, build_cross_domain_evidence_narrative,
+    evaluate_batch_fan_semantics, evaluate_template_admission, parse_sample_sheet,
+    plan_bam_to_vcf_minimal_workflow, plan_fastq_to_bam_ancient_workflow,
     plan_fastq_to_bam_modern_workflow, plan_fastq_to_vcf_minimal_workflow,
     resolve_batch_failure_policy, sample_sheet_to_workflow_manifests,
     summarize_cross_domain_evidence, validate_cross_domain_handoff,
@@ -387,4 +388,57 @@ fn cross_domain_handoff_validator_enforces_identity_and_trust() {
     assert!(!refused.accepted);
     assert!(refused.refusal_codes.contains(&"missing_sample_identity".to_string()));
     assert!(refused.refusal_codes.contains(&"simulated_artifact_not_allowed".to_string()));
+}
+
+#[test]
+fn evidence_narrative_builder_connects_plan_handoff_and_failures() {
+    let template = cross_workflow_template_by_id("cross.fastq_to_vcf_minimal")
+        .expect("cross template must exist");
+    let plan = bijux_dna_pipelines::CrossWorkflowExecutionPlanV1 {
+        schema_version: "bijux.cross.workflow_execution_plan.v1".to_string(),
+        template_id: template.template_id.clone(),
+        pipeline_id: template.pipeline_id.clone(),
+        shared_reference_stages: vec!["core.prepare_reference".to_string()],
+        sample_plans: vec![bijux_dna_pipelines::CrossWorkflowSampleExecutionPlanV1 {
+            sample_id: "S99".to_string(),
+            stage_sequence: vec![
+                "fastq.validate_reads".to_string(),
+                "fastq.trim_reads".to_string(),
+                "bam.align".to_string(),
+                "bam.genotyping".to_string(),
+            ],
+            handoff_sequence: vec!["bam.genotyping->vcf.filter".to_string()],
+        }],
+        cohort_stages: vec!["vcf.filter".to_string(), "vcf.stats".to_string()],
+        caveats: vec!["tiny fixture only".to_string()],
+    };
+    let handoff = validate_cross_domain_handoff(&CrossDomainHandoffRequestV1 {
+        source_stage_id: "bam.genotyping".to_string(),
+        target_stage_id: "vcf.filter".to_string(),
+        source_domain: "bam".to_string(),
+        target_domain: "vcf".to_string(),
+        artifact_role: ArtifactRole::Variant,
+        sample_id: "S99".to_string(),
+        reference_id: "GRCh38".to_string(),
+        trust_class: "production".to_string(),
+    });
+    let failure = bijux_dna_pipelines::BatchFailureDecisionV1 {
+        schema_version: "bijux.cross.failure_decision.v1".to_string(),
+        template_id: template.template_id.clone(),
+        stage_family: "alignment".to_string(),
+        action: bijux_dna_pipelines::TemplateFailureActionV1::BlockDownstream,
+        blocked_samples: vec!["S99".to_string()],
+        continued_samples: vec![],
+        notes: vec!["alignment failure blocked downstream calling".to_string()],
+    };
+    let narrative = build_cross_domain_evidence_narrative(&template, &plan, &handoff, &[failure]);
+    assert!(!narrative.paragraphs.is_empty());
+    assert!(narrative
+        .paragraphs
+        .iter()
+        .any(|value| value.contains("cross-domain handoff checks accepted")));
+    assert!(narrative
+        .caveats
+        .iter()
+        .any(|value| value.contains("alignment failure blocked downstream calling")));
 }
