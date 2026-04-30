@@ -31,6 +31,7 @@ pub const VCF_PANEL_REFERENCE_DRIFT_REPORT_SCHEMA_VERSION: &str =
 pub const VCF_STRUCTURAL_VARIANT_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.structural_variant.v1";
 pub const VCF_ANNOTATION_PROVENANCE_WORKFLOW_SCHEMA_VERSION: &str =
     "bijux.vcf.annotation_provenance.v1";
+pub const VCF_POPULATION_HANDOFF_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.population_handoff.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -427,6 +428,23 @@ pub struct VcfAnnotationProvenanceWorkflowSummaryV1 {
     pub refusal_codes: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfPopulationAnalysisHandoffV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub target_analysis: String,
+    pub filtered: bool,
+    pub normalized: bool,
+    pub sample_identity_match: bool,
+    pub reference_identity_match: bool,
+    pub trust_class_compatible: bool,
+    pub caveats_attached: bool,
+    pub prerequisites_passed: bool,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -1695,6 +1713,56 @@ pub fn execute_annotation_provenance_workflow(
     }
 }
 
+/// Evaluate typed handoff boundaries from filtered/normalized VCF artifacts into population analyses.
+#[must_use]
+pub fn evaluate_vcf_population_analysis_handoff(
+    target_analysis: &str,
+    filtered: bool,
+    normalized: bool,
+    sample_identity_match: bool,
+    reference_identity_match: bool,
+    trust_class_compatible: bool,
+    caveats_attached: bool,
+) -> VcfPopulationAnalysisHandoffV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if !matches!(target_analysis, "pca" | "roh" | "ibd" | "demography") {
+        refusal_codes.push("unsupported_population_analysis_target".to_string());
+    }
+    if !filtered {
+        refusal_codes.push("filtered_vcf_required".to_string());
+    }
+    if !normalized {
+        refusal_codes.push("normalized_vcf_required".to_string());
+    }
+    if !sample_identity_match {
+        refusal_codes.push("sample_identity_mismatch".to_string());
+    }
+    if !reference_identity_match {
+        refusal_codes.push("reference_identity_mismatch".to_string());
+    }
+    if !trust_class_compatible {
+        refusal_codes.push("trust_class_incompatible".to_string());
+    }
+    if !caveats_attached {
+        refusal_codes.push("caveats_required_for_handoff".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    VcfPopulationAnalysisHandoffV1 {
+        schema_version: VCF_POPULATION_HANDOFF_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.population_structure".to_string(),
+        target_analysis: target_analysis.to_string(),
+        filtered,
+        normalized,
+        sample_identity_match,
+        reference_identity_match,
+        trust_class_compatible,
+        caveats_attached,
+        prerequisites_passed: refusal_codes.is_empty(),
+        refusal_codes,
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -2378,5 +2446,28 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused
             .refusal_codes
             .contains(&"annotation_field_coverage_below_minimum".to_string()));
+    }
+
+    #[test]
+    fn evaluate_vcf_population_analysis_handoff_enforces_typed_and_caveated_transfer() {
+        let ready =
+            evaluate_vcf_population_analysis_handoff("pca", true, true, true, true, true, true);
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.target_analysis, "pca");
+        assert!(ready.refusal_codes.is_empty());
+
+        let refused = evaluate_vcf_population_analysis_handoff(
+            "unknown", false, false, false, false, false, false,
+        );
+        assert!(!refused.prerequisites_passed);
+        assert!(refused
+            .refusal_codes
+            .contains(&"unsupported_population_analysis_target".to_string()));
+        assert!(refused.refusal_codes.contains(&"filtered_vcf_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"normalized_vcf_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"sample_identity_mismatch".to_string()));
+        assert!(refused.refusal_codes.contains(&"reference_identity_mismatch".to_string()));
+        assert!(refused.refusal_codes.contains(&"trust_class_incompatible".to_string()));
+        assert!(refused.refusal_codes.contains(&"caveats_required_for_handoff".to_string()));
     }
 }
