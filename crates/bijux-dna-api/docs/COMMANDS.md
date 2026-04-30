@@ -18,6 +18,16 @@ These v1 operations are exported through `bijux_dna_api::v1::api`.
 | `resume-run` | `resume_run(run_dir)` | Persist a governed resume request so a paused run can continue at the next safe checkpoint. |
 | `cancel-run` | `cancel_run(run_dir)` | Persist a governed cancellation request and let execution terminate through the control-aware runner boundary. |
 | `operator-health` | `operator_health(run_dir)` | Recompute and persist the operator health report for storage, container runtime, queue, executor, and evidence linkage checks. |
+| `browse-runs` | `browse_runs(RunBrowserRequestV1)` | Build the typed run browser response with filters, pagination, and optional redaction profile. |
+| `query-run-lineage` | `query_run_lineage(RunLineageQueryRequestV1)` | Return producer/input-lineage edges from governed artifact inventory contracts. |
+| `cache-explain` | `cache_explain(CacheExplainRequestV1)` | Return typed cache key fingerprints and miss reasons. |
+| `replay-explain` | `replay_explain(ReplayExplainRequestV1)` | Return typed replay reuse/rerun/change summaries. |
+| `evidence-gap` | `evidence_gap(EvidenceGapRequestV1)` | Return missing paths, failed evidence checks, and trust-class caveats. |
+| `operator-diagnosis` | `operator_diagnosis(OperatorDiagnosisRequestV1)` | Return operator diagnosis commands bound to queue/control/health/failure contracts. |
+| `render-run-browser-output` | `render_run_browser_output(&RunBrowserResponseV1, OutputFormatV1)` | Render deterministic human/JSON output for run browsing. |
+| `render-operator-diagnosis-output` | `render_operator_diagnosis_output(&OperatorDiagnosisResponseV1, OutputFormatV1)` | Render deterministic human/JSON output for operator diagnosis output. |
+| `sign-bundle-prototype` | `sign_bundle_prototype(SignedBundleRequestV1)` | Materialize `bundle_signature.json` using governed bundle hash inputs. |
+| `verify-signed-bundle-prototype` | `verify_signed_bundle_prototype(SignedBundleVerifyRequestV1)` | Verify prototype signature against current governed bundle hashes. |
 | `explain` | `explain(plan, defaults_ledger)` | Build the explainability bundle for a planned graph. |
 | `policy-audit` | `policy_audit(...)` | Return the policy-audit owner and commands; policy execution stays in `bijux-dna-dev` and `bijux-dna-policies`. |
 | `render-report` | `render_report(RenderReportRequest)` | Render an existing run report bundle. |
