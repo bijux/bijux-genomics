@@ -408,7 +408,9 @@ image-qa
 inventory
 lint-fast
 make-help
+reference-external-data
 repo-doctor
+scientific-caveat-propagation
 setup-docs-venv
 simulate-coverage-regime
 validate-frontend-mini-domain-stacks
