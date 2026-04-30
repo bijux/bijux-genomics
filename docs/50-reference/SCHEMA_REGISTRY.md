@@ -17,6 +17,13 @@ Generated registry of governed workflow, plan, runtime, evidence, metric, report
 | `evidence_comparison` | `bijux.evidence_comparison.v1` | `1.0.0` | `evidence` | `additive` | `add_optional_fields_only` | `bijux-dna-analyze` |
 | `metrics_envelope` | `bijux.metrics_envelope.v2` | `2.0.0` | `metric` | `exact_match` | `refuse_unknown_versions` | `bijux-dna-runtime` |
 | `report` | `bijux.report.v1` | `1.0.0` | `report` | `additive` | `add_optional_fields_only` | `bijux-dna-analyze` |
+| `run_backend` | `bijux.run_backend.v1` | `1.0.0` | `run_state` | `additive` | `add_optional_fields_only` | `bijux-dna-runtime` |
+| `run_scheduling_decision` | `bijux.run_scheduling_decision.v1` | `1.0.0` | `run_state` | `additive` | `add_optional_fields_only` | `bijux-dna-runtime` |
+| `run_queue_state` | `bijux.run_queue_state.v1` | `1.0.0` | `run_state` | `additive` | `add_optional_fields_only` | `bijux-dna-runtime` |
+| `run_lease` | `bijux.run_lease.v1` | `1.0.0` | `run_state` | `additive` | `add_optional_fields_only` | `bijux-dna-runtime` |
+| `run_control` | `bijux.run_control.v1` | `1.0.0` | `run_state` | `additive` | `add_optional_fields_only` | `bijux-dna-runtime` |
+| `operator_health` | `bijux.operator_health.v1` | `1.0.0` | `run_state` | `additive` | `add_optional_fields_only` | `bijux-dna-runtime` |
+| `slurm_submission` | `bijux.slurm_submission.v1` | `1.0.0` | `run_state` | `additive` | `add_optional_fields_only` | `bijux-dna-runtime` |
 | `run_state` | `bijux.run_state.v1` | `1.0.0` | `run_state` | `migratable` | `support_n_and_n_minus_one` | `bijux-dna-runtime` |
 | `run_failure` | `bijux.run_failure.v1` | `1.0.0` | `run_state` | `additive` | `add_optional_fields_only` | `bijux-dna-runtime` |
 

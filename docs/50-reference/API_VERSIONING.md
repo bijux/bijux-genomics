@@ -12,6 +12,10 @@ Generated inventory linking stable v1 API routes to the governed workflow, plan,
 | Route | Response Struct | Reads | Writes |
 |---|---|---|---|
 | `v1.plan` | `PlanResponse` | `workflow_manifest` | `workflow_manifest, plan_manifest` |
-| `v1.dry_run` | `DryRunResponse` | `workflow_manifest, plan_manifest` | `run_state, artifact_inventory, evidence_bundle, evidence_verification` |
-| `v1.execute` | `ExecuteResponse` | `workflow_manifest, plan_manifest` | `run_state, run_failure, artifact_inventory, evidence_bundle, evidence_verification, report` |
-| `v1.status` | `RunStatus` | `run_state, run_failure, artifact_inventory, evidence_bundle, evidence_verification` | `-` |
+| `v1.dry_run` | `DryRunResponse` | `workflow_manifest, plan_manifest` | `run_backend, run_scheduling_decision, run_queue_state, run_lease, run_control, operator_health, run_state, artifact_inventory, evidence_bundle, evidence_verification` |
+| `v1.execute` | `ExecuteResponse` | `workflow_manifest, plan_manifest` | `run_backend, run_scheduling_decision, run_queue_state, run_lease, run_control, operator_health, slurm_submission, run_state, run_failure, artifact_inventory, evidence_bundle, evidence_verification, report` |
+| `v1.status` | `RunStatus` | `run_backend, run_scheduling_decision, run_queue_state, run_lease, run_control, operator_health, slurm_submission, run_state, run_failure, artifact_inventory, evidence_bundle, evidence_verification` | `-` |
+| `v1.pause_run` | `RunControlResponse` | `run_control, run_queue_state` | `run_control` |
+| `v1.resume_run` | `RunControlResponse` | `run_control, run_queue_state` | `run_control` |
+| `v1.cancel_run` | `RunControlResponse` | `run_control, run_queue_state` | `run_control` |
+| `v1.operator_health` | `OperatorHealthResponse` | `run_backend, run_scheduling_decision, run_state` | `operator_health` |
