@@ -868,6 +868,7 @@ pub fn cross_fastq_to_bam_id_catalog(profile_id: &str) -> Vec<String> {
             STAGE_CORE_PREPARE_REFERENCE.to_string(),
             BamStage::Align.as_str().to_string(),
             BamStage::QcPre.as_str().to_string(),
+            BamStage::MappingSummary.as_str().to_string(),
             BamStage::Coverage.as_str().to_string(),
             BamStage::Damage.as_str().to_string(),
         ],
