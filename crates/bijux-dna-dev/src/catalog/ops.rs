@@ -306,6 +306,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingAcquireReference,
         ),
         native(
+            "architecture-report",
+            "Generate a compact workspace architecture drift report under artifacts/architecture.",
+            NativeOpsCommandKey::ToolingArchitectureReport,
+        ),
+        native(
             "benchmark-integrity-mini",
             "Run the optional frontend mini benchmark integrity helper over bijux-dna bench fastq.",
             NativeOpsCommandKey::ToolingBenchmarkIntegrityMini,

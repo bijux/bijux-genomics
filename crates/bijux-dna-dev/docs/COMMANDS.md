@@ -362,6 +362,7 @@ toy-runs
 acquire-maps
 acquire-panels
 acquire-reference
+architecture-report
 benchmark-integrity-mini
 bijux
 cargo-targets

@@ -55,6 +55,201 @@ pub(in super::super) fn tooling_config_inventory(
     success_line(format!("wrote {}\nwrote {}", out_txt.display(), out_md.display()))
 }
 
+pub(in super::super) fn tooling_architecture_report(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    let mut base = "HEAD~1".to_string();
+    let mut out_json = workspace.path("artifacts/architecture/report.json");
+    let mut out_md = workspace.path("artifacts/architecture/report.md");
+    let mut index = 0usize;
+    while index < args.len() {
+        match args[index].as_str() {
+            "--help" | "-h" => {
+                return success_line(
+                    "Usage: cargo run -p bijux-dna-dev -- tooling run architecture-report -- [--base <rev>] [--out-json <path>] [--out-md <path>]",
+                )
+            }
+            "--base" => {
+                base = args.get(index + 1).cloned().context("missing value for --base")?;
+                index += 2;
+            }
+            "--out-json" => {
+                out_json = PathBuf::from(
+                    args.get(index + 1).cloned().context("missing value for --out-json")?,
+                );
+                index += 2;
+            }
+            "--out-md" => {
+                out_md = PathBuf::from(
+                    args.get(index + 1).cloned().context("missing value for --out-md")?,
+                );
+                index += 2;
+            }
+            other => return Ok(OpsCommandOutcome::failure(format!("unknown arg: {other}\n"))),
+        }
+    }
+
+    let report = build_architecture_report(workspace, &base)?;
+    write_json_pretty(&out_json, &report)?;
+    write_utf8(&out_md, &render_architecture_report_markdown(&report))?;
+    success_line(format!("wrote {}\nwrote {}", out_json.display(), out_md.display()))
+}
+
+fn build_architecture_report(workspace: &Workspace, base: &str) -> Result<Value> {
+    let crates_dir = workspace.path("crates");
+    let mut crates = WalkDir::new(&crates_dir)
+        .min_depth(1)
+        .max_depth(1)
+        .into_iter()
+        .filter_map(std::result::Result::ok)
+        .filter(|entry| entry.file_type().is_dir() && entry.path().join("Cargo.toml").is_file())
+        .map(|entry| collect_architecture_crate_row(workspace, entry.path()))
+        .collect::<Result<Vec<_>>>()?;
+    crates.sort_by(|left, right| {
+        value_string(left.get("crate_name")).cmp(&value_string(right.get("crate_name")))
+    });
+
+    let diff = run_program(
+        workspace,
+        "git",
+        &["diff".to_string(), "--unified=0".to_string(), base.to_string(), "--".to_string()],
+    )?;
+    let name_status = run_program(
+        workspace,
+        "git",
+        &[
+            "diff".to_string(),
+            "--name-status".to_string(),
+            base.to_string(),
+            "--".to_string(),
+            "configs".to_string(),
+            "science/specs".to_string(),
+        ],
+    )?;
+
+    Ok(json!({
+        "schema_version": "bijux.architecture_report.v1",
+        "generated_at": super::stable_now_utc_string(),
+        "base_revision": base,
+        "crates": crates,
+        "dependency_additions": extract_workspace_dependency_additions(&diff.stdout),
+        "new_config_files": extract_added_paths(&name_status.stdout, "configs/"),
+        "new_schema_files": extract_added_paths(&name_status.stdout, "science/specs/"),
+    }))
+}
+
+fn collect_architecture_crate_row(workspace: &Workspace, crate_dir: &Path) -> Result<Value> {
+    let crate_name = crate_dir
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(ToOwned::to_owned)
+        .context("crate directory missing name")?;
+    let src_dir = crate_dir.join("src");
+    let mut rust_file_count = 0u64;
+    let mut rust_loc = 0u64;
+    let mut public_item_count = 0u64;
+    if src_dir.is_dir() {
+        for entry in WalkDir::new(&src_dir)
+            .into_iter()
+            .filter_map(std::result::Result::ok)
+            .filter(|entry| entry.file_type().is_file())
+            .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs"))
+        {
+            rust_file_count += 1;
+            let raw = read_utf8(entry.path())?;
+            rust_loc += raw.lines().count() as u64;
+            public_item_count += raw
+                .lines()
+                .map(str::trim_start)
+                .filter(|line| line.starts_with("pub ") || line.starts_with("pub("))
+                .count() as u64;
+        }
+    }
+    Ok(json!({
+        "crate_name": crate_name,
+        "crate_path": workspace.rel(crate_dir).display().to_string(),
+        "rust_file_count": rust_file_count,
+        "rust_loc": rust_loc,
+        "public_item_count": public_item_count,
+    }))
+}
+
+fn extract_workspace_dependency_additions(diff: &str) -> Vec<String> {
+    let mut additions = BTreeSet::new();
+    for line in diff.lines() {
+        let trimmed = line.trim_start();
+        if !trimmed.starts_with('+') || trimmed.starts_with("+++") {
+            continue;
+        }
+        let payload = trimmed.trim_start_matches('+').trim();
+        if payload.starts_with("bijux-dna-") && payload.contains('=') {
+            let dep = payload.split('=').next().unwrap_or(payload).trim();
+            additions.insert(dep.to_string());
+        }
+    }
+    additions.into_iter().collect()
+}
+
+fn extract_added_paths(diff_name_status: &str, prefix: &str) -> Vec<String> {
+    diff_name_status
+        .lines()
+        .filter_map(|line| {
+            let mut parts = line.split_whitespace();
+            let status = parts.next()?;
+            let path = parts.next()?;
+            if status == "A" && path.starts_with(prefix) {
+                return Some(path.to_string());
+            }
+            None
+        })
+        .collect()
+}
+
+fn render_architecture_report_markdown(report: &Value) -> String {
+    let mut lines = vec![
+        "# Architecture Report".to_string(),
+        String::new(),
+        format!("- generated_at: `{}`", value_string(report.get("generated_at"))),
+        format!("- base_revision: `{}`", value_string(report.get("base_revision"))),
+        String::new(),
+        "## Crates".to_string(),
+        String::new(),
+        "| Crate | Rust files | Rust LOC | Public items |".to_string(),
+        "| --- | ---: | ---: | ---: |".to_string(),
+    ];
+    if let Some(rows) = report.get("crates").and_then(Value::as_array) {
+        for row in rows {
+            lines.push(format!(
+                "| `{}` | `{}` | `{}` | `{}` |",
+                value_string(row.get("crate_name")),
+                json_u64(row.get("rust_file_count")),
+                json_u64(row.get("rust_loc")),
+                json_u64(row.get("public_item_count"))
+            ));
+        }
+    }
+    lines.push(String::new());
+    lines.push("## Drift".to_string());
+    lines.push(String::new());
+    for (label, key) in [
+        ("dependency_additions", "dependency_additions"),
+        ("new_config_files", "new_config_files"),
+        ("new_schema_files", "new_schema_files"),
+    ] {
+        let rendered = report[key]
+            .as_array()
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|value| value.as_str().map(|item| format!("`{item}`")))
+            .collect::<Vec<_>>()
+            .join(", ");
+        lines.push(format!("- {label}: {rendered}"));
+    }
+    format!("{}\n", lines.join("\n"))
+}
+
 pub(in super::super) fn tooling_coverage_summary(
     _workspace: &Workspace,
     args: &[String],
@@ -339,6 +534,68 @@ pub(in super::super) fn tooling_coverage_summary(
     }
 
     Ok(OpsCommandOutcome::success(stdout))
+}
+
+#[cfg(test)]
+mod architecture_report_tests {
+    use super::{
+        extract_added_paths, extract_workspace_dependency_additions,
+        render_architecture_report_markdown, PathBuf, Value,
+    };
+
+    fn snapshot_path() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/snapshots/bijux-dna-dev__tooling__architecture_report.md")
+    }
+
+    #[test]
+    fn architecture_report_extracts_added_workspace_dependencies_only() {
+        let diff = r#"
++bijux-dna-api = { path = "../bijux-dna-api" }
++serde = "1"
+ other = "ignored"
+"#;
+        assert_eq!(extract_workspace_dependency_additions(diff), vec!["bijux-dna-api".to_string()]);
+    }
+
+    #[test]
+    fn architecture_report_extracts_added_config_and_schema_paths() {
+        let diff = "A\tconfigs/ci/example.toml\nM\tconfigs/ci/old.toml\nA\tscience/specs/data/example.json\n";
+        assert_eq!(extract_added_paths(diff, "configs/"), vec!["configs/ci/example.toml".to_string()]);
+        assert_eq!(
+            extract_added_paths(diff, "science/specs/"),
+            vec!["science/specs/data/example.json".to_string()]
+        );
+    }
+
+    #[test]
+    fn architecture_report_markdown_matches_snapshot() {
+        let report: Value = serde_json::json!({
+            "generated_at": "1970-01-01T00:00:00Z",
+            "base_revision": "HEAD~1",
+            "crates": [
+                {
+                    "crate_name": "bijux-dna-api",
+                    "rust_file_count": 12,
+                    "rust_loc": 4200,
+                    "public_item_count": 44
+                },
+                {
+                    "crate_name": "bijux-dna-runtime",
+                    "rust_file_count": 9,
+                    "rust_loc": 2100,
+                    "public_item_count": 17
+                }
+            ],
+            "dependency_additions": ["bijux-dna-api"],
+            "new_config_files": ["configs/ci/crate-boundaries.toml"],
+            "new_schema_files": ["science/specs/data/example.json"]
+        });
+        let rendered = render_architecture_report_markdown(&report);
+        let expected = std::fs::read_to_string(snapshot_path())
+            .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path().display()));
+        assert_eq!(rendered, expected);
+    }
 }
 
 pub(in super::super) fn tooling_crash_triage(

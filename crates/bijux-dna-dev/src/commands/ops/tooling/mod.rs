@@ -46,7 +46,7 @@ pub(super) use self::config_docs::{
     tooling_lint_fast,
 };
 pub(super) use self::diagnostics::{
-    tooling_config_inventory, tooling_coverage_summary, tooling_crash_triage,
+    tooling_architecture_report, tooling_config_inventory, tooling_coverage_summary, tooling_crash_triage,
     tooling_deprecate_vcf_knob, tooling_deprecate_vcf_panel, tooling_docs_build,
     tooling_generate_compatibility_matrix, tooling_generate_configs, tooling_generate_docs,
     tooling_generate_docs_graph, tooling_generate_domain_coverage_doc,

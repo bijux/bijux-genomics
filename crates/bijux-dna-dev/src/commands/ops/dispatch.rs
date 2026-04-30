@@ -108,6 +108,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingAcquireReference => {
             tooling::tooling_acquire_reference(workspace, args)
         }
+        NativeOpsCommandKey::ToolingArchitectureReport => {
+            tooling::tooling_architecture_report(workspace, args)
+        }
         NativeOpsCommandKey::ToolingBenchmarkIntegrityMini => {
             tooling::tooling_benchmark_integrity_mini(workspace, args)
         }
