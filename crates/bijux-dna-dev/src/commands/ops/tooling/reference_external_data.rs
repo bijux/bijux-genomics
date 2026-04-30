@@ -4,7 +4,8 @@ use super::{
 };
 use bijux_dna_db_ena::build_workflow_manifest_from_offline_fixture;
 use bijux_dna_db_ref::{
-    enforce_declared_build_and_contigs, resolve_reference_bundle_contract,
+    enforce_declared_build_and_contigs, materialize_contaminant_databases,
+    materialize_reference_bank, materialize_taxonomy_database, resolve_reference_bundle_contract,
     resolve_sex_par_organellar_assets,
 };
 use serde::Serialize;
@@ -22,6 +23,7 @@ enum ScenarioId {
     ContaminantUpdateImpact,
     AdapterPrimerUpdateImpact,
     EnaBatchAccession,
+    OfflineDataPackage,
 }
 
 impl ScenarioId {
@@ -36,6 +38,7 @@ impl ScenarioId {
             Self::ContaminantUpdateImpact => "g177_contaminant_update_impact",
             Self::AdapterPrimerUpdateImpact => "g178_adapter_primer_update_impact",
             Self::EnaBatchAccession => "g179_ena_batch_accession",
+            Self::OfflineDataPackage => "g180_offline_data_package",
         }
     }
 
@@ -50,6 +53,7 @@ impl ScenarioId {
             Self::ContaminantUpdateImpact => "G177",
             Self::AdapterPrimerUpdateImpact => "G178",
             Self::EnaBatchAccession => "G179",
+            Self::OfflineDataPackage => "G180",
         }
     }
 
@@ -64,6 +68,7 @@ impl ScenarioId {
             Self::ContaminantUpdateImpact,
             Self::AdapterPrimerUpdateImpact,
             Self::EnaBatchAccession,
+            Self::OfflineDataPackage,
         ]
     }
 
@@ -78,6 +83,7 @@ impl ScenarioId {
             "g177_contaminant_update_impact" | "G177" => Some(Self::ContaminantUpdateImpact),
             "g178_adapter_primer_update_impact" | "G178" => Some(Self::AdapterPrimerUpdateImpact),
             "g179_ena_batch_accession" | "G179" => Some(Self::EnaBatchAccession),
+            "g180_offline_data_package" | "G180" => Some(Self::OfflineDataPackage),
             _ => None,
         }
     }
@@ -191,6 +197,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::ContaminantUpdateImpact => scenario_contaminant_update_impact(),
         ScenarioId::AdapterPrimerUpdateImpact => scenario_adapter_primer_update_impact(),
         ScenarioId::EnaBatchAccession => scenario_ena_batch_accession(),
+        ScenarioId::OfflineDataPackage => scenario_offline_data_package(),
     };
 
     match result {
@@ -561,6 +568,69 @@ fn scenario_ena_batch_accession() -> Result<(Vec<String>, serde_json::Value)> {
     ))
 }
 
+fn scenario_offline_data_package() -> Result<(Vec<String>, serde_json::Value)> {
+    let root = PathBuf::from("artifacts/reference_external_data/offline_package");
+    let refs = materialize_reference_bank("Homo sapiens", "GRCh38", &root, true, true)?;
+    let contaminants = materialize_contaminant_databases(&root.join("contaminant_db"))?;
+    let taxonomy = materialize_taxonomy_database(&root.join("taxonomy_db"))?;
+
+    let fixture = json!({
+        "schema_version": "bijux.ena.offline_fixture.v1",
+        "runs": [
+            {
+                "study_accession": "PRJOFFLINE",
+                "sample_accession": "SAMEA9001",
+                "experiment_accession": "ERX9001",
+                "run_accession": "ERR9001",
+                "analysis_accession": null,
+                "tax_id": "9606",
+                "scientific_name": "Homo sapiens",
+                "library_layout": "PAIRED",
+                "library_source": "GENOMIC",
+                "library_strategy": "WGS",
+                "instrument_model": "NovaSeq",
+                "base_count": 100,
+                "read_count": 10,
+                "fastq_bytes": [52, 53],
+                "fastq_ftp": [
+                    "file:///offline/ERR9001_1.fastq.gz",
+                    "file:///offline/ERR9001_2.fastq.gz"
+                ],
+                "submitted_ftp": [],
+                "sra_ftp": [],
+                "bam_ftp": []
+            }
+        ]
+    });
+    let ena = build_workflow_manifest_from_offline_fixture(&fixture.to_string())?;
+
+    Ok((
+        vec![
+            "offline package materialized reference, contaminant, and taxonomy assets".to_string(),
+            "offline ENA fixture converted to workflow inputs without network dependency".to_string(),
+        ],
+        json!({
+            "package_root": root.display().to_string(),
+            "reference_materialization": {
+                "species_id": refs.species_id,
+                "build_id": refs.build_id,
+                "bundle_id": refs.bundle_id,
+                "mode": refs.mode,
+                "index_artifact_count": refs.index_artifacts.len(),
+            },
+            "contaminant_bundle_count": contaminants.bundles.len(),
+            "taxonomy_bundle": {
+                "bundle_id": taxonomy.bundle_id,
+                "lock_family": taxonomy.lock_family,
+                "db_path": taxonomy.db_path,
+                "required_fields": taxonomy.required_fields,
+                "advisory_only": taxonomy.advisory_only,
+            },
+            "ena_workflow_run_count": ena.runs.len(),
+        }),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{run_scenario, ScenarioId};
@@ -570,7 +640,10 @@ mod tests {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
         assert_eq!(
             ids,
-            vec!["G171", "G172", "G173", "G174", "G175", "G176", "G177", "G178", "G179"]
+            vec![
+                "G171", "G172", "G173", "G174", "G175", "G176", "G177", "G178", "G179",
+                "G180"
+            ]
         );
     }
 
@@ -691,5 +764,21 @@ mod tests {
                 .unwrap_or(false)
         });
         assert!(found, "expected missing_fastq_sha256 uncertainty in ENA batch scenario");
+    }
+
+    #[test]
+    fn offline_package_scenario_materializes_reference_assets() {
+        let report = run_scenario(&ScenarioId::OfflineDataPackage);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G180");
+        assert_eq!(
+            report
+                .evidence
+                .get("reference_materialization")
+                .and_then(serde_json::Value::as_object)
+                .and_then(|record| record.get("mode"))
+                .and_then(serde_json::Value::as_str),
+            Some("offline_fixture")
+        );
     }
 }
