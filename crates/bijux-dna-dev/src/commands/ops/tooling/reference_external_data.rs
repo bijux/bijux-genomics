@@ -2,6 +2,7 @@ use super::{
     anyhow, artifact_root_path, json, stable_now_utc_string, write_json_pretty, OpsCommandOutcome,
     PathBuf, Result, Workspace,
 };
+use bijux_dna_db_ena::build_workflow_manifest_from_offline_fixture;
 use bijux_dna_db_ref::{
     enforce_declared_build_and_contigs, resolve_reference_bundle_contract,
     resolve_sex_par_organellar_assets,
@@ -20,6 +21,7 @@ enum ScenarioId {
     ReferenceUpdateImpact,
     ContaminantUpdateImpact,
     AdapterPrimerUpdateImpact,
+    EnaBatchAccession,
 }
 
 impl ScenarioId {
@@ -33,6 +35,7 @@ impl ScenarioId {
             Self::ReferenceUpdateImpact => "g176_reference_update_impact",
             Self::ContaminantUpdateImpact => "g177_contaminant_update_impact",
             Self::AdapterPrimerUpdateImpact => "g178_adapter_primer_update_impact",
+            Self::EnaBatchAccession => "g179_ena_batch_accession",
         }
     }
 
@@ -46,6 +49,7 @@ impl ScenarioId {
             Self::ReferenceUpdateImpact => "G176",
             Self::ContaminantUpdateImpact => "G177",
             Self::AdapterPrimerUpdateImpact => "G178",
+            Self::EnaBatchAccession => "G179",
         }
     }
 
@@ -59,6 +63,7 @@ impl ScenarioId {
             Self::ReferenceUpdateImpact,
             Self::ContaminantUpdateImpact,
             Self::AdapterPrimerUpdateImpact,
+            Self::EnaBatchAccession,
         ]
     }
 
@@ -72,6 +77,7 @@ impl ScenarioId {
             "g176_reference_update_impact" | "G176" => Some(Self::ReferenceUpdateImpact),
             "g177_contaminant_update_impact" | "G177" => Some(Self::ContaminantUpdateImpact),
             "g178_adapter_primer_update_impact" | "G178" => Some(Self::AdapterPrimerUpdateImpact),
+            "g179_ena_batch_accession" | "G179" => Some(Self::EnaBatchAccession),
             _ => None,
         }
     }
@@ -184,6 +190,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::ReferenceUpdateImpact => scenario_reference_update_impact(),
         ScenarioId::ContaminantUpdateImpact => scenario_contaminant_update_impact(),
         ScenarioId::AdapterPrimerUpdateImpact => scenario_adapter_primer_update_impact(),
+        ScenarioId::EnaBatchAccession => scenario_ena_batch_accession(),
     };
 
     match result {
@@ -454,6 +461,106 @@ fn scenario_adapter_primer_update_impact() -> Result<(Vec<String>, serde_json::V
     ))
 }
 
+fn scenario_ena_batch_accession() -> Result<(Vec<String>, serde_json::Value)> {
+    let fixture = json!({
+        "schema_version": "bijux.ena.offline_fixture.v1",
+        "runs": [
+            {
+                "study_accession": "PRJEB22390",
+                "sample_accession": "SAMEA1001",
+                "experiment_accession": "ERX1001",
+                "run_accession": "ERR1001",
+                "analysis_accession": null,
+                "tax_id": "9606",
+                "scientific_name": "Homo sapiens",
+                "library_layout": "PAIRED",
+                "library_source": "GENOMIC",
+                "library_strategy": "WGS",
+                "instrument_model": "NovaSeq",
+                "base_count": 120,
+                "read_count": 12,
+                "fastq_bytes": [42, 43],
+                "fastq_ftp": [
+                    "ftp.sra.ebi.ac.uk/vol1/ERR1001_1.fastq.gz",
+                    "ftp.sra.ebi.ac.uk/vol1/ERR1001_2.fastq.gz"
+                ],
+                "submitted_ftp": [],
+                "sra_ftp": [],
+                "bam_ftp": []
+            },
+            {
+                "study_accession": "PRJEB22390",
+                "sample_accession": "SAMEA1002",
+                "experiment_accession": "ERX1002",
+                "run_accession": "ERR1002",
+                "analysis_accession": null,
+                "tax_id": "9606",
+                "scientific_name": "Homo sapiens",
+                "library_layout": "SINGLE",
+                "library_source": "GENOMIC",
+                "library_strategy": "WGS",
+                "instrument_model": "NovaSeq",
+                "base_count": 90,
+                "read_count": 9,
+                "fastq_bytes": [22],
+                "fastq_ftp": ["ftp.sra.ebi.ac.uk/vol1/ERR1002.fastq.gz"],
+                "submitted_ftp": [],
+                "sra_ftp": [],
+                "bam_ftp": []
+            },
+            {
+                "study_accession": "PRJEB22390",
+                "sample_accession": null,
+                "experiment_accession": "ERX1003",
+                "run_accession": "ERR1003",
+                "analysis_accession": null,
+                "tax_id": "9606",
+                "scientific_name": "Homo sapiens",
+                "library_layout": "PAIRED",
+                "library_source": "GENOMIC",
+                "library_strategy": "WGS",
+                "instrument_model": "NovaSeq",
+                "base_count": 90,
+                "read_count": 9,
+                "fastq_bytes": [22],
+                "fastq_ftp": ["ftp.sra.ebi.ac.uk/vol1/ERR1003.fastq.gz"],
+                "submitted_ftp": [],
+                "sra_ftp": [],
+                "bam_ftp": []
+            }
+        ]
+    });
+
+    let manifest = build_workflow_manifest_from_offline_fixture(&fixture.to_string())?;
+    if manifest.runs.len() != 3 {
+        return Err(anyhow!("ENA batch scenario must materialize three workflow runs"));
+    }
+    let run_ids = manifest.runs.iter().map(|run| run.run_accession.clone()).collect::<Vec<_>>();
+    let uncertain = manifest
+        .runs
+        .iter()
+        .map(|run| {
+            json!({
+                "run_accession": run.run_accession,
+                "uncertainty": run.uncertainty,
+            })
+        })
+        .collect::<Vec<_>>();
+
+    Ok((
+        vec![
+            "multi-run ENA batch converted to deterministic workflow manifest".to_string(),
+            "run/sample identity and checksum uncertainty propagation preserved".to_string(),
+        ],
+        json!({
+            "schema_version": manifest.schema_version,
+            "run_count": manifest.runs.len(),
+            "run_accessions": run_ids,
+            "uncertainty": uncertain,
+        }),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{run_scenario, ScenarioId};
@@ -463,7 +570,7 @@ mod tests {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
         assert_eq!(
             ids,
-            vec!["G171", "G172", "G173", "G174", "G175", "G176", "G177", "G178"]
+            vec!["G171", "G172", "G173", "G174", "G175", "G176", "G177", "G178", "G179"]
         );
     }
 
@@ -567,5 +674,22 @@ mod tests {
         assert!(impacted
             .iter()
             .any(|entry| entry.as_str() == Some("fastq.edna_metabarcoding")));
+    }
+
+    #[test]
+    fn ena_batch_scenario_captures_missing_checksum_uncertainty() {
+        let report = run_scenario(&ScenarioId::EnaBatchAccession);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G179");
+        let uncertainty =
+            report.evidence.get("uncertainty").and_then(serde_json::Value::as_array).cloned().unwrap_or_default();
+        assert!(!uncertainty.is_empty());
+        let found = uncertainty.iter().any(|row| {
+            row.get("uncertainty")
+                .and_then(serde_json::Value::as_array)
+                .map(|items| items.iter().any(|item| item.as_str() == Some("missing_fastq_sha256")))
+                .unwrap_or(false)
+        });
+        assert!(found, "expected missing_fastq_sha256 uncertainty in ENA batch scenario");
     }
 }
