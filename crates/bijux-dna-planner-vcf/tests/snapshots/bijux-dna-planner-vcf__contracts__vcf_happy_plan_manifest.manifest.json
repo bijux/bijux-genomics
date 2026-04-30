@@ -1,6 +1,6 @@
 {
   "domain": "vcf",
-  "graph_hash": "a8549c1bc1e44b2d3b4badf5371004cfdc023c02213256443dcc65e8cb26bfea",
+  "graph_hash": "b3c9a98ff279759aab6a6e40a77c991bfac4addfd5be59d1d29e8731faff1134",
   "ordered_steps": [
     {
       "advisory": false,
@@ -18,7 +18,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "ba9d3ec5036fe0d06fdf922eb73777100e25b03d4f1d388e38ae97968830dc80",
+      "cache_key": "63b066f56bd213b9238fed0a2b335fcc2ec2484d956d033f5418f568e79ce99b",
       "effective_parameters_json": {
         "normalize": true,
         "panel_lock": {
@@ -68,7 +68,7 @@
           "role": "reads"
         }
       ],
-      "cache_key": "fa90a7b37a47aae578a987c2d7555e284a6b13eb438b01ecbe5716f66db4b9a2",
+      "cache_key": "de81327b6027816602f000cf3bbc74696795eb4fc142b5019103231dd307d668",
       "dependencies": [
         "vcf.prepare_reference_panel"
       ],
@@ -112,7 +112,7 @@
           "role": "reads"
         }
       ],
-      "cache_key": "bea1cac5dbf60d16bbca6626dec5e45c46d2cff5e5adb3a938e48ffe9c326e0b",
+      "cache_key": "bb01fb5ebbc11ab63744d8b29ac76e1678ec0453bfe70709624f21a9ec53e296",
       "dependencies": [
         "vcf.call_diploid"
       ],
@@ -159,7 +159,7 @@
           "role": "reads"
         }
       ],
-      "cache_key": "c1a61f54b634c445fa176f17e9d8aa99053b3146c06ba4706f1f38d038ec1390",
+      "cache_key": "30536f9db878336b10e8d1814920c371e32c1c9c1d0ed3ff4386ba616ef69471",
       "dependencies": [
         "vcf.damage_filter"
       ],
@@ -203,7 +203,7 @@
           "role": "reads"
         }
       ],
-      "cache_key": "a798a7ec3dec4c4a2b6f8066b6b835e1be64ac8b21788e256a837a0f73e44e27",
+      "cache_key": "47ef49627cbece53329be7323c8655504f38608685b5a52ec9e37f03c5e11272",
       "dependencies": [
         "vcf.filter"
       ],
@@ -870,7 +870,7 @@
           "role": "reads"
         }
       ],
-      "cache_key": "48bb07db28873b7b2aa1669e75fd86f531f768965aa5d7dc456f273857f9dd94",
+      "cache_key": "568c1d381aa735ebdad5c0d070d92749d162026c1ca70ee121709bbcac8044af",
       "dependencies": [
         "vcf.phasing"
       ],
@@ -1532,7 +1532,7 @@
           "role": "reads"
         }
       ],
-      "cache_key": "ca9685f5304feccd0ef811f7da26bc7716ea149be30d5d8317f33f7e82f89858",
+      "cache_key": "a1b680a7e3d0ee134d7cd22af2b338767565e4bcd6dae0674111bb35fea91e9d",
       "dependencies": [
         "vcf.impute"
       ],
@@ -1576,7 +1576,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "5c55b0e5affb13cf3653848cb51cf3300826487bec33de93ad0c9ebf17e66d0b",
+      "cache_key": "701630921f3a1e69de1163737a03421dbf1d7a38010a9620b5e5a4200a2d3aa4",
       "dependencies": [
         "vcf.postprocess"
       ],
@@ -1627,7 +1627,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "f640f42a8daa0f3b4e935361ab1a8f37d92e01a8108ed9adea24fa331bc59ac2",
+      "cache_key": "f207171dcef9b22a329a3e27efdeb70f1d2f1bdaa575fb849d3bbf162e6c4fec",
       "dependencies": [
         "vcf.population_structure"
       ],
@@ -1675,7 +1675,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "b0fd4f2460b94020c5bf969553eeb329e308356270661e19ce1b8a717b4fb88c",
+      "cache_key": "467fbbac05c09b27ec266864a231c7941501bb5d5512414a4fce87fa32fa3d45",
       "dependencies": [
         "vcf.roh"
       ],
@@ -1726,7 +1726,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "632e97a21c7189a263a9cf9009daf4fa93b40ad6101886faac7f37c8530d1f3f",
+      "cache_key": "fbf744802275d063de52e16dfcd0d71a88f268cc62ba4fa3d3f02df2f1095858",
       "dependencies": [
         "vcf.ibd"
       ],
@@ -1772,7 +1772,7 @@
           "role": "metrics_json"
         }
       ],
-      "cache_key": "ab94ec365e9110bb4b5513e9517aa749d4b081acfebaea189be913d7537d4c56",
+      "cache_key": "95080ecb84f27e93ccadb7a01aa64e1713e96952c5db608337dfef0f3fec5492",
       "dependencies": [
         "vcf.demography"
       ],
@@ -1912,7 +1912,7 @@
     }
   ],
   "pipeline_id": "vcf-to-vcf__downstream_diploid_sctx_0a9734ff9d35__v2",
-  "plan_fingerprint": "51408f771280b8802b844d135e67f15af2adcd2bb3668a8f5d444eaf5fcc95bf",
+  "plan_fingerprint": "a18181c1acbd0435b24d3bfd1dae95715dd9b4464fee7b08de438cf4d34a5743",
   "planner_version": "bijux-dna-planner-vcf.v2",
   "policy": "PreferAccuracy",
   "profile_id": "vcf-downstream",
