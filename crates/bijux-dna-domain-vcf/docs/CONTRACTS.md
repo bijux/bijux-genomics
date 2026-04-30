@@ -11,7 +11,10 @@ parameter, metric, taxonomy, invariant, and generated-registry materialization c
 - Metrics schemas for call summaries, filter breakdowns, and VCF stats.
 - Stage IO, stage metrics, stage delivery, panel governance, and invariant contracts.
 - Workflow-surface contracts for validation, artifact classes, reference context, filter evidence,
-  normalization semantics, calling modes, stats IDs, panel boundaries, and population guardrails.
+  normalization semantics, cohort validation, likelihood workflows, phasing/imputation
+  boundaries, damage filtering, stats/report coverage, panel boundaries, and population guardrails.
+- Typed production corpus manifests for governed VCF regression scenarios.
+- Typed scientific-drift reports for defaults, backend, normalization, and filter-policy changes.
 - Coverage reports that mark contract-vs-execution readiness.
 - Deterministic TOML materialization for VCF param registry and required tool registry views.
 
@@ -24,6 +27,10 @@ parameter, metric, taxonomy, invariant, and generated-registry materialization c
 - Invariant or panel governance changes require explicit failure-mode tests.
 - Workflow-surface contract changes require planner, runtime, or example evidence showing where the
   new contract is surfaced to operators.
+- Corpus-manifest changes must preserve the governed scenario set or document the reason for the
+  new corpus scope.
+- Scientific-drift report changes must keep before/after risk reporting explicit and snapshot
+  reviewed.
 
 ## Failure Patterns
 

@@ -5,11 +5,13 @@ private implementation details.
 
 ## Public Modules
 
+- `artifacts`
 - `contracts`
 - `coverage`
 - `metrics`
 - `params`
 - `registry_emit`
+- `run`
 - `stage_baseline`
 - `taxonomy`
 
@@ -24,6 +26,10 @@ private implementation details.
   `VCF_FORBIDDEN_TRANSITIONS`.
 - Metrics: `VcfCallSummaryMetricsV1`, `VcfFilterBreakdownMetricsV1`, and `VcfStatsMetricsV1`.
 - Registry rendering: `param_registry_toml` and `required_tools_toml`.
+- Corpus manifests: `VcfBenchCorpusId`, `VcfBenchScenario`, `VcfBenchCorpusManifestV1`,
+  `vcf_bench_corpus_manifest`, and `required_vcf_bench_corpus_scenarios`.
+- Scientific drift: `VcfScientificDriftSnapshotV1`, `VcfScientificDriftReportV1`, and
+  `build_vcf_scientific_drift_report`.
 - Workflow contracts: validation, artifact-class, reference-context, filter-evidence,
   normalization, calling-mode, stats-report, panel-boundary, and population-guardrail exports
   from `contracts`.
