@@ -1,3 +1,4 @@
+use super::evidence_support::materialize_governed_evidence;
 use super::planner_manifest_support::plan_manifest_from_request;
 use super::{summary_artifact, Result};
 use crate::request_args::{ExecuteRequest, ExecuteResponse, PlanRequest};
@@ -155,6 +156,55 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                         &graph_hash,
                         Some(&failure),
                     )?;
+                    let governed = materialize_governed_evidence(
+                        &layout,
+                        &request.graph,
+                        &run_id,
+                        request.mode,
+                        RunLifecycleStateV1::Failed,
+                        &run_id,
+                        Vec::new(),
+                        vec![bijux_dna_runtime::run_layout::CacheDecisionV1 {
+                            stage_id: failure.step_id.clone().unwrap_or_else(|| "runtime".to_string()),
+                            status: "miss".to_string(),
+                            cache_key: None,
+                            reason_code: Some("failed_execution_cannot_be_reused".to_string()),
+                            message: "failed executions are recorded as unsafe cache misses".to_string(),
+                        }],
+                        Vec::new(),
+                    )?;
+                    for (name, schema, path) in [
+                        (
+                            "artifact_inventory",
+                            "bijux.artifact_inventory.v1",
+                            governed.artifact_inventory_path.as_path(),
+                        ),
+                        (
+                            "artifact_inventory_text",
+                            "bijux.artifact_inventory_text.v1",
+                            governed.artifact_inventory_text_path.as_path(),
+                        ),
+                        (
+                            "replay_manifest",
+                            "bijux.replay_manifest.v1",
+                            governed.replay_manifest_path.as_path(),
+                        ),
+                        ("hash_ledger", "bijux.hash_ledger.v1", governed.hash_ledger_path.as_path()),
+                        (
+                            "run_summary_text",
+                            "bijux.run_summary_text.v1",
+                            governed.run_summary_text_path.as_path(),
+                        ),
+                    ] {
+                        summary_artifact::attach_output_artifact(
+                            &layout.manifest_path,
+                            &layout.run_dir,
+                            &correlation_id,
+                            name,
+                            schema,
+                            path,
+                        )?;
+                    }
                     let evidence_bundle_path =
                         bijux_dna_analyze::write_evidence_bundle_json(&layout.run_dir, None)?;
                     summary_artifact::attach_output_artifact(
@@ -164,6 +214,20 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                         "evidence_bundle",
                         "bijux.evidence_bundle.v1",
                         &evidence_bundle_path,
+                    )?;
+                    let evidence_verification =
+                        bijux_dna_analyze::verify_evidence_bundle(&evidence_bundle_path)?;
+                    bijux_dna_infra::atomic_write_json(
+                        &layout.evidence_verification_path,
+                        &evidence_verification,
+                    )?;
+                    summary_artifact::attach_output_artifact(
+                        &layout.manifest_path,
+                        &layout.run_dir,
+                        &correlation_id,
+                        "evidence_verification",
+                        "bijux.evidence_verification.v1",
+                        &layout.evidence_verification_path,
                     )?;
                     bijux_dna_runtime::recording::write_profile_and_lock_manifests(
                         &layout.manifest_path,
@@ -181,6 +245,11 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                         state: RunLifecycleStateV1::Failed,
                         report_path: None,
                         evidence_bundle_path,
+                        evidence_verification_path: layout.evidence_verification_path,
+                        artifact_inventory_path: layout.artifact_inventory_path,
+                        replay_manifest_path: layout.replay_manifest_path,
+                        hash_ledger_path: layout.hash_ledger_path,
+                        run_summary_text_path: layout.run_summary_text_path,
                     });
                 }
             }
@@ -205,6 +274,65 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
         &graph_hash,
         None,
     )?;
+    let governed = materialize_governed_evidence(
+        &layout,
+        &request.graph,
+        &run_id,
+        request.mode,
+        state,
+        &run_id,
+        Vec::new(),
+        vec![bijux_dna_runtime::run_layout::CacheDecisionV1 {
+            stage_id: "runtime".to_string(),
+            status: if matches!(request.mode, RunExecutionModeV1::Enforced) {
+                "miss".to_string()
+            } else {
+                "advisory".to_string()
+            },
+            cache_key: None,
+            reason_code: Some(match request.mode {
+                RunExecutionModeV1::DryRun => "dry_run_uses_dedicated_endpoint",
+                RunExecutionModeV1::Simulation => "simulation_skips_cache_reuse",
+                RunExecutionModeV1::Advisory => "advisory_skips_cache_reuse",
+                RunExecutionModeV1::Enforced => "runner_execution_materialized_fresh_outputs",
+            }
+            .to_string()),
+            message: "runtime cache decisions are recorded explicitly for governed replay".to_string(),
+        }],
+        Vec::new(),
+    )?;
+    for (name, schema, path) in [
+        (
+            "artifact_inventory",
+            "bijux.artifact_inventory.v1",
+            governed.artifact_inventory_path.as_path(),
+        ),
+        (
+            "artifact_inventory_text",
+            "bijux.artifact_inventory_text.v1",
+            governed.artifact_inventory_text_path.as_path(),
+        ),
+        (
+            "replay_manifest",
+            "bijux.replay_manifest.v1",
+            governed.replay_manifest_path.as_path(),
+        ),
+        ("hash_ledger", "bijux.hash_ledger.v1", governed.hash_ledger_path.as_path()),
+        (
+            "run_summary_text",
+            "bijux.run_summary_text.v1",
+            governed.run_summary_text_path.as_path(),
+        ),
+    ] {
+        summary_artifact::attach_output_artifact(
+            &layout.manifest_path,
+            &layout.run_dir,
+            &correlation_id,
+            name,
+            schema,
+            path,
+        )?;
+    }
     let evidence_bundle_path = bijux_dna_analyze::write_evidence_bundle_json(&layout.run_dir, None)?;
     summary_artifact::attach_output_artifact(
         &layout.manifest_path,
@@ -213,6 +341,16 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
         "evidence_bundle",
         "bijux.evidence_bundle.v1",
         &evidence_bundle_path,
+    )?;
+    let evidence_verification = bijux_dna_analyze::verify_evidence_bundle(&evidence_bundle_path)?;
+    bijux_dna_infra::atomic_write_json(&layout.evidence_verification_path, &evidence_verification)?;
+    summary_artifact::attach_output_artifact(
+        &layout.manifest_path,
+        &layout.run_dir,
+        &correlation_id,
+        "evidence_verification",
+        "bijux.evidence_verification.v1",
+        &layout.evidence_verification_path,
     )?;
     bijux_dna_runtime::recording::write_profile_and_lock_manifests(&layout.manifest_path)?;
     Ok(ExecuteResponse {
@@ -228,6 +366,11 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
         state,
         report_path: None,
         evidence_bundle_path,
+        evidence_verification_path: layout.evidence_verification_path,
+        artifact_inventory_path: layout.artifact_inventory_path,
+        replay_manifest_path: layout.replay_manifest_path,
+        hash_ledger_path: layout.hash_ledger_path,
+        run_summary_text_path: layout.run_summary_text_path,
     })
 }
 

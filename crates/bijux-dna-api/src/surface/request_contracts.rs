@@ -208,6 +208,12 @@ pub struct RunStatus {
     pub manifest_path: Option<PathBuf>,
     pub report_path: Option<PathBuf>,
     pub evidence_bundle_path: Option<PathBuf>,
+    pub evidence_verification_path: Option<PathBuf>,
+    pub artifact_inventory_path: Option<PathBuf>,
+    pub artifact_inventory_text_path: Option<PathBuf>,
+    pub replay_manifest_path: Option<PathBuf>,
+    pub hash_ledger_path: Option<PathBuf>,
+    pub run_summary_text_path: Option<PathBuf>,
     pub run_state_path: Option<PathBuf>,
     pub runtime_policy_path: Option<PathBuf>,
     pub executor_descriptor_path: Option<PathBuf>,
@@ -283,6 +289,11 @@ pub struct ExecuteResponse {
     pub state: bijux_dna_runtime::run_layout::RunLifecycleStateV1,
     pub report_path: Option<PathBuf>,
     pub evidence_bundle_path: PathBuf,
+    pub evidence_verification_path: PathBuf,
+    pub artifact_inventory_path: PathBuf,
+    pub replay_manifest_path: PathBuf,
+    pub hash_ledger_path: PathBuf,
+    pub run_summary_text_path: PathBuf,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -303,6 +314,7 @@ pub struct DryRunResponse {
     pub graph_path: PathBuf,
     pub manifest_path: PathBuf,
     pub run_summary_path: PathBuf,
+    pub run_summary_text_path: PathBuf,
     pub run_state_path: PathBuf,
     pub runtime_policy_path: PathBuf,
     pub executor_descriptor_path: PathBuf,
@@ -310,5 +322,9 @@ pub struct DryRunResponse {
     pub mode: bijux_dna_runtime::run_layout::RunExecutionModeV1,
     pub state: bijux_dna_runtime::run_layout::RunLifecycleStateV1,
     pub evidence_bundle_path: PathBuf,
+    pub evidence_verification_path: PathBuf,
+    pub artifact_inventory_path: PathBuf,
+    pub replay_manifest_path: PathBuf,
+    pub hash_ledger_path: PathBuf,
     pub correlation_id: String,
 }

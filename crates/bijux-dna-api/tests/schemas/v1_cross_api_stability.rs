@@ -100,6 +100,11 @@ fn execute_response_schema_is_stable() -> anyhow::Result<()> {
         state: bijux_dna_runtime::run_layout::RunLifecycleStateV1::Succeeded,
         report_path: Some(PathBuf::from("runs/run-1/run_artifacts/report.html")),
         evidence_bundle_path: PathBuf::from("runs/run-1/evidence_bundle.json"),
+        evidence_verification_path: PathBuf::from("runs/run-1/evidence_verification.json"),
+        artifact_inventory_path: PathBuf::from("runs/run-1/artifact_inventory.json"),
+        replay_manifest_path: PathBuf::from("runs/run-1/replay_manifest.json"),
+        hash_ledger_path: PathBuf::from("runs/run-1/hash_ledger.json"),
+        run_summary_text_path: PathBuf::from("runs/run-1/summary/run_summary.txt"),
     };
     let json = serde_json::to_value(&response)?;
     let name = snapshot_name("schemas", "execute_response_schema");
@@ -145,6 +150,12 @@ fn status_schema_is_stable() -> anyhow::Result<()> {
         "manifest_path": status.manifest_path,
         "report_path": status.report_path,
         "evidence_bundle_path": status.evidence_bundle_path,
+        "evidence_verification_path": status.evidence_verification_path,
+        "artifact_inventory_path": status.artifact_inventory_path,
+        "artifact_inventory_text_path": status.artifact_inventory_text_path,
+        "replay_manifest_path": status.replay_manifest_path,
+        "hash_ledger_path": status.hash_ledger_path,
+        "run_summary_text_path": status.run_summary_text_path,
         "run_state_path": status.run_state_path,
         "runtime_policy_path": status.runtime_policy_path,
         "executor_descriptor_path": status.executor_descriptor_path,

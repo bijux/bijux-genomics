@@ -70,7 +70,12 @@ fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
     assert!(response.graph_path.exists());
     assert!(response.manifest_path.exists());
     assert!(response.run_summary_path.exists());
+    assert!(response.run_summary_text_path.exists());
     assert!(response.evidence_bundle_path.exists());
+    assert!(response.evidence_verification_path.exists());
+    assert!(response.artifact_inventory_path.exists());
+    assert!(response.replay_manifest_path.exists());
+    assert!(response.hash_ledger_path.exists());
     assert!(response.correlation_id.starts_with("dry_run:"));
     assert!(temp.path().join("summary").join("run_summary.json").exists());
     Ok(())
@@ -163,6 +168,8 @@ fn execute_simulation_writes_governed_runtime_contracts_without_process_executio
     assert!(response.runtime_policy_path.exists());
     assert!(response.executor_descriptor_path.exists());
     assert!(response.checkpoint_path.exists());
+    assert!(response.artifact_inventory_path.exists());
+    assert!(response.hash_ledger_path.exists());
     assert!(response.failure_path.is_none());
     Ok(())
 }

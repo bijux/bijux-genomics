@@ -1,3 +1,4 @@
+use super::evidence_support::materialize_governed_evidence;
 use super::planner_manifest_support::plan_manifest_from_request;
 use super::{summary_artifact, Result};
 use crate::request_args::{DryRunRequest, DryRunResponse};
@@ -200,6 +201,56 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;
     bijux_dna_infra::atomic_write_bytes(&layout.manifest_path, payload.as_slice())?;
 
+    let governed = materialize_governed_evidence(
+        &layout,
+        &request.graph,
+        &run_id,
+        RunExecutionModeV1::DryRun,
+        RunLifecycleStateV1::Succeeded,
+        &run_id,
+        Vec::new(),
+        vec![bijux_dna_runtime::run_layout::CacheDecisionV1 {
+            stage_id: "dry_run".to_string(),
+            status: "miss".to_string(),
+            cache_key: None,
+            reason_code: Some("no_runtime_cache_in_dry_run".to_string()),
+            message: "dry-run records cache semantics but does not attempt cache reuse".to_string(),
+        }],
+        Vec::new(),
+    )?;
+    for (name, schema, path) in [
+        (
+            "artifact_inventory",
+            "bijux.artifact_inventory.v1",
+            governed.artifact_inventory_path.as_path(),
+        ),
+        (
+            "artifact_inventory_text",
+            "bijux.artifact_inventory_text.v1",
+            governed.artifact_inventory_text_path.as_path(),
+        ),
+        (
+            "replay_manifest",
+            "bijux.replay_manifest.v1",
+            governed.replay_manifest_path.as_path(),
+        ),
+        ("hash_ledger", "bijux.hash_ledger.v1", governed.hash_ledger_path.as_path()),
+        (
+            "run_summary_text",
+            "bijux.run_summary_text.v1",
+            governed.run_summary_text_path.as_path(),
+        ),
+    ] {
+        summary_artifact::attach_output_artifact(
+            &layout.manifest_path,
+            &request.run_dir,
+            &correlation_id,
+            name,
+            schema,
+            path,
+        )?;
+    }
+
     let evidence_bundle_path =
         bijux_dna_analyze::write_evidence_bundle_json(&request.run_dir, None)?;
     summary_artifact::attach_output_artifact(
@@ -210,11 +261,22 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         "bijux.evidence_bundle.v1",
         &evidence_bundle_path,
     )?;
+    let evidence_verification = bijux_dna_analyze::verify_evidence_bundle(&evidence_bundle_path)?;
+    bijux_dna_infra::atomic_write_json(&layout.evidence_verification_path, &evidence_verification)?;
+    summary_artifact::attach_output_artifact(
+        &layout.manifest_path,
+        &request.run_dir,
+        &correlation_id,
+        "evidence_verification",
+        "bijux.evidence_verification.v1",
+        &layout.evidence_verification_path,
+    )?;
     bijux_dna_runtime::recording::write_profile_and_lock_manifests(&layout.manifest_path)?;
     Ok(DryRunResponse {
         graph_path: layout.graph_path,
         manifest_path: layout.manifest_path,
         run_summary_path: layout.run_summary_path,
+        run_summary_text_path: layout.run_summary_text_path,
         run_state_path: layout.run_state_path,
         runtime_policy_path: layout.runtime_policy_path,
         executor_descriptor_path: layout.executor_descriptor_path,
@@ -222,6 +284,10 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
         mode: RunExecutionModeV1::DryRun,
         state: RunLifecycleStateV1::Succeeded,
         evidence_bundle_path,
+        evidence_verification_path: layout.evidence_verification_path,
+        artifact_inventory_path: layout.artifact_inventory_path,
+        replay_manifest_path: layout.replay_manifest_path,
+        hash_ledger_path: layout.hash_ledger_path,
         correlation_id,
     })
 }

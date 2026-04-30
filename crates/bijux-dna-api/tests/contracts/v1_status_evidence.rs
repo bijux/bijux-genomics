@@ -30,6 +30,7 @@ fn status_discovers_evidence_bundle_and_correlation() -> Result<()> {
             .and_then(|value| value.and_then(|value| value.to_str())),
         Some("evidence_bundle.json")
     );
+    assert!(snapshot.evidence_verification_path.is_none());
     Ok(())
 }
 
@@ -83,6 +84,44 @@ fn status_reads_governed_run_state_and_failure_paths() -> Result<()> {
             "schema_version": "bijux.run_failure.v1"
         }),
     )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("artifact_inventory.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.artifact_inventory.v1",
+            "run_id": "run-2",
+            "artifacts": []
+        }),
+    )?;
+    std::fs::write(temp.path().join("artifact_inventory.txt"), b"artifact inventory\n")?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("replay_manifest.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.replay_manifest.v1",
+            "replay_run_id": "run-2",
+            "original_run_id": "run-2"
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("hash_ledger.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.hash_ledger.v1",
+            "run_id": "run-2",
+            "root_sha256": "abc",
+            "entries": []
+        }),
+    )?;
+    std::fs::create_dir_all(temp.path().join("summary"))?;
+    std::fs::write(temp.path().join("summary").join("run_summary.txt"), b"summary\n")?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("evidence_verification.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.evidence_verification.v1",
+            "verified": true,
+            "checks": [],
+            "missing_paths": [],
+            "gap_count": 0
+        }),
+    )?;
 
     let snapshot = status(temp.path())?;
     assert_eq!(
@@ -97,6 +136,12 @@ fn status_reads_governed_run_state_and_failure_paths() -> Result<()> {
     assert!(snapshot.executor_descriptor_path.is_some());
     assert!(snapshot.checkpoint_path.is_some());
     assert!(snapshot.failure_path.is_some());
+    assert!(snapshot.artifact_inventory_path.is_some());
+    assert!(snapshot.artifact_inventory_text_path.is_some());
+    assert!(snapshot.replay_manifest_path.is_some());
+    assert!(snapshot.hash_ledger_path.is_some());
+    assert!(snapshot.run_summary_text_path.is_some());
+    assert!(snapshot.evidence_verification_path.is_some());
     assert!(snapshot.has_failures);
     Ok(())
 }

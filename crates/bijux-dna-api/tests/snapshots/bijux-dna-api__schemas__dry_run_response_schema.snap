@@ -3,15 +3,20 @@ source: crates/bijux-dna-api/tests/schemas/v1_cross_api_stability.rs
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
+  "artifact_inventory_path": "<temp>/artifact_inventory.json",
   "checkpoint_path": "<temp>/checkpoints/checkpoint.json",
   "correlation_id": "dry_run:934c4ac4579c0d17d2b467b1c1fd777757f6c050fa34f40c71aac13fbce0b37b",
   "evidence_bundle_path": "<temp>/evidence_bundle.json",
+  "evidence_verification_path": "<temp>/evidence_verification.json",
   "executor_descriptor_path": "<temp>/executor_descriptor.json",
   "graph_path": "<temp>/manifests/graph.json",
+  "hash_ledger_path": "<temp>/hash_ledger.json",
   "manifest_path": "<temp>/run_manifest.json",
   "mode": "dry_run",
+  "replay_manifest_path": "<temp>/replay_manifest.json",
   "run_state_path": "<temp>/run_state.json",
   "run_summary_path": "<temp>/summary/run_summary.json",
+  "run_summary_text_path": "<temp>/summary/run_summary.txt",
   "runtime_policy_path": "<temp>/runtime_policy.json",
   "state": "succeeded"
 }

@@ -23,6 +23,27 @@ pub fn status(run_dir: &Path) -> Result<RunStatus> {
         });
 
     status.evidence_bundle_path = layout.evidence_bundle_path.exists().then_some(layout.evidence_bundle_path);
+    status.evidence_verification_path = layout
+        .evidence_verification_path
+        .exists()
+        .then_some(layout.evidence_verification_path);
+    status.artifact_inventory_path = layout
+        .artifact_inventory_path
+        .exists()
+        .then_some(layout.artifact_inventory_path);
+    status.artifact_inventory_text_path = layout
+        .artifact_inventory_text_path
+        .exists()
+        .then_some(layout.artifact_inventory_text_path);
+    status.replay_manifest_path = layout
+        .replay_manifest_path
+        .exists()
+        .then_some(layout.replay_manifest_path);
+    status.hash_ledger_path = layout.hash_ledger_path.exists().then_some(layout.hash_ledger_path);
+    status.run_summary_text_path = layout
+        .run_summary_text_path
+        .exists()
+        .then_some(layout.run_summary_text_path);
     status.run_state_path = layout.run_state_path.exists().then_some(layout.run_state_path);
     status.runtime_policy_path =
         layout.runtime_policy_path.exists().then_some(layout.runtime_policy_path);
