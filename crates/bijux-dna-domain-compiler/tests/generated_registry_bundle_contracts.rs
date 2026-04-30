@@ -1,5 +1,6 @@
 use bijux_dna_domain_compiler::{
     load_domain_registry_bundle, CompiledDomainDefaultsSnapshot, DomainDeprecationCatalog,
+    DomainInvariantCatalog,
 };
 
 #[path = "support/mod.rs"]
@@ -54,6 +55,24 @@ fn generated_deprecations_snapshot_tracks_known_records() -> anyhow::Result<()> 
                 && domain.deprecations.iter().any(|entry| entry.tool_id.as_deref() == Some("bamtools"))
         }),
         "checked-in deprecations snapshot must preserve known BAM deprecation records"
+    );
+    Ok(())
+}
+
+#[test]
+fn generated_invariant_catalogs_publish_stage_invariants() -> anyhow::Result<()> {
+    let root = support::repo_root();
+    let raw = std::fs::read_to_string(root.join("configs/ci/registry/domain_invariant_catalogs.json"))?;
+    let invariants: Vec<DomainInvariantCatalog> = serde_json::from_str(&raw)?;
+    assert!(
+        invariants.iter().any(|domain| {
+            domain.domain_id == "fastq"
+                && domain
+                    .stage_invariants
+                    .get("fastq.trim_reads")
+                    .is_some_and(|entries| entries.iter().any(|entry| entry == "stable_artifact_contract"))
+        }),
+        "checked-in invariant catalogs must preserve FASTQ stage invariant suites"
     );
     Ok(())
 }

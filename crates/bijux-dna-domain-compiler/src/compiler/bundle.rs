@@ -182,6 +182,12 @@ pub struct DomainDeprecationCatalog {
     pub deprecations: Vec<RegistryDeprecationRecord>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DomainInvariantCatalog {
+    pub domain_id: String,
+    pub stage_invariants: BTreeMap<String, Vec<String>>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DomainRegistryQueryKind {
     Domains,
@@ -822,6 +828,21 @@ pub fn domain_deprecation_catalogs(
         .collect()
 }
 
+pub fn domain_invariant_catalogs(bundle: &DomainRegistryReleaseBundle) -> Vec<DomainInvariantCatalog> {
+    bundle
+        .domains
+        .iter()
+        .map(|domain| DomainInvariantCatalog {
+            domain_id: domain.domain_id.clone(),
+            stage_invariants: domain
+                .stages
+                .iter()
+                .map(|stage| (stage.stage_id.clone(), stage.invariants.clone()))
+                .collect(),
+        })
+        .collect()
+}
+
 pub fn write_domain_registry_bundle(
     configs_dir: &Path,
     bundle: &DomainRegistryReleaseBundle,
@@ -834,6 +855,7 @@ pub fn write_domain_registry_bundle(
     let artifacts_path = registry_dir.join("domain_artifact_contract_snapshots.json");
     let metrics_path = registry_dir.join("domain_metric_catalogs.json");
     let deprecations_path = registry_dir.join("domain_deprecations_snapshot.json");
+    let invariants_path = registry_dir.join("domain_invariant_catalogs.json");
 
     write_string(
         &release_bundle_path,
@@ -864,8 +886,21 @@ pub fn write_domain_registry_bundle(
             .context("serialize deprecation catalogs")?,
     )
     .with_context(|| format!("write {}", deprecations_path.display()))?;
+    write_string(
+        &invariants_path,
+        &serde_json::to_string_pretty(&domain_invariant_catalogs(bundle))
+            .context("serialize invariant catalogs")?,
+    )
+    .with_context(|| format!("write {}", invariants_path.display()))?;
 
-    Ok(vec![release_bundle_path, defaults_path, artifacts_path, metrics_path, deprecations_path])
+    Ok(vec![
+        release_bundle_path,
+        defaults_path,
+        artifacts_path,
+        metrics_path,
+        deprecations_path,
+        invariants_path,
+    ])
 }
 
 pub fn load_domain_registry_bundle(path: &Path) -> Result<DomainRegistryReleaseBundle> {

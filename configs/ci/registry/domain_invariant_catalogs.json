@@ -1,0 +1,379 @@
+[
+  {
+    "domain_id": "bam",
+    "stage_invariants": {
+      "bam.align": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.authenticity": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.bias_mitigation": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.complexity": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.contamination": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.coverage": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.damage": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.duplication_metrics": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.endogenous_content": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.filter": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.gc_bias": [
+        "stable_artifact_contract",
+        "deterministic_output_order",
+        "gc_dropout_non_negative",
+        "at_dropout_non_negative"
+      ],
+      "bam.genotyping": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.haplogroups": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.insert_size": [
+        "stable_artifact_contract",
+        "deterministic_output_order",
+        "insert_size_mean_non_negative",
+        "insert_size_sd_non_negative"
+      ],
+      "bam.kinship": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.length_filter": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.mapping_summary": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.mapq_filter": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.markdup": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.overlap_correction": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.qc_pre": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.recalibration": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.sex": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "bam.validate": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ]
+    }
+  },
+  {
+    "domain_id": "fastq",
+    "stage_invariants": {
+      "fastq.build_contaminant_db": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.build_rrna_db": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.build_taxonomy_db": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.capture_provenance_snapshot": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.classify_layout": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.cluster_otus": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.concatenate_lanes": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.correct_errors": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.deinterleave_reads": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.demultiplex_reads": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.deplete_host": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.deplete_reference_contaminants": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.deplete_rrna": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.detect_adapters": [
+        "stable_artifact_contract",
+        "deterministic_output_order",
+        "canonical_governed_report_emitted"
+      ],
+      "fastq.detect_duplicates_premerge": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.detect_instrument_artifacts": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.estimate_library_complexity_prealign": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.extract_umis": [
+        "stable_artifact_contract",
+        "deterministic_output_order",
+        "canonical_governed_umi_report_emitted"
+      ],
+      "fastq.filter_low_complexity": [
+        "stable_artifact_contract",
+        "deterministic_output_order",
+        "canonical_governed_low_complexity_report_emitted",
+        "poly_n_filter_applied_before_emit",
+        "entropy_threshold_applied_before_emit",
+        "homopolymer_filter_applied_before_emit"
+      ],
+      "fastq.filter_reads": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.index_reference": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.infer_asvs": [
+        "stable_artifact_contract",
+        "amplicon_only_stage",
+        "representative_sequences_match_feature_table"
+      ],
+      "fastq.interleave_reads": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.materialize_qc_manifest": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.merge_pairs": [
+        "stable_artifact_contract",
+        "paired_end_input_required",
+        "deterministic_merge_output_names"
+      ],
+      "fastq.normalize_abundance": [
+        "stable_artifact_contract",
+        "amplicon_only_stage",
+        "per_sample_abundance_is_compositional"
+      ],
+      "fastq.normalize_primers": [
+        "stable_artifact_contract",
+        "amplicon_only_stage",
+        "deterministic_orientation_policy"
+      ],
+      "fastq.normalize_read_names": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.prepare_adapter_bank": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.prepare_host_reference_bundle": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.prepare_primer_bank": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.profile_overrepresented_sequences": [
+        "stable_artifact_contract",
+        "report_only_stage",
+        "deterministic_sequence_ranking"
+      ],
+      "fastq.profile_read_lengths": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.profile_reads": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.remove_chimeras": [
+        "stable_artifact_contract",
+        "deterministic_output_order",
+        "reads_out <= reads_in",
+        "chimeras_removed == reads_in - reads_out",
+        "chimera_fraction in [0, 1]"
+      ],
+      "fastq.remove_duplicates": [
+        "stable_artifact_contract",
+        "deterministic_output_order",
+        "reads_out <= reads_in",
+        "reads_removed_duplicates == reads_in - reads_out"
+      ],
+      "fastq.repair_pairs": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.report_qc": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.screen_taxonomy": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.subsample_reads": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.trim_polyg_tails": [
+        "stable_artifact_contract",
+        "deterministic_output_order",
+        "polyg_trim_applied_before_emit"
+      ],
+      "fastq.trim_reads": [
+        "stable_artifact_contract",
+        "deterministic_output_order",
+        "trim_report_emitted_before_stage_complete"
+      ],
+      "fastq.trim_terminal_damage": [
+        "stable_artifact_contract",
+        "deterministic_output_order",
+        "damage_policy_report_emitted_before_stage_complete"
+      ],
+      "fastq.validate_reads": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ],
+      "fastq.verify_assets": [
+        "stable_artifact_contract",
+        "deterministic_output_order"
+      ]
+    }
+  },
+  {
+    "domain_id": "vcf",
+    "stage_invariants": {
+      "vcf.admixture": [
+        "stable_artifact_contract"
+      ],
+      "vcf.call": [
+        "tool_pinned"
+      ],
+      "vcf.call_diploid": [
+        "tool_pinned"
+      ],
+      "vcf.call_gl": [
+        "tool_pinned",
+        "gl_fields_present"
+      ],
+      "vcf.call_pseudohaploid": [
+        "tool_pinned"
+      ],
+      "vcf.damage_filter": [
+        "tool_pinned",
+        "damage_rules_reported"
+      ],
+      "vcf.demography": [
+        "stable_artifact_contract"
+      ],
+      "vcf.filter": [
+        "tool_pinned"
+      ],
+      "vcf.gl_propagation": [
+        "tool_pinned",
+        "gl_fields_present"
+      ],
+      "vcf.ibd": [
+        "stable_artifact_contract"
+      ],
+      "vcf.imputation": [
+        "stable_artifact_contract"
+      ],
+      "vcf.impute": [
+        "stable_artifact_contract"
+      ],
+      "vcf.pca": [
+        "stable_artifact_contract"
+      ],
+      "vcf.phasing": [
+        "stable_artifact_contract"
+      ],
+      "vcf.population_structure": [
+        "stable_artifact_contract"
+      ],
+      "vcf.postprocess": [
+        "stable_artifact_contract"
+      ],
+      "vcf.prepare_reference_panel": [
+        "stable_artifact_contract"
+      ],
+      "vcf.qc": [
+        "stable_artifact_contract"
+      ],
+      "vcf.roh": [
+        "stable_artifact_contract"
+      ],
+      "vcf.stats": [
+        "stats_required"
+      ]
+    }
+  }
+]
