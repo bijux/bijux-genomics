@@ -20,10 +20,13 @@ pub struct DepleteRrnaReportV1 {
     pub rrna_db: Option<String>,
     pub database_artifact_id: String,
     pub database_build_id: Option<String>,
+    pub database_digest: Option<String>,
     pub screening_engine: RrnaScreeningEngine,
     pub report_format: RrnaReportFormat,
     pub emit_removed_reads: bool,
     pub min_identity: Option<f64>,
+    pub retained_read_role: String,
+    pub rejected_read_role: String,
     pub input_r1: String,
     pub input_r2: Option<String>,
     pub output_r1: String,
@@ -67,10 +70,13 @@ mod tests {
             rrna_db: Some("/refs/silva".to_string()),
             database_artifact_id: "silva_nr99".to_string(),
             database_build_id: Some("2026.03".to_string()),
+            database_digest: Some("sha256:silva".to_string()),
             screening_engine: RrnaScreeningEngine::Sortmerna,
             report_format: RrnaReportFormat::SummaryTsvAndJson,
             emit_removed_reads: false,
             min_identity: Some(0.95),
+            retained_read_role: "rrna_filtered_reads".to_string(),
+            rejected_read_role: "removed_rrna_reads".to_string(),
             input_r1: "reads_R1.fastq.gz".to_string(),
             input_r2: Some("reads_R2.fastq.gz".to_string()),
             output_r1: "rrna_filtered_R1.fastq.gz".to_string(),
@@ -102,6 +108,7 @@ mod tests {
             .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "sortmerna");
         assert_eq!(decoded.database_artifact_id, "silva_nr99");
+        assert_eq!(decoded.database_digest.as_deref(), Some("sha256:silva"));
         assert_eq!(decoded.reads_removed, 50);
     }
 }

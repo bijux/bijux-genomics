@@ -1077,10 +1077,13 @@ mod tests {
                 "rrna_db": "/refs/silva",
                 "database_artifact_id": "silva_nr99",
                 "database_build_id": "2026.03",
+                "database_digest": "sha256:silva",
                 "screening_engine": "sortmerna",
                 "report_format": "summary_tsv_and_json",
                 "emit_removed_reads": false,
                 "min_identity": 0.95,
+                "retained_read_role": "rrna_filtered_reads",
+                "rejected_read_role": "removed_rrna_reads",
                 "input_r1": "reads.fastq.gz",
                 "input_r2": null,
                 "output_r1": "rrna_filtered.fastq.gz",
@@ -1110,6 +1113,8 @@ mod tests {
         let metrics = parse_deplete_rrna_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("sortmerna"));
         assert_eq!(metrics["database_artifact_id"], serde_json::json!("silva_nr99"));
+        assert_eq!(metrics["database_digest"], serde_json::json!("sha256:silva"));
+        assert_eq!(metrics["retained_read_role"], serde_json::json!("rrna_filtered_reads"));
         assert_eq!(metrics["reads_removed"], serde_json::json!(36));
         assert_eq!(metrics["rrna_fraction_removed"], serde_json::json!(0.36));
     }
@@ -1129,10 +1134,13 @@ mod tests {
                 "threads": 4,
                 "reference_catalog_id": "contaminant_reference",
                 "contaminant_reference": "phix_and_spikeins",
-                "index_artifact": "reference_index",
+                "reference_index_artifact_id": "reference_index",
                 "reference_index_backend": "bowtie2_build",
                 "reference_build_id": "2026.03",
                 "reference_digest": "sha256:contaminants",
+                "match_threshold": 0.95,
+                "retained_read_role": "contaminant_screened_reads",
+                "rejected_read_role": "removed_contaminant_reads",
                 "retain_unmapped_pairs": false,
                 "input_r1": "reads.fastq.gz",
                 "input_r2": null,

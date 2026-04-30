@@ -13,10 +13,13 @@ fn parse_deplete_rrna_report_round_trips_governed_payload() -> Result<()> {
             "rrna_db": "/refs/silva",
             "database_artifact_id": "silva_nr99",
             "database_build_id": "2026.03",
+            "database_digest": "sha256:silva",
             "screening_engine": "sortmerna",
             "report_format": "summary_tsv_and_json",
             "emit_removed_reads": false,
             "min_identity": 0.95,
+            "retained_read_role": "rrna_filtered_reads",
+            "rejected_read_role": "removed_rrna_reads",
             "input_r1": "reads_R1.fastq.gz",
             "input_r2": "reads_R2.fastq.gz",
             "output_r1": "rrna_filtered_R1.fastq.gz",
@@ -45,6 +48,8 @@ fn parse_deplete_rrna_report_round_trips_governed_payload() -> Result<()> {
     )?;
     assert_eq!(parsed.tool_id, "sortmerna");
     assert_eq!(parsed.database_artifact_id, "silva_nr99");
+    assert_eq!(parsed.database_digest.as_deref(), Some("sha256:silva"));
+    assert_eq!(parsed.retained_read_role, "rrna_filtered_reads");
     assert_eq!(parsed.reads_removed, 50);
     Ok(())
 }
@@ -68,6 +73,8 @@ fn parse_deplete_rrna_report_accepts_legacy_payload() -> Result<()> {
     )?;
     assert_eq!(parsed.tool_id, "sortmerna");
     assert_eq!(parsed.reads_removed, 40);
+    assert_eq!(parsed.retained_read_role, "rrna_filtered_reads");
+    assert_eq!(parsed.rejected_read_role, "removed_rrna_reads");
     assert_f64_eq(parsed.rrna_fraction_removed, 0.4);
     Ok(())
 }
@@ -84,10 +91,13 @@ fn parse_deplete_reference_contaminants_report_round_trips_governed_payload() ->
             "threads": 6,
             "reference_catalog_id": "contaminant_reference",
             "contaminant_reference": "phix_and_spikeins",
-            "index_artifact": "reference_index",
+            "reference_index_artifact_id": "reference_index",
             "reference_index_backend": "bowtie2_build",
             "reference_build_id": "2026.03",
             "reference_digest": "sha256:contaminant",
+            "match_threshold": 0.95,
+            "retained_read_role": "contaminant_screened_reads",
+            "rejected_read_role": "removed_contaminant_reads",
             "retain_unmapped_pairs": true,
             "input_r1": "reads_R1.fastq.gz",
             "input_r2": "reads_R2.fastq.gz",
@@ -116,6 +126,9 @@ fn parse_deplete_reference_contaminants_report_round_trips_governed_payload() ->
     )?;
     assert_eq!(parsed.tool_id, "bowtie2");
     assert_eq!(parsed.reads_removed, 40);
+    assert_eq!(parsed.reference_index_artifact_id, "reference_index");
+    assert_eq!(parsed.match_threshold, Some(0.95));
+    assert_eq!(parsed.retained_read_role, "contaminant_screened_reads");
     assert_eq!(parsed.raw_backend_report_format.as_deref(), Some("bowtie2_met_file"));
     Ok(())
 }
@@ -139,6 +152,9 @@ fn parse_deplete_reference_contaminants_report_accepts_legacy_payload() -> Resul
     )?;
     assert_eq!(parsed.tool_id, "bowtie2");
     assert_eq!(parsed.reads_removed, 35);
+    assert_eq!(parsed.reference_index_artifact_id, "reference_index");
+    assert_eq!(parsed.retained_read_role, "contaminant_screened_reads");
+    assert_eq!(parsed.rejected_read_role, "removed_contaminant_reads");
     assert_f64_eq(parsed.contaminant_fraction_removed, 0.35);
     Ok(())
 }

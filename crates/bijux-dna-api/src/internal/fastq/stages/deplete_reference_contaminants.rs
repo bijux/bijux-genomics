@@ -450,10 +450,13 @@ fn build_deplete_reference_contaminants_report<S: ::std::hash::BuildHasher>(
         threads: effective_params.threads,
         reference_catalog_id: effective_params.reference_catalog_id,
         contaminant_reference: effective_params.contaminant_reference,
-        index_artifact: effective_params.index_artifact,
+        reference_index_artifact_id: effective_params.index_artifact,
         reference_index_backend: effective_params.reference_index_backend,
         reference_build_id: effective_params.reference_build_id,
         reference_digest: effective_params.reference_digest,
+        match_threshold: Some(0.95),
+        retained_read_role: "contaminant_screened_reads".to_string(),
+        rejected_read_role: "removed_contaminant_reads".to_string(),
         retain_unmapped_pairs: effective_params.retain_unmapped_pairs,
         input_r1: artifact_input_path_string(inputs.plan, "reads_r1"),
         input_r2: artifact_input_path(inputs.plan, "reads_r2")
@@ -622,10 +625,10 @@ fn validate_reference_contaminants_report_paths(
         &required_reference_contaminants_output_path(plan, "contaminant_screen_report_json")?,
         &report.report_json,
     )?;
-    if report.index_artifact != "reference_index" {
+    if report.reference_index_artifact_id != "reference_index" {
         return Err(anyhow!(
             "reference contaminant depletion report index artifact mismatch: expected reference_index, observed {}",
-            report.index_artifact
+            report.reference_index_artifact_id
         ));
     }
     required_reference_contaminants_input_path(plan, "reference_index")?;
