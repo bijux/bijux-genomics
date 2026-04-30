@@ -2293,6 +2293,66 @@ pub fn execute_mitochondrial_contamination_workflow(
     }
 }
 
+/// Execute nuclear contamination evidence with panel/build compatibility prerequisites.
+#[must_use]
+pub fn execute_nuclear_contamination_workflow(
+    metrics: &BamMetricsV1,
+    has_reference_panel: bool,
+    panel_build_compatible: bool,
+    sex_context_available: bool,
+    minimum_mean_coverage: f64,
+) -> BamContaminationEvidenceV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if !has_reference_panel {
+        refusal_codes.push("reference_panel_required".to_string());
+    }
+    if !panel_build_compatible {
+        refusal_codes.push("panel_build_incompatible".to_string());
+    }
+    if !sex_context_available {
+        refusal_codes.push("sex_context_required".to_string());
+    }
+    if metrics.coverage.mean < minimum_mean_coverage {
+        refusal_codes.push("coverage_below_minimum_for_nuclear_contamination".to_string());
+    }
+    let prerequisites_passed = refusal_codes.is_empty();
+    BamContaminationEvidenceV1 {
+        schema_version: BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.contamination".to_string(),
+        scope: "nuclear".to_string(),
+        tool: "verifybamid2".to_string(),
+        prerequisites_passed,
+        estimate: prerequisites_passed.then_some(metrics.contamination.estimate),
+        ci_low: prerequisites_passed.then_some(metrics.contamination.ci_low),
+        ci_high: prerequisites_passed.then_some(metrics.contamination.ci_high),
+        advisory_boundary: BamAdvisoryBoundaryV1 {
+            schema_version: BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION.to_string(),
+            stage_id: "bam.contamination".to_string(),
+            advisory_only: true,
+            scientific_scope: "nuclear_contamination_estimation".to_string(),
+            evidence_inputs: vec![
+                "reference_panel".to_string(),
+                "build_compatibility".to_string(),
+                "sex_or_chromosome_context".to_string(),
+            ],
+            safe_for_claims: vec![
+                "contamination_estimate_reported".to_string(),
+                "nuclear_scope_only".to_string(),
+            ],
+            unsafe_for_claims: vec![
+                "mt_contamination_absence".to_string(),
+                "sample_authenticity_certification".to_string(),
+            ],
+        },
+        refusal_codes,
+        caveats: vec![
+            "nuclear estimates require panel/build congruence and are context-sensitive"
+                .to_string(),
+            "confidence intervals must be interpreted with coverage and marker density".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn bam_adna_workflow_contract() -> BamAdnaWorkflowV1 {
     BamAdnaWorkflowV1 {
@@ -2752,6 +2812,30 @@ mod tests {
         assert!(refused
             .refusal_codes
             .contains(&"coverage_below_minimum_for_mito_contamination".to_string()));
+    }
+
+    #[test]
+    fn execute_nuclear_contamination_workflow_checks_panel_build_and_coverage() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.coverage.mean = 6.0;
+        metrics.contamination.estimate = 0.08;
+        metrics.contamination.ci_low = 0.05;
+        metrics.contamination.ci_high = 0.11;
+
+        let ready = execute_nuclear_contamination_workflow(&metrics, true, true, true, 4.0);
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.scope, "nuclear");
+        assert_eq!(ready.tool, "verifybamid2");
+        assert_eq!(ready.estimate, Some(0.08));
+
+        let refused = execute_nuclear_contamination_workflow(&metrics, false, false, false, 8.0);
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"reference_panel_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"panel_build_incompatible".to_string()));
+        assert!(refused.refusal_codes.contains(&"sex_context_required".to_string()));
+        assert!(refused
+            .refusal_codes
+            .contains(&"coverage_below_minimum_for_nuclear_contamination".to_string()));
     }
 
     fn unique_temp_dir(label: &str) -> PathBuf {
