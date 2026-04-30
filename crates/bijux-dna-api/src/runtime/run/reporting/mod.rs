@@ -3,6 +3,7 @@ use super::{
 };
 
 mod dry_run;
+mod bundle_verifier;
 mod cache_explain;
 mod environment_identity;
 mod evidence_support;
@@ -23,6 +24,7 @@ mod summary_artifact;
 mod workspace_audit;
 
 pub use dry_run::dry_run;
+pub use bundle_verifier::verify_run_bundle;
 pub use cache_explain::explain_cache_hit_miss;
 pub use environment_identity::environment_identity;
 pub use execute_run::execute;

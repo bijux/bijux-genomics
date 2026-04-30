@@ -13,7 +13,7 @@ pub use entrypoints::{
     execute_and_report, execute_local_bam_workflow, execute_local_fastq_workflow,
     execute_local_vcf_workflow, execute_run, explain_cache_hit_miss, explain_successful_replay,
     operator_health, pause_run, plan, plan_only, policy_audit, replay_failed_run, replay_manifest,
-    resume_run, run_local_failure_injection,
+    resume_run, run_local_failure_injection, verify_run_bundle,
     run_fastq_to_bam_profile, run_pipeline, status, RunMode,
 };
 pub use operator_failure::{
