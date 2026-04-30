@@ -8,24 +8,36 @@ use std::path::PathBuf;
 /// Returns an error if directory discovery fails.
 pub fn browse_runs(request: &RunBrowserRequestV1) -> Result<RunBrowserResponseV1> {
     let mut rows = collect_rows(&request.runs_root)?;
+    rows.retain(|row| row_matches_filter(row, &request.filter));
     rows.sort_by(|left, right| {
         left
             .run_id
             .cmp(&right.run_id)
             .then_with(|| left.run_dir.cmp(&right.run_dir))
     });
+    let default_page_size = 50;
+    let page_size = if request.page_size == 0 {
+        default_page_size
+    } else {
+        request.page_size
+    };
+    let offset = request
+        .page_token
+        .as_deref()
+        .and_then(|token| token.parse::<usize>().ok())
+        .unwrap_or(0)
+        .min(rows.len());
+    let end = offset.saturating_add(page_size).min(rows.len());
+    let next_page_token = (end < rows.len()).then(|| end.to_string());
+    let page_rows = rows[offset..end].to_vec();
 
     Ok(RunBrowserResponseV1 {
         schema_version: "bijux.run_browser.v1".to_string(),
         runs_root: request.runs_root.clone(),
         total_rows: rows.len(),
-        page_size: if request.page_size == 0 {
-            rows.len().max(1)
-        } else {
-            request.page_size
-        },
-        next_page_token: None,
-        rows,
+        page_size,
+        next_page_token,
+        rows: page_rows,
     })
 }
 
@@ -134,4 +146,51 @@ fn read_json(path: &Path) -> Option<serde_json::Value> {
         .then(|| std::fs::read(path).ok())
         .flatten()
         .and_then(|raw| serde_json::from_slice::<serde_json::Value>(&raw).ok())
+}
+
+fn row_matches_filter(
+    row: &RunBrowserRowV1,
+    filter: &crate::request_args::RunBrowserFilterV1,
+) -> bool {
+    if filter
+        .run_id_prefix
+        .as_deref()
+        .is_some_and(|prefix| !row.run_id.starts_with(prefix))
+    {
+        return false;
+    }
+    if filter
+        .profile_id
+        .as_deref()
+        .is_some_and(|profile| row.profile_id.as_deref() != Some(profile))
+    {
+        return false;
+    }
+    if filter
+        .pipeline_id
+        .as_deref()
+        .is_some_and(|pipeline| row.pipeline_id.as_deref() != Some(pipeline))
+    {
+        return false;
+    }
+    if filter
+        .correlation_id
+        .as_deref()
+        .is_some_and(|correlation| row.correlation_id.as_deref() != Some(correlation))
+    {
+        return false;
+    }
+    if filter.state.is_some_and(|state| row.state != Some(state)) {
+        return false;
+    }
+    if filter.mode.is_some_and(|mode| row.mode != Some(mode)) {
+        return false;
+    }
+    if filter
+        .has_failures
+        .is_some_and(|has_failures| row.has_failures != has_failures)
+    {
+        return false;
+    }
+    true
 }

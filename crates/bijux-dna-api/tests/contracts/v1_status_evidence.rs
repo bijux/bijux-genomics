@@ -519,3 +519,61 @@ fn stable_human_and_json_rendering_are_available_for_browser_and_diagnosis() -> 
     assert!(diagnosis_json.contains("\"schema_version\":\"bijux.operator_diagnosis.v1\""));
     Ok(())
 }
+
+#[test]
+fn run_browser_supports_filtering_and_pagination_for_large_history() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    for idx in 1..=3 {
+        let run_dir = temp.path().join(format!("run-{idx}"));
+        std::fs::create_dir_all(&run_dir)?;
+        bijux_dna_infra::atomic_write_json(
+            &run_dir.join("run_manifest.json"),
+            &serde_json::json!({
+                "schema_version": "bijux.run_manifest.v3",
+                "run_id": format!("run-{idx}"),
+                "profile_id": if idx == 2 { "bam.profile" } else { "fastq.profile" },
+                "correlation_id": format!("corr-{idx}"),
+                "failures": if idx == 3 { serde_json::json!([{"path":"run_failure.json"}]) } else { serde_json::json!([]) },
+                "output_artifacts": []
+            }),
+        )?;
+    }
+
+    let page1 = browse_runs(&RunBrowserRequestV1 {
+        runs_root: temp.path().to_path_buf(),
+        page_size: 2,
+        page_token: None,
+        filter: RunBrowserFilterV1::default(),
+    })?;
+    assert_eq!(page1.total_rows, 3);
+    assert_eq!(page1.rows.len(), 2);
+    assert_eq!(page1.next_page_token.as_deref(), Some("2"));
+
+    let page2 = browse_runs(&RunBrowserRequestV1 {
+        runs_root: temp.path().to_path_buf(),
+        page_size: 2,
+        page_token: page1.next_page_token.clone(),
+        filter: RunBrowserFilterV1::default(),
+    })?;
+    assert_eq!(page2.rows.len(), 1);
+    assert!(page2.next_page_token.is_none());
+
+    let filtered = browse_runs(&RunBrowserRequestV1 {
+        runs_root: temp.path().to_path_buf(),
+        page_size: 10,
+        page_token: None,
+        filter: RunBrowserFilterV1 {
+            run_id_prefix: Some("run-2".to_string()),
+            profile_id: Some("bam.profile".to_string()),
+            pipeline_id: None,
+            correlation_id: Some("corr-2".to_string()),
+            state: None,
+            mode: None,
+            has_failures: Some(false),
+        },
+    })?;
+    assert_eq!(filtered.total_rows, 1);
+    assert_eq!(filtered.rows.len(), 1);
+    assert_eq!(filtered.rows[0].run_id, "run-2");
+    Ok(())
+}
