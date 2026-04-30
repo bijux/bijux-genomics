@@ -25,6 +25,10 @@ parquet = { version = "58", optional = true, features = ["json"] }
 parquet = ["dep:parquet"]
 sqlite = ["dep:rusqlite"]
 
+[[bin]]
+name = "bijux-dna-verify"
+path = "src/api/external_verifier_bin.rs"
+
 [dev-dependencies]
 bijux-dna-policies = { path = "../bijux-dna-policies" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
