@@ -19,6 +19,7 @@ enum ScenarioId {
     MultiReferenceRefusal,
     ReferenceUpdateImpact,
     ContaminantUpdateImpact,
+    AdapterPrimerUpdateImpact,
 }
 
 impl ScenarioId {
@@ -31,6 +32,7 @@ impl ScenarioId {
             Self::MultiReferenceRefusal => "g175_multi_reference_refusal",
             Self::ReferenceUpdateImpact => "g176_reference_update_impact",
             Self::ContaminantUpdateImpact => "g177_contaminant_update_impact",
+            Self::AdapterPrimerUpdateImpact => "g178_adapter_primer_update_impact",
         }
     }
 
@@ -43,6 +45,7 @@ impl ScenarioId {
             Self::MultiReferenceRefusal => "G175",
             Self::ReferenceUpdateImpact => "G176",
             Self::ContaminantUpdateImpact => "G177",
+            Self::AdapterPrimerUpdateImpact => "G178",
         }
     }
 
@@ -55,6 +58,7 @@ impl ScenarioId {
             Self::MultiReferenceRefusal,
             Self::ReferenceUpdateImpact,
             Self::ContaminantUpdateImpact,
+            Self::AdapterPrimerUpdateImpact,
         ]
     }
 
@@ -67,6 +71,7 @@ impl ScenarioId {
             "g175_multi_reference_refusal" | "G175" => Some(Self::MultiReferenceRefusal),
             "g176_reference_update_impact" | "G176" => Some(Self::ReferenceUpdateImpact),
             "g177_contaminant_update_impact" | "G177" => Some(Self::ContaminantUpdateImpact),
+            "g178_adapter_primer_update_impact" | "G178" => Some(Self::AdapterPrimerUpdateImpact),
             _ => None,
         }
     }
@@ -178,6 +183,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::MultiReferenceRefusal => scenario_multi_reference_refusal(),
         ScenarioId::ReferenceUpdateImpact => scenario_reference_update_impact(),
         ScenarioId::ContaminantUpdateImpact => scenario_contaminant_update_impact(),
+        ScenarioId::AdapterPrimerUpdateImpact => scenario_adapter_primer_update_impact(),
     };
 
     match result {
@@ -413,6 +419,41 @@ fn scenario_contaminant_update_impact() -> Result<(Vec<String>, serde_json::Valu
     ))
 }
 
+fn scenario_adapter_primer_update_impact() -> Result<(Vec<String>, serde_json::Value)> {
+    let impacted = vec![
+        "fastq.prepare_adapter_bank",
+        "fastq.prepare_primer_bank",
+        "fastq.detect_adapters",
+        "fastq.normalize_primers",
+        "fastq.edna_metabarcoding",
+    ];
+    if impacted.len() < 4 {
+        return Err(anyhow!("adapter/primer impact must cover trimming and eDNA surfaces"));
+    }
+    Ok((
+        vec![
+            "adapter/primer bank checksum changes propagate to trimming and eDNA outputs"
+                .to_string(),
+            "impact workflow preserves scientific caveats for cross-version comparisons".to_string(),
+        ],
+        json!({
+            "baseline": {
+                "adapter_bank_sha256": "adapter_bank_v1_sha256",
+                "primer_bank_sha256": "primer_bank_v1_sha256",
+            },
+            "candidate": {
+                "adapter_bank_sha256": "adapter_bank_v2_sha256",
+                "primer_bank_sha256": "primer_bank_v2_sha256",
+            },
+            "impacted_stages": impacted,
+            "required_caveats": [
+                "trim_delta_is_bank_version_sensitive",
+                "edna_taxonomy_shift_requires_primer_context"
+            ],
+        }),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{run_scenario, ScenarioId};
@@ -420,7 +461,10 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G171", "G172", "G173", "G174", "G175", "G176", "G177"]);
+        assert_eq!(
+            ids,
+            vec!["G171", "G172", "G173", "G174", "G175", "G176", "G177", "G178"]
+        );
     }
 
     #[test]
@@ -511,5 +555,17 @@ mod tests {
         assert!(bundles
             .iter()
             .any(|entry| entry.as_str() == Some("common_lab_contaminants")));
+    }
+
+    #[test]
+    fn adapter_primer_update_scenario_marks_edna_surface_impact() {
+        let report = run_scenario(&ScenarioId::AdapterPrimerUpdateImpact);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G178");
+        let impacted =
+            report.evidence.get("impacted_stages").and_then(serde_json::Value::as_array).cloned().unwrap_or_default();
+        assert!(impacted
+            .iter()
+            .any(|entry| entry.as_str() == Some("fastq.edna_metabarcoding")));
     }
 }
