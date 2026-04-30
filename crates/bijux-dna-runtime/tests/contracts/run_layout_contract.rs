@@ -23,6 +23,13 @@ fn run_layout_paths_match_contract() {
     assert!(layout.run_state_path.ends_with("run_state.json"));
     assert!(layout.runtime_policy_path.ends_with("runtime_policy.json"));
     assert!(layout.executor_descriptor_path.ends_with("executor_descriptor.json"));
+    assert!(layout.backend_descriptor_path.ends_with("backend_descriptor.json"));
+    assert!(layout.scheduling_decision_path.ends_with("scheduling_decision.json"));
+    assert!(layout.queue_state_path.ends_with("queue_state.json"));
+    assert!(layout.lease_path.ends_with("run_lease.json"));
+    assert!(layout.control_state_path.ends_with("run_control.json"));
+    assert!(layout.health_report_path.ends_with("operator_health.json"));
+    assert!(layout.slurm_submission_path.ends_with("slurm_submission.json"));
     assert!(layout.checkpoint_path.ends_with("checkpoints/checkpoint.json"));
     assert!(layout.failure_path.ends_with("run_failure.json"));
     assert!(layout.run_summary_path.ends_with("summary/run_summary.json"));

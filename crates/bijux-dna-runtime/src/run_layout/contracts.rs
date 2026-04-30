@@ -215,6 +215,234 @@ pub struct RuntimePolicyV1 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum RunBackendDescriptorV1 {
+    Local {
+        temp_root_policy: String,
+        temp_cleanup_policy: String,
+        artifact_write_policy: String,
+        log_capture_policy: String,
+        interruption_recovery_policy: String,
+    },
+    Container {
+        runtime: String,
+        image_identity: String,
+        bind_mount_policy: String,
+        user_identity_policy: String,
+        working_directory_policy: String,
+        network_policy: String,
+        resource_limit_policy: String,
+        stdout_stderr_policy: String,
+    },
+    Slurm {
+        scheduler: String,
+        submission_script_path: PathBuf,
+        poll_command: Vec<String>,
+        cancel_command: Vec<String>,
+        retry_policy: String,
+        log_collection_policy: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        container_runtime: Option<String>,
+    },
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunBackendRecordV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub mode: RunExecutionModeV1,
+    pub descriptor: RunBackendDescriptorV1,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunResourceRequestV1 {
+    pub cpu_threads: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub memory_mb: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scratch_mb: Option<u64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub walltime_s: Option<u64>,
+    pub io_intensity: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub container_runtime: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunSchedulingDecisionV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub runner: String,
+    pub queue_class: String,
+    pub placement_reason: String,
+    pub requested_resources: RunResourceRequestV1,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub warnings: Vec<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RunQueueLifecycleStateV1 {
+    Queued,
+    Paused,
+    Running,
+    Succeeded,
+    Failed,
+    Cancelled,
+}
+
+impl std::fmt::Display for RunQueueLifecycleStateV1 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = match self {
+            Self::Queued => "queued",
+            Self::Paused => "paused",
+            Self::Running => "running",
+            Self::Succeeded => "succeeded",
+            Self::Failed => "failed",
+            Self::Cancelled => "cancelled",
+        };
+        f.write_str(value)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunQueueTransitionV1 {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from_state: Option<RunQueueLifecycleStateV1>,
+    pub to_state: RunQueueLifecycleStateV1,
+    pub occurred_at: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunQueueStateV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub dedup_key: String,
+    pub state: RunQueueLifecycleStateV1,
+    #[serde(default)]
+    pub transitions: Vec<RunQueueTransitionV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub active_step_id: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunLeaseV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub lease_id: String,
+    pub holder: String,
+    pub lock_path: PathBuf,
+    pub acquired_at: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub released_at: Option<String>,
+    pub exclusive: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RunControlActionV1 {
+    Pause,
+    Resume,
+    Cancel,
+}
+
+impl std::fmt::Display for RunControlActionV1 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = match self {
+            Self::Pause => "pause",
+            Self::Resume => "resume",
+            Self::Cancel => "cancel",
+        };
+        f.write_str(value)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunControlAuditEntryV1 {
+    pub requested_action: RunControlActionV1,
+    pub observed_state: RunQueueLifecycleStateV1,
+    pub occurred_at: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunControlStateV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub requested_action: Option<RunControlActionV1>,
+    pub observed_state: RunQueueLifecycleStateV1,
+    pub updated_at: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub audit_log: Vec<RunControlAuditEntryV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperatorHealthCheckV1 {
+    pub check_id: String,
+    pub ok: bool,
+    pub detail: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evidence_path: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OperatorHealthReportV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub overall_ok: bool,
+    #[serde(default)]
+    pub checks: Vec<OperatorHealthCheckV1>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SlurmJobStateV1 {
+    Submitted,
+    Pending,
+    Running,
+    Succeeded,
+    Failed,
+    Cancelled,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SlurmJobTransitionV1 {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub from_state: Option<SlurmJobStateV1>,
+    pub to_state: SlurmJobStateV1,
+    pub occurred_at: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub detail: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SlurmSubmissionRecordV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub scheduler: String,
+    pub submission_script_path: PathBuf,
+    pub job_id: String,
+    pub state: SlurmJobStateV1,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub poll_command: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub cancel_command: Vec<String>,
+    pub stdout_log_path: PathBuf,
+    pub stderr_log_path: PathBuf,
+    pub retry_count: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub exit_code: Option<i32>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub transitions: Vec<SlurmJobTransitionV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunCheckpointV1 {
     pub schema_version: String,
     pub run_id: String,
@@ -382,6 +610,13 @@ pub struct RunLayout {
     pub run_state_path: PathBuf,
     pub runtime_policy_path: PathBuf,
     pub executor_descriptor_path: PathBuf,
+    pub backend_descriptor_path: PathBuf,
+    pub scheduling_decision_path: PathBuf,
+    pub queue_state_path: PathBuf,
+    pub lease_path: PathBuf,
+    pub control_state_path: PathBuf,
+    pub health_report_path: PathBuf,
+    pub slurm_submission_path: PathBuf,
     pub checkpoint_path: PathBuf,
     pub failure_path: PathBuf,
     pub run_summary_path: PathBuf,
@@ -416,6 +651,13 @@ pub struct RunLayoutV1 {
     pub run_state_path: String,
     pub runtime_policy_path: String,
     pub executor_descriptor_path: String,
+    pub backend_descriptor_path: String,
+    pub scheduling_decision_path: String,
+    pub queue_state_path: String,
+    pub lease_path: String,
+    pub control_state_path: String,
+    pub health_report_path: String,
+    pub slurm_submission_path: String,
     pub checkpoint_path: String,
     pub failure_path: String,
     pub run_summary_path: String,
@@ -449,6 +691,13 @@ impl RunLayout {
             run_state_path: run_dir.join("run_state.json"),
             runtime_policy_path: run_dir.join("runtime_policy.json"),
             executor_descriptor_path: run_dir.join("executor_descriptor.json"),
+            backend_descriptor_path: run_dir.join("backend_descriptor.json"),
+            scheduling_decision_path: run_dir.join("scheduling_decision.json"),
+            queue_state_path: run_dir.join("queue_state.json"),
+            lease_path: run_dir.join("run_lease.json"),
+            control_state_path: run_dir.join("run_control.json"),
+            health_report_path: run_dir.join("operator_health.json"),
+            slurm_submission_path: run_dir.join("slurm_submission.json"),
             checkpoint_path: checkpoints_dir.join("checkpoint.json"),
             failure_path: run_dir.join("run_failure.json"),
             run_summary_path: summary_dir.join("run_summary.json"),
@@ -492,6 +741,13 @@ impl RunLayout {
             run_state_path: self.run_state_path.display().to_string(),
             runtime_policy_path: self.runtime_policy_path.display().to_string(),
             executor_descriptor_path: self.executor_descriptor_path.display().to_string(),
+            backend_descriptor_path: self.backend_descriptor_path.display().to_string(),
+            scheduling_decision_path: self.scheduling_decision_path.display().to_string(),
+            queue_state_path: self.queue_state_path.display().to_string(),
+            lease_path: self.lease_path.display().to_string(),
+            control_state_path: self.control_state_path.display().to_string(),
+            health_report_path: self.health_report_path.display().to_string(),
+            slurm_submission_path: self.slurm_submission_path.display().to_string(),
             checkpoint_path: self.checkpoint_path.display().to_string(),
             failure_path: self.failure_path.display().to_string(),
             run_summary_path: self.run_summary_path.display().to_string(),
