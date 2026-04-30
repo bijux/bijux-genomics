@@ -61,6 +61,7 @@ impl ResolvedImage {
     #[must_use]
     pub fn is_compatible(&self, runner: RuntimeKind) -> bool {
         match runner {
+            RuntimeKind::Local => self.runner == RuntimeKind::Local,
             RuntimeKind::Docker => self.runner == RuntimeKind::Docker,
             RuntimeKind::Apptainer | RuntimeKind::Singularity => {
                 matches!(self.runner, RuntimeKind::Apptainer | RuntimeKind::Singularity)
@@ -88,6 +89,7 @@ impl std::str::FromStr for RuntimeKind {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.trim().to_lowercase().as_str() {
+            "local" => Ok(RuntimeKind::Local),
             "docker" => Ok(RuntimeKind::Docker),
             "singularity" => Ok(RuntimeKind::Singularity),
             "apptainer" => Ok(RuntimeKind::Apptainer),
