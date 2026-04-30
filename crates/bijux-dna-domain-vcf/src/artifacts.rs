@@ -12,6 +12,8 @@ pub const VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION: &str = "bijux.vcf.filter_conseq
 pub const VCF_NORMALIZATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.normalization_summary.v1";
 pub const VCF_REFERENCE_CONTEXT_SCHEMA_VERSION: &str = "bijux.vcf.reference_context_resolution.v1";
 pub const VCF_DAMAGE_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.damage_filter_summary.v1";
+pub const VCF_DIPLOID_CALLING_BOUNDARY_SCHEMA_VERSION: &str =
+    "bijux.vcf.calling_boundary.diploid.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -176,6 +178,22 @@ pub struct VcfDamageFilterSummaryV1 {
     pub annotated_sites: u64,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfCallingBoundaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub mode: String,
+    pub prerequisites_passed: bool,
+    pub confidence: f64,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub assumptions: Vec<String>,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -775,6 +793,54 @@ pub fn execute_damage_aware_vcf_filter(
     })
 }
 
+/// Evaluate diploid calling prerequisites and return explicit refusal reasons when unmet.
+#[must_use]
+pub fn evaluate_diploid_calling_boundary(
+    has_input_bam: bool,
+    has_reference_context: bool,
+    declared_ploidy: Option<&str>,
+    mean_coverage: f64,
+    minimum_mean_coverage: f64,
+) -> VcfCallingBoundaryV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if !has_input_bam {
+        refusal_codes.push("input_bam_required".to_string());
+    }
+    if !has_reference_context {
+        refusal_codes.push("reference_context_required".to_string());
+    }
+    if declared_ploidy != Some("diploid") {
+        refusal_codes.push("diploid_ploidy_required".to_string());
+    }
+    if mean_coverage < minimum_mean_coverage {
+        refusal_codes.push("coverage_below_diploid_minimum".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    let prerequisites_passed = refusal_codes.is_empty();
+    let confidence = if prerequisites_passed {
+        (mean_coverage / minimum_mean_coverage).clamp(0.0, 1.0)
+    } else {
+        0.0
+    };
+    VcfCallingBoundaryV1 {
+        schema_version: VCF_DIPLOID_CALLING_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.call_diploid".to_string(),
+        mode: "diploid".to_string(),
+        prerequisites_passed,
+        confidence,
+        refusal_codes,
+        assumptions: vec![
+            "diploid genotype fields and reference context are required".to_string(),
+            "coverage threshold must be met for stable diploid inference".to_string(),
+        ],
+        caveats: vec![
+            "diploid calling boundaries do not certify downstream population compatibility"
+                .to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -1132,5 +1198,21 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(!refused.prerequisites_passed);
         assert!(refused.refusal_codes.contains(&"damage_context_required".to_string()));
         assert!(refused.refusal_codes.contains(&"invalid_damage_action".to_string()));
+    }
+
+    #[test]
+    fn evaluate_diploid_calling_boundary_enforces_ploidy_and_coverage_requirements() {
+        let ready = evaluate_diploid_calling_boundary(true, true, Some("diploid"), 12.0, 6.0);
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.stage_id, "vcf.call_diploid");
+        assert!(ready.confidence > 0.0);
+        assert!(ready.refusal_codes.is_empty());
+
+        let refused = evaluate_diploid_calling_boundary(false, false, Some("haploid"), 2.0, 6.0);
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"input_bam_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"reference_context_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"diploid_ploidy_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"coverage_below_diploid_minimum".to_string()));
     }
 }
