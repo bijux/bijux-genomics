@@ -12,6 +12,7 @@ use crate::{
     GeneticMapBankEntry, MaterializedDbBundle, MaterializedIndexArtifact, OrganellarPolicy,
     ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport, ReferenceIndexQaReport,
     ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
+    TaxonomyDbMaterializationReport,
     VcfPanelMaterializationReport,
 };
 
@@ -429,6 +430,50 @@ pub fn materialize_contaminant_databases(
     })
 }
 
+/// # Errors
+/// Returns an error if the taxonomy bundle or lock family contract cannot be materialized.
+pub fn materialize_taxonomy_database(materialization_root: &Path) -> Result<TaxonomyDbMaterializationReport> {
+    let hydration_path = workspace_root().join("configs/runtime/asset_hydration.toml");
+    let locks_path = workspace_root().join("configs/runtime/asset_locks.toml");
+    let hydration: AssetHydrationConfig = load_toml(&hydration_path)?;
+    let locks: AssetLocksConfig = load_toml(&locks_path)?;
+    let bundle = hydration
+        .asset_bundle
+        .iter()
+        .find(|entry| entry.id == "shotgun_taxonomy_triage")
+        .ok_or_else(|| anyhow!("asset hydration bundle missing for shotgun_taxonomy_triage"))?;
+    let lock = locks
+        .lock_family
+        .iter()
+        .find(|entry| entry.id == bundle.lock_family)
+        .ok_or_else(|| anyhow!("taxonomy lock family missing for {}", bundle.lock_family))?;
+    if !lock.id.contains("database") {
+        bail!("taxonomy lock family {} must be a database family", lock.id);
+    }
+    if lock.required_fields.is_empty() {
+        bail!("taxonomy lock family {} must declare required_fields", lock.id);
+    }
+    let db_dir = materialization_root.join(&bundle.id);
+    std::fs::create_dir_all(&db_dir).with_context(|| format!("create {}", db_dir.display()))?;
+    let db_path = db_dir.join("taxonomy.db.locked.txt");
+    std::fs::write(
+        &db_path,
+        format!(
+            "bundle_id={}\nlock_family={}\nadvisory_only=true\noffline_source={}\n",
+            bundle.id, lock.id, bundle.offline_replay_source
+        ),
+    )
+    .with_context(|| format!("write {}", db_path.display()))?;
+    Ok(TaxonomyDbMaterializationReport {
+        schema_version: "bijux.taxonomy_db_materialization.v1".to_string(),
+        bundle_id: bundle.id.clone(),
+        lock_family: lock.id.clone(),
+        db_path,
+        required_fields: lock.required_fields.clone(),
+        advisory_only: true,
+    })
+}
+
 pub(crate) fn resolve_bundle_entry(species: &str, build: &str) -> Result<BundleEntry> {
     let path = workspace_root().join("configs/runtime/reference_bundles.toml");
     let cfg: BundlesConfig = load_toml(&path)?;
@@ -497,9 +542,9 @@ fn write_index_artifact(
 #[cfg(test)]
 mod tests {
     use super::{
-        materialize_contaminant_databases, materialize_reference_bank, materialize_vcf_panel_assets,
-        resolve_reference_bundle_contract, validate_bundle_contigs, validate_bundle_digests,
-        validate_reference_index_qa,
+        materialize_contaminant_databases, materialize_reference_bank, materialize_taxonomy_database,
+        materialize_vcf_panel_assets, resolve_reference_bundle_contract, validate_bundle_contigs,
+        validate_bundle_digests, validate_reference_index_qa,
     };
     use crate::runtime_config::{BundleEntry, ContigEntry, SupportedFeatureEntry};
     use std::collections::BTreeMap;
@@ -685,6 +730,17 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.contaminant_db_materialization.v1");
         assert_eq!(report.bundles.len(), 3);
         assert!(report.bundles.iter().all(|bundle| bundle.db_path.exists()));
+    }
+
+    #[test]
+    fn taxonomy_db_materialization_marks_outputs_advisory_only() {
+        let temp = make_temp_dir("taxonomy-db-materialization");
+        let report = materialize_taxonomy_database(&temp)
+            .unwrap_or_else(|error| panic!("materialize taxonomy database: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.taxonomy_db_materialization.v1");
+        assert!(report.advisory_only);
+        assert!(report.db_path.exists());
     }
 
     fn make_temp_dir(label: &str) -> PathBuf {

@@ -154,3 +154,13 @@ pub struct ContaminantDbMaterializationReport {
     pub materialization_root: PathBuf,
     pub bundles: Vec<MaterializedDbBundle>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct TaxonomyDbMaterializationReport {
+    pub schema_version: String,
+    pub bundle_id: String,
+    pub lock_family: String,
+    pub db_path: PathBuf,
+    pub required_fields: Vec<String>,
+    pub advisory_only: bool,
+}
