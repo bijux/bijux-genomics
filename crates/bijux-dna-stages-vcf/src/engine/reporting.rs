@@ -20,6 +20,13 @@ pub(super) fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> 
                 "filter_explain.json",
             ],
             "vcf.stats" => &["bcftools_stats.txt", "stats.json"],
+            "vcf.qc" => &[
+                "qc_summary.json",
+                "qc_tables.tsv",
+                "imputation_qc.tsv",
+                "warnings.json",
+                "qc_histograms.json",
+            ],
             "vcf.damage_filter" => &[
                 "damage_filter_summary.json",
                 "damage_filter_counts.json",
