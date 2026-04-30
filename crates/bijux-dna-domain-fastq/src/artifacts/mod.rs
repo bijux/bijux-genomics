@@ -1,3 +1,4 @@
+mod capture_provenance_snapshot;
 mod classify_layout;
 mod cluster_otus;
 mod correct_errors;
@@ -35,6 +36,10 @@ mod validate_reads;
 pub use cluster_otus::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
 pub use classify_layout::{
     ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
+};
+pub use capture_provenance_snapshot::{
+    CaptureProvenanceSnapshotReportV1, ProvenanceFileEntryV1, ProvenanceStageEntryV1,
+    CAPTURE_PROVENANCE_SNAPSHOT_REPORT_SCHEMA_VERSION,
 };
 pub use correct_errors::{CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION};
 pub use deplete_host::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};

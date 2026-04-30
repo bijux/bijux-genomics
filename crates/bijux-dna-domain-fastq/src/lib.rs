@@ -47,6 +47,10 @@ pub use artifacts::{
 };
 pub use artifacts::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
+    CaptureProvenanceSnapshotReportV1, ProvenanceFileEntryV1, ProvenanceStageEntryV1,
+    CAPTURE_PROVENANCE_SNAPSHOT_REPORT_SCHEMA_VERSION,
+};
+pub use artifacts::{
     ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION};
