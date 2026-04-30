@@ -14,5 +14,7 @@ mod plan_integration;
 mod plan_json;
 #[path = "plan/plan_snapshots.rs"]
 mod plan_snapshots;
+#[path = "plan/planner_manifest_contract.rs"]
+mod planner_manifest_contract;
 #[path = "plan/toy_bam_run.rs"]
 mod toy_bam_run;
