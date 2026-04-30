@@ -9,7 +9,7 @@ use bijux_dna_domain_bam::{
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
 use bijux_dna_domain_vcf::{
     evaluate_diploid_calling_boundary, evaluate_genotype_likelihood_workflow_boundary,
-    evaluate_pseudohaploid_calling_boundary,
+    evaluate_phasing_workflow_boundary, evaluate_pseudohaploid_calling_boundary,
 };
 use serde::Serialize;
 
@@ -18,6 +18,7 @@ enum ScenarioId {
     AncientDnaAuthenticity,
     LowPassGenotype,
     EdnaTaxonomy,
+    PopulationStructure,
 }
 
 impl ScenarioId {
@@ -26,6 +27,7 @@ impl ScenarioId {
             Self::AncientDnaAuthenticity => "g181_ancient_dna_authenticity_caveat_library",
             Self::LowPassGenotype => "g182_low_pass_genotype_caveat_library",
             Self::EdnaTaxonomy => "g183_edna_taxonomy_caveat_library",
+            Self::PopulationStructure => "g184_population_structure_caveat_library",
         }
     }
 
@@ -34,6 +36,7 @@ impl ScenarioId {
             Self::AncientDnaAuthenticity => "G181",
             Self::LowPassGenotype => "G182",
             Self::EdnaTaxonomy => "G183",
+            Self::PopulationStructure => "G184",
         }
     }
 
@@ -42,6 +45,7 @@ impl ScenarioId {
             Self::AncientDnaAuthenticity,
             Self::LowPassGenotype,
             Self::EdnaTaxonomy,
+            Self::PopulationStructure,
         ]
     }
 
@@ -52,6 +56,9 @@ impl ScenarioId {
             }
             "g182_low_pass_genotype_caveat_library" | "G182" => Some(Self::LowPassGenotype),
             "g183_edna_taxonomy_caveat_library" | "G183" => Some(Self::EdnaTaxonomy),
+            "g184_population_structure_caveat_library" | "G184" => {
+                Some(Self::PopulationStructure)
+            }
             _ => None,
         }
     }
@@ -171,6 +178,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::AncientDnaAuthenticity => scenario_ancient_dna_authenticity_caveat_library(),
         ScenarioId::LowPassGenotype => scenario_low_pass_genotype_caveat_library(),
         ScenarioId::EdnaTaxonomy => scenario_edna_taxonomy_caveat_library(),
+        ScenarioId::PopulationStructure => scenario_population_structure_caveat_library(),
     };
 
     match result {
@@ -400,6 +408,69 @@ fn scenario_edna_taxonomy_caveat_library() -> Result<(Vec<String>, serde_json::V
     ))
 }
 
+fn scenario_population_structure_caveat_library() -> Result<(Vec<String>, serde_json::Value)> {
+    let phasing = evaluate_phasing_workflow_boundary(true, true, true, true, 18, 40, false);
+    let caveat_library = vec![
+        json!({
+            "topic": "sampling_bias",
+            "caveat": "cohort composition and ascertainment bias can dominate structure axes",
+            "propagation_targets": ["vcf.pca", "vcf.admixture", "report.population_summary"],
+        }),
+        json!({
+            "topic": "ld_pruning",
+            "caveat": "PCA/admixture outputs depend on LD pruning thresholds and region masks",
+            "propagation_targets": ["vcf.pca", "report.methods_summary"],
+        }),
+        json!({
+            "topic": "cohort_size",
+            "caveat": "small cohorts reduce stability and inflate apparent separation across clusters",
+            "sample_count": phasing.sample_count,
+            "minimum_samples": phasing.minimum_samples,
+            "refusal_codes": phasing.refusal_codes,
+            "propagation_targets": ["vcf.pca", "vcf.admixture", "report.review_queue"],
+        }),
+        json!({
+            "topic": "population_labels",
+            "caveat": "population labels are metadata annotations and should not be interpreted as discrete biological truth",
+            "propagation_targets": ["report.population_summary", "report.external_exports"],
+        }),
+    ];
+
+    let has_sample_size_refusal = caveat_library.iter().any(|entry| {
+        entry
+            .get("topic")
+            .and_then(serde_json::Value::as_str)
+            == Some("cohort_size")
+            && entry
+                .get("refusal_codes")
+                .and_then(serde_json::Value::as_array)
+                .map(|codes| {
+                    codes
+                        .iter()
+                        .any(|code| code.as_str() == Some("sample_count_below_phasing_minimum"))
+                })
+                .unwrap_or(false)
+    });
+    if !has_sample_size_refusal {
+        return Err(anyhow!(
+            "population-structure caveat library must encode cohort-size refusal propagation"
+        ));
+    }
+
+    Ok((
+        vec![
+            "population-structure caveat library captures sampling bias, LD-pruning sensitivity, cohort-size limits, and label caveats"
+                .to_string(),
+            "cohort-size refusal from phasing boundary is propagated into downstream structure-report surfaces"
+                .to_string(),
+        ],
+        json!({
+            "phasing_boundary": phasing,
+            "caveat_library": caveat_library,
+        }),
+    ))
+}
+
 fn base_adna_metrics() -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
     metrics.damage.c_to_t_5p = 0.18;
@@ -420,7 +491,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G181", "G182", "G183"]);
+        assert_eq!(ids, vec!["G181", "G182", "G183", "G184"]);
     }
 
     #[test]
@@ -557,5 +628,50 @@ mod tests {
                 "every taxonomy caveat entry must include propagation targets"
             );
         }
+    }
+
+    #[test]
+    fn g184_population_structure_library_contains_required_topics() {
+        let report = run_scenario(&ScenarioId::PopulationStructure);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G184");
+        let library = report
+            .evidence
+            .get("caveat_library")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let topics = library
+            .iter()
+            .filter_map(|entry| entry.get("topic").and_then(serde_json::Value::as_str))
+            .collect::<Vec<_>>();
+        assert!(topics.contains(&"sampling_bias"));
+        assert!(topics.contains(&"ld_pruning"));
+        assert!(topics.contains(&"cohort_size"));
+        assert!(topics.contains(&"population_labels"));
+    }
+
+    #[test]
+    fn g184_cohort_size_caveat_propagates_sample_count_refusal() {
+        let report = run_scenario(&ScenarioId::PopulationStructure);
+        assert_eq!(report.status, "passed");
+        let library = report
+            .evidence
+            .get("caveat_library")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let cohort = library.iter().find(|entry| {
+            entry.get("topic").and_then(serde_json::Value::as_str) == Some("cohort_size")
+        });
+        assert!(cohort.is_some());
+        let refusals = cohort
+            .and_then(|entry| entry.get("refusal_codes"))
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(refusals
+            .iter()
+            .any(|entry| entry.as_str() == Some("sample_count_below_phasing_minimum")));
     }
 }
