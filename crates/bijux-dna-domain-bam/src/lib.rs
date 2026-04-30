@@ -15,8 +15,9 @@ pub mod stage_specs;
 pub mod types;
 
 pub use artifacts::{
-    align_fastq_to_bam_bowtie2_style, align_fastq_to_bam_bwa_style, bam_adna_workflow_contract,
-    bam_alignment_strategies, bam_alignment_strategy_for_tool, bam_artifact_inventory_from_outputs,
+    align_fastq_to_bam_bowtie2_style, align_fastq_to_bam_bwa_style,
+    apply_duplicate_policy_tiny_bam, bam_adna_workflow_contract, bam_alignment_strategies,
+    bam_alignment_strategy_for_tool, bam_artifact_inventory_from_outputs,
     bam_bench_corpus_manifest, bam_contamination_workflow_contract, bam_post_alignment_chain,
     bam_sample_identity, bam_scientific_report_contract_for_stage, bam_scientific_report_contracts,
     bam_workflow_template_by_id, bam_workflow_templates, classify_bam_coverage_regime,

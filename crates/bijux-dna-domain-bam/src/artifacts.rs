@@ -1624,6 +1624,116 @@ pub fn merge_tiny_bam_with_conflict_refusal(
     Ok(compatibility)
 }
 
+/// Apply duplicate policy in mark/remove modes and emit explicit policy/comparison reports.
+///
+/// # Errors
+/// Returns an error if input parsing fails, output writing fails, or action is unsupported.
+pub fn apply_duplicate_policy_tiny_bam(
+    input_bam: &Path,
+    output_bam: &Path,
+    duplicate_action: &str,
+    umi_policy: Option<&str>,
+) -> Result<(BamDuplicatePolicyV1, BamDuplicateComparisonV1)> {
+    let input = parse_tiny_sam(input_bam)?;
+    let mut observed = HashMap::<String, usize>::new();
+    let mut output_records = Vec::<TinySamRecord>::new();
+    let mut additional_marked = 0_u64;
+
+    for mut record in input.records.clone() {
+        if !record.is_mapped() {
+            output_records.push(record);
+            continue;
+        }
+        let key = format!("{}:{}:{}:{}", record.rname, record.pos, record.cigar, record.seq);
+        let seen = observed.get(&key).copied().unwrap_or(0);
+        observed.insert(key, seen + 1);
+        if seen == 0 {
+            output_records.push(record);
+            continue;
+        }
+        match duplicate_action {
+            "mark" => {
+                if (record.flag & 0x400) == 0 {
+                    record.flag |= 0x400;
+                    additional_marked += 1;
+                }
+                output_records.push(record);
+            }
+            "remove" => {}
+            other => {
+                return Err(anyhow!(
+                    "unsupported duplicate action {other}; expected mark or remove"
+                ));
+            }
+        }
+    }
+
+    let output = TinySamDocument {
+        sort_order: input.sort_order.clone(),
+        references: input.references.clone(),
+        read_groups: input.read_groups.clone(),
+        read_group_samples: input.read_group_samples.clone(),
+        records: output_records.clone(),
+    };
+    write_tiny_sam_from_document(
+        output_bam,
+        &output,
+        input.sort_order.as_deref().unwrap_or("unsorted"),
+    )?;
+
+    let before = flagstat_from_records(&input.records);
+    let after = flagstat_from_records(&output_records);
+    let method_a = BamDuplicateMethodMetricsV1 {
+        method: "before_policy".to_string(),
+        duplicate_reads: before.duplicate_reads,
+        duplicate_fraction: match (before.duplicate_reads, before.total_reads) {
+            (Some(duplicates), Some(total)) if total > 0 => Some(duplicates as f64 / total as f64),
+            _ => None,
+        },
+        optical_duplicates: Some("not_classified".to_string()),
+        duplicate_action: Some("observe".to_string()),
+    };
+    let method_b = BamDuplicateMethodMetricsV1 {
+        method: format!("after_{duplicate_action}"),
+        duplicate_reads: after.duplicate_reads,
+        duplicate_fraction: match (after.duplicate_reads, after.total_reads) {
+            (Some(duplicates), Some(total)) if total > 0 => Some(duplicates as f64 / total as f64),
+            _ => None,
+        },
+        optical_duplicates: Some("not_classified".to_string()),
+        duplicate_action: Some(duplicate_action.to_string()),
+    };
+
+    let mut comparison = compare_bam_duplicate_methods("bam.markdup", method_a, method_b);
+    if additional_marked > 0 {
+        comparison.notes.push(format!("marked {additional_marked} additional duplicate reads"));
+    }
+    if duplicate_action == "remove" {
+        comparison.notes.push("duplicate reads were removed from output alignment".to_string());
+    }
+
+    let policy = BamDuplicatePolicyV1 {
+        schema_version: BAM_DUPLICATE_POLICY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.markdup".to_string(),
+        library_type: None,
+        optical_duplicates: Some("mark_only".to_string()),
+        umi_policy: umi_policy.map(ToOwned::to_owned),
+        duplicate_action: Some(duplicate_action.to_string()),
+        policy_scope: if duplicate_action == "remove" {
+            "remove_duplicate_reads".to_string()
+        } else {
+            "mark_duplicates".to_string()
+        },
+        library_semantics: vec!["coordinate_sorted_recommended".to_string()],
+        comparison_ready_with: vec![
+            "samtools_markdup".to_string(),
+            "picard_markduplicates".to_string(),
+        ],
+    };
+
+    Ok((policy, comparison))
+}
+
 #[must_use]
 pub fn compare_bam_duplicate_methods(
     stage_id: &str,
@@ -2388,5 +2498,46 @@ r02\t0\tchr1\t5\t40\t6M\t*\t0\t0\tGTACGT\tFFFFFF\tRG:Z:rg2\n",
         .expect("evaluate conflict");
         assert!(!conflict.compatible);
         assert!(conflict.refusal_codes.contains(&"merge_sample_id_conflict".to_string()));
+    }
+
+    #[test]
+    fn apply_duplicate_policy_tiny_bam_supports_mark_and_remove_modes() {
+        let temp = unique_temp_dir("bam-duplicate-policy");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:50\n\
+@RG\tID:rg1\tSM:sampleA\n\
+r01\t0\tchr1\t1\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t1\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r03\t0\tchr1\t7\t40\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg1\n",
+        )
+        .expect("write duplicate fixture");
+
+        let marked_output = temp.join("marked.sam");
+        let (mark_policy, mark_comparison) =
+            apply_duplicate_policy_tiny_bam(&input, &marked_output, "mark", Some("umi_optional"))
+                .expect("mark duplicates");
+        assert_eq!(mark_policy.duplicate_action.as_deref(), Some("mark"));
+        assert!(mark_comparison.comparable);
+        let marked = parse_tiny_sam(&marked_output).expect("parse marked output");
+        assert_eq!(marked.records.iter().filter(|record| (record.flag & 0x400) != 0).count(), 1);
+
+        let removed_output = temp.join("removed.sam");
+        let (remove_policy, remove_comparison) = apply_duplicate_policy_tiny_bam(
+            &input,
+            &removed_output,
+            "remove",
+            Some("umi_optional"),
+        )
+        .expect("remove duplicates");
+        assert_eq!(remove_policy.duplicate_action.as_deref(), Some("remove"));
+        assert!(remove_comparison
+            .notes
+            .iter()
+            .any(|note| note.contains("removed from output alignment")));
+        let removed = parse_tiny_sam(&removed_output).expect("parse removed output");
+        assert_eq!(removed.records.len(), 2);
     }
 }
