@@ -336,7 +336,8 @@ mod tests {
             ]
         });
         bijux_dna_infra::atomic_write_json(&stage_dir.join("stage_loss_accounting.json"), &accounting)?;
-        write_bam_output_contract(stage, &stage_dir)?;
+        let plan = mock_plan(stage);
+        write_bam_output_contract(stage, &plan, &stage_dir)?;
 
         let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&mock_plan(stage));
         let Some(resumed) = maybe_resume_bam_stage(stage, &stage_dir, &step)? else {
@@ -354,7 +355,8 @@ mod tests {
         bijux_dna_infra::ensure_dir(&stage_dir)?;
         let stage = bijux_dna_planner_bam::stage_api::BamStage::Align;
         std::fs::write(stage_dir.join("align.bam"), b"bam")?;
-        write_bam_output_contract(stage, &stage_dir)?;
+        let plan = mock_plan(stage);
+        write_bam_output_contract(stage, &plan, &stage_dir)?;
         let Err(err) = enforce_bam_output_contract(stage, &stage_dir) else {
             panic!("enforcement must fail when .bai is missing");
         };

@@ -301,18 +301,23 @@ fn expected_bam_contract_outputs(
 
 fn write_bam_output_contract(
     stage: bijux_dna_planner_bam::stage_api::BamStage,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
     stage_dir: &Path,
 ) -> Result<()> {
     let (bams, indices) = expected_bam_contract_outputs(stage, stage_dir);
     let contract_path = stage_dir.join("bam_output_contract.json");
+    let inventory =
+        bijux_dna_domain_bam::bam_artifact_inventory_from_outputs(stage.as_str(), stage_dir, &plan.io.outputs);
     let payload = serde_json::json!({
-        "schema_version": "bijux.bam.output_contract.v1",
+        "schema_version": bijux_dna_domain_bam::BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION,
         "stage_id": stage.as_str(),
+        "stage_family": inventory.stage_family,
         "deterministic_root": stage_dir,
         "required_bam": bams,
         "required_bai": indices,
         "all_required_present": bams.iter().all(|path| path.exists()) && indices.iter().all(|path| path.exists()),
         "naming_policy": "deterministic",
+        "outputs": inventory.outputs,
     });
     bijux_dna_infra::atomic_write_json(&contract_path, &payload)
         .with_context(|| format!("write {}", contract_path.display()))

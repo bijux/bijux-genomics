@@ -218,7 +218,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     if let Some(bam_root) = stage_dir.parent() {
         write_bam_qc_aggregator_tsv(bam_root)?;
     }
-    write_bam_output_contract(stage, &stage_dir)?;
+    write_bam_output_contract(stage, &plan, &stage_dir)?;
     enforce_bam_output_contract(stage, &stage_dir)?;
     write_stage_accounting(&stage_dir, stage.as_str(), &result)?;
     write_normalized_bam_metrics(stage, &stage_dir, &plan, &result)?;
@@ -367,6 +367,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     write_stage_accounting(&align_out, align_step.step_id.as_str(), &align_result)?;
     write_bam_output_contract(
         bijux_dna_planner_bam::stage_api::BamStage::Align,
+        &align_plan,
         &align_out,
     )?;
     enforce_bam_output_contract(

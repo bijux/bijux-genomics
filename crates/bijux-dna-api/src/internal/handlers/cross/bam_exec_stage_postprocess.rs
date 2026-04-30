@@ -9,32 +9,62 @@ fn stage_postprocess(
             let depth_path = stage_dir.join("coverage.depth.txt");
             let mean_depth = parse_mean_depth_from_depth_file(&depth_path)?;
             let path = stage_dir.join("coverage.regime.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "has_mosdepth_summary": stage_dir.join("coverage.mosdepth.summary.txt").exists(),
-                    "has_samtools_depth": depth_path.exists(),
-                    "mean_depth": mean_depth,
-                    "coverage_regime": mean_depth.map(classify_mean_depth),
-                    "coverage_family": mean_depth.map(coverage_regime_family),
-                    "depth_thresholds": plan.params.get("depth_thresholds").cloned().unwrap_or_else(|| serde_json::json!([])),
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            let payload = bijux_dna_domain_bam::BamCoverageSummaryV1 {
+                schema_version: bijux_dna_domain_bam::BAM_COVERAGE_SUMMARY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                has_mosdepth_summary: stage_dir.join("coverage.mosdepth.summary.txt").exists(),
+                has_samtools_depth: depth_path.exists(),
+                mean_depth,
+                coverage_regime: mean_depth.map(|value| classify_mean_depth(value).to_string()),
+                coverage_family: mean_depth.map(|value| coverage_regime_family(value).to_string()),
+                depth_thresholds: plan
+                    .params
+                    .get("depth_thresholds")
+                    .cloned()
+                    .map(serde_json::from_value)
+                    .transpose()?
+                    .unwrap_or_default(),
+            };
+            bijux_dna_infra::atomic_write_json(&path, &payload)
+                .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Validate => {
             validate_stage_hard_failures(stage_dir, plan)?;
             let flagstat = stage_dir.join("flagstat.txt");
             let summary = stage_dir.join("validation.summary.json");
-            bijux_dna_infra::atomic_write_json(
-                &summary,
-                &serde_json::json!({
-                    "schema_version": "bijux.bam.validate.v1",
-                    "flagstat": parse_flagstat_counts(&flagstat)?,
-                    "validation_report_present": stage_dir.join("validation.json").exists(),
-                }),
-            )
-            .with_context(|| format!("write {}", summary.display()))?;
+            let input_bam = plan
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Bam)
+                .map(|artifact| artifact.path.clone())
+                .unwrap_or_else(|| stage_dir.join("in.bam"));
+            let input_bai = plan
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.path.to_string_lossy().ends_with(".bam.bai"))
+                .map(|artifact| artifact.path.clone());
+            let reference = plan
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Reference)
+                .map(|artifact| artifact.path.clone());
+            let payload = bijux_dna_domain_bam::BamValidationSummaryV1 {
+                schema_version: bijux_dna_domain_bam::BAM_VALIDATION_SUMMARY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                input_bam,
+                bam_index: input_bai,
+                reference_fasta: reference,
+                flagstat: serde_json::from_value(parse_flagstat_counts(&flagstat)?)?,
+                validation_report_present: stage_dir.join("validation.json").exists(),
+                refusal_codes: Vec::new(),
+            };
+            bijux_dna_infra::atomic_write_json(&summary, &payload)
+                .with_context(|| format!("write {}", summary.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::MappingSummary => {
             let flagstat = stage_dir.join("flagstat.txt");
@@ -43,22 +73,28 @@ fn stage_postprocess(
             let mapq_warn_below = 25.0;
             let mapq_fail_below = 15.0;
             let summary = stage_dir.join("mapping_summary.json");
-            bijux_dna_infra::atomic_write_json(
-                &summary,
-                &serde_json::json!({
-                    "schema_version": "bijux.bam.mapping_summary.v1",
-                    "flagstat": parse_flagstat_counts(&flagstat)?,
-                    "stats_present": stats.exists(),
-                    "idxstats_present": stage_dir.join("idxstats.txt").exists(),
-                    "mapq_regime": mapq.as_ref().map(|m| serde_json::json!({
-                        "mean": m.mean,
-                        "warn_below": mapq_warn_below,
-                        "fail_below": mapq_fail_below,
-                        "status": if m.mean < mapq_fail_below { "fail" } else if m.mean < mapq_warn_below { "warn" } else { "ok" },
-                    })),
+            let payload = bijux_dna_domain_bam::BamMappingSummaryV1 {
+                schema_version: bijux_dna_domain_bam::BAM_MAPPING_SUMMARY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                flagstat: serde_json::from_value(parse_flagstat_counts(&flagstat)?)?,
+                stats_present: stats.exists(),
+                idxstats_present: stage_dir.join("idxstats.txt").exists(),
+                mapq_regime: mapq.as_ref().map(|m| bijux_dna_domain_bam::BamMapqRegimeV1 {
+                    mean: m.mean,
+                    warn_below: mapq_warn_below,
+                    fail_below: mapq_fail_below,
+                    status: if m.mean < mapq_fail_below {
+                        "fail".to_string()
+                    } else if m.mean < mapq_warn_below {
+                        "warn".to_string()
+                    } else {
+                        "ok".to_string()
+                    },
                 }),
-            )
-            .with_context(|| format!("write {}", summary.display()))?;
+            };
+            bijux_dna_infra::atomic_write_json(&summary, &payload)
+                .with_context(|| format!("write {}", summary.display()))?;
             if let Some(mapq) = mapq {
                 if !mapq.histogram.is_empty() && mapq.mean < mapq_fail_below {
                     return Err(anyhow!(
