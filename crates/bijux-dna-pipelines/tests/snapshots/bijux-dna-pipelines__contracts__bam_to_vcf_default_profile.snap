@@ -1,0 +1,271 @@
+---
+source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+{
+  "capabilities": {
+    "batch_semantics": {
+      "cohort_stages": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.qc_pre",
+        "bam.mapping_summary",
+        "bam.coverage",
+        "bam.genotyping"
+      ],
+      "shared_reference_stages": [
+        "core.prepare_reference"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "coverage_regime",
+        "sample_prerequisites"
+      ],
+      "story_order": [
+        "alignment_quality",
+        "coverage_readiness",
+        "variant_processing"
+      ]
+    },
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample stops before alignment; remaining samples may continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "block_downstream",
+        "allows_partial_batch": true,
+        "downstream_effect": "downstream BAM or VCF calling is blocked for the failed sample",
+        "stage_family": "alignment"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries may proceed with explicit missing-sample caveats",
+        "stage_family": "variant"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "shared_reference_bundle",
+        "fan_pattern": "fan_out",
+        "lineage_fields": [
+          "reference_id"
+        ],
+        "overwrite_strategy": "write_once_reuse_many",
+        "source_stage": "core.prepare_reference",
+        "target_stage": "bam.align"
+      },
+      {
+        "artifact_scope": "cohort_variant_inventory",
+        "fan_pattern": "fan_in",
+        "lineage_fields": [
+          "sample_id",
+          "reference_id"
+        ],
+        "overwrite_strategy": "sample_scoped_outputs_then_cohort_merge",
+        "source_stage": "bam.genotyping",
+        "target_stage": "vcf.stats"
+      }
+    ],
+    "input_artifacts": [
+      "Bam",
+      "ReferenceFasta",
+      "SampleSheet"
+    ],
+    "input_domains": [
+      "Bam",
+      "Cross"
+    ],
+    "output_artifacts": [
+      "Variant",
+      "MetricsBundle"
+    ],
+    "output_domains": [
+      "Vcf"
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.genotyping": [
+          "minimum_mean_coverage",
+          "genotype_mode"
+        ],
+        "vcf.filter": [
+          "require_pass"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.genotyping": [
+          "reference_fasta"
+        ],
+        "vcf.filter": [
+          "production_profile"
+        ]
+      }
+    },
+    "produces_outputs": [
+      "bam.metrics",
+      "vcf",
+      "vcf.metrics"
+    ],
+    "report_sections": [
+      "bam",
+      "vcf",
+      "cross.handoff"
+    ],
+    "required_artifacts": [
+      "report.json",
+      "run_manifest.json",
+      "stage_summaries.json",
+      "invariants_report.json",
+      "plan_manifest.json"
+    ],
+    "required_inputs": [
+      "bam",
+      "bam_index",
+      "reference",
+      "sample_name"
+    ],
+    "required_metrics": [
+      "bam.metrics",
+      "vcf.metrics"
+    ],
+    "required_metrics_bundles": [
+      "BamCore",
+      "VcfCore",
+      "CrossHandoff"
+    ],
+    "required_report_sections": [
+      "Bam",
+      "Vcf",
+      "Handoff",
+      "PipelineDefaults"
+    ],
+    "required_stages": [
+      "core.prepare_reference",
+      "bam.validate",
+      "bam.qc_pre",
+      "bam.mapping_summary",
+      "bam.filter",
+      "bam.coverage",
+      "bam.damage",
+      "bam.genotyping",
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "supports_benchmarks": false,
+    "supports_sample_sheet": true,
+    "workflow_template_ids": [
+      "cross.bam_to_vcf_default"
+    ]
+  },
+  "defaults": {
+    "params": {
+      "bam.coverage": {
+        "depth_thresholds": [
+          1,
+          3,
+          5
+        ],
+        "regime_mode": "advisory_and_enforced",
+        "regions": null
+      },
+      "bam.damage": {
+        "damage_tool_profile": "ancient_dna_evidence",
+        "evidence_only": true,
+        "pmd_threshold_3p": 0.3,
+        "pmd_threshold_5p": 0.3,
+        "trim_3p": 2,
+        "trim_5p": 2,
+        "udg_model": "non_udg"
+      },
+      "bam.filter": {
+        "base_quality_threshold": 20,
+        "exclude_flags": [],
+        "include_flags": [],
+        "mapq_threshold": 30,
+        "min_length": 30,
+        "remove_duplicates": false
+      },
+      "bam.genotyping": {
+        "caller": "angsd",
+        "min_call_rate": 0.7,
+        "min_posterior": 0.8
+      },
+      "bam.mapping_summary": {
+        "regions": null
+      },
+      "bam.qc_pre": {
+        "regions": null
+      },
+      "bam.validate": {
+        "strict": true
+      },
+      "core.prepare_reference": {},
+      "vcf.filter": {
+        "min_qual": 30.0,
+        "normalize": true,
+        "production_profile": false,
+        "require_bgzip_tabix": true,
+        "require_pass": true,
+        "sample_name": "sample",
+        "schema_version": "bijux.vcf.params.v1"
+      },
+      "vcf.stats": {
+        "collect_depth_distribution": true,
+        "compute_titv": true,
+        "sample_name": "sample",
+        "schema_version": "bijux.vcf.params.v1"
+      }
+    },
+    "rationales": {
+      "bam.coverage": "pipeline default",
+      "bam.damage": "pipeline default",
+      "bam.filter": "pipeline default",
+      "bam.genotyping": "cross-domain BAM-to-VCF calling defaults",
+      "bam.mapping_summary": "pipeline default",
+      "bam.qc_pre": "pipeline default",
+      "bam.validate": "pipeline default",
+      "core.prepare_reference": "cross-domain reference preparation before BAM-to-VCF calling",
+      "vcf.filter": "vcf minimal default",
+      "vcf.stats": "vcf minimal default"
+    },
+    "tools": {
+      "bam.coverage": "mosdepth",
+      "bam.damage": "pydamage",
+      "bam.filter": "samtools",
+      "bam.genotyping": "angsd",
+      "bam.mapping_summary": "samtools",
+      "bam.qc_pre": "samtools",
+      "bam.validate": "samtools",
+      "core.prepare_reference": "samtools",
+      "vcf.filter": "bcftools",
+      "vcf.stats": "bcftools"
+    }
+  },
+  "defaults_ledger_ref": "defaults_ledger.json",
+  "description": "BAM QC and genotyping handoff into VCF filtering and stats",
+  "id": "bam-to-vcf__default__v1",
+  "input_domains": [
+    "Bam",
+    "Cross"
+  ],
+  "invariants_preset": null,
+  "library_model": {
+    "assay_kind": "unknown",
+    "layout": "single_end",
+    "platform_hint": "illumina",
+    "udg_treatment": "unknown"
+  },
+  "output_domains": [
+    "Vcf"
+  ],
+  "stability": "Beta"
+}

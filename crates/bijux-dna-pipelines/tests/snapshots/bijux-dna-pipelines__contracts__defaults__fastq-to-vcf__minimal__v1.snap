@@ -6,6 +6,54 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "assumptions": [],
   "citations": {},
   "param_provenance": {
+    "bam.align": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "cross-domain FASTQ-to-VCF alignment defaults"
+    },
+    "bam.mapping_summary": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "cross-domain mapping summary defaults before genotyping"
+    },
+    "bam.qc_pre": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "cross-domain BAM sort/index preparation defaults"
+    },
+    "core.prepare_reference": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/cross/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "cross-domain reference preparation for tiny FASTQ-to-VCF templates"
+    },
     "fastq.cluster_otus": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -257,9 +305,63 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "changing this default can shift cross-run comparability baselines"
       ],
       "rationale": "pipeline default"
+    },
+    "vcf.filter": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/vcf/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "vcf minimal default"
+    },
+    "vcf.stats": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/vcf/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "vcf minimal default"
     }
   },
   "params": {
+    "bam.align": {
+      "aligner": "bwa",
+      "build_indices": false,
+      "emit_stats": true,
+      "mode": "end_to_end",
+      "preset": "default",
+      "read_group": {
+        "id": "sample.rg1",
+        "lane_id": "L001",
+        "library": "lib1",
+        "platform": "ILLUMINA",
+        "platform_unit": "sample.pu1",
+        "run_id": null,
+        "sample": "sample"
+      },
+      "reference": "reference.fasta",
+      "reference_digest": "unknown",
+      "rg_policy": "regenerate",
+      "seed_length": null,
+      "sensitivity_profile": "default",
+      "strategy_id": "bwa_mem_default",
+      "threads": 1
+    },
+    "bam.mapping_summary": {
+      "regions": null
+    },
+    "bam.qc_pre": {
+      "regions": null
+    },
+    "core.prepare_reference": {},
     "fastq.cluster_otus": {
       "identity_threshold": 0.97,
       "output_table_kind": "otu_table",
@@ -486,11 +588,74 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "schema_version": "bijux.fastq.params.validate_reads.v1",
       "threads": 4,
       "validation_mode": "strict"
+    },
+    "vcf.filter": {
+      "min_qual": 30.0,
+      "normalize": true,
+      "production_profile": false,
+      "require_bgzip_tabix": true,
+      "require_pass": true,
+      "sample_name": "sample",
+      "schema_version": "bijux.vcf.params.v1"
+    },
+    "vcf.stats": {
+      "collect_depth_distribution": true,
+      "compute_titv": true,
+      "sample_name": "sample",
+      "schema_version": "bijux.vcf.params.v1"
     }
   },
-  "pipeline_id": "fastq-to-fastq__umi__v1",
+  "pipeline_id": "fastq-to-vcf__minimal__v1",
   "thresholds": {},
   "tool_provenance": {
+    "bam.align": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "cross-domain FASTQ-to-VCF alignment defaults"
+    },
+    "bam.mapping_summary": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "cross-domain mapping summary defaults before genotyping"
+    },
+    "bam.qc_pre": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/bam/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "cross-domain BAM sort/index preparation defaults"
+    },
+    "core.prepare_reference": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/cross/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "cross-domain reference preparation for tiny FASTQ-to-VCF templates"
+    },
     "fastq.cluster_otus": {
       "assumptions": [
         "defaults chosen for pre-HPC deterministic baseline comparisons"
@@ -742,9 +907,37 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "changing this default can shift cross-run comparability baselines"
       ],
       "rationale": "pipeline default"
+    },
+    "vcf.filter": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/vcf/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "vcf minimal default"
+    },
+    "vcf.stats": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/vcf/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "vcf minimal default"
     }
   },
   "tools": {
+    "bam.align": "bwa",
+    "bam.mapping_summary": "samtools",
+    "bam.qc_pre": "samtools",
+    "core.prepare_reference": "samtools",
     "fastq.cluster_otus": "vsearch",
     "fastq.correct_errors": "rcorrector",
     "fastq.deplete_host": "bowtie2",
@@ -765,6 +958,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "fastq.screen_taxonomy": "kraken2",
     "fastq.trim_polyg_tails": "fastp",
     "fastq.trim_reads": "fastp",
-    "fastq.validate_reads": "fastqvalidator"
+    "fastq.validate_reads": "fastqvalidator",
+    "vcf.filter": "bcftools",
+    "vcf.stats": "bcftools"
   }
 }

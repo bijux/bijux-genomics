@@ -72,7 +72,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.coverage",
       "bam.damage"
     ],
-    "supports_benchmarks": false
+    "supports_benchmarks": false,
+    "supports_sample_sheet": false
   },
   "defaults": {
     "params": {
@@ -80,6 +81,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "aligner": "bwa",
         "build_indices": false,
         "emit_stats": true,
+        "mode": "end_to_end",
         "preset": "default",
         "read_group": {
           "id": "sample.rg1",
@@ -95,15 +97,22 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "rg_policy": "regenerate",
         "seed_length": null,
         "sensitivity_profile": "default",
+        "strategy_id": "bwa_mem_default",
         "threads": 1
       },
       "bam.authenticity": {
+        "disallow_certification": true,
+        "evidence_only": true,
         "mode": "aggregate"
       },
       "bam.contamination": {
         "assumptions": null,
+        "chromosome_system": null,
+        "emit_confidence_caveats": true,
+        "minimum_mean_coverage": 0.5,
         "prior": null,
         "reference_panels": [],
+        "required_reference_digest": null,
         "scope": "both",
         "sex_specific": false
       },
@@ -113,9 +122,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           3,
           5
         ],
+        "regime_mode": "advisory_and_enforced",
         "regions": null
       },
       "bam.damage": {
+        "damage_tool_profile": "ancient_dna_evidence",
+        "evidence_only": true,
         "pmd_threshold_3p": 0.3,
         "pmd_threshold_5p": 0.3,
         "trim_3p": 2,
@@ -131,6 +143,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "depth_thresholds": [
           1
         ],
+        "host_reference_digest": null,
+        "host_reference_scope": "host_reference_required",
+        "refuse_without_host_reference": true,
         "regions": null
       },
       "bam.filter": {
@@ -164,8 +179,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "regions": null
       },
       "bam.sex": {
+        "chromosome_system": "xy",
         "expected_sex": null,
-        "method": "rxy"
+        "method": "rxy",
+        "minimum_y_sites": 100,
+        "refuse_without_context": true
       },
       "bam.validate": {
         "strict": true
@@ -248,9 +266,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "threads": 1
       },
       "fastq.extract_umis": {
+        "downstream_dedup_policy": "sequence_identity_recommended",
         "downstream_propagation": "header_and_report",
         "extraction_location": "read1_prefix",
         "failed_extraction_policy": "refuse_stage",
+        "grouping_policy": "pair_aware",
         "paired_mode": "paired_end",
         "read_name_transform": "append_to_header",
         "schema_version": "bijux.fastq.params.umi.v1",
@@ -365,11 +385,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "database_namespace": "read_screening",
         "database_scope": "read_screening",
         "emit_unclassified": true,
+        "interpretation_boundary": "screening_only",
         "minimum_confidence": null,
         "paired_mode": "paired_end",
         "report_format": "kraken_report",
         "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
-        "threads": 4
+        "threads": 4,
+        "truth_conditions": []
       },
       "fastq.trim_polyg_tails": {
         "min_polyg_run": 10,

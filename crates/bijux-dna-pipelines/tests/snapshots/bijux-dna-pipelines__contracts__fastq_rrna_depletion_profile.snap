@@ -55,7 +55,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.report_qc",
       "fastq.deplete_rrna"
     ],
-    "supports_benchmarks": true
+    "supports_benchmarks": true,
+    "supports_sample_sheet": false
   },
   "defaults": {
     "params": {
@@ -136,9 +137,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "threads": 1
       },
       "fastq.extract_umis": {
+        "downstream_dedup_policy": "sequence_identity_recommended",
         "downstream_propagation": "header_and_report",
         "extraction_location": "read1_prefix",
         "failed_extraction_policy": "refuse_stage",
+        "grouping_policy": "pair_aware",
         "paired_mode": "single_end",
         "read_name_transform": "append_to_header",
         "schema_version": "bijux.fastq.params.umi.v1",
@@ -252,11 +255,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "database_namespace": "read_screening",
         "database_scope": "read_screening",
         "emit_unclassified": true,
+        "interpretation_boundary": "screening_only",
         "minimum_confidence": null,
         "paired_mode": "single_end",
         "report_format": "kraken_report",
         "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
-        "threads": 4
+        "threads": 4,
+        "truth_conditions": []
       },
       "fastq.trim_polyg_tails": {
         "min_polyg_run": 10,

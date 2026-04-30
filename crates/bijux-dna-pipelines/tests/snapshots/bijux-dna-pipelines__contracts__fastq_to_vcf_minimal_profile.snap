@@ -4,61 +4,214 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "capabilities": {
+    "batch_semantics": {
+      "cohort_stages": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.trim_reads",
+        "bam.align",
+        "bam.qc_pre",
+        "bam.mapping_summary",
+        "bam.genotyping"
+      ],
+      "shared_reference_stages": [
+        "core.prepare_reference"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "tiny_fixture_limits",
+        "final_call_confidence"
+      ],
+      "story_order": [
+        "read_preprocessing",
+        "alignment_quality",
+        "variant_processing"
+      ]
+    },
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample stops before alignment; remaining samples may continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "block_downstream",
+        "allows_partial_batch": true,
+        "downstream_effect": "downstream BAM or VCF calling is blocked for the failed sample",
+        "stage_family": "alignment"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries may proceed with explicit missing-sample caveats",
+        "stage_family": "variant"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "shared_reference_bundle",
+        "fan_pattern": "fan_out",
+        "lineage_fields": [
+          "reference_id"
+        ],
+        "overwrite_strategy": "write_once_reuse_many",
+        "source_stage": "core.prepare_reference",
+        "target_stage": "bam.align"
+      },
+      {
+        "artifact_scope": "cohort_variant_inventory",
+        "fan_pattern": "fan_in",
+        "lineage_fields": [
+          "sample_id",
+          "reference_id"
+        ],
+        "overwrite_strategy": "sample_scoped_outputs_then_cohort_merge",
+        "source_stage": "bam.genotyping",
+        "target_stage": "vcf.stats"
+      }
+    ],
     "input_artifacts": [
-      "FastqReads"
+      "FastqReads",
+      "ReferenceFasta",
+      "SampleSheet"
     ],
     "input_domains": [
-      "Fastq"
+      "Fastq",
+      "Cross"
     ],
     "output_artifacts": [
-      "FastqReads",
+      "Variant",
       "MetricsBundle"
     ],
     "output_domains": [
-      "Fastq"
+      "Vcf"
     ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.genotyping": [
+          "genotype_mode"
+        ],
+        "fastq.trim_reads": [
+          "min_length",
+          "adapter_mode"
+        ],
+        "vcf.filter": [
+          "require_pass"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.align": [
+          "reference_fasta"
+        ],
+        "bam.genotyping": [
+          "minimum_mean_coverage"
+        ]
+      }
+    },
     "produces_outputs": [
-      "fastq",
-      "fastq.metrics"
+      "bam",
+      "vcf",
+      "vcf.metrics"
     ],
     "report_sections": [
-      "fastq"
+      "fastq",
+      "bam",
+      "vcf",
+      "cross.handoff"
     ],
     "required_artifacts": [
       "report.json",
       "run_manifest.json",
       "stage_summaries.json",
-      "invariants_report.json"
+      "invariants_report.json",
+      "plan_manifest.json"
     ],
     "required_inputs": [
-      "fastq"
+      "fastq",
+      "reference",
+      "sample_name"
     ],
     "required_metrics": [
-      "fastq.metrics"
+      "fastq.metrics",
+      "bam.metrics",
+      "vcf.metrics"
     ],
     "required_metrics_bundles": [
-      "FastqCore"
+      "FastqCore",
+      "BamCore",
+      "VcfCore",
+      "CrossHandoff"
     ],
     "required_report_sections": [
       "Fastq",
+      "Bam",
+      "Vcf",
+      "Handoff",
       "PipelineDefaults"
     ],
     "required_stages": [
       "fastq.validate_reads",
-      "fastq.extract_umis",
-      "fastq.normalize_primers",
+      "fastq.detect_adapters",
+      "fastq.trim_reads",
       "fastq.filter_reads",
-      "fastq.profile_reads",
-      "fastq.remove_chimeras",
-      "fastq.infer_asvs",
-      "fastq.normalize_abundance",
-      "fastq.report_qc"
+      "fastq.report_qc",
+      "core.prepare_reference",
+      "bam.align",
+      "bam.qc_pre",
+      "bam.mapping_summary",
+      "bam.genotyping",
+      "vcf.filter",
+      "vcf.stats"
     ],
-    "supports_benchmarks": true,
-    "supports_sample_sheet": false
+    "supports_benchmarks": false,
+    "supports_sample_sheet": true,
+    "workflow_template_ids": [
+      "cross.fastq_to_vcf_minimal"
+    ]
   },
   "defaults": {
     "params": {
+      "bam.align": {
+        "aligner": "bwa",
+        "build_indices": false,
+        "emit_stats": true,
+        "mode": "end_to_end",
+        "preset": "default",
+        "read_group": {
+          "id": "sample.rg1",
+          "lane_id": "L001",
+          "library": "lib1",
+          "platform": "ILLUMINA",
+          "platform_unit": "sample.pu1",
+          "run_id": null,
+          "sample": "sample"
+        },
+        "reference": "reference.fasta",
+        "reference_digest": "unknown",
+        "rg_policy": "regenerate",
+        "seed_length": null,
+        "sensitivity_profile": "default",
+        "strategy_id": "bwa_mem_default",
+        "threads": 1
+      },
+      "bam.genotyping": {
+        "caller": "angsd",
+        "min_call_rate": 0.7,
+        "min_posterior": 0.8
+      },
+      "bam.mapping_summary": {
+        "regions": null
+      },
+      "bam.qc_pre": {
+        "regions": null
+      },
+      "core.prepare_reference": {},
       "fastq.cluster_otus": {
         "identity_threshold": 0.97,
         "output_table_kind": "otu_table",
@@ -285,9 +438,29 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "schema_version": "bijux.fastq.params.validate_reads.v1",
         "threads": 4,
         "validation_mode": "strict"
+      },
+      "vcf.filter": {
+        "min_qual": 30.0,
+        "normalize": true,
+        "production_profile": false,
+        "require_bgzip_tabix": true,
+        "require_pass": true,
+        "sample_name": "sample",
+        "schema_version": "bijux.vcf.params.v1"
+      },
+      "vcf.stats": {
+        "collect_depth_distribution": true,
+        "compute_titv": true,
+        "sample_name": "sample",
+        "schema_version": "bijux.vcf.params.v1"
       }
     },
     "rationales": {
+      "bam.align": "cross-domain FASTQ-to-VCF alignment defaults",
+      "bam.genotyping": "cross-domain FASTQ-to-VCF calling defaults",
+      "bam.mapping_summary": "cross-domain mapping summary defaults before genotyping",
+      "bam.qc_pre": "cross-domain BAM sort/index preparation defaults",
+      "core.prepare_reference": "cross-domain reference preparation for tiny FASTQ-to-VCF templates",
       "fastq.cluster_otus": "pipeline default",
       "fastq.correct_errors": "pipeline default",
       "fastq.deplete_host": "pipeline default",
@@ -308,9 +481,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.screen_taxonomy": "pipeline default",
       "fastq.trim_polyg_tails": "pipeline default",
       "fastq.trim_reads": "pipeline default",
-      "fastq.validate_reads": "pipeline default"
+      "fastq.validate_reads": "pipeline default",
+      "vcf.filter": "vcf minimal default",
+      "vcf.stats": "vcf minimal default"
     },
     "tools": {
+      "bam.align": "bwa",
+      "bam.genotyping": "angsd",
+      "bam.mapping_summary": "samtools",
+      "bam.qc_pre": "samtools",
+      "core.prepare_reference": "samtools",
       "fastq.cluster_otus": "vsearch",
       "fastq.correct_errors": "rcorrector",
       "fastq.deplete_host": "bowtie2",
@@ -331,24 +511,27 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "fastq.screen_taxonomy": "kraken2",
       "fastq.trim_polyg_tails": "fastp",
       "fastq.trim_reads": "fastp",
-      "fastq.validate_reads": "fastqvalidator"
+      "fastq.validate_reads": "fastqvalidator",
+      "vcf.filter": "bcftools",
+      "vcf.stats": "bcftools"
     }
   },
   "defaults_ledger_ref": "defaults_ledger.json",
-  "description": "FASTQ amplicon UMI production profile",
-  "id": "fastq-to-fastq__amplicon_umi__v1",
+  "description": "Minimal FASTQ preprocessing into BAM alignment and VCF calling/stats",
+  "id": "fastq-to-vcf__minimal__v1",
   "input_domains": [
-    "Fastq"
+    "Fastq",
+    "Cross"
   ],
   "invariants_preset": null,
   "library_model": {
-    "assay_kind": "amplicon",
+    "assay_kind": "shotgun",
     "layout": "paired_end",
     "platform_hint": "illumina",
     "udg_treatment": "unknown"
   },
   "output_domains": [
-    "Fastq"
+    "Vcf"
   ],
   "stability": "Beta"
 }

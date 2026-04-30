@@ -360,6 +360,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aligner": "bwa",
       "build_indices": false,
       "emit_stats": true,
+      "mode": "end_to_end",
       "preset": "default",
       "read_group": {
         "id": "sample.rg1",
@@ -375,6 +376,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "rg_policy": "regenerate",
       "seed_length": null,
       "sensitivity_profile": "default",
+      "strategy_id": "bwa_mem_default",
       "threads": 1
     },
     "bam.coverage": {
@@ -383,9 +385,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         3,
         5
       ],
+      "regime_mode": "advisory_and_enforced",
       "regions": null
     },
     "bam.damage": {
+      "damage_tool_profile": "ancient_dna_evidence",
+      "evidence_only": true,
       "pmd_threshold_3p": 0.3,
       "pmd_threshold_5p": 0.3,
       "trim_3p": 2,
@@ -487,9 +492,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "threads": 1
     },
     "fastq.extract_umis": {
+      "downstream_dedup_policy": "sequence_identity_recommended",
       "downstream_propagation": "header_and_report",
       "extraction_location": "read1_prefix",
       "failed_extraction_policy": "refuse_stage",
+      "grouping_policy": "pair_aware",
       "paired_mode": "single_end",
       "read_name_transform": "append_to_header",
       "schema_version": "bijux.fastq.params.umi.v1",
@@ -603,11 +610,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "database_namespace": "read_screening",
       "database_scope": "read_screening",
       "emit_unclassified": true,
+      "interpretation_boundary": "screening_only",
       "minimum_confidence": null,
       "paired_mode": "single_end",
       "report_format": "kraken_report",
       "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
-      "threads": 4
+      "threads": 4,
+      "truth_conditions": []
     },
     "fastq.trim_polyg_tails": {
       "min_polyg_run": 10,

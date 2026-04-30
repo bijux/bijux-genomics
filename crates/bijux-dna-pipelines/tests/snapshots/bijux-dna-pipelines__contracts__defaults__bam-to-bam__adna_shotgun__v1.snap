@@ -153,12 +153,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   },
   "params": {
     "bam.authenticity": {
+      "disallow_certification": true,
+      "evidence_only": true,
       "mode": "aggregate"
     },
     "bam.contamination": {
       "assumptions": null,
+      "chromosome_system": null,
+      "emit_confidence_caveats": true,
+      "minimum_mean_coverage": 0.5,
       "prior": null,
       "reference_panels": [],
+      "required_reference_digest": null,
       "scope": "both",
       "sex_specific": false
     },
@@ -168,9 +174,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         3,
         5
       ],
+      "regime_mode": "advisory_and_enforced",
       "regions": null
     },
     "bam.damage": {
+      "damage_tool_profile": "ancient_dna_evidence",
+      "evidence_only": true,
       "pmd_threshold_3p": 0.3,
       "pmd_threshold_5p": 0.3,
       "trim_3p": 2,
@@ -186,6 +195,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "depth_thresholds": [
         1
       ],
+      "host_reference_digest": null,
+      "host_reference_scope": "host_reference_required",
+      "refuse_without_host_reference": true,
       "regions": null
     },
     "bam.filter": {
@@ -216,8 +228,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "remove_duplicates": false
     },
     "bam.sex": {
+      "chromosome_system": "xy",
       "expected_sex": null,
-      "method": "rxy"
+      "method": "rxy",
+      "minimum_y_sites": 100,
+      "refuse_without_context": true
     },
     "bam.validate": {
       "strict": true

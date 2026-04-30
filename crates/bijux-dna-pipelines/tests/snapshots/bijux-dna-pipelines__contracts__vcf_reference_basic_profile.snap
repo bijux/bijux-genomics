@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
-assertion_line: 175
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -51,7 +50,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "vcf.filter",
       "vcf.stats"
     ],
-    "supports_benchmarks": false
+    "supports_benchmarks": false,
+    "supports_sample_sheet": false
   },
   "defaults": {
     "params": {

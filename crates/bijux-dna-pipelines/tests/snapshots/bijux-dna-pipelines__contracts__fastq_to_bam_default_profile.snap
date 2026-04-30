@@ -4,6 +4,76 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "capabilities": {
+    "batch_semantics": {
+      "cohort_stages": [
+        "bam.mapping_summary"
+      ],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.trim_reads",
+        "bam.align",
+        "bam.qc_pre",
+        "bam.mapping_summary",
+        "bam.coverage"
+      ],
+      "shared_reference_stages": [
+        "core.prepare_reference"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "layout_assumptions",
+        "reference_identity"
+      ],
+      "story_order": [
+        "read_preprocessing",
+        "alignment_quality",
+        "handoff_readiness"
+      ]
+    },
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample stops before alignment; remaining samples may continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "block_downstream",
+        "allows_partial_batch": true,
+        "downstream_effect": "downstream BAM or VCF calling is blocked for the failed sample",
+        "stage_family": "alignment"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries may proceed with explicit missing-sample caveats",
+        "stage_family": "variant"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "shared_reference_bundle",
+        "fan_pattern": "fan_out",
+        "lineage_fields": [
+          "reference_id"
+        ],
+        "overwrite_strategy": "write_once_reuse_many",
+        "source_stage": "core.prepare_reference",
+        "target_stage": "bam.align"
+      },
+      {
+        "artifact_scope": "cohort_variant_inventory",
+        "fan_pattern": "fan_in",
+        "lineage_fields": [
+          "sample_id",
+          "reference_id"
+        ],
+        "overwrite_strategy": "sample_scoped_outputs_then_cohort_merge",
+        "source_stage": "bam.genotyping",
+        "target_stage": "vcf.stats"
+      }
+    ],
     "input_artifacts": [
       "FastqReads",
       "ReferenceFasta"
@@ -19,6 +89,27 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "output_domains": [
       "Bam"
     ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.align": [
+          "seed_length",
+          "min_mapq"
+        ],
+        "fastq.trim_reads": [
+          "min_length",
+          "adapter_mode"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.align": [
+          "reference_fasta"
+        ],
+        "core.prepare_reference": [
+          "reference_build"
+        ]
+      }
+    },
     "produces_outputs": [
       "fastq",
       "bam",
@@ -70,7 +161,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.coverage",
       "bam.damage"
     ],
-    "supports_benchmarks": false
+    "supports_benchmarks": false,
+    "supports_sample_sheet": true,
+    "workflow_template_ids": [
+      "cross.fastq_to_bam_modern"
+    ]
   },
   "defaults": {
     "params": {
@@ -78,6 +173,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "aligner": "bwa",
         "build_indices": false,
         "emit_stats": true,
+        "mode": "end_to_end",
         "preset": "default",
         "read_group": {
           "id": "sample.rg1",
@@ -93,6 +189,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "rg_policy": "regenerate",
         "seed_length": null,
         "sensitivity_profile": "default",
+        "strategy_id": "bwa_mem_default",
         "threads": 1
       },
       "bam.coverage": {
@@ -101,9 +198,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           3,
           5
         ],
+        "regime_mode": "advisory_and_enforced",
         "regions": null
       },
       "bam.damage": {
+        "damage_tool_profile": "ancient_dna_evidence",
+        "evidence_only": true,
         "pmd_threshold_3p": 0.3,
         "pmd_threshold_5p": 0.3,
         "trim_3p": 2,
@@ -205,9 +305,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "threads": 1
       },
       "fastq.extract_umis": {
+        "downstream_dedup_policy": "sequence_identity_recommended",
         "downstream_propagation": "header_and_report",
         "extraction_location": "read1_prefix",
         "failed_extraction_policy": "refuse_stage",
+        "grouping_policy": "pair_aware",
         "paired_mode": "single_end",
         "read_name_transform": "append_to_header",
         "schema_version": "bijux.fastq.params.umi.v1",
@@ -321,11 +423,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "database_namespace": "read_screening",
         "database_scope": "read_screening",
         "emit_unclassified": true,
+        "interpretation_boundary": "screening_only",
         "minimum_confidence": null,
         "paired_mode": "single_end",
         "report_format": "kraken_report",
         "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
-        "threads": 4
+        "threads": 4,
+        "truth_conditions": []
       },
       "fastq.trim_polyg_tails": {
         "min_polyg_run": 10,

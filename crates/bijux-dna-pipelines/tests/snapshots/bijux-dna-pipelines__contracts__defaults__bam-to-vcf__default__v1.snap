@@ -77,6 +77,42 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "changing this default can shift cross-run comparability baselines"
       ],
       "rationale": "pipeline default"
+    },
+    "core.prepare_reference": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/cross/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "cross-domain reference preparation before BAM-to-VCF calling"
+    },
+    "vcf.filter": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/vcf/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "vcf minimal default"
+    },
+    "vcf.stats": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/vcf/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "vcf minimal default"
     }
   },
   "params": {
@@ -114,9 +150,25 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "bam.validate": {
       "strict": true
+    },
+    "core.prepare_reference": {},
+    "vcf.filter": {
+      "min_qual": 30.0,
+      "normalize": true,
+      "production_profile": false,
+      "require_bgzip_tabix": true,
+      "require_pass": true,
+      "sample_name": "sample",
+      "schema_version": "bijux.vcf.params.v1"
+    },
+    "vcf.stats": {
+      "collect_depth_distribution": true,
+      "compute_titv": true,
+      "sample_name": "sample",
+      "schema_version": "bijux.vcf.params.v1"
     }
   },
-  "pipeline_id": "bam-to-bam__default__v1",
+  "pipeline_id": "bam-to-vcf__default__v1",
   "thresholds": {},
   "tool_provenance": {
     "bam.coverage": {
@@ -190,6 +242,42 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "changing this default can shift cross-run comparability baselines"
       ],
       "rationale": "pipeline default"
+    },
+    "core.prepare_reference": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/cross/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "cross-domain reference preparation before BAM-to-VCF calling"
+    },
+    "vcf.filter": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/vcf/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "vcf minimal default"
+    },
+    "vcf.stats": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/vcf/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "vcf minimal default"
     }
   },
   "tools": {
@@ -198,6 +286,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "bam.filter": "samtools",
     "bam.mapping_summary": "samtools",
     "bam.qc_pre": "samtools",
-    "bam.validate": "samtools"
+    "bam.validate": "samtools",
+    "core.prepare_reference": "samtools",
+    "vcf.filter": "bcftools",
+    "vcf.stats": "bcftools"
   }
 }
