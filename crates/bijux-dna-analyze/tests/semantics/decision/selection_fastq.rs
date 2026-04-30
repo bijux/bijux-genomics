@@ -9,7 +9,7 @@ use bijux_dna_domain_fastq::{
     bench_dir_name, STAGE_DETECT_ADAPTERS, STAGE_FILTER_READS, STAGE_PROFILE_READS,
     STAGE_REPORT_QC, STAGE_TRIM_READS, STAGE_VALIDATE_READS,
 };
-use bijux_dna_domain_fastq::{BenchCorpus, BenchCorpusId, BenchDataset};
+use bijux_dna_domain_fastq::{BenchCorpus, BenchCorpusId, BenchDataset, BenchDatasetScenario};
 use bijux_dna_domain_fastq::{BenchQueryContext, BenchResultsRepository};
 use rusqlite::{params, Connection};
 
@@ -84,6 +84,8 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
                 sha256_r1: "hash_a",
                 sha256_r2: None,
                 paired: false,
+                scientific_scope: "unit_test",
+                scenarios: vec![BenchDatasetScenario::SparseEdgeCase],
             },
             BenchDataset {
                 id: "DATA_B",
@@ -92,6 +94,8 @@ fn default_route_selects_tools_deterministically() -> Result<(), Box<dyn std::er
                 sha256_r1: "hash_b",
                 sha256_r2: None,
                 paired: false,
+                scientific_scope: "unit_test",
+                scenarios: vec![BenchDatasetScenario::SparseEdgeCase],
             },
         ],
     );

@@ -363,6 +363,8 @@ mod tests {
                 sha256_r1: "hash_a",
                 sha256_r2: None,
                 paired: false,
+                scientific_scope: "unit_test",
+                scenarios: vec![bijux_dna_domain_fastq::BenchDatasetScenario::SparseEdgeCase],
             }],
         )
     }
@@ -377,6 +379,8 @@ mod tests {
                 sha256_r1: "hash_r1",
                 sha256_r2: Some("hash_r2"),
                 paired: true,
+                scientific_scope: "unit_test",
+                scenarios: vec![bijux_dna_domain_fastq::BenchDatasetScenario::CleanPairedReads],
             }],
         )
     }

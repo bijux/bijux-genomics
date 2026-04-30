@@ -23,6 +23,7 @@ mod qc_bundle;
 mod remove_chimeras;
 mod remove_duplicates;
 mod report_qc;
+mod scientific_drift;
 mod screen_taxonomy;
 mod trim_polyg_tails;
 mod trim_reads;
@@ -91,6 +92,11 @@ pub use remove_duplicates::{
     REMOVE_DUPLICATES_PROVENANCE_SCHEMA_VERSION, REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION,
 };
 pub use report_qc::{GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION};
+pub use scientific_drift::{
+    build_fastq_scientific_drift_report, FastqScientificDriftReportV1,
+    ScientificDriftArtifactDeltaV1, ScientificDriftChangeKind, ScientificDriftMetricDeltaV1,
+    ScientificDriftSnapshotV1, FASTQ_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION,
+};
 pub use screen_taxonomy::{
     ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
 };

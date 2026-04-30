@@ -28,6 +28,11 @@ pub mod stages;
 pub mod types;
 
 pub use artifacts::{
+    build_fastq_scientific_drift_report, FastqScientificDriftReportV1,
+    ScientificDriftArtifactDeltaV1, ScientificDriftChangeKind, ScientificDriftMetricDeltaV1,
+    ScientificDriftSnapshotV1, FASTQ_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION,
+};
+pub use artifacts::{
     contaminant_depletion_artifact_paths, corrected_fastq_artifact_paths,
     host_depletion_artifact_paths, merge_fastq_artifact_paths, qc_bundle_artifact_paths,
     rejected_fastq_artifact_paths, rrna_depletion_artifact_paths, singleton_fastq_artifact_path,
@@ -176,15 +181,21 @@ pub use params::{
 };
 pub use pipeline_contract::{
     canonical_amplicon_stage_order, canonical_stage_order, default_amplicon_preprocess_stage_order,
-    default_shotgun_preprocess_stage_order, forbidden_transitions, optional_branches,
-    preprocess_pipeline_graph_for_stage_order, FastqPipelineMode, StageCriticality,
+    default_shotgun_preprocess_stage_order, forbidden_transitions,
+    non_general_genomics_branch_contract_for_stage, non_general_genomics_branch_contracts,
+    optional_branches, preprocess_pipeline_graph_for_stage_order, FastqPipelineMode,
+    NonGeneralGenomicsBranchContractV1, NonGeneralGenomicsBranchFamily, StageCriticality,
 };
 pub use qc_contract::{
     governed_qc_bench_contributor_stage_ids, governed_qc_default_tool_ids,
     governed_qc_output_ids_for_stage, governed_qc_producer_stage_ids,
 };
 pub use run::{assess_input_dir, discover_fastq_files};
-pub use run::{bench_corpus, BenchCorpus, BenchCorpusId, BenchDataset};
+pub use run::{
+    bench_corpus, bench_corpus_manifest, required_bench_corpus_scenarios, BenchCorpus,
+    BenchCorpusDatasetManifestEntryV1, BenchCorpusId, BenchCorpusManifestV1, BenchDataset,
+    BenchDatasetScenario, BENCH_CORPUS_MANIFEST_SCHEMA_VERSION,
+};
 pub use stage_tool_governance::{
     benchmark_readiness_for_stage_tool, declared_input_layouts_for_stage,
     filter_tools_for_input_layout, stage_accepts_input_layout, stage_benchmark_governance,

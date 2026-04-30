@@ -35,8 +35,14 @@ mod mod_contracts_preflight_inputs_rs;
 mod mod_contracts_public_api_docs_rs;
 #[path = "contracts/public_surface.rs"]
 mod mod_contracts_public_surface_rs;
+#[path = "contracts/realistic_bench_corpus.rs"]
+mod mod_contracts_realistic_bench_corpus_rs;
 #[path = "contracts/remove_duplicates_manifest.rs"]
 mod mod_contracts_remove_duplicates_manifest_rs;
+#[path = "contracts/scientific_drift_report.rs"]
+mod mod_contracts_scientific_drift_report_rs;
+#[path = "contracts/specialized_branch_contracts.rs"]
+mod mod_contracts_specialized_branch_contracts_rs;
 #[path = "contracts/ssot_literals.rs"]
 mod mod_contracts_ssot_literals_rs;
 #[path = "contracts/stage_contract_snapshots.rs"]
