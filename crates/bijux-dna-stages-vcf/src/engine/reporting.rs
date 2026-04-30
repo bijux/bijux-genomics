@@ -17,6 +17,7 @@ pub(super) fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> 
                 "filtered.vcf.gz.tbi",
                 "filter_breakdown.json",
                 "filter_breakdown.tsv",
+                "filter_explain.json",
             ],
             "vcf.stats" => &["bcftools_stats.txt", "stats.json"],
             "vcf.damage_filter" => &[

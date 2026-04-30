@@ -190,6 +190,7 @@ impl VcfStageRunner for DispatchRunner {
                     out.filtered_tbi,
                     out.filter_breakdown_json,
                     out.filter_breakdown_tsv,
+                    out.filter_explain_json,
                 ]);
             }
             VcfDomainStage::DamageFilter => {

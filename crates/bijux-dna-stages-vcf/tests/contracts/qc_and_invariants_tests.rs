@@ -12,6 +12,7 @@
         assert!(out.filtered_tbi.exists());
         assert!(out.filter_breakdown_json.exists());
         assert!(out.filter_breakdown_tsv.exists());
+        assert!(out.filter_explain_json.exists());
     }
 
     #[test]
@@ -39,6 +40,12 @@
         assert!(json.to_string().contains("LOW_DP"));
         assert!(json.to_string().contains("LOW_MQ"));
         assert!(json.to_string().contains("STRAND_BIAS"));
+        let explain_raw = std::fs::read_to_string(&out.filter_explain_json)
+            .unwrap_or_else(|err| panic!("read filter_explain.json: {err}"));
+        let explain: serde_json::Value = serde_json::from_str(&explain_raw)
+            .unwrap_or_else(|err| panic!("parse filter_explain json: {err}"));
+        assert_eq!(explain["schema_version"], serde_json::json!("bijux.vcf.filter_explain.v1"));
+        assert_eq!(explain["filter_scope"]["output_subset"], serde_json::json!("retain_tagged_records"));
     }
 
     #[test]
