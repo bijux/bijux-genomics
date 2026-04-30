@@ -226,6 +226,7 @@ name = "bijux-dna"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-analyze",
  "bijux-dna-api",
  "bijux-dna-db-ena",
  "bijux-dna-domain-compiler",

@@ -176,7 +176,38 @@ pub enum AnalyzeCommand {
     Rank(AnalyzeRankArgs),
     Report(AnalyzeReportArgs),
     Metrics(AnalyzeMetricsArgs),
+    Evidence(AnalyzeEvidenceRootArgs),
     Bench(AnalyzeBenchArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct AnalyzeEvidenceRootArgs {
+    #[command(subcommand)]
+    pub command: AnalyzeEvidenceCommand,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum AnalyzeEvidenceCommand {
+    Verify(AnalyzeEvidenceVerifyArgs),
+    Compare(AnalyzeEvidenceCompareArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct AnalyzeEvidenceVerifyArgs {
+    #[arg(long, default_value = "artifacts/bench")]
+    pub search_root: PathBuf,
+    #[arg(long)]
+    pub run_id: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub bundle_path: Option<PathBuf>,
+}
+
+#[derive(Debug, Args)]
+pub struct AnalyzeEvidenceCompareArgs {
+    #[arg(value_name = "LEFT_BUNDLE")]
+    pub left: PathBuf,
+    #[arg(value_name = "RIGHT_BUNDLE")]
+    pub right: PathBuf,
 }
 
 #[derive(Debug, Args)]
