@@ -1,15 +1,28 @@
 //! VCF domain primitives: stage IDs, typed params, metrics, and registry materialization.
 
+pub mod artifacts;
 pub mod contracts;
 pub mod coverage;
 pub mod metrics;
 pub mod params;
 pub mod registry_emit;
+pub mod run;
 pub mod stage_baseline;
 pub mod taxonomy;
 
+pub use artifacts::{
+    build_vcf_scientific_drift_report, VcfScientificDriftArtifactDeltaV1,
+    VcfScientificDriftChangeKind, VcfScientificDriftMetricDeltaV1,
+    VcfScientificDriftReportV1, VcfScientificDriftSnapshotV1,
+    VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION,
+};
 pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1};
 pub use registry_emit::{param_registry_toml, required_tools_toml};
+pub use run::{
+    required_vcf_bench_corpus_scenarios, vcf_bench_corpus_datasets, vcf_bench_corpus_manifest,
+    VcfBenchCorpusDatasetManifestEntryV1, VcfBenchCorpusId, VcfBenchCorpusManifestV1,
+    VcfBenchDataset, VcfBenchScenario, VCF_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION,
+};
 pub use stage_baseline::{
     VcfInvariantsPreset, VcfStage, STAGE_CALL, STAGE_FILTER_READS, STAGE_PREFIX, STAGE_STATS,
 };
