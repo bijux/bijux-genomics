@@ -1,7 +1,7 @@
 use anyhow::Result;
 use bijux_dna_api::v1::api::{
-    browse_runs, query_run_lineage, status, RunBrowserFilterV1, RunBrowserRequestV1,
-    RunLineageQueryRequestV1,
+    browse_runs, evidence_gap, query_run_lineage, status, EvidenceGapRequestV1,
+    RunBrowserFilterV1, RunBrowserRequestV1, RunLineageQueryRequestV1,
 };
 
 #[test]
@@ -295,5 +295,69 @@ fn run_lineage_query_extracts_artifact_lineage_edges() -> Result<()> {
     assert_eq!(response.edges.len(), 2);
     assert!(response.edges.iter().any(|edge| edge.lineage_key == "raw:R1=abc"));
     assert!(response.edges.iter().any(|edge| edge.lineage_key == "raw:R2=def"));
+    Ok(())
+}
+
+#[test]
+fn evidence_gap_reports_missing_paths_failed_checks_and_unsafe_artifacts() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("evidence_verification.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.evidence_verification.v1",
+            "verified": false,
+            "checks": [
+                {"check_id": "artifact_integrity", "ok": false, "message": "artifact mismatch"}
+            ],
+            "missing_paths": ["reports/report.json"],
+            "gap_count": 1
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("artifact_inventory.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.artifact_inventory.v1",
+            "run_id": "gap-run",
+            "artifacts": [
+                {
+                    "artifact_id": "runtime_policy",
+                    "name": "runtime_policy",
+                    "role": "runtime_policy",
+                    "path": "runtime_policy.json",
+                    "input_lineage": [],
+                    "scientific_context": {"domain": "runtime", "meaning": "policy", "safe_to_use": true, "advisory_only": true}
+                },
+                {
+                    "artifact_id": "run_failure",
+                    "name": "run_failure",
+                    "role": "run_failure",
+                    "path": "run_failure.json",
+                    "input_lineage": [],
+                    "scientific_context": {"domain": "runtime", "meaning": "failure", "safe_to_use": false, "advisory_only": false}
+                }
+            ]
+        }),
+    )?;
+
+    let response = evidence_gap(&EvidenceGapRequestV1 {
+        run_dir: temp.path().to_path_buf(),
+    })?;
+
+    assert_eq!(response.schema_version, "bijux.evidence_gap.v1");
+    assert!(!response.verified);
+    assert!(response.gap_count >= 3);
+    assert!(response
+        .missing_paths
+        .iter()
+        .any(|path| path == "reports/report.json"));
+    assert!(response
+        .failed_checks
+        .iter()
+        .any(|check| check.check_id == "artifact_integrity"));
+    assert!(response
+        .advisory_only_artifacts
+        .iter()
+        .any(|id| id == "runtime_policy"));
+    assert!(response.unsafe_artifacts.iter().any(|id| id == "run_failure"));
     Ok(())
 }

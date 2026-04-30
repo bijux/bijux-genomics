@@ -415,6 +415,42 @@ pub struct ReplayExplainResponseV1 {
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for evidence-gap diagnostics.
+///
+/// Stability: v1 (stable).
+pub struct EvidenceGapRequestV1 {
+    pub run_dir: PathBuf,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// One evidence check that failed validation.
+///
+/// Stability: v1 (stable).
+pub struct EvidenceCheckFailureV1 {
+    pub check_id: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Evidence-gap response with missing paths and trust-class caveats.
+///
+/// Stability: v1 (stable).
+pub struct EvidenceGapResponseV1 {
+    pub schema_version: String,
+    pub run_dir: PathBuf,
+    pub verified: bool,
+    pub gap_count: usize,
+    #[serde(default)]
+    pub missing_paths: Vec<String>,
+    #[serde(default)]
+    pub failed_checks: Vec<EvidenceCheckFailureV1>,
+    #[serde(default)]
+    pub advisory_only_artifacts: Vec<String>,
+    #[serde(default)]
+    pub unsafe_artifacts: Vec<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 /// Canonical run-control response.
 ///
 /// Stability: v1 (stable).

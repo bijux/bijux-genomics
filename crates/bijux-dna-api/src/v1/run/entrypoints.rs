@@ -5,5 +5,5 @@ pub use crate::runtime::run::{
     execute_local_vcf_workflow, execute_run, explain_cache_hit_miss, explain_successful_replay,
     operator_health, pause_run, plan, plan_only, policy_audit, query_run_lineage,
     replay_failed_run, replay_manifest, resume_run, run_local_failure_injection, run_pipeline,
-    status, verify_run_bundle, cache_explain, replay_explain, RunMode,
+    status, verify_run_bundle, cache_explain, replay_explain, evidence_gap, RunMode,
 };
