@@ -2,13 +2,15 @@ use super::{
     anyhow, artifact_root_path, json, stable_now_utc_string, write_json_pretty, OpsCommandOutcome,
     PathBuf, Result, Workspace,
 };
-use bijux_dna_db_ref::resolve_reference_bundle_contract;
+use bijux_dna_db_ref::{resolve_reference_bundle_contract, resolve_sex_par_organellar_assets};
 use serde::Serialize;
 
 #[derive(Debug, Clone, Copy)]
 enum ScenarioId {
     CanFam4Reference,
     GrchHumanReference,
+    BacterialReference,
+    OrganellarReference,
 }
 
 impl ScenarioId {
@@ -16,6 +18,8 @@ impl ScenarioId {
         match self {
             Self::CanFam4Reference => "g171_canfam4_reference",
             Self::GrchHumanReference => "g172_grch_human_reference",
+            Self::BacterialReference => "g173_bacterial_reference",
+            Self::OrganellarReference => "g174_organellar_reference",
         }
     }
 
@@ -23,17 +27,26 @@ impl ScenarioId {
         match self {
             Self::CanFam4Reference => "G171",
             Self::GrchHumanReference => "G172",
+            Self::BacterialReference => "G173",
+            Self::OrganellarReference => "G174",
         }
     }
 
     fn all() -> Vec<Self> {
-        vec![Self::CanFam4Reference, Self::GrchHumanReference]
+        vec![
+            Self::CanFam4Reference,
+            Self::GrchHumanReference,
+            Self::BacterialReference,
+            Self::OrganellarReference,
+        ]
     }
 
     fn from_raw(raw: &str) -> Option<Self> {
         match raw {
             "g171_canfam4_reference" | "G171" => Some(Self::CanFam4Reference),
             "g172_grch_human_reference" | "G172" => Some(Self::GrchHumanReference),
+            "g173_bacterial_reference" | "G173" => Some(Self::BacterialReference),
+            "g174_organellar_reference" | "G174" => Some(Self::OrganellarReference),
             _ => None,
         }
     }
@@ -140,6 +153,8 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
     let result = match scenario {
         ScenarioId::CanFam4Reference => scenario_canfam4_reference(),
         ScenarioId::GrchHumanReference => scenario_grch_human_reference(),
+        ScenarioId::BacterialReference => scenario_bacterial_reference(),
+        ScenarioId::OrganellarReference => scenario_organellar_reference(),
     };
 
     match result {
@@ -203,6 +218,62 @@ fn scenario_grch_human_reference() -> Result<(Vec<String>, serde_json::Value)> {
     ))
 }
 
+fn scenario_bacterial_reference() -> Result<(Vec<String>, serde_json::Value)> {
+    let contigs = [
+        json!({ "name": "NC_000913.3", "length_bp": 4641652 }),
+        json!({ "name": "pO157", "length_bp": 92637 }),
+    ];
+    let caveats = vec![
+        "taxonomy_screening_is_advisory".to_string(),
+        "species_assignment_requires_context".to_string(),
+    ];
+    if caveats.iter().all(|caveat| !caveat.contains("advisory")) {
+        return Err(anyhow!("bacterial scenario must preserve taxonomy caveat semantics"));
+    }
+    Ok((
+        vec![
+            "small microbial reference alignment/QC path represented with explicit plasmid-aware contigs"
+                .to_string(),
+            "taxonomy interpretation remains caveated as advisory".to_string(),
+        ],
+        json!({
+            "species_id": "Escherichia coli",
+            "build_id": "ASM584v2",
+            "contigs": contigs,
+            "read_layout": "PAIRED",
+            "workflow_path": [
+                "fastq.classify_layout",
+                "fastq.validate_reads",
+                "bam.align_reads",
+                "bam.mapping_summary",
+                "fastq.screen_taxonomy"
+            ],
+            "caveats": caveats,
+        }),
+    ))
+}
+
+fn scenario_organellar_reference() -> Result<(Vec<String>, serde_json::Value)> {
+    let report = resolve_sex_par_organellar_assets("Homo sapiens", "GRCh38")?;
+    if report.mitochondrion_id.trim().is_empty() {
+        return Err(anyhow!("organellar scenario requires a declared mitochondrion id"));
+    }
+    Ok((
+        vec![
+            "organellar policy resolved with explicit mitochondrion identity".to_string(),
+            "sex/PAR surface retained for downstream caveat propagation".to_string(),
+        ],
+        json!({
+            "species_id": report.species_id,
+            "build_id": report.build_id,
+            "mitochondrion_id": report.mitochondrion_id,
+            "chloroplast_id": report.chloroplast_id,
+            "par_region_count": report.par_region_count,
+            "supported_sex_chr": report.supported_sex_chr,
+        }),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{run_scenario, ScenarioId};
@@ -210,7 +281,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G171", "G172"]);
+        assert_eq!(ids, vec!["G171", "G172", "G173", "G174"]);
     }
 
     #[test]
@@ -229,6 +300,29 @@ mod tests {
         assert_eq!(
             report.evidence.get("compatibility_checked_tool").and_then(serde_json::Value::as_str),
             Some("glimpse")
+        );
+    }
+
+    #[test]
+    fn bacterial_scenario_keeps_taxonomy_advisory_caveat() {
+        let report = run_scenario(&ScenarioId::BacterialReference);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G173");
+        let caveats =
+            report.evidence.get("caveats").and_then(serde_json::Value::as_array).cloned().unwrap_or_default();
+        assert!(caveats
+            .iter()
+            .any(|entry| entry.as_str() == Some("taxonomy_screening_is_advisory")));
+    }
+
+    #[test]
+    fn organellar_scenario_resolves_mitochondrion_identity() {
+        let report = run_scenario(&ScenarioId::OrganellarReference);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G174");
+        assert_eq!(
+            report.evidence.get("mitochondrion_id").and_then(serde_json::Value::as_str),
+            Some("MT")
         );
     }
 }
