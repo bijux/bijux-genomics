@@ -43,8 +43,10 @@ pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStats
 pub use registry_emit::{param_registry_toml, required_tools_toml};
 pub use run::{
     required_vcf_bench_corpus_scenarios, vcf_bench_corpus_datasets, vcf_bench_corpus_manifest,
-    VcfBenchCorpusDatasetManifestEntryV1, VcfBenchCorpusId, VcfBenchCorpusManifestV1,
-    VcfBenchDataset, VcfBenchScenario, VCF_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION,
+    vcf_example_suite_manifest, VcfBenchCorpusDatasetManifestEntryV1, VcfBenchCorpusId,
+    VcfBenchCorpusManifestV1, VcfBenchDataset, VcfBenchScenario, VcfExampleCaseId,
+    VcfExampleCaseManifestEntryV1, VcfExampleSuiteManifestV1,
+    VCF_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION, VCF_EXAMPLE_SUITE_SCHEMA_VERSION,
 };
 pub use stage_baseline::{
     VcfInvariantsPreset, VcfStage, STAGE_CALL, STAGE_FILTER_READS, STAGE_PREFIX, STAGE_STATS,
