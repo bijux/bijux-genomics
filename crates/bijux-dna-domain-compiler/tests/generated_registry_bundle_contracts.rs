@@ -1,4 +1,6 @@
-use bijux_dna_domain_compiler::{load_domain_registry_bundle, CompiledDomainDefaultsSnapshot};
+use bijux_dna_domain_compiler::{
+    load_domain_registry_bundle, CompiledDomainDefaultsSnapshot, DomainDeprecationCatalog,
+};
 
 #[path = "support/mod.rs"]
 mod support;
@@ -36,6 +38,22 @@ fn generated_defaults_snapshot_carries_governance_metadata() -> anyhow::Result<(
                 })
         }),
         "checked-in defaults snapshot must preserve non-anonymous VCF default governance"
+    );
+    Ok(())
+}
+
+#[test]
+fn generated_deprecations_snapshot_tracks_known_records() -> anyhow::Result<()> {
+    let root = support::repo_root();
+    let raw =
+        std::fs::read_to_string(root.join("configs/ci/registry/domain_deprecations_snapshot.json"))?;
+    let deprecations: Vec<DomainDeprecationCatalog> = serde_json::from_str(&raw)?;
+    assert!(
+        deprecations.iter().any(|domain| {
+            domain.domain_id == "bam"
+                && domain.deprecations.iter().any(|entry| entry.tool_id.as_deref() == Some("bamtools"))
+        }),
+        "checked-in deprecations snapshot must preserve known BAM deprecation records"
     );
     Ok(())
 }

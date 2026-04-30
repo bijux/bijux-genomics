@@ -8,6 +8,7 @@ use super::{
 
 mod catalog_coverage;
 mod catalog_validation;
+mod deprecations;
 mod fixture_consistency;
 mod index_rules;
 mod stage_files;
@@ -18,6 +19,7 @@ use self::catalog_coverage::validate_canonical_stage_coverage;
 use self::catalog_validation::{
     validate_domain_vocabularies, validate_reference_catalogs, DomainVocabularies,
 };
+use self::deprecations::validate_deprecations_contract;
 use self::fixture_consistency::validate_fixture_consistency;
 use self::index_rules::validate_domain_indexes_and_pipelines;
 use self::stage_files::validate_stage_files;
@@ -85,6 +87,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         &tool_metrics_schemas,
     )?;
     validate_fixture_consistency(options, &stage_ids, &tool_ids)?;
+    validate_deprecations_contract(workspace_root, &stage_ids, &tool_ids)?;
 
     println!("domain-validate: OK");
     Ok(())

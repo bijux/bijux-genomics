@@ -176,6 +176,12 @@ pub struct DomainMetricCatalog {
     pub metrics: Vec<DomainMetricEntry>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct DomainDeprecationCatalog {
+    pub domain_id: String,
+    pub deprecations: Vec<RegistryDeprecationRecord>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DomainRegistryQueryKind {
     Domains,
@@ -803,6 +809,19 @@ pub fn domain_metric_catalogs(bundle: &DomainRegistryReleaseBundle) -> Vec<Domai
         .collect()
 }
 
+pub fn domain_deprecation_catalogs(
+    bundle: &DomainRegistryReleaseBundle,
+) -> Vec<DomainDeprecationCatalog> {
+    bundle
+        .domains
+        .iter()
+        .map(|domain| DomainDeprecationCatalog {
+            domain_id: domain.domain_id.clone(),
+            deprecations: domain.deprecations.clone(),
+        })
+        .collect()
+}
+
 pub fn write_domain_registry_bundle(
     configs_dir: &Path,
     bundle: &DomainRegistryReleaseBundle,
@@ -814,6 +833,7 @@ pub fn write_domain_registry_bundle(
     let defaults_path = registry_dir.join("domain_defaults_snapshot.json");
     let artifacts_path = registry_dir.join("domain_artifact_contract_snapshots.json");
     let metrics_path = registry_dir.join("domain_metric_catalogs.json");
+    let deprecations_path = registry_dir.join("domain_deprecations_snapshot.json");
 
     write_string(
         &release_bundle_path,
@@ -838,8 +858,14 @@ pub fn write_domain_registry_bundle(
             .context("serialize metric catalogs")?,
     )
     .with_context(|| format!("write {}", metrics_path.display()))?;
+    write_string(
+        &deprecations_path,
+        &serde_json::to_string_pretty(&domain_deprecation_catalogs(bundle))
+            .context("serialize deprecation catalogs")?,
+    )
+    .with_context(|| format!("write {}", deprecations_path.display()))?;
 
-    Ok(vec![release_bundle_path, defaults_path, artifacts_path, metrics_path])
+    Ok(vec![release_bundle_path, defaults_path, artifacts_path, metrics_path, deprecations_path])
 }
 
 pub fn load_domain_registry_bundle(path: &Path) -> Result<DomainRegistryReleaseBundle> {
