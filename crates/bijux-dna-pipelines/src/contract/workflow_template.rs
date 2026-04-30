@@ -609,6 +609,64 @@ pub fn plan_fastq_to_bam_ancient_workflow(
     })
 }
 
+pub fn plan_bam_to_vcf_minimal_workflow(
+    template: &CrossWorkflowTemplateV1,
+    sheet: &SampleSheetV1,
+) -> Result<CrossWorkflowExecutionPlanV1> {
+    if template.template_id != "cross.bam_to_vcf_default" {
+        bail!("template {} is not the BAM-to-VCF default workflow", template.template_id);
+    }
+    let required_chain = [
+        id_catalog::CORE_PREPARE_REFERENCE,
+        id_catalog::BAM_VALIDATE,
+        id_catalog::BAM_COVERAGE,
+        id_catalog::BAM_GENOTYPING,
+        id_catalog::VCF_FILTER,
+        id_catalog::VCF_STATS,
+    ];
+    for stage_id in required_chain {
+        if !template.requested_stages.iter().any(|configured| configured == stage_id) {
+            bail!("BAM-to-VCF template is missing required stage {stage_id}");
+        }
+    }
+    let sample_stage_sequence = vec![
+        id_catalog::BAM_VALIDATE.to_string(),
+        id_catalog::BAM_QC_PRE.to_string(),
+        id_catalog::BAM_MAPPING_SUMMARY.to_string(),
+        id_catalog::BAM_COVERAGE.to_string(),
+        id_catalog::BAM_GENOTYPING.to_string(),
+    ];
+    let handoff_sequence = vec![
+        "core.prepare_reference->bam.validate".to_string(),
+        "bam.coverage->bam.genotyping".to_string(),
+        "bam.genotyping->vcf.filter".to_string(),
+        "vcf.filter->vcf.stats".to_string(),
+    ];
+    let sample_plans = sheet
+        .records
+        .iter()
+        .map(|record| CrossWorkflowSampleExecutionPlanV1 {
+            sample_id: record.sample_id.clone(),
+            stage_sequence: sample_stage_sequence.clone(),
+            handoff_sequence: handoff_sequence.clone(),
+        })
+        .collect::<Vec<_>>();
+
+    Ok(CrossWorkflowExecutionPlanV1 {
+        schema_version: "bijux.cross.workflow_execution_plan.v1".to_string(),
+        template_id: template.template_id.clone(),
+        pipeline_id: template.pipeline_id.clone(),
+        shared_reference_stages: vec![id_catalog::CORE_PREPARE_REFERENCE.to_string()],
+        sample_plans,
+        cohort_stages: vec![id_catalog::VCF_FILTER.to_string(), id_catalog::VCF_STATS.to_string()],
+        caveats: vec![
+            "genotyping remains bounded by callable coverage assumptions".to_string(),
+            "vcf.filter is expected to retain normalized output semantics before vcf.stats"
+                .to_string(),
+        ],
+    })
+}
+
 #[must_use]
 pub fn build_batch_workflow_graph(
     template: &CrossWorkflowTemplateV1,
