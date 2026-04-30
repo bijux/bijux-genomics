@@ -6,13 +6,18 @@ mod contracts {
             validate_entry_vcf_invariants, validate_panel_map_invariants,
             validate_reference_panel_governance, validate_species_context,
             validate_vcf_invariants, vcf_calling_mode_contracts, vcf_panel_boundary_contracts,
-            vcf_population_guardrail_contracts, ContigSpec,
+            vcf_cohort_analysis_boundary_contracts, vcf_likelihood_workflow_contracts,
+            vcf_phasing_imputation_boundary_contracts, vcf_population_guardrail_contracts,
+            ContigSpec,
             DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy, EntryVcfInvariantState,
             PanelMapInvariantState, PanelSelectionContext, PanelSelectionPolicy,
             ReferencePanelGovernance, SpeciesContext, VcfArtifactClass, VcfInvariantState,
+            VCF_COHORT_VALIDATION_CONTRACT, VCF_DAMAGE_FILTER_CONTRACT,
             VCF_FILTER_EVIDENCE_CONTRACT, VCF_NORMALIZATION_CONTRACT,
-            VCF_REFERENCE_CONTEXT_CONTRACT, VCF_STATS_REPORT_CONTRACT,
-            VCF_VALIDATION_CONTRACT, DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE,
+            VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT, VCF_PRODUCTION_CORPUS_CONTRACT,
+            VCF_REFERENCE_CONTEXT_CONTRACT, VCF_REPORT_COVERAGE_CONTRACT,
+            VCF_SCIENTIFIC_DRIFT_CONTRACT, VCF_STATS_REPORT_CONTRACT, VCF_VALIDATION_CONTRACT,
+            DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE,
         },
         coverage::domain_coverage_report,
         param_registry_toml, required_tools_toml, validate_downstream_transition, CoverageRegime,
@@ -121,10 +126,39 @@ mod contracts {
                 .declared_behaviors
                 .contains(&"multiallelic_decomposition")
         );
+        assert!(VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT.policy_rows.iter().any(|row| {
+            row.policy_id == "lowcov_gl_production"
+                && row.split_multiallelic
+                && row.duplicate_handling == "retain_likelihood_safe_records_only"
+        }));
+        assert!(
+            VCF_COHORT_VALIDATION_CONTRACT
+                .checked_before_analysis
+                .contains(&"sex_and_ploidy_assumptions")
+        );
+        assert!(
+            VCF_DAMAGE_FILTER_CONTRACT
+                .declared_actions
+                .contains(&"annotate_damage_risk")
+        );
         assert!(
             VCF_STATS_REPORT_CONTRACT
                 .stable_metric_ids
                 .contains(&"annotation_coverage")
+        );
+        assert!(
+            VCF_REPORT_COVERAGE_CONTRACT
+                .per_sample_sections
+                .contains(&"missingness_by_sample")
+        );
+        assert!(VCF_PRODUCTION_CORPUS_CONTRACT.covered_cases.iter().any(|case| {
+            case.case_id == "panel_mismatch"
+                && case.expectation.contains("refuse")
+        }));
+        assert!(
+            VCF_SCIENTIFIC_DRIFT_CONTRACT
+                .tracked_change_surfaces
+                .contains(&"imputation_backend")
         );
     }
 
@@ -169,6 +203,32 @@ mod contracts {
         assert!(population.iter().any(|contract| {
             contract.stage == VcfDomainStage::Demography
                 && contract.report_caveats.contains(&"demography_estimates_are_model_based")
+        }));
+
+        let phasing = vcf_phasing_imputation_boundary_contracts();
+        assert!(phasing.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Phasing
+                && contract.required_outputs.contains(&"switch_error_proxy")
+        }));
+        assert!(phasing.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Impute
+                && contract.accepted_tools.contains(&"glimpse")
+        }));
+
+        let likelihood = vcf_likelihood_workflow_contracts();
+        assert!(likelihood.iter().any(|contract| {
+            contract.stage == VcfDomainStage::CallGl
+                && contract.accepted_tools.contains(&"angsd")
+        }));
+        assert!(likelihood.iter().any(|contract| {
+            contract.stage == VcfDomainStage::CallPseudohaploid
+                && contract.output_caveats.contains(&"pseudo_haploid_calls_are_not_diploid_genotypes")
+        }));
+
+        let cohort = vcf_cohort_analysis_boundary_contracts();
+        assert!(cohort.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Ibd
+                && contract.minimum_cohort_requirement == "at_least_two_samples"
         }));
     }
 
