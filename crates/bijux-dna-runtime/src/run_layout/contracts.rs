@@ -1,5 +1,5 @@
 use std::fmt::Write as _;
-use std::path::PathBuf;
+use std::path::{Component, Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
@@ -657,6 +657,231 @@ pub struct RunControlStateV1 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueueRestoreDecisionV1 {
+    pub restored_state: RunQueueStateV1,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub resumed_stage_ids: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub blocked_stage_ids: Vec<String>,
+    pub deduplicated_dispatch: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub notes: Vec<String>,
+}
+
+#[must_use]
+pub fn restore_queue_state_for_resume(
+    queue_state: &RunQueueStateV1,
+    checkpoint: &RunCheckpointV1,
+) -> QueueRestoreDecisionV1 {
+    let completed =
+        checkpoint.completed_stage_ids.iter().cloned().collect::<std::collections::BTreeSet<_>>();
+    let resumed_stage_ids = checkpoint
+        .pending_stage_ids
+        .iter()
+        .filter(|stage| !completed.contains(*stage))
+        .cloned()
+        .collect::<Vec<_>>();
+    let blocked_stage_ids = checkpoint
+        .pending_stage_ids
+        .iter()
+        .filter(|stage| completed.contains(*stage))
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let mut restored_state = queue_state.clone();
+    let mut deduplicated_dispatch = false;
+    let mut notes = Vec::new();
+
+    if let Some(active_step_id) = restored_state.active_step_id.clone() {
+        if completed.contains(&active_step_id) {
+            restored_state.active_step_id = None;
+            deduplicated_dispatch = true;
+            notes.push(format!(
+                "active step {active_step_id} already completed in checkpoint and was cleared"
+            ));
+        }
+    }
+    if restored_state.state == RunQueueLifecycleStateV1::Running
+        && restored_state.active_step_id.is_none()
+    {
+        restored_state.state = RunQueueLifecycleStateV1::Queued;
+        notes.push("restored running queue without active step; downgraded to queued".to_string());
+    }
+    if resumed_stage_ids.is_empty() && checkpoint.next_stage_id.is_none() {
+        notes.push("checkpoint reports no pending stages for resume dispatch".to_string());
+    }
+
+    QueueRestoreDecisionV1 {
+        restored_state,
+        resumed_stage_ids,
+        blocked_stage_ids,
+        deduplicated_dispatch,
+        notes,
+    }
+}
+
+pub fn apply_control_action_idempotent(
+    control_state: &mut RunControlStateV1,
+    queue_state: &mut RunQueueStateV1,
+    action: RunControlActionV1,
+    occurred_at: &str,
+    detail: Option<String>,
+) -> bool {
+    let before = queue_state.state;
+    let mut transition_note = detail.unwrap_or_default();
+
+    let next_state = match action {
+        RunControlActionV1::Pause => match queue_state.state {
+            RunQueueLifecycleStateV1::Queued | RunQueueLifecycleStateV1::Running => {
+                Some(RunQueueLifecycleStateV1::Paused)
+            }
+            _ => None,
+        },
+        RunControlActionV1::Resume => match queue_state.state {
+            RunQueueLifecycleStateV1::Paused => {
+                if queue_state.active_step_id.is_some() {
+                    Some(RunQueueLifecycleStateV1::Running)
+                } else {
+                    Some(RunQueueLifecycleStateV1::Queued)
+                }
+            }
+            _ => None,
+        },
+        RunControlActionV1::Cancel => match queue_state.state {
+            RunQueueLifecycleStateV1::Succeeded
+            | RunQueueLifecycleStateV1::Failed
+            | RunQueueLifecycleStateV1::Cancelled => None,
+            _ => Some(RunQueueLifecycleStateV1::Cancelled),
+        },
+    };
+
+    let changed = if let Some(state) = next_state {
+        if state != queue_state.state {
+            queue_state.transitions.push(RunQueueTransitionV1 {
+                from_state: Some(queue_state.state),
+                to_state: state,
+                occurred_at: occurred_at.to_string(),
+                detail: if transition_note.is_empty() {
+                    Some(format!("control action {action} applied"))
+                } else {
+                    Some(transition_note.clone())
+                },
+            });
+            queue_state.state = state;
+            true
+        } else {
+            false
+        }
+    } else {
+        false
+    };
+
+    if !changed && transition_note.is_empty() {
+        transition_note =
+            format!("control action {action} was idempotent for {}", queue_state.state);
+    }
+    control_state.requested_action = Some(action);
+    control_state.observed_state = queue_state.state;
+    control_state.updated_at = occurred_at.to_string();
+    control_state.audit_log.push(RunControlAuditEntryV1 {
+        requested_action: action,
+        observed_state: queue_state.state,
+        occurred_at: occurred_at.to_string(),
+        detail: Some(if transition_note.is_empty() {
+            format!("state remained {}", before)
+        } else {
+            transition_note
+        }),
+    });
+
+    changed
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorageIsolationReportV1 {
+    pub valid: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub refusal_codes: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub checked_paths: Vec<String>,
+}
+
+#[must_use]
+pub fn validate_run_layout_storage_isolation(
+    layout: &RunLayout,
+    workspace_root: &Path,
+) -> StorageIsolationReportV1 {
+    let mut refusal_codes = Vec::new();
+    let mut checked_paths = Vec::new();
+
+    fn register_storage_path(
+        path: &Path,
+        symlink_scope: &Path,
+        checked_paths: &mut Vec<String>,
+        refusal_codes: &mut Vec<String>,
+    ) {
+        checked_paths.push(path.display().to_string());
+        if path.components().any(|component| component == Component::ParentDir) {
+            refusal_codes.push("path_traversal_component_detected".to_string());
+        }
+        if has_symlink_ancestor_within(path, symlink_scope) {
+            refusal_codes.push("symlink_ancestor_detected".to_string());
+        }
+    }
+
+    register_storage_path(&layout.run_dir, workspace_root, &mut checked_paths, &mut refusal_codes);
+    if !layout.run_dir.starts_with(workspace_root) {
+        refusal_codes.push("run_dir_outside_workspace_root".to_string());
+    }
+
+    for path in [
+        &layout.stages_dir,
+        &layout.manifests_dir,
+        &layout.logs_dir,
+        &layout.reports_dir,
+        &layout.summary_dir,
+        &layout.run_artifacts_dir,
+        &layout.checkpoints_dir,
+        &layout.assessment_path,
+        &layout.graph_path,
+        &layout.plan_manifest_path,
+        &layout.manifest_path,
+        &layout.environment_path,
+        &layout.metadata_path,
+        &layout.events_path,
+        &layout.run_state_path,
+        &layout.runtime_policy_path,
+        &layout.executor_descriptor_path,
+        &layout.backend_descriptor_path,
+        &layout.scheduling_decision_path,
+        &layout.queue_state_path,
+        &layout.lease_path,
+        &layout.control_state_path,
+        &layout.health_report_path,
+        &layout.slurm_submission_path,
+        &layout.checkpoint_path,
+        &layout.failure_path,
+        &layout.run_summary_path,
+        &layout.run_summary_text_path,
+        &layout.artifact_inventory_path,
+        &layout.artifact_inventory_text_path,
+        &layout.replay_manifest_path,
+        &layout.hash_ledger_path,
+        &layout.evidence_verification_path,
+        &layout.evidence_bundle_path,
+    ] {
+        register_storage_path(path, &layout.run_dir, &mut checked_paths, &mut refusal_codes);
+        if !path.starts_with(&layout.run_dir) {
+            refusal_codes.push("layout_path_outside_run_dir".to_string());
+        }
+    }
+
+    refusal_codes.sort_unstable();
+    refusal_codes.dedup();
+    StorageIsolationReportV1 { valid: refusal_codes.is_empty(), refusal_codes, checked_paths }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct OperatorHealthCheckV1 {
     pub check_id: String,
     pub ok: bool,
@@ -1262,6 +1487,27 @@ pub fn read_supported_artifact_inventory(
     })?;
     let value: serde_json::Value = serde_json::from_str(&raw)?;
     migrate_artifact_inventory_value(&value)
+}
+
+fn has_symlink_ancestor_within(path: &Path, root: &Path) -> bool {
+    let mut current = Some(path);
+    while let Some(candidate) = current {
+        if !candidate.starts_with(root) {
+            break;
+        }
+        if candidate.exists() {
+            if let Ok(metadata) = std::fs::symlink_metadata(candidate) {
+                if metadata.file_type().is_symlink() {
+                    return true;
+                }
+            }
+        }
+        if candidate == root {
+            break;
+        }
+        current = candidate.parent();
+    }
+    false
 }
 
 fn sha256_hex(digest: impl AsRef<[u8]>) -> String {

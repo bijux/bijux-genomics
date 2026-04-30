@@ -1,11 +1,14 @@
 use std::path::PathBuf;
 
 use bijux_dna_runtime::run_layout::{
-    admit_runtime_resources, apptainer_smoke_workflow_plan, create_run_layout,
-    docker_smoke_workflow_plan, evaluate_fallback_safety, executor_descriptor_from_hpc_profile,
-    lunarc_execution_profile, negotiate_executor_capabilities, transition_slurm_submission,
-    ExecutorCapabilitiesV1, FallbackSafetyRequestV1, RunExecutionModeV1, RunResourceRequestV1,
-    RuntimeResourceLimitsV1, SlurmJobStateV1, SlurmSubmissionRecordV1, StageExecutionRequirementV1,
+    admit_runtime_resources, apply_control_action_idempotent, apptainer_smoke_workflow_plan,
+    create_run_layout, docker_smoke_workflow_plan, evaluate_fallback_safety,
+    executor_descriptor_from_hpc_profile, lunarc_execution_profile,
+    negotiate_executor_capabilities, restore_queue_state_for_resume, transition_slurm_submission,
+    validate_run_layout_storage_isolation, ExecutorCapabilitiesV1, FallbackSafetyRequestV1,
+    RunCheckpointV1, RunControlActionV1, RunControlStateV1, RunExecutionModeV1,
+    RunQueueLifecycleStateV1, RunQueueStateV1, RunResourceRequestV1, RuntimeResourceLimitsV1,
+    SlurmJobStateV1, SlurmSubmissionRecordV1, StageExecutionRequirementV1,
 };
 
 #[test]
@@ -252,4 +255,97 @@ fn runtime_resource_admission_warns_or_refuses_before_execution() {
     assert!(denied.refusal_codes.iter().any(|item| item == "cpu_threads_exceed_limit"));
     assert!(denied.refusal_codes.iter().any(|item| item == "io_intensity_not_allowed"));
     assert!(denied.warnings.iter().any(|item| item == "container_runtime_unspecified"));
+}
+
+#[test]
+fn queue_restore_persists_resume_state_without_duplicate_dispatch() {
+    let queue_state = RunQueueStateV1 {
+        schema_version: "bijux.run_queue_state.v1".to_string(),
+        run_id: "run-138".to_string(),
+        dedup_key: "sha256:graph".to_string(),
+        state: RunQueueLifecycleStateV1::Running,
+        transitions: Vec::new(),
+        active_step_id: Some("fastq.trim_reads".to_string()),
+    };
+    let checkpoint = RunCheckpointV1 {
+        schema_version: "bijux.run_checkpoint.v1".to_string(),
+        run_id: "run-138".to_string(),
+        mode: RunExecutionModeV1::Enforced,
+        updated_at: "2026-04-30T11:00:00Z".to_string(),
+        completed_stage_ids: vec!["fastq.trim_reads".to_string()],
+        pending_stage_ids: vec!["fastq.trim_reads".to_string(), "fastq.filter_reads".to_string()],
+        next_stage_id: Some("fastq.filter_reads".to_string()),
+    };
+
+    let restored = restore_queue_state_for_resume(&queue_state, &checkpoint);
+    assert!(restored.deduplicated_dispatch);
+    assert_eq!(restored.restored_state.active_step_id, None);
+    assert_eq!(restored.restored_state.state, RunQueueLifecycleStateV1::Queued);
+    assert_eq!(restored.resumed_stage_ids, vec!["fastq.filter_reads".to_string()]);
+    assert_eq!(restored.blocked_stage_ids, vec!["fastq.trim_reads".to_string()]);
+}
+
+#[test]
+fn pause_resume_cancel_controls_are_idempotent_and_audited() {
+    let mut queue_state = RunQueueStateV1 {
+        schema_version: "bijux.run_queue_state.v1".to_string(),
+        run_id: "run-139".to_string(),
+        dedup_key: "sha256:graph".to_string(),
+        state: RunQueueLifecycleStateV1::Running,
+        transitions: Vec::new(),
+        active_step_id: Some("bam.align".to_string()),
+    };
+    let mut control_state = RunControlStateV1 {
+        schema_version: "bijux.run_control.v1".to_string(),
+        run_id: "run-139".to_string(),
+        requested_action: None,
+        observed_state: RunQueueLifecycleStateV1::Running,
+        updated_at: "2026-04-30T12:00:00Z".to_string(),
+        audit_log: Vec::new(),
+    };
+
+    let changed = apply_control_action_idempotent(
+        &mut control_state,
+        &mut queue_state,
+        RunControlActionV1::Pause,
+        "2026-04-30T12:01:00Z",
+        Some("pause for operator inspection".to_string()),
+    );
+    assert!(changed);
+    assert_eq!(queue_state.state, RunQueueLifecycleStateV1::Paused);
+
+    let changed_again = apply_control_action_idempotent(
+        &mut control_state,
+        &mut queue_state,
+        RunControlActionV1::Pause,
+        "2026-04-30T12:02:00Z",
+        None,
+    );
+    assert!(!changed_again);
+
+    let cancelled = apply_control_action_idempotent(
+        &mut control_state,
+        &mut queue_state,
+        RunControlActionV1::Cancel,
+        "2026-04-30T12:03:00Z",
+        Some("operator cancelled".to_string()),
+    );
+    assert!(cancelled);
+    assert_eq!(queue_state.state, RunQueueLifecycleStateV1::Cancelled);
+    assert!(control_state.audit_log.len() >= 3);
+}
+
+#[test]
+fn storage_isolation_rejects_paths_outside_run_root_or_workspace() {
+    let temp = bijux_dna_testkit::tempdir_for("run-layout-isolation");
+    let root = temp.path().to_path_buf();
+    let (_, mut layout) = create_run_layout(&root).expect("create run layout");
+
+    let valid = validate_run_layout_storage_isolation(&layout, &root);
+    assert!(valid.valid, "fresh run layout should be isolated");
+
+    layout.run_summary_path = root.join("outside_summary.json");
+    let invalid = validate_run_layout_storage_isolation(&layout, &root);
+    assert!(!invalid.valid);
+    assert!(invalid.refusal_codes.iter().any(|item| item == "layout_path_outside_run_dir"));
 }
