@@ -29,6 +29,7 @@ pub(super) fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> 
             "vcf.postprocess" => &[
                 "postprocess.vcf.gz",
                 "postprocess.vcf.gz.tbi",
+                "normalization_contract.json",
                 "validate_outputs.json",
                 "final_manifest.json",
             ],
