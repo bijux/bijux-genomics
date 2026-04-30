@@ -172,6 +172,16 @@ pub struct WorkflowBatchGraphV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct BatchFanSemanticsReportV1 {
+    pub schema_version: String,
+    pub template_id: String,
+    pub valid: bool,
+    pub refusal_codes: Vec<String>,
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct WorkflowTemplateAdmissionCheckV1 {
     pub name: String,
     pub passed: bool,
@@ -823,6 +833,66 @@ pub fn build_batch_workflow_graph(
         template_id: template.template_id.clone(),
         nodes,
         edges,
+    }
+}
+
+#[must_use]
+pub fn evaluate_batch_fan_semantics(
+    template: &CrossWorkflowTemplateV1,
+    graph: &WorkflowBatchGraphV1,
+) -> BatchFanSemanticsReportV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    let mut notes = Vec::<String>::new();
+
+    let mut target_scope_counts = BTreeMap::<(String, String), usize>::new();
+    for edge in &graph.edges {
+        let key = (edge.to.clone(), edge.artifact_scope.clone());
+        *target_scope_counts.entry(key).or_default() += 1;
+        if matches!(edge.fan_pattern, FanPatternV1::FanOut)
+            && !edge.lineage_fields.iter().any(|field| field == "sample_id")
+        {
+            refusal_codes.push("fanout_missing_sample_lineage".to_string());
+            notes.push(format!(
+                "fan-out edge {} -> {} must include sample_id lineage",
+                edge.from, edge.to
+            ));
+        }
+    }
+    for ((to, artifact_scope), count) in target_scope_counts {
+        if count > 1 && !to.starts_with("cohort::") {
+            refusal_codes.push("non_cohort_fanin_overwrite_risk".to_string());
+            notes.push(format!(
+                "target {} receives {} {} edges and may overwrite per-sample outputs",
+                to, count, artifact_scope
+            ));
+        }
+    }
+    for rule in &template.fan_artifact_rules {
+        let has_match = graph.edges.iter().any(|edge| {
+            edge.from.ends_with(&rule.source_stage)
+                && edge.to.ends_with(&rule.target_stage)
+                && edge.fan_pattern == rule.fan_pattern
+                && edge.artifact_scope == rule.artifact_scope
+        });
+        if !has_match {
+            refusal_codes.push("missing_fan_rule_coverage".to_string());
+            notes.push(format!(
+                "missing graph coverage for fan rule {} -> {}",
+                rule.source_stage, rule.target_stage
+            ));
+        }
+    }
+
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    notes.sort();
+    notes.dedup();
+    BatchFanSemanticsReportV1 {
+        schema_version: "bijux.cross.batch_fan_semantics.v1".to_string(),
+        template_id: template.template_id.clone(),
+        valid: refusal_codes.is_empty(),
+        refusal_codes,
+        notes,
     }
 }
 

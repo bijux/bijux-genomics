@@ -10,8 +10,8 @@ use bijux_dna_pipelines::cross::{
     cross_workflow_template_by_id, cross_workflow_templates_for_pipeline,
 };
 use bijux_dna_pipelines::{
-    build_batch_workflow_graph, evaluate_template_admission, parse_sample_sheet,
-    plan_bam_to_vcf_minimal_workflow, plan_fastq_to_bam_ancient_workflow,
+    build_batch_workflow_graph, evaluate_batch_fan_semantics, evaluate_template_admission,
+    parse_sample_sheet, plan_bam_to_vcf_minimal_workflow, plan_fastq_to_bam_ancient_workflow,
     plan_fastq_to_bam_modern_workflow, plan_fastq_to_vcf_minimal_workflow,
     sample_sheet_to_workflow_manifests, summarize_cross_domain_evidence,
     validate_sample_sheet_preflight, validate_template_overrides,
@@ -305,5 +305,28 @@ fn fastq_to_vcf_minimal_plan_connects_read_to_variant_evidence_path() -> Result<
         ]
     );
     assert!(plan.caveats.iter().any(|value| value.contains("tiny-fixture proof")));
+    Ok(())
+}
+
+#[test]
+fn batch_fan_semantics_report_flags_overwrite_risk() -> Result<()> {
+    let template = cross_workflow_template_by_id("cross.fastq_to_vcf_minimal")
+        .expect("cross template must exist");
+    let sheet = parse_sample_sheet(
+        &template.template_id,
+        "run_id,batch_id,sample_id,library_id,lane_id,layout_mode,reference_id,workflow_mode,r1,r2,expected_outputs\nRUN51,BATCH_F,S51,LIB51,L001,paired_end,GRCh38,minimal,reads/S51_R1.fastq.gz,reads/S51_R2.fastq.gz,bam;vcf\nRUN52,BATCH_F,S52,LIB52,L002,paired_end,GRCh38,minimal,reads/S52_R1.fastq.gz,reads/S52_R2.fastq.gz,bam;vcf",
+    )?;
+    let mut graph = build_batch_workflow_graph(&template, &sheet);
+    graph.edges.push(bijux_dna_pipelines::WorkflowBatchEdgeV1 {
+        from: "sample::S51::bam.genotyping".to_string(),
+        to: "sample::S52::bam.genotyping".to_string(),
+        fan_pattern: bijux_dna_pipelines::FanPatternV1::FanIn,
+        artifact_scope: "sample_artifact".to_string(),
+        lineage_fields: vec!["reference_id".to_string()],
+    });
+    let report = evaluate_batch_fan_semantics(&template, &graph);
+
+    assert!(!report.valid);
+    assert!(report.refusal_codes.contains(&"non_cohort_fanin_overwrite_risk".to_string()));
     Ok(())
 }
