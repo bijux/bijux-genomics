@@ -2285,6 +2285,10 @@ fn planner_uses_typed_extract_umis_params_from_stage_binding() -> anyhow::Result
             params: Some(FastqStageParameters::ExtractUmis(ExtractUmisStageParams {
                 threads: Some(5),
                 umi_pattern: Some("NNNNCCCC".to_string()),
+                extraction_location: None,
+                read_name_transform: None,
+                failed_extraction_policy: None,
+                downstream_propagation: None,
             })),
         }],
         stage_toolsets: Vec::new(),

@@ -83,6 +83,9 @@ pub fn load_domain_tool_registry(workspace_root: &Path) -> Result<ToolRegistry> 
                     metrics_parser: tool.metrics_parser.clone(),
                     constraints: tool.constraints.clone().unwrap_or_default(),
                     execution_contract: tool.execution_contract.clone().unwrap_or_default(),
+                    supported_modes: Vec::new(),
+                    backend_version_policy: Default::default(),
+                    capability_contract: Default::default(),
                 });
             }
         }
