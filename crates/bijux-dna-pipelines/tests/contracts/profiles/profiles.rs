@@ -18,7 +18,9 @@ use bijux_dna_pipelines::fastq::{
     fastq_reference_adna_profile, fastq_rrna_depletion_profile, fastq_trim_qc_profile,
     fastq_umi_profile, fastq_workflow_templates,
 };
-use bijux_dna_pipelines::vcf::vcf_reference_basic_profile;
+use bijux_dna_pipelines::vcf::{
+    vcf_minimal_profile, vcf_reference_basic_profile, vcf_workflow_templates,
+};
 use bijux_dna_testkit::snapshot_name;
 use insta::assert_json_snapshot;
 
@@ -307,6 +309,22 @@ fn bam_workflow_templates_snapshot() {
 }
 
 #[test]
+fn vcf_workflow_templates_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "vcf_workflow_templates");
+    let json = serde_json::to_value(vcf_workflow_templates()).expect("serialize templates");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
+fn vcf_minimal_profile_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "vcf_minimal_profile");
+    let json = serde_json::to_value(vcf_minimal_profile()).expect("serialize profile");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
 fn vcf_reference_basic_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "vcf_reference_basic_profile");
@@ -525,5 +543,29 @@ fn bam_iteration_12_template_links_cover_production_surfaces() {
     assert_eq!(
         bam_reference_adna_profile().capabilities.workflow_template_ids,
         vec!["bam.contamination_method_comparison_report".to_string()],
+    );
+}
+
+#[test]
+fn vcf_iteration_13_template_links_cover_production_surfaces() {
+    assert_eq!(
+        vcf_minimal_profile().capabilities.workflow_template_ids,
+        vec![
+            "vcf.low_pass_gl_readiness".to_string(),
+            "vcf.imputation_simulation".to_string(),
+            "vcf.demography_boundary_refusal".to_string(),
+            "vcf.semantic_diff_report".to_string(),
+            "vcf.large_file_performance_profile".to_string(),
+        ],
+    );
+    assert_eq!(
+        vcf_reference_basic_profile().capabilities.workflow_template_ids,
+        vec![
+            "vcf.validation_normalization_qc".to_string(),
+            "vcf.cohort_qc_review".to_string(),
+            "vcf.population_structure_guardrail".to_string(),
+            "vcf.roh_ibd_boundary".to_string(),
+            "vcf.annotation_provenance_workflow".to_string(),
+        ],
     );
 }
