@@ -16,6 +16,19 @@
 - `RunRecordV1`
 - `RunProvenanceV1`
 
+## Executor Governance Surfaces
+Runtime exposes governed contracts for execution backends and operator controls so local, container, and HPC behavior can be inspected and validated consistently.
+
+Core surfaces:
+- Smoke workflow plans and validation for Docker/Apptainer runners.
+- Slurm submission records, lifecycle transitions, and mocked submission builders.
+- Site-isolated HPC profile selection (`lunarc`) decoupled from cluster-local secrets or account facts.
+- Executor capability negotiation and semantic-safe fallback decisions.
+- Runtime resource admission and scheduling decision assembly.
+- Queue restore decisions with duplicate-dispatch prevention.
+- Idempotent pause/resume/cancel control actions with append-only audit records.
+- Run-layout storage isolation checks for traversal and out-of-root paths.
+
 See `ARTIFACTS.md` for the full file inventory under a run layout.
 
 ## Telemetry Contract
