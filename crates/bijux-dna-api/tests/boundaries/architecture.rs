@@ -50,7 +50,7 @@ fn assert_root_tree(root: &std::path::Path) {
     );
     assert_dir_entries(
         &root.join("src/surface"),
-        &["explain.rs", "mod.rs", "request_contracts.rs"],
+        &["explain.rs", "mod.rs", "request_contracts.rs", "versioning.rs"],
         "api surface tree must stay focused on stable contracts",
     );
 }
@@ -205,6 +205,7 @@ fn assert_v1_tree(root: &std::path::Path) {
             "operator_failure.rs",
             "request_contracts.rs",
             "runtime_support.rs",
+            "stage_assets.rs",
         ],
         "api v1 run tree must separate failure contracts from runtime entrypoints",
     );
@@ -255,9 +256,14 @@ fn assert_test_tree(root: &std::path::Path) {
             "fastq_amplicon_governance_contract.rs",
             "v1_cross_contract_spine.rs",
             "v1_cross_explain_roundtrip.rs",
+            "v1_cross_profile_contracts.rs",
             "v1_cross_public_contract.rs",
             "v1_dry_run_manifest.rs",
             "v1_fastq_small_integration.rs",
+            "v1_plan_manifest_contract.rs",
+            "v1_report_evidence.rs",
+            "v1_route_adapter_contract.rs",
+            "v1_status_evidence.rs",
         ],
         "api contract tests must stay split by public v1 behavior",
     );
@@ -269,6 +275,7 @@ fn assert_test_tree(root: &std::path::Path) {
             "v1_cross_docs_schema_snapshots.rs",
             "v1_cross_public_surface.rs",
             "v1_operator_failure_contract.rs",
+            "v1_route_version_inventory.rs",
         ],
         "api schema tests must stay split by stable schema surface",
     );

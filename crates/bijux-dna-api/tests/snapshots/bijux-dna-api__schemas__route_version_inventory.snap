@@ -24,6 +24,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "response_struct": "DryRunResponse",
       "route_id": "v1.dry_run",
       "writes_schema_families": [
+        "run_backend",
+        "run_scheduling_decision",
+        "run_queue_state",
+        "run_lease",
+        "run_control",
+        "operator_health",
         "run_state",
         "artifact_inventory",
         "evidence_bundle",
@@ -38,6 +44,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "response_struct": "ExecuteResponse",
       "route_id": "v1.execute",
       "writes_schema_families": [
+        "run_backend",
+        "run_scheduling_decision",
+        "run_queue_state",
+        "run_lease",
+        "run_control",
+        "operator_health",
+        "slurm_submission",
         "run_state",
         "run_failure",
         "artifact_inventory",
@@ -48,6 +61,13 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     {
       "reads_schema_families": [
+        "run_backend",
+        "run_scheduling_decision",
+        "run_queue_state",
+        "run_lease",
+        "run_control",
+        "operator_health",
+        "slurm_submission",
         "run_state",
         "run_failure",
         "artifact_inventory",
@@ -56,6 +76,51 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       ],
       "response_struct": "RunStatus",
       "route_id": "v1.status"
+    },
+    {
+      "reads_schema_families": [
+        "run_control",
+        "run_queue_state"
+      ],
+      "response_struct": "RunControlResponse",
+      "route_id": "v1.pause_run",
+      "writes_schema_families": [
+        "run_control"
+      ]
+    },
+    {
+      "reads_schema_families": [
+        "run_control",
+        "run_queue_state"
+      ],
+      "response_struct": "RunControlResponse",
+      "route_id": "v1.resume_run",
+      "writes_schema_families": [
+        "run_control"
+      ]
+    },
+    {
+      "reads_schema_families": [
+        "run_control",
+        "run_queue_state"
+      ],
+      "response_struct": "RunControlResponse",
+      "route_id": "v1.cancel_run",
+      "writes_schema_families": [
+        "run_control"
+      ]
+    },
+    {
+      "reads_schema_families": [
+        "run_backend",
+        "run_scheduling_decision",
+        "run_state"
+      ],
+      "response_struct": "OperatorHealthResponse",
+      "route_id": "v1.operator_health",
+      "writes_schema_families": [
+        "operator_health"
+      ]
     }
   ],
   "schema_version": "bijux.api_route_inventory.v1"

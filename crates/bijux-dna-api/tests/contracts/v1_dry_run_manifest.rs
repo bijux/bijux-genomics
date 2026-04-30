@@ -3,7 +3,8 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::run::{
-    dry_run, execute, replay_manifest, DryRunRequest, ExecuteRequest, RuntimeKind,
+    cancel_run, dry_run, execute, operator_health, pause_run, replay_manifest, resume_run,
+    DryRunRequest, ExecuteRequest, RuntimeKind,
 };
 use bijux_dna_core::contract::{ExecutionGraph, ExecutionStep, PlanPolicy};
 use bijux_dna_core::ids::{ArtifactId, StageId, StepId};
@@ -71,6 +72,12 @@ fn dry_run_emits_manifest_and_graph_without_execution() -> Result<()> {
     assert!(response.manifest_path.exists());
     assert!(response.run_summary_path.exists());
     assert!(response.run_summary_text_path.exists());
+    assert!(response.backend_descriptor_path.exists());
+    assert!(response.scheduling_decision_path.exists());
+    assert!(response.queue_state_path.exists());
+    assert!(response.lease_path.exists());
+    assert!(response.control_state_path.exists());
+    assert!(response.health_report_path.exists());
     assert!(response.evidence_bundle_path.exists());
     assert!(response.evidence_verification_path.exists());
     assert!(response.artifact_inventory_path.exists());
@@ -167,6 +174,12 @@ fn execute_simulation_writes_governed_runtime_contracts_without_process_executio
     assert!(response.run_state_path.exists());
     assert!(response.runtime_policy_path.exists());
     assert!(response.executor_descriptor_path.exists());
+    assert!(response.backend_descriptor_path.exists());
+    assert!(response.scheduling_decision_path.exists());
+    assert!(response.queue_state_path.exists());
+    assert!(response.lease_path.exists());
+    assert!(response.control_state_path.exists());
+    assert!(response.health_report_path.exists());
     assert!(response.checkpoint_path.exists());
     assert!(response.artifact_inventory_path.exists());
     assert!(response.hash_ledger_path.exists());
@@ -263,6 +276,61 @@ fn replay_manifest_reuses_local_runner_descriptor() -> Result<()> {
 
     assert!(temp.path().join("validated.fastq").exists());
     assert!(run_dir.join("executor_descriptor.json").exists());
+    Ok(())
+}
+
+#[test]
+fn run_control_commands_write_auditable_control_state() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let graph = minimal_graph(temp.path())?;
+    let response = execute(&ExecuteRequest {
+        graph,
+        runner: RuntimeKind::Local,
+        run_dir: temp.path().to_path_buf(),
+        mode: bijux_dna_runtime::run_layout::RunExecutionModeV1::Simulation,
+    })?;
+    let run_dir = response
+        .manifest_path
+        .parent()
+        .ok_or_else(|| anyhow!("manifest path missing parent directory"))?;
+
+    let paused = pause_run(run_dir)?;
+    assert_eq!(
+        paused.state.requested_action,
+        Some(bijux_dna_runtime::run_layout::RunControlActionV1::Pause)
+    );
+    let resumed = resume_run(run_dir)?;
+    assert_eq!(
+        resumed.state.requested_action,
+        Some(bijux_dna_runtime::run_layout::RunControlActionV1::Resume)
+    );
+    let cancelled = cancel_run(run_dir)?;
+    assert_eq!(
+        cancelled.state.requested_action,
+        Some(bijux_dna_runtime::run_layout::RunControlActionV1::Cancel)
+    );
+    assert!(cancelled.control_state_path.exists());
+    Ok(())
+}
+
+#[test]
+fn operator_health_rewrites_report_from_executor_descriptor() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let graph = minimal_graph(temp.path())?;
+    let response = execute(&ExecuteRequest {
+        graph,
+        runner: RuntimeKind::Local,
+        run_dir: temp.path().to_path_buf(),
+        mode: bijux_dna_runtime::run_layout::RunExecutionModeV1::Simulation,
+    })?;
+    let run_dir = response
+        .manifest_path
+        .parent()
+        .ok_or_else(|| anyhow!("manifest path missing parent directory"))?;
+
+    let health = operator_health(run_dir)?;
+    assert!(health.health_report_path.exists());
+    assert!(health.report.checks.iter().any(|check| check.check_id == "storage"));
     Ok(())
 }
 

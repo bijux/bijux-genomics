@@ -97,7 +97,7 @@ fn dry_run_writes_plan_manifest_artifact() -> Result<()> {
         profile_id: "fastq-to-fastq__default__v1".to_string(),
     };
     let response = dry_run(&request)?;
-    let plan_manifest_path = temp.path().join("plan_manifest.json");
+    let plan_manifest_path = temp.path().join("manifests").join("plan_manifest.json");
     assert!(plan_manifest_path.exists());
     let manifest_json: serde_json::Value =
         serde_json::from_str(&std::fs::read_to_string(&response.manifest_path)?)?;

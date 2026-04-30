@@ -71,6 +71,48 @@ fn status_reads_governed_run_state_and_failure_paths() -> Result<()> {
             "schema_version": "bijux.run_executor_descriptor.v1"
         }),
     )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("backend_descriptor.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_backend.v1"
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("scheduling_decision.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_scheduling_decision.v1"
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("queue_state.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_queue_state.v1"
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("run_lease.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_lease.v1"
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("run_control.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_control.v1"
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("operator_health.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.operator_health.v1"
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("slurm_submission.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.slurm_submission.v1"
+        }),
+    )?;
     std::fs::create_dir_all(temp.path().join("checkpoints"))?;
     bijux_dna_infra::atomic_write_json(
         &temp.path().join("checkpoints/checkpoint.json"),
@@ -134,6 +176,13 @@ fn status_reads_governed_run_state_and_failure_paths() -> Result<()> {
     );
     assert!(snapshot.runtime_policy_path.is_some());
     assert!(snapshot.executor_descriptor_path.is_some());
+    assert!(snapshot.backend_descriptor_path.is_some());
+    assert!(snapshot.scheduling_decision_path.is_some());
+    assert!(snapshot.queue_state_path.is_some());
+    assert!(snapshot.lease_path.is_some());
+    assert!(snapshot.control_state_path.is_some());
+    assert!(snapshot.health_report_path.is_some());
+    assert!(snapshot.slurm_submission_path.is_some());
     assert!(snapshot.checkpoint_path.is_some());
     assert!(snapshot.failure_path.is_some());
     assert!(snapshot.artifact_inventory_path.is_some());
