@@ -110,6 +110,8 @@ mod mod_contracts_tooling_error_boundary_policy_rs;
 mod mod_contracts_tooling_examples_cli_command_policy_rs;
 #[path = "contracts/tooling/governance_examples/examples_golden_hygiene_policy.rs"]
 mod mod_contracts_tooling_examples_golden_hygiene_policy_rs;
+#[path = "contracts/tooling/governance_examples/refusal_bundle_policy.rs"]
+mod mod_contracts_tooling_refusal_bundle_policy_rs;
 #[path = "contracts/tooling/governance_core/fixture_privacy_policy.rs"]
 mod mod_contracts_tooling_fixture_privacy_policy_rs;
 #[path = "contracts/tooling/governance_core/policy_layer_split_policy.rs"]
