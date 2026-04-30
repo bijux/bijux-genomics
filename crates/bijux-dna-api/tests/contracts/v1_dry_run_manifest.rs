@@ -147,6 +147,119 @@ fn execute_emits_run_summary_artifact() -> Result<()> {
 }
 
 #[test]
+fn execute_simulation_writes_governed_runtime_contracts_without_process_execution() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let graph = minimal_graph(temp.path())?;
+    let response = execute(&ExecuteRequest {
+        graph,
+        runner: RuntimeKind::Local,
+        run_dir: temp.path().to_path_buf(),
+        mode: bijux_dna_runtime::run_layout::RunExecutionModeV1::Simulation,
+    })?;
+
+    assert_eq!(response.mode, bijux_dna_runtime::run_layout::RunExecutionModeV1::Simulation);
+    assert_eq!(response.state, bijux_dna_runtime::run_layout::RunLifecycleStateV1::Succeeded);
+    assert!(response.run_state_path.exists());
+    assert!(response.runtime_policy_path.exists());
+    assert!(response.executor_descriptor_path.exists());
+    assert!(response.checkpoint_path.exists());
+    assert!(response.failure_path.is_none());
+    Ok(())
+}
+
+#[test]
+fn execute_failure_writes_inspectable_failure_record() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let reads = temp.path().join("reads.fastq");
+    std::fs::write(&reads, b"@read\nACGT\n+\n!!!!\n")?;
+    let step = ExecutionStep {
+        step_id: StepId::new("fastq.validate_reads"),
+        stage_id: StageId::new("fastq.validate_reads"),
+        command: CommandSpecV1 {
+            template: vec!["sh".to_string(), "-c".to_string(), "exit 9".to_string()],
+        },
+        image: ContainerImageRefV1 {
+            image: "example/validator:1".to_string(),
+            digest: Some("sha256:deadbeef".to_string()),
+        },
+        resources: ToolConstraints::default(),
+        io: StageIO {
+            inputs: vec![ArtifactSpec::required(
+                ArtifactId::new("reads"),
+                reads,
+                ArtifactRole::Reads,
+            )],
+            outputs: vec![ArtifactSpec::required(
+                ArtifactId::new("validated"),
+                temp.path().join("validated.fastq"),
+                ArtifactRole::Reads,
+            )],
+        },
+        out_dir: temp.path().join("out"),
+        aux_images: BTreeMap::default(),
+        expected_artifact_ids: Vec::new(),
+        metrics_schema_ids: Vec::new(),
+    };
+    let graph = ExecutionGraph::new(
+        "fastq-to-fastq__default__v1",
+        "test-planner",
+        PlanPolicy::PreferAccuracy,
+        vec![step],
+        Vec::new(),
+    )?;
+
+    let response = execute(&ExecuteRequest {
+        graph,
+        runner: RuntimeKind::Local,
+        run_dir: temp.path().to_path_buf(),
+        mode: bijux_dna_runtime::run_layout::RunExecutionModeV1::Enforced,
+    })?;
+
+    assert_eq!(response.state, bijux_dna_runtime::run_layout::RunLifecycleStateV1::Failed);
+    let failure_path = response
+        .failure_path
+        .ok_or_else(|| anyhow!("failure response must include failure path"))?;
+    let failure: serde_json::Value = serde_json::from_slice(&std::fs::read(&failure_path)?)?;
+    assert_eq!(failure["schema_version"], "bijux.run_failure.v1");
+    assert_eq!(failure["state"], "failed");
+    Ok(())
+}
+
+#[test]
+fn replay_manifest_reuses_local_runner_descriptor() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    let graph = minimal_graph(temp.path())?;
+    let replay_graph = graph.clone();
+    let response = execute(&ExecuteRequest {
+        graph,
+        runner: RuntimeKind::Local,
+        run_dir: temp.path().to_path_buf(),
+        mode: bijux_dna_runtime::run_layout::RunExecutionModeV1::Enforced,
+    })?;
+    let run_dir = response
+        .manifest_path
+        .parent()
+        .ok_or_else(|| anyhow!("manifest path missing parent directory"))?
+        .to_path_buf();
+    let graph_payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&replay_graph)?;
+    bijux_dna_infra::atomic_write_bytes(
+        &run_dir.join("manifests/graph.json"),
+        graph_payload.as_slice(),
+    )?;
+    std::fs::remove_file(temp.path().join("validated.fastq"))?;
+    let previous_dir = std::env::current_dir()?;
+    std::env::set_current_dir(temp.path())?;
+
+    let replay_result = replay_manifest(&response.manifest_path, false);
+    std::env::set_current_dir(previous_dir)?;
+    replay_result?;
+
+    assert!(temp.path().join("validated.fastq").exists());
+    assert!(run_dir.join("executor_descriptor.json").exists());
+    Ok(())
+}
+
+#[test]
 fn execute_fails_fast_when_runner_contract_missing_for_stage() {
     let temp = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
     let step = ExecutionStep {

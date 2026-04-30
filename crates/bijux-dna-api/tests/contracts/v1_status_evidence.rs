@@ -32,3 +32,71 @@ fn status_discovers_evidence_bundle_and_correlation() -> Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn status_reads_governed_run_state_and_failure_paths() -> Result<()> {
+    let temp = tempfile::tempdir()?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("run_manifest.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_manifest.v3",
+            "run_id": "run-2",
+            "correlation_id": "corr-run-2",
+            "failures": [{"path": "run_failure.json"}]
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("run_state.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_state.v1",
+            "run_id": "run-2",
+            "mode": "simulation",
+            "state": "succeeded",
+            "transitions": [],
+            "manifest_path": "run_manifest.json",
+            "checkpoint_path": "checkpoints/checkpoint.json",
+            "failure_path": null
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("runtime_policy.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.runtime_policy.v1"
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("executor_descriptor.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_executor_descriptor.v1"
+        }),
+    )?;
+    std::fs::create_dir_all(temp.path().join("checkpoints"))?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("checkpoints/checkpoint.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_checkpoint.v1"
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &temp.path().join("run_failure.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.run_failure.v1"
+        }),
+    )?;
+
+    let snapshot = status(temp.path())?;
+    assert_eq!(
+        snapshot.mode,
+        Some(bijux_dna_runtime::run_layout::RunExecutionModeV1::Simulation)
+    );
+    assert_eq!(
+        snapshot.state,
+        Some(bijux_dna_runtime::run_layout::RunLifecycleStateV1::Succeeded)
+    );
+    assert!(snapshot.runtime_policy_path.is_some());
+    assert!(snapshot.executor_descriptor_path.is_some());
+    assert!(snapshot.checkpoint_path.is_some());
+    assert!(snapshot.failure_path.is_some());
+    assert!(snapshot.has_failures);
+    Ok(())
+}
