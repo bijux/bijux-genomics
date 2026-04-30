@@ -24,3 +24,9 @@ pub const TOOL_LEEHOM: &str = "leehom";
 pub const TOOL_KRAKEN2: &str = "kraken2";
 /// Canonical tool identifier for `bbduk`.
 pub const TOOL_BBDUK: &str = "bbduk";
+/// Canonical tool identifier for `bowtie2`.
+pub const TOOL_BOWTIE2: &str = "bowtie2";
+/// Canonical tool identifier for `sortmerna`.
+pub const TOOL_SORTMERNA: &str = "sortmerna";
+/// Canonical tool identifier for `dada2`.
+pub const TOOL_DADA2: &str = "dada2";
