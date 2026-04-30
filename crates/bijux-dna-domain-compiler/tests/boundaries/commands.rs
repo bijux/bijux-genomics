@@ -10,13 +10,23 @@ fn command_inventory_matches_binary_tree() {
         .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
 
     let binary_files = dir_entries(&root.join("src/bin"));
-    let expected_files: BTreeSet<_> = ["compile_domain_configs.rs", "domain_validate.rs"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_files: BTreeSet<_> = [
+        "compile_domain_configs.rs",
+        "domain_registry_bundle.rs",
+        "domain_registry_query.rs",
+        "domain_validate.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(binary_files, expected_files, "binary tree changed without command review");
 
-    for command in ["compile_domain_configs", "domain_validate"] {
+    for command in [
+        "compile_domain_configs",
+        "domain_registry_bundle",
+        "domain_registry_query",
+        "domain_validate",
+    ] {
         assert!(
             commands_doc.contains(&format!("`{command}`")),
             "docs/COMMANDS.md must list command `{command}`"
@@ -27,7 +37,17 @@ fn command_inventory_matches_binary_tree() {
         );
     }
 
-    for option in ["--domain-dir <path>", "--configs-dir <path>", "--scope <scope>"] {
+    for option in [
+        "--domain-dir <path>",
+        "--configs-dir <path>",
+        "--scope <scope>",
+        "--bundle <path>",
+        "--write-generated",
+        "--kind <domains|stages|tools|metrics|artifacts|defaults|deprecations|evidence|fixtures>",
+        "--domain <id>",
+        "--stage-id <id>",
+        "--tool-id <id>",
+    ] {
         assert!(
             commands_doc.contains(option),
             "docs/COMMANDS.md must list owned option `{option}`"
