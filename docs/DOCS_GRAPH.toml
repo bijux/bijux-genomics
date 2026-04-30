@@ -171,6 +171,7 @@ children = [
   "docs/30-operations/MKDOCS_BUILD.md",
   "docs/30-operations/PRE_HPC_SCOPE_CLOSURE_CHECKLIST.md",
   "docs/30-operations/PRODUCTION_GUARANTEES.md",
+  "docs/30-operations/RELEASE_ESSENTIAL_GATE.md",
   "docs/30-operations/RELEASE_HYGIENE.md",
   "docs/30-operations/REPORT_CONTRACT.md",
   "docs/30-operations/REPRODUCIBILITY.md",
