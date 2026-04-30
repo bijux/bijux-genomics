@@ -11,10 +11,10 @@ pub mod stage_baseline;
 pub mod taxonomy;
 
 pub use artifacts::{
-    build_vcf_scientific_drift_report, VcfScientificDriftArtifactDeltaV1,
-    VcfScientificDriftChangeKind, VcfScientificDriftMetricDeltaV1,
-    VcfScientificDriftReportV1, VcfScientificDriftSnapshotV1,
-    VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION,
+    build_vcf_scientific_drift_report, execute_vcf_validation, VcfScientificDriftArtifactDeltaV1,
+    VcfScientificDriftChangeKind, VcfScientificDriftMetricDeltaV1, VcfScientificDriftReportV1,
+    VcfScientificDriftSnapshotV1, VcfValidationSummaryV1,
+    VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION, VCF_VALIDATION_SUMMARY_SCHEMA_VERSION,
 };
 pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1};
 pub use registry_emit::{param_registry_toml, required_tools_toml};

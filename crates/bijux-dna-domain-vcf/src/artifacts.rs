@@ -1,10 +1,12 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::path::{Path, PathBuf};
 
+use anyhow::{anyhow, Result};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub const VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION: &str =
-    "bijux.vcf.scientific_drift.report.v1";
+pub const VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION: &str = "bijux.vcf.scientific_drift.report.v1";
+pub const VCF_VALIDATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.validation_summary.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -63,6 +65,256 @@ pub struct VcfScientificDriftReportV1 {
     pub artifact_deltas: Vec<VcfScientificDriftArtifactDeltaV1>,
     pub downstream_risks: Vec<String>,
     pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfValidationSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub input_vcf: PathBuf,
+    pub record_count: u64,
+    pub sample_count: u32,
+    pub header_valid: bool,
+    pub sorted_records: bool,
+    pub has_index: bool,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub notes: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+struct TinyVcfRecord {
+    chrom: String,
+    pos: u64,
+    ref_allele: String,
+    alt_alleles: Vec<String>,
+    qual: Option<f64>,
+    filter: String,
+    info: String,
+    format: Option<String>,
+    samples: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default)]
+struct TinyVcfDocument {
+    contigs: BTreeSet<String>,
+    info_definitions: BTreeSet<String>,
+    format_definitions: BTreeSet<String>,
+    samples: Vec<String>,
+    records: Vec<TinyVcfRecord>,
+}
+
+fn parse_id_from_header_meta(line: &str, section: &str) -> Option<String> {
+    let prefix = format!("##{section}=<ID=");
+    let payload = line.strip_prefix(&prefix)?;
+    payload.split([',', '>']).next().map(ToOwned::to_owned)
+}
+
+fn parse_contig_from_header_meta(line: &str) -> Option<String> {
+    let payload = line.strip_prefix("##contig=<ID=")?;
+    payload.split([',', '>']).next().map(ToOwned::to_owned)
+}
+
+fn parse_tiny_vcf(path: &Path) -> Result<TinyVcfDocument> {
+    let raw = std::fs::read_to_string(path)?;
+    let mut doc = TinyVcfDocument::default();
+    let mut saw_header = false;
+    for (line_index, raw_line) in raw.lines().enumerate() {
+        let line = raw_line.trim_end();
+        if line.is_empty() {
+            continue;
+        }
+        if line.starts_with("##") {
+            if let Some(contig) = parse_contig_from_header_meta(line) {
+                doc.contigs.insert(contig);
+            }
+            if let Some(info_id) = parse_id_from_header_meta(line, "INFO") {
+                doc.info_definitions.insert(info_id);
+            }
+            if let Some(format_id) = parse_id_from_header_meta(line, "FORMAT") {
+                doc.format_definitions.insert(format_id);
+            }
+            continue;
+        }
+        if let Some(payload) = line.strip_prefix("#CHROM\t") {
+            saw_header = true;
+            let header_fields = payload.split('\t').collect::<Vec<_>>();
+            if header_fields.len() >= 9 {
+                doc.samples = header_fields[8..].iter().map(|value| (*value).to_string()).collect();
+            }
+            continue;
+        }
+
+        let fields = line.split('\t').collect::<Vec<_>>();
+        if fields.len() < 8 {
+            return Err(anyhow!(
+                "malformed VCF record at line {}: expected at least 8 fields",
+                line_index + 1
+            ));
+        }
+        let pos = fields[1].parse::<u64>().map_err(|error| {
+            anyhow!(
+                "malformed VCF record at line {}: invalid position {} ({error})",
+                line_index + 1,
+                fields[1]
+            )
+        })?;
+        let qual = if fields[5] == "." {
+            None
+        } else {
+            Some(fields[5].parse::<f64>().map_err(|error| {
+                anyhow!(
+                    "malformed VCF record at line {}: invalid QUAL {} ({error})",
+                    line_index + 1,
+                    fields[5]
+                )
+            })?)
+        };
+        let alt_alleles = fields[4]
+            .split(',')
+            .filter(|allele| !allele.is_empty())
+            .map(ToOwned::to_owned)
+            .collect::<Vec<_>>();
+        let format =
+            if fields.len() >= 9 && fields[8] != "." { Some(fields[8].to_string()) } else { None };
+        let samples = if fields.len() >= 10 {
+            fields[9..].iter().map(|value| (*value).to_string()).collect::<Vec<_>>()
+        } else {
+            Vec::new()
+        };
+        doc.records.push(TinyVcfRecord {
+            chrom: fields[0].to_string(),
+            pos,
+            ref_allele: fields[3].to_string(),
+            alt_alleles,
+            qual,
+            filter: fields[6].to_string(),
+            info: fields[7].to_string(),
+            format,
+            samples,
+        });
+    }
+    if !saw_header {
+        return Err(anyhow!("missing #CHROM header line"));
+    }
+    Ok(doc)
+}
+
+/// Execute fixture-safe VCF validation and return refusal reasons for malformed content.
+///
+/// # Errors
+/// Returns an error if the VCF payload cannot be read or parsed at all.
+pub fn execute_vcf_validation(
+    input_vcf: &Path,
+    expected_contigs: &[&str],
+    require_index: bool,
+    has_index: bool,
+    declared_reference_build: Option<&str>,
+    expected_reference_build: Option<&str>,
+) -> Result<VcfValidationSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut refusal_codes = Vec::<String>::new();
+
+    let mut duplicate_sample_names = BTreeSet::<String>::new();
+    let mut observed_sample_names = BTreeSet::<String>::new();
+    for sample in &doc.samples {
+        if !observed_sample_names.insert(sample.clone()) {
+            duplicate_sample_names.insert(sample.clone());
+        }
+    }
+    if !duplicate_sample_names.is_empty() {
+        refusal_codes.push("duplicate_sample_names".to_string());
+    }
+    let expected_contig_set =
+        expected_contigs.iter().map(|value| (*value).to_string()).collect::<BTreeSet<_>>();
+    if !expected_contig_set.is_empty() && !expected_contig_set.is_subset(&doc.contigs) {
+        refusal_codes.push("missing_contig_header".to_string());
+    }
+
+    let mut sorted_records = true;
+    let contig_rank = expected_contigs
+        .iter()
+        .enumerate()
+        .map(|(index, contig)| ((*contig).to_string(), index))
+        .collect::<HashMap<_, _>>();
+    let mut previous_rank = 0_usize;
+    let mut previous_pos = 0_u64;
+    for (index, record) in doc.records.iter().enumerate() {
+        if !doc.contigs.contains(&record.chrom) {
+            refusal_codes.push("record_contig_missing_from_header".to_string());
+        }
+        if record.ref_allele.is_empty() || record.alt_alleles.is_empty() {
+            refusal_codes.push("bad_ref_or_alt_allele".to_string());
+            continue;
+        }
+        let record_rank = contig_rank
+            .get(&record.chrom)
+            .copied()
+            .unwrap_or_else(|| expected_contigs.len() + index);
+        if index > 0
+            && (record_rank < previous_rank
+                || (record_rank == previous_rank && record.pos < previous_pos))
+        {
+            sorted_records = false;
+        }
+        previous_rank = record_rank;
+        previous_pos = record.pos;
+
+        if record.info != "." {
+            for token in record.info.split(';').filter(|token| !token.is_empty()) {
+                let key = token.split('=').next().unwrap_or_default();
+                if !key.is_empty()
+                    && !doc.info_definitions.contains(key)
+                    && !matches!(key, "END" | "DP" | "AC" | "AN")
+                {
+                    refusal_codes.push("bad_info_field_definition".to_string());
+                    break;
+                }
+            }
+        }
+        if let Some(format) = &record.format {
+            for key in format.split(':').filter(|token| !token.is_empty()) {
+                if !doc.format_definitions.contains(key)
+                    && !matches!(key, "GT" | "GQ" | "DP" | "PL")
+                {
+                    refusal_codes.push("bad_format_field_definition".to_string());
+                    break;
+                }
+            }
+        }
+    }
+    if !sorted_records {
+        refusal_codes.push("unsorted_records".to_string());
+    }
+    if require_index && !has_index {
+        refusal_codes.push("missing_index".to_string());
+    }
+    if let (Some(declared), Some(expected)) = (declared_reference_build, expected_reference_build) {
+        if declared != expected {
+            refusal_codes.push("reference_build_mismatch".to_string());
+        }
+    }
+
+    refusal_codes.sort();
+    refusal_codes.dedup();
+
+    Ok(VcfValidationSummaryV1 {
+        schema_version: VCF_VALIDATION_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.qc".to_string(),
+        input_vcf: input_vcf.to_path_buf(),
+        record_count: doc.records.len() as u64,
+        sample_count: doc.samples.len() as u32,
+        header_valid: !doc.samples.iter().any(|value| value.trim().is_empty()),
+        sorted_records,
+        has_index,
+        refusal_codes,
+        notes: vec![
+            "validation checks malformed headers, contigs, ordering, and INFO/FORMAT definitions"
+                .to_string(),
+        ],
+    })
 }
 
 #[must_use]
@@ -130,15 +382,21 @@ pub fn build_vcf_scientific_drift_report(
     }
 
     let mut downstream_risks = Vec::new();
-    if metric_deltas.iter().any(|delta| delta.metric_id == "variants_total" && delta.absolute_delta != 0.0)
+    if metric_deltas
+        .iter()
+        .any(|delta| delta.metric_id == "variants_total" && delta.absolute_delta != 0.0)
     {
         downstream_risks.push("variant_count_shift".to_string());
     }
-    if metric_deltas.iter().any(|delta| delta.metric_id == "annotation_coverage" && delta.absolute_delta != 0.0)
+    if metric_deltas
+        .iter()
+        .any(|delta| delta.metric_id == "annotation_coverage" && delta.absolute_delta != 0.0)
     {
         downstream_risks.push("annotation_coverage_shift".to_string());
     }
-    if metric_deltas.iter().any(|delta| delta.metric_id == "missingness_post" && delta.absolute_delta != 0.0)
+    if metric_deltas
+        .iter()
+        .any(|delta| delta.metric_id == "missingness_post" && delta.absolute_delta != 0.0)
     {
         downstream_risks.push("cohort_readiness_shift".to_string());
     }
@@ -177,5 +435,80 @@ pub fn build_vcf_scientific_drift_report(
         artifact_deltas,
         downstream_risks,
         caveats,
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::*;
+
+    fn unique_temp_dir(label: &str) -> PathBuf {
+        let stamp = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .expect("clock drift")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!("bijux-vcf-{label}-{stamp}"));
+        std::fs::create_dir_all(&path).expect("create temporary directory");
+        path
+    }
+
+    #[test]
+    fn execute_vcf_validation_accepts_valid_fixture() {
+        let temp = unique_temp_dir("vcf-validate-ok");
+        let input = temp.join("valid.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.3\n\
+##contig=<ID=chr1,length=1000>\n\
+##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n\
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n\
+chr1\t10\t.\tA\tG\t42\tPASS\tDP=8\tGT\t0/1\n\
+chr1\t20\t.\tC\tT\t55\tPASS\tDP=9\tGT\t1/1\n",
+        )
+        .expect("write valid VCF fixture");
+
+        let summary =
+            execute_vcf_validation(&input, &["chr1"], true, true, Some("GRCh38"), Some("GRCh38"))
+                .expect("validate fixture");
+        assert_eq!(summary.record_count, 2);
+        assert_eq!(summary.sample_count, 1);
+        assert!(summary.refusal_codes.is_empty());
+        assert!(summary.sorted_records);
+    }
+
+    #[test]
+    fn execute_vcf_validation_rejects_malformed_unsorted_and_mismatched_inputs() {
+        let temp = unique_temp_dir("vcf-validate-refuse");
+        let input = temp.join("invalid.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.3\n\
+##contig=<ID=chr1,length=1000>\n\
+##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n\
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\ts1\n\
+chr2\t20\t.\tA\tG\t42\tPASS\tBADKEY=8\tGT:XX\t0/1:7\t0/0:9\n\
+chr1\t10\t.\tC\tT\t55\tPASS\tDP=9\tGT\t1/1\t0/1\n",
+        )
+        .expect("write invalid VCF fixture");
+
+        let summary = execute_vcf_validation(
+            &input,
+            &["chr1", "chr2", "chrX"],
+            true,
+            false,
+            Some("GRCh37"),
+            Some("GRCh38"),
+        )
+        .expect("validate fixture");
+        assert!(summary.refusal_codes.contains(&"duplicate_sample_names".to_string()));
+        assert!(summary.refusal_codes.contains(&"missing_contig_header".to_string()));
+        assert!(summary.refusal_codes.contains(&"bad_info_field_definition".to_string()));
+        assert!(summary.refusal_codes.contains(&"bad_format_field_definition".to_string()));
+        assert!(summary.refusal_codes.contains(&"unsorted_records".to_string()));
+        assert!(summary.refusal_codes.contains(&"missing_index".to_string()));
+        assert!(summary.refusal_codes.contains(&"reference_build_mismatch".to_string()));
     }
 }
