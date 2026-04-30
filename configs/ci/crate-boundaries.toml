@@ -1,0 +1,182 @@
+# schema_version = 1
+# owner = architecture
+
+[[crates]]
+name = "bijux-dna"
+family = "cli"
+layer = "cli"
+public_surfaces = ["crates/bijux-dna/src/lib.rs", "crates/bijux-dna/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-analyze"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-analyze/src/lib.rs", "crates/bijux-dna-analyze/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-api"
+family = "api"
+layer = "api"
+public_surfaces = ["crates/bijux-dna-api/src/lib.rs", "crates/bijux-dna-api/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench/src/lib.rs", "crates/bijux-dna-bench/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-model"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-model/src/lib.rs", "crates/bijux-dna-bench-model/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-core"
+family = "foundation"
+layer = "foundation"
+public_surfaces = ["crates/bijux-dna-core/src/lib.rs", "crates/bijux-dna-core/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-db-ena"
+family = "data"
+layer = "support"
+public_surfaces = ["crates/bijux-dna-db-ena/src/lib.rs", "crates/bijux-dna-db-ena/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-db-ref"
+family = "data"
+layer = "support"
+public_surfaces = ["crates/bijux-dna-db-ref/src/lib.rs", "crates/bijux-dna-db-ref/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-dev"
+family = "governance"
+layer = "governance"
+public_surfaces = ["crates/bijux-dna-dev/docs/COMMANDS.md", "crates/bijux-dna-dev/src/catalog/ops.rs"]
+
+[[crates]]
+name = "bijux-dna-domain-bam"
+family = "domain"
+layer = "domain"
+public_surfaces = ["crates/bijux-dna-domain-bam/src/lib.rs", "crates/bijux-dna-domain-bam/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-domain-compiler"
+family = "domain"
+layer = "domain-compiler"
+public_surfaces = ["crates/bijux-dna-domain-compiler/src/lib.rs", "crates/bijux-dna-domain-compiler/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-domain-fastq"
+family = "domain"
+layer = "domain"
+public_surfaces = ["crates/bijux-dna-domain-fastq/src/lib.rs", "crates/bijux-dna-domain-fastq/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-domain-vcf"
+family = "domain"
+layer = "domain"
+public_surfaces = ["crates/bijux-dna-domain-vcf/src/lib.rs", "crates/bijux-dna-domain-vcf/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-engine"
+family = "execution"
+layer = "engine"
+public_surfaces = ["crates/bijux-dna-engine/src/lib.rs", "crates/bijux-dna-engine/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-environment"
+family = "execution"
+layer = "environment"
+public_surfaces = ["crates/bijux-dna-environment/src/lib.rs", "crates/bijux-dna-environment/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-environment-qa"
+family = "qa"
+layer = "qa"
+public_surfaces = ["crates/bijux-dna-environment-qa/src/lib.rs", "crates/bijux-dna-environment-qa/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-infra"
+family = "foundation"
+layer = "foundation"
+public_surfaces = ["crates/bijux-dna-infra/src/lib.rs", "crates/bijux-dna-infra/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-pipelines"
+family = "planning"
+layer = "pipeline-composition"
+public_surfaces = ["crates/bijux-dna-pipelines/src/lib.rs", "crates/bijux-dna-pipelines/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-planner-bam"
+family = "planning"
+layer = "planner"
+public_surfaces = ["crates/bijux-dna-planner-bam/src/lib.rs", "crates/bijux-dna-planner-bam/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-planner-fastq"
+family = "planning"
+layer = "planner"
+public_surfaces = ["crates/bijux-dna-planner-fastq/src/lib.rs", "crates/bijux-dna-planner-fastq/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-planner-vcf"
+family = "planning"
+layer = "planner"
+public_surfaces = ["crates/bijux-dna-planner-vcf/src/lib.rs", "crates/bijux-dna-planner-vcf/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-policies"
+family = "governance"
+layer = "governance"
+public_surfaces = ["crates/bijux-dna-policies/src/lib.rs", "crates/bijux-dna-policies/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-runner"
+family = "execution"
+layer = "runner"
+public_surfaces = ["crates/bijux-dna-runner/src/lib.rs", "crates/bijux-dna-runner/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-runtime"
+family = "execution"
+layer = "runtime"
+public_surfaces = ["crates/bijux-dna-runtime/src/lib.rs", "crates/bijux-dna-runtime/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-science"
+family = "analysis"
+layer = "science"
+public_surfaces = ["crates/bijux-dna-science/src/lib.rs", "crates/bijux-dna-science/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-stage-contract"
+family = "contracts"
+layer = "stage-contract"
+public_surfaces = ["crates/bijux-dna-stage-contract/src/lib.rs", "crates/bijux-dna-stage-contract/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-stages-bam"
+family = "stages"
+layer = "stages"
+public_surfaces = ["crates/bijux-dna-stages-bam/src/lib.rs", "crates/bijux-dna-stages-bam/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-stages-fastq"
+family = "stages"
+layer = "stages"
+public_surfaces = ["crates/bijux-dna-stages-fastq/src/lib.rs", "crates/bijux-dna-stages-fastq/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-stages-vcf"
+family = "stages"
+layer = "stages"
+public_surfaces = ["crates/bijux-dna-stages-vcf/src/lib.rs", "crates/bijux-dna-stages-vcf/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-testkit"
+family = "foundation"
+layer = "test-support"
+public_surfaces = ["crates/bijux-dna-testkit/src/lib.rs", "crates/bijux-dna-testkit/docs/PUBLIC_API.md"]
