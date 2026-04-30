@@ -230,6 +230,42 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
     let summary_hash = bijux_dna_infra::hash_file_sha256(&summary_path)?;
     let report_hash = bijux_dna_infra::hash_file_sha256(&report_path)?;
     let artifact_hash = bijux_dna_infra::hash_file_sha256(&validated_path)?;
+    let artifact_inventory_path = dir.path().join("artifact_inventory.json");
+    bijux_dna_infra::atomic_write_json(
+        &artifact_inventory_path,
+        &serde_json::json!({
+            "schema_version": "bijux.artifact_inventory.v1",
+            "run_id": "run-1",
+            "artifacts": [{
+                "artifact_id": "validated_reads",
+                "name": "validated_reads",
+                "role": "Reads",
+                "path": "validated.fastq",
+                "sha256": artifact_hash,
+                "input_lineage": ["sha256:input"]
+            }]
+        }),
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &dir.path().join("replay_manifest.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.replay_manifest.v1",
+            "replay_run_id": "run-1",
+            "original_run_id": "run-1",
+            "selected_stage_ids": ["fastq.trim_reads"],
+            "reused_artifact_ids": [],
+            "rerun_stage_ids": ["fastq.trim_reads"],
+            "expected_outputs": ["validated_reads"],
+            "cache_decisions": [],
+            "environment_differences": []
+        }),
+    )?;
+    let summary_text_path = dir.path().join("summary").join("run_summary.txt");
+    std::fs::create_dir_all(summary_text_path.parent().unwrap_or(dir.path()))?;
+    std::fs::write(
+        &summary_text_path,
+        b"what_was_checked:\n- fastq.trim_reads\nsafe_outputs:\n- validated.fastq\n",
+    )?;
     bijux_dna_infra::atomic_write_json(
         &dir.path().join("run_manifest.json"),
         &serde_json::json!({
@@ -246,6 +282,32 @@ fn evidence_bundle_builds_and_verifies() -> anyhow::Result<()> {
                 { "name": "validated_reads", "path": "validated.fastq", "sha256": artifact_hash }
             ],
             "execution_replay_identity": { "tool_image_digest": "sha256:img" }
+        }),
+    )?;
+    let manifest_hash = bijux_dna_infra::hash_file_sha256(&dir.path().join("run_manifest.json"))?;
+    let summary_text_hash = bijux_dna_infra::hash_file_sha256(&summary_text_path)?;
+    bijux_dna_infra::atomic_write_json(
+        &dir.path().join("hash_ledger.json"),
+        &serde_json::json!({
+            "schema_version": "bijux.hash_ledger.v1",
+            "run_id": "run-1",
+            "root_sha256": "placeholder",
+            "entries": [
+                {
+                    "record_id": "run_manifest.json",
+                    "kind": "run_manifest",
+                    "path": "run_manifest.json",
+                    "sha256": manifest_hash,
+                    "previous_entry_sha256": serde_json::Value::Null
+                },
+                {
+                    "record_id": "summary:run_summary.txt",
+                    "kind": "run_summary_text",
+                    "path": "summary/run_summary.txt",
+                    "sha256": summary_text_hash,
+                    "previous_entry_sha256": manifest_hash
+                }
+            ]
         }),
     )?;
 

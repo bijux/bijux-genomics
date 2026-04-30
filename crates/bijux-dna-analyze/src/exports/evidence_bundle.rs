@@ -121,6 +121,8 @@ pub struct EvidenceSourcesV1 {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub manifest_path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub plan_manifest_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub report_path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub run_summary_path: Option<String>,
@@ -128,6 +130,26 @@ pub struct EvidenceSourcesV1 {
     pub facts_path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub graph_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub environment_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub runtime_policy_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub run_state_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub executor_descriptor_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub checkpoint_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub failure_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub artifact_inventory_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub replay_manifest_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub hash_ledger_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evidence_verification_path: Option<String>,
     #[serde(default)]
     pub telemetry_paths: Vec<String>,
 }
@@ -172,10 +194,21 @@ pub struct EvidenceComparisonV1 {
 #[derive(Debug, Clone)]
 struct EvidenceInputs {
     manifest_path: Option<PathBuf>,
+    plan_manifest_path: Option<PathBuf>,
     report_path: Option<PathBuf>,
     run_summary_path: Option<PathBuf>,
     facts_path: Option<PathBuf>,
     graph_path: Option<PathBuf>,
+    environment_path: Option<PathBuf>,
+    runtime_policy_path: Option<PathBuf>,
+    run_state_path: Option<PathBuf>,
+    executor_descriptor_path: Option<PathBuf>,
+    checkpoint_path: Option<PathBuf>,
+    failure_path: Option<PathBuf>,
+    artifact_inventory_path: Option<PathBuf>,
+    replay_manifest_path: Option<PathBuf>,
+    hash_ledger_path: Option<PathBuf>,
+    evidence_verification_path: Option<PathBuf>,
     telemetry_paths: Vec<PathBuf>,
 }
 
@@ -234,10 +267,24 @@ pub fn build_evidence_bundle(base_dir: &Path, facts_path: Option<&Path>) -> Resu
         correlation_id,
         sources: EvidenceSourcesV1 {
             manifest_path: to_relative_string(base_dir, inputs.manifest_path.as_deref()),
+            plan_manifest_path: to_relative_string(base_dir, inputs.plan_manifest_path.as_deref()),
             report_path: to_relative_string(base_dir, inputs.report_path.as_deref()),
             run_summary_path: to_relative_string(base_dir, inputs.run_summary_path.as_deref()),
             facts_path: to_relative_string(base_dir, inputs.facts_path.as_deref()),
             graph_path: to_relative_string(base_dir, inputs.graph_path.as_deref()),
+            environment_path: to_relative_string(base_dir, inputs.environment_path.as_deref()),
+            runtime_policy_path: to_relative_string(base_dir, inputs.runtime_policy_path.as_deref()),
+            run_state_path: to_relative_string(base_dir, inputs.run_state_path.as_deref()),
+            executor_descriptor_path: to_relative_string(base_dir, inputs.executor_descriptor_path.as_deref()),
+            checkpoint_path: to_relative_string(base_dir, inputs.checkpoint_path.as_deref()),
+            failure_path: to_relative_string(base_dir, inputs.failure_path.as_deref()),
+            artifact_inventory_path: to_relative_string(base_dir, inputs.artifact_inventory_path.as_deref()),
+            replay_manifest_path: to_relative_string(base_dir, inputs.replay_manifest_path.as_deref()),
+            hash_ledger_path: to_relative_string(base_dir, inputs.hash_ledger_path.as_deref()),
+            evidence_verification_path: to_relative_string(
+                base_dir,
+                inputs.evidence_verification_path.as_deref(),
+            ),
             telemetry_paths: inputs
                 .telemetry_paths
                 .iter()
@@ -282,10 +329,19 @@ pub fn verify_evidence_bundle(bundle_path: &Path) -> Result<EvidenceVerification
     let mut missing_paths = Vec::new();
     for (label, path) in [
         ("manifest_path", bundle.sources.manifest_path.as_deref()),
+        ("plan_manifest_path", bundle.sources.plan_manifest_path.as_deref()),
         ("report_path", bundle.sources.report_path.as_deref()),
         ("run_summary_path", bundle.sources.run_summary_path.as_deref()),
         ("facts_path", bundle.sources.facts_path.as_deref()),
         ("graph_path", bundle.sources.graph_path.as_deref()),
+        ("environment_path", bundle.sources.environment_path.as_deref()),
+        ("runtime_policy_path", bundle.sources.runtime_policy_path.as_deref()),
+        ("run_state_path", bundle.sources.run_state_path.as_deref()),
+        ("executor_descriptor_path", bundle.sources.executor_descriptor_path.as_deref()),
+        ("checkpoint_path", bundle.sources.checkpoint_path.as_deref()),
+        ("artifact_inventory_path", bundle.sources.artifact_inventory_path.as_deref()),
+        ("replay_manifest_path", bundle.sources.replay_manifest_path.as_deref()),
+        ("hash_ledger_path", bundle.sources.hash_ledger_path.as_deref()),
     ] {
         if let Some(path) = path {
             let full = base_dir.join(path);
@@ -344,6 +400,48 @@ pub fn verify_evidence_bundle(bundle_path: &Path) -> Result<EvidenceVerification
             } else {
                 format!("artifact {} missing at {}", artifact.name, artifact.path)
             },
+        });
+    }
+
+    if let Some(path) = bundle.sources.artifact_inventory_path.as_deref() {
+        let full = base_dir.join(path);
+        let (ok, message) = verify_artifact_inventory_contract(&full);
+        checks.push(EvidenceCheckV1 {
+            check_id: "artifact_inventory_contract".to_string(),
+            ok,
+            message,
+        });
+    }
+    if let Some(path) = bundle.sources.hash_ledger_path.as_deref() {
+        let full = base_dir.join(path);
+        let (ok, message) = verify_hash_ledger_contract(base_dir, &full);
+        checks.push(EvidenceCheckV1 {
+            check_id: "hash_ledger_contract".to_string(),
+            ok,
+            message,
+        });
+    }
+    if let Some(path) = bundle.sources.report_path.as_deref() {
+        let full = base_dir.join(path);
+        let (ok, message) = verify_report_completeness(&full);
+        checks.push(EvidenceCheckV1 {
+            check_id: "report_completeness".to_string(),
+            ok,
+            message,
+        });
+    }
+    if let (Some(manifest_path), Some(run_state_path)) = (
+        bundle.sources.manifest_path.as_deref(),
+        bundle.sources.run_state_path.as_deref(),
+    ) {
+        let (ok, message) = verify_advisory_and_enforced_consistency(
+            &base_dir.join(manifest_path),
+            &base_dir.join(run_state_path),
+        );
+        checks.push(EvidenceCheckV1 {
+            check_id: "mode_state_consistency".to_string(),
+            ok,
+            message,
         });
     }
 
@@ -418,12 +516,23 @@ pub fn compare_evidence_bundles(left: &Path, right: &Path) -> Result<EvidenceCom
 fn discover_inputs(base_dir: &Path, facts_path: Option<&Path>) -> EvidenceInputs {
     EvidenceInputs {
         manifest_path: first_existing(base_dir, &["run_manifest.json", "execution_manifest.json"]),
+        plan_manifest_path: first_existing(base_dir, &["manifests/plan_manifest.json", "plan_manifest.json"]),
         report_path: first_existing(base_dir, &["report.json"]),
         run_summary_path: first_existing(base_dir, &["run_summary.json", "summary/run_summary.json"]),
         facts_path: facts_path
             .map(Path::to_path_buf)
             .or_else(|| first_existing(base_dir, &["facts.jsonl", "summary/facts.jsonl"])),
         graph_path: first_existing(base_dir, &["graph.json", "run_artifacts/graph.json"]),
+        environment_path: first_existing(base_dir, &["environment.json"]),
+        runtime_policy_path: first_existing(base_dir, &["runtime_policy.json"]),
+        run_state_path: first_existing(base_dir, &["run_state.json"]),
+        executor_descriptor_path: first_existing(base_dir, &["executor_descriptor.json"]),
+        checkpoint_path: first_existing(base_dir, &["checkpoints/checkpoint.json", "checkpoint.json"]),
+        failure_path: first_existing(base_dir, &["run_failure.json"]),
+        artifact_inventory_path: first_existing(base_dir, &["artifact_inventory.json"]),
+        replay_manifest_path: first_existing(base_dir, &["replay_manifest.json"]),
+        hash_ledger_path: first_existing(base_dir, &["hash_ledger.json"]),
+        evidence_verification_path: first_existing(base_dir, &["evidence_verification.json"]),
         telemetry_paths: find_telemetry_paths(base_dir),
     }
 }
@@ -709,6 +818,63 @@ fn build_health(
             message: "telemetry timeline is incomplete because no telemetry jsonl files were found".to_string(),
             path: None,
             blocks_audit: true,
+        });
+    }
+
+    checks.push(EvidenceCheckV1 {
+        check_id: "artifact_inventory_present".to_string(),
+        ok: inputs.artifact_inventory_path.is_some(),
+        message: if inputs.artifact_inventory_path.is_some() {
+            "artifact inventory present".to_string()
+        } else {
+            "artifact inventory missing".to_string()
+        },
+    });
+    if inputs.artifact_inventory_path.is_none() {
+        gaps.push(EvidenceGapV1 {
+            code: "missing_artifact_inventory".to_string(),
+            severity: EvidenceSeverityV1::Blocking,
+            message: "artifact inventory is required for durable evidence reuse and audit".to_string(),
+            path: Some("artifact_inventory.json".to_string()),
+            blocks_audit: true,
+        });
+    }
+
+    checks.push(EvidenceCheckV1 {
+        check_id: "hash_ledger_present".to_string(),
+        ok: inputs.hash_ledger_path.is_some(),
+        message: if inputs.hash_ledger_path.is_some() {
+            "hash ledger present".to_string()
+        } else {
+            "hash ledger missing".to_string()
+        },
+    });
+    if inputs.hash_ledger_path.is_none() {
+        gaps.push(EvidenceGapV1 {
+            code: "missing_hash_ledger".to_string(),
+            severity: EvidenceSeverityV1::Blocking,
+            message: "hash ledger is required for tamper-evident evidence".to_string(),
+            path: Some("hash_ledger.json".to_string()),
+            blocks_audit: true,
+        });
+    }
+
+    checks.push(EvidenceCheckV1 {
+        check_id: "replay_manifest_present".to_string(),
+        ok: inputs.replay_manifest_path.is_some(),
+        message: if inputs.replay_manifest_path.is_some() {
+            "replay manifest present".to_string()
+        } else {
+            "replay manifest missing".to_string()
+        },
+    });
+    if inputs.replay_manifest_path.is_none() {
+        gaps.push(EvidenceGapV1 {
+            code: "missing_replay_manifest".to_string(),
+            severity: EvidenceSeverityV1::Advisory,
+            message: "replay provenance is reduced because replay_manifest.json is missing".to_string(),
+            path: Some("replay_manifest.json".to_string()),
+            blocks_audit: false,
         });
     }
 
@@ -1002,6 +1168,134 @@ fn load_telemetry_events(paths: &[PathBuf]) -> Result<Vec<TelemetryEventV1>> {
         }
     }
     Ok(events)
+}
+
+fn verify_artifact_inventory_contract(path: &Path) -> (bool, String) {
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return (false, format!("artifact inventory missing at {}", path.display()));
+    };
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) else {
+        return (false, format!("artifact inventory is not valid json at {}", path.display()));
+    };
+    let schema_ok = value
+        .get("schema_version")
+        .and_then(serde_json::Value::as_str)
+        == Some("bijux.artifact_inventory.v1");
+    let artifacts = value.get("artifacts").and_then(serde_json::Value::as_array);
+    let role_complete = artifacts.is_some_and(|rows| {
+        rows.iter().all(|row| {
+            row.get("role")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|role| !role.trim().is_empty())
+        })
+    });
+    let lineage_complete = artifacts.is_some_and(|rows| {
+        rows.iter().all(|row| row.get("input_lineage").is_some())
+    });
+    (
+        schema_ok && role_complete && lineage_complete,
+        if schema_ok && role_complete && lineage_complete {
+            "artifact inventory schema, roles, and lineage are complete".to_string()
+        } else {
+            "artifact inventory is missing schema, role, or lineage detail".to_string()
+        },
+    )
+}
+
+fn verify_hash_ledger_contract(base_dir: &Path, path: &Path) -> (bool, String) {
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return (false, format!("hash ledger missing at {}", path.display()));
+    };
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) else {
+        return (false, format!("hash ledger is not valid json at {}", path.display()));
+    };
+    let schema_ok = value.get("schema_version").and_then(serde_json::Value::as_str)
+        == Some("bijux.hash_ledger.v1");
+    let entries = value.get("entries").and_then(serde_json::Value::as_array);
+    let entries_ok = entries.is_some_and(|rows| {
+        let mut previous = None;
+        rows.iter().all(|row| {
+            let Some(relative_path) = row.get("path").and_then(serde_json::Value::as_str) else {
+                return false;
+            };
+            let Some(expected_hash) = row.get("sha256").and_then(serde_json::Value::as_str) else {
+                return false;
+            };
+            let recorded_previous = row
+                .get("previous_entry_sha256")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_string);
+            if recorded_previous != previous {
+                return false;
+            }
+            let full = base_dir.join(relative_path);
+            let Ok(actual_hash) = bijux_dna_infra::hash_file_sha256(&full) else {
+                return false;
+            };
+            previous = Some(expected_hash.to_string());
+            actual_hash == expected_hash
+        })
+    });
+    (
+        schema_ok && entries_ok,
+        if schema_ok && entries_ok {
+            "hash ledger ordering and file hashes verified".to_string()
+        } else {
+            "hash ledger failed schema or chained hash verification".to_string()
+        },
+    )
+}
+
+fn verify_report_completeness(path: &Path) -> (bool, String) {
+    let Ok(raw) = std::fs::read_to_string(path) else {
+        return (false, format!("report missing at {}", path.display()));
+    };
+    let Ok(value) = serde_json::from_str::<serde_json::Value>(&raw) else {
+        return (false, format!("report is not valid json at {}", path.display()));
+    };
+    let completeness = value.get("completeness");
+    let missing_metrics_empty = completeness
+        .and_then(|value| value.get("missing_metrics"))
+        .and_then(serde_json::Value::as_array)
+        .map_or(true, Vec::is_empty);
+    let missing_reports_empty = completeness
+        .and_then(|value| value.get("missing_reports"))
+        .and_then(serde_json::Value::as_array)
+        .map_or(true, Vec::is_empty);
+    (
+        missing_metrics_empty && missing_reports_empty,
+        if missing_metrics_empty && missing_reports_empty {
+            "report completeness is governed and empty of missing fields".to_string()
+        } else {
+            "report completeness declares missing metrics or reports".to_string()
+        },
+    )
+}
+
+fn verify_advisory_and_enforced_consistency(manifest_path: &Path, run_state_path: &Path) -> (bool, String) {
+    let manifest = std::fs::read_to_string(manifest_path)
+        .ok()
+        .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok());
+    let run_state = std::fs::read_to_string(run_state_path)
+        .ok()
+        .and_then(|raw| serde_json::from_str::<serde_json::Value>(&raw).ok());
+    let manifest_mode = manifest
+        .as_ref()
+        .and_then(|value| value.get("mode"))
+        .and_then(serde_json::Value::as_str);
+    let state_mode = run_state
+        .as_ref()
+        .and_then(|value| value.get("mode"))
+        .and_then(serde_json::Value::as_str);
+    let ok = manifest_mode == state_mode;
+    (
+        ok,
+        if ok {
+            "manifest mode and run-state mode are consistent".to_string()
+        } else {
+            "manifest mode and run-state mode disagree".to_string()
+        },
+    )
 }
 
 fn read_bundle(path: &Path) -> Result<EvidenceBundleV1> {
