@@ -9,6 +9,7 @@ pub use crate::surface::request_contracts::{
     DryRunRequest, DryRunResponse, ExecuteRequest, ExecuteResponse, PlanRequest, PlanResponse,
     RenderReportRequest, RenderReportResult, RunStatus,
 };
+pub use crate::surface::versioning::{route_version_inventory, ApiRouteVersionInventoryV1};
 pub use crate::v1::report::render_report_bundle_html;
 
 /// Benchmarking helpers (v1).
