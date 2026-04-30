@@ -139,10 +139,7 @@ fn parse_args(workspace: &Workspace, args: &[String]) -> Result<ScenarioRunConfi
 fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
     let result = match scenario {
         ScenarioId::CanFam4Reference => scenario_canfam4_reference(),
-        ScenarioId::GrchHumanReference => Ok((
-            vec!["scenario evaluator scaffold initialized".to_string()],
-            json!({ "status": "pending_implementation" }),
-        )),
+        ScenarioId::GrchHumanReference => scenario_grch_human_reference(),
     };
 
     match result {
@@ -181,6 +178,31 @@ fn scenario_canfam4_reference() -> Result<(Vec<String>, serde_json::Value)> {
     ))
 }
 
+fn scenario_grch_human_reference() -> Result<(Vec<String>, serde_json::Value)> {
+    let resolved = resolve_reference_bundle_contract(
+        "Homo sapiens",
+        "GRCh38",
+        Some("hsapiens_grch38_mini"),
+        Some("hsapiens_grch38_chr_map"),
+        Some("glimpse"),
+    )?;
+    Ok((
+        vec![
+            "human GRCh38 contract resolved with panel/map/tool compatibility".to_string(),
+            "contig alias normalization retained compatibility surface".to_string(),
+        ],
+        json!({
+            "species_id": resolved.species_id,
+            "build_id": resolved.build_id,
+            "bundle_id": resolved.bundle_id,
+            "panel_id": resolved.panel_id,
+            "map_id": resolved.map_id,
+            "compatibility_checked_tool": resolved.compatibility_checked_tool,
+            "alias_count": resolved.contig_aliases.len(),
+        }),
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::{run_scenario, ScenarioId};
@@ -197,5 +219,16 @@ mod tests {
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G171");
         assert_eq!(report.evidence.get("build_id").and_then(serde_json::Value::as_str), Some("CanFam4"));
+    }
+
+    #[test]
+    fn grch38_scenario_resolves_panel_and_map_compatibility() {
+        let report = run_scenario(&ScenarioId::GrchHumanReference);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G172");
+        assert_eq!(
+            report.evidence.get("compatibility_checked_tool").and_then(serde_json::Value::as_str),
+            Some("glimpse")
+        );
     }
 }
