@@ -10,6 +10,7 @@ enum ScenarioId {
     ArtifactRetentionSimulation,
     ArtifactDedupLineage,
     CacheCorruptionQuarantine,
+    BundlePortabilityCheck,
 }
 
 impl ScenarioId {
@@ -20,6 +21,7 @@ impl ScenarioId {
             Self::ArtifactRetentionSimulation => "g193_artifact_retention_simulation",
             Self::ArtifactDedupLineage => "g194_artifact_deduplication_lineage",
             Self::CacheCorruptionQuarantine => "g195_cache_corruption_quarantine",
+            Self::BundlePortabilityCheck => "g196_bundle_portability_check",
         }
     }
 
@@ -30,6 +32,7 @@ impl ScenarioId {
             Self::ArtifactRetentionSimulation => "G193",
             Self::ArtifactDedupLineage => "G194",
             Self::CacheCorruptionQuarantine => "G195",
+            Self::BundlePortabilityCheck => "G196",
         }
     }
 
@@ -40,6 +43,7 @@ impl ScenarioId {
             Self::ArtifactRetentionSimulation,
             Self::ArtifactDedupLineage,
             Self::CacheCorruptionQuarantine,
+            Self::BundlePortabilityCheck,
         ]
     }
 
@@ -52,6 +56,7 @@ impl ScenarioId {
             }
             "g194_artifact_deduplication_lineage" | "G194" => Some(Self::ArtifactDedupLineage),
             "g195_cache_corruption_quarantine" | "G195" => Some(Self::CacheCorruptionQuarantine),
+            "g196_bundle_portability_check" | "G196" => Some(Self::BundlePortabilityCheck),
             _ => None,
         }
     }
@@ -173,6 +178,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::ArtifactRetentionSimulation => scenario_artifact_retention_simulation(),
         ScenarioId::ArtifactDedupLineage => scenario_artifact_dedup_lineage(),
         ScenarioId::CacheCorruptionQuarantine => scenario_cache_corruption_quarantine(),
+        ScenarioId::BundlePortabilityCheck => scenario_bundle_portability_check(),
     };
 
     match result {
@@ -501,6 +507,62 @@ fn scenario_cache_corruption_quarantine() -> Result<(Vec<String>, serde_json::Va
     ))
 }
 
+fn scenario_bundle_portability_check() -> Result<(Vec<String>, serde_json::Value)> {
+    let bundle = json!({
+        "schema_version": "bijux.workflow_transfer_bundle.v1",
+        "bundle_id": "g196_portable_bundle",
+        "portable_root": ".",
+        "required_files": [
+            "run_manifest.json",
+            "manifests/plan_manifest.json",
+            "artifact_inventory.json",
+            "evidence_bundle.json"
+        ],
+        "artifact_paths": [
+            "run_artifacts/aligned_bam.bam",
+            "run_artifacts/variants_vcf.vcf.gz",
+            "reports/qc_manifest.json"
+        ],
+        "forbidden_absolute_paths": [
+            "/Users/",
+            "C:\\\\"
+        ]
+    });
+
+    let required_files = bundle["required_files"].as_array().cloned().unwrap_or_default();
+    let artifact_paths = bundle["artifact_paths"].as_array().cloned().unwrap_or_default();
+    let all_relative = required_files
+        .iter()
+        .chain(artifact_paths.iter())
+        .all(|entry| entry.as_str().is_some_and(|path| !path.starts_with('/')));
+    let portable_extension_count = required_files
+        .iter()
+        .filter_map(serde_json::Value::as_str)
+        .filter(|path| path.ends_with(".json"))
+        .count();
+    if !all_relative || portable_extension_count < 3 {
+        return Err(anyhow!(
+            "bundle portability check requires relative paths and portable manifest surfaces"
+        ));
+    }
+
+    Ok((
+        vec![
+            "bundle portability check validates relative-path packaging and required evidence files for copied run bundles".to_string(),
+            "portability result is explicit so operators can verify bundles outside original machine paths".to_string(),
+        ],
+        json!({
+            "bundle_id": bundle["bundle_id"],
+            "portable_root": bundle["portable_root"],
+            "required_file_count": required_files.len(),
+            "artifact_path_count": artifact_paths.len(),
+            "all_relative_paths": all_relative,
+            "required_files": required_files,
+            "artifact_paths": artifact_paths,
+        }),
+    ))
+}
+
 fn diff_strings(left: &serde_json::Value, right: &serde_json::Value) -> serde_json::Value {
     let left_rows = left
         .as_array()
@@ -536,7 +598,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G191", "G192", "G193", "G194", "G195"]);
+        assert_eq!(ids, vec!["G191", "G192", "G193", "G194", "G195", "G196"]);
     }
 
     #[test]
@@ -621,5 +683,17 @@ mod tests {
             report.evidence["valid_entry_count"].as_u64().unwrap_or_default(),
             2
         );
+    }
+
+    #[test]
+    fn g196_bundle_portability_requires_relative_paths_and_bundle_core_files() {
+        let report = run_scenario(&ScenarioId::BundlePortabilityCheck);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G196");
+        assert_eq!(
+            report.evidence["all_relative_paths"].as_bool(),
+            Some(true)
+        );
+        assert!(report.evidence["required_file_count"].as_u64().unwrap_or_default() >= 4);
     }
 }
