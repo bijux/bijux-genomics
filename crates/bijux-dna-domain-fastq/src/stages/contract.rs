@@ -12,6 +12,6 @@ pub use runtime::{
     prepare_primer_bank, build_contaminant_db, build_rrna_db, build_taxonomy_db,
     normalize_read_names, repair_pairs, interleave_reads, deinterleave_reads,
     concatenate_lanes, demultiplex_reads, subsample_reads, detect_instrument_artifacts,
-    DemultiplexRule, LaneInput, SubsampleTarget,
+    detect_duplicates_premerge, DemultiplexRule, LaneInput, SubsampleTarget,
     HeaderInspection, MergeSuitability, NormalizedOutputs,
 };
