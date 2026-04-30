@@ -148,6 +148,25 @@ pub struct BamMappingSummaryV1 {
     pub idxstats_present: bool,
     #[serde(default)]
     pub mapq_regime: Option<BamMapqRegimeV1>,
+    #[serde(default)]
+    pub proper_pair_reads: Option<u64>,
+    #[serde(default)]
+    pub secondary_reads: Option<u64>,
+    #[serde(default)]
+    pub supplementary_reads: Option<u64>,
+    #[serde(default)]
+    pub mapq_histogram: Vec<(u8, u64)>,
+    #[serde(default)]
+    pub read_group_breakdown: Vec<BamReadGroupMappingCountV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BamReadGroupMappingCountV1 {
+    pub read_group_id: String,
+    pub total_reads: u64,
+    pub mapped_reads: u64,
+    pub proper_pair_reads: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -1179,6 +1198,17 @@ fn align_fastq_to_bam_with_backend(
         stats_present: true,
         idxstats_present: true,
         mapq_regime: mapq_regime_from_records(&records),
+        proper_pair_reads: Some(
+            records.iter().filter(|record| (record.flag & 0x2) != 0).count() as u64
+        ),
+        secondary_reads: Some(
+            records.iter().filter(|record| (record.flag & 0x100) != 0).count() as u64
+        ),
+        supplementary_reads: Some(
+            records.iter().filter(|record| (record.flag & 0x800) != 0).count() as u64,
+        ),
+        mapq_histogram: Vec::new(),
+        read_group_breakdown: Vec::new(),
     };
 
     Ok((provenance, mapping_summary))
@@ -1786,6 +1816,67 @@ pub fn filter_tiny_bam_by_mapq(
         flagstat_after: after,
         mapped_reads_removed,
         mapped_fraction_retained,
+    })
+}
+
+/// Summarize mapping status for a tiny BAM/SAM fixture with MAPQ and read-group breakdown.
+///
+/// # Errors
+/// Returns an error if the input cannot be parsed.
+pub fn summarize_tiny_bam_mapping(input_bam: &Path) -> Result<BamMappingSummaryV1> {
+    let document = parse_tiny_sam(input_bam)?;
+    let flagstat = flagstat_from_records(&document.records);
+    let proper_pair_reads =
+        document.records.iter().filter(|record| (record.flag & 0x2) != 0).count() as u64;
+    let secondary_reads =
+        document.records.iter().filter(|record| (record.flag & 0x100) != 0).count() as u64;
+    let supplementary_reads =
+        document.records.iter().filter(|record| (record.flag & 0x800) != 0).count() as u64;
+
+    let mut mapq_histogram_counts = HashMap::<u8, u64>::new();
+    for record in document.records.iter().filter(|record| record.is_mapped()) {
+        *mapq_histogram_counts.entry(record.mapq).or_insert(0) += 1;
+    }
+    let mut mapq_histogram = mapq_histogram_counts.into_iter().collect::<Vec<_>>();
+    mapq_histogram.sort_by_key(|(mapq, _)| *mapq);
+
+    let mut read_group_counts = HashMap::<String, (u64, u64, u64)>::new();
+    for record in &document.records {
+        let read_group = record.read_group_id.clone().unwrap_or_else(|| "unknown".to_string());
+        let entry = read_group_counts.entry(read_group).or_insert((0, 0, 0));
+        entry.0 += 1;
+        if record.is_mapped() {
+            entry.1 += 1;
+        }
+        if (record.flag & 0x2) != 0 {
+            entry.2 += 1;
+        }
+    }
+    let mut read_group_breakdown = read_group_counts
+        .into_iter()
+        .map(|(read_group_id, (total_reads, mapped_reads, proper_pair_reads))| {
+            BamReadGroupMappingCountV1 {
+                read_group_id,
+                total_reads,
+                mapped_reads,
+                proper_pair_reads,
+            }
+        })
+        .collect::<Vec<_>>();
+    read_group_breakdown.sort_by(|left, right| left.read_group_id.cmp(&right.read_group_id));
+
+    Ok(BamMappingSummaryV1 {
+        schema_version: BAM_MAPPING_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.mapping_summary".to_string(),
+        flagstat,
+        stats_present: true,
+        idxstats_present: true,
+        mapq_regime: mapq_regime_from_records(&document.records),
+        proper_pair_reads: Some(proper_pair_reads),
+        secondary_reads: Some(secondary_reads),
+        supplementary_reads: Some(supplementary_reads),
+        mapq_histogram,
+        read_group_breakdown,
     })
 }
 
@@ -2621,5 +2712,36 @@ r03\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg1\n",
 
         let filtered = parse_tiny_sam(&output).expect("parse filtered output");
         assert_eq!(filtered.records.len(), 2);
+    }
+
+    #[test]
+    fn summarize_tiny_bam_mapping_reports_mapq_histogram_and_read_group_breakdown() {
+        let temp = unique_temp_dir("bam-mapping-summary");
+        let input = temp.join("input.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:50\n\
+@RG\tID:rg1\tSM:sampleA\n\
+@RG\tID:rg2\tSM:sampleA\n\
+r01\t99\tchr1\t1\t45\t6M\t=\t9\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
+r01\t147\tchr1\t9\t45\t6M\t=\t1\t0\tGTACGT\tFFFFFF\tRG:Z:rg1\n\
+r02\t0\tchr1\t20\t10\t6M\t*\t0\t0\tTTTTTT\tFFFFFF\tRG:Z:rg2\n\
+r03\t4\t*\t0\t0\t*\t*\t0\t0\tNNNNNN\tFFFFFF\tRG:Z:rg2\n",
+        )
+        .expect("write mapping summary fixture");
+
+        let summary = summarize_tiny_bam_mapping(&input).expect("summarize mapping");
+        assert_eq!(summary.flagstat.total_reads, Some(4));
+        assert_eq!(summary.flagstat.mapped_reads, Some(3));
+        assert_eq!(summary.proper_pair_reads, Some(2));
+        assert_eq!(summary.secondary_reads, Some(0));
+        assert_eq!(summary.supplementary_reads, Some(0));
+        assert_eq!(summary.mapq_histogram, vec![(10, 1), (45, 2)]);
+        assert_eq!(summary.read_group_breakdown.len(), 2);
+        assert_eq!(summary.read_group_breakdown[0].read_group_id, "rg1");
+        assert_eq!(summary.read_group_breakdown[0].mapped_reads, 2);
+        assert_eq!(summary.read_group_breakdown[1].read_group_id, "rg2");
+        assert_eq!(summary.read_group_breakdown[1].mapped_reads, 1);
     }
 }
