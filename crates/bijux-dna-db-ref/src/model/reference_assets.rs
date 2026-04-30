@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
@@ -81,4 +82,26 @@ pub struct ReferenceProvenance {
     pub contig_set_digest: String,
     pub source_lock_sha256: String,
     pub bundle_lock_sha256: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct MaterializedIndexArtifact {
+    pub tool_id: String,
+    pub path: PathBuf,
+    pub status: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ReferenceMaterializationReport {
+    pub schema_version: String,
+    pub species_id: String,
+    pub build_id: String,
+    pub source_url: String,
+    pub declared_sha256: String,
+    pub license_id: String,
+    pub license_url: String,
+    pub materialization_root: PathBuf,
+    pub mode: String,
+    pub bundle_id: String,
+    pub index_artifacts: Vec<MaterializedIndexArtifact>,
 }

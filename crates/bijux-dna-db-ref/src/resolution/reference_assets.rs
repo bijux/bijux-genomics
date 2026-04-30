@@ -1,4 +1,6 @@
-use anyhow::{anyhow, bail, Result};
+use std::path::{Path, PathBuf};
+
+use anyhow::{anyhow, bail, Context, Result};
 
 use crate::resolution::validate_sha256;
 use crate::runtime_config::{
@@ -6,8 +8,9 @@ use crate::runtime_config::{
     ReferenceBankConfig, ReferenceSetConfig,
 };
 use crate::{
-    BundleEntry, ContigNormalizationPolicy, GeneticMapBankEntry, OrganellarPolicy,
-    ReferenceBankEntry, ReferenceBundle, ReferenceProvenance, ReferenceSet,
+    BundleEntry, ContigNormalizationPolicy, GeneticMapBankEntry, MaterializedIndexArtifact,
+    OrganellarPolicy, ReferenceBankEntry, ReferenceBundle, ReferenceMaterializationReport,
+    ReferenceProvenance, ReferenceSet,
 };
 
 /// # Errors
@@ -162,6 +165,70 @@ pub fn reference_provenance(
     }
 }
 
+/// # Errors
+/// Returns an error if reference contracts are invalid or offline materialization is disallowed.
+pub fn materialize_reference_bank(
+    species: &str,
+    build: &str,
+    materialization_root: &Path,
+    offline: bool,
+    allow_fixture_materialization: bool,
+) -> Result<ReferenceMaterializationReport> {
+    let bank = resolve_reference_bank(species, build)?;
+    let bundle = resolve_reference_bundle(species, build)?;
+    if offline && !allow_fixture_materialization {
+        bail!(
+            "offline materialization refused for {species}:{build}; enable fixture materialization explicitly"
+        );
+    }
+    if bank.required_indexes.is_empty() {
+        bail!("reference bank entry for {species}:{build} must declare required indexes");
+    }
+
+    let root = materialization_root.join(species).join(build).join("refs");
+    let raw = root.join("raw");
+    let normalized = root.join("normalized");
+    let derived = root.join("derived");
+    for dir in [&raw, &normalized, &derived] {
+        std::fs::create_dir_all(dir).with_context(|| format!("create {}", dir.display()))?;
+    }
+
+    let fasta = raw.join("reference.fa");
+    let fasta_contents = format!(
+        ">synthetic_reference|species={species}|build={build}|mode=fixture\nACGTACGTACGTACGT\n"
+    );
+    std::fs::write(&fasta, fasta_contents.as_bytes())
+        .with_context(|| format!("write {}", fasta.display()))?;
+
+    let mut index_artifacts = Vec::new();
+    for required in &bank.required_indexes {
+        let artifact = write_index_artifact(required, &fasta, &normalized)?;
+        index_artifacts.push(artifact);
+    }
+    let dict_path = normalized.join("reference.dict");
+    std::fs::write(&dict_path, format!("@HD\tVN:1.0\n@SQ\tSN:{}\tLN:16\n", bundle.contigs[0]))
+        .with_context(|| format!("write {}", dict_path.display()))?;
+    index_artifacts.push(MaterializedIndexArtifact {
+        tool_id: "samtools_dict".to_string(),
+        path: dict_path,
+        status: "fixture".to_string(),
+    });
+
+    Ok(ReferenceMaterializationReport {
+        schema_version: "bijux.reference_materialization.v1".to_string(),
+        species_id: species.to_string(),
+        build_id: build.to_string(),
+        source_url: bank.fasta_url,
+        declared_sha256: bank.fasta_sha256,
+        license_id: bank.license_id,
+        license_url: bank.license_url,
+        materialization_root: root,
+        mode: if offline { "offline_fixture" } else { "online_fixture" }.to_string(),
+        bundle_id: bundle.bundle_id,
+        index_artifacts,
+    })
+}
+
 pub(crate) fn resolve_bundle_entry(species: &str, build: &str) -> Result<BundleEntry> {
     let path = workspace_root().join("configs/runtime/reference_bundles.toml");
     let cfg: BundlesConfig = load_toml(&path)?;
@@ -196,11 +263,43 @@ fn validate_bundle_contigs(bundle: &BundleEntry) -> Result<()> {
     Ok(())
 }
 
+fn write_index_artifact(
+    required: &str,
+    fasta: &Path,
+    normalized: &Path,
+) -> Result<MaterializedIndexArtifact> {
+    let (tool_id, target, payload): (&str, PathBuf, String) = match required {
+        "samtools_faidx" => (
+            "samtools_faidx",
+            normalized.join("reference.fa.fai"),
+            "synthetic_reference\t16\t0\t16\t17\n".to_string(),
+        ),
+        "bwa_index" => {
+            ("bwa_index", normalized.join("reference.fa.bwt"), "synthetic-bwa-index\n".to_string())
+        }
+        "bowtie2_index" => (
+            "bowtie2_index",
+            normalized.join("reference.fa.1.bt2"),
+            "synthetic-bowtie2-index\n".to_string(),
+        ),
+        other => bail!("unsupported required index tool: {other}"),
+    };
+    let header = format!("# source={}\n", fasta.display());
+    std::fs::write(&target, format!("{header}{payload}").as_bytes())
+        .with_context(|| format!("write {}", target.display()))?;
+    Ok(MaterializedIndexArtifact {
+        tool_id: tool_id.to_string(),
+        path: target,
+        status: "fixture".to_string(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{validate_bundle_contigs, validate_bundle_digests};
+    use super::{materialize_reference_bank, validate_bundle_contigs, validate_bundle_digests};
     use crate::runtime_config::{BundleEntry, ContigEntry, SupportedFeatureEntry};
     use std::collections::BTreeMap;
+    use std::path::PathBuf;
 
     #[test]
     fn validate_bundle_digests_rejects_invalid_contig_set_digest() {
@@ -292,5 +391,39 @@ mod tests {
 
         assert_eq!(provenance.species_id, bundle.species_id);
         assert_eq!(provenance.build_id, bundle.build_id);
+    }
+
+    #[test]
+    fn reference_materialization_offline_refusal_requires_fixture_opt_in() {
+        let temp = make_temp_dir("offline-refusal");
+        let Err(error) = materialize_reference_bank("Homo sapiens", "GRCh38", &temp, true, false)
+        else {
+            panic!("offline materialization without fixture opt-in must fail");
+        };
+
+        assert!(error.to_string().contains("offline materialization refused"));
+    }
+
+    #[test]
+    fn reference_materialization_writes_fixture_indexes() {
+        let temp = make_temp_dir("reference-indexes");
+        let report = materialize_reference_bank("Homo sapiens", "GRCh38", &temp, true, true)
+            .unwrap_or_else(|error| panic!("materialize reference bank: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.reference_materialization.v1");
+        assert_eq!(report.mode, "offline_fixture");
+        assert!(report.index_artifacts.iter().any(|artifact| artifact.tool_id == "samtools_faidx"));
+        assert!(report.index_artifacts.iter().all(|artifact| artifact.path.exists()));
+    }
+
+    fn make_temp_dir(label: &str) -> PathBuf {
+        let mut path = std::env::temp_dir();
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0_u128, |value| value.as_nanos());
+        path.push(format!("bijux-db-ref-{label}-{}-{nanos}", std::process::id()));
+        std::fs::create_dir_all(&path)
+            .unwrap_or_else(|error| panic!("create temp dir {}: {error}", path.display()));
+        path
     }
 }
