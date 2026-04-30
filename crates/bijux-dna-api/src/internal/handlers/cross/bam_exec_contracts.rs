@@ -790,12 +790,15 @@ mod tests {
     }
 
     #[test]
-    fn coverage_regime_classifier_uses_requested_bins() {
-        assert_eq!(classify_mean_depth(0.5), "<1x");
-        assert_eq!(classify_mean_depth(1.0), "1-5x");
-        assert_eq!(classify_mean_depth(5.0), "1-5x");
-        assert_eq!(classify_mean_depth(7.5), "5-10x");
-        assert_eq!(classify_mean_depth(12.0), ">10x");
+    fn coverage_regime_classifier_uses_governed_contracts() {
+        let sparse = bijux_dna_domain_bam::classify_bam_coverage_regime(0.5, 0.2);
+        assert_eq!(sparse.regime_id, "sparse");
+        let low_pass = bijux_dna_domain_bam::classify_bam_coverage_regime(2.0, 0.5);
+        assert_eq!(low_pass.regime_id, "low_pass");
+        let target_like = bijux_dna_domain_bam::classify_bam_coverage_regime(8.0, 0.6);
+        assert_eq!(target_like.regime_id, "target_like");
+        let whole_genome_like = bijux_dna_domain_bam::classify_bam_coverage_regime(20.0, 0.9);
+        assert_eq!(whole_genome_like.regime_id, "whole_genome_like");
     }
 
     #[test]
