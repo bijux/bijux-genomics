@@ -5,6 +5,8 @@ mod mod_contracts_fastq_amplicon_governance_contract_rs;
 mod mod_contracts_v1_cross_contract_spine_rs;
 #[path = "contracts/v1_cross_explain_roundtrip.rs"]
 mod mod_contracts_v1_cross_explain_roundtrip_rs;
+#[path = "contracts/v1_cross_profile_contracts.rs"]
+mod mod_contracts_v1_cross_profile_contracts_rs;
 #[path = "contracts/v1_cross_public_contract.rs"]
 mod mod_contracts_v1_cross_public_contract_rs;
 #[path = "contracts/v1_dry_run_manifest.rs"]
