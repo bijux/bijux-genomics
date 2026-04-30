@@ -64,7 +64,13 @@ pub fn plan_stage(request: StagePlanRequest<'_>) -> Result<StagePlanV1> {
 pub fn plan_bam_to_bam__default__v1(inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
     let profile = profile_catalog::profile_by_id("bam-to-bam__default__v1")
         .ok_or_else(|| anyhow!("missing builtin BAM profile bam-to-bam__default__v1"))?;
-    build_bam_plan(&profile, inputs)
+    let stages = build_bam_stage_plans(&profile, inputs)?;
+    execution_graph::from_stage_plans(
+        profile.id.as_str(),
+        inputs.policy,
+        &stages,
+        "planned bam pipeline graph",
+    )
 }
 
 /// # Errors
@@ -72,7 +78,13 @@ pub fn plan_bam_to_bam__default__v1(inputs: &BamPipelineInputs) -> Result<Execut
 #[allow(non_snake_case)]
 pub fn plan_bam_to_bam__adna_shotgun__v1(inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
     let profile = profile_catalog::adna_shotgun_profile();
-    build_bam_plan(&profile, inputs)
+    let stages = build_bam_stage_plans(&profile, inputs)?;
+    execution_graph::from_stage_plans(
+        profile.id.as_str(),
+        inputs.policy,
+        &stages,
+        "planned bam pipeline graph",
+    )
 }
 
 /// # Errors
@@ -80,7 +92,13 @@ pub fn plan_bam_to_bam__adna_shotgun__v1(inputs: &BamPipelineInputs) -> Result<E
 #[allow(non_snake_case)]
 pub fn plan_bam_to_bam__adna_capture__v1(inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
     let profile = profile_catalog::adna_capture_profile();
-    build_bam_plan(&profile, inputs)
+    let stages = build_bam_stage_plans(&profile, inputs)?;
+    execution_graph::from_stage_plans(
+        profile.id.as_str(),
+        inputs.policy,
+        &stages,
+        "planned bam pipeline graph",
+    )
 }
 
 pub fn pipeline_id_catalog(profile_id: &str) -> Vec<String> {
@@ -107,10 +125,77 @@ pub fn plan_bam_workflow_template(
             template.profile_id
         )
     })?;
-    build_bam_plan(&profile, inputs)
+    let stages = build_bam_stage_plans(&profile, inputs)?;
+    execution_graph::from_stage_plans(
+        profile.id.as_str(),
+        inputs.policy,
+        &stages,
+        "planned bam pipeline graph",
+    )
 }
 
-fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Result<ExecutionGraph> {
+/// # Errors
+/// Returns an error if stage planning fails for the requested BAM profile.
+pub fn plan_bam_stage_plans_for_profile_id(
+    profile_id: &str,
+    inputs: &BamPipelineInputs,
+) -> Result<Vec<StagePlanV1>> {
+    let profile = profile_catalog::profile_by_id(profile_id)
+        .ok_or_else(|| anyhow!("unknown BAM profile: {profile_id}"))?;
+    build_bam_stage_plans(&profile, inputs)
+}
+
+/// # Errors
+/// Returns an error if stage planning fails for the requested BAM template.
+pub fn plan_bam_workflow_template_stage_plans(
+    template_id: &str,
+    inputs: &BamPipelineInputs,
+) -> Result<Vec<StagePlanV1>> {
+    let template = bijux_dna_domain_bam::bam_workflow_template_by_id(template_id)
+        .ok_or_else(|| anyhow!("unknown bam workflow template: {template_id}"))?;
+    let profile = profile_catalog::profile_by_id(&template.profile_id).ok_or_else(|| {
+        anyhow!(
+            "bam workflow template {} references unknown profile {}",
+            template.template_id,
+            template.profile_id
+        )
+    })?;
+    build_bam_stage_plans(&profile, inputs)
+}
+
+/// # Errors
+/// Returns an error if stage planning fails for the requested BAM profile.
+#[allow(non_snake_case)]
+pub fn plan_bam_to_bam__default__v1_stage_plans(
+    inputs: &BamPipelineInputs,
+) -> Result<Vec<StagePlanV1>> {
+    plan_bam_stage_plans_for_profile_id("bam-to-bam__default__v1", inputs)
+}
+
+/// # Errors
+/// Returns an error if stage planning fails for the requested BAM profile.
+#[allow(non_snake_case)]
+pub fn plan_bam_to_bam__adna_shotgun__v1_stage_plans(
+    inputs: &BamPipelineInputs,
+) -> Result<Vec<StagePlanV1>> {
+    let profile = profile_catalog::adna_shotgun_profile();
+    build_bam_stage_plans(&profile, inputs)
+}
+
+/// # Errors
+/// Returns an error if stage planning fails for the requested BAM profile.
+#[allow(non_snake_case)]
+pub fn plan_bam_to_bam__adna_capture__v1_stage_plans(
+    inputs: &BamPipelineInputs,
+) -> Result<Vec<StagePlanV1>> {
+    let profile = profile_catalog::adna_capture_profile();
+    build_bam_stage_plans(&profile, inputs)
+}
+
+fn build_bam_stage_plans(
+    profile: &PipelineProfile,
+    inputs: &BamPipelineInputs,
+) -> Result<Vec<StagePlanV1>> {
     validate_pipeline_input_maps(profile, inputs)?;
     let mut bam = inputs.bam.clone();
     let mut bam_index = inputs.bam_index.clone();
@@ -150,12 +235,7 @@ fn build_bam_plan(profile: &PipelineProfile, inputs: &BamPipelineInputs) -> Resu
         }
         stages.push(plan);
     }
-    execution_graph::from_stage_plans(
-        profile.id.as_str(),
-        inputs.policy,
-        &stages,
-        "planned bam pipeline graph",
-    )
+    Ok(stages)
 }
 
 fn validate_pipeline_input_maps(
