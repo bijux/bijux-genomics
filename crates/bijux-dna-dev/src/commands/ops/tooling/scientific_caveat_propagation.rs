@@ -17,6 +17,7 @@ use serde::Serialize;
 enum ScenarioId {
     AncientDnaAuthenticity,
     LowPassGenotype,
+    EdnaTaxonomy,
 }
 
 impl ScenarioId {
@@ -24,6 +25,7 @@ impl ScenarioId {
         match self {
             Self::AncientDnaAuthenticity => "g181_ancient_dna_authenticity_caveat_library",
             Self::LowPassGenotype => "g182_low_pass_genotype_caveat_library",
+            Self::EdnaTaxonomy => "g183_edna_taxonomy_caveat_library",
         }
     }
 
@@ -31,11 +33,16 @@ impl ScenarioId {
         match self {
             Self::AncientDnaAuthenticity => "G181",
             Self::LowPassGenotype => "G182",
+            Self::EdnaTaxonomy => "G183",
         }
     }
 
     fn all() -> Vec<Self> {
-        vec![Self::AncientDnaAuthenticity, Self::LowPassGenotype]
+        vec![
+            Self::AncientDnaAuthenticity,
+            Self::LowPassGenotype,
+            Self::EdnaTaxonomy,
+        ]
     }
 
     fn from_raw(raw: &str) -> Option<Self> {
@@ -44,6 +51,7 @@ impl ScenarioId {
                 Some(Self::AncientDnaAuthenticity)
             }
             "g182_low_pass_genotype_caveat_library" | "G182" => Some(Self::LowPassGenotype),
+            "g183_edna_taxonomy_caveat_library" | "G183" => Some(Self::EdnaTaxonomy),
             _ => None,
         }
     }
@@ -162,6 +170,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
     let result = match scenario {
         ScenarioId::AncientDnaAuthenticity => scenario_ancient_dna_authenticity_caveat_library(),
         ScenarioId::LowPassGenotype => scenario_low_pass_genotype_caveat_library(),
+        ScenarioId::EdnaTaxonomy => scenario_edna_taxonomy_caveat_library(),
     };
 
     match result {
@@ -329,6 +338,68 @@ fn scenario_low_pass_genotype_caveat_library() -> Result<(Vec<String>, serde_jso
     }
 }
 
+fn scenario_edna_taxonomy_caveat_library() -> Result<(Vec<String>, serde_json::Value)> {
+    let caveat_library = vec![
+        json!({
+            "topic": "database_bias",
+            "advisory_only": true,
+            "caveat": "taxonomy calls depend on database composition and are biased by reference overrepresentation",
+            "propagation_targets": ["fastq.screen_taxonomy", "report.taxonomy_summary", "report.cross_run_comparison"],
+        }),
+        json!({
+            "topic": "rank_resolution",
+            "advisory_only": true,
+            "caveat": "species-level labels are not guaranteed when marker sequences collapse across close taxa",
+            "propagation_targets": ["report.taxonomy_summary", "report.interpretation_notes"],
+        }),
+        json!({
+            "topic": "abundance_interpretation",
+            "advisory_only": true,
+            "caveat": "read-count abundance is compositional and should not be treated as absolute organism load",
+            "propagation_targets": ["report.relative_abundance", "report.publication_tables"],
+        }),
+        json!({
+            "topic": "primer_bias",
+            "advisory_only": true,
+            "caveat": "primer selection and PCR conditions influence detectability and cross-marker comparability",
+            "propagation_targets": ["fastq.edna_metabarcoding", "report.assay_methods", "report.cross_panel_comparison"],
+        }),
+    ];
+
+    let required_topics = ["database_bias", "rank_resolution", "abundance_interpretation", "primer_bias"];
+    for topic in required_topics {
+        let Some(entry) = caveat_library.iter().find(|row| {
+            row.get("topic").and_then(serde_json::Value::as_str) == Some(topic)
+        }) else {
+            return Err(anyhow!("eDNA taxonomy caveat library missing topic: {topic}"));
+        };
+        let targets = entry
+            .get("propagation_targets")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        if targets.is_empty() {
+            return Err(anyhow!(
+                "eDNA taxonomy caveat topic {topic} must include propagation targets"
+            ));
+        }
+    }
+
+    Ok((
+        vec![
+            "eDNA taxonomy caveat library encodes database, rank, abundance, and primer limitations as structured report fields"
+                .to_string(),
+            "each caveat declares explicit propagation targets so caveats survive downstream summaries"
+                .to_string(),
+        ],
+        json!({
+            "taxonomy_backends": ["kraken2", "centrifuge", "kaiju"],
+            "advisory_surface": "taxonomy outputs remain advisory-only in this branch",
+            "caveat_library": caveat_library,
+        }),
+    ))
+}
+
 fn base_adna_metrics() -> BamMetricsV1 {
     let mut metrics = BamMetricsV1::empty();
     metrics.damage.c_to_t_5p = 0.18;
@@ -349,7 +420,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G181", "G182"]);
+        assert_eq!(ids, vec!["G181", "G182", "G183"]);
     }
 
     #[test]
@@ -442,5 +513,49 @@ mod tests {
         assert!(refusals
             .iter()
             .any(|entry| entry.as_str() == Some("coverage_below_diploid_minimum")));
+    }
+
+    #[test]
+    fn g183_edna_taxonomy_library_contains_all_required_topics() {
+        let report = run_scenario(&ScenarioId::EdnaTaxonomy);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G183");
+        let library = report
+            .evidence
+            .get("caveat_library")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        let topics = library
+            .iter()
+            .filter_map(|entry| entry.get("topic").and_then(serde_json::Value::as_str))
+            .collect::<Vec<_>>();
+        assert!(topics.contains(&"database_bias"));
+        assert!(topics.contains(&"rank_resolution"));
+        assert!(topics.contains(&"abundance_interpretation"));
+        assert!(topics.contains(&"primer_bias"));
+    }
+
+    #[test]
+    fn g183_each_taxonomy_caveat_declares_propagation_targets() {
+        let report = run_scenario(&ScenarioId::EdnaTaxonomy);
+        assert_eq!(report.status, "passed");
+        let library = report
+            .evidence
+            .get("caveat_library")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        for entry in library {
+            let targets = entry
+                .get("propagation_targets")
+                .and_then(serde_json::Value::as_array)
+                .cloned()
+                .unwrap_or_default();
+            assert!(
+                !targets.is_empty(),
+                "every taxonomy caveat entry must include propagation targets"
+            );
+        }
     }
 }
