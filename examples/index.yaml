@@ -57,6 +57,14 @@ examples:
       - explain.json
       - report.json
     path: examples/fastq/edna-mini
+  - id: fastq_essential_qc
+    domain: fastq
+    corpus_required: corpus-01-mini
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/fastq/essential-qc
   - id: fastq_extract_umis_bench
     domain: fastq
     corpus_required: corpus-01-mini

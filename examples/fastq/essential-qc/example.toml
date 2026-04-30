@@ -1,0 +1,6 @@
+id = "fastq_essential_qc"
+domain = "fastq"
+corpus_required = "corpus-01-mini"
+corpus_id = "corpus-01-mini"
+mini_supported = true
+expected_outputs = ["plan.json", "explain.json", "report.json"]
