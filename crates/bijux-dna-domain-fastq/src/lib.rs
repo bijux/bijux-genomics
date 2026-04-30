@@ -11,6 +11,7 @@ pub mod bench_repository;
 mod comparison_contract;
 mod domain_adapter;
 pub mod execution_support;
+mod filter_policy_matrix;
 pub mod id_catalog;
 mod integration_matrix;
 pub mod invariants;
@@ -123,6 +124,9 @@ pub use execution_support::{
     declared_only_stage_ids as execution_declared_only_stage_ids,
     default_tool_for_stage as default_execution_tool_for_stage, execution_support_for_stage,
     ExecutionStatus, StageExecutionSupport,
+};
+pub use filter_policy_matrix::{
+    governed_filter_policy_matrix, FilterPolicyEntryV1, FilterScientificBoundary,
 };
 pub use id_catalog::{
     FastqInvariantsPreset, FASTQ_METRICS_CATALOG, FASTQ_PARAMS_CATALOG, FASTQ_STAGE_ID_CATALOG,

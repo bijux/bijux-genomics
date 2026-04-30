@@ -17,6 +17,8 @@ mod mod_contracts_domain_manifest_parity_rs;
 mod mod_contracts_executable_tool_manifests_rs;
 #[path = "contracts/execution_support_parity.rs"]
 mod mod_contracts_execution_support_parity_rs;
+#[path = "contracts/filter_policy_matrix.rs"]
+mod mod_contracts_filter_policy_matrix_rs;
 #[path = "contracts/index_dependencies.rs"]
 mod mod_contracts_index_dependencies_rs;
 #[path = "contracts/index_parity.rs"]
