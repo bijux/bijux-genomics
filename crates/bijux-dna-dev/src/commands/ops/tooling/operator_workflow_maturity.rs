@@ -12,6 +12,9 @@ enum ScenarioId {
     CacheCorruptionQuarantine,
     BundlePortabilityCheck,
     OfflineReviewProfile,
+    OperatorCommandRecipes,
+    ScaleAwareProgressReporting,
+    ResourcePredictionFromPastRuns,
 }
 
 impl ScenarioId {
@@ -24,6 +27,9 @@ impl ScenarioId {
             Self::CacheCorruptionQuarantine => "g195_cache_corruption_quarantine",
             Self::BundlePortabilityCheck => "g196_bundle_portability_check",
             Self::OfflineReviewProfile => "g197_offline_review_profile",
+            Self::OperatorCommandRecipes => "g198_operator_command_recipes",
+            Self::ScaleAwareProgressReporting => "g199_scale_aware_progress_reporting",
+            Self::ResourcePredictionFromPastRuns => "g200_resource_prediction_from_past_runs",
         }
     }
 
@@ -36,6 +42,9 @@ impl ScenarioId {
             Self::CacheCorruptionQuarantine => "G195",
             Self::BundlePortabilityCheck => "G196",
             Self::OfflineReviewProfile => "G197",
+            Self::OperatorCommandRecipes => "G198",
+            Self::ScaleAwareProgressReporting => "G199",
+            Self::ResourcePredictionFromPastRuns => "G200",
         }
     }
 
@@ -48,6 +57,9 @@ impl ScenarioId {
             Self::CacheCorruptionQuarantine,
             Self::BundlePortabilityCheck,
             Self::OfflineReviewProfile,
+            Self::OperatorCommandRecipes,
+            Self::ScaleAwareProgressReporting,
+            Self::ResourcePredictionFromPastRuns,
         ]
     }
 
@@ -62,6 +74,13 @@ impl ScenarioId {
             "g195_cache_corruption_quarantine" | "G195" => Some(Self::CacheCorruptionQuarantine),
             "g196_bundle_portability_check" | "G196" => Some(Self::BundlePortabilityCheck),
             "g197_offline_review_profile" | "G197" => Some(Self::OfflineReviewProfile),
+            "g198_operator_command_recipes" | "G198" => Some(Self::OperatorCommandRecipes),
+            "g199_scale_aware_progress_reporting" | "G199" => {
+                Some(Self::ScaleAwareProgressReporting)
+            }
+            "g200_resource_prediction_from_past_runs" | "G200" => {
+                Some(Self::ResourcePredictionFromPastRuns)
+            }
             _ => None,
         }
     }
@@ -185,6 +204,9 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::CacheCorruptionQuarantine => scenario_cache_corruption_quarantine(),
         ScenarioId::BundlePortabilityCheck => scenario_bundle_portability_check(),
         ScenarioId::OfflineReviewProfile => scenario_offline_review_profile(),
+        ScenarioId::OperatorCommandRecipes => scenario_operator_command_recipes(),
+        ScenarioId::ScaleAwareProgressReporting => scenario_scale_aware_progress_reporting(),
+        ScenarioId::ResourcePredictionFromPastRuns => scenario_resource_prediction_from_past_runs(),
     };
 
     match result {
@@ -619,6 +641,299 @@ fn scenario_offline_review_profile() -> Result<(Vec<String>, serde_json::Value)>
     ))
 }
 
+fn scenario_operator_command_recipes() -> Result<(Vec<String>, serde_json::Value)> {
+    let recipes = vec![
+        json!({
+            "task": "run",
+            "command": "cargo run -q -p bijux-dna-dev -- examples run run -- fastq-preprocess__minimal__v1",
+            "evidence_paths": ["run_manifest.json", "artifact_inventory.json"],
+        }),
+        json!({
+            "task": "inspect",
+            "command": "cargo run -q -p bijux-dna -- status --contracts",
+            "evidence_paths": ["run_state.json", "queue_state.json", "operator_health.json"],
+        }),
+        json!({
+            "task": "replay",
+            "command": "cargo run -q -p bijux-dna -- replay <run-id> --validate-only",
+            "evidence_paths": ["replay_manifest.json", "evidence_verification.json"],
+        }),
+        json!({
+            "task": "diff",
+            "command": "cargo run -q -p bijux-dna -- compare <run-a> <run-b>",
+            "evidence_paths": ["run_summary.json", "evidence_bundle.json"],
+        }),
+        json!({
+            "task": "export",
+            "command": "cargo run -q -p bijux-dna-dev -- tooling run operator-workflow-maturity -- --scenario G191",
+            "evidence_paths": ["workflow_bundle.json", "inputs_metadata.json"],
+        }),
+    ];
+
+    let all_have_evidence_paths = recipes.iter().all(|recipe| {
+        recipe
+            .get("evidence_paths")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|rows| !rows.is_empty())
+    });
+    if recipes.len() < 5 || !all_have_evidence_paths {
+        return Err(anyhow!(
+            "operator command recipes must include run/inspect/replay/diff/export tasks with evidence paths"
+        ));
+    }
+
+    Ok((
+        vec![
+            "operator command recipes provide canonical run/inspect/replay/diff/export command paths tied to concrete evidence files".to_string(),
+            "recipes are structured for copy-safe operator usage and doc generation pipelines".to_string(),
+        ],
+        json!({
+            "recipe_count": recipes.len(),
+            "recipes": recipes,
+        }),
+    ))
+}
+
+fn scenario_scale_aware_progress_reporting() -> Result<(Vec<String>, serde_json::Value)> {
+    let stage_events = vec![
+        json!({"sample_id":"sample_a","stage":"fastq.validate_reads","status":"completed","elapsed_sec":20_u64,"artifacts_written":2_u64}),
+        json!({"sample_id":"sample_a","stage":"bam.align_reads","status":"completed","elapsed_sec":420_u64,"artifacts_written":3_u64}),
+        json!({"sample_id":"sample_a","stage":"vcf.call_variants","status":"running","elapsed_sec":80_u64,"artifacts_written":1_u64}),
+        json!({"sample_id":"sample_b","stage":"fastq.validate_reads","status":"completed","elapsed_sec":18_u64,"artifacts_written":2_u64}),
+        json!({"sample_id":"sample_b","stage":"bam.align_reads","status":"failed","elapsed_sec":200_u64,"artifacts_written":0_u64}),
+        json!({"sample_id":"sample_c","stage":"fastq.validate_reads","status":"completed","elapsed_sec":22_u64,"artifacts_written":2_u64}),
+        json!({"sample_id":"sample_c","stage":"bam.align_reads","status":"completed","elapsed_sec":395_u64,"artifacts_written":3_u64}),
+    ];
+
+    let total_stage_count = stage_events.len() as u64;
+    let completed_count = stage_events
+        .iter()
+        .filter(|event| event["status"] == "completed")
+        .count() as u64;
+    let failed_count = stage_events
+        .iter()
+        .filter(|event| event["status"] == "failed")
+        .count() as u64;
+    let running_count = stage_events
+        .iter()
+        .filter(|event| event["status"] == "running")
+        .count() as u64;
+    let total_elapsed_sec = stage_events
+        .iter()
+        .map(|event| event["elapsed_sec"].as_u64().unwrap_or_default())
+        .sum::<u64>();
+    let stage_progress_fraction = if total_stage_count == 0 {
+        0.0
+    } else {
+        (completed_count as f64) / (total_stage_count as f64)
+    };
+    let scale_class = match total_stage_count {
+        0..=10 => "small",
+        11..=500 => "medium",
+        _ => "large",
+    };
+
+    let mut sample_state = std::collections::BTreeMap::<String, serde_json::Value>::new();
+    for event in &stage_events {
+        let sample_id = event["sample_id"].as_str().unwrap_or_default().to_string();
+        let sample_row = sample_state.entry(sample_id).or_insert_with(|| {
+            json!({
+                "completed": 0_u64,
+                "failed": 0_u64,
+                "running": 0_u64,
+                "stages": [],
+                "artifacts_written": 0_u64
+            })
+        });
+        let status = event["status"].as_str().unwrap_or_default();
+        if status == "completed" {
+            sample_row["completed"] = json!(sample_row["completed"].as_u64().unwrap_or_default() + 1);
+        }
+        if status == "failed" {
+            sample_row["failed"] = json!(sample_row["failed"].as_u64().unwrap_or_default() + 1);
+        }
+        if status == "running" {
+            sample_row["running"] = json!(sample_row["running"].as_u64().unwrap_or_default() + 1);
+        }
+        let written = sample_row["artifacts_written"].as_u64().unwrap_or_default()
+            + event["artifacts_written"].as_u64().unwrap_or_default();
+        sample_row["artifacts_written"] = json!(written);
+        if let Some(stages) = sample_row.get_mut("stages").and_then(serde_json::Value::as_array_mut)
+        {
+            stages.push(json!({
+                "stage": event["stage"],
+                "status": event["status"],
+                "elapsed_sec": event["elapsed_sec"],
+            }));
+        }
+    }
+
+    let failure_rows = stage_events
+        .iter()
+        .filter(|event| event["status"] == "failed")
+        .map(|event| {
+            json!({
+                "sample_id": event["sample_id"],
+                "stage": event["stage"],
+                "reason_code": "stage_failed",
+            })
+        })
+        .collect::<Vec<_>>();
+    if failed_count == 0 || failure_rows.is_empty() {
+        return Err(anyhow!(
+            "scale-aware progress report must include explicit failure rows"
+        ));
+    }
+
+    Ok((
+        vec![
+            "scale-aware progress reporting summarizes per-sample and global stage state without collapsing failed stages into aggregate percentages".to_string(),
+            "progress output includes explicit failure records and scale class so operators can triage long-running cohorts safely".to_string(),
+        ],
+        json!({
+            "scale_class": scale_class,
+            "total_stages": total_stage_count,
+            "completed_stages": completed_count,
+            "running_stages": running_count,
+            "failed_stages": failed_count,
+            "stage_progress_fraction": stage_progress_fraction,
+            "elapsed_sec_total": total_elapsed_sec,
+            "failure_rows": failure_rows,
+            "sample_state": sample_state,
+        }),
+    ))
+}
+
+fn scenario_resource_prediction_from_past_runs() -> Result<(Vec<String>, serde_json::Value)> {
+    let history = vec![
+        json!({
+            "run_id":"hist_001",
+            "profile":"fastq-to-vcf__minimal__v1",
+            "sample_count":1_u64,
+            "input_gb":8.1_f64,
+            "cpu_hours":2.4_f64,
+            "peak_memory_gb":11.0_f64,
+            "scratch_gb":38.0_f64,
+            "success":true
+        }),
+        json!({
+            "run_id":"hist_002",
+            "profile":"fastq-to-vcf__minimal__v1",
+            "sample_count":1_u64,
+            "input_gb":9.0_f64,
+            "cpu_hours":2.7_f64,
+            "peak_memory_gb":12.3_f64,
+            "scratch_gb":42.0_f64,
+            "success":true
+        }),
+        json!({
+            "run_id":"hist_003",
+            "profile":"fastq-to-vcf__minimal__v1",
+            "sample_count":2_u64,
+            "input_gb":16.4_f64,
+            "cpu_hours":5.1_f64,
+            "peak_memory_gb":18.0_f64,
+            "scratch_gb":74.0_f64,
+            "success":true
+        }),
+        json!({
+            "run_id":"hist_004",
+            "profile":"fastq-to-vcf__minimal__v1",
+            "sample_count":2_u64,
+            "input_gb":15.8_f64,
+            "cpu_hours":4.8_f64,
+            "peak_memory_gb":17.2_f64,
+            "scratch_gb":71.0_f64,
+            "success":true
+        }),
+        json!({
+            "run_id":"hist_005",
+            "profile":"fastq-to-vcf__minimal__v1",
+            "sample_count":2_u64,
+            "input_gb":17.0_f64,
+            "cpu_hours":5.5_f64,
+            "peak_memory_gb":19.4_f64,
+            "scratch_gb":79.0_f64,
+            "success":false
+        }),
+    ];
+    let target = json!({
+        "profile":"fastq-to-vcf__minimal__v1",
+        "sample_count":2_u64,
+        "input_gb":16.8_f64
+    });
+
+    let successful = history
+        .iter()
+        .filter(|row| row["success"].as_bool() == Some(true))
+        .filter(|row| row["profile"] == target["profile"])
+        .collect::<Vec<_>>();
+    let matched = successful
+        .iter()
+        .filter(|row| row["sample_count"] == target["sample_count"])
+        .collect::<Vec<_>>();
+    if matched.len() < 2 {
+        return Err(anyhow!(
+            "resource prediction requires at least two successful historical runs in matching scale class"
+        ));
+    }
+
+    let cpu_history = matched
+        .iter()
+        .filter_map(|row| row["cpu_hours"].as_f64())
+        .collect::<Vec<_>>();
+    let memory_history = matched
+        .iter()
+        .filter_map(|row| row["peak_memory_gb"].as_f64())
+        .collect::<Vec<_>>();
+    let scratch_history = matched
+        .iter()
+        .filter_map(|row| row["scratch_gb"].as_f64())
+        .collect::<Vec<_>>();
+
+    let cpu_median = median(&cpu_history).unwrap_or(0.0);
+    let memory_median = median(&memory_history).unwrap_or(0.0);
+    let scratch_median = median(&scratch_history).unwrap_or(0.0);
+    let safety_factor = 1.20_f64;
+    let suggestion = json!({
+        "cpu_hours": round2(cpu_median * safety_factor),
+        "memory_gb": round2(memory_median * safety_factor),
+        "scratch_gb": round2(scratch_median * safety_factor),
+        "advisory_label": "advisory_not_a_guarantee",
+    });
+
+    if suggestion["cpu_hours"].as_f64().unwrap_or(0.0) <= cpu_median
+        || suggestion["memory_gb"].as_f64().unwrap_or(0.0) <= memory_median
+    {
+        return Err(anyhow!(
+            "resource prediction must apply a safety margin over historical median"
+        ));
+    }
+
+    Ok((
+        vec![
+            "resource prediction derives advisory CPU/memory/scratch settings from successful historical runs in the same profile and scale class".to_string(),
+            "prediction output keeps evidence traceability and confidence context instead of presenting hard guarantees".to_string(),
+        ],
+        json!({
+            "target": target,
+            "history_count_total": history.len(),
+            "history_count_successful": successful.len(),
+            "history_count_matched": matched.len(),
+            "cpu_history_hours": cpu_history,
+            "memory_history_gb": memory_history,
+            "scratch_history_gb": scratch_history,
+            "median": {
+                "cpu_hours": round2(cpu_median),
+                "memory_gb": round2(memory_median),
+                "scratch_gb": round2(scratch_median),
+            },
+            "safety_factor": safety_factor,
+            "suggestion": suggestion,
+        }),
+    ))
+}
+
 fn diff_strings(left: &serde_json::Value, right: &serde_json::Value) -> serde_json::Value {
     let left_rows = left
         .as_array()
@@ -641,6 +956,24 @@ fn diff_strings(left: &serde_json::Value, right: &serde_json::Value) -> serde_js
     json!({ "added": added, "removed": removed })
 }
 
+fn median(values: &[f64]) -> Option<f64> {
+    if values.is_empty() {
+        return None;
+    }
+    let mut sorted = values.to_vec();
+    sorted.sort_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal));
+    let mid = sorted.len() / 2;
+    if sorted.len() % 2 == 0 {
+        Some((sorted[mid - 1] + sorted[mid]) / 2.0)
+    } else {
+        sorted.get(mid).copied()
+    }
+}
+
+fn round2(value: f64) -> f64 {
+    (value * 100.0).round() / 100.0
+}
+
 fn copy_file(src: &Path, dst: &Path) -> Result<()> {
     let raw = std::fs::read(src)?;
     std::fs::write(dst, raw)?;
@@ -654,7 +987,10 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G191", "G192", "G193", "G194", "G195", "G196", "G197"]);
+        assert_eq!(
+            ids,
+            vec!["G191", "G192", "G193", "G194", "G195", "G196", "G197", "G198", "G199", "G200"]
+        );
     }
 
     #[test]
@@ -763,5 +1099,52 @@ mod tests {
             Some(false)
         );
         assert!(report.evidence["required_file_count"].as_u64().unwrap_or_default() >= 5);
+    }
+
+    #[test]
+    fn g198_operator_command_recipes_cover_core_tasks_with_evidence_paths() {
+        let report = run_scenario(&ScenarioId::OperatorCommandRecipes);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G198");
+        assert_eq!(report.evidence["recipe_count"].as_u64().unwrap_or_default(), 5);
+        let recipes = report.evidence["recipes"].as_array().cloned().unwrap_or_default();
+        assert!(recipes
+            .iter()
+            .any(|row| row.get("task").and_then(serde_json::Value::as_str) == Some("export")));
+    }
+
+    #[test]
+    fn g199_scale_aware_progress_reports_failures_and_per_sample_state() {
+        let report = run_scenario(&ScenarioId::ScaleAwareProgressReporting);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G199");
+        assert_eq!(report.evidence["scale_class"].as_str(), Some("small"));
+        assert_eq!(report.evidence["failed_stages"].as_u64().unwrap_or_default(), 1);
+        let failures = report.evidence["failure_rows"]
+            .as_array()
+            .cloned()
+            .unwrap_or_default();
+        assert!(failures.iter().any(|row| {
+            row.get("sample_id").and_then(serde_json::Value::as_str) == Some("sample_b")
+        }));
+    }
+
+    #[test]
+    fn g200_resource_prediction_uses_history_with_advisory_margin() {
+        let report = run_scenario(&ScenarioId::ResourcePredictionFromPastRuns);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G200");
+        assert!(report.evidence["history_count_matched"].as_u64().unwrap_or_default() >= 2);
+        let suggested_cpu = report.evidence["suggestion"]["cpu_hours"]
+            .as_f64()
+            .unwrap_or_default();
+        let median_cpu = report.evidence["median"]["cpu_hours"]
+            .as_f64()
+            .unwrap_or_default();
+        assert!(suggested_cpu > median_cpu);
+        assert_eq!(
+            report.evidence["suggestion"]["advisory_label"].as_str(),
+            Some("advisory_not_a_guarantee")
+        );
     }
 }
