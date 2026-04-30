@@ -7,6 +7,7 @@ use super::{
 enum ScenarioId {
     WorkflowImportExport,
     RunComparisonCommand,
+    ArtifactRetentionSimulation,
 }
 
 impl ScenarioId {
@@ -14,6 +15,7 @@ impl ScenarioId {
         match self {
             Self::WorkflowImportExport => "g191_workflow_import_export_package",
             Self::RunComparisonCommand => "g192_run_comparison_command",
+            Self::ArtifactRetentionSimulation => "g193_artifact_retention_simulation",
         }
     }
 
@@ -21,17 +23,25 @@ impl ScenarioId {
         match self {
             Self::WorkflowImportExport => "G191",
             Self::RunComparisonCommand => "G192",
+            Self::ArtifactRetentionSimulation => "G193",
         }
     }
 
     fn all() -> Vec<Self> {
-        vec![Self::WorkflowImportExport, Self::RunComparisonCommand]
+        vec![
+            Self::WorkflowImportExport,
+            Self::RunComparisonCommand,
+            Self::ArtifactRetentionSimulation,
+        ]
     }
 
     fn from_raw(raw: &str) -> Option<Self> {
         match raw {
             "g191_workflow_import_export_package" | "G191" => Some(Self::WorkflowImportExport),
             "g192_run_comparison_command" | "G192" => Some(Self::RunComparisonCommand),
+            "g193_artifact_retention_simulation" | "G193" => {
+                Some(Self::ArtifactRetentionSimulation)
+            }
             _ => None,
         }
     }
@@ -150,6 +160,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
     let result = match scenario {
         ScenarioId::WorkflowImportExport => scenario_workflow_import_export_package(),
         ScenarioId::RunComparisonCommand => scenario_run_comparison_command(),
+        ScenarioId::ArtifactRetentionSimulation => scenario_artifact_retention_simulation(),
     };
 
     match result {
@@ -308,6 +319,60 @@ fn scenario_run_comparison_command() -> Result<(Vec<String>, serde_json::Value)>
     ))
 }
 
+fn scenario_artifact_retention_simulation() -> Result<(Vec<String>, serde_json::Value)> {
+    let artifacts = vec![
+        json!({"artifact_id": "plan_manifest", "role": "manifest", "trust_class": "exact", "size_mb": 1, "replay_required": true}),
+        json!({"artifact_id": "run_manifest", "role": "manifest", "trust_class": "exact", "size_mb": 2, "replay_required": true}),
+        json!({"artifact_id": "execution_logs", "role": "log", "trust_class": "compatible", "size_mb": 850, "replay_required": false}),
+        json!({"artifact_id": "aligned_bam", "role": "primary_output", "trust_class": "exact", "size_mb": 14800, "replay_required": true}),
+        json!({"artifact_id": "tmp_unsorted_bam", "role": "transient", "trust_class": "derived", "size_mb": 15200, "replay_required": false}),
+        json!({"artifact_id": "qc_html_report", "role": "report", "trust_class": "advisory", "size_mb": 14, "replay_required": false}),
+    ];
+
+    let mut delete = Vec::<String>::new();
+    let mut compress = Vec::<String>::new();
+    let mut archive = Vec::<String>::new();
+    let mut retain = Vec::<String>::new();
+
+    for artifact in &artifacts {
+        let artifact_id = artifact["artifact_id"].as_str().unwrap_or_default();
+        let role = artifact["role"].as_str().unwrap_or_default();
+        let size_mb = artifact["size_mb"].as_u64().unwrap_or_default();
+        let replay_required = artifact["replay_required"].as_bool().unwrap_or(false);
+        if role == "transient" && !replay_required {
+            delete.push(artifact_id.to_string());
+        } else if role == "log" || role == "report" {
+            compress.push(artifact_id.to_string());
+        } else if size_mb > 10_000 && replay_required {
+            archive.push(artifact_id.to_string());
+        } else {
+            retain.push(artifact_id.to_string());
+        }
+    }
+
+    if !delete.iter().any(|id| id == "tmp_unsorted_bam")
+        || !archive.iter().any(|id| id == "aligned_bam")
+    {
+        return Err(anyhow!(
+            "retention simulation must classify transient and large replay-critical artifacts"
+        ));
+    }
+
+    Ok((
+        vec![
+            "artifact retention simulation classifies deletable, compressible, archivable, and must-retain outputs from replay and trust semantics".to_string(),
+            "decision output is explicit so operators can reduce storage without hiding evidence".to_string(),
+        ],
+        json!({
+            "artifacts_considered": artifacts.len(),
+            "delete": delete,
+            "compress": compress,
+            "archive": archive,
+            "retain": retain,
+        }),
+    ))
+}
+
 fn diff_strings(left: &serde_json::Value, right: &serde_json::Value) -> serde_json::Value {
     let left_rows = left
         .as_array()
@@ -343,7 +408,7 @@ mod tests {
     #[test]
     fn selected_goals_render_expected_ids() {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
-        assert_eq!(ids, vec!["G191", "G192"]);
+        assert_eq!(ids, vec!["G191", "G192", "G193"]);
     }
 
     #[test]
@@ -382,5 +447,20 @@ mod tests {
         assert!(tool_added
             .iter()
             .any(|entry| entry.as_str() == Some("beagle@5.4")));
+    }
+
+    #[test]
+    fn g193_retention_simulation_classifies_transient_and_replay_large_outputs() {
+        let report = run_scenario(&ScenarioId::ArtifactRetentionSimulation);
+        assert_eq!(report.status, "passed");
+        assert_eq!(report.goal_id, "G193");
+        let delete = report.evidence["delete"].as_array().cloned().unwrap_or_default();
+        let archive = report.evidence["archive"].as_array().cloned().unwrap_or_default();
+        assert!(delete
+            .iter()
+            .any(|entry| entry.as_str() == Some("tmp_unsorted_bam")));
+        assert!(archive
+            .iter()
+            .any(|entry| entry.as_str() == Some("aligned_bam")));
     }
 }
