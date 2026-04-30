@@ -106,9 +106,12 @@ pub struct SampleSheetFormatV1 {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct SampleSheetRecordV1 {
+    pub run_id: String,
+    pub batch_id: String,
     pub sample_id: String,
     pub library_id: String,
     pub lane_id: String,
+    pub layout_mode: ReadLayoutMode,
     pub reference_id: String,
     pub workflow_mode: String,
     pub r1: PathBuf,
@@ -197,14 +200,15 @@ pub fn parse_sample_sheet(template_id: &str, input: &str) -> Result<SampleSheetV
         bail!("sample sheet must contain a header row");
     }
     let delimiter = if lines[0].contains('\t') { '\t' } else { ',' };
-    let headers = lines[0]
-        .split(delimiter)
-        .map(|value| value.trim().to_string())
-        .collect::<Vec<_>>();
+    let headers =
+        lines[0].split(delimiter).map(|value| value.trim().to_string()).collect::<Vec<_>>();
     let required_columns = vec![
+        "run_id".to_string(),
+        "batch_id".to_string(),
         "sample_id".to_string(),
         "library_id".to_string(),
         "lane_id".to_string(),
+        "layout_mode".to_string(),
         "reference_id".to_string(),
         "workflow_mode".to_string(),
         "r1".to_string(),
@@ -222,9 +226,12 @@ pub fn parse_sample_sheet(template_id: &str, input: &str) -> Result<SampleSheetV
             .position(|header| header == name)
             .ok_or_else(|| anyhow!("sample sheet missing required column {name}"))
     };
+    let run_index = index_of("run_id")?;
+    let batch_index = index_of("batch_id")?;
     let sample_index = index_of("sample_id")?;
     let library_index = index_of("library_id")?;
     let lane_index = index_of("lane_id")?;
+    let layout_index = index_of("layout_mode")?;
     let reference_index = index_of("reference_id")?;
     let mode_index = index_of("workflow_mode")?;
     let r1_index = index_of("r1")?;
@@ -244,8 +251,11 @@ pub fn parse_sample_sheet(template_id: &str, input: &str) -> Result<SampleSheetV
             );
         }
         let sample_id = columns[sample_index].to_string();
+        let run_id = columns[run_index].to_string();
+        let batch_id = columns[batch_index].to_string();
         let library_id = columns[library_index].to_string();
         let lane_id = columns[lane_index].to_string();
+        let layout_mode = parse_layout_mode(columns[layout_index], row_number)?;
         let reference_id = columns[reference_index].to_string();
         let workflow_mode = columns[mode_index].to_string();
         let r1 = PathBuf::from(columns[r1_index]);
@@ -262,6 +272,15 @@ pub fn parse_sample_sheet(template_id: &str, input: &str) -> Result<SampleSheetV
         if sample_id.is_empty() || library_id.is_empty() || lane_id.is_empty() {
             bail!("sample sheet row {row_number} must declare sample_id, library_id, and lane_id");
         }
+        if run_id.is_empty() || batch_id.is_empty() {
+            bail!("sample sheet row {row_number} must declare run_id and batch_id");
+        }
+        if matches!(layout_mode, ReadLayoutMode::PairedEnd) && r2.is_none() {
+            bail!("sample sheet row {row_number} declares paired_end but r2 is empty");
+        }
+        if matches!(layout_mode, ReadLayoutMode::SingleEnd) && r2.is_some() {
+            bail!("sample sheet row {row_number} declares single_end but r2 is present");
+        }
         if !seen_sample_lanes.insert((sample_id.clone(), lane_id.clone())) {
             bail!("sample sheet repeats sample/lane pair {}:{}", sample_id, lane_id);
         }
@@ -269,9 +288,12 @@ pub fn parse_sample_sheet(template_id: &str, input: &str) -> Result<SampleSheetV
             bail!("sample sheet row {row_number} must declare at least one expected output");
         }
         records.push(SampleSheetRecordV1 {
+            run_id,
+            batch_id,
             sample_id,
             library_id,
             lane_id,
+            layout_mode,
             reference_id,
             workflow_mode,
             r1,
@@ -310,11 +332,7 @@ pub fn sample_sheet_to_workflow_manifests(
             artifact_id: format!("{}.r1", record.sample_id),
             role: ArtifactRole::Reads,
             path: record.r1.clone(),
-            layout: Some(if record.r2.is_some() {
-                ReadLayoutMode::PairedEnd
-            } else {
-                ReadLayoutMode::SingleEnd
-            }),
+            layout: Some(record.layout_mode),
             compression: Some(CompressionSupport::Gzip),
             format_id: Some("fastq.gz".to_string()),
         });
@@ -343,20 +361,25 @@ pub fn sample_sheet_to_workflow_manifests(
             .map(|stage_id| WorkflowStageRequestV1 { stage_id, advisory_only: false })
             .collect();
         manifest.sample_metadata.insert("sample_id".to_string(), record.sample_id.clone());
+        manifest.sample_metadata.insert("run_id".to_string(), record.run_id.clone());
+        manifest.sample_metadata.insert("batch_id".to_string(), record.batch_id.clone());
         manifest.sample_metadata.insert("library_id".to_string(), record.library_id.clone());
         manifest.sample_metadata.insert("lane_id".to_string(), record.lane_id.clone());
+        manifest
+            .sample_metadata
+            .insert("layout_mode".to_string(), layout_mode_id(record.layout_mode).to_string());
         manifest.sample_metadata.insert("workflow_mode".to_string(), record.workflow_mode.clone());
         manifest.sample_metadata.insert("reference_id".to_string(), record.reference_id.clone());
         for (index, output) in record.expected_outputs.iter().enumerate() {
-            manifest
-                .labels
-                .insert(format!("expected_output.{index}"), output.clone());
-            manifest.evidence_expectations.push(bijux_dna_core::contract::WorkflowEvidenceExpectationV1 {
-                artifact_role: expected_output_role(output),
-                required: true,
-                advisory_only: false,
-                schema_id: Some(format!("expected_output::{output}")),
-            });
+            manifest.labels.insert(format!("expected_output.{index}"), output.clone());
+            manifest.evidence_expectations.push(
+                bijux_dna_core::contract::WorkflowEvidenceExpectationV1 {
+                    artifact_role: expected_output_role(output),
+                    required: true,
+                    advisory_only: false,
+                    schema_id: Some(format!("expected_output::{output}")),
+                },
+            );
         }
         manifests.push(manifest);
     }
@@ -518,10 +541,7 @@ pub fn evaluate_template_admission(
         },
     });
     let metadata_complete = template.requires_sample_metadata.iter().all(|field| {
-        manifest
-            .sample_metadata
-            .get(field)
-            .is_some_and(|value| !value.trim().is_empty())
+        manifest.sample_metadata.get(field).is_some_and(|value| !value.trim().is_empty())
     });
     checks.push(WorkflowTemplateAdmissionCheckV1 {
         name: "sample_metadata".to_string(),
@@ -535,7 +555,8 @@ pub fn evaluate_template_admission(
             )
         },
     });
-    let reference_ready = !template.requires_reference_assets || !manifest.reference_assets.is_empty();
+    let reference_ready =
+        !template.requires_reference_assets || !manifest.reference_assets.is_empty();
     checks.push(WorkflowTemplateAdmissionCheckV1 {
         name: "reference_assets".to_string(),
         passed: reference_ready,
@@ -556,11 +577,7 @@ pub fn evaluate_template_admission(
         },
     });
     let admitted = checks.iter().all(|check| check.passed);
-    WorkflowTemplateAdmissionV1 {
-        template_id: template.template_id.clone(),
-        admitted,
-        checks,
-    }
+    WorkflowTemplateAdmissionV1 { template_id: template.template_id.clone(), admitted, checks }
 }
 
 #[must_use]
@@ -598,6 +615,27 @@ fn expected_output_role(output: &str) -> ArtifactRole {
         "report_json" => ArtifactRole::ReportJson,
         "metrics" | "metrics_bundle" => ArtifactRole::MetricsEnvelope,
         _ => ArtifactRole::Evidence,
+    }
+}
+
+fn parse_layout_mode(layout_token: &str, row_number: usize) -> Result<ReadLayoutMode> {
+    match layout_token {
+        "single" | "single_end" => Ok(ReadLayoutMode::SingleEnd),
+        "paired" | "paired_end" => Ok(ReadLayoutMode::PairedEnd),
+        other => bail!(
+            "sample sheet row {row_number} has unsupported layout_mode `{other}`; expected single_end or paired_end"
+        ),
+    }
+}
+
+fn layout_mode_id(layout_mode: ReadLayoutMode) -> &'static str {
+    match layout_mode {
+        ReadLayoutMode::SingleEnd => "single_end",
+        ReadLayoutMode::PairedEnd => "paired_end",
+        ReadLayoutMode::Interleaved => "interleaved",
+        ReadLayoutMode::Deinterleaved => "deinterleaved",
+        ReadLayoutMode::Merged => "merged",
+        ReadLayoutMode::Unknown => "unknown",
     }
 }
 

@@ -10,7 +10,8 @@ use bijux_dna_pipelines::cross::{
 };
 use bijux_dna_pipelines::{
     build_batch_workflow_graph, evaluate_template_admission, parse_sample_sheet,
-    sample_sheet_to_workflow_manifests, summarize_cross_domain_evidence, validate_template_overrides,
+    sample_sheet_to_workflow_manifests, summarize_cross_domain_evidence,
+    validate_template_overrides,
 };
 
 #[test]
@@ -19,10 +20,12 @@ fn sample_sheet_parser_builds_typed_records_and_manifests() -> Result<()> {
         .expect("cross template must exist");
     let sheet = parse_sample_sheet(
         &template.template_id,
-        "sample_id,library_id,lane_id,reference_id,workflow_mode,r1,r2,expected_outputs\nS1,LIB1,L001,GRCh38,minimal,reads/S1_R1.fastq.gz,reads/S1_R2.fastq.gz,bam;vcf;metrics_bundle\nS2,LIB2,L002,GRCh38,minimal,reads/S2_R1.fastq.gz,reads/S2_R2.fastq.gz,bam;vcf",
+        "run_id,batch_id,sample_id,library_id,lane_id,layout_mode,reference_id,workflow_mode,r1,r2,expected_outputs\nRUN01,BATCH_A,S1,LIB1,L001,paired_end,GRCh38,minimal,reads/S1_R1.fastq.gz,reads/S1_R2.fastq.gz,bam;vcf;metrics_bundle\nRUN01,BATCH_A,S2,LIB2,L002,paired_end,GRCh38,minimal,reads/S2_R1.fastq.gz,reads/S2_R2.fastq.gz,bam;vcf",
     )?;
 
     assert_eq!(sheet.records.len(), 2);
+    assert_eq!(sheet.records[0].run_id, "RUN01");
+    assert_eq!(sheet.records[0].batch_id, "BATCH_A");
     assert_eq!(sheet.records[0].sample_id, "S1");
     assert_eq!(sheet.records[0].expected_outputs, vec!["bam", "vcf", "metrics_bundle"]);
 
@@ -41,7 +44,7 @@ fn sample_sheet_parser_builds_typed_records_and_manifests() -> Result<()> {
 fn sample_sheet_parser_rejects_duplicate_sample_lane_pairs() {
     let error = parse_sample_sheet(
         "cross.fastq_to_vcf_minimal",
-        "sample_id,library_id,lane_id,reference_id,workflow_mode,r1,expected_outputs\nS1,LIB1,L001,GRCh38,minimal,reads/S1_R1.fastq.gz,vcf\nS1,LIB2,L001,GRCh38,minimal,reads/S1_R1_rep.fastq.gz,vcf",
+        "run_id,batch_id,sample_id,library_id,lane_id,layout_mode,reference_id,workflow_mode,r1,expected_outputs\nRUN01,BATCH_A,S1,LIB1,L001,single_end,GRCh38,minimal,reads/S1_R1.fastq.gz,vcf\nRUN01,BATCH_A,S1,LIB2,L001,single_end,GRCh38,minimal,reads/S1_R1_rep.fastq.gz,vcf",
     )
     .expect_err("duplicate sample/lane must fail");
 
@@ -54,15 +57,12 @@ fn batch_graph_makes_shared_sample_and_cohort_boundaries_explicit() -> Result<()
         .expect("cross template must exist");
     let sheet = parse_sample_sheet(
         &template.template_id,
-        "sample_id,library_id,lane_id,reference_id,workflow_mode,r1,expected_outputs\nS1,LIB1,L001,GRCh38,default,reads/S1.bam,vcf\nS2,LIB2,L002,GRCh38,default,reads/S2.bam,vcf",
+        "run_id,batch_id,sample_id,library_id,lane_id,layout_mode,reference_id,workflow_mode,r1,expected_outputs\nRUN01,BATCH_A,S1,LIB1,L001,single_end,GRCh38,default,reads/S1.bam,vcf\nRUN01,BATCH_A,S2,LIB2,L002,single_end,GRCh38,default,reads/S2.bam,vcf",
     )?;
     let graph = build_batch_workflow_graph(&template, &sheet);
 
     assert!(graph.nodes.iter().any(|node| node.node_id == "shared::core.prepare_reference"));
-    assert!(graph
-        .nodes
-        .iter()
-        .any(|node| node.node_id == "sample::S1::bam.genotyping"));
+    assert!(graph.nodes.iter().any(|node| node.node_id == "sample::S1::bam.genotyping"));
     assert!(graph.nodes.iter().any(|node| node.node_id == "cohort::vcf.stats"));
     assert!(graph
         .edges
@@ -85,9 +85,7 @@ fn template_override_policy_blocks_locked_parameters_without_expert_mode() {
     )
     .expect_err("locked override must fail outside expert mode");
 
-    assert!(error
-        .to_string()
-        .contains("locked by template policy"));
+    assert!(error.to_string().contains("locked by template policy"));
 }
 
 #[test]
@@ -134,10 +132,7 @@ fn template_admission_requires_layout_metadata_reference_and_index() {
 
     let blocked = evaluate_template_admission(&template, &manifest, false);
     assert!(!blocked.admitted);
-    assert!(blocked
-        .checks
-        .iter()
-        .any(|check| check.name == "bam_index" && !check.passed));
+    assert!(blocked.checks.iter().any(|check| check.name == "bam_index" && !check.passed));
 }
 
 #[test]
@@ -154,11 +149,8 @@ fn cross_evidence_summary_orders_sections_as_one_story() {
         &[],
     );
 
-    let ordered_keys = summary
-        .sections
-        .iter()
-        .map(|section| section.section_id.clone())
-        .collect::<Vec<_>>();
+    let ordered_keys =
+        summary.sections.iter().map(|section| section.section_id.clone()).collect::<Vec<_>>();
     assert_eq!(
         ordered_keys,
         vec![
