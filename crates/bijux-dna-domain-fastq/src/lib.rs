@@ -76,6 +76,10 @@ pub use artifacts::{
 };
 pub use artifacts::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
+pub use artifacts::{
+    MaterializeQcManifestReportV1, QcManifestEntryV1,
+    MATERIALIZE_QC_MANIFEST_REPORT_SCHEMA_VERSION,
+};
 pub use artifacts::{NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION};
 pub use artifacts::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{

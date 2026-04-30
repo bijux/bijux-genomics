@@ -11,6 +11,7 @@ mod header_inspection;
 mod layout_classification;
 mod merge_suitability;
 mod output_normalization;
+mod qc_manifest;
 
 pub use header_inspection::{
     ensure_umi_headers, inspect_headers, log_header_warnings, HeaderInspection,
@@ -18,6 +19,7 @@ pub use header_inspection::{
 pub use layout_classification::{classify_layout, ensure_layout_is_coherent};
 pub use merge_suitability::{assess_merge_suitability, MergeSuitability};
 pub use output_normalization::{find_first_fastq, normalize_outputs, NormalizedOutputs};
+pub use qc_manifest::materialize_qc_manifest;
 
 /// Validate that a stage can accept the provided input kind.
 ///

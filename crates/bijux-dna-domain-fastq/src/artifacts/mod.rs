@@ -13,6 +13,7 @@ mod filter_reads;
 mod index_reference;
 mod infer_asvs;
 mod merge_pairs;
+mod materialize_qc_manifest;
 mod naming;
 mod normalize_abundance;
 mod normalize_primers;
@@ -59,6 +60,10 @@ pub use index_reference::{
 };
 pub use infer_asvs::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
 pub use merge_pairs::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
+pub use materialize_qc_manifest::{
+    MaterializeQcManifestReportV1, QcManifestEntryV1,
+    MATERIALIZE_QC_MANIFEST_REPORT_SCHEMA_VERSION,
+};
 pub use naming::{
     contaminant_depletion_artifact_paths, corrected_fastq_artifact_paths,
     host_depletion_artifact_paths, merge_fastq_artifact_paths, qc_bundle_artifact_paths,
