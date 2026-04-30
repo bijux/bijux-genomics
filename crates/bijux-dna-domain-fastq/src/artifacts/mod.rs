@@ -19,6 +19,7 @@ mod naming;
 mod normalize_abundance;
 mod normalize_primers;
 mod prepare_adapter_bank;
+mod prepare_host_reference_bundle;
 mod prepare_primer_bank;
 mod profile_overrepresented_sequences;
 mod profile_read_lengths;
@@ -85,6 +86,10 @@ pub use normalize_abundance::{
 pub use normalize_primers::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
 pub use prepare_adapter_bank::{
     PrepareAdapterBankReportV1, PREPARE_ADAPTER_BANK_REPORT_SCHEMA_VERSION,
+};
+pub use prepare_host_reference_bundle::{
+    HostReferenceBundleFileV1, PrepareHostReferenceBundleReportV1,
+    PREPARE_HOST_REFERENCE_BUNDLE_REPORT_SCHEMA_VERSION,
 };
 pub use prepare_primer_bank::{
     PreparePrimerBankReportV1, PREPARE_PRIMER_BANK_REPORT_SCHEMA_VERSION,

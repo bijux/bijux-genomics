@@ -91,6 +91,10 @@ pub use artifacts::{
     PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{PrepareAdapterBankReportV1, PREPARE_ADAPTER_BANK_REPORT_SCHEMA_VERSION};
+pub use artifacts::{
+    HostReferenceBundleFileV1, PrepareHostReferenceBundleReportV1,
+    PREPARE_HOST_REFERENCE_BUNDLE_REPORT_SCHEMA_VERSION,
+};
 pub use artifacts::{PreparePrimerBankReportV1, PREPARE_PRIMER_BANK_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
     ProfileReadLengthBinV1, ProfileReadLengthsReportV1, PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION,
