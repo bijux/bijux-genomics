@@ -11,6 +11,7 @@ pub const VCF_STATS_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.stats_workflow.v1
 pub const VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION: &str = "bijux.vcf.filter_consequence.v1";
 pub const VCF_NORMALIZATION_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.normalization_summary.v1";
 pub const VCF_REFERENCE_CONTEXT_SCHEMA_VERSION: &str = "bijux.vcf.reference_context_resolution.v1";
+pub const VCF_DAMAGE_FILTER_SUMMARY_SCHEMA_VERSION: &str = "bijux.vcf.damage_filter_summary.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -155,6 +156,24 @@ pub struct VcfReferenceContextResolutionV1 {
     pub panel_compatible: bool,
     pub genetic_map_compatible: bool,
     pub passes: bool,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfDamageFilterSummaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub action: String,
+    pub prerequisites_passed: bool,
+    pub variants_in: u64,
+    pub damage_risk_sites: u64,
+    pub removed_sites: u64,
+    pub masked_sites: u64,
+    pub annotated_sites: u64,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
     #[serde(default)]
@@ -689,6 +708,73 @@ pub fn resolve_vcf_reference_context(
     })
 }
 
+fn is_damage_transition(ref_allele: &str, alt_allele: &str) -> bool {
+    matches!((ref_allele, alt_allele), ("C", "T") | ("G", "A"))
+}
+
+/// Execute damage-aware VCF filtering semantics with explicit action mode.
+///
+/// # Errors
+/// Returns an error when the VCF cannot be parsed.
+pub fn execute_damage_aware_vcf_filter(
+    input_vcf: &Path,
+    has_damage_context: bool,
+    action: &str,
+    risk_info_keys: &[&str],
+) -> Result<VcfDamageFilterSummaryV1> {
+    let doc = parse_tiny_vcf(input_vcf)?;
+    let mut refusal_codes = Vec::<String>::new();
+    if !has_damage_context {
+        refusal_codes.push("damage_context_required".to_string());
+    }
+    if !matches!(action, "remove" | "mask" | "annotate") {
+        refusal_codes.push("invalid_damage_action".to_string());
+    }
+
+    let mut damage_risk_sites = 0_u64;
+    let mut removed_sites = 0_u64;
+    let mut masked_sites = 0_u64;
+    let mut annotated_sites = 0_u64;
+    for record in &doc.records {
+        let risk_from_transition = record.alt_alleles.iter().any(|alt| {
+            record.ref_allele.len() == 1
+                && alt.len() == 1
+                && is_damage_transition(&record.ref_allele, alt)
+        });
+        let risk_from_info = risk_info_keys
+            .iter()
+            .any(|key| record.info.split(';').any(|token| token.split('=').next() == Some(*key)));
+        if risk_from_transition || risk_from_info {
+            damage_risk_sites += 1;
+            match action {
+                "remove" => removed_sites += 1,
+                "mask" => masked_sites += 1,
+                "annotate" => annotated_sites += 1,
+                _ => {}
+            }
+        }
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+
+    Ok(VcfDamageFilterSummaryV1 {
+        schema_version: VCF_DAMAGE_FILTER_SUMMARY_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.damage_filter".to_string(),
+        action: action.to_string(),
+        prerequisites_passed: refusal_codes.is_empty(),
+        variants_in: doc.records.len() as u64,
+        damage_risk_sites,
+        removed_sites,
+        masked_sites,
+        annotated_sites,
+        refusal_codes,
+        caveats: vec![
+            "damage-aware filtering is evidence-scoped and should not hide uncertainty".to_string(),
+            "action mode must be explicit to avoid silent semantic drift".to_string(),
+        ],
+    })
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -1015,5 +1101,36 @@ chr1\t20\t.\tA\tC,G\t60\tPASS\tDP=7\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"reference_fai_missing".to_string()));
         assert!(refused.refusal_codes.contains(&"panel_build_mismatch".to_string()));
         assert!(refused.refusal_codes.contains(&"genetic_map_build_mismatch".to_string()));
+    }
+
+    #[test]
+    fn execute_damage_aware_vcf_filter_tracks_risk_sites_by_action_mode() {
+        let temp = unique_temp_dir("vcf-damage-filter");
+        let input = temp.join("damage.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.3\n\
+##contig=<ID=chr1,length=1000>\n\
+##INFO=<ID=PMD,Number=1,Type=String,Description=\"Damage tag\">\n\
+##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n\
+#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n\
+chr1\t10\t.\tC\tT\t55\tPASS\tPMD=high\tGT\t0/1\n\
+chr1\t20\t.\tA\tG\t55\tPASS\tDP=8\tGT\t0/1\n\
+chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
+        )
+        .expect("write damage fixture");
+
+        let remove = execute_damage_aware_vcf_filter(&input, true, "remove", &["PMD"])
+            .expect("damage remove action");
+        assert!(remove.prerequisites_passed);
+        assert_eq!(remove.damage_risk_sites, 2);
+        assert_eq!(remove.removed_sites, 2);
+        assert_eq!(remove.masked_sites, 0);
+
+        let refused = execute_damage_aware_vcf_filter(&input, false, "unknown", &["PMD"])
+            .expect("damage refusal");
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"damage_context_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"invalid_damage_action".to_string()));
     }
 }
