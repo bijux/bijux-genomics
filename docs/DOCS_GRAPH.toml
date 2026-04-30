@@ -54,6 +54,7 @@ children = [
   "docs/10-architecture/ARCHITECTURE_OVERVIEW.md",
   "docs/10-architecture/BOUNDARY_DIAGRAM.md",
   "docs/10-architecture/BOUNDARY_MAP.md",
+  "docs/10-architecture/CHANGE_ROUTING.md",
   "docs/10-architecture/CONTRACTS/index.md",
   "docs/10-architecture/CONTRACT_AUTHORITY.md",
   "docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md",
@@ -61,12 +62,17 @@ children = [
   "docs/10-architecture/CONTRACT_SPINE.md",
   "docs/10-architecture/CRATE_AUTHORITY_MAP.md",
   "docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md",
+  "docs/10-architecture/CRATE_RESPONSIBILITY_MATRIX.md",
   "docs/10-architecture/DATAFLOW.md",
+  "docs/10-architecture/DEPENDENCY_LAYER_CONTRACT.md",
   "docs/10-architecture/DEPENDENCY_RULES.md",
   "docs/10-architecture/DRY_RUN_EFFECTS_CONTRACT.md",
   "docs/10-architecture/GENERATED_FILES_CONTRACT.md",
+  "docs/10-architecture/POLICY_LAYER_SPLIT.md",
   "docs/10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md",
   "docs/10-architecture/SSOT.md",
+  "docs/10-architecture/SYSTEM_MAP.md",
+  "docs/10-architecture/WORKFLOW_TRUTH_MIGRATION.md",
 ]
 
 [[edge]]
@@ -147,9 +153,11 @@ from = "docs/30-operations/index.md"
 children = [
   "docs/30-operations/APPTAINER_QA_MATRIX.md",
   "docs/30-operations/ARTIFACT_EXPLORER.md",
+  "docs/30-operations/BACKLOG_SCOREBOARD.md",
   "docs/30-operations/BENCHMARK_VARIANCE.md",
   "docs/30-operations/CERTIFICATION_SCOPE.md",
   "docs/30-operations/CI.md",
+  "docs/30-operations/COMMAND_MAP.md",
   "docs/30-operations/COMPILATION_CACHE_POLICY.md",
   "docs/30-operations/CONTAINERS.md",
   "docs/30-operations/CONTAINER_LICENSE_INDEX.md",
