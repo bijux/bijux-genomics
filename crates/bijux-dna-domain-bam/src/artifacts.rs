@@ -34,6 +34,7 @@ pub const BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION: &str = "bijux.bam.bench_corp
 pub const BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.damage_evidence.v1";
 pub const BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION: &str = "bijux.bam.authenticity_advisory.v1";
 pub const BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION: &str = "bijux.bam.contamination_evidence.v1";
+pub const BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION: &str = "bijux.bam.endogenous_content.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -471,6 +472,20 @@ pub struct BamContaminationEvidenceV1 {
     pub advisory_boundary: BamAdvisoryBoundaryV1,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BamEndogenousContentEstimateV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    #[serde(default)]
+    pub prealignment_fraction: Option<f64>,
+    pub postalignment_fraction: f64,
+    pub prealignment_meaning: String,
+    pub postalignment_meaning: String,
     #[serde(default)]
     pub caveats: Vec<String>,
 }
@@ -2353,6 +2368,49 @@ pub fn execute_nuclear_contamination_workflow(
     }
 }
 
+/// Estimate endogenous content and keep prealignment/postalignment semantics distinct.
+#[must_use]
+pub fn estimate_endogenous_content(
+    metrics: &BamMetricsV1,
+    prealignment_fraction: Option<f64>,
+) -> BamEndogenousContentEstimateV1 {
+    let postalignment_fraction = if metrics.alignment.total > 0 {
+        metrics.alignment.mapped as f64 / metrics.alignment.total as f64
+    } else {
+        0.0
+    };
+    let mut caveats = vec![
+        "postalignment endogenous fraction reflects reference-dependent mapping behavior"
+            .to_string(),
+        "prealignment endogenous fraction reflects read-space depletion/screening context"
+            .to_string(),
+    ];
+    if let Some(prealign) = prealignment_fraction {
+        if (prealign - postalignment_fraction).abs() > 0.25 {
+            caveats.push(
+                "prealignment and postalignment estimates diverge; review reference compatibility"
+                    .to_string(),
+            );
+        }
+    } else {
+        caveats.push(
+            "prealignment endogenous estimate missing; only postalignment interpretation available"
+                .to_string(),
+        );
+    }
+    BamEndogenousContentEstimateV1 {
+        schema_version: BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION.to_string(),
+        stage_id: "bam.endogenous_content".to_string(),
+        prealignment_fraction,
+        postalignment_fraction,
+        prealignment_meaning:
+            "fraction estimated before alignment from depletion/screening signals".to_string(),
+        postalignment_meaning: "fraction of aligned reads relative to total reads after alignment"
+            .to_string(),
+        caveats,
+    }
+}
+
 #[must_use]
 pub fn bam_adna_workflow_contract() -> BamAdnaWorkflowV1 {
     BamAdnaWorkflowV1 {
@@ -2836,6 +2894,23 @@ mod tests {
         assert!(refused
             .refusal_codes
             .contains(&"coverage_below_minimum_for_nuclear_contamination".to_string()));
+    }
+
+    #[test]
+    fn estimate_endogenous_content_separates_prealign_and_postalign_meanings() {
+        let mut metrics = BamMetricsV1::empty();
+        metrics.alignment.total = 100;
+        metrics.alignment.mapped = 62;
+
+        let estimate = estimate_endogenous_content(&metrics, Some(0.20));
+        assert_eq!(estimate.prealignment_fraction, Some(0.20));
+        assert!((estimate.postalignment_fraction - 0.62).abs() < 1e-6);
+        assert!(estimate
+            .caveats
+            .iter()
+            .any(|item| item.contains("prealignment and postalignment estimates diverge")));
+        assert!(estimate.prealignment_meaning.contains("before alignment"));
+        assert!(estimate.postalignment_meaning.contains("after alignment"));
     }
 
     fn unique_temp_dir(label: &str) -> PathBuf {
