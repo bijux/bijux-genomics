@@ -35,32 +35,29 @@ pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
             tools.insert(ToolId::new(tool_id.to_string()));
         }
     }
-    if tools.is_empty() {
-        // Fallback for stages that are only declared in stage matrix and not yet bound in tools[].stage_ids.
-        if let Some(stages) = parsed.get("stages").and_then(toml::Value::as_array) {
-            for stage_entry in stages {
-                let Some(id) = stage_entry.get("id").and_then(toml::Value::as_str) else {
-                    continue;
-                };
-                if id != stage.as_str() {
-                    continue;
-                }
-                for key in [
-                    "primary_tools",
-                    "optional_alternatives",
-                    "validation_tools",
-                    "reporting_tools",
-                ] {
-                    let mapped = stage_entry
-                        .get(key)
-                        .and_then(toml::Value::as_array)
-                        .cloned()
-                        .unwrap_or_default();
-                    for tool in
-                        mapped.into_iter().filter_map(|value| value.as_str().map(str::to_string))
-                    {
-                        tools.insert(ToolId::new(tool));
-                    }
+    if let Some(stages) = parsed.get("stages").and_then(toml::Value::as_array) {
+        for stage_entry in stages {
+            let Some(id) = stage_entry.get("id").and_then(toml::Value::as_str) else {
+                continue;
+            };
+            if id != stage.as_str() {
+                continue;
+            }
+            for key in [
+                "primary_tools",
+                "optional_alternatives",
+                "validation_tools",
+                "reporting_tools",
+            ] {
+                let mapped = stage_entry
+                    .get(key)
+                    .and_then(toml::Value::as_array)
+                    .cloned()
+                    .unwrap_or_default();
+                for tool in
+                    mapped.into_iter().filter_map(|value| value.as_str().map(str::to_string))
+                {
+                    tools.insert(ToolId::new(tool));
                 }
             }
         }
