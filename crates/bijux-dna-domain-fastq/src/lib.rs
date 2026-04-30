@@ -64,6 +64,10 @@ pub use artifacts::{
 pub use artifacts::{
     ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
 };
+pub use artifacts::{
+    ConcatenateLaneSummaryV1, ConcatenateLanesReportV1,
+    CONCATENATE_LANES_REPORT_SCHEMA_VERSION,
+};
 pub use artifacts::{CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
 pub use artifacts::{

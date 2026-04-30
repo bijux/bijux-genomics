@@ -3,6 +3,7 @@ mod build_rrna_db;
 mod build_taxonomy_db;
 mod capture_provenance_snapshot;
 mod classify_layout;
+mod concatenate_lanes;
 mod cluster_otus;
 mod correct_errors;
 mod deplete_host;
@@ -46,6 +47,10 @@ mod verify_assets;
 pub use cluster_otus::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
 pub use classify_layout::{
     ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
+};
+pub use concatenate_lanes::{
+    ConcatenateLaneSummaryV1, ConcatenateLanesReportV1,
+    CONCATENATE_LANES_REPORT_SCHEMA_VERSION,
 };
 pub use build_contaminant_db::{
     BuildContaminantDbReportV1, BuildContaminantDbSourceEntryV1,
