@@ -15,7 +15,7 @@ use crate::ids::{StageId, ToolId, ToolVersion};
 mod selection;
 pub use selection::*;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct ToolConstraints {
     pub runtime: String,
     pub mem_gb: u32,
