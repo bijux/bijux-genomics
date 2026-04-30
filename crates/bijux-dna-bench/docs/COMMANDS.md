@@ -10,11 +10,14 @@ These operations are exported through the crate root and `public_api`.
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
 | `load-suite` | `load_suite(path)` | Load and validate a benchmark suite TOML file. |
+| `load-corpus-manifest` | `load_corpus_manifest(path)` | Load and validate one benchmark corpus TOML manifest. |
+| `load-corpus-catalog` | `load_corpus_catalog()` | Load and validate all checked-in benchmark corpus manifests. |
 | `summarize` | `summarize(suite, observations, options)` | Build deterministic benchmark summaries from observations. |
 | `compare` | `compare(summary_a, summary_b)` | Compare two completed benchmark summaries. |
 | `gate` | `gate(policy, summary)` | Evaluate benchmark rows against a gate policy. |
 | `bench-data-dir` | `bench_data_dir()` | Resolve the crate-owned benchmark data directory. |
 | `bench-suites-dir` | `bench_suites_dir()` | Resolve the crate-owned checked-in suite catalog directory. |
+| `bench-corpora-dir` | `bench_corpora_dir()` | Resolve the crate-owned checked-in corpus catalog directory. |
 
 ## Suite Artifacts
 

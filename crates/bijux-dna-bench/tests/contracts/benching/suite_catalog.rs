@@ -2,7 +2,10 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use bijux_dna_bench_model::{contract::validate_suite, BenchmarkSuiteSpec};
+use bijux_dna_bench_model::{
+    contract::validate_suite, BenchmarkCorpusManifest, BenchmarkSuiteSpec, CorpusDomain,
+    CorpusScale,
+};
 use bijux_dna_domain_fastq::execution_support::{
     benchmark_cohort_stage_ids, execution_support_for_stage,
 };
@@ -27,6 +30,10 @@ fn checked_in_suites() -> Result<Vec<(PathBuf, BenchmarkSuiteSpec)>> {
         suites.push((path, suite));
     }
     Ok(suites)
+}
+
+fn checked_in_corpora() -> Result<Vec<BenchmarkCorpusManifest>> {
+    bijux_dna_bench::load_corpus_catalog()
 }
 
 #[test]
@@ -243,5 +250,29 @@ fn checked_in_fastq_suite_catalog_exercises_full_trim_branch_join() -> Result<()
         has_full_join,
         "checked-in FASTQ suites must include a report_qc branch-join DAG that covers every admitted fastq.trim_reads backend"
     );
+    Ok(())
+}
+
+#[test]
+fn checked_in_corpus_catalog_contains_fastq_ci_small_case_matrix() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let Some(fastq_ci_small) = corpora
+        .iter()
+        .find(|corpus| corpus.domain == CorpusDomain::Fastq && corpus.scale == CorpusScale::CiSmall)
+    else {
+        anyhow::bail!("checked-in corpus catalog must include a fastq ci-small manifest");
+    };
+
+    let tags = fastq_ci_small
+        .datasets
+        .iter()
+        .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    for required in ["valid", "truncated", "adapter-heavy", "low-complexity", "umi", "contaminant", "sparse", "empty"] {
+        assert!(
+            tags.contains(required),
+            "fastq ci-small corpus must cover required case tag {required}"
+        );
+    }
     Ok(())
 }

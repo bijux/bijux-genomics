@@ -2,10 +2,46 @@
 //! Validation for non-suite benchmark contract records.
 
 use crate::diagnostics::BenchError;
-use crate::model::{BenchmarkObservation, BenchmarkSummary, MetricSummary, SummaryRow};
+use crate::model::{
+    BenchmarkCorpusManifest, BenchmarkObservation, BenchmarkSummary, CorpusDatasetSpec, MetricSummary,
+    SummaryRow,
+};
 use crate::policy::{GateDecision, GateViolation};
 
-use super::{DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
+use super::{CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
+
+/// # Errors
+/// Returns an error if corpus schema or required dataset metadata is invalid.
+pub fn validate_corpus_manifest(corpus: &BenchmarkCorpusManifest) -> Result<(), BenchError> {
+    if corpus.schema_version != CORPUS_SCHEMA_V1 {
+        return Err(BenchError::InvalidPolicy(format!(
+            "corpus schema mismatch: {}",
+            corpus.schema_version
+        )));
+    }
+    required_text(&corpus.corpus_id, "corpus.corpus_id")?;
+    if corpus.scientific_caveats.is_empty() {
+        return Err(BenchError::InvalidPolicy(
+            "corpus must include at least one scientific caveat".to_string(),
+        ));
+    }
+    if corpus.datasets.is_empty() {
+        return Err(BenchError::InvalidPolicy(
+            "corpus must include at least one dataset".to_string(),
+        ));
+    }
+    let mut seen = std::collections::BTreeSet::new();
+    for dataset in &corpus.datasets {
+        validate_corpus_dataset(dataset)?;
+        if !seen.insert(dataset.dataset_id.as_str()) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "corpus must not repeat dataset_id {}",
+                dataset.dataset_id
+            )));
+        }
+    }
+    Ok(())
+}
 
 /// # Errors
 /// Returns an error if required confounders are missing.
@@ -95,6 +131,17 @@ fn validate_summary_row(row: &SummaryRow) -> Result<(), BenchError> {
     Ok(())
 }
 
+fn validate_corpus_dataset(dataset: &CorpusDatasetSpec) -> Result<(), BenchError> {
+    required_text(&dataset.dataset_id, "corpus dataset_id")?;
+    required_text(&dataset.fixture, "corpus fixture")?;
+    required_text(&dataset.read_layout, "corpus read_layout")?;
+    required_text(&dataset.class_label, "corpus class_label")?;
+    for tag in &dataset.case_tags {
+        required_text(tag, "corpus case_tag")?;
+    }
+    Ok(())
+}
+
 fn validate_metric_summary(metric: &MetricSummary) -> Result<(), BenchError> {
     required_text(&metric.metric_id, "summary metric_id")?;
     if metric.stats.n != metric.n {
@@ -168,12 +215,15 @@ mod tests {
     use anyhow::bail;
     use bijux_dna_core::id_catalog::FASTQ_TRIM;
 
-    use crate::contract::{DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
-    use crate::model::{BenchmarkSummary, MetricSummary, SummaryRow};
+    use crate::contract::{CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
+    use crate::model::{
+        BenchmarkCorpusManifest, BenchmarkSummary, CorpusDatasetSpec, CorpusDomain, CorpusScale,
+        MetricSummary, SummaryRow,
+    };
     use crate::policy::{GateDecision, GateViolation};
     use crate::stats::robust_estimators::RobustStats;
 
-    use super::{validate_decision, validate_summary};
+    use super::{validate_corpus_manifest, validate_decision, validate_summary};
 
     fn metric_summary(metric_id: &str, n: usize) -> MetricSummary {
         MetricSummary {
@@ -229,6 +279,25 @@ mod tests {
             missing_metrics: Vec::new(),
             completeness_score: 1.0,
             rationale_trace: Vec::new(),
+        }
+    }
+
+    fn valid_corpus() -> BenchmarkCorpusManifest {
+        BenchmarkCorpusManifest {
+            schema_version: CORPUS_SCHEMA_V1.to_string(),
+            corpus_id: "fastq-ci-small".to_string(),
+            domain: CorpusDomain::Fastq,
+            scale: CorpusScale::CiSmall,
+            scientific_caveats: vec![
+                "synthetic fixtures approximate but do not replace production prevalence".to_string(),
+            ],
+            datasets: vec![CorpusDatasetSpec {
+                dataset_id: "fastq-valid-paired".to_string(),
+                fixture: "fixtures/fastq/valid_paired".to_string(),
+                read_layout: "paired".to_string(),
+                class_label: "valid".to_string(),
+                case_tags: vec!["valid".to_string(), "paired".to_string()],
+            }],
         }
     }
 
@@ -380,6 +449,32 @@ mod tests {
         };
 
         assert!(err.to_string().contains("missing decision missing metric_id"));
+        Ok(())
+    }
+
+    #[test]
+    fn corpus_rejects_duplicate_dataset_ids() -> anyhow::Result<()> {
+        let mut corpus = valid_corpus();
+        corpus.datasets.push(corpus.datasets[0].clone());
+
+        let Err(err) = validate_corpus_manifest(&corpus) else {
+            bail!("corpus with duplicate dataset ids should fail");
+        };
+
+        assert!(err.to_string().contains("must not repeat dataset_id"));
+        Ok(())
+    }
+
+    #[test]
+    fn corpus_rejects_missing_caveats() -> anyhow::Result<()> {
+        let mut corpus = valid_corpus();
+        corpus.scientific_caveats.clear();
+
+        let Err(err) = validate_corpus_manifest(&corpus) else {
+            bail!("corpus without scientific caveats should fail");
+        };
+
+        assert!(err.to_string().contains("must include at least one scientific caveat"));
         Ok(())
     }
 }

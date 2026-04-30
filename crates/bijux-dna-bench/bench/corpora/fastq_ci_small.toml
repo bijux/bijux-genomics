@@ -1,0 +1,63 @@
+schema_version = "bijux.bench.corpus.v1"
+corpus_id = "fastq_ci_small"
+domain = "fastq"
+scale = "ci-small"
+scientific_caveats = [
+  "small synthetic fixtures exercise control-plane behavior and guardrails, not biological prevalence",
+]
+
+[[datasets]]
+dataset_id = "fastq_valid_paired"
+fixture = "fixtures/fastq/valid_paired"
+read_layout = "paired"
+class_label = "valid"
+case_tags = ["valid", "paired"]
+
+[[datasets]]
+dataset_id = "fastq_broken_truncated_record"
+fixture = "fixtures/fastq/broken_truncated_record"
+read_layout = "paired"
+class_label = "broken"
+case_tags = ["broken", "truncated"]
+
+[[datasets]]
+dataset_id = "fastq_adapter_heavy"
+fixture = "fixtures/fastq/adapter_heavy"
+read_layout = "paired"
+class_label = "adapter_heavy"
+case_tags = ["adapter-heavy", "contaminated"]
+
+[[datasets]]
+dataset_id = "fastq_low_complexity_polyg"
+fixture = "fixtures/fastq/low_complexity_polyg"
+read_layout = "single"
+class_label = "low_complexity"
+case_tags = ["low-complexity", "poly-g"]
+
+[[datasets]]
+dataset_id = "fastq_umi_structured"
+fixture = "fixtures/fastq/umi_structured"
+read_layout = "paired"
+class_label = "umi"
+case_tags = ["umi", "barcode"]
+
+[[datasets]]
+dataset_id = "fastq_contaminant_spike"
+fixture = "fixtures/fastq/contaminant_spike"
+read_layout = "paired"
+class_label = "contaminant"
+case_tags = ["contaminant", "spike-in"]
+
+[[datasets]]
+dataset_id = "fastq_sparse_low_depth"
+fixture = "fixtures/fastq/sparse_low_depth"
+read_layout = "single"
+class_label = "sparse"
+case_tags = ["sparse", "low-depth"]
+
+[[datasets]]
+dataset_id = "fastq_empty"
+fixture = "fixtures/fastq/empty"
+read_layout = "single"
+class_label = "empty"
+case_tags = ["empty", "boundary"]

@@ -7,6 +7,7 @@ pub use crate::diagnostics::BenchError;
 pub use crate::model::decision::DecisionRationale;
 pub use crate::model::graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 pub use crate::model::observation::MetricsEnvelope;
+pub use crate::model::{BenchmarkCorpusManifest, CorpusDatasetSpec, CorpusDomain, CorpusScale};
 pub use crate::model::suite::{
     AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec, DatasetSpec,
     DiversityRequirements, ReplicatePolicy, StratificationRequirement,

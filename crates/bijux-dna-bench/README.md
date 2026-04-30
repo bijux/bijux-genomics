@@ -28,11 +28,14 @@ domain, and API crates.
 The SSOT for callable operations is `docs/COMMANDS.md`.
 
 - `load-suite`
+- `load-corpus-manifest`
+- `load-corpus-catalog`
 - `summarize`
 - `compare`
 - `gate`
 - `bench-data-dir`
 - `bench-suites-dir`
+- `bench-corpora-dir`
 
 ## Architecture
 
@@ -43,6 +46,7 @@ The SSOT for callable operations is `docs/COMMANDS.md`.
 - `src/repo/` owns workspace path policy and read-only run artifact loading.
 - `src/artifacts/` owns deterministic artifact serialization.
 - `crates/bijux-dna-bench/bench/suites/` contains the checked-in benchmark suite catalog.
+- `crates/bijux-dna-bench/bench/corpora/` contains checked-in benchmark corpus manifests.
 
 See `docs/ARCHITECTURE.md`, `docs/BOUNDARY.md`, and `docs/PUBLIC_API.md` for the
 full contract.
