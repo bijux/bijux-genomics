@@ -119,6 +119,9 @@
         .unwrap_or_else(|err| panic!("run stats stage: {err}"));
         assert!(out.bcftools_stats_txt.exists());
         assert!(out.stats_json.exists());
+        assert_eq!(out.metrics.sample_count, 1);
+        assert_eq!(out.metrics.missingness_post, Some(0.0));
+        assert_eq!(out.metrics.annotation_coverage, Some(1.0));
     }
 
     #[test]

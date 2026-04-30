@@ -497,9 +497,13 @@ pub fn run_stats_stage_real(
                 schema_version: "bijux.vcf.stats.v1".to_string(),
                 sample_name: params.sample_name.clone(),
                 variants_total: call.variants_called,
+                sample_count: 0,
                 snps: call.snps,
                 indels: call.indels,
                 ti_tv: None,
+                missingness_post: None,
+                heterozygosity_ratio: None,
+                annotation_coverage: None,
                 filter_breakdown: filter.filter_breakdown.clone(),
                 depth_distribution: std::collections::BTreeMap::new(),
                 call_summary: call,
@@ -507,9 +511,66 @@ pub fn run_stats_stage_real(
             }
         };
     metrics.sample_name = params.sample_name.clone();
+    enrich_stats_metrics_from_vcf(input_vcf, &mut metrics)?;
     let stats_json = out_dir.join("stats.json");
     atomic_write_json(&stats_json, &serde_json::to_value(&metrics)?)?;
     Ok(StatsStageOutputs { bcftools_stats_txt, stats_json, metrics })
+}
+
+fn enrich_stats_metrics_from_vcf(input_vcf: &Path, metrics: &mut VcfStatsMetricsV1) -> Result<()> {
+    let raw = read_vcf_text(input_vcf)?;
+    let mut sample_count = 0_u64;
+    let mut annotated_records = 0_u64;
+    let mut called = 0_u64;
+    let mut missing = 0_u64;
+    let mut het_total = 0_u64;
+    let mut hom_alt_total = 0_u64;
+
+    for line in raw.lines() {
+        if line.starts_with("#CHROM\t") {
+            sample_count = line.split('\t').skip(9).count() as u64;
+            continue;
+        }
+        let Some(fields) = parse_record_fields(line) else {
+            continue;
+        };
+        if fields[7] != "." && !fields[7].trim().is_empty() {
+            annotated_records += 1;
+        }
+        if fields.len() <= 9 {
+            continue;
+        }
+        let keys = fields[8].split(':').collect::<Vec<_>>();
+        if let Some(gt_idx) = keys.iter().position(|k| *k == "GT") {
+            for sample in &fields[9..] {
+                let vals = sample.split(':').collect::<Vec<_>>();
+                if let Some(gt) = vals.get(gt_idx) {
+                    if gt.contains('.') {
+                        missing += 1;
+                    } else {
+                        called += 1;
+                        match gt.replace('|', "/").as_str() {
+                            "0/1" | "1/0" => het_total += 1,
+                            "1/1" => hom_alt_total += 1,
+                            _ => {}
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    metrics.sample_count = sample_count;
+    if called + missing > 0 {
+        metrics.missingness_post = Some(missing as f64 / (called + missing) as f64);
+    }
+    if hom_alt_total > 0 {
+        metrics.heterozygosity_ratio = Some(het_total as f64 / hom_alt_total as f64);
+    }
+    if metrics.variants_total > 0 {
+        metrics.annotation_coverage = Some(annotated_records as f64 / metrics.variants_total as f64);
+    }
+    Ok(())
 }
 
 // Errors are surfaced from helpers and include deserialization/index checks.

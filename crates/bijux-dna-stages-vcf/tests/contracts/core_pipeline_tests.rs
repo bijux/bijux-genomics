@@ -6,9 +6,13 @@
         assert_eq!(metrics.schema_version, "bijux.vcf.stats.v1");
         assert_eq!(metrics.sample_name, "sample1");
         assert_eq!(metrics.variants_total, 12);
+        assert_eq!(metrics.sample_count, 1);
         assert_eq!(metrics.snps, 9);
         assert_eq!(metrics.indels, 3);
         assert_eq!(metrics.ti_tv, Some(2.25));
+        assert_eq!(metrics.missingness_post, Some(0.0));
+        assert_eq!(metrics.heterozygosity_ratio, Some(1.0));
+        assert_eq!(metrics.annotation_coverage, Some(1.0));
         assert_eq!(metrics.filter_breakdown.get("PASS"), Some(&10));
         assert_eq!(metrics.depth_distribution.get("0-9"), Some(&4));
     }
