@@ -2288,6 +2288,8 @@ fn planner_uses_typed_extract_umis_params_from_stage_binding() -> anyhow::Result
                 extraction_location: None,
                 read_name_transform: None,
                 failed_extraction_policy: None,
+                grouping_policy: Some("exact_header_tag".to_string()),
+                downstream_dedup_policy: Some("coordinate_aware_recommended".to_string()),
                 downstream_propagation: None,
             })),
         }],

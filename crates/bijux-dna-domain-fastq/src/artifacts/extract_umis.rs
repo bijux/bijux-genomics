@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::params::{
     umi::{
-        UmiDownstreamPropagation, UmiExtractionLocation, UmiFailedExtractionPolicy,
-        UmiReadNameTransform,
+        UmiDedupPolicy, UmiDownstreamPropagation, UmiExtractionLocation, UmiFailedExtractionPolicy,
+        UmiGroupingPolicy, UmiReadNameTransform,
     },
     PairedMode,
 };
@@ -24,6 +24,8 @@ pub struct ExtractUmisReportV1 {
     pub extraction_location: UmiExtractionLocation,
     pub read_name_transform: UmiReadNameTransform,
     pub failed_extraction_policy: UmiFailedExtractionPolicy,
+    pub grouping_policy: UmiGroupingPolicy,
+    pub downstream_dedup_policy: UmiDedupPolicy,
     pub downstream_propagation: UmiDownstreamPropagation,
     pub input_r1: String,
     pub input_r2: Option<String>,
@@ -53,8 +55,8 @@ mod tests {
     use super::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
     use crate::params::{
         umi::{
-            UmiDownstreamPropagation, UmiExtractionLocation, UmiFailedExtractionPolicy,
-            UmiReadNameTransform,
+            UmiDedupPolicy, UmiDownstreamPropagation, UmiExtractionLocation,
+            UmiFailedExtractionPolicy, UmiGroupingPolicy, UmiReadNameTransform,
         },
         PairedMode,
     };
@@ -72,6 +74,8 @@ mod tests {
             extraction_location: UmiExtractionLocation::Read1Prefix,
             read_name_transform: UmiReadNameTransform::AppendToHeader,
             failed_extraction_policy: UmiFailedExtractionPolicy::RefuseStage,
+            grouping_policy: UmiGroupingPolicy::PairAware,
+            downstream_dedup_policy: UmiDedupPolicy::SequenceIdentityRecommended,
             downstream_propagation: UmiDownstreamPropagation::HeaderAndReport,
             input_r1: "reads_R1.fastq.gz".to_string(),
             input_r2: Some("reads_R2.fastq.gz".to_string()),
@@ -106,5 +110,6 @@ mod tests {
         assert_eq!(decoded.umi_pattern, "NNNNNNNN");
         assert_eq!(decoded.reads_with_umi, 200);
         assert_eq!(decoded.read_name_transform, UmiReadNameTransform::AppendToHeader);
+        assert_eq!(decoded.grouping_policy, UmiGroupingPolicy::PairAware);
     }
 }

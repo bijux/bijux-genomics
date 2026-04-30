@@ -110,6 +110,8 @@ fn parse_legacy_extract_umis_report(report_json: &str) -> Result<ExtractUmisRepo
         extraction_location: crate::params::umi::UmiExtractionLocation::Read1Prefix,
         read_name_transform: crate::params::umi::UmiReadNameTransform::AppendToHeader,
         failed_extraction_policy: crate::params::umi::UmiFailedExtractionPolicy::RefuseStage,
+        grouping_policy: crate::params::umi::UmiGroupingPolicy::PairAware,
+        downstream_dedup_policy: crate::params::umi::UmiDedupPolicy::SequenceIdentityRecommended,
         downstream_propagation: crate::params::umi::UmiDownstreamPropagation::HeaderAndReport,
         input_r1: legacy.input_r1,
         input_r2: Some(legacy.input_r2),

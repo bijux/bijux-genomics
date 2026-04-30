@@ -6,8 +6,8 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_fastq::params::{
     umi::{
-        FastqUmiParams, UmiDownstreamPropagation, UmiExtractionLocation, UmiFailedExtractionPolicy,
-        UmiReadNameTransform, UMI_SCHEMA_VERSION,
+        FastqUmiParams, UmiDedupPolicy, UmiDownstreamPropagation, UmiExtractionLocation,
+        UmiFailedExtractionPolicy, UmiGroupingPolicy, UmiReadNameTransform, UMI_SCHEMA_VERSION,
     },
     PairedMode,
 };
@@ -44,6 +44,8 @@ pub fn plan_umi(
         extraction_location: None,
         read_name_transform: None,
         failed_extraction_policy: None,
+        grouping_policy: None,
+        downstream_dedup_policy: None,
         downstream_propagation: None,
     };
     plan_umi_with_options(tool, r1, r2, out_dir, &options)
@@ -81,6 +83,11 @@ pub fn plan_umi_with_options(
     let failed_extraction_policy = parse_failed_extraction_policy(
         options.failed_extraction_policy.as_deref().unwrap_or("refuse_stage"),
     )?;
+    let grouping_policy =
+        parse_grouping_policy(options.grouping_policy.as_deref().unwrap_or("pair_aware"))?;
+    let downstream_dedup_policy = parse_downstream_dedup_policy(
+        options.downstream_dedup_policy.as_deref().unwrap_or("sequence_identity_recommended"),
+    )?;
     let downstream_propagation = parse_downstream_propagation(
         options.downstream_propagation.as_deref().unwrap_or("header_and_report"),
     )?;
@@ -92,6 +99,8 @@ pub fn plan_umi_with_options(
         extraction_location,
         read_name_transform,
         failed_extraction_policy,
+        grouping_policy,
+        downstream_dedup_policy,
         downstream_propagation,
     };
     let mut resources = tool.resources.clone();
@@ -168,6 +177,8 @@ pub fn plan_umi_with_options(
             "extraction_location": effective_params.extraction_location,
             "read_name_transform": effective_params.read_name_transform,
             "failed_extraction_policy": effective_params.failed_extraction_policy,
+            "grouping_policy": effective_params.grouping_policy,
+            "downstream_dedup_policy": effective_params.downstream_dedup_policy,
             "downstream_propagation": effective_params.downstream_propagation
         }),
         effective_params: serde_json::to_value(&effective_params)
@@ -231,6 +242,24 @@ fn parse_downstream_propagation(value: &str) -> Result<UmiDownstreamPropagation>
         "header_only" => Ok(UmiDownstreamPropagation::HeaderOnly),
         "header_and_report" => Ok(UmiDownstreamPropagation::HeaderAndReport),
         _ => Err(anyhow!("unsupported downstream_propagation: {value}")),
+    }
+}
+
+fn parse_grouping_policy(value: &str) -> Result<UmiGroupingPolicy> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "exact_sequence" => Ok(UmiGroupingPolicy::ExactSequence),
+        "exact_header_tag" => Ok(UmiGroupingPolicy::ExactHeaderTag),
+        "pair_aware" => Ok(UmiGroupingPolicy::PairAware),
+        _ => Err(anyhow!("unsupported grouping_policy: {value}")),
+    }
+}
+
+fn parse_downstream_dedup_policy(value: &str) -> Result<UmiDedupPolicy> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "observation_only" => Ok(UmiDedupPolicy::ObservationOnly),
+        "sequence_identity_recommended" => Ok(UmiDedupPolicy::SequenceIdentityRecommended),
+        "coordinate_aware_recommended" => Ok(UmiDedupPolicy::CoordinateAwareRecommended),
+        _ => Err(anyhow!("unsupported downstream_dedup_policy: {value}")),
     }
 }
 
@@ -303,12 +332,19 @@ mod tests {
                 extraction_location: Some("read2_prefix".to_string()),
                 read_name_transform: Some("append_to_header".to_string()),
                 failed_extraction_policy: Some("retain_unmodified".to_string()),
+                grouping_policy: Some("exact_header_tag".to_string()),
+                downstream_dedup_policy: Some("coordinate_aware_recommended".to_string()),
                 downstream_propagation: Some("header_only".to_string()),
             },
         )
         .expect("plan");
         assert_eq!(plan.params["extraction_location"], serde_json::json!("read2_prefix"));
         assert_eq!(plan.params["failed_extraction_policy"], serde_json::json!("retain_unmodified"));
+        assert_eq!(plan.params["grouping_policy"], serde_json::json!("exact_header_tag"));
+        assert_eq!(
+            plan.params["downstream_dedup_policy"],
+            serde_json::json!("coordinate_aware_recommended")
+        );
         assert_eq!(
             plan.effective_params["downstream_propagation"],
             serde_json::json!("header_only")

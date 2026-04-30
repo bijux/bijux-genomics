@@ -100,6 +100,8 @@ pub struct ExtractUmisStageParams {
     pub extraction_location: Option<String>,
     pub read_name_transform: Option<String>,
     pub failed_extraction_policy: Option<String>,
+    pub grouping_policy: Option<String>,
+    pub downstream_dedup_policy: Option<String>,
     pub downstream_propagation: Option<String>,
 }
 

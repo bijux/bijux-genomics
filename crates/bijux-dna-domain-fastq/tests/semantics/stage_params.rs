@@ -37,7 +37,9 @@ use bijux_dna_domain_fastq::params::trim::{
     TerminalDamageExecutionPolicy, TrimPolygTailsParams, TrimTerminalDamageParams,
     TRIM_POLYG_TAILS_SCHEMA_VERSION, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
-use bijux_dna_domain_fastq::params::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
+use bijux_dna_domain_fastq::params::umi::{
+    FastqUmiParams, UmiDedupPolicy, UmiGroupingPolicy, UMI_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 use bijux_dna_domain_fastq::{parse_effective_params, stage_param_descriptor, EffectiveParams};
@@ -80,6 +82,8 @@ fn umi_params_roundtrip_and_schema_version() {
     let params = umi_defaults(true);
     let decoded: FastqUmiParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, UMI_SCHEMA_VERSION);
+    assert_eq!(decoded.grouping_policy, UmiGroupingPolicy::PairAware);
+    assert_eq!(decoded.downstream_dedup_policy, UmiDedupPolicy::SequenceIdentityRecommended);
     assert!(decoded.missing_required_fields().is_empty());
 }
 
