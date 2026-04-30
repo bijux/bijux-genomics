@@ -364,6 +364,7 @@ acquire-panels
 acquire-reference
 architecture-report
 benchmark-integrity-mini
+benchmark-smoke-level1
 bijux
 cargo-targets
 certification-gate
@@ -371,6 +372,7 @@ certify-all
 certify-bam
 certify-domains
 certify-fastq
+certify-level1
 certify-vcf
 check-config-paths
 check-config-snapshot

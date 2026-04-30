@@ -266,6 +266,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingCertificationGate,
         ),
         native(
+            "certify-level1",
+            "Generate the Level 1 completion certificate after the essential release gate passes.",
+            NativeOpsCommandKey::ToolingCertifyLevel1,
+        ),
+        native(
             "certify-all",
             "Generate the cross-domain certification bundle.",
             NativeOpsCommandKey::ToolingCertifyAll,
@@ -309,6 +314,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             "architecture-report",
             "Generate a compact workspace architecture drift report under artifacts/architecture.",
             NativeOpsCommandKey::ToolingArchitectureReport,
+        ),
+        native(
+            "benchmark-smoke-level1",
+            "Measure smoke-only duration and artifact sizes for the canonical Level 1 examples.",
+            NativeOpsCommandKey::ToolingBenchmarkSmokeLevel1,
         ),
         native(
             "benchmark-integrity-mini",

@@ -94,6 +94,9 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingCertificationGate => {
             tooling::tooling_certification_gate(workspace, args)
         }
+        NativeOpsCommandKey::ToolingCertifyLevel1 => {
+            tooling::tooling_certify_level1(workspace, args)
+        }
         NativeOpsCommandKey::ToolingCertifyAll => tooling::tooling_certify_all(workspace, args),
         NativeOpsCommandKey::ToolingCertifyBam => tooling::tooling_certify_bam(workspace, args),
         NativeOpsCommandKey::ToolingCertifyDomains => {
@@ -110,6 +113,9 @@ pub(super) fn run_native_ops_command(
         }
         NativeOpsCommandKey::ToolingArchitectureReport => {
             tooling::tooling_architecture_report(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingBenchmarkSmokeLevel1 => {
+            tooling::tooling_benchmark_smoke_level1(workspace, args)
         }
         NativeOpsCommandKey::ToolingBenchmarkIntegrityMini => {
             tooling::tooling_benchmark_integrity_mini(workspace, args)
