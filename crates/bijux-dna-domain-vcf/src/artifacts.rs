@@ -20,6 +20,8 @@ pub const VCF_GL_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.gl_workflow.v1";
 pub const VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.phasing.v1";
+pub const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
+    "bijux.vcf.calling_boundary.imputation.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -229,6 +231,27 @@ pub struct VcfPhasingWorkflowBoundaryV1 {
     pub confidence: f64,
     pub sample_count: u32,
     pub minimum_samples: u32,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub assumptions: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfImputationWorkflowBoundaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub backend: String,
+    pub panel_id: Option<String>,
+    pub map_id: Option<String>,
+    pub prerequisites_passed: bool,
+    pub panel_compatible: bool,
+    pub map_compatible: bool,
+    pub confidence: f64,
+    pub simulation_mode: bool,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
     #[serde(default)]
@@ -1025,6 +1048,70 @@ pub fn evaluate_phasing_workflow_boundary(
     }
 }
 
+/// Evaluate imputation workflow boundaries and enforce panel/map provenance identity.
+#[must_use]
+pub fn evaluate_imputation_workflow_boundary(
+    backend: &str,
+    panel_id: Option<&str>,
+    map_id: Option<&str>,
+    build_compatible: bool,
+    input_calling_mode: Option<&str>,
+    info_score_mean: Option<f64>,
+    simulation_mode: bool,
+    simulation_labeled: bool,
+) -> VcfImputationWorkflowBoundaryV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if !matches!(backend, "beagle" | "glimpse" | "impute5") {
+        refusal_codes.push("unsupported_imputation_backend".to_string());
+    }
+    if panel_id.is_none_or(str::is_empty) {
+        refusal_codes.push("panel_identity_required".to_string());
+    }
+    if map_id.is_none_or(str::is_empty) {
+        refusal_codes.push("map_identity_required".to_string());
+    }
+    if !build_compatible {
+        refusal_codes.push("build_compatibility_required".to_string());
+    }
+    if input_calling_mode != Some("diploid") {
+        refusal_codes.push("diploid_input_required".to_string());
+    }
+    if simulation_mode && !simulation_labeled {
+        refusal_codes.push("simulation_label_required".to_string());
+    }
+    let info_threshold = 0.30_f64;
+    if info_score_mean.is_some_and(|score| score < info_threshold) {
+        refusal_codes.push("imputation_info_below_threshold".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    let prerequisites_passed = refusal_codes.is_empty();
+    let confidence =
+        if prerequisites_passed { info_score_mean.unwrap_or(0.80).clamp(0.0, 1.0) } else { 0.0 };
+    VcfImputationWorkflowBoundaryV1 {
+        schema_version: VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.imputation".to_string(),
+        backend: backend.to_string(),
+        panel_id: panel_id.map(ToOwned::to_owned),
+        map_id: map_id.map(ToOwned::to_owned),
+        prerequisites_passed,
+        panel_compatible: panel_id.is_some_and(|id| !id.is_empty()) && build_compatible,
+        map_compatible: map_id.is_some_and(|id| !id.is_empty()) && build_compatible,
+        confidence,
+        simulation_mode,
+        refusal_codes,
+        assumptions: vec![
+            "imputation requires explicit panel and map identity with build compatibility"
+                .to_string(),
+            "diploid-compatible inputs are required for production imputation".to_string(),
+        ],
+        caveats: vec![
+            "simulation-mode outputs must stay explicitly labeled".to_string(),
+            "INFO-like summary metrics are cohort-sensitive and do not replace QC".to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -1461,5 +1548,43 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"build_compatibility_required".to_string()));
         assert!(refused.refusal_codes.contains(&"sample_count_below_phasing_minimum".to_string()));
         assert!(refused.refusal_codes.contains(&"sample_metadata_required".to_string()));
+    }
+
+    #[test]
+    fn evaluate_imputation_workflow_boundary_requires_backend_and_panel_map_identity() {
+        let ready = evaluate_imputation_workflow_boundary(
+            "glimpse",
+            Some("1000g_phase3"),
+            Some("hapmap_genetic_map"),
+            true,
+            Some("diploid"),
+            Some(0.92),
+            false,
+            false,
+        );
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.stage_id, "vcf.imputation");
+        assert!(ready.panel_compatible);
+        assert!(ready.map_compatible);
+        assert!(ready.refusal_codes.is_empty());
+
+        let refused = evaluate_imputation_workflow_boundary(
+            "unknown",
+            None,
+            None,
+            false,
+            Some("pseudohaploid"),
+            Some(0.12),
+            true,
+            false,
+        );
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"unsupported_imputation_backend".to_string()));
+        assert!(refused.refusal_codes.contains(&"panel_identity_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"map_identity_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"build_compatibility_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"diploid_input_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"simulation_label_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"imputation_info_below_threshold".to_string()));
     }
 }
