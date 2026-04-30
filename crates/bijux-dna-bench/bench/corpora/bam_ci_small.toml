@@ -1,0 +1,49 @@
+schema_version = "bijux.bench.corpus.v1"
+corpus_id = "bam_ci_small"
+domain = "bam"
+scale = "ci-small"
+scientific_caveats = [
+  "ci-sized BAM fixtures are optimized for regression detection and policy boundaries, not for estimating biological rates",
+]
+
+[[datasets]]
+dataset_id = "bam_valid_coordinate_sorted"
+fixture = "fixtures/bam/valid_coordinate_sorted"
+read_layout = "paired"
+class_label = "valid"
+case_tags = ["valid", "coordinate-sorted"]
+
+[[datasets]]
+dataset_id = "bam_missing_index"
+fixture = "fixtures/bam/missing_index"
+read_layout = "paired"
+class_label = "missing_index"
+case_tags = ["missing-index", "boundary"]
+
+[[datasets]]
+dataset_id = "bam_duplicate_heavy"
+fixture = "fixtures/bam/duplicate_heavy"
+read_layout = "paired"
+class_label = "duplicate_heavy"
+case_tags = ["duplicate-heavy", "markdup"]
+
+[[datasets]]
+dataset_id = "bam_low_coverage"
+fixture = "fixtures/bam/low_coverage"
+read_layout = "paired"
+class_label = "low_coverage"
+case_tags = ["low-coverage", "sparse"]
+
+[[datasets]]
+dataset_id = "bam_damage_like"
+fixture = "fixtures/bam/damage_like"
+read_layout = "paired"
+class_label = "damage_like"
+case_tags = ["damage-like", "ancient-dna"]
+
+[[datasets]]
+dataset_id = "bam_reference_mismatch"
+fixture = "fixtures/bam/reference_mismatch"
+read_layout = "paired"
+class_label = "reference_mismatch"
+case_tags = ["reference-mismatch", "contig-alias"]

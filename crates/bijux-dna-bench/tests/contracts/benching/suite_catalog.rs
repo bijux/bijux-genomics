@@ -276,3 +276,34 @@ fn checked_in_corpus_catalog_contains_fastq_ci_small_case_matrix() -> Result<()>
     }
     Ok(())
 }
+
+#[test]
+fn checked_in_corpus_catalog_contains_bam_ci_small_case_matrix() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let Some(bam_ci_small) = corpora
+        .iter()
+        .find(|corpus| corpus.domain == CorpusDomain::Bam && corpus.scale == CorpusScale::CiSmall)
+    else {
+        anyhow::bail!("checked-in corpus catalog must include a bam ci-small manifest");
+    };
+
+    let tags = bam_ci_small
+        .datasets
+        .iter()
+        .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    for required in [
+        "valid",
+        "missing-index",
+        "duplicate-heavy",
+        "low-coverage",
+        "damage-like",
+        "reference-mismatch",
+    ] {
+        assert!(
+            tags.contains(required),
+            "bam ci-small corpus must cover required case tag {required}"
+        );
+    }
+    Ok(())
+}
