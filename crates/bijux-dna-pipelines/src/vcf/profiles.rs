@@ -8,9 +8,10 @@ use bijux_dna_domain_vcf::params::{
     VcfCallParams, VcfEffectiveParams, VcfFilterParams, VcfStatsParams,
 };
 
+use crate::vcf::profile_capabilities::vcf_capabilities;
 use crate::{
-    ArtifactType, DefaultParams, Domain, EffectiveDefaults, InvariantsPreset, MetricsBundle,
-    PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
+    DefaultParams, Domain, EffectiveDefaults, InvariantsPreset, PipelineId, PipelineProfile,
+    StabilityTier,
 };
 
 #[must_use]
@@ -62,38 +63,7 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
             platform_hint: PlatformHint::Unknown,
             assay_kind: AssayKind::Unknown,
         },
-        capabilities: PipelineCapabilities {
-            input_domains: vec![Domain::Vcf],
-            output_domains: vec![Domain::Vcf],
-            input_artifacts: vec![ArtifactType::ReportJson],
-            output_artifacts: vec![ArtifactType::ReportJson, ArtifactType::MetricsBundle],
-            required_inputs: vec!["vcf", "sample_name"],
-            produces_outputs: vec!["vcf", "vcf.metrics"],
-            report_sections: vec!["vcf"],
-            required_report_sections: vec![ReportSection::Vcf, ReportSection::PipelineDefaults],
-            required_metrics_bundles: vec![MetricsBundle::VcfCore],
-            required_stages: vec![
-                id_catalog::VCF_CALL.to_string(),
-                id_catalog::VCF_FILTER.to_string(),
-                id_catalog::VCF_STATS.to_string(),
-            ],
-            required_metrics: vec!["vcf.metrics"],
-            required_artifacts: vec![
-                "report.json",
-                "run_manifest.json",
-                "tool_provenance.json",
-                "invariants_report.json",
-                "vcf.tbi",
-            ],
-            supports_benchmarks: false,
-            supports_sample_sheet: false,
-            workflow_template_ids: Vec::new(),
-            batch_semantics: None,
-            fan_artifact_rules: Vec::new(),
-            failure_policy: Vec::new(),
-            evidence_summary: None,
-            parameter_policy: None,
-        },
+        capabilities: vcf_capabilities(id_catalog::PIPELINE_VCF_MINIMAL),
     }
 }
 
