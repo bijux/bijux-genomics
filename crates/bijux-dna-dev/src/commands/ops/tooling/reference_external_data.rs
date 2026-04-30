@@ -125,7 +125,11 @@ pub(in super::super) fn tooling_reference_external_data(
     }
 
     let config = parse_args(workspace, args)?;
-    let reports = config.selected.iter().map(run_scenario).collect::<Vec<_>>();
+    let reports = config
+        .selected
+        .iter()
+        .map(|scenario| run_scenario(workspace, scenario))
+        .collect::<Vec<_>>();
     let failed = reports.iter().filter(|report| report.status == "failed").count();
 
     let payload = ScenarioSuiteReport {
@@ -143,8 +147,15 @@ pub(in super::super) fn tooling_reference_external_data(
     }
     write_json_pretty(&config.out, &payload_json)?;
 
+    if failed > 0 {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "reference external data scenarios: FAILED ({failed} failed)\nreport: {}\n",
+            workspace.rel(&config.out).display()
+        )));
+    }
+
     Ok(OpsCommandOutcome::success(format!(
-        "reference external data scenarios: initialized\nreport: {}\n",
+        "reference external data scenarios: OK\nreport: {}\n",
         workspace.rel(&config.out).display()
     )))
 }
@@ -186,7 +197,7 @@ fn parse_args(workspace: &Workspace, args: &[String]) -> Result<ScenarioRunConfi
     Ok(ScenarioRunConfig { selected, out })
 }
 
-fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
+fn run_scenario(workspace: &Workspace, scenario: &ScenarioId) -> ScenarioReport {
     let result = match scenario {
         ScenarioId::CanFam4Reference => scenario_canfam4_reference(),
         ScenarioId::GrchHumanReference => scenario_grch_human_reference(),
@@ -197,7 +208,7 @@ fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
         ScenarioId::ContaminantUpdateImpact => scenario_contaminant_update_impact(),
         ScenarioId::AdapterPrimerUpdateImpact => scenario_adapter_primer_update_impact(),
         ScenarioId::EnaBatchAccession => scenario_ena_batch_accession(),
-        ScenarioId::OfflineDataPackage => scenario_offline_data_package(),
+        ScenarioId::OfflineDataPackage => scenario_offline_data_package(workspace),
     };
 
     match result {
@@ -568,8 +579,8 @@ fn scenario_ena_batch_accession() -> Result<(Vec<String>, serde_json::Value)> {
     ))
 }
 
-fn scenario_offline_data_package() -> Result<(Vec<String>, serde_json::Value)> {
-    let root = PathBuf::from("artifacts/reference_external_data/offline_package");
+fn scenario_offline_data_package(workspace: &Workspace) -> Result<(Vec<String>, serde_json::Value)> {
+    let root = workspace.path("artifacts/reference_external_data/offline_package");
     let refs = materialize_reference_bank("Homo sapiens", "GRCh38", &root, true, true)?;
     let contaminants = materialize_contaminant_databases(&root.join("contaminant_db"))?;
     let taxonomy = materialize_taxonomy_database(&root.join("taxonomy_db"))?;
@@ -634,6 +645,7 @@ fn scenario_offline_data_package() -> Result<(Vec<String>, serde_json::Value)> {
 #[cfg(test)]
 mod tests {
     use super::{run_scenario, ScenarioId};
+    use crate::runtime::workspace::Workspace;
 
     #[test]
     fn selected_goals_render_expected_ids() {
@@ -649,7 +661,8 @@ mod tests {
 
     #[test]
     fn canfam4_scenario_resolves_non_human_reference_contract() {
-        let report = run_scenario(&ScenarioId::CanFam4Reference);
+        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let report = run_scenario(&workspace, &ScenarioId::CanFam4Reference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G171");
         assert_eq!(report.evidence.get("build_id").and_then(serde_json::Value::as_str), Some("CanFam4"));
@@ -657,7 +670,8 @@ mod tests {
 
     #[test]
     fn grch38_scenario_resolves_panel_and_map_compatibility() {
-        let report = run_scenario(&ScenarioId::GrchHumanReference);
+        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let report = run_scenario(&workspace, &ScenarioId::GrchHumanReference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G172");
         assert_eq!(
@@ -668,7 +682,8 @@ mod tests {
 
     #[test]
     fn bacterial_scenario_keeps_taxonomy_advisory_caveat() {
-        let report = run_scenario(&ScenarioId::BacterialReference);
+        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let report = run_scenario(&workspace, &ScenarioId::BacterialReference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G173");
         let caveats =
@@ -680,7 +695,8 @@ mod tests {
 
     #[test]
     fn organellar_scenario_resolves_mitochondrion_identity() {
-        let report = run_scenario(&ScenarioId::OrganellarReference);
+        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let report = run_scenario(&workspace, &ScenarioId::OrganellarReference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G174");
         assert_eq!(
@@ -691,7 +707,8 @@ mod tests {
 
     #[test]
     fn refusals_are_reported_for_multi_reference_scenario() {
-        let report = run_scenario(&ScenarioId::MultiReferenceRefusal);
+        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let report = run_scenario(&workspace, &ScenarioId::MultiReferenceRefusal);
         assert_eq!(report.status, "passed");
         let cases = report
             .evidence
@@ -712,7 +729,8 @@ mod tests {
 
     #[test]
     fn reference_update_scenario_tracks_invalidated_surfaces() {
-        let report = run_scenario(&ScenarioId::ReferenceUpdateImpact);
+        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let report = run_scenario(&workspace, &ScenarioId::ReferenceUpdateImpact);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G176");
         let surfaces = report
@@ -727,7 +745,8 @@ mod tests {
 
     #[test]
     fn contaminant_update_scenario_lists_changed_bundles() {
-        let report = run_scenario(&ScenarioId::ContaminantUpdateImpact);
+        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let report = run_scenario(&workspace, &ScenarioId::ContaminantUpdateImpact);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G177");
         let bundles =
@@ -739,7 +758,8 @@ mod tests {
 
     #[test]
     fn adapter_primer_update_scenario_marks_edna_surface_impact() {
-        let report = run_scenario(&ScenarioId::AdapterPrimerUpdateImpact);
+        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let report = run_scenario(&workspace, &ScenarioId::AdapterPrimerUpdateImpact);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G178");
         let impacted =
@@ -751,7 +771,8 @@ mod tests {
 
     #[test]
     fn ena_batch_scenario_captures_missing_checksum_uncertainty() {
-        let report = run_scenario(&ScenarioId::EnaBatchAccession);
+        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let report = run_scenario(&workspace, &ScenarioId::EnaBatchAccession);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G179");
         let uncertainty =
@@ -768,7 +789,8 @@ mod tests {
 
     #[test]
     fn offline_package_scenario_materializes_reference_assets() {
-        let report = run_scenario(&ScenarioId::OfflineDataPackage);
+        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let report = run_scenario(&workspace, &ScenarioId::OfflineDataPackage);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G180");
         assert_eq!(
