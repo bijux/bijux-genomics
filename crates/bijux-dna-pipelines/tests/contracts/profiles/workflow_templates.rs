@@ -13,6 +13,7 @@ use bijux_dna_pipelines::cross::{
 use bijux_dna_pipelines::fastq::{
     fastq_workflow_template_by_id, fastq_workflow_templates_for_pipeline,
 };
+use bijux_dna_pipelines::vcf::{vcf_workflow_template_by_id, vcf_workflow_templates_for_pipeline};
 use bijux_dna_pipelines::{
     build_batch_workflow_graph, build_cross_domain_evidence_narrative,
     evaluate_batch_fan_semantics, evaluate_template_admission, parse_sample_sheet,
@@ -641,5 +642,62 @@ fn bam_iteration_12_templates_are_indexed_by_pipeline_ids() {
             .map(|template| template.template_id.as_str())
             .collect::<Vec<_>>(),
         vec!["bam.contamination_method_comparison_report"],
+    );
+}
+
+#[test]
+fn vcf_iteration_13_templates_expose_goal_stage_surfaces() {
+    let cases = [
+        ("vcf.validation_normalization_qc", vec!["vcf.call", "vcf.filter", "vcf.stats"]),
+        ("vcf.cohort_qc_review", vec!["vcf.filter", "vcf.stats"]),
+        ("vcf.low_pass_gl_readiness", vec!["vcf.call", "vcf.filter", "vcf.stats"]),
+        ("vcf.imputation_simulation", vec!["vcf.call", "vcf.filter", "vcf.stats"]),
+        ("vcf.population_structure_guardrail", vec!["vcf.filter", "vcf.stats"]),
+        ("vcf.roh_ibd_boundary", vec!["vcf.filter", "vcf.stats"]),
+        ("vcf.demography_boundary_refusal", vec!["vcf.filter", "vcf.stats"]),
+        ("vcf.annotation_provenance_workflow", vec!["vcf.call", "vcf.filter", "vcf.stats"]),
+        ("vcf.semantic_diff_report", vec!["vcf.filter", "vcf.stats"]),
+        ("vcf.large_file_performance_profile", vec!["vcf.filter", "vcf.stats"]),
+    ];
+
+    for (template_id, stages) in cases {
+        let template =
+            vcf_workflow_template_by_id(template_id).expect("VCF workflow template must exist");
+        for stage in stages {
+            assert!(
+                template.requested_stages.iter().any(|entry| entry == stage),
+                "template {template_id} must include stage {stage}"
+            );
+        }
+    }
+}
+
+#[test]
+fn vcf_iteration_13_templates_are_indexed_by_pipeline_ids() {
+    assert_eq!(
+        vcf_workflow_templates_for_pipeline("vcf-to-vcf__minimal__v1")
+            .iter()
+            .map(|template| template.template_id.as_str())
+            .collect::<Vec<_>>(),
+        vec![
+            "vcf.low_pass_gl_readiness",
+            "vcf.imputation_simulation",
+            "vcf.demography_boundary_refusal",
+            "vcf.semantic_diff_report",
+            "vcf.large_file_performance_profile",
+        ],
+    );
+    assert_eq!(
+        vcf_workflow_templates_for_pipeline("vcf-to-vcf__reference_basic__v1")
+            .iter()
+            .map(|template| template.template_id.as_str())
+            .collect::<Vec<_>>(),
+        vec![
+            "vcf.validation_normalization_qc",
+            "vcf.cohort_qc_review",
+            "vcf.population_structure_guardrail",
+            "vcf.roh_ibd_boundary",
+            "vcf.annotation_provenance_workflow",
+        ],
     );
 }
