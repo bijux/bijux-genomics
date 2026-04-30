@@ -28,7 +28,10 @@ pub use recording::{
 };
 
 // Run layout entrypoints
-pub use run_layout::{create_run_layout, write_manifest, RunManifest, RunStageEntry};
+pub use run_layout::{
+    create_run_layout, write_checkpoint, write_executor_descriptor, write_failure_record,
+    write_manifest, write_run_state, write_runtime_policy, RunManifest, RunStageEntry,
+};
 
 // Runner contracts and execution models
 pub use runner::{

@@ -5,7 +5,10 @@ use chrono::{DateTime, Utc};
 
 use crate::recording::write_canonical_json;
 
-use super::{RunEnvironment, RunLayout, RunManifest};
+use super::{
+    RunCheckpointV1, RunEnvironment, RunExecutorDescriptorV1, RunFailureV1, RunLayout,
+    RunManifest, RunStateV1, RuntimePolicyV1,
+};
 
 /// Write the environment fingerprint.
 ///
@@ -32,6 +35,54 @@ pub fn write_run_metadata(layout: &RunLayout, metadata: &RunMetadataV1) -> Resul
 pub fn write_manifest(layout: &RunLayout, manifest: &RunManifest) -> Result<()> {
     let payload = to_canonical_json_bytes(manifest)?;
     bijux_dna_infra::atomic_write_bytes(&layout.manifest_path, payload.as_slice())?;
+    Ok(())
+}
+
+/// Write the governed run-state contract.
+///
+/// # Errors
+/// Returns an error if serialization or writing fails.
+pub fn write_run_state(layout: &RunLayout, run_state: &RunStateV1) -> Result<()> {
+    write_canonical_json(&layout.run_state_path, run_state)?;
+    Ok(())
+}
+
+/// Write the governed executor descriptor.
+///
+/// # Errors
+/// Returns an error if serialization or writing fails.
+pub fn write_executor_descriptor(
+    layout: &RunLayout,
+    descriptor: &RunExecutorDescriptorV1,
+) -> Result<()> {
+    write_canonical_json(&layout.executor_descriptor_path, descriptor)?;
+    Ok(())
+}
+
+/// Write the governed runtime policy snapshot.
+///
+/// # Errors
+/// Returns an error if serialization or writing fails.
+pub fn write_runtime_policy(layout: &RunLayout, policy: &RuntimePolicyV1) -> Result<()> {
+    write_canonical_json(&layout.runtime_policy_path, policy)?;
+    Ok(())
+}
+
+/// Write the governed checkpoint snapshot.
+///
+/// # Errors
+/// Returns an error if serialization or writing fails.
+pub fn write_checkpoint(layout: &RunLayout, checkpoint: &RunCheckpointV1) -> Result<()> {
+    write_canonical_json(&layout.checkpoint_path, checkpoint)?;
+    Ok(())
+}
+
+/// Write the structured run failure record.
+///
+/// # Errors
+/// Returns an error if serialization or writing fails.
+pub fn write_failure_record(layout: &RunLayout, failure: &RunFailureV1) -> Result<()> {
+    write_canonical_json(&layout.failure_path, failure)?;
     Ok(())
 }
 

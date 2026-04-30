@@ -16,13 +16,14 @@
 ## Root Exports
 - Observability contracts: `RunProvenanceV1`, `RunContextV1`, `TelemetryEventV1`, report types, telemetry event names, failure codes, attribute redaction, and telemetry validation helpers.
 - Recording entrypoints: `prepare_tool_run_dirs`, `write_canonical_json`, `write_profile_and_lock_manifests`, `write_run_manifest`.
-- Run layout entrypoints: `create_run_layout`, `write_manifest`, `RunManifest`, `RunStageEntry`.
+- Run layout entrypoints: `create_run_layout`, `write_manifest`, `write_run_state`, `write_runtime_policy`, `write_executor_descriptor`, `write_checkpoint`, `write_failure_record`, `RunManifest`, `RunStageEntry`.
 - Runner entrypoints: `ensure_stage_supported_by_runner`, `Artifact`, `Invocation`, `Runner`, `RunnerContractKind`, `RunnerResult`.
 - Telemetry adapter entrypoints: `build_telemetry_adapter`, `TelemetryAdapter`, `TelemetrySpan`.
 
 ## Stability Rules
 - Additive root exports require this document and the public API test to change together.
 - Non-additive changes to owned JSON contracts require schema fixture updates.
+- Use `run_layout::*` module surfaces for governed run-state, runtime-policy, executor-descriptor, checkpoint, failure, and deterministic layout contracts.
 - Items not listed above should be consumed from their owning module namespace.
 
 ## Source Authorities

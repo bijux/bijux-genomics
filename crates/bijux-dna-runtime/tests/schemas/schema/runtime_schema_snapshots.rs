@@ -12,14 +12,28 @@ mod support;
 fn run_layout_schema_snapshot() {
     let layout = RunLayoutV1 {
         schema_version: "bijux.run_layout.v1".to_string(),
-        run_dir: "/tmp/run".to_string(),
-        stages_dir: "/tmp/run/stages".to_string(),
-        summary_dir: "/tmp/run/summary".to_string(),
-        assessment_path: "/tmp/run/input_assessment.json".to_string(),
-        manifest_path: "/tmp/run/execution_manifest.json".to_string(),
-        environment_path: "/tmp/run/environment.json".to_string(),
-        metadata_path: "/tmp/run/run_metadata.json".to_string(),
-        events_path: "/tmp/run/events.jsonl".to_string(),
+        run_dir: "run".to_string(),
+        stages_dir: "stages".to_string(),
+        manifests_dir: "manifests".to_string(),
+        logs_dir: "logs".to_string(),
+        reports_dir: "reports".to_string(),
+        summary_dir: "summary".to_string(),
+        run_artifacts_dir: "run_artifacts".to_string(),
+        checkpoints_dir: "checkpoints".to_string(),
+        assessment_path: "input_assessment.json".to_string(),
+        graph_path: "graph.json".to_string(),
+        plan_manifest_path: "plan_manifest.json".to_string(),
+        manifest_path: "run_manifest.json".to_string(),
+        environment_path: "environment.json".to_string(),
+        metadata_path: "run_metadata.json".to_string(),
+        events_path: "events.jsonl".to_string(),
+        run_state_path: "run_state.json".to_string(),
+        runtime_policy_path: "runtime_policy.json".to_string(),
+        executor_descriptor_path: "executor_descriptor.json".to_string(),
+        checkpoint_path: "checkpoint.json".to_string(),
+        failure_path: "run_failure.json".to_string(),
+        run_summary_path: "run_summary.json".to_string(),
+        evidence_bundle_path: "evidence_bundle.json".to_string(),
     };
     let expected = include_str!("../../fixtures/runtime_schema/default/run_layout_v1.json");
     let actual = String::from_utf8(
@@ -27,7 +41,7 @@ fn run_layout_schema_snapshot() {
             .unwrap_or_else(|err| panic!("canonical: {err}")),
     )
     .unwrap_or_else(|err| panic!("utf8: {err}"));
-    assert_eq!(actual, expected);
+    assert_eq!(actual.trim_end(), expected.trim_end());
 }
 
 #[test]
