@@ -8,9 +8,10 @@ JSON audit/report evidence.
 
 1. Caller builds `PlanRequest`.
 2. `v1::api::plan` routes to `runtime/run/reporting/plan_response.rs`.
-3. The API validates the execution graph and profile context.
-4. The response returns `PlanResponse` with the graph, graph hash, and manifest
-   preview.
+3. The API validates the execution graph and profile context, then materializes
+   a governed workflow manifest and plan manifest.
+4. The response returns `PlanResponse` with the graph, graph hash, manifest
+   preview, workflow manifest, plan manifest, and optional semantic diff.
 
 No stages execute in this flow.
 
@@ -19,7 +20,7 @@ No stages execute in this flow.
 1. Caller builds `DryRunRequest` with graph, run directory, and profile id.
 2. `v1::api::dry_run` routes to `runtime/run/reporting/dry_run.rs`.
 3. The API writes deterministic graph and manifest artifacts under the declared
-   run directory.
+   run directory, including `plan_manifest.json`.
 4. The response returns `DryRunResponse` paths to those artifacts.
 
 Dry-run may write declared artifacts, but it must not execute stage tools.

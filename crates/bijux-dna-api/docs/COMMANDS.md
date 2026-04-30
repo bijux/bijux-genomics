@@ -9,10 +9,10 @@ These v1 operations are exported through `bijux_dna_api::v1::api`.
 
 | Command | Rust entrypoint | Purpose |
 | --- | --- | --- |
-| `plan` | `plan(PlanRequest)` | Build a stable execution graph and `PlanResponse` without running stages. |
+| `plan` | `plan(PlanRequest)` | Build a stable execution graph plus governed workflow/plan manifest surfaces without running stages. |
 | `execute` | `execute(ExecuteRequest)` | Run a planned request and return an `ExecuteResponse` with manifest and report pointers. |
 | `execute-and-report` | `execute_and_report(ExecuteRequest)` | Run execution and materialize report outputs through one API call. |
-| `dry-run` | `dry_run(DryRunRequest)` | Validate inputs and emit deterministic dry-run graph and manifest artifacts. |
+| `dry-run` | `dry_run(DryRunRequest)` | Validate inputs and emit deterministic dry-run graph, run manifest, and plan manifest artifacts. |
 | `status` | `status(run_id)` | Read persisted run state and return `RunStatus`. |
 | `explain` | `explain(plan, defaults_ledger)` | Build the explainability bundle for a planned graph. |
 | `policy-audit` | `policy_audit(...)` | Return the policy-audit owner and commands; policy execution stays in `bijux-dna-dev` and `bijux-dna-policies`. |

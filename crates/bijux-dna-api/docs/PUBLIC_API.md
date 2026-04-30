@@ -30,6 +30,8 @@ enter through `bijux_dna_api::v1::api`.
 - Keep internal handler, runtime, support, and surface modules crate-private.
 - Add new public operations to `docs/COMMANDS.md` in the same change.
 - Add or update schema snapshots for any public shape change.
+- Keep `PlanRequest` and `PlanResponse` aligned with the governed workflow and
+  plan manifest contracts exported from `bijux-dna-core`.
 
 ## Non-Public Surfaces
 

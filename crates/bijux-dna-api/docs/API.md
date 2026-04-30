@@ -8,7 +8,7 @@ are public.
 
 | Operation | Request | Response | Notes |
 | --- | --- | --- | --- |
-| `plan` | `PlanRequest` | `PlanResponse` | Returns the execution graph, graph hash, and manifest preview. |
+| `plan` | `PlanRequest` | `PlanResponse` | Returns the execution graph, graph hash, manifest preview, workflow manifest, plan manifest, and optional semantic diff. |
 | `execute` | `ExecuteRequest` | `ExecuteResponse` | Runs a graph with a declared runtime and output directory. |
 | `execute_and_report` | `ExecuteRequest` | `ExecuteResponse` | Executes and materializes report outputs through the run/reporting adapter. |
 | `dry_run` | `DryRunRequest` | `DryRunResponse` | Writes deterministic graph and manifest artifacts without executing stages. |
@@ -19,6 +19,21 @@ are public.
 
 `docs/COMMANDS.md` is the SSOT for the full command list and local verification
 commands.
+
+## Planner Manifest Surfaces
+
+`PlanRequest` may now carry an optional governed `workflow_manifest`, emitted
+`stage_plans`, explicit parameter traces, stable planner warnings/refusals, and
+an optional `compare_against` baseline manifest.
+
+`PlanResponse` now returns:
+
+- `workflow_manifest`: the caller-supplied workflow manifest or the API's
+  deterministic fallback synthesis from the execution graph.
+- `plan_manifest`: the governed planner contract with ordered steps, cache keys,
+  stage decisions, parameter traces, and cross-domain handoff checks.
+- `plan_diff`: an optional semantic diff when the request supplied
+  `compare_against`.
 
 ## Schema Contracts
 
