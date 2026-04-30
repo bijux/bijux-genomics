@@ -16,6 +16,8 @@ pub const VCF_DIPLOID_CALLING_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.diploid.v1";
 pub const VCF_PSEUDOHAPLOID_CALLING_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.pseudohaploid.v1";
+pub const VCF_GL_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
+    "bijux.vcf.calling_boundary.gl_workflow.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
@@ -192,6 +194,20 @@ pub struct VcfCallingBoundaryV1 {
     pub mode: String,
     pub prerequisites_passed: bool,
     pub confidence: f64,
+    #[serde(default)]
+    pub refusal_codes: Vec<String>,
+    #[serde(default)]
+    pub assumptions: Vec<String>,
+    #[serde(default)]
+    pub caveats: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct VcfLikelihoodWorkflowBoundaryV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub prerequisites_passed: bool,
     #[serde(default)]
     pub refusal_codes: Vec<String>,
     #[serde(default)]
@@ -886,6 +902,49 @@ pub fn evaluate_pseudohaploid_calling_boundary(
     }
 }
 
+/// Evaluate genotype-likelihood workflow boundaries and uncertainty propagation requirements.
+#[must_use]
+pub fn evaluate_genotype_likelihood_workflow_boundary(
+    has_gl_fields: bool,
+    has_gp_or_pl_fields: bool,
+    low_coverage_model_declared: bool,
+    downstream_gl_compatible: bool,
+    uncertainty_propagated: bool,
+) -> VcfLikelihoodWorkflowBoundaryV1 {
+    let mut refusal_codes = Vec::<String>::new();
+    if !has_gl_fields {
+        refusal_codes.push("gl_fields_required".to_string());
+    }
+    if !has_gp_or_pl_fields {
+        refusal_codes.push("gp_or_pl_fields_required".to_string());
+    }
+    if !low_coverage_model_declared {
+        refusal_codes.push("low_coverage_model_required".to_string());
+    }
+    if !downstream_gl_compatible {
+        refusal_codes.push("downstream_gl_compatibility_required".to_string());
+    }
+    if !uncertainty_propagated {
+        refusal_codes.push("uncertainty_propagation_required".to_string());
+    }
+    refusal_codes.sort();
+    refusal_codes.dedup();
+    VcfLikelihoodWorkflowBoundaryV1 {
+        schema_version: VCF_GL_WORKFLOW_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: "vcf.call_gl".to_string(),
+        prerequisites_passed: refusal_codes.is_empty(),
+        refusal_codes,
+        assumptions: vec![
+            "GL workflows require explicit uncertainty-aware data fields".to_string(),
+            "downstream tools must accept likelihood-bearing semantics".to_string(),
+        ],
+        caveats: vec![
+            "GL-bearing outputs should not be silently coerced into hard diploid genotypes"
+                .to_string(),
+        ],
+    }
+}
+
 #[must_use]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
@@ -1282,5 +1341,24 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert!(refused.refusal_codes.contains(&"sampling_strategy_required".to_string()));
         assert!(refused.refusal_codes.contains(&"pseudohaploid_ploidy_required".to_string()));
         assert!(refused.refusal_codes.contains(&"uncertainty_reporting_required".to_string()));
+    }
+
+    #[test]
+    fn evaluate_genotype_likelihood_workflow_boundary_requires_gl_semantics() {
+        let ready = evaluate_genotype_likelihood_workflow_boundary(true, true, true, true, true);
+        assert!(ready.prerequisites_passed);
+        assert_eq!(ready.stage_id, "vcf.call_gl");
+        assert!(ready.refusal_codes.is_empty());
+
+        let refused =
+            evaluate_genotype_likelihood_workflow_boundary(false, false, false, false, false);
+        assert!(!refused.prerequisites_passed);
+        assert!(refused.refusal_codes.contains(&"gl_fields_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"gp_or_pl_fields_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"low_coverage_model_required".to_string()));
+        assert!(refused
+            .refusal_codes
+            .contains(&"downstream_gl_compatibility_required".to_string()));
+        assert!(refused.refusal_codes.contains(&"uncertainty_propagation_required".to_string()));
     }
 }
