@@ -16,7 +16,7 @@ use bijux_dna_pipelines::fastq::{
     fastq_contaminant_depletion_profile, fastq_default_profile, fastq_edna_metabarcoding_profile,
     fastq_host_depletion_profile, fastq_minimal_profile, fastq_qc_only_profile,
     fastq_reference_adna_profile, fastq_rrna_depletion_profile, fastq_trim_qc_profile,
-    fastq_umi_profile,
+    fastq_umi_profile, fastq_workflow_templates,
 };
 use bijux_dna_pipelines::vcf::vcf_reference_basic_profile;
 use bijux_dna_testkit::snapshot_name;
@@ -48,8 +48,7 @@ fn profile_drift_components(profile: &bijux_dna_pipelines::PipelineProfile) -> s
     prune_bam_downstream(&mut tool_bindings);
     prune_bam_downstream(&mut param_bindings);
 
-    let tool_hash = params_hash(&tool_bindings)
-        .expect("hash tools map");
+    let tool_hash = params_hash(&tool_bindings).expect("hash tools map");
     let params_hash_value = params_hash(&param_bindings).expect("hash params map");
 
     serde_json::json!({
@@ -292,6 +291,14 @@ fn cross_workflow_templates_snapshot() {
 }
 
 #[test]
+fn fastq_workflow_templates_snapshot() {
+    let _guard = snapshot_settings().bind_to_scope();
+    let name = snapshot_name("contracts", "fastq_workflow_templates");
+    let json = serde_json::to_value(fastq_workflow_templates()).expect("serialize templates");
+    assert_json_snapshot!(name, bijux_dna_testkit::snapshot_normalize_json(&json));
+}
+
+#[test]
 fn vcf_reference_basic_profile_snapshot() {
     let _guard = snapshot_settings().bind_to_scope();
     let name = snapshot_name("contracts", "vcf_reference_basic_profile");
@@ -442,4 +449,45 @@ fn production_fastq_profiles_cover_iteration_14_templates() {
         .contains(&"fastq.extract_umis"));
     assert!(required_stage_sets[id_catalog::PIPELINE_FASTQ_EDNA_METABARCODING]
         .contains(&"fastq.cluster_otus"));
+
+    assert_eq!(
+        fastq_qc_only_profile().capabilities.workflow_template_ids,
+        vec!["fastq.qc_only_review".to_string()],
+    );
+    assert_eq!(
+        fastq_trim_qc_profile().capabilities.workflow_template_ids,
+        vec!["fastq.trim_qc".to_string(), "fastq.preprocessing_policy_diff".to_string(),],
+    );
+    assert_eq!(
+        fastq_umi_profile().capabilities.workflow_template_ids,
+        vec!["fastq.umi_aware_preprocessing".to_string()],
+    );
+    assert_eq!(
+        fastq_host_depletion_profile().capabilities.workflow_template_ids,
+        vec!["fastq.host_depletion".to_string()],
+    );
+    assert_eq!(
+        fastq_rrna_depletion_profile().capabilities.workflow_template_ids,
+        vec!["fastq.rrna_depletion".to_string()],
+    );
+    assert_eq!(
+        fastq_contaminant_depletion_profile().capabilities.workflow_template_ids,
+        vec!["fastq.contaminant_depletion".to_string()],
+    );
+    assert_eq!(
+        fastq_edna_metabarcoding_profile().capabilities.workflow_template_ids,
+        vec!["fastq.edna_metabarcoding".to_string()],
+    );
+}
+
+#[test]
+fn fastq_iteration_11_template_links_cover_adna_and_primer_review_surfaces() {
+    assert_eq!(
+        fastq_reference_adna_profile().capabilities.workflow_template_ids,
+        vec!["fastq.ancient_dna_preprocessing".to_string()],
+    );
+    assert_eq!(
+        fastq_amplicon_standard_profile().capabilities.workflow_template_ids,
+        vec!["fastq.adapter_primer_bank_review".to_string()],
+    );
 }
