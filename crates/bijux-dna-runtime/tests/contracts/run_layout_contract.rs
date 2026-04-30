@@ -1,4 +1,8 @@
-use bijux_dna_runtime::run_layout::create_run_layout;
+use std::path::PathBuf;
+
+use bijux_dna_runtime::run_layout::{
+    apptainer_smoke_workflow_plan, create_run_layout, docker_smoke_workflow_plan,
+};
 
 #[test]
 fn run_layout_paths_match_contract() {
@@ -41,4 +45,35 @@ fn run_layout_paths_match_contract() {
     assert!(layout.evidence_verification_path.ends_with("evidence_verification.json"));
     assert!(layout.evidence_bundle_path.ends_with("evidence_bundle.json"));
     assert!(layout.summary_dir.ends_with("summary"));
+}
+
+#[test]
+fn docker_smoke_workflow_plan_captures_digest_mounts_and_artifacts() {
+    let plan = docker_smoke_workflow_plan(
+        "run-131",
+        "docker.io/bijuxdna/smoke@sha256:1234",
+        PathBuf::from("/tmp/bijux/smoke"),
+    );
+    assert_eq!(plan.runner, "docker");
+    assert_eq!(plan.image_identity, "docker.io/bijuxdna/smoke@sha256:1234");
+    assert_eq!(plan.mounts.len(), 2);
+    assert!(plan.mounts.iter().any(|mount| mount.access == "read_only"));
+    assert!(plan.mounts.iter().any(|mount| mount.access == "read_write"));
+    assert!(plan.expected_artifacts.iter().any(|item| item == "smoke.stdout"));
+}
+
+#[test]
+fn apptainer_smoke_workflow_plan_captures_sif_identity_bindings_and_logs() {
+    let plan = apptainer_smoke_workflow_plan(
+        "run-132",
+        "library://bijux/smoke/tool.sif@sha256:beef",
+        PathBuf::from("/tmp/bijux/apptainer"),
+    );
+    assert_eq!(plan.runner, "apptainer");
+    assert_eq!(plan.image_identity, "library://bijux/smoke/tool.sif@sha256:beef");
+    assert_eq!(plan.mounts.len(), 2);
+    assert!(
+        plan.log_capture_policy.contains("runtime_logs"),
+        "apptainer smoke plan should preserve runtime log capture policy",
+    );
 }

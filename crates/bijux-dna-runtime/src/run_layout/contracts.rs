@@ -255,6 +255,86 @@ pub struct RunBackendRecordV1 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunMountBindingV1 {
+    pub source: PathBuf,
+    pub target: PathBuf,
+    pub access: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunSmokeWorkflowPlanV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub runner: String,
+    pub image_identity: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub command: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub mounts: Vec<RunMountBindingV1>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub expected_artifacts: Vec<String>,
+    pub log_capture_policy: String,
+}
+
+#[must_use]
+pub fn docker_smoke_workflow_plan(
+    run_id: &str,
+    image_identity: &str,
+    mounts_root: PathBuf,
+) -> RunSmokeWorkflowPlanV1 {
+    RunSmokeWorkflowPlanV1 {
+        schema_version: "bijux.run_smoke_workflow.v1".to_string(),
+        run_id: run_id.to_string(),
+        runner: "docker".to_string(),
+        image_identity: image_identity.to_string(),
+        command: vec!["sh".to_string(), "-c".to_string(), "echo bijux-smoke".to_string()],
+        mounts: vec![
+            RunMountBindingV1 {
+                source: mounts_root.join("inputs"),
+                target: PathBuf::from("/bijux/inputs"),
+                access: "read_only".to_string(),
+            },
+            RunMountBindingV1 {
+                source: mounts_root.join("artifacts"),
+                target: PathBuf::from("/bijux/artifacts"),
+                access: "read_write".to_string(),
+            },
+        ],
+        expected_artifacts: vec!["smoke.stdout".to_string(), "smoke.exit_code".to_string()],
+        log_capture_policy: "capture_stdout_stderr_and_container_id".to_string(),
+    }
+}
+
+#[must_use]
+pub fn apptainer_smoke_workflow_plan(
+    run_id: &str,
+    sif_identity: &str,
+    bind_root: PathBuf,
+) -> RunSmokeWorkflowPlanV1 {
+    RunSmokeWorkflowPlanV1 {
+        schema_version: "bijux.run_smoke_workflow.v1".to_string(),
+        run_id: run_id.to_string(),
+        runner: "apptainer".to_string(),
+        image_identity: sif_identity.to_string(),
+        command: vec!["sh".to_string(), "-c".to_string(), "echo bijux-smoke".to_string()],
+        mounts: vec![
+            RunMountBindingV1 {
+                source: bind_root.join("inputs"),
+                target: PathBuf::from("/bijux/inputs"),
+                access: "read_only".to_string(),
+            },
+            RunMountBindingV1 {
+                source: bind_root.join("artifacts"),
+                target: PathBuf::from("/bijux/artifacts"),
+                access: "read_write".to_string(),
+            },
+        ],
+        expected_artifacts: vec!["smoke.stdout".to_string(), "smoke.exit_code".to_string()],
+        log_capture_policy: "capture_stdout_stderr_and_runtime_logs".to_string(),
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunResourceRequestV1 {
     pub cpu_threads: u32,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -879,8 +959,9 @@ pub fn migrate_artifact_inventory_value(
 pub fn read_supported_artifact_inventory(
     path: &std::path::Path,
 ) -> CoreResult<(ArtifactInventoryV1, ManifestMigrationAuditV1)> {
-    let raw = std::fs::read_to_string(path)
-        .map_err(|err| bijux_dna_core::prelude::BijuxError::Io(format!("read {}: {err}", path.display())))?;
+    let raw = std::fs::read_to_string(path).map_err(|err| {
+        bijux_dna_core::prelude::BijuxError::Io(format!("read {}: {err}", path.display()))
+    })?;
     let value: serde_json::Value = serde_json::from_str(&raw)?;
     migrate_artifact_inventory_value(&value)
 }
