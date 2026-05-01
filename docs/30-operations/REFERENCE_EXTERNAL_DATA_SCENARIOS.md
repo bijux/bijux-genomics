@@ -33,3 +33,15 @@ cargo run -q -p bijux-dna-dev -- tooling run reference-external-data -- --out ar
 - `G178` `g178_adapter_primer_update_impact`: adapter/primer drift impact report.
 - `G179` `g179_ena_batch_accession`: ENA batch accession conversion with uncertainty propagation.
 - `G180` `g180_offline_data_package`: offline reference/data package materialization report.
+
+## Scope
+This document defines the operational or architecture surface for this workflow surface.
+
+## Non-goals
+- Replacing crate-level implementation details or test contracts.
+
+## Contracts
+- Changes to this surface must stay aligned with governed checks and generated references.
+
+## Purpose
+This document records the durable intent and enforcement boundary for this surface.

@@ -53,3 +53,12 @@ Route common change types to the right crate, config path, fixture path, and pro
 - prove run layout, retry, timeout, or executor behavior under tests
 - update operator docs for new failure/remediation behavior
 - avoid hidden CLI-only logic
+
+## Scope
+This document defines the operational or architecture surface for this workflow surface.
+
+## Non-goals
+- Replacing crate-level implementation details or test contracts.
+
+## Contracts
+- Changes to this surface must stay aligned with governed checks and generated references.

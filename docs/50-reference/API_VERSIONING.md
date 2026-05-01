@@ -6,6 +6,16 @@
 ## Purpose
 Generated inventory linking stable v1 API routes to the governed workflow, plan, runtime, and evidence schemas they read or surface.
 
+## Scope
+Route-level schema read/write surfaces declared by the v1 API inventory.
+
+## Non-goals
+- Replacing endpoint behavior documentation or payload examples.
+
+## Contracts
+- Generated-only document; manual edits are forbidden.
+- Route entries must be sourced from the governed API inventory.
+
 - Inventory schema: `bijux.api_route_inventory.v1`
 - API version: `v1`
 

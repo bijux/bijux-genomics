@@ -110,3 +110,15 @@ Before touching a run:
   `cargo run -q -p bijux-dna-dev -- tooling run operator-workflow-maturity`
 - Scenario operations guide:
   [OPERATOR_WORKFLOW_MATURITY_SCENARIOS.md](./OPERATOR_WORKFLOW_MATURITY_SCENARIOS.md)
+
+## Scope
+This document defines the operational or architecture surface for this workflow surface.
+
+## Non-goals
+- Replacing crate-level implementation details or test contracts.
+
+## Contracts
+- Changes to this surface must stay aligned with governed checks and generated references.
+
+## Purpose
+This document records the durable intent and enforcement boundary for this surface.
