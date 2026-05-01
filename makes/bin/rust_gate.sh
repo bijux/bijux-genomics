@@ -45,7 +45,6 @@ nextest_profile_all="${NEXTEST_PROFILE_ALL:-full}"
 nextest_status_level="${NEXTEST_STATUS_LEVEL:-all}"
 nextest_final_status_level="${NEXTEST_FINAL_STATUS_LEVEL:-all}"
 nextest_fast_expr="${NEXTEST_FAST_EXPR:-not test(/::slow__/)}"
-nextest_full_expr="${NEXTEST_FULL_EXPR:-}"
 nextest_slow_expr="${NEXTEST_SLOW_EXPR:-test(/::slow__/)}"
 rs_clippy_excludes="${RS_CLIPPY_EXCLUDES:-}"
 
@@ -292,30 +291,16 @@ case "${command_name}" in
     ;;
   test-all)
     require_tool cargo-nextest
-    if [ -n "${nextest_full_expr}" ]; then
-      printf '%s\n' "run: cargo nextest run --workspace --all-features --run-ignored all --profile ${nextest_profile_all} -E ${nextest_full_expr}"
-      run_nextest "${rs_test_all_report}" "${rs_target_dir}" cargo nextest run \
-        --workspace \
-        --all-features \
-        --run-ignored all \
-        --retries 0 \
-        --config-file "${nextest_config_file}" \
-        --profile "${nextest_profile_all}" \
-        --status-level "${nextest_status_level}" \
-        --final-status-level "${nextest_final_status_level}" \
-        -E "${nextest_full_expr}"
-    else
-      printf '%s\n' "run: cargo nextest run --workspace --all-features --run-ignored all --profile ${nextest_profile_all}"
-      run_nextest "${rs_test_all_report}" "${rs_target_dir}" cargo nextest run \
-        --workspace \
-        --all-features \
-        --run-ignored all \
-        --retries 0 \
-        --config-file "${nextest_config_file}" \
-        --profile "${nextest_profile_all}" \
-        --status-level "${nextest_status_level}" \
-        --final-status-level "${nextest_final_status_level}"
-    fi
+    printf '%s\n' "run: cargo nextest run --workspace --all-features --run-ignored all --profile ${nextest_profile_all}"
+    run_nextest "${rs_test_all_report}" "${rs_target_dir}" cargo nextest run \
+      --workspace \
+      --all-features \
+      --run-ignored all \
+      --retries 0 \
+      --config-file "${nextest_config_file}" \
+      --profile "${nextest_profile_all}" \
+      --status-level "${nextest_status_level}" \
+      --final-status-level "${nextest_final_status_level}"
     ;;
   coverage)
     require_tool cargo-nextest
