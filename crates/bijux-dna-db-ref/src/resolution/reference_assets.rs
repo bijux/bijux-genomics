@@ -756,11 +756,10 @@ mod tests {
     }
 
     fn make_temp_dir(label: &str) -> PathBuf {
+        static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
         let mut path = std::env::temp_dir();
-        let nanos = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map_or(0_u128, |value| value.as_nanos());
-        path.push(format!("bijux-db-ref-{label}-{}-{nanos}", std::process::id()));
+        let seq = COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        path.push(format!("bijux-db-ref-{label}-{}-{seq}", std::process::id()));
         std::fs::create_dir_all(&path)
             .unwrap_or_else(|error| panic!("create temp dir {}: {error}", path.display()));
         path

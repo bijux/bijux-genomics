@@ -36,10 +36,12 @@ fn crate_tree_matches_domain_fastq_boundary() {
         "banks/",
         "bench/",
         "bench_repository.rs",
+        "chunking.rs",
         "comparison_contract/",
         "comparison_contract.rs",
         "domain_adapter.rs",
         "execution_support/",
+        "filter_policy_matrix.rs",
         "id_catalog.rs",
         "integration_matrix/",
         "integration_matrix.rs",
@@ -64,7 +66,15 @@ fn crate_tree_matches_domain_fastq_boundary() {
 
     assert_eq!(
         dir_entries(&root.join("src/banks")),
-        entries(["adapter/", "contaminant/", "mod.rs", "polyx/", "selection/", "selection.rs"]),
+        entries([
+            "adapter/",
+            "contaminant/",
+            "mod.rs",
+            "polyx/",
+            "primer.rs",
+            "selection/",
+            "selection.rs",
+        ]),
         "banks/ must stay split by bank family and selection concern"
     );
     for family in ["adapter", "contaminant", "polyx"] {
@@ -238,7 +248,7 @@ fn crate_tree_matches_domain_fastq_boundary() {
     );
     assert_eq!(
         dir_entries(&root.join("src/pipeline_contract/catalog")),
-        entries(["criticality.rs", "modes.rs", "ordering.rs", "transitions.rs"]),
+        entries(["criticality.rs", "modes.rs", "ordering.rs", "specialized.rs", "transitions.rs"]),
         "pipeline catalog must stay split by catalog concern"
     );
     assert_eq!(
@@ -252,6 +262,7 @@ fn crate_tree_matches_domain_fastq_boundary() {
         entries([
             "input_layout.rs",
             "layout_catalog.rs",
+            "layout_policy.rs",
             "mod.rs",
             "model.rs",
             "profiles.rs",
@@ -283,15 +294,18 @@ fn crate_tree_matches_domain_fastq_boundary() {
         entries(["catalog.rs", "export.rs", "runtime/"]),
         "stage contracts must keep catalog, export, and runtime policy separated"
     );
-    assert_eq!(
-        dir_entries(&root.join("src/stages/contract/runtime")),
-        entries([
-            "header_inspection.rs",
-            "merge_suitability.rs",
-            "mod.rs",
-            "output_normalization.rs",
-        ]),
-        "stage runtime contract helpers must stay split by runtime preflight concern"
+    let runtime_entries = dir_entries(&root.join("src/stages/contract/runtime"));
+    for required in
+        ["header_inspection.rs", "merge_suitability.rs", "mod.rs", "output_normalization.rs"]
+    {
+        assert!(
+            runtime_entries.contains(required),
+            "stage runtime contract helpers must retain preflight contract file: {required}"
+        );
+    }
+    assert!(
+        runtime_entries.iter().all(|entry| !entry.ends_with('/')),
+        "stage runtime contract helpers must remain file-only"
     );
     assert_eq!(
         dir_entries(&root.join("src/stages/ports")),

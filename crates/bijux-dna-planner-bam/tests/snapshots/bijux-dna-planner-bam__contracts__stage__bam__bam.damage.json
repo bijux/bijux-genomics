@@ -72,6 +72,9 @@
         "cpu_threads": 2,
         "disk_gb": 2,
         "input_bytes": 0,
+        "input_origin": "real",
+        "input_scale": "tiny",
+        "io_profile": "streaming_reads_with_sidecar_metrics",
         "memory_gb": 2,
         "notes": [
           "damage tools stream BAM plus sidecar summaries"
@@ -79,7 +82,8 @@
         "requires_index": true,
         "schema_version": "bijux.bam.resource_plan.v1",
         "scratch_gb": 2,
-        "stage_id": "bam.damage"
+        "stage_id": "bam.damage",
+        "walltime_minutes": 15
       }
     },
     "kind": "default",

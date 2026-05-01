@@ -21,6 +21,8 @@ fn parse_screen_taxonomy_report_parses_governed_json() -> Result<()> {
             "database_scope": "read_screening",
             "minimum_confidence": 0.1,
             "emit_unclassified": true,
+            "interpretation_boundary": "screening_only",
+            "truth_conditions": [],
             "input_r1": "reads_R1.fastq.gz",
             "input_r2": "reads_R2.fastq.gz",
             "screen_report_tsv": "kraken2.report.tsv",

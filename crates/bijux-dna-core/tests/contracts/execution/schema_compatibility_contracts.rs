@@ -9,6 +9,7 @@ use bijux_dna_core::contract::{
 };
 use insta::Settings;
 
+/// Snapshot intent: preserve governed compatibility payloads across schema evolution.
 #[test]
 fn schema_registry_covers_governed_iteration_contracts() {
     let registry = governed_schema_registry();

@@ -1,0 +1,38 @@
+---
+source: crates/bijux-dna-domain-fastq/tests/contracts/stage_contract_snapshots.rs
+assertion_line: 20
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+{
+  "inputs": {
+    "accepted_kinds": [
+      "SingleEnd",
+      "PairedEnd",
+      "Merged"
+    ],
+    "kind": "SingleEnd"
+  },
+  "metrics": {},
+  "outputs": {
+    "emits_fastq": false,
+    "kind": "StatsOnly",
+    "possible_kinds": [
+      "StatsOnly"
+    ]
+  },
+  "retention": {
+    "definition": "reads_out == reads_in; bases_out == bases_in",
+    "may_drop": [],
+    "may_drop_reads": false,
+    "must_preserve_pairing": true,
+    "preserves": [
+      "reads",
+      "pairs",
+      "bases"
+    ],
+    "units": "reads,bases"
+  },
+  "schema_version": "bijux.stage_contract.v1",
+  "stage_id": "fastq.detect_duplicates_premerge",
+  "tool_ids": []
+}

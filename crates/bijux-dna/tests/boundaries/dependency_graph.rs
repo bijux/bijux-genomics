@@ -3,6 +3,7 @@ use std::path::PathBuf;
 
 const NORMAL_DEPS: &[&str] = &[
     "anyhow",
+    "bijux-dna-analyze",
     "bijux-dna-api",
     "bijux-dna-db-ena",
     "bijux-dna-domain-compiler",

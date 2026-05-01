@@ -94,6 +94,9 @@
         "cpu_threads": 4,
         "disk_gb": 8,
         "input_bytes": 0,
+        "input_origin": "real",
+        "input_scale": "tiny",
+        "io_profile": "io_heavy_coordinate_streaming",
         "memory_gb": 4,
         "notes": [
           "duplicate marking scales with coordinate-sorted temporary shards"
@@ -101,7 +104,8 @@
         "requires_index": true,
         "schema_version": "bijux.bam.resource_plan.v1",
         "scratch_gb": 6,
-        "stage_id": "bam.markdup"
+        "stage_id": "bam.markdup",
+        "walltime_minutes": 18
       }
     },
     "kind": "default",

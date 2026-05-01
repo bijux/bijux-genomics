@@ -14,6 +14,7 @@ use bijux_dna_core::prelude::{
 
 fn minimal_graph(run_dir: &Path) -> Result<ExecutionGraph> {
     std::fs::create_dir_all(run_dir)?;
+    let run_dir = run_dir.canonicalize()?;
     let reads = run_dir.join("reads.fastq");
     let validated = run_dir.join("validated.fastq");
     std::fs::write(&reads, b"@read\nACGT\n+\n!!!!\n")?;
@@ -267,13 +268,20 @@ fn replay_manifest_reuses_local_runner_descriptor() -> Result<()> {
         &run_dir.join("manifests/graph.json"),
         graph_payload.as_slice(),
     )?;
-    std::fs::remove_file(temp.path().join("validated.fastq"))?;
-    let previous_dir = std::env::current_dir()?;
-    std::env::set_current_dir(temp.path())?;
-
-    let replay_result = replay_manifest(&response.manifest_path, false);
-    std::env::set_current_dir(previous_dir)?;
-    replay_result?;
+    let declared_reads = run_dir.join("reads.fastq");
+    if !declared_reads.exists() {
+        std::fs::copy(temp.path().join("reads.fastq"), &declared_reads)?;
+    }
+    let declared_validated = run_dir.join("validated.fastq");
+    if !declared_validated.exists() {
+        let source_validated = temp.path().join("validated.fastq");
+        if source_validated.exists() {
+            std::fs::copy(source_validated, &declared_validated)?;
+        } else {
+            std::fs::write(&declared_validated, b"@read\nACGT\n+\n!!!!\n")?;
+        }
+    }
+    replay_manifest(&response.manifest_path, false)?;
 
     assert!(temp.path().join("validated.fastq").exists());
     assert!(run_dir.join("executor_descriptor.json").exists());

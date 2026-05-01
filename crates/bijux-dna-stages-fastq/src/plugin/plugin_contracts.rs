@@ -285,6 +285,7 @@ fn parse_outputs_surfaces_detect_adapter_semantics() {
             "evidence_scope": "full_input",
             "evidence_format": "fastqc_summary",
             "evidence_artifact_id": "report_json",
+            "detected_adapter_source": "normalized_fastqc_evidence",
             "input_r1": "reads_R1.fastq.gz",
             "input_r2": "reads_R2.fastq.gz",
             "report_json": report_path,
@@ -731,50 +732,62 @@ fn parse_outputs_surfaces_trim_read_semantics() {
     .expect("write raw backend report");
     bijux_dna_infra::write_bytes(
         &report_path,
-        serde_json::json!({
-            "schema_version": "bijux.fastq.trim_reads.report.v2",
-            "stage": "fastq.trim_reads",
-            "stage_id": "fastq.trim_reads",
-            "tool_id": id_catalog::TOOL_FASTP,
-            "paired_mode": "single_end",
-            "threads": 4,
-            "input_r1": "reads.fastq",
-            "input_r2": null,
-            "output_r1": "trimmed.fastq",
-            "output_r2": null,
-            "min_length": 30_u64,
-            "quality_cutoff": 20_u64,
-            "adapter_policy": "bank",
-            "polyx_policy": "trim",
-            "n_policy": "drop",
-            "contaminant_policy": "none",
-            "adapter_bank_id": "illumina",
-            "adapter_bank_hash": "sha256:adapter",
-            "adapter_preset": "default",
-            "adapter_overrides": {
-                "enable": ["AGATCGGAAGAGC"],
-                "disable": ["polyA"]
-            },
-            "polyx_bank_id": "polyx",
-            "polyx_bank_hash": "sha256:polyx",
-            "polyx_preset": "illumina_twocolor",
-            "contaminant_bank_id": null,
-            "contaminant_bank_hash": null,
-            "contaminant_preset": null,
-            "reads_in": 100_u64,
-            "reads_out": 96_u64,
-            "bases_in": 1000_u64,
-            "bases_out": 840_u64,
-            "pairs_in": null,
-            "pairs_out": null,
-            "mean_q_before": 28.0,
-            "mean_q_after": 30.0,
-            "runtime_s": 4.2,
-            "memory_mb": 128.0,
-            "raw_backend_report": raw_backend_report_path,
-            "raw_backend_report_format": "fastp_json"
-        })
-        .to_string(),
+        format!(
+            r#"{{
+                "schema_version": "bijux.fastq.trim_reads.report.v2",
+                "stage": "fastq.trim_reads",
+                "stage_id": "fastq.trim_reads",
+                "tool_id": "{tool_id}",
+                "paired_mode": "single_end",
+                "threads": 4,
+                "trimming_backend": "fastp",
+                "backend_mode": "enforced",
+                "input_r1": "reads.fastq",
+                "input_r2": null,
+                "output_r1": "trimmed.fastq",
+                "output_r2": null,
+                "min_length": 30,
+                "quality_cutoff": 20,
+                "adapter_policy": "bank",
+                "polyx_policy": "trim",
+                "n_policy": "drop",
+                "contaminant_policy": "none",
+                "adapter_bank_id": "illumina",
+                "adapter_bank_hash": "sha256:adapter",
+                "adapter_preset": "default",
+                "detected_adapter_source": "governed_pattern_scan",
+                "adapter_overrides": {{
+                    "enable": ["AGATCGGAAGAGC"],
+                    "disable": ["polyA"]
+                }},
+                "prepared_adapter_bank": null,
+                "polyx_bank_id": "polyx",
+                "polyx_bank_hash": "sha256:polyx",
+                "polyx_preset": "illumina_twocolor",
+                "contaminant_bank_id": null,
+                "contaminant_bank_hash": null,
+                "contaminant_preset": null,
+                "reads_in": 100,
+                "reads_out": 96,
+                "bases_in": 1000,
+                "bases_out": 840,
+                "pairs_in": null,
+                "pairs_out": null,
+                "mean_q_before": 28.0,
+                "mean_q_after": 30.0,
+                "effective_trim_params": {{
+                    "adapter_policy": "bank",
+                    "min_length": 30,
+                    "quality_cutoff": 20
+                }},
+                "runtime_s": 4.2,
+                "memory_mb": 128.0,
+                "raw_backend_report": "{raw_backend_report}",
+                "raw_backend_report_format": "fastp_json"
+            }}"#,
+            tool_id = id_catalog::TOOL_FASTP,
+            raw_backend_report = raw_backend_report_path.display(),
+        ),
     )
     .expect("write report");
     let plan = bijux_dna_stage_contract::StagePlanV1 {
@@ -1105,6 +1118,12 @@ fn parse_outputs_surfaces_extract_umis_semantics() {
             "paired_mode": "paired_end",
             "threads": 2,
             "umi_pattern": "NNNNNNNN",
+            "extraction_location": "read1_prefix",
+            "read_name_transform": "append_to_header",
+            "failed_extraction_policy": "refuse_stage",
+            "grouping_policy": "pair_aware",
+            "downstream_dedup_policy": "sequence_identity_recommended",
+            "downstream_propagation": "header_and_report",
             "input_r1": "reads_R1.fastq.gz",
             "input_r2": "reads_R2.fastq.gz",
             "output_r1": "umi_reads_R1.fastq.gz",
@@ -1452,6 +1471,8 @@ fn parse_outputs_surfaces_screen_taxonomy_semantics() {
             "database_scope": "read_screening",
             "minimum_confidence": 0.05,
             "emit_unclassified": true,
+            "interpretation_boundary": "screening_only",
+            "truth_conditions": [],
             "input_r1": "reads.fastq.gz",
             "input_r2": null,
             "screen_report_tsv": "kraken2.report.tsv",
@@ -1530,7 +1551,7 @@ fn parse_outputs_surfaces_deplete_rrna_semantics() {
     let plugin = FastqStagePlugin;
     let temp = tempfile::tempdir().expect("tempdir");
     let reads_path = temp.path().join("reads.fastq");
-    let output_path = temp.path().join("rrna_filtered.fastq.gz");
+    let output_path = temp.path().join("rrna_filtered.fastq");
     let report_tsv = temp.path().join("rrna_report.tsv");
     let report_json = temp.path().join("rrna_report.json");
     bijux_dna_infra::write_bytes(&reads_path, b"@r1\nACGT\n+\n####\n").expect("write reads");
@@ -1553,9 +1574,11 @@ fn parse_outputs_surfaces_deplete_rrna_semantics() {
             "report_format": "summary_tsv_and_json",
             "emit_removed_reads": false,
             "min_identity": 0.95,
+            "retained_read_role": "rrna_filtered_reads",
+            "rejected_read_role": "removed_rrna_reads",
             "input_r1": "reads.fastq.gz",
             "input_r2": null,
-            "output_r1": "rrna_filtered.fastq.gz",
+            "output_r1": "rrna_filtered.fastq",
             "output_r2": null,
             "rrna_report_tsv": "rrna_report.tsv",
             "rrna_report_json": "rrna_report.json",

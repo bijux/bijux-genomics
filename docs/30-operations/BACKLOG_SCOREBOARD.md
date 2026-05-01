@@ -1,11 +1,7 @@
 # Backlog Scoreboard
 
-Level 1 implementation scoreboard authority:
-- [artifacts/planning/scoreboard.yaml](../../artifacts/planning/scoreboard.yaml)
-- [artifacts/planning/cards.yaml](../../artifacts/planning/cards.yaml)
-- [artifacts/planning/issue_labels.yaml](../../artifacts/planning/issue_labels.yaml)
-
-Use those governed files for current status, routing labels, and closure evidence.
+Level 1 implementation scoreboard authority is maintained through the repository policy and
+contract surfaces in `docs/40-policies/` and `crates/bijux-dna-policies/tests/`.
 
 This page intentionally does not duplicate goal rows by hand.
 

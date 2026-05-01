@@ -10,7 +10,7 @@ fn cli_vcf_run_executes_local_toy_pipeline_and_writes_artifacts() {
     let input = root.join("input.vcf");
     std::fs::write(
         &input,
-        "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1\n1\t1\t.\tA\tG\t60\tPASS\tDP=12\tGT\t0/1\n",
+        "##fileformat=VCFv4.2\n##contig=<ID=1,length=1000>\n##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Read Depth\">\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1\n1\t1\t.\tA\tG\t60\tPASS\tDP=12\tGT\t0/1\n",
     )
     .expect("write vcf");
 

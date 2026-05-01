@@ -31,8 +31,13 @@ pub(crate) fn enforce_input_layout(
     tool_id: &ToolId,
     paired_end: bool,
 ) -> Result<()> {
-    let layout = if paired_end { FastqReadLayout::PairedEnd } else { FastqReadLayout::SingleEnd };
-    enforce_declared_input_layout(stage_id, layout)?;
+    let declared = bijux_dna_domain_fastq::declared_input_layouts_for_stage(stage_id)
+        .ok_or_else(|| anyhow!("missing declared FASTQ layout policy for {stage_id}"))?;
+    if !declared.accepted_layouts.is_empty() {
+        let layout =
+            if paired_end { FastqReadLayout::PairedEnd } else { FastqReadLayout::SingleEnd };
+        enforce_declared_input_layout(stage_id, layout)?;
+    }
     if !paired_end {
         let paired_required = matches!(
             (stage_id, tool_id.as_str()),

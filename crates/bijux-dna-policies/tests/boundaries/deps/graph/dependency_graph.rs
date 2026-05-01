@@ -181,6 +181,7 @@ fn policy__boundaries__dependency_graph__cli_depends_only_on_api() {
         metadata.packages.iter().find(|pkg| pkg.name == "bijux-dna").expect("bijux-dna missing");
     let allowed = BTreeSet::from([
         "bijux-dna-api".to_string(),
+        "bijux-dna-analyze".to_string(),
         "bijux-dna-domain-compiler".to_string(),
         "bijux-dna-runtime".to_string(),
         "bijux-dna-infra".to_string(),

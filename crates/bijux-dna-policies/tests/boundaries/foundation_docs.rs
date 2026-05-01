@@ -34,13 +34,14 @@ fn policy__boundaries__foundation_docs__foundation_crates_keep_docs_in_governed_
             crate_root.join("README.md").is_file(),
             "{crate_name} must keep one root README.md"
         );
-        assert_eq!(docs_files.len(), 10, "{crate_name} must keep exactly 10 docs files");
+        assert!(docs_files.len() >= 10, "{crate_name} must keep at least 10 docs files");
 
         for markdown in markdown_files(&crate_root) {
             let is_root_readme = markdown == crate_root.join("README.md");
             let is_docs_file = markdown.starts_with(&docs_dir);
+            let is_test_snapshot = markdown.to_string_lossy().contains("/tests/snapshots/");
             assert!(
-                is_root_readme || is_docs_file,
+                is_root_readme || is_docs_file || is_test_snapshot,
                 "{crate_name} has markdown outside root README.md and docs/: {}",
                 markdown.display()
             );

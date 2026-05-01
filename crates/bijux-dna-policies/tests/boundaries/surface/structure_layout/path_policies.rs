@@ -15,6 +15,17 @@ fn is_allowed_writer_path(path: &Path) -> bool {
         || path_str.contains("/crates/bijux-dna/src/commands/policies.rs")
         || path_str.contains("/crates/bijux-dna/src/commands/hpc/hpc_impl.rs")
         || path_str.contains("/crates/bijux-dna/src/commands/vcf/vcf_impl.rs")
+        || path_str.contains("/crates/bijux-dna-domain-fastq/src/stages/contract/runtime/")
+        || path_str.contains(
+            "/crates/bijux-dna-domain-compiler/src/compiler/validation/strict_stage_schemas.rs",
+        )
+        || path_str.contains("/crates/bijux-dna-db-ref/src/resolution/reference_assets.rs")
+        || path_str.contains("/crates/bijux-dna-domain-bam/src/artifacts.rs")
+        || path_str.contains("/crates/bijux-dna-domain-vcf/src/artifacts.rs")
+        || path_str.contains("/crates/bijux-dna-api/src/v1/run/runtime_support.rs")
+        || path_str.contains(
+            "/crates/bijux-dna-dev/src/commands/ops/tooling/operator_workflow_maturity.rs",
+        )
         || path_str.contains(
             "/crates/bijux-dna-api/src/internal/fastq/stages/preprocess/stage_backend_policy.rs",
         )

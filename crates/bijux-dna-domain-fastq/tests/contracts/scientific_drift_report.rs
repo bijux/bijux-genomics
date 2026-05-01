@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 
 use insta::Settings;
 
+/// Snapshot intent: preserve drift report structure and metric delta semantics.
 #[test]
 fn scientific_drift_report_snapshot_stays_stable() {
     let baseline = bijux_dna_domain_fastq::ScientificDriftSnapshotV1 {

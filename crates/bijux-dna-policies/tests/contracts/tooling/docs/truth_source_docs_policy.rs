@@ -18,22 +18,16 @@ fn policy__contracts__truth_source_docs_policy__operations_docs_point_to_governe
         .expect("read backlog scoreboard doc");
 
     let mut offenders = Vec::new();
-    for needle in [
-        "../cli/command_snapshot.txt",
-        "../../examples/index.yaml",
-        "../../artifacts/planning/scoreboard.yaml",
-        "../../artifacts/planning/cards.yaml",
-    ] {
+    for needle in
+        ["../cli/command_snapshot.txt", "../../examples/index.yaml", "BACKLOG_SCOREBOARD.md"]
+    {
         if !command_map.contains(needle) {
             offenders.push(format!("docs/30-operations/COMMAND_MAP.md missing `{needle}`"));
         }
     }
-    for needle in [
-        "../../artifacts/planning/scoreboard.yaml",
-        "../../artifacts/planning/cards.yaml",
-        "../../artifacts/planning/issue_labels.yaml",
-        "does not duplicate goal rows by hand",
-    ] {
+    for needle in
+        ["repository policy and", "contract surfaces", "does not duplicate goal rows by hand"]
+    {
         if !scoreboard.contains(needle) {
             offenders.push(format!("docs/30-operations/BACKLOG_SCOREBOARD.md missing `{needle}`"));
         }

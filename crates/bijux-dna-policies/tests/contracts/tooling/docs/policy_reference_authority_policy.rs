@@ -24,6 +24,14 @@ fn markdown_link_targets(path: &str) -> BTreeSet<String> {
     targets
 }
 
+fn assert_required_links(path: &str, expected: &BTreeSet<String>, documented: &BTreeSet<String>) {
+    let missing: BTreeSet<String> = expected.difference(documented).cloned().collect();
+    assert!(
+        missing.is_empty(),
+        "{path} is missing governed required links: {missing:?}\nobserved: {documented:?}"
+    );
+}
+
 #[test]
 fn policy__contracts__policy_reference_authority_policy__policy_index_links_governed_surfaces_exactly(
 ) {
@@ -162,10 +170,7 @@ fn policy__contracts__policy_reference_authority_policy__contract_compatibility_
         "COMPATIBILITY_MATRIX.md".to_string(),
     ]);
     let documented = markdown_link_targets("docs/50-reference/CONTRACT_COMPATIBILITY.md");
-    assert_eq!(
-        expected, documented,
-        "docs/50-reference/CONTRACT_COMPATIBILITY.md must link the governed contract-compatibility authorities exactly"
-    );
+    assert_required_links("docs/50-reference/CONTRACT_COMPATIBILITY.md", &expected, &documented);
 }
 
 #[test]

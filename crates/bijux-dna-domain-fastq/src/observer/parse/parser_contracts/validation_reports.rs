@@ -166,13 +166,15 @@ fn parse_terminal_damage_report_parses_governed_json() -> Result<()> {
 #[test]
 fn parse_trim_reads_report_parses_governed_json() -> Result<()> {
     let parsed = parse_trim_reads_report(
-        &serde_json::json!({
+        r#"{
             "schema_version": "bijux.fastq.trim_reads.report.v2",
             "stage": "fastq.trim_reads",
             "stage_id": "fastq.trim_reads",
-            "tool_id": id_catalog::TOOL_FASTP,
+            "tool_id": "fastp",
             "paired_mode": "paired_end",
             "threads": 4,
+            "trimming_backend": "fastp",
+            "backend_mode": "enforced",
             "input_r1": "reads_R1.fastq.gz",
             "input_r2": "reads_R2.fastq.gz",
             "output_r1": "trimmed_R1.fastq.gz",
@@ -186,10 +188,12 @@ fn parse_trim_reads_report_parses_governed_json() -> Result<()> {
             "adapter_bank_id": "illumina",
             "adapter_bank_hash": "sha256:adapter",
             "adapter_preset": "default",
+            "detected_adapter_source": "governed_pattern_scan",
             "adapter_overrides": {
                 "enable": ["AGATCGGAAGAGC"],
                 "disable": ["polyA"]
             },
+            "prepared_adapter_bank": null,
             "polyx_bank_id": "polyx",
             "polyx_bank_hash": "sha256:polyx",
             "polyx_preset": "illumina_twocolor",
@@ -204,12 +208,16 @@ fn parse_trim_reads_report_parses_governed_json() -> Result<()> {
             "pairs_out": 45,
             "mean_q_before": 28.0,
             "mean_q_after": 31.0,
+            "effective_trim_params": {
+                "adapter_policy": "bank",
+                "min_length": 30,
+                "quality_cutoff": 20
+            },
             "runtime_s": 8.4,
             "memory_mb": 128.0,
             "raw_backend_report": "trim.fastp.json",
             "raw_backend_report_format": "fastp_json"
-        })
-        .to_string(),
+        }"#,
     )?;
 
     assert_eq!(parsed.tool_id, id_catalog::TOOL_FASTP);

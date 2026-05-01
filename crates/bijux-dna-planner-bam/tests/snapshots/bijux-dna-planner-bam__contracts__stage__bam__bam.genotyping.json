@@ -1,5 +1,6 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": [
       "/bin/sh",
@@ -64,6 +65,7 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -76,10 +78,28 @@
       "vcf": "out/genotyping.vcf.gz"
     }
   },
+  "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "a10aaa2c1a2a479df7bcf0456d3d1c9ca57d6299f75560fffae4af1d1bd164c1",
-      "defaults_diff": {}
+      "contract_hash": "c6c203e1be413de93f21bd94cb9722e949bcab5ef4822df34a50fc5b545f2674",
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 4,
+        "disk_gb": 4,
+        "input_bytes": 0,
+        "input_origin": "real",
+        "input_scale": "tiny",
+        "io_profile": "balanced_compute_and_io",
+        "memory_gb": 4,
+        "notes": [
+          "sorting/indexing/validation chain dominates temporary storage"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 4,
+        "stage_id": "bam.genotyping",
+        "walltime_minutes": 14
+      }
     },
     "kind": "default",
     "summary": "tool angsd selected by planner"

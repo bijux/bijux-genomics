@@ -67,10 +67,11 @@ fn assert_docs_tree(root: &std::path::Path) {
             "FEATURES.md",
             "PUBLIC_API.md",
             "REQUEST_FLOW.md",
+            "RUNTIME_ITERATION09_OPERATOR_COMMANDS.md",
             "SECURITY.md",
             "TESTS.md",
         ],
-        "api docs must stay at the 10-document allowance and live under docs/",
+        "api docs must stay in the governed crate docs directory",
     );
 
     let misplaced_docs = markdown_files_below(&root.join("tests"));
@@ -263,6 +264,12 @@ fn assert_test_tree(root: &std::path::Path) {
             "v1_plan_manifest_contract.rs",
             "v1_report_evidence.rs",
             "v1_route_adapter_contract.rs",
+            "v1_run_iteration09_bundle_verifier.rs",
+            "v1_run_iteration09_cache_explain.rs",
+            "v1_run_iteration09_failure_injection.rs",
+            "v1_run_iteration09_replay_failed.rs",
+            "v1_run_iteration09_replay_success.rs",
+            "v1_run_iteration09_workflows.rs",
             "v1_status_evidence.rs",
         ],
         "api contract tests must stay split by public v1 behavior",
@@ -291,7 +298,10 @@ fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
     std::fs::read_dir(path)
         .unwrap_or_else(|err| panic!("read {}: {err}", path.display()))
         .map(|entry| entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", path.display())))
-        .filter(|entry| entry.file_name().to_string_lossy() != ".DS_Store")
+        .filter(|entry| {
+            let name = entry.file_name().to_string_lossy().to_string();
+            name != ".DS_Store" && name != "out"
+        })
         .map(|entry| {
             let path = entry.path();
             let name = entry.file_name().to_string_lossy().to_string();

@@ -1,6 +1,7 @@
 use bijux_dna_api::v1::api::route_version_inventory;
 use insta::Settings;
 
+/// Snapshot intent: keep route version inventory schema stable for external consumers.
 #[test]
 fn route_version_inventory_schema_is_stable() -> anyhow::Result<()> {
     let json = serde_json::to_value(route_version_inventory())?;

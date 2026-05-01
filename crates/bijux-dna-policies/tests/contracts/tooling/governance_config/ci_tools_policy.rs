@@ -60,7 +60,7 @@ fn policy__contracts__ci_tools_policy__workflows_use_make_only() {
 #[test]
 fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
     let root = workspace_root();
-    let allowed = ["bijux-dna-infra", "bijux-dna-policies"];
+    let allowed = ["bijux-dna-domain-compiler", "bijux-dna-infra", "bijux-dna-policies"];
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if entry.file_name() != "Cargo.toml" {

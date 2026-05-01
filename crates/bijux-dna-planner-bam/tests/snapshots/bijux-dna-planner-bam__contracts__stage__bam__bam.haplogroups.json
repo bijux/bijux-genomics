@@ -1,11 +1,15 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": []
   },
   "effective_params": {
     "min_coverage": 5.0,
-    "reference_panel": "rcrs.fasta"
+    "population_scope": "mitochondrial_haplogroup_reference",
+    "reference_build": "rCRS",
+    "reference_panel": "rcrs.fasta",
+    "refuse_without_population_context": true
   },
   "image": {
     "digest": null,
@@ -41,16 +45,38 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
     "min_coverage": 5.0,
-    "reference_panel": "rcrs.fasta"
+    "population_scope": "mitochondrial_haplogroup_reference",
+    "reference_build": "rCRS",
+    "reference_panel": "rcrs.fasta",
+    "refuse_without_population_context": true
   },
+  "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "6a41475e8eef0046cfd04394d1bc88e296096a9e2ebc994c7f54e4a47ab362d2",
-      "defaults_diff": {}
+      "contract_hash": "63e4908d24fe9e5100542e30aa421212754517c94031411751b165c94082ef78",
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 4,
+        "disk_gb": 4,
+        "input_bytes": 0,
+        "input_origin": "real",
+        "input_scale": "tiny",
+        "io_profile": "balanced_compute_and_io",
+        "memory_gb": 4,
+        "notes": [
+          "sorting/indexing/validation chain dominates temporary storage"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 4,
+        "stage_id": "bam.haplogroups",
+        "walltime_minutes": 14
+      }
     },
     "kind": "default",
     "summary": "tool samtools selected by planner"

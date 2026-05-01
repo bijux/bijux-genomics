@@ -33,6 +33,26 @@ pub const DETECT_ADAPTERS: StageDefinition = stage_definition(
     &[MetricClass::Composition],
 );
 
+pub const DETECT_DUPLICATES_PREMERGE: StageDefinition = stage_definition(
+    "fastq.detect_duplicates_premerge",
+    FastqStageKind::Optional,
+    StageCriticality::Optional,
+    false,
+    false,
+    true,
+    &[MetricClass::Integrity],
+);
+
+pub const ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN: StageDefinition = stage_definition(
+    "fastq.estimate_library_complexity_prealign",
+    FastqStageKind::Optional,
+    StageCriticality::Optional,
+    false,
+    false,
+    true,
+    &[MetricClass::Integrity],
+);
+
 pub const TRIM_TERMINAL_DAMAGE: StageDefinition = stage_definition(
     "fastq.trim_terminal_damage",
     FastqStageKind::Core,
@@ -103,10 +123,12 @@ pub const REPORT_QC: StageDefinition = stage_definition(
     &[MetricClass::QualityShift, MetricClass::Contamination],
 );
 
-pub const STAGES: [StageDefinition; 10] = [
+pub const STAGES: [StageDefinition; 12] = [
     VALIDATE_READS,
     PROFILE_READ_LENGTHS,
     DETECT_ADAPTERS,
+    DETECT_DUPLICATES_PREMERGE,
+    ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN,
     TRIM_TERMINAL_DAMAGE,
     TRIM_POLYG_TAILS,
     TRIM_READS,

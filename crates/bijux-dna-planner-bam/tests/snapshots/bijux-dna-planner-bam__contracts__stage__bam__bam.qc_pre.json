@@ -66,6 +66,9 @@
         "cpu_threads": 4,
         "disk_gb": 4,
         "input_bytes": 0,
+        "input_origin": "real",
+        "input_scale": "tiny",
+        "io_profile": "balanced_compute_and_io",
         "memory_gb": 4,
         "notes": [
           "sorting/indexing/validation chain dominates temporary storage"
@@ -73,7 +76,8 @@
         "requires_index": true,
         "schema_version": "bijux.bam.resource_plan.v1",
         "scratch_gb": 4,
-        "stage_id": "bam.qc_pre"
+        "stage_id": "bam.qc_pre",
+        "walltime_minutes": 14
       }
     },
     "kind": "default",

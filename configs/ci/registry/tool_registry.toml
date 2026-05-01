@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 94e88938d8ab14598b65ebdaf64efb124b4ec62b
+# source_commit: 0437331d1c5b9bbda8032feefd9b7b01be447b59
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -1883,11 +1883,11 @@ require_labels = true
 id = "bam.align"
 required_tool_roles = ["aligner"]
 primary_tools = ["bwa"]
-optional_alternatives = ["bowtie2"]
+optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Alignment baseline remains explicit; BWA is primary and Bowtie2 stays declared as a governed alternative."
+default_rationale = "Alignment baseline selected for broad BAM ecosystem compatibility."
 requires_validation = false
 requires_reporting = false
 
@@ -1931,7 +1931,7 @@ requires_reporting = false
 id = "bam.damage"
 required_tool_roles = ["transform"]
 primary_tools = ["mapdamage2"]
-optional_alternatives = ["damageprofiler", "pmdtools", "pydamage"]
+optional_alternatives = ["pmdtools", "pydamage"]
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1943,7 +1943,7 @@ requires_reporting = false
 id = "bam.duplication_metrics"
 required_tool_roles = ["transform"]
 primary_tools = ["samtools"]
-optional_alternatives = ["picard"]
+optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
@@ -1978,12 +1978,12 @@ requires_reporting = false
 [[stages]]
 id = "bam.haplogroups"
 required_tool_roles = ["transform"]
-primary_tools = ["yleaf"]
+primary_tools = ["samtools"]
 optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Haplogroup reporting requires explicit mitochondrial panel context."
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
@@ -2039,11 +2039,11 @@ requires_reporting = false
 id = "bam.markdup"
 required_tool_roles = ["transform"]
 primary_tools = ["samtools"]
-optional_alternatives = ["picard"]
+optional_alternatives = []
 validation_tools = []
 reporting_tools = []
 planned_out_of_scope = []
-default_rationale = "Duplicate handling stays explicit so mark-only and remove policies are reviewable."
+default_rationale = ""
 requires_validation = false
 requires_reporting = false
 
@@ -2382,3 +2382,4 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
+

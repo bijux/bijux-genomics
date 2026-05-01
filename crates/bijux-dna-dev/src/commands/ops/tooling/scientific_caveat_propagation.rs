@@ -5,6 +5,7 @@ use super::{
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Debug, Clone, Copy)]
 enum ScenarioId {
@@ -851,7 +852,12 @@ fn scenario_reference_build_conflict_propagation() -> Result<(Vec<String>, serde
 
 fn scenario_missing_evidence_propagation() -> Result<(Vec<String>, serde_json::Value)> {
     let workspace = Workspace::resolve()?;
-    let run_dir = workspace.path("artifacts/scientific_caveat_propagation/g190_missing_evidence");
+    static RUN_COUNTER: AtomicU64 = AtomicU64::new(0);
+    let run_instance = RUN_COUNTER.fetch_add(1, Ordering::Relaxed);
+    let pid = std::process::id();
+    let run_dir = workspace.path(&format!(
+        "artifacts/scientific_caveat_propagation/g190_missing_evidence/run-{pid}-{run_instance}"
+    ));
     bijux_dna_infra::ensure_dir(&run_dir)?;
 
     let evidence_verification_path = run_dir.join("evidence_verification.json");

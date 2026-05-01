@@ -555,6 +555,12 @@ mod tests {
                 "paired_mode": "paired_end",
                 "threads": 2,
                 "umi_pattern": "NNNNNNNN",
+                "extraction_location": "read1_prefix",
+                "read_name_transform": "append_to_header",
+                "failed_extraction_policy": "refuse_stage",
+                "grouping_policy": "pair_aware",
+                "downstream_dedup_policy": "sequence_identity_recommended",
+                "downstream_propagation": "header_and_report",
                 "input_r1": "reads_R1.fastq.gz",
                 "input_r2": "reads_R2.fastq.gz",
                 "output_r1": "umi_reads_R1.fastq.gz",
@@ -740,13 +746,15 @@ mod tests {
         let report_path = temp.path().join("trim_report.json");
         std::fs::write(
             &report_path,
-            serde_json::json!({
+            r#"{
                 "schema_version": "bijux.fastq.trim_reads.report.v2",
                 "stage": "fastq.trim_reads",
                 "stage_id": "fastq.trim_reads",
                 "tool_id": "fastp",
                 "paired_mode": "single_end",
                 "threads": 4,
+                "trimming_backend": "fastp",
+                "backend_mode": "enforced",
                 "input_r1": "reads.fastq.gz",
                 "input_r2": null,
                 "output_r1": "trimmed.fastq.gz",
@@ -760,10 +768,12 @@ mod tests {
                 "adapter_bank_id": "illumina",
                 "adapter_bank_hash": "sha256:adapter",
                 "adapter_preset": "default",
+                "detected_adapter_source": "governed_pattern_scan",
                 "adapter_overrides": {
                     "enable": ["AGATCGGAAGAGC"],
                     "disable": ["polyA"]
                 },
+                "prepared_adapter_bank": null,
                 "polyx_bank_id": "polyx",
                 "polyx_bank_hash": "sha256:polyx",
                 "polyx_preset": "illumina_twocolor",
@@ -778,12 +788,16 @@ mod tests {
                 "pairs_out": null,
                 "mean_q_before": 28.0,
                 "mean_q_after": 30.0,
+                "effective_trim_params": {
+                    "adapter_policy": "bank",
+                    "min_length": 30,
+                    "quality_cutoff": 20
+                },
                 "runtime_s": 5.0,
                 "memory_mb": 64.0,
                 "raw_backend_report": "trim.fastp.json",
                 "raw_backend_report_format": "fastp_json"
-            })
-            .to_string(),
+            }"#,
         )
         .expect("write report");
 

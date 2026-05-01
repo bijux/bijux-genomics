@@ -2,6 +2,7 @@ use super::Result;
 use crate::request_args::{ExecuteRequest, ExecuteResponse};
 use anyhow::anyhow;
 use bijux_dna_core::contract::{ExecutionGraph, ExecutionStep, PlanPolicy};
+use bijux_dna_core::id_catalog::FASTQ_VALIDATE_READS;
 use bijux_dna_core::ids::{ArtifactId, StageId, StepId};
 use bijux_dna_core::prelude::{
     ArtifactRole, ArtifactSpec, CommandSpecV1, ContainerImageRefV1, StageIO, ToolConstraints,
@@ -104,8 +105,8 @@ fn failure_graph(
     let role =
         if scenario == "corrupt_output" { ArtifactRole::ReportJson } else { ArtifactRole::Reads };
     let step = ExecutionStep {
-        step_id: StepId::new("fastq.validate_reads"),
-        stage_id: StageId::new("fastq.validate_reads"),
+        step_id: StepId::new(FASTQ_VALIDATE_READS),
+        stage_id: StageId::from_static(FASTQ_VALIDATE_READS),
         command: CommandSpecV1 { template: command },
         image: ContainerImageRefV1 {
             image: "example/failure-injection:1".to_string(),

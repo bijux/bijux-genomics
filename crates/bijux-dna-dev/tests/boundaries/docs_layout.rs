@@ -70,6 +70,8 @@ fn expected_markdown_files(root: &Path) -> BTreeSet<PathBuf> {
     for doc in ALLOWED_DOCS {
         expected.insert(PathBuf::from("docs").join(doc));
     }
+    expected
+        .insert(PathBuf::from("tests/snapshots/bijux-dna-dev__tooling__architecture_report.md"));
     for doc in &expected {
         assert!(root.join(doc).is_file(), "expected doc must exist: {}", doc.display());
     }

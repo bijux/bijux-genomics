@@ -66,6 +66,9 @@
         "cpu_threads": 2,
         "disk_gb": 2,
         "input_bytes": 0,
+        "input_origin": "real",
+        "input_scale": "tiny",
+        "io_profile": "mixed_random_and_streaming_reads",
         "memory_gb": 2,
         "notes": [
           "coverage requires indexed random access for deterministic summaries"
@@ -73,7 +76,8 @@
         "requires_index": true,
         "schema_version": "bijux.bam.resource_plan.v1",
         "scratch_gb": 1,
-        "stage_id": "bam.coverage"
+        "stage_id": "bam.coverage",
+        "walltime_minutes": 12
       }
     },
     "kind": "default",

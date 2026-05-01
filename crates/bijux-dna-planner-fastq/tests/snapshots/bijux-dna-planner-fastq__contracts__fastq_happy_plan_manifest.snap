@@ -1,10 +1,11 @@
 ---
 source: crates/bijux-dna-planner-fastq/tests/contracts/plan/planner_manifest_contract.rs
+assertion_line: 193
 expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(false)?)"
 ---
 {
   "domain": "fastq",
-  "graph_hash": "f77b8afc7261696c16ab6c88997f657c78900b12b69ad3a1736a78bd68e467ff",
+  "graph_hash": "04acb0b41555de76c9f6983f004d4722446ecda8123a52aeaccb90885edb7ed9",
   "ordered_steps": [
     {
       "advisory": false,
@@ -22,7 +23,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(f
           "role": "stage_report"
         }
       ],
-      "cache_key": "0c04b855d73dd2d37b413d002ee0a17d83d2683538cebc06c14e1d8463d74beb",
+      "cache_key": "5f4080bea2114ca6bb7a66d8543ba85a99ed6c26611af494dce6b4878fd8a7cd",
       "effective_parameters_json": {
         "pair_sync_policy": "not_applicable",
         "paired_mode": "single_end",
@@ -71,7 +72,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(f
           "role": "stage_report"
         }
       ],
-      "cache_key": "739b4b332844fc5eec716d04644896822b5315b795a6a0854e54809c5eb2ced3",
+      "cache_key": "8cec433ff64463b22dfdfb54dd208ca0169ba3120cac151b3703ed4008f4c3c8",
       "dependencies": [
         "fastq.validate_reads.tool.fastqvalidator"
       ],
@@ -128,7 +129,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(f
           "role": "report_json"
         }
       ],
-      "cache_key": "caa3f0d8b3ef8e39ce1ea246c0bf2aab82c90dd5dd4d12ce711485873bcee016",
+      "cache_key": "18a89b15268e947791147750fe79bf48d889b9a288cdccfd721973466d2e895d",
       "dependencies": [
         "fastq.detect_adapters.tool.fastqc",
         "fastq.validate_reads.tool.fastqvalidator"
@@ -181,7 +182,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(f
           "role": "report_json"
         }
       ],
-      "cache_key": "ac493d91917f1db50a945560ddffcff8e99fe3eaf1cc45946342744d1a9d0ef0",
+      "cache_key": "ee41cb5a12db340308a5b52874da77e88cfc2f660b7ac960ac1bb37764b32de9",
       "dependencies": [
         "fastq.trim_polyg_tails.tool.fastp",
         "fastq.validate_reads.tool.fastqvalidator"
@@ -231,7 +232,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(f
           "role": "report_json"
         }
       ],
-      "cache_key": "9d61902e8542f1335d988d7cdbec40a504bbe3065ff6bf0c665e04bbe1a22311",
+      "cache_key": "6f4617cf93e4add91e3d63036a82168d3e992be6c2314d8356e4a1f25783260d",
       "dependencies": [
         "fastq.trim_reads.tool.fastp",
         "fastq.validate_reads.tool.fastqvalidator"
@@ -295,7 +296,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(f
           "role": "report_json"
         }
       ],
-      "cache_key": "53bf32b3787723a11ca3c635a70d660214b9ac9504089807fbeea08bac970edc",
+      "cache_key": "3f60f6023942e2790478cd8af8cb5de24bba6d89884088558bf5b9314db07d6f",
       "dependencies": [
         "fastq.filter_reads.tool.fastp",
         "fastq.validate_reads.tool.fastqvalidator"
@@ -347,7 +348,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(f
           "role": "index"
         }
       ],
-      "cache_key": "160930ce904feeb8e5bb59ec07497cad5ea1e69b2009e3fb33da2e012c70d782",
+      "cache_key": "ba7bdb09f10b94d8b5259009eb5e9ecd2def40ac2d28545eab9edefd7829a151",
       "dependencies": [
         "fastq.filter_reads.tool.fastp",
         "fastq.validate_reads.tool.fastqvalidator"
@@ -396,7 +397,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(f
           "role": "metrics_json"
         }
       ],
-      "cache_key": "9832c18b3b339f923d99731837daf9145fc3c175d43ff4b2c688bf766f08dcd2",
+      "cache_key": "e69dcc5ed4c35cc81ef0c79f408be1628a12bf1fb650d10d1890c47291825654",
       "dependencies": [
         "fastq.validate_reads.tool.fastqvalidator"
       ],
@@ -451,7 +452,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(f
           "role": "report_json"
         }
       ],
-      "cache_key": "6cb580cb0220e4f0ed9b7d06647c9536dd83db8d819db54b104b55ad49205af7",
+      "cache_key": "5d8e658946d5e8d5aaee3004ff3d35c41e8a48f0ee238839bd29b851a4011214",
       "dependencies": [
         "fastq.detect_adapters.tool.fastqc",
         "fastq.detect_adapters.tool.fastqc",
@@ -575,7 +576,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(f
     }
   ],
   "pipeline_id": "fastq-to-fastq__default__v1",
-  "plan_fingerprint": "5071ec18fbf623a3e223f338d2e2aab5549292e09652d33111477aba9c788685",
+  "plan_fingerprint": "4ee5a4d8f54353d477bc96e3303509b14f5e35f3c2c66d8a492dd280d12f8cc3",
   "planner_version": "bijux-dna-planner-fastq.v1",
   "policy": "PreferAccuracy",
   "profile_id": "fastq-to-fastq__default__v1",

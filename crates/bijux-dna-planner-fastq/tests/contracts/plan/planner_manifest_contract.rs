@@ -16,6 +16,7 @@ use bijux_dna_planner_fastq::{
 };
 use insta::Settings;
 
+/// Snapshot intent: keep FASTQ planner manifests stable across controlled refactors.
 fn snapshot_settings() -> Settings {
     let mut settings = Settings::clone_current();
     settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/snapshots"));

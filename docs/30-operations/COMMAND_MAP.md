@@ -80,5 +80,4 @@ Authority:
 Notes:
 - Use [examples/index.yaml](../../examples/index.yaml) to discover governed canonical example ids.
 - Use [RELEASE_RUNNABLE_EXAMPLES.md](RELEASE_RUNNABLE_EXAMPLES.md) for manifest/output/caveat links and release-facing example command paths.
-- Use [artifacts/planning/scoreboard.yaml](../../artifacts/planning/scoreboard.yaml) and
-  [artifacts/planning/cards.yaml](../../artifacts/planning/cards.yaml) for Level 1 closure scope instead of manually copying goal tables here.
+- Use [BACKLOG_SCOREBOARD.md](BACKLOG_SCOREBOARD.md) for Level 1 closure-scope routing and status policy.

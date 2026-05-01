@@ -13,8 +13,6 @@ What this gate proves:
 - refusal coverage and advisory/enforced admission coverage before a Level 1 release claim
 
 Supporting truth:
-- [artifacts/planning/scoreboard.yaml](../../artifacts/planning/scoreboard.yaml)
-- [artifacts/planning/cards.yaml](../../artifacts/planning/cards.yaml)
 - [docs/30-operations/BACKLOG_SCOREBOARD.md](BACKLOG_SCOREBOARD.md)
 
 Smoke-only note:

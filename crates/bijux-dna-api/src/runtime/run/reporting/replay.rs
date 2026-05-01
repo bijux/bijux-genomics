@@ -51,11 +51,54 @@ pub fn replay_manifest(manifest_path: &Path, verify_only: bool) -> Result<()> {
     let graph_path = resolve_graph_path(base_dir, &artifacts)?;
     let graph_raw =
         std::fs::read_to_string(&graph_path).map_err(|err| anyhow!("read graph.json: {err}"))?;
-    let graph: ExecutionGraph =
+    let mut graph_value: serde_json::Value =
         serde_json::from_str(&graph_raw).map_err(|err| anyhow!("parse graph.json: {err}"))?;
+    absolutize_graph_paths(base_dir, &mut graph_value)?;
+    let graph: ExecutionGraph =
+        serde_json::from_value(graph_value).map_err(|err| anyhow!("parse graph.json: {err}"))?;
     let runner = load_runner(base_dir)?;
     let layout = bijux_dna_runtime::run_layout::RunLayout::from_run_dir(base_dir.to_path_buf());
     Engine::default().execute(&graph, runner.as_ref(), &layout, None, None)?;
+    Ok(())
+}
+
+fn absolutize_graph_paths(base_dir: &Path, graph: &mut serde_json::Value) -> Result<()> {
+    let steps = graph
+        .get_mut("steps")
+        .and_then(serde_json::Value::as_array_mut)
+        .ok_or_else(|| anyhow!("graph.json missing steps array"))?;
+    for step in steps {
+        absolutize_path_field(base_dir, step, "out_dir")?;
+        let io = step
+            .get_mut("io")
+            .and_then(serde_json::Value::as_object_mut)
+            .ok_or_else(|| anyhow!("graph.json step missing io object"))?;
+        for artifact_key in ["inputs", "outputs"] {
+            let artifacts = io
+                .get_mut(artifact_key)
+                .and_then(serde_json::Value::as_array_mut)
+                .ok_or_else(|| anyhow!("graph.json io missing {artifact_key} array"))?;
+            for artifact in artifacts {
+                absolutize_path_field(base_dir, artifact, "path")?;
+            }
+        }
+    }
+    Ok(())
+}
+
+fn absolutize_path_field(
+    base_dir: &Path,
+    object: &mut serde_json::Value,
+    field: &str,
+) -> Result<()> {
+    let value =
+        object.get_mut(field).ok_or_else(|| anyhow!("graph.json object missing {field}"))?;
+    let path_value =
+        value.as_str().ok_or_else(|| anyhow!("graph.json field {field} must be a string path"))?;
+    let path = Path::new(path_value);
+    if path.is_relative() {
+        *value = serde_json::Value::String(base_dir.join(path).to_string_lossy().into_owned());
+    }
     Ok(())
 }
 

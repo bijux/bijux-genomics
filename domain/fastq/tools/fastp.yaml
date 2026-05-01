@@ -59,7 +59,6 @@ stage_ids:
   - "fastq.trim_polyg_tails"
 planned_stage_ids:
   - "fastq.profile_read_lengths"
-  - "fastq.filter_low_complexity"
 stage_contracts:
   fastq.trim_reads:
     required_inputs:

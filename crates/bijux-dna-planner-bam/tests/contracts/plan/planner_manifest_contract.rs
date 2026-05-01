@@ -15,6 +15,7 @@ use bijux_dna_domain_bam::BamStage;
 use bijux_dna_planner_bam::{plan_bam_stage_plans_for_profile_id, BamPipelineInputs};
 use insta::Settings;
 
+/// Snapshot intent: keep BAM planner manifests deterministic and reviewable.
 fn snapshot_name(name: &str) -> String {
     format!("bijux-dna-planner-bam__contracts__{name}")
 }

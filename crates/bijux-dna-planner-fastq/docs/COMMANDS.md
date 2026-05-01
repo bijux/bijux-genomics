@@ -19,6 +19,8 @@ The crate can produce command specs for these FASTQ stage IDs:
 - `fastq.validate_reads`
 - `fastq.profile_read_lengths`
 - `fastq.detect_adapters`
+- `fastq.detect_duplicates_premerge`
+- `fastq.estimate_library_complexity_prealign`
 - `fastq.trim_terminal_damage`
 - `fastq.normalize_primers`
 - `fastq.trim_polyg_tails`
