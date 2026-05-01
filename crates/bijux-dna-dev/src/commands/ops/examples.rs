@@ -5,6 +5,24 @@ use super::{
     Workspace,
 };
 
+fn example_string(data: &TomlValue, key: &str) -> Option<String> {
+    data.get(key).and_then(TomlValue::as_str).map(ToOwned::to_owned)
+}
+
+fn example_bool(data: &TomlValue, key: &str) -> bool {
+    data.get(key).and_then(TomlValue::as_bool).unwrap_or(false)
+}
+
+fn example_strings(data: &TomlValue, key: &str) -> Vec<String> {
+    data.get(key)
+        .and_then(TomlValue::as_array)
+        .cloned()
+        .unwrap_or_default()
+        .into_iter()
+        .filter_map(|value| value.as_str().map(ToOwned::to_owned))
+        .collect::<Vec<_>>()
+}
+
 pub(super) fn examples_generate_index(
     workspace: &Workspace,
     args: &[String],
@@ -45,15 +63,20 @@ pub(super) fn examples_generate_index(
             data.get("domain").and_then(TomlValue::as_str).unwrap_or("unknown").to_string();
         let corpus =
             data.get("corpus_required").and_then(TomlValue::as_str).unwrap_or("none").to_string();
-        let outputs = data
-            .get("expected_outputs")
-            .and_then(TomlValue::as_array)
-            .cloned()
-            .unwrap_or_default()
-            .into_iter()
-            .filter_map(|value| value.as_str().map(ToOwned::to_owned))
-            .collect::<Vec<_>>();
-        rows.push((example_id, domain, corpus, outputs, rel));
+        let outputs = example_strings(&data, "expected_outputs");
+        rows.push((
+            example_id,
+            domain,
+            corpus,
+            outputs,
+            rel,
+            example_bool(&data, "canonical_example"),
+            example_string(&data, "workflow_class"),
+            example_string(&data, "tiny_inputs_contract"),
+            example_string(&data, "workflow_manifest"),
+            example_string(&data, "expected_plan"),
+            example_string(&data, "expected_evidence"),
+        ));
     }
     rows.sort_by(|left, right| left.0.cmp(&right.0));
     let mut lines = vec![
@@ -61,15 +84,44 @@ pub(super) fn examples_generate_index(
         "# Regenerate with: cargo run -p bijux-dna-dev -- examples run generate-index".to_string(),
         "examples:".to_string(),
     ];
-    for (example_id, domain, corpus, outputs, rel) in rows {
+    for (
+        example_id,
+        domain,
+        corpus,
+        outputs,
+        rel,
+        canonical_example,
+        workflow_class,
+        tiny_inputs_contract,
+        workflow_manifest,
+        expected_plan,
+        expected_evidence,
+    ) in rows
+    {
         lines.push(format!("  - id: {example_id}"));
         lines.push(format!("    domain: {domain}"));
         lines.push(format!("    corpus_required: {corpus}"));
+        lines.push(format!("    canonical_example: {canonical_example}"));
+        if let Some(value) = workflow_class {
+            lines.push(format!("    workflow_class: {value}"));
+        }
         lines.push("    expected_outputs:".to_string());
         if outputs.is_empty() {
             lines.push("      - none".to_string());
         } else {
             lines.extend(outputs.into_iter().map(|output| format!("      - {output}")));
+        }
+        if let Some(value) = tiny_inputs_contract {
+            lines.push(format!("    tiny_inputs_contract: {value}"));
+        }
+        if let Some(value) = workflow_manifest {
+            lines.push(format!("    workflow_manifest: {value}"));
+        }
+        if let Some(value) = expected_plan {
+            lines.push(format!("    expected_plan: {value}"));
+        }
+        if let Some(value) = expected_evidence {
+            lines.push(format!("    expected_evidence: {value}"));
         }
         lines.push(format!("    path: {rel}"));
     }
@@ -131,6 +183,12 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
     let example_dir = find_example_dir(workspace, example_id)?
         .ok_or_else(|| anyhow!("unknown example id: {example_id}"))?;
     let example_toml: TomlValue = toml::from_str(&read_utf8(&example_dir.join("example.toml"))?)?;
+    let canonical_example = example_bool(&example_toml, "canonical_example");
+    let workflow_class = example_string(&example_toml, "workflow_class");
+    let tiny_inputs_contract = example_string(&example_toml, "tiny_inputs_contract");
+    let workflow_manifest = example_string(&example_toml, "workflow_manifest");
+    let expected_plan = example_string(&example_toml, "expected_plan");
+    let expected_evidence = example_string(&example_toml, "expected_evidence");
     let corpus_id =
         example_toml.get("corpus_id").and_then(TomlValue::as_str).unwrap_or_default().to_string();
     let mini_supported = example_toml
@@ -149,6 +207,7 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
     let artifact_root = artifact_root_path(workspace)?;
     let out_dir = artifact_root.join("examples").join(example_id);
     bijux_dna_infra::ensure_dir(&out_dir)?;
+    let started_at = Utc::now();
     for file in ["plan.json", "explain.json", "report.json"] {
         fs::copy(example_dir.join("golden").join(file), out_dir.join(file)).with_context(|| {
             format!(
@@ -159,6 +218,57 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
         })?;
     }
     fs::copy(example_dir.join("golden/report.json"), out_dir.join("golden_report.json"))?;
+    let mut manifest_files = vec![
+        "plan.json".to_string(),
+        "explain.json".to_string(),
+        "report.json".to_string(),
+        "golden_report.json".to_string(),
+        "run_report.json".to_string(),
+        "metrics.json".to_string(),
+        "logs.txt".to_string(),
+        "example.toml".to_string(),
+    ];
+    fs::copy(example_dir.join("example.toml"), out_dir.join("example.toml")).with_context(
+        || {
+            format!(
+                "copy {} -> {}",
+                example_dir.join("example.toml").display(),
+                out_dir.join("example.toml").display()
+            )
+        },
+    )?;
+    let expected_plan_path = expected_plan
+        .as_ref()
+        .map(|rel| example_dir.join(rel))
+        .unwrap_or_else(|| example_dir.join("golden/plan.json"));
+    if read_utf8(&expected_plan_path)? != read_utf8(&example_dir.join("golden/plan.json"))? {
+        return Ok(OpsCommandOutcome::failure(format!(
+            "example expected plan mismatch for {example_id}: {}\n",
+            workspace.rel(&expected_plan_path).display()
+        )));
+    }
+    if canonical_example {
+        let Some(tiny_inputs_contract) = tiny_inputs_contract.as_ref() else {
+            return Err(anyhow!("canonical example must define tiny_inputs_contract"));
+        };
+        let Some(workflow_manifest) = workflow_manifest.as_ref() else {
+            return Err(anyhow!("canonical example must define workflow_manifest"));
+        };
+        let Some(expected_evidence) = expected_evidence.as_ref() else {
+            return Err(anyhow!("canonical example must define expected_evidence"));
+        };
+        for (source_rel, dest_name) in [
+            (tiny_inputs_contract.as_str(), "tiny_inputs.json"),
+            (workflow_manifest.as_str(), "workflow_manifest.json"),
+            (expected_evidence.as_str(), "expected_evidence.json"),
+        ] {
+            let source = example_dir.join(source_rel);
+            let dest = out_dir.join(dest_name);
+            fs::copy(&source, &dest)
+                .with_context(|| format!("copy {} -> {}", source.display(), dest.display()))?;
+            manifest_files.push(dest_name.to_string());
+        }
+    }
     let iso_run_id = std::env::var("ISO_RUN_ID").unwrap_or_else(|_| "none".to_string());
     write_json_pretty(
         &out_dir.join("run_report.json"),
@@ -167,6 +277,8 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
             "corpus_id": corpus_id,
             "iso_run_id": iso_run_id,
             "mini_supported": mini_supported,
+            "canonical_example": canonical_example,
+            "workflow_class": workflow_class.clone(),
             "status": "ok",
             "steps": ["ensure_images", "run_bench", "collect_artifacts", "generate_report"],
             "source": workspace.rel(&example_dir).display().to_string(),
@@ -179,50 +291,75 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
             "example_id": example_id,
             "corpus_id": corpus_id,
             "iso_run_id": iso_run_id,
+            "canonical_example": canonical_example,
+            "workflow_class": workflow_class.clone(),
             "source": workspace.rel(&example_dir).display().to_string(),
-            "files": [
-                "plan.json",
-                "explain.json",
-                "report.json",
-                "golden_report.json",
-                "run_report.json",
-                "metrics.json",
-                "logs.txt"
-            ]
+            "files": manifest_files
         }),
     )?;
+    let collected_files = [
+        "plan.json",
+        "explain.json",
+        "report.json",
+        "golden_report.json",
+        "run_report.json",
+        "example.toml",
+        "tiny_inputs.json",
+        "workflow_manifest.json",
+        "expected_evidence.json",
+    ];
+    let artifact_bytes = collected_files
+        .iter()
+        .filter_map(|file| out_dir.join(file).metadata().ok())
+        .map(|meta| meta.len())
+        .sum::<u64>();
+    let finished_at = Utc::now();
     write_json_pretty(
         &out_dir.join("metrics.json"),
         &json!({
             "example_id": example_id,
-            "collected_at": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+            "canonical_example": canonical_example,
+            "workflow_class": workflow_class.clone(),
+            "collected_at": finished_at.to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+            "duration_ms": (finished_at - started_at).num_milliseconds(),
+            "artifact_bytes": artifact_bytes,
             "status": "ok",
         }),
     )?;
     write_utf8(
         &out_dir.join("logs.txt"),
         &format!(
-            "example_id={example_id}\ncorpus_id={corpus_id}\nmini_supported={mini_supported}\nstep1=containers ensure-images --plan\nstep2=bench suite check\nstep3=collect golden outputs\nstep4=write run report and bundle\n"
+            "example_id={example_id}\ncorpus_id={corpus_id}\nmini_supported={mini_supported}\ncanonical_example={canonical_example}\nstep1=containers ensure-images --plan\nstep2=bench suite check\nstep3=collect golden outputs\nstep4=write run report and bundle\n"
         ),
     )?;
-    let tar = run_program(
-        workspace,
-        "tar",
-        &[
+    let mut bundle_files = vec![
+        "manifest.json".to_string(),
+        "metrics.json".to_string(),
+        "logs.txt".to_string(),
+        "plan.json".to_string(),
+        "explain.json".to_string(),
+        "report.json".to_string(),
+        "golden_report.json".to_string(),
+        "run_report.json".to_string(),
+        "example.toml".to_string(),
+    ];
+    if canonical_example {
+        bundle_files.extend([
+            "tiny_inputs.json".to_string(),
+            "workflow_manifest.json".to_string(),
+            "expected_evidence.json".to_string(),
+        ]);
+    }
+    let tar = run_program(workspace, "tar", &{
+        let mut args = vec![
             "-czf".to_string(),
             out_dir.join("bundle.tar.gz").display().to_string(),
             "-C".to_string(),
             out_dir.display().to_string(),
-            "manifest.json".to_string(),
-            "metrics.json".to_string(),
-            "logs.txt".to_string(),
-            "plan.json".to_string(),
-            "explain.json".to_string(),
-            "report.json".to_string(),
-            "golden_report.json".to_string(),
-            "run_report.json".to_string(),
-        ],
-    )?;
+        ];
+        args.extend(bundle_files);
+        args
+    })?;
     if !tar.is_success() {
         return Ok(tar);
     }

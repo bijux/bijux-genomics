@@ -64,6 +64,8 @@ fn public_types_are_documented_and_v1_scoped() -> Result<()> {
                     let doc = lines[i].trim_start();
                     if doc.starts_with("///") {
                         doc_block.push(doc.to_string());
+                    } else if doc.starts_with("#[") {
+                        continue;
                     } else if doc.is_empty() {
                         // keep scanning
                     } else {

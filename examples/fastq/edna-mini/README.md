@@ -2,6 +2,8 @@
 
 ## Purpose
 Run a deterministic mini eDNA FASTQ path with primer/chimera/OTU/abundance stages enabled.
+This fixture exists because generic FASTQ defaults intentionally exclude non-general genomics
+branches such as `fastq.remove_chimeras`, `fastq.cluster_otus`, and `fastq.infer_asvs`.
 
 Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run fastq_edna_mini`
 
@@ -21,6 +23,7 @@ Canonical invocation: `cargo run -q -p bijux-dna-dev -- examples run run fastq_e
   - `fastq.remove_chimeras`
   - `fastq.cluster_otus`
   - `fastq.normalize_abundance`
+- Keep `fastq.infer_asvs` as an explicit alternative amplicon branch rather than a silent default.
 
 ## Step 4 Collect/Report
 - Collect outputs under artifacts/examples/fastq_edna_mini/.

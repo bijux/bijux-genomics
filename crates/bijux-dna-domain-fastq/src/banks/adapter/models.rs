@@ -7,6 +7,11 @@ pub struct AdapterBankV1 {
     pub bank_id: String,
     pub version: String,
     pub provenance_status: String,
+    pub license: String,
+    pub source_document: String,
+    pub source_checksum_sha256: String,
+    pub applicable_assays: Vec<String>,
+    pub selection_logic: String,
     pub adapters: Vec<AdapterEntryV1>,
 }
 
@@ -49,12 +54,15 @@ pub struct AdapterPresetV1 {
     #[serde(default)]
     pub description: Option<String>,
     #[serde(default)]
+    pub applicable_assays: Vec<String>,
+    #[serde(default)]
     pub tags: Vec<String>,
     #[serde(default)]
     pub adapter_ids: Vec<String>,
     #[serde(default)]
     pub sequences: Vec<String>,
     pub rationale: String,
+    pub selection_logic: String,
     #[serde(default)]
     pub references: Vec<String>,
     #[serde(default)]
@@ -67,8 +75,10 @@ pub struct AdapterPresetV1 {
 pub struct EffectiveAdapterSet {
     pub preset: String,
     pub preset_hash: String,
+    pub applicable_assays: Vec<String>,
     pub preset_tags: Vec<String>,
     pub rationale: String,
+    pub selection_logic: String,
     pub references: Vec<String>,
     pub notes: Vec<String>,
     pub sequences: Vec<String>,

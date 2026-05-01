@@ -1,0 +1,11 @@
+{
+  "schema_version": "bijux.example.refusal_bundle.v1",
+  "bundle_id": "broken_fastq",
+  "category": "broken_fastq",
+  "expected_refusal_codes": [
+    "FASTQ_LAYOUT_UNSUPPORTED",
+    "FASTQ_INPUT_INCOHERENT"
+  ],
+  "operating_mode": "enforced",
+  "summary": "Broken FASTQ input must be refused before stage execution."
+}

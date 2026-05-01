@@ -2,7 +2,10 @@ use std::fs;
 use std::path::PathBuf;
 
 use anyhow::{Context, Result};
-use bijux_dna_bench_model::{contract::validate_suite, BenchmarkSuiteSpec};
+use bijux_dna_bench_model::{
+    contract::validate_suite, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkSuiteSpec,
+    CorpusDomain, CorpusScale,
+};
 use bijux_dna_domain_fastq::execution_support::{
     benchmark_cohort_stage_ids, execution_support_for_stage,
 };
@@ -27,6 +30,14 @@ fn checked_in_suites() -> Result<Vec<(PathBuf, BenchmarkSuiteSpec)>> {
         suites.push((path, suite));
     }
     Ok(suites)
+}
+
+fn checked_in_corpora() -> Result<Vec<BenchmarkCorpusManifest>> {
+    bijux_dna_bench::load_corpus_catalog()
+}
+
+fn checked_in_bundles() -> Result<Vec<BenchmarkBundleManifest>> {
+    bijux_dna_bench::load_bundle_catalog()
 }
 
 #[test]
@@ -243,5 +254,303 @@ fn checked_in_fastq_suite_catalog_exercises_full_trim_branch_join() -> Result<()
         has_full_join,
         "checked-in FASTQ suites must include a report_qc branch-join DAG that covers every admitted fastq.trim_reads backend"
     );
+    Ok(())
+}
+
+#[test]
+fn checked_in_corpus_catalog_contains_fastq_ci_small_case_matrix() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let Some(fastq_ci_small) = corpora.iter().find(|corpus| {
+        corpus.domain == CorpusDomain::Fastq && corpus.scale == CorpusScale::CiSmall
+    }) else {
+        anyhow::bail!("checked-in corpus catalog must include a fastq ci-small manifest");
+    };
+
+    let tags = fastq_ci_small
+        .datasets
+        .iter()
+        .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    for required in [
+        "valid",
+        "truncated",
+        "adapter-heavy",
+        "low-complexity",
+        "umi",
+        "contaminant",
+        "sparse",
+        "empty",
+    ] {
+        assert!(
+            tags.contains(required),
+            "fastq ci-small corpus must cover required case tag {required}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn checked_in_corpus_catalog_contains_bam_ci_small_case_matrix() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let Some(bam_ci_small) = corpora
+        .iter()
+        .find(|corpus| corpus.domain == CorpusDomain::Bam && corpus.scale == CorpusScale::CiSmall)
+    else {
+        anyhow::bail!("checked-in corpus catalog must include a bam ci-small manifest");
+    };
+
+    let tags = bam_ci_small
+        .datasets
+        .iter()
+        .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    for required in [
+        "valid",
+        "missing-index",
+        "duplicate-heavy",
+        "low-coverage",
+        "damage-like",
+        "reference-mismatch",
+    ] {
+        assert!(
+            tags.contains(required),
+            "bam ci-small corpus must cover required case tag {required}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn checked_in_corpus_catalog_contains_vcf_ci_small_case_matrix() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let Some(vcf_ci_small) = corpora
+        .iter()
+        .find(|corpus| corpus.domain == CorpusDomain::Vcf && corpus.scale == CorpusScale::CiSmall)
+    else {
+        anyhow::bail!("checked-in corpus catalog must include a vcf ci-small manifest");
+    };
+
+    let tags = vcf_ci_small
+        .datasets
+        .iter()
+        .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    for required in [
+        "valid",
+        "malformed-header",
+        "contig-alias",
+        "multisample",
+        "low-coverage-gl",
+        "phased",
+        "imputed",
+        "panel-mismatch",
+    ] {
+        assert!(
+            tags.contains(required),
+            "vcf ci-small corpus must cover required case tag {required}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn checked_in_corpus_catalog_contains_fastq_local_medium_stress_matrix() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let Some(fastq_local_medium) = corpora.iter().find(|corpus| {
+        corpus.domain == CorpusDomain::Fastq && corpus.scale == CorpusScale::LocalMedium
+    }) else {
+        anyhow::bail!("checked-in corpus catalog must include a fastq local-medium manifest");
+    };
+
+    let tags = fastq_local_medium
+        .datasets
+        .iter()
+        .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    for required in ["chunking", "edna", "depletion", "aggregate-qc"] {
+        assert!(
+            tags.contains(required),
+            "fastq local-medium corpus must cover required stress tag {required}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn checked_in_corpus_catalog_contains_bam_local_medium_stress_matrix() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let Some(bam_local_medium) = corpora.iter().find(|corpus| {
+        corpus.domain == CorpusDomain::Bam && corpus.scale == CorpusScale::LocalMedium
+    }) else {
+        anyhow::bail!("checked-in corpus catalog must include a bam local-medium manifest");
+    };
+
+    let tags = bam_local_medium
+        .datasets
+        .iter()
+        .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    for required in ["sort", "index", "markdup", "coverage", "damage"] {
+        assert!(
+            tags.contains(required),
+            "bam local-medium corpus must cover required stress tag {required}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn checked_in_corpus_catalog_contains_vcf_local_medium_stress_matrix() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let Some(vcf_local_medium) = corpora.iter().find(|corpus| {
+        corpus.domain == CorpusDomain::Vcf && corpus.scale == CorpusScale::LocalMedium
+    }) else {
+        anyhow::bail!("checked-in corpus catalog must include a vcf local-medium manifest");
+    };
+
+    let tags = vcf_local_medium
+        .datasets
+        .iter()
+        .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
+        .collect::<std::collections::BTreeSet<_>>();
+    for required in ["multisample-filtering", "normalization", "annotation", "evidence-size"] {
+        assert!(
+            tags.contains(required),
+            "vcf local-medium corpus must cover required stress tag {required}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn checked_in_corpus_catalog_labels_truth_set_presence_and_absence() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let mut has_available_truth = false;
+    let mut has_unavailable_truth = false;
+
+    for corpus in &corpora {
+        for dataset in &corpus.datasets {
+            if dataset.truth_set.note.trim().is_empty() {
+                anyhow::bail!(
+                    "dataset {} in corpus {} must document truth_set note",
+                    dataset.dataset_id,
+                    corpus.corpus_id
+                );
+            }
+            match dataset.truth_set.status {
+                bijux_dna_bench::TruthSetStatus::Available => {
+                    has_available_truth = true;
+                    assert!(
+                        dataset.truth_set.truth_set_id.is_some(),
+                        "available truth_set must include truth_set_id for {}",
+                        dataset.dataset_id
+                    );
+                }
+                bijux_dna_bench::TruthSetStatus::Unavailable => {
+                    has_unavailable_truth = true;
+                    assert!(
+                        dataset.truth_set.note.to_ascii_lowercase().contains("no truth set"),
+                        "unavailable truth_set note must state absence for {}",
+                        dataset.dataset_id
+                    );
+                }
+            }
+        }
+    }
+
+    assert!(has_available_truth, "corpus catalog must include at least one available truth set");
+    assert!(
+        has_unavailable_truth,
+        "corpus catalog must include at least one unavailable truth set"
+    );
+    Ok(())
+}
+
+#[test]
+fn checked_in_corpus_catalog_covers_backend_comparison_cohorts() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let mut domains_with_cohorts = std::collections::BTreeSet::new();
+
+    for corpus in &corpora {
+        for comparison in &corpus.backend_comparisons {
+            assert!(
+                comparison.tools.len() >= 2,
+                "backend comparison {} must include at least two tools",
+                comparison.comparison_id
+            );
+            assert!(
+                comparison.caveat.to_ascii_lowercase().contains("advis")
+                    || comparison.caveat.to_ascii_lowercase().contains("not"),
+                "backend comparison {} must carry an explicit scientific caveat",
+                comparison.comparison_id
+            );
+            let domain = match corpus.domain {
+                CorpusDomain::Fastq => "fastq",
+                CorpusDomain::Bam => "bam",
+                CorpusDomain::Vcf => "vcf",
+            };
+            domains_with_cohorts.insert(domain);
+        }
+    }
+
+    for required_domain in ["fastq", "bam", "vcf"] {
+        assert!(
+            domains_with_cohorts.contains(required_domain),
+            "corpus catalog must define backend comparison cohorts for {}",
+            required_domain
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn checked_in_corpus_catalog_covers_scientific_drift_axes() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let mut covered_axes = std::collections::BTreeSet::new();
+    for corpus in &corpora {
+        for scenario in &corpus.drift_scenarios {
+            assert!(
+                !scenario.caveat.trim().is_empty(),
+                "drift scenario {} must include caveat text",
+                scenario.scenario_id
+            );
+            covered_axes.insert(scenario.drift_axis.as_str());
+        }
+    }
+
+    for required_axis in ["defaults", "backend-version", "reference-revision", "policy-revision"] {
+        assert!(
+            covered_axes.contains(required_axis),
+            "corpus drift catalog must include axis {required_axis}"
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn checked_in_bundle_catalog_links_corpora_with_scientific_caveats() -> Result<()> {
+    let corpora = checked_in_corpora()?;
+    let bundles = checked_in_bundles()?;
+    let corpus_ids = corpora
+        .iter()
+        .map(|corpus| corpus.corpus_id.as_str())
+        .collect::<std::collections::BTreeSet<_>>();
+
+    assert!(!bundles.is_empty(), "bundle catalog must not be empty");
+    for bundle in bundles {
+        assert!(
+            !bundle.scientific_caveats.is_empty(),
+            "bundle {} must include scientific caveats",
+            bundle.bundle_id
+        );
+        for corpus_id in &bundle.corpora {
+            assert!(
+                corpus_ids.contains(corpus_id.as_str()),
+                "bundle {} references unknown corpus {}",
+                bundle.bundle_id,
+                corpus_id
+            );
+        }
+    }
     Ok(())
 }

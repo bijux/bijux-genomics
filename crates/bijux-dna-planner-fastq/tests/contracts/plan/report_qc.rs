@@ -223,6 +223,69 @@ fn compose_routes_cleanup_and_length_reports_into_report_qc() -> anyhow::Result<
 }
 
 #[test]
+fn essential_qc_workflow_routes_validation_trim_and_profile_artifacts_into_report_qc(
+) -> anyhow::Result<()> {
+    let plans = compose_fastq_stage_bindings(
+        &[
+            binding("fastq.validate_reads", "fastqvalidator"),
+            binding("fastq.detect_adapters", "fastqc"),
+            binding("fastq.trim_reads", "fastp"),
+            binding("fastq.profile_reads", "seqkit_stats"),
+            binding("fastq.report_qc", "multiqc"),
+        ],
+        &BTreeMap::new(),
+        None,
+        None,
+        None,
+        false,
+        Path::new("reads_R1.fastq.gz"),
+        None,
+        None,
+        None,
+        |binding, _r1, _r2| {
+            Ok(Path::new("out").join(binding.stage_id.as_str()).join(binding.tool.tool_id.as_str()))
+        },
+    )?;
+
+    assert_eq!(
+        plans.iter().map(|plan| plan.stage_id.as_str()).collect::<Vec<_>>(),
+        vec![
+            "fastq.validate_reads",
+            "fastq.detect_adapters",
+            "fastq.trim_reads",
+            "fastq.profile_reads",
+            "fastq.report_qc",
+        ]
+    );
+
+    let report_plan = plans
+        .iter()
+        .find(|plan| plan.stage_id.as_str() == "fastq.report_qc")
+        .expect("report_qc stage");
+    let input_names =
+        report_plan.io.inputs.iter().map(|artifact| artifact.name.as_str()).collect::<Vec<_>>();
+    assert!(input_names.iter().any(|name| {
+        name.starts_with("fastq.validate_reads") && name.ends_with(".validation_report")
+    }));
+    assert!(input_names
+        .iter()
+        .any(|name| { name == &"fastq.detect_adapters.tool.fastqc.adapter_evidence_dir" }));
+    assert!(input_names
+        .iter()
+        .any(|name| name.starts_with("fastq.trim_reads") && name.ends_with(".report_json")));
+    assert!(input_names
+        .iter()
+        .any(|name| { name == &"fastq.profile_reads.tool.seqkit_stats.qc_json" }));
+    assert!(report_plan
+        .io
+        .outputs
+        .iter()
+        .any(|artifact| artifact.name.as_str() == "governed_qc_inputs_manifest"));
+    assert_eq!(report_plan.effective_params["aggregation_engine"], serde_json::json!("multiqc"));
+    Ok(())
+}
+
+#[test]
 fn graph_report_qc_inherits_branch_qc_lineage_from_upstream_nodes() -> anyhow::Result<()> {
     let temp = bijux_dna_infra::temp_dir("fastq-report-qc-branch-lineage")?;
     let r1 = temp.path().join("reads_R1.fastq");

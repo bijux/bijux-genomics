@@ -1,0 +1,103 @@
+schema_version = "bijux.bench.corpus.v1"
+corpus_id = "vcf_ci_small"
+domain = "vcf"
+scale = "ci-small"
+scientific_caveats = [
+  "ci-sized VCF fixtures capture controlled edge cases and do not represent population-scale inference quality",
+]
+
+[[datasets]]
+dataset_id = "vcf_valid_diploid"
+fixture = "fixtures/vcf/valid_diploid"
+read_layout = "paired"
+class_label = "valid"
+case_tags = ["valid", "diploid"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.vcf.synthetic.valid-diploid.v1"
+note = "synthetic diploid truth supports deterministic normalization and stats checks"
+
+[[datasets]]
+dataset_id = "vcf_malformed_header"
+fixture = "fixtures/vcf/malformed_header"
+read_layout = "paired"
+class_label = "malformed_header"
+case_tags = ["malformed-header", "boundary"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; malformed header case exists for parser refusal contracts"
+
+[[datasets]]
+dataset_id = "vcf_contig_alias_mismatch"
+fixture = "fixtures/vcf/contig_alias_mismatch"
+read_layout = "paired"
+class_label = "contig_alias"
+case_tags = ["contig-alias", "reference-mismatch"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; contig alias mismatch exercises reference mapping diagnostics"
+
+[[datasets]]
+dataset_id = "vcf_multisample_small"
+fixture = "fixtures/vcf/multisample_small"
+read_layout = "paired"
+class_label = "multisample"
+case_tags = ["multisample", "cohort"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.vcf.synthetic.multisample-small.v1"
+note = "controlled cohort recipe provides stable multisample reference truth"
+
+[[datasets]]
+dataset_id = "vcf_low_coverage_gl"
+fixture = "fixtures/vcf/low_coverage_gl"
+read_layout = "paired"
+class_label = "low_coverage_gl"
+case_tags = ["low-coverage-gl", "genotype-likelihood"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; low-coverage GL examples are advisory and uncertainty-heavy"
+
+[[datasets]]
+dataset_id = "vcf_phased_small"
+fixture = "fixtures/vcf/phased_small"
+read_layout = "paired"
+class_label = "phased"
+case_tags = ["phased", "haplotype"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.vcf.synthetic.phased-small.v1"
+note = "synthetic phased haplotypes anchor deterministic phasing checks"
+
+[[datasets]]
+dataset_id = "vcf_imputed_small"
+fixture = "fixtures/vcf/imputed_small"
+read_layout = "paired"
+class_label = "imputed"
+case_tags = ["imputed", "advisory"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; imputed fixture is advisory and not a definitive truth benchmark"
+
+[[datasets]]
+dataset_id = "vcf_panel_mismatch"
+fixture = "fixtures/vcf/panel_mismatch"
+read_layout = "paired"
+class_label = "panel_mismatch"
+case_tags = ["panel-mismatch", "reference-panel"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; panel mismatch fixture validates compatibility diagnostics"
+
+[[backend_comparisons]]
+comparison_id = "vcf.call.ci"
+stage_id = "vcf.call"
+tools = ["bcftools", "freebayes"]
+caveat = "caller comparison is constrained to fixture conditions and remains advisory"
+
+[[drift_scenarios]]
+scenario_id = "vcf.reference.revision.ci"
+drift_axis = "reference-revision"
+baseline_label = "ref-mini-r1"
+candidate_label = "ref-mini-r2"
+caveat = "reference-revision drift is tracked as compatibility evidence and not a population inference claim"

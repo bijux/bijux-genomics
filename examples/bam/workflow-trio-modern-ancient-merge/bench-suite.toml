@@ -1,0 +1,13 @@
+suite_id = "bench-bam-workflow-trio-modern-ancient-merge-01"
+domain = "bam"
+stages = [
+  "bam.validate",
+  "bam.mapping_summary",
+  "bam.markdup",
+  "bam.coverage",
+  "bam.damage",
+  "bam.authenticity",
+  "bam.contamination",
+  "bam.endogenous_content",
+  "bam.kinship"
+]

@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.example.tiny_inputs.v1",
+  "example_id": "fastq_essential_qc",
+  "corpus_id": "corpus-01-mini",
+  "contracts": [
+    "examples/data/corpus-01-mini/MANIFEST.toml",
+    "examples/data/corpus-01-mini/CHECKSUMS.sha256"
+  ],
+  "expected_inputs": [
+    "sample_0001_R1.fastq.gz",
+    "sample_0001_R2.fastq.gz"
+  ]
+}

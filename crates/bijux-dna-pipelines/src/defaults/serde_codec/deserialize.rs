@@ -8,11 +8,19 @@ use bijux_dna_domain_fastq::params::defaults::{
     trim_polyg_tails_defaults, trim_terminal_damage_defaults, umi_defaults, validate_defaults,
 };
 use bijux_dna_domain_fastq::params::detect_adapters::DetectAdaptersEffectiveParams;
+use bijux_dna_domain_fastq::params::edna::{
+    AbundanceNormalizationEffectiveParams, AsvInferenceEffectiveParams,
+    ChimeraDetectionEffectiveParams, OtuClusteringEffectiveParams,
+    PrimerNormalizationEffectiveParams,
+};
 use bijux_dna_domain_fastq::params::filter::FilterEffectiveParams;
 use bijux_dna_domain_fastq::params::merge::MergeEffectiveParams;
 use bijux_dna_domain_fastq::params::preprocess::PreprocessEffectiveParams;
 use bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams;
-use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
+use bijux_dna_domain_fastq::params::screen::{
+    HostDepletionEffectiveParams, ReferenceContaminantEffectiveParams, RrnaEffectiveParams,
+    ScreenEffectiveParams,
+};
 use bijux_dna_domain_fastq::params::stats::{
     FastqOverrepresentedProfileParams, FastqReadLengthProfileParams, FastqStatsParams,
 };
@@ -82,6 +90,34 @@ pub(super) fn from_json(value: serde_json::Value) -> anyhow::Result<DefaultParam
     }
     if let Ok(parsed) = serde_json::from_value::<ScreenEffectiveParams>(value.clone()) {
         return Ok(DefaultParams::FastqScreen(parsed));
+    }
+    if let Ok(parsed) = serde_json::from_value::<HostDepletionEffectiveParams>(value.clone()) {
+        return Ok(DefaultParams::FastqHostDepletion(parsed));
+    }
+    if let Ok(parsed) = serde_json::from_value::<ReferenceContaminantEffectiveParams>(value.clone())
+    {
+        return Ok(DefaultParams::FastqReferenceContaminantDepletion(parsed));
+    }
+    if let Ok(parsed) = serde_json::from_value::<RrnaEffectiveParams>(value.clone()) {
+        return Ok(DefaultParams::FastqRrna(parsed));
+    }
+    if let Ok(parsed) = serde_json::from_value::<PrimerNormalizationEffectiveParams>(value.clone())
+    {
+        return Ok(DefaultParams::FastqPrimerNormalization(parsed));
+    }
+    if let Ok(parsed) = serde_json::from_value::<ChimeraDetectionEffectiveParams>(value.clone()) {
+        return Ok(DefaultParams::FastqChimeraDetection(parsed));
+    }
+    if let Ok(parsed) = serde_json::from_value::<AsvInferenceEffectiveParams>(value.clone()) {
+        return Ok(DefaultParams::FastqAsvInference(parsed));
+    }
+    if let Ok(parsed) = serde_json::from_value::<OtuClusteringEffectiveParams>(value.clone()) {
+        return Ok(DefaultParams::FastqOtuClustering(parsed));
+    }
+    if let Ok(parsed) =
+        serde_json::from_value::<AbundanceNormalizationEffectiveParams>(value.clone())
+    {
+        return Ok(DefaultParams::FastqAbundanceNormalization(parsed));
     }
     Err(anyhow::anyhow!("unrecognized non-empty default params payload"))
 }

@@ -1,0 +1,2 @@
+name = "cargo_metadata_snapshot"
+intent = "workspace dependency snapshot fixture for policy drift detection"

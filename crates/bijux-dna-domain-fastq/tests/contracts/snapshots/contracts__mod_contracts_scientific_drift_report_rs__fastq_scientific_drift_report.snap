@@ -1,0 +1,60 @@
+---
+source: crates/bijux-dna-domain-fastq/tests/contracts/scientific_drift_report.rs
+expression: report
+---
+{
+  "schema_version": "bijux.fastq.scientific_drift.report.v1",
+  "stage_id": "fastq.trim_reads",
+  "baseline_label": "baseline",
+  "candidate_label": "candidate",
+  "baseline_tool_id": "fastp",
+  "candidate_tool_id": "cutadapt",
+  "change_kinds": [
+    "defaults_change",
+    "backend_version_change",
+    "tool_selection_change"
+  ],
+  "metric_deltas": [
+    {
+      "metric_id": "adapter_content_mean",
+      "baseline_value": 0.08,
+      "candidate_value": 0.01,
+      "absolute_delta": -0.07,
+      "relative_delta": -0.8750000000000001
+    },
+    {
+      "metric_id": "mean_q",
+      "baseline_value": 31.0,
+      "candidate_value": 32.4,
+      "absolute_delta": 1.3999999999999986,
+      "relative_delta": 0.0451612903225806
+    },
+    {
+      "metric_id": "read_retention",
+      "baseline_value": 0.91,
+      "candidate_value": 0.88,
+      "absolute_delta": -0.030000000000000027,
+      "relative_delta": -0.032967032967032996
+    }
+  ],
+  "artifact_deltas": [
+    {
+      "artifact_id": "report_json",
+      "baseline_hash": "sha256:a",
+      "candidate_hash": "sha256:b",
+      "changed": true
+    },
+    {
+      "artifact_id": "trimmed_reads_r1",
+      "baseline_hash": "sha256:r1a",
+      "candidate_hash": "sha256:r1b",
+      "changed": true
+    }
+  ],
+  "caveats": [
+    "adapter-heavy samples bias retention deltas",
+    "backend version drift detected; observed metric shifts may blend scientific and implementation effects",
+    "default-setting drift detected; downstream scientific summaries must be compared cautiously",
+    "different adapter heuristics can reshape downstream QC"
+  ]
+}

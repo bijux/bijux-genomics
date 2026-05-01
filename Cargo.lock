@@ -226,6 +226,7 @@ name = "bijux-dna"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-analyze",
  "bijux-dna-api",
  "bijux-dna-db-ena",
  "bijux-dna-domain-compiler",
@@ -262,6 +263,7 @@ dependencies = [
  "bijux-dna-policies",
  "bijux-dna-runtime",
  "bijux-dna-testkit",
+ "chrono",
  "insta",
  "parquet",
  "rusqlite",
@@ -396,7 +398,10 @@ name = "bijux-dna-dev"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-api",
  "bijux-dna-core",
+ "bijux-dna-db-ena",
+ "bijux-dna-db-ref",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "chrono",
@@ -432,11 +437,13 @@ dependencies = [
  "anyhow",
  "bijux-dna-domain-bam",
  "bijux-dna-domain-fastq",
+ "bijux-dna-domain-vcf",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "clap",
  "serde",
  "serde_json",
+ "serde_yaml",
  "sha2",
  "tempfile",
  "toml",
@@ -457,6 +464,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
+ "toml",
  "tracing",
  "uuid",
  "walkdir",

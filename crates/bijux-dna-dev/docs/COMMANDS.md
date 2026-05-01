@@ -362,7 +362,9 @@ toy-runs
 acquire-maps
 acquire-panels
 acquire-reference
+architecture-report
 benchmark-integrity-mini
+benchmark-smoke-level1
 bijux
 cargo-targets
 certification-gate
@@ -370,6 +372,7 @@ certify-all
 certify-bam
 certify-domains
 certify-fastq
+certify-level1
 certify-vcf
 check-config-paths
 check-config-snapshot
@@ -405,7 +408,10 @@ image-qa
 inventory
 lint-fast
 make-help
+operator-workflow-maturity
+reference-external-data
 repo-doctor
+scientific-caveat-propagation
 setup-docs-venv
 simulate-coverage-regime
 validate-frontend-mini-domain-stacks

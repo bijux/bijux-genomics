@@ -27,8 +27,8 @@ use bijux_dna_domain_fastq::params::screen::{
     HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy, ReferenceDecoyPolicy,
     ReferenceMaskingPolicy, ReferenceScope, RrnaEffectiveParams, RrnaReportFormat,
     RrnaScreeningEngine, ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier,
-    TaxonomyDatabaseScope, TaxonomyReportFormat, HOST_DEPLETION_SCHEMA_VERSION,
-    RRNA_DEPLETION_SCHEMA_VERSION, SCREEN_TAXONOMY_SCHEMA_VERSION,
+    TaxonomyDatabaseScope, TaxonomyInterpretationBoundary, TaxonomyReportFormat,
+    HOST_DEPLETION_SCHEMA_VERSION, RRNA_DEPLETION_SCHEMA_VERSION, SCREEN_TAXONOMY_SCHEMA_VERSION,
 };
 use bijux_dna_domain_fastq::params::stats::{FastqStatsParams, STATS_SCHEMA_VERSION};
 use bijux_dna_domain_fastq::params::trim::{
@@ -37,7 +37,9 @@ use bijux_dna_domain_fastq::params::trim::{
     TerminalDamageExecutionPolicy, TrimPolygTailsParams, TrimTerminalDamageParams,
     TRIM_POLYG_TAILS_SCHEMA_VERSION, TRIM_TERMINAL_DAMAGE_SCHEMA_VERSION,
 };
-use bijux_dna_domain_fastq::params::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
+use bijux_dna_domain_fastq::params::umi::{
+    FastqUmiParams, UmiDedupPolicy, UmiGroupingPolicy, UMI_SCHEMA_VERSION,
+};
 use bijux_dna_domain_fastq::params::validate::{PairSyncPolicy, ValidationMode};
 use bijux_dna_domain_fastq::params::{DamageMode, PairedMode};
 use bijux_dna_domain_fastq::{parse_effective_params, stage_param_descriptor, EffectiveParams};
@@ -80,6 +82,8 @@ fn umi_params_roundtrip_and_schema_version() {
     let params = umi_defaults(true);
     let decoded: FastqUmiParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, UMI_SCHEMA_VERSION);
+    assert_eq!(decoded.grouping_policy, UmiGroupingPolicy::PairAware);
+    assert_eq!(decoded.downstream_dedup_policy, UmiDedupPolicy::SequenceIdentityRecommended);
     assert!(decoded.missing_required_fields().is_empty());
 }
 
@@ -121,6 +125,11 @@ fn screen_defaults_roundtrip_with_declared_thread_count() {
     assert_eq!(decoded.classifier, TaxonomyClassifier::Kraken2);
     assert_eq!(decoded.report_format, TaxonomyReportFormat::KrakenReport);
     assert_eq!(decoded.assignment_format, TaxonomyAssignmentFormat::KrakenAssignments);
+    assert_eq!(
+        decoded.interpretation_boundary,
+        bijux_dna_domain_fastq::params::screen::TaxonomyInterpretationBoundary::ScreeningOnly
+    );
+    assert!(decoded.truth_conditions.is_empty());
     assert!(decoded.missing_required_fields().is_empty());
 }
 
@@ -432,6 +441,8 @@ fn screen_taxonomy_params_roundtrip_with_classifier_contract() {
         assignment_format: TaxonomyAssignmentFormat::KrakenAssignments,
         minimum_confidence: Some(0.2),
         emit_unclassified: true,
+        interpretation_boundary: TaxonomyInterpretationBoundary::ScreeningOnly,
+        truth_conditions: Vec::new(),
     };
     let decoded: ScreenEffectiveParams = roundtrip(&params);
     assert_eq!(decoded.schema_version, SCREEN_TAXONOMY_SCHEMA_VERSION);
@@ -446,6 +457,8 @@ fn screen_taxonomy_params_roundtrip_with_classifier_contract() {
     assert_eq!(decoded.assignment_format, TaxonomyAssignmentFormat::KrakenAssignments,);
     assert_eq!(decoded.minimum_confidence, Some(0.2));
     assert!(decoded.emit_unclassified);
+    assert_eq!(decoded.interpretation_boundary, TaxonomyInterpretationBoundary::ScreeningOnly);
+    assert!(decoded.truth_conditions.is_empty());
     assert!(decoded.missing_required_fields().is_empty());
 }
 

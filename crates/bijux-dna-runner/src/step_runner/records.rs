@@ -12,6 +12,8 @@ pub(super) fn materialize_execution_records(
     output_hashes: &[String],
     runner: RuntimeKind,
     command: &str,
+    stdout: &str,
+    stderr: &str,
     params_fingerprint: &str,
 ) -> Result<String> {
     let pipeline_id = execution_pipeline_identity(step);
@@ -24,6 +26,8 @@ pub(super) fn materialize_execution_records(
         output_hashes,
         runner,
         command,
+        stdout,
+        stderr,
         &run_id,
         params_fingerprint,
     )?;

@@ -13,7 +13,7 @@ This crate is allowed to perform explicit repository filesystem writes and proce
 Start with [docs/INDEX.md](docs/INDEX.md), [docs/TESTS.md](docs/TESTS.md), [docs/BOUNDARY.md](docs/BOUNDARY.md), and [docs/PUBLIC_API.md](docs/PUBLIC_API.md). The binary entrypoint is `src/main.rs`, the stable crate-local launcher lives in `src/dev_entrypoint.rs`, CLI routing lives under `src/cli/`, and command implementations live under `src/commands/`.
 
 ## Key contracts it owns/consumes
-It owns the development automation surface, generated-document workflows, container-control commands, domain-governance automation, and repository checks that are intentionally outside production pipeline execution. It consumes workspace policy, domain registry, and generated-config contracts.
+It owns the development automation surface, generated-document workflows, container-control commands, domain-governance automation, and repository checks that are intentionally outside production pipeline execution. It consumes repository policy, domain registry, and generated-config contracts.
 
 ## Artifacts / Contracts
 Owned outputs include governed automation reports, generated docs, config snapshots, lock metadata, and container-control summaries written under repository artifact roots. Contract details live in [docs/CONTRACTS.md](docs/CONTRACTS.md), [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md), and [docs/TESTS.md](docs/TESTS.md).
@@ -27,7 +27,7 @@ See [docs/TESTS.md](docs/TESTS.md). Key coverage starts in `tests/boundaries.rs`
 ## Where the docs live
 Start at [docs/INDEX.md](docs/INDEX.md), then read [docs/SCOPE.md](docs/SCOPE.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/COMMANDS.md](docs/COMMANDS.md), [docs/CONTRACTS.md](docs/CONTRACTS.md), and [docs/TESTS.md](docs/TESTS.md).
 
-## Workspace Policy
-Workspace work on this crate is governed by `/Users/bijan/bijux/bijux-genomics/README.md`,
-`/Users/bijan/bijux/README.md`, and `/Users/bijan/bijux/CODEX.md`; re-read
+## Repository Policy
+This crate follows repository governance documentation. `/Users/bijan/bijux/bijux-genomics/README.md`,
+`README.md`, and `README.md`; re-read
 those files before editing this child repository or making commits.

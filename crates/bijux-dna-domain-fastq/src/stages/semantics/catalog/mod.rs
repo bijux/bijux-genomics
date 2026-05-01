@@ -65,10 +65,12 @@ const fn stage_definition(
     }
 }
 
-pub const STAGES: [StageDefinition; 25] = [
+pub const STAGES: [StageDefinition; 27] = [
     cleanup::VALIDATE_READS,
     cleanup::PROFILE_READ_LENGTHS,
     cleanup::DETECT_ADAPTERS,
+    cleanup::DETECT_DUPLICATES_PREMERGE,
+    cleanup::ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN,
     cleanup::TRIM_TERMINAL_DAMAGE,
     amplicon::NORMALIZE_PRIMERS,
     cleanup::TRIM_POLYG_TAILS,

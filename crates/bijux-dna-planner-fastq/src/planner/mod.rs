@@ -69,48 +69,17 @@ impl FastqPlanner {
     /// # Errors
     /// Returns an error if planning fails or the plan lint fails.
     pub fn plan(config: &FastqPlanConfig) -> Result<ExecutionGraph> {
-        let (pipeline_spec, stage_bindings) = normalize_stage_bindings(config)?;
-        validate_select_stage_nodes(&pipeline_spec, &stage_bindings)?;
-        validate_reference_index_bindings(&stage_bindings, &pipeline_spec)?;
-        for binding in &stage_bindings {
-            enforce_stage_status(&binding.stage_id, config.allow_planned)?;
-        }
-        let out_dir = config.out_dir.clone();
-        let explicit_stage_inputs = stage_artifact_input_policy(&pipeline_spec);
-        let synthetic_stage_artifacts =
-            synthetic_stage_artifact_policy(&pipeline_spec, &config.out_dir)?;
-        let stage_dependencies = stage_dependency_policy(&pipeline_spec);
-        let plans = crate::compose::compose_fastq_stage_bindings_with_dependencies(
-            &stage_bindings,
-            &config.aux_images,
-            config.adapter_bank.as_ref(),
-            config.polyx_bank.as_ref(),
-            config.contaminant_bank.as_ref(),
-            config.enable_contaminant_removal,
-            &config.r1,
-            config.r2.as_deref(),
-            config.reference_fasta.as_deref(),
-            Some(&explicit_stage_inputs),
-            Some(&synthetic_stage_artifacts),
-            Some(&stage_dependencies),
-            |binding, _r1, _r2| {
-                let stage_dir = binding
-                    .stage_instance_id
-                    .as_deref()
-                    .unwrap_or(binding.stage_id.as_str())
-                    .trim_start_matches(STAGE_PREFIX);
-                Ok(out_dir.join(stage_dir).join(binding.tool.tool_id.as_str()))
-            },
-        )?;
-        let mut steps = plans
-            .iter()
-            .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
-            .collect::<Vec<_>>();
+        let plans = plan_fastq_stage_plans(config)?;
+        let (pipeline_spec, _) = normalize_stage_bindings(config)?;
         let (compare_steps, compare_edges) = benchmark_compare_steps_for_toolsets(config, &plans)?;
         let (select_steps, select_edges, synthetic_step_nodes) =
             benchmark_select_steps_for_pipeline(config, &pipeline_spec, &plans)?;
         let mut edges =
             execution_edges_for_stage_plans(&pipeline_spec, &plans, &synthetic_step_nodes)?;
+        let mut steps = plans
+            .iter()
+            .map(bijux_dna_stage_contract::execution_step_from_stage_plan)
+            .collect::<Vec<_>>();
         steps.extend(compare_steps);
         edges.extend(compare_edges);
         steps.extend(select_steps);
@@ -130,6 +99,12 @@ impl FastqPlanner {
             "planned fastq execution graph"
         );
         Ok(graph)
+    }
+
+    /// # Errors
+    /// Returns an error if stage planning fails before graph materialization.
+    pub fn plan_stage_plans(config: &FastqPlanConfig) -> Result<Vec<StagePlanV1>> {
+        plan_fastq_stage_plans(config)
     }
 
     /// # Errors
@@ -184,6 +159,45 @@ impl FastqPlanner {
             edges,
         )?)
     }
+}
+
+/// # Errors
+/// Returns an error if stage planning fails before graph materialization.
+pub fn plan_fastq_stage_plans(config: &FastqPlanConfig) -> Result<Vec<StagePlanV1>> {
+    let (pipeline_spec, stage_bindings) = normalize_stage_bindings(config)?;
+    validate_select_stage_nodes(&pipeline_spec, &stage_bindings)?;
+    validate_reference_index_bindings(&stage_bindings, &pipeline_spec)?;
+    for binding in &stage_bindings {
+        enforce_stage_status(&binding.stage_id, config.allow_planned)?;
+    }
+    let out_dir = config.out_dir.clone();
+    let explicit_stage_inputs = stage_artifact_input_policy(&pipeline_spec);
+    let synthetic_stage_artifacts =
+        synthetic_stage_artifact_policy(&pipeline_spec, &config.out_dir)?;
+    let stage_dependencies = stage_dependency_policy(&pipeline_spec);
+    let plans = crate::compose::compose_fastq_stage_bindings_with_dependencies(
+        &stage_bindings,
+        &config.aux_images,
+        config.adapter_bank.as_ref(),
+        config.polyx_bank.as_ref(),
+        config.contaminant_bank.as_ref(),
+        config.enable_contaminant_removal,
+        &config.r1,
+        config.r2.as_deref(),
+        config.reference_fasta.as_deref(),
+        Some(&explicit_stage_inputs),
+        Some(&synthetic_stage_artifacts),
+        Some(&stage_dependencies),
+        |binding, _r1, _r2| {
+            let stage_dir = binding
+                .stage_instance_id
+                .as_deref()
+                .unwrap_or(binding.stage_id.as_str())
+                .trim_start_matches(STAGE_PREFIX);
+            Ok(out_dir.join(stage_dir).join(binding.tool.tool_id.as_str()))
+        },
+    )?;
+    Ok(plans)
 }
 
 fn stage_benchmark_declared_bindings(stage_id: &StageId) -> Vec<bijux_dna_core::ids::ToolId> {
@@ -648,6 +662,36 @@ pub fn plan_fastq_to_fastq__default__v1(
     FastqPlanner::plan(&config)
 }
 
+/// # Errors
+/// Returns an error if stage planning fails before graph materialization.
+#[allow(non_snake_case)]
+pub fn plan_fastq_to_fastq__default__v1_stage_plans(
+    inputs: &FastqPipelineInputs,
+    options: DefaultPipelineOptions,
+) -> Result<Vec<StagePlanV1>> {
+    let pipeline = default_pipeline_spec(options);
+    let stage_toolsets = stage_toolsets_for_pipeline_nodes(&pipeline, &inputs.stage_toolsets)?;
+    let config = FastqPlanConfig {
+        pipeline_id: "fastq-to-fastq__default__v1".to_string(),
+        policy: inputs.policy,
+        selection_objective: bijux_dna_core::contract::Objective::Balanced,
+        pipeline_spec: Some(pipeline),
+        stage_bindings: Vec::new(),
+        stage_toolsets,
+        aux_images: inputs.aux_images.clone(),
+        adapter_bank: inputs.adapter_bank.clone(),
+        polyx_bank: inputs.polyx_bank.clone(),
+        contaminant_bank: inputs.contaminant_bank.clone(),
+        enable_contaminant_removal: inputs.enable_contaminant_removal,
+        r1: inputs.r1.clone(),
+        r2: inputs.r2.clone(),
+        reference_fasta: inputs.reference_fasta.clone(),
+        out_dir: inputs.out_dir.clone(),
+        allow_planned: false,
+    };
+    FastqPlanner::plan_stage_plans(&config)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
@@ -868,6 +912,7 @@ pub fn cross_fastq_to_bam_id_catalog(profile_id: &str) -> Vec<String> {
             STAGE_CORE_PREPARE_REFERENCE.to_string(),
             BamStage::Align.as_str().to_string(),
             BamStage::QcPre.as_str().to_string(),
+            BamStage::MappingSummary.as_str().to_string(),
             BamStage::Coverage.as_str().to_string(),
             BamStage::Damage.as_str().to_string(),
         ],

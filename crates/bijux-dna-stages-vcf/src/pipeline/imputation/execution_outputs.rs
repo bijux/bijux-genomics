@@ -78,6 +78,11 @@
     let mut rsq_values = Vec::<f64>::new();
     let mut maf_bins = std::collections::BTreeMap::<&str, (u64, f64, f64)>::new();
     let mut per_chr_overlap = std::collections::BTreeMap::<String, u64>::new();
+    let sample_count = headers
+        .iter()
+        .find(|line| line.starts_with("#CHROM\t"))
+        .map(|line| line.split('\t').skip(9).count() as u64)
+        .unwrap_or(0);
     for line in &imputed_records {
         if let Some((chr, pos, _)) = parse_variant_key(line) {
             let info = 0.60 + ((pos % 39) as f64 / 100.0);
@@ -277,6 +282,7 @@
         "schema_version": "bijux.vcf.imputation.v2",
         "backend": effective_backend.as_str(),
         "imputed_variant_count": imputed_records.len(),
+        "sample_count": sample_count,
         "imputation_info_mean": info_mean,
         "rsq_mean": rsq_mean,
         "info_rsq_distribution": {
@@ -307,6 +313,7 @@
     });
     atomic_write_json(&imputation_qc_json, &imputation_qc_payload)?;
     let mut qc_tsv = String::from("metric\tvalue\n");
+    qc_tsv.push_str(&format!("sample_count\t{sample_count}\n"));
     qc_tsv.push_str(&format!("imputation_info_mean\t{info_mean:.6}\n"));
     qc_tsv.push_str(&format!("rsq_mean\t{rsq_mean:.6}\n"));
     qc_tsv.push_str(&format!("missingness_pre\t{missingness_pre:.6}\n"));

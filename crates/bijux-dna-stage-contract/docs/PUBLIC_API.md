@@ -28,9 +28,14 @@ CLI parsing, process execution, or environment control APIs.
 - `PlanEdge`
 - `PlanValidationContext`
 - `RunExecutionPlan`
+- `StageAdmissionRequestV1`
+- `StageAdmissionOutcomeV1`
+- `StageRefusalV1`
 - `StagePlanV1`
 - `StagePlanJsonV1`
 - `PlannedArtifactV1`
+- `StageArtifactPromiseV1`
+- `StageProvenanceV1`
 - `PlannerContractV1`
 - `StageInvocationV1`
 - `StagePluginOutputV1`
@@ -67,7 +72,7 @@ These examples are abbreviated for readability. Fixture snapshots under
 ### StagePluginOutputV1
 
 ```json
-{"metrics":{},"artifacts":[],"report_parts":[],"warnings":[],"invariants":[],"event_hints":[]}
+{"metrics":{},"artifacts":[],"operating_mode":"enforced","report_parts":[],"warnings":[],"invariants":[],"event_hints":[]}
 ```
 
 ## Snapshots And Fixtures
@@ -77,3 +82,13 @@ enforced by `tests/schemas/schema/public_type_snapshots.rs`.
 
 Schema payload snapshots live under `tests/fixtures/stage_contract_schema/` and
 are enforced by `tests/schemas/schema/schema_snapshots.rs`.
+
+Canonical stage-contract examples for FASTQ, BAM, and VCF live under
+`tests/fixtures/docs/` and are validated by the schema suite so the docs point
+to executable typed truth instead of prose-only examples.
+
+## Stability Tiers
+
+- Stable: the public modules, root re-exports, and Public Types documented in this file.
+- Experimental: future contract helpers are experimental until listed here and covered by the public type/schema snapshots.
+- Internal: planner/runtime support code and any item not exposed through the documented public modules or root re-exports.

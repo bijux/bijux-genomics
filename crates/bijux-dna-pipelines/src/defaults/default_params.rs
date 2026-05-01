@@ -3,11 +3,19 @@
 use bijux_dna_domain_bam::params::BamEffectiveParams;
 use bijux_dna_domain_fastq::params::correct::FastqCorrectParams;
 use bijux_dna_domain_fastq::params::detect_adapters::DetectAdaptersEffectiveParams;
+use bijux_dna_domain_fastq::params::edna::{
+    AbundanceNormalizationEffectiveParams, AsvInferenceEffectiveParams,
+    ChimeraDetectionEffectiveParams, OtuClusteringEffectiveParams,
+    PrimerNormalizationEffectiveParams,
+};
 use bijux_dna_domain_fastq::params::filter::FilterEffectiveParams;
 use bijux_dna_domain_fastq::params::merge::MergeEffectiveParams;
 use bijux_dna_domain_fastq::params::preprocess::PreprocessEffectiveParams;
 use bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams;
-use bijux_dna_domain_fastq::params::screen::ScreenEffectiveParams;
+use bijux_dna_domain_fastq::params::screen::{
+    HostDepletionEffectiveParams, ReferenceContaminantEffectiveParams, RrnaEffectiveParams,
+    ScreenEffectiveParams,
+};
 use bijux_dna_domain_fastq::params::stats::{
     FastqOverrepresentedProfileParams, FastqReadLengthProfileParams, FastqStatsParams,
 };
@@ -37,6 +45,14 @@ pub enum DefaultParams {
     FastqPreprocess(PreprocessEffectiveParams),
     FastqMerge(MergeEffectiveParams),
     FastqScreen(ScreenEffectiveParams),
+    FastqHostDepletion(HostDepletionEffectiveParams),
+    FastqReferenceContaminantDepletion(ReferenceContaminantEffectiveParams),
+    FastqRrna(RrnaEffectiveParams),
+    FastqPrimerNormalization(PrimerNormalizationEffectiveParams),
+    FastqChimeraDetection(ChimeraDetectionEffectiveParams),
+    FastqAsvInference(AsvInferenceEffectiveParams),
+    FastqOtuClustering(OtuClusteringEffectiveParams),
+    FastqAbundanceNormalization(AbundanceNormalizationEffectiveParams),
     Bam(BamEffectiveParams),
     Vcf(VcfEffectiveParams),
     Empty(EmptyParams),

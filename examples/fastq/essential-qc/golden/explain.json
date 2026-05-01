@@ -1,0 +1,4 @@
+{
+  "example_id": "fastq_essential_qc",
+  "explain": "Deterministic essential FASTQ QC chain with governed manifest aggregation."
+}

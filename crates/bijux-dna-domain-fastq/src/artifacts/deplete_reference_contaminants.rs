@@ -17,10 +17,13 @@ pub struct DepleteReferenceContaminantsReportV1 {
     pub threads: u32,
     pub reference_catalog_id: String,
     pub contaminant_reference: String,
-    pub index_artifact: String,
+    pub reference_index_artifact_id: String,
     pub reference_index_backend: String,
     pub reference_build_id: Option<String>,
     pub reference_digest: Option<String>,
+    pub match_threshold: Option<f64>,
+    pub retained_read_role: String,
+    pub rejected_read_role: String,
     pub retain_unmapped_pairs: bool,
     pub input_r1: String,
     pub input_r2: Option<String>,
@@ -62,10 +65,13 @@ mod tests {
             threads: 8,
             reference_catalog_id: "contaminant_reference".to_string(),
             contaminant_reference: "phix_and_spikeins".to_string(),
-            index_artifact: "reference_index".to_string(),
+            reference_index_artifact_id: "reference_index".to_string(),
             reference_index_backend: "bowtie2_build".to_string(),
             reference_build_id: Some("2026.03".to_string()),
             reference_digest: Some("sha256:example".to_string()),
+            match_threshold: Some(0.95),
+            retained_read_role: "contaminant_screened_reads".to_string(),
+            rejected_read_role: "removed_contaminant_reads".to_string(),
             retain_unmapped_pairs: true,
             input_r1: "reads_R1.fastq.gz".to_string(),
             input_r2: Some("reads_R2.fastq.gz".to_string()),
@@ -97,6 +103,7 @@ mod tests {
             .unwrap_or_else(|err| panic!("deserialize failed: {err}"));
         assert_eq!(decoded.tool_id, "bowtie2");
         assert_eq!(decoded.reads_removed, 40);
+        assert_eq!(decoded.match_threshold, Some(0.95));
         assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("bowtie2_met_file"));
     }
 }

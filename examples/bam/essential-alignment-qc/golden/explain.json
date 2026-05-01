@@ -1,0 +1,8 @@
+{
+  "example_id": "bam_essential_alignment_qc",
+  "reasoning": [
+    "cross FASTQ-to-BAM default profile selected for essential BAM alignment QC",
+    "bam.mapping_summary is routed before bam.coverage so mapping quality evidence is materialized before depth interpretation",
+    "alignment provenance and reference preflight are preserved as governed BAM evidence artifacts"
+  ]
+}

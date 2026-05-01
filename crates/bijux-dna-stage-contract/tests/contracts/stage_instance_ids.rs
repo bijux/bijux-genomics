@@ -35,6 +35,9 @@ fn trim_plan(instance_id: &str, tool_id: &str, output_id: &str) -> StagePlanV1 {
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::default(),
     }
 }
@@ -92,6 +95,9 @@ fn default_edges_prefer_artifact_bound_handoffs_when_stage_contracts_match() {
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::default(),
     };
     let trim = trim_plan("fastq.trim_reads.tool.fastp", "fastp", "trimmed_reads_r1");
@@ -127,6 +133,9 @@ fn default_edges_prefer_artifact_bound_handoffs_when_stage_contracts_match() {
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::default(),
     };
 
@@ -174,6 +183,9 @@ fn execution_plan_accepts_artifact_bound_edges() {
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::default(),
     };
     let plan = ExecutionPlan::new(
@@ -233,6 +245,9 @@ fn execution_plan_sorts_artifact_bound_edges_by_binding_ids() {
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::default(),
     };
 
@@ -339,6 +354,9 @@ fn execution_plan_rejects_empty_artifact_bindings() {
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::default(),
     };
 

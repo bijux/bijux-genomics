@@ -1,0 +1,1147 @@
+[
+  {
+    "domain_id": "bam",
+    "evidence": [
+      {
+        "stage_id": "bam.align",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.authenticity",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.bias_mitigation",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.complexity",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.contamination",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.coverage",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.damage",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.duplication_metrics",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "duplicate-rate estimation requires coordinate-consistent BAM and read-group metadata"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.endogenous_content",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "endogenous ratio computed from stable mapping summary counts and host-contig rules"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.filter",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.gc_bias",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "reference GC context and aligned read depth are available"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order",
+          "gc_dropout_non_negative",
+          "at_dropout_non_negative"
+        ]
+      },
+      {
+        "stage_id": "bam.genotyping",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.haplogroups",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.insert_size",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "paired-end alignment metadata is available for insert-size inference"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order",
+          "insert_size_mean_non_negative",
+          "insert_size_sd_non_negative"
+        ]
+      },
+      {
+        "stage_id": "bam.kinship",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.length_filter",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "length thresholds are deterministic for fixed BAM input"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.mapping_summary",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "mapping summary metrics are generated from deterministic BAM summary commands"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.mapq_filter",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "MAPQ thresholds are deterministic for fixed BAM/input index"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.markdup",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.overlap_correction",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "paired read overlap clipping requires consistent template metadata"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.qc_pre",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.recalibration",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.sex",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "bam.validate",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "default stage assumptions captured"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      }
+    ]
+  },
+  {
+    "domain_id": "fastq",
+    "evidence": [
+      {
+        "stage_id": "fastq.build_contaminant_db",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "contaminant database comparability requires source bundle identity, build backend, and index checksum provenance."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.build_rrna_db",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "rRNA database comparability requires source collection, build command, index digest, and taxonomy scope provenance."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.build_taxonomy_db",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "taxonomy database comparability requires source accession, taxonomy dump, build command, and checksum provenance."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.capture_provenance_snapshot",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "plan certification requires a provenance snapshot that binds stage graph, tools, containers, runtime assets, and input checksums."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.classify_layout",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "layout classification must distinguish independent single-end, paired-end, interleaved, and premerged inputs before safety rules are applied."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.cluster_otus",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "OTU identity threshold is declared in the run configuration.",
+          "OTU clustering uses reproducible parameters and deterministic centroid ordering.",
+          "paired-end libraries must be merged or otherwise reduced to one analysis stream before OTU clustering."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.concatenate_lanes",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "lane concatenation requires stable lane ordering and explicit sample identity preservation."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.correct_errors",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "single-end input omits reads_r2 and corrected_reads_r2; paired-end input preserves mate synchronization across corrected outputs.",
+          "error-correction backends may emit tool-native working files, but the governed adapter normalizes corrected FASTQ outputs before downstream handoff."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.deinterleave_reads",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "deinterleaving is layout-only and must preserve pair identity and order."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.demultiplex_reads",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "demultiplexed scientific outputs require fixed barcode kit identity and mismatch policy."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.deplete_host",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "reference index must identify the governed host build used for depletion.",
+          "single-end input omits reads_r2, host_depleted_reads_r2, and removed_host_reads_r2; paired-end input preserves mate synchronization.",
+          "removed_host_reads_* artifacts carry the reads classified as host by the depletion aligner.",
+          "host_depletion_report_json is the canonical governed depletion report; backend-native mapping metrics remain traceable from that report."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.deplete_reference_contaminants",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "contaminant decoy reference is explicitly versioned and separate from taxonomy DB.",
+          "single-end input omits reads_r2 and contaminant_screened_reads_r2; paired-end input preserves mate synchronization during contaminant depletion.",
+          "contaminant_screen_report_json is the canonical governed depletion report; backend-native alignment metrics remain traceable from that report."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.deplete_rrna",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "rRNA reference bank is versioned separately from host and taxonomy databases.",
+          "single-end input omits reads_r2 and rrna_filtered_reads_r2; paired-end input preserves mate synchronization."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.detect_adapters",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "single-end input omits reads_r2; paired-end input contributes both mates to governed evidence-only adapter inspection.",
+          "fastqc inspects the full input set, so sampled-read evidence is not claimed by the canonical contract."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order",
+          "canonical_governed_report_emitted"
+        ]
+      },
+      {
+        "stage_id": "fastq.detect_duplicates_premerge",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "premerge duplicate detection is not equivalent to aligned duplicate marking and must stay report-only until route evidence is present."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.detect_instrument_artifacts",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "instrument-artifact detection is report-only until a governed route explicitly consumes the artifact class."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.estimate_library_complexity_prealign",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "prealignment complexity estimates are exploratory unless benchmarked against aligned duplicate metrics."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.extract_umis",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "UMI extraction must preserve read order and pair synchronization.",
+          "UMI barcode pattern must match the library design for emitted tags to remain meaningful.",
+          "canonical report_json semantics remain comparable across governed UMI extraction runs."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order",
+          "canonical_governed_umi_report_emitted"
+        ]
+      },
+      {
+        "stage_id": "fastq.filter_low_complexity",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "low-complexity filtering must remain deterministic for identical input.",
+          "single-end input omits reads_r2 and filtered_fastq_r2; paired-end input preserves mate synchronization during filtering.",
+          "canonical report_json semantics remain comparable across supported low-complexity backends."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order",
+          "canonical_governed_low_complexity_report_emitted",
+          "poly_n_filter_applied_before_emit",
+          "entropy_threshold_applied_before_emit",
+          "homopolymer_filter_applied_before_emit"
+        ]
+      },
+      {
+        "stage_id": "fastq.filter_reads",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "single-end input omits reads_r2 and filtered_reads_r2; paired-end input preserves mate synchronization during filtering."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.index_reference",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "selected index backend must match the downstream mapper or host-depletion backend that consumes the index."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.infer_asvs",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "asv inference applies only to amplicon libraries with denoising-aware governance.",
+          "single-end input omits reads_r2; paired-end denoising retains mate-aware error modeling through the governed dada2 runtime."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "amplicon_only_stage",
+          "representative_sequences_match_feature_table"
+        ]
+      },
+      {
+        "stage_id": "fastq.interleave_reads",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "interleaving is layout-only and must preserve pair identity and order."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.materialize_qc_manifest",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "QC manifest materialization must preserve report-level checksums and tool identities before aggregation."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.merge_pairs",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "merge suitability depends on paired-end overlap and library model.",
+          "governed report_json is the canonical merge contract and may preserve the backend-native merge log as raw_backend_report_txt for provenance."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "paired_end_input_required",
+          "deterministic_merge_output_names"
+        ]
+      },
+      {
+        "stage_id": "fastq.normalize_abundance",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "input abundance table is produced by an upstream feature-inference or clustering stage."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "amplicon_only_stage",
+          "per_sample_abundance_is_compositional"
+        ]
+      },
+      {
+        "stage_id": "fastq.normalize_primers",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "primer normalization applies only to amplicon libraries with explicit primer governance.",
+          "single-end input omits reads_r2 and normalized_reads_r2; paired-end input preserves mate synchronization."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "amplicon_only_stage",
+          "deterministic_orientation_policy"
+        ]
+      },
+      {
+        "stage_id": "fastq.normalize_read_names",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "read-name normalization is unsafe for provenance-sensitive workflows unless original headers are recoverable."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.prepare_adapter_bank",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "adapter-bank comparability requires fixed sequence records, orientation policy, and checksum provenance."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.prepare_host_reference_bundle",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "host depletion comparability requires a fixed host build, alias set, and index-producing backend."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.prepare_primer_bank",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "primer-bank comparability requires marker regime, orientation policy, mismatch policy, and checksum provenance."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.profile_overrepresented_sequences",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "overrepresented sequence profiles are diagnostic and do not mutate reads.",
+          "single-end input omits reads_r2; paired-end input contributes both mates to sequence ranking."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "report_only_stage",
+          "deterministic_sequence_ranking"
+        ]
+      },
+      {
+        "stage_id": "fastq.profile_read_lengths",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "report_json is the governed read-length report contract and the canonical comparison surface for this stage.",
+          "length histogram generation must be deterministic for identical reads.",
+          "single-end input omits reads_r2; paired-end input contributes both mates to the histogram."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.profile_reads",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "single-end input omits reads_r2; paired-end input preserves mate-level summaries.",
+          "qc_json is the governed read-profile report contract and remains the canonical comparison surface for profile_reads.",
+          "qc_tsv preserves the seqkit tabular backend summary, while qc_plots_dir contains normalized histogram tables derived from the governed report."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.remove_chimeras",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "Reference or de-novo chimera detection mode is fixed per run.",
+          "Chimera reference database id/version/checksum is explicit when reference mode is used.",
+          "paired-end libraries must be merged or otherwise reduced to one analysis stream before chimera removal."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order",
+          "reads_out <= reads_in",
+          "chimeras_removed == reads_in - reads_out",
+          "chimera_fraction in [0, 1]"
+        ]
+      },
+      {
+        "stage_id": "fastq.remove_duplicates",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "paired-end input may emit r1+r2 outputs; single-end may omit r2 artifact.",
+          "report_json is the canonical governed deduplication contract; duplicate_classes_tsv and duplicate_provenance_json preserve class-level and backend-lineage evidence for comparison."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order",
+          "reads_out <= reads_in",
+          "reads_removed_duplicates == reads_in - reads_out"
+        ]
+      },
+      {
+        "stage_id": "fastq.repair_pairs",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "pair repair changes read ordering and must publish orphan accounting before benchmark comparison."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.report_qc",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "the stage aggregates existing FASTQ QC inputs rather than recomputing primary read statistics.",
+          "governed QC artifacts may come from read profiling, adapter inspection, taxonomy screening, validation, or downstream cleanup stages that emit governed QC summaries.",
+          "report_json is the canonical governed aggregation contract; multiqc_report and multiqc_data remain backend-native deliverables for human review and downstream inspection."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.screen_taxonomy",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "supported tools must emit read-level taxonomic classifications from the screened FASTQ input.",
+          "screen_report_tsv preserves the raw classifier summary while classification_report_json stores the governed taxonomy report contract."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.subsample_reads",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "benchmark subsampling requires published seed, sample fraction, and input checksum provenance."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.trim_polyg_tails",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "polyG trimming remains a no-op on inputs without terminal G-tail artifacts.",
+          "single-end input omits reads_r2 and trimmed_reads_r2; paired-end input preserves mate synchronization during terminal trimming.",
+          "governed report_json is the canonical trim-polyg contract and preserves backend-native report provenance for downstream comparison.",
+          "backend-native reports are emitted as optional raw_backend_report_json or raw_backend_report_txt artifacts when the selected backend supports them."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order",
+          "polyg_trim_applied_before_emit"
+        ]
+      },
+      {
+        "stage_id": "fastq.trim_reads",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "adapter, polyx, and contaminant trimming policies are explicit in effective params.",
+          "single-end input omits reads_r2 and trimmed_reads_r2; paired-end input preserves mate synchronization during trimming.",
+          "report_json is the governed trim-stage report; backend-native reports are preserved separately when the selected tool can emit them.",
+          "unsupported policy and layout combinations must fail during trim planning instead of silently degrading execution."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order",
+          "trim_report_emitted_before_stage_complete"
+        ]
+      },
+      {
+        "stage_id": "fastq.trim_terminal_damage",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "UDG classification is provided via config/env or inferred deterministically from sample metadata.",
+          "execution_policy defaults to policy_derived, which preserves UDG-trimmed ends only for the governed udg_trimmed default trim profile and otherwise applies explicit terminal trimming.",
+          "Terminal masking/trimming policy is explicit and reproducible.",
+          "Refusal occurs when downstream aligner requires untrimmed reads.",
+          "single-end input omits reads_r2 and trimmed_reads_r2; paired-end input preserves mate synchronization during terminal trimming."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order",
+          "damage_policy_report_emitted_before_stage_complete"
+        ]
+      },
+      {
+        "stage_id": "fastq.validate_reads",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "validation is report-only and may not modify FASTQ payloads",
+          "pair_sync_policy defaults to require_header_sync for paired inputs and not_applicable for single-end inputs during effective-parameter resolution",
+          "validated_reads_manifest records governed lineage for downstream graph provenance without duplicating FASTQ payloads",
+          "benchmark comparisons require identical input hashes, strict-mode policy, and governed validation artifacts regardless of backend-specific native outputs"
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      },
+      {
+        "stage_id": "fastq.verify_assets",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "asset verification must fail closed for world-class-closed plans when any declared asset lock is missing or mismatched."
+        ],
+        "invariants": [
+          "stable_artifact_contract",
+          "deterministic_output_order"
+        ]
+      }
+    ]
+  },
+  {
+    "domain_id": "vcf",
+    "evidence": [
+      {
+        "stage_id": "vcf.admixture",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "planned_stage"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.call",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "diploid_calling"
+        ],
+        "invariants": [
+          "tool_pinned"
+        ]
+      },
+      {
+        "stage_id": "vcf.call_diploid",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "Diploid genotype model is valid for the cohort."
+        ],
+        "invariants": [
+          "tool_pinned"
+        ]
+      },
+      {
+        "stage_id": "vcf.call_gl",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "Likelihood-based calling is used for low-coverage contexts.",
+          "GL caller defaults are locked (calling model, mapQ/baseQ, and depth filters).",
+          "GL calling emits provenance with parameter values and source references."
+        ],
+        "invariants": [
+          "tool_pinned",
+          "gl_fields_present"
+        ]
+      },
+      {
+        "stage_id": "vcf.call_pseudohaploid",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "Pseudohaploid random-allele or consensus model is fixed and documented.",
+          "Pseudohaploid sampling policy is deterministic via explicit seeded configuration.",
+          "Sampling seed and policy are logged in output artifacts."
+        ],
+        "invariants": [
+          "tool_pinned"
+        ]
+      },
+      {
+        "stage_id": "vcf.damage_filter",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "C>T/G>A and PMD thresholds are explicit and versioned.",
+          "Damage filtering must support PMD-based filtering and C>T/G>A masking strategies.",
+          "Bias audit section must summarize before/after damage filtering metrics."
+        ],
+        "invariants": [
+          "tool_pinned",
+          "damage_rules_reported"
+        ]
+      },
+      {
+        "stage_id": "vcf.demography",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "ibd_segments_are_filtered_and_comparable_before_demography",
+          "generation_time_and_recombination_model_are_fixed_per_run",
+          "demography_outputs_emit_metrics_json_with_schema_bijux.vcf.demography.v1"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.filter",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "pass_filtering"
+        ],
+        "invariants": [
+          "tool_pinned"
+        ]
+      },
+      {
+        "stage_id": "vcf.gl_propagation",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "GL/PL tags are retained through filtering and post-processing.",
+          "Propagation checks must assert GL fields survive into imputation-ready inputs."
+        ],
+        "invariants": [
+          "tool_pinned",
+          "gl_fields_present"
+        ]
+      },
+      {
+        "stage_id": "vcf.ibd",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "phasing_quality_thresholds_are_fixed_per_run",
+          "ibd_outputs_emit_metrics_json_with_schema_bijux.vcf.ibd.v1"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.imputation",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "planned_stage"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.impute",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "planned_stage",
+          "panel_required"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.pca",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "planned_stage"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.phasing",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "planned_stage"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.population_structure",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "diploid_assumptions",
+          "ld_pruning_and_missingness_thresholds_are_fixed_per_run",
+          "population_structure_outputs_emit_metrics_json_with_schema_bijux.vcf.population_structure.v1"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.postprocess",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "planned_stage"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.prepare_reference_panel",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "planned_stage",
+          "reference_build_fixed"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.qc",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "planned_stage"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.roh",
+        "evidence_status": "planned",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "roh_min_kb_and_density_thresholds_are_fixed_per_run",
+          "roh_outputs_emit_metrics_json_with_schema_bijux.vcf.roh.v1"
+        ],
+        "invariants": [
+          "stable_artifact_contract"
+        ]
+      },
+      {
+        "stage_id": "vcf.stats",
+        "evidence_status": "supported",
+        "defaults_source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "assumptions": [
+          "vcf_is_normalized"
+        ],
+        "invariants": [
+          "stats_required"
+        ]
+      }
+    ]
+  }
+]

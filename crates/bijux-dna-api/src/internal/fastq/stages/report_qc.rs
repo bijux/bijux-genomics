@@ -28,7 +28,8 @@ use bijux_dna_domain_fastq::params::{
 };
 use bijux_dna_domain_fastq::{
     observer::{parse_detect_adapters_report, parse_screen_taxonomy_report},
-    GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION,
+    GovernedQcContributorV1, GovernedQcInputsManifestV1, GovernedQcManifestContributorV1,
+    ReportQcReportV1, GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION, REPORT_QC_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_environment::api::{resolve_image, PlatformSpec, RuntimeKind, ToolImageCatalog};
 use bijux_dna_infra::{bench_base_dir, bench_tools_dir, hash_file_sha256};
@@ -45,8 +46,6 @@ use bijux_dna_planner_fastq::stage_api::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::backend::docker::executor::resolve_image_for_run;
 use bijux_dna_runner::step_runner::{execute_observer_command, StageResultV1};
-
-const GOVERNED_QC_INPUTS_SCHEMA_VERSION: &str = "bijux.fastq.report_qc.inputs.v1";
 
 mod governed_inputs;
 
@@ -243,30 +242,8 @@ struct GovernedQcInputs {
     lineage_hash: Option<String>,
 }
 
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-struct GovernedQcContributor {
-    contributor_id: String,
-    stage_id: String,
-    #[serde(default)]
-    tool_id: String,
-    artifact_id: String,
-    artifact_role: bijux_dna_core::contract::ArtifactRole,
-    path: PathBuf,
-}
-
-#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
-#[serde(deny_unknown_fields)]
-struct GovernedQcInputsManifest {
-    schema_version: String,
-    qc_inputs: Vec<ArtifactRef>,
-    #[serde(default)]
-    contributors: Vec<GovernedQcContributor>,
-    #[serde(default)]
-    raw_fastqc_dir: Option<PathBuf>,
-    #[serde(default)]
-    lineage_hash: Option<String>,
-}
+type GovernedQcContributor = GovernedQcManifestContributorV1;
+type GovernedQcInputsManifest = GovernedQcInputsManifestV1;
 
 fn prepare_qc_post_bench(
     catalog: &impl ToolImageCatalog,
@@ -637,7 +614,7 @@ mod tests {
         load_governed_qc_inputs_manifest, load_required_qc_inputs_manifest,
         parse_qc_aggregation_engine, parse_qc_aggregation_scope, resolve_qc_contributor_aux_images,
         validate_governed_qc_contributors, GovernedQcContributor, GovernedQcInputs,
-        GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+        GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
     };
     use std::collections::BTreeMap;
     use std::path::PathBuf;
@@ -686,7 +663,7 @@ mod tests {
         bijux_dna_infra::write_bytes(
             &manifest_path,
             serde_json::json!({
-                "schema_version": GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+                "schema_version": GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
                 "qc_inputs": [
                     {
                         "name": "fastq.trim_reads.fastp.report_json",
@@ -786,7 +763,7 @@ mod tests {
         bijux_dna_infra::write_bytes(
             &manifest_path,
             serde_json::json!({
-                "schema_version": GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+                "schema_version": GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
                 "qc_inputs": [
                     {
                         "name": "fastq.trim_reads.fastp_branch.report_json",
@@ -831,7 +808,7 @@ mod tests {
         bijux_dna_infra::write_bytes(
             &manifest_path,
             serde_json::json!({
-                "schema_version": GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+                "schema_version": GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
                 "qc_inputs": [
                     {
                         "name": "report_json",
@@ -979,7 +956,7 @@ mod tests {
         };
 
         let manifest = serde_json::json!({
-            "schema_version": GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+            "schema_version": GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
             "qc_inputs": governed_qc.qc_inputs,
             "contributors": governed_qc.contributors,
             "raw_fastqc_dir": raw_fastqc_dir,
@@ -1016,7 +993,7 @@ mod tests {
         .expect("parse manifest");
         assert_eq!(
             preserved_manifest["schema_version"],
-            serde_json::json!(GOVERNED_QC_INPUTS_SCHEMA_VERSION)
+            serde_json::json!(GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION)
         );
         assert_eq!(preserved_manifest["lineage_hash"], serde_json::json!("fastq.trim_reads=fastp"));
         assert_eq!(
@@ -1050,6 +1027,7 @@ mod tests {
                 "evidence_scope": "full_input",
                 "evidence_format": "fastqc_summary",
                 "evidence_artifact_id": "report_json",
+                "detected_adapter_source": "normalized_fastqc_evidence",
                 "input_r1": "reads_R1.fastq.gz",
                 "input_r2": null,
                 "report_json": "adapter_report.json",
@@ -1100,6 +1078,8 @@ mod tests {
                 "database_scope": "read_screening",
                 "minimum_confidence": null,
                 "emit_unclassified": true,
+                "interpretation_boundary": "screening_only",
+                "truth_conditions": [],
                 "input_r1": "reads_R1.fastq.gz",
                 "input_r2": null,
                 "screen_report_tsv": "kraken2.report.tsv",

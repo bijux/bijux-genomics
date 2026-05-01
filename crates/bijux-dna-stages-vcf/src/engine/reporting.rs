@@ -17,8 +17,16 @@ pub(super) fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> 
                 "filtered.vcf.gz.tbi",
                 "filter_breakdown.json",
                 "filter_breakdown.tsv",
+                "filter_explain.json",
             ],
             "vcf.stats" => &["bcftools_stats.txt", "stats.json"],
+            "vcf.qc" => &[
+                "qc_summary.json",
+                "qc_tables.tsv",
+                "imputation_qc.tsv",
+                "warnings.json",
+                "qc_histograms.json",
+            ],
             "vcf.damage_filter" => &[
                 "damage_filter_summary.json",
                 "damage_filter_counts.json",
@@ -28,6 +36,7 @@ pub(super) fn verify_contract_surface(result: &VcfPipelineResult) -> Result<()> 
             "vcf.postprocess" => &[
                 "postprocess.vcf.gz",
                 "postprocess.vcf.gz.tbi",
+                "normalization_contract.json",
                 "validate_outputs.json",
                 "final_manifest.json",
             ],

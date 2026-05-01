@@ -6,12 +6,14 @@ required_fields:
   - domain
   - inputs
   - outputs
+  - description
   - invariants
   - compatible_tools
   - assumptions
   - defaults_source
   - bank_hooks
   - metrics_schema
+  - tool_capability_requirements
   - required_inputs
   - required_outputs
   - allowed_missingness

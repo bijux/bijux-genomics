@@ -3,7 +3,10 @@ mod query;
 mod record;
 mod source_selection;
 
-pub use manifest::EnaRunManifest;
+pub use manifest::{
+    build_workflow_manifest, build_workflow_manifest_from_offline_fixture, EnaOfflineFixture,
+    EnaRunManifest, EnaWorkflowManifest, EnaWorkflowRun,
+};
 pub use query::{EnaQuery, QueryValidationError};
 pub use record::{split_ena_field, split_ena_u64_field, EnaRecord};
 pub use source_selection::{normalize_url, EnaFileSource, EnaResultKind, EnaSourcePreference};

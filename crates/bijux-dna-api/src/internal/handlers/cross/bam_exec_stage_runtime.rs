@@ -301,21 +301,209 @@ fn expected_bam_contract_outputs(
 
 fn write_bam_output_contract(
     stage: bijux_dna_planner_bam::stage_api::BamStage,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
     stage_dir: &Path,
 ) -> Result<()> {
     let (bams, indices) = expected_bam_contract_outputs(stage, stage_dir);
     let contract_path = stage_dir.join("bam_output_contract.json");
+    let inventory =
+        bijux_dna_domain_bam::bam_artifact_inventory_from_outputs(stage.as_str(), stage_dir, &plan.io.outputs);
     let payload = serde_json::json!({
-        "schema_version": "bijux.bam.output_contract.v1",
+        "schema_version": bijux_dna_domain_bam::BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION,
         "stage_id": stage.as_str(),
+        "stage_family": inventory.stage_family,
         "deterministic_root": stage_dir,
         "required_bam": bams,
         "required_bai": indices,
         "all_required_present": bams.iter().all(|path| path.exists()) && indices.iter().all(|path| path.exists()),
         "naming_policy": "deterministic",
+        "outputs": inventory.outputs,
     });
     bijux_dna_infra::atomic_write_json(&contract_path, &payload)
         .with_context(|| format!("write {}", contract_path.display()))
+}
+
+fn read_group_spec_from_record(
+    record: &std::collections::BTreeMap<String, String>,
+) -> Option<bijux_dna_domain_bam::params::ReadGroupSpec> {
+    Some(bijux_dna_domain_bam::params::ReadGroupSpec {
+        id: record.get("ID")?.to_string(),
+        sample: record.get("SM")?.to_string(),
+        platform: record.get("PL")?.to_string(),
+        library: record.get("LB")?.to_string(),
+        platform_unit: record.get("PU").cloned(),
+        lane_id: None,
+        run_id: None,
+    })
+}
+
+fn planned_read_group_spec(
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+) -> Option<bijux_dna_domain_bam::params::ReadGroupSpec> {
+    plan.params
+        .get("read_group")
+        .cloned()
+        .or_else(|| plan.effective_params.get("read_group").cloned())
+        .and_then(|value| serde_json::from_value(value).ok())
+}
+
+fn plan_string(plan: &bijux_dna_stage_contract::StagePlanV1, key: &str) -> Option<String> {
+    plan.params.get(key).and_then(serde_json::Value::as_str).map(ToOwned::to_owned)
+}
+
+fn write_bam_sample_identity_manifest(
+    stage_dir: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    bam_path: Option<&Path>,
+    rg_policy_override: Option<&str>,
+) -> Result<bijux_dna_domain_bam::BamSampleIdentityV1> {
+    let read_group = planned_read_group_spec(plan)
+        .or_else(|| bam_path.and_then(|path| bam_read_group_records(path).first().and_then(read_group_spec_from_record)))
+        .unwrap_or_else(|| {
+            let sample_id = plan_string(plan, "sample_id").unwrap_or_else(|| "sample".to_string());
+            bijux_dna_domain_bam::params::ReadGroupSpec::with_defaults(&sample_id)
+        });
+    let sample_id = plan_string(plan, "sample_id")
+        .or_else(|| bam_path.and_then(|path| {
+            bam_read_group_records(path)
+                .first()
+                .and_then(|record| record.get("SM").cloned())
+        }))
+        .unwrap_or_else(|| read_group.sample.clone());
+    let plan_rg_policy = plan_string(plan, "rg_policy");
+    let plan_lane_id = plan_string(plan, "lane_id");
+    let plan_library_id = plan_string(plan, "library_id").or_else(|| plan_string(plan, "rg_lb"));
+    let plan_platform_unit = plan_string(plan, "rg_pu");
+    let plan_run_id = plan_string(plan, "run_id");
+    let plan_subject_id = plan_string(plan, "subject_id");
+    let plan_cohort_id = plan_string(plan, "cohort_id");
+    let identity = bijux_dna_domain_bam::bam_sample_identity(
+        &sample_id,
+        &read_group,
+        rg_policy_override.or(plan_rg_policy.as_deref()),
+        plan_lane_id.as_deref(),
+        plan_library_id.as_deref(),
+        plan_platform_unit.as_deref(),
+        plan_run_id.as_deref(),
+        plan_subject_id.as_deref(),
+        plan_cohort_id.as_deref(),
+    );
+    let path = stage_dir.join("sample_identity.json");
+    bijux_dna_infra::atomic_write_json(&path, &identity)
+        .with_context(|| format!("write {}", path.display()))?;
+    Ok(identity)
+}
+
+fn write_bam_reference_preflight(
+    stage_dir: &Path,
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    reference: &Path,
+) -> Result<()> {
+    let mut required_assets = Vec::new();
+    let push_asset = |items: &mut Vec<bijux_dna_domain_bam::BamReferenceAssetIdentityV1>,
+                      asset_kind: &str,
+                      path: PathBuf| {
+        let sha256 = path.exists().then(|| bijux_dna_infra::hash_file_sha256(&path).ok()).flatten();
+        items.push(bijux_dna_domain_bam::BamReferenceAssetIdentityV1 {
+            asset_kind: asset_kind.to_string(),
+            path,
+            sha256,
+            exists: false,
+        });
+    };
+    push_asset(&mut required_assets, "reference_fasta", reference.to_path_buf());
+    push_asset(
+        &mut required_assets,
+        "reference_fai",
+        PathBuf::from(format!("{}.fai", reference.display())),
+    );
+    push_asset(
+        &mut required_assets,
+        "reference_dict",
+        PathBuf::from(format!("{}.dict", reference.display())),
+    );
+    if stage == bijux_dna_planner_bam::stage_api::BamStage::Align {
+        match plan.tool_id.as_str() {
+            "bwa" => {
+                push_asset(
+                    &mut required_assets,
+                    "bwa_index",
+                    PathBuf::from(format!("{}.bwt", reference.display())),
+                );
+            }
+            "bowtie2" => {
+                for suffix in [".1.bt2", ".2.bt2", ".3.bt2", ".4.bt2", ".rev.1.bt2", ".rev.2.bt2"] {
+                    push_asset(
+                        &mut required_assets,
+                        "bowtie2_index",
+                        PathBuf::from(format!("{}{}", reference.display(), suffix)),
+                    );
+                }
+            }
+            _ => {}
+        }
+    }
+    for asset in &mut required_assets {
+        asset.exists = asset.path.exists();
+    }
+    let payload = bijux_dna_domain_bam::BamReferencePreflightV1 {
+        schema_version: bijux_dna_domain_bam::BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION.to_string(),
+        stage_id: stage.as_str().to_string(),
+        reference_fasta: reference.to_path_buf(),
+        reference_digest: plan_string(plan, "reference_digest"),
+        contig_alias_policy: "exact_match_or_chr_alias".to_string(),
+        passes: required_assets.iter().all(|asset| asset.exists),
+        required_assets,
+        notes: vec![format!("tool_id={}", plan.tool_id)],
+    };
+    let path = stage_dir.join("reference_preflight.json");
+    bijux_dna_infra::atomic_write_json(&path, &payload)
+        .with_context(|| format!("write {}", path.display()))
+}
+
+fn write_bam_alignment_provenance(
+    stage_dir: &Path,
+    plan: &bijux_dna_stage_contract::StagePlanV1,
+    sample_identity: bijux_dna_domain_bam::BamSampleIdentityV1,
+) -> Result<()> {
+    let read_group = planned_read_group_spec(plan).unwrap_or_else(|| {
+        bijux_dna_domain_bam::params::ReadGroupSpec::with_defaults(&sample_identity.sample_id)
+    });
+    let strategy = bijux_dna_domain_bam::bam_alignment_strategy_for_tool(
+        plan.tool_id.as_str(),
+        plan_string(plan, "preset").as_deref(),
+    );
+    let payload = bijux_dna_domain_bam::BamAlignmentProvenanceV1 {
+        schema_version: bijux_dna_domain_bam::BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION
+            .to_string(),
+        stage_id: plan.stage_id.to_string(),
+        backend_tool_id: plan.tool_id.to_string(),
+        strategy_id: strategy.as_ref().map(|entry| entry.strategy_id.clone()),
+        preset: plan_string(plan, "preset"),
+        mode: plan_string(plan, "mode"),
+        sensitivity_profile: plan_string(plan, "sensitivity_profile"),
+        seed_length: plan
+            .params
+            .get("seed_length")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|value| u32::try_from(value).ok()),
+        reference_fasta: PathBuf::from(
+            plan_string(plan, "reference").unwrap_or_else(|| "reference.fasta".to_string()),
+        ),
+        reference_digest: plan_string(plan, "reference_digest"),
+        post_alignment_chain: strategy.map(|entry| entry.post_alignment_chain),
+        sample_identity,
+        read_group,
+        outputs: bijux_dna_domain_bam::bam_artifact_inventory_from_outputs(
+            plan.stage_id.as_str(),
+            stage_dir,
+            &plan.io.outputs,
+        ),
+    };
+    let path = stage_dir.join("alignment_provenance.json");
+    bijux_dna_infra::atomic_write_json(&path, &payload)
+        .with_context(|| format!("write {}", path.display()))
 }
 
 fn enforce_bam_output_contract(

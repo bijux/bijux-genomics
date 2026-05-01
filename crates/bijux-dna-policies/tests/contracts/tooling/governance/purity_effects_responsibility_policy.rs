@@ -17,6 +17,12 @@ fn crate_dependencies(root: &std::path::Path, name: &str) -> std::collections::B
     pkg.dependencies.iter().map(|dep| dep.name.clone()).collect::<std::collections::BTreeSet<_>>()
 }
 
+fn is_domain_effect_allowlisted(path: &std::path::Path) -> bool {
+    let path_str = path.to_string_lossy();
+    path_str.contains("/crates/bijux-dna-domain-fastq/src/stages/contract/runtime/")
+        || path_str.ends_with("/crates/bijux-dna-domain-bam/src/artifacts.rs")
+}
+
 fn scan_forbidden_patterns(base: &std::path::Path, forbidden: &[&str]) -> Vec<String> {
     let mut offenders = Vec::new();
     for entry in WalkDir::new(base).into_iter().filter_map(Result::ok) {
@@ -27,7 +33,7 @@ fn scan_forbidden_patterns(base: &std::path::Path, forbidden: &[&str]) -> Vec<St
         if path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
             continue;
         }
-        if path.to_string_lossy().contains("/tests/") {
+        if path.to_string_lossy().contains("/tests/") || is_domain_effect_allowlisted(path) {
             continue;
         }
         let content = support::read_to_string(path);

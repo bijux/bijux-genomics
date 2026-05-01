@@ -1,0 +1,180 @@
+---
+source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+{
+  "capabilities": {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "vcf.call",
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "shared_reference_stages": [
+        "vcf.call"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "pseudohaploid_boundary",
+        "imputation_readiness_uncertainty"
+      ],
+      "story_order": [
+        "vcf_admission",
+        "gl_boundary",
+        "low_pass_readiness",
+        "qc_summary"
+      ]
+    },
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples with malformed or incompatible VCF content are skipped with refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed processing blocks downstream sample-level interpretation while cohort peers continue",
+        "stage_family": "variant_processing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort reports proceed with explicit missing-sample and advisory caveats",
+        "stage_family": "reporting"
+      }
+    ],
+    "input_artifacts": [
+      "ReportJson"
+    ],
+    "input_domains": [
+      "Vcf"
+    ],
+    "output_artifacts": [
+      "ReportJson",
+      "MetricsBundle"
+    ],
+    "output_domains": [
+      "Vcf"
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "vcf.call": [
+          "min_mapping_quality"
+        ],
+        "vcf.filter": [
+          "min_qual",
+          "require_pass"
+        ],
+        "vcf.stats": [
+          "collect_depth_distribution"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "vcf.filter": [
+          "production_profile"
+        ]
+      }
+    },
+    "produces_outputs": [
+      "vcf",
+      "vcf.metrics"
+    ],
+    "report_sections": [
+      "vcf"
+    ],
+    "required_artifacts": [
+      "report.json",
+      "run_manifest.json",
+      "tool_provenance.json",
+      "invariants_report.json",
+      "vcf.tbi"
+    ],
+    "required_inputs": [
+      "vcf",
+      "sample_name"
+    ],
+    "required_metrics": [
+      "vcf.metrics"
+    ],
+    "required_metrics_bundles": [
+      "VcfCore"
+    ],
+    "required_report_sections": [
+      "Vcf",
+      "PipelineDefaults"
+    ],
+    "required_stages": [
+      "vcf.call",
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "supports_benchmarks": false,
+    "supports_sample_sheet": false,
+    "workflow_template_ids": [
+      "vcf.low_pass_gl_readiness",
+      "vcf.imputation_simulation",
+      "vcf.demography_boundary_refusal",
+      "vcf.semantic_diff_report",
+      "vcf.large_file_performance_profile"
+    ]
+  },
+  "defaults": {
+    "params": {
+      "vcf.call": {
+        "caller": "bcftools",
+        "min_base_quality": 20,
+        "min_mapping_quality": 20,
+        "reference_fasta": null,
+        "sample_name": "sample",
+        "schema_version": "bijux.vcf.params.v1"
+      },
+      "vcf.filter": {
+        "min_qual": 30.0,
+        "normalize": true,
+        "production_profile": false,
+        "require_bgzip_tabix": true,
+        "require_pass": true,
+        "sample_name": "sample",
+        "schema_version": "bijux.vcf.params.v1"
+      },
+      "vcf.stats": {
+        "collect_depth_distribution": true,
+        "compute_titv": true,
+        "sample_name": "sample",
+        "schema_version": "bijux.vcf.params.v1"
+      }
+    },
+    "rationales": {
+      "vcf.call": "vcf minimal default",
+      "vcf.filter": "vcf minimal default",
+      "vcf.stats": "vcf minimal default"
+    },
+    "tools": {
+      "vcf.call": "bcftools",
+      "vcf.filter": "bcftools",
+      "vcf.stats": "bcftools"
+    }
+  },
+  "defaults_ledger_ref": "defaults_ledger.json",
+  "description": "Minimal VCF experimental profile",
+  "id": "vcf-to-vcf__minimal__v1",
+  "input_domains": [
+    "Vcf"
+  ],
+  "invariants_preset": "vcf_minimal",
+  "library_model": {
+    "assay_kind": "unknown",
+    "layout": "single_end",
+    "platform_hint": "unknown",
+    "udg_treatment": "unknown"
+  },
+  "output_domains": [
+    "Vcf"
+  ],
+  "stability": "Beta"
+}

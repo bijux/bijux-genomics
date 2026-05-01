@@ -55,6 +55,7 @@ fn image_version_inference_distinguishes_registry_ports_from_tags() {
 
 #[test]
 fn runtime_platform_identity_defaults_to_runner_name() {
+    assert_eq!(runtime_platform_identity(RuntimeKind::Local), "local");
     assert_eq!(runtime_platform_identity(RuntimeKind::Docker), "docker");
     assert_eq!(runtime_platform_identity(RuntimeKind::Apptainer), "apptainer");
     assert_eq!(runtime_platform_identity(RuntimeKind::Singularity), "singularity");

@@ -1,0 +1,21 @@
+{
+  "example_id": "vcf_essential_qc_filter",
+  "corpus_id": "corpus-01-mini",
+  "defaults": {
+    "profile": "vcf_essential_qc_filter",
+    "preflight": "vcf.validate_inputs",
+    "stages": [
+      "vcf.filter",
+      "vcf.postprocess",
+      "vcf.qc",
+      "vcf.stats"
+    ]
+  },
+  "contracts": {
+    "validation": "bijux.vcf.validation_contract.v1",
+    "filter_evidence": "bijux.vcf.filter_evidence.v1",
+    "normalization": "bijux.vcf.normalization_contract.v1",
+    "stats": "bijux.vcf.stats_contract.v1"
+  },
+  "status": "ok"
+}

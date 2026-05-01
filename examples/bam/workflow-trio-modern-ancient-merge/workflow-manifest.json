@@ -1,0 +1,43 @@
+{
+  "schema_version": "bijux.example.workflow_manifest.v1",
+  "example_id": "bam_workflow_trio_modern_ancient_merge",
+  "domain": "bam",
+  "workflow_class": "workflow_trio_modern_ancient_merge",
+  "operating_mode": "simulation",
+  "tracks": [
+    {
+      "track_id": "modern_wgs_qc",
+      "summary": "Modern BAM QC path with mapping and coverage evidence",
+      "stages": [
+        "bam.validate",
+        "bam.mapping_summary",
+        "bam.markdup",
+        "bam.coverage"
+      ]
+    },
+    {
+      "track_id": "ancient_damage_contamination",
+      "summary": "Ancient-like BAM evidence with explicit advisory boundaries",
+      "stages": [
+        "bam.damage",
+        "bam.authenticity",
+        "bam.contamination",
+        "bam.endogenous_content"
+      ]
+    },
+    {
+      "track_id": "merge_coverage_lineage",
+      "summary": "Lane merge compatibility checks paired with downstream coverage context",
+      "stages": [
+        "bam.validate",
+        "bam.mapping_summary",
+        "bam.coverage",
+        "bam.kinship"
+      ],
+      "lineage_contracts": [
+        "merge.compatibility.json",
+        "sample_identity.json"
+      ]
+    }
+  ]
+}

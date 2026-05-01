@@ -67,7 +67,10 @@
     "schema_version": "bijux.fastq.params.stats.v1",
     "threads": 2
   },
+  "operating_mode": "enforced",
   "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
   "reason": {
     "kind": "default",
     "summary": "planner default",

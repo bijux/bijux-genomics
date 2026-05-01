@@ -182,6 +182,11 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&plan);
     write_bam_invariants(&stage_dir, stage, bam_path, bai_path, reference)?;
     write_tool_wrapper_contract(&stage_dir, stage, &plan, &step)?;
+    let _sample_identity =
+        write_bam_sample_identity_manifest(&stage_dir, &plan, Some(bam_path), rg_policy_override)?;
+    if let Some(reference) = reference {
+        write_bam_reference_preflight(&stage_dir, stage, &plan, reference)?;
+    }
     if stage == bijux_dna_planner_bam::stage_api::BamStage::Markdup {
         write_duplicate_policy_split(&stage_dir, &plan)?;
     }
@@ -218,7 +223,7 @@ fn run_bam_truth_stage<S: std::hash::BuildHasher>(
     if let Some(bam_root) = stage_dir.parent() {
         write_bam_qc_aggregator_tsv(bam_root)?;
     }
-    write_bam_output_contract(stage, &stage_dir)?;
+    write_bam_output_contract(stage, &plan, &stage_dir)?;
     enforce_bam_output_contract(stage, &stage_dir)?;
     write_stage_accounting(&stage_dir, stage.as_str(), &result)?;
     write_normalized_bam_metrics(stage, &stage_dir, &plan, &result)?;
@@ -304,6 +309,14 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         &align_plan,
         &align_step,
     )?;
+    let align_sample_identity =
+        write_bam_sample_identity_manifest(&align_out, &align_plan, None, None)?;
+    write_bam_reference_preflight(
+        &align_out,
+        bijux_dna_planner_bam::stage_api::BamStage::Align,
+        &align_plan,
+        &reference.fasta,
+    )?;
     write_alignment_regime_validation(&align_out, regime, tool_id.as_str(), &align_step)?;
     let alignment_parameters_path = align_out.join("alignment.parameters.json");
     bijux_dna_infra::atomic_write_json(
@@ -331,6 +344,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         &align_out,
         &align_step,
     )? {
+        write_bam_alignment_provenance(&align_out, &align_plan, align_sample_identity)?;
         write_normalized_bam_metrics(
             bijux_dna_planner_bam::stage_api::BamStage::Align,
             &align_out,
@@ -367,6 +381,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
     write_stage_accounting(&align_out, align_step.step_id.as_str(), &align_result)?;
     write_bam_output_contract(
         bijux_dna_planner_bam::stage_api::BamStage::Align,
+        &align_plan,
         &align_out,
     )?;
     enforce_bam_output_contract(
@@ -379,6 +394,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         &align_plan,
         &align_result,
     )?;
+    write_bam_alignment_provenance(&align_out, &align_plan, align_sample_identity)?;
     let header_normalization = serde_json::json!({
         "stage_id": align_step.step_id,
         "regime": regime,

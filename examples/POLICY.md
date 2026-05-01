@@ -5,6 +5,7 @@ Purpose:
 
 Scope:
 - Applies to runnable example directories that ship an `example.toml`.
+- Applies to refusal bundles under `examples/failures/`.
 - Applies to recipe-only benchmark documentation directories listed in `examples/RECIPE_ONLY.txt`.
 - Applies to corpora directories under `examples/data/` only where they are referenced by runnable examples.
 
@@ -13,6 +14,11 @@ Contracts:
   - Are listed in `examples/index.yaml`.
   - Are runnable via `cargo run -q -p bijux-dna-dev -- examples run run <example-id>`.
   - Carry `README.md`, `example.toml`, and golden outputs (`plan.json`, `explain.json`, `report.json`).
+  - When `canonical_example: true`, also carry `tiny-inputs.json`, `workflow-manifest.json`, and `expected-evidence.json`.
+- Refusal bundles:
+  - Live under `examples/failures/`.
+  - Must carry `README.md` and `refusal-bundle.json`.
+  - Must not be listed in `examples/index.yaml`; refusal bundles must not be listed in `examples/index.yaml`.
 - Recipe-only benchmark documentation:
   - Must be listed in `examples/RECIPE_ONLY.txt`.
   - Must stay `README.md`-only until promoted into a runnable example.

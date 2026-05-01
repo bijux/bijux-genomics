@@ -23,5 +23,5 @@ planning and runtime provenance.
 ## Policy Reference
 
 - Workspace style and boundary policy:
-  `/Users/bijan/bijux/README.md`, `/Users/bijan/bijux/CODEX.md`, and
+  `README.md`, `README.md`, and
   repository `docs/40-policies/STYLE.md`.

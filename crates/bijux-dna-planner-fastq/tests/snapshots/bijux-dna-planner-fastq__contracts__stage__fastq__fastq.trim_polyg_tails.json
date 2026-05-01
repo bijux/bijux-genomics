@@ -84,7 +84,10 @@
     "threads": 4,
     "trim_polyg": true
   },
+  "operating_mode": "enforced",
   "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
   "reason": {
     "kind": "default",
     "summary": "polyG tail trimming",

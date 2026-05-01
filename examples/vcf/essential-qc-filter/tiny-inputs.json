@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.example.tiny_inputs.v1",
+  "example_id": "vcf_essential_qc_filter",
+  "corpus_id": "corpus-01-mini",
+  "contracts": [
+    "examples/data/corpus-01-mini/MANIFEST.toml",
+    "examples/data/corpus-01-mini/CHECKSUMS.sha256"
+  ],
+  "expected_inputs": [
+    "tiny_panel_v1",
+    "sample_0001.vcf.gz"
+  ]
+}

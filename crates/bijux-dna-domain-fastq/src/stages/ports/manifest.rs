@@ -38,6 +38,12 @@ pub(super) fn parse_manifest(stage_id: &str) -> Option<StageManifestShape> {
         }
         "fastq.deplete_rrna" => Some(stage_manifest!("deplete_rrna.yaml")),
         "fastq.detect_adapters" => Some(stage_manifest!("detect_adapters.yaml")),
+        "fastq.detect_duplicates_premerge" => {
+            Some(stage_manifest!("detect_duplicates_premerge.yaml"))
+        }
+        "fastq.estimate_library_complexity_prealign" => {
+            Some(stage_manifest!("estimate_library_complexity_prealign.yaml"))
+        }
         "fastq.extract_umis" => Some(stage_manifest!("extract_umis.yaml")),
         "fastq.filter_low_complexity" => Some(stage_manifest!("filter_low_complexity.yaml")),
         "fastq.filter_reads" => Some(stage_manifest!("filter_reads.yaml")),
@@ -63,4 +69,18 @@ pub(super) fn parse_manifest(stage_id: &str) -> Option<StageManifestShape> {
     }?;
 
     bijux_dna_infra::formats::parse_yaml(raw).ok()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_manifest;
+
+    #[test]
+    fn planned_duplicate_and_complexity_manifests_are_loadable() {
+        for stage_id in
+            ["fastq.detect_duplicates_premerge", "fastq.estimate_library_complexity_prealign"]
+        {
+            assert!(parse_manifest(stage_id).is_some(), "missing manifest for {stage_id}");
+        }
+    }
 }

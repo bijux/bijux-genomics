@@ -1,0 +1,11 @@
+{
+  "example_id": "fastq_essential_qc",
+  "domain": "fastq",
+  "stages": [
+    "fastq.validate_reads",
+    "fastq.detect_adapters",
+    "fastq.trim_reads",
+    "fastq.profile_reads",
+    "fastq.report_qc"
+  ]
+}

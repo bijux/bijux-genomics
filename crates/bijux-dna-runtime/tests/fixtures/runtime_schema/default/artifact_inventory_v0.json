@@ -1,0 +1,22 @@
+{
+  "schema_version": "bijux.artifact_inventory.v0",
+  "run_id": "run-1",
+  "artifacts": [
+    {
+      "artifact_id": "reads.cleaned",
+      "name": "cleaned reads",
+      "role": "reads",
+      "path": "run_artifacts/reads.cleaned.fastq.gz",
+      "sha256": "abc123",
+      "producing_stage_id": "fastq.trim_reads",
+      "producing_command": [
+        "fastp",
+        "--in1",
+        "reads.fastq.gz"
+      ],
+      "input_lineage": [
+        "reads.raw"
+      ]
+    }
+  ]
+}

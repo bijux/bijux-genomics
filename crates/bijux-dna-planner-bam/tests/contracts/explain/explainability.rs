@@ -88,7 +88,10 @@ fn bam_adna_plan_reasons_are_deterministic_for_new_stages() -> anyhow::Result<()
                     "scope": "nuclear",
                     "prior": 0.02,
                     "sex_specific": false,
-                    "assumptions": "panel-based estimate"
+                    "assumptions": "panel-based estimate",
+                    "chromosome_system": "xy",
+                    "minimum_mean_coverage": 0.75,
+                    "emit_confidence_caveats": true
                 }))
             } else {
                 None

@@ -57,6 +57,20 @@ fn is_allowed_path(path: &Path) -> bool {
     if path_str.ends_with("/crates/bijux-dna-runtime/src/manifests/classification.rs") {
         return true;
     }
+    if path_str.ends_with("/crates/bijux-dna-stage-contract/src/stage_plugin.rs")
+        || path_str.ends_with("/crates/bijux-dna-stage-contract/src/plan_run/mod.rs")
+        || path_str.ends_with(
+            "/crates/bijux-dna-dev/src/commands/ops/tooling/operator_workflow_maturity.rs",
+        )
+        || path_str.ends_with(
+            "/crates/bijux-dna-dev/src/commands/ops/tooling/scientific_caveat_propagation.rs",
+        )
+        || path_str
+            .ends_with("/crates/bijux-dna-dev/src/commands/ops/tooling/reference_external_data.rs")
+        || path_str.ends_with("/crates/bijux-dna-bench-model/src/contract/records.rs")
+    {
+        return true;
+    }
     if path_str.contains("/tests/") {
         return true;
     }

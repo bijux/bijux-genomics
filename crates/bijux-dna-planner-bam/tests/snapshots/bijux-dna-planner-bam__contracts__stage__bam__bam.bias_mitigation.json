@@ -1,5 +1,6 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": []
   },
@@ -41,16 +42,35 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
     "gc_bias_correction": true,
     "map_bias_correction": false
   },
+  "provenance": null,
   "reason": {
     "details": {
       "contract_hash": "e97296bbc613772df31cc4219a89cf1eb0fb3d730859ef494c389c20bb58ded0",
-      "defaults_diff": {}
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 4,
+        "disk_gb": 4,
+        "input_bytes": 0,
+        "input_origin": "real",
+        "input_scale": "tiny",
+        "io_profile": "balanced_compute_and_io",
+        "memory_gb": 4,
+        "notes": [
+          "sorting/indexing/validation chain dominates temporary storage"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 4,
+        "stage_id": "bam.bias_mitigation",
+        "walltime_minutes": 14
+      }
     },
     "kind": "default",
     "summary": "tool mapdamage2 selected by planner"

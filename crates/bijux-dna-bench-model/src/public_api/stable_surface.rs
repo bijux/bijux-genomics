@@ -13,6 +13,10 @@ pub use crate::model::suite::{
 };
 pub use crate::model::summary::{MetricSummary, SummaryRow, SummaryStratum};
 pub use crate::model::{
+    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, CorpusDatasetSpec,
+    CorpusDomain, CorpusScale, DriftScenarioSpec, TruthSetHook, TruthSetStatus,
+};
+pub use crate::model::{
     BenchmarkDecision, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary,
 };
 pub use crate::policy::{GateDecision, GatePolicy, GatePolicyOverrides, GateViolation};

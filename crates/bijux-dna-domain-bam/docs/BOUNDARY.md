@@ -19,4 +19,4 @@ generated config views.
 - Pure deterministic computation over domain contracts and fixtures.
 
 ## Notes
-The repository-level onboarding policy lives at `/Users/bijan/bijux/README.md`; child-repository work must apply that policy before changing this crate.
+The repository-level onboarding policy lives at `README.md`; child-repository work must apply that policy before changing this crate.

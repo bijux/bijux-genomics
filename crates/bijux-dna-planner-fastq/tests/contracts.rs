@@ -3,6 +3,8 @@
 mod mod_contracts_benchmark_fanout_rs;
 #[path = "contracts/benchmark_profiles.rs"]
 mod mod_contracts_benchmark_profiles_rs;
+#[path = "contracts/chunked_preprocess.rs"]
+mod mod_contracts_chunked_preprocess_rs;
 #[path = "contracts/docs.rs"]
 mod mod_contracts_docs_rs;
 #[path = "contracts/explain.rs"]

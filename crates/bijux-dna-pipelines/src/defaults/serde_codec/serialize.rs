@@ -30,6 +30,18 @@ pub(super) fn to_json(params: &DefaultParams) -> serde_json::Value {
         DefaultParams::FastqPreprocess(value) => encode(value, "fastq.preprocess"),
         DefaultParams::FastqMerge(value) => encode(value, "fastq.merge_pairs"),
         DefaultParams::FastqScreen(value) => encode(value, "fastq.screen_taxonomy"),
+        DefaultParams::FastqHostDepletion(value) => encode(value, "fastq.deplete_host"),
+        DefaultParams::FastqReferenceContaminantDepletion(value) => {
+            encode(value, "fastq.deplete_reference_contaminants")
+        }
+        DefaultParams::FastqRrna(value) => encode(value, "fastq.deplete_rrna"),
+        DefaultParams::FastqPrimerNormalization(value) => encode(value, "fastq.normalize_primers"),
+        DefaultParams::FastqChimeraDetection(value) => encode(value, "fastq.remove_chimeras"),
+        DefaultParams::FastqAsvInference(value) => encode(value, "fastq.infer_asvs"),
+        DefaultParams::FastqOtuClustering(value) => encode(value, "fastq.cluster_otus"),
+        DefaultParams::FastqAbundanceNormalization(value) => {
+            encode(value, "fastq.normalize_abundance")
+        }
         DefaultParams::Bam(value) => match value {
             BamEffectiveParams::Align(inner) => encode(inner, "bam.align"),
             BamEffectiveParams::Validate(inner) => encode(inner, "bam.validate"),

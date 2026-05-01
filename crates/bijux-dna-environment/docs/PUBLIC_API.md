@@ -22,3 +22,9 @@
 - New public modules require this file and `tests/public_api_docs.rs` to change together.
 - New process-running APIs require `COMMANDS.md` and command boundary tests.
 - Public model field changes must update `CONTRACTS.md` and schema tests.
+
+## Stability Tiers
+
+- Stable: the Public Modules and Major Export Groups documented in this file.
+- Experimental: new runtime/build adapters are experimental until they are listed here and covered by the corresponding docs/tests.
+- Internal: module-local helpers and any item not exported through the documented public modules or facade.

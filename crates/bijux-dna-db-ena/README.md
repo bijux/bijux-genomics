@@ -1,7 +1,7 @@
 # bijux-dna-db-ena
 
-Workspace work on this crate is governed by `/Users/bijan/bijux/README.md` and
-`/Users/bijan/bijux/CODEX.md`; re-read those files before editing this child
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read those files before editing this child
 repository and before committing.
 
 ## Scope

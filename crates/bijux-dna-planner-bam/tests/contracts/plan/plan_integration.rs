@@ -80,6 +80,7 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
     let coverage_params = bijux_dna_domain_bam::params::CoverageEffectiveParams {
         regions: None,
         depth_thresholds: vec![1, 3, 5],
+        regime_mode: "advisory_and_enforced".to_string(),
     };
     let coverage = bijux_dna_planner_bam::tool_adapters::bam::coverage::plan(
         &dummy_tool("mosdepth"),
@@ -95,6 +96,8 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
         pmd_threshold_3p: 0.3,
         trim_5p: 2,
         trim_3p: 2,
+        damage_tool_profile: Some("ancient".to_string()),
+        evidence_only: true,
     };
     let damage = bijux_dna_planner_bam::tool_adapters::bam::damage::plan(
         &dummy_tool("pydamage"),
@@ -120,12 +123,16 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
 
     let align_params = bijux_dna_domain_bam::params::AlignEffectiveParams {
         aligner: "bwa".to_string(),
+        strategy_id: "bwa_mem_default".to_string(),
         preset: "default".to_string(),
+        mode: "end_to_end".to_string(),
         threads: 1,
         reference: reference.display().to_string(),
         reference_digest: "sha256:dummy".to_string(),
         rg_policy: bijux_dna_domain_bam::types::ReadGroupPolicy::Regenerate,
         read_group: bijux_dna_domain_bam::params::ReadGroupSpec::with_defaults("sample"),
+        sensitivity_profile: Some("default".to_string()),
+        seed_length: Some(19),
         build_indices: true,
         emit_stats: true,
     };
@@ -161,6 +168,8 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
         pmd_threshold_3p: 0.3,
         trim_5p: 2,
         trim_3p: 2,
+        damage_tool_profile: Some("ancient".to_string()),
+        evidence_only: true,
     };
     let damage = bijux_dna_planner_bam::tool_adapters::bam::damage::plan(
         &dummy_tool("damageprofiler"),
@@ -178,6 +187,7 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
     let coverage_params = bijux_dna_domain_bam::params::CoverageEffectiveParams {
         regions: None,
         depth_thresholds: vec![1, 5, 10],
+        regime_mode: "advisory_and_enforced".to_string(),
     };
     let coverage = bijux_dna_planner_bam::tool_adapters::bam::coverage::plan(
         &dummy_tool("mosdepth"),

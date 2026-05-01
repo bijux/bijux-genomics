@@ -22,6 +22,6 @@ pub fn fastq_default_profile() -> PipelineProfile {
             UdgTreatment::Unknown,
             AssayKind::Unknown,
         ),
-        capabilities: fastq_capabilities(required_stages),
+        capabilities: fastq_capabilities(id_catalog::PIPELINE_FASTQ_DEFAULT, required_stages),
     }
 }

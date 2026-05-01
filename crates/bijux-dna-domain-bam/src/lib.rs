@@ -2,8 +2,29 @@
 //!
 //! Owns: BAM stage semantics, effective params, and canonical metrics schema.
 //! Must NOT depend on: bijux-dna-engine or runtime/container execution logic.
+#![allow(
+    clippy::cast_lossless,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::expect_used,
+    clippy::fn_params_excessive_bools,
+    clippy::format_push_string,
+    clippy::if_not_else,
+    clippy::large_enum_variant,
+    clippy::map_unwrap_or,
+    clippy::match_same_arms,
+    clippy::missing_panics_doc,
+    clippy::similar_names,
+    clippy::single_match_else,
+    clippy::too_many_arguments,
+    clippy::too_many_lines,
+    clippy::uninlined_format_args,
+    clippy::unnecessary_semicolon
+)]
 
 pub mod alignment;
+mod artifacts;
 pub mod defaults;
 pub mod invariants;
 pub mod metrics;
@@ -13,6 +34,50 @@ pub mod prelude;
 pub mod stage_specs;
 pub mod types;
 
+pub use artifacts::{
+    align_fastq_to_bam_bowtie2_style, align_fastq_to_bam_bwa_style,
+    apply_duplicate_policy_tiny_bam, bam_adna_workflow_contract, bam_alignment_strategies,
+    bam_alignment_strategy_for_tool, bam_artifact_inventory_from_outputs,
+    bam_bench_corpus_manifest, bam_contamination_workflow_contract, bam_post_alignment_chain,
+    bam_sample_identity, bam_scientific_report_contract_for_stage, bam_scientific_report_contracts,
+    bam_workflow_template_by_id, bam_workflow_templates, classify_bam_coverage_regime,
+    compare_bam_duplicate_methods, estimate_bam_stage_resources,
+    estimate_bam_stage_resources_with_origin, estimate_endogenous_content,
+    evaluate_bam_merge_compatibility, evaluate_haplogroup_readiness,
+    evaluate_kinship_prerequisites, evaluate_sex_inference_par_aware,
+    execute_ancient_damage_evidence, execute_bam_validation,
+    execute_mitochondrial_contamination_workflow, execute_nuclear_contamination_workflow,
+    execute_pmd_authenticity_advisory, filter_tiny_bam_by_mapq,
+    merge_tiny_bam_with_conflict_refusal, propagate_bam_sample_identity,
+    required_bam_bench_corpus_scenarios, sort_and_index_tiny_bam, summarize_tiny_bam_coverage,
+    summarize_tiny_bam_mapping, BamAdnaWorkflowV1, BamAdvisoryBoundaryV1, BamAlignmentProvenanceV1,
+    BamAlignmentStrategyV1, BamAlignmentSuitabilityV1, BamArtifactEntryV1, BamArtifactInventoryV1,
+    BamAuthenticityAdvisoryV1, BamBenchCorpusDatasetManifestEntryV1, BamBenchCorpusManifestV1,
+    BamBenchDatasetScenarioV1, BamContaminationEvidenceV1, BamContaminationToolContractV1,
+    BamContaminationWorkflowV1, BamCoverageRegimeClassV1, BamCoverageRegimeV1,
+    BamCoverageSummaryV1, BamDamageEvidenceV1, BamDuplicateComparisonV1,
+    BamDuplicateMethodMetricsV1, BamDuplicatePolicyV1, BamEndogenousContentEstimateV1,
+    BamFlagstatCountsV1, BamHaplogroupReadinessV1, BamInputOriginV1, BamInputScaleV1,
+    BamKinshipPrerequisitesV1, BamMappingSummaryV1, BamMapqFilterSummaryV1, BamMapqRegimeV1,
+    BamMergeCompatibilityV1, BamMergeInputIdentityV1, BamPostAlignmentChainV1,
+    BamReadGroupMappingCountV1, BamReferenceAssetIdentityV1, BamReferencePreflightV1,
+    BamSampleIdentityV1, BamScientificReportContractV1, BamScientificReportIdV1,
+    BamSexInferenceEvidenceV1, BamStageResourcePlanV1, BamValidationSummaryV1, BamWorkflowModeV1,
+    BamWorkflowTemplateV1, BAM_ADNA_WORKFLOW_SCHEMA_VERSION, BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION,
+    BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION, BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION,
+    BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION, BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION,
+    BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION, BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION,
+    BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION, BAM_COVERAGE_REGIME_SCHEMA_VERSION,
+    BAM_COVERAGE_SUMMARY_SCHEMA_VERSION, BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION,
+    BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION, BAM_DUPLICATE_POLICY_SCHEMA_VERSION,
+    BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION, BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION,
+    BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION, BAM_MAPPING_SUMMARY_SCHEMA_VERSION,
+    BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION, BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION,
+    BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION, BAM_REFERENCE_PREFLIGHT_SCHEMA_VERSION,
+    BAM_RESOURCE_PLAN_SCHEMA_VERSION, BAM_SAMPLE_IDENTITY_SCHEMA_VERSION,
+    BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION, BAM_SEX_EVIDENCE_SCHEMA_VERSION,
+    BAM_VALIDATION_SUMMARY_SCHEMA_VERSION, BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
+};
 pub use invariants::bam_invariant_specs;
 pub use stage_specs::{
     contract_for_stage, required_audit_artifacts, stage_contract_hash, stage_contract_json,

@@ -82,6 +82,9 @@ pub mod markdup {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -173,6 +176,9 @@ pub mod complexity {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -273,6 +279,9 @@ python - <<'PY' > {summary}\nimport json\nprint(json.dumps({{\"stage\": \"bam.du
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -342,6 +351,7 @@ pub mod coverage {
                 "bam": bam,
                 "regions": params.regions,
                 "depth_thresholds": params.depth_thresholds,
+                "regime_mode": params.regime_mode,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
                 serde_json::to_value(params).map_err(|error| {
@@ -349,12 +359,59 @@ pub mod coverage {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
             plan,
             &["coverage_summary", "stage_metrics"],
         )
+    }
+}
+
+pub mod endogenous_content {
+    use std::path::Path;
+
+    use bijux_dna_core::prelude::{CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1};
+    use bijux_dna_domain_bam::params::{CoverageEffectiveParams, EndogenousContentEffectiveParams};
+    use bijux_dna_stage_contract::StagePlanV1;
+
+    pub const STAGE_ID: &str = bijux_dna_domain_bam::BamStage::EndogenousContent.as_str();
+    pub const STAGE_VERSION: StageVersion = StageVersion(1);
+
+    /// # Errors
+    /// Returns an error if required outputs are missing from the plan.
+    pub fn plan(
+        tool: &ToolExecutionSpecV1,
+        bam: &Path,
+        out_dir: &Path,
+        params: &EndogenousContentEffectiveParams,
+    ) -> anyhow::Result<StagePlanV1> {
+        let coverage_params = CoverageEffectiveParams {
+            regions: params.regions.clone(),
+            depth_thresholds: params.depth_thresholds.clone(),
+            regime_mode: "advisory_and_enforced".to_string(),
+        };
+        let mut plan = super::coverage::plan(tool, bam, out_dir, &coverage_params)?;
+        plan.stage_id = StageId::from_static(STAGE_ID);
+        plan.stage_version = STAGE_VERSION;
+        plan.command = CommandSpecV1 { template: plan.command.template.clone() };
+        plan.params = serde_json::json!({
+            "bam": bam,
+            "regions": params.regions,
+            "depth_thresholds": params.depth_thresholds,
+            "host_reference_scope": params.host_reference_scope,
+            "host_reference_digest": params.host_reference_digest,
+            "refuse_without_host_reference": params.refuse_without_host_reference,
+        });
+        plan.effective_params = crate::tool_adapters::stages_support::ensure_effective_params(
+            serde_json::to_value(params).map_err(|error| {
+                anyhow::anyhow!("BAM stage effective params must serialize: {error}")
+            })?,
+        )?;
+        Ok(plan)
     }
 }
 
@@ -422,6 +479,9 @@ pub mod insert_size {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -503,6 +563,9 @@ pub mod gc_bias {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -586,6 +649,9 @@ pub mod recalibration {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(

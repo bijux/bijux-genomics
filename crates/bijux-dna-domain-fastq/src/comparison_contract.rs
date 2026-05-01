@@ -1,10 +1,14 @@
 mod catalog;
 mod priorities;
+mod trim;
 
 pub use catalog::{
     benchmark_comparison_artifact_ids, comparison_artifact_ids_for_stage,
     comparison_contract_for_stage, comparison_input_artifact_ids_for_stage,
     StageComparisonContract,
+};
+pub use trim::{
+    trim_backend_comparison_contract, TrimBackendComparisonContract, TrimComparisonToolProfile,
 };
 
 #[cfg(test)]

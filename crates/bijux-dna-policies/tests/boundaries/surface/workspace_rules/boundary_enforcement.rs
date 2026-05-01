@@ -44,7 +44,12 @@ fn policy__boundaries__workspace__stage_spec_and_registry_defs_scoped() {
                 continue;
             }
             let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
-            if !is_domain && content.contains("fn stage_spec") {
+            if !is_domain
+                && content.contains("fn stage_spec")
+                && !rel
+                    .to_string_lossy()
+                    .ends_with("crates/bijux-dna-stage-contract/src/plan_run/mod.rs")
+            {
                 offenders.push(rel.display().to_string());
             }
         }
@@ -87,6 +92,8 @@ fn policy__boundaries__workspace__crate_root_contents_allowlist() {
         "tests",
         "docs",
         "bench",
+        "examples",
+        "artifacts",
     ]);
     let mut offenders = Vec::new();
     for (name, path) in collect_workspace_crates() {

@@ -6,3 +6,20 @@ pub use super::pipeline_capabilities::{PipelineCapabilities, PipelineContract};
 pub use super::profile::PipelineProfile;
 pub use super::profile_manifest::ProfileManifestV1;
 pub use super::vocabulary::{ArtifactType, Domain, MetricsBundle, ReportSection, StabilityTier};
+pub use super::workflow_template::{
+    build_batch_workflow_graph, build_cross_domain_evidence_narrative,
+    evaluate_batch_fan_semantics, evaluate_template_admission, parse_sample_sheet,
+    plan_bam_to_vcf_minimal_workflow, plan_fastq_to_bam_ancient_workflow,
+    plan_fastq_to_bam_modern_workflow, plan_fastq_to_vcf_minimal_workflow,
+    resolve_batch_failure_policy, sample_sheet_to_workflow_manifests,
+    summarize_cross_domain_evidence, validate_cross_domain_handoff,
+    validate_sample_sheet_preflight, validate_template_overrides, BatchFailureDecisionV1,
+    BatchFanSemanticsReportV1, BatchNodeScopeV1, BatchWorkflowSemanticsV1,
+    CrossDomainEvidenceNarrativeV1, CrossDomainEvidenceSummaryV1, CrossDomainFailurePolicyV1,
+    CrossDomainHandoffRequestV1, CrossDomainHandoffValidationV1, CrossWorkflowExecutionPlanV1,
+    CrossWorkflowSampleExecutionPlanV1, CrossWorkflowTemplateV1, FanArtifactRuleV1, FanPatternV1,
+    SampleSheetFormatV1, SampleSheetPreflightV1, SampleSheetRecordV1, SampleSheetV1,
+    TemplateFailureActionV1, TemplateParameterPolicyV1, WorkflowBatchEdgeV1, WorkflowBatchGraphV1,
+    WorkflowBatchNodeV1, WorkflowEvidenceSummarySectionV1, WorkflowEvidenceSummaryStoryV1,
+    WorkflowTemplateAdmissionCheckV1, WorkflowTemplateAdmissionV1,
+};

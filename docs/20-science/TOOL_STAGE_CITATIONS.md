@@ -12,7 +12,7 @@ Keeps citation guidance visible while preserving per-domain ledgers and machine-
 
 ## Contracts
 - Canonical citation metadata lives in `domain/*/tools/*.yaml` under the `citation` field.
-- Stage-level citation policy is enforced by workspace policy tests.
+- Stage-level citation policy is enforced by repository policy tests.
 - Domain science docs remain the readable SSOT for stage-to-tool applicability.
 - Upstream paper and repository maps remain the machine-readable SSOT for archive planning.
 

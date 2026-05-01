@@ -86,9 +86,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         3,
         5
       ],
+      "regime_mode": "advisory_and_enforced",
       "regions": null
     },
     "bam.damage": {
+      "damage_tool_profile": "ancient_dna_evidence",
+      "evidence_only": true,
       "pmd_threshold_3p": 0.3,
       "pmd_threshold_5p": 0.3,
       "trim_3p": 2,

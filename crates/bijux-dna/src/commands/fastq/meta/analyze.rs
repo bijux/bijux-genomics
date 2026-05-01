@@ -1,3 +1,4 @@
+use crate::cli::{AnalyzeEvidenceCommand, AnalyzeEvidenceVerifyArgs};
 use crate::commands::support::prelude::{
     anyhow, atomic_write_bytes, compare_runs, compare_runs_with_baseline, load_facts_auto,
     load_run_summary, objective_spec, render, render_report_bundle_html, resolve_report_inputs,
@@ -184,6 +185,24 @@ pub(crate) fn handle_analyze_command(args: &crate::cli::AnalyzeRootArgs) -> Resu
             });
             render::json::print_pretty(&summary)?;
         }
+        AnalyzeCommand::Evidence(args) => match &args.command {
+            AnalyzeEvidenceCommand::Verify(args) => {
+                let bundle_path = resolve_evidence_bundle_path(args)?;
+                let verification = bijux_dna_analyze::verify_evidence_bundle(&bundle_path)?;
+                if let Some(parent) = bundle_path.parent() {
+                    bijux_dna_infra::atomic_write_json(
+                        &parent.join("evidence_verification.json"),
+                        &verification,
+                    )?;
+                }
+                render::json::print_pretty(&verification)?;
+            }
+            AnalyzeEvidenceCommand::Compare(args) => {
+                let comparison =
+                    bijux_dna_analyze::compare_evidence_bundles(&args.left, &args.right)?;
+                render::json::print_pretty(&comparison)?;
+            }
+        },
         AnalyzeCommand::Bench(args) => {
             let format = match args.report.as_str() {
                 "json" => crate::commands::bench_suite::BenchReportFormat::Json,
@@ -201,4 +220,15 @@ pub(crate) fn handle_analyze_command(args: &crate::cli::AnalyzeRootArgs) -> Resu
         }
     }
     Ok(true)
+}
+
+fn resolve_evidence_bundle_path(args: &AnalyzeEvidenceVerifyArgs) -> Result<std::path::PathBuf> {
+    if let Some(path) = &args.bundle_path {
+        return Ok(path.clone());
+    }
+    let run_id = args
+        .run_id
+        .as_deref()
+        .ok_or_else(|| anyhow!("evidence verify requires --run-id or --bundle-path"))?;
+    Ok(args.search_root.join(run_id).join("evidence_bundle.json"))
 }

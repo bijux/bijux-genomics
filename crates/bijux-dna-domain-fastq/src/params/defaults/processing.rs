@@ -8,7 +8,10 @@ use super::super::preprocess::{LibraryDamageTreatment, PreprocessEffectiveParams
 use super::super::remove_duplicates::{
     DedupMode, RemoveDuplicatesEffectiveParams, REMOVE_DUPLICATES_SCHEMA_VERSION,
 };
-use super::super::umi::{FastqUmiParams, UMI_SCHEMA_VERSION};
+use super::super::umi::{
+    FastqUmiParams, UmiDedupPolicy, UmiDownstreamPropagation, UmiExtractionLocation,
+    UmiFailedExtractionPolicy, UmiGroupingPolicy, UmiReadNameTransform, UMI_SCHEMA_VERSION,
+};
 use super::shared::paired_mode;
 use crate::pipeline_contract::FastqPipelineMode;
 
@@ -36,6 +39,12 @@ pub fn umi_defaults(paired: bool) -> FastqUmiParams {
         paired_mode: paired_mode(paired),
         threads: 1,
         umi_pattern: None,
+        extraction_location: UmiExtractionLocation::Read1Prefix,
+        read_name_transform: UmiReadNameTransform::AppendToHeader,
+        failed_extraction_policy: UmiFailedExtractionPolicy::RefuseStage,
+        grouping_policy: UmiGroupingPolicy::PairAware,
+        downstream_dedup_policy: UmiDedupPolicy::SequenceIdentityRecommended,
+        downstream_propagation: UmiDownstreamPropagation::HeaderAndReport,
     }
 }
 

@@ -1,0 +1,16 @@
+{
+  "example_id": "vcf_essential_qc",
+  "status": "ok",
+  "artifacts": [
+    "plan.json",
+    "explain.json",
+    "report.json"
+  ],
+  "evidence": [
+    "vcf_invariants.json",
+    "filter_explain.json",
+    "normalization_contract.json",
+    "qc_summary.json",
+    "stats.json"
+  ]
+}

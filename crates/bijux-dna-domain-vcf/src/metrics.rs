@@ -55,9 +55,17 @@ pub struct VcfStatsMetricsV1 {
     pub call_summary: VcfCallSummaryMetricsV1,
     pub filter_summary: VcfFilterBreakdownMetricsV1,
     pub variants_total: u64,
+    #[serde(default)]
+    pub sample_count: u64,
     pub snps: u64,
     pub indels: u64,
     pub ti_tv: Option<f64>,
+    #[serde(default)]
+    pub missingness_post: Option<f64>,
+    #[serde(default)]
+    pub heterozygosity_ratio: Option<f64>,
+    #[serde(default)]
+    pub annotation_coverage: Option<f64>,
     pub filter_breakdown: BTreeMap<String, u64>,
     pub depth_distribution: BTreeMap<String, u64>,
 }
@@ -77,9 +85,13 @@ impl VcfStatsMetricsV1 {
             call_summary: VcfCallSummaryMetricsV1::empty(sample_name.clone()),
             filter_summary: VcfFilterBreakdownMetricsV1::empty(sample_name),
             variants_total: 0,
+            sample_count: 0,
             snps: 0,
             indels: 0,
             ti_tv: None,
+            missingness_post: None,
+            heterozygosity_ratio: None,
+            annotation_coverage: None,
             filter_breakdown: BTreeMap::new(),
             depth_distribution: BTreeMap::new(),
         }

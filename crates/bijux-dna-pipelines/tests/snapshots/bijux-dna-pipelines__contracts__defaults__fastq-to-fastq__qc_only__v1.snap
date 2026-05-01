@@ -1,0 +1,770 @@
+---
+source: crates/bijux-dna-pipelines/tests/contracts/defaults/defaults_ledger.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+{
+  "assumptions": [],
+  "citations": {},
+  "param_provenance": {
+    "fastq.cluster_otus": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.correct_errors": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.deplete_host": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.deplete_reference_contaminants": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.deplete_rrna": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.detect_adapters": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.extract_umis": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.filter_reads": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.infer_asvs": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.merge_pairs": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.normalize_abundance": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.normalize_primers": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.profile_overrepresented_sequences": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.profile_read_lengths": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.profile_reads": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.remove_chimeras": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.report_qc": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.screen_taxonomy": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.trim_polyg_tails": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.trim_reads": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.validate_reads": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    }
+  },
+  "params": {
+    "fastq.cluster_otus": {
+      "identity_threshold": 0.97,
+      "output_table_kind": "otu_table",
+      "raw_backend_report_artifact": "cluster_otus_report.json",
+      "raw_backend_report_format": "vsearch_json",
+      "report_artifact": "report_json",
+      "schema_version": "v1",
+      "threads": 1
+    },
+    "fastq.correct_errors": {
+      "conservative_mode": false,
+      "correction_engine": "rcorrector",
+      "genome_size": null,
+      "kmer_size": null,
+      "max_memory_gb": null,
+      "musket_kmer_budget": null,
+      "paired_mode": "single_end",
+      "quality_encoding": "phred33",
+      "schema_version": "bijux.fastq.params.correct.v1",
+      "threads": 1,
+      "trusted_kmer_artifact": null
+    },
+    "fastq.deplete_host": {
+      "decoy_catalog_id": null,
+      "decoy_policy": "none",
+      "emit_removed_reads": false,
+      "identity_threshold": 0.95,
+      "masking_policy": "unmasked",
+      "paired_mode": "single_end",
+      "reference_build_id": null,
+      "reference_catalog_id": "host_reference",
+      "reference_digest": null,
+      "reference_index_artifact_id": "host_reference_index",
+      "reference_index_backend": "bowtie2",
+      "reference_scope": "host",
+      "report_format": "bowtie2_metrics_file",
+      "retain_unmapped_pairs": true,
+      "retained_read_policy": "keep_non_host_reads",
+      "schema_version": "bijux.fastq.params.deplete_host.v1",
+      "threads": 1
+    },
+    "fastq.deplete_reference_contaminants": {
+      "contaminant_reference": "contaminants.fasta",
+      "index_artifact": "contaminants_index",
+      "paired_mode": "single_end",
+      "reference_build_id": null,
+      "reference_catalog_id": "reference_contaminants",
+      "reference_digest": null,
+      "reference_index_backend": "bowtie2",
+      "retain_unmapped_pairs": true,
+      "schema_version": "bijux.fastq.params.deplete_reference_contaminants.v1",
+      "threads": 1
+    },
+    "fastq.deplete_rrna": {
+      "contaminant_db": "rrna_reference",
+      "database_artifact_id": "rrna_db",
+      "database_build_id": null,
+      "emit_removed_reads": false,
+      "paired_mode": "single_end",
+      "report_format": "summary_tsv_and_json",
+      "schema_version": "bijux.fastq.params.deplete_rrna.v1",
+      "screening_engine": "sortmerna",
+      "threads": 1
+    },
+    "fastq.detect_adapters": {
+      "evidence_artifact_id": "report_json",
+      "evidence_engine": "fastqc",
+      "evidence_format": "fastqc_summary",
+      "evidence_scope": "full_input",
+      "inspection_mode": "evidence_only",
+      "paired_mode": "single_end",
+      "report_only": true,
+      "sample_reads": null,
+      "schema_version": "bijux.fastq.params.detect_adapters.v1",
+      "threads": 1
+    },
+    "fastq.extract_umis": {
+      "downstream_dedup_policy": "sequence_identity_recommended",
+      "downstream_propagation": "header_and_report",
+      "extraction_location": "read1_prefix",
+      "failed_extraction_policy": "refuse_stage",
+      "grouping_policy": "pair_aware",
+      "paired_mode": "single_end",
+      "read_name_transform": "append_to_header",
+      "schema_version": "bijux.fastq.params.umi.v1",
+      "threads": 1,
+      "umi_pattern": null
+    },
+    "fastq.filter_reads": {
+      "contaminant_db": null,
+      "entropy_threshold": null,
+      "low_complexity_threshold": null,
+      "max_n": null,
+      "max_n_count": null,
+      "max_n_fraction": null,
+      "n_policy": null,
+      "paired_mode": "single_end",
+      "polyx_policy": null,
+      "threads": 1
+    },
+    "fastq.infer_asvs": {
+      "chimera_policy": "report_only",
+      "denoising_method": "dada2",
+      "output_table_kind": "feature_table",
+      "paired_mode": "single_end",
+      "pooling_mode": "independent",
+      "raw_backend_report_artifact": "infer_asvs_report.json",
+      "raw_backend_report_format": "dada2_json",
+      "report_artifact": "report_json",
+      "requires_r_runtime": true,
+      "schema_version": "v1",
+      "threads": 1
+    },
+    "fastq.merge_pairs": {
+      "merge_engine": "pear",
+      "merge_overlap": null,
+      "min_len": null,
+      "paired_mode": "single_end",
+      "schema_version": "bijux.fastq.params.merge_pairs.v1",
+      "threads": 6,
+      "unmerged_read_policy": "emit_unmerged_pairs"
+    },
+    "fastq.normalize_abundance": {
+      "compositional_rule": "sum_to_one",
+      "expected_columns": [
+        "feature_id",
+        "count"
+      ],
+      "input_value_column": "count",
+      "method": "relative_abundance",
+      "normalized_value_column": "relative_abundance",
+      "report_artifact": "report_json",
+      "scale_factor": 1.0,
+      "schema_version": "v1"
+    },
+    "fastq.normalize_primers": {
+      "allow_iupac_codes": true,
+      "marker_id": null,
+      "max_mismatch_rate": 0.1,
+      "min_overlap_bp": 18,
+      "orientation_policy": "forward_reverse",
+      "paired_mode": "single_end",
+      "primer_fasta": "assets/reference/primers/COI.fasta",
+      "primer_set_id": "metabarcoding_default",
+      "schema_version": "v1",
+      "strict_5p_anchor": true,
+      "threads": 1
+    },
+    "fastq.profile_overrepresented_sequences": {
+      "paired_mode": "single_end",
+      "schema_version": "bijux.fastq.params.overrepresented_profile.v1",
+      "threads": 2,
+      "top_k": 50
+    },
+    "fastq.profile_read_lengths": {
+      "histogram_bins": 100,
+      "paired_mode": "single_end",
+      "schema_version": "bijux.fastq.params.read_length_profile.v1",
+      "threads": 2
+    },
+    "fastq.profile_reads": {
+      "paired_mode": "single_end",
+      "schema_version": "bijux.fastq.params.stats.v1",
+      "threads": 2
+    },
+    "fastq.remove_chimeras": {
+      "chimera_removed_definition": "reads flagged as chimeric by governed UCHIME policy",
+      "chimera_sequence_artifact": "chimera_sequences_fasta",
+      "detection_scope": "sample",
+      "fallback_behavior": "refuse_stage",
+      "input_layout": "single_end",
+      "method": "uchime_denovo",
+      "metrics_artifact": "chimera_metrics_json",
+      "raw_backend_report_artifact": "uchime_report_tsv",
+      "raw_backend_report_format": "uchime_tsv",
+      "report_artifact": "report_json",
+      "threads": 1
+    },
+    "fastq.report_qc": {
+      "aggregation_engine": "multiqc",
+      "aggregation_scope": "governed_qc_artifacts",
+      "paired_mode": "single_end",
+      "schema_version": "bijux.fastq.params.report_qc.v1"
+    },
+    "fastq.screen_taxonomy": {
+      "assignment_format": "kraken_assignments",
+      "classifier": "kraken2",
+      "contaminant_db": null,
+      "database_artifact_id": "taxonomy_db",
+      "database_build_id": null,
+      "database_catalog_id": "taxonomy_reference",
+      "database_digest": null,
+      "database_namespace": "read_screening",
+      "database_scope": "read_screening",
+      "emit_unclassified": true,
+      "interpretation_boundary": "screening_only",
+      "minimum_confidence": null,
+      "paired_mode": "single_end",
+      "report_format": "kraken_report",
+      "schema_version": "bijux.fastq.params.screen_taxonomy.v1",
+      "threads": 4,
+      "truth_conditions": []
+    },
+    "fastq.trim_polyg_tails": {
+      "min_polyg_run": 10,
+      "paired_mode": "single_end",
+      "schema_version": "bijux.fastq.params.trim_polyg_tails.v1",
+      "threads": 4,
+      "trim_polyg": true
+    },
+    "fastq.trim_reads": {
+      "adapter_policy": "none",
+      "contaminant_policy": null,
+      "min_len": 30,
+      "n_policy": null,
+      "paired_mode": "single_end",
+      "polyx_policy": null,
+      "q_cutoff": null,
+      "threads": 1
+    },
+    "fastq.validate_reads": {
+      "pair_sync_policy": "not_applicable",
+      "paired_mode": "single_end",
+      "schema_version": "bijux.fastq.params.validate_reads.v1",
+      "threads": 4,
+      "validation_mode": "strict"
+    }
+  },
+  "pipeline_id": "fastq-to-fastq__qc_only__v1",
+  "thresholds": {},
+  "tool_provenance": {
+    "fastq.cluster_otus": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.correct_errors": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.deplete_host": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.deplete_reference_contaminants": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.deplete_rrna": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.detect_adapters": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.extract_umis": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.filter_reads": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.infer_asvs": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.merge_pairs": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.normalize_abundance": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.normalize_primers": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.profile_overrepresented_sequences": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.profile_read_lengths": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.profile_reads": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.remove_chimeras": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.report_qc": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.screen_taxonomy": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.trim_polyg_tails": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.trim_reads": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    },
+    "fastq.validate_reads": {
+      "assumptions": [
+        "defaults chosen for pre-HPC deterministic baseline comparisons"
+      ],
+      "citations": [
+        "docs/20-science/fastq/GOLD_PIPELINE_SPEC.md"
+      ],
+      "comparability_implications": [
+        "changing this default can shift cross-run comparability baselines"
+      ],
+      "rationale": "pipeline default"
+    }
+  },
+  "tools": {
+    "fastq.cluster_otus": "vsearch",
+    "fastq.correct_errors": "rcorrector",
+    "fastq.deplete_host": "bowtie2",
+    "fastq.deplete_reference_contaminants": "bowtie2",
+    "fastq.deplete_rrna": "sortmerna",
+    "fastq.detect_adapters": "fastqc",
+    "fastq.extract_umis": "umi_tools",
+    "fastq.filter_reads": "fastp",
+    "fastq.infer_asvs": "dada2",
+    "fastq.merge_pairs": "pear",
+    "fastq.normalize_abundance": "seqkit",
+    "fastq.normalize_primers": "cutadapt",
+    "fastq.profile_overrepresented_sequences": "fastqc",
+    "fastq.profile_read_lengths": "seqkit_stats",
+    "fastq.profile_reads": "seqkit_stats",
+    "fastq.remove_chimeras": "vsearch",
+    "fastq.report_qc": "multiqc",
+    "fastq.screen_taxonomy": "kraken2",
+    "fastq.trim_polyg_tails": "fastp",
+    "fastq.trim_reads": "fastp",
+    "fastq.validate_reads": "fastqvalidator"
+  }
+}

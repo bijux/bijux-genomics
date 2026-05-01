@@ -40,8 +40,10 @@ pub fn resolve_adapter_preset(
     Ok(EffectiveAdapterSet {
         preset: preset.name.clone(),
         preset_hash: preset.hash.clone(),
+        applicable_assays: preset.applicable_assays.clone(),
         preset_tags: preset.tags.clone(),
         rationale: preset.rationale.clone(),
+        selection_logic: preset.selection_logic.clone(),
         references: preset.references.clone(),
         notes: preset.notes.clone(),
         sequences,
@@ -141,6 +143,12 @@ mod tests {
             bank_id: "adapter-bank".to_string(),
             version: "2026-01-01".to_string(),
             provenance_status: "complete".to_string(),
+            license: "CC-BY-4.0".to_string(),
+            source_document: "assets/reference/EVIDENCE.md".to_string(),
+            source_checksum_sha256:
+                "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef".to_string(),
+            applicable_assays: vec!["shotgun".to_string()],
+            selection_logic: "select explicit preset by assay or library-prep family".to_string(),
             adapters: vec![AdapterEntryV1 {
                 id: "truseq-universal".to_string(),
                 tags: vec!["truseq".to_string()],
@@ -162,10 +170,13 @@ mod tests {
             presets: vec![AdapterPresetV1 {
                 name: "truseq".to_string(),
                 description: None,
+                applicable_assays: vec!["shotgun".to_string()],
                 tags: vec!["truseq".to_string()],
                 adapter_ids: Vec::new(),
                 sequences: sequences.clone(),
                 rationale: "default Illumina preset".to_string(),
+                selection_logic: "select when assay uses standard Illumina shotgun library prep"
+                    .to_string(),
                 references: Vec::new(),
                 notes: Vec::new(),
                 hash: hash_preset_sequences(&sequences),

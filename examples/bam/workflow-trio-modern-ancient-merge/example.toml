@@ -1,0 +1,15 @@
+id = "bam_workflow_trio_modern_ancient_merge"
+domain = "bam"
+corpus_required = "corpus-01-mini"
+corpus_id = "corpus-01-mini"
+mini_supported = true
+canonical_example = false
+workflow_class = "workflow_trio_modern_ancient_merge"
+workflow_manifest = "workflow-manifest.json"
+tiny_inputs_contract = "tiny-inputs.json"
+expected_plan = "golden/plan.json"
+expected_evidence = "expected-evidence.json"
+expected_outputs = ["plan.json", "explain.json", "report.json"]
+profile_id = "bam-to-bam__adna_shotgun__v1"
+reference_bundle = "toy_reference_v1"
+fixture_mode = "explicit_fixture_safe"

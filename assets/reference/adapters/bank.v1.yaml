@@ -2,6 +2,11 @@ schema_version: bijux.adapter_bank.v1
 bank_id: bijux-dna-fastq-adapter-bank
 version: 1
 provenance_status: complete
+license: CC-BY-4.0
+source_document: assets/reference/EVIDENCE.md
+source_checksum_sha256: 3b7d30dc1f08f9d9f13ef6ba9d7a57d9f7441f6e4248d6380a66fddf8662ef31
+applicable_assays: [shotgun, ancient_dna, amplicon, edna_metabarcoding]
+selection_logic: Select adapter presets by explicit library-prep family and assay contract; production planning rejects incomplete provenance.
 adapters:
   - id: truseq_universal
     tags: [truseq]

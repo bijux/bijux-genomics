@@ -1,0 +1,1 @@
+{"acquired_at":"2024-01-01T00:00:00Z","exclusive":true,"holder":"worker-1:pid=123","lease_id":"lease-run-1","lock_path":"run.lock","released_at":"2024-01-01T00:00:10Z","run_id":"run-1","schema_version":"bijux.run_lease.v1"}

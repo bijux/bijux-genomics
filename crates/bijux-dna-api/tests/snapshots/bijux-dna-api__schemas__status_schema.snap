@@ -1,10 +1,32 @@
 ---
-source: crates/bijux-dna-api/tests/v1_cross_api_stability.rs
-expression: json
+source: crates/bijux-dna-api/tests/schemas/v1_cross_api_stability.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
+  "artifact_inventory_path": null,
+  "artifact_inventory_text_path": null,
+  "backend_descriptor_path": null,
+  "checkpoint_path": null,
+  "control_state_path": null,
+  "correlation_id": null,
+  "evidence_bundle_path": null,
+  "evidence_verification_path": null,
+  "executor_descriptor_path": null,
+  "failure_path": null,
   "has_failures": false,
+  "hash_ledger_path": null,
+  "health_report_path": null,
+  "lease_path": null,
   "manifest_path": "<temp>/run_manifest.json",
+  "mode": null,
+  "queue_state_path": null,
+  "replay_manifest_path": null,
   "report_path": null,
-  "run_dir": "<temp>"
+  "run_dir": "<temp>",
+  "run_state_path": null,
+  "run_summary_text_path": null,
+  "runtime_policy_path": null,
+  "scheduling_decision_path": null,
+  "slurm_submission_path": null,
+  "state": null
 }

@@ -1,8 +1,9 @@
 use super::{
     anyhow, resolve_image, ArtifactRef, BTreeMap, ContainerImageRefV1, Context,
     GovernedQcContributor, GovernedQcInputs, GovernedQcInputsManifest, Path, PathBuf, PlatformSpec,
-    QcAggregationScope, Result, ToolImageCatalog, GOVERNED_QC_INPUTS_SCHEMA_VERSION,
+    QcAggregationScope, Result, ToolImageCatalog, GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
 };
+use bijux_dna_domain_fastq::governed_qc_contributors_from_inputs;
 
 pub(super) fn governed_qc_inputs_manifest_path(out_dir: &Path) -> PathBuf {
     out_dir.join("governed_qc_inputs_manifest.json")
@@ -45,38 +46,7 @@ pub(super) fn load_required_qc_inputs_manifest(
 }
 
 pub(super) fn governed_qc_contributors(qc_inputs: &[ArtifactRef]) -> Vec<GovernedQcContributor> {
-    qc_inputs
-        .iter()
-        .map(|artifact| {
-            let name = artifact.name.as_str();
-            let parts = name.split('.').collect::<Vec<_>>();
-            let stage_id = if parts.len() >= 2 {
-                format!("{}.{}", parts[0], parts[1])
-            } else {
-                name.to_string()
-            };
-            let artifact_id = parts.last().copied().unwrap_or(name).to_string();
-            let contributor_id = if parts.len() >= 2 {
-                parts[..parts.len().saturating_sub(1)].join(".")
-            } else {
-                name.to_string()
-            };
-            let tool_id = parts
-                .get(2..parts.len().saturating_sub(1))
-                .map(|segments| segments.join("."))
-                .filter(|tool_id| !tool_id.is_empty())
-                .or_else(|| contributor_id.rsplit_once('.').map(|(_, tool_id)| tool_id.to_string()))
-                .unwrap_or_else(|| contributor_id.clone());
-            GovernedQcContributor {
-                contributor_id,
-                stage_id,
-                tool_id,
-                artifact_id,
-                artifact_role: artifact.role,
-                path: artifact.path.clone(),
-            }
-        })
-        .collect()
+    governed_qc_contributors_from_inputs(qc_inputs)
 }
 
 fn canonical_qc_input_name(contributor: &GovernedQcContributor) -> String {
@@ -196,7 +166,7 @@ pub(super) fn load_governed_qc_inputs_manifest(path: &Path) -> Result<GovernedQc
         .with_context(|| format!("read governed QC input manifest {}", path.display()))?;
     let manifest: GovernedQcInputsManifest = serde_json::from_str(&raw)
         .with_context(|| format!("parse governed QC input manifest {}", path.display()))?;
-    if manifest.schema_version != GOVERNED_QC_INPUTS_SCHEMA_VERSION {
+    if manifest.schema_version != GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION {
         return Err(anyhow!(
             "unsupported governed QC input manifest schema `{}` in {}",
             manifest.schema_version,

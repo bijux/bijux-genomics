@@ -36,6 +36,7 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
     const ROH_METRICS: &[&str] = &["roh_count", "roh_total_mb", "roh_mean_length_mb"];
     const DEMOGRAPHY_METRICS: &[&str] = &["ne_recent", "ne_time_series", "ne_confidence_interval"];
     const QC_METRICS: &[&str] = &[
+        "sample_count",
         "missingness_post",
         "imputation_info_mean",
         "rsq_mean",
@@ -46,7 +47,14 @@ pub fn stage_metrics_contract(stage: VcfDomainStage) -> StageMetricsContract {
         "concordance",
         "readiness_for_ibd_roh",
     ];
-    const STATS_METRICS: &[&str] = &["variants_total", "ti_tv"];
+    const STATS_METRICS: &[&str] = &[
+        "variants_total",
+        "sample_count",
+        "missingness_post",
+        "heterozygosity_ratio",
+        "ti_tv",
+        "annotation_coverage",
+    ];
 
     match stage {
         VcfDomainStage::Call => StageMetricsContract {

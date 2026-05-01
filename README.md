@@ -2,9 +2,9 @@
 
 Reproducible DNA pipeline workspace with explicit contracts, deterministic outputs, and policy-gated CI.
 
-## Workspace policy
+## Repository policy
 
-Work in this repository is governed by `/Users/bijan/bijux/README.md`. Read that workspace
+Work in this repository is governed by `README.md`. Read that workspace
 agreement before starting work in this repository and before making commits.
 
 <!-- bijux-genomics-badges:generated:start -->

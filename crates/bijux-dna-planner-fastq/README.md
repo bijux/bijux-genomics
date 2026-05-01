@@ -2,8 +2,8 @@
 
 `bijux-dna-planner-fastq` is the deterministic FASTQ planner. It selects governed tool bindings, composes `StagePlanV1` values, builds execution graphs, and emits stable explain metadata without running tools or parsing runtime output.
 
-## Workspace Policy
-This crate is governed by `/Users/bijan/bijux/README.md` and `/Users/bijan/bijux/CODEX.md`. Re-read those files before changing this crate or committing work in this repository.
+## Repository Policy
+This crate is governed by `README.md` and `README.md`. Re-read those files before changing this crate or committing work in this repository.
 
 ## Role
 - Upstream contracts: `bijux-dna-domain-fastq`, `bijux-dna-stages-fastq`, `bijux-dna-stage-contract`, and `bijux-dna-pipelines`.

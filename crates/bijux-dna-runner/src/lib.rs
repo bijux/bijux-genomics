@@ -4,7 +4,9 @@
 pub mod public_api;
 
 pub use public_api::api;
+pub use runner_driver::ApptainerRunner;
 pub use runner_driver::DockerRunner;
+pub use runner_driver::LocalRunner;
 
 pub mod backend;
 pub mod command_runner;

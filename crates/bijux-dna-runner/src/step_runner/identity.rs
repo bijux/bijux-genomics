@@ -89,6 +89,7 @@ pub(super) fn runtime_platform_identity(runner: RuntimeKind) -> String {
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
         .unwrap_or_else(|| match runner {
+            RuntimeKind::Local => "local".to_string(),
             RuntimeKind::Docker => "docker".to_string(),
             RuntimeKind::Apptainer => "apptainer".to_string(),
             RuntimeKind::Singularity => "singularity".to_string(),

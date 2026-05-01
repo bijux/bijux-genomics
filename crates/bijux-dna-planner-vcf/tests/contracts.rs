@@ -1,17 +1,21 @@
-#![allow(clippy::expect_used, clippy::unreadable_literal)]
+#![allow(clippy::expect_used, clippy::question_mark, clippy::unreadable_literal)]
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use bijux_dna_core::contract::PlanPolicy;
+use bijux_dna_core::contract::{
+    build_plan_manifest, planner_refusal_from_message, ArtifactRole, ParameterResolutionTraceV1,
+    PlanManifestBuildInputV1, PlanPolicy, PlannerParameterSourceV1, PlannerWarningCodeV1,
+    PlannerWarningRecordV1, WorkflowInputArtifactV1, WorkflowManifestV1, WorkflowStageRequestV1,
+};
 use bijux_dna_domain_vcf::contracts::{
     ContigSpec, EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
-    SpeciesContext,
+    SpeciesContext, VCF_COHORT_VALIDATION_CONTRACT, VCF_REPORT_COVERAGE_CONTRACT,
 };
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 use bijux_dna_planner_vcf::{
-    explain_vcf_plan, plan_vcf_pipeline, plan_vcf_stage_plans, ChunkPlanSettings, VcfPanelLock,
-    VcfPipelineInputs,
+    explain_vcf_plan, plan_vcf_pipeline, plan_vcf_stage_plans, resolve_reference_context_report,
+    ChunkPlanSettings, VcfPanelLock, VcfPipelineInputs,
 };
 
 fn base_inputs(regime: CoverageRegime) -> VcfPipelineInputs {
@@ -90,6 +94,83 @@ fn assert_snapshot_json(name: &str, kind: &str, value: &serde_json::Value) {
     let expected = std::fs::read_to_string(&path)
         .unwrap_or_else(|err| panic!("read snapshot {}: {err}", path.display()));
     assert_eq!(actual, expected.trim_end(), "snapshot mismatch for {}", path.display());
+}
+
+fn vcf_workflow_manifest(advisory_stats: bool) -> WorkflowManifestV1 {
+    let mut manifest = WorkflowManifestV1::new("vcf", "vcf-downstream");
+    manifest.inputs = vec![WorkflowInputArtifactV1 {
+        artifact_id: "vcf".to_string(),
+        role: ArtifactRole::Variant,
+        path: PathBuf::from("sample.vcf.gz"),
+        layout: None,
+        compression: None,
+        format_id: Some("vcf.gz".to_string()),
+    }];
+    manifest.requested_stages = vec![
+        WorkflowStageRequestV1 { stage_id: "vcf.filter".to_string(), advisory_only: false },
+        WorkflowStageRequestV1 { stage_id: "vcf.stats".to_string(), advisory_only: advisory_stats },
+    ];
+    manifest
+}
+
+fn vcf_plan_manifest_value(
+    inputs: &VcfPipelineInputs,
+    advisory_stats: bool,
+) -> anyhow::Result<serde_json::Value> {
+    let stage_plans = plan_vcf_stage_plans(inputs)?;
+    let graph = plan_vcf_pipeline(inputs)?;
+    let effective_parameters_by_step = stage_plans
+        .iter()
+        .map(|plan| {
+            (
+                plan.stage_instance_id
+                    .as_ref()
+                    .map_or_else(|| plan.stage_id.to_string(), std::string::ToString::to_string),
+                plan.effective_params.clone(),
+            )
+        })
+        .collect();
+    let parameter_traces = stage_plans
+        .iter()
+        .filter_map(|plan| {
+            let serde_json::Value::Object(map) = &plan.effective_params else {
+                return None;
+            };
+            let Some((name, value)) = map.iter().next() else {
+                return None;
+            };
+            Some(ParameterResolutionTraceV1 {
+                step_id: plan
+                    .stage_instance_id
+                    .as_ref()
+                    .map_or_else(|| plan.stage_id.to_string(), std::string::ToString::to_string),
+                stage_id: plan.stage_id.to_string(),
+                parameter: name.clone(),
+                source: PlannerParameterSourceV1::PlannerInferred,
+                resolved_value: value.clone(),
+                detail: "derived from stage effective params".to_string(),
+            })
+        })
+        .collect();
+    let warnings = if advisory_stats {
+        vec![PlannerWarningRecordV1 {
+            code: PlannerWarningCodeV1::AdvisoryStage,
+            stage_id: Some("vcf.stats".to_string()),
+            message: "stats stage treated as advisory in this contract".to_string(),
+        }]
+    } else {
+        Vec::new()
+    };
+    let manifest = build_plan_manifest(PlanManifestBuildInputV1 {
+        workflow_manifest: vcf_workflow_manifest(advisory_stats),
+        graph,
+        stage_contract_refs: Vec::new(),
+        effective_parameters_by_step,
+        parameter_traces,
+        refusal_records: Vec::new(),
+        warning_records: warnings,
+    })?;
+    Ok(serde_json::to_value(manifest)?)
 }
 
 fn snapshot_plan_and_explain(name: &str, inputs: &VcfPipelineInputs) {
@@ -260,6 +341,87 @@ fn vcf_planner_refuses_unknown_param_override_stage() {
 }
 
 #[test]
+fn vcf_reference_context_report_surfaces_build_alias_and_checksum_contracts() {
+    let report = resolve_reference_context_report(&base_inputs(CoverageRegime::Diploid))
+        .unwrap_or_else(|err| panic!("resolve reference context report: {err}"));
+
+    assert_eq!(report.schema_version, "bijux.vcf.reference_context_report.v1");
+    assert_eq!(report.build_id, "GRCh38");
+    assert!(!report.contig_naming_scheme.is_empty());
+    assert_eq!(report.fasta_sha256.len(), 64);
+    assert!(report.alias_count > 0);
+    assert_eq!(report.panel_id, "hsapiens_grch38_mini");
+    assert_eq!(report.map_id, "hsapiens_grch38_chr_map");
+    assert!(report.vcf_index_required);
+}
+
+#[test]
+fn vcf_explain_surfaces_artifact_classes_and_guardrails() {
+    let plans = plan_vcf_stage_plans(&base_inputs(CoverageRegime::Diploid))
+        .unwrap_or_else(|err| panic!("stage plans: {err}"));
+    let explain = explain_vcf_plan(&base_inputs(CoverageRegime::Diploid), &plans);
+
+    assert_eq!(explain.reference_context.schema_version, "bijux.vcf.reference_context_report.v1");
+    assert!(!explain.panel_boundary_contracts.is_empty());
+    assert!(!explain.phasing_imputation_boundary_contracts.is_empty());
+    assert!(!explain.population_guardrail_contracts.is_empty());
+    assert!(!explain.cohort_analysis_boundary_contracts.is_empty());
+    assert_eq!(
+        explain.cohort_validation_contract.schema_version,
+        VCF_COHORT_VALIDATION_CONTRACT.schema_version
+    );
+    assert_eq!(
+        explain.report_coverage_contract.schema_version,
+        VCF_REPORT_COVERAGE_CONTRACT.schema_version
+    );
+    assert!(explain.stages.iter().any(|stage| {
+        stage.stage_id == "vcf.call_diploid"
+            && !stage.artifact_classes.is_empty()
+            && stage.calling_mode_contract.is_some()
+    }));
+}
+
+#[test]
+fn vcf_planner_refuses_imputation_without_explicit_panel_identity() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages = Some(vec![
+        "vcf.call_diploid".to_string(),
+        "vcf.phasing".to_string(),
+        "vcf.impute".to_string(),
+        "vcf.stats".to_string(),
+    ]);
+    input.panel_locks.clear();
+    input.panel_id = None;
+
+    let err = plan_vcf_stage_plans(&input)
+        .expect_err("imputation without explicit panel identity must fail");
+
+    assert!(
+        err.to_string().contains("explicit panel identity is required"),
+        "unexpected planner refusal: {err}"
+    );
+}
+
+#[test]
+fn vcf_explain_surfaces_selected_panel_for_phasing_without_prepare_panel_stage() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages = Some(vec![
+        "vcf.call_diploid".to_string(),
+        "vcf.phasing".to_string(),
+        "vcf.impute".to_string(),
+        "vcf.stats".to_string(),
+    ]);
+    let plans = plan_vcf_stage_plans(&input).unwrap_or_else(|err| panic!("stage plans: {err}"));
+    let explain = explain_vcf_plan(&input, &plans);
+
+    assert_eq!(
+        explain.selected_panel.as_ref().map(|panel| panel.panel_id.as_str()),
+        Some("1000g_phase3")
+    );
+    assert!(explain.panel_selection_reason.contains("panel selected"));
+}
+
+#[test]
 fn vcf_planner_refuses_tool_not_declared_in_required_tools_lists() {
     let mut input = base_inputs(CoverageRegime::Diploid);
     input
@@ -416,4 +578,33 @@ fn vcf_planner_refuses_duplicate_chunk_filter_entries() {
         err.to_string().contains("chr_include contains duplicate contig `1`"),
         "unexpected planner refusal: {err}"
     );
+}
+
+#[test]
+fn vcf_happy_plan_manifest_snapshot_is_stable() {
+    let input = base_inputs(CoverageRegime::Diploid);
+    let value =
+        vcf_plan_manifest_value(&input, false).unwrap_or_else(|err| panic!("plan manifest: {err}"));
+    assert_snapshot_json("vcf_happy_plan_manifest", "manifest", &value);
+}
+
+#[test]
+fn vcf_advisory_plan_manifest_snapshot_is_stable() {
+    let input = base_inputs(CoverageRegime::Diploid);
+    let value =
+        vcf_plan_manifest_value(&input, true).unwrap_or_else(|err| panic!("plan manifest: {err}"));
+    assert_snapshot_json("vcf_advisory_plan_manifest", "manifest", &value);
+}
+
+#[test]
+fn vcf_refusal_manifest_snapshot_is_stable() {
+    let mut input = base_inputs(CoverageRegime::Diploid);
+    input.requested_stages = Some(vec!["vcf.stats".to_string(), "vcf.filter".to_string()]);
+    let err = plan_vcf_stage_plans(&input).expect_err("out-of-order stages must fail");
+    let refusal = planner_refusal_from_message(None, &err.to_string());
+    let payload = serde_json::json!({
+        "workflow_manifest": vcf_workflow_manifest(false),
+        "refusal_records": [refusal],
+    });
+    assert_snapshot_json("vcf_refusal_manifest", "manifest", &payload);
 }

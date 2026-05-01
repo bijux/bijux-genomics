@@ -404,6 +404,16 @@ fn ghcr_publish_matrix_value(
         let package_slug = runtime.package_slug(&tool_id);
         let package_ref = format!("{package_prefix}/{package_slug}");
         let registry_status = table_string(&registry_row, "status");
+        let smoke_version_cmd = table_string(&registry_row, "smoke_version_cmd");
+        let smoke_help_cmd = table_string(&registry_row, "smoke_help_cmd");
+        let smoke_minimal_cmd = table_string(&registry_row, "smoke_minimal_cmd");
+        let smoke_minimal_exit_code = table_string(&registry_row, "smoke_minimal_exit_code");
+        let smoke_require_help = if registry_row.contains_key("smoke_require_help") {
+            table_bool(&registry_row, "smoke_require_help")
+        } else {
+            true
+        };
+        let smoke_probes = table_array_strings(&registry_row, "smoke_probes");
         let push_latest = if registry_status.is_empty() {
             statuses.get(&tool_id).is_some_and(|value| value == "production")
         } else {
@@ -458,6 +468,32 @@ fn ghcr_publish_matrix_value(
                     );
                 }
             }
+            map.insert(
+                "smoke_version_cmd".to_string(),
+                serde_json::Value::String(smoke_version_cmd.clone()),
+            );
+            map.insert(
+                "smoke_help_cmd".to_string(),
+                serde_json::Value::String(smoke_help_cmd.clone()),
+            );
+            map.insert(
+                "smoke_require_help".to_string(),
+                serde_json::Value::Bool(smoke_require_help),
+            );
+            map.insert(
+                "smoke_minimal_cmd".to_string(),
+                serde_json::Value::String(smoke_minimal_cmd.clone()),
+            );
+            map.insert(
+                "smoke_minimal_exit_code".to_string(),
+                serde_json::Value::String(smoke_minimal_exit_code),
+            );
+            map.insert(
+                "smoke_probes".to_string(),
+                serde_json::Value::Array(
+                    smoke_probes.iter().cloned().map(serde_json::Value::String).collect(),
+                ),
+            );
         }
         items.push(item);
     }

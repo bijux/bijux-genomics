@@ -4,8 +4,8 @@
 and deterministic metrics-envelope materialization for already-planned BAM
 stages.
 
-Workspace work on this crate is governed by `/Users/bijan/bijux/README.md` and
-`/Users/bijan/bijux/CODEX.md`; re-read those files before editing this child
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read those files before editing this child
 repository and before committing.
 
 ## What this crate does
@@ -31,6 +31,17 @@ layers.
 - `stage_specs`: planner-facing BAM domain vocabulary re-exports.
 
 `docs/COMMANDS.md` is the SSOT for callable operations managed by this crate.
+
+## Release Example
+
+Run the release-surface example from the repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo run -q -p bijux-dna-stages-bam --example bam_release_surface
+```
+
+The example prints the governed BAM implemented-stage set and asserts presence
+of alignment, mapping-summary, and coverage stages used in release evidence.
 
 Managed operations:
 

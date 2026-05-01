@@ -124,9 +124,6 @@ fn public_module_from_doc_line(line: &str) -> Option<String> {
     if let Some(rest) = line.strip_prefix("- `") {
         return rest.strip_suffix('`').map(str::to_string);
     }
-    if let Some(rest) = line.strip_prefix("- ") {
-        return Some(rest.trim().to_string());
-    }
     let cells = markdown_table_cells(line);
     if cells.len() >= 2 && cells[0].starts_with('`') && cells[0].ends_with('`') {
         return Some(cells[0].trim_matches('`').to_string());

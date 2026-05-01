@@ -31,4 +31,4 @@ implementation state. Contract, parse, tool, and infrastructure failures must st
 - `tests/boundaries/guardrails/no_process_spawn.rs`
 - `tests/boundaries/guardrails/deps.rs`
 - `tests/contracts/cli_behavior.rs`
-- Workspace policy tests for ad-hoc filesystem writes and command spawning
+- Repository policy tests for ad-hoc filesystem writes and command spawning

@@ -1,0 +1,2 @@
+name = "stage_contract_docs"
+intent = "fixture stage contracts used by stage-contract docs and snapshot tests"

@@ -25,5 +25,5 @@ parameter schemas/defaults, metric semantics, pipeline ordering, and invariant e
 
 ## Notes
 Boundary invariants are enforced by bijux-dna-policies contract tests.
-The workspace policy is rooted at `/Users/bijan/bijux/README.md`, and the repository coding
-policy is rooted at `/Users/bijan/bijux/CODEX.md`.
+The repository policy is rooted at `README.md`, and the repository coding
+policy is rooted at `README.md`.

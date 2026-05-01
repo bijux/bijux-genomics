@@ -17,6 +17,7 @@ fn dependency_graph_matches_domain_fastq_boundary() {
         "serde",
         "serde_json",
         "sha2",
+        "toml",
         "tracing",
         "uuid",
     ]

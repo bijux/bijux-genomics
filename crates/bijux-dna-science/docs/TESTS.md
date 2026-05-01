@@ -13,7 +13,7 @@
   dependency boundaries, and architecture shape.
 - Evidence parity tests protect deterministic compiler output against committed generated files.
 - Shape tests protect governed TSV inputs and outputs.
-- Guardrail tests keep the crate wired into workspace policy.
+- Guardrail tests keep the crate wired into repository policy.
 
 ## Local Commands
 

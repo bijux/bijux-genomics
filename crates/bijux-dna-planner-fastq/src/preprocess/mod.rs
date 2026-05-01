@@ -1,3 +1,4 @@
+pub(crate) mod chunking;
 mod planning;
 mod policy;
 

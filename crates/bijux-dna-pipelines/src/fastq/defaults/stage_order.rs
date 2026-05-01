@@ -35,3 +35,73 @@ pub(crate) fn minimal_shotgun_required_stages() -> Vec<String> {
         id_catalog::FASTQ_QC_POST.to_string(),
     ]
 }
+
+pub(crate) fn qc_only_required_stages() -> Vec<String> {
+    vec![
+        id_catalog::FASTQ_VALIDATE_PRE.to_string(),
+        "fastq.profile_read_lengths".to_string(),
+        id_catalog::FASTQ_DETECT_ADAPTERS.to_string(),
+        id_catalog::FASTQ_STATS_NEUTRAL.to_string(),
+        "fastq.profile_overrepresented_sequences".to_string(),
+        id_catalog::FASTQ_QC_POST.to_string(),
+    ]
+}
+
+pub(crate) fn umi_required_stages() -> Vec<String> {
+    let mut stages = qc_only_required_stages();
+    append_stage_once(&mut stages, id_catalog::FASTQ_UMI);
+    append_stage_once(&mut stages, id_catalog::FASTQ_TRIM);
+    append_stage_once(&mut stages, id_catalog::FASTQ_FILTER);
+    stages
+}
+
+fn depletion_required_stages(stage_id: &str) -> Vec<String> {
+    let mut stages = default_shotgun_required_stages();
+    append_stage_once(&mut stages, stage_id);
+    stages
+}
+
+pub(crate) fn host_depletion_required_stages() -> Vec<String> {
+    depletion_required_stages("fastq.deplete_host")
+}
+
+pub(crate) fn rrna_depletion_required_stages() -> Vec<String> {
+    depletion_required_stages("fastq.deplete_rrna")
+}
+
+pub(crate) fn contaminant_depletion_required_stages() -> Vec<String> {
+    depletion_required_stages("fastq.deplete_reference_contaminants")
+}
+
+pub(crate) fn amplicon_standard_required_stages() -> Vec<String> {
+    vec![
+        id_catalog::FASTQ_VALIDATE_PRE.to_string(),
+        "fastq.normalize_primers".to_string(),
+        id_catalog::FASTQ_FILTER.to_string(),
+        id_catalog::FASTQ_STATS_NEUTRAL.to_string(),
+        "fastq.remove_chimeras".to_string(),
+        "fastq.infer_asvs".to_string(),
+        "fastq.normalize_abundance".to_string(),
+        id_catalog::FASTQ_QC_POST.to_string(),
+    ]
+}
+
+pub(crate) fn amplicon_umi_required_stages() -> Vec<String> {
+    let mut stages = amplicon_standard_required_stages();
+    stages.insert(1, id_catalog::FASTQ_UMI.to_string());
+    stages
+}
+
+pub(crate) fn edna_metabarcoding_required_stages() -> Vec<String> {
+    vec![
+        id_catalog::FASTQ_VALIDATE_PRE.to_string(),
+        "fastq.normalize_primers".to_string(),
+        id_catalog::FASTQ_FILTER.to_string(),
+        id_catalog::FASTQ_STATS_NEUTRAL.to_string(),
+        "fastq.remove_chimeras".to_string(),
+        "fastq.cluster_otus".to_string(),
+        "fastq.normalize_abundance".to_string(),
+        id_catalog::FASTQ_SCREEN.to_string(),
+        id_catalog::FASTQ_QC_POST.to_string(),
+    ]
+}

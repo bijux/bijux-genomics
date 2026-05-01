@@ -235,3 +235,23 @@ fn cross_pipelines_declare_reference_not_bam_input_artifact() {
         );
     }
 }
+
+#[test]
+fn cross_fastq_to_bam_profiles_require_mapping_summary_before_coverage() {
+    for profile in [fastq_to_bam_default_profile(), fastq_to_bam_adna_shotgun_profile()] {
+        let stages = &profile.capabilities.required_stages;
+        let mapping_idx = stages
+            .iter()
+            .position(|stage| stage == "bam.mapping_summary")
+            .unwrap_or_else(|| panic!("{} missing bam.mapping_summary", profile.id));
+        let coverage_idx = stages
+            .iter()
+            .position(|stage| stage == "bam.coverage")
+            .unwrap_or_else(|| panic!("{} missing bam.coverage", profile.id));
+        assert!(
+            mapping_idx < coverage_idx,
+            "{} must place bam.mapping_summary before bam.coverage",
+            profile.id
+        );
+    }
+}

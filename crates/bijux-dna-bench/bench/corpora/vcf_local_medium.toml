@@ -1,0 +1,62 @@
+schema_version = "bijux.bench.corpus.v1"
+corpus_id = "vcf_local_medium"
+domain = "vcf"
+scale = "local-medium"
+scientific_caveats = [
+  "local-medium VCF fixtures probe engineering behavior under larger artifacts and remain advisory for biological interpretation",
+]
+
+[[datasets]]
+dataset_id = "vcf_multisample_filtering"
+fixture = "fixtures/vcf/multisample_filtering"
+read_layout = "paired"
+class_label = "multisample_filtering"
+case_tags = ["multisample-filtering", "cohort-qc"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.vcf.synthetic.multisample-filtering.v1"
+note = "controlled cohort labels provide deterministic filter-impact truth"
+
+[[datasets]]
+dataset_id = "vcf_normalization_stress"
+fixture = "fixtures/vcf/normalization_stress"
+read_layout = "paired"
+class_label = "normalization"
+case_tags = ["normalization", "left-align"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.vcf.synthetic.normalization-stress.v1"
+note = "synthetic normalization truth validates canonicalization invariants"
+
+[[datasets]]
+dataset_id = "vcf_annotation_payload"
+fixture = "fixtures/vcf/annotation_payload"
+read_layout = "paired"
+class_label = "annotation"
+case_tags = ["annotation", "functional"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; annotation payloads depend on external knowledge bases"
+
+[[datasets]]
+dataset_id = "vcf_evidence_large_report"
+fixture = "fixtures/vcf/evidence_large_report"
+read_layout = "paired"
+class_label = "evidence_size"
+case_tags = ["evidence-size", "report-volume"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; evidence-size fixture targets report serialization scaling"
+
+[[backend_comparisons]]
+comparison_id = "vcf.normalize.local"
+stage_id = "vcf.filter"
+tools = ["bcftools", "gatk"]
+caveat = "normalization and filter backend differences are evaluated as engineering drift signals, not scientific ranking"
+
+[[drift_scenarios]]
+scenario_id = "vcf.backend.version.local"
+drift_axis = "backend-version"
+baseline_label = "bcftools-1.18"
+candidate_label = "bcftools-1.20"
+caveat = "local backend-version drift is monitored as engineering evidence and not biological truth"

@@ -7,7 +7,7 @@ The test suite locks VCF domain contracts, generated registry parity, guardrails
 | Surface | Test file or directory | Contract |
 | --- | --- | --- |
 | Contracts | `tests/contracts.rs` | Stage taxonomy, transitions, params, metrics, invariants, registry output, and committed config parity. |
-| Guardrails | `tests/guardrails.rs` | Workspace policy guardrails for the crate. |
+| Guardrails | `tests/guardrails.rs` | Repository policy guardrails for the crate. |
 | Boundaries | `tests/boundaries.rs`, `tests/boundaries/*` | Docs layout, command-free surface, dependency graph, and source/test tree shape. |
 
 ## Commands

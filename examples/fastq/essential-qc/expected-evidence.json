@@ -1,0 +1,12 @@
+{
+  "schema_version": "bijux.example.expected_evidence.v1",
+  "example_id": "fastq_essential_qc",
+  "evidence": [
+    "governed_qc_manifest.json",
+    "report_qc.json",
+    "plan.json",
+    "explain.json",
+    "report.json"
+  ],
+  "label": "smoke-only bundle expectations"
+}

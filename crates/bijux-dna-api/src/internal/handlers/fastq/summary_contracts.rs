@@ -62,6 +62,9 @@ mod tests {
             params: serde_json::json!({}),
             effective_params: serde_json::json!({}),
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         let result = StageResultV1 {
@@ -149,6 +152,9 @@ mod tests {
             params: serde_json::json!({"sample_id":"s1"}),
             effective_params: serde_json::json!({}),
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         let invocation = ToolInvocationV1 {

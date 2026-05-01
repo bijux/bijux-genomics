@@ -1,0 +1,62 @@
+# schema_version = 1
+# owner = bijux-dna-dev
+# purpose = Compatibility dashboard inputs for deprecated ids and fields.
+# authority = bijux-dna-dev
+# stability = stable
+# last_updated = 2026-04-30
+
+schema_version = "bijux.compatibility_deprecations.v1"
+
+[[deprecation]]
+kind = "stage_id"
+subject = "fastq.qc_post"
+replacement = "fastq.report_qc"
+deadline = "2026-12-31"
+migration_test_status = "covered by planner and evidence profile contract snapshots"
+source = "governance compatibility inventory"
+notes = "Legacy qc_post naming remains internal-only; external workflow manifests must use fastq.report_qc."
+
+[[deprecation]]
+kind = "tool_id"
+subject = "bamtools"
+replacement = "samtools"
+deadline = "2026-07-01"
+migration_test_status = "covered by check-deprecations-enforcement"
+source = "configs/ci/registry/deprecations.toml"
+notes = "Deprecated only for bam.validate."
+
+[[deprecation]]
+kind = "metric_id"
+subject = "runtime_s_legacy"
+replacement = "runtime_s"
+deadline = "2026-12-31"
+migration_test_status = "covered by governed error and schema registry review"
+source = "governance compatibility inventory"
+notes = "Legacy imported benchmark rows must normalize to runtime_s before publication."
+
+[[deprecation]]
+kind = "param"
+subject = "vcf.impute.legacy_chunk_size"
+replacement = "chunk_window_size_bp"
+deadline = "next downstream VCF release"
+migration_test_status = "covered by check-vcf-deprecation-lifecycle"
+source = "configs/vcf/deprecations/knobs.toml"
+notes = "Removal phase."
+
+[[deprecation]]
+kind = "param"
+subject = "vcf.phasing.legacy_region"
+replacement = "chunk_chr_include"
+deadline = "next downstream VCF release"
+migration_test_status = "covered by check-vcf-deprecation-lifecycle"
+source = "configs/vcf/deprecations/knobs.toml"
+notes = "Warn phase."
+
+[[deprecation]]
+kind = "field"
+subject = "artifact_inventory.v0.scientific_context"
+replacement = "artifact_inventory.v1.scientific_context"
+deadline = "supported through the current migration window"
+migration_test_status = "covered by artifact_inventory_reader_accepts_supported_legacy_fixture"
+source = "crates/bijux-dna-runtime/tests/fixtures/runtime_schema/default/artifact_inventory_v0.json"
+notes = "Legacy artifact inventory payloads omit the explicit scientific_context object."

@@ -1,0 +1,13 @@
+{
+  "schema_version": "bijux.example.workflow_manifest.v1",
+  "example_id": "vcf_essential_qc_filter",
+  "domain": "vcf",
+  "workflow_class": "essential_qc_filter",
+  "operating_mode": "simulation",
+  "stages": [
+    "vcf.filter",
+    "vcf.postprocess",
+    "vcf.qc",
+    "vcf.stats"
+  ]
+}

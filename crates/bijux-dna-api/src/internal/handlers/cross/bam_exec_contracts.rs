@@ -37,6 +37,9 @@ mod tests {
             params: serde_json::json!({}),
             effective_params: serde_json::json!({}),
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: PlanDecisionReason {
                 kind: PlanReasonKind::Default,
                 summary: "test".to_string(),
@@ -60,6 +63,11 @@ mod tests {
         )?;
         let mut validate_plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Validate);
         validate_plan.io.inputs[0].path = validate_bam;
+        validate_plan.io.inputs.push(ArtifactRef::required(
+            ArtifactId::new("bai"),
+            validate_index.clone(),
+            ArtifactRole::Index,
+        ));
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::Validate,
             &validate_dir,
@@ -73,6 +81,12 @@ mod tests {
                 .get("schema_version")
                 .and_then(serde_json::Value::as_str),
             Some("bijux.bam.validate.v1")
+        );
+        assert_eq!(
+            validate_summary
+                .get("bam_index")
+                .and_then(serde_json::Value::as_str),
+            Some(validate_index.to_string_lossy().as_ref())
         );
 
         let mapping_dir = temp.path().join("mapping_summary");
@@ -110,6 +124,58 @@ mod tests {
     }
 
     #[test]
+    fn mapq_filter_postprocess_emits_typed_summary() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let stage_dir = temp.path().join("mapq_filter");
+        bijux_dna_infra::ensure_dir(&stage_dir)?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("flagstat.before.txt"),
+            b"20 + 0 in total (QC-passed reads + QC-failed reads)\n15 + 0 mapped (75.00% : N/A)\n",
+        )?;
+        bijux_dna_infra::atomic_write_bytes(
+            &stage_dir.join("flagstat.after.txt"),
+            b"12 + 0 in total (QC-passed reads + QC-failed reads)\n9 + 0 mapped (75.00% : N/A)\n",
+        )?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::MapqFilter);
+        plan.params = serde_json::json!({ "mapq_threshold": 30 });
+        plan.io.inputs[0].path = stage_dir.join("input.bam");
+        plan.io.outputs[0].path = stage_dir.join("filtered.bam");
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::MapqFilter,
+            &stage_dir,
+            &plan,
+        )?;
+        let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            stage_dir.join("mapq_filter.summary.json"),
+        )?)?;
+        assert_eq!(
+            payload
+                .get("schema_version")
+                .and_then(serde_json::Value::as_str),
+            Some("bijux.bam.mapq_filter.v1")
+        );
+        assert_eq!(
+            payload
+                .get("mapq_threshold")
+                .and_then(serde_json::Value::as_u64),
+            Some(30)
+        );
+        assert_eq!(
+            payload
+                .get("mapped_reads_removed")
+                .and_then(serde_json::Value::as_u64),
+            Some(6)
+        );
+        assert_eq!(
+            payload
+                .get("mapped_fraction_retained")
+                .and_then(serde_json::Value::as_f64),
+            Some(0.6)
+        );
+        Ok(())
+    }
+
+    #[test]
     fn damage_and_authenticity_postprocess_emit_composite_artifacts() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let bam_root = temp.path().join("bam");
@@ -131,6 +197,7 @@ mod tests {
             &mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Damage),
         )?;
         assert!(damage_dir.join("damage.unified_metrics.json").exists());
+        assert!(damage_dir.join("advisory_boundary.json").exists());
 
         stage_postprocess(
             bijux_dna_planner_bam::stage_api::BamStage::Authenticity,
@@ -149,6 +216,64 @@ mod tests {
                 .get("schema_version")
                 .and_then(serde_json::Value::as_str),
             Some("bijux.bam.authenticity.v1")
+        );
+        assert!(authenticity_dir.join("advisory_boundary.json").exists());
+        Ok(())
+    }
+
+    #[test]
+    fn duplicate_policy_outputs_are_typed_and_stage_specific() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let dup_dir = temp.path().join("duplication_metrics");
+        let markdup_dir = temp.path().join("markdup");
+        bijux_dna_infra::ensure_dir(&dup_dir)?;
+        bijux_dna_infra::ensure_dir(&markdup_dir)?;
+
+        let mut dup_plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics);
+        dup_plan.params = serde_json::json!({
+            "optical_duplicates": "mark_only",
+            "umi_policy": "ignore",
+            "duplicate_action": "mark"
+        });
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics,
+            &dup_dir,
+            &dup_plan,
+        )?;
+        let duplication_policy: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            dup_dir.join("duplication.policy.json"),
+        )?)?;
+        assert_eq!(
+            duplication_policy.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bam.duplicate_policy.v1")
+        );
+        assert_eq!(
+            duplication_policy.get("policy_scope").and_then(serde_json::Value::as_str),
+            Some("observation_only")
+        );
+
+        let mut markdup_plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Markdup);
+        markdup_plan.params = serde_json::json!({
+            "library_type": "ssdna",
+            "optical_duplicates": "remove",
+            "umi_policy": "use_tag",
+            "duplicate_action": "remove"
+        });
+        stage_postprocess(
+            bijux_dna_planner_bam::stage_api::BamStage::Markdup,
+            &markdup_dir,
+            &markdup_plan,
+        )?;
+        let markdup_policy: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            markdup_dir.join("markdup.policy.json"),
+        )?)?;
+        assert_eq!(
+            markdup_policy.get("library_type").and_then(serde_json::Value::as_str),
+            Some("ssdna")
+        );
+        assert_eq!(
+            markdup_policy.get("policy_scope").and_then(serde_json::Value::as_str),
+            Some("pcr_vs_optical")
         );
         Ok(())
     }
@@ -255,6 +380,103 @@ mod tests {
     }
 
     #[test]
+    fn bam_sample_identity_manifest_prefers_declared_read_group_contract() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let bam = temp.path().join("align.bam");
+        std::fs::write(&bam, b"@HD\tVN:1.6\tSO:coordinate\n@RG\tID:rg1\tSM:sample-a\tPL:ILLUMINA\tLB:lib-a\tPU:pu-a\n")?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Align);
+        plan.params = serde_json::json!({
+            "sample_id": "sample-a",
+            "subject_id": "subject-a",
+            "cohort_id": "cohort-a",
+            "read_group": {
+                "id": "rg1",
+                "sample": "sample-a",
+                "platform": "ILLUMINA",
+                "library": "lib-a",
+                "platform_unit": "pu-a",
+                "lane_id": "L001",
+                "run_id": "run-a"
+            }
+        });
+        let identity = write_bam_sample_identity_manifest(temp.path(), &plan, Some(&bam), Some("preserve"))?;
+        assert_eq!(identity.sample_id, "sample-a");
+        assert_eq!(identity.lane_id.as_deref(), Some("L001"));
+        assert_eq!(identity.subject_id.as_deref(), Some("subject-a"));
+        assert!(temp.path().join("sample_identity.json").exists());
+        Ok(())
+    }
+
+    #[test]
+    fn bam_reference_preflight_records_required_assets_for_bwa() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let reference = temp.path().join("ref.fa");
+        std::fs::write(&reference, b">chr1\nACGT\n")?;
+        std::fs::write(temp.path().join("ref.fa.fai"), b"chr1\t4\t0\t4\t5\n")?;
+        std::fs::write(temp.path().join("ref.fa.dict"), b"@SQ\tSN:chr1\tLN:4\n")?;
+        std::fs::write(temp.path().join("ref.fa.bwt"), b"bwt")?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Align);
+        plan.tool_id = ToolId::new("bwa");
+        plan.params = serde_json::json!({
+            "reference_digest": "sha256:ref"
+        });
+        write_bam_reference_preflight(
+            temp.path(),
+            bijux_dna_planner_bam::stage_api::BamStage::Align,
+            &plan,
+            &reference,
+        )?;
+        let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("reference_preflight.json"),
+        )?)?;
+        assert_eq!(payload.get("passes").and_then(serde_json::Value::as_bool), Some(true));
+        assert!(payload
+            .get("required_assets")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|assets| assets.iter().any(|asset| {
+                asset.get("asset_kind").and_then(serde_json::Value::as_str) == Some("bwa_index")
+            })));
+        Ok(())
+    }
+
+    #[test]
+    fn bam_alignment_provenance_captures_seed_and_identity() -> Result<()> {
+        let temp = tempfile::tempdir()?;
+        let mut plan = mock_plan(bijux_dna_planner_bam::stage_api::BamStage::Align);
+        plan.params = serde_json::json!({
+            "sample_id": "sample-a",
+            "reference": "ref.fa",
+            "reference_digest": "sha256:ref",
+            "preset": "modern_default",
+            "sensitivity_profile": "very_sensitive",
+            "seed_length": 21,
+            "read_group": {
+                "id": "rg1",
+                "sample": "sample-a",
+                "platform": "ILLUMINA",
+                "library": "lib-a",
+                "platform_unit": "pu-a",
+                "lane_id": "L001",
+                "run_id": "run-a"
+            }
+        });
+        let identity = write_bam_sample_identity_manifest(temp.path(), &plan, None, Some("regenerate"))?;
+        write_bam_alignment_provenance(temp.path(), &plan, identity)?;
+        let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            temp.path().join("alignment_provenance.json"),
+        )?)?;
+        assert_eq!(
+            payload.get("seed_length").and_then(serde_json::Value::as_u64),
+            Some(21)
+        );
+        assert_eq!(
+            payload.pointer("/sample_identity/sample_id").and_then(serde_json::Value::as_str),
+            Some("sample-a")
+        );
+        Ok(())
+    }
+
+    #[test]
     fn validate_stage_hard_fails_without_bam_index() -> Result<()> {
         let temp = tempfile::tempdir()?;
         let stage_dir = temp.path().join("validate");
@@ -333,7 +555,8 @@ mod tests {
             ]
         });
         bijux_dna_infra::atomic_write_json(&stage_dir.join("stage_loss_accounting.json"), &accounting)?;
-        write_bam_output_contract(stage, &stage_dir)?;
+        let plan = mock_plan(stage);
+        write_bam_output_contract(stage, &plan, &stage_dir)?;
 
         let step = bijux_dna_stage_contract::execution_step_from_stage_plan(&mock_plan(stage));
         let Some(resumed) = maybe_resume_bam_stage(stage, &stage_dir, &step)? else {
@@ -351,7 +574,8 @@ mod tests {
         bijux_dna_infra::ensure_dir(&stage_dir)?;
         let stage = bijux_dna_planner_bam::stage_api::BamStage::Align;
         std::fs::write(stage_dir.join("align.bam"), b"bam")?;
-        write_bam_output_contract(stage, &stage_dir)?;
+        let plan = mock_plan(stage);
+        write_bam_output_contract(stage, &plan, &stage_dir)?;
         let Err(err) = enforce_bam_output_contract(stage, &stage_dir) else {
             panic!("enforcement must fail when .bai is missing");
         };
@@ -566,12 +790,15 @@ mod tests {
     }
 
     #[test]
-    fn coverage_regime_classifier_uses_requested_bins() {
-        assert_eq!(classify_mean_depth(0.5), "<1x");
-        assert_eq!(classify_mean_depth(1.0), "1-5x");
-        assert_eq!(classify_mean_depth(5.0), "1-5x");
-        assert_eq!(classify_mean_depth(7.5), "5-10x");
-        assert_eq!(classify_mean_depth(12.0), ">10x");
+    fn coverage_regime_classifier_uses_governed_contracts() {
+        let sparse = bijux_dna_domain_bam::classify_bam_coverage_regime(0.5, 0.2);
+        assert_eq!(sparse.regime_id, "sparse");
+        let low_pass = bijux_dna_domain_bam::classify_bam_coverage_regime(2.0, 0.5);
+        assert_eq!(low_pass.regime_id, "low_pass");
+        let target_like = bijux_dna_domain_bam::classify_bam_coverage_regime(8.0, 0.6);
+        assert_eq!(target_like.regime_id, "target_like");
+        let whole_genome_like = bijux_dna_domain_bam::classify_bam_coverage_regime(20.0, 0.9);
+        assert_eq!(whole_genome_like.regime_id, "whole_genome_like");
     }
 
     #[test]

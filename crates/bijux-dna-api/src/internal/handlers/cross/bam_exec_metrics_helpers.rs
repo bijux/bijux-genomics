@@ -77,28 +77,6 @@ fn parse_flagstat_counts(path: &Path) -> Result<serde_json::Value> {
     }))
 }
 
-fn classify_mean_depth(mean_depth: f64) -> &'static str {
-    if mean_depth < 1.0 {
-        "<1x"
-    } else if mean_depth <= 5.0 {
-        "1-5x"
-    } else if mean_depth > 10.0 {
-        ">10x"
-    } else {
-        "5-10x"
-    }
-}
-
-fn coverage_regime_family(mean_depth: f64) -> &'static str {
-    if mean_depth <= 5.0 {
-        "lowcov"
-    } else if mean_depth < 10.0 {
-        "midcov"
-    } else {
-        "highcov"
-    }
-}
-
 fn parse_mean_depth_from_depth_file(path: &Path) -> Result<Option<f64>> {
     if !path.exists() {
         return Ok(None);

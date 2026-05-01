@@ -10,7 +10,9 @@
 
 ## Root Exports
 - `api`
+- `ApptainerRunner`
 - `DockerRunner`
+- `LocalRunner`
 
 ## Facade Exports
 - `BackendKind`
@@ -27,10 +29,16 @@
 
 ## Stability Rules
 - Prefer `bijux_dna_runner::api::*` for consumer-facing use.
-- `DockerRunner` is the concrete runtime adapter exported at the crate root for higher layers.
+- `ApptainerRunner`, `DockerRunner`, and `LocalRunner` are the concrete runtime adapters exported at the crate root for higher layers.
 - Backend modules may expose backend contracts, but planning and CLI concerns must stay outside this crate.
 
 ## Source Authorities
 - `src/lib.rs` controls public module visibility and root re-exports.
 - `src/public_api/stable_surface.rs` curates facade exports.
 - `src/backend/stable_surface.rs` and `src/backend/docker/stable_surface.rs` curate backend exports.
+
+## Stability Tiers
+
+- Stable: `api`, `ApptainerRunner`, `DockerRunner`, `LocalRunner`, and the documented facade exports above.
+- Experimental: backend-specific additions are experimental until they are listed under Facade Exports or Root Exports in this file.
+- Internal: support modules and any runner/backend helper not re-exported through the documented stable surfaces.

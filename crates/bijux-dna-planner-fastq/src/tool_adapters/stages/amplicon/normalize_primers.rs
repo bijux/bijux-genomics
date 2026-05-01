@@ -111,6 +111,9 @@ pub fn plan_with_options(
             options,
         ))?,
         aux_images: std::collections::BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::new(PlanReasonKind::Default, "amplicon primer normalization"),
     })
 }

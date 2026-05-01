@@ -47,7 +47,10 @@ pub mod haplogroups {
             params: serde_json::json!({
                 "bam": bam,
                 "reference_panel": params.reference_panel,
+                "reference_build": params.reference_build,
                 "min_coverage": params.min_coverage,
+                "population_scope": params.population_scope,
+                "refuse_without_population_context": params.refuse_without_population_context,
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
                 serde_json::to_value(params).map_err(|error| {
@@ -55,6 +58,9 @@ pub mod haplogroups {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -156,6 +162,9 @@ pub mod genotyping {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -228,7 +237,10 @@ pub mod kinship {
             params: serde_json::json!({
                 "bam": bam,
                 "reference_panel": params.reference_panel,
+                "reference_build": params.reference_build,
+                "population_scope": params.population_scope,
                 "min_overlap_snps": params.min_overlap_snps,
+                "requires_cohort_context": params.requires_cohort_context,
                 "pseudo_haploid_policy": "refuse_unless_explicit_conversion",
                 "required_inputs": ["diploid_genotypes_or_explicit_pseudohap_conversion"],
             }),
@@ -238,6 +250,9 @@ pub mod kinship {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -302,6 +317,9 @@ pub mod bias_mitigation {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(

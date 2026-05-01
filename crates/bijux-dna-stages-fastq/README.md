@@ -4,8 +4,8 @@
 parsing, stage metrics normalization, and stage-plugin output envelopes for
 already-planned FASTQ stages.
 
-Workspace work on this crate is governed by `/Users/bijan/bijux/README.md` and
-`/Users/bijan/bijux/CODEX.md`; re-read those files before editing this child
+This crate follows repository governance documentation. `README.md` and
+`README.md`; re-read those files before editing this child
 repository and before committing.
 
 ## What this crate does
@@ -41,6 +41,17 @@ into planner, runner, engine, API, CLI, or environment layers.
 - `stage_specs`
 
 `docs/COMMANDS.md` is the SSOT for callable operations managed by this crate.
+
+## Release Example
+
+Run the release-surface example from the repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo run -q -p bijux-dna-stages-fastq --example fastq_release_surface
+```
+
+The example prints the governed FASTQ implemented-stage set and observer tool
+bindings used in essential QC release flows.
 
 Managed operations:
 

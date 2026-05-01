@@ -33,6 +33,9 @@ fn stage_plan() -> StagePlanV1 {
         params: serde_json::json!({"quality": 20}),
         effective_params: serde_json::json!({"quality": 20}),
         aux_images: BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     }
 }
@@ -131,6 +134,7 @@ fn stage_plugin_output_snapshot() {
             metrics: serde_json::json!({}),
         },
         artifacts: Vec::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
         report_parts: Vec::new(),
         warnings: Vec::new(),
         invariants: Vec::new(),

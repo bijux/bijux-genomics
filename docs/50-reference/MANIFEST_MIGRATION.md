@@ -12,6 +12,8 @@
   - `bijux.certification_run_stamp.v1`
   - `bijux.frontend.mini_domain_validation.v1`
   - `bijux.example.bundle.v1`
+- workflow and plan compatibility upgrades are documented in [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md)
+- schema compatibility classes and migration rules are documented in [SCHEMA_REGISTRY.md](SCHEMA_REGISTRY.md)
 
 ## Version pinning
 - Every manifest payload must include an explicit `schema_version`.
@@ -65,3 +67,5 @@ This document defines the intended behavior and navigation contract for this top
 
 ## Contracts
 - Content here is normative where explicitly stated.
+- Reviewed release-by-release migration actions must be generated from `configs/ci/compatibility/release_changes.toml` into [UPGRADE_GUIDE.md](UPGRADE_GUIDE.md).
+- Deterministic migration inputs and compatibility expectations must be covered by the fixture-backed contract tests in `bijux-dna-core` and `bijux-dna-runtime`.

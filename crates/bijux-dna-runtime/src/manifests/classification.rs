@@ -3,7 +3,8 @@ use std::path::Path;
 use anyhow::{anyhow, Result};
 
 use bijux_dna_core::contract::{
-    ArtifactKind, Cardinality, PortSpec, RuntimeScale, StageSemanticKind, ToolRole,
+    ArtifactKind, ArtifactRole, Cardinality, PortSpec, RuntimeScale, StageFamily,
+    StageSemanticKind, ToolRole,
 };
 use bijux_dna_core::prelude::tooling::{ReadCountChangePolicy, StageBehavior};
 use serde::Deserialize;
@@ -28,6 +29,7 @@ pub fn to_ports(ports: Vec<DomainPortYaml>) -> Vec<PortSpec> {
     ports
         .into_iter()
         .map(|port| PortSpec {
+            artifact_role: artifact_role_from_port(&port),
             name: port.name,
             data_type: port.data_type,
             cardinality: to_cardinality(&port.cardinality),
@@ -74,6 +76,18 @@ pub fn stage_semantic_from_id(stage_id: &str) -> StageSemanticKind {
         StageSemanticKind::Annotate
     } else {
         StageSemanticKind::Transform
+    }
+}
+
+pub fn stage_family_from_id(stage_id: &str) -> StageFamily {
+    if stage_id.starts_with("fastq.") {
+        StageFamily::Fastq
+    } else if stage_id.starts_with("bam.") {
+        StageFamily::Bam
+    } else if stage_id.starts_with("vcf.") {
+        StageFamily::Vcf
+    } else {
+        StageFamily::Cross
     }
 }
 
@@ -128,6 +142,20 @@ pub fn stable_produced_artifacts(stage_id: &str, output_kind: ArtifactKind) -> V
         ArtifactKind::Report => vec![format!("{base}_report_out")],
         ArtifactKind::Unknown => vec![format!("{base}_out")],
     }
+}
+
+pub fn artifact_role_from_port(port: &DomainPortYaml) -> ArtifactRole {
+    ArtifactRole::from_port_name(&port.name).unwrap_or_else(|| match port.data_type.as_str() {
+        "fastq" => ArtifactRole::Reads,
+        "bam" => ArtifactRole::Bam,
+        "vcf" => ArtifactRole::Variant,
+        "json" => ArtifactRole::ReportJson,
+        "html" => ArtifactRole::ReportHtml,
+        "tsv" => ArtifactRole::SummaryTsv,
+        "index" => ArtifactRole::Index,
+        "metrics" => ArtifactRole::MetricsJson,
+        _ => ArtifactRole::Unknown,
+    })
 }
 
 #[allow(dead_code)]

@@ -1,20 +1,55 @@
 mod contracts {
+    use std::collections::BTreeMap;
+    use std::path::PathBuf;
+
     use bijux_dna_domain_vcf::{
+        build_vcf_scientific_drift_report,
         contracts::{
-            refuse_unsupported_regime_transition, stage_artifact_contract, stage_failure_modes,
-            stage_io_contract, stage_metrics_contract, validate_entry_vcf_invariants,
-            validate_panel_map_invariants, validate_reference_panel_governance,
-            validate_species_context, validate_vcf_invariants, ContigSpec,
-            DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy, EntryVcfInvariantState,
-            PanelMapInvariantState, PanelSelectionContext, PanelSelectionPolicy,
-            ReferencePanelGovernance, SpeciesContext, VcfInvariantState,
-            DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE,
+            refuse_unsupported_regime_transition, stage_artifact_class_contract,
+            stage_artifact_contract, stage_failure_modes, stage_io_contract,
+            stage_metrics_contract, validate_entry_vcf_invariants, validate_panel_map_invariants,
+            validate_reference_panel_governance, validate_species_context, validate_vcf_invariants,
+            vcf_calling_mode_contracts, vcf_cohort_analysis_boundary_contracts,
+            vcf_likelihood_workflow_contracts, vcf_panel_boundary_contracts,
+            vcf_phasing_imputation_boundary_contracts, vcf_population_guardrail_contracts,
+            ContigSpec, DamageAwareGenotypeLogicContract, DefaultPanelSelectionPolicy,
+            EntryVcfInvariantState, PanelMapInvariantState, PanelSelectionContext,
+            PanelSelectionPolicy, ReferencePanelGovernance, SpeciesContext, VcfArtifactClass,
+            VcfInvariantState, DAMAGE_AWARE_GENOTYPE_LOGIC, OUTPUT_GUARANTEE,
+            VCF_COHORT_VALIDATION_CONTRACT, VCF_DAMAGE_FILTER_CONTRACT,
+            VCF_FILTER_EVIDENCE_CONTRACT, VCF_NORMALIZATION_CONTRACT,
+            VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT, VCF_PRODUCTION_CORPUS_CONTRACT,
+            VCF_REFERENCE_CONTEXT_CONTRACT, VCF_REPORT_COVERAGE_CONTRACT,
+            VCF_SCIENTIFIC_DRIFT_CONTRACT, VCF_STATS_REPORT_CONTRACT, VCF_VALIDATION_CONTRACT,
         },
         coverage::domain_coverage_report,
-        param_registry_toml, required_tools_toml, validate_downstream_transition, CoverageRegime,
-        VcfDomainStage, VcfStage, VcfStatsMetricsV1, VCF_METRICS_CATALOG, VCF_PARAMS_CATALOG,
-        VCF_STAGE_ORDER_DOWNSTREAM,
+        param_registry_toml, required_tools_toml, required_vcf_bench_corpus_scenarios,
+        validate_downstream_transition, vcf_bench_corpus_manifest, CoverageRegime,
+        VcfBenchCorpusId, VcfDomainStage, VcfScientificDriftSnapshotV1, VcfStage,
+        VcfStatsMetricsV1, VCF_METRICS_CATALOG, VCF_PARAMS_CATALOG, VCF_STAGE_ORDER_DOWNSTREAM,
     };
+
+    fn assert_snapshot_json(name: &str, value: &serde_json::Value) {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("snapshots")
+            .join(format!("bijux-dna-domain-vcf__contracts__{name}.json"));
+        let actual = serde_json::to_string_pretty(value)
+            .unwrap_or_else(|err| panic!("serialize snapshot json: {err}"));
+        if std::env::var("UPDATE_SNAPSHOTS").ok().as_deref() == Some("1") {
+            let parent = path
+                .parent()
+                .unwrap_or_else(|| panic!("snapshot parent missing for {}", path.display()));
+            std::fs::create_dir_all(parent)
+                .unwrap_or_else(|err| panic!("create snapshot dir {}: {err}", parent.display()));
+            std::fs::write(&path, format!("{actual}\n"))
+                .unwrap_or_else(|err| panic!("write snapshot {}: {err}", path.display()));
+            return;
+        }
+        let expected = std::fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read snapshot {}: {err}", path.display()));
+        assert_eq!(actual, expected.trim_end(), "snapshot mismatch for {}", path.display());
+    }
 
     #[test]
     fn vcf_stage_catalog_is_stable() {
@@ -85,6 +120,110 @@ mod contracts {
     }
 
     #[test]
+    fn stats_and_qc_metric_contracts_cover_governed_summary_ids() {
+        let stats = stage_metrics_contract(VcfDomainStage::Stats);
+        assert!(stats.required_metrics.contains(&"sample_count"));
+        assert!(stats.required_metrics.contains(&"annotation_coverage"));
+
+        let qc = stage_metrics_contract(VcfDomainStage::Qc);
+        assert!(qc.required_metrics.contains(&"sample_count"));
+        assert!(qc.required_metrics.contains(&"missingness_post"));
+    }
+
+    #[test]
+    fn vcf_workflow_surface_contracts_are_governed_and_explicit() {
+        assert!(VCF_VALIDATION_CONTRACT.rejects.contains(&"bad_info_or_format_definitions"));
+        assert!(VCF_REFERENCE_CONTEXT_CONTRACT.required_context.contains(&"alias_map"));
+        assert!(VCF_FILTER_EVIDENCE_CONTRACT.preserved_fields.contains(&"damage_filter_policy"));
+        assert!(VCF_NORMALIZATION_CONTRACT
+            .declared_behaviors
+            .contains(&"multiallelic_decomposition"));
+        assert!(VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT.policy_rows.iter().any(|row| {
+            row.policy_id == "lowcov_gl_production"
+                && row.split_multiallelic
+                && row.duplicate_handling == "retain_likelihood_safe_records_only"
+        }));
+        assert!(VCF_COHORT_VALIDATION_CONTRACT
+            .checked_before_analysis
+            .contains(&"sex_and_ploidy_assumptions"));
+        assert!(VCF_DAMAGE_FILTER_CONTRACT.declared_actions.contains(&"annotate_damage_risk"));
+        assert!(VCF_STATS_REPORT_CONTRACT.stable_metric_ids.contains(&"annotation_coverage"));
+        assert!(VCF_REPORT_COVERAGE_CONTRACT
+            .per_sample_sections
+            .contains(&"missingness_by_sample"));
+        assert!(VCF_PRODUCTION_CORPUS_CONTRACT.covered_cases.iter().any(|case| {
+            case.case_id == "panel_mismatch" && case.expectation.contains("refuse")
+        }));
+        assert!(VCF_SCIENTIFIC_DRIFT_CONTRACT
+            .tracked_change_surfaces
+            .contains(&"imputation_backend"));
+    }
+
+    #[test]
+    fn vcf_artifact_classes_and_calling_modes_cover_core_surfaces() {
+        let postprocess_artifacts = stage_artifact_class_contract(VcfDomainStage::Postprocess);
+        assert!(postprocess_artifacts.artifact_classes.contains(&VcfArtifactClass::NormalizedVcf));
+        assert!(postprocess_artifacts
+            .artifact_classes
+            .contains(&VcfArtifactClass::AnnotationReport));
+
+        let calling_modes = vcf_calling_mode_contracts();
+        assert!(calling_modes.iter().any(|contract| {
+            contract.stage == VcfDomainStage::CallDiploid
+                && contract.assumptions.contains(&"diploid_gt_fields")
+        }));
+        assert!(calling_modes.iter().any(|contract| {
+            contract.stage == VcfDomainStage::CallGl
+                && contract.refusal_rules.contains(&"gl_fields_required")
+        }));
+    }
+
+    #[test]
+    fn vcf_panel_and_population_boundaries_require_explicit_context() {
+        let panel = vcf_panel_boundary_contracts();
+        assert!(panel.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Impute
+                && contract.required_context.contains(&"panel_identity")
+        }));
+
+        let population = vcf_population_guardrail_contracts();
+        assert!(population.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Pca
+                && contract.required_inputs.contains(&"ld_pruning_policy")
+        }));
+        assert!(population.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Demography
+                && contract.report_caveats.contains(&"demography_estimates_are_model_based")
+        }));
+
+        let phasing = vcf_phasing_imputation_boundary_contracts();
+        assert!(phasing.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Phasing
+                && contract.required_outputs.contains(&"switch_error_proxy")
+        }));
+        assert!(phasing.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Impute && contract.accepted_tools.contains(&"glimpse")
+        }));
+
+        let likelihood = vcf_likelihood_workflow_contracts();
+        assert!(likelihood.iter().any(|contract| {
+            contract.stage == VcfDomainStage::CallGl && contract.accepted_tools.contains(&"angsd")
+        }));
+        assert!(likelihood.iter().any(|contract| {
+            contract.stage == VcfDomainStage::CallPseudohaploid
+                && contract
+                    .output_caveats
+                    .contains(&"pseudo_haploid_calls_are_not_diploid_genotypes")
+        }));
+
+        let cohort = vcf_cohort_analysis_boundary_contracts();
+        assert!(cohort.iter().any(|contract| {
+            contract.stage == VcfDomainStage::Ibd
+                && contract.minimum_cohort_requirement == "at_least_two_samples"
+        }));
+    }
+
+    #[test]
     fn vcf_damage_and_panel_contracts_are_typed() {
         let damage: DamageAwareGenotypeLogicContract = DAMAGE_AWARE_GENOTYPE_LOGIC.clone();
         assert!(damage.masked_variant_classes.contains(&"ct_transition"));
@@ -110,6 +249,72 @@ mod contracts {
             },
         );
         assert_eq!(selected.map(|p| p.panel_id.as_str()), Some("1000g_phase3"));
+    }
+
+    #[test]
+    fn production_vcf_corpus_manifest_covers_required_scenarios() {
+        let manifest = vcf_bench_corpus_manifest(VcfBenchCorpusId::ProductionRegression);
+        let required = required_vcf_bench_corpus_scenarios();
+        assert_eq!(manifest.schema_version, "bijux.vcf.bench_corpus_manifest.v1");
+        assert!(manifest.covered_cases.contains(&"panel_mismatch".to_string()));
+        for scenario in required {
+            assert!(
+                manifest.scenarios_covered.contains(&scenario),
+                "missing governed VCF corpus scenario {scenario:?}"
+            );
+        }
+        assert!(manifest.datasets.iter().any(|dataset| {
+            dataset.dataset_id == "SYNTHETIC_LOWCOV_GL"
+                && dataset.scientific_scope == "likelihood_workflow_regression"
+        }));
+    }
+
+    #[test]
+    fn vcf_scientific_drift_report_snapshot_stays_stable() {
+        let baseline = VcfScientificDriftSnapshotV1 {
+            label: "baseline".to_string(),
+            stage_id: "vcf.postprocess".to_string(),
+            tool_id: "bcftools".to_string(),
+            backend_version: Some("1.20".to_string()),
+            defaults_fingerprint: Some("defaults-a".to_string()),
+            normalization_policy_id: Some("diploid_production".to_string()),
+            filter_policy_id: Some("strict_filter_a".to_string()),
+            metrics: BTreeMap::from([
+                ("variants_total".to_string(), 1200.0),
+                ("annotation_coverage".to_string(), 0.92),
+                ("missingness_post".to_string(), 0.03),
+            ]),
+            artifacts: BTreeMap::from([
+                ("normalized_vcf".to_string(), "sha256:a".to_string()),
+                ("stats_json".to_string(), "sha256:b".to_string()),
+            ]),
+            caveats: vec!["baseline generated from promoted defaults".to_string()],
+        };
+        let candidate = VcfScientificDriftSnapshotV1 {
+            label: "candidate".to_string(),
+            stage_id: "vcf.postprocess".to_string(),
+            tool_id: "bcftools".to_string(),
+            backend_version: Some("1.21".to_string()),
+            defaults_fingerprint: Some("defaults-b".to_string()),
+            normalization_policy_id: Some("lowcov_gl_production".to_string()),
+            filter_policy_id: Some("strict_filter_b".to_string()),
+            metrics: BTreeMap::from([
+                ("variants_total".to_string(), 1175.0),
+                ("annotation_coverage".to_string(), 0.89),
+                ("missingness_post".to_string(), 0.05),
+            ]),
+            artifacts: BTreeMap::from([
+                ("normalized_vcf".to_string(), "sha256:c".to_string()),
+                ("stats_json".to_string(), "sha256:d".to_string()),
+            ]),
+            caveats: vec!["candidate uses stronger normalization and filtering".to_string()],
+        };
+        let report = build_vcf_scientific_drift_report(&baseline, &candidate);
+        assert_snapshot_json(
+            "vcf_scientific_drift_report",
+            &serde_json::to_value(report)
+                .unwrap_or_else(|err| panic!("serialize scientific drift report: {err}")),
+        );
     }
 
     #[test]
@@ -260,6 +465,19 @@ mod contracts {
             OUTPUT_GUARANTEE.deterministic_header_normalization;
         assert!(requires_bgzip_tabix);
         assert!(deterministic_header_normalization);
+    }
+
+    #[test]
+    fn filter_postprocess_and_stats_stage_contracts_list_governed_artifacts() {
+        let filter = stage_artifact_contract(VcfDomainStage::Filter);
+        assert!(filter.required_artifacts.contains(&"filter_explain.json"));
+
+        let postprocess = stage_artifact_contract(VcfDomainStage::Postprocess);
+        assert!(postprocess.required_artifacts.contains(&"normalization_contract.json"));
+
+        let stats = stage_artifact_contract(VcfDomainStage::Stats);
+        assert!(stats.required_artifacts.contains(&"stats.json"));
+        assert!(stats.required_artifacts.contains(&"bcftools_stats.txt"));
     }
 
     #[test]

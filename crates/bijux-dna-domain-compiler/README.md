@@ -10,7 +10,7 @@ generated config views. It is the bridge from `domain/` YAML into governed `conf
 - Keep generated output stable for identical input and scope.
 - Preserve planned alternatives as metadata without promoting planned-only tools into governed
   runtime registries.
-- Own the two command binaries listed in [docs/COMMANDS.md](docs/COMMANDS.md).
+- Own the four command binaries listed in [docs/COMMANDS.md](docs/COMMANDS.md).
 
 ## Boundaries
 
@@ -23,6 +23,10 @@ outputs; they are not compiler dependencies.
 - `compile_domain_configs`
 - `validate_domain`
 - `domain_coverage_report`
+- `build_domain_registry_bundle`
+- `load_domain_registry_bundle`
+- `write_domain_registry_bundle`
+- `query_domain_registry_bundle`
 - `CompileOptions`
 - `ValidateOptions`
 - `DEFAULT_DOMAIN_DIR`
@@ -38,6 +42,13 @@ See [docs/PUBLIC_API.md](docs/PUBLIC_API.md) for signatures and stability rules.
 - `ci/registry/tool_registry.toml`
 - `ci/registry/tool_registry_experimental.toml`
 - `ci/registry/tool_registry_vcf.toml`
+- `ci/registry/domain_registry_release_bundle.json`
+- `ci/registry/domain_defaults_snapshot.json`
+- `ci/registry/domain_artifact_contract_snapshots.json`
+- `ci/registry/domain_metric_catalogs.json`
+- `ci/registry/domain_deprecations_snapshot.json`
+- `ci/registry/domain_invariant_catalogs.json`
+- `ci/registry/domain_evidence_contracts.json`
 - `ci/stages/stages.toml`
 - `ci/stages/stages_vcf.toml`
 - `ci/tools/images.toml`

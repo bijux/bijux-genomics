@@ -16,3 +16,13 @@ pub fn bench_suites_dir() -> PathBuf {
         .map(|root| bijux_dna_infra::bench_suites_dir(&root))
         .unwrap_or_else(|_| PathBuf::from("bench/data/suites"))
 }
+
+#[must_use]
+pub fn bench_corpora_dir() -> PathBuf {
+    bench_data_dir().join("corpora")
+}
+
+#[must_use]
+pub fn bench_bundles_dir() -> PathBuf {
+    bench_data_dir().join("bundles")
+}

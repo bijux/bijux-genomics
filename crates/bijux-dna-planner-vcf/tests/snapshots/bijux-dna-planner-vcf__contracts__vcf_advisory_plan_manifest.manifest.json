@@ -1,0 +1,2182 @@
+{
+  "domain": "vcf",
+  "graph_hash": "b3c9a98ff279759aab6a6e40a77c991bfac4addfd5be59d1d29e8731faff1134",
+  "ordered_steps": [
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "prepared_panel",
+          "optional": false,
+          "path": "out/prepared_panel.vcf.gz",
+          "role": "reads"
+        },
+        {
+          "artifact_id": "chunks_json",
+          "optional": false,
+          "path": "out/chunks.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "ac27f6331dad689e3c7aee3bbd1a52402252843dccb7e019599f1a99667ec9fe",
+      "effective_parameters_json": {
+        "license_policy": "panel_license_must_match_operator_constraints",
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
+        "normalization_policy": {
+          "duplicate_handling": "refuse_duplicate_records",
+          "left_normalize": true,
+          "policy_id": "diploid_production",
+          "raw_fixture_expectation": "raw_vs_normalized_diploid_fixture",
+          "reference_check": "strict_reference_allele_match",
+          "split_multiallelic": true
+        },
+        "normalize": true,
+        "panel_id": "1000g_phase3",
+        "panel_identity_required": true,
+        "panel_identity_source": "panel_lock",
+        "panel_lock": {
+          "index_checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "license_id": "CC-BY-4.0",
+          "panel_checksum_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "panel_id": "1000g_phase3",
+          "reference_build": "GRCh38"
+        },
+        "prepared_outputs": [
+          "panel_manifest",
+          "overlap_report",
+          "chunks_plan"
+        ],
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "require_bgzip_tabix": true,
+        "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
+        "tool": "bcftools"
+      },
+      "environment": {
+        "command": [
+          "bcftools",
+          "prepare-panel",
+          "--lock"
+        ],
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
+        "out_dir": "out/vcf_prepare_reference_panel",
+        "resources": {
+          "mem_gb": 4,
+          "runtime": "docker",
+          "threads": 2,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.prepare_reference_panel",
+      "step_id": "vcf.prepare_reference_panel"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "diploid_vcf",
+          "optional": false,
+          "path": "out/diploid_vcf.vcf.gz",
+          "role": "reads"
+        }
+      ],
+      "cache_key": "de81327b6027816602f000cf3bbc74696795eb4fc142b5019103231dd307d668",
+      "dependencies": [
+        "vcf.prepare_reference_panel"
+      ],
+      "effective_parameters_json": {
+        "coverage_regime": "diploid",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "environment": {
+        "command": [
+          "bcftools",
+          "--help"
+        ],
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
+        "out_dir": "out/vcf_call_diploid",
+        "resources": {
+          "mem_gb": 4,
+          "runtime": "docker",
+          "threads": 2,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.call_diploid",
+      "step_id": "vcf.call_diploid"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "damage_filtered_vcf",
+          "optional": false,
+          "path": "out/damage_filtered_vcf.vcf.gz",
+          "role": "reads"
+        }
+      ],
+      "cache_key": "46db14ab095504f287c86f64489ee2bbd447655848c5a9f450d31df5fb720fda",
+      "dependencies": [
+        "vcf.call_diploid"
+      ],
+      "effective_parameters_json": {
+        "action_scope": "site_and_genotype",
+        "damage_audit": true,
+        "damage_contract": {
+          "declared_actions": [
+            "remove_sites",
+            "mask_genotype_calls",
+            "annotate_damage_risk"
+          ],
+          "execution_modes": [
+            "advisory",
+            "enforced"
+          ],
+          "required_provenance": [
+            "damage_mask_mode",
+            "pmd_threshold",
+            "udg_regime",
+            "site_or_genotype_scope"
+          ],
+          "schema_version": "bijux.vcf.damage_filter_contract.v1"
+        },
+        "execution_mode": "enforced",
+        "mask_ct_ga_transitions": true,
+        "pmd_threshold": 3,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "schema_version": "bijux.vcf.damage_filter.params.v1",
+        "tool": "bcftools"
+      },
+      "environment": {
+        "command": [
+          "bcftools",
+          "filter",
+          "--damage-aware"
+        ],
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
+        "out_dir": "out/vcf_damage_filter",
+        "resources": {
+          "mem_gb": 4,
+          "runtime": "docker",
+          "threads": 2,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.damage_filter",
+      "step_id": "vcf.damage_filter"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "filtered_vcf",
+          "optional": false,
+          "path": "out/filtered_vcf.vcf.gz",
+          "role": "reads"
+        }
+      ],
+      "cache_key": "30536f9db878336b10e8d1814920c371e32c1c9c1d0ed3ff4386ba616ef69471",
+      "dependencies": [
+        "vcf.damage_filter"
+      ],
+      "effective_parameters_json": {
+        "coverage_regime": "diploid",
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "schema_version": "bijux.vcf.stage.params.v1",
+        "tool": "bcftools"
+      },
+      "environment": {
+        "command": [
+          "bcftools",
+          "--help"
+        ],
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
+        "out_dir": "out/vcf_filter",
+        "resources": {
+          "mem_gb": 4,
+          "runtime": "docker",
+          "threads": 2,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.filter",
+      "step_id": "vcf.filter"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "phased_vcf",
+          "optional": false,
+          "path": "out/phased_vcf.vcf.gz",
+          "role": "reads"
+        }
+      ],
+      "cache_key": "2bb23e506b34b36c30ef9f372099b4ddcb62042189b339010dd424649855e2ce",
+      "dependencies": [
+        "vcf.filter"
+      ],
+      "effective_parameters_json": {
+        "allow_gl_only_input": false,
+        "boundary_contract": {
+          "accepted_tools": [
+            "shapeit5",
+            "eagle",
+            "beagle"
+          ],
+          "refusal_reasons": [
+            "panel_identity_missing",
+            "map_lock_missing",
+            "build_compatibility_failed",
+            "confidence_outputs_not_declared"
+          ],
+          "required_context": [
+            "panel_identity",
+            "build_compatibility",
+            "map_file",
+            "sample_eligibility"
+          ],
+          "required_outputs": [
+            "phased_vcf",
+            "phase_block_stats",
+            "switch_error_proxy",
+            "phasing_manifest"
+          ],
+          "stage": "phasing"
+        },
+        "chunking": {
+          "chr_exclude": [],
+          "chr_include": [],
+          "max_parallel_chunks": 8,
+          "overlap_bp": 100000,
+          "window_size_bp": 5000000
+        },
+        "chunks_plan": [
+          {
+            "chunk_id": "1:00000",
+            "contig": "1",
+            "end": 5000000,
+            "start": 1
+          },
+          {
+            "chunk_id": "1:00001",
+            "contig": "1",
+            "end": 9900000,
+            "start": 4900001
+          },
+          {
+            "chunk_id": "1:00002",
+            "contig": "1",
+            "end": 14800000,
+            "start": 9800001
+          },
+          {
+            "chunk_id": "1:00003",
+            "contig": "1",
+            "end": 19700000,
+            "start": 14700001
+          },
+          {
+            "chunk_id": "1:00004",
+            "contig": "1",
+            "end": 24600000,
+            "start": 19600001
+          },
+          {
+            "chunk_id": "1:00005",
+            "contig": "1",
+            "end": 29500000,
+            "start": 24500001
+          },
+          {
+            "chunk_id": "1:00006",
+            "contig": "1",
+            "end": 34400000,
+            "start": 29400001
+          },
+          {
+            "chunk_id": "1:00007",
+            "contig": "1",
+            "end": 39300000,
+            "start": 34300001
+          },
+          {
+            "chunk_id": "1:00008",
+            "contig": "1",
+            "end": 44200000,
+            "start": 39200001
+          },
+          {
+            "chunk_id": "1:00009",
+            "contig": "1",
+            "end": 49100000,
+            "start": 44100001
+          },
+          {
+            "chunk_id": "1:00010",
+            "contig": "1",
+            "end": 54000000,
+            "start": 49000001
+          },
+          {
+            "chunk_id": "1:00011",
+            "contig": "1",
+            "end": 58900000,
+            "start": 53900001
+          },
+          {
+            "chunk_id": "1:00012",
+            "contig": "1",
+            "end": 63800000,
+            "start": 58800001
+          },
+          {
+            "chunk_id": "1:00013",
+            "contig": "1",
+            "end": 68700000,
+            "start": 63700001
+          },
+          {
+            "chunk_id": "1:00014",
+            "contig": "1",
+            "end": 73600000,
+            "start": 68600001
+          },
+          {
+            "chunk_id": "1:00015",
+            "contig": "1",
+            "end": 78500000,
+            "start": 73500001
+          },
+          {
+            "chunk_id": "1:00016",
+            "contig": "1",
+            "end": 83400000,
+            "start": 78400001
+          },
+          {
+            "chunk_id": "1:00017",
+            "contig": "1",
+            "end": 88300000,
+            "start": 83300001
+          },
+          {
+            "chunk_id": "1:00018",
+            "contig": "1",
+            "end": 93200000,
+            "start": 88200001
+          },
+          {
+            "chunk_id": "1:00019",
+            "contig": "1",
+            "end": 98100000,
+            "start": 93100001
+          },
+          {
+            "chunk_id": "1:00020",
+            "contig": "1",
+            "end": 103000000,
+            "start": 98000001
+          },
+          {
+            "chunk_id": "1:00021",
+            "contig": "1",
+            "end": 107900000,
+            "start": 102900001
+          },
+          {
+            "chunk_id": "1:00022",
+            "contig": "1",
+            "end": 112800000,
+            "start": 107800001
+          },
+          {
+            "chunk_id": "1:00023",
+            "contig": "1",
+            "end": 117700000,
+            "start": 112700001
+          },
+          {
+            "chunk_id": "1:00024",
+            "contig": "1",
+            "end": 122600000,
+            "start": 117600001
+          },
+          {
+            "chunk_id": "1:00025",
+            "contig": "1",
+            "end": 127500000,
+            "start": 122500001
+          },
+          {
+            "chunk_id": "1:00026",
+            "contig": "1",
+            "end": 132400000,
+            "start": 127400001
+          },
+          {
+            "chunk_id": "1:00027",
+            "contig": "1",
+            "end": 137300000,
+            "start": 132300001
+          },
+          {
+            "chunk_id": "1:00028",
+            "contig": "1",
+            "end": 142200000,
+            "start": 137200001
+          },
+          {
+            "chunk_id": "1:00029",
+            "contig": "1",
+            "end": 147100000,
+            "start": 142100001
+          },
+          {
+            "chunk_id": "1:00030",
+            "contig": "1",
+            "end": 152000000,
+            "start": 147000001
+          },
+          {
+            "chunk_id": "1:00031",
+            "contig": "1",
+            "end": 156900000,
+            "start": 151900001
+          },
+          {
+            "chunk_id": "1:00032",
+            "contig": "1",
+            "end": 161800000,
+            "start": 156800001
+          },
+          {
+            "chunk_id": "1:00033",
+            "contig": "1",
+            "end": 166700000,
+            "start": 161700001
+          },
+          {
+            "chunk_id": "1:00034",
+            "contig": "1",
+            "end": 171600000,
+            "start": 166600001
+          },
+          {
+            "chunk_id": "1:00035",
+            "contig": "1",
+            "end": 176500000,
+            "start": 171500001
+          },
+          {
+            "chunk_id": "1:00036",
+            "contig": "1",
+            "end": 181400000,
+            "start": 176400001
+          },
+          {
+            "chunk_id": "1:00037",
+            "contig": "1",
+            "end": 186300000,
+            "start": 181300001
+          },
+          {
+            "chunk_id": "1:00038",
+            "contig": "1",
+            "end": 191200000,
+            "start": 186200001
+          },
+          {
+            "chunk_id": "1:00039",
+            "contig": "1",
+            "end": 196100000,
+            "start": 191100001
+          },
+          {
+            "chunk_id": "1:00040",
+            "contig": "1",
+            "end": 201000000,
+            "start": 196000001
+          },
+          {
+            "chunk_id": "1:00041",
+            "contig": "1",
+            "end": 205900000,
+            "start": 200900001
+          },
+          {
+            "chunk_id": "1:00042",
+            "contig": "1",
+            "end": 210800000,
+            "start": 205800001
+          },
+          {
+            "chunk_id": "1:00043",
+            "contig": "1",
+            "end": 215700000,
+            "start": 210700001
+          },
+          {
+            "chunk_id": "1:00044",
+            "contig": "1",
+            "end": 220600000,
+            "start": 215600001
+          },
+          {
+            "chunk_id": "1:00045",
+            "contig": "1",
+            "end": 225500000,
+            "start": 220500001
+          },
+          {
+            "chunk_id": "1:00046",
+            "contig": "1",
+            "end": 230400000,
+            "start": 225400001
+          },
+          {
+            "chunk_id": "1:00047",
+            "contig": "1",
+            "end": 235300000,
+            "start": 230300001
+          },
+          {
+            "chunk_id": "1:00048",
+            "contig": "1",
+            "end": 240200000,
+            "start": 235200001
+          },
+          {
+            "chunk_id": "1:00049",
+            "contig": "1",
+            "end": 245100000,
+            "start": 240100001
+          },
+          {
+            "chunk_id": "1:00050",
+            "contig": "1",
+            "end": 248956422,
+            "start": 245000001
+          },
+          {
+            "chunk_id": "2:00000",
+            "contig": "2",
+            "end": 5000000,
+            "start": 1
+          },
+          {
+            "chunk_id": "2:00001",
+            "contig": "2",
+            "end": 9900000,
+            "start": 4900001
+          },
+          {
+            "chunk_id": "2:00002",
+            "contig": "2",
+            "end": 14800000,
+            "start": 9800001
+          },
+          {
+            "chunk_id": "2:00003",
+            "contig": "2",
+            "end": 19700000,
+            "start": 14700001
+          },
+          {
+            "chunk_id": "2:00004",
+            "contig": "2",
+            "end": 24600000,
+            "start": 19600001
+          },
+          {
+            "chunk_id": "2:00005",
+            "contig": "2",
+            "end": 29500000,
+            "start": 24500001
+          },
+          {
+            "chunk_id": "2:00006",
+            "contig": "2",
+            "end": 34400000,
+            "start": 29400001
+          },
+          {
+            "chunk_id": "2:00007",
+            "contig": "2",
+            "end": 39300000,
+            "start": 34300001
+          },
+          {
+            "chunk_id": "2:00008",
+            "contig": "2",
+            "end": 44200000,
+            "start": 39200001
+          },
+          {
+            "chunk_id": "2:00009",
+            "contig": "2",
+            "end": 49100000,
+            "start": 44100001
+          },
+          {
+            "chunk_id": "2:00010",
+            "contig": "2",
+            "end": 54000000,
+            "start": 49000001
+          },
+          {
+            "chunk_id": "2:00011",
+            "contig": "2",
+            "end": 58900000,
+            "start": 53900001
+          },
+          {
+            "chunk_id": "2:00012",
+            "contig": "2",
+            "end": 63800000,
+            "start": 58800001
+          },
+          {
+            "chunk_id": "2:00013",
+            "contig": "2",
+            "end": 68700000,
+            "start": 63700001
+          },
+          {
+            "chunk_id": "2:00014",
+            "contig": "2",
+            "end": 73600000,
+            "start": 68600001
+          },
+          {
+            "chunk_id": "2:00015",
+            "contig": "2",
+            "end": 78500000,
+            "start": 73500001
+          },
+          {
+            "chunk_id": "2:00016",
+            "contig": "2",
+            "end": 83400000,
+            "start": 78400001
+          },
+          {
+            "chunk_id": "2:00017",
+            "contig": "2",
+            "end": 88300000,
+            "start": 83300001
+          },
+          {
+            "chunk_id": "2:00018",
+            "contig": "2",
+            "end": 93200000,
+            "start": 88200001
+          },
+          {
+            "chunk_id": "2:00019",
+            "contig": "2",
+            "end": 98100000,
+            "start": 93100001
+          },
+          {
+            "chunk_id": "2:00020",
+            "contig": "2",
+            "end": 103000000,
+            "start": 98000001
+          },
+          {
+            "chunk_id": "2:00021",
+            "contig": "2",
+            "end": 107900000,
+            "start": 102900001
+          },
+          {
+            "chunk_id": "2:00022",
+            "contig": "2",
+            "end": 112800000,
+            "start": 107800001
+          },
+          {
+            "chunk_id": "2:00023",
+            "contig": "2",
+            "end": 117700000,
+            "start": 112700001
+          },
+          {
+            "chunk_id": "2:00024",
+            "contig": "2",
+            "end": 122600000,
+            "start": 117600001
+          },
+          {
+            "chunk_id": "2:00025",
+            "contig": "2",
+            "end": 127500000,
+            "start": 122500001
+          },
+          {
+            "chunk_id": "2:00026",
+            "contig": "2",
+            "end": 132400000,
+            "start": 127400001
+          },
+          {
+            "chunk_id": "2:00027",
+            "contig": "2",
+            "end": 137300000,
+            "start": 132300001
+          },
+          {
+            "chunk_id": "2:00028",
+            "contig": "2",
+            "end": 142200000,
+            "start": 137200001
+          },
+          {
+            "chunk_id": "2:00029",
+            "contig": "2",
+            "end": 147100000,
+            "start": 142100001
+          },
+          {
+            "chunk_id": "2:00030",
+            "contig": "2",
+            "end": 152000000,
+            "start": 147000001
+          },
+          {
+            "chunk_id": "2:00031",
+            "contig": "2",
+            "end": 156900000,
+            "start": 151900001
+          },
+          {
+            "chunk_id": "2:00032",
+            "contig": "2",
+            "end": 161800000,
+            "start": 156800001
+          },
+          {
+            "chunk_id": "2:00033",
+            "contig": "2",
+            "end": 166700000,
+            "start": 161700001
+          },
+          {
+            "chunk_id": "2:00034",
+            "contig": "2",
+            "end": 171600000,
+            "start": 166600001
+          },
+          {
+            "chunk_id": "2:00035",
+            "contig": "2",
+            "end": 176500000,
+            "start": 171500001
+          },
+          {
+            "chunk_id": "2:00036",
+            "contig": "2",
+            "end": 181400000,
+            "start": 176400001
+          },
+          {
+            "chunk_id": "2:00037",
+            "contig": "2",
+            "end": 186300000,
+            "start": 181300001
+          },
+          {
+            "chunk_id": "2:00038",
+            "contig": "2",
+            "end": 191200000,
+            "start": 186200001
+          },
+          {
+            "chunk_id": "2:00039",
+            "contig": "2",
+            "end": 196100000,
+            "start": 191100001
+          },
+          {
+            "chunk_id": "2:00040",
+            "contig": "2",
+            "end": 201000000,
+            "start": 196000001
+          },
+          {
+            "chunk_id": "2:00041",
+            "contig": "2",
+            "end": 205900000,
+            "start": 200900001
+          },
+          {
+            "chunk_id": "2:00042",
+            "contig": "2",
+            "end": 210800000,
+            "start": 205800001
+          },
+          {
+            "chunk_id": "2:00043",
+            "contig": "2",
+            "end": 215700000,
+            "start": 210700001
+          },
+          {
+            "chunk_id": "2:00044",
+            "contig": "2",
+            "end": 220600000,
+            "start": 215600001
+          },
+          {
+            "chunk_id": "2:00045",
+            "contig": "2",
+            "end": 225500000,
+            "start": 220500001
+          },
+          {
+            "chunk_id": "2:00046",
+            "contig": "2",
+            "end": 230400000,
+            "start": 225400001
+          },
+          {
+            "chunk_id": "2:00047",
+            "contig": "2",
+            "end": 235300000,
+            "start": 230300001
+          },
+          {
+            "chunk_id": "2:00048",
+            "contig": "2",
+            "end": 240200000,
+            "start": 235200001
+          },
+          {
+            "chunk_id": "2:00049",
+            "contig": "2",
+            "end": 242193529,
+            "start": 240100001
+          }
+        ],
+        "confidence_outputs": [
+          "phased_vcf",
+          "phase_block_stats",
+          "switch_error_proxy",
+          "phasing_manifest"
+        ],
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
+        "panel_build_required": "GRCh38",
+        "panel_id": "1000g_phase3",
+        "panel_identity_required": true,
+        "pbwt_depth": 8,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "schema_version": "bijux.vcf.phasing.params.v1",
+        "seed": 42,
+        "threads": 8,
+        "tool": "shapeit5",
+        "window_cM": 2.0
+      },
+      "environment": {
+        "command": [
+          "shapeit5",
+          "phase",
+          "--input",
+          "vcf"
+        ],
+        "image": "quay.io/biocontainers/shapeit5:5.1.1--h9948957_0",
+        "out_dir": "out/vcf_phasing",
+        "resources": {
+          "mem_gb": 4,
+          "runtime": "docker",
+          "threads": 8,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.phasing",
+      "step_id": "vcf.phasing"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "imputed_vcf",
+          "optional": false,
+          "path": "out/imputed_vcf.vcf.gz",
+          "role": "reads"
+        }
+      ],
+      "cache_key": "898ac5b8bc58f463dd595cef0ae15287def5ef898a7db78d99b4119c2ed9335b",
+      "dependencies": [
+        "vcf.phasing"
+      ],
+      "effective_parameters_json": {
+        "boundary_contract": {
+          "accepted_tools": [
+            "glimpse",
+            "beagle",
+            "impute5",
+            "minimac4"
+          ],
+          "refusal_reasons": [
+            "panel_identity_missing",
+            "map_lock_missing",
+            "panel_build_mismatch",
+            "confidence_outputs_not_declared"
+          ],
+          "required_context": [
+            "panel_identity",
+            "build_compatibility",
+            "map_file",
+            "chunk_plan"
+          ],
+          "required_outputs": [
+            "imputed_vcf",
+            "imputation_qc",
+            "imputation_acceptance",
+            "panel_mismatch_diagnostics"
+          ],
+          "stage": "impute"
+        },
+        "chunking": {
+          "chr_exclude": [],
+          "chr_include": [],
+          "max_parallel_chunks": 8,
+          "overlap_bp": 100000,
+          "window_size_bp": 5000000
+        },
+        "chunks_plan": [
+          {
+            "chunk_id": "1:00000",
+            "contig": "1",
+            "end": 5000000,
+            "start": 1
+          },
+          {
+            "chunk_id": "1:00001",
+            "contig": "1",
+            "end": 9900000,
+            "start": 4900001
+          },
+          {
+            "chunk_id": "1:00002",
+            "contig": "1",
+            "end": 14800000,
+            "start": 9800001
+          },
+          {
+            "chunk_id": "1:00003",
+            "contig": "1",
+            "end": 19700000,
+            "start": 14700001
+          },
+          {
+            "chunk_id": "1:00004",
+            "contig": "1",
+            "end": 24600000,
+            "start": 19600001
+          },
+          {
+            "chunk_id": "1:00005",
+            "contig": "1",
+            "end": 29500000,
+            "start": 24500001
+          },
+          {
+            "chunk_id": "1:00006",
+            "contig": "1",
+            "end": 34400000,
+            "start": 29400001
+          },
+          {
+            "chunk_id": "1:00007",
+            "contig": "1",
+            "end": 39300000,
+            "start": 34300001
+          },
+          {
+            "chunk_id": "1:00008",
+            "contig": "1",
+            "end": 44200000,
+            "start": 39200001
+          },
+          {
+            "chunk_id": "1:00009",
+            "contig": "1",
+            "end": 49100000,
+            "start": 44100001
+          },
+          {
+            "chunk_id": "1:00010",
+            "contig": "1",
+            "end": 54000000,
+            "start": 49000001
+          },
+          {
+            "chunk_id": "1:00011",
+            "contig": "1",
+            "end": 58900000,
+            "start": 53900001
+          },
+          {
+            "chunk_id": "1:00012",
+            "contig": "1",
+            "end": 63800000,
+            "start": 58800001
+          },
+          {
+            "chunk_id": "1:00013",
+            "contig": "1",
+            "end": 68700000,
+            "start": 63700001
+          },
+          {
+            "chunk_id": "1:00014",
+            "contig": "1",
+            "end": 73600000,
+            "start": 68600001
+          },
+          {
+            "chunk_id": "1:00015",
+            "contig": "1",
+            "end": 78500000,
+            "start": 73500001
+          },
+          {
+            "chunk_id": "1:00016",
+            "contig": "1",
+            "end": 83400000,
+            "start": 78400001
+          },
+          {
+            "chunk_id": "1:00017",
+            "contig": "1",
+            "end": 88300000,
+            "start": 83300001
+          },
+          {
+            "chunk_id": "1:00018",
+            "contig": "1",
+            "end": 93200000,
+            "start": 88200001
+          },
+          {
+            "chunk_id": "1:00019",
+            "contig": "1",
+            "end": 98100000,
+            "start": 93100001
+          },
+          {
+            "chunk_id": "1:00020",
+            "contig": "1",
+            "end": 103000000,
+            "start": 98000001
+          },
+          {
+            "chunk_id": "1:00021",
+            "contig": "1",
+            "end": 107900000,
+            "start": 102900001
+          },
+          {
+            "chunk_id": "1:00022",
+            "contig": "1",
+            "end": 112800000,
+            "start": 107800001
+          },
+          {
+            "chunk_id": "1:00023",
+            "contig": "1",
+            "end": 117700000,
+            "start": 112700001
+          },
+          {
+            "chunk_id": "1:00024",
+            "contig": "1",
+            "end": 122600000,
+            "start": 117600001
+          },
+          {
+            "chunk_id": "1:00025",
+            "contig": "1",
+            "end": 127500000,
+            "start": 122500001
+          },
+          {
+            "chunk_id": "1:00026",
+            "contig": "1",
+            "end": 132400000,
+            "start": 127400001
+          },
+          {
+            "chunk_id": "1:00027",
+            "contig": "1",
+            "end": 137300000,
+            "start": 132300001
+          },
+          {
+            "chunk_id": "1:00028",
+            "contig": "1",
+            "end": 142200000,
+            "start": 137200001
+          },
+          {
+            "chunk_id": "1:00029",
+            "contig": "1",
+            "end": 147100000,
+            "start": 142100001
+          },
+          {
+            "chunk_id": "1:00030",
+            "contig": "1",
+            "end": 152000000,
+            "start": 147000001
+          },
+          {
+            "chunk_id": "1:00031",
+            "contig": "1",
+            "end": 156900000,
+            "start": 151900001
+          },
+          {
+            "chunk_id": "1:00032",
+            "contig": "1",
+            "end": 161800000,
+            "start": 156800001
+          },
+          {
+            "chunk_id": "1:00033",
+            "contig": "1",
+            "end": 166700000,
+            "start": 161700001
+          },
+          {
+            "chunk_id": "1:00034",
+            "contig": "1",
+            "end": 171600000,
+            "start": 166600001
+          },
+          {
+            "chunk_id": "1:00035",
+            "contig": "1",
+            "end": 176500000,
+            "start": 171500001
+          },
+          {
+            "chunk_id": "1:00036",
+            "contig": "1",
+            "end": 181400000,
+            "start": 176400001
+          },
+          {
+            "chunk_id": "1:00037",
+            "contig": "1",
+            "end": 186300000,
+            "start": 181300001
+          },
+          {
+            "chunk_id": "1:00038",
+            "contig": "1",
+            "end": 191200000,
+            "start": 186200001
+          },
+          {
+            "chunk_id": "1:00039",
+            "contig": "1",
+            "end": 196100000,
+            "start": 191100001
+          },
+          {
+            "chunk_id": "1:00040",
+            "contig": "1",
+            "end": 201000000,
+            "start": 196000001
+          },
+          {
+            "chunk_id": "1:00041",
+            "contig": "1",
+            "end": 205900000,
+            "start": 200900001
+          },
+          {
+            "chunk_id": "1:00042",
+            "contig": "1",
+            "end": 210800000,
+            "start": 205800001
+          },
+          {
+            "chunk_id": "1:00043",
+            "contig": "1",
+            "end": 215700000,
+            "start": 210700001
+          },
+          {
+            "chunk_id": "1:00044",
+            "contig": "1",
+            "end": 220600000,
+            "start": 215600001
+          },
+          {
+            "chunk_id": "1:00045",
+            "contig": "1",
+            "end": 225500000,
+            "start": 220500001
+          },
+          {
+            "chunk_id": "1:00046",
+            "contig": "1",
+            "end": 230400000,
+            "start": 225400001
+          },
+          {
+            "chunk_id": "1:00047",
+            "contig": "1",
+            "end": 235300000,
+            "start": 230300001
+          },
+          {
+            "chunk_id": "1:00048",
+            "contig": "1",
+            "end": 240200000,
+            "start": 235200001
+          },
+          {
+            "chunk_id": "1:00049",
+            "contig": "1",
+            "end": 245100000,
+            "start": 240100001
+          },
+          {
+            "chunk_id": "1:00050",
+            "contig": "1",
+            "end": 248956422,
+            "start": 245000001
+          },
+          {
+            "chunk_id": "2:00000",
+            "contig": "2",
+            "end": 5000000,
+            "start": 1
+          },
+          {
+            "chunk_id": "2:00001",
+            "contig": "2",
+            "end": 9900000,
+            "start": 4900001
+          },
+          {
+            "chunk_id": "2:00002",
+            "contig": "2",
+            "end": 14800000,
+            "start": 9800001
+          },
+          {
+            "chunk_id": "2:00003",
+            "contig": "2",
+            "end": 19700000,
+            "start": 14700001
+          },
+          {
+            "chunk_id": "2:00004",
+            "contig": "2",
+            "end": 24600000,
+            "start": 19600001
+          },
+          {
+            "chunk_id": "2:00005",
+            "contig": "2",
+            "end": 29500000,
+            "start": 24500001
+          },
+          {
+            "chunk_id": "2:00006",
+            "contig": "2",
+            "end": 34400000,
+            "start": 29400001
+          },
+          {
+            "chunk_id": "2:00007",
+            "contig": "2",
+            "end": 39300000,
+            "start": 34300001
+          },
+          {
+            "chunk_id": "2:00008",
+            "contig": "2",
+            "end": 44200000,
+            "start": 39200001
+          },
+          {
+            "chunk_id": "2:00009",
+            "contig": "2",
+            "end": 49100000,
+            "start": 44100001
+          },
+          {
+            "chunk_id": "2:00010",
+            "contig": "2",
+            "end": 54000000,
+            "start": 49000001
+          },
+          {
+            "chunk_id": "2:00011",
+            "contig": "2",
+            "end": 58900000,
+            "start": 53900001
+          },
+          {
+            "chunk_id": "2:00012",
+            "contig": "2",
+            "end": 63800000,
+            "start": 58800001
+          },
+          {
+            "chunk_id": "2:00013",
+            "contig": "2",
+            "end": 68700000,
+            "start": 63700001
+          },
+          {
+            "chunk_id": "2:00014",
+            "contig": "2",
+            "end": 73600000,
+            "start": 68600001
+          },
+          {
+            "chunk_id": "2:00015",
+            "contig": "2",
+            "end": 78500000,
+            "start": 73500001
+          },
+          {
+            "chunk_id": "2:00016",
+            "contig": "2",
+            "end": 83400000,
+            "start": 78400001
+          },
+          {
+            "chunk_id": "2:00017",
+            "contig": "2",
+            "end": 88300000,
+            "start": 83300001
+          },
+          {
+            "chunk_id": "2:00018",
+            "contig": "2",
+            "end": 93200000,
+            "start": 88200001
+          },
+          {
+            "chunk_id": "2:00019",
+            "contig": "2",
+            "end": 98100000,
+            "start": 93100001
+          },
+          {
+            "chunk_id": "2:00020",
+            "contig": "2",
+            "end": 103000000,
+            "start": 98000001
+          },
+          {
+            "chunk_id": "2:00021",
+            "contig": "2",
+            "end": 107900000,
+            "start": 102900001
+          },
+          {
+            "chunk_id": "2:00022",
+            "contig": "2",
+            "end": 112800000,
+            "start": 107800001
+          },
+          {
+            "chunk_id": "2:00023",
+            "contig": "2",
+            "end": 117700000,
+            "start": 112700001
+          },
+          {
+            "chunk_id": "2:00024",
+            "contig": "2",
+            "end": 122600000,
+            "start": 117600001
+          },
+          {
+            "chunk_id": "2:00025",
+            "contig": "2",
+            "end": 127500000,
+            "start": 122500001
+          },
+          {
+            "chunk_id": "2:00026",
+            "contig": "2",
+            "end": 132400000,
+            "start": 127400001
+          },
+          {
+            "chunk_id": "2:00027",
+            "contig": "2",
+            "end": 137300000,
+            "start": 132300001
+          },
+          {
+            "chunk_id": "2:00028",
+            "contig": "2",
+            "end": 142200000,
+            "start": 137200001
+          },
+          {
+            "chunk_id": "2:00029",
+            "contig": "2",
+            "end": 147100000,
+            "start": 142100001
+          },
+          {
+            "chunk_id": "2:00030",
+            "contig": "2",
+            "end": 152000000,
+            "start": 147000001
+          },
+          {
+            "chunk_id": "2:00031",
+            "contig": "2",
+            "end": 156900000,
+            "start": 151900001
+          },
+          {
+            "chunk_id": "2:00032",
+            "contig": "2",
+            "end": 161800000,
+            "start": 156800001
+          },
+          {
+            "chunk_id": "2:00033",
+            "contig": "2",
+            "end": 166700000,
+            "start": 161700001
+          },
+          {
+            "chunk_id": "2:00034",
+            "contig": "2",
+            "end": 171600000,
+            "start": 166600001
+          },
+          {
+            "chunk_id": "2:00035",
+            "contig": "2",
+            "end": 176500000,
+            "start": 171500001
+          },
+          {
+            "chunk_id": "2:00036",
+            "contig": "2",
+            "end": 181400000,
+            "start": 176400001
+          },
+          {
+            "chunk_id": "2:00037",
+            "contig": "2",
+            "end": 186300000,
+            "start": 181300001
+          },
+          {
+            "chunk_id": "2:00038",
+            "contig": "2",
+            "end": 191200000,
+            "start": 186200001
+          },
+          {
+            "chunk_id": "2:00039",
+            "contig": "2",
+            "end": 196100000,
+            "start": 191100001
+          },
+          {
+            "chunk_id": "2:00040",
+            "contig": "2",
+            "end": 201000000,
+            "start": 196000001
+          },
+          {
+            "chunk_id": "2:00041",
+            "contig": "2",
+            "end": 205900000,
+            "start": 200900001
+          },
+          {
+            "chunk_id": "2:00042",
+            "contig": "2",
+            "end": 210800000,
+            "start": 205800001
+          },
+          {
+            "chunk_id": "2:00043",
+            "contig": "2",
+            "end": 215700000,
+            "start": 210700001
+          },
+          {
+            "chunk_id": "2:00044",
+            "contig": "2",
+            "end": 220600000,
+            "start": 215600001
+          },
+          {
+            "chunk_id": "2:00045",
+            "contig": "2",
+            "end": 225500000,
+            "start": 220500001
+          },
+          {
+            "chunk_id": "2:00046",
+            "contig": "2",
+            "end": 230400000,
+            "start": 225400001
+          },
+          {
+            "chunk_id": "2:00047",
+            "contig": "2",
+            "end": 235300000,
+            "start": 230300001
+          },
+          {
+            "chunk_id": "2:00048",
+            "contig": "2",
+            "end": 240200000,
+            "start": 235200001
+          },
+          {
+            "chunk_id": "2:00049",
+            "contig": "2",
+            "end": 242193529,
+            "start": 240100001
+          }
+        ],
+        "confidence_outputs": [
+          "imputed_vcf",
+          "imputation_qc",
+          "imputation_acceptance",
+          "panel_mismatch_diagnostics"
+        ],
+        "imputation_acceptance_mode": "qc_gated",
+        "impute": true,
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
+        "ne": 10000,
+        "panel_build_required": "GRCh38",
+        "panel_id": "1000g_phase3",
+        "panel_identity_required": true,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "schema_version": "bijux.vcf.impute.params.v1",
+        "tool": "beagle"
+      },
+      "environment": {
+        "command": [
+          "beagle",
+          "impute",
+          "--input",
+          "vcf"
+        ],
+        "image": "quay.io/biocontainers/beagle:5.4--hdfd78af_0",
+        "out_dir": "out/vcf_impute",
+        "resources": {
+          "mem_gb": 16,
+          "runtime": "docker",
+          "threads": 8,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.impute",
+      "step_id": "vcf.impute"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "postprocess_vcf",
+          "optional": false,
+          "path": "out/postprocess_vcf.vcf.gz",
+          "role": "reads"
+        }
+      ],
+      "cache_key": "7d43767e29b9b1f2a259a54566aeb0a9dda4aca78b867a9b6d4f58f7175a8629",
+      "dependencies": [
+        "vcf.impute"
+      ],
+      "effective_parameters_json": {
+        "coverage_regime": "diploid",
+        "normalization_policy": {
+          "duplicate_handling": "refuse_duplicate_records",
+          "left_normalize": true,
+          "policy_id": "diploid_production",
+          "raw_fixture_expectation": "raw_vs_normalized_diploid_fixture",
+          "reference_check": "strict_reference_allele_match",
+          "split_multiallelic": true
+        },
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "report_sections": [
+          "variant_counts",
+          "pass_rates",
+          "missingness",
+          "filter_impact",
+          "annotation_coverage",
+          "per_sample_summary"
+        ],
+        "retain_raw_view": true,
+        "schema_version": "bijux.vcf.postprocess.params.v1",
+        "tool": "bcftools"
+      },
+      "environment": {
+        "command": [
+          "bcftools",
+          "--help"
+        ],
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
+        "out_dir": "out/vcf_postprocess",
+        "resources": {
+          "mem_gb": 4,
+          "runtime": "docker",
+          "threads": 2,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.postprocess",
+      "step_id": "vcf.postprocess"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "population_structure_report",
+          "optional": false,
+          "path": "out/population_structure_report.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "a5ad42cfe01fabae7d291370cfcb405d092a2ef5f8b5bf720190f157a3e0a688",
+      "dependencies": [
+        "vcf.postprocess"
+      ],
+      "effective_parameters_json": {
+        "components": 10,
+        "emit_artifacts": [
+          "eigenvec",
+          "eigenval",
+          "cluster_assignments"
+        ],
+        "guardrail_contract": {
+          "report_caveats": [
+            "cohort_composition_changes_output",
+            "projection_without_context_is_advisory"
+          ],
+          "required_inputs": [
+            "sample_metadata_manifest",
+            "ld_pruning_policy",
+            "maf_threshold",
+            "missingness_threshold"
+          ],
+          "stage": "population_structure"
+        },
+        "interpretation_caveats": [
+          "cohort_composition_changes_output",
+          "projection_without_context_is_advisory"
+        ],
+        "ld_prune": true,
+        "ld_pruning_policy": "plink2_indep_pairwise",
+        "maf_threshold": 0.01,
+        "missingness_threshold": 0.1,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "sample_inclusion_policy": "header_samples_intersect_metadata_manifest",
+        "sample_metadata_manifest_required": true,
+        "schema_version": "bijux.vcf.population_structure.params.v1",
+        "tool": "plink2"
+      },
+      "environment": {
+        "command": [
+          "plink2",
+          "pca",
+          "--structure"
+        ],
+        "image": "quay.io/biocontainers/plink2:2.00a3.7--h5ef6573_0",
+        "out_dir": "out/vcf_population_structure",
+        "resources": {
+          "mem_gb": 4,
+          "runtime": "docker",
+          "threads": 2,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.population_structure",
+      "step_id": "vcf.population_structure"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "roh_report",
+          "optional": false,
+          "path": "out/roh_report.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "ee0362902a9d3386c5a72c8bc7df75e1116661ab52b883e85443693d0d3b2931",
+      "dependencies": [
+        "vcf.population_structure"
+      ],
+      "effective_parameters_json": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "marker_density_floor_declared",
+          "method_assumptions": [
+            "roh_segments_depend_on_variant_density",
+            "pseudohaploid_low_coverage_requires_explicit_support"
+          ],
+          "minimum_cohort_requirement": "single_sample_or_larger_with_explicit_coverage_regime",
+          "missingness_requirement": "missingness_below_roh_threshold",
+          "stage": "roh"
+        },
+        "het_per_window": 1,
+        "max_gap_kb": 100,
+        "min_kb": 500,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "schema_version": "bijux.vcf.roh.params.v1",
+        "tool": "plink2"
+      },
+      "environment": {
+        "command": [
+          "plink2",
+          "roh",
+          "--min-kb",
+          "500"
+        ],
+        "image": "quay.io/biocontainers/plink2:2.00a3.7--h5ef6573_0",
+        "out_dir": "out/vcf_roh",
+        "resources": {
+          "mem_gb": 4,
+          "runtime": "docker",
+          "threads": 2,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.roh",
+      "step_id": "vcf.roh"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "ibd_segments",
+          "optional": false,
+          "path": "out/ibd_segments.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "9432c4e15b520991d8141928598609f9ac2833db1a7926b193869762a24e0b65",
+      "dependencies": [
+        "vcf.roh"
+      ],
+      "effective_parameters_json": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "marker_density_floor_declared",
+          "method_assumptions": [
+            "phase_or_gl_readiness_is_required",
+            "segments_are_model_dependent"
+          ],
+          "minimum_cohort_requirement": "at_least_two_samples",
+          "missingness_requirement": "missingness_below_ibd_threshold",
+          "stage": "ibd"
+        },
+        "min_samples": 2,
+        "min_segment_cm": 3.0,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "sample_constraints": {
+          "allow_related": true,
+          "max_missing": 0.05
+        },
+        "schema_version": "bijux.vcf.ibd.params.v1",
+        "tool": "germline"
+      },
+      "environment": {
+        "command": [
+          "germline",
+          "ibd",
+          "--min-seg",
+          "3.0"
+        ],
+        "image": "quay.io/biocontainers/germline:1.5.3--hdfd78af_0",
+        "out_dir": "out/vcf_ibd",
+        "resources": {
+          "mem_gb": 4,
+          "runtime": "docker",
+          "threads": 2,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.ibd",
+      "step_id": "vcf.ibd"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "demography_report",
+          "optional": false,
+          "path": "out/demography_report.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "23ad42ac72a60613a9ee7b1409f6771e8098e8fb3bf9998d1eabb2266a28dd87",
+      "dependencies": [
+        "vcf.ibd"
+      ],
+      "effective_parameters_json": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "ibd_input_density_must_pass_upstream_gate",
+          "method_assumptions": [
+            "demography_requires_ibdne_ready_segments",
+            "sparse_ibd_reduces_confidence"
+          ],
+          "minimum_cohort_requirement": "ibd_segments_and_multi_sample_cohort_required",
+          "missingness_requirement": "upstream_ibd_missingness_gate_must_pass",
+          "stage": "demography"
+        },
+        "generation_time_years": 29,
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "requires_ibd_input": true,
+        "schema_version": "bijux.vcf.demography.params.v1",
+        "tool": "ibdne"
+      },
+      "environment": {
+        "command": [
+          "ibdne",
+          "estimate-ne",
+          "--from-ibd"
+        ],
+        "image": "quay.io/biocontainers/ibdne:23.05.23.ae9f5b3--hdfd78af_0",
+        "out_dir": "out/vcf_demography",
+        "resources": {
+          "mem_gb": 4,
+          "runtime": "docker",
+          "threads": 2,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.demography",
+      "step_id": "vcf.demography"
+    },
+    {
+      "advisory": true,
+      "artifact_promises": [
+        {
+          "artifact_id": "stats_json",
+          "optional": false,
+          "path": "out/stats_json.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "8693bdcad39a6af57e08224724809496c00e83bf4dea5a61c8a6e5ab891d1e2f",
+      "dependencies": [
+        "vcf.demography"
+      ],
+      "effective_parameters_json": {
+        "coverage_regime": "diploid",
+        "per_sample_sections": [
+          "missingness_by_sample",
+          "called_variants_by_sample",
+          "filter_outliers_by_sample"
+        ],
+        "reference_provenance": {
+          "build_id": "GRCh38",
+          "bundle_id": "hsapiens_grch38_primary",
+          "bundle_lock_sha256": "2a3ead0d4bbd2d0d2eb9f8f246247f75653ef57f087e99fbe49759594ebc6ccf",
+          "contig_set_digest": "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc",
+          "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
+          "species_id": "Homo sapiens"
+        },
+        "report_sections": [
+          "variant_counts",
+          "pass_rates",
+          "missingness",
+          "filter_impact",
+          "annotation_coverage",
+          "per_sample_summary"
+        ],
+        "schema_version": "bijux.vcf.reporting.params.v1",
+        "tool": "bcftools"
+      },
+      "environment": {
+        "command": [
+          "bcftools",
+          "--help"
+        ],
+        "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
+        "out_dir": "out/vcf_stats",
+        "resources": {
+          "mem_gb": 4,
+          "runtime": "docker",
+          "threads": 2,
+          "tmp_gb": 8
+        }
+      },
+      "stage_id": "vcf.stats",
+      "step_id": "vcf.stats"
+    }
+  ],
+  "parameter_traces": [
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "license_policy",
+      "resolved_value": "panel_license_must_match_operator_constraints",
+      "source": "planner_inferred",
+      "stage_id": "vcf.prepare_reference_panel",
+      "step_id": "vcf.prepare_reference_panel"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "coverage_regime",
+      "resolved_value": "diploid",
+      "source": "planner_inferred",
+      "stage_id": "vcf.call_diploid",
+      "step_id": "vcf.call_diploid"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "action_scope",
+      "resolved_value": "site_and_genotype",
+      "source": "planner_inferred",
+      "stage_id": "vcf.damage_filter",
+      "step_id": "vcf.damage_filter"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "coverage_regime",
+      "resolved_value": "diploid",
+      "source": "planner_inferred",
+      "stage_id": "vcf.filter",
+      "step_id": "vcf.filter"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "allow_gl_only_input",
+      "resolved_value": false,
+      "source": "planner_inferred",
+      "stage_id": "vcf.phasing",
+      "step_id": "vcf.phasing"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "boundary_contract",
+      "resolved_value": {
+        "accepted_tools": [
+          "glimpse",
+          "beagle",
+          "impute5",
+          "minimac4"
+        ],
+        "refusal_reasons": [
+          "panel_identity_missing",
+          "map_lock_missing",
+          "panel_build_mismatch",
+          "confidence_outputs_not_declared"
+        ],
+        "required_context": [
+          "panel_identity",
+          "build_compatibility",
+          "map_file",
+          "chunk_plan"
+        ],
+        "required_outputs": [
+          "imputed_vcf",
+          "imputation_qc",
+          "imputation_acceptance",
+          "panel_mismatch_diagnostics"
+        ],
+        "stage": "impute"
+      },
+      "source": "planner_inferred",
+      "stage_id": "vcf.impute",
+      "step_id": "vcf.impute"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "coverage_regime",
+      "resolved_value": "diploid",
+      "source": "planner_inferred",
+      "stage_id": "vcf.postprocess",
+      "step_id": "vcf.postprocess"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "components",
+      "resolved_value": 10,
+      "source": "planner_inferred",
+      "stage_id": "vcf.population_structure",
+      "step_id": "vcf.population_structure"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "cohort_boundary_contract",
+      "resolved_value": {
+        "marker_density_requirement": "marker_density_floor_declared",
+        "method_assumptions": [
+          "roh_segments_depend_on_variant_density",
+          "pseudohaploid_low_coverage_requires_explicit_support"
+        ],
+        "minimum_cohort_requirement": "single_sample_or_larger_with_explicit_coverage_regime",
+        "missingness_requirement": "missingness_below_roh_threshold",
+        "stage": "roh"
+      },
+      "source": "planner_inferred",
+      "stage_id": "vcf.roh",
+      "step_id": "vcf.roh"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "cohort_boundary_contract",
+      "resolved_value": {
+        "marker_density_requirement": "marker_density_floor_declared",
+        "method_assumptions": [
+          "phase_or_gl_readiness_is_required",
+          "segments_are_model_dependent"
+        ],
+        "minimum_cohort_requirement": "at_least_two_samples",
+        "missingness_requirement": "missingness_below_ibd_threshold",
+        "stage": "ibd"
+      },
+      "source": "planner_inferred",
+      "stage_id": "vcf.ibd",
+      "step_id": "vcf.ibd"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "cohort_boundary_contract",
+      "resolved_value": {
+        "marker_density_requirement": "ibd_input_density_must_pass_upstream_gate",
+        "method_assumptions": [
+          "demography_requires_ibdne_ready_segments",
+          "sparse_ibd_reduces_confidence"
+        ],
+        "minimum_cohort_requirement": "ibd_segments_and_multi_sample_cohort_required",
+        "missingness_requirement": "upstream_ibd_missingness_gate_must_pass",
+        "stage": "demography"
+      },
+      "source": "planner_inferred",
+      "stage_id": "vcf.demography",
+      "step_id": "vcf.demography"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "coverage_regime",
+      "resolved_value": "diploid",
+      "source": "planner_inferred",
+      "stage_id": "vcf.stats",
+      "step_id": "vcf.stats"
+    }
+  ],
+  "pipeline_id": "vcf-to-vcf__downstream_diploid_sctx_0a9734ff9d35__v2",
+  "plan_fingerprint": "428bf8a6988bfdae2b63bcde2947ec5e70e15730474cc3c2f18d931fb2288ac6",
+  "planner_version": "bijux-dna-planner-vcf.v2",
+  "policy": "PreferAccuracy",
+  "profile_id": "vcf-downstream",
+  "schema_version": "bijux.plan_manifest.v1",
+  "stage_decisions": [
+    {
+      "decision": "included",
+      "reason": "included in deterministic plan",
+      "stage_id": "vcf.filter"
+    },
+    {
+      "decision": "advisory",
+      "reason": "included with advisory-only semantics",
+      "stage_id": "vcf.stats"
+    }
+  ],
+  "warning_records": [
+    {
+      "code": "advisory_stage",
+      "message": "stats stage treated as advisory in this contract",
+      "stage_id": "vcf.stats"
+    }
+  ],
+  "workflow_fingerprint": "1e06fe84930494424437235836e080adf168b0ad311c4b9357d376aaeded02e4"
+}

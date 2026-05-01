@@ -24,7 +24,7 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-stages-vcf --no
 - `tests/contracts.rs` includes the focused `tests/contracts/` files for pipeline,
   stage, IO, invariant, imputation, panel, phasing, population, and real-tool
   behavior.
-- `tests/guardrails.rs` loads the workspace policy guardrail for this crate.
+- `tests/guardrails.rs` loads the repository policy guardrail for this crate.
 
 ## External Tool Tests
 

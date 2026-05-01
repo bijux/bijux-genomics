@@ -3,6 +3,7 @@ stage_id: "vcf.population_structure"
 status: "planned"
 scope: "post_vcf"
 domain: "vcf"
+description: "VCF stage contract for vcf.population_structure in the governed domain registry."
 inputs:
   - name: "filtered_vcf"
     data_type: "vcf"
@@ -13,6 +14,7 @@ outputs:
     cardinality: "One"
 required_inputs: ["filtered_vcf"]
 required_outputs: ["population_structure_report"]
+tool_capability_requirements: []
 metrics:
   - name: "pca_variance_explained"
   - name: "pc_axes"
@@ -27,5 +29,6 @@ assumptions:
   - "population_structure_outputs_emit_metrics_json_with_schema_bijux.vcf.population_structure.v1"
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
-allowed_missingness: []
+allowed_missingness:
+  - "none"
 planned_out_of_scope: ["full scientific validation pending downstream admission"]

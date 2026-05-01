@@ -73,6 +73,7 @@ bijux-dna-analyze = { path = "crates/bijux-dna-analyze" }
 bijux-dna-api = { path = "crates/bijux-dna-api" }
 bijux-dna-core = { path = "crates/bijux-dna-core" }
 bijux-dna-db-ena = { path = "crates/bijux-dna-db-ena" }
+bijux-dna-db-ref = { path = "crates/bijux-dna-db-ref" }
 bijux-dna-domain-bam = { path = "crates/bijux-dna-domain-bam" }
 bijux-dna-domain-compiler = { path = "crates/bijux-dna-domain-compiler" }
 bijux-dna-domain-fastq = { path = "crates/bijux-dna-domain-fastq" }

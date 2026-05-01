@@ -39,7 +39,7 @@ const CONTAINER_RUNNER_DOMAIN_CONTRACTS: &[PrefixDomainStageRunnerContract] = &[
 /// Returns an error when no runner contract can execute the stage.
 pub fn ensure_stage_supported_by_runner(runner: RunnerContractKind, stage_id: &str) -> Result<()> {
     let contracts: &[PrefixDomainStageRunnerContract] = match runner {
-        RunnerContractKind::Docker | RunnerContractKind::Apptainer => {
+        RunnerContractKind::Local | RunnerContractKind::Docker | RunnerContractKind::Apptainer => {
             CONTAINER_RUNNER_DOMAIN_CONTRACTS
         }
     };

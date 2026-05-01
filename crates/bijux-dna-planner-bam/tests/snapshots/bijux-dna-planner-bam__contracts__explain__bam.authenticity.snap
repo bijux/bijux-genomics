@@ -1,11 +1,29 @@
 ---
 source: crates/bijux-dna-planner-bam/tests/contracts/explain/explainability.rs
+assertion_line: 128
 expression: reason_json
 ---
 {
   "details": {
-    "contract_hash": "7bed6c58704cbfe765606864d3a816ef30912a844e4757cf59d0abaed786f5ff",
-    "defaults_diff": {}
+    "contract_hash": "dae8ca01c8d45cd672d4021abc2ed1ed328cfa1b0e2b87fb8f811d608b993dca",
+    "defaults_diff": {},
+    "resource_plan": {
+      "cpu_threads": 4,
+      "disk_gb": 4,
+      "input_bytes": 0,
+      "input_origin": "real",
+      "input_scale": "tiny",
+      "io_profile": "balanced_compute_and_io",
+      "memory_gb": 4,
+      "notes": [
+        "sorting/indexing/validation chain dominates temporary storage"
+      ],
+      "requires_index": true,
+      "schema_version": "bijux.bam.resource_plan.v1",
+      "scratch_gb": 4,
+      "stage_id": "bam.authenticity",
+      "walltime_minutes": 14
+    }
   },
   "kind": "default",
   "summary": "tool pmdtools selected by planner"

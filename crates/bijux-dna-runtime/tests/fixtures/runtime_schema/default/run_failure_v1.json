@@ -1,0 +1,1 @@
+{"failure_code":"runner_execution_failed","message":"step failed after retries: fastq.validate_reads","mode":"enforced","observed_at":"2024-01-01T00:00:10Z","retryable":true,"run_id":"run-1","schema_version":"bijux.run_failure.v1","stage_id":"fastq.validate_reads","state":"failed","step_id":"fastq.validate_reads"}

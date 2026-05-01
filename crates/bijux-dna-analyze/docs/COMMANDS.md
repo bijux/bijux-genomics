@@ -3,8 +3,11 @@
 This file is the single source of truth for commands owned by `bijux-dna-analyze`.
 
 ## Runtime Command Surface
-This crate does not own a CLI binary or subcommands. It owns the library entrypoint
-`analyze_run(input: &AnalyzeInput)` and the following `AnalyzeMode` variants:
+This crate owns the library entrypoint `analyze_run(input: &AnalyzeInput)` and the
+`bijux-dna-verify` utility binary for external bundle verification and release-facing
+evidence materialization.
+
+Library-mode entrypoint variants:
 
 - `Report`: load facts, validate inputs, compute derived analysis, build a report model, and render
   configured report outputs.
@@ -12,7 +15,17 @@ This crate does not own a CLI binary or subcommands. It owns the library entrypo
 - `Compare`: compare two completed run directories and write `compare.json`.
 - `Rank`: compute ranking data from loaded facts and render ranking outputs when configured.
 
-CLI crates must route user-facing commands into these modes instead of duplicating analysis policy.
+`bijux-dna-verify` commands:
+
+- `verify-evidence <evidence_bundle.json>`
+- `verify-profile <profile_bundle.json>`
+- `write-methods <run_dir> [facts.jsonl]`
+- `write-profile <run_dir> [profile] [facts.jsonl]`
+- `challenge-submit <run_dir> <artifact_id> <evidence_path> <report_field> <caveat> <question> <requested_by>`
+- `challenge-list <run_dir>`
+
+Other CLI crates should route user-facing analysis commands into these modes/surfaces
+instead of duplicating analysis policy.
 
 ## Required Local Checks
 Use the repository root as the working directory for every command.

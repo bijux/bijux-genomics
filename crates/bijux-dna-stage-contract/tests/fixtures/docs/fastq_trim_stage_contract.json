@@ -1,0 +1,106 @@
+{
+  "backend_tool_id": "fastp",
+  "backend_version_policy": "pinned",
+  "capability_contract": {
+    "compression": [
+      "gzip"
+    ],
+    "index": "none",
+    "layouts": [
+      "paired_end"
+    ],
+    "output_formats": [
+      "fastq.gz",
+      "json"
+    ],
+    "reference": "none",
+    "unsupported_parameter_combinations": [
+      {
+        "parameters": {
+          "adapter_preset": "legacy-single-end"
+        },
+        "reason": "legacy preset is not admitted for paired-end governed runs"
+      }
+    ]
+  },
+  "environment_requirements": {
+    "executables": [
+      "fastp"
+    ],
+    "mounts": [
+      "workdir"
+    ],
+    "variables": [
+      "TMPDIR"
+    ]
+  },
+  "input_artifacts": [
+    {
+      "artifact_role": "reads",
+      "cardinality": "One",
+      "data_type": "fastq",
+      "name": "reads_r1"
+    },
+    {
+      "artifact_role": "reads",
+      "cardinality": "One",
+      "data_type": "fastq",
+      "name": "reads_r2"
+    }
+  ],
+  "operating_mode": "enforced",
+  "output_artifacts": [
+    {
+      "artifact_role": "trimmed_reads",
+      "cardinality": "One",
+      "data_type": "fastq",
+      "name": "trimmed_reads_r1"
+    },
+    {
+      "artifact_role": "trimmed_reads",
+      "cardinality": "One",
+      "data_type": "fastq",
+      "name": "trimmed_reads_r2"
+    },
+    {
+      "artifact_role": "report_json",
+      "cardinality": "One",
+      "data_type": "json",
+      "name": "report_json"
+    }
+  ],
+  "parameters": [
+    {
+      "aliases": [
+        "quality"
+      ],
+      "default": "20",
+      "name": "min_quality",
+      "param_type": "integer"
+    }
+  ],
+  "refusal_codes": [
+    "unsupported_layout",
+    "unsafe_override"
+  ],
+  "report_contracts": [
+    {
+      "advisory_fields": [
+        "notes"
+      ],
+      "kind": "qc",
+      "report_id": "fastq.trim_reads.report",
+      "required_fields": [
+        "stage_id",
+        "tool_id",
+        "reads_in",
+        "reads_out"
+      ],
+      "schema_version": "bijux.fastq.trim_reads.report.v1",
+      "severity": "warning"
+    }
+  ],
+  "semantic_kind": "filter",
+  "stage_family": "fastq",
+  "stage_id": "fastq.trim_reads"
+}

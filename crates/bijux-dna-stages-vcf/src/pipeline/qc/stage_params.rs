@@ -199,6 +199,7 @@ pub struct PostprocessStageOutputs {
     pub merged_tbi: PathBuf,
     pub merged_bcf: Option<PathBuf>,
     pub artifact_checksums_json: PathBuf,
+    pub normalization_contract_json: PathBuf,
     pub validate_outputs_json: PathBuf,
     pub final_manifest_json: PathBuf,
     pub logs_txt: PathBuf,

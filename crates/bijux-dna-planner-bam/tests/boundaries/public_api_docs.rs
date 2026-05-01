@@ -19,9 +19,12 @@ fn public_api_docs_match_root_exports() {
             "BamPipelineInputs",
             "BamPlanConfig",
             "StagePlanRequest",
+            "bam_workflow_template_catalog",
             "plan_stage",
+            "plan_bam_to_bam__default__v1",
             "plan_bam_to_bam__adna_shotgun__v1",
             "plan_bam_to_bam__adna_capture__v1",
+            "plan_bam_workflow_template",
             "pipeline_id_catalog",
             "report_stage_step",
             "stage_api",
@@ -35,6 +38,7 @@ fn public_api_docs_match_root_exports() {
 fn documented_root_exports_remain_compilable() {
     use anyhow::Result;
     use bijux_dna_core::contract::{ArtifactRef, ExecutionGraph, ExecutionStep};
+    use bijux_dna_domain_bam::BamWorkflowTemplateV1;
     use bijux_dna_planner_bam::{
         BamPipelineInputs, BamPlanConfig, StagePlanRequest, PLANNER_VERSION,
     };
@@ -45,10 +49,16 @@ fn documented_root_exports_remain_compilable() {
     let _: fn(&BamPlanConfig) -> Result<ExecutionGraph> = bijux_dna_planner_bam::BamPlanner::plan;
     let _: for<'a> fn(StagePlanRequest<'a>) -> Result<StagePlanV1> =
         bijux_dna_planner_bam::plan_stage;
+    let _: fn() -> Vec<BamWorkflowTemplateV1> =
+        bijux_dna_planner_bam::bam_workflow_template_catalog;
+    let _: fn(&BamPipelineInputs) -> Result<ExecutionGraph> =
+        bijux_dna_planner_bam::plan_bam_to_bam__default__v1;
     let _: fn(&BamPipelineInputs) -> Result<ExecutionGraph> =
         bijux_dna_planner_bam::plan_bam_to_bam__adna_shotgun__v1;
     let _: fn(&BamPipelineInputs) -> Result<ExecutionGraph> =
         bijux_dna_planner_bam::plan_bam_to_bam__adna_capture__v1;
+    let _: fn(&str, &BamPipelineInputs) -> Result<ExecutionGraph> =
+        bijux_dna_planner_bam::plan_bam_workflow_template;
     let _: fn(&str) -> Vec<String> = bijux_dna_planner_bam::pipeline_id_catalog;
     let _: fn(&Path, Vec<ArtifactRef>, Vec<ArtifactRef>) -> ExecutionStep =
         bijux_dna_planner_bam::report_stage_step;

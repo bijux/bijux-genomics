@@ -12,10 +12,12 @@ fn dependency_graph_matches_compiler_boundary() {
         "anyhow",
         "bijux-dna-domain-bam",
         "bijux-dna-domain-fastq",
+        "bijux-dna-domain-vcf",
         "bijux-dna-infra",
         "clap",
         "serde",
         "serde_json",
+        "serde_yaml",
         "sha2",
         "toml",
     ]
@@ -37,7 +39,12 @@ fn dependency_graph_matches_compiler_boundary() {
         manifest.contains("tempfile.workspace = true"),
         "tempfile must use the workspace dependency declaration"
     );
-    for dependency in ["bijux-dna-domain-bam", "bijux-dna-domain-fastq", "bijux-dna-infra"] {
+    for dependency in [
+        "bijux-dna-domain-bam",
+        "bijux-dna-domain-fastq",
+        "bijux-dna-domain-vcf",
+        "bijux-dna-infra",
+    ] {
         assert!(
             manifest.contains(&format!("{dependency}.workspace = true"))
                 || manifest.contains(&format!("{dependency} = {{ workspace = true")),

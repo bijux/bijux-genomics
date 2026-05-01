@@ -44,6 +44,7 @@ fn validate_execution_outputs_enforces_contract() -> Result<(), Box<dyn std::err
         optional_outputs: vec![],
         forbidden_outputs: vec!["bad.fastq".to_string()],
         forbid_unexpected_outputs: true,
+        requires_provenance: false,
     };
 
     validate_execution_outputs(&contract, out_dir)?;
@@ -69,6 +70,7 @@ fn validate_execution_outputs_allows_optional_outputs_in_strict_mode(
         optional_outputs: vec!["metrics.json".to_string()],
         forbidden_outputs: vec![],
         forbid_unexpected_outputs: true,
+        requires_provenance: false,
     };
 
     validate_execution_outputs(&contract, out_dir)?;

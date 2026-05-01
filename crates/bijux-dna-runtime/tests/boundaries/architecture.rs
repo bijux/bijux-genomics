@@ -161,6 +161,7 @@ fn runtime_test_tree_matches_architecture_contract() {
             "canonical_writer.rs",
             "docs_layout.rs",
             "experimental_registry_alias.rs",
+            "inventory_compatibility.rs",
             "manifest_integrity.rs",
             "reference/",
             "reference.rs",

@@ -4,6 +4,52 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
   "capabilities": {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.mapping_summary",
+        "bam.filter",
+        "bam.length_filter",
+        "bam.damage",
+        "bam.authenticity",
+        "bam.contamination",
+        "bam.coverage"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "post_mortem_damage",
+        "low_coverage_uncertainty"
+      ],
+      "story_order": [
+        "bam_admission",
+        "damage_evidence",
+        "contamination_evidence",
+        "qc_summary"
+      ]
+    },
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "samples that fail BAM integrity checks are skipped with explicit refusal evidence",
+        "stage_family": "ingestion"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "failed preprocessing blocks downstream sample metrics while batch peers continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries proceed with missing-sample caveats and retained refusal reasons",
+        "stage_family": "reporting"
+      }
+    ],
     "input_artifacts": [
       "Bam"
     ],
@@ -17,6 +63,24 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "output_domains": [
       "Bam"
     ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.contamination": [
+          "minimum_mean_coverage",
+          "scope"
+        ],
+        "bam.damage": [
+          "pmd_threshold_5p",
+          "pmd_threshold_3p"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.authenticity": [
+          "disallow_certification"
+        ]
+      }
+    },
     "produces_outputs": [
       "bam",
       "bam.metrics"
@@ -57,17 +121,27 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "bam.contamination",
       "bam.sex"
     ],
-    "supports_benchmarks": true
+    "supports_benchmarks": true,
+    "supports_sample_sheet": false,
+    "workflow_template_ids": [
+      "bam.ancient_dna_qc"
+    ]
   },
   "defaults": {
     "params": {
       "bam.authenticity": {
+        "disallow_certification": true,
+        "evidence_only": true,
         "mode": "aggregate"
       },
       "bam.contamination": {
         "assumptions": null,
+        "chromosome_system": null,
+        "emit_confidence_caveats": true,
+        "minimum_mean_coverage": 0.5,
         "prior": null,
         "reference_panels": [],
+        "required_reference_digest": null,
         "scope": "both",
         "sex_specific": false
       },
@@ -77,9 +151,12 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           3,
           5
         ],
+        "regime_mode": "advisory_and_enforced",
         "regions": null
       },
       "bam.damage": {
+        "damage_tool_profile": "ancient_dna_evidence",
+        "evidence_only": true,
         "pmd_threshold_3p": 0.3,
         "pmd_threshold_5p": 0.3,
         "trim_3p": 2,
@@ -95,6 +172,9 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "depth_thresholds": [
           1
         ],
+        "host_reference_digest": null,
+        "host_reference_scope": "host_reference_required",
+        "refuse_without_host_reference": true,
         "regions": null
       },
       "bam.filter": {
@@ -125,8 +205,11 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         "remove_duplicates": false
       },
       "bam.sex": {
+        "chromosome_system": "xy",
         "expected_sex": null,
-        "method": "rxy"
+        "method": "rxy",
+        "minimum_y_sites": 100,
+        "refuse_without_context": true
       },
       "bam.validate": {
         "strict": true

@@ -10,7 +10,10 @@ fn dependency_graph_matches_dev_boundary() {
     let dependencies = section_keys(&manifest, "[dependencies]");
     let expected_dependencies: BTreeSet<_> = [
         "anyhow",
+        "bijux-dna-api",
         "bijux-dna-core",
+        "bijux-dna-db-ena",
+        "bijux-dna-db-ref",
         "bijux-dna-infra",
         "chrono",
         "clap",

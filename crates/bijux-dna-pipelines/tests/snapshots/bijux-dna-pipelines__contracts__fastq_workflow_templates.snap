@@ -1,0 +1,979 @@
+---
+source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+[
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.profile_read_lengths",
+        "fastq.profile_overrepresented_sequences",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "raw_input_only",
+        "no_trimming_or_filtering"
+      ],
+      "story_order": [
+        "read_admission",
+        "sequence_composition",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "fastq_essential_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.profile_reads": [
+          "gc_content_bins"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "fastq.validate_reads": [
+          "strictness_level"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-fastq__qc_only__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.profile_read_lengths",
+      "fastq.profile_overrepresented_sequences",
+      "fastq.profile_reads",
+      "fastq.report_qc"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "lane_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Raw-read QC-only template with validation, read-length profiling, overrepresented sequence profiling, and governed report caveats.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "fastq.qc_only_review"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "adapter_detection_confidence",
+        "low_complexity_drop_risk"
+      ],
+      "story_order": [
+        "read_admission",
+        "trimming_effect",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "fastq_essential_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.detect_adapters": [
+          "kmer_size",
+          "seed_mismatches"
+        ],
+        "fastq.filter_reads": [
+          "minimum_quality",
+          "max_n_rate"
+        ],
+        "fastq.trim_reads": [
+          "min_length",
+          "adapter_mode"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "fastq.trim_reads": [
+          "preserve_pairing"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-fastq__trim_qc__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.detect_adapters",
+      "fastq.trim_reads",
+      "fastq.filter_reads",
+      "fastq.profile_reads",
+      "fastq.report_qc"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "lane_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Trim-and-QC preprocessing template with adapter detection, trim/filter policy, and post-trim report outputs.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "fastq.trim_qc"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.extract_umis",
+        "fastq.remove_duplicates",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "umi_pattern_assumptions",
+        "deduplication_bias"
+      ],
+      "story_order": [
+        "read_admission",
+        "umi_provenance",
+        "dedup_effect",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "fastq_essential_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.extract_umis": [
+          "pattern",
+          "allow_partial"
+        ],
+        "fastq.remove_duplicates": [
+          "method",
+          "umi_edit_distance"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "fastq.extract_umis": [
+          "barcode_slot_order"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-fastq__umi__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.extract_umis",
+      "fastq.remove_duplicates",
+      "fastq.trim_reads",
+      "fastq.filter_reads",
+      "fastq.profile_reads",
+      "fastq.report_qc"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "lane_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "UMI-aware FASTQ template for UMI extraction, grouping-oriented dedup, and provenance-rich QC handoff.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "fastq.umi_aware_preprocessing"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "core.prepare_reference",
+        "fastq.deplete_host",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": [
+        "core.prepare_reference"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "reference_identity",
+        "off_target_depletion_risk"
+      ],
+      "story_order": [
+        "read_admission",
+        "depletion_balance",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "fastq_essential_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "shared_reference_bundle",
+        "fan_pattern": "fan_out",
+        "lineage_fields": [
+          "reference_id"
+        ],
+        "overwrite_strategy": "write_once_reuse_many",
+        "source_stage": "core.prepare_reference",
+        "target_stage": "fastq.deplete_host"
+      }
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.deplete_host": [
+          "min_match_identity",
+          "max_multimap"
+        ],
+        "fastq.filter_reads": [
+          "minimum_quality"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "core.prepare_reference": [
+          "reference_build"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-fastq__host_depletion__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.trim_reads",
+      "fastq.filter_reads",
+      "core.prepare_reference",
+      "fastq.deplete_host",
+      "fastq.profile_reads",
+      "fastq.report_qc"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": true,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "lane_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Host-depletion FASTQ template with governed reference preparation, host depletion, and retained-versus-rejected evidence reporting.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "fastq.host_depletion"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "core.prepare_reference",
+        "fastq.deplete_rrna",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": [
+        "core.prepare_reference"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "rrna_database_identity",
+        "cross_species_hit_risk"
+      ],
+      "story_order": [
+        "read_admission",
+        "depletion_balance",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "fastq_essential_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "shared_reference_bundle",
+        "fan_pattern": "fan_out",
+        "lineage_fields": [
+          "reference_id"
+        ],
+        "overwrite_strategy": "write_once_reuse_many",
+        "source_stage": "core.prepare_reference",
+        "target_stage": "fastq.deplete_rrna"
+      }
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.deplete_rrna": [
+          "seed_length",
+          "max_edit_distance"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "core.prepare_reference": [
+          "rrna_db_release"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-fastq__rrna_depletion__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.trim_reads",
+      "fastq.filter_reads",
+      "core.prepare_reference",
+      "fastq.deplete_rrna",
+      "fastq.profile_reads",
+      "fastq.report_qc"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": true,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "lane_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "rRNA-depletion FASTQ template with reference DB preparation, depletion, and DB identity caveats in reports.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "fastq.rrna_depletion"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "core.prepare_reference",
+        "fastq.deplete_reference_contaminants",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": [
+        "core.prepare_reference"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "contaminant_db_scope",
+        "false_positive_depletion"
+      ],
+      "story_order": [
+        "read_admission",
+        "depletion_balance",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "fastq_essential_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "shared_reference_bundle",
+        "fan_pattern": "fan_out",
+        "lineage_fields": [
+          "reference_id"
+        ],
+        "overwrite_strategy": "write_once_reuse_many",
+        "source_stage": "core.prepare_reference",
+        "target_stage": "fastq.deplete_reference_contaminants"
+      }
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.deplete_reference_contaminants": [
+          "minimum_match_length",
+          "max_mismatch_rate"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "core.prepare_reference": [
+          "contaminant_catalog_hash"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-fastq__contaminant_depletion__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.trim_reads",
+      "fastq.filter_reads",
+      "core.prepare_reference",
+      "fastq.deplete_reference_contaminants",
+      "fastq.profile_reads",
+      "fastq.report_qc"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": true,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "lane_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Contaminant-depletion FASTQ template with governed contaminant DB preparation and caveated depletion reports.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "fastq.contaminant_depletion"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.normalize_primers",
+        "fastq.filter_reads",
+        "fastq.remove_chimeras",
+        "fastq.cluster_otus",
+        "fastq.infer_asvs",
+        "fastq.screen_taxonomy",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "primer_bank_selection",
+        "taxonomy_db_limits"
+      ],
+      "story_order": [
+        "read_admission",
+        "amplicon_cleaning",
+        "taxonomy_screening",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "fastq_essential_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.cluster_otus": [
+          "identity_threshold"
+        ],
+        "fastq.infer_asvs": [
+          "denoise_method"
+        ],
+        "fastq.normalize_primers": [
+          "primer_bank_id",
+          "mismatch_budget"
+        ],
+        "fastq.screen_taxonomy": [
+          "taxonomy_rank",
+          "confidence_floor"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "fastq.normalize_primers": [
+          "primer_version"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-fastq__edna_metabarcoding__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.normalize_primers",
+      "fastq.filter_reads",
+      "fastq.remove_chimeras",
+      "fastq.cluster_otus",
+      "fastq.infer_asvs",
+      "fastq.screen_taxonomy",
+      "fastq.profile_reads",
+      "fastq.report_qc"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "lane_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "eDNA/metabarcoding FASTQ template with primer handling, chimera control, OTU/ASV branching, and taxonomy screening caveats.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "fastq.edna_metabarcoding"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.merge_pairs",
+        "fastq.trim_terminal_damage",
+        "fastq.filter_low_complexity",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "low_input_regime",
+        "post_mortem_damage_bias"
+      ],
+      "story_order": [
+        "read_admission",
+        "damage_aware_preprocessing",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "fastq_reference_adna_review"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.merge_pairs": [
+          "minimum_overlap",
+          "max_mismatch_rate"
+        ],
+        "fastq.trim_terminal_damage": [
+          "five_prime_trim",
+          "three_prime_trim"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "fastq.trim_terminal_damage": [
+          "udg_assumption"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-fastq__reference_adna__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.merge_pairs",
+      "fastq.trim_terminal_damage",
+      "fastq.filter_low_complexity",
+      "fastq.filter_reads",
+      "fastq.profile_reads",
+      "fastq.report_qc"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "lane_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Ancient-DNA FASTQ preprocessing template with merge, damage-aware trimming, low-complexity control, and low-input caveats.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "fastq.ancient_dna_preprocessing"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters",
+        "fastq.normalize_primers",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "bank_version_drift",
+        "assay_coverage_gap"
+      ],
+      "story_order": [
+        "read_admission",
+        "bank_comparison",
+        "assay_applicability",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "fastq_essential_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.detect_adapters": [
+          "seed_mismatches"
+        ],
+        "fastq.normalize_primers": [
+          "primer_bank_id",
+          "assay_id"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "fastq.normalize_primers": [
+          "primer_version"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-fastq__amplicon_standard__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.detect_adapters",
+      "fastq.normalize_primers",
+      "fastq.profile_reads",
+      "fastq.report_qc"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "lane_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Adapter/primer bank review workflow that compares bank selection, assay applicability, and version-to-version changes.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "fastq.adapter_primer_bank_review"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.detect_adapters",
+        "fastq.trim_reads",
+        "fastq.filter_reads",
+        "fastq.profile_reads",
+        "fastq.report_qc"
+      ],
+      "shared_reference_stages": []
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "policy_comparison_context",
+        "downstream_shift_uncertainty"
+      ],
+      "story_order": [
+        "read_admission",
+        "policy_delta",
+        "retention_shift",
+        "qc_summary"
+      ]
+    },
+    "example_ids": [
+      "fastq_essential_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample fails quality admission and is skipped with explicit caveats",
+        "stage_family": "preflight"
+      },
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample preprocessing halts for failed samples while other batch members continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "reporting continues and emits incomplete-sample caveats for any skipped sample",
+        "stage_family": "reporting"
+      }
+    ],
+    "fan_artifact_rules": [],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "fastq.filter_reads": [
+          "minimum_quality",
+          "max_n_rate"
+        ],
+        "fastq.profile_reads": [
+          "policy_run_label"
+        ],
+        "fastq.trim_reads": [
+          "min_length",
+          "adapter_mode"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "fastq.validate_reads": [
+          "strictness_level"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-fastq__trim_qc__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.detect_adapters",
+      "fastq.trim_reads",
+      "fastq.filter_reads",
+      "fastq.profile_reads",
+      "fastq.report_qc"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": false,
+    "requires_sample_metadata": [
+      "run_id",
+      "sample_id",
+      "library_id",
+      "lane_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "FASTQ preprocessing policy-diff workflow comparing trim/filter/depletion policy deltas against read retention and downstream artifact shifts.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "fastq.preprocessing_policy_diff"
+  }
+]

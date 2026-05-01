@@ -1,10 +1,14 @@
 mod input_layout;
 mod layout_catalog;
+mod layout_policy;
 mod model;
 mod profiles;
 mod readiness;
 
 pub use input_layout::{filter_tools_for_input_layout, tool_supports_input_layout};
+pub use layout_policy::{
+    declared_input_layouts_for_stage, stage_accepts_input_layout, FastqStageLayoutPolicy,
+};
 pub use model::{
     BenchmarkReadinessLevel, RuntimeNormalizationLevel, StageBenchmarkGovernance,
     StageToolBenchmarkContractMaturity, StageToolCapabilityContract, StageToolGovernanceProfile,

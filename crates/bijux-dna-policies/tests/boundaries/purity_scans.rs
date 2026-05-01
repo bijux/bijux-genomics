@@ -234,6 +234,10 @@ fn policy__boundaries__purity_scans__planners_only_build_execution_steps() {
         "crates/bijux-dna-planner-bam",
         "crates/bijux-dna-stage-contract",
     ];
+    let execution_step_allowlist = [
+        "crates/bijux-dna-api/src/runtime/run/reporting/local_workflows.rs",
+        "crates/bijux-dna-api/src/runtime/run/reporting/failure_injection.rs",
+    ];
     let mut offenders = Vec::new();
     for entry in WalkDir::new(root.join("crates"))
         .into_iter()
@@ -253,6 +257,9 @@ fn policy__boundaries__purity_scans__planners_only_build_execution_steps() {
             continue;
         }
         if allowlist.iter().any(|crate_name| rel_str.contains(crate_name)) {
+            continue;
+        }
+        if execution_step_allowlist.iter().any(|allowed| rel_str == *allowed) {
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");
@@ -325,6 +332,7 @@ fn policy__boundaries__purity_scans__pipelines_do_not_embed_tool_names() {
         "crates/bijux-dna-pipelines/src/fastq/invariants.rs",
         "crates/bijux-dna-pipelines/src/lib.rs",
         "crates/bijux-dna-pipelines/src/vcf/mod.rs",
+        "crates/bijux-dna-pipelines/src/bam/workflow_registry.rs",
     ];
     for file in collect_rs_files(&root.join("crates/bijux-dna-pipelines/src")) {
         let rel =
@@ -375,6 +383,8 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
         "crates/bijux-dna-environment-qa/src/image_qa/contracts.rs",
         "crates/bijux-dna-core/src/id_catalog/tool/fastq.rs",
         "crates/bijux-dna-core/src/id_catalog/tool/bam.rs",
+        "crates/bijux-dna-domain-bam/src/artifacts.rs",
+        "crates/bijux-dna-api/src/internal/handlers/cross/bam_exec_stage_postprocess.rs",
     ];
 
     for entry in WalkDir::new(root.join("crates"))

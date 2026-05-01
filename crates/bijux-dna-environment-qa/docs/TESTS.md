@@ -13,7 +13,7 @@ TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo te
 ## Boundaries Suite
 
 - `tests/boundaries/architecture.rs`: crate root, docs, source, and test layout.
-- `tests/boundaries/guardrails/guardrails.rs`: workspace policy guardrails.
+- `tests/boundaries/guardrails/guardrails.rs`: repository policy guardrails.
 - `tests/boundaries/guardrails/offline_guardrails.rs`: offline-by-default documentation.
 - Command, dependency, and public API boundaries should fail when contracts drift.
 

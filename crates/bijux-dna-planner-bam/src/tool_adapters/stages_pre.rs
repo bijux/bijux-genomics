@@ -91,6 +91,9 @@ pub mod validate {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -192,7 +195,9 @@ pub mod align {
                 "reference": reference,
                 "sample_id": sample_id,
                 "aligner": effective.aligner,
+                "strategy_id": effective.strategy_id,
                 "preset": effective.preset,
+                "mode": effective.mode,
                 "threads": effective.threads,
                 "build_indices": effective.build_indices,
                 "read_group": {
@@ -200,7 +205,13 @@ pub mod align {
                     "sample": effective.read_group.sample,
                     "platform": effective.read_group.platform,
                     "library": effective.read_group.library,
+                    "platform_unit": effective.read_group.platform_unit,
+                    "lane_id": effective.read_group.lane_id,
+                    "run_id": effective.read_group.run_id,
                 }
+                ,
+                "sensitivity_profile": effective.sensitivity_profile,
+                "seed_length": effective.seed_length
             }),
             effective_params: crate::tool_adapters::stages_support::ensure_effective_params(
                 serde_json::to_value(&effective).map_err(|error| {
@@ -208,6 +219,9 @@ pub mod align {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -288,6 +302,9 @@ pub mod qc_pre {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -364,6 +381,9 @@ pub mod mapping_summary {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -469,6 +489,9 @@ pub mod filter {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(
@@ -719,6 +742,9 @@ pub mod overlap_correction {
                 })?,
             )?,
             aux_images: std::collections::BTreeMap::new(),
+            operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+            canonical_contract: None,
+            provenance: None,
             reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
         };
         crate::tool_adapters::stages_support::ensure_required_outputs(

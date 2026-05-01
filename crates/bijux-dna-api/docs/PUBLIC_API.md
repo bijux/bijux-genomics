@@ -14,12 +14,14 @@ enter through `bijux_dna_api::v1::api`.
 `src/v1/api/front_door.rs` exports:
 
 - Operations: `plan`, `execute`, `execute_and_report`, `dry_run`, `status`,
-  `explain`, `policy_audit`, `render_report`, `render_report_bundle_html`,
+  `pause_run`, `resume_run`, `cancel_run`, `operator_health`, `explain`,
+  `policy_audit`, `render_report`, `render_report_bundle_html`,
   `workspace_edges`, and `write_workspace_audit`.
 - Contract types: `PlanRequest`, `PlanResponse`, `ExecuteRequest`,
   `ExecuteResponse`, `DryRunRequest`, `DryRunResponse`, `RunStatus`,
-  `RenderReportRequest`, `RenderReportResult`, `ExplainResponse`,
-  `ExplainToolSelection`, `PlanExplainV1`, and `VcfRunRequest`.
+  `RunControlResponse`, `OperatorHealthResponse`, `RenderReportRequest`,
+  `RenderReportResult`, `ExplainResponse`, `ExplainToolSelection`,
+  `PlanExplainV1`, and `VcfRunRequest`.
 - Curated helper namespaces: `bench`, `plan`, `run`, `report`, `bam`, `fastq`,
   `env`, and `shared`.
 
@@ -30,6 +32,16 @@ enter through `bijux_dna_api::v1::api`.
 - Keep internal handler, runtime, support, and surface modules crate-private.
 - Add new public operations to `docs/COMMANDS.md` in the same change.
 - Add or update schema snapshots for any public shape change.
+- Keep `PlanRequest` and `PlanResponse` aligned with the governed workflow and
+  plan manifest contracts exported from `bijux-dna-core`.
+- Keep `ExecuteRequest`, `ExecuteResponse`, `DryRunResponse`, and `RunStatus`
+  aligned with the governed run-state, runtime-policy, executor-descriptor,
+  checkpoint, and failure contracts exported from `bijux-dna-runtime`.
+- Keep `RunControlResponse` and `OperatorHealthResponse` aligned with the
+  governed run-control and operator-health contracts exported from
+  `bijux-dna-runtime`.
+- `execute` now distinguishes `simulation`, `advisory`, and `enforced` modes;
+  `dry-run` remains a separate public operation with its own response contract.
 
 ## Non-Public Surfaces
 
@@ -41,3 +53,9 @@ The following modules are intentionally private implementation detail:
 - `src/surface/`
 
 They may change when the v1 public contract remains stable.
+
+## Stability Tiers
+
+- Stable: `pub mod v1`, `bijux_dna_api::v1::api`, and the contract types/operations documented above.
+- Experimental: no experimental public namespace is exported today; any future one must be called out explicitly here before use.
+- Internal: `src/internal/`, `src/runtime/`, `src/support/`, `src/surface/`, and any item not re-exported through `v1::api`.

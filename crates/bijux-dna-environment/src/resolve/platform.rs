@@ -69,6 +69,9 @@ where
     F: Fn(&str) -> bool,
 {
     let mut runners = Vec::new();
+    if probe("sh") {
+        runners.push(RuntimeKind::Local);
+    }
     if probe("docker") {
         runners.push(RuntimeKind::Docker);
     }
@@ -91,6 +94,9 @@ pub(super) fn select_best_runner(
 ) -> Result<RuntimeKind, EnvError> {
     if available.contains(&preferred) {
         return Ok(preferred);
+    }
+    if available.contains(&RuntimeKind::Local) {
+        return Ok(RuntimeKind::Local);
     }
     if available.contains(&RuntimeKind::Apptainer) {
         return Ok(RuntimeKind::Apptainer);

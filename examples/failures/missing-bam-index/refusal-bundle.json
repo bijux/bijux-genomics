@@ -1,0 +1,10 @@
+{
+  "schema_version": "bijux.example.refusal_bundle.v1",
+  "bundle_id": "missing_bam_index",
+  "category": "missing_bam_index",
+  "expected_refusal_codes": [
+    "BAM_INDEX_MISSING"
+  ],
+  "operating_mode": "enforced",
+  "summary": "BAM workflows must refuse indexed-input requirements when the `.bai` contract is absent."
+}

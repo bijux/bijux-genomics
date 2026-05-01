@@ -20,6 +20,31 @@ Primary stage-spec helpers:
 - `stage_spec`
 - `stage_specs`
 
+Primary artifact and workflow helpers:
+- `bam_alignment_strategies`
+- `bam_alignment_strategy_for_tool`
+- `bam_post_alignment_chain`
+- `execute_bam_validation`
+- `align_fastq_to_bam_bwa_style`
+- `align_fastq_to_bam_bowtie2_style`
+- `sort_and_index_tiny_bam`
+- `propagate_bam_sample_identity`
+- `evaluate_bam_merge_compatibility`
+- `merge_tiny_bam_with_conflict_refusal`
+- `apply_duplicate_policy_tiny_bam`
+- `filter_tiny_bam_by_mapq`
+- `summarize_tiny_bam_mapping`
+- `compare_bam_duplicate_methods`
+- `summarize_tiny_bam_coverage`
+- `classify_bam_coverage_regime`
+- `bam_adna_workflow_contract`
+- `bam_contamination_workflow_contract`
+- `bam_scientific_report_contracts`
+- `bam_scientific_report_contract_for_stage`
+- `estimate_bam_stage_resources`
+- `bam_bench_corpus_manifest`
+- `required_bam_bench_corpus_scenarios`
+
 Primary catalogs:
 - `BAM_STAGE_ID_CATALOG`
 - `BAM_PARAMS_CATALOG`

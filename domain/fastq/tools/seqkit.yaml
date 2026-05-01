@@ -59,6 +59,7 @@ stage_ids:
   - "fastq.normalize_abundance"
   - "fastq.trim_terminal_damage"
   - "fastq.profile_overrepresented_sequences"
+planned_stage_ids: []
 stage_contracts:
   fastq.trim_reads:
     required_inputs:

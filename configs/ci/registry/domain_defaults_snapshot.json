@@ -1,0 +1,417 @@
+[
+  {
+    "domain_id": "bam",
+    "defaults": [
+      {
+        "stage_id": "bam.align",
+        "tool_id": "bwa",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Alignment baseline selected for broad BAM ecosystem compatibility.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.authenticity",
+        "tool_id": "authenticct",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Authenticity baseline chosen for clear operator interpretation.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.contamination",
+        "tool_id": "schmutzi",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Contamination default is established for mtDNA-focused checks.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.coverage",
+        "tool_id": "mosdepth",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Coverage default offers stable low-overhead reporting.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.damage",
+        "tool_id": "mapdamage2",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Damage baseline preserves comparability with historical aDNA runs.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.duplication_metrics",
+        "tool_id": "samtools",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Duplication metrics baseline favors deterministic duplicate summaries.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.endogenous_content",
+        "tool_id": "samtools",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Endogenous estimate baseline derives from deterministic mapping summaries.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.filter",
+        "tool_id": "samtools",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Filtering baseline minimizes contract variance across workflows.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.kinship",
+        "tool_id": "king",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Kinship baseline prioritized for stable pairwise outputs.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.length_filter",
+        "tool_id": "samtools",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Length filtering baseline emphasizes transparent minimum-length provenance.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.mapping_summary",
+        "tool_id": "samtools",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Mapping summary baseline uses deterministic samtools summaries.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.mapq_filter",
+        "tool_id": "samtools",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "MAPQ filtering baseline uses ubiquitous deterministic filtering behavior.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.sex",
+        "tool_id": "rxy",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Sex inference baseline is lightweight and deterministic.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "bam.validate",
+        "tool_id": "samtools",
+        "source": "doc_ref:domain/bam/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Validation baseline favors deterministic diagnostics and ubiquity.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      }
+    ]
+  },
+  {
+    "domain_id": "fastq",
+    "defaults": [
+      {
+        "stage_id": "fastq.cluster_otus",
+        "tool_id": "vsearch",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Stable OTU cluster policy with reproducible identifiers.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.correct_errors",
+        "tool_id": "rcorrector",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default corrector chosen for robust error-correction baseline.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.deplete_host",
+        "tool_id": "bowtie2",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default host depletion uses deterministic mapping and unmapped extraction.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.deplete_reference_contaminants",
+        "tool_id": "bowtie2",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default contaminant screen uses reference-guided depletion against governed decoy references.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.deplete_rrna",
+        "tool_id": "sortmerna",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default rRNA filter is established for pre-HPC screening.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.detect_adapters",
+        "tool_id": "fastqc",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default adapter detector remains report-only and avoids mutating reads.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.extract_umis",
+        "tool_id": "umi_tools",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default UMI handler extracts barcodes without dropping reads.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.filter_low_complexity",
+        "tool_id": "bbduk",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default complexity filtering uses deterministic entropy/polyX thresholds.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.filter_reads",
+        "tool_id": "fastp",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default filter preserves compatibility with downstream metrics.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.index_reference",
+        "tool_id": "bowtie2_build",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default FASTQ reference preparation must emit the mapper index consumed by governed host and reference-contaminant depletion.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.infer_asvs",
+        "tool_id": "dada2",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Governed ASV inference now uses the admitted containerized dada2 backend and publishes the canonical infer-asvs report plus taxonomy-ready representative sequences.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.merge_pairs",
+        "tool_id": "pear",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default merger is stable for paired-end overlap handling.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.normalize_abundance",
+        "tool_id": "seqkit",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Abundance-table normalization stays within the admitted amplicon table tooling set.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.normalize_primers",
+        "tool_id": "cutadapt",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Deterministic primer trimming with explicit mismatch/orientation controls.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.profile_overrepresented_sequences",
+        "tool_id": "fastqc",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default overrepresented-sequence detector uses FastQC module output.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.profile_read_lengths",
+        "tool_id": "seqkit_stats",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default length histogram baseline provides deterministic pre-trim size distribution.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.profile_reads",
+        "tool_id": "seqkit_stats",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Neutral stats baseline is lightweight and deterministic.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.remove_chimeras",
+        "tool_id": "vsearch",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Deterministic UCHIME-based chimera screening remains the baseline before broader ensemble admission.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.remove_duplicates",
+        "tool_id": "clumpify",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default deduplication uses pair-aware duplicate removal with deterministic mate preservation.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.report_qc",
+        "tool_id": "multiqc",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "QC aggregation default provides operator-first summary output.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.screen_taxonomy",
+        "tool_id": "kraken2",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default classifier maximizes comparability with existing reports.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.trim_polyg_tails",
+        "tool_id": "fastp",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Default polyG trimmer uses fastp polyG-tail handling for common sequencer artifacts.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.trim_reads",
+        "tool_id": "fastp",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Baseline trimmer for deterministic quality/throughput tradeoff.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.trim_terminal_damage",
+        "tool_id": "cutadapt",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Damage-aware pretrim default uses deterministic terminal mask/trim policy for aDNA damage-aware pretrim.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "fastq.validate_reads",
+        "tool_id": "fastqvalidator",
+        "source": "doc_ref:domain/fastq/docs/DEFAULT_SETTINGS.md",
+        "rationale": "Validation default has broad FASTQ format coverage.",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      }
+    ]
+  },
+  {
+    "domain_id": "vcf",
+    "defaults": [
+      {
+        "stage_id": "vcf.call",
+        "tool_id": "bcftools",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "deterministic baseline caller",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.call_diploid",
+        "tool_id": "bcftools",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "deterministic diploid baseline for the current governed production profile",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.call_gl",
+        "tool_id": "bcftools",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "current governed production default while angsd remains a planned low-coverage alternative",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.call_pseudohaploid",
+        "tool_id": "bcftools",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "current governed production default while angsd remains a planned low-coverage alternative",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.damage_filter",
+        "tool_id": "bcftools",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "deterministic transition and PMD masking baseline for the current governed profile",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.filter",
+        "tool_id": "bcftools",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "deterministic pass filter",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.gl_propagation",
+        "tool_id": "bcftools",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "retain GL/PL tags across downstream handoffs in the current governed profile",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.impute",
+        "tool_id": "beagle",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "planned pinned imputation baseline",
+        "governance_status": "advisory",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.postprocess",
+        "tool_id": "bcftools",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "deterministic post-imputation normalization baseline",
+        "governance_status": "advisory",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.prepare_reference_panel",
+        "tool_id": "bcftools",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "deterministic panel preparation baseline",
+        "governance_status": "advisory",
+        "override_policy": "explicit profile override required"
+      },
+      {
+        "stage_id": "vcf.stats",
+        "tool_id": "bcftools",
+        "source": "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md",
+        "rationale": "required summary metrics",
+        "governance_status": "enforced",
+        "override_policy": "explicit profile override required"
+      }
+    ]
+  }
+]

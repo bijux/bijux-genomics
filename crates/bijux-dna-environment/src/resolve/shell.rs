@@ -8,7 +8,7 @@ pub(super) fn run_shell_capture(cmd: &str) -> anyhow::Result<String> {
     if cmd.trim().is_empty() {
         anyhow::bail!("empty command");
     }
-    let output = std::process::Command::new("sh")
+    let output = std::process::Command::new("/bin/sh")
         .arg("-lc")
         .arg(cmd)
         .output()

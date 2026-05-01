@@ -27,6 +27,7 @@
   "stage_plans": [
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -35,7 +36,21 @@
         ]
       },
       "effective_params": {
+        "license_policy": "panel_license_must_match_operator_constraints",
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
+        "normalization_policy": {
+          "duplicate_handling": "refuse_duplicate_records",
+          "left_normalize": true,
+          "policy_id": "diploid_production",
+          "raw_fixture_expectation": "raw_vs_normalized_diploid_fixture",
+          "reference_check": "strict_reference_allele_match",
+          "split_multiallelic": true
+        },
         "normalize": true,
+        "panel_id": "1000g_phase3",
+        "panel_identity_required": true,
+        "panel_identity_source": "panel_lock",
         "panel_lock": {
           "index_checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "license_id": "CC-BY-4.0",
@@ -43,6 +58,11 @@
           "panel_id": "1000g_phase3",
           "reference_build": "GRCh38"
         },
+        "prepared_outputs": [
+          "panel_manifest",
+          "overlap_report",
+          "chunks_plan"
+        ],
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -83,9 +103,24 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_prepare_reference_panel",
       "params": {
+        "license_policy": "panel_license_must_match_operator_constraints",
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
+        "normalization_policy": {
+          "duplicate_handling": "refuse_duplicate_records",
+          "left_normalize": true,
+          "policy_id": "diploid_production",
+          "raw_fixture_expectation": "raw_vs_normalized_diploid_fixture",
+          "reference_check": "strict_reference_allele_match",
+          "split_multiallelic": true
+        },
         "normalize": true,
+        "panel_id": "1000g_phase3",
+        "panel_identity_required": true,
+        "panel_identity_source": "panel_lock",
         "panel_lock": {
           "index_checksum_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
           "license_id": "CC-BY-4.0",
@@ -93,6 +128,11 @@
           "panel_id": "1000g_phase3",
           "reference_build": "GRCh38"
         },
+        "prepared_outputs": [
+          "panel_manifest",
+          "overlap_report",
+          "chunks_plan"
+        ],
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -105,6 +145,7 @@
         "schema_version": "bijux.vcf.prepare_reference_panel.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",
@@ -127,6 +168,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -168,6 +210,7 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_call_diploid",
       "params": {
         "coverage_regime": "diploid",
@@ -182,6 +225,7 @@
         "schema_version": "bijux.vcf.stage.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",
@@ -204,6 +248,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "beagle",
@@ -213,6 +258,33 @@
         ]
       },
       "effective_params": {
+        "boundary_contract": {
+          "accepted_tools": [
+            "glimpse",
+            "beagle",
+            "impute5",
+            "minimac4"
+          ],
+          "refusal_reasons": [
+            "panel_identity_missing",
+            "map_lock_missing",
+            "panel_build_mismatch",
+            "confidence_outputs_not_declared"
+          ],
+          "required_context": [
+            "panel_identity",
+            "build_compatibility",
+            "map_file",
+            "chunk_plan"
+          ],
+          "required_outputs": [
+            "imputed_vcf",
+            "imputation_qc",
+            "imputation_acceptance",
+            "panel_mismatch_diagnostics"
+          ],
+          "stage": "impute"
+        },
         "chunking": {
           "chr_exclude": [],
           "chr_include": [],
@@ -828,8 +900,20 @@
             "start": 240100001
           }
         ],
+        "confidence_outputs": [
+          "imputed_vcf",
+          "imputation_qc",
+          "imputation_acceptance",
+          "panel_mismatch_diagnostics"
+        ],
+        "imputation_acceptance_mode": "qc_gated",
         "impute": true,
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
         "ne": 10000,
+        "panel_build_required": "GRCh38",
+        "panel_id": "1000g_phase3",
+        "panel_identity_required": true,
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -863,8 +947,36 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_impute",
       "params": {
+        "boundary_contract": {
+          "accepted_tools": [
+            "glimpse",
+            "beagle",
+            "impute5",
+            "minimac4"
+          ],
+          "refusal_reasons": [
+            "panel_identity_missing",
+            "map_lock_missing",
+            "panel_build_mismatch",
+            "confidence_outputs_not_declared"
+          ],
+          "required_context": [
+            "panel_identity",
+            "build_compatibility",
+            "map_file",
+            "chunk_plan"
+          ],
+          "required_outputs": [
+            "imputed_vcf",
+            "imputation_qc",
+            "imputation_acceptance",
+            "panel_mismatch_diagnostics"
+          ],
+          "stage": "impute"
+        },
         "chunking": {
           "chr_exclude": [],
           "chr_include": [],
@@ -1480,8 +1592,20 @@
             "start": 240100001
           }
         ],
+        "confidence_outputs": [
+          "imputed_vcf",
+          "imputation_qc",
+          "imputation_acceptance",
+          "panel_mismatch_diagnostics"
+        ],
+        "imputation_acceptance_mode": "qc_gated",
         "impute": true,
+        "map_coordinate_system": "bp",
+        "map_id": "hsapiens_grch38_chr_map",
         "ne": 10000,
+        "panel_build_required": "GRCh38",
+        "panel_id": "1000g_phase3",
+        "panel_identity_required": true,
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -1493,6 +1617,7 @@
         "schema_version": "bijux.vcf.impute.params.v1",
         "tool": "beagle"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",
@@ -1515,6 +1640,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "germline",
@@ -1524,6 +1650,16 @@
         ]
       },
       "effective_params": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "marker_density_floor_declared",
+          "method_assumptions": [
+            "phase_or_gl_readiness_is_required",
+            "segments_are_model_dependent"
+          ],
+          "minimum_cohort_requirement": "at_least_two_samples",
+          "missingness_requirement": "missingness_below_ibd_threshold",
+          "stage": "ibd"
+        },
         "min_samples": 2,
         "min_segment_cm": 3.0,
         "reference_provenance": {
@@ -1563,8 +1699,19 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_ibd",
       "params": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "marker_density_floor_declared",
+          "method_assumptions": [
+            "phase_or_gl_readiness_is_required",
+            "segments_are_model_dependent"
+          ],
+          "minimum_cohort_requirement": "at_least_two_samples",
+          "missingness_requirement": "missingness_below_ibd_threshold",
+          "stage": "ibd"
+        },
         "min_samples": 2,
         "min_segment_cm": 3.0,
         "reference_provenance": {
@@ -1582,6 +1729,7 @@
         "schema_version": "bijux.vcf.ibd.params.v1",
         "tool": "germline"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",
@@ -1604,6 +1752,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "ibdne",
@@ -1612,6 +1761,16 @@
         ]
       },
       "effective_params": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "ibd_input_density_must_pass_upstream_gate",
+          "method_assumptions": [
+            "demography_requires_ibdne_ready_segments",
+            "sparse_ibd_reduces_confidence"
+          ],
+          "minimum_cohort_requirement": "ibd_segments_and_multi_sample_cohort_required",
+          "missingness_requirement": "upstream_ibd_missingness_gate_must_pass",
+          "stage": "demography"
+        },
         "generation_time_years": 29,
         "reference_provenance": {
           "build_id": "GRCh38",
@@ -1647,8 +1806,19 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_demography",
       "params": {
+        "cohort_boundary_contract": {
+          "marker_density_requirement": "ibd_input_density_must_pass_upstream_gate",
+          "method_assumptions": [
+            "demography_requires_ibdne_ready_segments",
+            "sparse_ibd_reduces_confidence"
+          ],
+          "minimum_cohort_requirement": "ibd_segments_and_multi_sample_cohort_required",
+          "missingness_requirement": "upstream_ibd_missingness_gate_must_pass",
+          "stage": "demography"
+        },
         "generation_time_years": 29,
         "reference_provenance": {
           "build_id": "GRCh38",
@@ -1662,6 +1832,7 @@
         "schema_version": "bijux.vcf.demography.params.v1",
         "tool": "ibdne"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",
@@ -1684,6 +1855,7 @@
     },
     {
       "aux_images": {},
+      "canonical_contract": null,
       "command": {
         "template": [
           "bcftools",
@@ -1692,6 +1864,11 @@
       },
       "effective_params": {
         "coverage_regime": "diploid",
+        "per_sample_sections": [
+          "missingness_by_sample",
+          "called_variants_by_sample",
+          "filter_outliers_by_sample"
+        ],
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -1700,7 +1877,15 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
-        "schema_version": "bijux.vcf.stage.params.v1",
+        "report_sections": [
+          "variant_counts",
+          "pass_rates",
+          "missingness",
+          "filter_impact",
+          "annotation_coverage",
+          "per_sample_summary"
+        ],
+        "schema_version": "bijux.vcf.reporting.params.v1",
         "tool": "bcftools"
       },
       "image": {
@@ -1725,9 +1910,15 @@
           }
         ]
       },
+      "operating_mode": "enforced",
       "out_dir": "out/vcf_stats",
       "params": {
         "coverage_regime": "diploid",
+        "per_sample_sections": [
+          "missingness_by_sample",
+          "called_variants_by_sample",
+          "filter_outliers_by_sample"
+        ],
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -1736,9 +1927,18 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
-        "schema_version": "bijux.vcf.stage.params.v1",
+        "report_sections": [
+          "variant_counts",
+          "pass_rates",
+          "missingness",
+          "filter_impact",
+          "annotation_coverage",
+          "per_sample_summary"
+        ],
+        "schema_version": "bijux.vcf.reporting.params.v1",
         "tool": "bcftools"
       },
+      "provenance": null,
       "reason": {
         "details": {
           "coverage_regime": "diploid",

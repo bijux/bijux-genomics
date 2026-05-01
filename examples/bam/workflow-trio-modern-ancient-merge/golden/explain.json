@@ -1,0 +1,8 @@
+{
+  "example_id": "bam_workflow_trio_modern_ancient_merge",
+  "reasoning": [
+    "modern_wgs_qc keeps mapping summary before coverage so depth is interpreted with alignment context",
+    "ancient_damage_contamination keeps damage/authenticity/contamination explicitly advisory and non-certifying",
+    "merge_coverage_lineage separates merge compatibility evidence from coverage interpretation to avoid cross-claim inflation"
+  ]
+}

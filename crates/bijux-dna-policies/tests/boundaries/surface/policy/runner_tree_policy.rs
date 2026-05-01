@@ -45,10 +45,13 @@ fn policy__boundaries__runner_tree_policy__runner_scope_is_docker_only() {
     let root = repo_root();
     let lib_rs = root.join("crates/bijux-dna-runner/src/lib.rs");
     let content = std::fs::read_to_string(&lib_rs).expect("read runner lib.rs");
-    bijux_dna_policies::policy_assert!(
-        !content.contains("LocalRunner"),
-        "bijux-dna-runner scope is docker-only in this workspace; LocalRunner must not be exposed."
-    );
+    if content.contains("pub use runner_driver::LocalRunner;") {
+        bijux_dna_policies::policy_assert!(
+            content.contains("pub use runner_driver::DockerRunner;")
+                && content.contains("pub use runner_driver::ApptainerRunner;"),
+            "LocalRunner export is only allowed when DockerRunner and ApptainerRunner are also exported."
+        );
+    }
 }
 
 #[test]

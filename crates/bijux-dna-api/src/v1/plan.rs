@@ -3,7 +3,9 @@
 //! Stability: v1 (stable).
 
 pub use crate::runtime::run::plan_run;
-pub use crate::runtime::run::{select_pipeline, select_pipelines};
+pub use crate::runtime::run::{
+    explain_pipeline_profile, select_pipeline, select_pipelines, validate_pipeline_profile,
+};
 pub use crate::surface::explain::{
     explain_bundle, ExplainResponse, PlanExplainStageV1, PlanExplainV1,
 };
@@ -23,6 +25,9 @@ pub use bijux_dna_pipelines::registry::PipelineRegistry;
 pub use bijux_dna_pipelines::vcf::{
     validate_vcf_profile, vcf_minimal_profile, VcfProfileValidationReport, VcfProfileViolation,
     VCF_INVARIANTS,
+};
+pub use bijux_dna_pipelines::{
+    cross::cross_workflow_template_by_id, cross::cross_workflow_templates,
 };
 pub use bijux_dna_pipelines::{Domain, PipelineProfile};
 pub use bijux_dna_planner_bam::{

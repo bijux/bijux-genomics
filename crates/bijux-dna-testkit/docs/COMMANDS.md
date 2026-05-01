@@ -55,7 +55,7 @@ entrypoints, runner behavior, or environment provisioning commands.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
-| `read-policy-text` | `read_policy_text` | Read workspace policy or fixture text with path-aware panic messages. |
+| `read-policy-text` | `read_policy_text` | Read repository policy or fixture text with path-aware panic messages. |
 | `resolve-workspace-root-from-manifest` | `workspace_root_from_manifest` | Resolve the workspace root from a crate manifest directory. |
 
 ## Commands Owned Elsewhere

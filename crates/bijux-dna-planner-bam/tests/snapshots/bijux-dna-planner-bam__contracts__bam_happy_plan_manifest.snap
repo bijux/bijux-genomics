@@ -1,0 +1,430 @@
+---
+source: crates/bijux-dna-planner-bam/tests/contracts/plan/planner_manifest_contract.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(temp.path(),\nfalse).expect(\"plan manifest\"))"
+---
+{
+  "domain": "bam",
+  "graph_hash": "83414e8d9ada26461fc37d2906df5f8884cdca0048fa7ff1986c44302fd89f60",
+  "ordered_steps": [
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "validation_report",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_validate/validation.json",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "flagstat",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_validate/flagstat.txt",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_validate/stage.metrics.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "1be49df1931d327526bc1e56ae7b515d565c38af6f7954c64397232975f2fcd9",
+      "effective_parameters_json": {
+        "strict": true
+      },
+      "environment": {
+        "command": [
+          "/bin/sh",
+          "-c",
+          "samtools quickcheck -v <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/validation.json && samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_validate/flagstat.txt"
+        ],
+        "image": "bijux/bwa",
+        "image_digest": "sha256:bwa",
+        "out_dir": "<TMPDIR>/<TMP>/out/bam_validate",
+        "resources": {
+          "mem_gb": 2,
+          "runtime": "short",
+          "threads": 2,
+          "tmp_gb": 1
+        }
+      },
+      "reference_asset_ids": [
+        "reference"
+      ],
+      "stage_id": "bam.validate",
+      "step_id": "bam.validate"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "flagstat",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/flagstat.txt",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "idxstats",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/idxstats.txt",
+          "role": "unknown"
+        },
+        {
+          "artifact_id": "stats",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/samtools_stats.txt",
+          "role": "unknown"
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_qc_pre/stage.metrics.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "dbd0c607292f88e82b18bd47e2f71b56c7ca2319de92d7367fddb90d380269f1",
+      "dependencies": [
+        "bam.validate"
+      ],
+      "effective_parameters_json": {
+        "regions": null
+      },
+      "environment": {
+        "command": [
+          "/bin/sh",
+          "-c",
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/flagstat.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/idxstats.txt && samtools stats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_qc_pre/samtools_stats.txt"
+        ],
+        "image": "bijux/bwa",
+        "image_digest": "sha256:bwa",
+        "out_dir": "<TMPDIR>/<TMP>/out/bam_qc_pre",
+        "resources": {
+          "mem_gb": 2,
+          "runtime": "short",
+          "threads": 2,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "bam.qc_pre",
+      "step_id": "bam.qc_pre"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "flagstat",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/flagstat.txt",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "idxstats",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/idxstats.txt",
+          "role": "unknown"
+        },
+        {
+          "artifact_id": "stats",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/samtools_stats.txt",
+          "role": "unknown"
+        },
+        {
+          "artifact_id": "summary",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/mapping.summary.json",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_mapping_summary/stage.metrics.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "bce44ee8ae116d34b74dda2af30c1329e4014f48eed7160d35fd663b1bf1b790",
+      "dependencies": [
+        "bam.qc_pre"
+      ],
+      "effective_parameters_json": {
+        "regions": null
+      },
+      "environment": {
+        "command": [
+          "/bin/sh",
+          "-c",
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/flagstat.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/idxstats.txt && samtools stats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_mapping_summary/samtools_stats.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_mapping_summary/mapping.summary.json\nimport json\nprint(json.dumps({\"stage\":\"bam.mapping_summary\",\"flagstat\":\"<TMPDIR>/<TMP>/out/bam_mapping_summary/flagstat.txt\",\"idxstats\":\"<TMPDIR>/<TMP>/out/bam_mapping_summary/idxstats.txt\",\"stats\":\"<TMPDIR>/<TMP>/out/bam_mapping_summary/samtools_stats.txt\"}, indent=2))\nPY"
+        ],
+        "image": "bijux/bwa",
+        "image_digest": "sha256:bwa",
+        "out_dir": "<TMPDIR>/<TMP>/out/bam_mapping_summary",
+        "resources": {
+          "mem_gb": 2,
+          "runtime": "short",
+          "threads": 2,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "bam.mapping_summary",
+      "step_id": "bam.mapping_summary"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "filtered_bam",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam",
+          "role": "bam"
+        },
+        {
+          "artifact_id": "filtered_bai",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_filter/filtered.bam.bai",
+          "role": "index"
+        },
+        {
+          "artifact_id": "flagstat_before",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "flagstat_after",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "idxstats_before",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt",
+          "role": "unknown"
+        },
+        {
+          "artifact_id": "idxstats_after",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt",
+          "role": "unknown"
+        },
+        {
+          "artifact_id": "summary",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_filter/filter.summary.json",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_filter/stage.metrics.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "48c221e285729742d4dcf452f121917a6afe975c924171c80372ea25b21ad96a",
+      "dependencies": [
+        "bam.mapping_summary"
+      ],
+      "effective_parameters_json": {
+        "base_quality_threshold": 20,
+        "exclude_flags": [],
+        "include_flags": [],
+        "mapq_threshold": 30,
+        "min_length": 30,
+        "remove_duplicates": false
+      },
+      "environment": {
+        "command": [
+          "/bin/sh",
+          "-c",
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt && samtools view -h -b -q 30 <TMPDIR>/<TMP>/sample.bam | awk 'BEGIN{OFS=\"\\t\"} /^@/{print; next} length($10)>=30' | samtools view -b - | samtools sort -@ 1 -l 6 -o <TMPDIR>/<TMP>/out/bam_filter/filtered.bam && samtools index -@ 1 <TMPDIR>/<TMP>/out/bam_filter/filtered.bam <TMPDIR>/<TMP>/out/bam_filter/filtered.bam.bai && samtools flagstat <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_filter/filter.summary.json\nimport json\npayload = {\"action\": \"filter\", \"input_bam\": \"<TMPDIR>/<TMP>/sample.bam\", \"output_bam\": \"<TMPDIR>/<TMP>/out/bam_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 30, \"remove_duplicates\": false}, \"artifacts\": {\"flagstat_before\": \"<TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt\", \"flagstat_after\": \"<TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt\", \"idxstats_before\": \"<TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt\", \"idxstats_after\": \"<TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+        ],
+        "image": "bijux/bwa",
+        "image_digest": "sha256:bwa",
+        "out_dir": "<TMPDIR>/<TMP>/out/bam_filter",
+        "resources": {
+          "mem_gb": 2,
+          "runtime": "short",
+          "threads": 2,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "bam.filter",
+      "step_id": "bam.filter"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "coverage_summary",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_coverage/coverage.mosdepth.summary.txt",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_coverage/stage.metrics.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "faba7b87bdf939c2b1a845f97753a58d8874fc39aac7250105e7c29f810b4a2d",
+      "dependencies": [
+        "bam.filter"
+      ],
+      "effective_parameters_json": {
+        "depth_thresholds": [
+          1,
+          3,
+          5
+        ],
+        "regime_mode": "advisory_and_enforced",
+        "regions": null
+      },
+      "environment": {
+        "command": [
+          "/bin/sh",
+          "-c",
+          "mosdepth -n <TMPDIR>/<TMP>/out/bam_coverage/coverage <TMPDIR>/<TMP>/out/bam_filter/filtered.bam && samtools depth -a <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_coverage/coverage.depth.txt && if [ -f <TMPDIR>/<TMP>/out/bam_coverage/coverage.mosdepth.summary.txt ]; then :; else : > <TMPDIR>/<TMP>/out/bam_coverage/coverage.mosdepth.summary.txt; fi"
+        ],
+        "image": "bijux/bwa",
+        "image_digest": "sha256:bwa",
+        "out_dir": "<TMPDIR>/<TMP>/out/bam_coverage",
+        "resources": {
+          "mem_gb": 2,
+          "runtime": "short",
+          "threads": 2,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "bam.coverage",
+      "step_id": "bam.coverage"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "damage_pydamage",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.pydamage.json",
+          "role": "unknown"
+        },
+        {
+          "artifact_id": "damage_mapdamage2",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt",
+          "role": "unknown"
+        },
+        {
+          "artifact_id": "stage_metrics",
+          "optional": false,
+          "path": "<TMPDIR>/<TMP>/out/bam_damage/stage.metrics.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "3327475f0043fbfdb662d86beae6e00444047414df688cd04849cb38fcbc1b96",
+      "dependencies": [
+        "bam.coverage"
+      ],
+      "effective_parameters_json": {
+        "damage_tool_profile": "ancient_dna_evidence",
+        "evidence_only": true,
+        "pmd_threshold_3p": 0.3,
+        "pmd_threshold_5p": 0.3,
+        "trim_3p": 2,
+        "trim_5p": 2,
+        "udg_model": "non_udg"
+      },
+      "environment": {
+        "command": [
+          "/bin/sh",
+          "-c",
+          "mapDamage --bam <TMPDIR>/<TMP>/out/bam_filter/filtered.bam --folder <TMPDIR>/<TMP>/out/bam_damage && if [ -f <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/misincorporation.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; elif [ -f <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt ]; then cp <TMPDIR>/<TMP>/out/bam_damage/5pCtoT.txt <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; else : > <TMPDIR>/<TMP>/out/bam_damage/damage.mapdamage2.txt; fi"
+        ],
+        "image": "bijux/bwa",
+        "image_digest": "sha256:bwa",
+        "out_dir": "<TMPDIR>/<TMP>/out/bam_damage",
+        "resources": {
+          "mem_gb": 2,
+          "runtime": "short",
+          "threads": 2,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "bam.damage",
+      "step_id": "bam.damage"
+    }
+  ],
+  "parameter_traces": [
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "strict",
+      "resolved_value": true,
+      "source": "planner_inferred",
+      "stage_id": "bam.validate",
+      "step_id": "bam.validate"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "regions",
+      "resolved_value": null,
+      "source": "planner_inferred",
+      "stage_id": "bam.qc_pre",
+      "step_id": "bam.qc_pre"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "regions",
+      "resolved_value": null,
+      "source": "planner_inferred",
+      "stage_id": "bam.mapping_summary",
+      "step_id": "bam.mapping_summary"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "base_quality_threshold",
+      "resolved_value": 20,
+      "source": "planner_inferred",
+      "stage_id": "bam.filter",
+      "step_id": "bam.filter"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "depth_thresholds",
+      "resolved_value": [
+        1,
+        3,
+        5
+      ],
+      "source": "planner_inferred",
+      "stage_id": "bam.coverage",
+      "step_id": "bam.coverage"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "damage_tool_profile",
+      "resolved_value": "ancient_dna_evidence",
+      "source": "planner_inferred",
+      "stage_id": "bam.damage",
+      "step_id": "bam.damage"
+    }
+  ],
+  "pipeline_id": "bam-to-bam__default__v1",
+  "plan_fingerprint": "97084ee438e0774e8e51b8e68dcb6604dcb979146c2f374e9a5d972c0e5a093b",
+  "planner_version": "bijux-dna-planner-bam.v1",
+  "policy": "PreferAccuracy",
+  "profile_id": "bam-to-bam__default__v1",
+  "schema_version": "bijux.plan_manifest.v1",
+  "stage_decisions": [
+    {
+      "decision": "included",
+      "reason": "included in deterministic plan",
+      "stage_id": "bam.validate"
+    },
+    {
+      "decision": "included",
+      "reason": "included in deterministic plan",
+      "stage_id": "bam.coverage"
+    }
+  ],
+  "workflow_fingerprint": "75993adedbd0684dd26a53624b82f27b6a301866e5bc2adc710977178d68a48a"
+}

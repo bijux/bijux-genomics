@@ -43,6 +43,7 @@ pub enum PlatformHint {
 pub enum AssayKind {
     Shotgun,
     Capture,
+    Amplicon,
     Unknown,
 }
 

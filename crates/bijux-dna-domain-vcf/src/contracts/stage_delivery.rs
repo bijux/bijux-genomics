@@ -90,6 +90,7 @@ pub fn stage_artifact_contract(stage: VcfDomainStage) -> StageArtifactContract {
         VcfDomainStage::Postprocess => StageArtifactContract {
             stage,
             required_artifacts: &[
+                "normalization_contract.json",
                 "header_normalization_report.json",
                 "filter_counts.tsv",
                 "provenance.json",
@@ -103,6 +104,27 @@ pub fn stage_artifact_contract(stage: VcfDomainStage) -> StageArtifactContract {
                 "qc_summary.json",
                 "qc_tables.tsv",
                 "qc_histograms.json",
+                "provenance.json",
+                "checksums.sha256",
+                "logs.txt",
+            ],
+        },
+        VcfDomainStage::Filter => StageArtifactContract {
+            stage,
+            required_artifacts: &[
+                "filter_breakdown.json",
+                "filter_breakdown.tsv",
+                "filter_explain.json",
+                "provenance.json",
+                "checksums.sha256",
+                "logs.txt",
+            ],
+        },
+        VcfDomainStage::Stats => StageArtifactContract {
+            stage,
+            required_artifacts: &[
+                "bcftools_stats.txt",
+                "stats.json",
                 "provenance.json",
                 "checksums.sha256",
                 "logs.txt",

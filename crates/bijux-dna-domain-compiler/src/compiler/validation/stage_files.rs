@@ -29,93 +29,87 @@ pub(super) fn validate_stage_files(
                 stage.stage_id
             );
         }
-        if dom != "vcf" {
-            let artifact_ids = artifact_vocab
-                .get(dom)
-                .ok_or_else(|| anyhow!("missing artifact vocab for domain {dom}"))?;
-            let metric_ids = metric_vocab
-                .get(dom)
-                .ok_or_else(|| anyhow!("missing metric vocab for domain {dom}"))?;
-            if stage.inputs.is_empty() {
-                bail!("{} missing inputs", path.display());
+        let artifact_ids = artifact_vocab
+            .get(dom)
+            .ok_or_else(|| anyhow!("missing artifact vocab for domain {dom}"))?;
+        let metric_ids = metric_vocab
+            .get(dom)
+            .ok_or_else(|| anyhow!("missing metric vocab for domain {dom}"))?;
+        if stage.inputs.is_empty() {
+            bail!("{} missing inputs", path.display());
+        }
+        if stage.outputs.is_empty() {
+            bail!("{} missing outputs", path.display());
+        }
+        if stage.compatible_tools.is_empty()
+            && (stage.status == "supported" || stage.planned_out_of_scope.is_empty())
+        {
+            bail!("{} missing compatible_tools or planned_out_of_scope", path.display());
+        }
+        if stage.invariants.is_empty() {
+            bail!("{} missing invariants", path.display());
+        }
+        if stage.assumptions.is_empty() {
+            bail!("{} missing assumptions", path.display());
+        }
+        if stage.bank_hooks.is_empty() {
+            bail!("{} missing bank_hooks", path.display());
+        }
+        if stage.metrics.is_empty() {
+            bail!("{} missing metrics", path.display());
+        }
+        if stage.allowed_missingness.is_empty() && stage.status == "supported" {
+            bail!("{} missing allowed_missingness", path.display());
+        }
+        for output in &stage.outputs {
+            if !artifact_ids.contains(&output.name) {
+                bail!(
+                    "{} stage output `{}` is outside {} artifact vocabulary",
+                    path.display(),
+                    output.name,
+                    dom
+                );
             }
-            if stage.outputs.is_empty() {
-                bail!("{} missing outputs", path.display());
+        }
+        for output in &stage.required_outputs {
+            if !artifact_ids.contains(output) {
+                bail!(
+                    "{} required_output `{}` is outside {} artifact vocabulary",
+                    path.display(),
+                    output,
+                    dom
+                );
             }
-            if stage.compatible_tools.is_empty()
-                && (stage.status == "supported" || stage.planned_out_of_scope.is_empty())
-            {
-                bail!("{} missing compatible_tools or planned_out_of_scope", path.display());
+        }
+        for metric in &stage.metrics {
+            if !metric_ids.contains(&metric.name) {
+                bail!(
+                    "{} metric `{}` is outside {} metric vocabulary",
+                    path.display(),
+                    metric.name,
+                    dom
+                );
             }
-            if stage.invariants.is_empty() {
-                bail!("{} missing invariants", path.display());
-            }
-            if stage.assumptions.is_empty() {
-                bail!("{} missing assumptions", path.display());
-            }
-            if stage.bank_hooks.is_empty() {
-                bail!("{} missing bank_hooks", path.display());
-            }
-            if stage.metrics.is_empty() {
-                bail!("{} missing metrics", path.display());
-            }
-            if stage.allowed_missingness.is_empty() && stage.status == "supported" {
-                bail!("{} missing allowed_missingness", path.display());
-            }
-            for output in &stage.outputs {
-                if !artifact_ids.contains(&output.name) {
-                    bail!(
-                        "{} stage output `{}` is outside {} artifact vocabulary",
-                        path.display(),
-                        output.name,
-                        dom
-                    );
-                }
-            }
-            for output in &stage.required_outputs {
-                if !artifact_ids.contains(output) {
-                    bail!(
-                        "{} required_output `{}` is outside {} artifact vocabulary",
-                        path.display(),
-                        output,
-                        dom
-                    );
-                }
-            }
-            for metric in &stage.metrics {
-                if !metric_ids.contains(&metric.name) {
-                    bail!(
-                        "{} metric `{}` is outside {} metric vocabulary",
-                        path.display(),
-                        metric.name,
-                        dom
-                    );
-                }
-            }
-            let allowed_bank_hooks = BTreeSet::from([
-                "adapter_bank",
-                "asset_lock_registry",
-                "barcode_kit_bank",
-                "polyx_bank",
-                "primer_bank",
-                "contaminant_db_bank",
-                "contaminant_database_lock",
-                "reference_bank",
-                "contamination_db_bank",
-                "provenance_registry",
-                "rrna_database_lock",
-                "taxonomy_database_lock",
-                "instrument_artifact_bank",
-                "none",
-            ]);
-            for hook in &stage.bank_hooks {
-                if !allowed_bank_hooks.contains(hook.as_str()) {
-                    bail!(
-                        "{} bank_hook `{}` is outside the allowed vocabulary",
-                        path.display(),
-                        hook
-                    );
-                }
+        }
+        let allowed_bank_hooks = BTreeSet::from([
+            "adapter_bank",
+            "asset_lock_registry",
+            "barcode_kit_bank",
+            "polyx_bank",
+            "primer_bank",
+            "contaminant_db_bank",
+            "contaminant_database_lock",
+            "reference_bank",
+            "contamination_db_bank",
+            "provenance_registry",
+            "rrna_database_lock",
+            "taxonomy_database_lock",
+            "instrument_artifact_bank",
+            "none",
+        ]);
+        for hook in &stage.bank_hooks {
+            if !allowed_bank_hooks.contains(hook.as_str()) {
+                bail!("{} bank_hook `{}` is outside the allowed vocabulary", path.display(), hook);
             }
         }
         let input_names =
@@ -171,7 +165,10 @@ pub(super) fn validate_stage_files(
         if dom != "vcf" && stage.scope != DEFAULT_COMPILE_SCOPE {
             bail!("{} invalid stage scope {}", path.display(), stage.scope);
         }
-        if dom != "vcf" && stage.domain != dom {
+        if dom == "vcf" && stage.scope != "post_vcf" {
+            bail!("{} invalid VCF stage scope {}", path.display(), stage.scope);
+        }
+        if stage.domain != dom {
             bail!(
                 "{} stage {} declares domain {} but is filed under domain/{}",
                 path.display(),
@@ -180,7 +177,7 @@ pub(super) fn validate_stage_files(
                 dom
             );
         }
-        if dom != "vcf" && !stage.stage_id.starts_with(&format!("{}.", stage.domain)) {
+        if !stage.stage_id.starts_with(&format!("{}.", stage.domain)) {
             bail!(
                 "{} stage_id {} must be namespaced by domain {}",
                 path.display(),

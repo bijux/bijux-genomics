@@ -48,5 +48,5 @@ Validation command:
 - `tests/boundaries/architecture_tree.rs` locks source, docs, and test layout.
 - `tests/contracts/architecture.rs` rejects a dependency edge to
   `bijux-dna-runner`.
-- Workspace policy tests reject planner, domain, stage, runner, and environment
+- Repository policy tests reject planner, domain, stage, runner, and environment
   dependency edges.

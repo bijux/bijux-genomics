@@ -3,6 +3,7 @@ stage_id: "vcf.gl_propagation"
 status: "supported"
 scope: "post_vcf"
 domain: "vcf"
+description: "VCF stage contract for vcf.gl_propagation in the governed domain registry."
 inputs:
   - name: "gl_sites_vcf"
     data_type: "vcf"
@@ -16,6 +17,7 @@ outputs:
     cardinality: "One"
 required_inputs: ["gl_sites_vcf"]
 required_outputs: ["gl_propagated_vcf", "gl_propagation_report"]
+tool_capability_requirements: []
 metrics:
   - name: "gl_fields_retained"
   - name: "genotyped_sites"
@@ -29,5 +31,6 @@ bank_hooks: ["none"]
 invariants:
   - "tool_pinned"
   - "gl_fields_present"
-allowed_missingness: []
+allowed_missingness:
+  - "none"
 planned_out_of_scope: []
