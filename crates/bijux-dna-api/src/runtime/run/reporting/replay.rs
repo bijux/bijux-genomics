@@ -181,11 +181,11 @@ fn resolve_manifest_relative_path(base_dir: &Path, path: &str) -> Result<PathBuf
 
 #[cfg(test)]
 mod tests {
-    use std::path::Path;
-
     use anyhow::anyhow;
 
-    use super::{resolve_existing_relative_path, resolve_graph_path, resolve_manifest_relative_path};
+    use super::{
+        resolve_existing_relative_path, resolve_graph_path, resolve_manifest_relative_path,
+    };
 
     #[test]
     fn resolve_graph_path_uses_manifest_graph_artifact() -> anyhow::Result<()> {
@@ -247,24 +247,21 @@ mod tests {
     #[test]
     fn resolve_existing_relative_path_recovers_workspace_relative_inputs() -> anyhow::Result<()> {
         let temp = tempfile::tempdir()?;
-        let repo_root = temp.path().join("repo");
-        let run_dir = repo_root.join("artifacts/tmp/session/runs/run-123");
-        let declared_input = repo_root.join("artifacts/tmp/session/reads.fastq");
-        std::fs::create_dir_all(run_dir.as_path())?;
-        std::fs::create_dir_all(
-            declared_input
-                .parent()
-                .ok_or_else(|| anyhow!("declared input missing parent"))?,
-        )?;
-        std::fs::write(&declared_input, b"@read\nACGT\n+\n!!!!\n")?;
+        let workspace_root = tempfile::tempdir_in(temp.path())?;
+        let declared_input = tempfile::Builder::new()
+            .prefix("reads-")
+            .suffix(".fastq")
+            .tempfile_in(workspace_root.path())?;
+        let declared_input_path = declared_input.path().to_path_buf();
+        let relative_input = declared_input_path
+            .strip_prefix(workspace_root.path())
+            .map_err(|err| anyhow!("strip workspace prefix: {err}"))?;
+        let run_dir = workspace_root.path().join("runs/run-123/artifacts");
 
-        let recovered = resolve_existing_relative_path(
-            run_dir.as_path(),
-            Path::new("artifacts/tmp/session/reads.fastq"),
-        )
-        .ok_or_else(|| anyhow!("expected resolver to recover existing input path"))?;
+        let recovered = resolve_existing_relative_path(run_dir.as_path(), relative_input)
+            .ok_or_else(|| anyhow!("expected resolver to recover existing input path"))?;
 
-        assert_eq!(recovered, declared_input);
+        assert_eq!(recovered, declared_input_path);
         Ok(())
     }
 }
