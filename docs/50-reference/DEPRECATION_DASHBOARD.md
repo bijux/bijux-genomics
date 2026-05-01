@@ -6,6 +6,16 @@
 ## Purpose
 Generated dashboard of deprecated stage ids, tool ids, metric ids, params, and fields with replacement and migration coverage.
 
+## Scope
+Compatibility deprecations declared in `configs/ci/compatibility/deprecations.toml`.
+
+## Non-goals
+- Replacing migration playbooks or release planning records.
+
+## Contracts
+- Generated-only document; manual edits are forbidden.
+- Rows must mirror governed compatibility deprecation declarations.
+
 - Source schema: `bijux.compatibility_deprecations.v1`
 
 | Kind | Subject | Replacement | Deadline | Migration Test Status | Source | Notes |

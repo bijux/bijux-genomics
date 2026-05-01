@@ -32,3 +32,15 @@ Authoritative sources live under `configs/runtime/`, `configs/logging/`, and `co
 Operational profile files must not silently redefine scientific thresholds, reference
 compatibility, sample assumptions, or advisory/enforced scientific findings. Those changes must
 happen in scientific/domain authorities and be reviewed as scientific contract changes.
+
+## Scope
+This document defines the operational or architecture surface for this workflow surface.
+
+## Non-goals
+- Replacing crate-level implementation details or test contracts.
+
+## Contracts
+- Changes to this surface must stay aligned with governed checks and generated references.
+
+## Purpose
+This document records the durable intent and enforcement boundary for this surface.

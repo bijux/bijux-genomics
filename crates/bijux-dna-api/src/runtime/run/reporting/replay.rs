@@ -350,13 +350,13 @@ mod tests {
         let temp_root = std::env::current_dir()?;
         let temp = tempfile::tempdir_in(&temp_root)?;
         let workspace_root = tempfile::tempdir_in(temp.path())?;
-        let runtime_root = workspace_root.path().join("artifacts/tmp/.tmp123");
+        let runtime_root = workspace_root.path().join("artifacts/runtime-scratch/.tmp123");
         ensure_dir(&runtime_root)?;
         let declared_input_path = runtime_root.join("reads.fastq");
         write_bytes(&declared_input_path, b"@read\nACGT\n+\n!!!!\n")?;
         let run_dir = runtime_root.join("runs/run-123");
         ensure_dir(&run_dir)?;
-        let canonicalized_relative = Path::new("artifacts/tmp/.tmp123/reads.fastq");
+        let canonicalized_relative = Path::new("artifacts/runtime-scratch/.tmp123/reads.fastq");
 
         let recovered =
             resolve_relative_path_from_ancestors(run_dir.as_path(), canonicalized_relative, true)
@@ -372,11 +372,11 @@ mod tests {
         let temp_root = std::env::current_dir()?;
         let temp = tempfile::tempdir_in(&temp_root)?;
         let workspace_root = tempfile::tempdir_in(temp.path())?;
-        let runtime_root = workspace_root.path().join("artifacts/tmp/.tmp123");
+        let runtime_root = workspace_root.path().join("artifacts/runtime-scratch/.tmp123");
         ensure_dir(&runtime_root)?;
         let run_dir = runtime_root.join("runs/run-123");
         ensure_dir(&run_dir)?;
-        let output_tail = Path::new("artifacts/tmp/.tmp123/validated.fastq");
+        let output_tail = Path::new("artifacts/runtime-scratch/.tmp123/validated.fastq");
 
         let resolved = resolve_relative_path_from_ancestors(run_dir.as_path(), output_tail, false)
             .ok_or_else(|| anyhow!("expected resolver to map canonicalized output tail"))?;

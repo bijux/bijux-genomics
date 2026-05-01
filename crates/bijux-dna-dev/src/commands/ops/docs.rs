@@ -385,6 +385,8 @@ pub(super) fn docs_check_domain_doc_references(
     let tool_id_re = Regex::new(r#"^\s*(?:id|tool_id)\s*=\s*"([^"]+)""#)?;
     let docs_stage_re = Regex::new(r"`((?:fastq|bam)\.[a-z0-9_]+)`")?;
     let docs_tool_re = Regex::new(r"`tool:([a-z0-9][a-z0-9._-]*)`")?;
+    let deprecation_kind_re = Regex::new(r#"^\s*kind\s*=\s*"([^"]+)""#)?;
+    let deprecation_subject_re = Regex::new(r#"^\s*subject\s*=\s*"([^"]+)""#)?;
     let mut stage_ids = BTreeSet::new();
     for rel in ["configs/ci/stages/stages.toml", "configs/ci/stages/stages_vcf.toml"] {
         for line in read_utf8(&workspace.path(rel))?.lines() {
@@ -398,6 +400,23 @@ pub(super) fn docs_check_domain_doc_references(
     for domain_index in glob_paths(workspace, "domain/*/index.yaml")? {
         for line in read_utf8(&domain_index)?.lines() {
             if let Some(capture) = domain_stage_re.captures(line) {
+                if let Some(value) = capture.get(1) {
+                    stage_ids.insert(value.as_str().to_string());
+                }
+            }
+        }
+    }
+    // Deprecated stage ids remain valid documentation tokens while migration windows are open.
+    let mut deprecation_kind = String::new();
+    for line in read_utf8(&workspace.path("configs/ci/compatibility/deprecations.toml"))?.lines() {
+        if let Some(capture) = deprecation_kind_re.captures(line) {
+            if let Some(value) = capture.get(1) {
+                deprecation_kind = value.as_str().to_string();
+            }
+            continue;
+        }
+        if let Some(capture) = deprecation_subject_re.captures(line) {
+            if deprecation_kind == "stage_id" {
                 if let Some(value) = capture.get(1) {
                     stage_ids.insert(value.as_str().to_string());
                 }

@@ -122,7 +122,7 @@ pub(in super::super) fn tooling_operator_workflow_maturity(
     }
 
     let config = parse_args(workspace, args)?;
-    let reports = config.selected.iter().map(run_scenario).collect::<Vec<_>>();
+    let reports = config.selected.iter().copied().map(run_scenario).collect::<Vec<_>>();
     let failed = reports.iter().filter(|report| report.status == "failed").count();
 
     let payload = ScenarioSuiteReport {
@@ -191,7 +191,7 @@ fn parse_args(workspace: &Workspace, args: &[String]) -> Result<ScenarioRunConfi
     Ok(ScenarioRunConfig { selected, out })
 }
 
-fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
+fn run_scenario(scenario: ScenarioId) -> ScenarioReport {
     let result = match scenario {
         ScenarioId::WorkflowImportExport => scenario_workflow_import_export_package(),
         ScenarioId::RunComparisonCommand => scenario_run_comparison_command(),
@@ -284,9 +284,9 @@ fn scenario_workflow_import_export_package() -> Result<(Vec<String>, serde_json:
             "import_bundle": workspace.rel(&import_dir).display().to_string(),
             "bundle_id": imported["bundle_id"],
             "run_id": imported["run_id"],
-            "input_count": imported["inputs"].as_array().map_or(0, |rows| rows.len()),
-            "reference_count": imported["references"].as_array().map_or(0, |rows| rows.len()),
-            "caveat_count": imported["caveats"].as_array().map_or(0, |rows| rows.len()),
+            "input_count": imported["inputs"].as_array().map_or(0, std::vec::Vec::len),
+            "reference_count": imported["references"].as_array().map_or(0, std::vec::Vec::len),
+            "caveat_count": imported["caveats"].as_array().map_or(0, std::vec::Vec::len),
         }),
     ))
 }
@@ -322,8 +322,8 @@ fn scenario_run_comparison_command() -> Result<(Vec<String>, serde_json::Value)>
     let call_rate_delta = candidate["metrics"]["call_rate"].as_f64().unwrap_or(0.0)
         - baseline["metrics"]["call_rate"].as_f64().unwrap_or(0.0);
 
-    if stage_delta["added"].as_array().is_none_or(|rows| rows.is_empty())
-        || tool_delta["added"].as_array().is_none_or(|rows| rows.is_empty())
+    if stage_delta["added"].as_array().is_none_or(std::vec::Vec::is_empty)
+        || tool_delta["added"].as_array().is_none_or(std::vec::Vec::is_empty)
     {
         return Err(anyhow!(
             "run comparison must expose stage and tool deltas when candidate diverges from baseline"
@@ -475,9 +475,9 @@ fn scenario_artifact_dedup_lineage() -> Result<(Vec<String>, serde_json::Value)>
 
 fn scenario_cache_corruption_quarantine() -> Result<(Vec<String>, serde_json::Value)> {
     let entries = vec![
-        json!({"cache_key":"ck_ref_01","artifact_id":"aligned_bam","expected_sha":"sha_ok_a","observed_sha":"sha_ok_a","expected_size":14800000000_u64,"observed_size":14800000000_u64}),
-        json!({"cache_key":"ck_ref_02","artifact_id":"variants_vcf","expected_sha":"sha_ok_b","observed_sha":"sha_bad_b","expected_size":4100000_u64,"observed_size":4100000_u64}),
-        json!({"cache_key":"ck_ref_03","artifact_id":"coverage_json","expected_sha":"sha_ok_c","observed_sha":"sha_ok_c","expected_size":120000_u64,"observed_size":0_u64}),
+        json!({"cache_key":"ck_ref_01","artifact_id":"aligned_bam","expected_sha":"sha_ok_a","observed_sha":"sha_ok_a","expected_size":14_800_000_000_u64,"observed_size":14_800_000_000_u64}),
+        json!({"cache_key":"ck_ref_02","artifact_id":"variants_vcf","expected_sha":"sha_ok_b","observed_sha":"sha_bad_b","expected_size":4_100_000_u64,"observed_size":4_100_000_u64}),
+        json!({"cache_key":"ck_ref_03","artifact_id":"coverage_json","expected_sha":"sha_ok_c","observed_sha":"sha_ok_c","expected_size":120_000_u64,"observed_size":0_u64}),
         json!({"cache_key":"ck_ref_04","artifact_id":"qc_manifest","expected_sha":"sha_ok_d","observed_sha":"sha_ok_d","expected_size":52000_u64,"observed_size":52000_u64}),
     ];
 
@@ -491,7 +491,7 @@ fn scenario_cache_corruption_quarantine() -> Result<(Vec<String>, serde_json::Va
         if sha_ok && size_ok {
             valid_entries.push(cache_key);
         } else {
-            let reason = if !sha_ok { "sha_mismatch" } else { "size_mismatch_or_empty_payload" };
+            let reason = if sha_ok { "size_mismatch_or_empty_payload" } else { "sha_mismatch" };
             quarantined_entries.push(json!({
                 "cache_key": cache_key,
                 "artifact_id": entry["artifact_id"],
@@ -539,7 +539,7 @@ fn scenario_bundle_portability_check() -> Result<(Vec<String>, serde_json::Value
             "reports/qc_manifest.json"
         ],
         "forbidden_absolute_paths": [
-            "/Users/",
+            "<posix-home>/",
             "C:\\\\"
         ]
     });
@@ -784,7 +784,7 @@ fn scenario_scale_aware_progress_reporting() -> Result<(Vec<String>, serde_json:
 }
 
 fn scenario_resource_prediction_from_past_runs() -> Result<(Vec<String>, serde_json::Value)> {
-    let history = vec![
+    let history = [
         json!({
             "run_id":"hist_001",
             "profile":"fastq-to-vcf__minimal__v1",
@@ -962,7 +962,7 @@ mod tests {
 
     #[test]
     fn g191_workflow_import_export_preserves_identity_and_caveats() {
-        let report = run_scenario(&ScenarioId::WorkflowImportExport);
+        let report = run_scenario(ScenarioId::WorkflowImportExport);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G191");
         assert_eq!(
@@ -981,7 +981,7 @@ mod tests {
 
     #[test]
     fn g192_run_comparison_exposes_stage_and_tool_deltas() {
-        let report = run_scenario(&ScenarioId::RunComparisonCommand);
+        let report = run_scenario(ScenarioId::RunComparisonCommand);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G192");
         let stage_added =
@@ -994,7 +994,7 @@ mod tests {
 
     #[test]
     fn g193_retention_simulation_classifies_transient_and_replay_large_outputs() {
-        let report = run_scenario(&ScenarioId::ArtifactRetentionSimulation);
+        let report = run_scenario(ScenarioId::ArtifactRetentionSimulation);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G193");
         let delete = report.evidence["delete"].as_array().cloned().unwrap_or_default();
@@ -1005,7 +1005,7 @@ mod tests {
 
     #[test]
     fn g194_dedup_lineage_groups_duplicate_digests_with_producers() {
-        let report = run_scenario(&ScenarioId::ArtifactDedupLineage);
+        let report = run_scenario(ScenarioId::ArtifactDedupLineage);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G194");
         let groups = report.evidence["dedup_groups"].as_array().cloned().unwrap_or_default();
@@ -1021,7 +1021,7 @@ mod tests {
 
     #[test]
     fn g195_quarantine_marks_sha_and_size_corruption_without_dropping_valid_entries() {
-        let report = run_scenario(&ScenarioId::CacheCorruptionQuarantine);
+        let report = run_scenario(ScenarioId::CacheCorruptionQuarantine);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G195");
         assert_eq!(report.evidence["quarantine_count"].as_u64().unwrap_or_default(), 2);
@@ -1030,7 +1030,7 @@ mod tests {
 
     #[test]
     fn g196_bundle_portability_requires_relative_paths_and_bundle_core_files() {
-        let report = run_scenario(&ScenarioId::BundlePortabilityCheck);
+        let report = run_scenario(ScenarioId::BundlePortabilityCheck);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G196");
         assert_eq!(report.evidence["all_relative_paths"].as_bool(), Some(true));
@@ -1039,7 +1039,7 @@ mod tests {
 
     #[test]
     fn g197_offline_review_profile_requires_evidence_files_and_no_network() {
-        let report = run_scenario(&ScenarioId::OfflineReviewProfile);
+        let report = run_scenario(ScenarioId::OfflineReviewProfile);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G197");
         assert_eq!(report.evidence["network_allowed"].as_bool(), Some(false));
@@ -1048,7 +1048,7 @@ mod tests {
 
     #[test]
     fn g198_operator_command_recipes_cover_core_tasks_with_evidence_paths() {
-        let report = run_scenario(&ScenarioId::OperatorCommandRecipes);
+        let report = run_scenario(ScenarioId::OperatorCommandRecipes);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G198");
         assert_eq!(report.evidence["recipe_count"].as_u64().unwrap_or_default(), 5);
@@ -1060,7 +1060,7 @@ mod tests {
 
     #[test]
     fn g199_scale_aware_progress_reports_failures_and_per_sample_state() {
-        let report = run_scenario(&ScenarioId::ScaleAwareProgressReporting);
+        let report = run_scenario(ScenarioId::ScaleAwareProgressReporting);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G199");
         assert_eq!(report.evidence["scale_class"].as_str(), Some("small"));
@@ -1073,7 +1073,7 @@ mod tests {
 
     #[test]
     fn g200_resource_prediction_uses_history_with_advisory_margin() {
-        let report = run_scenario(&ScenarioId::ResourcePredictionFromPastRuns);
+        let report = run_scenario(ScenarioId::ResourcePredictionFromPastRuns);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G200");
         assert!(report.evidence["history_count_matched"].as_u64().unwrap_or_default() >= 2);

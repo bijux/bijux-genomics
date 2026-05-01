@@ -128,6 +128,7 @@ pub(in super::super) fn tooling_reference_external_data(
     let reports = config
         .selected
         .iter()
+        .copied()
         .map(|scenario| run_scenario(workspace, scenario))
         .collect::<Vec<_>>();
     let failed = reports.iter().filter(|report| report.status == "failed").count();
@@ -198,7 +199,7 @@ fn parse_args(workspace: &Workspace, args: &[String]) -> Result<ScenarioRunConfi
     Ok(ScenarioRunConfig { selected, out })
 }
 
-fn run_scenario(workspace: &Workspace, scenario: &ScenarioId) -> ScenarioReport {
+fn run_scenario(workspace: &Workspace, scenario: ScenarioId) -> ScenarioReport {
     let result = match scenario {
         ScenarioId::CanFam4Reference => scenario_canfam4_reference(),
         ScenarioId::GrchHumanReference => scenario_grch_human_reference(),
@@ -275,7 +276,7 @@ fn scenario_grch_human_reference() -> Result<(Vec<String>, serde_json::Value)> {
 
 fn scenario_bacterial_reference() -> Result<(Vec<String>, serde_json::Value)> {
     let contigs = [
-        json!({ "name": "NC_000913.3", "length_bp": 4641652 }),
+        json!({ "name": "NC_000913.3", "length_bp": 4_641_652 }),
         json!({ "name": "pO157", "length_bp": 92637 }),
     ];
     let caveats = vec![
@@ -665,7 +666,7 @@ mod tests {
     fn canfam4_scenario_resolves_non_human_reference_contract() {
         let workspace =
             Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
-        let report = run_scenario(&workspace, &ScenarioId::CanFam4Reference);
+        let report = run_scenario(&workspace, ScenarioId::CanFam4Reference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G171");
         assert_eq!(
@@ -678,7 +679,7 @@ mod tests {
     fn grch38_scenario_resolves_panel_and_map_compatibility() {
         let workspace =
             Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
-        let report = run_scenario(&workspace, &ScenarioId::GrchHumanReference);
+        let report = run_scenario(&workspace, ScenarioId::GrchHumanReference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G172");
         assert_eq!(
@@ -691,7 +692,7 @@ mod tests {
     fn bacterial_scenario_keeps_taxonomy_advisory_caveat() {
         let workspace =
             Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
-        let report = run_scenario(&workspace, &ScenarioId::BacterialReference);
+        let report = run_scenario(&workspace, ScenarioId::BacterialReference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G173");
         let caveats = report
@@ -709,7 +710,7 @@ mod tests {
     fn organellar_scenario_resolves_mitochondrion_identity() {
         let workspace =
             Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
-        let report = run_scenario(&workspace, &ScenarioId::OrganellarReference);
+        let report = run_scenario(&workspace, ScenarioId::OrganellarReference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G174");
         assert_eq!(
@@ -722,7 +723,7 @@ mod tests {
     fn refusals_are_reported_for_multi_reference_scenario() {
         let workspace =
             Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
-        let report = run_scenario(&workspace, &ScenarioId::MultiReferenceRefusal);
+        let report = run_scenario(&workspace, ScenarioId::MultiReferenceRefusal);
         assert_eq!(report.status, "passed");
         let cases = report
             .evidence
@@ -745,7 +746,7 @@ mod tests {
     fn reference_update_scenario_tracks_invalidated_surfaces() {
         let workspace =
             Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
-        let report = run_scenario(&workspace, &ScenarioId::ReferenceUpdateImpact);
+        let report = run_scenario(&workspace, ScenarioId::ReferenceUpdateImpact);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G176");
         let surfaces = report
@@ -762,7 +763,7 @@ mod tests {
     fn contaminant_update_scenario_lists_changed_bundles() {
         let workspace =
             Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
-        let report = run_scenario(&workspace, &ScenarioId::ContaminantUpdateImpact);
+        let report = run_scenario(&workspace, ScenarioId::ContaminantUpdateImpact);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G177");
         let bundles = report
@@ -778,7 +779,7 @@ mod tests {
     fn adapter_primer_update_scenario_marks_edna_surface_impact() {
         let workspace =
             Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
-        let report = run_scenario(&workspace, &ScenarioId::AdapterPrimerUpdateImpact);
+        let report = run_scenario(&workspace, ScenarioId::AdapterPrimerUpdateImpact);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G178");
         let impacted = report
@@ -794,7 +795,7 @@ mod tests {
     fn ena_batch_scenario_captures_missing_checksum_uncertainty() {
         let workspace =
             Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
-        let report = run_scenario(&workspace, &ScenarioId::EnaBatchAccession);
+        let report = run_scenario(&workspace, ScenarioId::EnaBatchAccession);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G179");
         let uncertainty = report
@@ -817,7 +818,7 @@ mod tests {
     fn offline_package_scenario_materializes_reference_assets() {
         let workspace =
             Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
-        let report = run_scenario(&workspace, &ScenarioId::OfflineDataPackage);
+        let report = run_scenario(&workspace, ScenarioId::OfflineDataPackage);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G180");
         assert_eq!(

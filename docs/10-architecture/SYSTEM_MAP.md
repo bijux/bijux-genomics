@@ -35,3 +35,12 @@ flowchart LR
 
 `bijux-dna-dev`, `bijux-dna-bench`, and `bijux-dna-science` may consume the outputs in this map,
 but they are not allowed to become hidden authorities for workflow truth or execution truth.
+
+## Scope
+This document defines the operational or architecture surface for this workflow surface.
+
+## Non-goals
+- Replacing crate-level implementation details or test contracts.
+
+## Contracts
+- Changes to this surface must stay aligned with governed checks and generated references.

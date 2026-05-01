@@ -134,7 +134,7 @@ pub(in super::super) fn tooling_scientific_caveat_propagation(
     }
 
     let config = parse_args(workspace, args)?;
-    let reports = config.selected.iter().map(run_scenario).collect::<Vec<_>>();
+    let reports = config.selected.iter().copied().map(run_scenario).collect::<Vec<_>>();
     let failed = reports.iter().filter(|report| report.status == "failed").count();
 
     let payload = ScenarioSuiteReport {
@@ -203,7 +203,7 @@ fn parse_args(workspace: &Workspace, args: &[String]) -> Result<ScenarioRunConfi
     Ok(ScenarioRunConfig { selected, out })
 }
 
-fn run_scenario(scenario: &ScenarioId) -> ScenarioReport {
+fn run_scenario(scenario: ScenarioId) -> ScenarioReport {
     let result = match scenario {
         ScenarioId::AncientDnaAuthenticity => scenario_ancient_dna_authenticity_caveat_library(),
         ScenarioId::LowPassGenotype => scenario_low_pass_genotype_caveat_library(),
@@ -240,7 +240,6 @@ fn scenario_ancient_dna_authenticity_caveat_library() -> Result<(Vec<String>, se
     let damage_g_to_a: f64 = 0.16;
     let short_fragment_fraction: f64 = 0.34;
     let mean_coverage: f64 = 0.95;
-    let _contamination_estimate: f64 = 0.12;
 
     let terminal_damage = damage_c_to_t.max(damage_g_to_a);
     let damage_signal = if terminal_damage >= 0.20 {
@@ -1026,8 +1025,10 @@ fn evidence_gap_local(run_dir: &Path) -> Result<LocalEvidenceGapResponse> {
 
     let verified =
         verification.get("verified").and_then(serde_json::Value::as_bool).unwrap_or(false);
-    let base_gap_count =
-        verification.get("gap_count").and_then(serde_json::Value::as_u64).unwrap_or(0) as usize;
+    let base_gap_count = usize::try_from(
+        verification.get("gap_count").and_then(serde_json::Value::as_u64).unwrap_or(0),
+    )
+    .unwrap_or(usize::MAX);
 
     Ok(LocalEvidenceGapResponse {
         schema_version: "bijux.evidence_gap.v1".to_string(),
@@ -1096,7 +1097,7 @@ mod tests {
 
     #[test]
     fn g181_ancient_dna_caveat_library_emits_all_caveat_topics() {
-        let report = run_scenario(&ScenarioId::AncientDnaAuthenticity);
+        let report = run_scenario(ScenarioId::AncientDnaAuthenticity);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G181");
         let library = report
@@ -1117,7 +1118,7 @@ mod tests {
 
     #[test]
     fn g181_marks_contamination_prerequisite_refusal_in_caveat_library() {
-        let report = run_scenario(&ScenarioId::AncientDnaAuthenticity);
+        let report = run_scenario(ScenarioId::AncientDnaAuthenticity);
         assert_eq!(report.status, "passed");
         let contamination = report
             .evidence
@@ -1139,7 +1140,7 @@ mod tests {
 
     #[test]
     fn g182_low_pass_library_preserves_coverage_gl_imputation_missingness_topics() {
-        let report = run_scenario(&ScenarioId::LowPassGenotype);
+        let report = run_scenario(ScenarioId::LowPassGenotype);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G182");
         let library = report
@@ -1160,7 +1161,7 @@ mod tests {
 
     #[test]
     fn g182_diploid_boundary_records_low_coverage_refusal() {
-        let report = run_scenario(&ScenarioId::LowPassGenotype);
+        let report = run_scenario(ScenarioId::LowPassGenotype);
         assert_eq!(report.status, "passed");
         let diploid = report.evidence.get("diploid_boundary").cloned().unwrap_or_default();
         let refusals = diploid
@@ -1175,7 +1176,7 @@ mod tests {
 
     #[test]
     fn g183_edna_taxonomy_library_contains_all_required_topics() {
-        let report = run_scenario(&ScenarioId::EdnaTaxonomy);
+        let report = run_scenario(ScenarioId::EdnaTaxonomy);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G183");
         let library = report
@@ -1196,7 +1197,7 @@ mod tests {
 
     #[test]
     fn g183_each_taxonomy_caveat_declares_propagation_targets() {
-        let report = run_scenario(&ScenarioId::EdnaTaxonomy);
+        let report = run_scenario(ScenarioId::EdnaTaxonomy);
         assert_eq!(report.status, "passed");
         let library = report
             .evidence
@@ -1216,7 +1217,7 @@ mod tests {
 
     #[test]
     fn g184_population_structure_library_contains_required_topics() {
-        let report = run_scenario(&ScenarioId::PopulationStructure);
+        let report = run_scenario(ScenarioId::PopulationStructure);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G184");
         let library = report
@@ -1237,7 +1238,7 @@ mod tests {
 
     #[test]
     fn g184_cohort_size_caveat_propagates_sample_count_refusal() {
-        let report = run_scenario(&ScenarioId::PopulationStructure);
+        let report = run_scenario(ScenarioId::PopulationStructure);
         assert_eq!(report.status, "passed");
         let library = report
             .evidence
@@ -1253,7 +1254,7 @@ mod tests {
 
     #[test]
     fn g185_demography_library_contains_required_topics() {
-        let report = run_scenario(&ScenarioId::Demography);
+        let report = run_scenario(ScenarioId::Demography);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G185");
         let library = report
@@ -1273,7 +1274,7 @@ mod tests {
 
     #[test]
     fn g185_demography_propagates_marker_overlap_refusal() {
-        let report = run_scenario(&ScenarioId::Demography);
+        let report = run_scenario(ScenarioId::Demography);
         assert_eq!(report.status, "passed");
         let prerequisites =
             report.evidence.get("kinship_prerequisites").cloned().unwrap_or_default();
@@ -1289,7 +1290,7 @@ mod tests {
 
     #[test]
     fn g186_damage_aware_variant_library_attaches_filter_summary() {
-        let report = run_scenario(&ScenarioId::DamageAwareVariant);
+        let report = run_scenario(ScenarioId::DamageAwareVariant);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G186");
         let summary = report.evidence.get("damage_filter_summary").cloned().unwrap_or_default();
@@ -1305,7 +1306,7 @@ mod tests {
 
     #[test]
     fn g186_damage_variant_library_lists_downstream_guardrail_topic() {
-        let report = run_scenario(&ScenarioId::DamageAwareVariant);
+        let report = run_scenario(ScenarioId::DamageAwareVariant);
         assert_eq!(report.status, "passed");
         let library = report
             .evidence
@@ -1320,7 +1321,7 @@ mod tests {
 
     #[test]
     fn g187_contamination_model_contains_mito_and_nuclear_scopes() {
-        let report = run_scenario(&ScenarioId::ContaminationPropagation);
+        let report = run_scenario(ScenarioId::ContaminationPropagation);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G187");
         let mito_scope = report
@@ -1339,7 +1340,7 @@ mod tests {
 
     #[test]
     fn g187_population_risk_caveat_is_propagated() {
-        let report = run_scenario(&ScenarioId::ContaminationPropagation);
+        let report = run_scenario(ScenarioId::ContaminationPropagation);
         assert_eq!(report.status, "passed");
         let library = report
             .evidence
@@ -1356,7 +1357,7 @@ mod tests {
 
     #[test]
     fn g188_sample_identity_conflict_sets_kinship_refusal() {
-        let report = run_scenario(&ScenarioId::SampleIdentityConflict);
+        let report = run_scenario(ScenarioId::SampleIdentityConflict);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G188");
         let kinship = report.evidence.get("kinship_prerequisites").cloned().unwrap_or_default();
@@ -1372,7 +1373,7 @@ mod tests {
 
     #[test]
     fn g188_propagated_identity_contains_multiple_read_groups() {
-        let report = run_scenario(&ScenarioId::SampleIdentityConflict);
+        let report = run_scenario(ScenarioId::SampleIdentityConflict);
         assert_eq!(report.status, "passed");
         let propagated = report.evidence.get("propagated_identity").cloned().unwrap_or_default();
         let rg_ids = propagated
@@ -1385,7 +1386,7 @@ mod tests {
 
     #[test]
     fn g189_reference_build_conflict_propagates_required_refusal_codes() {
-        let report = run_scenario(&ScenarioId::ReferenceBuildConflict);
+        let report = run_scenario(ScenarioId::ReferenceBuildConflict);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G189");
         let resolution =
@@ -1401,7 +1402,7 @@ mod tests {
 
     #[test]
     fn g189_reference_conflict_library_contains_population_refusal_topic() {
-        let report = run_scenario(&ScenarioId::ReferenceBuildConflict);
+        let report = run_scenario(ScenarioId::ReferenceBuildConflict);
         assert_eq!(report.status, "passed");
         let library = report
             .evidence
@@ -1416,7 +1417,7 @@ mod tests {
 
     #[test]
     fn g190_missing_evidence_propagates_gap_summary() {
-        let report = run_scenario(&ScenarioId::MissingEvidence);
+        let report = run_scenario(ScenarioId::MissingEvidence);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G190");
         let gap = report.evidence.get("evidence_gap").cloned().unwrap_or_default();
@@ -1433,7 +1434,7 @@ mod tests {
 
     #[test]
     fn g190_missing_evidence_lists_unsafe_artifacts_in_caveats() {
-        let report = run_scenario(&ScenarioId::MissingEvidence);
+        let report = run_scenario(ScenarioId::MissingEvidence);
         assert_eq!(report.status, "passed");
         let library = report
             .evidence
