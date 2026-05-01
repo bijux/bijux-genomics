@@ -6,7 +6,9 @@ NEXTEST_PROFILE_ALL ?= full
 ARTIFACTS_DIR ?= $(ARTIFACT_ROOT)/make/$(or $(MAKECMDGOALS),manual)
 NEXTEST_TOML := configs/rust/nextest.toml
 NEXTEST_CONFIG ?= --config-file $(NEXTEST_TOML)
-NEXTEST_FAST_EXPR ?= not test(/::slow__/)
+NEXTEST_FAST_EXPR ?= not test(/::slow__/) and not test(/boundaries|schemas|contracts|policy__|snapshot|parser_contracts|plugin_contracts|stage_backend_policy|report_qc::tests::qc_post_record_preserves_upstream_qc_summary_signals|mod_semantics_invariants_rs|legacy_manifests_still_load/)
+NEXTEST_GOVERNANCE_EXPR ?= test(/boundaries|schemas|contracts|policy__|snapshot|parser_contracts|plugin_contracts|stage_backend_policy|report_qc::tests::qc_post_record_preserves_upstream_qc_summary_signals|mod_semantics_invariants_rs|legacy_manifests_still_load/)
+NEXTEST_FULL_EXPR ?= $(NEXTEST_FAST_EXPR)
 NEXTEST_SLOW_EXPR ?= test(/::slow__/)
 NEXTEST_NO_TESTS ?= pass
 RUN_IGNORED = --run-ignored all
@@ -176,6 +178,14 @@ test-fast: ## Compatibility alias for the fast Rust suite.
 	@$(ensure_artifact_env)
 	@$(MAKE) test-rs
 
+test-governance: ## Run boundary/policy/snapshot contracts that are excluded from the fast lane.
+	@$(ensure_artifact_env)
+	@$(MAKE) test-governance-rs
+
+test-governance-rs: ## Run governance-heavy contract suites (boundaries, schemas, and snapshots).
+	@$(ensure_artifact_env)
+	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_NEXTEST_CACHE_DIR="$(RS_NEXTEST_CACHE_DIR)" RS_NEXTEST_CONFIG_HOME="$(RS_NEXTEST_CONFIG_HOME)" RS_PROFRAW_DIR="$(RS_PROFRAW_DIR)" RS_LLVM_PROFILE_FILE="$(RS_LLVM_PROFILE_FILE)" RS_TEST_REPORT="$(RS_TEST_REPORT)" NEXTEST_CONFIG_FILE="$(NEXTEST_TOML)" NEXTEST_PROFILE_FAST="$(NEXTEST_PROFILE_FAST)" NEXTEST_FAST_EXPR="$(NEXTEST_GOVERNANCE_EXPR)" NEXTEST_STATUS_LEVEL="$(NEXTEST_STATUS_LEVEL)" NEXTEST_FINAL_STATUS_LEVEL="$(NEXTEST_FINAL_STATUS_LEVEL)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" test
+
 test-slow: ## Run Rust tests labeled as slow.
 	@$(ensure_artifact_env)
 	@$(MAKE) test-slow-rs
@@ -190,7 +200,7 @@ test-all: ## Run the full Rust suite, including ignored tests.
 
 test-all-rs: ## Run the full Rust suite, including ignored and long-running tests.
 	@$(ensure_artifact_env)
-	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_NEXTEST_CACHE_DIR="$(RS_NEXTEST_CACHE_DIR)" RS_NEXTEST_CONFIG_HOME="$(RS_NEXTEST_CONFIG_HOME)" RS_PROFRAW_DIR="$(RS_PROFRAW_DIR)" RS_LLVM_PROFILE_FILE="$(RS_LLVM_PROFILE_FILE)" RS_TEST_ALL_REPORT="$(RS_TEST_ALL_REPORT)" NEXTEST_CONFIG_FILE="$(NEXTEST_TOML)" NEXTEST_PROFILE_ALL="$(NEXTEST_PROFILE_ALL)" NEXTEST_STATUS_LEVEL="$(NEXTEST_STATUS_LEVEL)" NEXTEST_FINAL_STATUS_LEVEL="$(NEXTEST_FINAL_STATUS_LEVEL)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" test-all
+	@RS_ARTIFACT_ROOT="$(RS_ARTIFACT_ROOT)" RS_RUN_ID="$(RS_RUN_ID)" RS_TARGET_DIR="$(RS_TARGET_DIR)" RS_NEXTEST_CACHE_DIR="$(RS_NEXTEST_CACHE_DIR)" RS_NEXTEST_CONFIG_HOME="$(RS_NEXTEST_CONFIG_HOME)" RS_PROFRAW_DIR="$(RS_PROFRAW_DIR)" RS_LLVM_PROFILE_FILE="$(RS_LLVM_PROFILE_FILE)" RS_TEST_ALL_REPORT="$(RS_TEST_ALL_REPORT)" NEXTEST_CONFIG_FILE="$(NEXTEST_TOML)" NEXTEST_PROFILE_ALL="$(NEXTEST_PROFILE_ALL)" NEXTEST_FULL_EXPR="$(NEXTEST_FULL_EXPR)" NEXTEST_STATUS_LEVEL="$(NEXTEST_STATUS_LEVEL)" NEXTEST_FINAL_STATUS_LEVEL="$(NEXTEST_FINAL_STATUS_LEVEL)" CARGO_TERM_COLOR="$(CARGO_TERM_COLOR)" CARGO_TERM_PROGRESS_WHEN="$(CARGO_TERM_PROGRESS_WHEN)" CARGO_TERM_PROGRESS_WIDTH="$(CARGO_TERM_PROGRESS_WIDTH)" CARGO_TERM_VERBOSE="$(CARGO_TERM_VERBOSE)" "$(RUST_GATE_BIN)" test-all
 
 _test:
 	@$(ensure_artifact_env)
