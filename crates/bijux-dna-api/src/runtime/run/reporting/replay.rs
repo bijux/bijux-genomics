@@ -68,7 +68,7 @@ fn absolutize_graph_paths(base_dir: &Path, graph: &mut serde_json::Value) -> Res
         .and_then(serde_json::Value::as_array_mut)
         .ok_or_else(|| anyhow!("graph.json missing steps array"))?;
     for step in steps {
-        absolutize_path_field(base_dir, step, "out_dir")?;
+        absolutize_path_field(base_dir, step, "out_dir", false)?;
         let io = step
             .get_mut("io")
             .and_then(serde_json::Value::as_object_mut)
@@ -79,7 +79,7 @@ fn absolutize_graph_paths(base_dir: &Path, graph: &mut serde_json::Value) -> Res
                 .and_then(serde_json::Value::as_array_mut)
                 .ok_or_else(|| anyhow!("graph.json io missing {artifact_key} array"))?;
             for artifact in artifacts {
-                absolutize_path_field(base_dir, artifact, "path")?;
+                absolutize_path_field(base_dir, artifact, "path", artifact_key == "inputs")?;
             }
         }
     }
@@ -90,6 +90,7 @@ fn absolutize_path_field(
     base_dir: &Path,
     object: &mut serde_json::Value,
     field: &str,
+    search_ancestors_for_existing: bool,
 ) -> Result<()> {
     let value =
         object.get_mut(field).ok_or_else(|| anyhow!("graph.json object missing {field}"))?;
@@ -97,9 +98,24 @@ fn absolutize_path_field(
         value.as_str().ok_or_else(|| anyhow!("graph.json field {field} must be a string path"))?;
     let path = Path::new(path_value);
     if path.is_relative() {
-        *value = serde_json::Value::String(base_dir.join(path).to_string_lossy().into_owned());
+        let resolved = if search_ancestors_for_existing {
+            resolve_existing_relative_path(base_dir, path).unwrap_or_else(|| base_dir.join(path))
+        } else {
+            base_dir.join(path)
+        };
+        *value = serde_json::Value::String(resolved.to_string_lossy().into_owned());
     }
     Ok(())
+}
+
+fn resolve_existing_relative_path(base_dir: &Path, relative_path: &Path) -> Option<PathBuf> {
+    if relative_path.as_os_str().is_empty() {
+        return None;
+    }
+    base_dir.ancestors().find_map(|ancestor| {
+        let candidate = ancestor.join(relative_path);
+        candidate.exists().then_some(candidate)
+    })
 }
 
 fn resolve_graph_path(base_dir: &Path, artifacts: &[serde_json::Value]) -> Result<PathBuf> {
@@ -165,7 +181,11 @@ fn resolve_manifest_relative_path(base_dir: &Path, path: &str) -> Result<PathBuf
 
 #[cfg(test)]
 mod tests {
-    use super::{resolve_graph_path, resolve_manifest_relative_path};
+    use std::path::Path;
+
+    use anyhow::anyhow;
+
+    use super::{resolve_existing_relative_path, resolve_graph_path, resolve_manifest_relative_path};
 
     #[test]
     fn resolve_graph_path_uses_manifest_graph_artifact() -> anyhow::Result<()> {
@@ -221,6 +241,30 @@ mod tests {
         };
 
         assert!(err.to_string().contains("must be relative"), "unexpected error: {err}");
+        Ok(())
+    }
+
+    #[test]
+    fn resolve_existing_relative_path_recovers_workspace_relative_inputs() -> anyhow::Result<()> {
+        let temp = tempfile::tempdir()?;
+        let repo_root = temp.path().join("repo");
+        let run_dir = repo_root.join("artifacts/tmp/session/runs/run-123");
+        let declared_input = repo_root.join("artifacts/tmp/session/reads.fastq");
+        std::fs::create_dir_all(run_dir.as_path())?;
+        std::fs::create_dir_all(
+            declared_input
+                .parent()
+                .ok_or_else(|| anyhow!("declared input missing parent"))?,
+        )?;
+        std::fs::write(&declared_input, b"@read\nACGT\n+\n!!!!\n")?;
+
+        let recovered = resolve_existing_relative_path(
+            run_dir.as_path(),
+            Path::new("artifacts/tmp/session/reads.fastq"),
+        )
+        .ok_or_else(|| anyhow!("expected resolver to recover existing input path"))?;
+
+        assert_eq!(recovered, declared_input);
         Ok(())
     }
 }
