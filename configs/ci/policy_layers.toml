@@ -1,5 +1,9 @@
 # schema_version = 1
 # owner = architecture
+# purpose = Contract map of scientific and operational policy ownership layers.
+# authority = bijux-dna-policies
+# stability = stable
+# last_updated = 2026-05-01
 
 [scientific]
 authoritative_paths = [

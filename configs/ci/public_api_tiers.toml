@@ -1,5 +1,9 @@
 # schema_version = 1
 # owner = architecture
+# purpose = Contract list of runtime-facing crates for public API tier policy checks.
+# authority = bijux-dna-policies
+# stability = stable
+# last_updated = 2026-05-01
 
 runtime_facing_crates = [
   "bijux-dna-api",
