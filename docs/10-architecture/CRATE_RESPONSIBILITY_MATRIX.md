@@ -73,3 +73,12 @@ Parallel consumers that must not own execution truth:
 - [CRATE_BOUNDARY_CONTRACTS.md](CRATE_BOUNDARY_CONTRACTS.md) defines required boundary fields.
 - `crates/bijux-dna-policies/tests/contracts/tooling/governance_core/crate_responsibility_matrix_policy.rs`
   requires every workspace crate to appear in the machine-readable matrix.
+
+## Scope
+This document defines the operational or architecture surface for this workflow surface.
+
+## Non-goals
+- Replacing crate-level implementation details or test contracts.
+
+## Contracts
+- Changes to this surface must stay aligned with governed checks and generated references.

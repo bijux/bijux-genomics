@@ -3,6 +3,19 @@
 
 # UPGRADE_GUIDE
 
+## Purpose
+Generated release-change guide summarizing governed compatibility-impacting changes.
+
+## Scope
+Release metadata and change declarations from compatibility release-change config.
+
+## Non-goals
+- Replacing detailed operational runbooks or incident procedures.
+
+## Contracts
+- Generated-only document; manual edits are forbidden.
+- Change rows must stay aligned with governed release change config.
+
 Release: `feat-deep-foundation-compatibility`
 
 Title: Compatibility and upgrade discipline

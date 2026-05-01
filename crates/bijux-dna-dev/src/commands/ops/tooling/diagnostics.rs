@@ -538,6 +538,7 @@ pub(in super::super) fn tooling_coverage_summary(
 }
 
 #[cfg(test)]
+#[allow(clippy::items_after_test_module)]
 mod architecture_report_tests {
     use super::{
         extract_added_paths, extract_workspace_dependency_additions,
@@ -561,10 +562,10 @@ mod architecture_report_tests {
 
     #[test]
     fn architecture_report_extracts_added_config_and_schema_paths() {
-        let diff = "A\tconfigs/ci/example.toml\nM\tconfigs/ci/old.toml\nA\tscience/specs/data/example.json\n";
+        let diff = "A\tconfigs/ci/registry/tool_registry.toml\nM\tconfigs/ci/compatibility/deprecations.toml\nA\tscience/specs/data/example.json\n";
         assert_eq!(
             extract_added_paths(diff, "configs/"),
-            vec!["configs/ci/example.toml".to_string()]
+            vec!["configs/ci/registry/tool_registry.toml".to_string()]
         );
         assert_eq!(
             extract_added_paths(diff, "science/specs/"),

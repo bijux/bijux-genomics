@@ -33,3 +33,15 @@ cargo run -q -p bijux-dna-dev -- tooling run operator-workflow-maturity -- --out
 - `G198` `g198_operator_command_recipes`: canonical run/inspect/replay/diff/export recipes mapped to concrete evidence paths.
 - `G199` `g199_scale_aware_progress_reporting`: sample/stage/artifact progress summaries with explicit failure rows.
 - `G200` `g200_resource_prediction_from_past_runs`: advisory CPU/memory/scratch suggestions from successful historical runs.
+
+## Scope
+This document defines the operational or architecture surface for this workflow surface.
+
+## Non-goals
+- Replacing crate-level implementation details or test contracts.
+
+## Contracts
+- Changes to this surface must stay aligned with governed checks and generated references.
+
+## Purpose
+This document records the durable intent and enforcement boundary for this surface.

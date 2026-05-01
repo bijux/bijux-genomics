@@ -81,3 +81,15 @@ Notes:
 - Use [examples/index.yaml](../../examples/index.yaml) to discover governed canonical example ids.
 - Use [RELEASE_RUNNABLE_EXAMPLES.md](RELEASE_RUNNABLE_EXAMPLES.md) for manifest/output/caveat links and release-facing example command paths.
 - Use [BACKLOG_SCOREBOARD.md](BACKLOG_SCOREBOARD.md) for Level 1 closure-scope routing and status policy.
+
+## Scope
+This document defines the operational or architecture surface for this workflow surface.
+
+## Non-goals
+- Replacing crate-level implementation details or test contracts.
+
+## Contracts
+- Changes to this surface must stay aligned with governed checks and generated references.
+
+## Purpose
+This document records the durable intent and enforcement boundary for this surface.

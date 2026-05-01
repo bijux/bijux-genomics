@@ -6,6 +6,16 @@
 ## Purpose
 Generated registry of governed workflow, plan, runtime, evidence, metric, report, and error compatibility surfaces.
 
+## Scope
+Schema and error compatibility contracts exposed by governed registries.
+
+## Non-goals
+- Replacing crate-level API or data model documentation.
+
+## Contracts
+- Generated-only document; manual edits are forbidden.
+- Registry rows must remain deterministic for a fixed repository state.
+
 ## Schema Families
 | Family | Schema | Semantic Version | Surface | Compatibility | Migration Rule | Owner |
 |---|---|---|---|---|---|---|

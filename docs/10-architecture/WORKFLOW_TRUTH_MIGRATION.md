@@ -18,3 +18,15 @@ Move workflow truth out of `bijux-dna-dev` and CLI helper modules.
 
 - `crates/bijux-dna/tests/contracts/cli_library_parity.rs` proves representative FASTQ, BAM, VCF, and cross-domain planning outputs match the library APIs.
 - `crates/bijux-dna-policies/tests/contracts/tooling/governance_core/workflow_truth_boundary_policy.rs` prevents the plan-sidecar schema versions from being redefined in CLI or dev code.
+
+## Scope
+This document defines the operational or architecture surface for this workflow surface.
+
+## Non-goals
+- Replacing crate-level implementation details or test contracts.
+
+## Contracts
+- Changes to this surface must stay aligned with governed checks and generated references.
+
+## Purpose
+This document records the durable intent and enforcement boundary for this surface.
