@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_core::ids::{StageId, StageVersion, ToolId};
-use bijux_dna_core::prelude::{StageIO, ToolConstraints};
+use bijux_dna_core::prelude::{StageIO, StageOperatingMode, ToolConstraints};
 use bijux_dna_db_ref::{MapCatalogEntry, ReferenceBundle};
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
@@ -84,7 +84,10 @@ pub fn build_stage_plan(
         out_dir: out_dir.join(stage.as_str().replace('.', "_")),
         params: params.clone(),
         effective_params: params,
+        operating_mode: StageOperatingMode::Enforced,
         aux_images: std::collections::BTreeMap::new(),
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason {
             kind: PlanReasonKind::InputAssessed,
             summary: format!(

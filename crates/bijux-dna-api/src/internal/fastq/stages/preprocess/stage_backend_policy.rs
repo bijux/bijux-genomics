@@ -555,6 +555,12 @@ mod tests {
                 "paired_mode": "paired_end",
                 "threads": 2,
                 "umi_pattern": "NNNNNNNN",
+                "extraction_location": "read1_prefix",
+                "read_name_transform": "append_to_header",
+                "failed_extraction_policy": "refuse_stage",
+                "grouping_policy": "pair_aware",
+                "downstream_dedup_policy": "sequence_identity_recommended",
+                "downstream_propagation": "header_and_report",
                 "input_r1": "reads_R1.fastq.gz",
                 "input_r2": "reads_R2.fastq.gz",
                 "output_r1": "umi_reads_R1.fastq.gz",
@@ -740,13 +746,15 @@ mod tests {
         let report_path = temp.path().join("trim_report.json");
         std::fs::write(
             &report_path,
-            serde_json::json!({
+            r#"{
                 "schema_version": "bijux.fastq.trim_reads.report.v2",
                 "stage": "fastq.trim_reads",
                 "stage_id": "fastq.trim_reads",
                 "tool_id": "fastp",
                 "paired_mode": "single_end",
                 "threads": 4,
+                "trimming_backend": "fastp",
+                "backend_mode": "enforced",
                 "input_r1": "reads.fastq.gz",
                 "input_r2": null,
                 "output_r1": "trimmed.fastq.gz",
@@ -760,10 +768,12 @@ mod tests {
                 "adapter_bank_id": "illumina",
                 "adapter_bank_hash": "sha256:adapter",
                 "adapter_preset": "default",
+                "detected_adapter_source": "governed_pattern_scan",
                 "adapter_overrides": {
                     "enable": ["AGATCGGAAGAGC"],
                     "disable": ["polyA"]
                 },
+                "prepared_adapter_bank": null,
                 "polyx_bank_id": "polyx",
                 "polyx_bank_hash": "sha256:polyx",
                 "polyx_preset": "illumina_twocolor",
@@ -778,12 +788,16 @@ mod tests {
                 "pairs_out": null,
                 "mean_q_before": 28.0,
                 "mean_q_after": 30.0,
+                "effective_trim_params": {
+                    "adapter_policy": "bank",
+                    "min_length": 30,
+                    "quality_cutoff": 20
+                },
                 "runtime_s": 5.0,
                 "memory_mb": 64.0,
                 "raw_backend_report": "trim.fastp.json",
                 "raw_backend_report_format": "fastp_json"
-            })
-            .to_string(),
+            }"#,
         )
         .expect("write report");
 
@@ -1026,6 +1040,8 @@ mod tests {
                 "database_scope": "read_screening",
                 "minimum_confidence": 0.05,
                 "emit_unclassified": true,
+                "interpretation_boundary": "screening_only",
+                "truth_conditions": [],
                 "input_r1": "reads.fastq.gz",
                 "input_r2": null,
                 "screen_report_tsv": "kraken2.report.tsv",
@@ -1077,10 +1093,13 @@ mod tests {
                 "rrna_db": "/refs/silva",
                 "database_artifact_id": "silva_nr99",
                 "database_build_id": "2026.03",
+                "database_digest": "sha256:silva",
                 "screening_engine": "sortmerna",
                 "report_format": "summary_tsv_and_json",
                 "emit_removed_reads": false,
                 "min_identity": 0.95,
+                "retained_read_role": "rrna_filtered_reads",
+                "rejected_read_role": "removed_rrna_reads",
                 "input_r1": "reads.fastq.gz",
                 "input_r2": null,
                 "output_r1": "rrna_filtered.fastq.gz",
@@ -1110,6 +1129,8 @@ mod tests {
         let metrics = parse_deplete_rrna_metrics(temp.path());
         assert_eq!(metrics["tool"], serde_json::json!("sortmerna"));
         assert_eq!(metrics["database_artifact_id"], serde_json::json!("silva_nr99"));
+        assert_eq!(metrics["database_digest"], serde_json::json!("sha256:silva"));
+        assert_eq!(metrics["retained_read_role"], serde_json::json!("rrna_filtered_reads"));
         assert_eq!(metrics["reads_removed"], serde_json::json!(36));
         assert_eq!(metrics["rrna_fraction_removed"], serde_json::json!(0.36));
     }
@@ -1129,10 +1150,13 @@ mod tests {
                 "threads": 4,
                 "reference_catalog_id": "contaminant_reference",
                 "contaminant_reference": "phix_and_spikeins",
-                "index_artifact": "reference_index",
+                "reference_index_artifact_id": "reference_index",
                 "reference_index_backend": "bowtie2_build",
                 "reference_build_id": "2026.03",
                 "reference_digest": "sha256:contaminants",
+                "match_threshold": 0.95,
+                "retained_read_role": "contaminant_screened_reads",
+                "rejected_read_role": "removed_contaminant_reads",
                 "retain_unmapped_pairs": false,
                 "input_r1": "reads.fastq.gz",
                 "input_r2": null,

@@ -12,6 +12,7 @@ This crate may construct and execute only these backend command families from ty
 
 - `docker run`
 - `apptainer exec`
+- declared local commands through `LocalRunner`
 - declared observer commands through `execute_observer_command`
 - declared low-level commands through `run_command` and `run_command_with_context`
 

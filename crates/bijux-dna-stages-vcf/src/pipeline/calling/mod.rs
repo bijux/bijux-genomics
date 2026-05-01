@@ -574,6 +574,7 @@ pub struct FilterStageOutputs {
     pub filtered_tbi: PathBuf,
     pub filter_breakdown_json: PathBuf,
     pub filter_breakdown_tsv: PathBuf,
+    pub filter_explain_json: PathBuf,
 }
 
 /// # Errors
@@ -689,10 +690,35 @@ pub fn run_filter_stage_real(
         rows.push_str(&format!("{tag}\t{count}\n"));
     }
     atomic_write_bytes(&filter_breakdown_tsv, rows.as_bytes())?;
+    let filter_explain_json = out_dir.join("filter_explain.json");
+    atomic_write_json(
+        &filter_explain_json,
+        &serde_json::json!({
+            "schema_version": "bijux.vcf.filter_explain.v1",
+            "filter_expression": expression,
+            "filter_scope": {
+                "site_level": ["min_qual", "min_depth", "min_mapping_quality", "strand_bias_max", "maf_min"],
+                "sample_level": ["sample_missingness_max"],
+                "damage_aware_filters": [],
+                "output_subset": if params.require_pass { "pass_only" } else { "retain_tagged_records" }
+            },
+            "thresholds": {
+                "min_qual": params.min_qual,
+                "min_depth": dp_min,
+                "min_mapping_quality": mq_min,
+                "strand_bias_max": strand_bias_max,
+                "sample_missingness_max": sample_missingness_max,
+                "maf_min": maf_min
+            },
+            "normalization_enabled": params.normalize,
+            "counts": tag_counts
+        }),
+    )?;
     Ok(FilterStageOutputs {
         filtered_vcf,
         filtered_tbi,
         filter_breakdown_json,
         filter_breakdown_tsv,
+        filter_explain_json,
     })
 }

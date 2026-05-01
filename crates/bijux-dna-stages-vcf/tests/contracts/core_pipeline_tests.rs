@@ -6,9 +6,13 @@
         assert_eq!(metrics.schema_version, "bijux.vcf.stats.v1");
         assert_eq!(metrics.sample_name, "sample1");
         assert_eq!(metrics.variants_total, 12);
+        assert_eq!(metrics.sample_count, 1);
         assert_eq!(metrics.snps, 9);
         assert_eq!(metrics.indels, 3);
         assert_eq!(metrics.ti_tv, Some(2.25));
+        assert_eq!(metrics.missingness_post, Some(0.0));
+        assert_eq!(metrics.heterozygosity_ratio, Some(1.0));
+        assert_eq!(metrics.annotation_coverage, Some(1.0));
         assert_eq!(metrics.filter_breakdown.get("PASS"), Some(&10));
         assert_eq!(metrics.depth_distribution.get("0-9"), Some(&4));
     }
@@ -608,7 +612,7 @@
         let input = dir.path().join("gl_pipeline_input.vcf");
         std::fs::write(
             &input,
-            "##fileformat=VCFv4.2\n##reference=GRCh38\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t1\t.\tA\tG\t60\tPASS\t.\tGT:GL\t0/1:0.0,-1.0,-2.0\n",
+            "##fileformat=VCFv4.2\n##reference=GRCh38\n##contig=<ID=1,length=248956422>\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n##FORMAT=<ID=GL,Number=G,Type=Float,Description=\"Genotype likelihoods\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t1\t.\tA\tG\t60\tPASS\t.\tGT:GL\t0/1:0.0,-1.0,-2.0\n",
         )
         .unwrap_or_else(|err| panic!("write gl pipeline fixture: {err}"));
         let species = SpeciesContext {

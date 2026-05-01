@@ -93,7 +93,10 @@
     "threads": 6,
     "unmerged_read_policy": "emit_unmerged_pairs"
   },
+  "operating_mode": "enforced",
   "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
   "reason": {
     "kind": "default",
     "summary": "planner default",

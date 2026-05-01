@@ -7,7 +7,10 @@ rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+bijux-dna-api.workspace = true
 bijux-dna-core.workspace = true
+bijux-dna-db-ena.workspace = true
+bijux-dna-db-ref.workspace = true
 bijux-dna-infra.workspace = true
 chrono.workspace = true
 clap.workspace = true

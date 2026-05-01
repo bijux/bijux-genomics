@@ -2,6 +2,8 @@
 mod contract_handshake;
 #[path = "plan/correct_plan.rs"]
 mod correct_plan;
+#[path = "plan/cross_bam_catalog.rs"]
+mod cross_bam_catalog;
 #[path = "plan/domain_parity.rs"]
 mod domain_parity;
 #[path = "plan/filter_plan.rs"]
@@ -14,6 +16,8 @@ mod no_parsing;
 mod plan_json;
 #[path = "plan/plan_snapshots.rs"]
 mod plan_snapshots;
+#[path = "plan/planner_manifest_contract.rs"]
+mod planner_manifest_contract;
 #[path = "plan/report_qc.rs"]
 mod report_qc;
 #[path = "plan/rrna_flow.rs"]

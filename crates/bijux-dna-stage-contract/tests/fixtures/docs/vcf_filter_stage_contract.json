@@ -1,0 +1,84 @@
+{
+  "backend_tool_id": "bcftools",
+  "backend_version_policy": "digest_pinned",
+  "capability_contract": {
+    "compression": [
+      "bgzf"
+    ],
+    "index": "optional",
+    "layouts": [],
+    "output_formats": [
+      "vcf.gz",
+      "json"
+    ],
+    "reference": "optional",
+    "unsupported_parameter_combinations": []
+  },
+  "environment_requirements": {
+    "executables": [
+      "bcftools"
+    ],
+    "mounts": [
+      "variant_workspace"
+    ],
+    "variables": [
+      "BCFTOOLS_PLUGINS"
+    ]
+  },
+  "input_artifacts": [
+    {
+      "artifact_role": "variant",
+      "cardinality": "One",
+      "data_type": "vcf",
+      "name": "variants_in"
+    }
+  ],
+  "operating_mode": "advisory",
+  "output_artifacts": [
+    {
+      "artifact_role": "variant",
+      "cardinality": "One",
+      "data_type": "vcf",
+      "name": "variants_out"
+    },
+    {
+      "artifact_role": "report_json",
+      "cardinality": "One",
+      "data_type": "json",
+      "name": "filter_report_json"
+    }
+  ],
+  "parameters": [
+    {
+      "aliases": [
+        "expr"
+      ],
+      "default": "QUAL>=30",
+      "name": "filter_expression",
+      "param_type": "string"
+    }
+  ],
+  "refusal_codes": [
+    "incompatible_inputs",
+    "scientific_incoherence"
+  ],
+  "report_contracts": [
+    {
+      "advisory_fields": [
+        "retained_variant_count"
+      ],
+      "kind": "generic",
+      "report_id": "vcf.filter.report",
+      "required_fields": [
+        "stage_id",
+        "tool_id",
+        "filter_expression"
+      ],
+      "schema_version": "bijux.vcf.filter.report.v1",
+      "severity": "warning"
+    }
+  ],
+  "semantic_kind": "filter",
+  "stage_family": "vcf",
+  "stage_id": "vcf.filter"
+}

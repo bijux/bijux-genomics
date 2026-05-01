@@ -3,6 +3,7 @@ stage_id: "vcf.filter"
 status: "supported"
 scope: "post_vcf"
 domain: "vcf"
+description: "VCF stage contract for vcf.filter in the governed domain registry."
 inputs:
   - name: "vcf"
     data_type: "vcf"
@@ -13,6 +14,7 @@ outputs:
     cardinality: "One"
 required_inputs: ["vcf"]
 required_outputs: ["filtered_vcf"]
+tool_capability_requirements: []
 metrics:
   - name: "filtered_variants"
 compatible_tools: ["bcftools"]
@@ -21,5 +23,6 @@ defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["pass_filtering"]
 bank_hooks: ["none"]
 invariants: ["tool_pinned"]
-allowed_missingness: []
+allowed_missingness:
+  - "none"
 planned_out_of_scope: []

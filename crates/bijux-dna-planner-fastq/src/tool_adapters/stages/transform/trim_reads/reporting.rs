@@ -16,6 +16,15 @@ pub(super) fn raw_backend_report_path(
     report_json.with_file_name(format!("trim_report.{tool_id}.{extension}"))
 }
 
+pub(super) fn trim_raw_backend_output_path(tool_id: &str, out_dir: &Path) -> Option<PathBuf> {
+    let report_json = out_dir.join("trim_report.json");
+    match tool_id {
+        "fastp" | "cutadapt" => Some(raw_backend_report_path(&report_json, tool_id, "json")),
+        "bbduk" => Some(raw_backend_report_path(&report_json, tool_id, "stats.txt")),
+        _ => None,
+    }
+}
+
 pub(super) fn trim_raw_backend_output(tool_id: &str, report_json: &Path) -> Option<ArtifactRef> {
     match tool_id {
         "fastp" | "cutadapt" => Some(ArtifactRef::optional(
@@ -39,6 +48,54 @@ fn report_context_string(context: Option<&serde_json::Value>, key: &str) -> Opti
         .map(ToString::to_string)
 }
 
+fn report_context_vec(context: Option<&serde_json::Value>, key: &str) -> Vec<String> {
+    context
+        .and_then(|value| value.get(key))
+        .and_then(serde_json::Value::as_array)
+        .map(|values| {
+            values
+                .iter()
+                .filter_map(serde_json::Value::as_str)
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default()
+}
+
+fn prepared_adapter_bank_report(
+    adapter_bank: Option<&serde_json::Value>,
+) -> Option<serde_json::Value> {
+    let context = adapter_bank?;
+    let enabled_adapter_ids = context
+        .get("enabled_entries")
+        .and_then(serde_json::Value::as_array)
+        .map(|entries| {
+            entries
+                .iter()
+                .filter_map(|entry| entry.get("id").and_then(serde_json::Value::as_str))
+                .map(ToString::to_string)
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    Some(serde_json::json!({
+        "schema_version": "bijux.fastq.prepare_adapter_bank.report.v1",
+        "stage": "fastq.prepare_adapter_bank",
+        "stage_id": "fastq.prepare_adapter_bank",
+        "tool_id": "bijux",
+        "bank_id": report_context_string(adapter_bank, "bank_id"),
+        "bank_version": report_context_string(adapter_bank, "bank_version").unwrap_or_else(|| "unknown".to_string()),
+        "bank_hash": report_context_string(adapter_bank, "bank_hash"),
+        "presets_hash": report_context_string(adapter_bank, "presets_hash"),
+        "preset": report_context_string(adapter_bank, "preset"),
+        "preset_hash": report_context_string(adapter_bank, "preset_hash"),
+        "enabled_categories": report_context_vec(adapter_bank, "enabled_categories"),
+        "disabled_categories": report_context_vec(adapter_bank, "disabled_categories"),
+        "enable_adapters": report_context_vec(adapter_bank, "enable_adapters"),
+        "disable_adapters": report_context_vec(adapter_bank, "disable_adapters"),
+        "enabled_adapter_ids": enabled_adapter_ids,
+    }))
+}
+
 fn governed_trim_report_payload(
     tool_id: &str,
     r1: &Path,
@@ -53,46 +110,135 @@ fn governed_trim_report_payload(
     raw_backend_report: Option<&Path>,
     raw_backend_report_format: Option<&str>,
 ) -> serde_json::Value {
-    serde_json::json!({
-        "schema_version": TRIM_READS_REPORT_SCHEMA_VERSION,
-        "stage": STAGE_ID.as_str(),
-        "stage_id": STAGE_ID.as_str(),
-        "tool_id": tool_id,
-        "paired_mode": if r2.is_some() { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
+    let effective_trim_params = serde_json::json!({
         "threads": threads,
-        "input_r1": r1.display().to_string(),
-        "input_r2": r2.map(|path| path.display().to_string()),
-        "output_r1": output_r1.display().to_string(),
-        "output_r2": output_r2.map(|path| path.display().to_string()),
         "min_length": options.resolved_min_length(),
         "quality_cutoff": options.quality_cutoff,
         "adapter_policy": options.resolved_adapter_policy(),
         "polyx_policy": options.resolved_polyx_policy(),
         "n_policy": options.resolved_n_policy(),
         "contaminant_policy": options.resolved_contaminant_policy(),
-        "adapter_bank_id": report_context_string(adapter_bank, "bank_id"),
-        "adapter_bank_hash": report_context_string(adapter_bank, "bank_hash"),
-        "adapter_preset": report_context_string(adapter_bank, "preset"),
-        "adapter_overrides": adapter_bank.and_then(|context| context.get("adapter_selection").cloned()),
-        "polyx_bank_id": report_context_string(polyx_bank, "bank_id"),
-        "polyx_bank_hash": report_context_string(polyx_bank, "bank_hash"),
-        "polyx_preset": report_context_string(polyx_bank, "preset"),
-        "contaminant_bank_id": report_context_string(contaminant_bank, "bank_id"),
-        "contaminant_bank_hash": report_context_string(contaminant_bank, "bank_hash"),
-        "contaminant_preset": report_context_string(contaminant_bank, "preset"),
-        "reads_in": serde_json::Value::Null,
-        "reads_out": serde_json::Value::Null,
-        "bases_in": serde_json::Value::Null,
-        "bases_out": serde_json::Value::Null,
-        "pairs_in": serde_json::Value::Null,
-        "pairs_out": serde_json::Value::Null,
-        "mean_q_before": serde_json::Value::Null,
-        "mean_q_after": serde_json::Value::Null,
-        "runtime_s": serde_json::Value::Null,
-        "memory_mb": serde_json::Value::Null,
-        "raw_backend_report": raw_backend_report.map(|path| path.display().to_string()),
-        "raw_backend_report_format": raw_backend_report_format,
-    })
+    });
+    let prepared_adapter_bank = prepared_adapter_bank_report(adapter_bank);
+    let mut payload = serde_json::Map::new();
+    payload.insert(
+        "schema_version".to_string(),
+        serde_json::Value::String(TRIM_READS_REPORT_SCHEMA_VERSION.to_string()),
+    );
+    payload.insert("stage".to_string(), serde_json::Value::String(STAGE_ID.as_str().to_string()));
+    payload
+        .insert("stage_id".to_string(), serde_json::Value::String(STAGE_ID.as_str().to_string()));
+    payload.insert("tool_id".to_string(), serde_json::Value::String(tool_id.to_string()));
+    payload.insert(
+        "paired_mode".to_string(),
+        serde_json::to_value(if r2.is_some() {
+            PairedMode::PairedEnd
+        } else {
+            PairedMode::SingleEnd
+        })
+        .unwrap_or(serde_json::Value::Null),
+    );
+    payload.insert("threads".to_string(), serde_json::json!(threads));
+    payload.insert("trimming_backend".to_string(), serde_json::Value::String(tool_id.to_string()));
+    payload.insert(
+        "backend_mode".to_string(),
+        serde_json::Value::String(super::trim_backend_mode(tool_id).to_string()),
+    );
+    payload.insert("input_r1".to_string(), serde_json::json!(r1.display().to_string()));
+    payload.insert(
+        "input_r2".to_string(),
+        serde_json::json!(r2.map(|path| path.display().to_string())),
+    );
+    payload.insert("output_r1".to_string(), serde_json::json!(output_r1.display().to_string()));
+    payload.insert(
+        "output_r2".to_string(),
+        serde_json::json!(output_r2.map(|path| path.display().to_string())),
+    );
+    payload.insert("min_length".to_string(), serde_json::json!(options.resolved_min_length()));
+    payload.insert("quality_cutoff".to_string(), serde_json::json!(options.quality_cutoff));
+    payload
+        .insert("adapter_policy".to_string(), serde_json::json!(options.resolved_adapter_policy()));
+    payload.insert("polyx_policy".to_string(), serde_json::json!(options.resolved_polyx_policy()));
+    payload.insert("n_policy".to_string(), serde_json::json!(options.resolved_n_policy()));
+    payload.insert(
+        "contaminant_policy".to_string(),
+        serde_json::json!(options.resolved_contaminant_policy()),
+    );
+    payload.insert(
+        "adapter_bank_id".to_string(),
+        serde_json::json!(report_context_string(adapter_bank, "bank_id")),
+    );
+    payload.insert(
+        "adapter_bank_hash".to_string(),
+        serde_json::json!(report_context_string(adapter_bank, "bank_hash")),
+    );
+    payload.insert(
+        "adapter_preset".to_string(),
+        serde_json::json!(report_context_string(adapter_bank, "preset")),
+    );
+    payload.insert(
+        "detected_adapter_source".to_string(),
+        serde_json::json!(report_context_string(adapter_bank, "preset")
+            .map(|preset| format!("prepared_adapter_bank:{preset}"))),
+    );
+    payload.insert(
+        "adapter_overrides".to_string(),
+        adapter_bank
+            .and_then(|context| context.get("adapter_selection").cloned())
+            .unwrap_or(serde_json::Value::Null),
+    );
+    payload.insert(
+        "prepared_adapter_bank".to_string(),
+        prepared_adapter_bank.unwrap_or(serde_json::Value::Null),
+    );
+    payload.insert(
+        "polyx_bank_id".to_string(),
+        serde_json::json!(report_context_string(polyx_bank, "bank_id")),
+    );
+    payload.insert(
+        "polyx_bank_hash".to_string(),
+        serde_json::json!(report_context_string(polyx_bank, "bank_hash")),
+    );
+    payload.insert(
+        "polyx_preset".to_string(),
+        serde_json::json!(report_context_string(polyx_bank, "preset")),
+    );
+    payload.insert(
+        "contaminant_bank_id".to_string(),
+        serde_json::json!(report_context_string(contaminant_bank, "bank_id")),
+    );
+    payload.insert(
+        "contaminant_bank_hash".to_string(),
+        serde_json::json!(report_context_string(contaminant_bank, "bank_hash")),
+    );
+    payload.insert(
+        "contaminant_preset".to_string(),
+        serde_json::json!(report_context_string(contaminant_bank, "preset")),
+    );
+    for field in [
+        "reads_in",
+        "reads_out",
+        "bases_in",
+        "bases_out",
+        "pairs_in",
+        "pairs_out",
+        "mean_q_before",
+        "mean_q_after",
+        "runtime_s",
+        "memory_mb",
+    ] {
+        payload.insert(field.to_string(), serde_json::Value::Null);
+    }
+    payload.insert("effective_trim_params".to_string(), effective_trim_params);
+    payload.insert(
+        "raw_backend_report".to_string(),
+        serde_json::json!(raw_backend_report.map(|path| path.display().to_string())),
+    );
+    payload.insert(
+        "raw_backend_report_format".to_string(),
+        serde_json::json!(raw_backend_report_format),
+    );
+    serde_json::Value::Object(payload)
 }
 
 pub(super) fn write_trim_report_script(

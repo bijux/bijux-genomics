@@ -11,4 +11,12 @@ pub struct DamageEffectiveParams {
     pub pmd_threshold_3p: f64,
     pub trim_5p: u8,
     pub trim_3p: u8,
+    #[serde(default)]
+    pub damage_tool_profile: Option<String>,
+    #[serde(default = "default_evidence_only")]
+    pub evidence_only: bool,
+}
+
+fn default_evidence_only() -> bool {
+    true
 }

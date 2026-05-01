@@ -1,0 +1,36 @@
+# schema_version = 1
+# owner = architecture
+# purpose = Contract map of scientific and operational policy ownership layers.
+# authority = bijux-dna-policies
+# stability = stable
+# last_updated = 2026-05-01
+
+[scientific]
+authoritative_paths = [
+  "domain",
+  "science/specs",
+  "docs/20-science",
+]
+owned_fields = [
+  "scientific_thresholds",
+  "reference_compatibility",
+  "sample_assumptions",
+  "advisory_findings",
+  "enforced_findings",
+]
+
+[operational]
+authoritative_paths = [
+  "configs/runtime",
+  "configs/logging",
+  "configs/hpc",
+]
+owned_fields = [
+  "timeout_seconds",
+  "retry_policy",
+  "executor",
+  "storage",
+  "run_base_dir",
+  "platform",
+  "artifact_root",
+]

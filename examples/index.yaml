@@ -1,9 +1,38 @@
 # GENERATED FILE - DO NOT EDIT
 # Regenerate with: cargo run -p bijux-dna-dev -- examples run generate-index
 examples:
+  - id: bam_essential_alignment_qc
+    domain: bam
+    corpus_required: corpus-01-mini
+    canonical_example: true
+    workflow_class: essential_alignment_qc
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    tiny_inputs_contract: tiny-inputs.json
+    workflow_manifest: workflow-manifest.json
+    expected_plan: golden/plan.json
+    expected_evidence: expected-evidence.json
+    path: examples/bam/essential-alignment-qc
+  - id: bam_workflow_trio_modern_ancient_merge
+    domain: bam
+    corpus_required: corpus-01-mini
+    canonical_example: false
+    workflow_class: workflow_trio_modern_ancient_merge
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    tiny_inputs_contract: tiny-inputs.json
+    workflow_manifest: workflow-manifest.json
+    expected_plan: golden/plan.json
+    expected_evidence: expected-evidence.json
+    path: examples/bam/workflow-trio-modern-ancient-merge
   - id: fastq_cluster_otus_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -12,6 +41,7 @@ examples:
   - id: fastq_correct_errors_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -20,6 +50,7 @@ examples:
   - id: fastq_deplete_host_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -28,6 +59,7 @@ examples:
   - id: fastq_deplete_reference_contaminants_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -36,6 +68,7 @@ examples:
   - id: fastq_deplete_rrna_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -44,6 +77,7 @@ examples:
   - id: fastq_detect_adapters_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -52,14 +86,30 @@ examples:
   - id: fastq_edna_mini
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
       - report.json
     path: examples/fastq/edna-mini
+  - id: fastq_essential_qc
+    domain: fastq
+    corpus_required: corpus-01-mini
+    canonical_example: true
+    workflow_class: essential_qc
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    tiny_inputs_contract: tiny-inputs.json
+    workflow_manifest: workflow-manifest.json
+    expected_plan: golden/plan.json
+    expected_evidence: expected-evidence.json
+    path: examples/fastq/essential-qc
   - id: fastq_extract_umis_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -68,6 +118,7 @@ examples:
   - id: fastq_filter_low_complexity_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -76,6 +127,7 @@ examples:
   - id: fastq_filter_reads_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -84,6 +136,7 @@ examples:
   - id: fastq_infer_asvs_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -92,6 +145,7 @@ examples:
   - id: fastq_merge_pairs_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -100,6 +154,7 @@ examples:
   - id: fastq_normalize_primers_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -108,6 +163,7 @@ examples:
   - id: fastq_profile_overrepresented_sequences_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -116,6 +172,7 @@ examples:
   - id: fastq_profile_read_lengths_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -124,6 +181,7 @@ examples:
   - id: fastq_profile_reads_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -132,6 +190,7 @@ examples:
   - id: fastq_qc_pre_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -140,6 +199,7 @@ examples:
   - id: fastq_remove_chimeras_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -148,6 +208,7 @@ examples:
   - id: fastq_remove_duplicates_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -156,6 +217,7 @@ examples:
   - id: fastq_report_qc_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -164,6 +226,7 @@ examples:
   - id: fastq_screen_taxonomy_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -172,6 +235,7 @@ examples:
   - id: fastq_trim_polyg_tails_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -180,6 +244,7 @@ examples:
   - id: fastq_trim_reads_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -188,6 +253,7 @@ examples:
   - id: fastq_trim_terminal_damage_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -196,6 +262,7 @@ examples:
   - id: fastq_validate_reads_bench
     domain: fastq
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -204,6 +271,7 @@ examples:
   - id: vcf_damage_aware_genotype_mini
     domain: vcf
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -212,6 +280,7 @@ examples:
   - id: vcf_downstream_demography_mini
     domain: vcf
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
@@ -220,14 +289,39 @@ examples:
   - id: vcf_downstream_vcf_full_mini
     domain: vcf
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json
       - report.json
     path: examples/vcf/downstream-vcf-full-mini
+  - id: vcf_essential_qc
+    domain: vcf
+    corpus_required: corpus-01-mini
+    canonical_example: false
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    path: examples/vcf/essential-qc
+  - id: vcf_essential_qc_filter
+    domain: vcf
+    corpus_required: corpus-01-mini
+    canonical_example: true
+    workflow_class: essential_qc_filter
+    expected_outputs:
+      - plan.json
+      - explain.json
+      - report.json
+    tiny_inputs_contract: tiny-inputs.json
+    workflow_manifest: workflow-manifest.json
+    expected_plan: golden/plan.json
+    expected_evidence: expected-evidence.json
+    path: examples/vcf/essential-qc-filter
   - id: vcf_imputation_mini
     domain: vcf
     corpus_required: corpus-01-mini
+    canonical_example: false
     expected_outputs:
       - plan.json
       - explain.json

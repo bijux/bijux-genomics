@@ -21,3 +21,5 @@ mod mod_contracts_ssot_literals_rs;
 mod mod_contracts_stage_contract_snapshots_rs;
 #[path = "contracts/models/tool_models.rs"]
 mod mod_contracts_tool_models_rs;
+#[path = "contracts/workflow_governance.rs"]
+mod mod_contracts_workflow_governance_rs;

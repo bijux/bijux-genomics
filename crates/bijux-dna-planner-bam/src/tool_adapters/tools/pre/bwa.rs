@@ -3,13 +3,17 @@ use std::path::Path;
 use bijux_dna_domain_bam::params::AlignEffectiveParams;
 
 fn rg_string(params: &AlignEffectiveParams) -> String {
-    format!(
+    let mut rg = format!(
         "@RG\\tID:{}\\tSM:{}\\tPL:{}\\tLB:{}",
         params.read_group.id,
         params.read_group.sample,
         params.read_group.platform,
         params.read_group.library
-    )
+    );
+    if let Some(platform_unit) = params.read_group.platform_unit.as_deref() {
+        rg.push_str(&format!("\\tPU:{platform_unit}"));
+    }
+    rg
 }
 
 #[must_use]
@@ -93,14 +97,16 @@ pub fn align_args(
             )
         }
     } else if let Some(r2) = r2 {
+        let seed_flag = params.seed_length.map_or_else(String::new, |seed| format!(" -k {seed}"));
         format!(
-            "{build}bwa mem -t {threads} -R '{rg}' {ref} {r1} {r2} | samtools sort -o {out} && \
+            "{build}bwa mem -t {threads}{seed_flag} -R '{rg}' {ref} {r1} {r2} | samtools sort -o {out} && \
         samtools index {out} && \
         samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
         samtools stats {out} > {stats} && \
-        python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_mem\",\"preset\":\"{preset}\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
+        python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_mem\",\"preset\":\"{preset}\",\"sensitivity_profile\":{sensitivity_profile},\"seed_length\":{seed_length},\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
             build = build_index,
             threads = params.threads,
+            seed_flag = seed_flag,
             rg = rg,
             ref = reference.display(),
             r1 = r1.display(),
@@ -110,17 +116,21 @@ pub fn align_args(
             idxstats = idxstats.display(),
             stats = stats.display(),
             metrics = metrics.display(),
-            preset = params.preset
+            preset = params.preset,
+            sensitivity_profile = serde_json::to_string(&params.sensitivity_profile).unwrap_or_else(|_| "null".to_string()),
+            seed_length = params.seed_length.map_or_else(|| "null".to_string(), |value| value.to_string())
         )
     } else {
+        let seed_flag = params.seed_length.map_or_else(String::new, |seed| format!(" -k {seed}"));
         format!(
-            "{build}bwa mem -t {threads} -R '{rg}' {ref} {r1} | samtools sort -o {out} && \
+            "{build}bwa mem -t {threads}{seed_flag} -R '{rg}' {ref} {r1} | samtools sort -o {out} && \
         samtools index {out} && \
         samtools flagstat {out} > {flagstat} && samtools idxstats {out} > {idxstats} && \
         samtools stats {out} > {stats} && \
-        python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_mem\",\"preset\":\"{preset}\",\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
+        python - <<'PY' > {metrics}\nimport json\npayload={{\"tool\":\"bwa_mem\",\"preset\":\"{preset}\",\"sensitivity_profile\":{sensitivity_profile},\"seed_length\":{seed_length},\"reference\":\"{ref}\",\"bam\":\"{out}\",\"read_group\":\"{rg}\"}}\nprint(json.dumps(payload, indent=2))\nPY",
             build = build_index,
             threads = params.threads,
+            seed_flag = seed_flag,
             rg = rg,
             ref = reference.display(),
             r1 = r1.display(),
@@ -129,7 +139,9 @@ pub fn align_args(
             idxstats = idxstats.display(),
             stats = stats.display(),
             metrics = metrics.display(),
-            preset = params.preset
+            preset = params.preset,
+            sensitivity_profile = serde_json::to_string(&params.sensitivity_profile).unwrap_or_else(|_| "null".to_string()),
+            seed_length = params.seed_length.map_or_else(|| "null".to_string(), |value| value.to_string())
         )
     };
 

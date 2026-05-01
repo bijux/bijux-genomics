@@ -1,3 +1,6 @@
+use super::planner_manifest_support::{
+    plan_diff_from_request, plan_manifest_from_request, workflow_manifest_from_request,
+};
 use super::{summary_artifact, Result};
 use crate::request_args::{PlanRequest, PlanResponse};
 
@@ -5,6 +8,9 @@ use crate::request_args::{PlanRequest, PlanResponse};
 /// Returns an error if planning fails.
 pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
     let graph_hash = request.graph.hash()?;
+    let workflow_manifest = workflow_manifest_from_request(&request);
+    let plan_manifest = plan_manifest_from_request(&request)?;
+    let plan_diff = plan_diff_from_request(&request, &plan_manifest);
     let manifest = serde_json::json!({
         "schema_version": "bijux.run_manifest.v3",
         "contract_version": bijux_dna_core::contract::ContractVersion::v1(),
@@ -39,5 +45,12 @@ pub fn plan(request: PlanRequest) -> Result<PlanResponse> {
         "stages": summary_artifact::planned_stage_manifest(&request.graph),
         "failures": [],
     });
-    Ok(PlanResponse { graph: request.graph, graph_hash, manifest })
+    Ok(PlanResponse {
+        graph: request.graph,
+        graph_hash,
+        manifest,
+        workflow_manifest,
+        plan_manifest,
+        plan_diff,
+    })
 }

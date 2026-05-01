@@ -10,6 +10,7 @@ const ALLOWED_DOCS: &[&str] = &[
     "FEATURES.md",
     "PUBLIC_API.md",
     "REQUEST_FLOW.md",
+    "RUNTIME_ITERATION09_OPERATOR_COMMANDS.md",
     "SECURITY.md",
     "TESTS.md",
 ];

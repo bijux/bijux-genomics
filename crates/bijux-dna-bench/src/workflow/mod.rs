@@ -13,5 +13,8 @@ mod summary_statistics;
 
 pub use evaluation::{compare, gate};
 pub use options::BenchRunOptions;
-pub use suite_load::load_suite;
+pub use suite_load::{
+    load_bundle_catalog, load_bundle_manifest, load_corpus_catalog, load_corpus_manifest,
+    load_suite,
+};
 pub use summary::summarize;

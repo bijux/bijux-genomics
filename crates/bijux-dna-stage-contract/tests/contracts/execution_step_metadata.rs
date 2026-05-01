@@ -41,6 +41,9 @@ fn trim_plan() -> StagePlanV1 {
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
         aux_images: BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::default(),
     }
 }

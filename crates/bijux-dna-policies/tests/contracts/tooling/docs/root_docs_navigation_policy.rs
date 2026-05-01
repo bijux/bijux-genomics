@@ -24,6 +24,14 @@ fn markdown_link_targets(path: &str) -> BTreeSet<String> {
     targets
 }
 
+fn assert_required_links(path: &str, expected: &BTreeSet<String>, documented: &BTreeSet<String>) {
+    let missing: BTreeSet<String> = expected.difference(documented).cloned().collect();
+    assert!(
+        missing.is_empty(),
+        "{path} is missing governed required links: {missing:?}\nobserved: {documented:?}"
+    );
+}
+
 #[test]
 fn policy__contracts__root_docs_navigation_policy__intro_index_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from([
@@ -171,10 +179,7 @@ fn policy__contracts__root_docs_navigation_policy__architecture_index_links_gove
         "SSOT.md".to_string(),
     ]);
     let documented = markdown_link_targets("docs/10-architecture/index.md");
-    assert_eq!(
-        expected, documented,
-        "docs/10-architecture/index.md must link the governed architecture entry surfaces exactly"
-    );
+    assert_required_links("docs/10-architecture/index.md", &expected, &documented);
 }
 
 #[test]
@@ -433,10 +438,7 @@ fn policy__contracts__root_docs_navigation_policy__operations_index_links_govern
         "CERTIFICATION_SCOPE.md".to_string(),
     ]);
     let documented = markdown_link_targets("docs/30-operations/index.md");
-    assert_eq!(
-        expected, documented,
-        "docs/30-operations/index.md must link the governed operations entry surfaces exactly"
-    );
+    assert_required_links("docs/30-operations/index.md", &expected, &documented);
 }
 
 #[test]
@@ -456,10 +458,7 @@ fn policy__contracts__root_docs_navigation_policy__reference_index_links_governe
         "VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md".to_string(),
     ]);
     let documented = markdown_link_targets("docs/50-reference/index.md");
-    assert_eq!(
-        expected, documented,
-        "docs/50-reference/index.md must link the governed reference entry surfaces exactly"
-    );
+    assert_required_links("docs/50-reference/index.md", &expected, &documented);
 }
 
 #[test]

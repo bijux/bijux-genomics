@@ -32,6 +32,7 @@ fn crate_tree_matches_domain_boundary() {
 
     let expected_src: BTreeSet<_> = [
         "alignment.rs",
+        "artifacts.rs",
         "defaults.rs",
         "invariants/",
         "lib.rs",

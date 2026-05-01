@@ -98,9 +98,13 @@ pub fn parse_vcf_stats(path: &Path) -> Result<VcfStatsMetricsV1> {
         };
         match k {
             "variants_total" => metrics.variants_total = v.parse().unwrap_or(0),
+            "sample_count" => metrics.sample_count = v.parse().unwrap_or(0),
             "snps" => metrics.snps = v.parse().unwrap_or(0),
             "indels" => metrics.indels = v.parse().unwrap_or(0),
             "ti_tv" => metrics.ti_tv = v.parse::<f64>().ok(),
+            "missingness_post" => metrics.missingness_post = v.parse::<f64>().ok(),
+            "heterozygosity_ratio" => metrics.heterozygosity_ratio = v.parse::<f64>().ok(),
+            "annotation_coverage" => metrics.annotation_coverage = v.parse::<f64>().ok(),
             "sample_name" => metrics.sample_name = v.to_string(),
             _ if k.starts_with("filter.") => {
                 let key = k.trim_start_matches("filter.").to_string();
@@ -152,11 +156,15 @@ pub fn summarize_vcf_metrics(metrics: &VcfStatsMetricsV1) -> serde_json::Value {
         "schema_version": metrics.schema_version,
         "variants_total": metrics.variants_total,
         "sample_name": metrics.sample_name,
+        "sample_count": metrics.sample_count,
         "call_summary": metrics.call_summary,
         "filter_summary": metrics.filter_summary,
         "snps": metrics.snps,
         "indels": metrics.indels,
         "ti_tv": metrics.ti_tv,
+        "missingness_post": metrics.missingness_post,
+        "heterozygosity_ratio": metrics.heterozygosity_ratio,
+        "annotation_coverage": metrics.annotation_coverage,
         "filter_breakdown": filters,
         "depth_distribution": metrics.depth_distribution,
     })

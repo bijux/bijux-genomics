@@ -12,6 +12,7 @@
         assert!(out.filtered_tbi.exists());
         assert!(out.filter_breakdown_json.exists());
         assert!(out.filter_breakdown_tsv.exists());
+        assert!(out.filter_explain_json.exists());
     }
 
     #[test]
@@ -39,6 +40,12 @@
         assert!(json.to_string().contains("LOW_DP"));
         assert!(json.to_string().contains("LOW_MQ"));
         assert!(json.to_string().contains("STRAND_BIAS"));
+        let explain_raw = std::fs::read_to_string(&out.filter_explain_json)
+            .unwrap_or_else(|err| panic!("read filter_explain.json: {err}"));
+        let explain: serde_json::Value = serde_json::from_str(&explain_raw)
+            .unwrap_or_else(|err| panic!("parse filter_explain json: {err}"));
+        assert_eq!(explain["schema_version"], serde_json::json!("bijux.vcf.filter_explain.v1"));
+        assert_eq!(explain["filter_scope"]["output_subset"], serde_json::json!("retain_tagged_records"));
     }
 
     #[test]
@@ -112,6 +119,9 @@
         .unwrap_or_else(|err| panic!("run stats stage: {err}"));
         assert!(out.bcftools_stats_txt.exists());
         assert!(out.stats_json.exists());
+        assert_eq!(out.metrics.sample_count, 1);
+        assert_eq!(out.metrics.missingness_post, Some(0.0));
+        assert_eq!(out.metrics.annotation_coverage, Some(1.0));
     }
 
     #[test]
@@ -249,7 +259,7 @@
         let input = dir.path().join("chr_input.vcf");
         std::fs::write(
             &input,
-            "##fileformat=VCFv4.2\n##reference=GRCh38\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t1\t.\tA\tG\t60\tPASS\t.\tGT\t0/1\n",
+            "##fileformat=VCFv4.2\n##reference=GRCh38\n##contig=<ID=chr1,length=1000000>\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\nchr1\t1\t.\tA\tG\t60\tPASS\t.\tGT\t0/1\n",
         )
         .unwrap_or_else(|err| panic!("write fixture: {err}"));
         let species = SpeciesContext {
@@ -267,6 +277,110 @@
         let err = run_vcf_preflight(&input, &dir.path().join("out"), &species, &InvariantConfig::default())
             .expect_err("chr prefix mismatch must refuse by default");
         assert!(err.to_string().contains("chr prefix mismatch"));
+    }
+
+    #[test]
+    fn vcf_preflight_refuses_missing_contig_and_format_definitions() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("missing_definitions.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t1\t.\tA\tG\t60\tPASS\tDP=10\tGT\t0/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 1_000_000,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let err = run_vcf_preflight(&input, &dir.path().join("out"), &species, &InvariantConfig::default())
+            .expect_err("missing contig and FORMAT declarations must refuse");
+        assert!(
+            err.to_string().contains("missing ##contig headers")
+                || err.to_string().contains("FORMAT field GT is used without header declaration"),
+            "unexpected refusal: {err}"
+        );
+    }
+
+    #[test]
+    fn vcf_preflight_refuses_unsorted_records_instead_of_reordering_them() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("unsorted.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n##contig=<ID=1,length=1000000>\n##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t2\t.\tA\tG\t60\tPASS\tDP=10\tGT\t0/1\n1\t1\t.\tC\tT\t60\tPASS\tDP=12\tGT\t0/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 1_000_000,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let err = run_vcf_preflight(
+            &input,
+            &dir.path().join("out"),
+            &species,
+            &InvariantConfig {
+                require_sex_metadata_for_sex_chr: false,
+                ..InvariantConfig::default()
+            },
+        )
+        .expect_err("unsorted records must refuse");
+        assert!(err.to_string().contains("not sorted"), "unexpected refusal: {err}");
+    }
+
+    #[test]
+    fn vcf_preflight_preserves_sample_column_order() {
+        let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+        let input = dir.path().join("sample_order.vcf");
+        std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n##contig=<ID=1,length=1000000>\n##INFO=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts2\ts1\n1\t1\t.\tA\tG\t60\tPASS\tDP=10\tGT\t0/1\t1/1\n",
+        )
+        .unwrap_or_else(|err| panic!("write fixture: {err}"));
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".to_string(),
+            build_id: "GRCh38".to_string(),
+            contig_set_digest: "x".repeat(64),
+            contigs: vec![ContigSpec {
+                name: "1".to_string(),
+                length_bp: 1_000_000,
+            }],
+            sex_system: "xy".to_string(),
+            par_policy: "grch38_par".to_string(),
+            default_coverage_regime: None,
+        };
+        let out = run_vcf_preflight(
+            &input,
+            &dir.path().join("out"),
+            &species,
+            &InvariantConfig {
+                require_sex_metadata_for_sex_chr: false,
+                ..InvariantConfig::default()
+            },
+        )
+        .unwrap_or_else(|err| panic!("run_vcf_preflight with sample order fixture: {err}"));
+        let normalized = bijux_dna_stages_vcf::vcf_io::read_vcf_text(&out.normalized_input)
+            .unwrap_or_else(|err| panic!("read normalized vcf: {err}"));
+        let chrom = normalized
+            .lines()
+            .find(|line| line.starts_with("#CHROM\t"))
+            .unwrap_or_default();
+        assert!(chrom.ends_with("\ts2\ts1"), "sample order must be preserved");
     }
 
     #[test]

@@ -1,0 +1,63 @@
+{
+  "artifact_deltas": [
+    {
+      "artifact_id": "normalized_vcf",
+      "baseline_hash": "sha256:a",
+      "candidate_hash": "sha256:c",
+      "changed": true
+    },
+    {
+      "artifact_id": "stats_json",
+      "baseline_hash": "sha256:b",
+      "candidate_hash": "sha256:d",
+      "changed": true
+    }
+  ],
+  "baseline_label": "baseline",
+  "baseline_tool_id": "bcftools",
+  "candidate_label": "candidate",
+  "candidate_tool_id": "bcftools",
+  "caveats": [
+    "backend drift detected; metric shifts may combine scientific and implementation causes",
+    "baseline generated from promoted defaults",
+    "candidate uses stronger normalization and filtering",
+    "default-setting drift detected; compare downstream cohort and variant summaries before promotion"
+  ],
+  "change_kinds": [
+    "defaults_change",
+    "backend_change",
+    "filter_policy_change",
+    "normalization_policy_change"
+  ],
+  "downstream_risks": [
+    "annotation_coverage_shift",
+    "artifact_identity_shift",
+    "cohort_readiness_shift",
+    "variant_count_shift"
+  ],
+  "metric_deltas": [
+    {
+      "absolute_delta": -0.030000000000000027,
+      "baseline_value": 0.92,
+      "candidate_value": 0.89,
+      "metric_id": "annotation_coverage",
+      "relative_delta": -0.03260869565217394
+    },
+    {
+      "absolute_delta": 0.020000000000000004,
+      "baseline_value": 0.03,
+      "candidate_value": 0.05,
+      "metric_id": "missingness_post",
+      "relative_delta": 0.6666666666666669
+    },
+    {
+      "absolute_delta": -25.0,
+      "baseline_value": 1200.0,
+      "candidate_value": 1175.0,
+      "metric_id": "variants_total",
+      "relative_delta": -0.020833333333333332
+    }
+  ],
+  "schema_version": "bijux.vcf.scientific_drift.report.v1",
+  "stage_id": "vcf.postprocess"
+}

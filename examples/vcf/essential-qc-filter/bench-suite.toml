@@ -1,0 +1,3 @@
+suite_id = "bench-vcf-essential-qc-filter-01"
+domain = "vcf"
+stages = ["vcf.filter", "vcf.postprocess", "vcf.qc", "vcf.stats"]

@@ -110,6 +110,9 @@ pub fn plan_with_options(
         }),
         effective_params: serde_json::to_value(&effective_params)?,
         aux_images: std::collections::BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: bijux_dna_stage_contract::PlanDecisionReason::new(
             bijux_dna_stage_contract::PlanReasonKind::Default,
             "pre-trim length distribution metrics",

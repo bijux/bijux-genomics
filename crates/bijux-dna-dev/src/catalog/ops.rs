@@ -266,6 +266,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingCertificationGate,
         ),
         native(
+            "certify-level1",
+            "Generate the Level 1 completion certificate after the essential release gate passes.",
+            NativeOpsCommandKey::ToolingCertifyLevel1,
+        ),
+        native(
             "certify-all",
             "Generate the cross-domain certification bundle.",
             NativeOpsCommandKey::ToolingCertifyAll,
@@ -304,6 +309,31 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             "acquire-reference",
             "Materialize or lock governed reference assets.",
             NativeOpsCommandKey::ToolingAcquireReference,
+        ),
+        native(
+            "reference-external-data",
+            "Run governed reference and external-data scenario suite for goals G171-G180.",
+            NativeOpsCommandKey::ToolingReferenceExternalData,
+        ),
+        native(
+            "scientific-caveat-propagation",
+            "Run governed scientific-caveat propagation scenario suite for goals G181-G190.",
+            NativeOpsCommandKey::ToolingScientificCaveatPropagation,
+        ),
+        native(
+            "operator-workflow-maturity",
+            "Run governed operator workflow maturity scenario suite for goals G191-G200.",
+            NativeOpsCommandKey::ToolingOperatorWorkflowMaturity,
+        ),
+        native(
+            "architecture-report",
+            "Generate a compact workspace architecture drift report under artifacts/architecture.",
+            NativeOpsCommandKey::ToolingArchitectureReport,
+        ),
+        native(
+            "benchmark-smoke-level1",
+            "Measure smoke-only duration and artifact sizes for the canonical Level 1 examples.",
+            NativeOpsCommandKey::ToolingBenchmarkSmokeLevel1,
         ),
         native(
             "benchmark-integrity-mini",

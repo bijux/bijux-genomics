@@ -1,7 +1,13 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::params::PairedMode;
+use crate::params::{
+    umi::{
+        UmiDedupPolicy, UmiDownstreamPropagation, UmiExtractionLocation, UmiFailedExtractionPolicy,
+        UmiGroupingPolicy, UmiReadNameTransform,
+    },
+    PairedMode,
+};
 
 pub const EXTRACT_UMIS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.extract_umis.report.v2";
 
@@ -15,6 +21,12 @@ pub struct ExtractUmisReportV1 {
     pub paired_mode: PairedMode,
     pub threads: u32,
     pub umi_pattern: String,
+    pub extraction_location: UmiExtractionLocation,
+    pub read_name_transform: UmiReadNameTransform,
+    pub failed_extraction_policy: UmiFailedExtractionPolicy,
+    pub grouping_policy: UmiGroupingPolicy,
+    pub downstream_dedup_policy: UmiDedupPolicy,
+    pub downstream_propagation: UmiDownstreamPropagation,
     pub input_r1: String,
     pub input_r2: Option<String>,
     pub output_r1: String,
@@ -27,6 +39,7 @@ pub struct ExtractUmisReportV1 {
     pub pairs_in: Option<u64>,
     pub pairs_out: Option<u64>,
     pub reads_with_umi: u64,
+    pub failed_extractions: Option<u64>,
     pub mean_q_before: f64,
     pub mean_q_after: f64,
     pub runtime_s: Option<f64>,
@@ -40,7 +53,13 @@ pub struct ExtractUmisReportV1 {
 #[cfg(test)]
 mod tests {
     use super::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
-    use crate::params::PairedMode;
+    use crate::params::{
+        umi::{
+            UmiDedupPolicy, UmiDownstreamPropagation, UmiExtractionLocation,
+            UmiFailedExtractionPolicy, UmiGroupingPolicy, UmiReadNameTransform,
+        },
+        PairedMode,
+    };
 
     #[test]
     fn extract_umis_report_contract_round_trips() {
@@ -52,6 +71,12 @@ mod tests {
             paired_mode: PairedMode::PairedEnd,
             threads: 2,
             umi_pattern: "NNNNNNNN".to_string(),
+            extraction_location: UmiExtractionLocation::Read1Prefix,
+            read_name_transform: UmiReadNameTransform::AppendToHeader,
+            failed_extraction_policy: UmiFailedExtractionPolicy::RefuseStage,
+            grouping_policy: UmiGroupingPolicy::PairAware,
+            downstream_dedup_policy: UmiDedupPolicy::SequenceIdentityRecommended,
+            downstream_propagation: UmiDownstreamPropagation::HeaderAndReport,
             input_r1: "reads_R1.fastq.gz".to_string(),
             input_r2: Some("reads_R2.fastq.gz".to_string()),
             output_r1: "umi_reads_R1.fastq.gz".to_string(),
@@ -64,6 +89,7 @@ mod tests {
             pairs_in: Some(100),
             pairs_out: Some(100),
             reads_with_umi: 200,
+            failed_extractions: Some(0),
             mean_q_before: 30.0,
             mean_q_after: 30.0,
             runtime_s: Some(1.4),
@@ -83,5 +109,7 @@ mod tests {
         assert_eq!(decoded.tool_id, "umi_tools");
         assert_eq!(decoded.umi_pattern, "NNNNNNNN");
         assert_eq!(decoded.reads_with_umi, 200);
+        assert_eq!(decoded.read_name_transform, UmiReadNameTransform::AppendToHeader);
+        assert_eq!(decoded.grouping_policy, UmiGroupingPolicy::PairAware);
     }
 }

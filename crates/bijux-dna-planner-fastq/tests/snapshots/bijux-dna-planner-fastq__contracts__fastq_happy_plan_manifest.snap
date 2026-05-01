@@ -1,0 +1,597 @@
+---
+source: crates/bijux-dna-planner-fastq/tests/contracts/plan/planner_manifest_contract.rs
+assertion_line: 193
+expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(false)?)"
+---
+{
+  "domain": "fastq",
+  "graph_hash": "04acb0b41555de76c9f6983f004d4722446ecda8123a52aeaccb90885edb7ed9",
+  "ordered_steps": [
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "validation_report",
+          "optional": false,
+          "path": "out/validate_reads/fastqvalidator/validation.json",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "validated_reads_manifest",
+          "optional": false,
+          "path": "out/validate_reads/fastqvalidator/validated_reads_manifest.json",
+          "role": "stage_report"
+        }
+      ],
+      "cache_key": "5f4080bea2114ca6bb7a66d8543ba85a99ed6c26611af494dce6b4878fd8a7cd",
+      "effective_parameters_json": {
+        "pair_sync_policy": "not_applicable",
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.validate_reads.v1",
+        "threads": 4,
+        "validation_mode": "strict"
+      },
+      "environment": {
+        "command": [
+          "sh",
+          "-lc",
+          "set +e && 'echo' > 'out/validate_reads/fastqvalidator/validation_r1.log' 2>&1\nstatus_r1=$? && status_r2=0 && cat_fastq() { case \"$1\" in *.gz) gzip -dc -- \"$1\" ;; *) cat -- \"$1\" ;; esac; } && path_uses_supported_fastq_compression() { case \"$1\" in *.fastq|*.fq|*.fastq.gz|*.fq.gz) return 0 ;; *) return 1 ;; esac; } && inspect_fastq_stream() { gzip_ok=0; if path_uses_supported_fastq_compression \"$1\"; then gzip_ok=1; fi; if [ \"$gzip_ok\" -ne 1 ]; then printf '0\\tunsupported_compression'; return 90; fi; case \"$1\" in *.gz) gzip -t -- \"$1\" >/dev/null 2>&1 || { printf '0\\tunsupported_compression'; return 90; } ;; esac; cat_fastq \"$1\" | awk 'BEGIN { seq = \"\"; read_count = 0; } { line_no = ((NR - 1) % 4) + 1; if (line_no == 1) { if (substr($0, 1, 1) != \"@\") { malformed = 1; } } else if (line_no == 2) { seq = $0; if (length(seq) == 0) { malformed = 1; } } else if (line_no == 3) { if (substr($0, 1, 1) != \"+\") { malformed = 1; } } else if (line_no == 4) { if (length($0) != length(seq)) { malformed = 1; } if ($0 ~ /[^!-J]/) { invalid_quality = 1; } read_count++; } } END { if (NR == 0) { printf \"0\\tempty_input\"; exit 91; } if ((NR % 4) != 0 || malformed) { printf \"%d\\tmalformed_record\", read_count; exit 92; } if (invalid_quality) { printf \"%d\\tinvalid_quality_encoding\", read_count; exit 93; } printf \"%d\\tnone\", read_count; }'; } && strict_pass=true && exit_code=0 && pair_sync_checked=false && pair_sync_pass=null && pair_count_match=null && failure_class=none && validated_pairs=null && inspection_r1=$(inspect_fastq_stream 'reads_R1.fastq.gz' 2>> 'out/validate_reads/fastqvalidator/validation_r1.log'); inspect_status_r1=$?; true && validated_reads_r1=$(printf '%s' \"$inspection_r1\" | cut -f1) && inspection_class_r1=$(printf '%s' \"$inspection_r1\" | cut -f2) && validated_reads_r2=null && inspection_class_r2=none && if [ \"$status_r1\" -ne 0 ]; then strict_pass=false; exit_code=$status_r1; fi && if [ \"$inspect_status_r1\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$inspect_status_r1; fi; fi && if [ \"$status_r2\" -ne 0 ]; then strict_pass=false; if [ \"$exit_code\" -eq 0 ]; then exit_code=$status_r2; fi; fi && if [ \"$inspection_class_r1\" != \"none\" ]; then failure_class=$inspection_class_r1; fi && if [ \"$inspection_class_r2\" != \"none\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=$inspection_class_r2; fi && if [ \"$status_r1\" -ne 0 ] || [ \"$status_r2\" -ne 0 ]; then if [ \"$failure_class\" = \"none\" ]; then failure_class=validator_error; fi; fi && if [ \"$pair_count_match\" = \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=pair_count_mismatch; fi && if [ \"$pair_sync_checked\" = \"true\" ] && [ \"$pair_sync_pass\" = \"false\" ] && [ \"$pair_count_match\" != \"false\" ] && [ \"$failure_class\" = \"none\" ]; then failure_class=header_sync_mismatch; fi && printf '{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqvalidator\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_report\":%%s,\"paired_mode\":\"single_end\",\"validated_stream_ids\":[\"reads_r1\"],\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"validated_pairs\":%%s}' '\"reads_R1.fastq.gz\"' 'null' '\"out/validate_reads/fastqvalidator/validation.json\"' \"$pair_sync_checked\" \"$pair_sync_pass\" \"$validated_pairs\" > 'out/validate_reads/fastqvalidator/validated_reads_manifest.json' && printf '{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage\":\"fastq.validate_reads\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"fastqvalidator\",\"validation_mode\":\"strict\",\"pair_sync_policy\":\"not_applicable\",\"input_r1\":%%s,\"input_r2\":%%s,\"validation_log_r1\":%%s,\"validation_log_r2\":%%s,\"validated_inputs\":1,\"validated_reads_r1\":%%s,\"validated_reads_r2\":%%s,\"validated_pairs\":%%s,\"status_r1\":%%s,\"status_r2\":%%s,\"pair_sync_checked\":%%s,\"pair_sync_pass\":%%s,\"pair_count_match\":%%s,\"failure_class\":%%s,\"strict_pass\":%%s,\"exit_code\":%%s}' '\"reads_R1.fastq.gz\"' 'null' '\"out/validate_reads/fastqvalidator/validation_r1.log\"' 'null' \"$validated_reads_r1\" \"$validated_reads_r2\" \"$validated_pairs\" \"$status_r1\" \"$status_r2\" \"$pair_sync_checked\" \"$pair_sync_pass\" \"$pair_count_match\" \"$(printf '\\\"%s\\\"' \"$failure_class\")\" \"$strict_pass\" \"$exit_code\" > 'out/validate_reads/fastqvalidator/validation.json' && exit \"$exit_code\""
+        ],
+        "image": "bijux/test",
+        "image_digest": "sha256:plan",
+        "out_dir": "out/validate_reads/fastqvalidator",
+        "resources": {
+          "mem_gb": 1,
+          "runtime": "docker",
+          "threads": 4,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "fastq.validate_reads",
+      "step_id": "fastq.validate_reads.tool.fastqvalidator"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "report_json",
+          "optional": false,
+          "path": "out/detect_adapters/fastqc/adapter_report.json",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "adapter_report",
+          "optional": false,
+          "path": "out/detect_adapters/fastqc/adapter_report.json",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "adapter_evidence_dir",
+          "optional": true,
+          "path": "out/detect_adapters/fastqc/fastqc",
+          "role": "stage_report"
+        }
+      ],
+      "cache_key": "8cec433ff64463b22dfdfb54dd208ca0169ba3120cac151b3703ed4008f4c3c8",
+      "dependencies": [
+        "fastq.validate_reads.tool.fastqvalidator"
+      ],
+      "effective_parameters_json": {
+        "evidence_artifact_id": "report_json",
+        "evidence_engine": "fastqc",
+        "evidence_format": "fastqc_summary",
+        "evidence_scope": "full_input",
+        "inspection_mode": "evidence_only",
+        "paired_mode": "single_end",
+        "report_only": true,
+        "sample_reads": null,
+        "schema_version": "bijux.fastq.params.detect_adapters.v1",
+        "threads": 1
+      },
+      "environment": {
+        "command": [
+          "sh",
+          "-lc",
+          "mkdir -p 'out/detect_adapters/fastqc/fastqc'\n'fastqc' '--outdir' 'out/detect_adapters/fastqc/fastqc' '--threads' '1' 'reads_R1.fastq.gz'"
+        ],
+        "image": "bijux/test",
+        "image_digest": "sha256:plan",
+        "out_dir": "out/detect_adapters/fastqc",
+        "resources": {
+          "mem_gb": 1,
+          "runtime": "docker",
+          "threads": 1,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "fastq.detect_adapters",
+      "step_id": "fastq.detect_adapters.tool.fastqc"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "trimmed_reads_r1",
+          "optional": false,
+          "path": "out/trim_polyg_tails/fastp/polyg.fastp.fastq.gz",
+          "role": "trimmed_reads"
+        },
+        {
+          "artifact_id": "report_json",
+          "optional": false,
+          "path": "out/trim_polyg_tails/fastp/trim_polyg_tails_report.json",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "raw_backend_report_json",
+          "optional": true,
+          "path": "out/trim_polyg_tails/fastp/trim_polyg_tails_report.fastp.json",
+          "role": "report_json"
+        }
+      ],
+      "cache_key": "18a89b15268e947791147750fe79bf48d889b9a288cdccfd721973466d2e895d",
+      "dependencies": [
+        "fastq.detect_adapters.tool.fastqc",
+        "fastq.validate_reads.tool.fastqvalidator"
+      ],
+      "effective_parameters_json": {
+        "min_polyg_run": 10,
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.trim_polyg_tails.v1",
+        "threads": 4,
+        "trim_polyg": true
+      },
+      "environment": {
+        "command": [
+          "sh",
+          "-lc",
+          "set -eu\n'fastp' '--json' 'out/trim_polyg_tails/fastp/trim_polyg_tails_report.fastp.json' '--thread' '4' '--in1' 'reads_R1.fastq.gz' '--out1' 'out/trim_polyg_tails/fastp/polyg.fastp.fastq.gz' '--trim_poly_g' '--poly_g_min_len' '10'\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.trim_polyg_tails.report.v2\",\"stage\":\"fastq.trim_polyg_tails\",\"stage_id\":\"fastq.trim_polyg_tails\",\"tool_id\":\"fastp\",\"paired_mode\":\"single_end\",\"threads\":4,\"trim_polyg\":true,\"min_polyg_run\":10,\"input_r1\":\"reads_R1.fastq.gz\",\"input_r2\":null,\"output_r1\":\"out/trim_polyg_tails/fastp/polyg.fastp.fastq.gz\",\"output_r2\":null,\"reads_in\":null,\"reads_out\":null,\"bases_in\":null,\"bases_out\":null,\"pairs_in\":null,\"pairs_out\":null,\"mean_q_before\":null,\"mean_q_after\":null,\"bases_trimmed_polyg\":null,\"polyx_bank_id\":null,\"polyx_bank_hash\":null,\"polyx_preset\":null,\"runtime_s\":null,\"memory_mb\":null,\"raw_backend_report\":\"out/trim_polyg_tails/fastp/trim_polyg_tails_report.fastp.json\",\"raw_backend_report_format\":\"fastp_json\",\"backend_metrics\":null}' > 'out/trim_polyg_tails/fastp/trim_polyg_tails_report.json'\n"
+        ],
+        "image": "bijux/test",
+        "image_digest": "sha256:plan",
+        "out_dir": "out/trim_polyg_tails/fastp",
+        "resources": {
+          "mem_gb": 1,
+          "runtime": "docker",
+          "threads": 4,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "fastq.trim_polyg_tails",
+      "step_id": "fastq.trim_polyg_tails.tool.fastp"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "trimmed_reads_r1",
+          "optional": false,
+          "path": "out/trim_reads/fastp/fastp.fastq.gz",
+          "role": "trimmed_reads"
+        },
+        {
+          "artifact_id": "report_json",
+          "optional": false,
+          "path": "out/trim_reads/fastp/trim_report.json",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "raw_backend_report_json",
+          "optional": true,
+          "path": "out/trim_reads/fastp/trim_report.fastp.json",
+          "role": "report_json"
+        }
+      ],
+      "cache_key": "ee41cb5a12db340308a5b52874da77e88cfc2f660b7ac960ac1bb37764b32de9",
+      "dependencies": [
+        "fastq.trim_polyg_tails.tool.fastp",
+        "fastq.validate_reads.tool.fastqvalidator"
+      ],
+      "effective_parameters_json": {
+        "adapter_policy": "none",
+        "contaminant_policy": "none",
+        "min_len": 30,
+        "n_policy": "retain",
+        "paired_mode": "single_end",
+        "polyx_policy": "none",
+        "q_cutoff": null,
+        "threads": 1
+      },
+      "environment": {
+        "command": [
+          "sh",
+          "-lc",
+          "set -eu\nmkdir -p 'out/trim_reads/fastp'\n'fastp' '--in1' 'out/trim_polyg_tails/fastp/polyg.fastp.fastq.gz' '--out1' 'out/trim_reads/fastp/fastp.fastq.gz' '--json' 'out/trim_reads/fastp/trim_report.fastp.json' '--thread' '1'\nprintf '%s\\n' '{\"adapter_bank_hash\":null,\"adapter_bank_id\":null,\"adapter_overrides\":null,\"adapter_policy\":\"none\",\"adapter_preset\":null,\"backend_mode\":\"enforced\",\"bases_in\":null,\"bases_out\":null,\"contaminant_bank_hash\":null,\"contaminant_bank_id\":null,\"contaminant_policy\":\"none\",\"contaminant_preset\":null,\"detected_adapter_source\":null,\"effective_trim_params\":{\"adapter_policy\":\"none\",\"contaminant_policy\":\"none\",\"min_length\":30,\"n_policy\":\"retain\",\"polyx_policy\":\"none\",\"quality_cutoff\":null,\"threads\":1},\"input_r1\":\"out/trim_polyg_tails/fastp/polyg.fastp.fastq.gz\",\"input_r2\":null,\"mean_q_after\":null,\"mean_q_before\":null,\"memory_mb\":null,\"min_length\":30,\"n_policy\":\"retain\",\"output_r1\":\"out/trim_reads/fastp/fastp.fastq.gz\",\"output_r2\":null,\"paired_mode\":\"single_end\",\"pairs_in\":null,\"pairs_out\":null,\"polyx_bank_hash\":null,\"polyx_bank_id\":null,\"polyx_policy\":\"none\",\"polyx_preset\":null,\"prepared_adapter_bank\":null,\"quality_cutoff\":null,\"raw_backend_report\":\"out/trim_reads/fastp/trim_report.fastp.json\",\"raw_backend_report_format\":\"fastp_json\",\"reads_in\":null,\"reads_out\":null,\"runtime_s\":null,\"schema_version\":\"bijux.fastq.trim_reads.report.v2\",\"stage\":\"fastq.trim_reads\",\"stage_id\":\"fastq.trim_reads\",\"threads\":1,\"tool_id\":\"fastp\",\"trimming_backend\":\"fastp\"}' > 'out/trim_reads/fastp/trim_report.json'\n"
+        ],
+        "image": "bijux/test",
+        "image_digest": "sha256:plan",
+        "out_dir": "out/trim_reads/fastp",
+        "resources": {
+          "mem_gb": 1,
+          "runtime": "docker",
+          "threads": 1,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "fastq.trim_reads",
+      "step_id": "fastq.trim_reads.tool.fastp"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "filtered_reads_r1",
+          "optional": false,
+          "path": "out/filter_reads/fastp/fastp.fastq.gz",
+          "role": "reads"
+        },
+        {
+          "artifact_id": "report_json",
+          "optional": false,
+          "path": "out/filter_reads/fastp/filter_report.json",
+          "role": "report_json"
+        }
+      ],
+      "cache_key": "6f4617cf93e4add91e3d63036a82168d3e992be6c2314d8356e4a1f25783260d",
+      "dependencies": [
+        "fastq.trim_reads.tool.fastp",
+        "fastq.validate_reads.tool.fastqvalidator"
+      ],
+      "effective_parameters_json": {
+        "contaminant_db": null,
+        "entropy_threshold": null,
+        "low_complexity_threshold": null,
+        "max_n": null,
+        "max_n_count": null,
+        "max_n_fraction": null,
+        "n_policy": null,
+        "paired_mode": "single_end",
+        "polyx_policy": null,
+        "threads": 1
+      },
+      "environment": {
+        "command": [
+          "fastp",
+          "--in1",
+          "out/trim_reads/fastp/fastp.fastq.gz",
+          "--out1",
+          "out/filter_reads/fastp/fastp.fastq.gz",
+          "--thread",
+          "1",
+          "--json",
+          "out/filter_reads/fastp/fastp.filter.json"
+        ],
+        "image": "bijux/test",
+        "image_digest": "sha256:plan",
+        "out_dir": "out/filter_reads/fastp",
+        "resources": {
+          "mem_gb": 1,
+          "runtime": "docker",
+          "threads": 1,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "fastq.filter_reads",
+      "step_id": "fastq.filter_reads.tool.fastp"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "overrepresented_sequences_tsv",
+          "optional": false,
+          "path": "out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.tsv",
+          "role": "summary_tsv"
+        },
+        {
+          "artifact_id": "overrepresented_sequences_json",
+          "optional": false,
+          "path": "out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.json",
+          "role": "metrics_json"
+        },
+        {
+          "artifact_id": "report_json",
+          "optional": false,
+          "path": "out/profile_overrepresented_sequences/fastqc/overrepresented_report.json",
+          "role": "report_json"
+        }
+      ],
+      "cache_key": "3f60f6023942e2790478cd8af8cb5de24bba6d89884088558bf5b9314db07d6f",
+      "dependencies": [
+        "fastq.filter_reads.tool.fastp",
+        "fastq.validate_reads.tool.fastqvalidator"
+      ],
+      "effective_parameters_json": {
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.overrepresented_profile.v1",
+        "threads": 1,
+        "top_k": 50
+      },
+      "environment": {
+        "command": [
+          "sh",
+          "-lc",
+          "mkdir -p 'out/profile_overrepresented_sequences/fastqc/fastqc_overrepresented'\n'fastqc' '--outdir' 'out/profile_overrepresented_sequences/fastqc/fastqc_overrepresented' '--threads' '1' 'out/filter_reads/fastp/fastp.fastq.gz'"
+        ],
+        "image": "bijux/test",
+        "image_digest": "sha256:plan",
+        "out_dir": "out/profile_overrepresented_sequences/fastqc",
+        "resources": {
+          "mem_gb": 1,
+          "runtime": "docker",
+          "threads": 1,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "step_id": "fastq.profile_overrepresented_sequences.tool.fastqc"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "qc_json",
+          "optional": false,
+          "path": "out/profile_reads/seqkit_stats/qc.json",
+          "role": "metrics_json"
+        },
+        {
+          "artifact_id": "qc_tsv",
+          "optional": false,
+          "path": "out/profile_reads/seqkit_stats/qc.tsv",
+          "role": "summary_tsv"
+        },
+        {
+          "artifact_id": "qc_plots_dir",
+          "optional": true,
+          "path": "out/profile_reads/seqkit_stats/plots",
+          "role": "index"
+        }
+      ],
+      "cache_key": "ba7bdb09f10b94d8b5259009eb5e9ecd2def40ac2d28545eab9edefd7829a151",
+      "dependencies": [
+        "fastq.filter_reads.tool.fastp",
+        "fastq.validate_reads.tool.fastqvalidator"
+      ],
+      "effective_parameters_json": {
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.stats.v1",
+        "threads": 1
+      },
+      "environment": {
+        "command": [
+          "echo"
+        ],
+        "image": "bijux/test",
+        "image_digest": "sha256:plan",
+        "out_dir": "out/profile_reads/seqkit_stats",
+        "resources": {
+          "mem_gb": 1,
+          "runtime": "docker",
+          "threads": 1,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "fastq.profile_reads",
+      "step_id": "fastq.profile_reads.tool.seqkit_stats"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "report_json",
+          "optional": false,
+          "path": "out/profile_read_lengths/seqkit_stats/profile_read_lengths_report.json",
+          "role": "report_json"
+        },
+        {
+          "artifact_id": "length_distribution_tsv",
+          "optional": false,
+          "path": "out/profile_read_lengths/seqkit_stats/length_distribution.tsv",
+          "role": "summary_tsv"
+        },
+        {
+          "artifact_id": "length_distribution_json",
+          "optional": false,
+          "path": "out/profile_read_lengths/seqkit_stats/length_distribution.json",
+          "role": "metrics_json"
+        }
+      ],
+      "cache_key": "e69dcc5ed4c35cc81ef0c79f408be1628a12bf1fb650d10d1890c47291825654",
+      "dependencies": [
+        "fastq.validate_reads.tool.fastqvalidator"
+      ],
+      "effective_parameters_json": {
+        "histogram_bins": 100,
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.read_length_profile.v1",
+        "threads": 1
+      },
+      "environment": {
+        "command": [
+          "echo"
+        ],
+        "image": "bijux/test",
+        "image_digest": "sha256:plan",
+        "out_dir": "out/profile_read_lengths/seqkit_stats",
+        "resources": {
+          "mem_gb": 1,
+          "runtime": "docker",
+          "threads": 1,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "fastq.profile_read_lengths",
+      "step_id": "fastq.profile_read_lengths.tool.seqkit_stats"
+    },
+    {
+      "advisory": false,
+      "artifact_promises": [
+        {
+          "artifact_id": "multiqc_report",
+          "optional": false,
+          "path": "out/report_qc/multiqc/multiqc_report.html",
+          "role": "report_html"
+        },
+        {
+          "artifact_id": "multiqc_data",
+          "optional": false,
+          "path": "out/report_qc/multiqc/multiqc_data",
+          "role": "index"
+        },
+        {
+          "artifact_id": "governed_qc_inputs_manifest",
+          "optional": false,
+          "path": "out/report_qc/multiqc/governed_qc_inputs_manifest.json",
+          "role": "summary_json"
+        },
+        {
+          "artifact_id": "report_json",
+          "optional": false,
+          "path": "out/report_qc/multiqc/report_qc_report.json",
+          "role": "report_json"
+        }
+      ],
+      "cache_key": "5d8e658946d5e8d5aaee3004ff3d35c41e8a48f0ee238839bd29b851a4011214",
+      "dependencies": [
+        "fastq.detect_adapters.tool.fastqc",
+        "fastq.detect_adapters.tool.fastqc",
+        "fastq.detect_adapters.tool.fastqc",
+        "fastq.filter_reads.tool.fastp",
+        "fastq.profile_overrepresented_sequences.tool.fastqc",
+        "fastq.profile_overrepresented_sequences.tool.fastqc",
+        "fastq.profile_overrepresented_sequences.tool.fastqc",
+        "fastq.profile_read_lengths.tool.seqkit_stats",
+        "fastq.profile_read_lengths.tool.seqkit_stats",
+        "fastq.profile_read_lengths.tool.seqkit_stats",
+        "fastq.profile_reads.tool.seqkit_stats",
+        "fastq.profile_reads.tool.seqkit_stats",
+        "fastq.profile_reads.tool.seqkit_stats",
+        "fastq.trim_polyg_tails.tool.fastp",
+        "fastq.trim_polyg_tails.tool.fastp",
+        "fastq.trim_reads.tool.fastp",
+        "fastq.trim_reads.tool.fastp",
+        "fastq.validate_reads.tool.fastqvalidator",
+        "fastq.validate_reads.tool.fastqvalidator",
+        "fastq.validate_reads.tool.fastqvalidator"
+      ],
+      "effective_parameters_json": {
+        "aggregation_engine": "multiqc",
+        "aggregation_scope": "governed_qc_artifacts",
+        "paired_mode": "single_end",
+        "schema_version": "bijux.fastq.params.report_qc.v1"
+      },
+      "environment": {
+        "command": [
+          "sh",
+          "-lc",
+          "set -eu\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.report_qc.inputs.v1\",\"qc_inputs\":[{\"name\":\"fastq.detect_adapters.adapter_evidence_dir\",\"path\":\"out/detect_adapters/fastqc/fastqc\",\"role\":\"stage_report\",\"optional\":true},{\"name\":\"fastq.detect_adapters.adapter_report\",\"path\":\"out/detect_adapters/fastqc/adapter_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.detect_adapters.report_json\",\"path\":\"out/detect_adapters/fastqc/adapter_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.filter_reads.report_json\",\"path\":\"out/filter_reads/fastp/filter_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.profile_overrepresented_sequences.overrepresented_sequences_json\",\"path\":\"out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.json\",\"role\":\"metrics_json\",\"optional\":false},{\"name\":\"fastq.profile_overrepresented_sequences.overrepresented_sequences_tsv\",\"path\":\"out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.tsv\",\"role\":\"summary_tsv\",\"optional\":false},{\"name\":\"fastq.profile_overrepresented_sequences.report_json\",\"path\":\"out/profile_overrepresented_sequences/fastqc/overrepresented_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.profile_read_lengths.length_distribution_json\",\"path\":\"out/profile_read_lengths/seqkit_stats/length_distribution.json\",\"role\":\"metrics_json\",\"optional\":false},{\"name\":\"fastq.profile_read_lengths.length_distribution_tsv\",\"path\":\"out/profile_read_lengths/seqkit_stats/length_distribution.tsv\",\"role\":\"summary_tsv\",\"optional\":false},{\"name\":\"fastq.profile_read_lengths.report_json\",\"path\":\"out/profile_read_lengths/seqkit_stats/profile_read_lengths_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.profile_reads.qc_json\",\"path\":\"out/profile_reads/seqkit_stats/qc.json\",\"role\":\"metrics_json\",\"optional\":false},{\"name\":\"fastq.profile_reads.qc_plots_dir\",\"path\":\"out/profile_reads/seqkit_stats/plots\",\"role\":\"index\",\"optional\":true},{\"name\":\"fastq.profile_reads.qc_tsv\",\"path\":\"out/profile_reads/seqkit_stats/qc.tsv\",\"role\":\"summary_tsv\",\"optional\":false},{\"name\":\"fastq.trim_polyg_tails.raw_backend_report_json\",\"path\":\"out/trim_polyg_tails/fastp/trim_polyg_tails_report.fastp.json\",\"role\":\"report_json\",\"optional\":true},{\"name\":\"fastq.trim_polyg_tails.report_json\",\"path\":\"out/trim_polyg_tails/fastp/trim_polyg_tails_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.trim_reads.raw_backend_report_json\",\"path\":\"out/trim_reads/fastp/trim_report.fastp.json\",\"role\":\"report_json\",\"optional\":true},{\"name\":\"fastq.trim_reads.report_json\",\"path\":\"out/trim_reads/fastp/trim_report.json\",\"role\":\"report_json\",\"optional\":false},{\"name\":\"fastq.validate_reads.validated_reads_manifest\",\"path\":\"out/validate_reads/fastqvalidator/validated_reads_manifest.json\",\"role\":\"stage_report\",\"optional\":false},{\"name\":\"fastq.validate_reads.validation_report\",\"path\":\"out/validate_reads/fastqvalidator/validation.json\",\"role\":\"report_json\",\"optional\":false}],\"contributors\":[],\"raw_fastqc_dir\":null,\"lineage_hash\":null}' > 'out/report_qc/multiqc/governed_qc_inputs_manifest.json'\nmultiqc -o 'out/report_qc/multiqc/multiqc_data' -n multiqc_report.html 'out/detect_adapters/fastqc/adapter_report.json' 'out/detect_adapters/fastqc/fastqc' 'out/filter_reads/fastp/filter_report.json' 'out/profile_overrepresented_sequences/fastqc/overrepresented_report.json' 'out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.json' 'out/profile_overrepresented_sequences/fastqc/overrepresented_sequences.tsv' 'out/profile_read_lengths/seqkit_stats/length_distribution.json' 'out/profile_read_lengths/seqkit_stats/length_distribution.tsv' 'out/profile_read_lengths/seqkit_stats/profile_read_lengths_report.json' 'out/profile_reads/seqkit_stats/plots' 'out/profile_reads/seqkit_stats/qc.json' 'out/profile_reads/seqkit_stats/qc.tsv' 'out/trim_polyg_tails/fastp/trim_polyg_tails_report.fastp.json' 'out/trim_polyg_tails/fastp/trim_polyg_tails_report.json' 'out/trim_reads/fastp/trim_report.fastp.json' 'out/trim_reads/fastp/trim_report.json' 'out/validate_reads/fastqvalidator/validated_reads_manifest.json' 'out/validate_reads/fastqvalidator/validation.json'\nprintf '%s\\n' '{\"schema_version\":\"bijux.fastq.report_qc.report.v2\",\"stage\":\"fastq.report_qc\",\"stage_id\":\"fastq.report_qc\",\"tool_id\":\"multiqc\",\"paired_mode\":\"single_end\",\"aggregation_engine\":\"multiqc\",\"aggregation_scope\":\"governed_qc_artifacts\",\"reads_in\":0,\"reads_out\":0,\"bases_in\":0,\"bases_out\":0,\"pairs_in\":null,\"pairs_out\":null,\"mean_q\":0.0,\"contamination_rate\":0.0,\"adapter_content_max\":null,\"adapter_content_mean\":null,\"duplication_rate\":null,\"n_rate\":null,\"kmer_warning_count\":null,\"overrepresented_sequence_count\":null,\"multiqc_sample_count\":null,\"multiqc_module_count\":null,\"raw_fastqc_dir\":null,\"trimmed_fastqc_dir\":null,\"multiqc_report\":\"out/report_qc/multiqc/multiqc_report.html\",\"multiqc_data\":\"out/report_qc/multiqc/multiqc_data\",\"governed_qc_input_count\":19,\"governed_qc_contributor_stage_ids\":[],\"governed_qc_contributor_tool_ids\":[],\"governed_qc_contributors\":[],\"governed_qc_lineage_hash\":null,\"governed_qc_inputs_manifest\":\"out/report_qc/multiqc/governed_qc_inputs_manifest.json\",\"runtime_s\":null,\"memory_mb\":null,\"exit_code\":null}' > 'out/report_qc/multiqc/report_qc_report.json'\n"
+        ],
+        "image": "bijux/test",
+        "image_digest": "sha256:plan",
+        "out_dir": "out/report_qc/multiqc",
+        "resources": {
+          "mem_gb": 1,
+          "runtime": "docker",
+          "threads": 1,
+          "tmp_gb": 1
+        }
+      },
+      "stage_id": "fastq.report_qc",
+      "step_id": "fastq.report_qc.tool.multiqc"
+    }
+  ],
+  "parameter_traces": [
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "pair_sync_policy",
+      "resolved_value": "not_applicable",
+      "source": "planner_inferred",
+      "stage_id": "fastq.validate_reads",
+      "step_id": "fastq.validate_reads.tool.fastqvalidator"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "histogram_bins",
+      "resolved_value": 100,
+      "source": "planner_inferred",
+      "stage_id": "fastq.profile_read_lengths",
+      "step_id": "fastq.profile_read_lengths.tool.seqkit_stats"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "evidence_artifact_id",
+      "resolved_value": "report_json",
+      "source": "planner_inferred",
+      "stage_id": "fastq.detect_adapters",
+      "step_id": "fastq.detect_adapters.tool.fastqc"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "min_polyg_run",
+      "resolved_value": 10,
+      "source": "planner_inferred",
+      "stage_id": "fastq.trim_polyg_tails",
+      "step_id": "fastq.trim_polyg_tails.tool.fastp"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "adapter_policy",
+      "resolved_value": "none",
+      "source": "planner_inferred",
+      "stage_id": "fastq.trim_reads",
+      "step_id": "fastq.trim_reads.tool.fastp"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "contaminant_db",
+      "resolved_value": null,
+      "source": "planner_inferred",
+      "stage_id": "fastq.filter_reads",
+      "step_id": "fastq.filter_reads.tool.fastp"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "paired_mode",
+      "resolved_value": "single_end",
+      "source": "planner_inferred",
+      "stage_id": "fastq.profile_reads",
+      "step_id": "fastq.profile_reads.tool.seqkit_stats"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "paired_mode",
+      "resolved_value": "single_end",
+      "source": "planner_inferred",
+      "stage_id": "fastq.profile_overrepresented_sequences",
+      "step_id": "fastq.profile_overrepresented_sequences.tool.fastqc"
+    },
+    {
+      "detail": "derived from stage effective params",
+      "parameter": "aggregation_engine",
+      "resolved_value": "multiqc",
+      "source": "planner_inferred",
+      "stage_id": "fastq.report_qc",
+      "step_id": "fastq.report_qc.tool.multiqc"
+    }
+  ],
+  "pipeline_id": "fastq-to-fastq__default__v1",
+  "plan_fingerprint": "4ee5a4d8f54353d477bc96e3303509b14f5e35f3c2c66d8a492dd280d12f8cc3",
+  "planner_version": "bijux-dna-planner-fastq.v1",
+  "policy": "PreferAccuracy",
+  "profile_id": "fastq-to-fastq__default__v1",
+  "schema_version": "bijux.plan_manifest.v1",
+  "stage_decisions": [
+    {
+      "decision": "included",
+      "reason": "included in deterministic plan",
+      "stage_id": "fastq.validate_reads"
+    },
+    {
+      "decision": "included",
+      "reason": "included in deterministic plan",
+      "stage_id": "fastq.trim_reads"
+    }
+  ],
+  "workflow_fingerprint": "d784d6e4af0c7095a9b6458114c490feb0013feba58908451fdad4bfefcd0ee0"
+}

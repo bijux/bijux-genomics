@@ -1,7 +1,8 @@
 use crate::params::{
     AlignEffectiveParams, BamEffectiveParams, ComplexityEffectiveParams, CoverageEffectiveParams,
-    DuplicateAction, FilterEffectiveParams, MarkDupEffectiveParams, OpticalDuplicatePolicy,
-    QcPreEffectiveParams, ReadGroupSpec, UmiPolicy, ValidateEffectiveParams,
+    DuplicateAction, EndogenousContentEffectiveParams, FilterEffectiveParams,
+    MarkDupEffectiveParams, OpticalDuplicatePolicy, QcPreEffectiveParams, ReadGroupSpec, UmiPolicy,
+    ValidateEffectiveParams,
 };
 use crate::{ArtifactPolicy, AuditArtifact, BamStage, BamStageSpec};
 
@@ -180,12 +181,16 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             },
             default_params: BamEffectiveParams::Align(AlignEffectiveParams {
                 aligner: "bwa".to_string(),
+                strategy_id: "bwa_mem_default".to_string(),
                 preset: "default".to_string(),
+                mode: "end_to_end".to_string(),
                 threads: 1,
                 reference: "reference.fasta".to_string(),
                 reference_digest: "unknown".to_string(),
                 rg_policy: crate::types::ReadGroupPolicy::Regenerate,
                 read_group: ReadGroupSpec::with_defaults("sample"),
+                sensitivity_profile: Some("default".to_string()),
+                seed_length: None,
                 build_indices: false,
                 emit_stats: true,
             }),
@@ -345,6 +350,7 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             default_params: BamEffectiveParams::Coverage(CoverageEffectiveParams {
                 regions: None,
                 depth_thresholds: vec![1, 3, 5],
+                regime_mode: "advisory_and_enforced".to_string(),
             }),
         },
         BamStage::InsertSize => BamStageSpec {
@@ -362,6 +368,7 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             default_params: BamEffectiveParams::InsertSize(CoverageEffectiveParams {
                 regions: None,
                 depth_thresholds: vec![1],
+                regime_mode: "advisory_and_enforced".to_string(),
             }),
         },
         BamStage::GcBias => BamStageSpec {
@@ -374,6 +381,7 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
             default_params: BamEffectiveParams::GcBias(CoverageEffectiveParams {
                 regions: None,
                 depth_thresholds: vec![1],
+                regime_mode: "advisory_and_enforced".to_string(),
             }),
         },
         BamStage::EndogenousContent => BamStageSpec {
@@ -383,10 +391,15 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["endogenous_report", "summary", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),
             },
-            default_params: BamEffectiveParams::EndogenousContent(CoverageEffectiveParams {
-                regions: None,
-                depth_thresholds: vec![1],
-            }),
+            default_params: BamEffectiveParams::EndogenousContent(
+                EndogenousContentEffectiveParams {
+                    regions: None,
+                    depth_thresholds: vec![1],
+                    host_reference_scope: "host_reference_required".to_string(),
+                    host_reference_digest: None,
+                    refuse_without_host_reference: true,
+                },
+            ),
         },
         BamStage::OverlapCorrection => BamStageSpec {
             stage,

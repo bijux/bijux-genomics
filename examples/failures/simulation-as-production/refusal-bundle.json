@@ -1,0 +1,10 @@
+{
+  "schema_version": "bijux.example.refusal_bundle.v1",
+  "bundle_id": "simulation_as_production",
+  "category": "simulation_as_production",
+  "expected_refusal_codes": [
+    "SIMULATION_PROMOTED_TO_PRODUCTION"
+  ],
+  "operating_mode": "enforced",
+  "summary": "Simulation outputs must never be promoted as production execution without refusal."
+}

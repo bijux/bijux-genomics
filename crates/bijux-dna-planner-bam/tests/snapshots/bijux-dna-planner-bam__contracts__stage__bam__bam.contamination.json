@@ -1,5 +1,6 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": [
       "/bin/sh",
@@ -9,8 +10,12 @@
   },
   "effective_params": {
     "assumptions": null,
+    "chromosome_system": null,
+    "emit_confidence_caveats": true,
+    "minimum_mean_coverage": 0.5,
     "prior": null,
     "reference_panels": [],
+    "required_reference_digest": null,
     "scope": "both",
     "sex_specific": false
   },
@@ -48,20 +53,43 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "assumptions": null,
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
+    "chromosome_system": null,
+    "emit_confidence_caveats": true,
+    "minimum_mean_coverage": 0.5,
     "prior": null,
     "reference_panels": [],
+    "required_reference_digest": null,
     "scope": "both",
     "sex_specific": false,
     "tool_scope": "mt"
   },
+  "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "de9ea1486820ceb1cb60b2af65b33ff1aea7755e5bf4747e3040f476010270be",
-      "defaults_diff": {}
+      "contract_hash": "3341f894677ab1e6a3b7c82c5ac901944b7e110e997e64f6fe1d0216df1e370b",
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 4,
+        "disk_gb": 4,
+        "input_bytes": 0,
+        "input_origin": "real",
+        "input_scale": "tiny",
+        "io_profile": "balanced_compute_and_io",
+        "memory_gb": 4,
+        "notes": [
+          "sorting/indexing/validation chain dominates temporary storage"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 4,
+        "stage_id": "bam.contamination",
+        "walltime_minutes": 14
+      }
     },
     "kind": "default",
     "summary": "tool schmutzi selected by planner"

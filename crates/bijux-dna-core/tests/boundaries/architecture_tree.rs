@@ -191,7 +191,16 @@ fn assert_catalog_layout(root: &Path) {
     );
     assert_eq!(
         dir_entries(&root.join("src/id_catalog/pipeline")),
-        entries(["OWNER.toml", "bam.rs", "fastq.rs", "fastq_to_bam.rs", "mod.rs", "vcf.rs"]),
+        entries([
+            "OWNER.toml",
+            "bam.rs",
+            "bam_to_vcf.rs",
+            "fastq.rs",
+            "fastq_to_bam.rs",
+            "fastq_to_vcf.rs",
+            "mod.rs",
+            "vcf.rs",
+        ]),
         "pipeline catalog must stay partitioned by graph concern"
     );
     assert_eq!(
@@ -261,6 +270,8 @@ fn assert_test_layout(root: &Path) {
             "execution_contract_validation_contracts.rs",
             "execution_graph_validate.rs",
             "execution_plan_contract.rs",
+            "planning_manifest_contract.rs",
+            "schema_compatibility_contracts.rs",
         ]),
         "execution contract tests must stay focused on graph and output contracts"
     );

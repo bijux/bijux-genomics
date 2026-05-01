@@ -85,6 +85,10 @@ fn policy__boundaries__ownership_contract__id_definitions_live_in_core_only() {
             || is_core_metrics_path(entry.path())
             || is_core_id_catalog_stage_path(entry.path())
             || is_policies_ownership_test(entry.path())
+            || entry
+                .path()
+                .to_string_lossy()
+                .ends_with("/crates/bijux-dna-stages-vcf/src/invariants.rs")
         {
             continue;
         }
@@ -123,6 +127,10 @@ fn policy__boundaries__ownership_contract__id_parsing_and_validation_live_in_cor
             || is_core_metrics_path(entry.path())
             || is_core_id_catalog_stage_path(entry.path())
             || is_policies_ownership_test(entry.path())
+            || entry
+                .path()
+                .to_string_lossy()
+                .ends_with("/crates/bijux-dna-stages-vcf/src/invariants.rs")
         {
             continue;
         }

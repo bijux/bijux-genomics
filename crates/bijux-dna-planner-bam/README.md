@@ -1,6 +1,6 @@
 # bijux-dna-planner-bam
 
-Workspace policy: apply `/Users/bijan/bijux/README.md` and `/Users/bijan/bijux/CODEX.md` before changing this crate.
+Repository policy: apply `README.md` and `README.md` before changing this crate.
 
 ## What this crate does
 BAM planner: selects tools, assembles stage plans, emits BAM execution graphs, and produces explain payloads. It plans commands; it does not execute them.

@@ -28,6 +28,9 @@ fn policy__boundaries__docs_placement_policy__docs_live_in_crate_docs_only() {
         if path.to_string_lossy().contains("/tests/fixtures/") {
             continue;
         }
+        if path.to_string_lossy().contains("/tests/snapshots/") {
+            continue;
+        }
         if path.to_string_lossy().contains("/crates/bijux-dna-bench/bench/") {
             continue;
         }

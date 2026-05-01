@@ -18,3 +18,5 @@ mod profiles;
 mod stage_semantics;
 #[path = "profiles/vcf_invariants.rs"]
 mod vcf_invariants;
+#[path = "profiles/workflow_templates.rs"]
+mod workflow_templates;

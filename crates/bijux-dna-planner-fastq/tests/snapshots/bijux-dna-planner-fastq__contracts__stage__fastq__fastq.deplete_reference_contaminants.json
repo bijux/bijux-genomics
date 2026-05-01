@@ -102,7 +102,10 @@
     "schema_version": "bijux.fastq.params.deplete_reference_contaminants.v1",
     "threads": 1
   },
+  "operating_mode": "enforced",
   "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
   "reason": {
     "kind": "default",
     "summary": "planner default",

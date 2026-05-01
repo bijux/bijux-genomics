@@ -73,6 +73,7 @@ fn write_image_catalog_fixture(root: &Path, images: &[u8], registry: &[u8]) -> a
 
 #[test]
 fn runtime_kind_from_str_parses_known_runners() -> Result<(), EnvError> {
+    assert_eq!(RuntimeKind::from_str("local")?, RuntimeKind::Local);
     assert_eq!(RuntimeKind::from_str("docker")?, RuntimeKind::Docker);
     assert_eq!(RuntimeKind::from_str("singularity")?, RuntimeKind::Singularity);
     assert_eq!(RuntimeKind::from_str("apptainer")?, RuntimeKind::Apptainer);
@@ -114,6 +115,13 @@ fn image_ref_formats_deterministically() {
 fn select_best_runner_prefers_requested_runner_when_available() -> Result<(), EnvError> {
     let available = vec![RuntimeKind::Apptainer, RuntimeKind::Docker];
     assert_eq!(select_best_runner(RuntimeKind::Docker, &available)?, RuntimeKind::Docker);
+    Ok(())
+}
+
+#[test]
+fn select_best_runner_prefers_local_fallback_when_available() -> Result<(), EnvError> {
+    let available = vec![RuntimeKind::Local, RuntimeKind::Docker];
+    assert_eq!(select_best_runner(RuntimeKind::Singularity, &available)?, RuntimeKind::Local);
     Ok(())
 }
 
@@ -209,11 +217,17 @@ fn resolved_image_and_runtime_spec_report_compatibility_consistently() {
         arch: "arm64".to_string(),
         runner: RuntimeKind::Docker,
     };
+    let local_image = ResolvedImage {
+        full_name: "host-tooling".to_string(),
+        arch: "amd64".to_string(),
+        runner: RuntimeKind::Local,
+    };
     let oci_image = ResolvedImage {
         full_name: "bijuxdna/fastp@sha256:abc123".to_string(),
         arch: "amd64".to_string(),
         runner: RuntimeKind::Apptainer,
     };
+    assert!(local_image.is_compatible(RuntimeKind::Local));
     assert!(docker_image.is_compatible(RuntimeKind::Docker));
     assert!(!docker_image.is_compatible(RuntimeKind::Apptainer));
     assert!(oci_image.is_compatible(RuntimeKind::Singularity));

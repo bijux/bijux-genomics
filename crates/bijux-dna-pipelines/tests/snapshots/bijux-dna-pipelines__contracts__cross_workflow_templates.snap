@@ -1,0 +1,378 @@
+---
+source: crates/bijux-dna-pipelines/tests/contracts/profiles/profiles.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
+---
+[
+  {
+    "batch_semantics": {
+      "cohort_stages": [
+        "bam.mapping_summary"
+      ],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.trim_reads",
+        "bam.align",
+        "bam.qc_pre",
+        "bam.mapping_summary",
+        "bam.coverage"
+      ],
+      "shared_reference_stages": [
+        "core.prepare_reference"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "layout_assumptions",
+        "reference_identity"
+      ],
+      "story_order": [
+        "read_preprocessing",
+        "alignment_quality",
+        "handoff_readiness"
+      ]
+    },
+    "example_ids": [
+      "fastq_essential_qc",
+      "bam_essential_alignment_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample stops before alignment; remaining samples may continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "block_downstream",
+        "allows_partial_batch": true,
+        "downstream_effect": "downstream BAM or VCF calling is blocked for the failed sample",
+        "stage_family": "alignment"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries may proceed with explicit missing-sample caveats",
+        "stage_family": "variant"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "shared_reference_bundle",
+        "fan_pattern": "fan_out",
+        "lineage_fields": [
+          "reference_id"
+        ],
+        "overwrite_strategy": "write_once_reuse_many",
+        "source_stage": "core.prepare_reference",
+        "target_stage": "bam.align"
+      },
+      {
+        "artifact_scope": "cohort_variant_inventory",
+        "fan_pattern": "fan_in",
+        "lineage_fields": [
+          "sample_id",
+          "reference_id"
+        ],
+        "overwrite_strategy": "sample_scoped_outputs_then_cohort_merge",
+        "source_stage": "bam.genotyping",
+        "target_stage": "vcf.stats"
+      }
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.align": [
+          "seed_length",
+          "min_mapq"
+        ],
+        "fastq.trim_reads": [
+          "min_length",
+          "adapter_mode"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.align": [
+          "reference_fasta"
+        ],
+        "core.prepare_reference": [
+          "reference_build"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-bam__default__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.trim_reads",
+      "core.prepare_reference",
+      "bam.align",
+      "bam.qc_pre",
+      "bam.mapping_summary",
+      "bam.coverage"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": true,
+    "requires_sample_metadata": [
+      "sample_id",
+      "library_id",
+      "lane_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "FASTQ preprocessing to BAM alignment with governed sample, layout, and reference admission rules.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "cross.fastq_to_bam_modern"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "per_sample_stages": [
+        "bam.validate",
+        "bam.qc_pre",
+        "bam.mapping_summary",
+        "bam.coverage",
+        "bam.genotyping"
+      ],
+      "shared_reference_stages": [
+        "core.prepare_reference"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "coverage_regime",
+        "sample_prerequisites"
+      ],
+      "story_order": [
+        "alignment_quality",
+        "coverage_readiness",
+        "variant_processing"
+      ]
+    },
+    "example_ids": [
+      "bam_essential_alignment_qc",
+      "vcf_essential_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample stops before alignment; remaining samples may continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "block_downstream",
+        "allows_partial_batch": true,
+        "downstream_effect": "downstream BAM or VCF calling is blocked for the failed sample",
+        "stage_family": "alignment"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries may proceed with explicit missing-sample caveats",
+        "stage_family": "variant"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "shared_reference_bundle",
+        "fan_pattern": "fan_out",
+        "lineage_fields": [
+          "reference_id"
+        ],
+        "overwrite_strategy": "write_once_reuse_many",
+        "source_stage": "core.prepare_reference",
+        "target_stage": "bam.align"
+      },
+      {
+        "artifact_scope": "cohort_variant_inventory",
+        "fan_pattern": "fan_in",
+        "lineage_fields": [
+          "sample_id",
+          "reference_id"
+        ],
+        "overwrite_strategy": "sample_scoped_outputs_then_cohort_merge",
+        "source_stage": "bam.genotyping",
+        "target_stage": "vcf.stats"
+      }
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.genotyping": [
+          "minimum_mean_coverage",
+          "genotype_mode"
+        ],
+        "vcf.filter": [
+          "require_pass"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.genotyping": [
+          "reference_fasta"
+        ],
+        "vcf.filter": [
+          "production_profile"
+        ]
+      }
+    },
+    "pipeline_id": "bam-to-vcf__default__v1",
+    "requested_stages": [
+      "core.prepare_reference",
+      "bam.validate",
+      "bam.qc_pre",
+      "bam.mapping_summary",
+      "bam.coverage",
+      "bam.genotyping",
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": true,
+    "requires_reference_assets": true,
+    "requires_sample_metadata": [
+      "sample_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Aligned BAM to VCF calling with explicit BAM index, coverage, sample, and reference guardrails.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "cross.bam_to_vcf_default"
+  },
+  {
+    "batch_semantics": {
+      "cohort_stages": [
+        "vcf.filter",
+        "vcf.stats"
+      ],
+      "per_sample_stages": [
+        "fastq.validate_reads",
+        "fastq.trim_reads",
+        "bam.align",
+        "bam.qc_pre",
+        "bam.mapping_summary",
+        "bam.genotyping"
+      ],
+      "shared_reference_stages": [
+        "core.prepare_reference"
+      ]
+    },
+    "evidence_summary": {
+      "final_caveat_topics": [
+        "tiny_fixture_limits",
+        "final_call_confidence"
+      ],
+      "story_order": [
+        "read_preprocessing",
+        "alignment_quality",
+        "variant_processing"
+      ]
+    },
+    "example_ids": [
+      "fastq_essential_qc",
+      "vcf_essential_qc"
+    ],
+    "failure_policy": [
+      {
+        "action": "skip_failed_sample",
+        "allows_partial_batch": true,
+        "downstream_effect": "sample stops before alignment; remaining samples may continue",
+        "stage_family": "preprocessing"
+      },
+      {
+        "action": "block_downstream",
+        "allows_partial_batch": true,
+        "downstream_effect": "downstream BAM or VCF calling is blocked for the failed sample",
+        "stage_family": "alignment"
+      },
+      {
+        "action": "continue_cohort",
+        "allows_partial_batch": true,
+        "downstream_effect": "cohort summaries may proceed with explicit missing-sample caveats",
+        "stage_family": "variant"
+      }
+    ],
+    "fan_artifact_rules": [
+      {
+        "artifact_scope": "shared_reference_bundle",
+        "fan_pattern": "fan_out",
+        "lineage_fields": [
+          "reference_id"
+        ],
+        "overwrite_strategy": "write_once_reuse_many",
+        "source_stage": "core.prepare_reference",
+        "target_stage": "bam.align"
+      },
+      {
+        "artifact_scope": "cohort_variant_inventory",
+        "fan_pattern": "fan_in",
+        "lineage_fields": [
+          "sample_id",
+          "reference_id"
+        ],
+        "overwrite_strategy": "sample_scoped_outputs_then_cohort_merge",
+        "source_stage": "bam.genotyping",
+        "target_stage": "vcf.stats"
+      }
+    ],
+    "parameter_policy": {
+      "configurable_by_stage": {
+        "bam.genotyping": [
+          "genotype_mode"
+        ],
+        "fastq.trim_reads": [
+          "min_length",
+          "adapter_mode"
+        ],
+        "vcf.filter": [
+          "require_pass"
+        ]
+      },
+      "expert_mode_required_for_locked_overrides": true,
+      "locked_by_stage": {
+        "bam.align": [
+          "reference_fasta"
+        ],
+        "bam.genotyping": [
+          "minimum_mean_coverage"
+        ]
+      }
+    },
+    "pipeline_id": "fastq-to-vcf__minimal__v1",
+    "requested_stages": [
+      "fastq.validate_reads",
+      "fastq.trim_reads",
+      "core.prepare_reference",
+      "bam.align",
+      "bam.qc_pre",
+      "bam.mapping_summary",
+      "bam.genotyping",
+      "vcf.filter",
+      "vcf.stats"
+    ],
+    "requires_bam_index": false,
+    "requires_reference_assets": true,
+    "requires_sample_metadata": [
+      "sample_id",
+      "library_id",
+      "lane_id",
+      "reference_id"
+    ],
+    "sample_sheet_supported": true,
+    "schema_version": "bijux.cross.workflow_template.v1",
+    "summary": "Tiny FASTQ-to-VCF template that plans validate, trim, align, sort/index, calling, and stats with stable evidence semantics.",
+    "supported_layouts": [
+      "single_end",
+      "paired_end"
+    ],
+    "template_id": "cross.fastq_to_vcf_minimal"
+  }
+]

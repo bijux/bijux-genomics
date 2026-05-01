@@ -74,7 +74,10 @@
     "threads": 4,
     "top_k": 50
   },
+  "operating_mode": "enforced",
   "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
   "reason": {
     "kind": "default",
     "summary": "overrepresented sequence detection",

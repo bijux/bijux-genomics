@@ -17,6 +17,10 @@ pub enum RunMode {
 
 pub use self::run_bootstrap::run_pipeline;
 
+pub use self::planning_support::{
+    explain_pipeline_profile, stage_external_asset_requirement, stage_requires_local_assets,
+    validate_pipeline_profile, StageAssetClass, StageExternalAssetRequirement,
+};
 pub use self::profile_selection::{select_pipeline, select_pipelines};
 
 /// # Errors

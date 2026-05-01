@@ -20,5 +20,5 @@ workspace.
 - Write only declared generated config outputs when invoked for generation.
 
 ## Notes
-The workspace policy is rooted at `/Users/bijan/bijux/README.md`, and the repository coding
-policy is rooted at `/Users/bijan/bijux/CODEX.md`.
+The repository policy is rooted at `README.md`, and the repository coding
+policy is rooted at `README.md`.

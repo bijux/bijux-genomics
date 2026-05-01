@@ -96,10 +96,17 @@ pub struct BamRunArgs {
     pub map_bias_correction: bool,
     pub authenticity_mode: Option<String>,
     pub aligner_preset: Option<String>,
+    pub alignment_sensitivity_profile: Option<String>,
+    pub alignment_seed_length: Option<u32>,
     pub rg_id: Option<String>,
     pub rg_sm: Option<String>,
     pub rg_pl: Option<String>,
     pub rg_lb: Option<String>,
+    pub rg_pu: Option<String>,
+    pub lane_id: Option<String>,
+    pub run_id: Option<String>,
+    pub subject_id: Option<String>,
+    pub cohort_id: Option<String>,
     pub rg_policy: Option<String>,
     pub build_reference_indices: bool,
     pub params_json: Option<String>,
@@ -189,6 +196,7 @@ pub struct RenderReportRequest {
 /// Stability: v1 (stable).
 pub struct RenderReportResult {
     pub report_path: PathBuf,
+    pub evidence_bundle_path: PathBuf,
 }
 
 #[derive(Debug, Clone)]
@@ -199,7 +207,374 @@ pub struct RunStatus {
     pub run_dir: PathBuf,
     pub manifest_path: Option<PathBuf>,
     pub report_path: Option<PathBuf>,
+    pub evidence_bundle_path: Option<PathBuf>,
+    pub evidence_verification_path: Option<PathBuf>,
+    pub artifact_inventory_path: Option<PathBuf>,
+    pub artifact_inventory_text_path: Option<PathBuf>,
+    pub replay_manifest_path: Option<PathBuf>,
+    pub hash_ledger_path: Option<PathBuf>,
+    pub run_summary_text_path: Option<PathBuf>,
+    pub run_state_path: Option<PathBuf>,
+    pub runtime_policy_path: Option<PathBuf>,
+    pub executor_descriptor_path: Option<PathBuf>,
+    pub backend_descriptor_path: Option<PathBuf>,
+    pub scheduling_decision_path: Option<PathBuf>,
+    pub queue_state_path: Option<PathBuf>,
+    pub lease_path: Option<PathBuf>,
+    pub control_state_path: Option<PathBuf>,
+    pub health_report_path: Option<PathBuf>,
+    pub slurm_submission_path: Option<PathBuf>,
+    pub checkpoint_path: Option<PathBuf>,
+    pub failure_path: Option<PathBuf>,
+    pub correlation_id: Option<String>,
+    pub mode: Option<bijux_dna_runtime::run_layout::RunExecutionModeV1>,
+    pub state: Option<bijux_dna_runtime::run_layout::RunLifecycleStateV1>,
     pub has_failures: bool,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, Default)]
+/// Filters for browsing run histories.
+///
+/// Stability: v1 (stable).
+pub struct RunBrowserFilterV1 {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub run_id_prefix: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pipeline_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub correlation_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<bijux_dna_runtime::run_layout::RunLifecycleStateV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mode: Option<bijux_dna_runtime::run_layout::RunExecutionModeV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub has_failures: Option<bool>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for browsing run histories.
+///
+/// Stability: v1 (stable).
+pub struct RunBrowserRequestV1 {
+    pub runs_root: PathBuf,
+    #[serde(default)]
+    pub page_size: usize,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub page_token: Option<String>,
+    #[serde(default)]
+    pub filter: RunBrowserFilterV1,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub redaction_profile: Option<RedactionProfileV1>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// One row in the run browser index.
+///
+/// Stability: v1 (stable).
+pub struct RunBrowserRowV1 {
+    pub run_id: String,
+    pub run_dir: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pipeline_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub correlation_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mode: Option<bijux_dna_runtime::run_layout::RunExecutionModeV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub state: Option<bijux_dna_runtime::run_layout::RunLifecycleStateV1>,
+    pub has_failures: bool,
+    pub has_evidence_bundle: bool,
+    pub artifact_count: usize,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Paginated run browser response.
+///
+/// Stability: v1 (stable).
+pub struct RunBrowserResponseV1 {
+    pub schema_version: String,
+    pub runs_root: PathBuf,
+    pub total_rows: usize,
+    pub page_size: usize,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub next_page_token: Option<String>,
+    #[serde(default)]
+    pub rows: Vec<RunBrowserRowV1>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for extracting artifact lineage from a run.
+///
+/// Stability: v1 (stable).
+pub struct RunLineageQueryRequestV1 {
+    pub run_dir: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub artifact_id: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Lineage edge for a produced artifact.
+///
+/// Stability: v1 (stable).
+pub struct RunLineageEdgeV1 {
+    pub artifact_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub producing_stage_id: Option<String>,
+    pub lineage_key: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Run lineage query response.
+///
+/// Stability: v1 (stable).
+pub struct RunLineageQueryResponseV1 {
+    pub schema_version: String,
+    pub run_id: String,
+    pub run_dir: PathBuf,
+    pub total_artifacts: usize,
+    #[serde(default)]
+    pub edges: Vec<RunLineageEdgeV1>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for cache-hit and cache-miss explainability.
+///
+/// Stability: v1 (stable).
+pub struct CacheExplainRequestV1 {
+    pub original_run_dir: PathBuf,
+    pub replay_run_dir: PathBuf,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Stable cache key fingerprint fields used for hit/miss comparison.
+///
+/// Stability: v1 (stable).
+pub struct CacheKeyFingerprintV1 {
+    pub manifest_schema: String,
+    pub graph_hash: String,
+    pub reference_hash: String,
+    pub backend_sha256: String,
+    pub runtime_policy_sha256: String,
+    pub environment_sha256: String,
+    pub artifact_inventory_sha256: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// One explainable cache miss reason.
+///
+/// Stability: v1 (stable).
+pub struct CacheMissReasonV1 {
+    pub reason_code: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Cache-hit/cache-miss explainability response.
+///
+/// Stability: v1 (stable).
+pub struct CacheExplainResponseV1 {
+    pub schema_version: String,
+    pub status: String,
+    pub original_cache_key: CacheKeyFingerprintV1,
+    pub replay_cache_key: CacheKeyFingerprintV1,
+    #[serde(default)]
+    pub unsafe_miss_reasons: Vec<CacheMissReasonV1>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for replay reuse/drift explainability.
+///
+/// Stability: v1 (stable).
+pub struct ReplayExplainRequestV1 {
+    pub original_run_dir: PathBuf,
+    pub replay_run_dir: PathBuf,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Replay reuse/drift explainability response.
+///
+/// Stability: v1 (stable).
+pub struct ReplayExplainResponseV1 {
+    pub schema_version: String,
+    pub original_run_dir: String,
+    pub replay_run_dir: String,
+    pub original_run_id: String,
+    pub replay_run_id: String,
+    #[serde(default)]
+    pub rerun_stage_ids: Vec<String>,
+    #[serde(default)]
+    pub reused_outputs: Vec<String>,
+    #[serde(default)]
+    pub unchanged_outputs: Vec<String>,
+    #[serde(default)]
+    pub changed_outputs: Vec<String>,
+    #[serde(default)]
+    pub unverifiable_outputs: Vec<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for evidence-gap diagnostics.
+///
+/// Stability: v1 (stable).
+pub struct EvidenceGapRequestV1 {
+    pub run_dir: PathBuf,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// One evidence check that failed validation.
+///
+/// Stability: v1 (stable).
+pub struct EvidenceCheckFailureV1 {
+    pub check_id: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Evidence-gap response with missing paths and trust-class caveats.
+///
+/// Stability: v1 (stable).
+pub struct EvidenceGapResponseV1 {
+    pub schema_version: String,
+    pub run_dir: PathBuf,
+    pub verified: bool,
+    pub gap_count: usize,
+    #[serde(default)]
+    pub missing_paths: Vec<String>,
+    #[serde(default)]
+    pub failed_checks: Vec<EvidenceCheckFailureV1>,
+    #[serde(default)]
+    pub advisory_only_artifacts: Vec<String>,
+    #[serde(default)]
+    pub unsafe_artifacts: Vec<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Query request for operator diagnosis command generation.
+///
+/// Stability: v1 (stable).
+pub struct OperatorDiagnosisRequestV1 {
+    pub run_dir: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub redaction_profile: Option<RedactionProfileV1>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// One operator diagnosis command with purpose and evidence source.
+///
+/// Stability: v1 (stable).
+pub struct OperatorDiagnosisCommandV1 {
+    pub command_id: String,
+    #[serde(default)]
+    pub argv: Vec<String>,
+    pub purpose: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evidence_path: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Operator diagnosis response.
+///
+/// Stability: v1 (stable).
+pub struct OperatorDiagnosisResponseV1 {
+    pub schema_version: String,
+    pub run_dir: PathBuf,
+    pub run_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub queue_state: Option<bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub requested_action: Option<bijux_dna_runtime::run_layout::RunControlActionV1>,
+    pub health_ok: bool,
+    pub has_failure_record: bool,
+    #[serde(default)]
+    pub commands: Vec<OperatorDiagnosisCommandV1>,
+}
+
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+/// Stable output rendering format.
+///
+/// Stability: v1 (stable).
+pub enum OutputFormatV1 {
+    Human,
+    Json,
+}
+
+#[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+/// Stable redaction profiles for operator-facing surfaces.
+///
+/// Stability: v1 (stable).
+pub enum RedactionProfileV1 {
+    Collaborator,
+    External,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Request to create a prototype signed run-bundle record.
+///
+/// Stability: v1 (stable).
+pub struct SignedBundleRequestV1 {
+    pub run_dir: PathBuf,
+    pub key_id: String,
+    pub shared_secret: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Signed run-bundle prototype response.
+///
+/// Stability: v1 (stable).
+pub struct SignedBundleResponseV1 {
+    pub schema_version: String,
+    pub signature_path: PathBuf,
+    pub key_id: String,
+    pub algorithm: String,
+    pub payload_sha256: String,
+    pub signature: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Request to verify a prototype signed run-bundle record.
+///
+/// Stability: v1 (stable).
+pub struct SignedBundleVerifyRequestV1 {
+    pub run_dir: PathBuf,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub signature_path: Option<PathBuf>,
+    pub shared_secret: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Signature verification response.
+///
+/// Stability: v1 (stable).
+pub struct SignedBundleVerifyResponseV1 {
+    pub schema_version: String,
+    pub verified: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Canonical run-control response.
+///
+/// Stability: v1 (stable).
+pub struct RunControlResponse {
+    pub control_state_path: PathBuf,
+    pub queue_state_path: Option<PathBuf>,
+    pub state: bijux_dna_runtime::run_layout::RunControlStateV1,
+}
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+/// Canonical operator-health response.
+///
+/// Stability: v1 (stable).
+pub struct OperatorHealthResponse {
+    pub health_report_path: PathBuf,
+    pub report: bijux_dna_runtime::run_layout::OperatorHealthReportV1,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -209,6 +584,18 @@ pub struct RunStatus {
 pub struct PlanRequest {
     pub graph: bijux_dna_core::contract::ExecutionGraph,
     pub profile_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workflow_manifest: Option<bijux_dna_core::contract::WorkflowManifestV1>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub stage_plans: Vec<bijux_dna_stage_contract::StagePlanV1>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub parameter_traces: Vec<bijux_dna_core::contract::ParameterResolutionTraceV1>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub planner_refusals: Vec<bijux_dna_core::contract::PlannerRefusalRecordV1>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub planner_warnings: Vec<bijux_dna_core::contract::PlannerWarningRecordV1>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub compare_against: Option<bijux_dna_core::contract::PlanManifestV1>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -219,6 +606,10 @@ pub struct PlanResponse {
     pub graph: bijux_dna_core::contract::ExecutionGraph,
     pub graph_hash: String,
     pub manifest: serde_json::Value,
+    pub workflow_manifest: bijux_dna_core::contract::WorkflowManifestV1,
+    pub plan_manifest: bijux_dna_core::contract::PlanManifestV1,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub plan_diff: Option<bijux_dna_core::contract::PlanManifestDiffV1>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -229,6 +620,8 @@ pub struct ExecuteRequest {
     pub graph: bijux_dna_core::contract::ExecutionGraph,
     pub runner: bijux_dna_environment::api::RuntimeKind,
     pub run_dir: PathBuf,
+    #[serde(default)]
+    pub mode: bijux_dna_runtime::run_layout::RunExecutionModeV1,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -237,8 +630,29 @@ pub struct ExecuteRequest {
 /// Stability: v1 (stable).
 pub struct ExecuteResponse {
     pub run_id: String,
+    pub correlation_id: String,
     pub manifest_path: PathBuf,
+    pub run_state_path: PathBuf,
+    pub runtime_policy_path: PathBuf,
+    pub executor_descriptor_path: PathBuf,
+    pub backend_descriptor_path: PathBuf,
+    pub scheduling_decision_path: PathBuf,
+    pub queue_state_path: PathBuf,
+    pub lease_path: PathBuf,
+    pub control_state_path: PathBuf,
+    pub health_report_path: PathBuf,
+    pub slurm_submission_path: Option<PathBuf>,
+    pub checkpoint_path: PathBuf,
+    pub failure_path: Option<PathBuf>,
+    pub mode: bijux_dna_runtime::run_layout::RunExecutionModeV1,
+    pub state: bijux_dna_runtime::run_layout::RunLifecycleStateV1,
     pub report_path: Option<PathBuf>,
+    pub evidence_bundle_path: PathBuf,
+    pub evidence_verification_path: PathBuf,
+    pub artifact_inventory_path: PathBuf,
+    pub replay_manifest_path: PathBuf,
+    pub hash_ledger_path: PathBuf,
+    pub run_summary_text_path: PathBuf,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -258,4 +672,25 @@ pub struct DryRunRequest {
 pub struct DryRunResponse {
     pub graph_path: PathBuf,
     pub manifest_path: PathBuf,
+    pub run_summary_path: PathBuf,
+    pub run_summary_text_path: PathBuf,
+    pub run_state_path: PathBuf,
+    pub runtime_policy_path: PathBuf,
+    pub executor_descriptor_path: PathBuf,
+    pub backend_descriptor_path: PathBuf,
+    pub scheduling_decision_path: PathBuf,
+    pub queue_state_path: PathBuf,
+    pub lease_path: PathBuf,
+    pub control_state_path: PathBuf,
+    pub health_report_path: PathBuf,
+    pub checkpoint_path: PathBuf,
+    pub mode: bijux_dna_runtime::run_layout::RunExecutionModeV1,
+    pub state: bijux_dna_runtime::run_layout::RunLifecycleStateV1,
+    pub evidence_bundle_path: PathBuf,
+    pub evidence_verification_path: PathBuf,
+    pub artifact_inventory_path: PathBuf,
+    pub replay_manifest_path: PathBuf,
+    pub hash_ledger_path: PathBuf,
+    pub slurm_submission_path: Option<PathBuf>,
+    pub correlation_id: String,
 }

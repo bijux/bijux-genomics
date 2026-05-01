@@ -8,16 +8,22 @@ use super::{
 
 mod catalog_coverage;
 mod catalog_validation;
+mod deprecations;
+mod fixture_consistency;
 mod index_rules;
 mod stage_files;
+mod strict_stage_schemas;
 mod tool_files;
 
 use self::catalog_coverage::validate_canonical_stage_coverage;
 use self::catalog_validation::{
     validate_domain_vocabularies, validate_reference_catalogs, DomainVocabularies,
 };
+use self::deprecations::validate_deprecations_contract;
+use self::fixture_consistency::validate_fixture_consistency;
 use self::index_rules::validate_domain_indexes_and_pipelines;
 use self::stage_files::validate_stage_files;
+use self::strict_stage_schemas::validate_stage_schema_contracts;
 use self::tool_files::{validate_tool_files, ToolValidationState};
 
 /// Validate authored domain files and cross-domain invariants.
@@ -59,6 +65,7 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         validate_domain_vocabularies(&options.domain_dir)?;
 
     for dom in ["fastq", "bam", "vcf"] {
+        validate_stage_schema_contracts(options, dom)?;
         validate_stage_files(options, dom, &artifact_vocab, &metric_vocab, &mut stage_ids)?;
         let mut tool_state = ToolValidationState {
             ids: &mut tool_ids,
@@ -79,6 +86,8 @@ pub fn validate_domain(options: &ValidateOptions) -> Result<()> {
         &tool_statuses,
         &tool_metrics_schemas,
     )?;
+    validate_fixture_consistency(options, &stage_ids, &tool_ids)?;
+    validate_deprecations_contract(workspace_root, &stage_ids, &tool_ids)?;
 
     println!("domain-validate: OK");
     Ok(())

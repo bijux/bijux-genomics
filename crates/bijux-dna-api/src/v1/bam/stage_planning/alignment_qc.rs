@@ -33,7 +33,17 @@ pub(super) fn plan_alignment_qc_stage(
                 }
                 _ => bijux_dna_planner_bam::stage_api::params::AlignEffectiveParams {
                     aligner: spec.tool_id.to_string(),
+                    strategy_id: if spec.tool_id.as_str() == "bowtie2" {
+                        "bowtie2_very_sensitive_local".to_string()
+                    } else {
+                        "bwa_mem_default".to_string()
+                    },
                     preset: args.aligner_preset.clone().unwrap_or_else(|| "default".to_string()),
+                    mode: if spec.tool_id.as_str() == "bowtie2" {
+                        "local".to_string()
+                    } else {
+                        "end_to_end".to_string()
+                    },
                     threads: 1,
                     reference: reference.display().to_string(),
                     reference_digest: digest.clone(),
@@ -42,6 +52,12 @@ pub(super) fn plan_alignment_qc_stage(
                         bijux_dna_planner_bam::stage_api::params::ReadGroupSpec::with_defaults(
                             sample_id,
                         ),
+                    sensitivity_profile: Some(
+                        args.alignment_sensitivity_profile
+                            .clone()
+                            .unwrap_or_else(|| "default".to_string()),
+                    ),
+                    seed_length: args.alignment_seed_length,
                     build_indices: args.build_reference_indices,
                     emit_stats: true,
                 },
@@ -63,10 +79,35 @@ pub(super) fn plan_alignment_qc_stage(
             if let Some(rg) = &args.rg_lb {
                 params.read_group.library.clone_from(rg);
             }
+            if let Some(rg) = &args.rg_pu {
+                params.read_group.platform_unit = Some(rg.clone());
+            }
+            if let Some(value) = &args.lane_id {
+                params.read_group.lane_id = Some(value.clone());
+            }
+            if let Some(value) = &args.run_id {
+                params.read_group.run_id = Some(value.clone());
+            }
             if let Some(policy) = args.rg_policy.as_deref() {
                 params.rg_policy = parse_read_group_policy(policy)?;
             }
+            if let Some(value) = &args.alignment_sensitivity_profile {
+                params.sensitivity_profile = Some(value.clone());
+            }
+            if let Some(value) = args.alignment_seed_length {
+                params.seed_length = Some(value);
+            }
             params.aligner = spec.tool_id.to_string();
+            params.strategy_id = match (spec.tool_id.as_str(), params.preset.as_str()) {
+                ("bowtie2", _) => "bowtie2_very_sensitive_local".to_string(),
+                ("bwa", "adna_short") => "bwa_aln_adna_short".to_string(),
+                _ => "bwa_mem_default".to_string(),
+            };
+            params.mode = match params.strategy_id.as_str() {
+                "bowtie2_very_sensitive_local" => "local".to_string(),
+                "bwa_aln_adna_short" => "seeded_short_read".to_string(),
+                _ => "end_to_end".to_string(),
+            };
             params.build_indices = args.build_reference_indices;
             let params_json = serde_json::to_value(&params)?;
             plan(StagePlanRequest {
@@ -363,6 +404,7 @@ pub(super) fn plan_alignment_qc_stage(
                 _ => bijux_dna_planner_bam::stage_api::params::CoverageEffectiveParams {
                     regions: None,
                     depth_thresholds: vec![1, 3, 5],
+                    regime_mode: "advisory_and_enforced".to_string(),
                 },
             };
             if let Some(value) = args.regions.as_deref() {
@@ -396,6 +438,7 @@ pub(super) fn plan_alignment_qc_stage(
                 _ => bijux_dna_planner_bam::stage_api::params::CoverageEffectiveParams {
                     regions: None,
                     depth_thresholds: vec![1],
+                    regime_mode: "advisory_and_enforced".to_string(),
                 },
             };
             let params_json = serde_json::to_value(&params)?;
@@ -421,6 +464,7 @@ pub(super) fn plan_alignment_qc_stage(
                 _ => bijux_dna_planner_bam::stage_api::params::CoverageEffectiveParams {
                     regions: None,
                     depth_thresholds: vec![1],
+                    regime_mode: "advisory_and_enforced".to_string(),
                 },
             };
             let params_json = serde_json::to_value(&params)?;
@@ -443,9 +487,12 @@ pub(super) fn plan_alignment_qc_stage(
                 bijux_dna_planner_bam::stage_api::params::BamEffectiveParams::EndogenousContent(
                     params,
                 ) => params,
-                _ => bijux_dna_planner_bam::stage_api::params::CoverageEffectiveParams {
+                _ => bijux_dna_planner_bam::stage_api::params::EndogenousContentEffectiveParams {
                     regions: None,
                     depth_thresholds: vec![1],
+                    host_reference_scope: "host_reference_required".to_string(),
+                    host_reference_digest: None,
+                    refuse_without_host_reference: true,
                 },
             };
             let params_json = serde_json::to_value(&params)?;

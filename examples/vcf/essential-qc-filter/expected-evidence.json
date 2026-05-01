@@ -1,0 +1,12 @@
+{
+  "schema_version": "bijux.example.expected_evidence.v1",
+  "example_id": "vcf_essential_qc_filter",
+  "evidence": [
+    "vcf_invariants.json",
+    "filter_explain.json",
+    "normalization_contract.json",
+    "qc_summary.json",
+    "stats.json"
+  ],
+  "label": "smoke-only bundle expectations"
+}

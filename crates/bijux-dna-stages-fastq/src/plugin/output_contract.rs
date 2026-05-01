@@ -1,3 +1,4 @@
+use bijux_dna_core::contract::{ReportSeverity, StageReportContract, StageReportKind};
 use bijux_dna_core::prelude::invariants::{InvariantResultV1, InvariantStatusV1, StageVerdictV1};
 use bijux_dna_stage_contract::{StageEventHintV1, StagePlanV1, StageReportPartV1};
 
@@ -97,6 +98,11 @@ pub(super) fn output_report_parts(
     let mut report_parts = vec![StageReportPartV1 {
         name: "stage_outputs".to_string(),
         file_name: "stage_outputs.json".to_string(),
+        contract: report_contract(
+            "fastq.stage_outputs",
+            StageReportKind::Qc,
+            &["stage_id", "artifact_ids", "used_observed_outputs"],
+        ),
         payload: serde_json::json!({
             "stage_id": plan.stage_id,
             "observer_coverage": context.observer_covered,
@@ -121,6 +127,11 @@ pub(super) fn output_report_parts(
         report_parts.push(StageReportPartV1 {
             name: "stage_tool_comparison".to_string(),
             file_name: "stage_tool_comparison.json".to_string(),
+            contract: report_contract(
+                "fastq.stage_tool_comparison",
+                StageReportKind::PopulationSummary,
+                &["stage_id", "tool_id", "benchmark_scenarios"],
+            ),
             payload: serde_json::json!({
                 "stage_id": plan.stage_id,
                 "tool_id": plan.tool_id,
@@ -148,6 +159,11 @@ pub(super) fn output_report_parts(
         report_parts.push(StageReportPartV1 {
             name: "observed_semantic_metrics".to_string(),
             file_name: "observed_semantic_metrics.json".to_string(),
+            contract: report_contract(
+                "fastq.observed_semantic_metrics",
+                StageReportKind::Qc,
+                &["stage_id", "tool_id", "semantic_metrics"],
+            ),
             payload: serde_json::json!({
                 "stage_id": plan.stage_id,
                 "tool_id": plan.tool_id,
@@ -156,6 +172,21 @@ pub(super) fn output_report_parts(
         });
     }
     report_parts
+}
+
+fn report_contract(
+    report_id: &str,
+    kind: StageReportKind,
+    required_fields: &[&str],
+) -> StageReportContract {
+    StageReportContract {
+        report_id: report_id.to_string(),
+        kind,
+        schema_version: "bijux.stage_report.v1".to_string(),
+        required_fields: required_fields.iter().map(|field| (*field).to_string()).collect(),
+        advisory_fields: vec!["semantic_loss".to_string()],
+        severity: ReportSeverity::Warning,
+    }
 }
 
 pub(super) fn output_warnings(plan: &StagePlanV1, context: &ObservationContext) -> Vec<String> {

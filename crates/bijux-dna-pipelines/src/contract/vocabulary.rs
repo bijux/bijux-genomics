@@ -31,6 +31,8 @@ pub enum ArtifactType {
     FastqReads,
     ReferenceFasta,
     Bam,
+    Variant,
+    SampleSheet,
     ReportJson,
     RunManifestJson,
     StageSummariesJson,

@@ -3,13 +3,7 @@ fn normalize_stage_ids(domain: &str, stages_csv: &str) -> Vec<String> {
         .split(',')
         .map(str::trim)
         .filter(|item| !item.is_empty())
-        .map(|item| {
-            if item.contains('.') {
-                item.to_string()
-            } else {
-                format!("{domain}.{item}")
-            }
-        })
+        .map(|item| if item.contains('.') { item.to_string() } else { format!("{domain}.{item}") })
         .collect::<Vec<_>>();
     stage_ids.sort();
     stage_ids.dedup();
@@ -17,10 +11,7 @@ fn normalize_stage_ids(domain: &str, stages_csv: &str) -> Vec<String> {
 }
 
 fn declared_value(label: Option<&str>) -> Option<String> {
-    label
-        .map(str::trim)
-        .filter(|value| !value.is_empty())
-        .map(ToOwned::to_owned)
+    label.map(str::trim).filter(|value| !value.is_empty()).map(ToOwned::to_owned)
 }
 
 fn concrete_sha256_digest(value: &str) -> Option<String> {
@@ -54,14 +45,8 @@ fn expected_registry_digest(tool: &RegistryRow) -> Option<String> {
     let pin = pin?;
     let container_ref = container_ref?;
     let apptainer_def = declared_value(tool.apptainer_def.as_deref())?;
-    let stable_material = [
-        tool.id.as_str(),
-        &version,
-        &pin,
-        &container_ref,
-        &apptainer_def,
-    ]
-    .join("\n");
+    let stable_material =
+        [tool.id.as_str(), &version, &pin, &container_ref, &apptainer_def].join("\n");
     Some(sha256_hex(&Sha256::digest(stable_material.as_bytes())))
 }
 
@@ -69,17 +54,9 @@ fn build_apptainer_image(def_path: &Path, sif_path: &Path) -> Result<()> {
     if let Some(parent) = sif_path.parent() {
         bijux_dna_api::v1::api::run::ensure_dir(parent)?;
     }
-    let cmd = format!(
-        "apptainer build --force '{}' '{}'",
-        sif_path.display(),
-        def_path.display()
-    );
+    let cmd = format!("apptainer build --force '{}' '{}'", sif_path.display(), def_path.display());
     if let Err(err) = bijux_dna_api::v1::api::env::run_shell_capture(&cmd) {
-        return Err(anyhow!(
-            "apptainer build failed for {}: {}",
-            def_path.display(),
-            err
-        ));
+        return Err(anyhow!("apptainer build failed for {}: {}", def_path.display(), err));
     }
     Ok(())
 }
@@ -109,19 +86,41 @@ fn run_smoke_with_manifest(
         probe_commands.to_vec()
     };
     let mut outputs = Vec::new();
+    let mut probe_results = Vec::with_capacity(effective_probes.len());
     let mut probe_failures = 0usize;
     for probe in &effective_probes {
         let applied = apply_heap_policy(tool_id, probe, java_heap_mb);
         match run_apptainer_exec(sif_path, &applied, data_root, results_root) {
-            Ok(output) => outputs.push(output),
-            Err(_) => probe_failures += 1,
+            Ok(output) => {
+                outputs.push(output.clone());
+                probe_results.push(SmokeProbeResult {
+                    command: probe.clone(),
+                    applied_command: applied,
+                    ok: true,
+                    output_sha256: Some(sha256_hex(&Sha256::digest(output.as_bytes()))),
+                    output_first_line: output
+                        .lines()
+                        .next()
+                        .map(str::trim)
+                        .filter(|line| !line.is_empty())
+                        .map(ToOwned::to_owned),
+                    error: None,
+                });
+            }
+            Err(err) => {
+                probe_failures += 1;
+                probe_results.push(SmokeProbeResult {
+                    command: probe.clone(),
+                    applied_command: applied,
+                    ok: false,
+                    output_sha256: None,
+                    output_first_line: None,
+                    error: Some(err.to_string()),
+                });
+            }
         }
     }
-    let version_out = if outputs.is_empty() {
-        String::new()
-    } else {
-        outputs[0].clone()
-    };
+    let version_out = if outputs.is_empty() { String::new() } else { outputs[0].clone() };
     let help_ok = if probe_commands.is_empty() {
         if require_help {
             probe_failures == 0 && outputs.len() >= 2
@@ -138,18 +137,14 @@ fn run_smoke_with_manifest(
         .map(str::trim)
         .filter(|line| !line.is_empty())
         .map(ToOwned::to_owned);
-    let status = if help_ok && parsed_version.is_some() {
-        "ok"
-    } else {
-        "wrapper_failed"
-    };
+    let status = if help_ok && parsed_version.is_some() { "ok" } else { "wrapper_failed" };
     let image_build_timestamp_unix_s = std::fs::metadata(sif_path)
         .ok()
         .and_then(|meta| meta.modified().ok())
         .and_then(|ts| ts.duration_since(SystemTime::UNIX_EPOCH).ok())
         .map_or(0, |dur| dur.as_secs());
     SmokeManifest {
-        schema_version: "bijux.apptainer.smoke_manifest.v2",
+        schema_version: "bijux.apptainer.smoke_manifest.v3",
         tool_id: tool_id.to_string(),
         stage_id: stage_id.to_string(),
         status: status.to_string(),
@@ -157,13 +152,12 @@ fn run_smoke_with_manifest(
         sif_sha256: sif_sha256.to_string(),
         version_cmd: version_cmd.to_string(),
         help_cmd: help_cmd.to_string(),
-        version: parsed_version
-            .or_else(|| version_output_first_line.clone())
-            .unwrap_or_default(),
+        version: parsed_version.or_else(|| version_output_first_line.clone()).unwrap_or_default(),
         version_output_first_line: version_output_first_line.unwrap_or_default(),
         help_ok,
         quick_smoke: true,
         probe_commands: effective_probes,
+        probe_results,
         java_heap_mb,
         upstream: upstream.to_string(),
         image_build_timestamp_unix_s,
@@ -215,10 +209,7 @@ fn apptainer_bind_args(data_root: &Path, results_root: &Path) -> Result<String> 
         return Err(anyhow!("input bind root missing: {}", data_root.display()));
     }
     if !results_root.exists() {
-        return Err(anyhow!(
-            "output bind root missing: {}",
-            results_root.display()
-        ));
+        return Err(anyhow!("output bind root missing: {}", results_root.display()));
     }
 
     let mut binds = vec![
@@ -237,9 +228,7 @@ fn hash_file_sha256_hex(path: &Path) -> Result<String> {
     let mut hasher = Sha256::new();
     let mut buf = [0_u8; 8192];
     loop {
-        let n = file
-            .read(&mut buf)
-            .with_context(|| format!("read {}", path.display()))?;
+        let n = file.read(&mut buf).with_context(|| format!("read {}", path.display()))?;
         if n == 0 {
             break;
         }
@@ -271,9 +260,7 @@ fn should_run_weekly_quick_smoke(manifest_path: &Path) -> bool {
 }
 
 fn now_unix_s() -> u64 {
-    SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .map_or(0, |dur| dur.as_secs())
+    SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).map_or(0, |dur| dur.as_secs())
 }
 
 fn parse_stage_registry_rows(raw: &str) -> Result<Vec<StageRegistryRow>> {
@@ -388,10 +375,7 @@ pub fn env_doctor<S: ::std::hash::BuildHasher>(
         Ok(runners) => runners.clone(),
         Err(_) => Vec::new(),
     };
-    print_check(
-        "cache directory writable",
-        ensure_cache_writable(platform.runner),
-    );
+    print_check("cache directory writable", ensure_cache_writable(platform.runner));
     print_check("runner discovery", runner_probe.is_ok());
     print_check("runner available", runners.contains(&platform.runner));
     println!("runners: {}", display_runners(&runners));
@@ -418,11 +402,7 @@ fn print_check(name: &str, ok: bool) {
 }
 
 fn display_runners(runners: &[RuntimeKind]) -> String {
-    runners
-        .iter()
-        .map(std::string::ToString::to_string)
-        .collect::<Vec<_>>()
-        .join(", ")
+    runners.iter().map(std::string::ToString::to_string).collect::<Vec<_>>().join(", ")
 }
 
 #[cfg(test)]
@@ -454,9 +434,7 @@ mod env_runtime_support_tests {
     fn ensure_cache_writable_uses_home() -> anyhow::Result<()> {
         let temp = bijux_dna_api::v1::api::run::temp_dir("bijux")?;
         let original_home = std::env::var_os("HOME");
-        let _guard = HomeGuard {
-            original: original_home,
-        };
+        let _guard = HomeGuard { original: original_home };
         std::env::set_var("HOME", temp.path());
         assert!(ensure_cache_writable(RuntimeKind::Docker));
         Ok(())

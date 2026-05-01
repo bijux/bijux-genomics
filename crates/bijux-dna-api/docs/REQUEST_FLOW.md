@@ -8,9 +8,10 @@ JSON audit/report evidence.
 
 1. Caller builds `PlanRequest`.
 2. `v1::api::plan` routes to `runtime/run/reporting/plan_response.rs`.
-3. The API validates the execution graph and profile context.
-4. The response returns `PlanResponse` with the graph, graph hash, and manifest
-   preview.
+3. The API validates the execution graph and profile context, then materializes
+   a governed workflow manifest and plan manifest.
+4. The response returns `PlanResponse` with the graph, graph hash, manifest
+   preview, workflow manifest, plan manifest, and optional semantic diff.
 
 No stages execute in this flow.
 
@@ -19,7 +20,7 @@ No stages execute in this flow.
 1. Caller builds `DryRunRequest` with graph, run directory, and profile id.
 2. `v1::api::dry_run` routes to `runtime/run/reporting/dry_run.rs`.
 3. The API writes deterministic graph and manifest artifacts under the declared
-   run directory.
+   run directory, including `plan_manifest.json`.
 4. The response returns `DryRunResponse` paths to those artifacts.
 
 Dry-run may write declared artifacts, but it must not execute stage tools.
@@ -50,6 +51,27 @@ Execution is the only managed flow allowed to invoke runner/runtime execution.
 3. The response returns `RunStatus`.
 
 Status must not mutate the run.
+
+## Operator Controls
+
+1. Caller invokes `pause_run`, `resume_run`, or `cancel_run` with a run
+   directory.
+2. The API updates `run_control.json` through the reporting control surface.
+3. The response returns `RunControlResponse` with the durable control artifact
+   path and current audited state.
+
+Control operations must remain auditable and must not bypass the governed
+runner/runtime state machine.
+
+## Operator Health
+
+1. Caller invokes `operator_health` with a run directory.
+2. The API infers the runtime backend from the persisted executor descriptor.
+3. The API writes `operator_health.json` and returns
+   `OperatorHealthResponse`.
+
+Health checks may write health evidence, but they must not execute workflow
+stages.
 
 ## Explain
 

@@ -9,6 +9,12 @@ Canonical examples index.
 Runnable example IDs are generated in [examples/index.yaml](../../examples/index.yaml). This document must not duplicate
 that list manually.
 
+Canonical example contract files also live with the example directories and are discovered from
+the `canonical_example: true` entries in [examples/index.yaml](../../examples/index.yaml):
+- `tiny-inputs.json`
+- `workflow-manifest.json`
+- `expected-evidence.json`
+
 ## Non-Runnable Example Surfaces
 - [examples/_template/README.md](../../examples/_template/README.md)
 - [examples/data/corpus-01/README.md](../../examples/data/corpus-01/README.md)
@@ -34,6 +40,8 @@ Applies to the `examples/` tree, the generated example index, and the docs that 
 
 ## Contracts
 - [examples/index.yaml](../../examples/index.yaml) is the SSOT for runnable example IDs only.
+- Canonical example contract details belong to the example directories referenced by
+  [examples/index.yaml](../../examples/index.yaml), not to a duplicated table in this file.
 - [examples/_template/README.md](../../examples/_template/README.md) and
   [examples/data/corpus-01/README.md](../../examples/data/corpus-01/README.md) /
   [examples/data/corpus-01-mini/README.md](../../examples/data/corpus-01-mini/README.md) are

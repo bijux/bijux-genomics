@@ -54,6 +54,7 @@ children = [
   "docs/10-architecture/ARCHITECTURE_OVERVIEW.md",
   "docs/10-architecture/BOUNDARY_DIAGRAM.md",
   "docs/10-architecture/BOUNDARY_MAP.md",
+  "docs/10-architecture/CHANGE_ROUTING.md",
   "docs/10-architecture/CONTRACTS/index.md",
   "docs/10-architecture/CONTRACT_AUTHORITY.md",
   "docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md",
@@ -61,12 +62,17 @@ children = [
   "docs/10-architecture/CONTRACT_SPINE.md",
   "docs/10-architecture/CRATE_AUTHORITY_MAP.md",
   "docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md",
+  "docs/10-architecture/CRATE_RESPONSIBILITY_MATRIX.md",
   "docs/10-architecture/DATAFLOW.md",
+  "docs/10-architecture/DEPENDENCY_LAYER_CONTRACT.md",
   "docs/10-architecture/DEPENDENCY_RULES.md",
   "docs/10-architecture/DRY_RUN_EFFECTS_CONTRACT.md",
   "docs/10-architecture/GENERATED_FILES_CONTRACT.md",
+  "docs/10-architecture/POLICY_LAYER_SPLIT.md",
   "docs/10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md",
   "docs/10-architecture/SSOT.md",
+  "docs/10-architecture/SYSTEM_MAP.md",
+  "docs/10-architecture/WORKFLOW_TRUTH_MIGRATION.md",
 ]
 
 [[edge]]
@@ -147,9 +153,11 @@ from = "docs/30-operations/index.md"
 children = [
   "docs/30-operations/APPTAINER_QA_MATRIX.md",
   "docs/30-operations/ARTIFACT_EXPLORER.md",
+  "docs/30-operations/BACKLOG_SCOREBOARD.md",
   "docs/30-operations/BENCHMARK_VARIANCE.md",
   "docs/30-operations/CERTIFICATION_SCOPE.md",
   "docs/30-operations/CI.md",
+  "docs/30-operations/COMMAND_MAP.md",
   "docs/30-operations/COMPILATION_CACHE_POLICY.md",
   "docs/30-operations/CONTAINERS.md",
   "docs/30-operations/CONTAINER_LICENSE_INDEX.md",
@@ -161,12 +169,18 @@ children = [
   "docs/30-operations/HPC_LUNARC_LAYOUT.md",
   "docs/30-operations/ISOLATION.md",
   "docs/30-operations/MKDOCS_BUILD.md",
+  "docs/30-operations/OPERATOR_WORKFLOW_MATURITY_SCENARIOS.md",
   "docs/30-operations/PRE_HPC_SCOPE_CLOSURE_CHECKLIST.md",
   "docs/30-operations/PRODUCTION_GUARANTEES.md",
+  "docs/30-operations/REFERENCE_EXTERNAL_DATA_SCENARIOS.md",
+  "docs/30-operations/RELEASE_ESSENTIAL_GATE.md",
   "docs/30-operations/RELEASE_HYGIENE.md",
+  "docs/30-operations/RELEASE_RUNNABLE_EXAMPLES.md",
   "docs/30-operations/REPORT_CONTRACT.md",
   "docs/30-operations/REPRODUCIBILITY.md",
   "docs/30-operations/RUN_ARTIFACTS.md",
+  "docs/30-operations/RUN_OPERATIONS.md",
+  "docs/30-operations/SCIENTIFIC_CAVEAT_PROPAGATION_SCENARIOS.md",
   "docs/30-operations/SCOPE_CLOSURE_CHECKLIST.generated.md",
   "docs/30-operations/SECURITY.md",
   "docs/30-operations/SECURITY_POLICY.md",
@@ -199,6 +213,7 @@ children = [
 [[edge]]
 from = "docs/50-reference/index.md"
 children = [
+  "docs/50-reference/API_VERSIONING.md",
   "docs/50-reference/BIJUX_ANALYZE_CONTRACT.md",
   "docs/50-reference/BIJUX_CONTRACT.md",
   "docs/50-reference/COMPATIBILITY_MATRIX.md",
@@ -206,6 +221,7 @@ children = [
   "docs/50-reference/CONTRACT_COMPATIBILITY.md",
   "docs/50-reference/CONTRACT_VERSIONING.md",
   "docs/50-reference/CRATE_MAP.md",
+  "docs/50-reference/DEPRECATION_DASHBOARD.md",
   "docs/50-reference/DESIGN_AUTHORITY.md",
   "docs/50-reference/DOMAIN_TEMPLATE_CHECKLIST.md",
   "docs/50-reference/EXAMPLES.md",
@@ -219,7 +235,9 @@ children = [
   "docs/50-reference/PIPELINES.md",
   "docs/50-reference/REFERENCE_INDEX.md",
   "docs/50-reference/SCHEMAS_INDEX.md",
+  "docs/50-reference/SCHEMA_REGISTRY.md",
   "docs/50-reference/TOOL_ADMISSION.md",
+  "docs/50-reference/UPGRADE_GUIDE.md",
   "docs/50-reference/VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md",
 ]
 

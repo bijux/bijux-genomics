@@ -10,9 +10,12 @@ The public API is the planner surface exported from `src/lib.rs`.
 - `BamPipelineInputs`
 - `BamPlanConfig`
 - `StagePlanRequest`
+- `bam_workflow_template_catalog`
 - `plan_stage`
+- `plan_bam_to_bam__default__v1`
 - `plan_bam_to_bam__adna_shotgun__v1`
 - `plan_bam_to_bam__adna_capture__v1`
+- `plan_bam_workflow_template`
 - `pipeline_id_catalog`
 - `report_stage_step`
 - `stage_api`

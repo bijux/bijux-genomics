@@ -8,6 +8,22 @@ pub(super) struct DomainVocabularies {
     pub(super) metric_vocab: BTreeMap<String, BTreeSet<String>>,
 }
 
+fn artifact_ids(doc: DomainArtifactVocabulary) -> Vec<String> {
+    if doc.artifact_ids.is_empty() {
+        doc.artifacts.into_iter().map(|entry| entry.id).collect()
+    } else {
+        doc.artifact_ids
+    }
+}
+
+fn metric_ids(doc: DomainMetricVocabulary) -> Vec<String> {
+    if doc.metric_ids.is_empty() {
+        doc.metrics.into_iter().map(|entry| entry.id).collect()
+    } else {
+        doc.metric_ids
+    }
+}
+
 fn collect_unique_ids(path: &Path, field: &str, ids: Vec<String>) -> Result<BTreeSet<String>> {
     let mut unique_ids = BTreeSet::new();
     for id in ids {
@@ -129,7 +145,7 @@ pub(super) fn validate_domain_vocabularies(domain_dir: &Path) -> Result<DomainVo
     let mut artifact_vocab = BTreeMap::<String, BTreeSet<String>>::new();
     let mut metric_vocab = BTreeMap::<String, BTreeSet<String>>::new();
 
-    for dom in ["fastq", "bam"] {
+    for dom in ["fastq", "bam", "vcf"] {
         let artifacts_path = domain_dir.join(dom).join("artifacts.yaml");
         let metrics_path = domain_dir.join(dom).join("metrics.yaml");
         let artifacts: DomainArtifactVocabulary = read_yaml(&artifacts_path)?;
@@ -150,20 +166,20 @@ pub(super) fn validate_domain_vocabularies(domain_dir: &Path) -> Result<DomainVo
                 metrics.domain
             );
         }
-        if artifacts.artifact_ids.is_empty() {
+        let artifact_ids = artifact_ids(artifacts);
+        let metric_ids = metric_ids(metrics);
+        if artifact_ids.is_empty() {
             bail!("{} missing artifact_ids", artifacts_path.display());
         }
-        if metrics.metric_ids.is_empty() {
+        if metric_ids.is_empty() {
             bail!("{} missing metric_ids", metrics_path.display());
         }
         artifact_vocab.insert(
             dom.to_string(),
-            collect_unique_ids(&artifacts_path, "artifact_ids", artifacts.artifact_ids)?,
+            collect_unique_ids(&artifacts_path, "artifact_ids", artifact_ids)?,
         );
-        metric_vocab.insert(
-            dom.to_string(),
-            collect_unique_ids(&metrics_path, "metric_ids", metrics.metric_ids)?,
-        );
+        metric_vocab
+            .insert(dom.to_string(), collect_unique_ids(&metrics_path, "metric_ids", metric_ids)?);
     }
 
     Ok(DomainVocabularies { artifact_vocab, metric_vocab })

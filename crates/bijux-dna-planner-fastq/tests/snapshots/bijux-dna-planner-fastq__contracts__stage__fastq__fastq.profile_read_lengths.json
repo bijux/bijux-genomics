@@ -78,7 +78,10 @@
     "schema_version": "bijux.fastq.params.read_length_profile.v1",
     "threads": 2
   },
+  "operating_mode": "enforced",
   "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
   "reason": {
     "kind": "default",
     "summary": "pre-trim length distribution metrics",

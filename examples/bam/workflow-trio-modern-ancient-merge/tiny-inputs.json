@@ -1,0 +1,28 @@
+{
+  "schema_version": "bijux.example.tiny_inputs.v1",
+  "example_id": "bam_workflow_trio_modern_ancient_merge",
+  "corpus_id": "corpus-01-mini",
+  "contracts": [
+    "examples/data/corpus-01-mini/MANIFEST.toml",
+    "examples/data/corpus-01-mini/CHECKSUMS.sha256"
+  ],
+  "track_inputs": {
+    "modern_wgs_qc": [
+      "toy_reference_v1",
+      "sample_0001_R1.fastq.gz",
+      "sample_0001_R2.fastq.gz"
+    ],
+    "ancient_damage_contamination": [
+      "toy_reference_v1",
+      "sample_0002_R1.fastq.gz",
+      "sample_0002_R2.fastq.gz",
+      "damage_profile_context.json"
+    ],
+    "merge_coverage_lineage": [
+      "toy_reference_v1",
+      "lane_A.bam",
+      "lane_B.bam",
+      "lane_merge_identity_contract.json"
+    ]
+  }
+}

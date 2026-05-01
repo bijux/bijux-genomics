@@ -3,6 +3,7 @@ stage_id: "vcf.postprocess"
 status: "planned"
 scope: "post_vcf"
 domain: "vcf"
+description: "VCF stage contract for vcf.postprocess in the governed domain registry."
 inputs:
   - name: "imputed_vcf"
     data_type: "vcf"
@@ -13,6 +14,7 @@ outputs:
     cardinality: "One"
 required_inputs: ["imputed_vcf"]
 required_outputs: ["postprocess_vcf"]
+tool_capability_requirements: []
 metrics:
   - name: "postprocess_status"
 compatible_tools: ["bcftools"]
@@ -21,5 +23,6 @@ defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions: ["planned_stage"]
 bank_hooks: ["none"]
 invariants: ["stable_artifact_contract"]
-allowed_missingness: []
+allowed_missingness:
+  - "none"
 planned_out_of_scope: ["full scientific validation pending downstream admission"]

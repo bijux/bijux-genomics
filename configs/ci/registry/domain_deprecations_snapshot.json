@@ -1,0 +1,23 @@
+[
+  {
+    "domain_id": "bam",
+    "deprecations": [
+      {
+        "stage_id": "bam.validate",
+        "tool_id": "bamtools",
+        "deprecated_since": "2026-01-01",
+        "removal_after": "2026-07-01",
+        "rationale": "Example policy entry used to enforce deprecation-window contract checks.",
+        "replacement": "samtools"
+      }
+    ]
+  },
+  {
+    "domain_id": "fastq",
+    "deprecations": []
+  },
+  {
+    "domain_id": "vcf",
+    "deprecations": []
+  }
+]

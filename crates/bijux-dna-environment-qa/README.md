@@ -79,4 +79,4 @@ Contract and behavior changes follow `docs/CONTRACTS.md`, `docs/PUBLIC_API.md`, 
 
 ## Must not be depended on
 This crate is QA-only and must not be depended on by production crates. Keep the dependency
-direction locked by boundary tests and workspace policy checks.
+direction locked by boundary tests and repository policy checks.

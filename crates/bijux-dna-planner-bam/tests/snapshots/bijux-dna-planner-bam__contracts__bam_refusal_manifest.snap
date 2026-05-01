@@ -1,0 +1,51 @@
+---
+source: crates/bijux-dna-planner-bam/tests/contracts/plan/planner_manifest_contract.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&payload)"
+---
+{
+  "refusal_records": [
+    {
+      "code": "unsupported_backend",
+      "message": "tool spec for stage vcf.call is not part of profile bam-to-bam__default__v1"
+    }
+  ],
+  "workflow_manifest": {
+    "domain": "bam",
+    "executor_preferences": {
+      "allow_advisory_execution": false
+    },
+    "inputs": [
+      {
+        "artifact_id": "bam",
+        "format_id": "bam",
+        "path": "sample.bam",
+        "role": "bam"
+      }
+    ],
+    "policies": {
+      "operational": {},
+      "scientific": {}
+    },
+    "profile_id": "bam-to-bam__default__v1",
+    "reference_assets": [
+      {
+        "asset_id": "reference",
+        "build_id": "GRCh38",
+        "checksum_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "path": "reference.fasta",
+        "role": "reference"
+      }
+    ],
+    "requested_stages": [
+      {
+        "advisory_only": false,
+        "stage_id": "bam.validate"
+      },
+      {
+        "advisory_only": false,
+        "stage_id": "bam.coverage"
+      }
+    ],
+    "schema_version": "bijux.workflow_manifest.v1"
+  }
+}

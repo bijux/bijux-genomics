@@ -146,10 +146,11 @@ fn dev_tree_matches_architecture_contract() {
     );
 
     let test_entries = dir_entries(&root.join("tests"));
-    let expected_tests: BTreeSet<_> = ["boundaries/", "boundaries.rs", "guardrails.rs", "support/"]
-        .into_iter()
-        .map(str::to_string)
-        .collect();
+    let expected_tests: BTreeSet<_> =
+        ["boundaries/", "boundaries.rs", "guardrails.rs", "snapshots/", "support/"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(test_entries, expected_tests, "dev test tree must match the documented taxonomy");
 
     let support_entries = dir_entries(&root.join("tests/support"));
@@ -233,6 +234,7 @@ fn collect_markdown_outside_docs(
         if path.extension().is_some_and(|extension| extension == "md")
             && rel_text != "README.md"
             && !rel_text.starts_with("docs/")
+            && rel_text != "tests/snapshots/bijux-dna-dev__tooling__architecture_report.md"
         {
             offenders.push(rel_text);
         }

@@ -6,6 +6,7 @@ use crate::resolve::RuntimeKind;
 pub(in crate::resolve) fn cache_dir(runner: RuntimeKind) -> PathBuf {
     let cache_root = base_cache_root();
     match runner {
+        RuntimeKind::Local => cache_root.join("bijux").join("local").join("state"),
         RuntimeKind::Docker => cache_root.join("bijux").join("docker").join("images"),
         RuntimeKind::Apptainer | RuntimeKind::Singularity => {
             cache_root.join("bijux").join("apptainer").join("sif")

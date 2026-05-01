@@ -129,6 +129,9 @@ pub fn plan_trim_terminal_damage_with_options(
         params: trim_terminal_damage_params(&tool.tool_id.0, r1, r2, &paths, effective_threads),
         effective_params: serde_json::to_value(&effective_params)?,
         aux_images: std::collections::BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::new(PlanReasonKind::Default, "damage-aware terminal trimming"),
     })
 }

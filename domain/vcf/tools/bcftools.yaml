@@ -9,6 +9,12 @@ stage_ids:
   - "vcf.gl_propagation"
   - "vcf.filter"
   - "vcf.stats"
+planned_stage_ids:
+  - "vcf.admixture"
+  - "vcf.imputation"
+  - "vcf.pca"
+  - "vcf.phasing"
+  - "vcf.qc"
 role: "analysis"
 authoritative: true
 strict_capable: true

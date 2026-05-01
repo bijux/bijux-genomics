@@ -11,9 +11,9 @@ use crate::params::{
     AlignEffectiveParams, AuthenticityEffectiveParams, BamEffectiveParams,
     BiasMitigationEffectiveParams, BqsrEffectiveParams, ComplexityEffectiveParams,
     ContaminationEffectiveParams, CoverageEffectiveParams, DamageEffectiveParams,
-    FilterEffectiveParams, GenotypingEffectiveParams, HaplogroupEffectiveParams,
-    KinshipEffectiveParams, MarkDupEffectiveParams, QcPreEffectiveParams, SexEffectiveParams,
-    ValidateEffectiveParams,
+    EndogenousContentEffectiveParams, FilterEffectiveParams, GenotypingEffectiveParams,
+    HaplogroupEffectiveParams, KinshipEffectiveParams, MarkDupEffectiveParams,
+    QcPreEffectiveParams, SexEffectiveParams, ValidateEffectiveParams,
 };
 
 mod specs;
@@ -204,7 +204,7 @@ impl BamStage {
             BamStage::GcBias => serde_json::from_value::<CoverageEffectiveParams>(value.clone())
                 .map(BamEffectiveParams::GcBias),
             BamStage::EndogenousContent => {
-                serde_json::from_value::<CoverageEffectiveParams>(value.clone())
+                serde_json::from_value::<EndogenousContentEffectiveParams>(value.clone())
                     .map(BamEffectiveParams::EndogenousContent)
             }
             BamStage::OverlapCorrection => {
@@ -348,6 +348,29 @@ pub fn contract_for_stage(stage_id: &str) -> Option<BamStageContract> {
                 None
             },
         }),
+        BamStage::Coverage
+        | BamStage::InsertSize
+        | BamStage::GcBias
+        | BamStage::EndogenousContent
+        | BamStage::Damage
+        | BamStage::Authenticity
+        | BamStage::Contamination
+        | BamStage::Sex
+        | BamStage::Haplogroups
+        | BamStage::Genotyping
+        | BamStage::Kinship => Some(BamStageContract {
+            input: BamArtifactKind::Bam,
+            output: BamArtifactKind::Report,
+            emits_bam: false,
+            emits_report: true,
+            sorting: "requires_coordinate_sorted_input",
+            indexing: "requires_index_and_refuses_missing_index",
+            read_group_policy: "requires_read_groups_for_sample_metadata",
+            duplicate_policy: "preserves_duplicates",
+            mapping_quality_policy: "no_mapping_quality_filter",
+            deterministic: true,
+            nondeterminism_reason: None,
+        }),
         _ => Some(BamStageContract {
             input: BamArtifactKind::Bam,
             output: BamArtifactKind::Report,
@@ -372,17 +395,18 @@ fn tool_ids_for_stage(stage_id: &str) -> Vec<&'static str> {
         }
         "bam.filter" | "bam.mapq_filter" => vec!["samtools", "bamtools"],
         "bam.length_filter" | "bam.duplication_metrics" => vec!["samtools", "picard"],
-        "bam.markdup" | "bam.insert_size" | "bam.gc_bias" => vec!["picard"],
+        "bam.markdup" => vec!["samtools", "picard"],
+        "bam.insert_size" | "bam.gc_bias" => vec!["picard"],
         "bam.recalibration" => vec!["gatk"],
-        "bam.coverage" => vec!["mosdepth"],
+        "bam.coverage" => vec!["mosdepth", "samtools"],
         "bam.overlap_correction" => vec!["bamutil"],
-        "bam.damage" => vec!["pydamage", "mapdamage2"],
+        "bam.damage" => vec!["mapdamage2", "damageprofiler", "pmdtools", "pydamage"],
         "bam.complexity" => vec!["preseq"],
-        "bam.authenticity" => vec!["authenticct"],
+        "bam.authenticity" => vec!["authenticct", "pmdtools"],
         "bam.haplogroups" => vec!["yleaf"],
         "bam.kinship" => vec!["king"],
-        "bam.contamination" => vec!["angsd"],
-        "bam.sex" => vec!["rxy"],
+        "bam.contamination" => vec!["schmutzi", "contammix", "verifybamid2"],
+        "bam.sex" => vec!["rxy", "angsd"],
         "bam.bias_mitigation" => vec!["mapdamage2"],
         "bam.genotyping" => vec!["angsd", "bcftools"],
         _ => Vec::new(),

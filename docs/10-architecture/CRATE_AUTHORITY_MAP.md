@@ -27,7 +27,7 @@ Prevents responsibility drift across crates and makes policy failures actionable
 ## Contracts
 - Ownership source of truth: this document.
 - Boundary map and allowed edges: [docs/10-architecture/BOUNDARY_MAP.md](BOUNDARY_MAP.md)
-- Workspace policy diagnostics: [crates/bijux-dna-policies/docs/ENFORCEMENT.md](../../crates/bijux-dna-policies/docs/ENFORCEMENT.md)
+- Repository policy diagnostics: [crates/bijux-dna-policies/docs/ENFORCEMENT.md](../../crates/bijux-dna-policies/docs/ENFORCEMENT.md)
 
 ## Enforcement
 - Dependency edges: [crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs)

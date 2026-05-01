@@ -2,9 +2,9 @@
 use anyhow::anyhow;
 
 use super::{
-    default_params_for_stage, parse_bqsr_mode, parse_contamination_scope, parse_expected_sex,
-    parse_udg_model, BamRunArgs, BamStage, Path, PipelineProfile, Result, StagePlanRequest,
-    StagePlanV1, ToolExecutionSpecV1,
+    default_params_for_stage, hash_file_sha256, parse_bqsr_mode, parse_contamination_scope,
+    parse_expected_sex, parse_udg_model, BamRunArgs, BamStage, Path, PipelineProfile, Result,
+    StagePlanRequest, StagePlanV1, ToolExecutionSpecV1,
 };
 
 #[allow(clippy::too_many_lines)]
@@ -42,7 +42,7 @@ pub(super) fn plan_damage_recalibration_stage(
                 bam_index: args.bai.as_deref(),
                 r1: None,
                 r2: None,
-                reference: None,
+                reference: args.reference.as_deref(),
                 sample_id: args.sample_id.as_deref(),
                 params: Some(&params_json),
             })
@@ -59,6 +59,8 @@ pub(super) fn plan_damage_recalibration_stage(
                     pmd_threshold_3p: 0.3,
                     trim_5p: 0,
                     trim_3p: 0,
+                    damage_tool_profile: Some("ancient_dna_evidence".to_string()),
+                    evidence_only: true,
                 },
             };
             if let Some(value) = args.udg_model.as_deref() {
@@ -85,7 +87,7 @@ pub(super) fn plan_damage_recalibration_stage(
                 bam_index: args.bai.as_deref(),
                 r1: None,
                 r2: None,
-                reference: None,
+                reference: args.reference.as_deref(),
                 sample_id: args.sample_id.as_deref(),
                 params: Some(&params_json),
             })
@@ -98,6 +100,8 @@ pub(super) fn plan_damage_recalibration_stage(
                 ) => params,
                 _ => bijux_dna_planner_bam::stage_api::params::AuthenticityEffectiveParams {
                     mode: "aggregate".to_string(),
+                    evidence_only: true,
+                    disallow_certification: true,
                 },
             };
             if let Some(value) = args.authenticity_mode.clone() {
@@ -129,6 +133,10 @@ pub(super) fn plan_damage_recalibration_stage(
                     prior: None,
                     sex_specific: false,
                     assumptions: None,
+                    required_reference_digest: None,
+                    chromosome_system: Some("xy".to_string()),
+                    minimum_mean_coverage: Some(0.5),
+                    emit_confidence_caveats: true,
                 },
             };
             if !args.contamination_panel.is_empty() {
@@ -145,6 +153,12 @@ pub(super) fn plan_damage_recalibration_stage(
             }
             if let Some(value) = args.contamination_assumptions.clone() {
                 params.assumptions = Some(value);
+            }
+            if let Some(reference) = args.reference.as_deref() {
+                params.required_reference_digest = Some(hash_file_sha256(reference)?);
+            }
+            if args.sex_specific_contamination {
+                params.chromosome_system = Some("xy".to_string());
             }
             let params_json = serde_json::to_value(&params)?;
             plan(StagePlanRequest {
@@ -167,6 +181,9 @@ pub(super) fn plan_damage_recalibration_stage(
                 _ => bijux_dna_planner_bam::stage_api::params::SexEffectiveParams {
                     expected_sex: None,
                     method: "rxy".to_string(),
+                    chromosome_system: Some("xy".to_string()),
+                    minimum_y_sites: Some(100),
+                    refuse_without_context: true,
                 },
             };
             if let Some(value) = args.expected_sex.as_deref() {

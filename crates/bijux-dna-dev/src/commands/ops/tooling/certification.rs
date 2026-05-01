@@ -1,8 +1,8 @@
 use super::{
     artifact_root_path, check_schema_doc, collect_warning_strings_json, compare_json_key_drift,
     ensure_exists, ensure_help_only, env_flag, examples_run, json, merge_outcomes, read_json_value,
-    read_utf8, smoke_run, sorted_unique, value_string, write_json_pretty, BTreeSet, Context,
-    OpsCommandOutcome, Path, Result, Utc, Value, Workspace,
+    read_utf8, smoke_run, sorted_unique, success_line, value_string, write_json_pretty, write_utf8,
+    BTreeSet, Context, OpsCommandOutcome, Path, PathBuf, Result, Utc, Value, Workspace,
 };
 
 pub(in super::super) fn tooling_certification_gate(
@@ -11,6 +11,102 @@ pub(in super::super) fn tooling_certification_gate(
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("certification-gate", args)?;
     tooling_certify_all(workspace, &[])
+}
+
+pub(in super::super) fn tooling_benchmark_smoke_level1(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("benchmark-smoke-level1", args)?;
+    let out_dir = artifact_root_path(workspace)?.join("benchmarks/smoke/level1");
+    bijux_dna_infra::ensure_dir(&out_dir)
+        .with_context(|| format!("create {}", out_dir.display()))?;
+
+    let examples = canonical_level1_examples(workspace);
+    let mut rows = Vec::new();
+    for (example_id, example_root) in &examples {
+        let outcome =
+            examples_run(workspace, &["--allow-non-isolate".to_string(), example_id.to_string()])?;
+        if !outcome.is_success() {
+            return Ok(outcome);
+        }
+        let artifact_dir = workspace.path("artifacts/examples").join(example_id);
+        let metrics = read_json_value(&artifact_dir.join("metrics.json"))?;
+        let bundle_bytes = std::fs::metadata(artifact_dir.join("bundle.tar.gz"))
+            .map(|meta| meta.len())
+            .unwrap_or(0);
+        let expected_evidence = read_json_value(&example_root.join("expected-evidence.json"))?;
+        rows.push(json!({
+            "example_id": example_id,
+            "workflow_class": value_string(metrics.get("workflow_class")),
+            "duration_ms": metrics.get("duration_ms").cloned().unwrap_or(Value::Null),
+            "artifact_bytes": metrics.get("artifact_bytes").cloned().unwrap_or(Value::Null),
+            "bundle_bytes": bundle_bytes,
+            "expected_evidence_count": expected_evidence
+                .get("evidence")
+                .and_then(Value::as_array)
+                .map_or(0, Vec::len),
+            "label": "smoke-only; not a scientific performance claim",
+        }));
+    }
+
+    let report = json!({
+        "schema_version": "bijux.smoke_benchmark.level1.v1",
+        "generated_at_utc": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+        "disclaimer": "Smoke-only runtime and artifact-size report. Do not interpret as scientific or production performance evidence.",
+        "examples": rows,
+    });
+    let report_path = out_dir.join("level1_smoke_benchmark.json");
+    write_json_pretty(&report_path, &report)?;
+    success_line(format!("level1 smoke benchmark: {}", workspace.rel(&report_path).display()))
+}
+
+pub(in super::super) fn tooling_certify_level1(
+    workspace: &Workspace,
+    args: &[String],
+) -> Result<OpsCommandOutcome> {
+    ensure_help_only("certify-level1", args)?;
+
+    let gate =
+        super::cargo_targets::tooling_cargo_targets(workspace, &["essential-release".to_string()])?;
+    if !gate.is_success() {
+        return Ok(gate);
+    }
+
+    let bench = tooling_benchmark_smoke_level1(workspace, &[])?;
+    if !bench.is_success() {
+        return Ok(bench);
+    }
+
+    let out_dir = artifact_root_path(workspace)?.join("certification/level1");
+    bijux_dna_infra::ensure_dir(&out_dir)
+        .with_context(|| format!("create {}", out_dir.display()))?;
+    let certificate = json!({
+        "schema_version": "bijux.level1.certificate.v1",
+        "generated_at_utc": Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Secs, true),
+        "status": "ok",
+        "gate_command": "cargo run -q -p bijux-dna-dev -- tooling run cargo-targets essential-release",
+        "benchmark_report": "artifacts/benchmarks/smoke/level1/level1_smoke_benchmark.json",
+        "scoreboard": "artifacts/planning/scoreboard.yaml",
+        "cards": "artifacts/planning/cards.yaml",
+        "artifact_bundles": canonical_level1_examples(workspace)
+            .into_iter()
+            .map(|(example_id, _)| format!("artifacts/examples/{example_id}/bundle.tar.gz"))
+            .collect::<Vec<_>>(),
+        "known_gaps": [
+            "Smoke benchmarks measure governed bundle flow only and are not scientific performance claims.",
+            "Level 1 certification is a local repository completion claim, not an external publication claim."
+        ],
+    });
+    let certificate_path = out_dir.join("level1_certificate.json");
+    write_json_pretty(&certificate_path, &certificate)?;
+    write_utf8(
+        &out_dir.join("level1_certificate.md"),
+        &format!(
+            "# Level 1 Certificate\n\n- status: ok\n- gate: `cargo run -q -p bijux-dna-dev -- tooling run cargo-targets essential-release`\n- benchmark report: `artifacts/benchmarks/smoke/level1/level1_smoke_benchmark.json`\n- scoreboard: `artifacts/planning/scoreboard.yaml`\n- cards: `artifacts/planning/cards.yaml`\n"
+        ),
+    )?;
+    success_line(format!("level1 certificate: {}", workspace.rel(&certificate_path).display()))
 }
 
 pub(in super::super) fn tooling_certify_all(
@@ -93,6 +189,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
             "vcf_damage_aware_genotype_mini",
             "vcf_downstream_vcf_full_mini",
             "vcf_downstream_demography_mini",
+            "vcf_essential_qc_filter",
             "vcf_imputation_mini",
         ] {
             execution = merge_outcomes(
@@ -270,6 +367,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
                 "vcf_downstream_demography_mini",
                 workspace.path("examples/vcf/downstream-demography-mini"),
             ),
+            ("vcf_essential_qc_filter", workspace.path("examples/vcf/essential-qc-filter")),
             ("vcf_imputation_mini", workspace.path("examples/vcf/imputation-mini")),
         ] {
             let artifact_root = workspace.path("artifacts/examples").join(example_id);
@@ -412,4 +510,15 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
         cert_root.join("certification_bundle.json").display()
     ));
     Ok(execution)
+}
+
+fn canonical_level1_examples(workspace: &Workspace) -> Vec<(String, PathBuf)> {
+    vec![
+        ("fastq_essential_qc".to_string(), workspace.path("examples/fastq/essential-qc")),
+        (
+            "bam_essential_alignment_qc".to_string(),
+            workspace.path("examples/bam/essential-alignment-qc"),
+        ),
+        ("vcf_essential_qc_filter".to_string(), workspace.path("examples/vcf/essential-qc-filter")),
+    ]
 }

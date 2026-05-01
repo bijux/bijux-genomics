@@ -28,6 +28,9 @@ pub struct ScreenEffectiveParams {
     #[serde(default)]
     pub minimum_confidence: Option<f32>,
     pub emit_unclassified: bool,
+    pub interpretation_boundary: TaxonomyInterpretationBoundary,
+    #[serde(default)]
+    pub truth_conditions: Vec<TaxonomyTruthCondition>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -61,6 +64,22 @@ pub enum TaxonomyAssignmentFormat {
     KrakenUniqAssignments,
     CentrifugeAssignments,
     KaijuAssignments,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TaxonomyInterpretationBoundary {
+    ScreeningOnly,
+    DefinitiveWithGovernedTruth,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TaxonomyTruthCondition {
+    LockedReferenceDatabase,
+    OrthogonalValidationRequired,
+    SampleScopeValidated,
+    ConfirmatoryAssayRequired,
 }
 
 impl ScreenEffectiveParams {
@@ -103,6 +122,8 @@ impl ScreenEffectiveParams {
             "assignment_format": self.assignment_format,
             "minimum_confidence": self.minimum_confidence,
             "emit_unclassified": self.emit_unclassified,
+            "interpretation_boundary": self.interpretation_boundary,
+            "truth_conditions": self.truth_conditions,
         })
     }
 }

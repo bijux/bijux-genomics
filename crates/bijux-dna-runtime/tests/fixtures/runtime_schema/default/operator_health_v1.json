@@ -1,0 +1,1 @@
+{"checks":[{"check_id":"storage","detail":"run layout root run-1","evidence_path":"run-1","ok":true},{"check_id":"containers","detail":"runtime apptainer availability checked on PATH","ok":false}],"overall_ok":false,"run_id":"run-1","schema_version":"bijux.operator_health.v1"}

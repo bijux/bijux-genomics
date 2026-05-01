@@ -95,6 +95,12 @@ fn policy__contracts__default_profile_binding_policy__default_profiles_use_regis
 fn stage_aliases(stage: &str) -> Vec<String> {
     match stage {
         "bam.contamination" => vec!["bam.authenticity".to_string()],
+        "bam.genotyping" => vec![
+            "vcf.call_gl".to_string(),
+            "vcf.call_pseudohaploid".to_string(),
+            "vcf.damage_filter".to_string(),
+            "vcf.gl_propagation".to_string(),
+        ],
         _ => Vec::new(),
     }
 }

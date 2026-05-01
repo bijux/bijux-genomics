@@ -1,0 +1,10 @@
+{
+  "schema_version": "bijux.example.refusal_bundle.v1",
+  "bundle_id": "reference_mismatch",
+  "category": "reference_mismatch",
+  "expected_refusal_codes": [
+    "REFERENCE_CONTEXT_MISMATCH"
+  ],
+  "operating_mode": "enforced",
+  "summary": "Reference drift or incompatible contig context must fail preflight."
+}

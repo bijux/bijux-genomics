@@ -4,6 +4,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_core::prelude::{
     ArtifactId, ArtifactRole, CommandSpecV1, StageId, StageVersion, ToolExecutionSpecV1,
 };
+use bijux_dna_domain_fastq::host_depletion_artifact_paths;
 use bijux_dna_domain_fastq::params::{
     screen::{
         HostDepletionEffectiveParams, MappingReportFormat, ReadRetentionPolicy,
@@ -156,6 +157,9 @@ pub fn plan_host_depletion_with_index_backend(
         effective_params: serde_json::to_value(&effective_params)
             .map_err(|error| anyhow!("serialize host depletion effective params: {error}"))?,
         aux_images: std::collections::BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
 }
@@ -175,24 +179,14 @@ fn ensure_host_depletion_options(options: &DepleteHostPlanOptions) -> Result<()>
 }
 
 fn host_depletion_paths(out_dir: &Path, paired: bool) -> HostDepletionPaths {
-    if paired {
-        HostDepletionPaths {
-            report: out_dir.join("host_depletion_report.json"),
-            raw_backend_report: out_dir.join("bowtie2.host.metrics.txt"),
-            output_r1: out_dir.join("host_depleted_R1.fastq.gz"),
-            output_r2: Some(out_dir.join("host_depleted_R2.fastq.gz")),
-            removed_r1: out_dir.join("removed_host_R1.fastq.gz"),
-            removed_r2: Some(out_dir.join("removed_host_R2.fastq.gz")),
-        }
-    } else {
-        HostDepletionPaths {
-            report: out_dir.join("host_depletion_report.json"),
-            raw_backend_report: out_dir.join("bowtie2.host.metrics.txt"),
-            output_r1: out_dir.join("host_depleted.fastq.gz"),
-            output_r2: None,
-            removed_r1: out_dir.join("removed_host.fastq.gz"),
-            removed_r2: None,
-        }
+    let named = host_depletion_artifact_paths(out_dir, paired);
+    HostDepletionPaths {
+        report: named.report_json,
+        raw_backend_report: named.raw_backend_report,
+        output_r1: named.retained_r1,
+        output_r2: named.retained_r2,
+        removed_r1: named.rejected_r1,
+        removed_r2: named.rejected_r2,
     }
 }
 

@@ -53,6 +53,7 @@
         assert!(out.merged_tbi.exists());
         assert!(out.merged_bcf.is_some());
         assert!(out.artifact_checksums_json.exists());
+        assert!(out.normalization_contract_json.exists());
         assert!(out.validate_outputs_json.exists());
         assert!(out.final_manifest_json.exists());
         assert!(out.logs_txt.exists());
@@ -116,6 +117,16 @@
                 .and_then(|v| v.get("split_multiallelic_enabled"))
                 .and_then(|v| v.as_bool())
                 .unwrap_or(false)
+        );
+        let normalization_raw = std::fs::read_to_string(&out.normalization_contract_json)
+            .unwrap_or_else(|err| panic!("read normalization contract: {err}"));
+        let normalization: serde_json::Value = serde_json::from_str(&normalization_raw)
+            .unwrap_or_else(|err| panic!("parse normalization contract: {err}"));
+        assert_eq!(
+            normalization
+                .get("schema_version")
+                .and_then(|v| v.as_str()),
+            Some("bijux.vcf.normalization_contract.v1")
         );
     }
 

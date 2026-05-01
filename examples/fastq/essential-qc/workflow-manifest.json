@@ -1,0 +1,14 @@
+{
+  "schema_version": "bijux.example.workflow_manifest.v1",
+  "example_id": "fastq_essential_qc",
+  "domain": "fastq",
+  "workflow_class": "essential_qc",
+  "operating_mode": "simulation",
+  "stages": [
+    "fastq.validate_reads",
+    "fastq.detect_adapters",
+    "fastq.trim_reads",
+    "fastq.profile_reads",
+    "fastq.report_qc"
+  ]
+}

@@ -3,6 +3,7 @@ stage_id: "vcf.call_pseudohaploid"
 status: "supported"
 scope: "post_vcf"
 domain: "vcf"
+description: "VCF stage contract for vcf.call_pseudohaploid in the governed domain registry."
 inputs:
   - name: "bam"
     data_type: "bam"
@@ -16,6 +17,7 @@ outputs:
     cardinality: "One"
 required_inputs: ["bam"]
 required_outputs: ["pseudohaploid_vcf", "pseudohaploid_sampling_log"]
+tool_capability_requirements: []
 metrics:
   - name: "pseudo_called_sites"
   - name: "pseudo_missing_rate"
@@ -29,5 +31,6 @@ assumptions:
 bank_hooks: ["none"]
 invariants:
   - "tool_pinned"
-allowed_missingness: []
+allowed_missingness:
+  - "none"
 planned_out_of_scope: []

@@ -104,7 +104,7 @@ pub(super) struct DomainToolContainer {
     pub(super) digest: String,
 }
 
-#[derive(Debug, Deserialize, Default)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default, PartialEq, Eq)]
 pub(super) struct StagePort {
     pub(super) name: String,
     pub(super) data_type: String,
@@ -235,6 +235,8 @@ pub(super) struct DomainArtifactVocabulary {
     pub(super) domain: String,
     #[serde(default)]
     pub(super) artifact_ids: Vec<String>,
+    #[serde(default)]
+    pub(super) artifacts: Vec<DomainArtifactEntry>,
 }
 
 #[derive(Debug, Deserialize, Default)]
@@ -243,6 +245,18 @@ pub(super) struct DomainMetricVocabulary {
     pub(super) domain: String,
     #[serde(default)]
     pub(super) metric_ids: Vec<String>,
+    #[serde(default)]
+    pub(super) metrics: Vec<DomainMetricEntry>,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub(super) struct DomainArtifactEntry {
+    pub(super) id: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
+pub(super) struct DomainMetricEntry {
+    pub(super) id: String,
 }
 
 #[derive(Debug, Deserialize, Default)]

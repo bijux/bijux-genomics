@@ -1,0 +1,48 @@
+---
+source: crates/bijux-dna-core/tests/contracts/execution/schema_compatibility_contracts.rs
+expression: json
+---
+[
+  {
+    "error_id": "contract.execution_output_mismatch",
+    "area": "contract",
+    "wire_code": "execution_output_mismatch",
+    "owner_surface": "bijux-dna-core",
+    "remediation": "Refresh the stage contract outputs or the emitting stage so runtime outputs and governed artifact promises match exactly."
+  },
+  {
+    "error_id": "scientific.invariant_violation",
+    "area": "scientific",
+    "wire_code": "invariant_violation",
+    "owner_surface": "bijux-dna-runtime",
+    "remediation": "Inspect the stage scientific contract, reference context, and invariant evidence before admitting the run as enforced."
+  },
+  {
+    "error_id": "runtime.runner_execution_failed",
+    "area": "runtime",
+    "wire_code": "runner_execution_failed",
+    "owner_surface": "bijux-dna-api",
+    "remediation": "Inspect run_failure.json, tool invocation logs, and telemetry for the failing stage before retrying or replaying the run."
+  },
+  {
+    "error_id": "infrastructure.io_error",
+    "area": "infrastructure",
+    "wire_code": "io_error",
+    "owner_surface": "bijux-dna-core",
+    "remediation": "Verify governed paths exist under the run layout and that the active runtime has permission to read and write them."
+  },
+  {
+    "error_id": "api.invalid_request",
+    "area": "api",
+    "wire_code": "invalid_request",
+    "owner_surface": "bijux-dna-api",
+    "remediation": "Rebuild the request from the v1 contract surface and confirm the workflow, plan, and runtime schemas match the reviewed adapters."
+  },
+  {
+    "error_id": "cache.cache_key_mismatch",
+    "area": "cache",
+    "wire_code": "cache_key_mismatch",
+    "owner_surface": "bijux-dna-core",
+    "remediation": "Regenerate the plan manifest and compare cache identity fields, reference assets, and policy surfaces before reusing cached artifacts."
+  }
+]

@@ -6,9 +6,11 @@ required_fields:
   - domain
   - inputs
   - outputs
+  - description
   - required_inputs
   - required_outputs
   - metrics
+  - tool_capability_requirements
   - compatible_tools
   - assumptions
   - defaults_source

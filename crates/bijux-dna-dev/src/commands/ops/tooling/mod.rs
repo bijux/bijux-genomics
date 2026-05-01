@@ -5,9 +5,10 @@ use super::{
     assert_no_excess_float_precision, check_schema_doc, ci_test_env, collect_warning_strings_json,
     compare_json_key_drift, config_snapshot_inputs_changed, config_tree_snapshot_text,
     ensure_exists, ensure_help_only, env_flag, env_or_default, failure_lines,
-    find_first_named_file, fs, generate_compatibility_matrix, generate_docs_graph,
-    generate_domain_coverage_doc, generate_repo_root_map, generate_tool_index, id_catalog, json,
-    json_u64, materialize_controlled_file, merge_outcomes, normalize_benchmark_html, path_from_arg,
+    find_first_named_file, fs, generate_compatibility_matrix,
+    generate_compatibility_reference_docs, generate_docs_graph, generate_domain_coverage_doc,
+    generate_repo_root_map, generate_tool_index, id_catalog, json, json_u64,
+    materialize_controlled_file, merge_outcomes, normalize_benchmark_html, path_from_arg,
     read_coverage_runner_flag, read_json_value, read_utf8, relative_diff,
     resolve_optional_output_arg, resolve_workspace_path, resolved_nextest_expression,
     resolved_nextest_profile, resolved_nextest_threads, resolved_run_ignored, run_check_ids,
@@ -25,6 +26,9 @@ mod certification;
 mod ci;
 mod config_docs;
 mod diagnostics;
+mod operator_workflow_maturity;
+mod reference_external_data;
+mod scientific_caveat_propagation;
 
 pub(super) use self::acquisition::{
     tooling_acquire_maps, tooling_acquire_panels, tooling_acquire_reference,
@@ -32,8 +36,9 @@ pub(super) use self::acquisition::{
 };
 pub(super) use self::cargo_targets::tooling_cargo_targets;
 pub(super) use self::certification::{
-    tooling_certification_gate, tooling_certify_all, tooling_certify_bam, tooling_certify_domains,
-    tooling_certify_fastq, tooling_certify_vcf,
+    tooling_benchmark_smoke_level1, tooling_certification_gate, tooling_certify_all,
+    tooling_certify_bam, tooling_certify_domains, tooling_certify_fastq, tooling_certify_level1,
+    tooling_certify_vcf,
 };
 pub(super) use self::ci::{
     tooling_ci_audit, tooling_ci_clippy, tooling_ci_clippy_executors, tooling_ci_coverage,
@@ -46,12 +51,15 @@ pub(super) use self::config_docs::{
     tooling_lint_fast,
 };
 pub(super) use self::diagnostics::{
-    tooling_config_inventory, tooling_coverage_summary, tooling_crash_triage,
-    tooling_deprecate_vcf_knob, tooling_deprecate_vcf_panel, tooling_docs_build,
-    tooling_generate_compatibility_matrix, tooling_generate_configs, tooling_generate_docs,
-    tooling_generate_docs_graph, tooling_generate_domain_coverage_doc,
+    tooling_architecture_report, tooling_config_inventory, tooling_coverage_summary,
+    tooling_crash_triage, tooling_deprecate_vcf_knob, tooling_deprecate_vcf_panel,
+    tooling_docs_build, tooling_generate_compatibility_matrix, tooling_generate_configs,
+    tooling_generate_docs, tooling_generate_docs_graph, tooling_generate_domain_coverage_doc,
     tooling_generate_panel_compatibility_matrix, tooling_generate_policy_index,
     tooling_generate_repo_root_map, tooling_image_qa, tooling_inventory, tooling_make_help,
     tooling_repo_doctor, tooling_run_bijux, tooling_setup_docs_venv,
     tooling_simulate_coverage_regime,
 };
+pub(super) use self::operator_workflow_maturity::tooling_operator_workflow_maturity;
+pub(super) use self::reference_external_data::tooling_reference_external_data;
+pub(super) use self::scientific_caveat_propagation::tooling_scientific_caveat_propagation;

@@ -1,4 +1,14 @@
 //! Runtime contracts and telemetry wiring.
+#![allow(
+    clippy::default_trait_access,
+    clippy::expect_used,
+    clippy::if_not_else,
+    clippy::items_after_statements,
+    clippy::needless_pass_by_value,
+    clippy::redundant_closure_for_method_calls,
+    clippy::unnecessary_lazy_evaluations,
+    clippy::uninlined_format_args
+)]
 
 pub mod environment;
 pub mod manifests;
@@ -28,7 +38,10 @@ pub use recording::{
 };
 
 // Run layout entrypoints
-pub use run_layout::{create_run_layout, write_manifest, RunManifest, RunStageEntry};
+pub use run_layout::{
+    create_run_layout, write_checkpoint, write_executor_descriptor, write_failure_record,
+    write_manifest, write_run_state, write_runtime_policy, RunManifest, RunStageEntry,
+};
 
 // Runner contracts and execution models
 pub use runner::{

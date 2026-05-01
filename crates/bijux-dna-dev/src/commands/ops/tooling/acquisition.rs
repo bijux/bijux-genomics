@@ -770,6 +770,7 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
             "vcf_downstream_demography_mini",
             workspace.path("examples/vcf/downstream-demography-mini"),
         ),
+        ("vcf_essential_qc_filter", workspace.path("examples/vcf/essential-qc-filter")),
         ("vcf_imputation_mini", workspace.path("examples/vcf/imputation-mini")),
     ];
     for (example_id, _) in &examples {

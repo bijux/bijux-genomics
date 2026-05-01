@@ -1,8 +1,12 @@
 sample_name	sample1
 variants_total	12
+sample_count	1
 snps	9
 indels	3
 ti_tv	2.25
+missingness_post	0.0
+heterozygosity_ratio	1.0
+annotation_coverage	1.0
 filter.PASS	10
 filter.LowQual	2
 depth.0-9	4

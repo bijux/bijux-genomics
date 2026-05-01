@@ -35,9 +35,14 @@ fn command_inventory_documents_no_runtime_commands() {
             "build_telemetry_adapter",
             "create_run_layout",
             "prepare_tool_run_dirs",
+            "write_checkpoint",
             "write_canonical_json",
+            "write_executor_descriptor",
+            "write_failure_record",
             "write_manifest",
+            "write_run_state",
             "write_run_manifest",
+            "write_runtime_policy",
         ]),
         "COMMANDS.md must list runtime entrypoints without treating them as shell commands"
     );
@@ -64,9 +69,14 @@ fn documented_entrypoints(content: &str) -> BTreeSet<String> {
                 "build_telemetry_adapter"
                     | "create_run_layout"
                     | "prepare_tool_run_dirs"
+                    | "write_checkpoint"
                     | "write_canonical_json"
+                    | "write_executor_descriptor"
+                    | "write_failure_record"
                     | "write_manifest"
+                    | "write_run_state"
                     | "write_run_manifest"
+                    | "write_runtime_policy"
             )
         })
         .map(str::to_string)

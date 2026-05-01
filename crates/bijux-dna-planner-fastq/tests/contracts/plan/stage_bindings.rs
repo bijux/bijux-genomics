@@ -1083,6 +1083,9 @@ fn planner_uses_typed_screen_params_from_stage_binding() -> anyhow::Result<()> {
                 assignment_format: TaxonomyAssignmentFormat::KrakenAssignments,
                 minimum_confidence: Some(0.15),
                 emit_unclassified: false,
+                interpretation_boundary:
+                    bijux_dna_domain_fastq::params::screen::TaxonomyInterpretationBoundary::ScreeningOnly,
+                truth_conditions: Vec::new(),
             })),
         }],
         stage_toolsets: Vec::new(),
@@ -2285,6 +2288,12 @@ fn planner_uses_typed_extract_umis_params_from_stage_binding() -> anyhow::Result
             params: Some(FastqStageParameters::ExtractUmis(ExtractUmisStageParams {
                 threads: Some(5),
                 umi_pattern: Some("NNNNCCCC".to_string()),
+                extraction_location: None,
+                read_name_transform: None,
+                failed_extraction_policy: None,
+                grouping_policy: Some("exact_header_tag".to_string()),
+                downstream_dedup_policy: Some("coordinate_aware_recommended".to_string()),
+                downstream_propagation: None,
             })),
         }],
         stage_toolsets: Vec::new(),

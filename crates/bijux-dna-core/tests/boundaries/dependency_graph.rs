@@ -5,7 +5,7 @@ use std::path::Path;
 fn normal_dependency_graph_stays_low_level() {
     let manifest =
         std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
-            .expect("read Cargo.toml");
+            .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
     let dependencies = dependency_names(&manifest, "dependencies");
     let expected =
         entries(["chrono", "regex", "serde", "serde_json", "sha2", "thiserror", "walkdir"]);
@@ -20,7 +20,7 @@ fn normal_dependency_graph_stays_low_level() {
 fn dev_dependency_graph_stays_test_only() {
     let manifest =
         std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
-            .expect("read Cargo.toml");
+            .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
     let dependencies = dependency_names(&manifest, "dev-dependencies");
     let expected = entries(["anyhow", "bijux-dna-policies", "insta", "tempfile"]);
 
@@ -31,7 +31,7 @@ fn dev_dependency_graph_stays_test_only() {
 fn core_manifest_rejects_downstream_crate_dependencies() {
     let manifest =
         std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
-            .expect("read Cargo.toml");
+            .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
     let dependencies = dependency_names(&manifest, "dependencies");
     let forbidden = [
         "bijux-dna",
@@ -56,7 +56,7 @@ fn core_manifest_rejects_downstream_crate_dependencies() {
 fn normal_dependencies_reject_workspace_crates() {
     let manifest =
         std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("Cargo.toml"))
-            .expect("read Cargo.toml");
+            .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
     let dependencies = dependency_names(&manifest, "dependencies");
     let workspace_dependencies = dependencies
         .iter()

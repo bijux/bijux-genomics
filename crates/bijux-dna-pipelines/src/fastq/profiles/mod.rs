@@ -3,6 +3,7 @@
 mod adna_profile;
 mod default_profile;
 mod minimal_profile;
+mod production_profiles;
 mod profile_by_id;
 mod profile_contracts;
 mod profile_ids;

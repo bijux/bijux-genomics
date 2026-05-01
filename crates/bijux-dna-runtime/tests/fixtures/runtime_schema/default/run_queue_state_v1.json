@@ -1,0 +1,1 @@
+{"active_step_id":"fastq.validate_reads","dedup_key":"sha256:graph","run_id":"run-1","schema_version":"bijux.run_queue_state.v1","state":"paused","transitions":[{"detail":"pause requested before fastq.validate_reads","from_state":"running","occurred_at":"2024-01-01T00:00:05Z","to_state":"paused"}]}

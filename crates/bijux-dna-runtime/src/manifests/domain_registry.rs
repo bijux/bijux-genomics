@@ -4,15 +4,16 @@ use anyhow::{anyhow, Context, Result};
 use serde::Deserialize;
 
 use bijux_dna_core::contract::{
-    ExecutionContract, ImageRequirements, StageId, StageParameterSpec, StageSpec, ToolConstraints,
-    ToolManifest, ToolRegistry,
+    BackendVersionPolicy, ExecutionContract, ImageRequirements, StageId, StageOperatingMode,
+    StageParameterSpec, StageSpec, ToolConstraints, ToolManifest, ToolRegistry,
 };
 use bijux_dna_core::ids::ToolId;
 use bijux_dna_core::prelude::tooling::{ReadCountChangePolicy, StageBehavior, StageMetricSpec};
 
 use super::classification::{
     artifact_kind_from_stage, declared_file_name, output_artifact_kind_from_stage, parse_tool_role,
-    stable_produced_artifacts, stage_semantic_from_id, to_ports, DomainPortYaml,
+    stable_produced_artifacts, stage_family_from_id, stage_semantic_from_id, to_ports,
+    DomainPortYaml,
 };
 
 #[derive(Debug, Deserialize, Default)]
@@ -100,6 +101,7 @@ pub(super) fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
                 };
                 registry.insert_stage(StageSpec {
                     stage_id,
+                    stage_family: stage_family_from_id(&stage.stage_id),
                     semantic_kind: stage_semantic_from_id(&stage.stage_id),
                     input_kind: artifact_kind_from_stage(&stage.stage_id),
                     output_kind: output_artifact_kind_from_stage(&stage.stage_id),
@@ -114,6 +116,15 @@ pub(super) fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
                     parameters: stage.parameters,
                     metrics: stage.metrics,
                     description: stage.description,
+                    environment_requirements: Default::default(),
+                    report_contracts: Vec::new(),
+                    capability_contract: Default::default(),
+                    refusal_codes: Vec::new(),
+                    operating_mode: if stage.report_only {
+                        StageOperatingMode::Advisory
+                    } else {
+                        StageOperatingMode::Enforced
+                    },
                     behavior: StageBehavior {
                         idempotent: true,
                         mutates_fastq: stage.mutates_fastq,
@@ -180,6 +191,13 @@ pub(super) fn read_domain_registry(domain_dir: &Path) -> Result<ToolRegistry> {
                         metrics_parser: tool.metrics_parser.clone(),
                         constraints: tool.constraints.clone().unwrap_or_default(),
                         execution_contract: tool.execution_contract.clone().unwrap_or_default(),
+                        supported_modes: vec![
+                            StageOperatingMode::Simulation,
+                            StageOperatingMode::Advisory,
+                            StageOperatingMode::Enforced,
+                        ],
+                        backend_version_policy: BackendVersionPolicy::Pinned,
+                        capability_contract: Default::default(),
                     });
                 }
             }

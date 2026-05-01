@@ -65,7 +65,16 @@ fn snapshot_settings() -> Settings {
 #[test]
 fn plan_response_schema_is_stable() -> anyhow::Result<()> {
     let graph = minimal_graph();
-    let request = PlanRequest { graph, profile_id: "default".to_string() };
+    let request = PlanRequest {
+        graph,
+        profile_id: "default".to_string(),
+        workflow_manifest: None,
+        stage_plans: Vec::new(),
+        parameter_traces: Vec::new(),
+        planner_refusals: Vec::new(),
+        planner_warnings: Vec::new(),
+        compare_against: None,
+    };
     let response = plan(request)?;
     let json = serde_json::to_value(&response)?;
     let name = snapshot_name("schemas", "plan_response_schema");
@@ -80,8 +89,29 @@ fn plan_response_schema_is_stable() -> anyhow::Result<()> {
 fn execute_response_schema_is_stable() -> anyhow::Result<()> {
     let response = ExecuteResponse {
         run_id: "run-1".to_string(),
+        correlation_id: "enforced:run-1".to_string(),
         manifest_path: PathBuf::from("runs/run-1/run_manifest.json"),
+        run_state_path: PathBuf::from("runs/run-1/run_state.json"),
+        runtime_policy_path: PathBuf::from("runs/run-1/runtime_policy.json"),
+        executor_descriptor_path: PathBuf::from("runs/run-1/executor_descriptor.json"),
+        backend_descriptor_path: PathBuf::from("runs/run-1/backend_descriptor.json"),
+        scheduling_decision_path: PathBuf::from("runs/run-1/scheduling_decision.json"),
+        queue_state_path: PathBuf::from("runs/run-1/queue_state.json"),
+        lease_path: PathBuf::from("runs/run-1/run_lease.json"),
+        control_state_path: PathBuf::from("runs/run-1/run_control.json"),
+        health_report_path: PathBuf::from("runs/run-1/operator_health.json"),
+        slurm_submission_path: Some(PathBuf::from("runs/run-1/slurm_submission.json")),
+        checkpoint_path: PathBuf::from("runs/run-1/checkpoints/checkpoint.json"),
+        failure_path: None,
+        mode: bijux_dna_runtime::run_layout::RunExecutionModeV1::Enforced,
+        state: bijux_dna_runtime::run_layout::RunLifecycleStateV1::Succeeded,
         report_path: Some(PathBuf::from("runs/run-1/run_artifacts/report.html")),
+        evidence_bundle_path: PathBuf::from("runs/run-1/evidence_bundle.json"),
+        evidence_verification_path: PathBuf::from("runs/run-1/evidence_verification.json"),
+        artifact_inventory_path: PathBuf::from("runs/run-1/artifact_inventory.json"),
+        replay_manifest_path: PathBuf::from("runs/run-1/replay_manifest.json"),
+        hash_ledger_path: PathBuf::from("runs/run-1/hash_ledger.json"),
+        run_summary_text_path: PathBuf::from("runs/run-1/summary/run_summary.txt"),
     };
     let json = serde_json::to_value(&response)?;
     let name = snapshot_name("schemas", "execute_response_schema");
@@ -126,6 +156,28 @@ fn status_schema_is_stable() -> anyhow::Result<()> {
         "run_dir": status.run_dir,
         "manifest_path": status.manifest_path,
         "report_path": status.report_path,
+        "evidence_bundle_path": status.evidence_bundle_path,
+        "evidence_verification_path": status.evidence_verification_path,
+        "artifact_inventory_path": status.artifact_inventory_path,
+        "artifact_inventory_text_path": status.artifact_inventory_text_path,
+        "replay_manifest_path": status.replay_manifest_path,
+        "hash_ledger_path": status.hash_ledger_path,
+        "run_summary_text_path": status.run_summary_text_path,
+        "run_state_path": status.run_state_path,
+        "runtime_policy_path": status.runtime_policy_path,
+        "executor_descriptor_path": status.executor_descriptor_path,
+        "backend_descriptor_path": status.backend_descriptor_path,
+        "scheduling_decision_path": status.scheduling_decision_path,
+        "queue_state_path": status.queue_state_path,
+        "lease_path": status.lease_path,
+        "control_state_path": status.control_state_path,
+        "health_report_path": status.health_report_path,
+        "slurm_submission_path": status.slurm_submission_path,
+        "checkpoint_path": status.checkpoint_path,
+        "failure_path": status.failure_path,
+        "correlation_id": status.correlation_id,
+        "mode": status.mode,
+        "state": status.state,
         "has_failures": status.has_failures,
     });
     let root = temp

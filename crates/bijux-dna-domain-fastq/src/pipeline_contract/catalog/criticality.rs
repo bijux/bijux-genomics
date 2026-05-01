@@ -33,6 +33,8 @@ pub fn stage_criticality(stage_id: &StageId) -> Option<StageCriticality> {
         | "fastq.filter_low_complexity"
         | "fastq.correct_errors"
         | "fastq.extract_umis"
+        | "fastq.detect_duplicates_premerge"
+        | "fastq.estimate_library_complexity_prealign"
         | "fastq.screen_taxonomy" => Some(StageCriticality::Optional),
         "fastq.infer_asvs" => Some(StageCriticality::Experimental),
         _ => None,

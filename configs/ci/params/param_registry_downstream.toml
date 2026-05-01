@@ -16,8 +16,16 @@ params = [
   "schema_version",
   "tool",
   "panel_lock",
+  "panel_id",
+  "panel_identity_required",
+  "panel_identity_source",
+  "map_id",
+  "map_coordinate_system",
   "normalize",
+  "normalization_policy",
+  "license_policy",
   "require_bgzip_tabix",
+  "prepared_outputs",
   "reference_provenance",
 ]
 
@@ -28,6 +36,9 @@ schema_version = "bijux.vcf.params.v1"
 params = [
   "schema_version",
   "tool",
+  "panel_id",
+  "panel_identity_required",
+  "panel_build_required",
   "window_cM",
   "pbwt_depth",
   "burnin",
@@ -41,6 +52,9 @@ params = [
   "allow_gl_only_input",
   "chunking",
   "chunks_plan",
+  "confidence_outputs",
+  "boundary_contract",
+  "gl_input_contract",
   "reference_provenance",
 ]
 
@@ -51,6 +65,11 @@ schema_version = "bijux.vcf.params.v1"
 params = [
   "schema_version",
   "tool",
+  "panel_id",
+  "panel_identity_required",
+  "panel_build_required",
+  "map_id",
+  "map_coordinate_system",
   "window_size_mb",
   "buffer_mb",
   "emit_gp",
@@ -62,6 +81,9 @@ params = [
   "impute",
   "chunking",
   "chunks_plan",
+  "confidence_outputs",
+  "boundary_contract",
+  "imputation_acceptance_mode",
   "reference_provenance",
 ]
 
@@ -72,6 +94,11 @@ schema_version = "bijux.vcf.params.v1"
 params = [
   "schema_version",
   "tool",
+  "panel_id",
+  "panel_identity_required",
+  "panel_build_required",
+  "map_id",
+  "map_coordinate_system",
   "window_size_mb",
   "buffer_mb",
   "emit_gp",
@@ -83,6 +110,9 @@ params = [
   "impute",
   "chunking",
   "chunks_plan",
+  "confidence_outputs",
+  "boundary_contract",
+  "imputation_acceptance_mode",
   "reference_provenance",
 ]
 
@@ -95,6 +125,9 @@ params = [
   "tool",
   "retain_fields",
   "propagation_scope",
+  "likelihood_contract",
+  "output_caveats",
+  "emit_bcf",
   "reference_provenance",
 ]
 
@@ -108,6 +141,9 @@ params = [
   "mask_ct_ga_transitions",
   "pmd_threshold",
   "damage_audit",
+  "action_scope",
+  "execution_mode",
+  "damage_contract",
   "reference_provenance",
 ]
 
@@ -119,8 +155,15 @@ params = [
   "schema_version",
   "tool",
   "ld_prune",
+  "ld_pruning_policy",
+  "maf_threshold",
+  "missingness_threshold",
   "components",
+  "sample_metadata_manifest_required",
+  "sample_inclusion_policy",
   "emit_artifacts",
+  "interpretation_caveats",
+  "guardrail_contract",
   "reference_provenance",
 ]
 
@@ -132,8 +175,15 @@ params = [
   "schema_version",
   "tool",
   "ld_prune",
+  "ld_pruning_policy",
+  "maf_threshold",
+  "missingness_threshold",
   "components",
+  "sample_metadata_manifest_required",
+  "sample_inclusion_policy",
   "emit_artifacts",
+  "interpretation_caveats",
+  "guardrail_contract",
   "reference_provenance",
 ]
 
@@ -147,6 +197,7 @@ params = [
   "min_samples",
   "sample_constraints",
   "min_segment_cm",
+  "cohort_boundary_contract",
   "reference_provenance",
 ]
 
@@ -160,6 +211,7 @@ params = [
   "min_kb",
   "max_gap_kb",
   "het_per_window",
+  "cohort_boundary_contract",
   "reference_provenance",
 ]
 
@@ -172,6 +224,7 @@ params = [
   "tool",
   "requires_ibd_input",
   "generation_time_years",
+  "cohort_boundary_contract",
   "reference_provenance",
 ]
 
@@ -185,7 +238,14 @@ params = ["schema_version", "tool", "coverage_regime", "reference_provenance"]
 stage_id = "vcf.call_gl"
 param_type_id = "vcf.call_gl"
 schema_version = "bijux.vcf.params.v1"
-params = ["schema_version", "tool", "coverage_regime", "reference_provenance"]
+params = [
+  "schema_version",
+  "tool",
+  "coverage_regime",
+  "likelihood_contract",
+  "normalization_policy_id",
+  "reference_provenance",
+]
 
 [[entries]]
 stage_id = "vcf.call_diploid"
@@ -197,7 +257,14 @@ params = ["schema_version", "tool", "coverage_regime", "reference_provenance"]
 stage_id = "vcf.call_pseudohaploid"
 param_type_id = "vcf.call_pseudohaploid"
 schema_version = "bijux.vcf.params.v1"
-params = ["schema_version", "tool", "coverage_regime", "reference_provenance"]
+params = [
+  "schema_version",
+  "tool",
+  "coverage_regime",
+  "likelihood_contract",
+  "normalization_policy_id",
+  "reference_provenance",
+]
 
 [[entries]]
 stage_id = "vcf.filter"
@@ -209,22 +276,58 @@ params = ["schema_version", "tool", "coverage_regime", "reference_provenance"]
 stage_id = "vcf.qc"
 param_type_id = "vcf.qc"
 schema_version = "bijux.vcf.params.v1"
-params = ["schema_version", "tool", "coverage_regime", "reference_provenance"]
+params = [
+  "schema_version",
+  "tool",
+  "coverage_regime",
+  "report_sections",
+  "per_sample_sections",
+  "reference_provenance",
+]
 
 [[entries]]
 stage_id = "vcf.stats"
 param_type_id = "vcf.stats"
 schema_version = "bijux.vcf.params.v1"
-params = ["schema_version", "tool", "coverage_regime", "reference_provenance"]
+params = [
+  "schema_version",
+  "tool",
+  "coverage_regime",
+  "report_sections",
+  "per_sample_sections",
+  "reference_provenance",
+]
 
 [[entries]]
 stage_id = "vcf.postprocess"
 param_type_id = "vcf.postprocess"
 schema_version = "bijux.vcf.params.v1"
-params = ["schema_version", "tool", "coverage_regime", "reference_provenance"]
+params = [
+  "schema_version",
+  "tool",
+  "coverage_regime",
+  "normalization_policy",
+  "retain_raw_view",
+  "report_sections",
+  "reference_provenance",
+]
 
 [[entries]]
 stage_id = "vcf.admixture"
 param_type_id = "vcf.admixture"
 schema_version = "bijux.vcf.params.v1"
-params = ["schema_version", "tool", "coverage_regime", "reference_provenance"]
+params = [
+  "schema_version",
+  "tool",
+  "ld_prune",
+  "ld_pruning_policy",
+  "maf_threshold",
+  "missingness_threshold",
+  "components",
+  "sample_metadata_manifest_required",
+  "sample_inclusion_policy",
+  "emit_artifacts",
+  "interpretation_caveats",
+  "guardrail_contract",
+  "reference_provenance",
+]

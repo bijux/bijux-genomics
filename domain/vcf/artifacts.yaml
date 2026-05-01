@@ -1,9 +1,52 @@
-schema_version: "bijux.artifacts.v1"
-domain: "vcf"
+---
+schema_version: bijux.artifacts.v1
+domain: vcf
 artifacts:
-  - id: "called_vcf"
-    type: "vcf"
-  - id: "filtered_vcf"
-    type: "vcf"
-  - id: "vcf_stats"
-    type: "json"
+- id: admixture_out
+  type: json
+- id: called_vcf
+  type: vcf
+- id: damage_bias_audit_report
+  type: json
+- id: damage_filtered_vcf
+  type: vcf
+- id: demography_report
+  type: json
+- id: diploid_vcf
+  type: vcf
+- id: filtered_vcf
+  type: vcf
+- id: gl_propagated_vcf
+  type: vcf
+- id: gl_propagation_report
+  type: json
+- id: gl_provenance
+  type: json
+- id: gl_sites_vcf
+  type: vcf
+- id: ibd_segments
+  type: json
+- id: imputation_out
+  type: json
+- id: imputed_vcf
+  type: vcf
+- id: pca_out
+  type: json
+- id: phasing_out
+  type: json
+- id: population_structure_report
+  type: json
+- id: postprocess_vcf
+  type: vcf
+- id: prepared_panel
+  type: vcf
+- id: pseudohaploid_sampling_log
+  type: json
+- id: pseudohaploid_vcf
+  type: vcf
+- id: qc_out
+  type: json
+- id: roh_report
+  type: json
+- id: stats_json
+  type: json

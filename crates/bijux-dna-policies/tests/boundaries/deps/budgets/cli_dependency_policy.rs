@@ -43,6 +43,7 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_api_and_cli_su
         "bijux-dna-domain-vcf",
         "bijux-dna-stages-vcf",
         "bijux-dna-db-ena",
+        "bijux-dna-analyze",
         "clap",
         "tracing",
         "anyhow",

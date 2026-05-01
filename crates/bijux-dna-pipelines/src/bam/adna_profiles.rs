@@ -4,13 +4,11 @@ use bijux_dna_core::ids::{AssayKind, LibraryLayout, LibraryModel, PlatformHint, 
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::{adna_capture_params_json, adna_shotgun_params_json};
 
+use super::profile_capabilities::bam_capabilities;
 use super::profile_defaults::{
     catalog_bam_stages, defaults_for, filter_downstream, to_effective_defaults,
 };
-use crate::{
-    ArtifactType, Domain, InvariantsPreset, MetricsBundle, PipelineCapabilities, PipelineId,
-    PipelineProfile, ReportSection, StabilityTier,
-};
+use crate::{Domain, InvariantsPreset, MetricsBundle, PipelineId, PipelineProfile, StabilityTier};
 
 #[must_use]
 pub fn bam_adna_shotgun_profile() -> PipelineProfile {
@@ -36,26 +34,11 @@ pub fn bam_adna_shotgun_profile() -> PipelineProfile {
             platform_hint: PlatformHint::Illumina,
             assay_kind: AssayKind::Shotgun,
         },
-        capabilities: PipelineCapabilities {
-            input_domains: vec![Domain::Bam],
-            output_domains: vec![Domain::Bam],
-            input_artifacts: vec![ArtifactType::Bam],
-            output_artifacts: vec![ArtifactType::Bam, ArtifactType::MetricsBundle],
-            required_inputs: vec!["bam"],
-            produces_outputs: vec!["bam", "bam.metrics"],
-            report_sections: vec!["bam"],
-            required_report_sections: vec![ReportSection::Bam, ReportSection::PipelineDefaults],
-            required_metrics_bundles: vec![MetricsBundle::BamAdna],
+        capabilities: bam_capabilities(
+            id_catalog::PIPELINE_BAM_ADNA_SHOTGUN,
+            MetricsBundle::BamAdna,
             required_stages,
-            required_metrics: vec!["bam.metrics"],
-            required_artifacts: vec![
-                "report.json",
-                "run_manifest.json",
-                "stage_summaries.json",
-                "invariants_report.json",
-            ],
-            supports_benchmarks: true,
-        },
+        ),
     }
 }
 
@@ -83,26 +66,11 @@ pub fn bam_adna_capture_profile() -> PipelineProfile {
             platform_hint: PlatformHint::Illumina,
             assay_kind: AssayKind::Capture,
         },
-        capabilities: PipelineCapabilities {
-            input_domains: vec![Domain::Bam],
-            output_domains: vec![Domain::Bam],
-            input_artifacts: vec![ArtifactType::Bam],
-            output_artifacts: vec![ArtifactType::Bam, ArtifactType::MetricsBundle],
-            required_inputs: vec!["bam"],
-            produces_outputs: vec!["bam", "bam.metrics"],
-            report_sections: vec!["bam"],
-            required_report_sections: vec![ReportSection::Bam, ReportSection::PipelineDefaults],
-            required_metrics_bundles: vec![MetricsBundle::BamAdna],
+        capabilities: bam_capabilities(
+            id_catalog::PIPELINE_BAM_ADNA_CAPTURE,
+            MetricsBundle::BamAdna,
             required_stages,
-            required_metrics: vec!["bam.metrics"],
-            required_artifacts: vec![
-                "report.json",
-                "run_manifest.json",
-                "stage_summaries.json",
-                "invariants_report.json",
-            ],
-            supports_benchmarks: true,
-        },
+        ),
     }
 }
 
@@ -116,5 +84,10 @@ pub fn bam_reference_adna_profile() -> PipelineProfile {
     let mut profile = bam_adna_shotgun_profile();
     profile.id = PipelineId::from_static(id_catalog::PIPELINE_BAM_REFERENCE_ADNA);
     profile.description = "Reference-grade ancient DNA BAM defaults";
+    profile.capabilities = bam_capabilities(
+        id_catalog::PIPELINE_BAM_REFERENCE_ADNA,
+        MetricsBundle::BamAdna,
+        profile.capabilities.required_stages.clone(),
+    );
     profile
 }

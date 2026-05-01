@@ -28,3 +28,31 @@ fn cache_key_identity_tuple_is_explicit_and_stable() {
     assert!(payload.contains("tool_version"));
     assert!(payload.contains("env_digest"));
 }
+
+#[test]
+fn cache_key_governance_tuple_tracks_stage_reference_and_policy_surfaces() {
+    let key = CacheKey::with_governance(
+        "in",
+        "params",
+        "tool@1",
+        "sha256:env",
+        "bijux.stage_contract.v1",
+        "local",
+        vec!["artifact:reads".to_string()],
+        vec!["reference:hg38".to_string()],
+        vec!["policy:runtime.v1".to_string()],
+        "linux-x86_64",
+    );
+    assert_eq!(
+        key.governed_identity_string(),
+        "in|params|tool@1|sha256:env|bijux.stage_contract.v1|local|artifact:reads|reference:hg38|policy:runtime.v1|linux-x86_64"
+    );
+    let payload = serde_json::to_string(&key)
+        .unwrap_or_else(|err| panic!("serialize governed cache key: {err}"));
+    assert!(payload.contains("stage_contract_version"));
+    assert!(payload.contains("backend_identity"));
+    assert!(payload.contains("input_artifact_identities"));
+    assert!(payload.contains("reference_identities"));
+    assert!(payload.contains("policy_versions"));
+    assert!(payload.contains("environment_compatibility"));
+}

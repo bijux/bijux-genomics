@@ -30,6 +30,17 @@ runtime scheduling, or environment provisioning.
 - `vcf_io`: VCF validation, normalization, indexing, region, and overlap helpers.
 - `stage_specs`: VCF stage registry metadata.
 
+## Release Example
+
+Run the release-surface example from the repository root:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo run -q -p bijux-dna-stages-vcf --example vcf_release_surface
+```
+
+The example prints the governed VCF implemented-stage set and asserts presence
+of filter, QC, and stats stages expected in release-facing workflows.
+
 ## Documentation
 
 The crate keeps one root `README.md`. All other crate documentation lives under

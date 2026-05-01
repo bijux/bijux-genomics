@@ -1,0 +1,9 @@
+{
+  "example_id": "vcf_essential_qc_filter",
+  "steps": [
+    "ensure_images",
+    "validate_inputs",
+    "run_bench",
+    "collect_outputs"
+  ]
+}

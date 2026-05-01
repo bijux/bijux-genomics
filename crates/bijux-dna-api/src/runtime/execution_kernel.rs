@@ -1,3 +1,4 @@
+use std::ffi::OsString;
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -51,6 +52,29 @@ fn read_log_tail(path: &std::path::Path) -> Option<String> {
         .ok()
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
+}
+
+struct ScopedEnvRestore {
+    previous: Vec<(&'static str, Option<OsString>)>,
+}
+
+impl ScopedEnvRestore {
+    fn capture(keys: &[&'static str]) -> Self {
+        let previous = keys.iter().map(|key| (*key, std::env::var_os(key))).collect::<Vec<_>>();
+        Self { previous }
+    }
+}
+
+impl Drop for ScopedEnvRestore {
+    fn drop(&mut self) {
+        for (key, value) in &self.previous {
+            if let Some(value) = value {
+                std::env::set_var(key, value);
+            } else {
+                std::env::remove_var(key);
+            }
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -141,6 +165,22 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     bijux_dna_infra::ensure_dir(&cache_root)?;
     let home_dir = work_dir.join("home");
     bijux_dna_infra::ensure_dir(&home_dir)?;
+    let _env_restore = ScopedEnvRestore::capture(&[
+        "LC_ALL",
+        "LANG",
+        "TZ",
+        "PATH",
+        "BIJUX_UMASK",
+        "BIJUX_STAGE_THREADS",
+        "BIJUX_STAGE_MEMORY_MB",
+        "BIJUX_COMPRESSION_THREADS",
+        "BIJUX_STAGE_SEED",
+        "TMPDIR",
+        "HOME",
+        "XDG_CACHE_HOME",
+        "BIJUX_CACHE_ROOT",
+        "BIJUX_STAGE_WORKDIR",
+    ]);
     std::env::set_var("LC_ALL", policy.deterministic_env.lc_all.as_deref().unwrap_or("C"));
     std::env::set_var("LANG", policy.deterministic_env.lang.as_deref().unwrap_or("C"));
     std::env::set_var("TZ", policy.deterministic_env.tz.as_deref().unwrap_or("UTC"));

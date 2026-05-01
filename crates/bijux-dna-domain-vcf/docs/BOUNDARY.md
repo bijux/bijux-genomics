@@ -18,5 +18,5 @@ Defines VCF domain truth and invariants consumed by planners, stages, and genera
 - Pure deterministic computation over VCF contract inputs.
 
 ## Notes
-The workspace policy is rooted at `/Users/bijan/bijux/README.md`, and the repository coding
-policy is rooted at `/Users/bijan/bijux/CODEX.md`.
+The repository policy is rooted at `README.md`, and the repository coding
+policy is rooted at `README.md`.

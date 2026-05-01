@@ -14,6 +14,11 @@ None.
 These are library functions, not shell commands:
 
 - `create_run_layout`
+- `write_run_state`
+- `write_runtime_policy`
+- `write_executor_descriptor`
+- `write_checkpoint`
+- `write_failure_record`
 - `write_manifest`
 - `write_run_manifest`
 - `write_canonical_json`

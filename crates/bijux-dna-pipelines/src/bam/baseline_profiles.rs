@@ -4,11 +4,9 @@ use bijux_dna_core::ids::{AssayKind, LibraryLayout, LibraryModel, PlatformHint, 
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::default_params_json;
 
+use super::profile_capabilities::bam_capabilities;
 use super::profile_defaults::{defaults_for, stable_bam_stages, to_effective_defaults};
-use crate::{
-    ArtifactType, Domain, MetricsBundle, PipelineCapabilities, PipelineId, PipelineProfile,
-    ReportSection, StabilityTier,
-};
+use crate::{Domain, MetricsBundle, PipelineId, PipelineProfile, StabilityTier};
 
 #[must_use]
 pub fn bam_default_profile() -> PipelineProfile {
@@ -31,25 +29,10 @@ pub fn bam_default_profile() -> PipelineProfile {
             platform_hint: PlatformHint::Illumina,
             assay_kind: AssayKind::Unknown,
         },
-        capabilities: PipelineCapabilities {
-            input_domains: vec![Domain::Bam],
-            output_domains: vec![Domain::Bam],
-            input_artifacts: vec![ArtifactType::Bam],
-            output_artifacts: vec![ArtifactType::Bam, ArtifactType::MetricsBundle],
-            required_inputs: vec!["bam"],
-            produces_outputs: vec!["bam", "bam.metrics"],
-            report_sections: vec!["bam"],
-            required_report_sections: vec![ReportSection::Bam, ReportSection::PipelineDefaults],
-            required_metrics_bundles: vec![MetricsBundle::BamCore],
+        capabilities: bam_capabilities(
+            id_catalog::PIPELINE_BAM_DEFAULT,
+            MetricsBundle::BamCore,
             required_stages,
-            required_metrics: vec!["bam.metrics"],
-            required_artifacts: vec![
-                "report.json",
-                "run_manifest.json",
-                "stage_summaries.json",
-                "invariants_report.json",
-            ],
-            supports_benchmarks: true,
-        },
+        ),
     }
 }

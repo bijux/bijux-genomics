@@ -16,6 +16,7 @@ fn parse_detect_adapters_report_round_trips_governed_payload() -> Result<()> {
             "evidence_scope": "full_input",
             "evidence_format": "fastqc_summary",
             "evidence_artifact_id": "report_json",
+            "detected_adapter_source": "normalized_fastqc_evidence",
             "input_r1": "reads_R1.fastq.gz",
             "input_r2": "reads_R2.fastq.gz",
             "report_json": "adapter_report.json",

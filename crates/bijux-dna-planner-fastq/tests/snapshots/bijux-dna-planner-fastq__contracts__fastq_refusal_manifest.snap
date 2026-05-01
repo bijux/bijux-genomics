@@ -1,0 +1,42 @@
+---
+source: crates/bijux-dna-planner-fastq/tests/contracts/plan/planner_manifest_contract.rs
+expression: "bijux_dna_testkit::snapshot_normalize_json(&payload)"
+---
+{
+  "refusal_records": [
+    {
+      "code": "unsupported_backend",
+      "message": "FastqPlanConfig requires a graph-backed planning surface via stage_bindings or stage_toolsets"
+    }
+  ],
+  "workflow_manifest": {
+    "domain": "fastq",
+    "executor_preferences": {
+      "allow_advisory_execution": false
+    },
+    "inputs": [
+      {
+        "artifact_id": "reads",
+        "format_id": "fastq.gz",
+        "path": "reads_R1.fastq.gz",
+        "role": "reads"
+      }
+    ],
+    "policies": {
+      "operational": {},
+      "scientific": {}
+    },
+    "profile_id": "fastq-to-fastq__default__v1",
+    "requested_stages": [
+      {
+        "advisory_only": false,
+        "stage_id": "fastq.validate_reads"
+      },
+      {
+        "advisory_only": false,
+        "stage_id": "fastq.trim_reads"
+      }
+    ],
+    "schema_version": "bijux.workflow_manifest.v1"
+  }
+}

@@ -1,0 +1,1 @@
+{"audit_log":[{"detail":"paused before fastq.validate_reads","observed_state":"paused","occurred_at":"2024-01-01T00:00:05Z","requested_action":"pause"}],"observed_state":"paused","requested_action":"pause","run_id":"run-1","schema_version":"bijux.run_control.v1","updated_at":"2024-01-01T00:00:05Z"}

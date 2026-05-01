@@ -13,6 +13,7 @@ bijux-dna-core = { path = "../bijux-dna-core" }
 bijux-dna-infra = { path = "../bijux-dna-infra" }
 bijux-dna-runtime = { path = "../bijux-dna-runtime" }
 bijux-dna-bench-model = { path = "../bijux-dna-bench-model" }
+toml = { workspace = true }
 
 [dev-dependencies]
 bijux-dna-analyze = { path = "../bijux-dna-analyze" }
@@ -23,4 +24,3 @@ walkdir.workspace = true
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
 bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
-toml = { workspace = true }

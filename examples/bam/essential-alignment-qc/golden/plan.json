@@ -1,0 +1,22 @@
+{
+  "example_id": "bam_essential_alignment_qc",
+  "domain": "bam",
+  "profile_id": "fastq-to-bam__default__v1",
+  "pipeline": [
+    "fastq.preprocess",
+    "core.prepare_reference",
+    "bam.align",
+    "bam.qc_pre",
+    "bam.mapping_summary",
+    "bam.coverage",
+    "bam.damage"
+  ],
+  "expected_bam_evidence": [
+    "sample_identity.json",
+    "reference_preflight.json",
+    "alignment_provenance.json",
+    "mapping_summary.json",
+    "coverage.regime.json",
+    "damage.unified_metrics.json"
+  ]
+}

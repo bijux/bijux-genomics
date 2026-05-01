@@ -61,7 +61,7 @@ fn assert_snapshot(name: &str, plan: &StagePlanV1) -> Result<()> {
         return Ok(());
     }
     let expected = fs::read_to_string(&snapshot_path)?;
-    assert_eq!(payload, expected);
+    assert_eq!(payload, expected.trim_end_matches(['\n', '\r']));
     Ok(())
 }
 

@@ -52,7 +52,7 @@ fn bench_tree_matches_architecture_contract() {
             "sqlite/",
             "workspace_paths.rs",
         ]),
-        "repo tree must stay split between workspace policy and persisted artifacts"
+        "repo tree must stay split between repository policy and persisted artifacts"
     );
 
     assert_eq!(

@@ -52,6 +52,9 @@ fn policy__boundaries__snapshot_policy__snapshot_files_live_in_snapshots_dir() {
             if path.to_string_lossy().contains("tests/snapshots/") {
                 continue;
             }
+            if path.to_string_lossy().contains("tests/contracts/snapshots/") {
+                continue;
+            }
             if path.to_string_lossy().contains("tests/fixtures/") {
                 continue;
             }

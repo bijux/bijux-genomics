@@ -7,6 +7,7 @@ pub fn repo_root() -> PathBuf {
     root.to_path_buf()
 }
 
+#[allow(dead_code)]
 pub fn artifact_output_dir(prefix: &str) -> anyhow::Result<tempfile::TempDir> {
     let root = repo_root();
     let run_root = root.join("artifacts/domain-compiler-test-runs");

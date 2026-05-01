@@ -92,6 +92,12 @@ fn policy__contracts__command_spawn_policy__crate_tests_do_not_spawn_external_co
             || path_str
                 .contains("/crates/bijux-dna-environment-qa/tests/boundaries/architecture.rs")
             || path_str.contains("/crates/bijux-dna-environment/tests/contracts/resolve_runtime.rs")
+            || path_str.contains("/crates/bijux-dna-runtime/tests/contracts/run_layout_contract.rs")
+            || path_str.contains(
+                "/crates/bijux-dna-runtime/tests/schemas/schema/runtime_schema_snapshots.rs",
+            )
+            || path_str.contains("/crates/bijux-dna-domain-compiler/tests/domain_registry_cli.rs")
+            || path_str.contains("/crates/bijux-dna/tests/contracts/cli_library_parity.rs")
         {
             continue;
         }

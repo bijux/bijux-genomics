@@ -12,6 +12,8 @@ These rules define safe changes for `bijux-dna-api`.
 - Add new schema snapshots for new response types.
 - Strengthen validation when valid existing requests keep the same response
   shape or receive clearer errors.
+- Add governed workflow/plan manifest fields when they are documented, tested,
+  and emitted deterministically.
 
 ## Breaking Changes
 

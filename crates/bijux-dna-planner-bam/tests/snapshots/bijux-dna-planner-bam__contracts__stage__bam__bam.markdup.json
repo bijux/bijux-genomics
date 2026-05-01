@@ -1,5 +1,6 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": [
       "/bin/sh",
@@ -76,6 +77,7 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
@@ -83,10 +85,28 @@
     "optical_duplicates": "mark_only",
     "umi_policy": "ignore"
   },
+  "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "1e2bc9fd42f378c8e6b41e06f9645fa9ebe52cadd5bcb4fbe13e0320b68d43e3",
-      "defaults_diff": {}
+      "contract_hash": "3db0f04455f321d56d2011a745c4449b8f14dcc5de73e752704b69cbc5c75a76",
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 4,
+        "disk_gb": 8,
+        "input_bytes": 0,
+        "input_origin": "real",
+        "input_scale": "tiny",
+        "io_profile": "io_heavy_coordinate_streaming",
+        "memory_gb": 4,
+        "notes": [
+          "duplicate marking scales with coordinate-sorted temporary shards"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 6,
+        "stage_id": "bam.markdup",
+        "walltime_minutes": 18
+      }
     },
     "kind": "default",
     "summary": "tool samtools selected by planner"

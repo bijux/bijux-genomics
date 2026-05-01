@@ -1,0 +1,9 @@
+suite_id = "bench-fastq-essential-qc-01"
+domain = "fastq"
+stages = [
+  "fastq.validate_reads",
+  "fastq.detect_adapters",
+  "fastq.trim_reads",
+  "fastq.profile_reads",
+  "fastq.report_qc",
+]

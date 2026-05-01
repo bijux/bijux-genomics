@@ -35,6 +35,7 @@ fn crate_tree_matches_domain_compiler_boundary() {
     assert_eq!(dir_entries(&root.join("src")), expected_src, "source tree changed");
 
     let expected_compiler: BTreeSet<_> = [
+        "bundle.rs",
         "compile.rs",
         "coverage.rs",
         "loading/",
@@ -87,9 +88,12 @@ fn crate_tree_matches_domain_compiler_boundary() {
     let expected_validation: BTreeSet<_> = [
         "catalog_coverage.rs",
         "catalog_validation.rs",
+        "deprecations.rs",
+        "fixture_consistency.rs",
         "index_rules/",
         "mod.rs",
         "stage_files.rs",
+        "strict_stage_schemas.rs",
         "tool_files.rs",
     ]
     .into_iter()

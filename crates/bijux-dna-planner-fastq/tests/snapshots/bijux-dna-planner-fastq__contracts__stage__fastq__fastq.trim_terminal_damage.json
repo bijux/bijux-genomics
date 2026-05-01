@@ -85,7 +85,10 @@
     "trim_3p_bases": 2,
     "trim_5p_bases": 2
   },
+  "operating_mode": "enforced",
   "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
   "reason": {
     "kind": "default",
     "summary": "damage-aware terminal trimming",

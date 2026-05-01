@@ -85,6 +85,16 @@ fn profile_param_kind(params: &DefaultParams) -> &'static str {
         DefaultParams::FastqPreprocess(_) => "fastq.preprocess",
         DefaultParams::FastqMerge(_) => "fastq.merge_pairs",
         DefaultParams::FastqScreen(_) => "fastq.screen_taxonomy",
+        DefaultParams::FastqHostDepletion(_) => "fastq.deplete_host",
+        DefaultParams::FastqReferenceContaminantDepletion(_) => {
+            "fastq.deplete_reference_contaminants"
+        }
+        DefaultParams::FastqRrna(_) => "fastq.deplete_rrna",
+        DefaultParams::FastqPrimerNormalization(_) => "fastq.normalize_primers",
+        DefaultParams::FastqChimeraDetection(_) => "fastq.remove_chimeras",
+        DefaultParams::FastqAsvInference(_) => "fastq.infer_asvs",
+        DefaultParams::FastqOtuClustering(_) => "fastq.cluster_otus",
+        DefaultParams::FastqAbundanceNormalization(_) => "fastq.normalize_abundance",
         DefaultParams::Bam(_) => "bam.effective",
         DefaultParams::Vcf(_) => "vcf.effective",
         DefaultParams::Empty(_) => "paramless",
@@ -166,6 +176,14 @@ fn supported_stages_do_not_use_wrong_param_kind() {
                 assert!(
                     matches!(params, DefaultParams::Bam(_)),
                     "profile {} stage {} must use BAM param kind, got {}",
+                    profile.id,
+                    stage,
+                    actual_kind
+                );
+            } else if stage.starts_with("vcf.") {
+                assert!(
+                    matches!(params, DefaultParams::Vcf(_)),
+                    "profile {} stage {} must use VCF param kind, got {}",
                     profile.id,
                     stage,
                     actual_kind

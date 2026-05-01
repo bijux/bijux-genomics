@@ -1,13 +1,18 @@
-use anyhow::{anyhow, bail, Result};
+use std::path::{Path, PathBuf};
+
+use anyhow::{anyhow, bail, Context, Result};
 
 use crate::resolution::validate_sha256;
 use crate::runtime_config::{
-    load_toml, workspace_root, BundlesConfig, GeneticMapBankConfig, OrganellarPolicyConfig,
-    ReferenceBankConfig, ReferenceSetConfig,
+    load_toml, workspace_root, AssetHydrationConfig, AssetLocksConfig, BundlesConfig,
+    GeneticMapBankConfig, OrganellarPolicyConfig, ReferenceBankConfig, ReferenceSetConfig,
 };
 use crate::{
-    BundleEntry, ContigNormalizationPolicy, GeneticMapBankEntry, OrganellarPolicy,
-    ReferenceBankEntry, ReferenceBundle, ReferenceProvenance, ReferenceSet,
+    BundleEntry, ContaminantDbMaterializationReport, ContigNormalizationPolicy,
+    GeneticMapBankEntry, MaterializedDbBundle, MaterializedIndexArtifact, OrganellarPolicy,
+    ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport, ReferenceIndexQaReport,
+    ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
+    TaxonomyDbMaterializationReport, VcfPanelMaterializationReport,
 };
 
 /// # Errors
@@ -162,6 +167,320 @@ pub fn reference_provenance(
     }
 }
 
+/// # Errors
+/// Returns an error if reference contracts are invalid or offline materialization is disallowed.
+pub fn materialize_reference_bank(
+    species: &str,
+    build: &str,
+    materialization_root: &Path,
+    offline: bool,
+    allow_fixture_materialization: bool,
+) -> Result<ReferenceMaterializationReport> {
+    let bank = resolve_reference_bank(species, build)?;
+    let bundle = resolve_reference_bundle(species, build)?;
+    if offline && !allow_fixture_materialization {
+        bail!(
+            "offline materialization refused for {species}:{build}; enable fixture materialization explicitly"
+        );
+    }
+    if bank.required_indexes.is_empty() {
+        bail!("reference bank entry for {species}:{build} must declare required indexes");
+    }
+
+    let root = materialization_root.join(species).join(build).join("refs");
+    let raw = root.join("raw");
+    let normalized = root.join("normalized");
+    let derived = root.join("derived");
+    for dir in [&raw, &normalized, &derived] {
+        std::fs::create_dir_all(dir).with_context(|| format!("create {}", dir.display()))?;
+    }
+
+    let fasta = raw.join("reference.fa");
+    let fasta_contents = format!(
+        ">synthetic_reference|species={species}|build={build}|mode=fixture\nACGTACGTACGTACGT\n"
+    );
+    std::fs::write(&fasta, fasta_contents.as_bytes())
+        .with_context(|| format!("write {}", fasta.display()))?;
+
+    let mut index_artifacts = Vec::new();
+    for required in &bank.required_indexes {
+        let artifact = write_index_artifact(required, &fasta, &normalized)?;
+        index_artifacts.push(artifact);
+    }
+    let dict_path = normalized.join("reference.dict");
+    std::fs::write(&dict_path, format!("@HD\tVN:1.0\n@SQ\tSN:{}\tLN:16\n", bundle.contigs[0]))
+        .with_context(|| format!("write {}", dict_path.display()))?;
+    index_artifacts.push(MaterializedIndexArtifact {
+        tool_id: "samtools_dict".to_string(),
+        path: dict_path,
+        status: "fixture".to_string(),
+    });
+
+    Ok(ReferenceMaterializationReport {
+        schema_version: "bijux.reference_materialization.v1".to_string(),
+        species_id: species.to_string(),
+        build_id: build.to_string(),
+        source_url: bank.fasta_url,
+        declared_sha256: bank.fasta_sha256,
+        license_id: bank.license_id,
+        license_url: bank.license_url,
+        materialization_root: root,
+        mode: if offline { "offline_fixture" } else { "online_fixture" }.to_string(),
+        bundle_id: bundle.bundle_id,
+        index_artifacts,
+    })
+}
+
+/// # Errors
+/// Returns an error if any bundle, alias, panel, map, or compatibility contract fails.
+pub fn resolve_reference_bundle_contract(
+    species: &str,
+    build: &str,
+    panel_id: Option<&str>,
+    map_id: Option<&str>,
+    compatibility_tool: Option<&str>,
+) -> Result<ReferenceBundleResolverReport> {
+    let bundle = resolve_reference_bundle(species, build)?;
+    let contig_map = crate::resolution::resolve_contig_map(species, build)?;
+    let map_bank = resolve_genetic_map_bank(species, build, panel_id).ok();
+
+    let resolved_panel = panel_id
+        .map(|id| crate::resolution::resolve_panel(species, build, Some(id)))
+        .transpose()?;
+    let resolved_map =
+        map_id.map(|id| crate::resolution::resolve_map(species, build, Some(id))).transpose()?;
+
+    if let Some(tool) = compatibility_tool {
+        let Some(panel) = resolved_panel.as_ref() else {
+            bail!("compatibility check for {tool} requires a resolved panel");
+        };
+        let Some(map) = resolved_map.as_ref() else {
+            bail!("compatibility check for {tool} requires a resolved map");
+        };
+        crate::resolution::validate_imputation_tool_compatibility(tool, panel, map)?;
+    }
+
+    Ok(ReferenceBundleResolverReport {
+        schema_version: "bijux.reference_bundle_resolver.v1".to_string(),
+        species_id: species.to_string(),
+        build_id: build.to_string(),
+        bundle_id: bundle.bundle_id,
+        contig_aliases: contig_map.aliases,
+        panel_id: resolved_panel.as_ref().map(|entry| entry.id.clone()),
+        map_id: resolved_map.as_ref().map(|entry| entry.id.clone()),
+        map_bank_id: map_bank.map(|entry| entry.id),
+        compatibility_checked_tool: compatibility_tool.map(ToString::to_string),
+    })
+}
+
+/// # Errors
+/// Returns an error if tiny reference index fixtures cannot be materialized or verified.
+pub fn validate_reference_index_qa(
+    species: &str,
+    build: &str,
+    materialization_root: &Path,
+) -> Result<ReferenceIndexQaReport> {
+    let report = materialize_reference_bank(species, build, materialization_root, true, true)?;
+    let normalized = report.materialization_root.join("normalized");
+    let derived = report.materialization_root.join("derived");
+    std::fs::create_dir_all(&derived).with_context(|| format!("create {}", derived.display()))?;
+
+    let vcf = derived.join("tiny_variants.vcf.gz");
+    let tbi = derived.join("tiny_variants.vcf.gz.tbi");
+    std::fs::write(
+        &vcf,
+        b"##fileformat=VCFv4.3\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\n1\t1\t.\tA\tG\t.\tPASS\t.\n",
+    )
+    .with_context(|| format!("write {}", vcf.display()))?;
+    std::fs::write(&tbi, b"synthetic-tabix-index\n")
+        .with_context(|| format!("write {}", tbi.display()))?;
+
+    let expected_paths = [
+        normalized.join("reference.fa.fai"),
+        normalized.join("reference.fa.bwt"),
+        normalized.join("reference.fa.1.bt2"),
+        normalized.join("reference.dict"),
+        vcf,
+        tbi,
+    ];
+    let mut verified = Vec::new();
+    for path in expected_paths {
+        if !path.is_file() {
+            bail!("index QA missing required artifact {}", path.display());
+        }
+        verified.push(path.display().to_string());
+    }
+
+    Ok(ReferenceIndexQaReport {
+        schema_version: "bijux.reference_index_qa.v1".to_string(),
+        species_id: species.to_string(),
+        build_id: build.to_string(),
+        materialization_root: report.materialization_root,
+        verified_artifacts: verified,
+    })
+}
+
+/// # Errors
+/// Returns an error if panel/map catalogs or locks cannot be materialized for VCF workflows.
+pub fn materialize_vcf_panel_assets(
+    species: &str,
+    build: &str,
+    panel_id: Option<&str>,
+    map_id: Option<&str>,
+    materialization_root: &Path,
+) -> Result<VcfPanelMaterializationReport> {
+    let panel = crate::resolution::resolve_panel(species, build, panel_id)?;
+    let map = crate::resolution::resolve_map(species, build, map_id)?;
+    let panel_lock = crate::resolution::resolve_panel_lock(&panel)?;
+    let map_lock = crate::resolution::resolve_map_lock(&map)?;
+    crate::resolution::validate_imputation_tool_compatibility("glimpse", &panel, &map)?;
+
+    let root = materialization_root.join(species).join(build).join("vcf-assets");
+    let panel_root = root.join("panels").join(&panel.id);
+    let map_root = root.join("maps").join(&map.id);
+    std::fs::create_dir_all(&panel_root)
+        .with_context(|| format!("create {}", panel_root.display()))?;
+    std::fs::create_dir_all(&map_root).with_context(|| format!("create {}", map_root.display()))?;
+
+    let mut materialized = Vec::new();
+    for file in &panel_lock.files {
+        let target = panel_root.join(&file.path);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent)
+                .with_context(|| format!("create {}", parent.display()))?;
+        }
+        std::fs::write(&target, format!("synthetic panel asset {}\n", file.name))
+            .with_context(|| format!("write {}", target.display()))?;
+        materialized.push(target.display().to_string());
+    }
+    for file in &map_lock.files {
+        let target = map_root.join(&file.path);
+        if let Some(parent) = target.parent() {
+            std::fs::create_dir_all(parent)
+                .with_context(|| format!("create {}", parent.display()))?;
+        }
+        std::fs::write(&target, format!("synthetic map asset {}\n", file.name))
+            .with_context(|| format!("write {}", target.display()))?;
+        materialized.push(target.display().to_string());
+    }
+
+    Ok(VcfPanelMaterializationReport {
+        schema_version: "bijux.vcf_panel_materialization.v1".to_string(),
+        species_id: species.to_string(),
+        build_id: build.to_string(),
+        panel_id: panel.id,
+        map_id: map.id,
+        materialization_root: root,
+        compatible_tool_tags: panel.compatibility.tool_tags,
+        materialized_files: materialized,
+    })
+}
+
+/// # Errors
+/// Returns an error if contaminant/host/rRNA asset bundles or lock families are invalid.
+pub fn materialize_contaminant_databases(
+    materialization_root: &Path,
+) -> Result<ContaminantDbMaterializationReport> {
+    let hydration_path = workspace_root().join("configs/runtime/asset_hydration.toml");
+    let locks_path = workspace_root().join("configs/runtime/asset_locks.toml");
+    let hydration: AssetHydrationConfig = load_toml(&hydration_path)?;
+    let locks: AssetLocksConfig = load_toml(&locks_path)?;
+
+    let selected =
+        ["human_host_depletion_grch38", "rrna_depletion_common", "common_lab_contaminants"];
+    let mut bundles = Vec::new();
+    for id in selected {
+        let bundle = hydration
+            .asset_bundle
+            .iter()
+            .find(|entry| entry.id == id)
+            .ok_or_else(|| anyhow!("asset hydration bundle missing for {id}"))?;
+        let lock = locks
+            .lock_family
+            .iter()
+            .find(|entry| entry.id == bundle.lock_family)
+            .ok_or_else(|| anyhow!("asset lock family missing for {}", bundle.lock_family))?;
+        if lock.required_fields.is_empty() {
+            bail!("asset lock family {} must declare required_fields", lock.id);
+        }
+        if bundle.stage_ids.is_empty() {
+            bail!("asset bundle {} must declare stage_ids", bundle.id);
+        }
+        let db_dir = materialization_root.join(&bundle.id);
+        std::fs::create_dir_all(&db_dir).with_context(|| format!("create {}", db_dir.display()))?;
+        let db_path = db_dir.join("database.locked.txt");
+        std::fs::write(
+            &db_path,
+            format!(
+                "bundle_id={}\nlock_family={}\nmaterialization_root={}\noffline_source={}\n",
+                bundle.id,
+                bundle.lock_family,
+                bundle.materialization_root,
+                bundle.offline_replay_source
+            ),
+        )
+        .with_context(|| format!("write {}", db_path.display()))?;
+        bundles.push(MaterializedDbBundle {
+            bundle_id: bundle.id.clone(),
+            lock_family: bundle.lock_family.clone(),
+            db_path,
+            required_fields: lock.required_fields.clone(),
+        });
+    }
+
+    Ok(ContaminantDbMaterializationReport {
+        schema_version: "bijux.contaminant_db_materialization.v1".to_string(),
+        materialization_root: materialization_root.to_path_buf(),
+        bundles,
+    })
+}
+
+/// # Errors
+/// Returns an error if the taxonomy bundle or lock family contract cannot be materialized.
+pub fn materialize_taxonomy_database(
+    materialization_root: &Path,
+) -> Result<TaxonomyDbMaterializationReport> {
+    let hydration_path = workspace_root().join("configs/runtime/asset_hydration.toml");
+    let locks_path = workspace_root().join("configs/runtime/asset_locks.toml");
+    let hydration: AssetHydrationConfig = load_toml(&hydration_path)?;
+    let locks: AssetLocksConfig = load_toml(&locks_path)?;
+    let bundle = hydration
+        .asset_bundle
+        .iter()
+        .find(|entry| entry.id == "shotgun_taxonomy_triage")
+        .ok_or_else(|| anyhow!("asset hydration bundle missing for shotgun_taxonomy_triage"))?;
+    let lock = locks
+        .lock_family
+        .iter()
+        .find(|entry| entry.id == bundle.lock_family)
+        .ok_or_else(|| anyhow!("taxonomy lock family missing for {}", bundle.lock_family))?;
+    if !lock.id.contains("database") {
+        bail!("taxonomy lock family {} must be a database family", lock.id);
+    }
+    if lock.required_fields.is_empty() {
+        bail!("taxonomy lock family {} must declare required_fields", lock.id);
+    }
+    let db_dir = materialization_root.join(&bundle.id);
+    std::fs::create_dir_all(&db_dir).with_context(|| format!("create {}", db_dir.display()))?;
+    let db_path = db_dir.join("taxonomy.db.locked.txt");
+    std::fs::write(
+        &db_path,
+        format!(
+            "bundle_id={}\nlock_family={}\nadvisory_only=true\noffline_source={}\n",
+            bundle.id, lock.id, bundle.offline_replay_source
+        ),
+    )
+    .with_context(|| format!("write {}", db_path.display()))?;
+    Ok(TaxonomyDbMaterializationReport {
+        schema_version: "bijux.taxonomy_db_materialization.v1".to_string(),
+        bundle_id: bundle.id.clone(),
+        lock_family: lock.id.clone(),
+        db_path,
+        required_fields: lock.required_fields.clone(),
+        advisory_only: true,
+    })
+}
+
 pub(crate) fn resolve_bundle_entry(species: &str, build: &str) -> Result<BundleEntry> {
     let path = workspace_root().join("configs/runtime/reference_bundles.toml");
     let cfg: BundlesConfig = load_toml(&path)?;
@@ -196,11 +515,48 @@ fn validate_bundle_contigs(bundle: &BundleEntry) -> Result<()> {
     Ok(())
 }
 
+fn write_index_artifact(
+    required: &str,
+    fasta: &Path,
+    normalized: &Path,
+) -> Result<MaterializedIndexArtifact> {
+    let (tool_id, target, payload): (&str, PathBuf, String) = match required {
+        "samtools_faidx" => (
+            "samtools_faidx",
+            normalized.join("reference.fa.fai"),
+            "synthetic_reference\t16\t0\t16\t17\n".to_string(),
+        ),
+        "bwa_index" => {
+            ("bwa_index", normalized.join("reference.fa.bwt"), "synthetic-bwa-index\n".to_string())
+        }
+        "bowtie2_index" => (
+            "bowtie2_index",
+            normalized.join("reference.fa.1.bt2"),
+            "synthetic-bowtie2-index\n".to_string(),
+        ),
+        other => bail!("unsupported required index tool: {other}"),
+    };
+    let header = format!("# source={}\n", fasta.display());
+    std::fs::write(&target, format!("{header}{payload}").as_bytes())
+        .with_context(|| format!("write {}", target.display()))?;
+    Ok(MaterializedIndexArtifact {
+        tool_id: tool_id.to_string(),
+        path: target,
+        status: "fixture".to_string(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{validate_bundle_contigs, validate_bundle_digests};
+    use super::{
+        materialize_contaminant_databases, materialize_reference_bank,
+        materialize_taxonomy_database, materialize_vcf_panel_assets,
+        resolve_reference_bundle_contract, validate_bundle_contigs, validate_bundle_digests,
+        validate_reference_index_qa,
+    };
     use crate::runtime_config::{BundleEntry, ContigEntry, SupportedFeatureEntry};
     use std::collections::BTreeMap;
+    use std::path::PathBuf;
 
     #[test]
     fn validate_bundle_digests_rejects_invalid_contig_set_digest() {
@@ -292,5 +648,120 @@ mod tests {
 
         assert_eq!(provenance.species_id, bundle.species_id);
         assert_eq!(provenance.build_id, bundle.build_id);
+    }
+
+    #[test]
+    fn reference_materialization_offline_refusal_requires_fixture_opt_in() {
+        let temp = make_temp_dir("offline-refusal");
+        let Err(error) = materialize_reference_bank("Homo sapiens", "GRCh38", &temp, true, false)
+        else {
+            panic!("offline materialization without fixture opt-in must fail");
+        };
+
+        assert!(error.to_string().contains("offline materialization refused"));
+    }
+
+    #[test]
+    fn reference_materialization_writes_fixture_indexes() {
+        let temp = make_temp_dir("reference-indexes");
+        let report = materialize_reference_bank("Homo sapiens", "GRCh38", &temp, true, true)
+            .unwrap_or_else(|error| panic!("materialize reference bank: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.reference_materialization.v1");
+        assert_eq!(report.mode, "offline_fixture");
+        assert!(report.index_artifacts.iter().any(|artifact| artifact.tool_id == "samtools_faidx"));
+        assert!(report.index_artifacts.iter().all(|artifact| artifact.path.exists()));
+    }
+
+    #[test]
+    fn reference_bundle_contract_resolves_aliases_and_optional_compatibility() {
+        let report = resolve_reference_bundle_contract(
+            "Homo sapiens",
+            "GRCh38",
+            Some("hsapiens_grch38_mini"),
+            Some("hsapiens_grch38_chr_map"),
+            Some("glimpse"),
+        )
+        .unwrap_or_else(|error| panic!("resolve reference bundle contract: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.reference_bundle_resolver.v1");
+        assert_eq!(report.panel_id.as_deref(), Some("hsapiens_grch38_mini"));
+        assert_eq!(report.map_id.as_deref(), Some("hsapiens_grch38_chr_map"));
+        assert!(report.contig_aliases.contains_key("chr1"));
+    }
+
+    #[test]
+    fn reference_bundle_contract_rejects_tool_check_without_panel_and_map() {
+        let Err(error) = resolve_reference_bundle_contract(
+            "Homo sapiens",
+            "GRCh38",
+            None,
+            None,
+            Some("glimpse"),
+        ) else {
+            panic!("tool compatibility without panel/map must fail");
+        };
+
+        assert!(error.to_string().contains("requires a resolved panel"));
+    }
+
+    #[test]
+    fn reference_index_qa_materializes_and_verifies_expected_indexes() {
+        let temp = make_temp_dir("reference-index-qa");
+        let report = validate_reference_index_qa("Homo sapiens", "GRCh38", &temp)
+            .unwrap_or_else(|error| panic!("validate reference index qa: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.reference_index_qa.v1");
+        assert_eq!(report.verified_artifacts.len(), 6);
+    }
+
+    #[test]
+    fn vcf_panel_materialization_emits_panel_and_map_assets() {
+        let temp = make_temp_dir("vcf-panel-materialization");
+        let report = materialize_vcf_panel_assets(
+            "Homo sapiens",
+            "GRCh38",
+            Some("hsapiens_grch38_mini"),
+            Some("hsapiens_grch38_chr_map"),
+            &temp,
+        )
+        .unwrap_or_else(|error| panic!("materialize vcf panel assets: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.vcf_panel_materialization.v1");
+        assert_eq!(report.panel_id, "hsapiens_grch38_mini");
+        assert_eq!(report.map_id, "hsapiens_grch38_chr_map");
+        assert!(!report.materialized_files.is_empty());
+    }
+
+    #[test]
+    fn contaminant_db_materialization_builds_host_rrna_and_contaminant_bundles() {
+        let temp = make_temp_dir("contaminant-db-materialization");
+        let report = materialize_contaminant_databases(&temp)
+            .unwrap_or_else(|error| panic!("materialize contaminant databases: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.contaminant_db_materialization.v1");
+        assert_eq!(report.bundles.len(), 3);
+        assert!(report.bundles.iter().all(|bundle| bundle.db_path.exists()));
+    }
+
+    #[test]
+    fn taxonomy_db_materialization_marks_outputs_advisory_only() {
+        let temp = make_temp_dir("taxonomy-db-materialization");
+        let report = materialize_taxonomy_database(&temp)
+            .unwrap_or_else(|error| panic!("materialize taxonomy database: {error}"));
+
+        assert_eq!(report.schema_version, "bijux.taxonomy_db_materialization.v1");
+        assert!(report.advisory_only);
+        assert!(report.db_path.exists());
+    }
+
+    fn make_temp_dir(label: &str) -> PathBuf {
+        static COUNTER: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let mut path = std::env::temp_dir();
+        let seq = COUNTER.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        path.push(format!("bijux-db-ref-{label}-{}-{seq}", std::process::id()));
+        std::fs::create_dir_all(&path)
+            .unwrap_or_else(|error| panic!("create temp dir {}: {error}", path.display()));
+        path
     }
 }

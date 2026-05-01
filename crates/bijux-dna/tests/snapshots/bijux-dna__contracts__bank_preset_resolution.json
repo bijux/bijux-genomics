@@ -1,16 +1,16 @@
 {
   "adapter_default": {
-    "bank_hash": "5fda59bb9e609e1ae67d19e8391e9dbf68bd0ff36cff4b5743cc86fef6ef3a83",
+    "bank_hash": "b816578c563b4c9e1015b3066c659775322c419a840b2753328a1c006b75227a",
     "expected_default": "illumina-default",
     "preset": "illumina-default",
     "preset_hash": "34db6679f6ebfdd8b98de11ad3517d4bd009ab4c34cc36c652b085ee2f766103",
-    "presets_hash": "d97ce9f5b1071556f76a7472ef8f0a7e62ddc1f771f2fb962192523973f8121e"
+    "presets_hash": "b163e7372fb993f5a57cd62e66a3040f3f60a083e9d7de8f8a3976e57c0f46e7"
   },
   "adapter_override": {
-    "bank_hash": "5fda59bb9e609e1ae67d19e8391e9dbf68bd0ff36cff4b5743cc86fef6ef3a83",
+    "bank_hash": "b816578c563b4c9e1015b3066c659775322c419a840b2753328a1c006b75227a",
     "preset": "nextera",
     "preset_hash": "d984d48376ec978f07c7b145fcaabc5753bc25b4030a05f27c3a8c81582eddde",
-    "presets_hash": "d97ce9f5b1071556f76a7472ef8f0a7e62ddc1f771f2fb962192523973f8121e"
+    "presets_hash": "b163e7372fb993f5a57cd62e66a3040f3f60a083e9d7de8f8a3976e57c0f46e7"
   },
   "contaminant_default": {
     "bank_hash": "1aaf67a37b558def20495db6cda8e30a6c60424ab9827bc21f41340b750af2fd",

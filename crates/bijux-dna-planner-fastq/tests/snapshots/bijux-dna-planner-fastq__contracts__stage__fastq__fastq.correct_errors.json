@@ -88,7 +88,10 @@
     "threads": 1,
     "trusted_kmer_artifact": null
   },
+  "operating_mode": "enforced",
   "aux_images": {},
+  "canonical_contract": null,
+  "provenance": null,
   "reason": {
     "kind": "default",
     "summary": "planner default",

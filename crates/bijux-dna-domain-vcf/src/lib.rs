@@ -1,15 +1,42 @@
 //! VCF domain primitives: stage IDs, typed params, metrics, and registry materialization.
 
+pub mod artifacts;
 pub mod contracts;
 pub mod coverage;
 pub mod metrics;
 pub mod params;
 pub mod registry_emit;
+pub mod run;
 pub mod stage_baseline;
 pub mod taxonomy;
 
+pub use artifacts::{
+    build_vcf_scientific_drift_report, evaluate_diploid_calling_boundary,
+    evaluate_genotype_likelihood_workflow_boundary, evaluate_phasing_workflow_boundary,
+    evaluate_pseudohaploid_calling_boundary, execute_damage_aware_vcf_filter,
+    execute_vcf_filter_with_explainable_consequences, execute_vcf_normalization_and_decomposition,
+    execute_vcf_stats_workflow, execute_vcf_validation, resolve_vcf_reference_context,
+    VcfCallingBoundaryV1, VcfDamageFilterSummaryV1, VcfFilterConsequenceV1,
+    VcfLikelihoodWorkflowBoundaryV1, VcfNormalizationSummaryV1, VcfPhasingWorkflowBoundaryV1,
+    VcfReferenceContextResolutionV1, VcfScientificDriftArtifactDeltaV1,
+    VcfScientificDriftChangeKind, VcfScientificDriftMetricDeltaV1, VcfScientificDriftReportV1,
+    VcfScientificDriftSnapshotV1, VcfStatsWorkflowSummaryV1, VcfValidationSummaryV1,
+    VCF_DAMAGE_FILTER_SUMMARY_SCHEMA_VERSION, VCF_DIPLOID_CALLING_BOUNDARY_SCHEMA_VERSION,
+    VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION, VCF_GL_WORKFLOW_BOUNDARY_SCHEMA_VERSION,
+    VCF_NORMALIZATION_SUMMARY_SCHEMA_VERSION, VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION,
+    VCF_PSEUDOHAPLOID_CALLING_BOUNDARY_SCHEMA_VERSION, VCF_REFERENCE_CONTEXT_SCHEMA_VERSION,
+    VCF_SCIENTIFIC_DRIFT_REPORT_SCHEMA_VERSION, VCF_STATS_WORKFLOW_SCHEMA_VERSION,
+    VCF_VALIDATION_SUMMARY_SCHEMA_VERSION,
+};
 pub use metrics::{VcfCallSummaryMetricsV1, VcfFilterBreakdownMetricsV1, VcfStatsMetricsV1};
 pub use registry_emit::{param_registry_toml, required_tools_toml};
+pub use run::{
+    required_vcf_bench_corpus_scenarios, vcf_bench_corpus_datasets, vcf_bench_corpus_manifest,
+    vcf_example_suite_manifest, VcfBenchCorpusDatasetManifestEntryV1, VcfBenchCorpusId,
+    VcfBenchCorpusManifestV1, VcfBenchDataset, VcfBenchScenario, VcfExampleCaseId,
+    VcfExampleCaseManifestEntryV1, VcfExampleSuiteManifestV1,
+    VCF_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION, VCF_EXAMPLE_SUITE_SCHEMA_VERSION,
+};
 pub use stage_baseline::{
     VcfInvariantsPreset, VcfStage, STAGE_CALL, STAGE_FILTER_READS, STAGE_PREFIX, STAGE_STATS,
 };

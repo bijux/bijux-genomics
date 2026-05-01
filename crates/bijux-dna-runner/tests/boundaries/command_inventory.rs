@@ -28,6 +28,7 @@ fn command_inventory_documents_runner_backend_commands() {
     assert_eq!(
         documented_commands(&content),
         entries([
+            "LocalRunner",
             "docker run",
             "apptainer exec",
             "execute_observer_command",
@@ -57,7 +58,8 @@ fn documented_commands(content: &str) -> BTreeSet<String> {
         .filter(|segment| {
             matches!(
                 *segment,
-                "docker run"
+                "LocalRunner"
+                    | "docker run"
                     | "apptainer exec"
                     | "execute_observer_command"
                     | "run_command"

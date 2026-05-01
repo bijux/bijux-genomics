@@ -31,6 +31,7 @@ fn crate_tree_matches_domain_vcf_boundary() {
     assert_eq!(docs_entries, expected_docs, "domain-vcf docs spine must stay explicit");
 
     let expected_src: BTreeSet<_> = [
+        "artifacts.rs",
         "contracts/",
         "contracts.rs",
         "coverage.rs",
@@ -38,6 +39,7 @@ fn crate_tree_matches_domain_vcf_boundary() {
         "metrics.rs",
         "params/",
         "registry_emit.rs",
+        "run.rs",
         "stage_baseline.rs",
         "taxonomy/",
         "taxonomy.rs",
@@ -47,11 +49,17 @@ fn crate_tree_matches_domain_vcf_boundary() {
     .collect();
     assert_eq!(dir_entries(&root.join("src")), expected_src, "source tree changed");
 
-    let expected_tests: BTreeSet<_> =
-        ["boundaries/", "boundaries.rs", "contracts.rs", "guardrails.rs", "public_api_docs.rs"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_tests: BTreeSet<_> = [
+        "boundaries/",
+        "boundaries.rs",
+        "contracts.rs",
+        "guardrails.rs",
+        "public_api_docs.rs",
+        "snapshots/",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(dir_entries(&root.join("tests")), expected_tests, "test tree changed");
 }
 

@@ -1,6 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use super::PrepareAdapterBankReportV1;
 use crate::params::PairedMode;
 
 pub const TRIM_READS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.trim_reads.report.v2";
@@ -14,6 +15,8 @@ pub struct TrimReadsReportV1 {
     pub tool_id: String,
     pub paired_mode: PairedMode,
     pub threads: u32,
+    pub trimming_backend: String,
+    pub backend_mode: String,
     pub input_r1: String,
     pub input_r2: Option<String>,
     pub output_r1: String,
@@ -27,7 +30,9 @@ pub struct TrimReadsReportV1 {
     pub adapter_bank_id: Option<String>,
     pub adapter_bank_hash: Option<String>,
     pub adapter_preset: Option<String>,
+    pub detected_adapter_source: Option<String>,
     pub adapter_overrides: Option<serde_json::Value>,
+    pub prepared_adapter_bank: Option<PrepareAdapterBankReportV1>,
     pub polyx_bank_id: Option<String>,
     pub polyx_bank_hash: Option<String>,
     pub polyx_preset: Option<String>,
@@ -42,6 +47,7 @@ pub struct TrimReadsReportV1 {
     pub pairs_out: Option<u64>,
     pub mean_q_before: Option<f64>,
     pub mean_q_after: Option<f64>,
+    pub effective_trim_params: serde_json::Value,
     pub runtime_s: Option<f64>,
     pub memory_mb: Option<f64>,
     pub raw_backend_report: Option<String>,
@@ -50,7 +56,7 @@ pub struct TrimReadsReportV1 {
 
 #[cfg(test)]
 mod tests {
-    use super::{TrimReadsReportV1, TRIM_READS_REPORT_SCHEMA_VERSION};
+    use super::{PrepareAdapterBankReportV1, TrimReadsReportV1, TRIM_READS_REPORT_SCHEMA_VERSION};
     use crate::params::PairedMode;
 
     #[test]
@@ -62,6 +68,8 @@ mod tests {
             tool_id: "fastp".to_string(),
             paired_mode: PairedMode::PairedEnd,
             threads: 4,
+            trimming_backend: "fastp".to_string(),
+            backend_mode: "enforced".to_string(),
             input_r1: "reads_R1.fastq.gz".to_string(),
             input_r2: Some("reads_R2.fastq.gz".to_string()),
             output_r1: "trimmed_R1.fastq.gz".to_string(),
@@ -75,10 +83,28 @@ mod tests {
             adapter_bank_id: Some("illumina".to_string()),
             adapter_bank_hash: Some("sha256:adapter".to_string()),
             adapter_preset: Some("default".to_string()),
+            detected_adapter_source: Some("fastqc_summary".to_string()),
             adapter_overrides: Some(serde_json::json!({
                 "enable": ["AGATCGGAAGAGC"],
                 "disable": ["polyA"],
             })),
+            prepared_adapter_bank: Some(PrepareAdapterBankReportV1 {
+                schema_version: "bijux.fastq.prepare_adapter_bank.report.v1".to_string(),
+                stage: "fastq.prepare_adapter_bank".to_string(),
+                stage_id: "fastq.prepare_adapter_bank".to_string(),
+                tool_id: "bijux".to_string(),
+                bank_id: "illumina".to_string(),
+                bank_version: "2026.04".to_string(),
+                bank_hash: "sha256:adapter".to_string(),
+                presets_hash: "sha256:presets".to_string(),
+                preset: "default".to_string(),
+                preset_hash: "sha256:preset".to_string(),
+                enabled_categories: vec!["illumina".to_string()],
+                disabled_categories: vec!["polyA".to_string()],
+                enable_adapters: vec!["AGATCGGAAGAGC".to_string()],
+                disable_adapters: vec!["polyA".to_string()],
+                enabled_adapter_ids: vec!["illumina_r1".to_string()],
+            }),
             polyx_bank_id: Some("polyx-bank".to_string()),
             polyx_bank_hash: Some("sha256:polyx".to_string()),
             polyx_preset: Some("illumina_twocolor".to_string()),
@@ -93,6 +119,11 @@ mod tests {
             pairs_out: Some(45),
             mean_q_before: Some(29.1),
             mean_q_after: Some(31.5),
+            effective_trim_params: serde_json::json!({
+                "min_length": 30,
+                "quality_cutoff": 20,
+                "adapter_policy": "bank",
+            }),
             runtime_s: Some(12.0),
             memory_mb: Some(256.0),
             raw_backend_report: Some("trim.fastp.json".to_string()),
@@ -106,6 +137,7 @@ mod tests {
         assert_eq!(decoded.tool_id, "fastp");
         assert_eq!(decoded.paired_mode, PairedMode::PairedEnd);
         assert_eq!(decoded.threads, 4);
+        assert_eq!(decoded.backend_mode, "enforced");
         assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("fastp_json"));
         assert_eq!(
             decoded.adapter_overrides,

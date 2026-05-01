@@ -65,6 +65,7 @@ fn assert_exports_layout(root: &Path) {
         entries([
             "OWNER.toml",
             "dashboard_facts.rs",
+            "evidence_bundle.rs",
             "facts_summary.rs",
             "facts_support/",
             "mod.rs",

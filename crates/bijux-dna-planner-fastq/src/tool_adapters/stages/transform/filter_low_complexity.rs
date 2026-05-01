@@ -145,6 +145,9 @@ pub fn plan_low_complexity(
             "polyx_threshold": options.polyx_threshold,
         }),
         aux_images: std::collections::BTreeMap::new(),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::Enforced,
+        canonical_contract: None,
+        provenance: None,
         reason: bijux_dna_stage_contract::PlanDecisionReason::default(),
     })
 }

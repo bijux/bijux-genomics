@@ -1,0 +1,1 @@
+{"container_runtime":"apptainer","kind":"hpc","scheduler":"slurm","scratch_layout_policy":"stage_scoped_scratch","submission_mode":"batch"}

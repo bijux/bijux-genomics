@@ -1,4 +1,30 @@
-#[allow(clippy::too_many_lines)]
+fn json_string(value: Option<&serde_json::Value>) -> Option<String> {
+    value.and_then(serde_json::Value::as_str).map(ToOwned::to_owned)
+}
+
+fn write_advisory_boundary(
+    stage_dir: &Path,
+    stage: bijux_dna_planner_bam::stage_api::BamStage,
+    scientific_scope: &str,
+    evidence_inputs: &[&str],
+    safe_for_claims: &[String],
+    unsafe_for_claims: &[String],
+) -> Result<()> {
+    let payload = bijux_dna_domain_bam::BamAdvisoryBoundaryV1 {
+        schema_version: bijux_dna_domain_bam::BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION.to_string(),
+        stage_id: stage.as_str().to_string(),
+        advisory_only: true,
+        scientific_scope: scientific_scope.to_string(),
+        evidence_inputs: evidence_inputs.iter().map(|value| (*value).to_string()).collect(),
+        safe_for_claims: safe_for_claims.to_vec(),
+        unsafe_for_claims: unsafe_for_claims.to_vec(),
+    };
+    let path = stage_dir.join("advisory_boundary.json");
+    bijux_dna_infra::atomic_write_json(&path, &payload)
+        .with_context(|| format!("write {}", path.display()))
+}
+
+#[allow(clippy::cast_precision_loss, clippy::too_many_lines)]
 fn stage_postprocess(
     stage: bijux_dna_planner_bam::stage_api::BamStage,
     stage_dir: &Path,
@@ -9,32 +35,73 @@ fn stage_postprocess(
             let depth_path = stage_dir.join("coverage.depth.txt");
             let mean_depth = parse_mean_depth_from_depth_file(&depth_path)?;
             let path = stage_dir.join("coverage.regime.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "has_mosdepth_summary": stage_dir.join("coverage.mosdepth.summary.txt").exists(),
-                    "has_samtools_depth": depth_path.exists(),
-                    "mean_depth": mean_depth,
-                    "coverage_regime": mean_depth.map(classify_mean_depth),
-                    "coverage_family": mean_depth.map(coverage_regime_family),
-                    "depth_thresholds": plan.params.get("depth_thresholds").cloned().unwrap_or_else(|| serde_json::json!([])),
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            let regime = mean_depth
+                .map(|value| bijux_dna_domain_bam::classify_bam_coverage_regime(value, 0.0));
+            let coverage_family = regime.as_ref().map(|entry| match entry.regime_class {
+                bijux_dna_domain_bam::BamCoverageRegimeClassV1::Unusable => "unusable",
+                bijux_dna_domain_bam::BamCoverageRegimeClassV1::Sparse => "sparse",
+                bijux_dna_domain_bam::BamCoverageRegimeClassV1::LowPass => "low_pass",
+                bijux_dna_domain_bam::BamCoverageRegimeClassV1::TargetLike => "target_like",
+                bijux_dna_domain_bam::BamCoverageRegimeClassV1::WholeGenomeLike => {
+                    "whole_genome_like"
+                }
+            });
+            let payload = bijux_dna_domain_bam::BamCoverageSummaryV1 {
+                schema_version: bijux_dna_domain_bam::BAM_COVERAGE_SUMMARY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                has_mosdepth_summary: stage_dir.join("coverage.mosdepth.summary.txt").exists(),
+                has_samtools_depth: depth_path.exists(),
+                mean_depth,
+                coverage_regime: regime.as_ref().map(|entry| entry.regime_id.clone()),
+                coverage_family: coverage_family.map(ToOwned::to_owned),
+                regime,
+                depth_thresholds: plan
+                    .params
+                    .get("depth_thresholds")
+                    .cloned()
+                    .map(serde_json::from_value)
+                    .transpose()?
+                    .unwrap_or_default(),
+            };
+            bijux_dna_infra::atomic_write_json(&path, &payload)
+                .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Validate => {
             validate_stage_hard_failures(stage_dir, plan)?;
             let flagstat = stage_dir.join("flagstat.txt");
             let summary = stage_dir.join("validation.summary.json");
-            bijux_dna_infra::atomic_write_json(
-                &summary,
-                &serde_json::json!({
-                    "schema_version": "bijux.bam.validate.v1",
-                    "flagstat": parse_flagstat_counts(&flagstat)?,
-                    "validation_report_present": stage_dir.join("validation.json").exists(),
-                }),
-            )
-            .with_context(|| format!("write {}", summary.display()))?;
+            let input_bam = plan
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Bam)
+                .map_or_else(|| stage_dir.join("in.bam"), |artifact| artifact.path.clone());
+            let input_bam_index = plan
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.path.to_string_lossy().ends_with(".bam.bai"))
+                .map(|artifact| artifact.path.clone());
+            let reference = plan
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Reference)
+                .map(|artifact| artifact.path.clone());
+            let payload = bijux_dna_domain_bam::BamValidationSummaryV1 {
+                schema_version: bijux_dna_domain_bam::BAM_VALIDATION_SUMMARY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                input_bam,
+                bam_index: input_bam_index,
+                reference_fasta: reference,
+                flagstat: serde_json::from_value(parse_flagstat_counts(&flagstat)?)?,
+                validation_report_present: stage_dir.join("validation.json").exists(),
+                refusal_codes: Vec::new(),
+            };
+            bijux_dna_infra::atomic_write_json(&summary, &payload)
+                .with_context(|| format!("write {}", summary.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::MappingSummary => {
             let flagstat = stage_dir.join("flagstat.txt");
@@ -43,22 +110,35 @@ fn stage_postprocess(
             let mapq_warn_below = 25.0;
             let mapq_fail_below = 15.0;
             let summary = stage_dir.join("mapping_summary.json");
-            bijux_dna_infra::atomic_write_json(
-                &summary,
-                &serde_json::json!({
-                    "schema_version": "bijux.bam.mapping_summary.v1",
-                    "flagstat": parse_flagstat_counts(&flagstat)?,
-                    "stats_present": stats.exists(),
-                    "idxstats_present": stage_dir.join("idxstats.txt").exists(),
-                    "mapq_regime": mapq.as_ref().map(|m| serde_json::json!({
-                        "mean": m.mean,
-                        "warn_below": mapq_warn_below,
-                        "fail_below": mapq_fail_below,
-                        "status": if m.mean < mapq_fail_below { "fail" } else if m.mean < mapq_warn_below { "warn" } else { "ok" },
-                    })),
+            let payload = bijux_dna_domain_bam::BamMappingSummaryV1 {
+                schema_version: bijux_dna_domain_bam::BAM_MAPPING_SUMMARY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                flagstat: serde_json::from_value(parse_flagstat_counts(&flagstat)?)?,
+                stats_present: stats.exists(),
+                idxstats_present: stage_dir.join("idxstats.txt").exists(),
+                mapq_regime: mapq.as_ref().map(|m| bijux_dna_domain_bam::BamMapqRegimeV1 {
+                    mean: m.mean,
+                    warn_below: mapq_warn_below,
+                    fail_below: mapq_fail_below,
+                    status: if m.mean < mapq_fail_below {
+                        "fail".to_string()
+                    } else if m.mean < mapq_warn_below {
+                        "warn".to_string()
+                    } else {
+                        "ok".to_string()
+                    },
                 }),
-            )
-            .with_context(|| format!("write {}", summary.display()))?;
+                proper_pair_reads: None,
+                secondary_reads: None,
+                supplementary_reads: None,
+                mapq_histogram: mapq
+                    .as_ref()
+                    .map_or_else(Vec::new, |summary| summary.histogram.clone()),
+                read_group_breakdown: Vec::new(),
+            };
+            bijux_dna_infra::atomic_write_json(&summary, &payload)
+                .with_context(|| format!("write {}", summary.display()))?;
             if let Some(mapq) = mapq {
                 if !mapq.histogram.is_empty() && mapq.mean < mapq_fail_below {
                     return Err(anyhow!(
@@ -68,6 +148,60 @@ fn stage_postprocess(
                     ));
                 }
             }
+        }
+        bijux_dna_planner_bam::stage_api::BamStage::MapqFilter => {
+            let flagstat_before: bijux_dna_domain_bam::BamFlagstatCountsV1 =
+                serde_json::from_value(parse_flagstat_counts(&stage_dir.join("flagstat.before.txt"))?)?;
+            let flagstat_after: bijux_dna_domain_bam::BamFlagstatCountsV1 =
+                serde_json::from_value(parse_flagstat_counts(&stage_dir.join("flagstat.after.txt"))?)?;
+            let input_bam = plan
+                .io
+                .inputs
+                .iter()
+                .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Bam)
+                .map_or_else(|| stage_dir.join("in.bam"), |artifact| artifact.path.clone());
+            let output_bam = plan
+                .io
+                .outputs
+                .iter()
+                .find(|artifact| {
+                    artifact.role == bijux_dna_core::contract::ArtifactRole::Bam && !artifact.optional
+                })
+                .map_or_else(|| stage_dir.join("filtered.bam"), |artifact| artifact.path.clone());
+            let mapped_reads_removed = match (
+                flagstat_before.mapped_reads,
+                flagstat_after.mapped_reads,
+            ) {
+                (Some(before), Some(after)) if before >= after => Some(before - after),
+                _ => None,
+            };
+            let mapped_fraction_retained = match (
+                flagstat_before.mapped_reads,
+                flagstat_after.mapped_reads,
+            ) {
+                (Some(before), Some(after)) if before > 0 => Some(after as f64 / before as f64),
+                _ => None,
+            };
+            let payload = bijux_dna_domain_bam::BamMapqFilterSummaryV1 {
+                schema_version: bijux_dna_domain_bam::BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                mapq_threshold: plan
+                    .params
+                    .get("mapq_threshold")
+                    .and_then(serde_json::Value::as_u64)
+                    .and_then(|value| u8::try_from(value).ok())
+                    .unwrap_or(0),
+                input_bam,
+                output_bam,
+                flagstat_before,
+                flagstat_after,
+                mapped_reads_removed,
+                mapped_fraction_retained,
+            };
+            let path = stage_dir.join("mapq_filter.summary.json");
+            bijux_dna_infra::atomic_write_json(&path, &payload)
+                .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Complexity => {
             let path = stage_dir.join("complexity.artifacts.json");
@@ -83,15 +217,22 @@ fn stage_postprocess(
         }
         bijux_dna_planner_bam::stage_api::BamStage::DuplicationMetrics => {
             let path = stage_dir.join("duplication.policy.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "optical_duplicates": plan.params.get("optical_duplicates").cloned(),
-                    "umi_policy": plan.params.get("umi_policy").cloned(),
-                    "duplicate_action": plan.params.get("duplicate_action").cloned(),
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            let payload = bijux_dna_domain_bam::BamDuplicatePolicyV1 {
+                schema_version: bijux_dna_domain_bam::BAM_DUPLICATE_POLICY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                library_type: None,
+                optical_duplicates: json_string(plan.params.get("optical_duplicates")),
+                umi_policy: json_string(plan.params.get("umi_policy")),
+                duplicate_action: json_string(plan.params.get("duplicate_action")),
+                policy_scope: "observation_only".to_string(),
+                library_semantics: vec![
+                    "reports duplicate burden without mutating BAM outputs".to_string(),
+                ],
+                comparison_ready_with: vec!["picard".to_string(), "samtools".to_string()],
+            };
+            bijux_dna_infra::atomic_write_json(&path, &payload)
+                .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Markdup => {
             let library_type = plan
@@ -100,21 +241,25 @@ fn stage_postprocess(
                 .and_then(serde_json::Value::as_str)
                 .unwrap_or("dsdna");
             let path = stage_dir.join("markdup.policy.json");
-            bijux_dna_infra::atomic_write_json(
-                &path,
-                &serde_json::json!({
-                    "library_type": library_type,
-                    "optical_duplicates": plan.params.get("optical_duplicates").cloned(),
-                    "umi_policy": plan.params.get("umi_policy").cloned(),
-                    "duplicate_action": plan.params.get("duplicate_action").cloned(),
-                    "policy_scope": "pcr_vs_optical",
-                    "library_semantics": {
-                        "dsdna": "PCR/optical duplicate marking/removal is default",
-                        "ssdna": "conservative interpretation; avoid over-removal of authentic short fragments"
-                    },
-                }),
-            )
-            .with_context(|| format!("write {}", path.display()))?;
+            let payload = bijux_dna_domain_bam::BamDuplicatePolicyV1 {
+                schema_version: bijux_dna_domain_bam::BAM_DUPLICATE_POLICY_SCHEMA_VERSION
+                    .to_string(),
+                stage_id: stage.as_str().to_string(),
+                library_type: Some(library_type.to_string()),
+                optical_duplicates: json_string(plan.params.get("optical_duplicates")),
+                umi_policy: json_string(plan.params.get("umi_policy")),
+                duplicate_action: json_string(plan.params.get("duplicate_action")),
+                policy_scope: "pcr_vs_optical".to_string(),
+                library_semantics: vec![
+                    "dsdna: PCR and optical duplicate marking or removal is the default interpretation"
+                        .to_string(),
+                    "ssdna: use conservative duplicate handling and inspect authenticity evidence before removal"
+                        .to_string(),
+                ],
+                comparison_ready_with: vec!["picard".to_string(), "samtools".to_string()],
+            };
+            bijux_dna_infra::atomic_write_json(&path, &payload)
+                .with_context(|| format!("write {}", path.display()))?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::InsertSize => {
             let parsed = if stage_dir.join("insert_size.metrics.txt").exists() {
@@ -217,10 +362,32 @@ fn stage_postprocess(
         bijux_dna_planner_bam::stage_api::BamStage::Damage => {
             write_udg_metadata(stage_dir, plan)?;
             write_damage_unified(stage_dir)?;
+            write_advisory_boundary(
+                stage_dir,
+                stage,
+                "terminal_damage_and_deamination",
+                &["damage.unified_metrics.json", "udg_metadata.json"],
+                &["damage pattern observation".to_string()],
+                &[
+                    "sample authenticity certification".to_string(),
+                    "sample age assignment".to_string(),
+                ],
+            )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Authenticity => {
             write_udg_metadata(stage_dir, plan)?;
             write_authenticity_composite(stage_dir)?;
+            write_advisory_boundary(
+                stage_dir,
+                stage,
+                "ancient_dna_authenticity",
+                &["authenticity.json", "authenticity_composite.json", "udg_metadata.json"],
+                &["authenticity signal review".to_string()],
+                &[
+                    "automatic authenticity certification".to_string(),
+                    "automatic contamination clearance".to_string(),
+                ],
+            )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::BiasMitigation => {
             write_udg_metadata(stage_dir, plan)?;
@@ -339,6 +506,17 @@ fn stage_postprocess(
                 }),
             )
             .with_context(|| format!("write {}", stratified_path.display()))?;
+            write_advisory_boundary(
+                stage_dir,
+                stage,
+                "contamination_estimation",
+                &["contamination.summary.json", "contamination.stratified.json"],
+                &["contamination estimate review".to_string()],
+                &[
+                    "sample authenticity certification".to_string(),
+                    "population suitability certification without operator review".to_string(),
+                ],
+            )?;
         }
         bijux_dna_planner_bam::stage_api::BamStage::Haplogroups => {
             let path = stage_dir.join("haplogroups.normalized.json");

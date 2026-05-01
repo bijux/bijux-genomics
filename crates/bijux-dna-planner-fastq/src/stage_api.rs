@@ -123,6 +123,14 @@ pub fn tool_supports_input_layout(stage_id: &StageId, tool_id: &ToolId, paired_e
 }
 
 #[must_use]
+pub fn stage_accepts_input_layout(
+    stage_id: &StageId,
+    layout: bijux_dna_domain_fastq::FastqReadLayout,
+) -> bool {
+    bijux_dna_domain_fastq::stage_accepts_input_layout(stage_id.as_str(), layout)
+}
+
+#[must_use]
 pub fn filter_tools_for_input_layout(
     stage_id: &StageId,
     tool_ids: Vec<ToolId>,

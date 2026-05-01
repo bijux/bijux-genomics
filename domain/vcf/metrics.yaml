@@ -1,43 +1,49 @@
-schema_version: "bijux.metrics.v1"
-domain: "vcf"
+---
+schema_version: bijux.metrics.v1
+domain: vcf
 metrics:
-  - id: "called_variants"
-  - id: "filtered_variants"
-  - id: "ts_tv_ratio"
-  - id: "damage_strategy_applied"
-  - id: "damage_bias_before_after_summary"
-  - id: "gl_parameter_profile"
-  - id: "gl_fields_retained"
-  - id: "gl_propagation_pass_rate"
-  - id: "pseudo_sampling_seed"
-  - id: "pca_variance_explained"
-  - id: "pc_axes"
-  - id: "cluster_assignments"
-  - id: "admixture_k_selected"
-  - id: "admixture_cross_validation_error"
-  - id: "roh_count"
-  - id: "roh_total_mb"
-  - id: "roh_length_bins_mb"
-  - id: "roh_mean_length_mb"
-  - id: "roh_max_length_mb"
-  - id: "ibd_segment_count"
-  - id: "ibd_total_length_cM"
-  - id: "ibd_length_bins_cM"
-  - id: "pairwise_ibd_sharing_matrix"
-  - id: "ne_recent"
-  - id: "ne_time_series"
-  - id: "ne_confidence_interval"
-  - id: "assumption_flags"
-  - id: "imputation_info_mean"
-  - id: "imputation_info_by_maf_bin"
-  - id: "imputation_rsq_mean"
-  - id: "imputation_rsq_by_maf_bin"
-  - id: "missingness_pre"
-  - id: "missingness_post"
-  - id: "panel_overlap_sites"
-  - id: "panel_overlap_fraction"
-  - id: "panel_overlap_low_overlap_flag"
-  - id: "phasing_switch_error_proxy"
-  - id: "phasing_phase_block_n50"
-  - id: "imputation_filter_counts"
-  - id: "imputation_warning_flags"
+- id: admixture_cross_validation_error
+- id: admixture_k_selected
+- id: admixture_status
+- id: assumption_flags
+- id: called_variants
+- id: cluster_assignments
+- id: ct_ga_masked_sites
+- id: damage_bias_before_after_summary
+- id: damage_strategy_applied
+- id: diploid_called_variants
+- id: filtered_variants
+- id: genotyped_sites
+- id: gl_fields_retained
+- id: gl_parameter_profile
+- id: gl_propagation_pass_rate
+- id: gl_sites_count
+- id: het_rate
+- id: ibd_length_bins_cM
+- id: ibd_segment_count
+- id: ibd_total_length_cM
+- id: imputation_status
+- id: impute_status
+- id: mean_gl_depth
+- id: ne_confidence_interval
+- id: ne_recent
+- id: ne_time_series
+- id: pairwise_ibd_sharing_matrix
+- id: pc_axes
+- id: pca_status
+- id: pca_variance_explained
+- id: phasing_status
+- id: pmd_filtered_reads
+- id: postprocess_status
+- id: pseudo_called_sites
+- id: pseudo_missing_rate
+- id: pseudo_sampling_seed
+- id: qc_status
+- id: reference_panel_status
+- id: roh_count
+- id: roh_length_bins_mb
+- id: roh_max_length_mb
+- id: roh_mean_length_mb
+- id: roh_total_mb
+- id: ti_tv
+- id: variants_total

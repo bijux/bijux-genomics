@@ -6,7 +6,7 @@ fn stages_vcf_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root),
-        btree_set(&["Cargo.toml", "README.md", "docs/", "src/", "tests/",]),
+        btree_set(&["Cargo.toml", "README.md", "docs/", "examples/", "src/", "tests/",]),
         "crate root must stay minimal and intentional"
     );
 

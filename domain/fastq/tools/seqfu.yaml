@@ -10,6 +10,7 @@ citation: paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC8148589/
 planned_stage_ids:
 - fastq.profile_read_lengths
 - fastq.normalize_abundance
+- fastq.profile_reads
 stage_ids:
 - fastq.profile_read_lengths
 - fastq.normalize_abundance
@@ -29,6 +30,13 @@ stage_contracts:
     - normalized_abundance_tsv
     - report_json
     notes: Planned abundance normalization would emit the governed normalized abundance table and canonical report artifacts.
+  fastq.profile_reads:
+    required_inputs:
+    - reads_r1
+    expected_artifacts:
+    - qc_json
+    - qc_tsv
+    notes: Planned read profiling would emit governed qc_json and qc_tsv artifacts.
 status: planned
 scope: pre_hpc_pre_vcf
 expected_artifacts:
@@ -36,6 +44,8 @@ expected_artifacts:
 - length_distribution_json
 - normalized_abundance_tsv
 - report_json
+- qc_json
+- qc_tsv
 metrics_schema_id: bijux.fastq.stats.v1
 metrics_schema: bijux.fastq.stats.v1
 version_cmd: seqfu --version

@@ -24,6 +24,7 @@ pub use crate::compose::{StageArtifactInputBinding, StageArtifactInputPolicy};
 pub(crate) use crate::pipeline_defaults::pipeline_spec_from_stage_catalog;
 pub use crate::pipeline_defaults::{default_pipeline_spec, DefaultPipelineOptions};
 pub use crate::planner::*;
+pub use crate::preprocess::chunking::{plan_chunked_preprocess_contract, ChunkedFastqInput};
 pub use crate::preprocess::{apply_preprocess_policy, PreprocessPolicyDecision};
 pub use crate::preprocess::{
     plan_preprocess, preprocess_decisions, resolve_preprocess_pipeline, CorrectDecisionTrace,

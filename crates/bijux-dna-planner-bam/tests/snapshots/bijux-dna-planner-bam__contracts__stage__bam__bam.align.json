@@ -1,26 +1,34 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": [
       "/bin/sh",
       "-c",
-      "bwa mem -t 1 -R '@RG\\tID:sample.rg1\\tSM:sample\\tPL:ILLUMINA\\tLB:lib1' tests/fixtures/plan_inputs/default/reference.fasta tests/fixtures/plan_inputs/default/reads_R1.fastq.gz tests/fixtures/plan_inputs/default/reads_R2.fastq.gz | samtools sort -o out/align.bam && samtools index out/align.bam && samtools flagstat out/align.bam > out/flagstat.txt && samtools idxstats out/align.bam > out/idxstats.txt && samtools stats out/align.bam > out/samtools_stats.txt && python - <<'PY' > out/align.metrics.json\nimport json\npayload={\"tool\":\"bwa_mem\",\"preset\":\"default\",\"reference\":\"tests/fixtures/plan_inputs/default/reference.fasta\",\"bam\":\"out/align.bam\",\"read_group\":\"@RG\\tID:sample.rg1\\tSM:sample\\tPL:ILLUMINA\\tLB:lib1\"}\nprint(json.dumps(payload, indent=2))\nPY"
+      "bwa mem -t 1 -R '@RG\\tID:sample.rg1\\tSM:sample\\tPL:ILLUMINA\\tLB:lib1\\tPU:sample.pu1' tests/fixtures/plan_inputs/default/reference.fasta tests/fixtures/plan_inputs/default/reads_R1.fastq.gz tests/fixtures/plan_inputs/default/reads_R2.fastq.gz | samtools sort -o out/align.bam && samtools index out/align.bam && samtools flagstat out/align.bam > out/flagstat.txt && samtools idxstats out/align.bam > out/idxstats.txt && samtools stats out/align.bam > out/samtools_stats.txt && python - <<'PY' > out/align.metrics.json\nimport json\npayload={\"tool\":\"bwa_mem\",\"preset\":\"default\",\"sensitivity_profile\":\"default\",\"seed_length\":null,\"reference\":\"tests/fixtures/plan_inputs/default/reference.fasta\",\"bam\":\"out/align.bam\",\"read_group\":\"@RG\\tID:sample.rg1\\tSM:sample\\tPL:ILLUMINA\\tLB:lib1\\tPU:sample.pu1\"}\nprint(json.dumps(payload, indent=2))\nPY"
     ]
   },
   "effective_params": {
     "aligner": "bwa",
     "build_indices": false,
     "emit_stats": true,
+    "mode": "end_to_end",
     "preset": "default",
     "read_group": {
       "id": "sample.rg1",
+      "lane_id": "L001",
       "library": "lib1",
       "platform": "ILLUMINA",
+      "platform_unit": "sample.pu1",
+      "run_id": null,
       "sample": "sample"
     },
     "reference": "reference.fasta",
     "reference_digest": "unknown",
     "rg_policy": "regenerate",
+    "seed_length": null,
+    "sensitivity_profile": "default",
+    "strategy_id": "bwa_mem_default",
     "threads": 1
   },
   "image": {
@@ -93,27 +101,53 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "aligner": "bwa",
     "build_indices": false,
+    "mode": "end_to_end",
     "preset": "default",
     "r1": "tests/fixtures/plan_inputs/default/reads_R1.fastq.gz",
     "r2": "tests/fixtures/plan_inputs/default/reads_R2.fastq.gz",
     "read_group": {
       "id": "sample.rg1",
+      "lane_id": "L001",
       "library": "lib1",
       "platform": "ILLUMINA",
+      "platform_unit": "sample.pu1",
+      "run_id": null,
       "sample": "sample"
     },
     "reference": "tests/fixtures/plan_inputs/default/reference.fasta",
     "sample_id": "sample",
+    "seed_length": null,
+    "sensitivity_profile": "default",
+    "strategy_id": "bwa_mem_default",
     "threads": 1
   },
+  "provenance": null,
   "reason": {
     "details": {
       "contract_hash": "3356fa4d4b0b8566e5988cf352390ef0dc1dd493367cb19404ae4c37939c386f",
-      "defaults_diff": {}
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 4,
+        "disk_gb": 4,
+        "input_bytes": 0,
+        "input_origin": "real",
+        "input_scale": "tiny",
+        "io_profile": "balanced_compute_and_io",
+        "memory_gb": 4,
+        "notes": [
+          "sorting/indexing/validation chain dominates temporary storage"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 4,
+        "stage_id": "bam.align",
+        "walltime_minutes": 14
+      }
     },
     "kind": "default",
     "summary": "tool bwa selected by planner"

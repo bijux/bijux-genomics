@@ -1,0 +1,38 @@
+{
+  "example_id": "bam_workflow_trio_modern_ancient_merge",
+  "domain": "bam",
+  "profile_id": "bam-to-bam__adna_shotgun__v1",
+  "tracks": [
+    {
+      "track_id": "modern_wgs_qc",
+      "pipeline": [
+        "bam.validate",
+        "bam.mapping_summary",
+        "bam.markdup",
+        "bam.coverage"
+      ]
+    },
+    {
+      "track_id": "ancient_damage_contamination",
+      "pipeline": [
+        "bam.damage",
+        "bam.authenticity",
+        "bam.contamination",
+        "bam.endogenous_content"
+      ]
+    },
+    {
+      "track_id": "merge_coverage_lineage",
+      "pipeline": [
+        "bam.validate",
+        "bam.mapping_summary",
+        "bam.coverage",
+        "bam.kinship"
+      ],
+      "required_lineage_contracts": [
+        "merge.compatibility.json",
+        "sample_identity.json"
+      ]
+    }
+  ]
+}

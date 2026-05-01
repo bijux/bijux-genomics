@@ -8,6 +8,7 @@ install_kind: "container"
 license: "GPL-3.0"
 citation: "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
 stage_ids: ["bam.sex","bam.kinship"]
+planned_stage_ids: ["bam.genotyping"]
 status: "supported"
 scope: "pre_hpc_pre_vcf"
 expected_artifacts: ["population_metrics"]

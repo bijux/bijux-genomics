@@ -73,6 +73,8 @@ pub fn execute_step(
         &output_hashes,
         runner,
         &outcome.command_output.command,
+        &outcome.stdout,
+        &outcome.stderr,
         &params_fingerprint,
     )?;
 

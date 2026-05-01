@@ -50,6 +50,40 @@ fn parse_validation_report_parses_governed_validate_json() -> Result<()> {
 }
 
 #[test]
+fn parse_validation_report_accepts_structural_failure_taxonomy() -> Result<()> {
+    let parsed = parse_validation_report(
+        &serde_json::json!({
+            "schema_version": VALIDATION_REPORT_SCHEMA_VERSION,
+            "stage": "fastq.validate_reads",
+            "stage_id": "fastq.validate_reads",
+            "tool_id": "fastqvalidator",
+            "validation_mode": "strict",
+            "pair_sync_policy": "not_applicable",
+            "input_r1": "reads.fastq.zst",
+            "input_r2": null,
+            "validation_log_r1": "validation_r1.log",
+            "validation_log_r2": null,
+            "validated_inputs": 1,
+            "validated_reads_r1": 0,
+            "validated_reads_r2": null,
+            "validated_pairs": null,
+            "status_r1": 0,
+            "status_r2": 0,
+            "pair_sync_checked": false,
+            "pair_sync_pass": null,
+            "pair_count_match": null,
+            "failure_class": "unsupported_compression",
+            "strict_pass": false,
+            "exit_code": 90
+        })
+        .to_string(),
+    )?;
+    assert_eq!(parsed.failure_class, ValidateFailureClass::UnsupportedCompression);
+    assert_eq!(parsed.validated_reads_r1, 0);
+    Ok(())
+}
+
+#[test]
 fn parse_validated_reads_manifest_parses_governed_lineage_json() -> Result<()> {
     let parsed = parse_validated_reads_manifest(
         &serde_json::json!({
@@ -132,13 +166,15 @@ fn parse_terminal_damage_report_parses_governed_json() -> Result<()> {
 #[test]
 fn parse_trim_reads_report_parses_governed_json() -> Result<()> {
     let parsed = parse_trim_reads_report(
-        &serde_json::json!({
+        r#"{
             "schema_version": "bijux.fastq.trim_reads.report.v2",
             "stage": "fastq.trim_reads",
             "stage_id": "fastq.trim_reads",
-            "tool_id": id_catalog::TOOL_FASTP,
+            "tool_id": "fastp",
             "paired_mode": "paired_end",
             "threads": 4,
+            "trimming_backend": "fastp",
+            "backend_mode": "enforced",
             "input_r1": "reads_R1.fastq.gz",
             "input_r2": "reads_R2.fastq.gz",
             "output_r1": "trimmed_R1.fastq.gz",
@@ -152,10 +188,12 @@ fn parse_trim_reads_report_parses_governed_json() -> Result<()> {
             "adapter_bank_id": "illumina",
             "adapter_bank_hash": "sha256:adapter",
             "adapter_preset": "default",
+            "detected_adapter_source": "governed_pattern_scan",
             "adapter_overrides": {
                 "enable": ["AGATCGGAAGAGC"],
                 "disable": ["polyA"]
             },
+            "prepared_adapter_bank": null,
             "polyx_bank_id": "polyx",
             "polyx_bank_hash": "sha256:polyx",
             "polyx_preset": "illumina_twocolor",
@@ -170,12 +208,16 @@ fn parse_trim_reads_report_parses_governed_json() -> Result<()> {
             "pairs_out": 45,
             "mean_q_before": 28.0,
             "mean_q_after": 31.0,
+            "effective_trim_params": {
+                "adapter_policy": "bank",
+                "min_length": 30,
+                "quality_cutoff": 20
+            },
             "runtime_s": 8.4,
             "memory_mb": 128.0,
             "raw_backend_report": "trim.fastp.json",
             "raw_backend_report_format": "fastp_json"
-        })
-        .to_string(),
+        }"#,
     )?;
 
     assert_eq!(parsed.tool_id, id_catalog::TOOL_FASTP);

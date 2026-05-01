@@ -1,0 +1,103 @@
+schema_version = "bijux.bench.corpus.v1"
+corpus_id = "fastq_ci_small"
+domain = "fastq"
+scale = "ci-small"
+scientific_caveats = [
+  "small synthetic fixtures exercise control-plane behavior and guardrails, not biological prevalence",
+]
+
+[[datasets]]
+dataset_id = "fastq_valid_paired"
+fixture = "fixtures/fastq/valid_paired"
+read_layout = "paired"
+class_label = "valid"
+case_tags = ["valid", "paired"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.fastq.synthetic.valid-paired.v1"
+note = "synthetic paired read truth anchors parser and count checks"
+
+[[datasets]]
+dataset_id = "fastq_broken_truncated_record"
+fixture = "fixtures/fastq/broken_truncated_record"
+read_layout = "paired"
+class_label = "broken"
+case_tags = ["broken", "truncated"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; malformed fixture is used to verify stable refusal behavior"
+
+[[datasets]]
+dataset_id = "fastq_adapter_heavy"
+fixture = "fixtures/fastq/adapter_heavy"
+read_layout = "paired"
+class_label = "adapter_heavy"
+case_tags = ["adapter-heavy", "contaminated"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; adapter burden labels are scenario hints for controlled regressions"
+
+[[datasets]]
+dataset_id = "fastq_low_complexity_polyg"
+fixture = "fixtures/fastq/low_complexity_polyg"
+read_layout = "single"
+class_label = "low_complexity"
+case_tags = ["low-complexity", "poly-g"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; complexity labeling is approximate and intentionally caveated"
+
+[[datasets]]
+dataset_id = "fastq_umi_structured"
+fixture = "fixtures/fastq/umi_structured"
+read_layout = "paired"
+class_label = "umi"
+case_tags = ["umi", "barcode"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.fastq.synthetic.umi-structured.v1"
+note = "synthetic UMI layout truth validates extraction and grouping boundaries"
+
+[[datasets]]
+dataset_id = "fastq_contaminant_spike"
+fixture = "fixtures/fastq/contaminant_spike"
+read_layout = "paired"
+class_label = "contaminant"
+case_tags = ["contaminant", "spike-in"]
+[datasets.truth_set]
+status = "available"
+truth_set_id = "truth.fastq.synthetic.contaminant-spike.v1"
+note = "spike-in recipe serves as controlled contaminant-trace truth"
+
+[[datasets]]
+dataset_id = "fastq_sparse_low_depth"
+fixture = "fixtures/fastq/sparse_low_depth"
+read_layout = "single"
+class_label = "sparse"
+case_tags = ["sparse", "low-depth"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; sparse reads exercise low-depth warnings rather than scientific recall"
+
+[[datasets]]
+dataset_id = "fastq_empty"
+fixture = "fixtures/fastq/empty"
+read_layout = "single"
+class_label = "empty"
+case_tags = ["empty", "boundary"]
+[datasets.truth_set]
+status = "unavailable"
+note = "no truth set; empty fixture exists only for boundary refusal and completeness handling"
+
+[[backend_comparisons]]
+comparison_id = "fastq.trim_reads.ci"
+stage_id = "fastq.trim_reads"
+tools = ["fastp", "cutadapt", "trimmomatic"]
+caveat = "tool deltas are compared on shared synthetic fixtures and must not be read as absolute scientific ranking"
+
+[[drift_scenarios]]
+scenario_id = "fastq.defaults.shift.ci"
+drift_axis = "defaults"
+baseline_label = "default-profile.v1"
+candidate_label = "default-profile.v2"
+caveat = "default-profile drift is tracked for reproducibility and not scientific truth claims"

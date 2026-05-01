@@ -336,10 +336,13 @@ fn build_rrna_report<S: ::std::hash::BuildHasher>(
         rrna_db: effective_params.contaminant_db,
         database_artifact_id: effective_params.database_artifact_id,
         database_build_id: effective_params.database_build_id,
+        database_digest: None,
         screening_engine: effective_params.screening_engine,
         report_format: effective_params.report_format,
         emit_removed_reads: effective_params.emit_removed_reads,
         min_identity: inputs.plan.params.get("min_identity").and_then(serde_json::Value::as_f64),
+        retained_read_role: "rrna_filtered_reads".to_string(),
+        rejected_read_role: "removed_rrna_reads".to_string(),
         input_r1: artifact_input_path_string(inputs.plan, "reads_r1"),
         input_r2: artifact_input_path(inputs.plan, "reads_r2")
             .map(|path| path.display().to_string()),

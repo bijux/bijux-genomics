@@ -381,6 +381,8 @@ fn build_screen_record(
         database_scope: effective_params.database_scope.clone(),
         minimum_confidence: effective_params.minimum_confidence,
         emit_unclassified: effective_params.emit_unclassified,
+        interpretation_boundary: effective_params.interpretation_boundary.clone(),
+        truth_conditions: effective_params.truth_conditions.clone(),
         input_r1: inputs.bench_inputs.r1.display().to_string(),
         input_r2: inputs.bench_inputs.r2.as_ref().map(|path| path.display().to_string()),
         screen_report_tsv: report_paths.summary_tsv.display().to_string(),

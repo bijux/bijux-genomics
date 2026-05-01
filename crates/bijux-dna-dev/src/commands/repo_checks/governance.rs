@@ -111,6 +111,7 @@ pub(crate) fn check_bench_knob_discipline_downstream(
     let suites = [
         "examples/vcf/downstream-vcf-full-mini/bench-suite.toml",
         "examples/vcf/downstream-demography-mini/bench-suite.toml",
+        "examples/vcf/essential-qc/bench-suite.toml",
         "examples/vcf/imputation-mini/bench-suite.toml",
     ];
     let mut errors = Vec::new();

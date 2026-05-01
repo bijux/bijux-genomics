@@ -1,5 +1,6 @@
 {
   "aux_images": {},
+  "canonical_contract": null,
   "command": {
     "template": [
       "/bin/sh",
@@ -9,7 +10,10 @@
   },
   "effective_params": {
     "min_overlap_snps": 200,
-    "reference_panel": "panel.vcf"
+    "population_scope": "human_diploid_panel",
+    "reference_build": "grch38",
+    "reference_panel": "panel.vcf",
+    "requires_cohort_context": true
   },
   "image": {
     "digest": null,
@@ -45,20 +49,42 @@
       }
     ]
   },
+  "operating_mode": "enforced",
   "out_dir": "out",
   "params": {
     "bam": "tests/fixtures/plan_inputs/default/sample.bam",
     "min_overlap_snps": 200,
+    "population_scope": "human_diploid_panel",
     "pseudo_haploid_policy": "refuse_unless_explicit_conversion",
+    "reference_build": "grch38",
     "reference_panel": "panel.vcf",
     "required_inputs": [
       "diploid_genotypes_or_explicit_pseudohap_conversion"
-    ]
+    ],
+    "requires_cohort_context": true
   },
+  "provenance": null,
   "reason": {
     "details": {
-      "contract_hash": "04b29a57fe12e883fc0080dc0b0e33e81181344f32ddcb820bcb8bc7034d81dc",
-      "defaults_diff": {}
+      "contract_hash": "fda8d14343e705d7386ab1ea618ef7a734cb4b38d4601867cbee68e75abe63f5",
+      "defaults_diff": {},
+      "resource_plan": {
+        "cpu_threads": 4,
+        "disk_gb": 4,
+        "input_bytes": 0,
+        "input_origin": "real",
+        "input_scale": "tiny",
+        "io_profile": "balanced_compute_and_io",
+        "memory_gb": 4,
+        "notes": [
+          "sorting/indexing/validation chain dominates temporary storage"
+        ],
+        "requires_index": true,
+        "schema_version": "bijux.bam.resource_plan.v1",
+        "scratch_gb": 4,
+        "stage_id": "bam.kinship",
+        "walltime_minutes": 14
+      }
     },
     "kind": "default",
     "summary": "tool king selected by planner"

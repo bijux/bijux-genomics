@@ -420,6 +420,7 @@ pub fn run_postprocess_stage(
         None
     };
     let artifact_checksums_json = out_dir.join("artifact_checksums.json");
+    let normalization_contract_json = out_dir.join("normalization_contract.json");
     let validate_outputs_json = out_dir.join("validate_outputs.json");
     let final_manifest_json = out_dir.join("final_manifest.json");
     let logs_txt = out_dir.join("logs.txt");
@@ -506,6 +507,26 @@ pub fn run_postprocess_stage(
     {
         bail!("postprocess validate outputs failed: contigs mismatch species context");
     }
+    let normalization_contract = serde_json::json!({
+        "schema_version": "bijux.vcf.normalization_contract.v1",
+        "stage_id": "vcf.postprocess",
+        "left_normalization": {
+            "enabled": params.normalize_indels,
+            "applied": left_align_applied,
+            "reason": left_align_reason.clone(),
+        },
+        "multiallelic_decomposition": {
+            "enabled": params.split_multiallelic,
+            "records_split": split_multiallelic_count,
+        },
+        "duplicate_handling": "retain_and_canonicalize_variant_identity",
+        "genotype_retention": "sample_fields_rewritten_only_when_multiallelic_split_requires_it",
+        "view_retention": {
+            "raw_input": input_vcf,
+            "normalized_output": merged_vcf,
+        }
+    });
+    atomic_write_json(&normalization_contract_json, &normalization_contract)?;
     atomic_write_json(
         &final_manifest_json,
         &serde_json::json!({
@@ -532,7 +553,8 @@ pub fn run_postprocess_stage(
                 "tbi": merged_tbi_real,
                 "bcf": merged_bcf
             },
-            "validate_outputs": validate_outputs_json
+            "validate_outputs": validate_outputs_json,
+            "normalization_contract": normalization_contract_json
         }),
     )?;
 
@@ -550,6 +572,12 @@ pub fn run_postprocess_stage(
             .to_string();
         checksum_map.insert(name, serde_json::Value::String(sum));
     }
+    checksum_map.insert(
+        "normalization_contract.json".to_string(),
+        serde_json::Value::String(checksum_hex(
+            serde_json::to_string(&normalization_contract)?.as_bytes(),
+        )),
+    );
     checksum_map.insert(
         "validate_outputs.json".to_string(),
         serde_json::Value::String(checksum_hex(
@@ -585,6 +613,7 @@ pub fn run_postprocess_stage(
         merged_tbi: merged_tbi_real,
         merged_bcf,
         artifact_checksums_json,
+        normalization_contract_json,
         validate_outputs_json,
         final_manifest_json,
         logs_txt,

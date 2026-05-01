@@ -8,9 +8,10 @@ use bijux_dna_domain_vcf::params::{
     VcfCallParams, VcfEffectiveParams, VcfFilterParams, VcfStatsParams,
 };
 
+use crate::vcf::profile_capabilities::vcf_capabilities;
 use crate::{
-    ArtifactType, DefaultParams, Domain, EffectiveDefaults, InvariantsPreset, MetricsBundle,
-    PipelineCapabilities, PipelineId, PipelineProfile, ReportSection, StabilityTier,
+    DefaultParams, Domain, EffectiveDefaults, InvariantsPreset, PipelineId, PipelineProfile,
+    StabilityTier,
 };
 
 #[must_use]
@@ -62,31 +63,7 @@ pub fn vcf_minimal_profile() -> PipelineProfile {
             platform_hint: PlatformHint::Unknown,
             assay_kind: AssayKind::Unknown,
         },
-        capabilities: PipelineCapabilities {
-            input_domains: vec![Domain::Vcf],
-            output_domains: vec![Domain::Vcf],
-            input_artifacts: vec![ArtifactType::ReportJson],
-            output_artifacts: vec![ArtifactType::ReportJson, ArtifactType::MetricsBundle],
-            required_inputs: vec!["vcf", "sample_name"],
-            produces_outputs: vec!["vcf", "vcf.metrics"],
-            report_sections: vec!["vcf"],
-            required_report_sections: vec![ReportSection::Vcf, ReportSection::PipelineDefaults],
-            required_metrics_bundles: vec![MetricsBundle::VcfCore],
-            required_stages: vec![
-                id_catalog::VCF_CALL.to_string(),
-                id_catalog::VCF_FILTER.to_string(),
-                id_catalog::VCF_STATS.to_string(),
-            ],
-            required_metrics: vec!["vcf.metrics"],
-            required_artifacts: vec![
-                "report.json",
-                "run_manifest.json",
-                "tool_provenance.json",
-                "invariants_report.json",
-                "vcf.tbi",
-            ],
-            supports_benchmarks: false,
-        },
+        capabilities: vcf_capabilities(id_catalog::PIPELINE_VCF_MINIMAL),
     }
 }
 
@@ -96,6 +73,7 @@ pub fn vcf_reference_basic_profile() -> PipelineProfile {
     profile.id = PipelineId::from_static(id_catalog::PIPELINE_VCF_REFERENCE_BASIC);
     profile.description = "Reference-grade VCF baseline profile";
     profile.stability = StabilityTier::Stable;
+    profile.capabilities = vcf_capabilities(id_catalog::PIPELINE_VCF_REFERENCE_BASIC);
     if let Some(DefaultParams::Vcf(VcfEffectiveParams::Call(call))) =
         profile.defaults.params.get_mut(&StageId::from_static(id_catalog::VCF_CALL))
     {

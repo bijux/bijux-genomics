@@ -13,4 +13,4 @@
 - Network access or generated config writes.
 - CLI command ownership.
 
-The repository-level policy lives at `/Users/bijan/bijux/README.md`.
+The repository-level policy lives at `README.md`.
