@@ -123,9 +123,7 @@ fn parse_definition_id(line: &str, prefix: &str) -> Option<String> {
 }
 
 fn definition_has_required_fields(line: &str) -> bool {
-    ["ID=", "Number=", "Type=", "Description="]
-        .iter()
-        .all(|required| line.contains(required))
+    ["ID=", "Number=", "Type=", "Description="].iter().all(|required| line.contains(required))
 }
 
 fn detect_regime(records: &[String]) -> RegimeDetection {

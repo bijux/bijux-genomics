@@ -10,8 +10,8 @@ use crate::request_args::{DryRunRequest, DryRunResponse};
 use bijux_dna_environment::api::RuntimeKind;
 use bijux_dna_runtime::run_layout::{
     CancellationPolicyV1, CheckpointPolicyV1, ExecutorDescriptorV1, RunCheckpointV1,
-    RunExecutionModeV1, RunExecutorDescriptorV1, RunLifecycleStateV1, RunStateTransitionV1,
-    RunStateV1, RuntimePolicyV1, RunEnvironment, ToolImageDigest,
+    RunEnvironment, RunExecutionModeV1, RunExecutorDescriptorV1, RunLifecycleStateV1,
+    RunStateTransitionV1, RunStateV1, RuntimePolicyV1, ToolImageDigest,
 };
 
 /// # Errors
@@ -51,7 +51,10 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     let plan_manifest = plan_manifest_from_request(&plan_request)?;
     let plan_manifest_payload =
         bijux_dna_core::contract::canonical::to_canonical_json_bytes(&plan_manifest)?;
-    bijux_dna_infra::atomic_write_bytes(&layout.plan_manifest_path, plan_manifest_payload.as_slice())?;
+    bijux_dna_infra::atomic_write_bytes(
+        &layout.plan_manifest_path,
+        plan_manifest_payload.as_slice(),
+    )?;
 
     let run_id = "dry-run".to_string();
     let executor_descriptor = RunExecutorDescriptorV1 {
@@ -85,20 +88,23 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
     let environment = run_environment(&request.graph);
     let (_lease_lock, lease) = acquire_run_lease(&layout, &run_id)?;
     let released_lease = release_run_lease(&lease);
-    let backend_descriptor =
-        build_backend_record(&run_id, RunExecutionModeV1::DryRun, RuntimeKind::Local, &request.graph, &layout);
+    let backend_descriptor = build_backend_record(
+        &run_id,
+        RunExecutionModeV1::DryRun,
+        RuntimeKind::Local,
+        &request.graph,
+        &layout,
+    );
     let scheduling_decision =
         build_scheduling_decision(&run_id, &request.graph, RuntimeKind::Local);
     let mut queue_state = initial_queue_state(&run_id, &request.graph);
     queue_state.state = bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1::Succeeded;
-    queue_state.transitions.push(
-        bijux_dna_runtime::run_layout::RunQueueTransitionV1 {
-            from_state: Some(bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1::Queued),
-            to_state: bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1::Succeeded,
-            occurred_at: bijux_dna_runtime::run_layout::now_string(),
-            detail: Some("dry-run completed without process execution".to_string()),
-        },
-    );
+    queue_state.transitions.push(bijux_dna_runtime::run_layout::RunQueueTransitionV1 {
+        from_state: Some(bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1::Queued),
+        to_state: bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1::Succeeded,
+        occurred_at: bijux_dna_runtime::run_layout::now_string(),
+        detail: Some("dry-run completed without process execution".to_string()),
+    });
     let mut control_state = default_control_state(&run_id);
     control_state.observed_state =
         bijux_dna_runtime::run_layout::RunQueueLifecycleStateV1::Succeeded;
@@ -329,17 +335,9 @@ pub fn dry_run(request: &DryRunRequest) -> Result<DryRunResponse> {
             "bijux.artifact_inventory_text.v1",
             governed.artifact_inventory_text_path.as_path(),
         ),
-        (
-            "replay_manifest",
-            "bijux.replay_manifest.v1",
-            governed.replay_manifest_path.as_path(),
-        ),
+        ("replay_manifest", "bijux.replay_manifest.v1", governed.replay_manifest_path.as_path()),
         ("hash_ledger", "bijux.hash_ledger.v1", governed.hash_ledger_path.as_path()),
-        (
-            "run_summary_text",
-            "bijux.run_summary_text.v1",
-            governed.run_summary_text_path.as_path(),
-        ),
+        ("run_summary_text", "bijux.run_summary_text.v1", governed.run_summary_text_path.as_path()),
     ] {
         summary_artifact::attach_output_artifact(
             &layout.manifest_path,

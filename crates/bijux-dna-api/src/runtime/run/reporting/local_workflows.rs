@@ -17,10 +17,7 @@ use std::path::{Path, PathBuf};
 pub fn execute_local_fastq_workflow(run_dir: &Path) -> Result<ExecuteResponse> {
     bijux_dna_infra::ensure_dir(run_dir)?;
     let input_fastq = run_dir.join("inputs").join("reads.fastq");
-    write_text(
-        &input_fastq,
-        "@r1\nACGT\n+\n!!!!\n@r2\nTGCA\n+\n####\n",
-    )?;
+    write_text(&input_fastq, "@r1\nACGT\n+\n!!!!\n@r2\nTGCA\n+\n####\n")?;
     let out = run_dir.join("out");
     let validated = out.join("validated.fastq");
     let filtered = out.join("filtered.fastq");
@@ -71,7 +68,10 @@ pub fn execute_local_fastq_workflow(run_dir: &Path) -> Result<ExecuteResponse> {
         PlanPolicy::PreferAccuracy,
         vec![validate, filter, report_qc],
         vec![
-            ExecutionEdge::new(StepId::new("fastq.validate_reads"), StepId::new("fastq.filter_reads")),
+            ExecutionEdge::new(
+                StepId::new("fastq.validate_reads"),
+                StepId::new("fastq.filter_reads"),
+            ),
             ExecutionEdge::new(StepId::new("fastq.filter_reads"), StepId::new("fastq.report_qc")),
         ],
     )?;

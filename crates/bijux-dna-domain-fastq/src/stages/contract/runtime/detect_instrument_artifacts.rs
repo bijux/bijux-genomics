@@ -22,10 +22,7 @@ fn has_patterned_flowcell_signature(header: &str) -> bool {
     if fields.len() < 7 {
         return false;
     }
-    fields
-        .get(4)
-        .and_then(|tile| tile.parse::<u32>().ok())
-        .is_some_and(|tile| tile >= 2000)
+    fields.get(4).and_then(|tile| tile.parse::<u32>().ok()).is_some_and(|tile| tile >= 2000)
 }
 
 /// Detect instrument-associated FASTQ artifacts as advisory evidence.

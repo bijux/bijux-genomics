@@ -12,8 +12,7 @@ use crate::{
     GeneticMapBankEntry, MaterializedDbBundle, MaterializedIndexArtifact, OrganellarPolicy,
     ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport, ReferenceIndexQaReport,
     ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet,
-    TaxonomyDbMaterializationReport,
-    VcfPanelMaterializationReport,
+    TaxonomyDbMaterializationReport, VcfPanelMaterializationReport,
 };
 
 /// # Errors
@@ -248,9 +247,8 @@ pub fn resolve_reference_bundle_contract(
     let resolved_panel = panel_id
         .map(|id| crate::resolution::resolve_panel(species, build, Some(id)))
         .transpose()?;
-    let resolved_map = map_id
-        .map(|id| crate::resolution::resolve_map(species, build, Some(id)))
-        .transpose()?;
+    let resolved_map =
+        map_id.map(|id| crate::resolution::resolve_map(species, build, Some(id))).transpose()?;
 
     if let Some(tool) = compatibility_tool {
         let Some(panel) = resolved_panel.as_ref() else {
@@ -340,14 +338,16 @@ pub fn materialize_vcf_panel_assets(
     let root = materialization_root.join(species).join(build).join("vcf-assets");
     let panel_root = root.join("panels").join(&panel.id);
     let map_root = root.join("maps").join(&map.id);
-    std::fs::create_dir_all(&panel_root).with_context(|| format!("create {}", panel_root.display()))?;
+    std::fs::create_dir_all(&panel_root)
+        .with_context(|| format!("create {}", panel_root.display()))?;
     std::fs::create_dir_all(&map_root).with_context(|| format!("create {}", map_root.display()))?;
 
     let mut materialized = Vec::new();
     for file in &panel_lock.files {
         let target = panel_root.join(&file.path);
         if let Some(parent) = target.parent() {
-            std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+            std::fs::create_dir_all(parent)
+                .with_context(|| format!("create {}", parent.display()))?;
         }
         std::fs::write(&target, format!("synthetic panel asset {}\n", file.name))
             .with_context(|| format!("write {}", target.display()))?;
@@ -356,7 +356,8 @@ pub fn materialize_vcf_panel_assets(
     for file in &map_lock.files {
         let target = map_root.join(&file.path);
         if let Some(parent) = target.parent() {
-            std::fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+            std::fs::create_dir_all(parent)
+                .with_context(|| format!("create {}", parent.display()))?;
         }
         std::fs::write(&target, format!("synthetic map asset {}\n", file.name))
             .with_context(|| format!("write {}", target.display()))?;
@@ -385,7 +386,8 @@ pub fn materialize_contaminant_databases(
     let hydration: AssetHydrationConfig = load_toml(&hydration_path)?;
     let locks: AssetLocksConfig = load_toml(&locks_path)?;
 
-    let selected = ["human_host_depletion_grch38", "rrna_depletion_common", "common_lab_contaminants"];
+    let selected =
+        ["human_host_depletion_grch38", "rrna_depletion_common", "common_lab_contaminants"];
     let mut bundles = Vec::new();
     for id in selected {
         let bundle = hydration
@@ -411,7 +413,10 @@ pub fn materialize_contaminant_databases(
             &db_path,
             format!(
                 "bundle_id={}\nlock_family={}\nmaterialization_root={}\noffline_source={}\n",
-                bundle.id, bundle.lock_family, bundle.materialization_root, bundle.offline_replay_source
+                bundle.id,
+                bundle.lock_family,
+                bundle.materialization_root,
+                bundle.offline_replay_source
             ),
         )
         .with_context(|| format!("write {}", db_path.display()))?;
@@ -432,7 +437,9 @@ pub fn materialize_contaminant_databases(
 
 /// # Errors
 /// Returns an error if the taxonomy bundle or lock family contract cannot be materialized.
-pub fn materialize_taxonomy_database(materialization_root: &Path) -> Result<TaxonomyDbMaterializationReport> {
+pub fn materialize_taxonomy_database(
+    materialization_root: &Path,
+) -> Result<TaxonomyDbMaterializationReport> {
     let hydration_path = workspace_root().join("configs/runtime/asset_hydration.toml");
     let locks_path = workspace_root().join("configs/runtime/asset_locks.toml");
     let hydration: AssetHydrationConfig = load_toml(&hydration_path)?;
@@ -542,9 +549,10 @@ fn write_index_artifact(
 #[cfg(test)]
 mod tests {
     use super::{
-        materialize_contaminant_databases, materialize_reference_bank, materialize_taxonomy_database,
-        materialize_vcf_panel_assets, resolve_reference_bundle_contract, validate_bundle_contigs,
-        validate_bundle_digests, validate_reference_index_qa,
+        materialize_contaminant_databases, materialize_reference_bank,
+        materialize_taxonomy_database, materialize_vcf_panel_assets,
+        resolve_reference_bundle_contract, validate_bundle_contigs, validate_bundle_digests,
+        validate_reference_index_qa,
     };
     use crate::runtime_config::{BundleEntry, ContigEntry, SupportedFeatureEntry};
     use std::collections::BTreeMap;
@@ -684,9 +692,13 @@ mod tests {
 
     #[test]
     fn reference_bundle_contract_rejects_tool_check_without_panel_and_map() {
-        let Err(error) =
-            resolve_reference_bundle_contract("Homo sapiens", "GRCh38", None, None, Some("glimpse"))
-        else {
+        let Err(error) = resolve_reference_bundle_contract(
+            "Homo sapiens",
+            "GRCh38",
+            None,
+            None,
+            Some("glimpse"),
+        ) else {
             panic!("tool compatibility without panel/map must fail");
         };
 

@@ -33,18 +33,23 @@ fn policy__contracts__refusal_bundle_policy__required_refusal_bundles_exist_and_
 
     let mut offenders = Vec::new();
     if observed != expected {
-        offenders.push(format!("failure bundle set mismatch: expected {:?}, observed {:?}", expected, observed));
+        offenders.push(format!(
+            "failure bundle set mismatch: expected {:?}, observed {:?}",
+            expected, observed
+        ));
     }
 
-    let examples_index =
-        std::fs::read_to_string(root.join("examples/index.yaml")).expect("read examples/index.yaml");
+    let examples_index = std::fs::read_to_string(root.join("examples/index.yaml"))
+        .expect("read examples/index.yaml");
     if examples_index.contains("examples/failures/") {
         offenders.push("examples/index.yaml must not list failure bundle directories".to_string());
     }
 
     let policy =
         std::fs::read_to_string(root.join("examples/POLICY.md")).expect("read examples/POLICY.md");
-    for needle in ["examples/failures/", "refusal-bundle.json", "must not be listed in `examples/index.yaml`"] {
+    for needle in
+        ["examples/failures/", "refusal-bundle.json", "must not be listed in `examples/index.yaml`"]
+    {
         if !policy.contains(needle) {
             offenders.push(format!("examples/POLICY.md missing `{needle}`"));
         }
@@ -82,10 +87,18 @@ fn policy__contracts__refusal_bundle_policy__refusal_bundle_contracts_are_comple
             continue;
         }
         let value: Value = serde_json::from_str(
-            &std::fs::read_to_string(&refusal).unwrap_or_else(|_| panic!("read {}", refusal.display())),
+            &std::fs::read_to_string(&refusal)
+                .unwrap_or_else(|_| panic!("read {}", refusal.display())),
         )
         .unwrap_or_else(|_| panic!("parse {}", refusal.display()));
-        for key in ["schema_version", "bundle_id", "category", "expected_refusal_codes", "operating_mode", "summary"] {
+        for key in [
+            "schema_version",
+            "bundle_id",
+            "category",
+            "expected_refusal_codes",
+            "operating_mode",
+            "summary",
+        ] {
             if value.get(key).is_none() {
                 offenders.push(format!("{bundle}: refusal-bundle.json missing `{key}`"));
             }

@@ -30,11 +30,7 @@ pub fn deplete_rrna(
     raw_backend_report: Option<&Path>,
 ) -> Result<DepleteRrnaReportV1> {
     let left = read_fastq_records(r1)?;
-    let right = if let Some(path) = r2 {
-        read_fastq_records(path)?
-    } else {
-        Vec::new()
-    };
+    let right = if let Some(path) = r2 { read_fastq_records(path)? } else { Vec::new() };
 
     let paired = r2.is_some();
     if paired && left.len() != right.len() {
@@ -48,11 +44,7 @@ pub fn deplete_rrna(
         return Err(anyhow!("fastq.deplete_rrna requires output_r2 for paired input"));
     }
 
-    let reads_in = if paired {
-        (left.len() + right.len()) as u64
-    } else {
-        left.len() as u64
-    };
+    let reads_in = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
     let bases_in = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
@@ -92,11 +84,8 @@ pub fn deplete_rrna(
     let bases_out = retained_left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + retained_right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
-    let rrna_fraction_removed = if reads_in == 0 {
-        0.0
-    } else {
-        removed_reads as f64 / reads_in as f64
-    };
+    let rrna_fraction_removed =
+        if reads_in == 0 { 0.0 } else { removed_reads as f64 / reads_in as f64 };
 
     std::fs::write(
         rrna_report_tsv,
@@ -116,11 +105,7 @@ pub fn deplete_rrna(
         stage: "fastq.deplete_rrna".to_string(),
         stage_id: "fastq.deplete_rrna".to_string(),
         tool_id: "bijux".to_string(),
-        paired_mode: if paired {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: params.threads,
         rrna_db: params.contaminant_db.clone(),
         database_artifact_id: params.database_artifact_id.clone(),
@@ -179,10 +164,7 @@ mod tests {
         let r1 = temp.path().join("r1.fastq");
         write_fastq(
             &r1,
-            &[
-                ("rrna", "GCGGCGTGCCTA", "IIIIIIIIIIII"),
-                ("clean", "ACGTACGTACGT", "IIIIIIIIIIII"),
-            ],
+            &[("rrna", "GCGGCGTGCCTA", "IIIIIIIIIIII"), ("clean", "ACGTACGTACGT", "IIIIIIIIIIII")],
         )?;
 
         let params = RrnaEffectiveParams {

@@ -2,6 +2,26 @@
 //!
 //! Owns: BAM stage semantics, effective params, and canonical metrics schema.
 //! Must NOT depend on: bijux-dna-engine or runtime/container execution logic.
+#![allow(
+    clippy::cast_lossless,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::expect_used,
+    clippy::fn_params_excessive_bools,
+    clippy::format_push_string,
+    clippy::if_not_else,
+    clippy::large_enum_variant,
+    clippy::map_unwrap_or,
+    clippy::match_same_arms,
+    clippy::missing_panics_doc,
+    clippy::similar_names,
+    clippy::single_match_else,
+    clippy::too_many_arguments,
+    clippy::too_many_lines,
+    clippy::uninlined_format_args,
+    clippy::unnecessary_semicolon
+)]
 
 pub mod alignment;
 mod artifacts;

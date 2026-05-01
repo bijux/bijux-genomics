@@ -10,6 +10,6 @@ pub use reference_assets::{
 };
 pub use species::{
     BuildId, ContigAliasResolutionReport, ContigAliasResolutionRow, ContigMap, ParRegion,
-    ResolvedSpeciesContext, SexChromosomeRule, SexParOrganellarAssetsReport,
-    SpeciesAuthorityEntry, SupportedFeatures,
+    ResolvedSpeciesContext, SexChromosomeRule, SexParOrganellarAssetsReport, SpeciesAuthorityEntry,
+    SupportedFeatures,
 };

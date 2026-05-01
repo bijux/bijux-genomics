@@ -42,9 +42,7 @@ pub fn subsample_reads(
 
     let paired_mode = r2.is_some();
     if paired_mode && output_r2.is_none() {
-        return Err(anyhow!(
-            "fastq.subsample_reads requires output_r2 for paired-end input"
-        ));
+        return Err(anyhow!("fastq.subsample_reads requires output_r2 for paired-end input"));
     }
 
     let total = left.len();
@@ -52,9 +50,7 @@ pub fn subsample_reads(
         SubsampleTarget::Count(count) => usize::min(count as usize, total),
         SubsampleTarget::Fraction(fraction) => {
             if !(0.0..=1.0).contains(&fraction) {
-                return Err(anyhow!(
-                    "fastq.subsample_reads requires fraction in range [0.0, 1.0]"
-                ));
+                return Err(anyhow!("fastq.subsample_reads requires fraction in range [0.0, 1.0]"));
             }
             ((total as f64) * fraction).round() as usize
         }
@@ -74,7 +70,8 @@ pub fn subsample_reads(
     }
     ranked.sort_by(|a, b| a.cmp(b));
 
-    let selected = ranked.into_iter().take(target_count).map(|(_, idx)| idx).collect::<BTreeSet<_>>();
+    let selected =
+        ranked.into_iter().take(target_count).map(|(_, idx)| idx).collect::<BTreeSet<_>>();
 
     let mut out_left = Vec::new();
     let mut out_right = Vec::new();

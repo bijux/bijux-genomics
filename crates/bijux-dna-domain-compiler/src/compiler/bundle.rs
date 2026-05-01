@@ -420,7 +420,10 @@ fn schema_version(path: &Path) -> Result<String> {
 fn load_stage_docs(domain_dir: &Path, domain_id: &str) -> Result<Vec<BundleStageDoc>> {
     let mut stages = Vec::new();
     for path in collect_yaml_files(&domain_dir.join(domain_id).join("stages"))? {
-        if path.file_name().and_then(|value| value.to_str()).is_some_and(|name| name.starts_with('_'))
+        if path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .is_some_and(|name| name.starts_with('_'))
         {
             continue;
         }
@@ -434,7 +437,10 @@ fn load_stage_docs(domain_dir: &Path, domain_id: &str) -> Result<Vec<BundleStage
 fn load_tool_docs(domain_dir: &Path, domain_id: &str) -> Result<Vec<BundleToolDoc>> {
     let mut tools = Vec::new();
     for path in collect_yaml_files(&domain_dir.join(domain_id).join("tools"))? {
-        if path.file_name().and_then(|value| value.to_str()).is_some_and(|name| name.starts_with('_'))
+        if path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .is_some_and(|name| name.starts_with('_'))
         {
             continue;
         }
@@ -445,7 +451,10 @@ fn load_tool_docs(domain_dir: &Path, domain_id: &str) -> Result<Vec<BundleToolDo
     Ok(tools)
 }
 
-fn load_artifacts(domain_dir: &Path, domain_id: &str) -> Result<(String, Vec<ArtifactRoleSnapshot>)> {
+fn load_artifacts(
+    domain_dir: &Path,
+    domain_id: &str,
+) -> Result<(String, Vec<ArtifactRoleSnapshot>)> {
     let path = domain_dir.join(domain_id).join("artifacts.yaml");
     let doc: ArtifactDoc = read_yaml(&path)?;
     if doc.domain != domain_id {
@@ -508,7 +517,8 @@ fn load_metrics(domain_dir: &Path, domain_id: &str) -> Result<(String, Vec<Domai
 
 fn load_deprecations(workspace_root: &Path) -> Result<Vec<DeprecationDocEntry>> {
     let path = workspace_root.join("configs/ci/registry/deprecations.toml");
-    let text = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let text =
+        std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     let parsed: DeprecationsDoc =
         toml::from_str(&text).with_context(|| format!("parse {}", path.display()))?;
     Ok(parsed.deprecations)
@@ -538,7 +548,11 @@ fn build_domain_defaults(
                 stage_id: stage_id.clone(),
                 tool_id: tool_id.clone(),
                 source: stage.defaults_source.clone(),
-                rationale: index.active_default_rationale.get(stage_id).cloned().unwrap_or_default(),
+                rationale: index
+                    .active_default_rationale
+                    .get(stage_id)
+                    .cloned()
+                    .unwrap_or_default(),
                 governance_status: if stage.status == "supported" {
                     "enforced".to_string()
                 } else {
@@ -582,9 +596,7 @@ fn build_fixture_bindings(
         }
     }
     fixtures.sort_by(|left, right| {
-        left.stage_id
-            .cmp(&right.stage_id)
-            .then_with(|| left.tool_id.cmp(&right.tool_id))
+        left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
     });
     fixtures
 }
@@ -620,9 +632,7 @@ fn build_deprecation_records(
         })
         .collect::<Vec<_>>();
     out.sort_by(|left, right| {
-        left.stage_id
-            .cmp(&right.stage_id)
-            .then_with(|| left.tool_id.cmp(&right.tool_id))
+        left.stage_id.cmp(&right.stage_id).then_with(|| left.tool_id.cmp(&right.tool_id))
     });
     out
 }
@@ -715,9 +725,12 @@ fn build_single_domain_registry(
 ) -> Result<CompiledDomainRegistry> {
     let index_path = domain_dir.join(domain_id).join("index.yaml");
     let index: DomainIndex = read_yaml(&index_path)?;
-    let stage_schema_version = schema_version(&domain_dir.join(domain_id).join("stages/_schema.yaml"))?;
-    let tool_schema_version = schema_version(&domain_dir.join(domain_id).join("tools/_schema.yaml"))?;
-    let stage_contracts = to_stage_contracts(&stage_schema_version, load_stage_docs(domain_dir, domain_id)?);
+    let stage_schema_version =
+        schema_version(&domain_dir.join(domain_id).join("stages/_schema.yaml"))?;
+    let tool_schema_version =
+        schema_version(&domain_dir.join(domain_id).join("tools/_schema.yaml"))?;
+    let stage_contracts =
+        to_stage_contracts(&stage_schema_version, load_stage_docs(domain_dir, domain_id)?);
     let stages_by_id = stage_contracts
         .iter()
         .cloned()
@@ -781,7 +794,9 @@ pub fn build_domain_registry_bundle(
     let deprecations = load_deprecations(workspace_root)?;
     let mut domains = ["fastq", "bam", "vcf"]
         .into_iter()
-        .map(|domain_id| build_single_domain_registry(domain_dir, domain_id, source_commit, &deprecations))
+        .map(|domain_id| {
+            build_single_domain_registry(domain_dir, domain_id, source_commit, &deprecations)
+        })
         .collect::<Result<Vec<_>>>()?;
     domains.sort_by(|left, right| left.domain_id.cmp(&right.domain_id));
     let bundle_checksum_sha256 = sha256_json(&domains)?;
@@ -844,7 +859,9 @@ pub fn domain_deprecation_catalogs(
         .collect()
 }
 
-pub fn domain_invariant_catalogs(bundle: &DomainRegistryReleaseBundle) -> Vec<DomainInvariantCatalog> {
+pub fn domain_invariant_catalogs(
+    bundle: &DomainRegistryReleaseBundle,
+) -> Vec<DomainInvariantCatalog> {
     bundle
         .domains
         .iter()
@@ -859,7 +876,9 @@ pub fn domain_invariant_catalogs(bundle: &DomainRegistryReleaseBundle) -> Vec<Do
         .collect()
 }
 
-pub fn domain_evidence_catalogs(bundle: &DomainRegistryReleaseBundle) -> Vec<DomainEvidenceCatalog> {
+pub fn domain_evidence_catalogs(
+    bundle: &DomainRegistryReleaseBundle,
+) -> Vec<DomainEvidenceCatalog> {
     bundle
         .domains
         .iter()
@@ -967,69 +986,65 @@ pub fn query_domain_registry_bundle(
         DomainRegistryQueryKind::Domains => {
             serde_json::json!(domains)
         }
-        DomainRegistryQueryKind::Stages => serde_json::json!(
-            domains
-                .iter()
-                .flat_map(|domain| domain.stages.iter())
-                .filter(|stage| query.stage_id.as_deref().is_none_or(|wanted| stage.stage_id == wanted))
-                .collect::<Vec<_>>()
-        ),
-        DomainRegistryQueryKind::Tools => serde_json::json!(
-            domains
-                .iter()
-                .flat_map(|domain| domain.tools.iter())
-                .filter(|tool| {
-                    query.tool_id.as_deref().is_none_or(|wanted| tool.tool_id == wanted)
-                        && query.stage_id.as_deref().is_none_or(|stage_id| {
-                            tool.stage_ids.iter().any(|candidate| candidate == stage_id)
-                                || tool.planned_stage_ids.iter().any(|candidate| candidate == stage_id)
-                        })
-                })
-                .collect::<Vec<_>>()
-        ),
-        DomainRegistryQueryKind::Metrics => serde_json::json!(
-            domains.iter().flat_map(|domain| domain.metrics.iter()).collect::<Vec<_>>()
-        ),
-        DomainRegistryQueryKind::Artifacts => serde_json::json!(
-            domains.iter().flat_map(|domain| domain.artifacts.iter()).collect::<Vec<_>>()
-        ),
-        DomainRegistryQueryKind::Defaults => serde_json::json!(
-            domains
-                .iter()
-                .flat_map(|domain| domain.defaults.iter())
-                .filter(|default| query.stage_id.as_deref().is_none_or(|wanted| default.stage_id == wanted))
-                .collect::<Vec<_>>()
-        ),
-        DomainRegistryQueryKind::Deprecations => serde_json::json!(
-            domains
-                .iter()
-                .flat_map(|domain| domain.deprecations.iter())
-                .collect::<Vec<_>>()
-        ),
-        DomainRegistryQueryKind::Evidence => serde_json::json!(
-            domains
-                .iter()
-                .flat_map(|domain| {
-                    domain.stages.iter().map(|stage| DomainEvidenceContract {
-                        stage_id: stage.stage_id.clone(),
-                        evidence_status: stage.evidence_status.clone(),
-                        defaults_source: stage.defaults_source.clone(),
-                        assumptions: stage.assumptions.clone(),
-                        invariants: stage.invariants.clone(),
+        DomainRegistryQueryKind::Stages => serde_json::json!(domains
+            .iter()
+            .flat_map(|domain| domain.stages.iter())
+            .filter(|stage| query.stage_id.as_deref().is_none_or(|wanted| stage.stage_id == wanted))
+            .collect::<Vec<_>>()),
+        DomainRegistryQueryKind::Tools => serde_json::json!(domains
+            .iter()
+            .flat_map(|domain| domain.tools.iter())
+            .filter(|tool| {
+                query.tool_id.as_deref().is_none_or(|wanted| tool.tool_id == wanted)
+                    && query.stage_id.as_deref().is_none_or(|stage_id| {
+                        tool.stage_ids.iter().any(|candidate| candidate == stage_id)
+                            || tool.planned_stage_ids.iter().any(|candidate| candidate == stage_id)
                     })
+            })
+            .collect::<Vec<_>>()),
+        DomainRegistryQueryKind::Metrics => serde_json::json!(domains
+            .iter()
+            .flat_map(|domain| domain.metrics.iter())
+            .collect::<Vec<_>>()),
+        DomainRegistryQueryKind::Artifacts => serde_json::json!(domains
+            .iter()
+            .flat_map(|domain| domain.artifacts.iter())
+            .collect::<Vec<_>>()),
+        DomainRegistryQueryKind::Defaults => serde_json::json!(domains
+            .iter()
+            .flat_map(|domain| domain.defaults.iter())
+            .filter(|default| query
+                .stage_id
+                .as_deref()
+                .is_none_or(|wanted| default.stage_id == wanted))
+            .collect::<Vec<_>>()),
+        DomainRegistryQueryKind::Deprecations => serde_json::json!(domains
+            .iter()
+            .flat_map(|domain| domain.deprecations.iter())
+            .collect::<Vec<_>>()),
+        DomainRegistryQueryKind::Evidence => serde_json::json!(domains
+            .iter()
+            .flat_map(|domain| {
+                domain.stages.iter().map(|stage| DomainEvidenceContract {
+                    stage_id: stage.stage_id.clone(),
+                    evidence_status: stage.evidence_status.clone(),
+                    defaults_source: stage.defaults_source.clone(),
+                    assumptions: stage.assumptions.clone(),
+                    invariants: stage.invariants.clone(),
                 })
-                .filter(|evidence| query.stage_id.as_deref().is_none_or(|wanted| evidence.stage_id == wanted))
-                .collect::<Vec<_>>()
-        ),
-        DomainRegistryQueryKind::Fixtures => serde_json::json!(
-            domains
-                .iter()
-                .flat_map(|domain| domain.fixtures.iter())
-                .filter(|fixture| {
-                    query.stage_id.as_deref().is_none_or(|wanted| fixture.stage_id == wanted)
-                        && query.tool_id.as_deref().is_none_or(|wanted| fixture.tool_id == wanted)
-                })
-                .collect::<Vec<_>>()
-        ),
+            })
+            .filter(|evidence| query
+                .stage_id
+                .as_deref()
+                .is_none_or(|wanted| evidence.stage_id == wanted))
+            .collect::<Vec<_>>()),
+        DomainRegistryQueryKind::Fixtures => serde_json::json!(domains
+            .iter()
+            .flat_map(|domain| domain.fixtures.iter())
+            .filter(|fixture| {
+                query.stage_id.as_deref().is_none_or(|wanted| fixture.stage_id == wanted)
+                    && query.tool_id.as_deref().is_none_or(|wanted| fixture.tool_id == wanted)
+            })
+            .collect::<Vec<_>>()),
     }
 }

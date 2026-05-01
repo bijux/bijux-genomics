@@ -1,9 +1,8 @@
 use super::{
     artifact_root_path, check_schema_doc, collect_warning_strings_json, compare_json_key_drift,
     ensure_exists, ensure_help_only, env_flag, examples_run, json, merge_outcomes, read_json_value,
-    read_utf8, smoke_run, sorted_unique, success_line, value_string, write_json_pretty,
-    write_utf8, BTreeSet, Context, OpsCommandOutcome, Path, PathBuf, Result, Utc, Value,
-    Workspace,
+    read_utf8, smoke_run, sorted_unique, success_line, value_string, write_json_pretty, write_utf8,
+    BTreeSet, Context, OpsCommandOutcome, Path, PathBuf, Result, Utc, Value, Workspace,
 };
 
 pub(in super::super) fn tooling_certification_gate(
@@ -26,10 +25,8 @@ pub(in super::super) fn tooling_benchmark_smoke_level1(
     let examples = canonical_level1_examples(workspace);
     let mut rows = Vec::new();
     for (example_id, example_root) in &examples {
-        let outcome = examples_run(
-            workspace,
-            &["--allow-non-isolate".to_string(), example_id.to_string()],
-        )?;
+        let outcome =
+            examples_run(workspace, &["--allow-non-isolate".to_string(), example_id.to_string()])?;
         if !outcome.is_success() {
             return Ok(outcome);
         }
@@ -61,10 +58,7 @@ pub(in super::super) fn tooling_benchmark_smoke_level1(
     });
     let report_path = out_dir.join("level1_smoke_benchmark.json");
     write_json_pretty(&report_path, &report)?;
-    success_line(format!(
-        "level1 smoke benchmark: {}",
-        workspace.rel(&report_path).display()
-    ))
+    success_line(format!("level1 smoke benchmark: {}", workspace.rel(&report_path).display()))
 }
 
 pub(in super::super) fn tooling_certify_level1(
@@ -73,10 +67,8 @@ pub(in super::super) fn tooling_certify_level1(
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("certify-level1", args)?;
 
-    let gate = super::cargo_targets::tooling_cargo_targets(
-        workspace,
-        &["essential-release".to_string()],
-    )?;
+    let gate =
+        super::cargo_targets::tooling_cargo_targets(workspace, &["essential-release".to_string()])?;
     if !gate.is_success() {
         return Ok(gate);
     }
@@ -114,10 +106,7 @@ pub(in super::super) fn tooling_certify_level1(
             "# Level 1 Certificate\n\n- status: ok\n- gate: `cargo run -q -p bijux-dna-dev -- tooling run cargo-targets essential-release`\n- benchmark report: `artifacts/benchmarks/smoke/level1/level1_smoke_benchmark.json`\n- scoreboard: `artifacts/planning/scoreboard.yaml`\n- cards: `artifacts/planning/cards.yaml`\n"
         ),
     )?;
-    success_line(format!(
-        "level1 certificate: {}",
-        workspace.rel(&certificate_path).display()
-    ))
+    success_line(format!("level1 certificate: {}", workspace.rel(&certificate_path).display()))
 }
 
 pub(in super::super) fn tooling_certify_all(
@@ -530,9 +519,6 @@ fn canonical_level1_examples(workspace: &Workspace) -> Vec<(String, PathBuf)> {
             "bam_essential_alignment_qc".to_string(),
             workspace.path("examples/bam/essential-alignment-qc"),
         ),
-        (
-            "vcf_essential_qc_filter".to_string(),
-            workspace.path("examples/vcf/essential-qc-filter"),
-        ),
+        ("vcf_essential_qc_filter".to_string(), workspace.path("examples/vcf/essential-qc-filter")),
     ]
 }

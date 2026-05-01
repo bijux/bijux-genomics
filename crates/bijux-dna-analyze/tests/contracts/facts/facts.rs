@@ -563,7 +563,7 @@ fn profile_bundles_write_and_verify_for_release_surfaces() -> anyhow::Result<()>
         failure_code: None,
     };
     bijux_dna_infra::write_bytes(
-        &telemetry_dir.join("events.jsonl"),
+        telemetry_dir.join("events.jsonl"),
         format!("{}\n", serde_json::to_string(&telemetry)?),
     )?;
     bijux_dna_infra::atomic_write_json(

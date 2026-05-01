@@ -1,10 +1,10 @@
+use crate::cli::{AnalyzeEvidenceCommand, AnalyzeEvidenceVerifyArgs};
 use crate::commands::support::prelude::{
     anyhow, atomic_write_bytes, compare_runs, compare_runs_with_baseline, load_facts_auto,
     load_run_summary, objective_spec, render, render_report_bundle_html, resolve_report_inputs,
     write_run_report_from_facts, write_run_summary_from_facts, write_stage_summary_csv,
     AnalyzeCommand, BTreeMap, RankInput, Result,
 };
-use crate::cli::{AnalyzeEvidenceCommand, AnalyzeEvidenceVerifyArgs};
 
 #[allow(clippy::too_many_lines)]
 pub(crate) fn handle_analyze_command(args: &crate::cli::AnalyzeRootArgs) -> Result<bool> {
@@ -198,7 +198,8 @@ pub(crate) fn handle_analyze_command(args: &crate::cli::AnalyzeRootArgs) -> Resu
                 render::json::print_pretty(&verification)?;
             }
             AnalyzeEvidenceCommand::Compare(args) => {
-                let comparison = bijux_dna_analyze::compare_evidence_bundles(&args.left, &args.right)?;
+                let comparison =
+                    bijux_dna_analyze::compare_evidence_bundles(&args.left, &args.right)?;
                 render::json::print_pretty(&comparison)?;
             }
         },

@@ -6,10 +6,9 @@ use bijux_dna_runtime::observability::RunProvenanceV1;
 use bijux_dna_runtime::run_layout::{
     ExecutorDescriptorV1, OperatorHealthCheckV1, OperatorHealthReportV1, RunBackendDescriptorV1,
     RunBackendRecordV1, RunControlActionV1, RunControlAuditEntryV1, RunControlStateV1,
-    RunExecutionModeV1, RunFailureV1, RunLayoutV1, RunLeaseV1, RunLifecycleStateV1,
-    RunManifest, RunQueueLifecycleStateV1, RunQueueStateV1, RunQueueTransitionV1,
-    RunSchedulingDecisionV1, RunStateV1, SlurmJobStateV1, SlurmJobTransitionV1,
-    SlurmSubmissionRecordV1,
+    RunExecutionModeV1, RunFailureV1, RunLayoutV1, RunLeaseV1, RunLifecycleStateV1, RunManifest,
+    RunQueueLifecycleStateV1, RunQueueStateV1, RunQueueTransitionV1, RunSchedulingDecisionV1,
+    RunStateV1, SlurmJobStateV1, SlurmJobTransitionV1, SlurmSubmissionRecordV1,
 };
 
 #[path = "../../support/workspace_paths.rs"]
@@ -382,7 +381,9 @@ fn runtime_operations_schema_snapshots() {
             from_state: None,
             to_state: SlurmJobStateV1::Submitted,
             occurred_at: "2024-01-01T00:00:00Z".to_string(),
-            detail: Some("mocked apptainer submission recorded for governed monitoring tests".to_string()),
+            detail: Some(
+                "mocked apptainer submission recorded for governed monitoring tests".to_string(),
+            ),
         }],
     };
     let slurm_expected =

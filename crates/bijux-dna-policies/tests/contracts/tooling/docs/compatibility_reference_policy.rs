@@ -11,13 +11,15 @@ fn workspace_root() -> PathBuf {
 }
 
 #[test]
-fn policy__contracts__compatibility_reference_policy__compatibility_sources_and_indexes_are_present() {
+fn policy__contracts__compatibility_reference_policy__compatibility_sources_and_indexes_are_present(
+) {
     let root = workspace_root();
-    let ci_index = std::fs::read_to_string(root.join("configs/ci/index.md")).expect("read configs/ci/index.md");
-    let compat_index =
-        std::fs::read_to_string(root.join("configs/ci/compatibility/index.md")).expect("read configs/ci/compatibility/index.md");
-    let reference_index =
-        std::fs::read_to_string(root.join("docs/50-reference/index.md")).expect("read docs/50-reference/index.md");
+    let ci_index = std::fs::read_to_string(root.join("configs/ci/index.md"))
+        .expect("read configs/ci/index.md");
+    let compat_index = std::fs::read_to_string(root.join("configs/ci/compatibility/index.md"))
+        .expect("read configs/ci/compatibility/index.md");
+    let reference_index = std::fs::read_to_string(root.join("docs/50-reference/index.md"))
+        .expect("read docs/50-reference/index.md");
 
     bijux_dna_policies::policy_assert!(
         ci_index.contains("configs/ci/compatibility/"),
@@ -29,12 +31,9 @@ fn policy__contracts__compatibility_reference_policy__compatibility_sources_and_
             "configs/ci/compatibility/index.md missing {needle}"
         );
     }
-    for needle in [
-        "SCHEMA_REGISTRY.md",
-        "API_VERSIONING.md",
-        "DEPRECATION_DASHBOARD.md",
-        "UPGRADE_GUIDE.md",
-    ] {
+    for needle in
+        ["SCHEMA_REGISTRY.md", "API_VERSIONING.md", "DEPRECATION_DASHBOARD.md", "UPGRADE_GUIDE.md"]
+    {
         bijux_dna_policies::policy_assert!(
             reference_index.contains(needle),
             "docs/50-reference/index.md missing {needle}"
@@ -43,20 +42,25 @@ fn policy__contracts__compatibility_reference_policy__compatibility_sources_and_
 }
 
 #[test]
-fn policy__contracts__compatibility_reference_policy__generated_docs_and_normative_links_stay_intact() {
+fn policy__contracts__compatibility_reference_policy__generated_docs_and_normative_links_stay_intact(
+) {
     let root = workspace_root();
     let schema_registry =
-        std::fs::read_to_string(root.join("docs/50-reference/SCHEMA_REGISTRY.md")).expect("read schema registry");
-    let api_versioning =
-        std::fs::read_to_string(root.join("docs/50-reference/API_VERSIONING.md")).expect("read api versioning");
+        std::fs::read_to_string(root.join("docs/50-reference/SCHEMA_REGISTRY.md"))
+            .expect("read schema registry");
+    let api_versioning = std::fs::read_to_string(root.join("docs/50-reference/API_VERSIONING.md"))
+        .expect("read api versioning");
     let dashboard =
-        std::fs::read_to_string(root.join("docs/50-reference/DEPRECATION_DASHBOARD.md")).expect("read deprecation dashboard");
-    let upgrade_guide =
-        std::fs::read_to_string(root.join("docs/50-reference/UPGRADE_GUIDE.md")).expect("read upgrade guide");
+        std::fs::read_to_string(root.join("docs/50-reference/DEPRECATION_DASHBOARD.md"))
+            .expect("read deprecation dashboard");
+    let upgrade_guide = std::fs::read_to_string(root.join("docs/50-reference/UPGRADE_GUIDE.md"))
+        .expect("read upgrade guide");
     let contract_compatibility =
-        std::fs::read_to_string(root.join("docs/50-reference/CONTRACT_COMPATIBILITY.md")).expect("read contract compatibility");
+        std::fs::read_to_string(root.join("docs/50-reference/CONTRACT_COMPATIBILITY.md"))
+            .expect("read contract compatibility");
     let manifest_migration =
-        std::fs::read_to_string(root.join("docs/50-reference/MANIFEST_MIGRATION.md")).expect("read manifest migration");
+        std::fs::read_to_string(root.join("docs/50-reference/MANIFEST_MIGRATION.md"))
+            .expect("read manifest migration");
 
     for doc in [&schema_registry, &api_versioning, &dashboard, &upgrade_guide] {
         bijux_dna_policies::policy_assert!(

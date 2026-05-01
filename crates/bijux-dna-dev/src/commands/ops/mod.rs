@@ -789,9 +789,8 @@ fn generate_api_versioning_doc(_workspace: &Workspace, out: &Path) -> Result<()>
 }
 
 fn generate_deprecation_dashboard_doc(workspace: &Workspace, out: &Path) -> Result<()> {
-    let cfg: CompatibilityDeprecationsConfig = toml::from_str(&read_utf8(
-        &workspace.path("configs/ci/compatibility/deprecations.toml"),
-    )?)?;
+    let cfg: CompatibilityDeprecationsConfig =
+        toml::from_str(&read_utf8(&workspace.path("configs/ci/compatibility/deprecations.toml"))?)?;
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-docs -->".to_string(),
@@ -828,7 +827,8 @@ fn generate_upgrade_guide_doc(workspace: &Workspace, out: &Path) -> Result<()> {
     )?)?;
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
-        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-docs -->".to_string(),
+        "<!-- Regenerate with: cargo run -p bijux-dna-dev -- tooling run generate-docs -->"
+            .to_string(),
         String::new(),
         "# UPGRADE_GUIDE".to_string(),
         String::new(),
@@ -843,10 +843,7 @@ fn generate_upgrade_guide_doc(workspace: &Workspace, out: &Path) -> Result<()> {
         format!("- Defaults changed: `{}`", cfg.area_status.defaults),
         format!("- Tools changed: `{}`", cfg.area_status.tools),
         format!("- Containers changed: `{}`", cfg.area_status.containers),
-        format!(
-            "- Evidence expectations changed: `{}`",
-            cfg.area_status.evidence_expectations
-        ),
+        format!("- Evidence expectations changed: `{}`", cfg.area_status.evidence_expectations),
         format!("- API changed: `{}`", cfg.area_status.api),
         format!("- Error registry changed: `{}`", cfg.area_status.errors),
         String::new(),
@@ -864,11 +861,8 @@ fn generate_upgrade_guide_doc(workspace: &Workspace, out: &Path) -> Result<()> {
     for (area_id, heading) in areas {
         lines.push(String::new());
         lines.push(format!("### {heading}"));
-        let matching = cfg
-            .change
-            .iter()
-            .filter(|row| row.area == area_id && row.changed)
-            .collect::<Vec<_>>();
+        let matching =
+            cfg.change.iter().filter(|row| row.area == area_id && row.changed).collect::<Vec<_>>();
         if matching.is_empty() {
             lines.push("No governed changes declared in this release.".to_string());
             continue;

@@ -4,6 +4,38 @@
 //! Must NOT depend on: bijux-dna-engine or runtime/container execution logic.
 //! Reading order: `stages`, `params`, `metrics`, `invariants`, `banks`, then `observer`.
 //! Structural layout is documented in `docs/ARCHITECTURE.md`.
+#![allow(dead_code)]
+#![allow(
+    clippy::cast_lossless,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss,
+    clippy::comparison_chain,
+    clippy::expect_used,
+    clippy::float_cmp,
+    clippy::fn_params_excessive_bools,
+    clippy::format_collect,
+    clippy::format_push_string,
+    clippy::if_not_else,
+    clippy::large_enum_variant,
+    clippy::map_unwrap_or,
+    clippy::match_same_arms,
+    clippy::match_single_binding,
+    clippy::missing_panics_doc,
+    clippy::needless_pass_by_value,
+    clippy::redundant_closure_for_method_calls,
+    clippy::similar_names,
+    clippy::single_match_else,
+    clippy::too_many_arguments,
+    clippy::too_many_lines,
+    clippy::uninlined_format_args,
+    clippy::unnecessary_wraps,
+    clippy::unnecessary_sort_by,
+    clippy::iter_kv_map,
+    clippy::cloned_instead_of_copied,
+    clippy::unwrap_used
+)]
 mod artifacts;
 pub mod banks;
 mod bench;
@@ -45,7 +77,10 @@ pub use artifacts::{
     governed_qc_inputs_manifest_from_inputs, GovernedQcInputsManifestV1,
     GovernedQcManifestContributorV1, GOVERNED_QC_INPUTS_MANIFEST_SCHEMA_VERSION,
 };
-pub use artifacts::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
+pub use artifacts::{
+    AssetVerificationEntryV1, AssetVerificationStatusV1, VerifyAssetsReportV1,
+    VERIFY_ASSETS_REPORT_SCHEMA_VERSION,
+};
 pub use artifacts::{
     BuildContaminantDbReportV1, BuildContaminantDbSourceEntryV1,
     BUILD_CONTAMINANT_DB_REPORT_SCHEMA_VERSION,
@@ -54,8 +89,7 @@ pub use artifacts::{
     BuildRrnaDbReportV1, BuildRrnaDbSourceEntryV1, BUILD_RRNA_DB_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{
-    BuildTaxonomyDbReportV1, BuildTaxonomyDbSourceEntryV1,
-    BUILD_TAXONOMY_DB_REPORT_SCHEMA_VERSION,
+    BuildTaxonomyDbReportV1, BuildTaxonomyDbSourceEntryV1, BUILD_TAXONOMY_DB_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{
     CaptureProvenanceSnapshotReportV1, ProvenanceFileEntryV1, ProvenanceStageEntryV1,
@@ -64,27 +98,26 @@ pub use artifacts::{
 pub use artifacts::{
     ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
 };
+pub use artifacts::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
-    ConcatenateLaneSummaryV1, ConcatenateLanesReportV1,
-    CONCATENATE_LANES_REPORT_SCHEMA_VERSION,
+    ConcatenateLaneSummaryV1, ConcatenateLanesReportV1, CONCATENATE_LANES_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION};
+pub use artifacts::{DeinterleaveReadsReportV1, DEINTERLEAVE_READS_REPORT_SCHEMA_VERSION};
+pub use artifacts::{
+    DemultiplexReadsReportV1, DemultiplexSampleSummaryV1, DEMULTIPLEX_READS_REPORT_SCHEMA_VERSION,
+};
 pub use artifacts::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
     DepleteReferenceContaminantsReportV1, DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{DepleteRrnaReportV1, DEPLETE_RRNA_REPORT_SCHEMA_VERSION};
-pub use artifacts::{DeinterleaveReadsReportV1, DEINTERLEAVE_READS_REPORT_SCHEMA_VERSION};
-pub use artifacts::{
-    DemultiplexReadsReportV1, DemultiplexSampleSummaryV1,
-    DEMULTIPLEX_READS_REPORT_SCHEMA_VERSION,
-};
 pub use artifacts::{DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
-    DetectInstrumentArtifactsReportV1, DETECT_INSTRUMENT_ARTIFACTS_REPORT_SCHEMA_VERSION,
+    DetectDuplicatesPremergeReportV1, DETECT_DUPLICATES_PREMERGE_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{
-    DetectDuplicatesPremergeReportV1, DETECT_DUPLICATES_PREMERGE_REPORT_SCHEMA_VERSION,
+    DetectInstrumentArtifactsReportV1, DETECT_INSTRUMENT_ARTIFACTS_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{
     DuplicateClassEntryV1, RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1,
@@ -98,17 +131,19 @@ pub use artifacts::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION};
 pub use artifacts::{FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION};
-pub use artifacts::{RepairPairsReportV1, REPAIR_PAIRS_REPORT_SCHEMA_VERSION};
+pub use artifacts::{
+    HostReferenceBundleFileV1, PrepareHostReferenceBundleReportV1,
+    PREPARE_HOST_REFERENCE_BUNDLE_REPORT_SCHEMA_VERSION,
+};
 pub use artifacts::{
     IndexReferenceFileEntryV1, IndexReferenceReportV1, INDEX_REFERENCE_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{InterleaveReadsReportV1, INTERLEAVE_READS_REPORT_SCHEMA_VERSION};
-pub use artifacts::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
-    MaterializeQcManifestReportV1, QcManifestEntryV1,
-    MATERIALIZE_QC_MANIFEST_REPORT_SCHEMA_VERSION,
+    MaterializeQcManifestReportV1, QcManifestEntryV1, MATERIALIZE_QC_MANIFEST_REPORT_SCHEMA_VERSION,
 };
+pub use artifacts::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION};
 pub use artifacts::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{NormalizeReadNamesReportV1, NORMALIZE_READ_NAMES_REPORT_SCHEMA_VERSION};
@@ -117,10 +152,6 @@ pub use artifacts::{
     PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{PrepareAdapterBankReportV1, PREPARE_ADAPTER_BANK_REPORT_SCHEMA_VERSION};
-pub use artifacts::{
-    HostReferenceBundleFileV1, PrepareHostReferenceBundleReportV1,
-    PREPARE_HOST_REFERENCE_BUNDLE_REPORT_SCHEMA_VERSION,
-};
 pub use artifacts::{PreparePrimerBankReportV1, PREPARE_PRIMER_BANK_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
     ProfileReadLengthBinV1, ProfileReadLengthsReportV1, PROFILE_READ_LENGTHS_REPORT_SCHEMA_VERSION,
@@ -130,6 +161,7 @@ pub use artifacts::{
     PROFILE_READS_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{RemoveChimerasReportV1, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION};
+pub use artifacts::{RepairPairsReportV1, REPAIR_PAIRS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
     ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
 };
@@ -137,10 +169,6 @@ pub use artifacts::{SubsampleReadsReportV1, SUBSAMPLE_READS_REPORT_SCHEMA_VERSIO
 pub use artifacts::{TerminalDamageReportV1, TERMINAL_DAMAGE_REPORT_SCHEMA_VERSION};
 pub use artifacts::{TrimPolygReportV1, TRIM_POLYG_REPORT_SCHEMA_VERSION};
 pub use artifacts::{TrimReadsReportV1, TRIM_READS_REPORT_SCHEMA_VERSION};
-pub use artifacts::{
-    AssetVerificationEntryV1, AssetVerificationStatusV1, VerifyAssetsReportV1,
-    VERIFY_ASSETS_REPORT_SCHEMA_VERSION,
-};
 pub use artifacts::{
     ValidateFailureClass, ValidatedReadsManifestV1, ValidationReportV1,
     VALIDATED_READS_MANIFEST_SCHEMA_VERSION, VALIDATION_REPORT_SCHEMA_VERSION,

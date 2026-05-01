@@ -11,7 +11,10 @@ use crate::artifacts::{
 ///
 /// # Errors
 /// Returns an error when sources are missing or cannot be parsed.
-pub fn build_rrna_db(rrna_sources: &[&Path], database_family: Option<&str>) -> Result<BuildRrnaDbReportV1> {
+pub fn build_rrna_db(
+    rrna_sources: &[&Path],
+    database_family: Option<&str>,
+) -> Result<BuildRrnaDbReportV1> {
     if rrna_sources.is_empty() {
         return Err(anyhow!("fastq.build_rrna_db requires at least one rRNA source"));
     }
@@ -24,11 +27,8 @@ pub fn build_rrna_db(rrna_sources: &[&Path], database_family: Option<&str>) -> R
         let raw = std::fs::read_to_string(source)?;
         let digest = bijux_dna_infra::hash_file_sha256(source)
             .map_err(|err| anyhow!("hash {}: {err}", source.display()))?;
-        let sequence_count = raw
-            .lines()
-            .map(str::trim)
-            .filter(|line| line.starts_with('>'))
-            .count() as u64;
+        let sequence_count =
+            raw.lines().map(str::trim).filter(|line| line.starts_with('>')).count() as u64;
         sources.push(BuildRrnaDbSourceEntryV1 {
             path: source.display().to_string(),
             sha256: digest,
@@ -45,11 +45,8 @@ pub fn build_rrna_db(rrna_sources: &[&Path], database_family: Option<&str>) -> R
         hasher.update(entry.sha256.as_bytes());
         hasher.update(b"\n");
     }
-    let database_hash = hasher
-        .finalize()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect::<String>();
+    let database_hash =
+        hasher.finalize().iter().map(|byte| format!("{byte:02x}")).collect::<String>();
 
     Ok(BuildRrnaDbReportV1 {
         schema_version: BUILD_RRNA_DB_REPORT_SCHEMA_VERSION.to_string(),

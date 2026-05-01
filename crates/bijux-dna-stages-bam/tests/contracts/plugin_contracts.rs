@@ -33,7 +33,10 @@ fn stage_plan(stage_id: &str) -> StagePlanV1 {
         out_dir: PathBuf::from("out"),
         params: serde_json::json!({}),
         effective_params: serde_json::json!({}),
+        operating_mode: bijux_dna_core::contract::StageOperatingMode::default(),
         aux_images: BTreeMap::new(),
+        canonical_contract: None,
+        provenance: None,
         reason: PlanDecisionReason::default(),
     }
 }

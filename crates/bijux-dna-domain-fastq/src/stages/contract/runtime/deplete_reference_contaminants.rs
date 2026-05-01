@@ -31,11 +31,7 @@ pub fn deplete_reference_contaminants(
     raw_backend_report: Option<&Path>,
 ) -> Result<DepleteReferenceContaminantsReportV1> {
     let left = read_fastq_records(r1)?;
-    let right = if let Some(path) = r2 {
-        read_fastq_records(path)?
-    } else {
-        Vec::new()
-    };
+    let right = if let Some(path) = r2 { read_fastq_records(path)? } else { Vec::new() };
 
     let paired = r2.is_some();
     if paired && left.len() != right.len() {
@@ -51,11 +47,7 @@ pub fn deplete_reference_contaminants(
         ));
     }
 
-    let reads_in = if paired {
-        (left.len() + right.len()) as u64
-    } else {
-        left.len() as u64
-    };
+    let reads_in = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
     let bases_in = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
@@ -100,11 +92,7 @@ pub fn deplete_reference_contaminants(
         stage: "fastq.deplete_reference_contaminants".to_string(),
         stage_id: "fastq.deplete_reference_contaminants".to_string(),
         tool_id: "bijux".to_string(),
-        paired_mode: if paired {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: params.threads,
         reference_catalog_id: params.reference_catalog_id.clone(),
         contaminant_reference: params.contaminant_reference.clone(),

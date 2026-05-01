@@ -84,7 +84,8 @@ fn load_runner(base_dir: &Path) -> Result<Box<dyn bijux_dna_runtime::Runner>> {
     let raw = std::fs::read_to_string(&descriptor_path)
         .map_err(|err| anyhow!("read executor_descriptor.json: {err}"))?;
     let descriptor: bijux_dna_runtime::run_layout::RunExecutorDescriptorV1 =
-        serde_json::from_str(&raw).map_err(|err| anyhow!("parse executor_descriptor.json: {err}"))?;
+        serde_json::from_str(&raw)
+            .map_err(|err| anyhow!("parse executor_descriptor.json: {err}"))?;
     match descriptor.descriptor {
         bijux_dna_runtime::run_layout::ExecutorDescriptorV1::Local { .. } => {
             Ok(Box::new(LocalRunner::new(None)))

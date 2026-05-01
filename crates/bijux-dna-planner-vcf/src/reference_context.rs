@@ -86,10 +86,8 @@ pub fn resolve(inputs: &VcfPipelineInputs) -> Result<ResolvedPlanningContext> {
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
     )?;
-    let contig_map = resolve_contig_map(
-        &inputs.species_context.species_id,
-        &inputs.species_context.build_id,
-    )?;
+    let contig_map =
+        resolve_contig_map(&inputs.species_context.species_id, &inputs.species_context.build_id)?;
     let panel_catalog = refs.resolve_panel(
         &inputs.species_context.species_id,
         &inputs.species_context.build_id,
@@ -168,6 +166,8 @@ pub fn reference_context_report(context: &ResolvedPlanningContext) -> ReferenceC
 
 /// # Errors
 /// Returns an error if the reference context cannot be resolved for the planner inputs.
-pub fn resolve_reference_context_report(inputs: &VcfPipelineInputs) -> Result<ReferenceContextReport> {
+pub fn resolve_reference_context_report(
+    inputs: &VcfPipelineInputs,
+) -> Result<ReferenceContextReport> {
     resolve(inputs).map(|context| reference_context_report(&context))
 }

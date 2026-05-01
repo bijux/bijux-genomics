@@ -43,12 +43,9 @@ pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
             if id != stage.as_str() {
                 continue;
             }
-            for key in [
-                "primary_tools",
-                "optional_alternatives",
-                "validation_tools",
-                "reporting_tools",
-            ] {
+            for key in
+                ["primary_tools", "optional_alternatives", "validation_tools", "reporting_tools"]
+            {
                 let mapped = stage_entry
                     .get(key)
                     .and_then(toml::Value::as_array)

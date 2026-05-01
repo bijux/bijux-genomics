@@ -69,6 +69,7 @@ fn fan_rules_from_reference(source_stage: &str, target_stage: &str) -> Vec<FanAr
     }]
 }
 
+#[allow(clippy::too_many_arguments)]
 fn template(
     template_id: &str,
     pipeline_id: &str,

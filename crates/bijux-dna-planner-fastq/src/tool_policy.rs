@@ -55,9 +55,7 @@ pub(crate) fn enforce_declared_input_layout(stage_id: &str, layout: FastqReadLay
         return Ok(());
     }
     Err(anyhow!(
-        "{} does not admit {:?} inputs under the governed FASTQ layout contract",
-        stage_id,
-        layout
+        "{stage_id} does not admit {layout:?} inputs under the governed FASTQ layout contract"
     ))
 }
 

@@ -2,8 +2,8 @@ use super::{
     ensure_generated_header, ensure_generated_header_path, ensure_help_only, failure_lines, fs,
     generate_compatibility_matrix, generate_compatibility_reference_docs, generate_docs_graph,
     generate_domain_coverage_doc, generate_repo_root_map, generate_tool_index, glob_paths,
-    read_utf8, rg_lines, run_program, success_line, temp_subdir, trim_quoted, write_utf8,
-    BTreeMap, BTreeSet, Context, OpsCommandOutcome, Regex, Result, WalkDir, Workspace,
+    read_utf8, rg_lines, run_program, success_line, temp_subdir, trim_quoted, write_utf8, BTreeMap,
+    BTreeSet, Context, OpsCommandOutcome, Regex, Result, WalkDir, Workspace,
 };
 use std::path::Path;
 

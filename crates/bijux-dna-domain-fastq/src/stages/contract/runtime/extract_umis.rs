@@ -38,7 +38,11 @@ fn pattern_len(params: &FastqUmiParams) -> usize {
         .unwrap_or(8)
 }
 
-fn extract_umi(record: &FastqRecord, location: &UmiExtractionLocation, size: usize) -> Option<String> {
+fn extract_umi(
+    record: &FastqRecord,
+    location: &UmiExtractionLocation,
+    size: usize,
+) -> Option<String> {
     match location {
         UmiExtractionLocation::Read1Prefix | UmiExtractionLocation::Read2Prefix => {
             let prefix = record.sequence.chars().take(size).collect::<String>();
@@ -86,11 +90,7 @@ pub fn extract_umis(
     raw_backend_report: Option<&Path>,
 ) -> Result<ExtractUmisReportV1> {
     let left = read_fastq_records(r1)?;
-    let right = if let Some(path) = r2 {
-        read_fastq_records(path)?
-    } else {
-        Vec::new()
-    };
+    let right = if let Some(path) = r2 { read_fastq_records(path)? } else { Vec::new() };
 
     let paired = r2.is_some();
     if paired && left.len() != right.len() {
@@ -105,11 +105,7 @@ pub fn extract_umis(
     }
 
     let umi_len = pattern_len(params);
-    let reads_in = if paired {
-        (left.len() + right.len()) as u64
-    } else {
-        left.len() as u64
-    };
+    let reads_in = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
     let bases_in = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
@@ -170,21 +166,26 @@ pub fn extract_umis(
         write_fastq_records(out_r2, &out_right)?;
     }
 
-    let reads_out = if paired {
-        (out_left.len() + out_right.len()) as u64
-    } else {
-        out_left.len() as u64
-    };
+    let reads_out =
+        if paired { (out_left.len() + out_right.len()) as u64 } else { out_left.len() as u64 };
     let bases_out = out_left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + out_right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
     let mean_q_before = {
         let sum = mean_q(&left) + mean_q(&right);
-        if paired { sum / 2.0 } else { sum }
+        if paired {
+            sum / 2.0
+        } else {
+            sum
+        }
     };
     let mean_q_after = {
         let sum = mean_q(&out_left) + mean_q(&out_right);
-        if paired { sum / 2.0 } else { sum }
+        if paired {
+            sum / 2.0
+        } else {
+            sum
+        }
     };
 
     Ok(ExtractUmisReportV1 {
@@ -192,11 +193,7 @@ pub fn extract_umis(
         stage: "fastq.extract_umis".to_string(),
         stage_id: "fastq.extract_umis".to_string(),
         tool_id: "bijux".to_string(),
-        paired_mode: if paired {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: params.threads,
         umi_pattern: params.umi_pattern.clone().unwrap_or_else(|| "NNNNNNNN".to_string()),
         extraction_location: params.extraction_location.clone(),
@@ -254,13 +251,7 @@ mod tests {
     fn extract_umis_appends_umi_and_counts_groups() -> anyhow::Result<()> {
         let temp = bijux_dna_infra::temp_dir("bijux-extract-umis")?;
         let r1 = temp.path().join("r1.fastq");
-        write_fastq(
-            &r1,
-            &[
-                ("a", "ACGTGGGG", "IIIIIIII"),
-                ("b", "ACGTTTTT", "IIIIIIII"),
-            ],
-        )?;
+        write_fastq(&r1, &[("a", "ACGTGGGG", "IIIIIIII"), ("b", "ACGTTTTT", "IIIIIIII")])?;
 
         let params = FastqUmiParams {
             schema_version: "bijux.fastq.params.umi.v1".to_string(),

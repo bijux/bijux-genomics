@@ -1,8 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub const DEMULTIPLEX_READS_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.demultiplex_reads.report.v1";
+pub const DEMULTIPLEX_READS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.demultiplex_reads.report.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]

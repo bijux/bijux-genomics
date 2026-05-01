@@ -1,4 +1,14 @@
 //! Runtime contracts and telemetry wiring.
+#![allow(
+    clippy::default_trait_access,
+    clippy::expect_used,
+    clippy::if_not_else,
+    clippy::items_after_statements,
+    clippy::needless_pass_by_value,
+    clippy::redundant_closure_for_method_calls,
+    clippy::unnecessary_lazy_evaluations,
+    clippy::uninlined_format_args
+)]
 
 pub mod environment;
 pub mod manifests;

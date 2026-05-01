@@ -483,7 +483,11 @@ fn write_bam_alignment_provenance(
         preset: plan_string(plan, "preset"),
         mode: plan_string(plan, "mode"),
         sensitivity_profile: plan_string(plan, "sensitivity_profile"),
-        seed_length: plan.params.get("seed_length").and_then(serde_json::Value::as_u64).map(|v| v as u32),
+        seed_length: plan
+            .params
+            .get("seed_length")
+            .and_then(serde_json::Value::as_u64)
+            .and_then(|value| u32::try_from(value).ok()),
         reference_fasta: PathBuf::from(
             plan_string(plan, "reference").unwrap_or_else(|| "reference.fasta".to_string()),
         ),

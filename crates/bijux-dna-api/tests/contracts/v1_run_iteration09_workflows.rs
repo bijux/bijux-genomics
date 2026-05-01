@@ -4,7 +4,9 @@ use bijux_dna_api::v1::api::run::{
     execute_local_vcf_workflow, replay_manifest,
 };
 
-fn assert_governed_run_bundle(response: &bijux_dna_api::v1::api::run::ExecuteResponse) -> Result<()> {
+fn assert_governed_run_bundle(
+    response: &bijux_dna_api::v1::api::run::ExecuteResponse,
+) -> Result<()> {
     let run_dir = response
         .manifest_path
         .parent()
@@ -51,12 +53,10 @@ fn local_fastq_workflow_runs_end_to_end_with_governed_artifacts() -> Result<()> 
     let first = &invocations[0];
     assert!(first.get("executed_command").is_some());
     assert!(first.get("stage_id").is_some());
-    assert!(
-        first
-            .get("environment")
-            .and_then(serde_json::Value::as_object)
-            .is_some_and(|environment| environment.contains_key("working_directory"))
-    );
+    assert!(first
+        .get("environment")
+        .and_then(serde_json::Value::as_object)
+        .is_some_and(|environment| environment.contains_key("working_directory")));
     let run_dir = response
         .manifest_path
         .parent()
@@ -74,9 +74,7 @@ fn local_fastq_workflow_runs_end_to_end_with_governed_artifacts() -> Result<()> 
         .cloned()
         .unwrap_or_default();
     assert_eq!(
-        environment_identity
-            .get("schema_version")
-            .and_then(serde_json::Value::as_str),
+        environment_identity.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.run_environment_identity.v1")
     );
     if !stage_environments.is_empty() {

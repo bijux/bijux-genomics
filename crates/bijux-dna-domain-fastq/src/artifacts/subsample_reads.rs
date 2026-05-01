@@ -1,8 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub const SUBSAMPLE_READS_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.subsample_reads.report.v1";
+pub const SUBSAMPLE_READS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.subsample_reads.report.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]

@@ -1,8 +1,8 @@
 use crate::params::{
     AlignEffectiveParams, BamEffectiveParams, ComplexityEffectiveParams, CoverageEffectiveParams,
     DuplicateAction, EndogenousContentEffectiveParams, FilterEffectiveParams,
-    MarkDupEffectiveParams, OpticalDuplicatePolicy, QcPreEffectiveParams, ReadGroupSpec,
-    UmiPolicy, ValidateEffectiveParams,
+    MarkDupEffectiveParams, OpticalDuplicatePolicy, QcPreEffectiveParams, ReadGroupSpec, UmiPolicy,
+    ValidateEffectiveParams,
 };
 use crate::{ArtifactPolicy, AuditArtifact, BamStage, BamStageSpec};
 
@@ -391,13 +391,15 @@ pub fn stage_spec_core(stage: BamStage) -> Option<BamStageSpec> {
                 required_outputs: &["endogenous_report", "summary", "stage_metrics"],
                 required_audit: required_audit_artifacts(stage),
             },
-            default_params: BamEffectiveParams::EndogenousContent(EndogenousContentEffectiveParams {
-                regions: None,
-                depth_thresholds: vec![1],
-                host_reference_scope: "host_reference_required".to_string(),
-                host_reference_digest: None,
-                refuse_without_host_reference: true,
-            }),
+            default_params: BamEffectiveParams::EndogenousContent(
+                EndogenousContentEffectiveParams {
+                    regions: None,
+                    depth_thresholds: vec![1],
+                    host_reference_scope: "host_reference_required".to_string(),
+                    host_reference_digest: None,
+                    refuse_without_host_reference: true,
+                },
+            ),
         },
         BamStage::OverlapCorrection => BamStageSpec {
             stage,

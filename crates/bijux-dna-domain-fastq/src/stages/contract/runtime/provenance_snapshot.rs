@@ -44,10 +44,8 @@ pub fn capture_provenance_snapshot(
 fn extract_stage_entries(plan: &serde_json::Value) -> Vec<ProvenanceStageEntryV1> {
     let mut entries = Vec::new();
 
-    if let Some(steps) = plan
-        .get("graph")
-        .and_then(|graph| graph.get("steps"))
-        .and_then(serde_json::Value::as_array)
+    if let Some(steps) =
+        plan.get("graph").and_then(|graph| graph.get("steps")).and_then(serde_json::Value::as_array)
     {
         for step in steps {
             if let Some(stage_id) = step.get("stage_id").and_then(serde_json::Value::as_str) {
@@ -70,9 +68,7 @@ fn extract_stage_entries(plan: &serde_json::Value) -> Vec<ProvenanceStageEntryV1
     }
 
     if entries.is_empty() {
-        if let Some(requested) = plan
-            .get("requested_stages")
-            .and_then(serde_json::Value::as_array)
+        if let Some(requested) = plan.get("requested_stages").and_then(serde_json::Value::as_array)
         {
             for stage in requested {
                 if let Some(stage_id) = stage.get("stage_id").and_then(serde_json::Value::as_str) {
@@ -97,7 +93,9 @@ fn extract_stage_entries(plan: &serde_json::Value) -> Vec<ProvenanceStageEntryV1
             .then_with(|| left.image.cmp(&right.image))
     });
     entries.dedup_by(|left, right| {
-        left.stage_id == right.stage_id && left.tool_id == right.tool_id && left.image == right.image
+        left.stage_id == right.stage_id
+            && left.tool_id == right.tool_id
+            && left.image == right.image
     });
     entries
 }
@@ -117,10 +115,7 @@ fn collect_file_entries(
             warnings.push(format!("declared provenance file missing: {}", file.display()));
             None
         };
-        entries.push(ProvenanceFileEntryV1 {
-            path: file.display().to_string(),
-            sha256,
-        });
+        entries.push(ProvenanceFileEntryV1 { path: file.display().to_string(), sha256 });
     }
     entries.sort_by(|left, right| left.path.cmp(&right.path));
     Ok(entries)

@@ -162,7 +162,8 @@ pub(in super::super) fn tooling_reference_external_data(
 
 fn parse_args(workspace: &Workspace, args: &[String]) -> Result<ScenarioRunConfig> {
     let mut selected = Vec::new();
-    let mut out = artifact_root_path(workspace)?.join("reference_external_data/scenario_suite.json");
+    let mut out =
+        artifact_root_path(workspace)?.join("reference_external_data/scenario_suite.json");
 
     let mut index = 0usize;
     while index < args.len() {
@@ -384,7 +385,9 @@ fn scenario_reference_update_impact() -> Result<(Vec<String>, serde_json::Value)
         "runtime.cache.reference_fingerprint",
     ];
     if invalidated.len() < 3 {
-        return Err(anyhow!("reference update impact must invalidate core alignment and VCF surfaces"));
+        return Err(anyhow!(
+            "reference update impact must invalidate core alignment and VCF surfaces"
+        ));
     }
     Ok((
         vec![
@@ -413,10 +416,8 @@ fn scenario_reference_update_impact() -> Result<(Vec<String>, serde_json::Value)
 }
 
 fn scenario_contaminant_update_impact() -> Result<(Vec<String>, serde_json::Value)> {
-    let changed = vec![
-        "common_lab_contaminants".to_string(),
-        "human_host_depletion_grch38".to_string(),
-    ];
+    let changed =
+        vec!["common_lab_contaminants".to_string(), "human_host_depletion_grch38".to_string()];
     let impacted = vec![
         "fastq.build_contaminant_db",
         "fastq.deplete_reference_contaminants",
@@ -459,7 +460,8 @@ fn scenario_adapter_primer_update_impact() -> Result<(Vec<String>, serde_json::V
         vec![
             "adapter/primer bank checksum changes propagate to trimming and eDNA outputs"
                 .to_string(),
-            "impact workflow preserves scientific caveats for cross-version comparisons".to_string(),
+            "impact workflow preserves scientific caveats for cross-version comparisons"
+                .to_string(),
         ],
         json!({
             "baseline": {
@@ -579,7 +581,9 @@ fn scenario_ena_batch_accession() -> Result<(Vec<String>, serde_json::Value)> {
     ))
 }
 
-fn scenario_offline_data_package(workspace: &Workspace) -> Result<(Vec<String>, serde_json::Value)> {
+fn scenario_offline_data_package(
+    workspace: &Workspace,
+) -> Result<(Vec<String>, serde_json::Value)> {
     let root = workspace.path("artifacts/reference_external_data/offline_package");
     let refs = materialize_reference_bank("Homo sapiens", "GRCh38", &root, true, true)?;
     let contaminants = materialize_contaminant_databases(&root.join("contaminant_db"))?;
@@ -618,7 +622,8 @@ fn scenario_offline_data_package(workspace: &Workspace) -> Result<(Vec<String>, 
     Ok((
         vec![
             "offline package materialized reference, contaminant, and taxonomy assets".to_string(),
-            "offline ENA fixture converted to workflow inputs without network dependency".to_string(),
+            "offline ENA fixture converted to workflow inputs without network dependency"
+                .to_string(),
         ],
         json!({
             "package_root": root.display().to_string(),
@@ -652,25 +657,27 @@ mod tests {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
         assert_eq!(
             ids,
-            vec![
-                "G171", "G172", "G173", "G174", "G175", "G176", "G177", "G178", "G179",
-                "G180"
-            ]
+            vec!["G171", "G172", "G173", "G174", "G175", "G176", "G177", "G178", "G179", "G180"]
         );
     }
 
     #[test]
     fn canfam4_scenario_resolves_non_human_reference_contract() {
-        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let workspace =
+            Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
         let report = run_scenario(&workspace, &ScenarioId::CanFam4Reference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G171");
-        assert_eq!(report.evidence.get("build_id").and_then(serde_json::Value::as_str), Some("CanFam4"));
+        assert_eq!(
+            report.evidence.get("build_id").and_then(serde_json::Value::as_str),
+            Some("CanFam4")
+        );
     }
 
     #[test]
     fn grch38_scenario_resolves_panel_and_map_compatibility() {
-        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let workspace =
+            Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
         let report = run_scenario(&workspace, &ScenarioId::GrchHumanReference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G172");
@@ -682,12 +689,17 @@ mod tests {
 
     #[test]
     fn bacterial_scenario_keeps_taxonomy_advisory_caveat() {
-        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let workspace =
+            Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
         let report = run_scenario(&workspace, &ScenarioId::BacterialReference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G173");
-        let caveats =
-            report.evidence.get("caveats").and_then(serde_json::Value::as_array).cloned().unwrap_or_default();
+        let caveats = report
+            .evidence
+            .get("caveats")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
         assert!(caveats
             .iter()
             .any(|entry| entry.as_str() == Some("taxonomy_screening_is_advisory")));
@@ -695,7 +707,8 @@ mod tests {
 
     #[test]
     fn organellar_scenario_resolves_mitochondrion_identity() {
-        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let workspace =
+            Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
         let report = run_scenario(&workspace, &ScenarioId::OrganellarReference);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G174");
@@ -707,7 +720,8 @@ mod tests {
 
     #[test]
     fn refusals_are_reported_for_multi_reference_scenario() {
-        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let workspace =
+            Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
         let report = run_scenario(&workspace, &ScenarioId::MultiReferenceRefusal);
         assert_eq!(report.status, "passed");
         let cases = report
@@ -729,7 +743,8 @@ mod tests {
 
     #[test]
     fn reference_update_scenario_tracks_invalidated_surfaces() {
-        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let workspace =
+            Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
         let report = run_scenario(&workspace, &ScenarioId::ReferenceUpdateImpact);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G176");
@@ -745,38 +760,49 @@ mod tests {
 
     #[test]
     fn contaminant_update_scenario_lists_changed_bundles() {
-        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let workspace =
+            Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
         let report = run_scenario(&workspace, &ScenarioId::ContaminantUpdateImpact);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G177");
-        let bundles =
-            report.evidence.get("changed_bundles").and_then(serde_json::Value::as_array).cloned().unwrap_or_default();
-        assert!(bundles
-            .iter()
-            .any(|entry| entry.as_str() == Some("common_lab_contaminants")));
+        let bundles = report
+            .evidence
+            .get("changed_bundles")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(bundles.iter().any(|entry| entry.as_str() == Some("common_lab_contaminants")));
     }
 
     #[test]
     fn adapter_primer_update_scenario_marks_edna_surface_impact() {
-        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let workspace =
+            Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
         let report = run_scenario(&workspace, &ScenarioId::AdapterPrimerUpdateImpact);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G178");
-        let impacted =
-            report.evidence.get("impacted_stages").and_then(serde_json::Value::as_array).cloned().unwrap_or_default();
-        assert!(impacted
-            .iter()
-            .any(|entry| entry.as_str() == Some("fastq.edna_metabarcoding")));
+        let impacted = report
+            .evidence
+            .get("impacted_stages")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
+        assert!(impacted.iter().any(|entry| entry.as_str() == Some("fastq.edna_metabarcoding")));
     }
 
     #[test]
     fn ena_batch_scenario_captures_missing_checksum_uncertainty() {
-        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let workspace =
+            Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
         let report = run_scenario(&workspace, &ScenarioId::EnaBatchAccession);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G179");
-        let uncertainty =
-            report.evidence.get("uncertainty").and_then(serde_json::Value::as_array).cloned().unwrap_or_default();
+        let uncertainty = report
+            .evidence
+            .get("uncertainty")
+            .and_then(serde_json::Value::as_array)
+            .cloned()
+            .unwrap_or_default();
         assert!(!uncertainty.is_empty());
         let found = uncertainty.iter().any(|row| {
             row.get("uncertainty")
@@ -789,7 +815,8 @@ mod tests {
 
     #[test]
     fn offline_package_scenario_materializes_reference_assets() {
-        let workspace = Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
+        let workspace =
+            Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
         let report = run_scenario(&workspace, &ScenarioId::OfflineDataPackage);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G180");

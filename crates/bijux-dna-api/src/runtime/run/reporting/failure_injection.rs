@@ -51,7 +51,10 @@ pub fn run_local_failure_injection(run_dir: &Path, scenario: &str) -> Result<ser
     summarize_failure_injection(scenario, &response)
 }
 
-fn summarize_failure_injection(scenario: &str, response: &ExecuteResponse) -> Result<serde_json::Value> {
+fn summarize_failure_injection(
+    scenario: &str,
+    response: &ExecuteResponse,
+) -> Result<serde_json::Value> {
     let failure = response
         .failure_path
         .as_ref()
@@ -75,11 +78,17 @@ fn scenario_command(scenario: &str, output: &Path) -> Result<Vec<String>> {
     let script = match scenario {
         "timeout" => format!("set -eu; sleep 2; printf '{{\"ok\":true}}' > '{}'", output.display()),
         "cancel" => format!("set -eu; sleep 2; printf '{{\"ok\":true}}' > '{}'", output.display()),
-        "missing_output" => "set -eu; printf 'no output declared artifact written' > /dev/null".to_string(),
-        "corrupt_output" => format!("set -eu; printf '{{\"unterminated\"' > '{}'", output.display()),
+        "missing_output" => {
+            "set -eu; printf 'no output declared artifact written' > /dev/null".to_string()
+        }
+        "corrupt_output" => {
+            format!("set -eu; printf '{{\"unterminated\"' > '{}'", output.display())
+        }
         "nonzero_exit" => "set -eu; exit 7".to_string(),
         "interrupted_process" => "set -eu; kill -INT $$".to_string(),
-        "partial_files" => format!("set -eu; printf '{{\"partial\":' > '{}'; exit 1", output.display()),
+        "partial_files" => {
+            format!("set -eu; printf '{{\"partial\":' > '{}'; exit 1", output.display())
+        }
         _ => return Err(anyhow!("unknown failure injection scenario: {scenario}")),
     };
     Ok(vec!["sh".to_string(), "-c".to_string(), script])
@@ -92,11 +101,8 @@ fn failure_graph(
     scenario: &str,
     command: Vec<String>,
 ) -> Result<ExecutionGraph> {
-    let role = if scenario == "corrupt_output" {
-        ArtifactRole::ReportJson
-    } else {
-        ArtifactRole::Reads
-    };
+    let role =
+        if scenario == "corrupt_output" { ArtifactRole::ReportJson } else { ArtifactRole::Reads };
     let step = ExecutionStep {
         step_id: StepId::new("fastq.validate_reads"),
         stage_id: StageId::new("fastq.validate_reads"),

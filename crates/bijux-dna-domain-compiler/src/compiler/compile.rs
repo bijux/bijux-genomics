@@ -1,8 +1,8 @@
+use super::bundle::{build_domain_registry_bundle, write_domain_registry_bundle};
 use super::loading::{
     build_images_toml, build_stages_toml, build_tool_registries_toml, collect_domain_data,
     collect_vcf_image_versions,
 };
-use super::bundle::{build_domain_registry_bundle, write_domain_registry_bundle};
 use super::vcf_emit::write_vcf_generated_views;
 use super::{
     bail, domain_content_hash, ensure_dir, ensure_no_placeholders_in_active_config,

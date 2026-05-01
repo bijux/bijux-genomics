@@ -118,9 +118,7 @@ fn plan_manifest_payload(temp: &Path, advisory_coverage: bool) -> Result<serde_j
             let serde_json::Value::Object(map) = &plan.effective_params else {
                 return None;
             };
-            let Some((name, value)) = map.iter().next() else {
-                return None;
-            };
+            let (name, value) = map.iter().next()?;
             Some(ParameterResolutionTraceV1 {
                 step_id: plan
                     .stage_instance_id

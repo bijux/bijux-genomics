@@ -1,4 +1,6 @@
-use bijux_dna_core::ids::{AssayKind, LibraryLayout, LibraryModel, PlatformHint, StageId, ToolId, UdgTreatment};
+use bijux_dna_core::ids::{
+    AssayKind, LibraryLayout, LibraryModel, PlatformHint, StageId, ToolId, UdgTreatment,
+};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::default_params_json;
 use bijux_dna_domain_bam::BamStage;
@@ -43,10 +45,9 @@ pub fn fastq_to_vcf_minimal_profile() -> PipelineProfile {
         StageId::from_static(id_catalog::BAM_ALIGN),
         "cross-domain FASTQ-to-VCF alignment defaults".to_string(),
     );
-    defaults.tools.insert(
-        StageId::from_static("bam.qc_pre"),
-        ToolId::from_static(id_catalog::TOOL_SAMTOOLS),
-    );
+    defaults
+        .tools
+        .insert(StageId::from_static("bam.qc_pre"), ToolId::from_static(id_catalog::TOOL_SAMTOOLS));
     defaults.params.insert(
         StageId::from_static("bam.qc_pre"),
         DefaultParams::Bam(
@@ -68,7 +69,9 @@ pub fn fastq_to_vcf_minimal_profile() -> PipelineProfile {
         DefaultParams::Bam(
             BamStage::MappingSummary
                 .parse_effective_params(&default_params_json(BamStage::MappingSummary))
-                .unwrap_or_else(|err| panic!("failed to parse BAM mapping summary defaults: {err}")),
+                .unwrap_or_else(|err| {
+                    panic!("failed to parse BAM mapping summary defaults: {err}")
+                }),
         ),
     );
     defaults.rationales.insert(
@@ -103,10 +106,11 @@ pub fn fastq_to_vcf_minimal_profile() -> PipelineProfile {
             defaults.rationales.insert(stage, rationale);
         }
     }
-    let template_ids = cross_workflow_templates_for_pipeline(id_catalog::PIPELINE_FASTQ_TO_VCF_MINIMAL)
-        .into_iter()
-        .map(|template| template.template_id)
-        .collect::<Vec<_>>();
+    let template_ids =
+        cross_workflow_templates_for_pipeline(id_catalog::PIPELINE_FASTQ_TO_VCF_MINIMAL)
+            .into_iter()
+            .map(|template| template.template_id)
+            .collect::<Vec<_>>();
     let template = cross_workflow_templates_for_pipeline(id_catalog::PIPELINE_FASTQ_TO_VCF_MINIMAL)
         .into_iter()
         .next()

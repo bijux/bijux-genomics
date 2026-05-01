@@ -36,7 +36,10 @@ pub(super) fn validate_fixture_consistency(
                 if path.extension().and_then(|value| value.to_str()) != Some("yaml") {
                     continue;
                 }
-                if path.file_name().and_then(|value| value.to_str()).is_some_and(|name| name.starts_with('_'))
+                if path
+                    .file_name()
+                    .and_then(|value| value.to_str())
+                    .is_some_and(|name| name.starts_with('_'))
                 {
                     continue;
                 }
@@ -58,7 +61,10 @@ pub(super) fn validate_fixture_consistency(
                 if path.extension().and_then(|value| value.to_str()) != Some("yaml") {
                     continue;
                 }
-                if path.file_name().and_then(|value| value.to_str()).is_some_and(|name| name.starts_with('_'))
+                if path
+                    .file_name()
+                    .and_then(|value| value.to_str())
+                    .is_some_and(|name| name.starts_with('_'))
                 {
                     continue;
                 }
@@ -109,7 +115,8 @@ pub(super) fn validate_fixture_consistency(
                     stage_id
                 );
             }
-            let declared_tools = index.stage_tool_compatibility.get(&stage_id).cloned().unwrap_or_default();
+            let declared_tools =
+                index.stage_tool_compatibility.get(&stage_id).cloned().unwrap_or_default();
             for tool_entry in std::fs::read_dir(stage_entry.path())? {
                 let tool_entry = tool_entry?;
                 if !tool_entry.file_type()?.is_file() {

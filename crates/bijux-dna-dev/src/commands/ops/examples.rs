@@ -228,13 +228,15 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
         "logs.txt".to_string(),
         "example.toml".to_string(),
     ];
-    fs::copy(example_dir.join("example.toml"), out_dir.join("example.toml")).with_context(|| {
-        format!(
-            "copy {} -> {}",
-            example_dir.join("example.toml").display(),
-            out_dir.join("example.toml").display()
-        )
-    })?;
+    fs::copy(example_dir.join("example.toml"), out_dir.join("example.toml")).with_context(
+        || {
+            format!(
+                "copy {} -> {}",
+                example_dir.join("example.toml").display(),
+                out_dir.join("example.toml").display()
+            )
+        },
+    )?;
     let expected_plan_path = expected_plan
         .as_ref()
         .map(|rel| example_dir.join(rel))
@@ -348,20 +350,16 @@ pub(super) fn examples_run(workspace: &Workspace, args: &[String]) -> Result<Ops
             "expected_evidence.json".to_string(),
         ]);
     }
-    let tar = run_program(
-        workspace,
-        "tar",
-        &{
-            let mut args = vec![
-                "-czf".to_string(),
-                out_dir.join("bundle.tar.gz").display().to_string(),
-                "-C".to_string(),
-                out_dir.display().to_string(),
-            ];
-            args.extend(bundle_files);
-            args
-        },
-    )?;
+    let tar = run_program(workspace, "tar", &{
+        let mut args = vec![
+            "-czf".to_string(),
+            out_dir.join("bundle.tar.gz").display().to_string(),
+            "-C".to_string(),
+            out_dir.display().to_string(),
+        ];
+        args.extend(bundle_files);
+        args
+    })?;
     if !tar.is_success() {
         return Ok(tar);
     }

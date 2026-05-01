@@ -116,9 +116,8 @@ pub fn resolve_contig_aliases_for_assets(
     let panel = panel_id
         .map(|id| crate::resolution::resolve_panel(species, build, Some(id)))
         .transpose()?;
-    let map = map_id
-        .map(|id| crate::resolution::resolve_map(species, build, Some(id)))
-        .transpose()?;
+    let map =
+        map_id.map(|id| crate::resolution::resolve_map(species, build, Some(id))).transpose()?;
     if let (Some(panel), Some(map)) = (panel.as_ref(), map.as_ref()) {
         crate::resolution::validate_imputation_tool_compatibility("glimpse", panel, map)?;
     }
@@ -126,10 +125,7 @@ pub fn resolve_contig_aliases_for_assets(
     let mut rows = Vec::with_capacity(contigs.len());
     for contig in contigs {
         let normalized = crate::resolution::normalize_contig_name(&bundle, contig)?;
-        rows.push(ContigAliasResolutionRow {
-            input: contig.clone(),
-            normalized,
-        });
+        rows.push(ContigAliasResolutionRow { input: contig.clone(), normalized });
     }
 
     Ok(ContigAliasResolutionReport {

@@ -476,7 +476,7 @@ fn merge_unique<T>(left: &[T], right: &[T]) -> Vec<T>
 where
     T: Clone + Ord + PartialEq,
 {
-    let mut merged = left.iter().cloned().collect::<Vec<_>>();
+    let mut merged = left.to_vec();
     for item in right {
         if merged.contains(item) {
             continue;

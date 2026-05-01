@@ -267,26 +267,21 @@ fn essential_qc_workflow_routes_validation_trim_and_profile_artifacts_into_repor
     assert!(input_names.iter().any(|name| {
         name.starts_with("fastq.validate_reads") && name.ends_with(".validation_report")
     }));
-    assert!(input_names.iter().any(|name| {
-        name == &"fastq.detect_adapters.tool.fastqc.adapter_evidence_dir"
-    }));
-    assert!(
-        input_names
-            .iter()
-            .any(|name| name.starts_with("fastq.trim_reads") && name.ends_with(".report_json"))
-    );
-    assert!(input_names.iter().any(|name| {
-        name == &"fastq.profile_reads.tool.seqkit_stats.qc_json"
-    }));
+    assert!(input_names
+        .iter()
+        .any(|name| { name == &"fastq.detect_adapters.tool.fastqc.adapter_evidence_dir" }));
+    assert!(input_names
+        .iter()
+        .any(|name| name.starts_with("fastq.trim_reads") && name.ends_with(".report_json")));
+    assert!(input_names
+        .iter()
+        .any(|name| { name == &"fastq.profile_reads.tool.seqkit_stats.qc_json" }));
     assert!(report_plan
         .io
         .outputs
         .iter()
         .any(|artifact| artifact.name.as_str() == "governed_qc_inputs_manifest"));
-    assert_eq!(
-        report_plan.effective_params["aggregation_engine"],
-        serde_json::json!("multiqc")
-    );
+    assert_eq!(report_plan.effective_params["aggregation_engine"], serde_json::json!("multiqc"));
     Ok(())
 }
 

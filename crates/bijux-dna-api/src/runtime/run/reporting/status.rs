@@ -12,7 +12,9 @@ pub fn status(run_dir: &Path) -> Result<RunStatus> {
         .exists()
         .then(|| std::fs::read_to_string(&layout.run_state_path).ok())
         .flatten()
-        .and_then(|raw| serde_json::from_str::<bijux_dna_runtime::run_layout::RunStateV1>(&raw).ok());
+        .and_then(|raw| {
+            serde_json::from_str::<bijux_dna_runtime::run_layout::RunStateV1>(&raw).ok()
+        });
     let correlation_id = status
         .manifest_path
         .as_ref()
@@ -22,60 +24,36 @@ pub fn status(run_dir: &Path) -> Result<RunStatus> {
             manifest.get("correlation_id").and_then(serde_json::Value::as_str).map(str::to_string)
         });
 
-    status.evidence_bundle_path = layout.evidence_bundle_path.exists().then_some(layout.evidence_bundle_path);
-    status.evidence_verification_path = layout
-        .evidence_verification_path
-        .exists()
-        .then_some(layout.evidence_verification_path);
-    status.artifact_inventory_path = layout
-        .artifact_inventory_path
-        .exists()
-        .then_some(layout.artifact_inventory_path);
-    status.artifact_inventory_text_path = layout
-        .artifact_inventory_text_path
-        .exists()
-        .then_some(layout.artifact_inventory_text_path);
-    status.replay_manifest_path = layout
-        .replay_manifest_path
-        .exists()
-        .then_some(layout.replay_manifest_path);
+    status.evidence_bundle_path =
+        layout.evidence_bundle_path.exists().then_some(layout.evidence_bundle_path);
+    status.evidence_verification_path =
+        layout.evidence_verification_path.exists().then_some(layout.evidence_verification_path);
+    status.artifact_inventory_path =
+        layout.artifact_inventory_path.exists().then_some(layout.artifact_inventory_path);
+    status.artifact_inventory_text_path =
+        layout.artifact_inventory_text_path.exists().then_some(layout.artifact_inventory_text_path);
+    status.replay_manifest_path =
+        layout.replay_manifest_path.exists().then_some(layout.replay_manifest_path);
     status.hash_ledger_path = layout.hash_ledger_path.exists().then_some(layout.hash_ledger_path);
-    status.run_summary_text_path = layout
-        .run_summary_text_path
-        .exists()
-        .then_some(layout.run_summary_text_path);
+    status.run_summary_text_path =
+        layout.run_summary_text_path.exists().then_some(layout.run_summary_text_path);
     status.run_state_path = layout.run_state_path.exists().then_some(layout.run_state_path);
     status.runtime_policy_path =
         layout.runtime_policy_path.exists().then_some(layout.runtime_policy_path);
-    status.executor_descriptor_path = layout
-        .executor_descriptor_path
-        .exists()
-        .then_some(layout.executor_descriptor_path);
-    status.backend_descriptor_path = layout
-        .backend_descriptor_path
-        .exists()
-        .then_some(layout.backend_descriptor_path);
-    status.scheduling_decision_path = layout
-        .scheduling_decision_path
-        .exists()
-        .then_some(layout.scheduling_decision_path);
-    status.queue_state_path = layout
-        .queue_state_path
-        .exists()
-        .then_some(layout.queue_state_path);
+    status.executor_descriptor_path =
+        layout.executor_descriptor_path.exists().then_some(layout.executor_descriptor_path);
+    status.backend_descriptor_path =
+        layout.backend_descriptor_path.exists().then_some(layout.backend_descriptor_path);
+    status.scheduling_decision_path =
+        layout.scheduling_decision_path.exists().then_some(layout.scheduling_decision_path);
+    status.queue_state_path = layout.queue_state_path.exists().then_some(layout.queue_state_path);
     status.lease_path = layout.lease_path.exists().then_some(layout.lease_path);
-    status.control_state_path = layout
-        .control_state_path
-        .exists()
-        .then_some(layout.control_state_path);
-    status.health_report_path = layout
-        .health_report_path
-        .exists()
-        .then_some(layout.health_report_path);
-    status.slurm_submission_path = layout
-        .slurm_submission_path
-        .exists()
-        .then_some(layout.slurm_submission_path);
+    status.control_state_path =
+        layout.control_state_path.exists().then_some(layout.control_state_path);
+    status.health_report_path =
+        layout.health_report_path.exists().then_some(layout.health_report_path);
+    status.slurm_submission_path =
+        layout.slurm_submission_path.exists().then_some(layout.slurm_submission_path);
     status.checkpoint_path = layout.checkpoint_path.exists().then_some(layout.checkpoint_path);
     status.failure_path = layout.failure_path.exists().then_some(layout.failure_path);
     status.correlation_id = correlation_id;

@@ -1,13 +1,11 @@
-use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
-use bijux_dna_domain_vcf::{
-    contracts::{
-        VcfArtifactClass, VcfCallingModeContract, VcfCohortAnalysisBoundaryContract,
-        VcfCohortValidationContract, VcfDamageFilterContract, VcfLikelihoodWorkflowContract,
-        VcfNormalizationPolicyMatrixContract, VcfPanelBoundaryContract,
-        VcfPhasingImputationBoundaryContract, VcfPopulationGuardrailContract,
-        VcfProductionCorpusContract, VcfReportCoverageContract, VcfScientificDriftContract,
-    },
+use bijux_dna_domain_vcf::contracts::{
+    VcfArtifactClass, VcfCallingModeContract, VcfCohortAnalysisBoundaryContract,
+    VcfCohortValidationContract, VcfDamageFilterContract, VcfLikelihoodWorkflowContract,
+    VcfNormalizationPolicyMatrixContract, VcfPanelBoundaryContract,
+    VcfPhasingImputationBoundaryContract, VcfPopulationGuardrailContract,
+    VcfProductionCorpusContract, VcfReportCoverageContract, VcfScientificDriftContract,
 };
+use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 use serde::Serialize;
 
 use crate::api::VcfPanelLock;

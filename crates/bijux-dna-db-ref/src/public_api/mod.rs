@@ -5,10 +5,10 @@ pub use crate::catalog::{
 pub use crate::model::{
     BuildId, ContaminantDbMaterializationReport, ContigAliasResolutionReport,
     ContigAliasResolutionRow, ContigMap, ContigNormalizationPolicy, GeneticMapBankEntry,
-    MaterializedDbBundle, MaterializedIndexArtifact, OrganellarPolicy, ParRegion, ReferenceBankEntry, ReferenceBundle,
-    ReferenceBundleResolverReport, ReferenceIndexQaReport, ReferenceMaterializationReport,
-    ReferenceProvenance, ReferenceSet, ResolvedSpeciesContext, SexChromosomeRule,
-    SexParOrganellarAssetsReport, SpeciesAuthorityEntry, SupportedFeatures,
+    MaterializedDbBundle, MaterializedIndexArtifact, OrganellarPolicy, ParRegion,
+    ReferenceBankEntry, ReferenceBundle, ReferenceBundleResolverReport, ReferenceIndexQaReport,
+    ReferenceMaterializationReport, ReferenceProvenance, ReferenceSet, ResolvedSpeciesContext,
+    SexChromosomeRule, SexParOrganellarAssetsReport, SpeciesAuthorityEntry, SupportedFeatures,
     TaxonomyDbMaterializationReport, VcfPanelMaterializationReport,
 };
 pub use crate::providers::{
@@ -21,7 +21,7 @@ pub use crate::resolution::{
     resolve_contig_map, resolve_coverage_profile, resolve_default_reference_set,
     resolve_genetic_map_bank, resolve_map, resolve_map_lock, resolve_organellar_policy,
     resolve_panel, resolve_panel_lock, resolve_reference_bank, resolve_reference_bundle,
-    resolve_reference_bundle_contract, resolve_sex_chromosome_rule, resolve_species_alias,
-    resolve_species_authority, resolve_species_context, resolve_sex_par_organellar_assets,
-    validate_reference_index_qa, validate_imputation_tool_compatibility,
+    resolve_reference_bundle_contract, resolve_sex_chromosome_rule,
+    resolve_sex_par_organellar_assets, resolve_species_alias, resolve_species_authority,
+    resolve_species_context, validate_imputation_tool_compatibility, validate_reference_index_qa,
 };

@@ -70,10 +70,11 @@ pub fn fastq_to_bam_default_profile() -> PipelineProfile {
         StageId::from_static("bam.qc_pre"),
         "cross-domain compatibility bridge for BAM pre-QC defaults".to_string(),
     );
-    let template_ids = cross_workflow_templates_for_pipeline(id_catalog::PIPELINE_FASTQ_TO_BAM_DEFAULT)
-        .into_iter()
-        .map(|template| template.template_id)
-        .collect::<Vec<_>>();
+    let template_ids =
+        cross_workflow_templates_for_pipeline(id_catalog::PIPELINE_FASTQ_TO_BAM_DEFAULT)
+            .into_iter()
+            .map(|template| template.template_id)
+            .collect::<Vec<_>>();
     let template = cross_workflow_templates_for_pipeline(id_catalog::PIPELINE_FASTQ_TO_BAM_DEFAULT)
         .into_iter()
         .next()

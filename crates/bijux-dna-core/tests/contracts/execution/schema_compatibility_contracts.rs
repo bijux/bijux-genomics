@@ -3,9 +3,9 @@ use std::path::{Path, PathBuf};
 
 use bijux_dna_core::contract::{
     governed_api_route_adapters, governed_error_code_registry, governed_schema_registry,
-    migrate_plan_manifest_value, migrate_workflow_manifest_value, ArtifactRole,
-    CompressionSupport, PlanEnvironmentContractV1, PlanManifestStepV1, PlanPolicy,
-    ReadLayoutMode, ToolConstraints, WorkflowInputArtifactV1, WorkflowManifestV1,
+    migrate_plan_manifest_value, migrate_workflow_manifest_value, ArtifactRole, CompressionSupport,
+    PlanEnvironmentContractV1, PlanManifestStepV1, PlanPolicy, ReadLayoutMode, ToolConstraints,
+    WorkflowInputArtifactV1, WorkflowManifestV1,
 };
 use insta::Settings;
 
@@ -26,11 +26,9 @@ fn schema_registry_covers_governed_iteration_contracts() {
     assert_eq!(ids.get("run_state"), Some(&"bijux.run_state.v1"));
     assert_eq!(ids.get("run_failure"), Some(&"bijux.run_failure.v1"));
 
-    assert!(
-        registry
-            .iter()
-            .all(|entry| !entry.semantic_version.trim().is_empty() && !entry.notes.trim().is_empty())
-    );
+    assert!(registry
+        .iter()
+        .all(|entry| !entry.semantic_version.trim().is_empty() && !entry.notes.trim().is_empty()));
 }
 
 #[test]
@@ -101,7 +99,8 @@ fn fixture_backed_legacy_plan_explains_expected_fingerprint_change() -> anyhow::
 }
 
 fn fixture_json(name: &str) -> anyhow::Result<serde_json::Value> {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/compatibility").join(name);
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/compatibility").join(name);
     Ok(serde_json::from_str(&std::fs::read_to_string(path)?)?)
 }
 
@@ -112,7 +111,10 @@ fn unsupported_manifest_versions_are_refused_with_exact_reason() {
         "domain": "fastq",
         "profile_id": "essential_qc"
     });
-    let err = migrate_workflow_manifest_value(&unsupported).unwrap_err();
+    let err = match migrate_workflow_manifest_value(&unsupported) {
+        Ok(_) => panic!("unsupported manifest version should fail"),
+        Err(err) => err,
+    };
     assert_eq!(
         err.to_string(),
         "validation error: workflow_manifest schema_version bijux.workflow_manifest.v9 is unsupported; supported versions: bijux.workflow_manifest.v0, bijux.workflow_manifest.v1"
@@ -139,7 +141,9 @@ fn error_registry_covers_governed_categories_with_remediation() {
     let errors = governed_error_code_registry();
     let areas = errors
         .iter()
-        .map(|entry| serde_json::to_string(&entry.area).unwrap_or_else(|err| panic!("serialize area: {err}")))
+        .map(|entry| {
+            serde_json::to_string(&entry.area).unwrap_or_else(|err| panic!("serialize area: {err}"))
+        })
         .collect::<std::collections::BTreeSet<_>>();
     assert_eq!(
         areas,
@@ -161,7 +165,9 @@ fn error_registry_snapshot_is_stable() -> anyhow::Result<()> {
     let json = serde_json::to_string_pretty(&governed_error_code_registry())?;
     let mut settings = Settings::new();
     settings.set_prepend_module_to_snapshot(false);
-    settings.set_snapshot_path(PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("snapshots"));
+    settings.set_snapshot_path(
+        PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests").join("snapshots"),
+    );
     settings.bind(|| {
         insta::assert_snapshot!("bijux-dna-core__contracts__governed_error_registry", json);
     });

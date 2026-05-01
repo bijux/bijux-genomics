@@ -25,7 +25,12 @@ pub fn enforce(
                 tool_id,
                 Some(&effective.preset),
             )
-            .ok_or_else(|| anyhow!("{} tool {tool_id} lacks declared alignment strategy", id_catalog::BAM_ALIGN))?;
+            .ok_or_else(|| {
+                anyhow!(
+                    "{} tool {tool_id} lacks declared alignment strategy",
+                    id_catalog::BAM_ALIGN
+                )
+            })?;
             if strategy.hidden_default_allowed {
                 return Err(anyhow!(
                     "{} must not rely on hidden alignment defaults",

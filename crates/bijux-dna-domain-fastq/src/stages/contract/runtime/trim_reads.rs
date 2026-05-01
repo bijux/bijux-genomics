@@ -26,7 +26,11 @@ fn mean_q(records: &[FastqRecord]) -> f64 {
     }
 }
 
-fn trim_record(mut record: FastqRecord, min_len: usize, q_cutoff: Option<u32>) -> Option<FastqRecord> {
+fn trim_record(
+    mut record: FastqRecord,
+    min_len: usize,
+    q_cutoff: Option<u32>,
+) -> Option<FastqRecord> {
     if let Some(cutoff) = q_cutoff {
         let threshold = (cutoff + 33) as u8;
         while let Some(last) = record.quality.as_bytes().last() {
@@ -91,11 +95,7 @@ pub fn trim_reads(
     }
 
     let left = read_fastq_records(r1)?;
-    let right = if let Some(path) = r2 {
-        read_fastq_records(path)?
-    } else {
-        Vec::new()
-    };
+    let right = if let Some(path) = r2 { read_fastq_records(path)? } else { Vec::new() };
     if paired && left.len() != right.len() {
         return Err(anyhow!(
             "fastq.trim_reads refused incoherent paired input: R1 count {} != R2 count {}",
@@ -105,11 +105,7 @@ pub fn trim_reads(
     }
 
     let min_len = params.min_len as usize;
-    let reads_in = if paired {
-        (left.len() + right.len()) as u64
-    } else {
-        left.len() as u64
-    };
+    let reads_in = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
     let bases_in = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
@@ -142,11 +138,8 @@ pub fn trim_reads(
         write_fastq_records(out_r2, &out_right)?;
     }
 
-    let reads_out = if paired {
-        (out_left.len() + out_right.len()) as u64
-    } else {
-        out_left.len() as u64
-    };
+    let reads_out =
+        if paired { (out_left.len() + out_right.len()) as u64 } else { out_left.len() as u64 };
     let bases_out = out_left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + out_right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
@@ -158,11 +151,7 @@ pub fn trim_reads(
         stage: "fastq.trim_reads".to_string(),
         stage_id: "fastq.trim_reads".to_string(),
         tool_id: backend.to_string(),
-        paired_mode: if paired {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: params.threads,
         trimming_backend: backend.to_string(),
         backend_mode: "enforced".to_string(),
@@ -200,8 +189,7 @@ pub fn trim_reads(
         runtime_s: None,
         memory_mb: None,
         raw_backend_report: raw_backend_report.map(|path| path.display().to_string()),
-        raw_backend_report_format: raw_backend_report
-            .map(|_| format!("{backend}_trim_report")),
+        raw_backend_report_format: raw_backend_report.map(|_| format!("{backend}_trim_report")),
     })
 }
 

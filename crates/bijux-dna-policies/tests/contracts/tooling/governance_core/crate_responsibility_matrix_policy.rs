@@ -15,13 +15,9 @@ fn policy__contracts__crate_responsibility_matrix_policy__workspace_crates_are_l
     let config_path = root.join("configs/ci/crate-boundaries.toml");
     let raw = std::fs::read_to_string(&config_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", config_path.display()));
-    let value: toml::Value = toml::from_str(&raw)
-        .unwrap_or_else(|err| panic!("parse {}: {err}", config_path.display()));
-    let rows = value
-        .get("crates")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let value: toml::Value =
+        toml::from_str(&raw).unwrap_or_else(|err| panic!("parse {}: {err}", config_path.display()));
+    let rows = value.get("crates").and_then(toml::Value::as_array).cloned().unwrap_or_default();
 
     let listed = rows
         .iter()
@@ -33,11 +29,8 @@ fn policy__contracts__crate_responsibility_matrix_policy__workspace_crates_are_l
         .no_deps()
         .exec()
         .unwrap_or_else(|err| panic!("cargo metadata: {err}"));
-    let expected = workspace
-        .packages
-        .into_iter()
-        .map(|package| package.name)
-        .collect::<BTreeSet<_>>();
+    let expected =
+        workspace.packages.into_iter().map(|package| package.name).collect::<BTreeSet<_>>();
 
     bijux_dna_policies::policy_assert!(
         listed == expected,
@@ -53,13 +46,9 @@ fn policy__contracts__crate_responsibility_matrix_policy__boundary_inventory_row
     let config_path = root.join("configs/ci/crate-boundaries.toml");
     let raw = std::fs::read_to_string(&config_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", config_path.display()));
-    let value: toml::Value = toml::from_str(&raw)
-        .unwrap_or_else(|err| panic!("parse {}: {err}", config_path.display()));
-    let rows = value
-        .get("crates")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default();
+    let value: toml::Value =
+        toml::from_str(&raw).unwrap_or_else(|err| panic!("parse {}: {err}", config_path.display()));
+    let rows = value.get("crates").and_then(toml::Value::as_array).cloned().unwrap_or_default();
 
     let mut offenders = Vec::new();
     for row in rows {
@@ -69,11 +58,8 @@ fn policy__contracts__crate_responsibility_matrix_policy__boundary_inventory_row
                 offenders.push(format!("{name}: missing `{key}`"));
             }
         }
-        let public_surfaces = row
-            .get("public_surfaces")
-            .and_then(toml::Value::as_array)
-            .cloned()
-            .unwrap_or_default();
+        let public_surfaces =
+            row.get("public_surfaces").and_then(toml::Value::as_array).cloned().unwrap_or_default();
         if public_surfaces.is_empty() {
             offenders.push(format!("{name}: missing public_surfaces"));
             continue;

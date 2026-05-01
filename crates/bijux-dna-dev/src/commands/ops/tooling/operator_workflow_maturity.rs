@@ -122,11 +122,7 @@ pub(in super::super) fn tooling_operator_workflow_maturity(
     }
 
     let config = parse_args(workspace, args)?;
-    let reports = config
-        .selected
-        .iter()
-        .map(run_scenario)
-        .collect::<Vec<_>>();
+    let reports = config.selected.iter().map(run_scenario).collect::<Vec<_>>();
     let failed = reports.iter().filter(|report| report.status == "failed").count();
 
     let payload = ScenarioSuiteReport {
@@ -169,8 +165,8 @@ fn parse_args(workspace: &Workspace, args: &[String]) -> Result<ScenarioRunConfi
                 let Some(raw) = args.get(index + 1) else {
                     return Err(anyhow!("missing value for --scenario"));
                 };
-                let scenario =
-                    ScenarioId::from_raw(raw).ok_or_else(|| anyhow!("unknown scenario id: {raw}"))?;
+                let scenario = ScenarioId::from_raw(raw)
+                    .ok_or_else(|| anyhow!("unknown scenario id: {raw}"))?;
                 selected.push(scenario);
                 index += 2;
             }
@@ -254,34 +250,28 @@ fn scenario_workflow_import_export_package() -> Result<(Vec<String>, serde_json:
         ]
     });
     write_json_pretty(&export_dir.join("workflow_bundle.json"), &export_manifest)?;
-    std::fs::write(export_dir.join("inputs_metadata.json"), serde_json::to_vec_pretty(&json!({
-        "schema_version": "bijux.bundle_input_manifest.v1",
-        "inputs": export_manifest["inputs"],
-        "references": export_manifest["references"]
-    }))?)?;
-
-    copy_file(
-        &export_dir.join("workflow_bundle.json"),
-        &import_dir.join("workflow_bundle.json"),
-    )?;
-    copy_file(
-        &export_dir.join("inputs_metadata.json"),
-        &import_dir.join("inputs_metadata.json"),
+    std::fs::write(
+        export_dir.join("inputs_metadata.json"),
+        serde_json::to_vec_pretty(&json!({
+            "schema_version": "bijux.bundle_input_manifest.v1",
+            "inputs": export_manifest["inputs"],
+            "references": export_manifest["references"]
+        }))?,
     )?;
 
-    let imported: serde_json::Value = serde_json::from_slice(&std::fs::read(import_dir.join("workflow_bundle.json"))?)?;
-    let preserved_run_id = imported
-        .get("run_id")
-        .and_then(serde_json::Value::as_str)
-        == Some("run_g191_0001");
+    copy_file(&export_dir.join("workflow_bundle.json"), &import_dir.join("workflow_bundle.json"))?;
+    copy_file(&export_dir.join("inputs_metadata.json"), &import_dir.join("inputs_metadata.json"))?;
+
+    let imported: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(import_dir.join("workflow_bundle.json"))?)?;
+    let preserved_run_id =
+        imported.get("run_id").and_then(serde_json::Value::as_str) == Some("run_g191_0001");
     let preserved_caveats = imported
         .get("caveats")
         .and_then(serde_json::Value::as_array)
         .is_some_and(|rows| rows.len() >= 2);
     if !preserved_run_id || !preserved_caveats {
-        return Err(anyhow!(
-            "import/export package must preserve run identity and caveat records"
-        ));
+        return Err(anyhow!("import/export package must preserve run identity and caveat records"));
     }
 
     Ok((
@@ -496,15 +486,12 @@ fn scenario_cache_corruption_quarantine() -> Result<(Vec<String>, serde_json::Va
     for entry in &entries {
         let cache_key = entry["cache_key"].as_str().unwrap_or_default().to_string();
         let sha_ok = entry["expected_sha"] == entry["observed_sha"];
-        let size_ok = entry["expected_size"] == entry["observed_size"] && entry["observed_size"].as_u64().unwrap_or(0) > 0;
+        let size_ok = entry["expected_size"] == entry["observed_size"]
+            && entry["observed_size"].as_u64().unwrap_or(0) > 0;
         if sha_ok && size_ok {
             valid_entries.push(cache_key);
         } else {
-            let reason = if !sha_ok {
-                "sha_mismatch"
-            } else {
-                "size_mismatch_or_empty_payload"
-            };
+            let reason = if !sha_ok { "sha_mismatch" } else { "size_mismatch_or_empty_payload" };
             quarantined_entries.push(json!({
                 "cache_key": cache_key,
                 "artifact_id": entry["artifact_id"],
@@ -617,9 +604,8 @@ fn scenario_offline_review_profile() -> Result<(Vec<String>, serde_json::Value)>
     let required = profile["required_files"].as_array().cloned().unwrap_or_default();
     let steps = profile["verification_steps"].as_array().cloned().unwrap_or_default();
     let no_network = profile["network_allowed"].as_bool() == Some(false);
-    let has_evidence_verification = required
-        .iter()
-        .any(|entry| entry.as_str() == Some("evidence_verification.json"));
+    let has_evidence_verification =
+        required.iter().any(|entry| entry.as_str() == Some("evidence_verification.json"));
     if !no_network || !has_evidence_verification || steps.len() < 3 {
         return Err(anyhow!(
             "offline review profile must disable network and require evidence verification artifacts"
@@ -706,18 +692,12 @@ fn scenario_scale_aware_progress_reporting() -> Result<(Vec<String>, serde_json:
     ];
 
     let total_stage_count = stage_events.len() as u64;
-    let completed_count = stage_events
-        .iter()
-        .filter(|event| event["status"] == "completed")
-        .count() as u64;
-    let failed_count = stage_events
-        .iter()
-        .filter(|event| event["status"] == "failed")
-        .count() as u64;
-    let running_count = stage_events
-        .iter()
-        .filter(|event| event["status"] == "running")
-        .count() as u64;
+    let completed_count =
+        stage_events.iter().filter(|event| event["status"] == "completed").count() as u64;
+    let failed_count =
+        stage_events.iter().filter(|event| event["status"] == "failed").count() as u64;
+    let running_count =
+        stage_events.iter().filter(|event| event["status"] == "running").count() as u64;
     let total_elapsed_sec = stage_events
         .iter()
         .map(|event| event["elapsed_sec"].as_u64().unwrap_or_default())
@@ -747,7 +727,8 @@ fn scenario_scale_aware_progress_reporting() -> Result<(Vec<String>, serde_json:
         });
         let status = event["status"].as_str().unwrap_or_default();
         if status == "completed" {
-            sample_row["completed"] = json!(sample_row["completed"].as_u64().unwrap_or_default() + 1);
+            sample_row["completed"] =
+                json!(sample_row["completed"].as_u64().unwrap_or_default() + 1);
         }
         if status == "failed" {
             sample_row["failed"] = json!(sample_row["failed"].as_u64().unwrap_or_default() + 1);
@@ -780,9 +761,7 @@ fn scenario_scale_aware_progress_reporting() -> Result<(Vec<String>, serde_json:
         })
         .collect::<Vec<_>>();
     if failed_count == 0 || failure_rows.is_empty() {
-        return Err(anyhow!(
-            "scale-aware progress report must include explicit failure rows"
-        ));
+        return Err(anyhow!("scale-aware progress report must include explicit failure rows"));
     }
 
     Ok((
@@ -878,18 +857,12 @@ fn scenario_resource_prediction_from_past_runs() -> Result<(Vec<String>, serde_j
         ));
     }
 
-    let cpu_history = matched
-        .iter()
-        .filter_map(|row| row["cpu_hours"].as_f64())
-        .collect::<Vec<_>>();
-    let memory_history = matched
-        .iter()
-        .filter_map(|row| row["peak_memory_gb"].as_f64())
-        .collect::<Vec<_>>();
-    let scratch_history = matched
-        .iter()
-        .filter_map(|row| row["scratch_gb"].as_f64())
-        .collect::<Vec<_>>();
+    let cpu_history =
+        matched.iter().filter_map(|row| row["cpu_hours"].as_f64()).collect::<Vec<_>>();
+    let memory_history =
+        matched.iter().filter_map(|row| row["peak_memory_gb"].as_f64()).collect::<Vec<_>>();
+    let scratch_history =
+        matched.iter().filter_map(|row| row["scratch_gb"].as_f64()).collect::<Vec<_>>();
 
     let cpu_median = median(&cpu_history).unwrap_or(0.0);
     let memory_median = median(&memory_history).unwrap_or(0.0);
@@ -943,16 +916,10 @@ fn diff_strings(left: &serde_json::Value, right: &serde_json::Value) -> serde_js
         .as_array()
         .map(|rows| rows.iter().filter_map(serde_json::Value::as_str).collect::<Vec<_>>())
         .unwrap_or_default();
-    let added = right_rows
-        .iter()
-        .copied()
-        .filter(|item| !left_rows.contains(item))
-        .collect::<Vec<_>>();
-    let removed = left_rows
-        .iter()
-        .copied()
-        .filter(|item| !right_rows.contains(item))
-        .collect::<Vec<_>>();
+    let added =
+        right_rows.iter().copied().filter(|item| !left_rows.contains(item)).collect::<Vec<_>>();
+    let removed =
+        left_rows.iter().copied().filter(|item| !right_rows.contains(item)).collect::<Vec<_>>();
     json!({ "added": added, "removed": removed })
 }
 
@@ -1002,12 +969,14 @@ mod tests {
             report.evidence.get("run_id").and_then(serde_json::Value::as_str),
             Some("run_g191_0001")
         );
-        assert!(report
-            .evidence
-            .get("caveat_count")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or_default()
-            >= 2);
+        assert!(
+            report
+                .evidence
+                .get("caveat_count")
+                .and_then(serde_json::Value::as_u64)
+                .unwrap_or_default()
+                >= 2
+        );
     }
 
     #[test]
@@ -1015,20 +984,12 @@ mod tests {
         let report = run_scenario(&ScenarioId::RunComparisonCommand);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G192");
-        let stage_added = report.evidence["stage_delta"]["added"]
-            .as_array()
-            .cloned()
-            .unwrap_or_default();
-        assert!(stage_added
-            .iter()
-            .any(|entry| entry.as_str() == Some("vcf.phasing")));
-        let tool_added = report.evidence["tool_delta"]["added"]
-            .as_array()
-            .cloned()
-            .unwrap_or_default();
-        assert!(tool_added
-            .iter()
-            .any(|entry| entry.as_str() == Some("beagle@5.4")));
+        let stage_added =
+            report.evidence["stage_delta"]["added"].as_array().cloned().unwrap_or_default();
+        assert!(stage_added.iter().any(|entry| entry.as_str() == Some("vcf.phasing")));
+        let tool_added =
+            report.evidence["tool_delta"]["added"].as_array().cloned().unwrap_or_default();
+        assert!(tool_added.iter().any(|entry| entry.as_str() == Some("beagle@5.4")));
     }
 
     #[test]
@@ -1038,12 +999,8 @@ mod tests {
         assert_eq!(report.goal_id, "G193");
         let delete = report.evidence["delete"].as_array().cloned().unwrap_or_default();
         let archive = report.evidence["archive"].as_array().cloned().unwrap_or_default();
-        assert!(delete
-            .iter()
-            .any(|entry| entry.as_str() == Some("tmp_unsorted_bam")));
-        assert!(archive
-            .iter()
-            .any(|entry| entry.as_str() == Some("aligned_bam")));
+        assert!(delete.iter().any(|entry| entry.as_str() == Some("tmp_unsorted_bam")));
+        assert!(archive.iter().any(|entry| entry.as_str() == Some("aligned_bam")));
     }
 
     #[test]
@@ -1067,14 +1024,8 @@ mod tests {
         let report = run_scenario(&ScenarioId::CacheCorruptionQuarantine);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G195");
-        assert_eq!(
-            report.evidence["quarantine_count"].as_u64().unwrap_or_default(),
-            2
-        );
-        assert_eq!(
-            report.evidence["valid_entry_count"].as_u64().unwrap_or_default(),
-            2
-        );
+        assert_eq!(report.evidence["quarantine_count"].as_u64().unwrap_or_default(), 2);
+        assert_eq!(report.evidence["valid_entry_count"].as_u64().unwrap_or_default(), 2);
     }
 
     #[test]
@@ -1082,10 +1033,7 @@ mod tests {
         let report = run_scenario(&ScenarioId::BundlePortabilityCheck);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G196");
-        assert_eq!(
-            report.evidence["all_relative_paths"].as_bool(),
-            Some(true)
-        );
+        assert_eq!(report.evidence["all_relative_paths"].as_bool(), Some(true));
         assert!(report.evidence["required_file_count"].as_u64().unwrap_or_default() >= 4);
     }
 
@@ -1094,10 +1042,7 @@ mod tests {
         let report = run_scenario(&ScenarioId::OfflineReviewProfile);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G197");
-        assert_eq!(
-            report.evidence["network_allowed"].as_bool(),
-            Some(false)
-        );
+        assert_eq!(report.evidence["network_allowed"].as_bool(), Some(false));
         assert!(report.evidence["required_file_count"].as_u64().unwrap_or_default() >= 5);
     }
 
@@ -1120,10 +1065,7 @@ mod tests {
         assert_eq!(report.goal_id, "G199");
         assert_eq!(report.evidence["scale_class"].as_str(), Some("small"));
         assert_eq!(report.evidence["failed_stages"].as_u64().unwrap_or_default(), 1);
-        let failures = report.evidence["failure_rows"]
-            .as_array()
-            .cloned()
-            .unwrap_or_default();
+        let failures = report.evidence["failure_rows"].as_array().cloned().unwrap_or_default();
         assert!(failures.iter().any(|row| {
             row.get("sample_id").and_then(serde_json::Value::as_str) == Some("sample_b")
         }));
@@ -1135,12 +1077,8 @@ mod tests {
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G200");
         assert!(report.evidence["history_count_matched"].as_u64().unwrap_or_default() >= 2);
-        let suggested_cpu = report.evidence["suggestion"]["cpu_hours"]
-            .as_f64()
-            .unwrap_or_default();
-        let median_cpu = report.evidence["median"]["cpu_hours"]
-            .as_f64()
-            .unwrap_or_default();
+        let suggested_cpu = report.evidence["suggestion"]["cpu_hours"].as_f64().unwrap_or_default();
+        let median_cpu = report.evidence["median"]["cpu_hours"].as_f64().unwrap_or_default();
         assert!(suggested_cpu > median_cpu);
         assert_eq!(
             report.evidence["suggestion"]["advisory_label"].as_str(),

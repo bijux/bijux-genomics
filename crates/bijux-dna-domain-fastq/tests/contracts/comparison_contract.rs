@@ -117,8 +117,11 @@ fn preprocess_stages_publish_comparison_artifact_contracts() {
 #[test]
 fn trim_backend_comparison_contract_exposes_required_tools_and_caveats() {
     let contract = bijux_dna_domain_fastq::trim_backend_comparison_contract();
-    let required_tools =
-        contract.required_tool_ids.iter().map(|tool_id| tool_id.as_str()).collect::<BTreeSet<_>>();
+    let required_tools = contract
+        .required_tool_ids
+        .iter()
+        .map(bijux_dna_core::contract::ToolId::as_str)
+        .collect::<BTreeSet<_>>();
     assert_eq!(
         required_tools,
         BTreeSet::from(["adapterremoval", "cutadapt", "fastp", "fastx_clipper", "trimmomatic"])

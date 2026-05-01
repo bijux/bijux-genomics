@@ -93,9 +93,10 @@ fn pipeline_stage_sequences_are_type_correct_across_domains() {
                 });
             if let Some(prev) = prev_output {
                 if kind_rank(prev) != 255 && kind_rank(input_kind) != 255 {
-                    let explicit_cross_handoff = previous_stage_id
-                        .as_deref()
-                        .is_some_and(|previous| is_explicit_cross_domain_handoff(previous, stage_id));
+                    let explicit_cross_handoff =
+                        previous_stage_id.as_deref().is_some_and(|previous| {
+                            is_explicit_cross_domain_handoff(previous, stage_id)
+                        });
                     if !explicit_cross_handoff {
                         assert_eq!(
                             prev, input_kind,

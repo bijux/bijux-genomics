@@ -12,8 +12,8 @@ fn workspace_root() -> PathBuf {
 #[test]
 fn policy__contracts__truth_source_docs_policy__operations_docs_point_to_governed_truth() {
     let root = workspace_root();
-    let command_map =
-        std::fs::read_to_string(root.join("docs/30-operations/COMMAND_MAP.md")).expect("read command map");
+    let command_map = std::fs::read_to_string(root.join("docs/30-operations/COMMAND_MAP.md"))
+        .expect("read command map");
     let scoreboard = std::fs::read_to_string(root.join("docs/30-operations/BACKLOG_SCOREBOARD.md"))
         .expect("read backlog scoreboard doc");
 
@@ -59,12 +59,17 @@ fn policy__contracts__truth_source_docs_policy__example_docs_reference_index_and
     let root = workspace_root();
     let examples_readme =
         std::fs::read_to_string(root.join("examples/README.md")).expect("read examples/README.md");
-    let examples_ref =
-        std::fs::read_to_string(root.join("docs/50-reference/EXAMPLES.md")).expect("read examples ref");
+    let examples_ref = std::fs::read_to_string(root.join("docs/50-reference/EXAMPLES.md"))
+        .expect("read examples ref");
 
     let mut offenders = Vec::new();
     for raw in [&examples_readme, &examples_ref] {
-        for needle in ["examples/index.yaml", "tiny-inputs.json", "workflow-manifest.json", "expected-evidence.json"] {
+        for needle in [
+            "examples/index.yaml",
+            "tiny-inputs.json",
+            "workflow-manifest.json",
+            "expected-evidence.json",
+        ] {
             if !raw.contains(needle) {
                 offenders.push(format!("examples docs missing `{needle}`"));
             }

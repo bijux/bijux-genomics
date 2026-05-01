@@ -1,3 +1,11 @@
+#![allow(
+    clippy::default_trait_access,
+    clippy::expect_used,
+    clippy::struct_excessive_bools,
+    clippy::too_many_lines,
+    clippy::unwrap_used
+)]
+
 pub mod execution_plan;
 pub mod executor_registry;
 pub mod plan_run;

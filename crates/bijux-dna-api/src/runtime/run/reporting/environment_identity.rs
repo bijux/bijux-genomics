@@ -58,18 +58,16 @@ fn collect_invocations_under_root(root: &Path, sink: &mut Vec<serde_json::Value>
                 stack.push(entry_path);
                 continue;
             }
-            if entry_path.file_name().and_then(|name| name.to_str()) != Some("tool_invocation.json") {
+            if entry_path.file_name().and_then(|name| name.to_str()) != Some("tool_invocation.json")
+            {
                 continue;
             }
             let raw = std::fs::read_to_string(&entry_path)
                 .with_context(|| format!("read {}", entry_path.display()))?;
             let value: serde_json::Value = serde_json::from_str(&raw)
                 .with_context(|| format!("parse {}", entry_path.display()))?;
-            let stage_dir = entry_path
-                .parent()
-                .and_then(Path::parent)
-                .unwrap_or(root)
-                .to_path_buf();
+            let stage_dir =
+                entry_path.parent().and_then(Path::parent).unwrap_or(root).to_path_buf();
             sink.push(serde_json::json!({
                 "stage_dir": stage_dir.display().to_string(),
                 "stage_id": value.get("stage_id").cloned().unwrap_or(serde_json::Value::Null),

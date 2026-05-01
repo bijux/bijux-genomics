@@ -62,11 +62,7 @@ pub fn read_fastq_records(path: &Path) -> Result<Vec<FastqRecord>> {
         let quality = quality?;
 
         if !header.starts_with('@') {
-            return Err(anyhow!(
-                "invalid FASTQ header at {} line {}",
-                path.display(),
-                line_no - 3
-            ));
+            return Err(anyhow!("invalid FASTQ header at {} line {}", path.display(), line_no - 3));
         }
         if !plus.starts_with('+') {
             return Err(anyhow!(

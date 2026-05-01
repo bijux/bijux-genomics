@@ -1,7 +1,5 @@
 use super::Result;
-use crate::request_args::{
-    OperatorDiagnosisResponseV1, OutputFormatV1, RunBrowserResponseV1,
-};
+use crate::request_args::{OperatorDiagnosisResponseV1, OutputFormatV1, RunBrowserResponseV1};
 
 /// Render stable run-browser output in human or JSON form.
 ///
@@ -44,12 +42,8 @@ fn render_run_browser_human(response: &RunBrowserResponseV1) -> String {
         lines.push(format!(
             "run_id={} state={} mode={} failures={} artifacts={} dir={}",
             row.run_id,
-            row.state
-                .as_ref()
-                .map_or_else(|| "unknown".to_string(), ToString::to_string),
-            row.mode
-                .as_ref()
-                .map_or_else(|| "unknown".to_string(), ToString::to_string),
+            row.state.as_ref().map_or_else(|| "unknown".to_string(), ToString::to_string),
+            row.mode.as_ref().map_or_else(|| "unknown".to_string(), ToString::to_string),
             row.has_failures,
             row.artifact_count,
             row.run_dir.display(),
@@ -63,14 +57,8 @@ fn render_operator_diagnosis_human(response: &OperatorDiagnosisResponseV1) -> St
         "schema={} run_id={} queue_state={} requested_action={} health_ok={} has_failure_record={}",
         response.schema_version,
         response.run_id,
-        response
-            .queue_state
-            .as_ref()
-            .map_or_else(|| "unknown".to_string(), ToString::to_string),
-        response
-            .requested_action
-            .as_ref()
-            .map_or_else(|| "none".to_string(), ToString::to_string),
+        response.queue_state.as_ref().map_or_else(|| "unknown".to_string(), ToString::to_string),
+        response.requested_action.as_ref().map_or_else(|| "none".to_string(), ToString::to_string),
         response.health_ok,
         response.has_failure_record,
     )];

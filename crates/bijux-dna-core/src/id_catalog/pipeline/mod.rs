@@ -1,5 +1,5 @@
-mod bam_to_vcf;
 mod bam;
+mod bam_to_vcf;
 mod fastq;
 mod fastq_to_bam;
 mod fastq_to_vcf;

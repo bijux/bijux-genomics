@@ -178,10 +178,8 @@ pub(super) fn validate_domain_vocabularies(domain_dir: &Path) -> Result<DomainVo
             dom.to_string(),
             collect_unique_ids(&artifacts_path, "artifact_ids", artifact_ids)?,
         );
-        metric_vocab.insert(
-            dom.to_string(),
-            collect_unique_ids(&metrics_path, "metric_ids", metric_ids)?,
-        );
+        metric_vocab
+            .insert(dom.to_string(), collect_unique_ids(&metrics_path, "metric_ids", metric_ids)?);
     }
 
     Ok(DomainVocabularies { artifact_vocab, metric_vocab })

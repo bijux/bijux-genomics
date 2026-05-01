@@ -49,11 +49,8 @@ pub fn classify_layout(reads: &[&Path]) -> Result<ClassifyLayoutReportV1> {
 /// Returns an error for invalid layout classifications.
 pub fn ensure_layout_is_coherent(report: &ClassifyLayoutReportV1) -> Result<()> {
     if report.layout == FastqLayoutClassV1::Invalid {
-        let reason = report
-            .reasons
-            .first()
-            .cloned()
-            .unwrap_or_else(|| "invalid layout".to_string());
+        let reason =
+            report.reasons.first().cloned().unwrap_or_else(|| "invalid layout".to_string());
         return Err(anyhow!("fastq.classify_layout rejected input: {reason}"));
     }
     Ok(())
@@ -61,25 +58,16 @@ pub fn ensure_layout_is_coherent(report: &ClassifyLayoutReportV1) -> Result<()> 
 
 fn classify_single_file_layout(probes: &[HeaderProbe]) -> Result<ClassifyLayoutReportV1> {
     if probes.is_empty() {
-        return Ok(invalid_report(
-            1,
-            0,
-            vec!["input FASTQ has zero readable records".to_string()],
-        ));
+        return Ok(invalid_report(1, 0, vec!["input FASTQ has zero readable records".to_string()]));
     }
 
     let mate1 = probes.iter().filter(|probe| probe.mate == Some(1)).count();
     let mate2 = probes.iter().filter(|probe| probe.mate == Some(2)).count();
 
     if mate1 > 0 || mate2 > 0 {
-        let alternating_pairs = probes
-            .chunks_exact(2)
-            .filter(|pair| pair.len() == 2)
-            .all(|pair| {
-                pair[0].mate == Some(1)
-                    && pair[1].mate == Some(2)
-                    && pair[0].base == pair[1].base
-            });
+        let alternating_pairs = probes.chunks_exact(2).filter(|pair| pair.len() == 2).all(|pair| {
+            pair[0].mate == Some(1) && pair[1].mate == Some(2) && pair[0].base == pair[1].base
+        });
 
         if alternating_pairs && mate1 == mate2 {
             return Ok(layout_report(
@@ -121,9 +109,7 @@ fn classify_single_file_layout(probes: &[HeaderProbe]) -> Result<ClassifyLayoutR
             1,
             probes.len() as u64,
             None,
-            vec![format!(
-                "single FASTQ without mate tags and long mean read length ({mean_len})"
-            )],
+            vec![format!("single FASTQ without mate tags and long mean read length ({mean_len})")],
         ));
     }
 
@@ -150,12 +136,8 @@ fn classify_dual_file_layout(
     }
 
     let pair_count = left.len().min(right.len());
-    let synchronized = left
-        .iter()
-        .zip(right.iter())
-        .take(pair_count)
-        .filter(|(l, r)| l.base == r.base)
-        .count();
+    let synchronized =
+        left.iter().zip(right.iter()).take(pair_count).filter(|(l, r)| l.base == r.base).count();
     let sync_ratio = synchronized as f64 / pair_count as f64;
 
     let left_mate_consistent = left.iter().take(pair_count).all(|probe| probe.mate != Some(2));
@@ -165,9 +147,7 @@ fn classify_dual_file_layout(
         return Ok(invalid_report(
             2,
             (left.len() + right.len()) as u64,
-            vec![format!(
-                "paired files are not synchronized (pair id sync ratio {sync_ratio:.3})"
-            )],
+            vec![format!("paired files are not synchronized (pair id sync ratio {sync_ratio:.3})")],
         ));
     }
 
@@ -198,15 +178,12 @@ fn classify_dual_file_layout(
     ))
 }
 
-fn invalid_report(files_examined: u32, records_examined: u64, reasons: Vec<String>) -> ClassifyLayoutReportV1 {
-    layout_report(
-        FastqLayoutClassV1::Invalid,
-        1.0,
-        files_examined,
-        records_examined,
-        None,
-        reasons,
-    )
+fn invalid_report(
+    files_examined: u32,
+    records_examined: u64,
+    reasons: Vec<String>,
+) -> ClassifyLayoutReportV1 {
+    layout_report(FastqLayoutClassV1::Invalid, 1.0, files_examined, records_examined, None, reasons)
 }
 
 fn layout_report(
@@ -248,10 +225,18 @@ fn sample_fastq_headers(path: &Path, max_records: usize) -> Result<Vec<HeaderPro
         let quality = line_buffer[3];
 
         if !header.starts_with('@') {
-            return Err(anyhow!("invalid FASTQ header at record {} in {}", probes.len(), path.display()));
+            return Err(anyhow!(
+                "invalid FASTQ header at record {} in {}",
+                probes.len(),
+                path.display()
+            ));
         }
         if !plus.starts_with('+') {
-            return Err(anyhow!("invalid FASTQ plus-line at record {} in {}", probes.len(), path.display()));
+            return Err(anyhow!(
+                "invalid FASTQ plus-line at record {} in {}",
+                probes.len(),
+                path.display()
+            ));
         }
         if sequence.len() != quality.len() {
             return Err(anyhow!(
@@ -334,14 +319,8 @@ mod tests {
         let temp = bijux_dna_infra::temp_dir("bijux-fastq-layout")?;
         let r1 = temp.path().join("reads_R1.fastq");
         let r2 = temp.path().join("reads_R2.fastq");
-        write_fastq(
-            &r1,
-            &[("read1/1", "ACGT", "!!!!"), ("read2/1", "CCCC", "####")],
-        )?;
-        write_fastq(
-            &r2,
-            &[("read1/2", "TGCA", "!!!!"), ("read2/2", "GGGG", "####")],
-        )?;
+        write_fastq(&r1, &[("read1/1", "ACGT", "!!!!"), ("read2/1", "CCCC", "####")])?;
+        write_fastq(&r2, &[("read1/2", "TGCA", "!!!!"), ("read2/2", "GGGG", "####")])?;
 
         let report = classify_layout(&[r1.as_path(), r2.as_path()])?;
         assert_eq!(report.layout, FastqLayoutClassV1::PairedEnd);
@@ -354,14 +333,8 @@ mod tests {
         let temp = bijux_dna_infra::temp_dir("bijux-fastq-layout")?;
         let r1 = temp.path().join("reads_R1.fastq");
         let r2 = temp.path().join("reads_R2.fastq");
-        write_fastq(
-            &r1,
-            &[("read1/1", "ACGT", "!!!!"), ("read2/1", "CCCC", "####")],
-        )?;
-        write_fastq(
-            &r2,
-            &[("readX/2", "TGCA", "!!!!"), ("readY/2", "GGGG", "####")],
-        )?;
+        write_fastq(&r1, &[("read1/1", "ACGT", "!!!!"), ("read2/1", "CCCC", "####")])?;
+        write_fastq(&r2, &[("readX/2", "TGCA", "!!!!"), ("readY/2", "GGGG", "####")])?;
 
         let report = classify_layout(&[r1.as_path(), r2.as_path()])?;
         assert_eq!(report.layout, FastqLayoutClassV1::Invalid);

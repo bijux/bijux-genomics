@@ -73,7 +73,9 @@ struct TypedPlannedArtifact {
 ///
 /// # Errors
 /// Returns an error when support artifacts cannot be serialized or written.
-pub fn write_plan_support_artifacts(plan: &bijux_dna_stage_contract::RunExecutionPlan) -> anyhow::Result<()> {
+pub fn write_plan_support_artifacts(
+    plan: &bijux_dna_stage_contract::RunExecutionPlan,
+) -> anyhow::Result<()> {
     let planned_artifacts = plan
         .planned_artifacts
         .iter()
@@ -176,15 +178,8 @@ mod tests {
 
         write_plan_support_artifacts(&plan).expect("write plan support artifacts");
 
-        for name in [
-            "plan_artifact_manifest.json",
-            "decision_trace.json",
-            "policy_snapshot.json",
-        ] {
-            assert!(
-                plan.artifacts_dir.join(name).is_file(),
-                "expected {name} to be materialized"
-            );
+        for name in ["plan_artifact_manifest.json", "decision_trace.json", "policy_snapshot.json"] {
+            assert!(plan.artifacts_dir.join(name).is_file(), "expected {name} to be materialized");
         }
     }
 }

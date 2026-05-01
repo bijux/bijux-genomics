@@ -2,9 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
-use crate::artifacts::{
-    NormalizeReadNamesReportV1, NORMALIZE_READ_NAMES_REPORT_SCHEMA_VERSION,
-};
+use crate::artifacts::{NormalizeReadNamesReportV1, NORMALIZE_READ_NAMES_REPORT_SCHEMA_VERSION};
 
 use super::fastq_io::{read_fastq_records, write_fastq_records};
 

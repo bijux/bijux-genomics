@@ -24,7 +24,7 @@ fn write_advisory_boundary(
         .with_context(|| format!("write {}", path.display()))
 }
 
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::cast_precision_loss, clippy::too_many_lines)]
 fn stage_postprocess(
     stage: bijux_dna_planner_bam::stage_api::BamStage,
     stage_dir: &Path,
@@ -76,9 +76,8 @@ fn stage_postprocess(
                 .inputs
                 .iter()
                 .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Bam)
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| stage_dir.join("in.bam"));
-            let input_bai = plan
+                .map_or_else(|| stage_dir.join("in.bam"), |artifact| artifact.path.clone());
+            let input_bam_index = plan
                 .io
                 .inputs
                 .iter()
@@ -95,7 +94,7 @@ fn stage_postprocess(
                     .to_string(),
                 stage_id: stage.as_str().to_string(),
                 input_bam,
-                bam_index: input_bai,
+                bam_index: input_bam_index,
                 reference_fasta: reference,
                 flagstat: serde_json::from_value(parse_flagstat_counts(&flagstat)?)?,
                 validation_report_present: stage_dir.join("validation.json").exists(),
@@ -160,8 +159,7 @@ fn stage_postprocess(
                 .inputs
                 .iter()
                 .find(|artifact| artifact.role == bijux_dna_core::contract::ArtifactRole::Bam)
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| stage_dir.join("in.bam"));
+                .map_or_else(|| stage_dir.join("in.bam"), |artifact| artifact.path.clone());
             let output_bam = plan
                 .io
                 .outputs
@@ -169,8 +167,7 @@ fn stage_postprocess(
                 .find(|artifact| {
                     artifact.role == bijux_dna_core::contract::ArtifactRole::Bam && !artifact.optional
                 })
-                .map(|artifact| artifact.path.clone())
-                .unwrap_or_else(|| stage_dir.join("filtered.bam"));
+                .map_or_else(|| stage_dir.join("filtered.bam"), |artifact| artifact.path.clone());
             let mapped_reads_removed = match (
                 flagstat_before.mapped_reads,
                 flagstat_after.mapped_reads,

@@ -6,10 +6,8 @@ use std::path::Path;
 fn run_bundle_verifier_validates_original_and_copied_bundles() -> Result<()> {
     let temp = tempfile::tempdir()?;
     let response = execute_local_fastq_workflow(&temp.path().join("source"))?;
-    let run_dir = response
-        .manifest_path
-        .parent()
-        .ok_or_else(|| anyhow!("manifest missing parent"))?;
+    let run_dir =
+        response.manifest_path.parent().ok_or_else(|| anyhow!("manifest missing parent"))?;
     let original = verify_run_bundle(run_dir)?;
     if original.get("ok").and_then(serde_json::Value::as_bool) != Some(true) {
         panic!("original bundle verification failed: {}", original);

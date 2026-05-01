@@ -1,6 +1,8 @@
 use super::Result;
 use anyhow::{anyhow, Context};
-use bijux_dna_runtime::run_layout::{RunCheckpointV1, RunFailureV1, RunLifecycleStateV1, RunStateV1};
+use bijux_dna_runtime::run_layout::{
+    RunCheckpointV1, RunFailureV1, RunLifecycleStateV1, RunStateV1,
+};
 use std::path::{Path, PathBuf};
 
 /// Assess whether a failed run can be safely replayed.
@@ -9,10 +11,11 @@ use std::path::{Path, PathBuf};
 /// Returns an error if required run contracts cannot be loaded.
 pub fn assess_failed_replay_eligibility(run_dir: &Path) -> Result<serde_json::Value> {
     let layout = bijux_dna_runtime::run_layout::RunLayout::from_run_dir(run_dir.to_path_buf());
-    let run_state: RunStateV1 =
-        serde_json::from_slice(&std::fs::read(&layout.run_state_path)?).context("parse run state")?;
+    let run_state: RunStateV1 = serde_json::from_slice(&std::fs::read(&layout.run_state_path)?)
+        .context("parse run state")?;
     let checkpoint: RunCheckpointV1 =
-        serde_json::from_slice(&std::fs::read(&layout.checkpoint_path)?).context("parse checkpoint")?;
+        serde_json::from_slice(&std::fs::read(&layout.checkpoint_path)?)
+            .context("parse checkpoint")?;
     let failure: Option<RunFailureV1> = layout
         .failure_path
         .exists()
@@ -20,7 +23,8 @@ pub fn assess_failed_replay_eligibility(run_dir: &Path) -> Result<serde_json::Va
         .flatten()
         .and_then(|raw| serde_json::from_slice::<RunFailureV1>(&raw).ok());
 
-    let failed = matches!(run_state.state, RunLifecycleStateV1::Failed | RunLifecycleStateV1::Cancelled);
+    let failed =
+        matches!(run_state.state, RunLifecycleStateV1::Failed | RunLifecycleStateV1::Cancelled);
     let reason_code = failure.as_ref().map(|record| record.failure_code.clone());
     let unsafe_resume = reason_code
         .as_deref()
@@ -49,18 +53,10 @@ pub fn assess_failed_replay_eligibility(run_dir: &Path) -> Result<serde_json::Va
 /// Returns an error if replay is unsafe or replay execution fails.
 pub fn replay_failed_run(run_dir: &Path) -> Result<serde_json::Value> {
     let eligibility = assess_failed_replay_eligibility(run_dir)?;
-    if eligibility
-        .get("unsafe_resume")
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(false)
-    {
+    if eligibility.get("unsafe_resume").and_then(serde_json::Value::as_bool).unwrap_or(false) {
         return Err(anyhow!("unsafe resume refused for {}", run_dir.display()));
     }
-    if !eligibility
-        .get("failed")
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(false)
-    {
+    if !eligibility.get("failed").and_then(serde_json::Value::as_bool).unwrap_or(false) {
         return Err(anyhow!("run is not in a failed state: {}", run_dir.display()));
     }
     let replay_run_dir = next_replay_run_dir(run_dir);

@@ -4,10 +4,10 @@ use std::path::Path;
 use anyhow::{anyhow, Result};
 
 use crate::artifacts::{
-    ClusterOtusReportV1, InferAsvsReportV1, NormalizeAbundanceReportV1,
-    NormalizePrimersReportV1, RemoveChimerasReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION,
-    INFER_ASVS_REPORT_SCHEMA_VERSION, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
-    NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
+    ClusterOtusReportV1, InferAsvsReportV1, NormalizeAbundanceReportV1, NormalizePrimersReportV1,
+    RemoveChimerasReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION, INFER_ASVS_REPORT_SCHEMA_VERSION,
+    NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION,
+    REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
 };
 use crate::params::edna::{
     AbundanceNormalizationEffectiveParams, AsvInferenceEffectiveParams,
@@ -23,11 +23,7 @@ const PRIMER_MOTIFS: &[&str] = &["CCTACGGG", "GACTAC"];
 fn trim_primer_prefix(sequence: &str, quality: &str, min_overlap: usize) -> (String, String, bool) {
     for motif in PRIMER_MOTIFS {
         if sequence.starts_with(motif) && motif.len() >= min_overlap {
-            return (
-                sequence[motif.len()..].to_string(),
-                quality[motif.len()..].to_string(),
-                true,
-            );
+            return (sequence[motif.len()..].to_string(), quality[motif.len()..].to_string(), true);
         }
     }
     (sequence.to_string(), quality.to_string(), false)
@@ -48,11 +44,7 @@ pub fn normalize_primers(
     raw_backend_report: Option<&Path>,
 ) -> Result<NormalizePrimersReportV1> {
     let mut left = read_fastq_records(r1)?;
-    let mut right = if let Some(path) = r2 {
-        read_fastq_records(path)?
-    } else {
-        Vec::new()
-    };
+    let mut right = if let Some(path) = r2 { read_fastq_records(path)? } else { Vec::new() };
 
     let paired = r2.is_some();
     if paired && left.len() != right.len() {
@@ -66,11 +58,7 @@ pub fn normalize_primers(
         return Err(anyhow!("fastq.normalize_primers requires output_r2 for paired input"));
     }
 
-    let reads_in = if paired {
-        (left.len() + right.len()) as u64
-    } else {
-        left.len() as u64
-    };
+    let reads_in = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
     let bases_in = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
@@ -103,24 +91,14 @@ pub fn normalize_primers(
         write_fastq_records(output_r2.expect("validated above"), &right)?;
     }
 
-    let reads_out = if paired {
-        (left.len() + right.len()) as u64
-    } else {
-        left.len() as u64
-    };
+    let reads_out = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
     let bases_out = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
-    let orientation_forward_fraction = if reads_in == 0 {
-        Some(0.0)
-    } else {
-        Some(forward_oriented as f64 / reads_in as f64)
-    };
-    let primer_trimmed_fraction = if reads_in == 0 {
-        Some(0.0)
-    } else {
-        Some(trimmed_reads as f64 / reads_in as f64)
-    };
+    let orientation_forward_fraction =
+        if reads_in == 0 { Some(0.0) } else { Some(forward_oriented as f64 / reads_in as f64) };
+    let primer_trimmed_fraction =
+        if reads_in == 0 { Some(0.0) } else { Some(trimmed_reads as f64 / reads_in as f64) };
 
     std::fs::write(
         primer_orientation_report,
@@ -144,11 +122,7 @@ pub fn normalize_primers(
         stage: "fastq.normalize_primers".to_string(),
         stage_id: "fastq.normalize_primers".to_string(),
         tool_id: "bijux".to_string(),
-        paired_mode: if paired {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         primer_set_id: params.primer_set_id.clone(),
         marker_id: params.marker_id.clone(),
         primer_fasta: params.primer_fasta.clone(),
@@ -219,9 +193,11 @@ pub fn remove_chimeras(
     }
     if let Some(path) = uchime_report_tsv {
         let body = std::iter::once("record_id\tchimera".to_string())
-            .chain(removed.iter().map(|record| {
-                format!("{}\tyes", record.header.trim_start_matches('@'))
-            }))
+            .chain(
+                removed
+                    .iter()
+                    .map(|record| format!("{}\tyes", record.header.trim_start_matches('@'))),
+            )
             .collect::<Vec<_>>()
             .join("\n");
         std::fs::write(path, format!("{body}\n"))?;
@@ -265,7 +241,8 @@ pub fn remove_chimeras(
         },
         used_fallback: false,
         raw_backend_report: raw_backend_report.map(|path| path.display().to_string()),
-        raw_backend_report_format: raw_backend_report.map(|_| params.raw_backend_report_format.clone()),
+        raw_backend_report_format: raw_backend_report
+            .map(|_| params.raw_backend_report_format.clone()),
         runtime_s: None,
         memory_mb: None,
         exit_code: Some(0),
@@ -290,11 +267,8 @@ pub fn infer_asvs(
     report_json: &Path,
 ) -> Result<InferAsvsReportV1> {
     let left = read_fastq_records(input_reads_r1)?;
-    let right = if let Some(path) = input_reads_r2 {
-        read_fastq_records(path)?
-    } else {
-        Vec::new()
-    };
+    let right =
+        if let Some(path) = input_reads_r2 { read_fastq_records(path)? } else { Vec::new() };
     let paired = input_reads_r2.is_some();
 
     let mut counts = BTreeMap::<String, u64>::new();
@@ -329,11 +303,7 @@ pub fn infer_asvs(
         stage: "fastq.infer_asvs".to_string(),
         stage_id: "fastq.infer_asvs".to_string(),
         tool_id: "bijux".to_string(),
-        paired_mode: if paired {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         denoising_method: params.denoising_method.clone(),
         pooling_mode: params.pooling_mode.clone(),
         chimera_policy: params.chimera_policy.clone(),
@@ -367,12 +337,7 @@ fn sequence_identity(a: &str, b: &str) -> f64 {
     if min_len == 0 {
         return 0.0;
     }
-    let matches = a
-        .chars()
-        .zip(b.chars())
-        .take(min_len)
-        .filter(|(x, y)| x == y)
-        .count();
+    let matches = a.chars().zip(b.chars()).take(min_len).filter(|(x, y)| x == y).count();
     matches as f64 / min_len as f64
 }
 
@@ -501,10 +466,7 @@ pub fn normalize_abundance(
         normalized_rows.push((sample.clone(), feature.clone(), norm));
     }
 
-    let mut out = format!(
-        "sample_id\tfeature_id\t{}\n",
-        params.normalized_value_column
-    );
+    let mut out = format!("sample_id\tfeature_id\t{}\n", params.normalized_value_column);
     for (sample, feature, value) in &normalized_rows {
         out.push_str(&format!("{}\t{}\t{:.8}\n", sample, feature, value));
     }
@@ -552,7 +514,9 @@ pub fn normalize_abundance(
 
 #[cfg(test)]
 mod tests {
-    use super::{cluster_otus, infer_asvs, normalize_abundance, normalize_primers, remove_chimeras};
+    use super::{
+        cluster_otus, infer_asvs, normalize_abundance, normalize_primers, remove_chimeras,
+    };
     use crate::params::edna::{
         AbundanceNormalizationEffectiveParams, AsvInferenceEffectiveParams,
         ChimeraDetectionEffectiveParams, OtuClusteringEffectiveParams,

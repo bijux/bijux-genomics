@@ -7,15 +7,15 @@ pub use crate::diagnostics::BenchError;
 pub use crate::model::decision::DecisionRationale;
 pub use crate::model::graph::{BenchmarkGraphNode, BenchmarkGraphNodeKind, BenchmarkStageEdge};
 pub use crate::model::observation::MetricsEnvelope;
-pub use crate::model::{
-    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, CorpusDatasetSpec,
-    CorpusDomain, CorpusScale, DriftScenarioSpec, TruthSetHook, TruthSetStatus,
-};
 pub use crate::model::suite::{
     AnalysisRequirements, BenchmarkParamBinding, BenchmarkStageSpec, DatasetSpec,
     DiversityRequirements, ReplicatePolicy, StratificationRequirement,
 };
 pub use crate::model::summary::{MetricSummary, SummaryRow, SummaryStratum};
+pub use crate::model::{
+    BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, CorpusDatasetSpec,
+    CorpusDomain, CorpusScale, DriftScenarioSpec, TruthSetHook, TruthSetStatus,
+};
 pub use crate::model::{
     BenchmarkDecision, BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary,
 };

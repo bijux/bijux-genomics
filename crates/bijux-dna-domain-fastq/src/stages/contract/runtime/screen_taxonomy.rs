@@ -37,18 +37,10 @@ pub fn screen_taxonomy(
     classification_report_json: &Path,
 ) -> Result<ScreenTaxonomyReportV1> {
     let left = read_fastq_records(r1)?;
-    let right = if let Some(path) = r2 {
-        read_fastq_records(path)?
-    } else {
-        Vec::new()
-    };
+    let right = if let Some(path) = r2 { read_fastq_records(path)? } else { Vec::new() };
 
     let paired = r2.is_some();
-    let reads_in = if paired {
-        (left.len() + right.len()) as u64
-    } else {
-        left.len() as u64
-    };
+    let reads_in = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
     let bases_in = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
@@ -57,11 +49,7 @@ pub fn screen_taxonomy(
 
     for record in left.iter().chain(right.iter()) {
         let (label, confidence) = classify_sequence(&record.sequence);
-        let accepted = if confidence >= min_conf {
-            label
-        } else {
-            "unclassified"
-        };
+        let accepted = if confidence >= min_conf { label } else { "unclassified" };
         *counts.entry(accepted.to_string()).or_insert(0) += 1;
     }
 
@@ -76,14 +64,11 @@ pub fn screen_taxonomy(
         .iter()
         .map(|(label, count)| TaxonomyScreenSummaryEntryV1 {
             label: label.clone(),
-            percent: if reads_in == 0 {
-                0.0
-            } else {
-                (*count as f64 * 100.0) / reads_in as f64
-            },
+            percent: if reads_in == 0 { 0.0 } else { (*count as f64 * 100.0) / reads_in as f64 },
         })
         .collect::<Vec<_>>();
-    summary_entries.sort_by(|a, b| b.percent.partial_cmp(&a.percent).unwrap_or(std::cmp::Ordering::Equal));
+    summary_entries
+        .sort_by(|a, b| b.percent.partial_cmp(&a.percent).unwrap_or(std::cmp::Ordering::Equal));
     let top_taxa = summary_entries
         .iter()
         .filter(|entry| entry.label != "unclassified")
@@ -112,11 +97,7 @@ pub fn screen_taxonomy(
         stage: "fastq.screen_taxonomy".to_string(),
         stage_id: "fastq.screen_taxonomy".to_string(),
         tool_id: "bijux".to_string(),
-        paired_mode: if paired {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: params.threads,
         classifier: params.classifier.clone(),
         report_format: params.report_format.clone(),
@@ -167,9 +148,8 @@ pub fn screen_taxonomy(
 mod tests {
     use super::screen_taxonomy;
     use crate::params::screen::{
-        ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier,
-        TaxonomyDatabaseScope, TaxonomyInterpretationBoundary, TaxonomyReportFormat,
-        TaxonomyTruthCondition,
+        ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
+        TaxonomyInterpretationBoundary, TaxonomyReportFormat, TaxonomyTruthCondition,
     };
     use crate::params::PairedMode;
 

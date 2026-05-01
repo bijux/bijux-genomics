@@ -17,9 +17,7 @@ pub fn build_contaminant_db(
     database_family: Option<&str>,
 ) -> Result<BuildContaminantDbReportV1> {
     if contaminant_sources.is_empty() {
-        return Err(anyhow!(
-            "fastq.build_contaminant_db requires at least one contaminant source"
-        ));
+        return Err(anyhow!("fastq.build_contaminant_db requires at least one contaminant source"));
     }
 
     let mut sources = Vec::with_capacity(contaminant_sources.len());
@@ -30,11 +28,8 @@ pub fn build_contaminant_db(
         let raw = std::fs::read_to_string(source)?;
         let digest = bijux_dna_infra::hash_file_sha256(source)
             .map_err(|err| anyhow!("hash {}: {err}", source.display()))?;
-        let sequence_count = raw
-            .lines()
-            .map(str::trim)
-            .filter(|line| line.starts_with('>'))
-            .count() as u64;
+        let sequence_count =
+            raw.lines().map(str::trim).filter(|line| line.starts_with('>')).count() as u64;
         sources.push(BuildContaminantDbSourceEntryV1 {
             path: source.display().to_string(),
             sha256: digest,
@@ -51,11 +46,8 @@ pub fn build_contaminant_db(
         hasher.update(entry.sha256.as_bytes());
         hasher.update(b"\n");
     }
-    let database_hash = hasher
-        .finalize()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect::<String>();
+    let database_hash =
+        hasher.finalize().iter().map(|byte| format!("{byte:02x}")).collect::<String>();
 
     Ok(BuildContaminantDbReportV1 {
         schema_version: BUILD_CONTAMINANT_DB_REPORT_SCHEMA_VERSION.to_string(),
@@ -81,7 +73,8 @@ mod tests {
         std::fs::write(&source_a, ">c1\nACGT\n>c2\nTGCA\n")?;
         std::fs::write(&source_b, ">c3\nAAAA\n")?;
 
-        let report = build_contaminant_db(&[source_a.as_path(), source_b.as_path()], Some("bowtie2"))?;
+        let report =
+            build_contaminant_db(&[source_a.as_path(), source_b.as_path()], Some("bowtie2"))?;
         assert_eq!(report.source_sequence_count, 3);
         assert_eq!(report.sources.len(), 2);
         assert!(!report.database_hash.is_empty());

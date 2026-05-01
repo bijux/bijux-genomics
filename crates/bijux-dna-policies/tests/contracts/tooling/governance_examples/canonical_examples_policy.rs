@@ -50,7 +50,10 @@ fn policy__contracts__canonical_examples_policy__canonical_examples_are_complete
     let root = workspace_root();
     let canonical_entries = canonical_entries_from_index(&root);
     let expected = BTreeSet::from([
-        ("bam_essential_alignment_qc".to_string(), "examples/bam/essential-alignment-qc".to_string()),
+        (
+            "bam_essential_alignment_qc".to_string(),
+            "examples/bam/essential-alignment-qc".to_string(),
+        ),
         ("fastq_essential_qc".to_string(), "examples/fastq/essential-qc".to_string()),
         ("vcf_essential_qc_filter".to_string(), "examples/vcf/essential-qc-filter".to_string()),
     ]);
@@ -58,10 +61,8 @@ fn policy__contracts__canonical_examples_policy__canonical_examples_are_complete
 
     let mut offenders = Vec::new();
     if observed != expected {
-        offenders.push(format!(
-            "canonical examples must be {:?} but observed {:?}",
-            expected, observed
-        ));
+        offenders
+            .push(format!("canonical examples must be {:?} but observed {:?}", expected, observed));
     }
 
     for (example_id, rel) in canonical_entries {
@@ -80,8 +81,8 @@ fn policy__contracts__canonical_examples_policy__canonical_examples_are_complete
                 offenders.push(format!("{rel}: missing canonical file `{rel_file}`"));
             }
         }
-        let example_toml =
-            std::fs::read_to_string(dir.join("example.toml")).unwrap_or_else(|_| panic!("read {rel}/example.toml"));
+        let example_toml = std::fs::read_to_string(dir.join("example.toml"))
+            .unwrap_or_else(|_| panic!("read {rel}/example.toml"));
         for required in [
             "canonical_example = true",
             "workflow_manifest = \"workflow-manifest.json\"",

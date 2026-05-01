@@ -20,11 +20,7 @@ pub fn prepare_primer_bank(
     let governance_hash = bijux_dna_infra::hash_file_sha256(&governance_path)
         .map_err(|err| anyhow!("hash {}: {err}", governance_path.display()))?;
 
-    let mut primer_set_ids = bank
-        .primer_sets
-        .iter()
-        .map(|set| set.id.clone())
-        .collect::<Vec<_>>();
+    let mut primer_set_ids = bank.primer_sets.iter().map(|set| set.id.clone()).collect::<Vec<_>>();
     primer_set_ids.sort();
 
     Ok(PreparePrimerBankReportV1 {

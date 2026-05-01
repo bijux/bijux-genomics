@@ -4,8 +4,7 @@ use bijux_dna_domain_bam::{
     bam_scientific_report_contract_for_stage, bam_scientific_report_contracts,
     classify_bam_coverage_regime, compare_bam_duplicate_methods, estimate_bam_stage_resources,
     evaluate_bam_merge_compatibility, required_bam_bench_corpus_scenarios,
-    BamBenchDatasetScenarioV1, BamDuplicateMethodMetricsV1,
-    BamScientificReportIdV1,
+    BamBenchDatasetScenarioV1, BamDuplicateMethodMetricsV1, BamScientificReportIdV1,
 };
 
 #[test]
@@ -22,10 +21,10 @@ fn alignment_strategies_are_explicit_and_post_aligned() {
         assert!(strategy.post_alignment_chain.validate_before_downstream);
     }
     let adna = bam_alignment_strategy_for_tool("bwa", Some("adna_short"))
-        .expect("ancient bwa strategy");
+        .unwrap_or_else(|| panic!("ancient bwa strategy"));
     assert_eq!(adna.strategy_id, "bwa_aln_adna_short");
     let bowtie2 = bam_alignment_strategy_for_tool("bowtie2", Some("default"))
-        .expect("bowtie2 strategy");
+        .unwrap_or_else(|| panic!("bowtie2 strategy"));
     assert_eq!(bowtie2.mode, "local");
 }
 
@@ -126,18 +125,14 @@ fn adna_contamination_and_scientific_reports_stay_context_bound() {
         .tools
         .iter()
         .find(|tool| tool.tool_id == "verifybamid2")
-        .expect("verifybamid2 contract");
-    assert!(verifybamid2
-        .required_inputs
-        .contains(&"sex_or_chromosome_context".to_string()));
-    assert!(verifybamid2
-        .required_inputs
-        .contains(&"minimum_coverage_context".to_string()));
+        .unwrap_or_else(|| panic!("verifybamid2 contract"));
+    assert!(verifybamid2.required_inputs.contains(&"sex_or_chromosome_context".to_string()));
+    assert!(verifybamid2.required_inputs.contains(&"minimum_coverage_context".to_string()));
 
     let reports = bam_scientific_report_contracts();
     assert_eq!(reports.len(), 4);
     let kinship = bam_scientific_report_contract_for_stage("bam.kinship")
-        .expect("kinship report contract");
+        .unwrap_or_else(|| panic!("kinship report contract"));
     assert_eq!(kinship.report_id, BamScientificReportIdV1::Kinship);
     assert!(kinship.optional);
     assert!(kinship

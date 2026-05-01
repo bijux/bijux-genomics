@@ -1,20 +1,20 @@
 //! Public front door for the Bijux API.
 
 pub use crate::runtime::run::{
-    browse_runs, cache_explain, cancel_run, dry_run, execute, execute_and_report, operator_health,
-    pause_run, plan, policy_audit, query_run_lineage, render_report, replay_explain, resume_run,
-    status, workspace_edges, write_workspace_audit, evidence_gap, operator_diagnosis,
-    render_operator_diagnosis_output, render_run_browser_output, sign_bundle_prototype,
-    verify_signed_bundle_prototype,
+    browse_runs, cache_explain, cancel_run, dry_run, evidence_gap, execute, execute_and_report,
+    operator_diagnosis, operator_health, pause_run, plan, policy_audit, query_run_lineage,
+    render_operator_diagnosis_output, render_report, render_run_browser_output, replay_explain,
+    resume_run, sign_bundle_prototype, status, verify_signed_bundle_prototype, workspace_edges,
+    write_workspace_audit,
 };
 pub use crate::surface::explain::{ExplainResponse, ExplainToolSelection, PlanExplainV1};
 pub use crate::surface::request_contracts::{
     CacheExplainRequestV1, CacheExplainResponseV1, CacheKeyFingerprintV1, CacheMissReasonV1,
     DryRunRequest, DryRunResponse, EvidenceCheckFailureV1, EvidenceGapRequestV1,
-    EvidenceGapResponseV1, ExecuteRequest, ExecuteResponse, PlanRequest, PlanResponse,
-    OperatorDiagnosisCommandV1, OperatorDiagnosisRequestV1, OperatorDiagnosisResponseV1,
-    OperatorHealthResponse, OutputFormatV1, ReplayExplainRequestV1, ReplayExplainResponseV1,
-    RedactionProfileV1, RenderReportRequest, RenderReportResult, RunBrowserFilterV1,
+    EvidenceGapResponseV1, ExecuteRequest, ExecuteResponse, OperatorDiagnosisCommandV1,
+    OperatorDiagnosisRequestV1, OperatorDiagnosisResponseV1, OperatorHealthResponse,
+    OutputFormatV1, PlanRequest, PlanResponse, RedactionProfileV1, RenderReportRequest,
+    RenderReportResult, ReplayExplainRequestV1, ReplayExplainResponseV1, RunBrowserFilterV1,
     RunBrowserRequestV1, RunBrowserResponseV1, RunBrowserRowV1, RunControlResponse,
     RunLineageEdgeV1, RunLineageQueryRequestV1, RunLineageQueryResponseV1, RunStatus,
     SignedBundleRequestV1, SignedBundleResponseV1, SignedBundleVerifyRequestV1,

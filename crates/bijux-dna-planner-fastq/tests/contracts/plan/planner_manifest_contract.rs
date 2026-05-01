@@ -151,9 +151,7 @@ fn plan_manifest_payload(advisory_trim: bool) -> anyhow::Result<serde_json::Valu
             let serde_json::Value::Object(map) = &plan.effective_params else {
                 return None;
             };
-            let Some((name, value)) = map.iter().next() else {
-                return None;
-            };
+            let (name, value) = map.iter().next()?;
             Some(ParameterResolutionTraceV1 {
                 step_id: plan
                     .stage_instance_id
@@ -209,7 +207,7 @@ fn fastq_advisory_plan_manifest_snapshot_is_stable() -> anyhow::Result<()> {
 }
 
 #[test]
-fn fastq_refusal_snapshot_is_stable() -> anyhow::Result<()> {
+fn fastq_refusal_snapshot_is_stable() {
     let _guard = snapshot_settings().bind_to_scope();
     let config = FastqPlanConfig {
         pipeline_id: "fastq-to-fastq__default__v1".to_string(),
@@ -241,5 +239,4 @@ fn fastq_refusal_snapshot_is_stable() -> anyhow::Result<()> {
         snapshot_name("fastq_refusal_manifest"),
         bijux_dna_testkit::snapshot_normalize_json(&payload)
     );
-    Ok(())
 }

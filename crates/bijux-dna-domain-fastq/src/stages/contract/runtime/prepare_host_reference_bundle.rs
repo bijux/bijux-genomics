@@ -29,10 +29,7 @@ pub fn prepare_host_reference_bundle(
         }
         let digest = bijux_dna_infra::hash_file_sha256(path)
             .map_err(|err| anyhow!("hash {}: {err}", path.display()))?;
-        files.push(HostReferenceBundleFileV1 {
-            path: path.display().to_string(),
-            sha256: digest,
-        });
+        files.push(HostReferenceBundleFileV1 { path: path.display().to_string(), sha256: digest });
     }
     files.sort_by(|left, right| left.path.cmp(&right.path));
 
@@ -70,7 +67,8 @@ mod tests {
         std::fs::write(&ref_a, ">chr1\nACGT\n")?;
         std::fs::write(&ref_b, ">chr2\nTGCA\n")?;
 
-        let report = prepare_host_reference_bundle(&[ref_a.as_path(), ref_b.as_path()], Some("hg38"))?;
+        let report =
+            prepare_host_reference_bundle(&[ref_a.as_path(), ref_b.as_path()], Some("hg38"))?;
         assert_eq!(report.bundle_file_count, 2);
         assert_eq!(report.files[0].path, ref_b.display().to_string());
         assert_eq!(report.reference_build, "hg38");

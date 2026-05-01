@@ -298,29 +298,29 @@ fn recalibration_params_complete() -> Result<()> {
 #[test]
 #[cfg(feature = "bam_downstream")]
 fn haplogroups_params_complete() -> Result<()> {
-        let params = bijux_dna_domain_bam::params::HaplogroupEffectiveParams {
-            reference_panel: "mito_default".to_string(),
-            reference_build: "GRCh38".to_string(),
-            min_coverage: Some(1.0),
-            population_scope: Some("ancient_eurasia".to_string()),
-            refuse_without_population_context: true,
-        };
+    let params = bijux_dna_domain_bam::params::HaplogroupEffectiveParams {
+        reference_panel: "mito_default".to_string(),
+        reference_build: "GRCh38".to_string(),
+        min_coverage: Some(1.0),
+        population_scope: Some("ancient_eurasia".to_string()),
+        refuse_without_population_context: true,
+    };
     let plan = bijux_dna_planner_bam::tool_adapters::bam::haplogroups::plan(
         &dummy_tool("haplogrep"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-        assert_keys(
-            &plan.effective_params,
-            &[
-                "reference_panel",
-                "reference_build",
-                "min_coverage",
-                "population_scope",
-                "refuse_without_population_context",
-            ],
-        )?;
+    assert_keys(
+        &plan.effective_params,
+        &[
+            "reference_panel",
+            "reference_build",
+            "min_coverage",
+            "population_scope",
+            "refuse_without_population_context",
+        ],
+    )?;
     Ok(())
 }
 
@@ -345,29 +345,29 @@ fn genotyping_params_complete() -> Result<()> {
 #[test]
 #[cfg(feature = "bam_downstream")]
 fn kinship_params_complete() -> Result<()> {
-        let params = bijux_dna_domain_bam::params::KinshipEffectiveParams {
-            reference_panel: "king_default".to_string(),
-            reference_build: "GRCh38".to_string(),
-            population_scope: "ancient_eurasia".to_string(),
-            min_overlap_snps: 1000,
-            requires_cohort_context: true,
-        };
+    let params = bijux_dna_domain_bam::params::KinshipEffectiveParams {
+        reference_panel: "king_default".to_string(),
+        reference_build: "GRCh38".to_string(),
+        population_scope: "ancient_eurasia".to_string(),
+        min_overlap_snps: 1000,
+        requires_cohort_context: true,
+    };
     let plan = bijux_dna_planner_bam::tool_adapters::bam::kinship::plan(
         &dummy_tool("king"),
         Path::new("reads.bam"),
         Path::new("out"),
         &params,
     )?;
-        assert_keys(
-            &plan.effective_params,
-            &[
-                "reference_panel",
-                "reference_build",
-                "population_scope",
-                "min_overlap_snps",
-                "requires_cohort_context",
-            ],
-        )?;
+    assert_keys(
+        &plan.effective_params,
+        &[
+            "reference_panel",
+            "reference_build",
+            "population_scope",
+            "min_overlap_snps",
+            "requires_cohort_context",
+        ],
+    )?;
     Ok(())
 }
 

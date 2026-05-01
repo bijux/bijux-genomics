@@ -14,15 +14,12 @@ fn bundle_compiles_all_domains_into_a_release_surface() -> anyhow::Result<()> {
 
     assert_eq!(bundle.schema_version, "bijux.domain.registry.release_bundle.v1");
     assert_eq!(
-        bundle
-            .domains
-            .iter()
-            .map(|domain| domain.domain_id.as_str())
-            .collect::<Vec<_>>(),
+        bundle.domains.iter().map(|domain| domain.domain_id.as_str()).collect::<Vec<_>>(),
         vec!["bam", "fastq", "vcf"]
     );
 
-    let fastq = bundle.domains.iter().find(|domain| domain.domain_id == "fastq").expect("fastq domain");
+    let fastq =
+        bundle.domains.iter().find(|domain| domain.domain_id == "fastq").expect("fastq domain");
     assert!(
         fastq.stages.iter().any(|stage| stage.stage_id == "fastq.trim_reads"),
         "fastq bundle must preserve governed stage ids"
@@ -40,11 +37,9 @@ fn bundle_compiles_all_domains_into_a_release_surface() -> anyhow::Result<()> {
         "fastq bundle must preserve artifact roles"
     );
     assert!(
-        fastq
-            .stages
-            .iter()
-            .find(|stage| stage.stage_id == "fastq.trim_reads")
-            .is_some_and(|stage| stage.parameters.iter().any(|parameter| parameter.name == "min_length")),
+        fastq.stages.iter().find(|stage| stage.stage_id == "fastq.trim_reads").is_some_and(
+            |stage| stage.parameters.iter().any(|parameter| parameter.name == "min_length")
+        ),
         "fastq bundle must preserve stage default parameters"
     );
 

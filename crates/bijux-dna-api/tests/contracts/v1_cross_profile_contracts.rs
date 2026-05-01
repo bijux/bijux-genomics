@@ -7,10 +7,7 @@ fn explain_cross_profile_surfaces_workflow_templates_and_batch_contracts() {
 
     assert_eq!(explain["profile_id_resolved"], "fastq-to-vcf__minimal__v1");
     assert_eq!(explain["supports_sample_sheet"], true);
-    assert_eq!(
-        explain["workflow_templates"][0]["template_id"],
-        "cross.fastq_to_vcf_minimal"
-    );
+    assert_eq!(explain["workflow_templates"][0]["template_id"], "cross.fastq_to_vcf_minimal");
     assert!(explain["batch_semantics"]["per_sample_stages"]
         .as_array()
         .is_some_and(|stages| !stages.is_empty()));
@@ -29,11 +26,6 @@ fn validate_cross_profile_no_longer_reports_unsupported_domain_mix() {
     assert_eq!(validation["valid"], true);
     assert_eq!(validation["template_registry_consistent"], true);
     assert_eq!(validation["sample_sheet_contract_consistent"], true);
-    assert_eq!(
-        validation["workflow_templates"][0]["template_id"],
-        "cross.bam_to_vcf_default"
-    );
-    assert!(validation["violations"]
-        .as_array()
-        .is_some_and(|violations| violations.is_empty()));
+    assert_eq!(validation["workflow_templates"][0]["template_id"], "cross.bam_to_vcf_default");
+    assert!(validation["violations"].as_array().is_some_and(|violations| violations.is_empty()));
 }

@@ -68,10 +68,7 @@ fn domain_registry_query_binary_filters_stage_registry_rows() -> anyhow::Result<
     let rows = json.as_array().expect("query must return array");
     assert_eq!(rows.len(), 1);
     let row = &rows[0];
-    assert_eq!(
-        row.get("stage_id").and_then(serde_json::Value::as_str),
-        Some("fastq.trim_reads")
-    );
+    assert_eq!(row.get("stage_id").and_then(serde_json::Value::as_str), Some("fastq.trim_reads"));
     assert!(
         row.get("parameters")
             .and_then(serde_json::Value::as_array)
@@ -113,10 +110,7 @@ fn domain_registry_query_binary_exposes_evidence_contracts() -> anyhow::Result<(
 fn domain_registry_bundle_binary_help_lists_generated_bundle_flags() -> anyhow::Result<()> {
     let help = help_output(&mut Command::new(env!("CARGO_BIN_EXE_domain_registry_bundle")))?;
     for expected in ["--domain-dir", "--configs-dir", "--bundle", "--write-generated"] {
-        assert!(
-            help.contains(expected),
-            "bundle help must advertise `{expected}`"
-        );
+        assert!(help.contains(expected), "bundle help must advertise `{expected}`");
     }
     Ok(())
 }
@@ -136,10 +130,7 @@ fn domain_registry_query_binary_help_lists_query_filters() -> anyhow::Result<()>
         "evidence",
         "fixtures",
     ] {
-        assert!(
-            help.contains(expected),
-            "query help must advertise `{expected}`"
-        );
+        assert!(help.contains(expected), "query help must advertise `{expected}`");
     }
     Ok(())
 }

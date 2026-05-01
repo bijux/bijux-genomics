@@ -6,10 +6,12 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 
-use crate::repo::{bench_bundles_dir, bench_corpora_dir};
 use crate::repo::RunRepository;
+use crate::repo::{bench_bundles_dir, bench_corpora_dir};
 use bijux_dna_bench_model::contract::{validate_bundle_manifest, validate_corpus_manifest};
-use bijux_dna_bench_model::{BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkObservation};
+use bijux_dna_bench_model::{
+    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkObservation,
+};
 
 /// Load observations for a suite from a repository.
 ///
@@ -35,8 +37,8 @@ pub fn load_suite(
 /// # Errors
 /// Returns an error if the manifest cannot be read, parsed, or validated.
 pub fn load_corpus_manifest(path: &Path) -> Result<BenchmarkCorpusManifest> {
-    let raw =
-        fs::read_to_string(path).with_context(|| format!("read corpus manifest {}", path.display()))?;
+    let raw = fs::read_to_string(path)
+        .with_context(|| format!("read corpus manifest {}", path.display()))?;
     let manifest: BenchmarkCorpusManifest = toml::from_str(&raw)
         .with_context(|| format!("parse corpus manifest {}", path.display()))?;
     validate_corpus_manifest(&manifest)
@@ -66,8 +68,8 @@ pub fn load_corpus_catalog() -> Result<Vec<BenchmarkCorpusManifest>> {
 /// # Errors
 /// Returns an error if the manifest cannot be read, parsed, or validated.
 pub fn load_bundle_manifest(path: &Path) -> Result<BenchmarkBundleManifest> {
-    let raw =
-        fs::read_to_string(path).with_context(|| format!("read bundle manifest {}", path.display()))?;
+    let raw = fs::read_to_string(path)
+        .with_context(|| format!("read bundle manifest {}", path.display()))?;
     let manifest: BenchmarkBundleManifest = toml::from_str(&raw)
         .with_context(|| format!("parse bundle manifest {}", path.display()))?;
     validate_bundle_manifest(&manifest)

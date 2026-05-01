@@ -10,7 +10,8 @@ fn repo_root() -> PathBuf {
 fn scientific_owned_fields(root: &std::path::Path) -> Vec<String> {
     let raw = std::fs::read_to_string(root.join("configs/ci/policy_layers.toml"))
         .unwrap_or_else(|err| panic!("read policy_layers.toml: {err}"));
-    let value: toml::Value = toml::from_str(&raw).unwrap_or_else(|err| panic!("parse policy_layers.toml: {err}"));
+    let value: toml::Value =
+        toml::from_str(&raw).unwrap_or_else(|err| panic!("parse policy_layers.toml: {err}"));
     value["scientific"]["owned_fields"]
         .as_array()
         .cloned()

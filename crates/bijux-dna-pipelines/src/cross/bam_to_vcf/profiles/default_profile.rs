@@ -1,11 +1,13 @@
-use bijux_dna_core::ids::{AssayKind, LibraryLayout, LibraryModel, PlatformHint, StageId, ToolId, UdgTreatment};
+use bijux_dna_core::ids::{
+    AssayKind, LibraryLayout, LibraryModel, PlatformHint, StageId, ToolId, UdgTreatment,
+};
 use bijux_dna_core::prelude::id_catalog;
 use bijux_dna_domain_bam::defaults::default_params_json;
 use bijux_dna_domain_bam::BamStage;
 
-use crate::cross::workflow_registry::cross_workflow_templates_for_pipeline;
 use crate::cross::bam_to_vcf::merged_defaults::default_base_defaults;
 use crate::cross::bam_to_vcf::required_stages::required_cross_stages;
+use crate::cross::workflow_registry::cross_workflow_templates_for_pipeline;
 use crate::{
     ArtifactType, DefaultParams, Domain, EmptyParams, MetricsBundle, PipelineCapabilities,
     PipelineId, PipelineProfile, ReportSection, StabilityTier,
@@ -55,10 +57,11 @@ pub fn bam_to_vcf_default_profile() -> PipelineProfile {
             defaults.rationales.insert(stage, rationale);
         }
     }
-    let template_ids = cross_workflow_templates_for_pipeline(id_catalog::PIPELINE_BAM_TO_VCF_DEFAULT)
-        .into_iter()
-        .map(|template| template.template_id)
-        .collect::<Vec<_>>();
+    let template_ids =
+        cross_workflow_templates_for_pipeline(id_catalog::PIPELINE_BAM_TO_VCF_DEFAULT)
+            .into_iter()
+            .map(|template| template.template_id)
+            .collect::<Vec<_>>();
     let template = cross_workflow_templates_for_pipeline(id_catalog::PIPELINE_BAM_TO_VCF_DEFAULT)
         .into_iter()
         .next()

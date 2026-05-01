@@ -41,7 +41,12 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
     validate_stage_param_override_keys(inputs, &stages)?;
     validate_stage_coverage_support(&stages, resolved_coverage)?;
     validate_stage_ordering(&stages)?;
-    validate_panel_and_cohort_contracts(inputs, &stages, selected_panel.is_some(), &map_catalog.id)?;
+    validate_panel_and_cohort_contracts(
+        inputs,
+        &stages,
+        selected_panel.is_some(),
+        &map_catalog.id,
+    )?;
 
     if stages.contains(&VcfDomainStage::Demography) && !stages.contains(&VcfDomainStage::Ibd) {
         bail!("vcf.demography requires vcf.ibd in requested/default stage set");
@@ -198,11 +203,9 @@ fn validate_panel_and_cohort_contracts(
         bail!("planner refusal: phasing/imputation workflows require a resolved genetic map");
     }
 
-    let requires_cohort_validation = stages.iter().any(|stage| {
-        VCF_COHORT_VALIDATION_CONTRACT
-            .cohort_analysis_stages
-            .contains(stage)
-    });
+    let requires_cohort_validation = stages
+        .iter()
+        .any(|stage| VCF_COHORT_VALIDATION_CONTRACT.cohort_analysis_stages.contains(stage));
     if requires_cohort_validation {
         if !inputs.entry_vcf_invariants.sample_ids_non_empty_unique {
             bail!("planner refusal: cohort analysis requires unique non-empty sample IDs");

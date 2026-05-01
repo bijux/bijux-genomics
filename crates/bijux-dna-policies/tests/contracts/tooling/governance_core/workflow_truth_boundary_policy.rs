@@ -28,11 +28,9 @@ fn policy__contracts__workflow_truth_boundary_policy__cli_and_dev_do_not_define_
             let raw = std::fs::read_to_string(entry.path()).unwrap_or_else(|err| {
                 bijux_dna_policies::policy_panic!("read {}: {err}", entry.path().display())
             });
-            for needle in [
-                "bijux.plan_artifacts.v1",
-                "bijux.decision_trace.v1",
-                "bijux.policy_snapshot.v1",
-            ] {
+            for needle in
+                ["bijux.plan_artifacts.v1", "bijux.decision_trace.v1", "bijux.policy_snapshot.v1"]
+            {
                 if raw.contains(needle) {
                     offenders.push(format!("{} defines `{needle}`", entry.path().display()));
                 }

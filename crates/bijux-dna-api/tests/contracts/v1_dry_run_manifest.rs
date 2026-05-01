@@ -261,7 +261,8 @@ fn replay_manifest_reuses_local_runner_descriptor() -> Result<()> {
         .parent()
         .ok_or_else(|| anyhow!("manifest path missing parent directory"))?
         .to_path_buf();
-    let graph_payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&replay_graph)?;
+    let graph_payload =
+        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&replay_graph)?;
     bijux_dna_infra::atomic_write_bytes(
         &run_dir.join("manifests/graph.json"),
         graph_payload.as_slice(),

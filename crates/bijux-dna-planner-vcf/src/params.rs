@@ -3,10 +3,10 @@ use bijux_dna_db_ref::ReferenceBundle;
 use bijux_dna_domain_vcf::contracts::{
     vcf_cohort_analysis_boundary_contracts, vcf_likelihood_workflow_contracts,
     vcf_phasing_imputation_boundary_contracts, vcf_population_guardrail_contracts,
-    VcfCohortAnalysisBoundaryContract, VcfLikelihoodWorkflowContract,
-    VcfNormalizationPolicyRow, VcfPhasingImputationBoundaryContract,
-    VcfPopulationGuardrailContract, VCF_DAMAGE_FILTER_CONTRACT,
-    VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT, VCF_REPORT_COVERAGE_CONTRACT,
+    VcfCohortAnalysisBoundaryContract, VcfLikelihoodWorkflowContract, VcfNormalizationPolicyRow,
+    VcfPhasingImputationBoundaryContract, VcfPopulationGuardrailContract,
+    VCF_DAMAGE_FILTER_CONTRACT, VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT,
+    VCF_REPORT_COVERAGE_CONTRACT,
 };
 use bijux_dna_domain_vcf::taxonomy::{CoverageRegime, VcfDomainStage};
 use std::collections::BTreeSet;
@@ -15,7 +15,9 @@ use crate::api::{ChunkPlanSettings, VcfPanelLock};
 use crate::chunk_plan::RegionChunkPlan;
 use crate::workspace_config;
 
-fn normalization_policy_for_coverage(coverage: CoverageRegime) -> &'static VcfNormalizationPolicyRow {
+fn normalization_policy_for_coverage(
+    coverage: CoverageRegime,
+) -> &'static VcfNormalizationPolicyRow {
     let policy_id = match coverage {
         CoverageRegime::Diploid => "diploid_production",
         CoverageRegime::LowCovGl => "lowcov_gl_production",
@@ -40,21 +42,15 @@ fn likelihood_contract(
 fn phase_impute_boundary(
     stage: VcfDomainStage,
 ) -> Option<&'static VcfPhasingImputationBoundaryContract> {
-    vcf_phasing_imputation_boundary_contracts()
-        .iter()
-        .find(|contract| contract.stage == stage)
+    vcf_phasing_imputation_boundary_contracts().iter().find(|contract| contract.stage == stage)
 }
 
 fn population_guardrail(stage: VcfDomainStage) -> Option<&'static VcfPopulationGuardrailContract> {
-    vcf_population_guardrail_contracts()
-        .iter()
-        .find(|contract| contract.stage == stage)
+    vcf_population_guardrail_contracts().iter().find(|contract| contract.stage == stage)
 }
 
 fn cohort_boundary(stage: VcfDomainStage) -> Option<&'static VcfCohortAnalysisBoundaryContract> {
-    vcf_cohort_analysis_boundary_contracts()
-        .iter()
-        .find(|contract| contract.stage == stage)
+    vcf_cohort_analysis_boundary_contracts().iter().find(|contract| contract.stage == stage)
 }
 
 pub(crate) fn stage_params(
@@ -128,7 +124,8 @@ pub(crate) fn stage_params(
             }
             _ => {
                 let boundary = phase_impute_boundary(stage).expect("phasing boundary contract");
-                let likelihood = likelihood_contract(VcfDomainStage::CallGl, CoverageRegime::LowCovGl);
+                let likelihood =
+                    likelihood_contract(VcfDomainStage::CallGl, CoverageRegime::LowCovGl);
                 serde_json::json!({
                     "schema_version":"bijux.vcf.phasing.params.v1",
                     "tool":"beagle",

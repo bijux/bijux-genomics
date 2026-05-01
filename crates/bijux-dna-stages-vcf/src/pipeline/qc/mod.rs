@@ -568,7 +568,8 @@ fn enrich_stats_metrics_from_vcf(input_vcf: &Path, metrics: &mut VcfStatsMetrics
         metrics.heterozygosity_ratio = Some(het_total as f64 / hom_alt_total as f64);
     }
     if metrics.variants_total > 0 {
-        metrics.annotation_coverage = Some(annotated_records as f64 / metrics.variants_total as f64);
+        metrics.annotation_coverage =
+            Some(annotated_records as f64 / metrics.variants_total as f64);
     }
     Ok(())
 }

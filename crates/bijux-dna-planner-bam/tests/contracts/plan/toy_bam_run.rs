@@ -7,8 +7,8 @@ use bijux_dna_core::prelude::{
 };
 use bijux_dna_domain_bam::BamStage;
 use bijux_dna_planner_bam::{
-    bam_workflow_template_catalog, plan_bam_to_bam__adna_shotgun__v1,
-    plan_bam_to_bam__default__v1, plan_bam_workflow_template, BamPipelineInputs,
+    bam_workflow_template_catalog, plan_bam_to_bam__adna_shotgun__v1, plan_bam_to_bam__default__v1,
+    plan_bam_workflow_template, BamPipelineInputs,
 };
 
 fn dummy_tool(tool: &str) -> ToolExecutionSpecV1 {
@@ -116,9 +116,7 @@ fn toy_bam_run_plans_default_pipeline_without_ancient_advisory_stages() -> Resul
 fn bam_workflow_templates_select_modern_and_ancient_stage_sets_explicitly() -> Result<()> {
     let templates = bam_workflow_template_catalog();
     assert!(templates.iter().any(|template| template.template_id == "bam.essential_modern"));
-    assert!(
-        templates.iter().any(|template| template.template_id == "bam.essential_ancient_like")
-    );
+    assert!(templates.iter().any(|template| template.template_id == "bam.essential_ancient_like"));
 
     let temp = bijux_dna_infra::temp_dir("toy-bam-template-run")?;
     let bam = temp.path().join("toy.bam");

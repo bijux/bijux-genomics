@@ -5,8 +5,7 @@ use bijux_dna_db_ref::public_api::{
     resolve_map, resolve_map_lock, resolve_organellar_policy, resolve_panel, resolve_panel_lock,
     resolve_reference_bank, resolve_reference_bundle, resolve_reference_bundle_contract,
     resolve_sex_chromosome_rule, resolve_sex_par_organellar_assets, resolve_species_authority,
-    resolve_species_context, validate_reference_index_qa,
-    validate_imputation_tool_compatibility,
+    resolve_species_context, validate_imputation_tool_compatibility, validate_reference_index_qa,
     CatalogCompatibility, PanelCatalogEntry,
 };
 
@@ -142,18 +141,17 @@ fn reference_bundle_resolver_contract_captures_panel_map_identity() {
 
 #[test]
 fn reference_bundle_resolver_contract_refuses_tool_validation_without_assets() {
-    let err = resolve_reference_bundle_contract("Homo sapiens", "GRCh38", None, None, Some("glimpse"))
-        .err()
-        .unwrap_or_else(|| panic!("missing panel/map must fail"));
+    let err =
+        resolve_reference_bundle_contract("Homo sapiens", "GRCh38", None, None, Some("glimpse"))
+            .err()
+            .unwrap_or_else(|| panic!("missing panel/map must fail"));
     assert!(err.to_string().contains("requires a resolved panel"));
 }
 
 #[test]
 fn reference_index_qa_reports_all_required_tiny_indexes() {
-    let temp = std::env::temp_dir().join(format!(
-        "bijux-db-ref-runtime-provider-{}",
-        std::process::id()
-    ));
+    let temp =
+        std::env::temp_dir().join(format!("bijux-db-ref-runtime-provider-{}", std::process::id()));
     std::fs::create_dir_all(&temp)
         .unwrap_or_else(|err| panic!("create temp directory {}: {err}", temp.display()));
     let report = validate_reference_index_qa("Homo sapiens", "GRCh38", &temp)
@@ -163,10 +161,7 @@ fn reference_index_qa_reports_all_required_tiny_indexes() {
 
 #[test]
 fn vcf_panel_materialization_contract_reports_materialized_files() {
-    let temp = std::env::temp_dir().join(format!(
-        "bijux-db-ref-vcf-assets-{}",
-        std::process::id()
-    ));
+    let temp = std::env::temp_dir().join(format!("bijux-db-ref-vcf-assets-{}", std::process::id()));
     std::fs::create_dir_all(&temp)
         .unwrap_or_else(|err| panic!("create temp directory {}: {err}", temp.display()));
     let report = materialize_vcf_panel_assets(
@@ -204,10 +199,8 @@ fn sex_par_organellar_assets_contract_exposes_required_policy_fields() {
 
 #[test]
 fn contaminant_db_materialization_contract_emits_three_depletion_bundles() {
-    let temp = std::env::temp_dir().join(format!(
-        "bijux-db-ref-contaminant-assets-{}",
-        std::process::id()
-    ));
+    let temp = std::env::temp_dir()
+        .join(format!("bijux-db-ref-contaminant-assets-{}", std::process::id()));
     std::fs::create_dir_all(&temp)
         .unwrap_or_else(|err| panic!("create temp directory {}: {err}", temp.display()));
     let report = materialize_contaminant_databases(&temp)
@@ -217,10 +210,8 @@ fn contaminant_db_materialization_contract_emits_three_depletion_bundles() {
 
 #[test]
 fn taxonomy_db_materialization_contract_marks_advisory_only_outputs() {
-    let temp = std::env::temp_dir().join(format!(
-        "bijux-db-ref-taxonomy-assets-{}",
-        std::process::id()
-    ));
+    let temp =
+        std::env::temp_dir().join(format!("bijux-db-ref-taxonomy-assets-{}", std::process::id()));
     std::fs::create_dir_all(&temp)
         .unwrap_or_else(|err| panic!("create temp directory {}: {err}", temp.display()));
     let report = materialize_taxonomy_database(&temp)

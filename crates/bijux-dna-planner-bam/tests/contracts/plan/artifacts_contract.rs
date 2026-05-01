@@ -145,12 +145,11 @@ fn bam_stage_artifacts_contract_is_complete() -> Result<()> {
     )?;
     assert_audit_outputs(BamStage::Complexity, &complexity);
 
-    let coverage_params =
-        CoverageEffectiveParams {
-            regions: None,
-            depth_thresholds: vec![1, 3, 5],
-            regime_mode: "advisory_and_enforced".to_string(),
-        };
+    let coverage_params = CoverageEffectiveParams {
+        regions: None,
+        depth_thresholds: vec![1, 3, 5],
+        regime_mode: "advisory_and_enforced".to_string(),
+    };
     let coverage = bijux_dna_planner_bam::tool_adapters::bam::coverage::plan(
         &dummy_tool("mosdepth"),
         bam,

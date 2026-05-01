@@ -4,12 +4,15 @@
 use crate::diagnostics::BenchError;
 use crate::model::{
     BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkObservation,
-    BenchmarkSummary, CorpusDatasetSpec, DriftScenarioSpec, MetricSummary, SummaryRow, TruthSetHook,
-    TruthSetStatus,
+    BenchmarkSummary, CorpusDatasetSpec, DriftScenarioSpec, MetricSummary, SummaryRow,
+    TruthSetHook, TruthSetStatus,
 };
 use crate::policy::{GateDecision, GateViolation};
 
-use super::{BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
+use super::{
+    BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, OBSERVATION_SCHEMA_V1,
+    SUMMARY_SCHEMA_V1,
+};
 
 /// # Errors
 /// Returns an error if corpus schema or required dataset metadata is invalid.
@@ -323,7 +326,9 @@ mod tests {
     use anyhow::bail;
     use bijux_dna_core::id_catalog::FASTQ_TRIM;
 
-    use crate::contract::{BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1};
+    use crate::contract::{
+        BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+    };
     use crate::model::{
         BackendComparisonSpec, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkSummary,
         CorpusDatasetSpec, CorpusDomain, CorpusScale, DriftScenarioSpec, MetricSummary, SummaryRow,
@@ -332,7 +337,9 @@ mod tests {
     use crate::policy::{GateDecision, GateViolation};
     use crate::stats::robust_estimators::RobustStats;
 
-    use super::{validate_bundle_manifest, validate_corpus_manifest, validate_decision, validate_summary};
+    use super::{
+        validate_bundle_manifest, validate_corpus_manifest, validate_decision, validate_summary,
+    };
 
     fn metric_summary(metric_id: &str, n: usize) -> MetricSummary {
         MetricSummary {
@@ -398,7 +405,8 @@ mod tests {
             domain: CorpusDomain::Fastq,
             scale: CorpusScale::CiSmall,
             scientific_caveats: vec![
-                "synthetic fixtures approximate but do not replace production prevalence".to_string(),
+                "synthetic fixtures approximate but do not replace production prevalence"
+                    .to_string(),
             ],
             datasets: vec![CorpusDatasetSpec {
                 dataset_id: "fastq-valid-paired".to_string(),
@@ -416,8 +424,9 @@ mod tests {
                 comparison_id: "fastq.trim_reads.backends".to_string(),
                 stage_id: "fastq.trim_reads".to_string(),
                 tools: vec!["fastp".to_string(), "cutadapt".to_string()],
-                caveat: "backend deltas are operational comparisons, not biological accuracy proofs"
-                    .to_string(),
+                caveat:
+                    "backend deltas are operational comparisons, not biological accuracy proofs"
+                        .to_string(),
             }],
             drift_scenarios: vec![DriftScenarioSpec {
                 scenario_id: "fastq.trim_reads.policy-shift".to_string(),

@@ -1,7 +1,5 @@
 use super::Result;
-use crate::request_args::{
-    RunLineageEdgeV1, RunLineageQueryRequestV1, RunLineageQueryResponseV1,
-};
+use crate::request_args::{RunLineageEdgeV1, RunLineageQueryRequestV1, RunLineageQueryResponseV1};
 use anyhow::Context;
 
 /// Query artifact lineage edges from a run artifact inventory.
@@ -21,10 +19,7 @@ pub fn query_run_lineage(request: &RunLineageQueryRequestV1) -> Result<RunLineag
         .artifacts
         .iter()
         .filter(|artifact| {
-            request
-                .artifact_id
-                .as_ref()
-                .is_none_or(|requested| requested == &artifact.artifact_id)
+            request.artifact_id.as_ref().is_none_or(|requested| requested == &artifact.artifact_id)
         })
         .flat_map(|artifact| {
             artifact
@@ -39,8 +34,7 @@ pub fn query_run_lineage(request: &RunLineageQueryRequestV1) -> Result<RunLineag
         })
         .collect::<Vec<_>>();
     edges.sort_by(|left, right| {
-        left
-            .artifact_id
+        left.artifact_id
             .cmp(&right.artifact_id)
             .then_with(|| left.lineage_key.cmp(&right.lineage_key))
     });

@@ -116,8 +116,19 @@ mod tests {
         let temp = bijux_dna_infra::temp_dir("bijux-repair-pairs")?;
         let r1 = temp.path().join("r1.fastq");
         let r2 = temp.path().join("r2.fastq");
-        write_fastq(&r1, &[("A/1", "AAAA", "!!!!"), ("B/1", "CCCC", "####"), ("C/1", "GGGG", "$$$$")])?;
-        write_fastq(&r2, &[("A/2", "TTTT", "!!!!"), ("C/2", "GGGG", "$$$$"), ("B/2", "CCCC", "####"), ("D/2", "AAAA", "++++")])?;
+        write_fastq(
+            &r1,
+            &[("A/1", "AAAA", "!!!!"), ("B/1", "CCCC", "####"), ("C/1", "GGGG", "$$$$")],
+        )?;
+        write_fastq(
+            &r2,
+            &[
+                ("A/2", "TTTT", "!!!!"),
+                ("C/2", "GGGG", "$$$$"),
+                ("B/2", "CCCC", "####"),
+                ("D/2", "AAAA", "++++"),
+            ],
+        )?;
 
         let report = repair_pairs(
             &r1,

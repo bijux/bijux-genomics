@@ -4,8 +4,7 @@ use std::path::Path;
 use anyhow::{anyhow, Result};
 
 use crate::artifacts::{
-    DemultiplexReadsReportV1, DemultiplexSampleSummaryV1,
-    DEMULTIPLEX_READS_REPORT_SCHEMA_VERSION,
+    DemultiplexReadsReportV1, DemultiplexSampleSummaryV1, DEMULTIPLEX_READS_REPORT_SCHEMA_VERSION,
 };
 
 use super::fastq_io::{read_fastq_records, write_fastq_records, FastqRecord};
@@ -62,7 +61,8 @@ pub fn demultiplex_reads(
     let mut undetermined = Vec::<FastqRecord>::new();
 
     for read in reads.iter().cloned() {
-        let prefix = read.sequence.chars().take(barcode_len).collect::<String>().to_ascii_uppercase();
+        let prefix =
+            read.sequence.chars().take(barcode_len).collect::<String>().to_ascii_uppercase();
         if prefix.len() != barcode_len {
             undetermined.push(read);
             continue;
@@ -74,11 +74,7 @@ pub fn demultiplex_reads(
 
         for rule in rules {
             let barcode = rule.barcode.to_ascii_uppercase();
-            let distance = prefix
-                .chars()
-                .zip(barcode.chars())
-                .filter(|(a, b)| a != b)
-                .count();
+            let distance = prefix.chars().zip(barcode.chars()).filter(|(a, b)| a != b).count();
             if distance > max_mismatches as usize {
                 continue;
             }
@@ -168,14 +164,8 @@ mod tests {
         let report = demultiplex_reads(
             &input,
             &[
-                DemultiplexRule {
-                    sample_id: "sample_a",
-                    barcode: "ACGT",
-                },
-                DemultiplexRule {
-                    sample_id: "sample_b",
-                    barcode: "TGCA",
-                },
+                DemultiplexRule { sample_id: "sample_a", barcode: "ACGT" },
+                DemultiplexRule { sample_id: "sample_b", barcode: "TGCA" },
             ],
             1,
             &temp.path().join("demux"),
@@ -196,14 +186,8 @@ mod tests {
         let result = demultiplex_reads(
             &input,
             &[
-                DemultiplexRule {
-                    sample_id: "sample_a",
-                    barcode: "ACGT",
-                },
-                DemultiplexRule {
-                    sample_id: "sample_b",
-                    barcode: "ACGT",
-                },
+                DemultiplexRule { sample_id: "sample_a", barcode: "ACGT" },
+                DemultiplexRule { sample_id: "sample_b", barcode: "ACGT" },
             ],
             0,
             &temp.path().join("demux"),

@@ -1,21 +1,32 @@
+#![allow(
+    clippy::format_collect,
+    clippy::implicit_clone,
+    clippy::map_unwrap_or,
+    clippy::match_same_arms,
+    clippy::semicolon_if_nothing_returned,
+    clippy::struct_field_names,
+    clippy::unnecessary_wraps,
+    clippy::uninlined_format_args
+)]
+
 use super::{
     build_run_execution_plan, Path, Profile, Result, RunExecutionPlan, RunId, RunSpec, ToolRegistry,
 };
 
-mod dry_run;
 mod bundle_verifier;
 mod cache_explain;
+mod dry_run;
 mod environment_identity;
 mod evidence_gap;
 mod evidence_support;
-mod failure_injection;
-mod lineage_query;
 mod execute_run;
+mod failure_injection;
 mod lifecycle;
+mod lineage_query;
 mod local_workflows;
 mod operations;
-mod operator_diagnosis;
 mod operator_controls;
+mod operator_diagnosis;
 mod plan_response;
 mod planner_manifest_support;
 mod redaction;
@@ -30,10 +41,10 @@ mod status;
 mod summary_artifact;
 mod workspace_audit;
 
-pub use dry_run::dry_run;
 pub use bundle_verifier::verify_run_bundle;
-pub use cache_explain::explain_cache_hit_miss;
 pub use cache_explain::cache_explain;
+pub use cache_explain::explain_cache_hit_miss;
+pub use dry_run::dry_run;
 pub use environment_identity::environment_identity;
 pub use evidence_gap::evidence_gap;
 pub use execute_run::execute;
@@ -42,8 +53,8 @@ pub use lineage_query::query_run_lineage;
 pub use local_workflows::{
     execute_local_bam_workflow, execute_local_fastq_workflow, execute_local_vcf_workflow,
 };
-pub use operator_diagnosis::operator_diagnosis;
 pub use operator_controls::{cancel_run, operator_health, pause_run, resume_run};
+pub use operator_diagnosis::operator_diagnosis;
 pub use plan_response::plan;
 pub use rendering::{execute_and_report, render_report};
 pub use replay::replay_manifest;

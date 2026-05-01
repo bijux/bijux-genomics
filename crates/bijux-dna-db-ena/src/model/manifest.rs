@@ -78,10 +78,7 @@ pub fn build_workflow_manifest(records: &[EnaRecord]) -> Result<EnaWorkflowManif
             uncertainty,
         });
     }
-    Ok(EnaWorkflowManifest {
-        schema_version: "bijux.ena_workflow_manifest.v1".to_string(),
-        runs,
-    })
+    Ok(EnaWorkflowManifest { schema_version: "bijux.ena_workflow_manifest.v1".to_string(), runs })
 }
 
 /// # Errors
@@ -89,10 +86,7 @@ pub fn build_workflow_manifest(records: &[EnaRecord]) -> Result<EnaWorkflowManif
 pub fn build_workflow_manifest_from_offline_fixture(raw: &str) -> Result<EnaWorkflowManifest> {
     let fixture: EnaOfflineFixture = serde_json::from_str(raw)?;
     if fixture.schema_version != "bijux.ena.offline_fixture.v1" {
-        bail!(
-            "unsupported ENA offline fixture schema `{}`",
-            fixture.schema_version
-        );
+        bail!("unsupported ENA offline fixture schema `{}`", fixture.schema_version);
     }
     build_workflow_manifest(&fixture.runs)
 }
@@ -201,15 +195,7 @@ mod tests {
         let manifest = build_workflow_manifest_from_offline_fixture(&fixture.to_string())
             .unwrap_or_else(|error| panic!("build manifest from offline fixture: {error}"));
         assert_eq!(manifest.runs.len(), 2);
-        assert!(
-            manifest.runs[1]
-                .uncertainty
-                .contains(&"layout_fastq_count_mismatch".to_string())
-        );
-        assert!(
-            manifest.runs[1]
-                .uncertainty
-                .contains(&"missing_sample_accession".to_string())
-        );
+        assert!(manifest.runs[1].uncertainty.contains(&"layout_fastq_count_mismatch".to_string()));
+        assert!(manifest.runs[1].uncertainty.contains(&"missing_sample_accession".to_string()));
     }
 }

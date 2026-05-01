@@ -1,7 +1,5 @@
 use super::Result;
-use crate::request_args::{
-    EvidenceCheckFailureV1, EvidenceGapRequestV1, EvidenceGapResponseV1,
-};
+use crate::request_args::{EvidenceCheckFailureV1, EvidenceGapRequestV1, EvidenceGapResponseV1};
 use anyhow::Context;
 
 /// Typed API for evidence-gap diagnostics.
@@ -32,9 +30,8 @@ pub fn evidence_gap(request: &EvidenceGapRequestV1) -> Result<EvidenceGapRespons
         })
         .transpose()?;
 
-    let missing_paths = verification
-        .as_ref()
-        .map_or_else(Vec::new, |value| value.missing_paths.clone());
+    let missing_paths =
+        verification.as_ref().map_or_else(Vec::new, |value| value.missing_paths.clone());
     let failed_checks = verification.as_ref().map_or_else(Vec::new, |value| {
         value
             .checks
@@ -47,9 +44,9 @@ pub fn evidence_gap(request: &EvidenceGapRequestV1) -> Result<EvidenceGapRespons
             .collect::<Vec<_>>()
     });
 
-    let (advisory_only_artifacts, unsafe_artifacts) = inventory
-        .as_ref()
-        .map_or_else(|| (Vec::new(), Vec::new()), |inventory| {
+    let (advisory_only_artifacts, unsafe_artifacts) = inventory.as_ref().map_or_else(
+        || (Vec::new(), Vec::new()),
+        |inventory| {
             let advisory = inventory
                 .artifacts
                 .iter()
@@ -64,14 +61,14 @@ pub fn evidence_gap(request: &EvidenceGapRequestV1) -> Result<EvidenceGapRespons
                 .artifacts
                 .iter()
                 .filter_map(|artifact| {
-                    artifact
-                        .scientific_context
-                        .as_ref()
-                        .and_then(|context| (!context.safe_to_use).then(|| artifact.artifact_id.clone()))
+                    artifact.scientific_context.as_ref().and_then(|context| {
+                        (!context.safe_to_use).then(|| artifact.artifact_id.clone())
+                    })
                 })
                 .collect::<Vec<_>>();
             (advisory, unsafe_ids)
-        });
+        },
+    );
 
     let verified = verification.as_ref().is_some_and(|value| value.verified);
     let base_gap_count = verification.as_ref().map_or(0, |value| value.gap_count);

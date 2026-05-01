@@ -81,10 +81,7 @@ pub fn fetch_records_from_offline_fixture(
         .runs
         .into_iter()
         .filter(|record| {
-            record
-                .sample_accession
-                .as_deref()
-                .is_some_and(|sample| sample_filter.contains(sample))
+            record.sample_accession.as_deref().is_some_and(|sample| sample_filter.contains(sample))
         })
         .collect())
 }

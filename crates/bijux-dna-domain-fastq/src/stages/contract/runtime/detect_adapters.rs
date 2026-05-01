@@ -3,18 +3,13 @@ use std::path::Path;
 use anyhow::Result;
 
 use crate::artifacts::{DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION};
-use crate::params::detect_adapters::{
-    AdapterEvidenceScope, DetectAdaptersEffectiveParams,
-};
+use crate::params::detect_adapters::{AdapterEvidenceScope, DetectAdaptersEffectiveParams};
 use crate::params::PairedMode;
 
 use super::fastq_io::read_fastq_records;
 
-const CANDIDATE_ADAPTERS: &[&str] = &[
-    "AGATCGGAAGAGC",
-    "AATGATACGGCGACCACCGAGATCTACAC",
-    "GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT",
-];
+const CANDIDATE_ADAPTERS: &[&str] =
+    &["AGATCGGAAGAGC", "AATGATACGGCGACCACCGAGATCTACAC", "GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT"];
 
 fn mean_q(qualities: impl Iterator<Item = String>) -> f64 {
     let mut total = 0_u64;
@@ -47,11 +42,7 @@ pub fn detect_adapters(
     raw_backend_report: Option<&Path>,
 ) -> Result<DetectAdaptersReportV1> {
     let mut left = read_fastq_records(r1)?;
-    let mut right = if let Some(path) = r2 {
-        read_fastq_records(path)?
-    } else {
-        Vec::new()
-    };
+    let mut right = if let Some(path) = r2 { read_fastq_records(path)? } else { Vec::new() };
 
     let paired = r2.is_some();
     if paired && right.len() != left.len() {
@@ -70,11 +61,7 @@ pub fn detect_adapters(
         }
     }
 
-    let reads_in = if paired {
-        (left.len() + right.len()) as u64
-    } else {
-        left.len() as u64
-    };
+    let reads_in = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
     let bases_in = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
         + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
 
@@ -139,11 +126,7 @@ pub fn detect_adapters(
             .iter()
             .chain(right.iter())
             .map(|record| {
-                record
-                    .sequence
-                    .chars()
-                    .filter(|base| *base == 'N' || *base == 'n')
-                    .count() as u64
+                record.sequence.chars().filter(|base| *base == 'N' || *base == 'n').count() as u64
             })
             .sum::<u64>();
         Some(n_bases as f64 / bases_in as f64)
@@ -163,11 +146,7 @@ pub fn detect_adapters(
         stage: "fastq.detect_adapters".to_string(),
         stage_id: "fastq.detect_adapters".to_string(),
         tool_id: params.evidence_engine.clone(),
-        paired_mode: if paired {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         threads: params.threads,
         inspection_mode: params.inspection_mode.clone(),
         report_only: params.report_only,
@@ -180,7 +159,8 @@ pub fn detect_adapters(
         input_r2: r2.map(|path| path.display().to_string()),
         report_json: report_json.display().to_string(),
         adapter_evidence_dir: adapter_evidence_dir.display().to_string(),
-        recommended_adapter_bank_id: (candidate_adapter_count > 0).then_some("illumina".to_string()),
+        recommended_adapter_bank_id: (candidate_adapter_count > 0)
+            .then_some("illumina".to_string()),
         recommended_adapter_bank_hash: (candidate_adapter_count > 0)
             .then_some("sha256:governed-adapter-bank".to_string()),
         recommended_adapter_preset: (candidate_adapter_count > 0)
@@ -191,11 +171,7 @@ pub fn detect_adapters(
         bases_out: bases_in,
         pairs_in: paired.then_some(left.len() as u64),
         pairs_out: paired.then_some(left.len() as u64),
-        mean_q: mean_q(
-            left.iter()
-                .chain(right.iter())
-                .map(|record| record.quality.clone()),
-        ),
+        mean_q: mean_q(left.iter().chain(right.iter()).map(|record| record.quality.clone())),
         candidate_adapter_count,
         adapter_trimmed_fraction,
         adapter_content_max,

@@ -3,8 +3,7 @@ use std::path::Path;
 use anyhow::{anyhow, Result};
 
 use crate::artifacts::{
-    MaterializeQcManifestReportV1, QcManifestEntryV1,
-    MATERIALIZE_QC_MANIFEST_REPORT_SCHEMA_VERSION,
+    MaterializeQcManifestReportV1, QcManifestEntryV1, MATERIALIZE_QC_MANIFEST_REPORT_SCHEMA_VERSION,
 };
 
 /// Materialize a governed QC manifest from per-stage QC reports.
@@ -30,14 +29,10 @@ pub fn materialize_qc_manifest(qc_reports: &[&Path]) -> Result<MaterializeQcMani
         let digest = bijux_dna_infra::hash_file_sha256(report_path)
             .map_err(|err| anyhow!("hash {}: {err}", report_path.display()))?;
 
-        let stage_id = parsed
-            .get("stage_id")
-            .and_then(serde_json::Value::as_str)
-            .map(ToString::to_string);
-        let tool_id = parsed
-            .get("tool_id")
-            .and_then(serde_json::Value::as_str)
-            .map(ToString::to_string);
+        let stage_id =
+            parsed.get("stage_id").and_then(serde_json::Value::as_str).map(ToString::to_string);
+        let tool_id =
+            parsed.get("tool_id").and_then(serde_json::Value::as_str).map(ToString::to_string);
         let schema_version = parsed
             .get("schema_version")
             .and_then(serde_json::Value::as_str)
@@ -49,16 +44,10 @@ pub fn materialize_qc_manifest(qc_reports: &[&Path]) -> Result<MaterializeQcMani
         accumulate_metric(&parsed, "bases_out", &mut bases_out_total)?;
 
         if stage_id.is_none() {
-            warnings.push(format!(
-                "{} does not declare stage_id",
-                report_path.display()
-            ));
+            warnings.push(format!("{} does not declare stage_id", report_path.display()));
         }
         if tool_id.is_none() {
-            warnings.push(format!(
-                "{} does not declare tool_id",
-                report_path.display()
-            ));
+            warnings.push(format!("{} does not declare tool_id", report_path.display()));
         }
 
         entries.push(QcManifestEntryV1 {

@@ -129,7 +129,10 @@ pub fn validate_reads(
 
     let paired = r2.is_some();
     let pair_sync_checked = paired
-        && !matches!(pair_sync_policy, PairSyncPolicy::NotApplicable | PairSyncPolicy::SkipHeaderSync);
+        && !matches!(
+            pair_sync_policy,
+            PairSyncPolicy::NotApplicable | PairSyncPolicy::SkipHeaderSync
+        );
 
     let mut pair_sync_pass = None;
     let mut pair_count_match = None;
@@ -151,7 +154,8 @@ pub fn validate_reads(
             let mut sync_ok = true;
             for (l, r) in left.iter().zip(right.iter()) {
                 let (left_base, left_mate) = parse_header_pairing(l.header.trim_start_matches('@'));
-                let (right_base, right_mate) = parse_header_pairing(r.header.trim_start_matches('@'));
+                let (right_base, right_mate) =
+                    parse_header_pairing(r.header.trim_start_matches('@'));
                 if left_base != right_base
                     || matches!(left_mate, Some(2))
                     || matches!(right_mate, Some(1))
@@ -177,11 +181,8 @@ pub fn validate_reads(
         && pair_sync_pass.unwrap_or(true)
         && pair_count_match.unwrap_or(true);
 
-    let exit_code = if strict_pass || matches!(validation_mode, ValidationMode::ReportOnly) {
-        0
-    } else {
-        96
-    };
+    let exit_code =
+        if strict_pass || matches!(validation_mode, ValidationMode::ReportOnly) { 0 } else { 96 };
 
     let report = ValidationReportV1 {
         schema_version: VALIDATION_REPORT_SCHEMA_VERSION.to_string(),
@@ -217,11 +218,7 @@ pub fn validate_reads(
         input_r1: r1.display().to_string(),
         input_r2: r2.map(|path| path.display().to_string()),
         validation_report: validation_report_path.display().to_string(),
-        paired_mode: if paired {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         validated_stream_ids: if paired {
             vec!["reads_r1".to_string(), "reads_r2".to_string()]
         } else {

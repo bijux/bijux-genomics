@@ -22,10 +22,7 @@ fn public_api_docs_cover_registry_bundle_exports() {
         "DomainRegistryQueryKind",
         "CompiledDomainRegistry",
     ] {
-        assert!(
-            public_api.contains(expected),
-            "docs/PUBLIC_API.md must document `{expected}`"
-        );
+        assert!(public_api.contains(expected), "docs/PUBLIC_API.md must document `{expected}`");
     }
 }
 
@@ -47,9 +44,6 @@ fn readme_and_contracts_list_registry_bundle_outputs() {
         "ci/registry/domain_evidence_contracts.json",
     ] {
         assert!(readme.contains(expected), "README.md must document `{expected}`");
-        assert!(
-            contracts.contains(expected),
-            "docs/CONTRACTS.md must document `{expected}`"
-        );
+        assert!(contracts.contains(expected), "docs/CONTRACTS.md must document `{expected}`");
     }
 }

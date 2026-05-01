@@ -404,8 +404,7 @@ pub fn build_evidence_bundle(
         .as_ref()
         .and_then(|value| value.get("correlation_id"))
         .and_then(serde_json::Value::as_str)
-        .map(str::to_string)
-        .unwrap_or_else(|| run_id.clone());
+        .map_or_else(|| run_id.clone(), str::to_string);
 
     let timeline = build_timeline(
         &correlation_id,
@@ -714,15 +713,16 @@ pub fn list_reviewer_challenges(base_dir: &Path) -> Result<Vec<ReviewerChallenge
     if !path.exists() {
         return Ok(Vec::new());
     }
-    let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
+    let challenge_log =
+        std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     let mut rows = Vec::new();
-    for (index, line) in raw.lines().enumerate() {
+    for (index, line) in challenge_log.lines().enumerate() {
         if line.trim().is_empty() {
             continue;
         }
-        let row: ReviewerChallengeRecordV1 = serde_json::from_str(line)
+        let challenge: ReviewerChallengeRecordV1 = serde_json::from_str(line)
             .with_context(|| format!("parse {} line {}", path.display(), index + 1))?;
-        rows.push(row);
+        rows.push(challenge);
     }
     Ok(rows)
 }
@@ -781,7 +781,7 @@ pub fn verify_evidence_bundle(bundle_path: &Path) -> Result<EvidenceVerification
             missing_paths.push(path.clone());
         }
         checks.push(EvidenceCheckV1 {
-            check_id: format!("telemetry:{}", path),
+            check_id: format!("telemetry:{path}"),
             ok,
             message: if ok {
                 format!("telemetry source present at {path}")
@@ -889,7 +889,7 @@ pub fn compare_evidence_bundles(left: &Path, right: &Path) -> Result<EvidenceCom
         .collect::<BTreeSet<_>>()
         .into_iter()
         .filter(|name| left_artifacts.get(*name) != right_artifacts.get(*name))
-        .map(|name| name.to_string())
+        .map(std::string::ToString::to_string)
         .collect();
 
     let mut policy_change_hints = Vec::new();
@@ -913,8 +913,8 @@ pub fn compare_evidence_bundles(left: &Path, right: &Path) -> Result<EvidenceCom
         changed_stage_ids,
         changed_artifacts,
         runtime_delta_s: right_bundle.metrics.run_time_s - left_bundle.metrics.run_time_s,
-        evidence_gap_delta: right_bundle.health.gaps.len() as i64
-            - left_bundle.health.gaps.len() as i64,
+        evidence_gap_delta: i64::try_from(right_bundle.health.gaps.len()).unwrap_or(i64::MAX)
+            - i64::try_from(left_bundle.health.gaps.len()).unwrap_or(i64::MAX),
         policy_change_hints,
     })
 }
@@ -1403,21 +1403,21 @@ fn build_metrics(
         .or_else(|| facts.map(|rows| rows.iter().map(|row| row.runtime_s).sum()))
         .unwrap_or(0.0);
     let failed_stage_count =
-        facts.map(|rows| rows.iter().filter(|row| row.exit_code != 0).count() as u64).unwrap_or(0);
+        facts.map_or(0, |rows| usize_to_u64(rows.iter().filter(|row| row.exit_code != 0).count()));
     let queue_time_ms = queue_time_from_timeline(timeline);
     let cache_hit_count = timeline
         .iter()
         .filter(|event| {
             matches!(event.category, EvidenceTimelineCategoryV1::Cache) && event.status == "hit"
         })
-        .count() as u64;
+        .count();
     let cache_miss_count = timeline
         .iter()
         .filter(|event| {
             matches!(event.category, EvidenceTimelineCategoryV1::Cache)
                 && (event.status == "missing" || event.status == "miss")
         })
-        .count() as u64;
+        .count();
     let retry_count = timeline
         .iter()
         .filter_map(|event| event.attrs.get("retry_count").and_then(serde_json::Value::as_u64))
@@ -1428,7 +1428,7 @@ fn build_metrics(
     }
     let audit_gaps = health.health_gap_count();
     if audit_gaps > 0 {
-        scientific_failure_classes.insert("evidence_gap".to_string(), audit_gaps as u64);
+        scientific_failure_classes.insert("evidence_gap".to_string(), usize_to_u64(audit_gaps));
     }
     if let Some(report) = report {
         if report
@@ -1444,9 +1444,9 @@ fn build_metrics(
         queue_time_ms,
         run_time_s,
         retry_count,
-        cache_hit_count,
-        cache_miss_count,
-        total_timeline_events: timeline.len() as u64,
+        cache_hit_count: usize_to_u64(cache_hit_count),
+        cache_miss_count: usize_to_u64(cache_miss_count),
+        total_timeline_events: usize_to_u64(timeline.len()),
         scientific_failure_classes,
     }
 }
@@ -1474,7 +1474,7 @@ fn build_compact_summary(
     }
     let final_outputs = summary.map(|summary| summary.final_outputs.clone()).unwrap_or_default();
     let failed_stage_count =
-        facts.map(|rows| rows.iter().filter(|row| row.exit_code != 0).count()).unwrap_or(0);
+        facts.map_or(0, |rows| rows.iter().filter(|row| row.exit_code != 0).count());
     EvidenceCompactSummaryV1 {
         stage_count: stage_ids.len(),
         artifact_count: artifacts.len(),
@@ -1875,32 +1875,34 @@ fn build_required_files(
 }
 
 fn redact_for_collaborator(bundle: EvidenceBundleV1) -> EvidenceBundleV1 {
-    fn redact_path(path: &Option<String>) -> Option<String> {
-        path.as_ref()
-            .map(|value| std::path::Path::new(value))
+    fn redact_path(path: Option<&str>) -> Option<String> {
+        path.map(std::path::Path::new)
             .and_then(|path| path.file_name().and_then(|name| name.to_str()))
             .map(str::to_string)
     }
     let mut redacted = bundle;
-    redacted.sources.manifest_path = redact_path(&redacted.sources.manifest_path);
-    redacted.sources.plan_manifest_path = redact_path(&redacted.sources.plan_manifest_path);
-    redacted.sources.report_path = redact_path(&redacted.sources.report_path);
-    redacted.sources.run_summary_path = redact_path(&redacted.sources.run_summary_path);
-    redacted.sources.facts_path = redact_path(&redacted.sources.facts_path);
-    redacted.sources.graph_path = redact_path(&redacted.sources.graph_path);
-    redacted.sources.environment_path = redact_path(&redacted.sources.environment_path);
-    redacted.sources.runtime_policy_path = redact_path(&redacted.sources.runtime_policy_path);
-    redacted.sources.run_state_path = redact_path(&redacted.sources.run_state_path);
+    redacted.sources.manifest_path = redact_path(redacted.sources.manifest_path.as_deref());
+    redacted.sources.plan_manifest_path =
+        redact_path(redacted.sources.plan_manifest_path.as_deref());
+    redacted.sources.report_path = redact_path(redacted.sources.report_path.as_deref());
+    redacted.sources.run_summary_path = redact_path(redacted.sources.run_summary_path.as_deref());
+    redacted.sources.facts_path = redact_path(redacted.sources.facts_path.as_deref());
+    redacted.sources.graph_path = redact_path(redacted.sources.graph_path.as_deref());
+    redacted.sources.environment_path = redact_path(redacted.sources.environment_path.as_deref());
+    redacted.sources.runtime_policy_path =
+        redact_path(redacted.sources.runtime_policy_path.as_deref());
+    redacted.sources.run_state_path = redact_path(redacted.sources.run_state_path.as_deref());
     redacted.sources.executor_descriptor_path =
-        redact_path(&redacted.sources.executor_descriptor_path);
-    redacted.sources.checkpoint_path = redact_path(&redacted.sources.checkpoint_path);
-    redacted.sources.failure_path = redact_path(&redacted.sources.failure_path);
+        redact_path(redacted.sources.executor_descriptor_path.as_deref());
+    redacted.sources.checkpoint_path = redact_path(redacted.sources.checkpoint_path.as_deref());
+    redacted.sources.failure_path = redact_path(redacted.sources.failure_path.as_deref());
     redacted.sources.artifact_inventory_path =
-        redact_path(&redacted.sources.artifact_inventory_path);
-    redacted.sources.replay_manifest_path = redact_path(&redacted.sources.replay_manifest_path);
-    redacted.sources.hash_ledger_path = redact_path(&redacted.sources.hash_ledger_path);
+        redact_path(redacted.sources.artifact_inventory_path.as_deref());
+    redacted.sources.replay_manifest_path =
+        redact_path(redacted.sources.replay_manifest_path.as_deref());
+    redacted.sources.hash_ledger_path = redact_path(redacted.sources.hash_ledger_path.as_deref());
     redacted.sources.evidence_verification_path =
-        redact_path(&redacted.sources.evidence_verification_path);
+        redact_path(redacted.sources.evidence_verification_path.as_deref());
     redacted.sources.telemetry_paths = redacted
         .sources
         .telemetry_paths
@@ -2106,17 +2108,7 @@ fn profile_requirements(
             ("hash_ledger_path", bundle.sources.hash_ledger_path.as_deref()),
             ("evidence_verification_path", bundle.sources.evidence_verification_path.as_deref()),
         ],
-        EvidenceBundleProfileV1::Publication => vec![
-            ("manifest_path", bundle.sources.manifest_path.as_deref()),
-            ("plan_manifest_path", bundle.sources.plan_manifest_path.as_deref()),
-            ("report_path", bundle.sources.report_path.as_deref()),
-            ("run_summary_path", bundle.sources.run_summary_path.as_deref()),
-            ("facts_path", bundle.sources.facts_path.as_deref()),
-            ("artifact_inventory_path", bundle.sources.artifact_inventory_path.as_deref()),
-            ("hash_ledger_path", bundle.sources.hash_ledger_path.as_deref()),
-            ("evidence_verification_path", bundle.sources.evidence_verification_path.as_deref()),
-        ],
-        EvidenceBundleProfileV1::PublicationStrict => vec![
+        EvidenceBundleProfileV1::Publication | EvidenceBundleProfileV1::PublicationStrict => vec![
             ("manifest_path", bundle.sources.manifest_path.as_deref()),
             ("plan_manifest_path", bundle.sources.plan_manifest_path.as_deref()),
             ("report_path", bundle.sources.report_path.as_deref()),
@@ -2153,9 +2145,9 @@ fn profile_requirements(
                 format!("{check_id}_required"),
                 ok,
                 if ok {
-                    format!("{check_id} is present for {:?} evidence bundles", profile)
+                    format!("{check_id} is present for {profile:?} evidence bundles")
                 } else {
-                    format!("{check_id} is required for {:?} evidence bundles", profile)
+                    format!("{check_id} is required for {profile:?} evidence bundles")
                 },
             )
         })
@@ -2163,9 +2155,9 @@ fn profile_requirements(
             "telemetry_required".to_string(),
             !bundle.sources.telemetry_paths.is_empty(),
             if bundle.sources.telemetry_paths.is_empty() {
-                format!("telemetry paths are required for {:?} evidence bundles", profile)
+                format!("telemetry paths are required for {profile:?} evidence bundles")
             } else {
-                format!("telemetry paths are present for {:?} evidence bundles", profile)
+                format!("telemetry paths are present for {profile:?} evidence bundles")
             },
         )))
         .chain(matches!(profile, EvidenceBundleProfileV1::PublicationStrict).then_some((
@@ -2269,11 +2261,11 @@ fn verify_report_completeness(path: &Path) -> (bool, String) {
     let missing_metrics_empty = completeness
         .and_then(|value| value.get("missing_metrics"))
         .and_then(serde_json::Value::as_array)
-        .map_or(true, Vec::is_empty);
+        .is_none_or(Vec::is_empty);
     let missing_reports_empty = completeness
         .and_then(|value| value.get("missing_reports"))
         .and_then(serde_json::Value::as_array)
-        .map_or(true, Vec::is_empty);
+        .is_none_or(Vec::is_empty);
     (
         missing_metrics_empty && missing_reports_empty,
         if missing_metrics_empty && missing_reports_empty {
@@ -2398,7 +2390,11 @@ fn queue_time_from_timeline(timeline: &[EvidenceTimelineEventV1]) -> Option<u64>
     let planner = chrono::DateTime::parse_from_rfc3339(planner_ts).ok()?;
     let execution = chrono::DateTime::parse_from_rfc3339(execution_ts).ok()?;
     let millis = (execution - planner).num_milliseconds();
-    (millis >= 0).then_some(millis as u64)
+    u64::try_from(millis).ok()
+}
+
+fn usize_to_u64(value: usize) -> u64 {
+    u64::try_from(value).unwrap_or(u64::MAX)
 }
 
 fn telemetry_event_label(event: &TelemetryEventName) -> &'static str {

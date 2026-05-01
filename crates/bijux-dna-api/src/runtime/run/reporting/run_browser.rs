@@ -10,17 +10,10 @@ pub fn browse_runs(request: &RunBrowserRequestV1) -> Result<RunBrowserResponseV1
     let mut rows = collect_rows(&request.runs_root)?;
     rows.retain(|row| row_matches_filter(row, &request.filter));
     rows.sort_by(|left, right| {
-        left
-            .run_id
-            .cmp(&right.run_id)
-            .then_with(|| left.run_dir.cmp(&right.run_dir))
+        left.run_id.cmp(&right.run_id).then_with(|| left.run_dir.cmp(&right.run_dir))
     });
     let default_page_size = 50;
-    let page_size = if request.page_size == 0 {
-        default_page_size
-    } else {
-        request.page_size
-    };
+    let page_size = if request.page_size == 0 { default_page_size } else { request.page_size };
     let offset = request
         .page_token
         .as_deref()
@@ -39,10 +32,7 @@ pub fn browse_runs(request: &RunBrowserRequestV1) -> Result<RunBrowserResponseV1
         next_page_token,
         rows: page_rows,
     };
-    Ok(super::redaction::redact_run_browser(
-        response,
-        request.redaction_profile,
-    ))
+    Ok(super::redaction::redact_run_browser(response, request.redaction_profile))
 }
 
 fn collect_rows(runs_root: &Path) -> Result<Vec<RunBrowserRowV1>> {
@@ -76,13 +66,17 @@ fn row_for_run_dir(run_dir: &Path) -> RunBrowserRowV1 {
         .exists()
         .then(|| std::fs::read_to_string(&layout.run_state_path).ok())
         .flatten()
-        .and_then(|raw| serde_json::from_str::<bijux_dna_runtime::run_layout::RunStateV1>(&raw).ok());
+        .and_then(|raw| {
+            serde_json::from_str::<bijux_dna_runtime::run_layout::RunStateV1>(&raw).ok()
+        });
     let artifact_count = layout
         .artifact_inventory_path
         .exists()
         .then(|| std::fs::read(&layout.artifact_inventory_path).ok())
         .flatten()
-        .and_then(|raw| serde_json::from_slice::<bijux_dna_runtime::run_layout::ArtifactInventoryV1>(&raw).ok())
+        .and_then(|raw| {
+            serde_json::from_slice::<bijux_dna_runtime::run_layout::ArtifactInventoryV1>(&raw).ok()
+        })
         .map_or_else(
             || {
                 manifest
@@ -99,17 +93,9 @@ fn row_for_run_dir(run_dir: &Path) -> RunBrowserRowV1 {
         .and_then(|value| value.get("run_id"))
         .and_then(serde_json::Value::as_str)
         .map(str::to_string)
-        .or_else(|| {
-            run_state
-                .as_ref()
-                .map(|state| state.run_id.clone())
-        })
+        .or_else(|| run_state.as_ref().map(|state| state.run_id.clone()))
         .unwrap_or_else(|| {
-            run_dir
-                .file_name()
-                .and_then(|name| name.to_str())
-                .unwrap_or("run")
-                .to_string()
+            run_dir.file_name().and_then(|name| name.to_str()).unwrap_or("run").to_string()
         });
 
     let has_failures = manifest
@@ -156,11 +142,7 @@ fn row_matches_filter(
     row: &RunBrowserRowV1,
     filter: &crate::request_args::RunBrowserFilterV1,
 ) -> bool {
-    if filter
-        .run_id_prefix
-        .as_deref()
-        .is_some_and(|prefix| !row.run_id.starts_with(prefix))
-    {
+    if filter.run_id_prefix.as_deref().is_some_and(|prefix| !row.run_id.starts_with(prefix)) {
         return false;
     }
     if filter
@@ -190,10 +172,7 @@ fn row_matches_filter(
     if filter.mode.is_some_and(|mode| row.mode != Some(mode)) {
         return false;
     }
-    if filter
-        .has_failures
-        .is_some_and(|has_failures| row.has_failures != has_failures)
-    {
+    if filter.has_failures.is_some_and(|has_failures| row.has_failures != has_failures) {
         return false;
     }
     true

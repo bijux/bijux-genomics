@@ -7,8 +7,8 @@ use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_infra::{ensure_dir, write_string};
 use serde::{Deserialize, Serialize};
 
-mod compile;
 pub mod bundle;
+mod compile;
 mod coverage;
 mod loading;
 mod models;

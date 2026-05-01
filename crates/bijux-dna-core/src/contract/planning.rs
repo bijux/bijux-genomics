@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -238,10 +238,10 @@ impl WorkflowManifestV1 {
             }
         }
         normalized.requested_stages.sort_by(|a, b| a.stage_id.cmp(&b.stage_id));
-        normalized
-            .evidence_expectations
-            .sort_by(|a, b| (a.artifact_role.as_str(), a.schema_id.as_deref().unwrap_or(""))
-                .cmp(&(b.artifact_role.as_str(), b.schema_id.as_deref().unwrap_or(""))));
+        normalized.evidence_expectations.sort_by(|a, b| {
+            (a.artifact_role.as_str(), a.schema_id.as_deref().unwrap_or(""))
+                .cmp(&(b.artifact_role.as_str(), b.schema_id.as_deref().unwrap_or("")))
+        });
         Ok(normalized)
     }
 
@@ -403,7 +403,8 @@ impl PlanManifestV1 {
                 ))
             });
             step.reference_asset_ids.sort();
-            step.environment.out_dir = PathBuf::from(stable_path_identity(&step.environment.out_dir));
+            step.environment.out_dir =
+                PathBuf::from(stable_path_identity(&step.environment.out_dir));
             step.environment.command = step
                 .environment
                 .command
@@ -424,9 +425,9 @@ impl PlanManifestV1 {
             (a.stage_id.as_deref().unwrap_or(""), a.message.as_str())
                 .cmp(&(b.stage_id.as_deref().unwrap_or(""), b.message.as_str()))
         });
-        normalized.parameter_traces.sort_by(|a, b| {
-            (&a.step_id, &a.parameter).cmp(&(&b.step_id, &b.parameter))
-        });
+        normalized
+            .parameter_traces
+            .sort_by(|a, b| (&a.step_id, &a.parameter).cmp(&(&b.step_id, &b.parameter)));
         for trace in &mut normalized.parameter_traces {
             normalize_json_value_paths(&mut trace.resolved_value);
             trace.detail = stable_command_fragment_identity(&trace.detail);
@@ -506,12 +507,8 @@ pub fn build_plan_manifest(input: PlanManifestBuildInputV1) -> Result<PlanManife
     let dependency_map = dependency_map(&input.graph);
     let order = input.graph.topological_step_ids()?;
     let advisory_steps = advisory_step_ids(&input.warning_records);
-    let stage_set = input
-        .graph
-        .steps()
-        .iter()
-        .map(|step| step.stage_id.to_string())
-        .collect::<BTreeSet<_>>();
+    let stage_set =
+        input.graph.steps().iter().map(|step| step.stage_id.to_string()).collect::<BTreeSet<_>>();
 
     let mut ordered_steps = Vec::with_capacity(order.len());
     for step_id in order {
@@ -590,6 +587,7 @@ pub fn planner_refusal_from_message(
 }
 
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn diff_plan_manifests(
     before: &PlanManifestV1,
     after: &PlanManifestV1,
@@ -630,11 +628,7 @@ pub fn diff_plan_manifests(
         .iter()
         .map(|step| (step.step_id.as_str(), step))
         .collect::<BTreeMap<_, _>>();
-    let step_ids = before_steps
-        .keys()
-        .chain(after_steps.keys())
-        .copied()
-        .collect::<BTreeSet<_>>();
+    let step_ids = before_steps.keys().chain(after_steps.keys()).copied().collect::<BTreeSet<_>>();
 
     for step_id in step_ids {
         match (before_steps.get(step_id), after_steps.get(step_id)) {
@@ -701,11 +695,13 @@ pub fn diff_plan_manifests(
         after_noise.labels.clear();
         if notes_changed || labels_changed {
             if before_noise == after_noise {
-                diff.ignored_changes
-                    .push("workflow notes or labels changed without changing semantics".to_string());
+                diff.ignored_changes.push(
+                    "workflow notes or labels changed without changing semantics".to_string(),
+                );
             } else {
-                diff.graph_changes
-                    .push("workflow authoring metadata changed alongside semantic content".to_string());
+                diff.graph_changes.push(
+                    "workflow authoring metadata changed alongside semantic content".to_string(),
+                );
             }
         }
     }
@@ -715,12 +711,10 @@ pub fn diff_plan_manifests(
 
 #[must_use]
 pub fn validate_cross_domain_handoffs(graph: &ExecutionGraph) -> Vec<CrossDomainHandoffV1> {
-    let steps = graph
-        .steps()
-        .iter()
-        .map(|step| (step.step_id.as_str(), step))
-        .collect::<BTreeMap<_, _>>();
-    graph.edges()
+    let steps =
+        graph.steps().iter().map(|step| (step.step_id.as_str(), step)).collect::<BTreeMap<_, _>>();
+    graph
+        .edges()
         .iter()
         .filter_map(|edge| {
             let from_step = steps.get(edge.from().as_str())?;
@@ -735,7 +729,10 @@ pub fn validate_cross_domain_handoffs(graph: &ExecutionGraph) -> Vec<CrossDomain
         .collect()
 }
 
-fn cross_domain_handoff(from_step: &ExecutionStep, to_step: &ExecutionStep) -> CrossDomainHandoffV1 {
+fn cross_domain_handoff(
+    from_step: &ExecutionStep,
+    to_step: &ExecutionStep,
+) -> CrossDomainHandoffV1 {
     let from_domain = stage_domain(from_step.stage_id.as_str()).to_string();
     let to_domain = stage_domain(to_step.stage_id.as_str()).to_string();
     let shared_role = first_shared_role(from_step, to_step);
@@ -744,21 +741,22 @@ fn cross_domain_handoff(from_step: &ExecutionStep, to_step: &ExecutionStep) -> C
     checks.push(CrossDomainHandoffCheckV1 {
         name: "typed_artifact_role".to_string(),
         passed: shared_role.is_some_and(ArtifactRole::is_typed),
-        detail: shared_role
-            .map(|role| format!("shared role {}", role.as_str()))
-            .unwrap_or_else(|| "no typed artifact role shared across boundary".to_string()),
+        detail: shared_role.map_or_else(
+            || "no typed artifact role shared across boundary".to_string(),
+            |role| format!("shared role {}", role.as_str()),
+        ),
     });
-    let family_ok = match (from_domain.as_str(), to_domain.as_str(), artifact_family) {
-        ("fastq", "bam", Some(ArtifactRoleFamily::Reads)) => true,
-        ("bam", "vcf", Some(ArtifactRoleFamily::Alignment)) => true,
-        _ => false,
-    };
+    let family_ok = matches!(
+        (from_domain.as_str(), to_domain.as_str(), artifact_family),
+        ("fastq", "bam", Some(ArtifactRoleFamily::Reads))
+            | ("bam", "vcf", Some(ArtifactRoleFamily::Alignment))
+    );
     checks.push(CrossDomainHandoffCheckV1 {
         name: "role_family_compatibility".to_string(),
         passed: family_ok,
         detail: artifact_family.map_or_else(
             || "no compatible artifact family found".to_string(),
-            |family| format!("{from_domain} -> {to_domain} uses {:?}", family),
+            |family| format!("{from_domain} -> {to_domain} uses {family:?}"),
         ),
     });
     let compatible = checks.iter().all(|check| check.passed);
@@ -836,10 +834,7 @@ fn advisory_step_ids(warnings: &[PlannerWarningRecordV1]) -> BTreeSet<String> {
 fn dependency_map(graph: &ExecutionGraph) -> BTreeMap<String, Vec<String>> {
     let mut dependencies = BTreeMap::<String, Vec<String>>::new();
     for edge in graph.edges() {
-        dependencies
-            .entry(edge.to().to_string())
-            .or_default()
-            .push(edge.from().to_string());
+        dependencies.entry(edge.to().to_string()).or_default().push(edge.from().to_string());
     }
     for deps in dependencies.values_mut() {
         deps.sort();
@@ -859,12 +854,9 @@ fn step_manifest(
         .unwrap_or_else(|| serde_json::json!({ "command_template": step.command.template }));
     let mut normalized_effective_parameters_json = effective_parameters_json.clone();
     normalize_json_value_paths(&mut normalized_effective_parameters_json);
-    let reference_asset_ids = if step
-        .io
-        .inputs
-        .iter()
-        .any(|input| matches!(input.role.family(), ArtifactRoleFamily::Reference | ArtifactRoleFamily::Index))
-    {
+    let reference_asset_ids = if step.io.inputs.iter().any(|input| {
+        matches!(input.role.family(), ArtifactRoleFamily::Reference | ArtifactRoleFamily::Index)
+    }) {
         reference_assets.iter().map(|asset| asset.asset_id.clone()).collect()
     } else {
         Vec::new()
@@ -934,7 +926,7 @@ fn first_shared_role(from_step: &ExecutionStep, to_step: &ExecutionStep) -> Opti
     })
 }
 
-fn key_artifact(id: &str, role: ArtifactRole, path: &PathBuf) -> (String, &'static str, String) {
+fn key_artifact(id: &str, role: ArtifactRole, path: &Path) -> (String, &'static str, String) {
     (id.to_string(), role.as_str(), path.display().to_string())
 }
 
@@ -979,16 +971,15 @@ fn stable_path_identity(path: &std::path::Path) -> String {
     if path.is_absolute() {
         path.file_name()
             .and_then(|value| value.to_str())
-            .map(str::to_string)
-            .unwrap_or_else(|| path.display().to_string())
+            .map_or_else(|| path.display().to_string(), str::to_string)
     } else {
         path.display().to_string()
     }
 }
 
 fn stable_command_fragment_identity(fragment: &str) -> String {
-    let absolute_path_pattern =
-        Regex::new(r"/[A-Za-z0-9._~:@%+=,-]+(?:/[A-Za-z0-9._~:@%+=,-]+)*").expect("valid regex");
+    let absolute_path_pattern = Regex::new(r"/[A-Za-z0-9._~:@%+=,-]+(?:/[A-Za-z0-9._~:@%+=,-]+)*")
+        .unwrap_or_else(|err| panic!("invalid absolute-path regex literal: {err}"));
     absolute_path_pattern
         .replace_all(fragment, |captures: &regex::Captures<'_>| {
             stable_path_identity(std::path::Path::new(&captures[0]))
@@ -1011,9 +1002,7 @@ fn normalize_json_value_paths(value: &mut serde_json::Value) {
                 normalize_json_value_paths(child);
             }
         }
-        serde_json::Value::Null
-        | serde_json::Value::Bool(_)
-        | serde_json::Value::Number(_) => {}
+        serde_json::Value::Null | serde_json::Value::Bool(_) | serde_json::Value::Number(_) => {}
     }
 }
 
@@ -1021,10 +1010,7 @@ fn stage_domain(stage_id: &str) -> String {
     stage_id.split('.').next().unwrap_or("unknown").to_string()
 }
 
-fn ensure_unique<'a>(
-    values: impl Iterator<Item = &'a str>,
-    label: &str,
-) -> Result<()> {
+fn ensure_unique<'a>(values: impl Iterator<Item = &'a str>, label: &str) -> Result<()> {
     let mut seen = BTreeSet::new();
     for value in values {
         if !seen.insert(value.to_string()) {

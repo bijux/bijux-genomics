@@ -58,22 +58,15 @@ pub fn detect_duplicates_premerge(
         (total, duplicate_reads, None)
     };
 
-    let duplicate_signal_fraction = if reads_in == 0 {
-        0.0
-    } else {
-        duplicate_signal_reads as f64 / reads_in as f64
-    };
+    let duplicate_signal_fraction =
+        if reads_in == 0 { 0.0 } else { duplicate_signal_reads as f64 / reads_in as f64 };
 
     Ok(DetectDuplicatesPremergeReportV1 {
         schema_version: DETECT_DUPLICATES_PREMERGE_REPORT_SCHEMA_VERSION.to_string(),
         stage: "fastq.detect_duplicates_premerge".to_string(),
         stage_id: "fastq.detect_duplicates_premerge".to_string(),
         tool_id: "bijux".to_string(),
-        paired_mode: if paired {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         duplicate_detection_policy: "report_only".to_string(),
         measurement_scope: "premerge_sequence_signature".to_string(),
         modifies_reads: false,
@@ -106,19 +99,11 @@ mod tests {
 
         write_fastq(
             &r1,
-            &[
-                ("A/1", "AAAA", "!!!!"),
-                ("B/1", "CCCC", "####"),
-                ("C/1", "AAAA", "!!!!"),
-            ],
+            &[("A/1", "AAAA", "!!!!"), ("B/1", "CCCC", "####"), ("C/1", "AAAA", "!!!!")],
         )?;
         write_fastq(
             &r2,
-            &[
-                ("A/2", "TTTT", "!!!!"),
-                ("B/2", "GGGG", "####"),
-                ("C/2", "TTTT", "!!!!"),
-            ],
+            &[("A/2", "TTTT", "!!!!"), ("B/2", "GGGG", "####"), ("C/2", "TTTT", "!!!!")],
         )?;
 
         let report = detect_duplicates_premerge(&r1, Some(&r2))?;

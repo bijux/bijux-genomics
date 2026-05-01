@@ -1,10 +1,10 @@
 use anyhow::Result;
 use bijux_dna_api::v1::api::{
-    browse_runs, evidence_gap, operator_diagnosis, query_run_lineage, status,
-    render_operator_diagnosis_output, render_run_browser_output, EvidenceGapRequestV1,
-    OperatorDiagnosisRequestV1, OutputFormatV1, RedactionProfileV1, RunBrowserFilterV1,
-    RunBrowserRequestV1, RunLineageQueryRequestV1, SignedBundleRequestV1,
-    SignedBundleVerifyRequestV1, sign_bundle_prototype, verify_signed_bundle_prototype,
+    browse_runs, evidence_gap, operator_diagnosis, query_run_lineage,
+    render_operator_diagnosis_output, render_run_browser_output, sign_bundle_prototype, status,
+    verify_signed_bundle_prototype, EvidenceGapRequestV1, OperatorDiagnosisRequestV1,
+    OutputFormatV1, RedactionProfileV1, RunBrowserFilterV1, RunBrowserRequestV1,
+    RunLineageQueryRequestV1, SignedBundleRequestV1, SignedBundleVerifyRequestV1,
 };
 
 #[test]
@@ -172,14 +172,8 @@ fn status_reads_governed_run_state_and_failure_paths() -> Result<()> {
     )?;
 
     let snapshot = status(temp.path())?;
-    assert_eq!(
-        snapshot.mode,
-        Some(bijux_dna_runtime::run_layout::RunExecutionModeV1::Simulation)
-    );
-    assert_eq!(
-        snapshot.state,
-        Some(bijux_dna_runtime::run_layout::RunLifecycleStateV1::Succeeded)
-    );
+    assert_eq!(snapshot.mode, Some(bijux_dna_runtime::run_layout::RunExecutionModeV1::Simulation));
+    assert_eq!(snapshot.state, Some(bijux_dna_runtime::run_layout::RunLifecycleStateV1::Succeeded));
     assert!(snapshot.runtime_policy_path.is_some());
     assert!(snapshot.executor_descriptor_path.is_some());
     assert!(snapshot.backend_descriptor_path.is_some());
@@ -255,10 +249,7 @@ fn run_browser_lists_run_rows_with_runtime_state() -> Result<()> {
     assert_eq!(row.run_id, "run-iteration16");
     assert_eq!(row.profile_id.as_deref(), Some("fastq.default"));
     assert_eq!(row.pipeline_id.as_deref(), Some("fastq-to-fastq__default__v1"));
-    assert_eq!(
-        row.state,
-        Some(bijux_dna_runtime::run_layout::RunLifecycleStateV1::Succeeded)
-    );
+    assert_eq!(row.state, Some(bijux_dna_runtime::run_layout::RunLifecycleStateV1::Succeeded));
     assert!(row.has_evidence_bundle);
     assert_eq!(row.artifact_count, 1);
     Ok(())
@@ -343,25 +334,14 @@ fn evidence_gap_reports_missing_paths_failed_checks_and_unsafe_artifacts() -> Re
         }),
     )?;
 
-    let response = evidence_gap(&EvidenceGapRequestV1 {
-        run_dir: temp.path().to_path_buf(),
-    })?;
+    let response = evidence_gap(&EvidenceGapRequestV1 { run_dir: temp.path().to_path_buf() })?;
 
     assert_eq!(response.schema_version, "bijux.evidence_gap.v1");
     assert!(!response.verified);
     assert!(response.gap_count >= 3);
-    assert!(response
-        .missing_paths
-        .iter()
-        .any(|path| path == "reports/report.json"));
-    assert!(response
-        .failed_checks
-        .iter()
-        .any(|check| check.check_id == "artifact_integrity"));
-    assert!(response
-        .advisory_only_artifacts
-        .iter()
-        .any(|id| id == "runtime_policy"));
+    assert!(response.missing_paths.iter().any(|path| path == "reports/report.json"));
+    assert!(response.failed_checks.iter().any(|check| check.check_id == "artifact_integrity"));
+    assert!(response.advisory_only_artifacts.iter().any(|id| id == "runtime_policy"));
     assert!(response.unsafe_artifacts.iter().any(|id| id == "run_failure"));
     Ok(())
 }
@@ -440,10 +420,7 @@ fn operator_diagnosis_reports_commands_and_runtime_signals() -> Result<()> {
     );
     assert!(response.health_ok);
     assert!(response.has_failure_record);
-    assert!(response
-        .commands
-        .iter()
-        .any(|command| command.command_id == "inspect_failure_record"));
+    assert!(response.commands.iter().any(|command| command.command_id == "inspect_failure_record"));
     Ok(())
 }
 
@@ -651,10 +628,7 @@ fn redaction_profiles_mask_paths_and_sensitive_fields() -> Result<()> {
     })?;
     assert_eq!(collaborator.rows.len(), 1);
     assert_eq!(collaborator.rows[0].run_dir, std::path::PathBuf::from("redaction-run"));
-    assert_eq!(
-        collaborator.rows[0].correlation_id.as_deref(),
-        Some("secret-correlation")
-    );
+    assert_eq!(collaborator.rows[0].correlation_id.as_deref(), Some("secret-correlation"));
 
     let external = browse_runs(&RunBrowserRequestV1 {
         runs_root: temp.path().to_path_buf(),
@@ -663,10 +637,7 @@ fn redaction_profiles_mask_paths_and_sensitive_fields() -> Result<()> {
         filter: RunBrowserFilterV1::default(),
         redaction_profile: Some(RedactionProfileV1::External),
     })?;
-    assert_eq!(
-        external.rows[0].run_dir,
-        std::path::PathBuf::from("<redacted-path>")
-    );
+    assert_eq!(external.rows[0].run_dir, std::path::PathBuf::from("<redacted-path>"));
     assert!(external.rows[0].correlation_id.is_none());
 
     let diagnosis = operator_diagnosis(&OperatorDiagnosisRequestV1 {
@@ -675,10 +646,7 @@ fn redaction_profiles_mask_paths_and_sensitive_fields() -> Result<()> {
     })?;
     assert_eq!(diagnosis.run_id, "redacted-run");
     assert_eq!(diagnosis.run_dir, std::path::PathBuf::from("<redacted-path>"));
-    assert!(diagnosis
-        .commands
-        .iter()
-        .all(|command| command.argv.first().is_some()));
+    assert!(diagnosis.commands.iter().all(|command| command.argv.first().is_some()));
     Ok(())
 }
 

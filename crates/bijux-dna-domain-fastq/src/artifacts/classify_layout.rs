@@ -1,8 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub const CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.classify_layout.report.v1";
+pub const CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.classify_layout.report.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(rename_all = "snake_case")]

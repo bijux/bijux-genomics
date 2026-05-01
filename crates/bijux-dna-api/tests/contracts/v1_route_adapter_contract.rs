@@ -2,8 +2,8 @@ use std::collections::BTreeSet;
 use std::path::PathBuf;
 
 use bijux_dna_api::v1::api::{
-    route_version_inventory, DryRunResponse, ExecuteResponse, OperatorHealthResponse,
-    PlanResponse, RunControlResponse, RunStatus,
+    route_version_inventory, DryRunResponse, ExecuteResponse, OperatorHealthResponse, PlanResponse,
+    RunControlResponse, RunStatus,
 };
 
 #[test]
@@ -11,7 +11,8 @@ fn route_inventory_exposes_governed_v1_adapters() {
     let inventory = route_version_inventory();
     assert_eq!(inventory.schema_version, "bijux.api_route_inventory.v1");
     assert_eq!(inventory.api_version, "v1");
-    let route_ids = inventory.routes.iter().map(|route| route.route_id.as_str()).collect::<BTreeSet<_>>();
+    let route_ids =
+        inventory.routes.iter().map(|route| route.route_id.as_str()).collect::<BTreeSet<_>>();
     assert_eq!(
         route_ids,
         BTreeSet::from([

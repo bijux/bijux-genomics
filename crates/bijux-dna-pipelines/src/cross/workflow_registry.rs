@@ -9,7 +9,10 @@ use crate::{
     TemplateParameterPolicyV1,
 };
 
-fn parameter_policy(entries: &[(&str, &[&str])], locked: &[(&str, &[&str])]) -> TemplateParameterPolicyV1 {
+fn parameter_policy(
+    entries: &[(&str, &[&str])],
+    locked: &[(&str, &[&str])],
+) -> TemplateParameterPolicyV1 {
     TemplateParameterPolicyV1 {
         expert_mode_required_for_locked_overrides: true,
         configurable_by_stage: entries
@@ -32,19 +35,22 @@ fn shared_failure_policy() -> Vec<CrossDomainFailurePolicyV1> {
         CrossDomainFailurePolicyV1 {
             stage_family: "preprocessing".to_string(),
             action: TemplateFailureActionV1::SkipFailedSample,
-            downstream_effect: "sample stops before alignment; remaining samples may continue".to_string(),
+            downstream_effect: "sample stops before alignment; remaining samples may continue"
+                .to_string(),
             allows_partial_batch: true,
         },
         CrossDomainFailurePolicyV1 {
             stage_family: "alignment".to_string(),
             action: TemplateFailureActionV1::BlockDownstream,
-            downstream_effect: "downstream BAM or VCF calling is blocked for the failed sample".to_string(),
+            downstream_effect: "downstream BAM or VCF calling is blocked for the failed sample"
+                .to_string(),
             allows_partial_batch: true,
         },
         CrossDomainFailurePolicyV1 {
             stage_family: "variant".to_string(),
             action: TemplateFailureActionV1::ContinueCohort,
-            downstream_effect: "cohort summaries may proceed with explicit missing-sample caveats".to_string(),
+            downstream_effect: "cohort summaries may proceed with explicit missing-sample caveats"
+                .to_string(),
             allows_partial_batch: true,
         },
     ]
@@ -260,9 +266,7 @@ pub fn cross_workflow_templates() -> Vec<CrossWorkflowTemplateV1> {
 
 #[must_use]
 pub fn cross_workflow_template_by_id(template_id: &str) -> Option<CrossWorkflowTemplateV1> {
-    cross_workflow_templates()
-        .into_iter()
-        .find(|template| template.template_id == template_id)
+    cross_workflow_templates().into_iter().find(|template| template.template_id == template_id)
 }
 
 #[must_use]

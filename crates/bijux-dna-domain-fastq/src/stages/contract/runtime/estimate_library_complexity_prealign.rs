@@ -68,11 +68,8 @@ pub fn estimate_library_complexity_prealign(
     };
 
     let unique_units = signatures.len() as u64;
-    let estimated_unique_fraction = if unit_count == 0 {
-        0.0
-    } else {
-        unique_units as f64 / unit_count as f64
-    };
+    let estimated_unique_fraction =
+        if unit_count == 0 { 0.0 } else { unique_units as f64 / unit_count as f64 };
     let estimated_duplicate_fraction = 1.0 - estimated_unique_fraction;
 
     Ok(EstimateLibraryComplexityPrealignReportV1 {
@@ -80,20 +77,12 @@ pub fn estimate_library_complexity_prealign(
         stage: "fastq.estimate_library_complexity_prealign".to_string(),
         stage_id: "fastq.estimate_library_complexity_prealign".to_string(),
         tool_id: "bijux".to_string(),
-        paired_mode: if paired {
-            PairedMode::PairedEnd
-        } else {
-            PairedMode::SingleEnd
-        },
+        paired_mode: if paired { PairedMode::PairedEnd } else { PairedMode::SingleEnd },
         complexity_policy: "prealign_kmer".to_string(),
         estimate_method: "kmer_redundancy".to_string(),
         modifies_reads: false,
         advisory_only: true,
-        reads_in: if paired {
-            (left.len() as u64).saturating_mul(2)
-        } else {
-            left.len() as u64
-        },
+        reads_in: if paired { (left.len() as u64).saturating_mul(2) } else { left.len() as u64 },
         estimated_unique_fraction,
         estimated_duplicate_fraction,
         kmer_size: Some(effective_k as u32),

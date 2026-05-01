@@ -33,8 +33,7 @@ fn main() -> Result<()> {
         }
         "write-profile" => {
             let run_dir = parse_required_path(&args, 0, "run_dir")?;
-            let profile =
-                parse_profile(args.get(1).map(String::as_str).unwrap_or("publication_strict"))?;
+            let profile = parse_profile(args.get(1).map_or("publication_strict", String::as_str))?;
             let facts_path = args.get(2).map(PathBuf::from);
             let output = write_profile_bundle_json(&run_dir, facts_path.as_deref(), profile)?;
             println!("{}", output.display());

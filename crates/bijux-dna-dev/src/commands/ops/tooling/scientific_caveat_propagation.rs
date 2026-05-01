@@ -77,8 +77,12 @@ impl ScenarioId {
             "g185_demography_caveat_library" | "G185" => Some(Self::Demography),
             "g186_damage_aware_variant_caveat_library" | "G186" => Some(Self::DamageAwareVariant),
             "g187_contamination_propagation_model" | "G187" => Some(Self::ContaminationPropagation),
-            "g188_sample_identity_conflict_propagation" | "G188" => Some(Self::SampleIdentityConflict),
-            "g189_reference_build_conflict_propagation" | "G189" => Some(Self::ReferenceBuildConflict),
+            "g188_sample_identity_conflict_propagation" | "G188" => {
+                Some(Self::SampleIdentityConflict)
+            }
+            "g189_reference_build_conflict_propagation" | "G189" => {
+                Some(Self::ReferenceBuildConflict)
+            }
             "g190_missing_evidence_propagation" | "G190" => Some(Self::MissingEvidence),
             _ => None,
         }
@@ -129,11 +133,7 @@ pub(in super::super) fn tooling_scientific_caveat_propagation(
     }
 
     let config = parse_args(workspace, args)?;
-    let reports = config
-        .selected
-        .iter()
-        .map(run_scenario)
-        .collect::<Vec<_>>();
+    let reports = config.selected.iter().map(run_scenario).collect::<Vec<_>>();
     let failed = reports.iter().filter(|report| report.status == "failed").count();
 
     let payload = ScenarioSuiteReport {
@@ -176,8 +176,8 @@ fn parse_args(workspace: &Workspace, args: &[String]) -> Result<ScenarioRunConfi
                 let Some(raw) = args.get(index + 1) else {
                     return Err(anyhow!("missing value for --scenario"));
                 };
-                let scenario =
-                    ScenarioId::from_raw(raw).ok_or_else(|| anyhow!("unknown scenario id: {raw}"))?;
+                let scenario = ScenarioId::from_raw(raw)
+                    .ok_or_else(|| anyhow!("unknown scenario id: {raw}"))?;
                 selected.push(scenario);
                 index += 2;
             }
@@ -421,7 +421,10 @@ fn scenario_edna_taxonomy_caveat_library() -> Result<(Vec<String>, serde_json::V
     ];
 
     for topic in ["database_bias", "rank_resolution", "abundance_interpretation", "primer_bias"] {
-        let Some(entry) = caveat_library.iter().find(|row| row.get("topic").and_then(serde_json::Value::as_str) == Some(topic)) else {
+        let Some(entry) = caveat_library
+            .iter()
+            .find(|row| row.get("topic").and_then(serde_json::Value::as_str) == Some(topic))
+        else {
             return Err(anyhow!("eDNA taxonomy caveat library missing topic: {topic}"));
         };
         let targets = entry
@@ -430,7 +433,9 @@ fn scenario_edna_taxonomy_caveat_library() -> Result<(Vec<String>, serde_json::V
             .cloned()
             .unwrap_or_default();
         if targets.is_empty() {
-            return Err(anyhow!("eDNA taxonomy caveat topic {topic} must include propagation targets"));
+            return Err(anyhow!(
+                "eDNA taxonomy caveat topic {topic} must include propagation targets"
+            ));
         }
     }
 
@@ -556,7 +561,8 @@ fn scenario_demography_caveat_library() -> Result<(Vec<String>, serde_json::Valu
 
 fn scenario_damage_aware_variant_caveat_library() -> Result<(Vec<String>, serde_json::Value)> {
     let workspace = Workspace::resolve()?;
-    let input_vcf = workspace.path("crates/bijux-dna-stages-vcf/tests/fixtures/vcf/default/input.vcf");
+    let input_vcf =
+        workspace.path("crates/bijux-dna-stages-vcf/tests/fixtures/vcf/default/input.vcf");
     let (_contigs, records) = parse_tiny_vcf(&input_vcf)?;
 
     let mut damage_risk_sites = 0_u64;
@@ -570,7 +576,9 @@ fn scenario_damage_aware_variant_caveat_library() -> Result<(Vec<String>, serde_
         }
     }
     if damage_risk_sites == 0 {
-        return Err(anyhow!("damage-aware variant caveat scenario expected non-zero risk site counts"));
+        return Err(anyhow!(
+            "damage-aware variant caveat scenario expected non-zero risk site counts"
+        ));
     }
 
     let summary = json!({
@@ -759,7 +767,8 @@ fn scenario_sample_identity_conflict_propagation() -> Result<(Vec<String>, serde
 
 fn scenario_reference_build_conflict_propagation() -> Result<(Vec<String>, serde_json::Value)> {
     let workspace = Workspace::resolve()?;
-    let input_vcf = workspace.path("crates/bijux-dna-stages-vcf/tests/fixtures/vcf/default/input.vcf");
+    let input_vcf =
+        workspace.path("crates/bijux-dna-stages-vcf/tests/fixtures/vcf/default/input.vcf");
     let (contigs, _records) = parse_tiny_vcf(&input_vcf)?;
 
     let alias_map = BTreeMap::<String, String>::new();
@@ -787,7 +796,9 @@ fn scenario_reference_build_conflict_propagation() -> Result<(Vec<String>, serde
         "genetic_map_build_mismatch",
     ] {
         if !refusal_codes.iter().any(|entry| entry == code) {
-            return Err(anyhow!("reference-build conflict scenario missing required refusal code: {code}"));
+            return Err(anyhow!(
+                "reference-build conflict scenario missing required refusal code: {code}"
+            ));
         }
     }
 
@@ -965,9 +976,7 @@ fn evidence_gap_local(run_dir: &Path) -> Result<LocalEvidenceGapResponse> {
         .get("missing_paths")
         .and_then(serde_json::Value::as_array)
         .map(|rows| {
-            rows.iter()
-                .filter_map(|row| row.as_str().map(str::to_string))
-                .collect::<Vec<_>>()
+            rows.iter().filter_map(|row| row.as_str().map(str::to_string)).collect::<Vec<_>>()
         })
         .unwrap_or_default();
 
@@ -1009,20 +1018,19 @@ fn evidence_gap_local(run_dir: &Path) -> Result<LocalEvidenceGapResponse> {
         }
     }
 
-    let verified = verification
-        .get("verified")
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(false);
-    let base_gap_count = verification
-        .get("gap_count")
-        .and_then(serde_json::Value::as_u64)
-        .unwrap_or(0) as usize;
+    let verified =
+        verification.get("verified").and_then(serde_json::Value::as_bool).unwrap_or(false);
+    let base_gap_count =
+        verification.get("gap_count").and_then(serde_json::Value::as_u64).unwrap_or(0) as usize;
 
     Ok(LocalEvidenceGapResponse {
         schema_version: "bijux.evidence_gap.v1".to_string(),
         run_dir: run_dir.display().to_string(),
         verified,
-        gap_count: base_gap_count + missing_paths.len() + failed_checks.len() + unsafe_artifacts.len(),
+        gap_count: base_gap_count
+            + missing_paths.len()
+            + failed_checks.len()
+            + unsafe_artifacts.len(),
         missing_paths,
         failed_checks,
         advisory_only_artifacts,
@@ -1076,10 +1084,7 @@ mod tests {
         let ids = ScenarioId::all().into_iter().map(ScenarioId::goal_id).collect::<Vec<_>>();
         assert_eq!(
             ids,
-            vec![
-                "G181", "G182", "G183", "G184", "G185", "G186", "G187", "G188", "G189",
-                "G190"
-            ]
+            vec!["G181", "G182", "G183", "G184", "G185", "G186", "G187", "G188", "G189", "G190"]
         );
     }
 
@@ -1114,17 +1119,14 @@ mod tests {
             .and_then(serde_json::Value::as_array)
             .and_then(|library| {
                 library.iter().find(|entry| {
-                    entry.get("topic").and_then(serde_json::Value::as_str)
-                        == Some("contamination")
+                    entry.get("topic").and_then(serde_json::Value::as_str) == Some("contamination")
                 })
             })
             .cloned();
         assert!(contamination.is_some());
         let contamination = contamination.unwrap_or_else(|| serde_json::json!({}));
         assert_eq!(
-            contamination
-                .get("prerequisites_passed")
-                .and_then(serde_json::Value::as_bool),
+            contamination.get("prerequisites_passed").and_then(serde_json::Value::as_bool),
             Some(false)
         );
     }
@@ -1267,11 +1269,8 @@ mod tests {
     fn g185_demography_propagates_marker_overlap_refusal() {
         let report = run_scenario(&ScenarioId::Demography);
         assert_eq!(report.status, "passed");
-        let prerequisites = report
-            .evidence
-            .get("kinship_prerequisites")
-            .cloned()
-            .unwrap_or_default();
+        let prerequisites =
+            report.evidence.get("kinship_prerequisites").cloned().unwrap_or_default();
         let refusals = prerequisites
             .get("refusal_codes")
             .and_then(serde_json::Value::as_array)
@@ -1287,17 +1286,15 @@ mod tests {
         let report = run_scenario(&ScenarioId::DamageAwareVariant);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G186");
-        let summary = report
-            .evidence
-            .get("damage_filter_summary")
-            .cloned()
-            .unwrap_or_default();
+        let summary = report.evidence.get("damage_filter_summary").cloned().unwrap_or_default();
         assert_eq!(summary.get("action").and_then(serde_json::Value::as_str), Some("annotate"));
-        assert!(summary
-            .get("damage_risk_sites")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or_default()
-            > 0);
+        assert!(
+            summary
+                .get("damage_risk_sites")
+                .and_then(serde_json::Value::as_u64)
+                .unwrap_or_default()
+                > 0
+        );
     }
 
     #[test]
@@ -1356,11 +1353,7 @@ mod tests {
         let report = run_scenario(&ScenarioId::SampleIdentityConflict);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G188");
-        let kinship = report
-            .evidence
-            .get("kinship_prerequisites")
-            .cloned()
-            .unwrap_or_default();
+        let kinship = report.evidence.get("kinship_prerequisites").cloned().unwrap_or_default();
         let refusals = kinship
             .get("refusal_codes")
             .and_then(serde_json::Value::as_array)
@@ -1375,11 +1368,7 @@ mod tests {
     fn g188_propagated_identity_contains_multiple_read_groups() {
         let report = run_scenario(&ScenarioId::SampleIdentityConflict);
         assert_eq!(report.status, "passed");
-        let propagated = report
-            .evidence
-            .get("propagated_identity")
-            .cloned()
-            .unwrap_or_default();
+        let propagated = report.evidence.get("propagated_identity").cloned().unwrap_or_default();
         let rg_ids = propagated
             .get("read_group_ids")
             .and_then(serde_json::Value::as_array)
@@ -1393,22 +1382,15 @@ mod tests {
         let report = run_scenario(&ScenarioId::ReferenceBuildConflict);
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G189");
-        let resolution = report
-            .evidence
-            .get("reference_context_resolution")
-            .cloned()
-            .unwrap_or_default();
+        let resolution =
+            report.evidence.get("reference_context_resolution").cloned().unwrap_or_default();
         let refusals = resolution
             .get("refusal_codes")
             .and_then(serde_json::Value::as_array)
             .cloned()
             .unwrap_or_default();
-        assert!(refusals
-            .iter()
-            .any(|entry| entry.as_str() == Some("panel_build_mismatch")));
-        assert!(refusals
-            .iter()
-            .any(|entry| entry.as_str() == Some("reference_contig_mismatch")));
+        assert!(refusals.iter().any(|entry| entry.as_str() == Some("panel_build_mismatch")));
+        assert!(refusals.iter().any(|entry| entry.as_str() == Some("reference_contig_mismatch")));
     }
 
     #[test]
@@ -1432,11 +1414,7 @@ mod tests {
         assert_eq!(report.status, "passed");
         assert_eq!(report.goal_id, "G190");
         let gap = report.evidence.get("evidence_gap").cloned().unwrap_or_default();
-        assert!(gap
-            .get("gap_count")
-            .and_then(serde_json::Value::as_u64)
-            .unwrap_or_default()
-            > 0);
+        assert!(gap.get("gap_count").and_then(serde_json::Value::as_u64).unwrap_or_default() > 0);
         let missing_paths = gap
             .get("missing_paths")
             .and_then(serde_json::Value::as_array)
@@ -1467,8 +1445,6 @@ mod tests {
             .and_then(serde_json::Value::as_array)
             .cloned()
             .unwrap_or_default();
-        assert!(unsafe_ids
-            .iter()
-            .any(|entry| entry.as_str() == Some("population_summary")));
+        assert!(unsafe_ids.iter().any(|entry| entry.as_str() == Some("population_summary")));
     }
 }

@@ -26,8 +26,10 @@ pub use bijux_dna_pipelines::vcf::{
     validate_vcf_profile, vcf_minimal_profile, VcfProfileValidationReport, VcfProfileViolation,
     VCF_INVARIANTS,
 };
+pub use bijux_dna_pipelines::{
+    cross::cross_workflow_template_by_id, cross::cross_workflow_templates,
+};
 pub use bijux_dna_pipelines::{Domain, PipelineProfile};
-pub use bijux_dna_pipelines::{cross::cross_workflow_template_by_id, cross::cross_workflow_templates};
 pub use bijux_dna_planner_bam::{
     pipeline_id_catalog as bam_pipeline_id_catalog, plan_bam_to_bam__adna_capture__v1,
     plan_bam_to_bam__adna_shotgun__v1, BamPipelineInputs,

@@ -91,7 +91,9 @@ fn build_artifact_inventory(
         .and_then(serde_json::Value::as_array)
         .into_iter()
         .flatten()
-        .map(|entry| artifact_identity_from_entry(layout, entry, &stage_outputs, &dataset_fingerprints))
+        .map(|entry| {
+            artifact_identity_from_entry(layout, entry, &stage_outputs, &dataset_fingerprints)
+        })
         .collect::<Result<Vec<_>>>()?;
 
     Ok(ArtifactInventoryV1 {
@@ -108,11 +110,8 @@ fn artifact_identity_from_entry(
     stage_outputs: &BTreeMap<String, StageOutputContract>,
     dataset_fingerprints: &[String],
 ) -> Result<ArtifactIdentityV1> {
-    let name = entry
-        .get("name")
-        .and_then(serde_json::Value::as_str)
-        .unwrap_or("artifact")
-        .to_string();
+    let name =
+        entry.get("name").and_then(serde_json::Value::as_str).unwrap_or("artifact").to_string();
     let path = entry
         .get("path")
         .and_then(serde_json::Value::as_str)
@@ -158,7 +157,10 @@ fn artifact_identity_from_entry(
     })
 }
 
-fn write_artifact_inventory_text(layout: &RunLayout, inventory: &ArtifactInventoryV1) -> Result<()> {
+fn write_artifact_inventory_text(
+    layout: &RunLayout,
+    inventory: &ArtifactInventoryV1,
+) -> Result<()> {
     let mut lines = vec!["artifact_id\trole\tpath\tstage_id\tsha256".to_string()];
     for artifact in &inventory.artifacts {
         lines.push(format!(
@@ -187,11 +189,8 @@ fn build_replay_manifest(
     cache_decisions: Vec<CacheDecisionV1>,
     environment_differences: Vec<String>,
 ) -> ReplayManifestV1 {
-    let selected_stage_ids = graph
-        .steps()
-        .iter()
-        .map(|step| step.stage_id.to_string())
-        .collect::<Vec<_>>();
+    let selected_stage_ids =
+        graph.steps().iter().map(|step| step.stage_id.to_string()).collect::<Vec<_>>();
     let expected_outputs = graph
         .steps()
         .iter()
@@ -199,9 +198,9 @@ fn build_replay_manifest(
         .collect::<Vec<_>>();
     let rerun_stage_ids = match mode {
         RunExecutionModeV1::DryRun => Vec::new(),
-        RunExecutionModeV1::Simulation | RunExecutionModeV1::Advisory | RunExecutionModeV1::Enforced => {
-            selected_stage_ids.clone()
-        }
+        RunExecutionModeV1::Simulation
+        | RunExecutionModeV1::Advisory
+        | RunExecutionModeV1::Enforced => selected_stage_ids.clone(),
     };
     ReplayManifestV1 {
         schema_version: "bijux.replay_manifest.v1".to_string(),
@@ -226,7 +225,9 @@ fn write_scientific_run_summary_text(
     let safe_outputs = inventory
         .artifacts
         .iter()
-        .filter(|artifact| artifact.scientific_context.as_ref().is_some_and(|context| context.safe_to_use))
+        .filter(|artifact| {
+            artifact.scientific_context.as_ref().is_some_and(|context| context.safe_to_use)
+        })
         .map(|artifact| artifact.path.display().to_string())
         .collect::<Vec<_>>();
     let checked = graph
@@ -237,14 +238,21 @@ fn write_scientific_run_summary_text(
     let what_changed = inventory
         .artifacts
         .iter()
-        .map(|artifact| format!("{} -> {}", artifact.artifact_id, artifact.sha256.as_deref().unwrap_or("unhashed")))
+        .map(|artifact| {
+            format!(
+                "{} -> {}",
+                artifact.artifact_id,
+                artifact.sha256.as_deref().unwrap_or("unhashed")
+            )
+        })
         .collect::<Vec<_>>();
     let failed = if matches!(state, RunLifecycleStateV1::Failed | RunLifecycleStateV1::Cancelled) {
         vec![format!("run state is {state}")]
     } else {
         Vec::new()
     };
-    let advisory = if matches!(mode, RunExecutionModeV1::Simulation | RunExecutionModeV1::Advisory) {
+    let advisory = if matches!(mode, RunExecutionModeV1::Simulation | RunExecutionModeV1::Advisory)
+    {
         vec![format!("mode {mode} did not enforce process execution")]
     } else {
         Vec::new()
@@ -256,7 +264,10 @@ fn write_scientific_run_summary_text(
     };
 
     let body = [
-        format!("run_id: {}", layout.run_dir.file_name().and_then(|value| value.to_str()).unwrap_or("unknown-run")),
+        format!(
+            "run_id: {}",
+            layout.run_dir.file_name().and_then(|value| value.to_str()).unwrap_or("unknown-run")
+        ),
         format!("mode: {mode}"),
         format!("state: {state}"),
         "what_was_checked:".to_string(),
@@ -352,7 +363,10 @@ struct StageOutputContract {
     command: Vec<String>,
 }
 
-fn stage_output_index(run_dir: &Path, graph: &ExecutionGraph) -> BTreeMap<String, StageOutputContract> {
+fn stage_output_index(
+    run_dir: &Path,
+    graph: &ExecutionGraph,
+) -> BTreeMap<String, StageOutputContract> {
     let mut index = BTreeMap::new();
     for step in graph.steps() {
         let command = step.command.template.clone();

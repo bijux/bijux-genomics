@@ -52,7 +52,9 @@ pub(super) fn attach_output_artifact(
     });
     if let Some(entries) = manifest["output_artifacts"].as_array_mut() {
         let artifact_path = artifact["path"].as_str().unwrap_or_default();
-        entries.retain(|entry| entry.get("path").and_then(serde_json::Value::as_str) != Some(artifact_path));
+        entries.retain(|entry| {
+            entry.get("path").and_then(serde_json::Value::as_str) != Some(artifact_path)
+        });
         entries.push(artifact);
     }
     let payload = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)?;

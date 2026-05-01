@@ -2,7 +2,8 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use bijux_dna_core::contract::{
-    ExecutionContract, ToolConstraints, ToolManifest, ToolRegistry, ToolRole,
+    BackendVersionPolicy, ExecutionContract, StageCapabilitySpec, ToolConstraints, ToolManifest,
+    ToolRegistry, ToolRole,
 };
 use bijux_dna_core::ids::ToolId;
 use serde::Deserialize;
@@ -84,8 +85,8 @@ pub fn load_domain_tool_registry(workspace_root: &Path) -> Result<ToolRegistry> 
                     constraints: tool.constraints.clone().unwrap_or_default(),
                     execution_contract: tool.execution_contract.clone().unwrap_or_default(),
                     supported_modes: Vec::new(),
-                    backend_version_policy: Default::default(),
-                    capability_contract: Default::default(),
+                    backend_version_policy: BackendVersionPolicy::default(),
+                    capability_contract: StageCapabilitySpec::default(),
                 });
             }
         }

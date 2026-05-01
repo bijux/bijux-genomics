@@ -8,10 +8,8 @@ fn cache_explain_reports_policy_and_environment_miss_reasons() -> Result<()> {
     let temp = tempfile::tempdir()?;
     let original = execute_local_fastq_workflow(&temp.path().join("original"))?;
     let replay = execute_local_fastq_workflow(&temp.path().join("replay"))?;
-    let replay_run_dir = replay
-        .manifest_path
-        .parent()
-        .ok_or_else(|| anyhow!("replay manifest missing parent"))?;
+    let replay_run_dir =
+        replay.manifest_path.parent().ok_or_else(|| anyhow!("replay manifest missing parent"))?;
 
     let policy_path = replay_run_dir.join("runtime_policy.json");
     let mut policy: serde_json::Value = serde_json::from_slice(&std::fs::read(&policy_path)?)?;
@@ -37,8 +35,12 @@ fn cache_explain_reports_policy_and_environment_miss_reasons() -> Result<()> {
         .and_then(serde_json::Value::as_array)
         .cloned()
         .unwrap_or_default();
-    assert!(reasons.iter().any(|entry| entry.get("reason_code") == Some(&serde_json::json!("policy_changed"))));
-    assert!(reasons.iter().any(|entry| entry.get("reason_code") == Some(&serde_json::json!("environment_changed"))));
+    assert!(reasons
+        .iter()
+        .any(|entry| entry.get("reason_code") == Some(&serde_json::json!("policy_changed"))));
+    assert!(reasons
+        .iter()
+        .any(|entry| entry.get("reason_code") == Some(&serde_json::json!("environment_changed"))));
     Ok(())
 }
 

@@ -130,9 +130,7 @@ fn cli_planning_outputs_match_library_api_for_representative_domains() {
         "expected {fastq_profile} to remain governed"
     );
     assert!(
-        select_pipelines(None, true)
-            .into_iter()
-            .any(|profile| profile.id.as_str() == bam_profile),
+        select_pipelines(None, true).into_iter().any(|profile| profile.id.as_str() == bam_profile),
         "expected {bam_profile} to remain governed"
     );
 
@@ -148,19 +146,13 @@ fn cli_planning_outputs_match_library_api_for_representative_domains() {
         run_cli_json(&workspace, &["plan", "explain-profile", cross_explain_profile]);
     let cross_explain_api =
         explain_pipeline_profile(cross_explain_profile).expect("cross explain profile");
-    assert_eq!(
-        cross_explain_cli, cross_explain_api,
-        "cross explain-profile parity drift"
-    );
+    assert_eq!(cross_explain_cli, cross_explain_api, "cross explain-profile parity drift");
 
     let cross_validate_cli =
         run_cli_json(&workspace, &["plan", "validate-profile", cross_validate_profile]);
     let cross_validate_api =
         validate_pipeline_profile(cross_validate_profile).expect("cross validate profile");
-    assert_eq!(
-        cross_validate_cli, cross_validate_api,
-        "cross validate-profile parity drift"
-    );
+    assert_eq!(cross_validate_cli, cross_validate_api, "cross validate-profile parity drift");
 
     let vcf_cli = run_cli_json(&workspace, &["vcf", "plan", "--profile", vcf_profile]);
     let vcf_api = bijux_dna_api::v1::api::vcf::plan(vcf_profile);

@@ -11,7 +11,8 @@ use std::path::Path;
 pub fn verify_run_bundle(run_dir: &Path) -> Result<serde_json::Value> {
     let layout = bijux_dna_runtime::run_layout::RunLayout::from_run_dir(run_dir.to_path_buf());
     let manifest: serde_json::Value =
-        serde_json::from_slice(&std::fs::read(&layout.manifest_path)?).context("parse run manifest")?;
+        serde_json::from_slice(&std::fs::read(&layout.manifest_path)?)
+            .context("parse run manifest")?;
     let mut issues = Vec::<String>::new();
 
     let artifacts = manifest
@@ -37,7 +38,9 @@ pub fn verify_run_bundle(run_dir: &Path) -> Result<serde_json::Value> {
                         expected,
                         actual
                     )),
-                    Err(err) => issues.push(format!("artifact hash failed {}: {err}", path.display())),
+                    Err(err) => {
+                        issues.push(format!("artifact hash failed {}: {err}", path.display()))
+                    }
                     _ => {}
                 }
             }
@@ -60,8 +63,8 @@ pub fn verify_run_bundle(run_dir: &Path) -> Result<serde_json::Value> {
 }
 
 fn verify_hash_ledger(path: &Path, run_dir: &Path, issues: &mut Vec<String>) -> Result<()> {
-    let ledger: HashLedgerV1 =
-        serde_json::from_slice(&std::fs::read(path)?).with_context(|| format!("parse {}", path.display()))?;
+    let ledger: HashLedgerV1 = serde_json::from_slice(&std::fs::read(path)?)
+        .with_context(|| format!("parse {}", path.display()))?;
     for entry in &ledger.entries {
         if entry.path == Path::new("run_manifest.json") {
             // run_manifest is finalized after evidence attachment; ledger coverage is best-effort here.
@@ -83,7 +86,8 @@ fn verify_hash_ledger(path: &Path, run_dir: &Path, issues: &mut Vec<String>) -> 
         }
     }
     let expected_root = {
-        let canonical = bijux_dna_core::contract::canonical::to_canonical_json_bytes(&ledger.entries)?;
+        let canonical =
+            bijux_dna_core::contract::canonical::to_canonical_json_bytes(&ledger.entries)?;
         let mut hasher = sha2::Sha256::new();
         hasher.update(canonical);
         let digest = hasher.finalize();
@@ -112,8 +116,8 @@ fn verify_environment(path: &Path, issues: &mut Vec<String>) -> Result<()> {
 }
 
 fn verify_trust_classes(path: &Path, issues: &mut Vec<String>) -> Result<serde_json::Value> {
-    let inventory: ArtifactInventoryV1 =
-        serde_json::from_slice(&std::fs::read(path)?).with_context(|| format!("parse {}", path.display()))?;
+    let inventory: ArtifactInventoryV1 = serde_json::from_slice(&std::fs::read(path)?)
+        .with_context(|| format!("parse {}", path.display()))?;
     let mut safe = 0_u64;
     let mut advisory = 0_u64;
     let mut unsafe_count = 0_u64;
@@ -122,7 +126,9 @@ fn verify_trust_classes(path: &Path, issues: &mut Vec<String>) -> Result<serde_j
             Some(context) if context.safe_to_use && context.advisory_only => advisory += 1,
             Some(context) if context.safe_to_use => safe += 1,
             Some(_) => unsafe_count += 1,
-            None => issues.push(format!("artifact {} missing scientific_context", artifact.artifact_id)),
+            None => {
+                issues.push(format!("artifact {} missing scientific_context", artifact.artifact_id))
+            }
         }
     }
     Ok(serde_json::json!({
@@ -160,9 +166,5 @@ fn discover_logs(run_dir: &Path) -> Result<Vec<String>> {
 }
 
 fn relative_display(base: &Path, target: &Path) -> String {
-    target
-        .strip_prefix(base)
-        .unwrap_or(target)
-        .display()
-        .to_string()
+    target.strip_prefix(base).unwrap_or(target).display().to_string()
 }

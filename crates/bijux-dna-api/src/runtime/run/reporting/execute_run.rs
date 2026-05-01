@@ -8,16 +8,16 @@ use super::planner_manifest_support::plan_manifest_from_request;
 use super::{summary_artifact, Result};
 use crate::request_args::{ExecuteRequest, ExecuteResponse, PlanRequest};
 use anyhow::{anyhow, Context};
+use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_engine::Engine;
 use bijux_dna_environment::api::RuntimeKind;
 use bijux_dna_runner::{ApptainerRunner, DockerRunner, LocalRunner};
 use bijux_dna_runtime::run_layout::{
     CancellationPolicyV1, CheckpointPolicyV1, ExecutorDescriptorV1, RunCheckpointV1,
-    RunExecutionModeV1, RunExecutorDescriptorV1, RunFailureV1, RunLifecycleStateV1,
+    RunEnvironment, RunExecutionModeV1, RunExecutorDescriptorV1, RunFailureV1, RunLifecycleStateV1,
     RunQueueLifecycleStateV1, RunQueueTransitionV1, RunStateTransitionV1, RunStateV1,
-    RuntimePolicyV1, RunEnvironment, ToolImageDigest,
+    RuntimePolicyV1, ToolImageDigest,
 };
-use bijux_dna_core::metrics::ToolInvocationV1;
 use bijux_dna_runtime::{ensure_stage_supported_by_runner, RunnerContractKind};
 use std::sync::{Arc, Mutex};
 
@@ -71,9 +71,8 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
     bijux_dna_runtime::run_layout::write_backend_descriptor(&layout, &backend_descriptor)?;
     bijux_dna_runtime::run_layout::write_scheduling_decision(&layout, &scheduling_decision)?;
     {
-        let queue_state_guard = queue_state
-            .lock()
-            .map_err(|_| anyhow!("queue state mutex poisoned for {run_id}"))?;
+        let queue_state_guard =
+            queue_state.lock().map_err(|_| anyhow!("queue state mutex poisoned for {run_id}"))?;
         bijux_dna_runtime::run_layout::write_queue_state(&layout, &queue_state_guard)?;
     }
     bijux_dna_runtime::run_layout::write_lease(&layout, &lease)?;
@@ -107,7 +106,9 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                     from_state: Some(RunQueueLifecycleStateV1::Queued),
                     to_state: RunQueueLifecycleStateV1::Succeeded,
                     occurred_at: bijux_dna_runtime::run_layout::now_string(),
-                    detail: Some("execution intentionally skipped for non-enforced mode".to_string()),
+                    detail: Some(
+                        "execution intentionally skipped for non-enforced mode".to_string(),
+                    ),
                 });
                 bijux_dna_runtime::run_layout::write_queue_state(&layout, &queue_state_guard)?;
             }
@@ -119,11 +120,7 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                 RunLifecycleStateV1::Succeeded,
                 "execution intentionally skipped for non-enforced mode",
             ));
-            (
-                RunLifecycleStateV1::Succeeded,
-                prepared_checkpoint,
-                None,
-            )
+            (RunLifecycleStateV1::Succeeded, prepared_checkpoint, None)
         }
         RunExecutionModeV1::Enforced => {
             transitions.push(transition(
@@ -182,7 +179,10 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                             occurred_at: bijux_dna_runtime::run_layout::now_string(),
                             detail: Some("runner execution completed successfully".to_string()),
                         });
-                        bijux_dna_runtime::run_layout::write_queue_state(&layout, &queue_state_guard)?;
+                        bijux_dna_runtime::run_layout::write_queue_state(
+                            &layout,
+                            &queue_state_guard,
+                        )?;
                     }
                     control_state.observed_state = RunQueueLifecycleStateV1::Succeeded;
                     control_state.updated_at = bijux_dna_runtime::run_layout::now_string();
@@ -225,13 +225,17 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                             occurred_at: bijux_dna_runtime::run_layout::now_string(),
                             detail: Some(failure.message.clone()),
                         });
-                        bijux_dna_runtime::run_layout::write_queue_state(&layout, &queue_state_guard)?;
+                        bijux_dna_runtime::run_layout::write_queue_state(
+                            &layout,
+                            &queue_state_guard,
+                        )?;
                     }
-                    control_state.observed_state = if failure.state == RunLifecycleStateV1::Cancelled {
-                        RunQueueLifecycleStateV1::Cancelled
-                    } else {
-                        RunQueueLifecycleStateV1::Failed
-                    };
+                    control_state.observed_state =
+                        if failure.state == RunLifecycleStateV1::Cancelled {
+                            RunQueueLifecycleStateV1::Cancelled
+                        } else {
+                            RunQueueLifecycleStateV1::Failed
+                        };
                     control_state.updated_at = bijux_dna_runtime::run_layout::now_string();
                     bijux_dna_runtime::run_layout::write_control_state(&layout, &control_state)?;
                     bijux_dna_runtime::run_layout::write_failure_record(&layout, &failure)?;
@@ -299,11 +303,15 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                         &run_id,
                         Vec::new(),
                         vec![bijux_dna_runtime::run_layout::CacheDecisionV1 {
-                            stage_id: failure.step_id.clone().unwrap_or_else(|| "runtime".to_string()),
+                            stage_id: failure
+                                .step_id
+                                .clone()
+                                .unwrap_or_else(|| "runtime".to_string()),
                             status: "miss".to_string(),
                             cache_key: None,
                             reason_code: Some("failed_execution_cannot_be_reused".to_string()),
-                            message: "failed executions are recorded as unsafe cache misses".to_string(),
+                            message: "failed executions are recorded as unsafe cache misses"
+                                .to_string(),
                         }],
                         Vec::new(),
                     )?;
@@ -323,7 +331,11 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                             "bijux.replay_manifest.v1",
                             governed.replay_manifest_path.as_path(),
                         ),
-                        ("hash_ledger", "bijux.hash_ledger.v1", governed.hash_ledger_path.as_path()),
+                        (
+                            "hash_ledger",
+                            "bijux.hash_ledger.v1",
+                            governed.hash_ledger_path.as_path(),
+                        ),
                         (
                             "run_summary_text",
                             "bijux.run_summary_text.v1",
@@ -455,14 +467,17 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
                 "advisory".to_string()
             },
             cache_key: None,
-            reason_code: Some(match request.mode {
-                RunExecutionModeV1::DryRun => "dry_run_uses_dedicated_endpoint",
-                RunExecutionModeV1::Simulation => "simulation_skips_cache_reuse",
-                RunExecutionModeV1::Advisory => "advisory_skips_cache_reuse",
-                RunExecutionModeV1::Enforced => "runner_execution_materialized_fresh_outputs",
-            }
-            .to_string()),
-            message: "runtime cache decisions are recorded explicitly for governed replay".to_string(),
+            reason_code: Some(
+                match request.mode {
+                    RunExecutionModeV1::DryRun => "dry_run_uses_dedicated_endpoint",
+                    RunExecutionModeV1::Simulation => "simulation_skips_cache_reuse",
+                    RunExecutionModeV1::Advisory => "advisory_skips_cache_reuse",
+                    RunExecutionModeV1::Enforced => "runner_execution_materialized_fresh_outputs",
+                }
+                .to_string(),
+            ),
+            message: "runtime cache decisions are recorded explicitly for governed replay"
+                .to_string(),
         }],
         Vec::new(),
     )?;
@@ -477,17 +492,9 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
             "bijux.artifact_inventory_text.v1",
             governed.artifact_inventory_text_path.as_path(),
         ),
-        (
-            "replay_manifest",
-            "bijux.replay_manifest.v1",
-            governed.replay_manifest_path.as_path(),
-        ),
+        ("replay_manifest", "bijux.replay_manifest.v1", governed.replay_manifest_path.as_path()),
         ("hash_ledger", "bijux.hash_ledger.v1", governed.hash_ledger_path.as_path()),
-        (
-            "run_summary_text",
-            "bijux.run_summary_text.v1",
-            governed.run_summary_text_path.as_path(),
-        ),
+        ("run_summary_text", "bijux.run_summary_text.v1", governed.run_summary_text_path.as_path()),
     ] {
         summary_artifact::attach_output_artifact(
             &layout.manifest_path,
@@ -498,7 +505,8 @@ pub fn execute(request: &ExecuteRequest) -> Result<ExecuteResponse> {
             path,
         )?;
     }
-    let evidence_bundle_path = bijux_dna_analyze::write_evidence_bundle_json(&layout.run_dir, None)?;
+    let evidence_bundle_path =
+        bijux_dna_analyze::write_evidence_bundle_json(&layout.run_dir, None)?;
     summary_artifact::attach_output_artifact(
         &layout.manifest_path,
         &layout.run_dir,
@@ -714,12 +722,7 @@ fn write_manifest(
             "bijux.plan_manifest.v1",
             &layout.plan_manifest_path,
         )?,
-        artifact_entry(
-            &layout.run_dir,
-            "run_state",
-            "bijux.run_state.v1",
-            &layout.run_state_path,
-        )?,
+        artifact_entry(&layout.run_dir, "run_state", "bijux.run_state.v1", &layout.run_state_path)?,
         artifact_entry(
             &layout.run_dir,
             "runtime_policy",
@@ -756,12 +759,7 @@ fn write_manifest(
             "bijux.run_queue_state.v1",
             &layout.queue_state_path,
         )?,
-        artifact_entry(
-            &layout.run_dir,
-            "run_lease",
-            "bijux.run_lease.v1",
-            &layout.lease_path,
-        )?,
+        artifact_entry(&layout.run_dir, "run_lease", "bijux.run_lease.v1", &layout.lease_path)?,
         artifact_entry(
             &layout.run_dir,
             "run_control",
@@ -936,18 +934,19 @@ fn transition(
 }
 
 fn failure_record(run_id: &str, mode: RunExecutionModeV1, message: &str) -> RunFailureV1 {
-    let (failure_code, step_id) = if let Some(step_id) = message.strip_prefix("step failed after retries: ") {
-        ("step_failed_after_retries".to_string(), Some(step_id.to_string()))
-    } else if let Some(step_id) = message
-        .strip_prefix("execution cancelled during ")
-        .or_else(|| message.strip_prefix("execution cancelled before "))
-    {
-        ("execution_cancelled".to_string(), Some(step_id.to_string()))
-    } else if message.contains("timeout") {
-        ("step_timeout_exceeded".to_string(), None)
-    } else {
-        ("runner_execution_failed".to_string(), None)
-    };
+    let (failure_code, step_id) =
+        if let Some(step_id) = message.strip_prefix("step failed after retries: ") {
+            ("step_failed_after_retries".to_string(), Some(step_id.to_string()))
+        } else if let Some(step_id) = message
+            .strip_prefix("execution cancelled during ")
+            .or_else(|| message.strip_prefix("execution cancelled before "))
+        {
+            ("execution_cancelled".to_string(), Some(step_id.to_string()))
+        } else if message.contains("timeout") {
+            ("step_timeout_exceeded".to_string(), None)
+        } else {
+            ("runner_execution_failed".to_string(), None)
+        };
     RunFailureV1 {
         schema_version: "bijux.run_failure.v1".to_string(),
         run_id: run_id.to_string(),

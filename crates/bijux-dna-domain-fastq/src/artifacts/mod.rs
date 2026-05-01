@@ -3,17 +3,17 @@ mod build_rrna_db;
 mod build_taxonomy_db;
 mod capture_provenance_snapshot;
 mod classify_layout;
-mod concatenate_lanes;
 mod cluster_otus;
+mod concatenate_lanes;
 mod correct_errors;
+mod deinterleave_reads;
+mod demultiplex_reads;
 mod deplete_host;
 mod deplete_reference_contaminants;
 mod deplete_rrna;
-mod deinterleave_reads;
-mod demultiplex_reads;
 mod detect_adapters;
-mod detect_instrument_artifacts;
 mod detect_duplicates_premerge;
+mod detect_instrument_artifacts;
 mod estimate_library_complexity_prealign;
 mod extract_umis;
 mod filter_low_complexity;
@@ -21,8 +21,8 @@ mod filter_reads;
 mod index_reference;
 mod infer_asvs;
 mod interleave_reads;
-mod merge_pairs;
 mod materialize_qc_manifest;
+mod merge_pairs;
 mod naming;
 mod normalize_abundance;
 mod normalize_primers;
@@ -36,8 +36,8 @@ mod profile_reads;
 mod qc_bundle;
 mod remove_chimeras;
 mod remove_duplicates;
-mod report_qc;
 mod repair_pairs;
+mod report_qc;
 mod scientific_drift;
 mod screen_taxonomy;
 mod subsample_reads;
@@ -47,14 +47,6 @@ mod trim_terminal_damage;
 mod validate_reads;
 mod verify_assets;
 
-pub use cluster_otus::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
-pub use classify_layout::{
-    ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
-};
-pub use concatenate_lanes::{
-    ConcatenateLaneSummaryV1, ConcatenateLanesReportV1,
-    CONCATENATE_LANES_REPORT_SCHEMA_VERSION,
-};
 pub use build_contaminant_db::{
     BuildContaminantDbReportV1, BuildContaminantDbSourceEntryV1,
     BUILD_CONTAMINANT_DB_REPORT_SCHEMA_VERSION,
@@ -63,30 +55,35 @@ pub use build_rrna_db::{
     BuildRrnaDbReportV1, BuildRrnaDbSourceEntryV1, BUILD_RRNA_DB_REPORT_SCHEMA_VERSION,
 };
 pub use build_taxonomy_db::{
-    BuildTaxonomyDbReportV1, BuildTaxonomyDbSourceEntryV1,
-    BUILD_TAXONOMY_DB_REPORT_SCHEMA_VERSION,
+    BuildTaxonomyDbReportV1, BuildTaxonomyDbSourceEntryV1, BUILD_TAXONOMY_DB_REPORT_SCHEMA_VERSION,
 };
 pub use capture_provenance_snapshot::{
     CaptureProvenanceSnapshotReportV1, ProvenanceFileEntryV1, ProvenanceStageEntryV1,
     CAPTURE_PROVENANCE_SNAPSHOT_REPORT_SCHEMA_VERSION,
 };
+pub use classify_layout::{
+    ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
+};
+pub use cluster_otus::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
+pub use concatenate_lanes::{
+    ConcatenateLaneSummaryV1, ConcatenateLanesReportV1, CONCATENATE_LANES_REPORT_SCHEMA_VERSION,
+};
 pub use correct_errors::{CorrectErrorsReportV1, CORRECT_ERRORS_REPORT_SCHEMA_VERSION};
+pub use deinterleave_reads::{DeinterleaveReadsReportV1, DEINTERLEAVE_READS_REPORT_SCHEMA_VERSION};
+pub use demultiplex_reads::{
+    DemultiplexReadsReportV1, DemultiplexSampleSummaryV1, DEMULTIPLEX_READS_REPORT_SCHEMA_VERSION,
+};
 pub use deplete_host::{DepleteHostReportV1, DEPLETE_HOST_REPORT_SCHEMA_VERSION};
 pub use deplete_reference_contaminants::{
     DepleteReferenceContaminantsReportV1, DEPLETE_REFERENCE_CONTAMINANTS_REPORT_SCHEMA_VERSION,
 };
 pub use deplete_rrna::{DepleteRrnaReportV1, DEPLETE_RRNA_REPORT_SCHEMA_VERSION};
-pub use deinterleave_reads::{DeinterleaveReadsReportV1, DEINTERLEAVE_READS_REPORT_SCHEMA_VERSION};
-pub use demultiplex_reads::{
-    DemultiplexReadsReportV1, DemultiplexSampleSummaryV1,
-    DEMULTIPLEX_READS_REPORT_SCHEMA_VERSION,
-};
 pub use detect_adapters::{DetectAdaptersReportV1, DETECT_ADAPTERS_REPORT_SCHEMA_VERSION};
-pub use detect_instrument_artifacts::{
-    DetectInstrumentArtifactsReportV1, DETECT_INSTRUMENT_ARTIFACTS_REPORT_SCHEMA_VERSION,
-};
 pub use detect_duplicates_premerge::{
     DetectDuplicatesPremergeReportV1, DETECT_DUPLICATES_PREMERGE_REPORT_SCHEMA_VERSION,
+};
+pub use detect_instrument_artifacts::{
+    DetectInstrumentArtifactsReportV1, DETECT_INSTRUMENT_ARTIFACTS_REPORT_SCHEMA_VERSION,
 };
 pub use estimate_library_complexity_prealign::{
     EstimateLibraryComplexityPrealignReportV1,
@@ -102,11 +99,10 @@ pub use index_reference::{
 };
 pub use infer_asvs::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
 pub use interleave_reads::{InterleaveReadsReportV1, INTERLEAVE_READS_REPORT_SCHEMA_VERSION};
-pub use merge_pairs::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
 pub use materialize_qc_manifest::{
-    MaterializeQcManifestReportV1, QcManifestEntryV1,
-    MATERIALIZE_QC_MANIFEST_REPORT_SCHEMA_VERSION,
+    MaterializeQcManifestReportV1, QcManifestEntryV1, MATERIALIZE_QC_MANIFEST_REPORT_SCHEMA_VERSION,
 };
+pub use merge_pairs::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
 pub use naming::{
     contaminant_depletion_artifact_paths, corrected_fastq_artifact_paths,
     host_depletion_artifact_paths, merge_fastq_artifact_paths, qc_bundle_artifact_paths,
@@ -153,8 +149,8 @@ pub use remove_duplicates::{
     DuplicateClassEntryV1, RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1,
     REMOVE_DUPLICATES_PROVENANCE_SCHEMA_VERSION, REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION,
 };
-pub use report_qc::{GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION};
 pub use repair_pairs::{RepairPairsReportV1, REPAIR_PAIRS_REPORT_SCHEMA_VERSION};
+pub use report_qc::{GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION};
 pub use scientific_drift::{
     build_fastq_scientific_drift_report, FastqScientificDriftReportV1,
     ScientificDriftArtifactDeltaV1, ScientificDriftChangeKind, ScientificDriftMetricDeltaV1,

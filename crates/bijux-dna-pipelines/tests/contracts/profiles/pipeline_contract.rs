@@ -5,8 +5,8 @@ use bijux_dna_domain_fastq::{
 };
 use bijux_dna_domain_fastq::{contract_for_stage, parse_effective_params};
 use bijux_dna_pipelines::registry::{bam_profiles, cross_profiles, fastq_profiles};
-use bijux_dna_pipelines::{validate_pipeline_id, StabilityTier};
 use bijux_dna_pipelines::vcf::{validate_vcf_profile, vcf_minimal_profile};
+use bijux_dna_pipelines::{validate_pipeline_id, StabilityTier};
 
 #[test]
 fn pipeline_profiles_reference_known_stages_and_defaults() {

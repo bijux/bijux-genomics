@@ -13,7 +13,10 @@ use bijux_dna_runtime::run_layout::{
 };
 use bijux_dna_runtime::{Invocation, Runner, RunnerResult};
 
-pub(crate) fn acquire_run_lease(layout: &RunLayout, run_id: &str) -> Result<(bijux_dna_infra::FileLock, RunLeaseV1)> {
+pub(crate) fn acquire_run_lease(
+    layout: &RunLayout,
+    run_id: &str,
+) -> Result<(bijux_dna_infra::FileLock, RunLeaseV1)> {
     let lock = bijux_dna_infra::FileLock::acquire(
         &layout.run_dir.join("run.lock"),
         Duration::from_millis(250),
@@ -39,16 +42,17 @@ pub(crate) fn release_run_lease(lease: &RunLeaseV1) -> RunLeaseV1 {
     released
 }
 
-pub(crate) fn initial_queue_state(
-    run_id: &str,
-    graph: &ExecutionGraph,
-) -> RunQueueStateV1 {
+pub(crate) fn initial_queue_state(run_id: &str, graph: &ExecutionGraph) -> RunQueueStateV1 {
     RunQueueStateV1 {
         schema_version: "bijux.run_queue_state.v1".to_string(),
         run_id: run_id.to_string(),
         dedup_key: dedup_key(graph),
         state: RunQueueLifecycleStateV1::Queued,
-        transitions: vec![queue_transition(None, RunQueueLifecycleStateV1::Queued, "run queued for execution")],
+        transitions: vec![queue_transition(
+            None,
+            RunQueueLifecycleStateV1::Queued,
+            "run queued for execution",
+        )],
         active_step_id: None,
     }
 }
@@ -70,8 +74,7 @@ pub(crate) fn request_control_action(
     action: RunControlActionV1,
     detail: &str,
 ) -> Result<RunControlStateV1> {
-    let mut state = read_control_state(layout)
-        .unwrap_or_else(|| default_control_state(run_id));
+    let mut state = read_control_state(layout).unwrap_or_else(|| default_control_state(run_id));
     state.requested_action = Some(action);
     state.updated_at = now_string();
     state.audit_log.push(RunControlAuditEntryV1 {
@@ -93,7 +96,10 @@ pub(crate) fn build_backend_record(
 ) -> RunBackendRecordV1 {
     let descriptor = match runner {
         RuntimeKind::Local => RunBackendDescriptorV1::Local {
-            temp_root_policy: format!("stage_scoped_tmp_under_{}", layout.run_dir.join("tmp").display()),
+            temp_root_policy: format!(
+                "stage_scoped_tmp_under_{}",
+                layout.run_dir.join("tmp").display()
+            ),
             temp_cleanup_policy: "best_effort_cleanup_after_success_keep_on_failure".to_string(),
             artifact_write_policy: "atomic_manifest_and_summary_writes".to_string(),
             log_capture_policy: "stdout_and_stderr_persisted_per_stage".to_string(),
@@ -138,17 +144,10 @@ pub(crate) fn build_scheduling_decision(
     runner: RuntimeKind,
 ) -> RunSchedulingDecisionV1 {
     let threads = graph.steps().iter().map(|step| step.resources.threads).max().unwrap_or(1);
-    let memory_mb = graph
-        .steps()
-        .iter()
-        .map(|step| u64::from(step.resources.mem_gb) * 1024)
-        .max();
-    let scratch_mb = graph
-        .steps()
-        .iter()
-        .map(|step| u64::from(step.resources.tmp_gb) * 1024)
-        .max();
-    let walltime_s = graph.step_timeout_s().map(|seconds| seconds.saturating_mul(graph.steps().len() as u64));
+    let memory_mb = graph.steps().iter().map(|step| u64::from(step.resources.mem_gb) * 1024).max();
+    let scratch_mb = graph.steps().iter().map(|step| u64::from(step.resources.tmp_gb) * 1024).max();
+    let walltime_s =
+        graph.step_timeout_s().map(|seconds| seconds.saturating_mul(graph.steps().len() as u64));
     let queue_class = if matches!(runner, RuntimeKind::Apptainer | RuntimeKind::Singularity)
         && (threads > 4 || memory_mb.unwrap_or(0) > 8 * 1024 || graph.steps().len() > 4)
     {
@@ -158,13 +157,14 @@ pub(crate) fn build_scheduling_decision(
     } else {
         "local_interactive"
     };
-    let io_intensity = if graph.steps().iter().any(|step| step.stage_id.as_str().starts_with("bam.")) {
-        "high"
-    } else if graph.steps().iter().any(|step| step.stage_id.as_str().starts_with("vcf.")) {
-        "moderate"
-    } else {
-        "light"
-    };
+    let io_intensity =
+        if graph.steps().iter().any(|step| step.stage_id.as_str().starts_with("bam.")) {
+            "high"
+        } else if graph.steps().iter().any(|step| step.stage_id.as_str().starts_with("vcf.")) {
+            "moderate"
+        } else {
+            "light"
+        };
     let warnings = if queue_class == "slurm_batch_candidate" {
         vec!["runner should prefer mocked slurm submission semantics for large apptainer-backed work".to_string()]
     } else {
@@ -209,7 +209,9 @@ pub(crate) fn build_health_report(
         OperatorHealthCheckV1 {
             check_id: "reference_assets".to_string(),
             ok: layout.plan_manifest_path.exists() || layout.manifests_dir.exists(),
-            detail: "plan manifest or manifests directory is available for reference binding review".to_string(),
+            detail:
+                "plan manifest or manifests directory is available for reference binding review"
+                    .to_string(),
             evidence_path: Some(layout.manifests_dir.clone()),
         },
         OperatorHealthCheckV1 {
@@ -244,7 +246,8 @@ pub(crate) fn build_health_report(
         OperatorHealthCheckV1 {
             check_id: "evidence_verifier".to_string(),
             ok: true,
-            detail: "bijux-dna-analyze evidence verification surface is linked into the runtime".to_string(),
+            detail: "bijux-dna-analyze evidence verification surface is linked into the runtime"
+                .to_string(),
             evidence_path: Some(evidence_path),
         },
     ];
@@ -286,7 +289,10 @@ pub(crate) fn maybe_mock_slurm_submission(
             from_state: None,
             to_state: SlurmJobStateV1::Submitted,
             occurred_at: now_string(),
-            detail: Some(format!("mocked {} submission recorded for governed monitoring tests", runner)),
+            detail: Some(format!(
+                "mocked {} submission recorded for governed monitoring tests",
+                runner
+            )),
         }],
     })
 }
@@ -355,7 +361,8 @@ fn honor_control_requests(
     queue_state: &mut RunQueueStateV1,
 ) -> Result<()> {
     loop {
-        let mut control = read_control_state(layout).unwrap_or_else(|| default_control_state(run_id));
+        let mut control =
+            read_control_state(layout).unwrap_or_else(|| default_control_state(run_id));
         match control.requested_action {
             Some(RunControlActionV1::Pause) => {
                 control.observed_state = RunQueueLifecycleStateV1::Paused;
@@ -368,7 +375,10 @@ fn honor_control_requests(
                 });
                 bijux_dna_runtime::run_layout::write_control_state(layout, &control)?;
                 queue_state.state = RunQueueLifecycleStateV1::Paused;
-                if !matches!(queue_state.transitions.last().map(|entry| entry.to_state), Some(RunQueueLifecycleStateV1::Paused)) {
+                if !matches!(
+                    queue_state.transitions.last().map(|entry| entry.to_state),
+                    Some(RunQueueLifecycleStateV1::Paused)
+                ) {
                     queue_state.transitions.push(queue_transition(
                         Some(RunQueueLifecycleStateV1::Running),
                         RunQueueLifecycleStateV1::Paused,

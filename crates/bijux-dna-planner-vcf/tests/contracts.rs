@@ -1,4 +1,4 @@
-#![allow(clippy::expect_used, clippy::unreadable_literal)]
+#![allow(clippy::expect_used, clippy::question_mark, clippy::unreadable_literal)]
 
 use std::collections::BTreeMap;
 use std::path::PathBuf;
@@ -393,7 +393,8 @@ fn vcf_planner_refuses_imputation_without_explicit_panel_identity() {
     input.panel_locks.clear();
     input.panel_id = None;
 
-    let err = plan_vcf_stage_plans(&input).expect_err("imputation without explicit panel identity must fail");
+    let err = plan_vcf_stage_plans(&input)
+        .expect_err("imputation without explicit panel identity must fail");
 
     assert!(
         err.to_string().contains("explicit panel identity is required"),

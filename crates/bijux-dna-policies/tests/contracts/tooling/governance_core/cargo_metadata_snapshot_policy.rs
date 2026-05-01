@@ -12,8 +12,9 @@ fn repo_root() -> PathBuf {
 fn policy__contracts__cargo_metadata_snapshot_policy__workspace_dependency_snapshot_matches_committed_contract(
 ) {
     let root = repo_root();
-    let expected_path =
-        root.join("crates/bijux-dna-policies/tests/fixtures/cargo_metadata_snapshot/workspace-deps.txt");
+    let expected_path = root.join(
+        "crates/bijux-dna-policies/tests/fixtures/cargo_metadata_snapshot/workspace-deps.txt",
+    );
     let expected = std::fs::read_to_string(&expected_path)
         .unwrap_or_else(|err| panic!("read {}: {err}", expected_path.display()));
 

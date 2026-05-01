@@ -1,8 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub const VERIFY_ASSETS_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.verify_assets.report.v1";
+pub const VERIFY_ASSETS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.verify_assets.report.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]

@@ -4,8 +4,7 @@ use anyhow::{anyhow, Result};
 use sha2::{Digest, Sha256};
 
 use crate::artifacts::{
-    BuildTaxonomyDbReportV1, BuildTaxonomyDbSourceEntryV1,
-    BUILD_TAXONOMY_DB_REPORT_SCHEMA_VERSION,
+    BuildTaxonomyDbReportV1, BuildTaxonomyDbSourceEntryV1, BUILD_TAXONOMY_DB_REPORT_SCHEMA_VERSION,
 };
 
 /// Build taxonomy database identity from source files.
@@ -17,9 +16,7 @@ pub fn build_taxonomy_db(
     database_family: Option<&str>,
 ) -> Result<BuildTaxonomyDbReportV1> {
     if taxonomy_sources.is_empty() {
-        return Err(anyhow!(
-            "fastq.build_taxonomy_db requires at least one taxonomy source"
-        ));
+        return Err(anyhow!("fastq.build_taxonomy_db requires at least one taxonomy source"));
     }
 
     let mut sources = Vec::with_capacity(taxonomy_sources.len());
@@ -51,11 +48,8 @@ pub fn build_taxonomy_db(
         hasher.update(entry.sha256.as_bytes());
         hasher.update(b"\n");
     }
-    let database_hash = hasher
-        .finalize()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect::<String>();
+    let database_hash =
+        hasher.finalize().iter().map(|byte| format!("{byte:02x}")).collect::<String>();
 
     Ok(BuildTaxonomyDbReportV1 {
         schema_version: BUILD_TAXONOMY_DB_REPORT_SCHEMA_VERSION.to_string(),

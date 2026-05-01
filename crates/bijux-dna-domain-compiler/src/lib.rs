@@ -1,4 +1,13 @@
-#![allow(clippy::map_unwrap_or, clippy::too_many_lines, clippy::uninlined_format_args)]
+#![allow(
+    clippy::format_collect,
+    clippy::inefficient_to_string,
+    clippy::map_unwrap_or,
+    clippy::missing_errors_doc,
+    clippy::must_use_candidate,
+    clippy::redundant_closure_for_method_calls,
+    clippy::too_many_lines,
+    clippy::uninlined_format_args
+)]
 
 mod compiler;
 

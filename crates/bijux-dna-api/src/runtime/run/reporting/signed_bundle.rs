@@ -92,9 +92,5 @@ fn compute_signature(secret: &str, payload_sha256: &str) -> String {
 }
 
 fn sha256_hex(bytes: impl AsRef<[u8]>) -> String {
-    bytes
-        .as_ref()
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect::<String>()
+    bytes.as_ref().iter().map(|byte| format!("{byte:02x}")).collect::<String>()
 }

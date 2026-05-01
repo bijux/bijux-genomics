@@ -66,16 +66,16 @@ pub(crate) fn handle_pipelines_command(
         }
         PipelinesCommand::ExplainProfile { id } => {
             let resolved_id = resolve_profile_alias(id);
-            render::json::print_pretty(
-                &bijux_dna_api::v1::api::plan::explain_pipeline_profile(&resolved_id)?,
-            )?;
+            render::json::print_pretty(&bijux_dna_api::v1::api::plan::explain_pipeline_profile(
+                resolved_id,
+            )?)?;
             Ok(true)
         }
         PipelinesCommand::ValidateProfile { id } => {
             let resolved_id = resolve_profile_alias(id);
-            render::json::print_pretty(
-                &bijux_dna_api::v1::api::plan::validate_pipeline_profile(&resolved_id)?,
-            )?;
+            render::json::print_pretty(&bijux_dna_api::v1::api::plan::validate_pipeline_profile(
+                resolved_id,
+            )?)?;
             Ok(true)
         }
         PipelinesCommand::ProfileDiff { left, right } => {

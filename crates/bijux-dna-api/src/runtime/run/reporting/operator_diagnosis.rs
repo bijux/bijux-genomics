@@ -7,13 +7,19 @@ use crate::request_args::{
 ///
 /// # Errors
 /// Returns an error if run-control, queue, or health contracts are unreadable.
-pub fn operator_diagnosis(request: &OperatorDiagnosisRequestV1) -> Result<OperatorDiagnosisResponseV1> {
+pub fn operator_diagnosis(
+    request: &OperatorDiagnosisRequestV1,
+) -> Result<OperatorDiagnosisResponseV1> {
     let layout =
         bijux_dna_runtime::run_layout::RunLayout::from_run_dir(request.run_dir.to_path_buf());
     let run_state = read_json::<bijux_dna_runtime::run_layout::RunStateV1>(&layout.run_state_path)?;
-    let queue_state = read_json::<bijux_dna_runtime::run_layout::RunQueueStateV1>(&layout.queue_state_path)?;
-    let control_state = read_json::<bijux_dna_runtime::run_layout::RunControlStateV1>(&layout.control_state_path)?;
-    let health_report = read_json::<bijux_dna_runtime::run_layout::OperatorHealthReportV1>(&layout.health_report_path)?;
+    let queue_state =
+        read_json::<bijux_dna_runtime::run_layout::RunQueueStateV1>(&layout.queue_state_path)?;
+    let control_state =
+        read_json::<bijux_dna_runtime::run_layout::RunControlStateV1>(&layout.control_state_path)?;
+    let health_report = read_json::<bijux_dna_runtime::run_layout::OperatorHealthReportV1>(
+        &layout.health_report_path,
+    )?;
 
     let run_id = run_state
         .as_ref()
@@ -21,48 +27,31 @@ pub fn operator_diagnosis(request: &OperatorDiagnosisRequestV1) -> Result<Operat
         .or_else(|| queue_state.as_ref().map(|value| value.run_id.clone()))
         .or_else(|| control_state.as_ref().map(|value| value.run_id.clone()))
         .unwrap_or_else(|| {
-            request
-                .run_dir
-                .file_name()
-                .and_then(|name| name.to_str())
-                .unwrap_or("run")
-                .to_string()
+            request.run_dir.file_name().and_then(|name| name.to_str()).unwrap_or("run").to_string()
         });
 
     let mut commands = vec![
         command(
             "inspect_run_state",
-            vec![
-                "cat".to_string(),
-                layout.run_state_path.display().to_string(),
-            ],
+            vec!["cat".to_string(), layout.run_state_path.display().to_string()],
             "inspect lifecycle mode/state transitions",
             Some(layout.run_state_path.clone()),
         ),
         command(
             "inspect_queue_state",
-            vec![
-                "cat".to_string(),
-                layout.queue_state_path.display().to_string(),
-            ],
+            vec!["cat".to_string(), layout.queue_state_path.display().to_string()],
             "inspect scheduler queue state and active step",
             Some(layout.queue_state_path.clone()),
         ),
         command(
             "inspect_control_audit",
-            vec![
-                "cat".to_string(),
-                layout.control_state_path.display().to_string(),
-            ],
+            vec!["cat".to_string(), layout.control_state_path.display().to_string()],
             "inspect pause/resume/cancel audit trail",
             Some(layout.control_state_path.clone()),
         ),
         command(
             "inspect_operator_health",
-            vec![
-                "cat".to_string(),
-                layout.health_report_path.display().to_string(),
-            ],
+            vec!["cat".to_string(), layout.health_report_path.display().to_string()],
             "inspect runner/storage/tools health checks",
             Some(layout.health_report_path.clone()),
         ),
@@ -79,10 +68,7 @@ pub fn operator_diagnosis(request: &OperatorDiagnosisRequestV1) -> Result<Operat
     if layout.slurm_submission_path.exists() {
         commands.push(command(
             "inspect_slurm_submission",
-            vec![
-                "cat".to_string(),
-                layout.slurm_submission_path.display().to_string(),
-            ],
+            vec!["cat".to_string(), layout.slurm_submission_path.display().to_string()],
             "inspect mocked/recorded slurm lifecycle",
             Some(layout.slurm_submission_path.clone()),
         ));
@@ -98,10 +84,7 @@ pub fn operator_diagnosis(request: &OperatorDiagnosisRequestV1) -> Result<Operat
         has_failure_record: layout.failure_path.exists(),
         commands,
     };
-    Ok(super::redaction::redact_operator_diagnosis(
-        response,
-        request.redaction_profile,
-    ))
+    Ok(super::redaction::redact_operator_diagnosis(response, request.redaction_profile))
 }
 
 fn command(

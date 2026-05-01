@@ -1,6 +1,4 @@
-use crate::request_args::{
-    OperatorDiagnosisResponseV1, RedactionProfileV1, RunBrowserResponseV1,
-};
+use crate::request_args::{OperatorDiagnosisResponseV1, RedactionProfileV1, RunBrowserResponseV1};
 use std::path::PathBuf;
 
 pub fn redact_run_browser(
@@ -29,10 +27,8 @@ pub fn redact_operator_diagnosis(
     };
     response.run_dir = redact_path(&response.run_dir, profile);
     for command in &mut response.commands {
-        command.evidence_path = command
-            .evidence_path
-            .as_ref()
-            .map(|path| redact_path(path, profile));
+        command.evidence_path =
+            command.evidence_path.as_ref().map(|path| redact_path(path, profile));
         command.argv = redact_argv(&command.argv, profile);
     }
     if matches!(profile, RedactionProfileV1::External) {
@@ -43,10 +39,9 @@ pub fn redact_operator_diagnosis(
 
 fn redact_path(path: &std::path::Path, profile: RedactionProfileV1) -> PathBuf {
     match profile {
-        RedactionProfileV1::Collaborator => path
-            .file_name()
-            .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from(".")),
+        RedactionProfileV1::Collaborator => {
+            path.file_name().map(PathBuf::from).unwrap_or_else(|| PathBuf::from("."))
+        }
         RedactionProfileV1::External => PathBuf::from("<redacted-path>"),
     }
 }

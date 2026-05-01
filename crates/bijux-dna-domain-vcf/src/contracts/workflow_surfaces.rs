@@ -216,10 +216,9 @@ pub fn stage_artifact_class_contract(stage: VcfDomainStage) -> VcfArtifactClassC
             stage,
             artifact_classes: &[VcfArtifactClass::QcReport, VcfArtifactClass::StatsReport],
         },
-        VcfDomainStage::Stats => VcfArtifactClassContract {
-            stage,
-            artifact_classes: &[VcfArtifactClass::StatsReport],
-        },
+        VcfDomainStage::Stats => {
+            VcfArtifactClassContract { stage, artifact_classes: &[VcfArtifactClass::StatsReport] }
+        }
         VcfDomainStage::PrepareReferencePanel => VcfArtifactClassContract {
             stage,
             artifact_classes: &[VcfArtifactClass::PanelEvidence, VcfArtifactClass::VariantIndex],
@@ -227,41 +226,42 @@ pub fn stage_artifact_class_contract(stage: VcfDomainStage) -> VcfArtifactClassC
         VcfDomainStage::Phasing | VcfDomainStage::Imputation | VcfDomainStage::Impute => {
             VcfArtifactClassContract {
                 stage,
-                artifact_classes: &[VcfArtifactClass::ImputationReport, VcfArtifactClass::PanelEvidence],
+                artifact_classes: &[
+                    VcfArtifactClass::ImputationReport,
+                    VcfArtifactClass::PanelEvidence,
+                ],
             }
         }
-        _ => VcfArtifactClassContract {
-            stage,
-            artifact_classes: &[VcfArtifactClass::StatsReport],
-        },
+        _ => VcfArtifactClassContract { stage, artifact_classes: &[VcfArtifactClass::StatsReport] },
     }
 }
 
-pub const VCF_REFERENCE_CONTEXT_CONTRACT: VcfReferenceContextContract = VcfReferenceContextContract {
-    schema_version: "bijux.vcf.reference_context.v1",
-    required_context: &[
-        "reference_build",
-        "contig_naming_scheme",
-        "alias_map",
-        "reference_fasta_checksum",
-        "index_state",
-        "panel_compatibility",
-    ],
-    resolved_fields: &[
-        "bundle_id",
-        "bundle_lock_sha256",
-        "contig_set_digest",
-        "normalization_policy",
-        "panel_id",
-        "map_id",
-    ],
-    refusal_reasons: &[
-        "reference_bundle_drift",
-        "contig_alias_policy_violation",
-        "panel_build_mismatch",
-        "map_build_mismatch",
-    ],
-};
+pub const VCF_REFERENCE_CONTEXT_CONTRACT: VcfReferenceContextContract =
+    VcfReferenceContextContract {
+        schema_version: "bijux.vcf.reference_context.v1",
+        required_context: &[
+            "reference_build",
+            "contig_naming_scheme",
+            "alias_map",
+            "reference_fasta_checksum",
+            "index_state",
+            "panel_compatibility",
+        ],
+        resolved_fields: &[
+            "bundle_id",
+            "bundle_lock_sha256",
+            "contig_set_digest",
+            "normalization_policy",
+            "panel_id",
+            "map_id",
+        ],
+        refusal_reasons: &[
+            "reference_bundle_drift",
+            "contig_alias_policy_violation",
+            "panel_build_mismatch",
+            "map_build_mismatch",
+        ],
+    };
 
 pub const VCF_FILTER_EVIDENCE_CONTRACT: VcfFilterEvidenceContract = VcfFilterEvidenceContract {
     schema_version: "bijux.vcf.filter_evidence.v1",
@@ -355,21 +355,33 @@ pub fn vcf_calling_mode_contracts() -> &'static [VcfCallingModeContract] {
             stage: VcfDomainStage::CallDiploid,
             coverage_regime: CoverageRegime::Diploid,
             evidence_focus: "called genotypes with diploid heterozygosity summaries",
-            assumptions: &["diploid_gt_fields", "sample_identity_required", "reference_bundle_locked"],
+            assumptions: &[
+                "diploid_gt_fields",
+                "sample_identity_required",
+                "reference_bundle_locked",
+            ],
             refusal_rules: &["caller_must_be_bcftools_or_gatk", "non_empty_records_required"],
         },
         VcfCallingModeContract {
             stage: VcfDomainStage::CallPseudohaploid,
             coverage_regime: CoverageRegime::Pseudohaploid,
             evidence_focus: "single-allele calls with pseudo-haploid caveats",
-            assumptions: &["single_allele_sampling", "sample_identity_required", "low_information_expected"],
+            assumptions: &[
+                "single_allele_sampling",
+                "sample_identity_required",
+                "low_information_expected",
+            ],
             refusal_rules: &["caller_must_be_angsd_or_bcftools", "non_empty_records_required"],
         },
         VcfCallingModeContract {
             stage: VcfDomainStage::CallGl,
             coverage_regime: CoverageRegime::LowCovGl,
             evidence_focus: "genotype likelihoods and GL-aware downstream compatibility",
-            assumptions: &["gl_gp_pl_fields_required", "sample_identity_required", "low_coverage_likelihood_model"],
+            assumptions: &[
+                "gl_gp_pl_fields_required",
+                "sample_identity_required",
+                "low_coverage_likelihood_model",
+            ],
             refusal_rules: &["caller_must_be_angsd_or_bcftools", "gl_fields_required"],
         },
         VcfCallingModeContract {
@@ -462,50 +474,69 @@ pub const VCF_PRODUCTION_CORPUS_CONTRACT: VcfProductionCorpusContract =
         covered_cases: VCF_PRODUCTION_CORPUS_CASES,
     };
 
-pub const VCF_SCIENTIFIC_DRIFT_CONTRACT: VcfScientificDriftContract =
-    VcfScientificDriftContract {
-        schema_version: "bijux.vcf.scientific_drift.v1",
-        tracked_change_surfaces: &[
-            "filter_defaults",
-            "normalization_policy",
-            "damage_thresholds",
-            "phasing_backend",
-            "imputation_backend",
-        ],
-        downstream_risks: &[
-            "variant_count_shift",
-            "pass_rate_shift",
-            "population_analysis_instability",
-            "annotation_coverage_shift",
-        ],
-        required_report_sections: &[
-            "before_after_variant_counts",
-            "filter_delta_summary",
-            "downstream_risk_summary",
-        ],
-    };
+pub const VCF_SCIENTIFIC_DRIFT_CONTRACT: VcfScientificDriftContract = VcfScientificDriftContract {
+    schema_version: "bijux.vcf.scientific_drift.v1",
+    tracked_change_surfaces: &[
+        "filter_defaults",
+        "normalization_policy",
+        "damage_thresholds",
+        "phasing_backend",
+        "imputation_backend",
+    ],
+    downstream_risks: &[
+        "variant_count_shift",
+        "pass_rate_shift",
+        "population_analysis_instability",
+        "annotation_coverage_shift",
+    ],
+    required_report_sections: &[
+        "before_after_variant_counts",
+        "filter_delta_summary",
+        "downstream_risk_summary",
+    ],
+};
 
 #[must_use]
 pub fn vcf_panel_boundary_contracts() -> &'static [VcfPanelBoundaryContract] {
     &[
         VcfPanelBoundaryContract {
             stage: VcfDomainStage::PrepareReferencePanel,
-            required_context: &["panel_identity", "build_compatibility", "panel_checksum", "license_policy"],
+            required_context: &[
+                "panel_identity",
+                "build_compatibility",
+                "panel_checksum",
+                "license_policy",
+            ],
             execution_mode: "enforced",
         },
         VcfPanelBoundaryContract {
             stage: VcfDomainStage::Phasing,
-            required_context: &["panel_identity", "build_compatibility", "sample_eligibility", "map_lock"],
+            required_context: &[
+                "panel_identity",
+                "build_compatibility",
+                "sample_eligibility",
+                "map_lock",
+            ],
             execution_mode: "enforced",
         },
         VcfPanelBoundaryContract {
             stage: VcfDomainStage::Impute,
-            required_context: &["panel_identity", "build_compatibility", "sample_eligibility", "map_lock"],
+            required_context: &[
+                "panel_identity",
+                "build_compatibility",
+                "sample_eligibility",
+                "map_lock",
+            ],
             execution_mode: "enforced",
         },
         VcfPanelBoundaryContract {
             stage: VcfDomainStage::Imputation,
-            required_context: &["panel_identity", "build_compatibility", "sample_eligibility", "map_lock"],
+            required_context: &[
+                "panel_identity",
+                "build_compatibility",
+                "sample_eligibility",
+                "map_lock",
+            ],
             execution_mode: "advisory",
         },
     ]
@@ -586,12 +617,7 @@ pub fn vcf_phasing_imputation_boundary_contracts() -> &'static [VcfPhasingImputa
         VcfPhasingImputationBoundaryContract {
             stage: VcfDomainStage::Impute,
             accepted_tools: &["glimpse", "beagle", "impute5", "minimac4"],
-            required_context: &[
-                "panel_identity",
-                "build_compatibility",
-                "map_file",
-                "chunk_plan",
-            ],
+            required_context: &["panel_identity", "build_compatibility", "map_file", "chunk_plan"],
             required_outputs: &[
                 "imputed_vcf",
                 "imputation_qc",
@@ -608,12 +634,7 @@ pub fn vcf_phasing_imputation_boundary_contracts() -> &'static [VcfPhasingImputa
         VcfPhasingImputationBoundaryContract {
             stage: VcfDomainStage::Imputation,
             accepted_tools: &["glimpse", "beagle", "impute5", "minimac4"],
-            required_context: &[
-                "panel_identity",
-                "build_compatibility",
-                "map_file",
-                "chunk_plan",
-            ],
+            required_context: &["panel_identity", "build_compatibility", "map_file", "chunk_plan"],
             required_outputs: &[
                 "imputed_vcf",
                 "imputation_qc",
@@ -635,33 +656,73 @@ pub fn vcf_population_guardrail_contracts() -> &'static [VcfPopulationGuardrailC
     &[
         VcfPopulationGuardrailContract {
             stage: VcfDomainStage::Pca,
-            required_inputs: &["sample_metadata_manifest", "ld_pruning_policy", "maf_threshold", "missingness_threshold"],
-            report_caveats: &["axes_are_descriptive_not_truth", "population_labels_must_be_audited"],
+            required_inputs: &[
+                "sample_metadata_manifest",
+                "ld_pruning_policy",
+                "maf_threshold",
+                "missingness_threshold",
+            ],
+            report_caveats: &[
+                "axes_are_descriptive_not_truth",
+                "population_labels_must_be_audited",
+            ],
         },
         VcfPopulationGuardrailContract {
             stage: VcfDomainStage::Admixture,
-            required_inputs: &["sample_metadata_manifest", "ld_pruning_policy", "maf_threshold", "k_selection_policy"],
-            report_caveats: &["cluster_count_is_model_dependent", "ancestry_interpretation_requires_context"],
+            required_inputs: &[
+                "sample_metadata_manifest",
+                "ld_pruning_policy",
+                "maf_threshold",
+                "k_selection_policy",
+            ],
+            report_caveats: &[
+                "cluster_count_is_model_dependent",
+                "ancestry_interpretation_requires_context",
+            ],
         },
         VcfPopulationGuardrailContract {
             stage: VcfDomainStage::PopulationStructure,
-            required_inputs: &["sample_metadata_manifest", "ld_pruning_policy", "maf_threshold", "missingness_threshold"],
-            report_caveats: &["cohort_composition_changes_output", "projection_without_context_is_advisory"],
+            required_inputs: &[
+                "sample_metadata_manifest",
+                "ld_pruning_policy",
+                "maf_threshold",
+                "missingness_threshold",
+            ],
+            report_caveats: &[
+                "cohort_composition_changes_output",
+                "projection_without_context_is_advisory",
+            ],
         },
         VcfPopulationGuardrailContract {
             stage: VcfDomainStage::Roh,
-            required_inputs: &["marker_density_floor", "missingness_threshold", "coverage_regime_caveat"],
+            required_inputs: &[
+                "marker_density_floor",
+                "missingness_threshold",
+                "coverage_regime_caveat",
+            ],
             report_caveats: &["low_coverage_can_destabilize_roh_calls"],
         },
         VcfPopulationGuardrailContract {
             stage: VcfDomainStage::Ibd,
-            required_inputs: &["cohort_sample_count", "marker_density_floor", "missingness_threshold", "phase_quality_or_gl_readiness"],
+            required_inputs: &[
+                "cohort_sample_count",
+                "marker_density_floor",
+                "missingness_threshold",
+                "phase_quality_or_gl_readiness",
+            ],
             report_caveats: &["ibd_segments_depend_on_phase_and_marker_quality"],
         },
         VcfPopulationGuardrailContract {
             stage: VcfDomainStage::Demography,
-            required_inputs: &["cohort_sample_count", "ibd_segments", "method_assumptions_documented"],
-            report_caveats: &["demography_estimates_are_model_based", "sparse_ibd_reduces_confidence"],
+            required_inputs: &[
+                "cohort_sample_count",
+                "ibd_segments",
+                "method_assumptions_documented",
+            ],
+            report_caveats: &[
+                "demography_estimates_are_model_based",
+                "sparse_ibd_reduces_confidence",
+            ],
         },
     ]
 }

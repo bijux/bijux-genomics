@@ -3,8 +3,8 @@ use std::path::Path;
 use anyhow::{anyhow, Result};
 
 use crate::chunking::{
-    aggregate_chunked_preprocess, chunked_and_unchunked_are_equivalent, ChunkedPreprocessAggregateV1,
-    ChunkedPreprocessChunkV1, ChunkedPreprocessContractV1,
+    aggregate_chunked_preprocess, chunked_and_unchunked_are_equivalent,
+    ChunkedPreprocessAggregateV1, ChunkedPreprocessChunkV1, ChunkedPreprocessContractV1,
 };
 
 use super::fastq_io::{read_fastq_records, write_fastq_records};
@@ -24,11 +24,7 @@ pub fn build_chunked_preprocess_contract(
     }
 
     let left = read_fastq_records(r1)?;
-    let right = if let Some(path) = r2 {
-        read_fastq_records(path)?
-    } else {
-        Vec::new()
-    };
+    let right = if let Some(path) = r2 { read_fastq_records(path)? } else { Vec::new() };
     let paired = r2.is_some();
     if paired && left.len() != right.len() {
         return Err(anyhow!(
@@ -106,9 +102,7 @@ pub fn verify_chunked_preprocess_equivalence(
 ) -> Result<ChunkedPreprocessAggregateV1> {
     let aggregate = aggregate_chunked_preprocess(contract)?;
     if !chunked_and_unchunked_are_equivalent(&aggregate, unchunked) {
-        return Err(anyhow!(
-            "chunked preprocess aggregate does not match unchunked aggregate"
-        ));
+        return Err(anyhow!("chunked preprocess aggregate does not match unchunked aggregate"));
     }
     Ok(aggregate)
 }
@@ -154,12 +148,8 @@ mod tests {
             ],
         )?;
 
-        let contract = build_chunked_preprocess_contract(
-            &r1,
-            Some(&r2),
-            2,
-            &temp.path().join("chunks"),
-        )?;
+        let contract =
+            build_chunked_preprocess_contract(&r1, Some(&r2), 2, &temp.path().join("chunks"))?;
         assert_eq!(contract.chunks.len(), 3);
 
         let unchunked = ChunkedPreprocessAggregateV1 {

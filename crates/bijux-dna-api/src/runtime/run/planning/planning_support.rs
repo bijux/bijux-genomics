@@ -237,21 +237,12 @@ fn find_pipeline_profile(profile_id: &str) -> Result<PipelineProfile> {
 }
 
 fn profile_domain_flags(profile: &PipelineProfile) -> (bool, bool, bool) {
-    let has_fastq = profile
-        .capabilities
-        .required_stages
-        .iter()
-        .any(|stage| stage.starts_with("fastq."));
-    let has_bam = profile
-        .capabilities
-        .required_stages
-        .iter()
-        .any(|stage| stage.starts_with("bam."));
-    let has_vcf = profile
-        .capabilities
-        .required_stages
-        .iter()
-        .any(|stage| stage.starts_with("vcf."));
+    let has_fastq =
+        profile.capabilities.required_stages.iter().any(|stage| stage.starts_with("fastq."));
+    let has_bam =
+        profile.capabilities.required_stages.iter().any(|stage| stage.starts_with("bam."));
+    let has_vcf =
+        profile.capabilities.required_stages.iter().any(|stage| stage.starts_with("vcf."));
     (has_fastq, has_bam, has_vcf)
 }
 
@@ -267,16 +258,11 @@ fn profile_invariants_json(profile: &PipelineProfile) -> Result<serde_json::Valu
 
 fn validate_cross_pipeline_profile(profile: &PipelineProfile) -> serde_json::Value {
     let workflow_templates = cross_workflow_templates_for_pipeline(profile.id.as_str());
-    let template_ids = workflow_templates
-        .iter()
-        .map(|template| template.template_id.clone())
-        .collect::<Vec<_>>();
-    let template_registry_consistent =
-        template_ids == profile.capabilities.workflow_template_ids;
+    let template_ids =
+        workflow_templates.iter().map(|template| template.template_id.clone()).collect::<Vec<_>>();
+    let template_registry_consistent = template_ids == profile.capabilities.workflow_template_ids;
     let sample_sheet_consistent = profile.capabilities.supports_sample_sheet
-        == workflow_templates
-            .iter()
-            .all(|template| template.sample_sheet_supported);
+        == workflow_templates.iter().all(|template| template.sample_sheet_supported);
     let has_cross_evidence_story = profile.capabilities.evidence_summary.is_some();
     let mut violations = Vec::new();
     if workflow_templates.is_empty() {

@@ -20,19 +20,11 @@ pub fn prepare_adapter_bank(
     enable_adapters: &[String],
     disable_adapters: &[String],
 ) -> Result<PrepareAdapterBankReportV1> {
-    let selection = resolve_selection_with_repo_paths(
-        adapter_preset,
-        legacy_adapter_bank,
-        adapter_bank_file,
-    )?;
+    let selection =
+        resolve_selection_with_repo_paths(adapter_preset, legacy_adapter_bank, adapter_bank_file)?;
     let effective = resolve_effective_adapters(&selection, enable_adapters, disable_adapters)?;
 
-    Ok(build_prepare_adapter_bank_report(
-        &selection,
-        &effective,
-        enable_adapters,
-        disable_adapters,
-    ))
+    Ok(build_prepare_adapter_bank_report(&selection, &effective, enable_adapters, disable_adapters))
 }
 
 fn resolve_selection_with_repo_paths(
@@ -50,13 +42,7 @@ fn resolve_selection_with_repo_paths(
     let presets = load_adapter_presets(&presets_path, &bank)?;
     let bank_checksum = bijux_dna_infra::hash_file_sha256(&bank_path)?;
     let presets_checksum = bijux_dna_infra::hash_file_sha256(&presets_path)?;
-    Ok(AdapterSelection {
-        bank,
-        presets,
-        preset_name,
-        bank_checksum,
-        presets_checksum,
-    })
+    Ok(AdapterSelection { bank, presets, preset_name, bank_checksum, presets_checksum })
 }
 
 fn repository_root() -> PathBuf {

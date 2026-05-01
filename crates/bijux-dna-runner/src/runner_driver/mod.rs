@@ -24,11 +24,8 @@ impl DockerRunner {
 
 impl Runner for DockerRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
-        let result = crate::step_runner::execute_step(
-            &invocation.step,
-            RuntimeKind::Docker,
-            self.timeout,
-        )?;
+        let result =
+            crate::step_runner::execute_step(&invocation.step, RuntimeKind::Docker, self.timeout)?;
         runner_result_from_stage_result(result)
     }
 }
@@ -47,11 +44,8 @@ impl LocalRunner {
 
 impl Runner for LocalRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
-        let result = crate::step_runner::execute_step(
-            &invocation.step,
-            RuntimeKind::Local,
-            self.timeout,
-        )?;
+        let result =
+            crate::step_runner::execute_step(&invocation.step, RuntimeKind::Local, self.timeout)?;
         runner_result_from_stage_result(result)
     }
 }
@@ -72,7 +66,8 @@ impl ApptainerRunner {
 
 impl Runner for ApptainerRunner {
     fn run(&self, invocation: &Invocation) -> anyhow::Result<RunnerResult> {
-        let result = crate::step_runner::execute_step(&invocation.step, self.runtime, self.timeout)?;
+        let result =
+            crate::step_runner::execute_step(&invocation.step, self.runtime, self.timeout)?;
         runner_result_from_stage_result(result)
     }
 }

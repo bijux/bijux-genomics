@@ -141,16 +141,8 @@ mod tests {
 
         let report = concatenate_lanes(
             &[
-                LaneInput {
-                    lane_id: "L001",
-                    r1: &lane1_r1,
-                    r2: Some(&lane1_r2),
-                },
-                LaneInput {
-                    lane_id: "L002",
-                    r1: &lane2_r1,
-                    r2: Some(&lane2_r2),
-                },
+                LaneInput { lane_id: "L001", r1: &lane1_r1, r2: Some(&lane1_r2) },
+                LaneInput { lane_id: "L002", r1: &lane2_r1, r2: Some(&lane2_r2) },
             ],
             &temp.path().join("merged_R1.fastq"),
             Some(&temp.path().join("merged_R2.fastq")),

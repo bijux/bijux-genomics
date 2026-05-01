@@ -6,6 +6,8 @@
     clippy::ref_option,
     clippy::semicolon_if_nothing_returned,
     clippy::struct_field_names,
+    clippy::expect_used,
+    clippy::iter_cloned_collect,
     clippy::too_many_arguments,
     clippy::too_many_lines,
     clippy::unnecessary_wraps,

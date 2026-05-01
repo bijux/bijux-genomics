@@ -1,10 +1,9 @@
 use std::collections::BTreeMap;
 
-use anyhow::Result;
 use insta::Settings;
 
 #[test]
-fn scientific_drift_report_snapshot_stays_stable() -> Result<()> {
+fn scientific_drift_report_snapshot_stays_stable() {
     let baseline = bijux_dna_domain_fastq::ScientificDriftSnapshotV1 {
         label: "baseline".to_string(),
         stage_id: "fastq.trim_reads".to_string(),
@@ -46,5 +45,4 @@ fn scientific_drift_report_snapshot_stays_stable() -> Result<()> {
     settings.bind(|| {
         insta::assert_json_snapshot!("fastq_scientific_drift_report", report);
     });
-    Ok(())
 }

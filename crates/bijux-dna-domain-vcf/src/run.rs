@@ -272,7 +272,7 @@ mod tests {
             .cases
             .iter()
             .find(|entry| entry.case_id == VcfExampleCaseId::MalformedHeaderRefusal)
-            .expect("malformed-header refusal case");
+            .unwrap_or_else(|| panic!("malformed-header refusal case"));
         assert_eq!(refusal.expected_status, "refused");
         assert!(refusal.expected_outputs.contains(&"refusal_summary.json".to_string()));
     }

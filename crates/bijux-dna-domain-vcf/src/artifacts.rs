@@ -20,17 +20,25 @@ pub const VCF_GL_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.gl_workflow.v1";
 pub const VCF_PHASING_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.phasing.v1";
+#[cfg(test)]
 const VCF_IMPUTATION_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str =
     "bijux.vcf.calling_boundary.imputation.v1";
+#[cfg(test)]
 const VCF_COHORT_QC_WORKFLOW_SCHEMA_VERSION: &str = "bijux.vcf.cohort_qc.v1";
+#[cfg(test)]
 const VCF_PCA_ADMIXTURE_GUARDRAIL_SCHEMA_VERSION: &str = "bijux.vcf.pca_admixture.v1";
+#[cfg(test)]
 const VCF_ROH_IBD_WORKFLOW_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.roh_ibd_boundary.v1";
+#[cfg(test)]
 const VCF_DEMOGRAPHY_REFUSAL_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.demography_refusal.v1";
-const VCF_PANEL_REFERENCE_DRIFT_REPORT_SCHEMA_VERSION: &str =
-    "bijux.vcf.panel_reference_drift.v1";
+#[cfg(test)]
+const VCF_PANEL_REFERENCE_DRIFT_REPORT_SCHEMA_VERSION: &str = "bijux.vcf.panel_reference_drift.v1";
+#[cfg(test)]
 const VCF_STRUCTURAL_VARIANT_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.structural_variant.v1";
+#[cfg(test)]
 const VCF_ANNOTATION_PROVENANCE_WORKFLOW_SCHEMA_VERSION: &str =
     "bijux.vcf.annotation_provenance.v1";
+#[cfg(test)]
 const VCF_POPULATION_HANDOFF_BOUNDARY_SCHEMA_VERSION: &str = "bijux.vcf.population_handoff.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -162,6 +170,7 @@ pub struct VcfNormalizationSummaryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct VcfReferenceContextResolutionV1 {
     pub schema_version: String,
     pub stage_id: String,
@@ -251,6 +260,7 @@ pub struct VcfPhasingWorkflowBoundaryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
 #[serde(deny_unknown_fields)]
+#[allow(clippy::struct_excessive_bools)]
 struct VcfImputationWorkflowBoundaryV1 {
     pub schema_version: String,
     pub stage_id: String,
@@ -392,6 +402,7 @@ struct VcfPanelReferenceDriftReportV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+#[allow(clippy::struct_excessive_bools)]
 struct VcfStructuralVariantBoundaryV1 {
     pub schema_version: String,
     pub stage_id: String,
@@ -432,6 +443,7 @@ struct VcfAnnotationProvenanceWorkflowSummaryV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+#[allow(clippy::struct_excessive_bools)]
 struct VcfPopulationAnalysisHandoffV1 {
     pub schema_version: String,
     pub stage_id: String,
@@ -668,7 +680,7 @@ pub fn execute_vcf_validation(
         stage_id: "vcf.qc".to_string(),
         input_vcf: input_vcf.to_path_buf(),
         record_count: doc.records.len() as u64,
-        sample_count: doc.samples.len() as u32,
+        sample_count: usize_to_u32_saturating(doc.samples.len()),
         header_valid: !doc.samples.iter().any(|value| value.trim().is_empty()),
         sorted_records,
         has_index,
@@ -693,6 +705,19 @@ fn parse_gt_from_sample<'a>(format: &'a str, sample_payload: &'a str) -> Option<
 
 fn genotype_is_missing(gt: &str) -> bool {
     matches!(gt, "." | "./." | ".|." | "./" | ".|")
+}
+
+fn usize_to_u32_saturating(value: usize) -> u32 {
+    u32::try_from(value).unwrap_or(u32::MAX)
+}
+
+fn u64_ratio_saturating(numerator: u64, denominator: u64) -> f64 {
+    if denominator == 0 {
+        return 0.0;
+    }
+    let numerator = u32::try_from(numerator).unwrap_or(u32::MAX);
+    let denominator = u32::try_from(denominator).unwrap_or(u32::MAX);
+    f64::from(numerator) / f64::from(denominator)
 }
 
 /// Build a bcftools-style stats summary for tiny fixture-safe VCF records.
@@ -737,8 +762,11 @@ pub fn execute_vcf_stats_workflow(input_vcf: &Path) -> Result<VcfStatsWorkflowSu
             }
         }
     }
-    let ti_tv_ratio =
-        if transversions > 0 { Some(transitions as f64 / transversions as f64) } else { None };
+    let ti_tv_ratio = if transversions > 0 {
+        Some(u64_ratio_saturating(transitions, transversions))
+    } else {
+        None
+    };
     let per_sample_missingness = doc
         .samples
         .iter()
@@ -746,7 +774,7 @@ pub fn execute_vcf_stats_workflow(input_vcf: &Path) -> Result<VcfStatsWorkflowSu
         .map(|(index, sample)| {
             let total = total_by_sample[index];
             let missing = missing_by_sample[index];
-            let ratio = if total > 0 { missing as f64 / total as f64 } else { 0.0 };
+            let ratio = u64_ratio_saturating(missing, total);
             (sample.clone(), ratio)
         })
         .collect::<BTreeMap<_, _>>();
@@ -754,7 +782,7 @@ pub fn execute_vcf_stats_workflow(input_vcf: &Path) -> Result<VcfStatsWorkflowSu
         schema_version: VCF_STATS_WORKFLOW_SCHEMA_VERSION.to_string(),
         stage_id: "vcf.stats".to_string(),
         variant_count: doc.records.len() as u64,
-        sample_count: doc.samples.len() as u32,
+        sample_count: usize_to_u32_saturating(doc.samples.len()),
         snv_count,
         indel_count,
         ti_tv_ratio,
@@ -798,8 +826,7 @@ pub fn execute_vcf_filter_with_explainable_consequences(
                     missing_calls += 1;
                 }
             }
-            let missing_fraction =
-                if total_calls > 0 { missing_calls as f64 / total_calls as f64 } else { 0.0 };
+            let missing_fraction = u64_ratio_saturating(missing_calls, total_calls);
             if missing_fraction > max_fraction {
                 reasons.push("missingness_above_threshold".to_string());
             }
@@ -819,8 +846,7 @@ pub fn execute_vcf_filter_with_explainable_consequences(
         min_qual.map_or_else(|| "none".to_string(), |value| value.to_string()),
         max_missing_genotype_fraction.map_or_else(|| "none".to_string(), |value| value.to_string())
     );
-    let output_subset_identity =
-        format!("vcf.filter:{}:{}:{}", variants_in, retained, filter_expression);
+    let output_subset_identity = format!("vcf.filter:{variants_in}:{retained}:{filter_expression}");
     Ok(VcfFilterConsequenceV1 {
         schema_version: VCF_FILTER_CONSEQUENCE_SCHEMA_VERSION.to_string(),
         stage_id: "vcf.filter".to_string(),
@@ -914,6 +940,7 @@ pub fn execute_vcf_normalization_and_decomposition(
 ///
 /// # Errors
 /// Returns an error when the VCF cannot be parsed.
+#[allow(clippy::too_many_arguments)]
 pub fn resolve_vcf_reference_context(
     input_vcf: &Path,
     reference_build: &str,
@@ -958,7 +985,7 @@ pub fn resolve_vcf_reference_context(
         reference_build: reference_build.to_string(),
         panel_build: panel_build.to_string(),
         genetic_map_build: genetic_map_build.map(ToOwned::to_owned),
-        contigs_observed: doc.contigs.len() as u32,
+        contigs_observed: usize_to_u32_saturating(doc.contigs.len()),
         alias_mappings_used,
         fasta_present: has_fasta,
         fai_present: has_fai,
@@ -1109,7 +1136,7 @@ pub fn evaluate_pseudohaploid_calling_boundary(
     if sampling_strategy.is_none_or(str::is_empty) {
         refusal_codes.push("sampling_strategy_required".to_string());
     }
-    if !matches!(declared_ploidy, Some("haploid") | Some("pseudohaploid")) {
+    if !matches!(declared_ploidy, Some("haploid" | "pseudohaploid")) {
         refusal_codes.push("pseudohaploid_ploidy_required".to_string());
     }
     if !uncertainty_reported {
@@ -1135,6 +1162,7 @@ pub fn evaluate_pseudohaploid_calling_boundary(
 
 /// Evaluate genotype-likelihood workflow boundaries and uncertainty propagation requirements.
 #[must_use]
+#[allow(clippy::fn_params_excessive_bools)]
 pub fn evaluate_genotype_likelihood_workflow_boundary(
     has_gl_fields: bool,
     has_gp_or_pl_fields: bool,
@@ -1178,6 +1206,7 @@ pub fn evaluate_genotype_likelihood_workflow_boundary(
 
 /// Evaluate phasing workflow boundaries and sample/reference prerequisites.
 #[must_use]
+#[allow(clippy::fn_params_excessive_bools)]
 pub fn evaluate_phasing_workflow_boundary(
     has_reference_context: bool,
     has_reference_panel: bool,
@@ -1210,7 +1239,7 @@ pub fn evaluate_phasing_workflow_boundary(
     refusal_codes.dedup();
     let prerequisites_passed = refusal_codes.is_empty();
     let confidence = if prerequisites_passed {
-        (sample_count as f64 / minimum_samples.max(1) as f64).clamp(0.0, 1.0)
+        (f64::from(sample_count) / f64::from(minimum_samples.max(1))).clamp(0.0, 1.0)
     } else {
         0.0
     };
@@ -1237,6 +1266,8 @@ pub fn evaluate_phasing_workflow_boundary(
 
 /// Evaluate imputation workflow boundaries and enforce panel/map provenance identity.
 #[must_use]
+#[cfg(test)]
+#[allow(clippy::too_many_arguments)]
 fn evaluate_imputation_workflow_boundary(
     backend: &str,
     panel_id: Option<&str>,
@@ -1301,6 +1332,8 @@ fn evaluate_imputation_workflow_boundary(
 
 /// Build a cohort QC summary with explicit per-sample caveats and cohort-level readiness flags.
 #[must_use]
+#[cfg(test)]
+#[allow(clippy::too_many_arguments)]
 fn execute_cohort_qc_workflow(
     sample_missingness: &BTreeMap<String, f64>,
     sample_heterozygosity: &BTreeMap<String, f64>,
@@ -1313,7 +1346,7 @@ fn execute_cohort_qc_workflow(
     variants_after_filter: u64,
 ) -> VcfCohortQcWorkflowSummaryV1 {
     let mut refusal_codes = Vec::<String>::new();
-    let sample_count = sample_missingness.len() as u32;
+    let sample_count = usize_to_u32_saturating(sample_missingness.len());
     if sample_count < minimum_sample_count {
         refusal_codes.push("cohort_sample_count_below_minimum".to_string());
     }
@@ -1353,8 +1386,9 @@ fn execute_cohort_qc_workflow(
         });
     }
     per_sample.sort_by(|left, right| left.sample_id.cmp(&right.sample_id));
-    let relatedness_flagged_pairs =
-        related_pairs.iter().filter(|(_, _, kinship)| *kinship >= 0.0884).count() as u32;
+    let relatedness_flagged_pairs = usize_to_u32_saturating(
+        related_pairs.iter().filter(|(_, _, kinship)| *kinship >= 0.0884).count(),
+    );
     let variants_removed_by_filter = variants_in.saturating_sub(variants_after_filter);
     refusal_codes.sort();
     refusal_codes.dedup();
@@ -1384,6 +1418,7 @@ fn execute_cohort_qc_workflow(
 
 /// Evaluate guardrails for PCA/admixture analyses.
 #[must_use]
+#[cfg(test)]
 fn evaluate_pca_admixture_guardrail(
     ld_pruned: bool,
     sample_inclusion_defined: bool,
@@ -1437,6 +1472,8 @@ fn evaluate_pca_admixture_guardrail(
 
 /// Evaluate ROH/IBD workflow boundaries before running cohort-level analyses.
 #[must_use]
+#[cfg(test)]
+#[allow(clippy::too_many_arguments)]
 fn evaluate_roh_ibd_workflow_boundary(
     method: &str,
     marker_density_per_mb: f64,
@@ -1467,12 +1504,7 @@ fn evaluate_roh_ibd_workflow_boundary(
     refusal_codes.dedup();
     VcfRohIbdWorkflowBoundaryV1 {
         schema_version: VCF_ROH_IBD_WORKFLOW_BOUNDARY_SCHEMA_VERSION.to_string(),
-        stage_id: match method {
-            "roh" => "vcf.roh",
-            "ibd" => "vcf.ibd",
-            _ => "vcf.ibd",
-        }
-        .to_string(),
+        stage_id: if method == "roh" { "vcf.roh" } else { "vcf.ibd" }.to_string(),
         method: method.to_string(),
         prerequisites_passed: refusal_codes.is_empty(),
         marker_density_per_mb,
@@ -1496,6 +1528,9 @@ fn evaluate_roh_ibd_workflow_boundary(
 
 /// Evaluate demography-analysis refusal boundaries for underpowered or incompatible requests.
 #[must_use]
+#[cfg(test)]
+#[allow(clippy::too_many_arguments)]
+#[allow(clippy::fn_params_excessive_bools)]
 fn evaluate_demography_refusal_boundary(
     requested_model: &str,
     cohort_size: u32,
@@ -1558,6 +1593,7 @@ fn evaluate_demography_refusal_boundary(
 
 /// Build a panel/reference drift report with explicit invalidation of downstream artifacts.
 #[must_use]
+#[cfg(test)]
 fn build_panel_reference_drift_report(
     baseline: &VcfPanelReferenceSnapshotV1,
     candidate: &VcfPanelReferenceSnapshotV1,
@@ -1606,6 +1642,7 @@ fn build_panel_reference_drift_report(
 
 /// Evaluate structural-variant support boundaries and refuse unsafe coercion into small-variant semantics.
 #[must_use]
+#[cfg(test)]
 fn evaluate_structural_variant_support_boundary(
     has_structural_variants: bool,
     explicit_sv_mode: bool,
@@ -1654,6 +1691,7 @@ fn evaluate_structural_variant_support_boundary(
 
 /// Build annotation provenance summary with explicit source/version and field-coverage accounting.
 #[must_use]
+#[cfg(test)]
 fn execute_annotation_provenance_workflow(
     annotation_source: &str,
     annotation_version: &str,
@@ -1686,9 +1724,15 @@ fn execute_annotation_provenance_workflow(
     let covered_count = requested
         .iter()
         .filter(|field| covered.iter().any(|covered_field| covered_field == *field))
-        .count() as f64;
-    let requested_count = requested.len() as f64;
-    let field_coverage = if requested_count > 0.0 { covered_count / requested_count } else { 0.0 };
+        .count();
+    let requested_count = requested.len();
+    let field_coverage = if requested_count > 0 {
+        let covered_count_f64 = f64::from(u32::try_from(covered_count).unwrap_or(u32::MAX));
+        let requested_count_f64 = f64::from(u32::try_from(requested_count).unwrap_or(u32::MAX));
+        covered_count_f64 / requested_count_f64
+    } else {
+        0.0
+    };
     if field_coverage < minimum_field_coverage {
         refusal_codes.push("annotation_field_coverage_below_minimum".to_string());
     }
@@ -1715,6 +1759,8 @@ fn execute_annotation_provenance_workflow(
 
 /// Evaluate typed handoff boundaries from filtered/normalized VCF artifacts into population analyses.
 #[must_use]
+#[cfg(test)]
+#[allow(clippy::fn_params_excessive_bools)]
 fn evaluate_vcf_population_analysis_handoff(
     target_analysis: &str,
     filtered: bool,
@@ -1764,6 +1810,7 @@ fn evaluate_vcf_population_analysis_handoff(
 }
 
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn build_vcf_scientific_drift_report(
     baseline: &VcfScientificDriftSnapshotV1,
     candidate: &VcfScientificDriftSnapshotV1,
@@ -2187,12 +2234,12 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(ready.stage_id, "vcf.phasing");
         assert!(ready.panel_compatible);
         assert!(ready.genetic_map_compatible);
-        assert_eq!(ready.confidence, 1.0);
+        assert!((ready.confidence - 1.0).abs() < f64::EPSILON);
         assert!(ready.refusal_codes.is_empty());
 
         let refused = evaluate_phasing_workflow_boundary(false, false, false, false, 3, 12, false);
         assert!(!refused.prerequisites_passed);
-        assert_eq!(refused.confidence, 0.0);
+        assert!(refused.confidence.abs() < f64::EPSILON);
         assert!(refused.refusal_codes.contains(&"reference_context_required".to_string()));
         assert!(refused.refusal_codes.contains(&"reference_panel_required".to_string()));
         assert!(refused.refusal_codes.contains(&"genetic_map_required".to_string()));
@@ -2426,7 +2473,7 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         );
         assert!(ready.prerequisites_passed);
         assert_eq!(ready.annotation_source, "vep");
-        assert_eq!(ready.field_coverage, 1.0);
+        assert!((ready.field_coverage - 1.0).abs() < f64::EPSILON);
         assert!(ready.refusal_codes.is_empty());
 
         let refused = execute_annotation_provenance_workflow(

@@ -10,8 +10,9 @@ use std::path::Path;
 /// # Errors
 /// Returns an error if replay or inventory contracts are missing or invalid.
 pub fn replay_explain(request: &ReplayExplainRequestV1) -> Result<ReplayExplainResponseV1> {
-    let replay_layout =
-        bijux_dna_runtime::run_layout::RunLayout::from_run_dir(request.replay_run_dir.to_path_buf());
+    let replay_layout = bijux_dna_runtime::run_layout::RunLayout::from_run_dir(
+        request.replay_run_dir.to_path_buf(),
+    );
     let replay_manifest: ReplayManifestV1 = serde_json::from_slice(
         &std::fs::read(&replay_layout.replay_manifest_path)
             .with_context(|| format!("read {}", replay_layout.replay_manifest_path.display()))?,

@@ -562,7 +562,10 @@ mod architecture_report_tests {
     #[test]
     fn architecture_report_extracts_added_config_and_schema_paths() {
         let diff = "A\tconfigs/ci/example.toml\nM\tconfigs/ci/old.toml\nA\tscience/specs/data/example.json\n";
-        assert_eq!(extract_added_paths(diff, "configs/"), vec!["configs/ci/example.toml".to_string()]);
+        assert_eq!(
+            extract_added_paths(diff, "configs/"),
+            vec!["configs/ci/example.toml".to_string()]
+        );
         assert_eq!(
             extract_added_paths(diff, "science/specs/"),
             vec!["science/specs/data/example.json".to_string()]

@@ -202,6 +202,7 @@ struct PlanManifestLegacyV0 {
 
 /// Return the reviewed schema registry for workflow, plan, runtime, evidence, metric, and report surfaces.
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn governed_schema_registry() -> Vec<SchemaRegistryEntryV1> {
     vec![
         schema_entry(
@@ -379,18 +380,25 @@ pub fn governed_schema_registry() -> Vec<SchemaRegistryEntryV1> {
 
 /// Return the reviewed v1 API route adapters that bind response structs to governed model families.
 #[must_use]
+#[allow(clippy::too_many_lines)]
 pub fn governed_api_route_adapters() -> Vec<ApiRouteAdapterV1> {
     vec![
         ApiRouteAdapterV1 {
             route_id: "v1.plan".to_string(),
             response_struct: "PlanResponse".to_string(),
             reads_schema_families: vec!["workflow_manifest".to_string()],
-            writes_schema_families: vec!["workflow_manifest".to_string(), "plan_manifest".to_string()],
+            writes_schema_families: vec![
+                "workflow_manifest".to_string(),
+                "plan_manifest".to_string(),
+            ],
         },
         ApiRouteAdapterV1 {
             route_id: "v1.dry_run".to_string(),
             response_struct: "DryRunResponse".to_string(),
-            reads_schema_families: vec!["workflow_manifest".to_string(), "plan_manifest".to_string()],
+            reads_schema_families: vec![
+                "workflow_manifest".to_string(),
+                "plan_manifest".to_string(),
+            ],
             writes_schema_families: vec![
                 "run_backend".to_string(),
                 "run_scheduling_decision".to_string(),
@@ -407,7 +415,10 @@ pub fn governed_api_route_adapters() -> Vec<ApiRouteAdapterV1> {
         ApiRouteAdapterV1 {
             route_id: "v1.execute".to_string(),
             response_struct: "ExecuteResponse".to_string(),
-            reads_schema_families: vec!["workflow_manifest".to_string(), "plan_manifest".to_string()],
+            reads_schema_families: vec![
+                "workflow_manifest".to_string(),
+                "plan_manifest".to_string(),
+            ],
             writes_schema_families: vec![
                 "run_backend".to_string(),
                 "run_scheduling_decision".to_string(),
@@ -650,6 +661,7 @@ pub fn migrate_plan_manifest_value(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn schema_entry(
     schema_family: &str,
     schema_version: &str,
@@ -722,9 +734,7 @@ fn payload_sha256<T: Serialize>(value: &T) -> Result<String> {
 }
 
 fn read_schema_version(value: &serde_json::Value, schema_family: &str) -> Result<String> {
-    value
-        .get("schema_version")
-        .and_then(serde_json::Value::as_str)
-        .map(str::to_string)
-        .ok_or_else(|| BijuxError::validation(format!("{schema_family} payload missing schema_version")))
+    value.get("schema_version").and_then(serde_json::Value::as_str).map(str::to_string).ok_or_else(
+        || BijuxError::validation(format!("{schema_family} payload missing schema_version")),
+    )
 }

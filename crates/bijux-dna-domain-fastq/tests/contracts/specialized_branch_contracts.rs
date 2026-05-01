@@ -35,7 +35,7 @@ fn non_general_branch_lookup_tracks_stage_specific_assumptions() {
     let contract = bijux_dna_domain_fastq::non_general_genomics_branch_contract_for_stage(
         &StageId::from_static("fastq.infer_asvs"),
     )
-    .expect("infer_asvs contract");
+    .unwrap_or_else(|| panic!("infer_asvs contract"));
     assert_eq!(contract.governed_example_id, "fastq_edna_mini");
     assert!(contract.assay_assumptions.iter().any(|entry| entry.contains("marker-specific")));
 }

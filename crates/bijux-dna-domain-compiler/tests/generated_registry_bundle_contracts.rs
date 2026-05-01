@@ -25,7 +25,8 @@ fn generated_registry_release_bundle_is_checked_in_and_loadable() -> anyhow::Res
 #[test]
 fn generated_defaults_snapshot_carries_governance_metadata() -> anyhow::Result<()> {
     let root = support::repo_root();
-    let raw = std::fs::read_to_string(root.join("configs/ci/registry/domain_defaults_snapshot.json"))?;
+    let raw =
+        std::fs::read_to_string(root.join("configs/ci/registry/domain_defaults_snapshot.json"))?;
     let defaults: Vec<CompiledDomainDefaultsSnapshot> = serde_json::from_str(&raw)?;
     assert!(
         defaults.iter().any(|domain| {
@@ -46,13 +47,17 @@ fn generated_defaults_snapshot_carries_governance_metadata() -> anyhow::Result<(
 #[test]
 fn generated_deprecations_snapshot_tracks_known_records() -> anyhow::Result<()> {
     let root = support::repo_root();
-    let raw =
-        std::fs::read_to_string(root.join("configs/ci/registry/domain_deprecations_snapshot.json"))?;
+    let raw = std::fs::read_to_string(
+        root.join("configs/ci/registry/domain_deprecations_snapshot.json"),
+    )?;
     let deprecations: Vec<DomainDeprecationCatalog> = serde_json::from_str(&raw)?;
     assert!(
         deprecations.iter().any(|domain| {
             domain.domain_id == "bam"
-                && domain.deprecations.iter().any(|entry| entry.tool_id.as_deref() == Some("bamtools"))
+                && domain
+                    .deprecations
+                    .iter()
+                    .any(|entry| entry.tool_id.as_deref() == Some("bamtools"))
         }),
         "checked-in deprecations snapshot must preserve known BAM deprecation records"
     );
@@ -62,15 +67,15 @@ fn generated_deprecations_snapshot_tracks_known_records() -> anyhow::Result<()> 
 #[test]
 fn generated_invariant_catalogs_publish_stage_invariants() -> anyhow::Result<()> {
     let root = support::repo_root();
-    let raw = std::fs::read_to_string(root.join("configs/ci/registry/domain_invariant_catalogs.json"))?;
+    let raw =
+        std::fs::read_to_string(root.join("configs/ci/registry/domain_invariant_catalogs.json"))?;
     let invariants: Vec<DomainInvariantCatalog> = serde_json::from_str(&raw)?;
     assert!(
         invariants.iter().any(|domain| {
             domain.domain_id == "fastq"
-                && domain
-                    .stage_invariants
-                    .get("fastq.trim_reads")
-                    .is_some_and(|entries| entries.iter().any(|entry| entry == "stable_artifact_contract"))
+                && domain.stage_invariants.get("fastq.trim_reads").is_some_and(|entries| {
+                    entries.iter().any(|entry| entry == "stable_artifact_contract")
+                })
         }),
         "checked-in invariant catalogs must preserve FASTQ stage invariant suites"
     );
@@ -80,7 +85,8 @@ fn generated_invariant_catalogs_publish_stage_invariants() -> anyhow::Result<()>
 #[test]
 fn generated_evidence_contracts_publish_defaults_sources() -> anyhow::Result<()> {
     let root = support::repo_root();
-    let raw = std::fs::read_to_string(root.join("configs/ci/registry/domain_evidence_contracts.json"))?;
+    let raw =
+        std::fs::read_to_string(root.join("configs/ci/registry/domain_evidence_contracts.json"))?;
     let evidence: Vec<DomainEvidenceCatalog> = serde_json::from_str(&raw)?;
     assert!(
         evidence.iter().any(|domain| {

@@ -32,8 +32,9 @@ pub(super) fn validate_stage_files(
         let artifact_ids = artifact_vocab
             .get(dom)
             .ok_or_else(|| anyhow!("missing artifact vocab for domain {dom}"))?;
-        let metric_ids =
-            metric_vocab.get(dom).ok_or_else(|| anyhow!("missing metric vocab for domain {dom}"))?;
+        let metric_ids = metric_vocab
+            .get(dom)
+            .ok_or_else(|| anyhow!("missing metric vocab for domain {dom}"))?;
         if stage.inputs.is_empty() {
             bail!("{} missing inputs", path.display());
         }
@@ -108,11 +109,7 @@ pub(super) fn validate_stage_files(
         ]);
         for hook in &stage.bank_hooks {
             if !allowed_bank_hooks.contains(hook.as_str()) {
-                bail!(
-                    "{} bank_hook `{}` is outside the allowed vocabulary",
-                    path.display(),
-                    hook
-                );
+                bail!("{} bank_hook `{}` is outside the allowed vocabulary", path.display(), hook);
             }
         }
         let input_names =

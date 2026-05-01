@@ -5,9 +5,8 @@ use bijux_dna_core::contract::{
     build_plan_manifest, diff_plan_manifests, validate_cross_domain_handoffs, ArtifactRef,
     ArtifactRole, ExecutionEdge, ExecutionGraph, ExecutionStep, ParameterResolutionTraceV1,
     PlanManifestBuildInputV1, PlanPolicy, PlannerParameterSourceV1, PlannerRefusalCodeV1,
-    PlannerRefusalRecordV1, PlannerWarningCodeV1, PlannerWarningRecordV1, StageIO,
-    ToolConstraints, WorkflowInputArtifactV1, WorkflowManifestV1, WorkflowReferenceAssetV1,
-    WorkflowStageRequestV1,
+    PlannerRefusalRecordV1, PlannerWarningCodeV1, PlannerWarningRecordV1, StageIO, ToolConstraints,
+    WorkflowInputArtifactV1, WorkflowManifestV1, WorkflowReferenceAssetV1, WorkflowStageRequestV1,
 };
 use bijux_dna_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1, StageId, StepId};
 
@@ -73,10 +72,7 @@ fn fastq_workflow_manifest() -> WorkflowManifestV1 {
             stage_id: "fastq.validate_reads".to_string(),
             advisory_only: false,
         },
-        WorkflowStageRequestV1 {
-            stage_id: "fastq.trim_reads".to_string(),
-            advisory_only: true,
-        },
+        WorkflowStageRequestV1 { stage_id: "fastq.trim_reads".to_string(), advisory_only: true },
     ];
     manifest.notes = Some("operator note".to_string());
     manifest.labels.insert("ticket".to_string(), "ABC-123".to_string());
@@ -99,10 +95,18 @@ fn workflow_manifest_fingerprint_ignores_authoring_noise() -> anyhow::Result<()>
 
 #[test]
 fn build_plan_manifest_is_deterministic_for_shuffled_graph_inputs() -> anyhow::Result<()> {
-    let step_a =
-        mk_step("fastq.validate_reads", "fastq.validate_reads", ArtifactRole::Reads, ArtifactRole::Reads);
-    let step_b =
-        mk_step("fastq.trim_reads", "fastq.trim_reads", ArtifactRole::Reads, ArtifactRole::TrimmedReads);
+    let step_a = mk_step(
+        "fastq.validate_reads",
+        "fastq.validate_reads",
+        ArtifactRole::Reads,
+        ArtifactRole::Reads,
+    );
+    let step_b = mk_step(
+        "fastq.trim_reads",
+        "fastq.trim_reads",
+        ArtifactRole::Reads,
+        ArtifactRole::TrimmedReads,
+    );
     let edges = vec![ExecutionEdge::new(
         StepId::from_static("fastq.validate_reads"),
         StepId::from_static("fastq.trim_reads"),
@@ -185,6 +189,7 @@ fn build_plan_manifest_is_deterministic_for_shuffled_graph_inputs() -> anyhow::R
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn build_plan_manifest_ignores_temp_root_path_noise() -> anyhow::Result<()> {
     let temp_a = tempfile::tempdir()?;
     let temp_b = tempfile::tempdir()?;
@@ -328,10 +333,18 @@ fn build_plan_manifest_ignores_temp_root_path_noise() -> anyhow::Result<()> {
 
 #[test]
 fn plan_manifest_diff_is_semantic_and_ignores_notes() -> anyhow::Result<()> {
-    let step_a =
-        mk_step("fastq.validate_reads", "fastq.validate_reads", ArtifactRole::Reads, ArtifactRole::Reads);
-    let step_b =
-        mk_step("fastq.trim_reads", "fastq.trim_reads", ArtifactRole::Reads, ArtifactRole::TrimmedReads);
+    let step_a = mk_step(
+        "fastq.validate_reads",
+        "fastq.validate_reads",
+        ArtifactRole::Reads,
+        ArtifactRole::Reads,
+    );
+    let step_b = mk_step(
+        "fastq.trim_reads",
+        "fastq.trim_reads",
+        ArtifactRole::Reads,
+        ArtifactRole::TrimmedReads,
+    );
     let graph = ExecutionGraph::new(
         "fastq-to-fastq__default__v1",
         "planner-fastq",
@@ -393,7 +406,12 @@ fn cross_domain_handoffs_require_typed_role_families() -> anyhow::Result<()> {
         "planner-cross",
         PlanPolicy::PreferAccuracy,
         vec![
-            mk_step("fastq.trim_reads", "fastq.trim_reads", ArtifactRole::Reads, ArtifactRole::Reads),
+            mk_step(
+                "fastq.trim_reads",
+                "fastq.trim_reads",
+                ArtifactRole::Reads,
+                ArtifactRole::Reads,
+            ),
             mk_step("bam.align", "bam.align", ArtifactRole::Reads, ArtifactRole::Bam),
             mk_step("vcf.call", "vcf.call", ArtifactRole::Bam, ArtifactRole::Variant),
         ],
@@ -402,10 +420,7 @@ fn cross_domain_handoffs_require_typed_role_families() -> anyhow::Result<()> {
                 StepId::from_static("fastq.trim_reads"),
                 StepId::from_static("bam.align"),
             ),
-            ExecutionEdge::new(
-                StepId::from_static("bam.align"),
-                StepId::from_static("vcf.call"),
-            ),
+            ExecutionEdge::new(StepId::from_static("bam.align"), StepId::from_static("vcf.call")),
         ],
     )?;
 
@@ -415,11 +430,7 @@ fn cross_domain_handoffs_require_typed_role_families() -> anyhow::Result<()> {
     let families = handoffs
         .iter()
         .map(|handoff| {
-            (
-                handoff.from_stage_id.as_str(),
-                handoff.to_stage_id.as_str(),
-                handoff.artifact_family,
-            )
+            (handoff.from_stage_id.as_str(), handoff.to_stage_id.as_str(), handoff.artifact_family)
         })
         .collect::<Vec<_>>();
     assert!(families.contains(&(

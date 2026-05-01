@@ -1,9 +1,9 @@
 use bijux_dna_db_ref::{resolve_coverage_profile, resolve_reference_bundle};
 use bijux_dna_domain_vcf::contracts::{
-    stage_artifact_class_contract, vcf_calling_mode_contracts, vcf_panel_boundary_contracts,
+    stage_artifact_class_contract, vcf_calling_mode_contracts,
     vcf_cohort_analysis_boundary_contracts, vcf_likelihood_workflow_contracts,
-    vcf_phasing_imputation_boundary_contracts, vcf_population_guardrail_contracts,
-    VCF_COHORT_VALIDATION_CONTRACT, VCF_DAMAGE_FILTER_CONTRACT,
+    vcf_panel_boundary_contracts, vcf_phasing_imputation_boundary_contracts,
+    vcf_population_guardrail_contracts, VCF_COHORT_VALIDATION_CONTRACT, VCF_DAMAGE_FILTER_CONTRACT,
     VCF_NORMALIZATION_POLICY_MATRIX_CONTRACT, VCF_PRODUCTION_CORPUS_CONTRACT,
     VCF_REPORT_COVERAGE_CONTRACT, VCF_SCIENTIFIC_DRIFT_CONTRACT,
 };
@@ -52,8 +52,9 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
     let stages = plans
         .iter()
         .map(|plan| {
-            let stage = bijux_dna_domain_vcf::VcfDomainStage::try_from(plan.stage_id.to_string().as_str())
-                .ok();
+            let stage =
+                bijux_dna_domain_vcf::VcfDomainStage::try_from(plan.stage_id.to_string().as_str())
+                    .ok();
             let artifact_classes = stage
                 .map(stage_artifact_class_contract)
                 .map(|contract| contract.artifact_classes.iter().copied().collect::<Vec<_>>())
@@ -105,27 +106,37 @@ pub fn explain_vcf_plan(inputs: &VcfPipelineInputs, plans: &[StagePlanV1]) -> Pl
     let panel_boundary_contracts = vcf_panel_boundary_contracts()
         .iter()
         .copied()
-        .filter(|contract| planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str()))
+        .filter(|contract| {
+            planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str())
+        })
         .collect::<Vec<_>>();
     let phasing_imputation_boundary_contracts = vcf_phasing_imputation_boundary_contracts()
         .iter()
         .copied()
-        .filter(|contract| planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str()))
+        .filter(|contract| {
+            planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str())
+        })
         .collect::<Vec<_>>();
     let population_guardrail_contracts = vcf_population_guardrail_contracts()
         .iter()
         .copied()
-        .filter(|contract| planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str()))
+        .filter(|contract| {
+            planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str())
+        })
         .collect::<Vec<_>>();
     let cohort_analysis_boundary_contracts = vcf_cohort_analysis_boundary_contracts()
         .iter()
         .copied()
-        .filter(|contract| planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str()))
+        .filter(|contract| {
+            planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str())
+        })
         .collect::<Vec<_>>();
     let likelihood_workflow_contracts = vcf_likelihood_workflow_contracts()
         .iter()
         .copied()
-        .filter(|contract| planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str()))
+        .filter(|contract| {
+            planned_stage_ids.iter().any(|stage_id| *stage_id == contract.stage.as_str())
+        })
         .collect::<Vec<_>>();
     let panel_required = !panel_boundary_contracts.is_empty();
     PlannerExplainV1 {

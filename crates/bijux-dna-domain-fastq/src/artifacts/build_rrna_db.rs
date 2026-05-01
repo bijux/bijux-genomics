@@ -1,8 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub const BUILD_RRNA_DB_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.build_rrna_db.report.v1";
+pub const BUILD_RRNA_DB_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.build_rrna_db.report.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]

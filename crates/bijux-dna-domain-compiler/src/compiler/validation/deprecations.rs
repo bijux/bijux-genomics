@@ -29,7 +29,8 @@ pub(super) fn validate_deprecations_contract(
 ) -> Result<()> {
     let path = workspace_root.join("configs/ci/registry/deprecations.toml");
     let raw = std::fs::read_to_string(&path)?;
-    let parsed: DeprecationsDoc = toml::from_str(&raw).map_err(|err| anyhow!("parse {}: {err}", path.display()))?;
+    let parsed: DeprecationsDoc =
+        toml::from_str(&raw).map_err(|err| anyhow!("parse {}: {err}", path.display()))?;
     for entry in parsed.deprecations {
         if entry.stage.as_deref().is_none_or(str::is_empty)
             && entry.tool_id.as_deref().is_none_or(str::is_empty)

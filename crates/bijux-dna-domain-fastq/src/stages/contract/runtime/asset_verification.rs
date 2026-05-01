@@ -83,18 +83,15 @@ pub fn verify_assets(asset_locks: &[&Path]) -> Result<VerifyAssetsReportV1> {
 
     entries.sort_by(|left, right| left.lock_path.cmp(&right.lock_path));
 
-    let verified_asset_count = entries
-        .iter()
-        .filter(|entry| entry.status == AssetVerificationStatusV1::Verified)
-        .count() as u64;
-    let missing_asset_count = entries
-        .iter()
-        .filter(|entry| entry.status == AssetVerificationStatusV1::Missing)
-        .count() as u64;
-    let mismatched_asset_count = entries
-        .iter()
-        .filter(|entry| entry.status == AssetVerificationStatusV1::Mismatch)
-        .count() as u64;
+    let verified_asset_count =
+        entries.iter().filter(|entry| entry.status == AssetVerificationStatusV1::Verified).count()
+            as u64;
+    let missing_asset_count =
+        entries.iter().filter(|entry| entry.status == AssetVerificationStatusV1::Missing).count()
+            as u64;
+    let mismatched_asset_count =
+        entries.iter().filter(|entry| entry.status == AssetVerificationStatusV1::Mismatch).count()
+            as u64;
     let invalid_lock_count = entries
         .iter()
         .filter(|entry| entry.status == AssetVerificationStatusV1::InvalidLock)

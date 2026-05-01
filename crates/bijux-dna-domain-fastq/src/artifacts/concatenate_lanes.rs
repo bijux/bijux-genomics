@@ -1,8 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub const CONCATENATE_LANES_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.concatenate_lanes.report.v1";
+pub const CONCATENATE_LANES_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.concatenate_lanes.report.v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -35,8 +34,7 @@ pub struct ConcatenateLanesReportV1 {
 #[cfg(test)]
 mod tests {
     use super::{
-        ConcatenateLaneSummaryV1, ConcatenateLanesReportV1,
-        CONCATENATE_LANES_REPORT_SCHEMA_VERSION,
+        ConcatenateLaneSummaryV1, ConcatenateLanesReportV1, CONCATENATE_LANES_REPORT_SCHEMA_VERSION,
     };
 
     #[test]

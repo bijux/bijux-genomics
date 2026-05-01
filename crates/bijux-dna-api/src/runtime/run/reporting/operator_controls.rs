@@ -4,8 +4,7 @@ use crate::request_args::{OperatorHealthResponse, RunControlResponse};
 use anyhow::{anyhow, Context};
 use bijux_dna_environment::api::RuntimeKind;
 use bijux_dna_runtime::run_layout::{
-    ExecutorDescriptorV1, RunControlActionV1, RunControlStateV1, RunExecutorDescriptorV1,
-    RunLayout,
+    ExecutorDescriptorV1, RunControlActionV1, RunControlStateV1, RunExecutorDescriptorV1, RunLayout,
 };
 use std::path::Path;
 
@@ -35,10 +34,7 @@ pub fn operator_health(run_dir: &Path) -> Result<OperatorHealthResponse> {
     let runner = infer_runtime_kind(&layout)?;
     let report = build_health_report(&layout, &run_id, runner);
     bijux_dna_runtime::run_layout::write_health_report(&layout, &report)?;
-    Ok(OperatorHealthResponse {
-        health_report_path: layout.health_report_path,
-        report,
-    })
+    Ok(OperatorHealthResponse { health_report_path: layout.health_report_path, report })
 }
 
 fn set_run_control(
@@ -69,12 +65,7 @@ fn infer_run_id(layout: &RunLayout) -> String {
                 .map(|state| state.run_id)
         })
         .unwrap_or_else(|| {
-            layout
-                .run_dir
-                .file_name()
-                .and_then(|value| value.to_str())
-                .unwrap_or("run")
-                .to_string()
+            layout.run_dir.file_name().and_then(|value| value.to_str()).unwrap_or("run").to_string()
         })
 }
 
@@ -94,9 +85,7 @@ fn infer_runtime_kind(layout: &RunLayout) -> Result<RuntimeKind> {
             "singularity" => Ok(RuntimeKind::Singularity),
             other => Err(anyhow!("unsupported runtime descriptor `{other}`")),
         },
-        ExecutorDescriptorV1::Hpc {
-            container_runtime, ..
-        } => match container_runtime.as_deref() {
+        ExecutorDescriptorV1::Hpc { container_runtime, .. } => match container_runtime.as_deref() {
             Some("apptainer") => Ok(RuntimeKind::Apptainer),
             Some("singularity") => Ok(RuntimeKind::Singularity),
             Some("docker") => Ok(RuntimeKind::Docker),

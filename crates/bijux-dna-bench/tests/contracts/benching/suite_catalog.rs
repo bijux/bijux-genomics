@@ -3,8 +3,8 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use bijux_dna_bench_model::{
-    contract::validate_suite, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkSuiteSpec, CorpusDomain,
-    CorpusScale,
+    contract::validate_suite, BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkSuiteSpec,
+    CorpusDomain, CorpusScale,
 };
 use bijux_dna_domain_fastq::execution_support::{
     benchmark_cohort_stage_ids, execution_support_for_stage,
@@ -260,10 +260,9 @@ fn checked_in_fastq_suite_catalog_exercises_full_trim_branch_join() -> Result<()
 #[test]
 fn checked_in_corpus_catalog_contains_fastq_ci_small_case_matrix() -> Result<()> {
     let corpora = checked_in_corpora()?;
-    let Some(fastq_ci_small) = corpora
-        .iter()
-        .find(|corpus| corpus.domain == CorpusDomain::Fastq && corpus.scale == CorpusScale::CiSmall)
-    else {
+    let Some(fastq_ci_small) = corpora.iter().find(|corpus| {
+        corpus.domain == CorpusDomain::Fastq && corpus.scale == CorpusScale::CiSmall
+    }) else {
         anyhow::bail!("checked-in corpus catalog must include a fastq ci-small manifest");
     };
 
@@ -272,7 +271,16 @@ fn checked_in_corpus_catalog_contains_fastq_ci_small_case_matrix() -> Result<()>
         .iter()
         .flat_map(|dataset| dataset.case_tags.iter().map(String::as_str))
         .collect::<std::collections::BTreeSet<_>>();
-    for required in ["valid", "truncated", "adapter-heavy", "low-complexity", "umi", "contaminant", "sparse", "empty"] {
+    for required in [
+        "valid",
+        "truncated",
+        "adapter-heavy",
+        "low-complexity",
+        "umi",
+        "contaminant",
+        "sparse",
+        "empty",
+    ] {
         assert!(
             tags.contains(required),
             "fastq ci-small corpus must cover required case tag {required}"
@@ -371,10 +379,9 @@ fn checked_in_corpus_catalog_contains_fastq_local_medium_stress_matrix() -> Resu
 #[test]
 fn checked_in_corpus_catalog_contains_bam_local_medium_stress_matrix() -> Result<()> {
     let corpora = checked_in_corpora()?;
-    let Some(bam_local_medium) = corpora
-        .iter()
-        .find(|corpus| corpus.domain == CorpusDomain::Bam && corpus.scale == CorpusScale::LocalMedium)
-    else {
+    let Some(bam_local_medium) = corpora.iter().find(|corpus| {
+        corpus.domain == CorpusDomain::Bam && corpus.scale == CorpusScale::LocalMedium
+    }) else {
         anyhow::bail!("checked-in corpus catalog must include a bam local-medium manifest");
     };
 
@@ -395,10 +402,9 @@ fn checked_in_corpus_catalog_contains_bam_local_medium_stress_matrix() -> Result
 #[test]
 fn checked_in_corpus_catalog_contains_vcf_local_medium_stress_matrix() -> Result<()> {
     let corpora = checked_in_corpora()?;
-    let Some(vcf_local_medium) = corpora
-        .iter()
-        .find(|corpus| corpus.domain == CorpusDomain::Vcf && corpus.scale == CorpusScale::LocalMedium)
-    else {
+    let Some(vcf_local_medium) = corpora.iter().find(|corpus| {
+        corpus.domain == CorpusDomain::Vcf && corpus.scale == CorpusScale::LocalMedium
+    }) else {
         anyhow::bail!("checked-in corpus catalog must include a vcf local-medium manifest");
     };
 
@@ -443,11 +449,7 @@ fn checked_in_corpus_catalog_labels_truth_set_presence_and_absence() -> Result<(
                 bijux_dna_bench::TruthSetStatus::Unavailable => {
                     has_unavailable_truth = true;
                     assert!(
-                        dataset
-                            .truth_set
-                            .note
-                            .to_ascii_lowercase()
-                            .contains("no truth set"),
+                        dataset.truth_set.note.to_ascii_lowercase().contains("no truth set"),
                         "unavailable truth_set note must state absence for {}",
                         dataset.dataset_id
                     );
@@ -457,7 +459,10 @@ fn checked_in_corpus_catalog_labels_truth_set_presence_and_absence() -> Result<(
     }
 
     assert!(has_available_truth, "corpus catalog must include at least one available truth set");
-    assert!(has_unavailable_truth, "corpus catalog must include at least one unavailable truth set");
+    assert!(
+        has_unavailable_truth,
+        "corpus catalog must include at least one unavailable truth set"
+    );
     Ok(())
 }
 

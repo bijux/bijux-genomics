@@ -12,15 +12,15 @@ struct StageSchemaDoc {
     domain: String,
 }
 
-pub(super) fn validate_stage_schema_contracts(
-    options: &ValidateOptions,
-    dom: &str,
-) -> Result<()> {
+pub(super) fn validate_stage_schema_contracts(options: &ValidateOptions, dom: &str) -> Result<()> {
     let schema_path = options.domain_dir.join(dom).join("stages").join("_schema.yaml");
     let schema: StageSchemaDoc = read_yaml(&schema_path)?;
     let stages_dir = options.domain_dir.join(dom).join("stages");
     for path in collect_yaml_files(&stages_dir)? {
-        if path.file_name().and_then(|value| value.to_str()).is_some_and(|name| name.starts_with('_'))
+        if path
+            .file_name()
+            .and_then(|value| value.to_str())
+            .is_some_and(|name| name.starts_with('_'))
         {
             continue;
         }
@@ -35,8 +35,8 @@ fn validate_single_stage_schema(
     path: &std::path::Path,
 ) -> Result<()> {
     let raw = std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let value: serde_yaml::Value =
-        bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))?;
+    let value: serde_yaml::Value = bijux_dna_infra::formats::parse_yaml(&raw)
+        .with_context(|| format!("parse {}", path.display()))?;
     let mapping = value
         .as_mapping()
         .ok_or_else(|| anyhow!("{} must deserialize to a YAML mapping", path.display()))?;
@@ -112,7 +112,8 @@ fn validate_single_stage_schema(
             path.display()
         );
     }
-    if !mapping.contains_key(serde_yaml::Value::String("tool_capability_requirements".to_string())) {
+    if !mapping.contains_key(serde_yaml::Value::String("tool_capability_requirements".to_string()))
+    {
         bail!(
             "{} missing tool_capability_requirements; strict stage schemas require backend capability declarations",
             path.display()
@@ -122,18 +123,18 @@ fn validate_single_stage_schema(
     Ok(())
 }
 
-fn validate_ports(
-    path: &std::path::Path,
-    mapping: &serde_yaml::Mapping,
-    key: &str,
-) -> Result<()> {
+fn validate_ports(path: &std::path::Path, mapping: &serde_yaml::Mapping, key: &str) -> Result<()> {
     let ports = mapping
         .get(serde_yaml::Value::String(key.to_string()))
         .and_then(serde_yaml::Value::as_sequence)
         .ok_or_else(|| anyhow!("{} field `{}` must be a YAML sequence", path.display(), key))?;
     for (index, port) in ports.iter().enumerate() {
         let Some(port_map) = port.as_mapping() else {
-            bail!("{} {}[{index}] must be a mapping with role/type/cardinality", path.display(), key);
+            bail!(
+                "{} {}[{index}] must be a mapping with role/type/cardinality",
+                path.display(),
+                key
+            );
         };
         for field in ["name", "data_type", "cardinality"] {
             let value = port_map
@@ -141,12 +142,7 @@ fn validate_ports(
                 .and_then(serde_yaml::Value::as_str)
                 .unwrap_or_default();
             if value.trim().is_empty() {
-                bail!(
-                    "{} {}[{index}] missing {} role metadata",
-                    path.display(),
-                    key,
-                    field
-                );
+                bail!("{} {}[{index}] missing {} role metadata", path.display(), key, field);
             }
         }
     }

@@ -274,7 +274,6 @@ pub struct CrossWorkflowExecutionPlanV1 {
     pub caveats: Vec<String>,
 }
 
-#[must_use]
 pub fn parse_sample_sheet(template_id: &str, input: &str) -> Result<SampleSheetV1> {
     let lines = input
         .lines()
@@ -1007,7 +1006,7 @@ pub fn validate_cross_domain_handoff(
         notes.push("handoff cannot proceed with unknown artifact role".to_string());
     }
     let trust = handoff.trust_class.to_ascii_lowercase();
-    if trust == "simulated" && handoff.target_domain.to_ascii_lowercase() != "advisory" {
+    if trust == "simulated" && !handoff.target_domain.eq_ignore_ascii_case("advisory") {
         refusal_codes.push("simulated_artifact_not_allowed".to_string());
         notes.push("simulated artifacts may only cross into advisory surfaces".to_string());
     }

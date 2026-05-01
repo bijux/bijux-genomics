@@ -1,8 +1,8 @@
 use super::Result;
-use anyhow::{Context, Result as AnyhowResult};
 use crate::request_args::{
     CacheExplainRequestV1, CacheExplainResponseV1, CacheKeyFingerprintV1, CacheMissReasonV1,
 };
+use anyhow::{Context, Result as AnyhowResult};
 use bijux_dna_runtime::run_layout::ArtifactInventoryV1;
 use std::path::Path;
 
@@ -64,8 +64,9 @@ fn fingerprint(run_dir: &Path) -> AnyhowResult<CacheKeyFingerprintV1> {
     let layout = bijux_dna_runtime::run_layout::RunLayout::from_run_dir(run_dir.to_path_buf());
     let manifest: serde_json::Value =
         serde_json::from_slice(&std::fs::read(&layout.manifest_path)?).context("parse manifest")?;
-    let inventory: ArtifactInventoryV1 = serde_json::from_slice(&std::fs::read(&layout.artifact_inventory_path)?)
-        .context("parse artifact inventory")?;
+    let inventory: ArtifactInventoryV1 =
+        serde_json::from_slice(&std::fs::read(&layout.artifact_inventory_path)?)
+            .context("parse artifact inventory")?;
     let reference_hash = inventory
         .artifacts
         .iter()
@@ -89,13 +90,12 @@ fn fingerprint(run_dir: &Path) -> AnyhowResult<CacheKeyFingerprintV1> {
         backend_sha256: bijux_dna_infra::hash_file_sha256(&layout.backend_descriptor_path)?,
         runtime_policy_sha256: bijux_dna_infra::hash_file_sha256(&layout.runtime_policy_path)?,
         environment_sha256: bijux_dna_infra::hash_file_sha256(&layout.environment_path)?,
-        artifact_inventory_sha256: bijux_dna_infra::hash_file_sha256(&layout.artifact_inventory_path)?,
+        artifact_inventory_sha256: bijux_dna_infra::hash_file_sha256(
+            &layout.artifact_inventory_path,
+        )?,
     })
 }
 
 fn reason(reason_code: &str, message: &str) -> CacheMissReasonV1 {
-    CacheMissReasonV1 {
-        reason_code: reason_code.to_string(),
-        message: message.to_string(),
-    }
+    CacheMissReasonV1 { reason_code: reason_code.to_string(), message: message.to_string() }
 }
