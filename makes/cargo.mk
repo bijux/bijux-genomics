@@ -101,6 +101,7 @@ _lint-automation:
 	@$(ensure_artifact_env)
 	@$(MAKE) _dev-dna-bin >/dev/null
 	$(DEV_DNA_BIN) tooling run repo-doctor --fast
+	$(DEV_DNA_BIN) domain run lock-registry
 	@rm -rf "$(ARTIFACTS_DIR)/lint-parallel"
 	@mkdir -p "$(ARTIFACTS_DIR)/lint-parallel"
 	@cp "$(LINT_PARALLEL_COMMANDS_FILE)" "$(ARTIFACTS_DIR)/lint-parallel/commands.txt"
