@@ -1,4 +1,12 @@
-#![allow(clippy::duplicate_mod)]
+#![allow(
+    clippy::duplicate_mod,
+    clippy::expect_used,
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc,
+    clippy::question_mark,
+    clippy::uninlined_format_args,
+    clippy::unwrap_used
+)]
 // Auto-generated test aggregator for contracts
 #[path = "contracts/data/contract_handshake.rs"]
 mod mod_contracts_data_contract_handshake_rs;
@@ -32,8 +40,6 @@ mod mod_contracts_tooling_apptainer_vm_output_policy_rs;
 mod mod_contracts_tooling_architecture_invariants_suite_rs;
 #[path = "contracts/tooling/governance_core/architecture_reference_policy.rs"]
 mod mod_contracts_tooling_architecture_reference_policy_rs;
-#[path = "contracts/tooling/governance_core/crate_responsibility_matrix_policy.rs"]
-mod mod_contracts_tooling_crate_responsibility_matrix_policy_rs;
 #[path = "contracts/tooling/assets/artifacts_policy.rs"]
 mod mod_contracts_tooling_artifacts_policy_rs;
 #[path = "contracts/tooling/assets/fastq_asset_hydration_policy.rs"]
@@ -50,16 +56,14 @@ mod mod_contracts_tooling_bank_loader_ownership_policy_rs;
 mod mod_contracts_tooling_bench_layout_policy_rs;
 #[path = "contracts/tooling/governance_examples/benchmark_suite_support_policy.rs"]
 mod mod_contracts_tooling_benchmark_suite_support_policy_rs;
-#[path = "contracts/tooling/governance_examples/canonical_examples_policy.rs"]
-mod mod_contracts_tooling_canonical_examples_policy_rs;
-#[path = "contracts/tooling/governance_config/backlog_metadata_policy.rs"]
-mod mod_contracts_tooling_backlog_metadata_policy_rs;
 #[path = "contracts/tooling/governance_core/binding_decision_record_policy.rs"]
 mod mod_contracts_tooling_binding_decision_record_policy_rs;
-#[path = "contracts/tooling/governance_core/cargo_metadata_snapshot_policy.rs"]
-mod mod_contracts_tooling_cargo_metadata_snapshot_policy_rs;
 #[path = "contracts/tooling/docs/boundary_docs_policy.rs"]
 mod mod_contracts_tooling_boundary_docs_policy_rs;
+#[path = "contracts/tooling/governance_examples/canonical_examples_policy.rs"]
+mod mod_contracts_tooling_canonical_examples_policy_rs;
+#[path = "contracts/tooling/governance_core/cargo_metadata_snapshot_policy.rs"]
+mod mod_contracts_tooling_cargo_metadata_snapshot_policy_rs;
 #[path = "contracts/tooling/governance_config/ci_no_stage_tool_defs_policy.rs"]
 mod mod_contracts_tooling_ci_no_stage_tool_defs_policy_rs;
 #[path = "contracts/tooling/governance_config/ci_tools_policy.rs"]
@@ -76,6 +80,8 @@ mod mod_contracts_tooling_cli_runtime_dependency_policy_rs;
 mod mod_contracts_tooling_cli_sql_policy_rs;
 #[path = "contracts/tooling/governance_core/command_spawn_policy.rs"]
 mod mod_contracts_tooling_command_spawn_policy_rs;
+#[path = "contracts/tooling/docs/compatibility_reference_policy.rs"]
+mod mod_contracts_tooling_compatibility_reference_policy_rs;
 #[path = "contracts/tooling/governance_config/configs_layout_policy.rs"]
 mod mod_contracts_tooling_configs_layout_policy_rs;
 #[path = "contracts/tooling/container/container_label_policy.rs"]
@@ -96,6 +102,8 @@ mod mod_contracts_tooling_container_versions_policy_rs;
 mod mod_contracts_tooling_contract_authority_policy_rs;
 #[path = "contracts/tooling/governance_core/contract_index_policy.rs"]
 mod mod_contracts_tooling_contract_index_policy_rs;
+#[path = "contracts/tooling/governance_core/crate_responsibility_matrix_policy.rs"]
+mod mod_contracts_tooling_crate_responsibility_matrix_policy_rs;
 #[path = "contracts/tooling/governance/default_profile_binding_policy.rs"]
 mod mod_contracts_tooling_default_profile_binding_policy_rs;
 #[path = "contracts/tooling/docs/docs_links.rs"]
@@ -106,24 +114,16 @@ mod mod_contracts_tooling_domain_catalog_symmetry_policy_rs;
 mod mod_contracts_tooling_domain_truth_fixture_policy_rs;
 #[path = "contracts/tooling/governance_core/error_boundary_policy.rs"]
 mod mod_contracts_tooling_error_boundary_policy_rs;
-#[path = "contracts/tooling/governance_core/genomics_pr_template_policy.rs"]
-mod mod_contracts_tooling_genomics_pr_template_policy_rs;
 #[path = "contracts/tooling/governance_examples/examples_cli_command_policy.rs"]
 mod mod_contracts_tooling_examples_cli_command_policy_rs;
 #[path = "contracts/tooling/governance_examples/examples_golden_hygiene_policy.rs"]
 mod mod_contracts_tooling_examples_golden_hygiene_policy_rs;
-#[path = "contracts/tooling/governance_examples/refusal_bundle_policy.rs"]
-mod mod_contracts_tooling_refusal_bundle_policy_rs;
 #[path = "contracts/tooling/governance_core/fixture_privacy_policy.rs"]
 mod mod_contracts_tooling_fixture_privacy_policy_rs;
-#[path = "contracts/tooling/governance_core/policy_layer_split_policy.rs"]
-mod mod_contracts_tooling_policy_layer_split_policy_rs;
-#[path = "contracts/tooling/governance_core/public_api_stability_tiers_policy.rs"]
-mod mod_contracts_tooling_public_api_stability_tiers_policy_rs;
-#[path = "contracts/tooling/governance_core/workflow_truth_boundary_policy.rs"]
-mod mod_contracts_tooling_workflow_truth_boundary_policy_rs;
 #[path = "contracts/tooling/governance_quality/generated_configs_policy.rs"]
 mod mod_contracts_tooling_generated_configs_policy_rs;
+#[path = "contracts/tooling/governance_core/genomics_pr_template_policy.rs"]
+mod mod_contracts_tooling_genomics_pr_template_policy_rs;
 #[path = "contracts/tooling/governance_quality/image_catalog_completeness_policy.rs"]
 mod mod_contracts_tooling_image_catalog_completeness_policy_rs;
 #[path = "contracts/tooling/governance_config/make_script_enumeration_policy.rs"]
@@ -150,24 +150,26 @@ mod mod_contracts_tooling_planner_fastq_route_policy_rs;
 mod mod_contracts_tooling_planner_tool_id_policy_rs;
 #[path = "contracts/tooling/governance/policies.rs"]
 mod mod_contracts_tooling_policies_rs;
+#[path = "contracts/tooling/governance_core/policy_layer_split_policy.rs"]
+mod mod_contracts_tooling_policy_layer_split_policy_rs;
 #[path = "contracts/tooling/docs/policy_reference_authority_policy.rs"]
 mod mod_contracts_tooling_policy_reference_authority_policy_rs;
-#[path = "contracts/tooling/docs/compatibility_reference_policy.rs"]
-mod mod_contracts_tooling_compatibility_reference_policy_rs;
 #[path = "contracts/tooling/runtime/production_container_policy.rs"]
 mod mod_contracts_tooling_production_container_policy_rs;
 #[path = "contracts/tooling/runtime/profiles_runtime_policy.rs"]
 mod mod_contracts_tooling_profiles_runtime_policy_rs;
+#[path = "contracts/tooling/governance_core/public_api_stability_tiers_policy.rs"]
+mod mod_contracts_tooling_public_api_stability_tiers_policy_rs;
 #[path = "contracts/tooling/governance/purity_effects_responsibility_policy.rs"]
 mod mod_contracts_tooling_purity_effects_responsibility_policy_rs;
+#[path = "contracts/tooling/governance_examples/refusal_bundle_policy.rs"]
+mod mod_contracts_tooling_refusal_bundle_policy_rs;
 #[path = "contracts/tooling/registry/registry_ssot_completeness_policy.rs"]
 mod mod_contracts_tooling_registry_ssot_completeness_policy_rs;
 #[path = "contracts/tooling/governance_core/root_architecture_contract_policy.rs"]
 mod mod_contracts_tooling_root_architecture_contract_policy_rs;
 #[path = "contracts/tooling/docs/root_docs_navigation_policy.rs"]
 mod mod_contracts_tooling_root_docs_navigation_policy_rs;
-#[path = "contracts/tooling/docs/truth_source_docs_policy.rs"]
-mod mod_contracts_tooling_truth_source_docs_policy_rs;
 #[path = "contracts/tooling/root/root_layout_policy.rs"]
 mod mod_contracts_tooling_root_layout_policy_rs;
 #[path = "contracts/tooling/root/root_migration_guard_policy.rs"]
@@ -228,6 +230,8 @@ mod mod_contracts_tooling_tool_registry_stage_domain_policy_rs;
 mod mod_contracts_tooling_tool_role_capability_policy_rs;
 #[path = "contracts/tooling/governance_examples/toy_golden_runs_policy.rs"]
 mod mod_contracts_tooling_toy_golden_runs_policy_rs;
+#[path = "contracts/tooling/docs/truth_source_docs_policy.rs"]
+mod mod_contracts_tooling_truth_source_docs_policy_rs;
 #[path = "contracts/tooling/vcf/vcf_coverage_regime_policy.rs"]
 mod mod_contracts_tooling_vcf_coverage_regime_policy_rs;
 #[path = "contracts/tooling/vcf/vcf_gl_propagation_policy.rs"]
@@ -236,5 +240,7 @@ mod mod_contracts_tooling_vcf_gl_propagation_policy_rs;
 mod mod_contracts_tooling_vcf_image_smoke_policy_rs;
 #[path = "contracts/tooling/vcf/vcf_support_gate_policy.rs"]
 mod mod_contracts_tooling_vcf_support_gate_policy_rs;
+#[path = "contracts/tooling/governance_core/workflow_truth_boundary_policy.rs"]
+mod mod_contracts_tooling_workflow_truth_boundary_policy_rs;
 #[path = "contracts/workspace.rs"]
 mod mod_contracts_workspace_rs;
