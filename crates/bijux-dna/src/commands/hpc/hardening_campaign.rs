@@ -1014,6 +1014,30 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G189" => vec![
+            format!("baseline_workflow_rows_present={}", !rows.is_empty()),
+            format!(
+                "baseline_workflow_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "baseline_workflow_validate_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "baseline_workflow_critical_findings={}",
+                findings.iter().filter(|finding| finding.severity == "critical").count()
+            ),
+            format!(
+                "baseline_workflow_noncritical_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity != "critical")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1847,6 +1871,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "code_diff_code_freeze_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_189_emits_accepted_baseline_workflow_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G189".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "reproducibility".to_string(),
+            row_id: "h1".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "reproducibility-low-repeats".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "baseline candidate requires repeat strengthening".to_string(),
+            recommendation: "set repetitions >= 3 for reproducibility confidence".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0601".to_string(),
+            severity: "warning".to_string(),
+            failure_class: "reproducibility-low-repeats".to_string(),
+            recommendation: "set repetitions >= 3 for reproducibility confidence".to_string(),
+            affected_rows: vec!["h1".to_string()],
+            source_appraisers: vec!["reproducibility".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "baseline_workflow_validate_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "baseline_workflow_critical_findings=0"));
     }
 
     #[test]
