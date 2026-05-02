@@ -25,6 +25,24 @@ pub struct BenchmarkMatrixRow {
     pub matrix_domain: String,
     pub stage_id: String,
     pub tool_id: String,
+    pub corpus_match: BenchmarkSurfaceMatch,
+    pub database_match: BenchmarkSurfaceMatch,
+    pub image_match: BenchmarkSurfaceMatch,
+    pub readiness: BenchmarkReadiness,
+    pub repetitions: u32,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct BenchmarkSurfaceMatch {
+    pub required_profile: String,
+    pub matched_profile: String,
+    pub ready: bool,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct BenchmarkReadiness {
+    pub class: String,
+    pub reasons: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -89,6 +107,210 @@ fn registry_path_from_root(root: &Path) -> PathBuf {
     bijux_dna_infra::configs_file(root, "ci/registry/tool_registry.toml")
 }
 
+fn normalize_token(value: &str) -> String {
+    value
+        .chars()
+        .map(|ch| {
+            if ch.is_ascii_alphanumeric() {
+                ch.to_ascii_lowercase()
+            } else {
+                '_'
+            }
+        })
+        .collect::<String>()
+}
+
+fn collect_name_tokens(root: &Path, recursive: bool) -> Result<Vec<String>> {
+    if !root.exists() {
+        return Ok(Vec::new());
+    }
+    let mut out = Vec::new();
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        for entry in std::fs::read_dir(&dir).with_context(|| format!("read {}", dir.display()))? {
+            let entry = entry?;
+            let path = entry.path();
+            let metadata = entry.metadata()?;
+            let name = entry.file_name().to_string_lossy().to_string();
+            out.push(normalize_token(&name));
+            if recursive && metadata.is_dir() {
+                stack.push(path);
+            }
+        }
+    }
+    out.sort();
+    out.dedup();
+    Ok(out)
+}
+
+fn stage_corpus_profile(stage_id: &str) -> &'static str {
+    if stage_id.contains("damage") || stage_id.contains("authenticity") {
+        return "ancient";
+    }
+    if stage_id.contains("taxonomy")
+        || stage_id.contains("asv")
+        || stage_id.contains("otu")
+        || stage_id.contains("metabarcoding")
+    {
+        return "edna";
+    }
+    if stage_id.starts_with("bam.") || stage_id.starts_with("vcf.") || stage_id.contains("align") {
+        return "wgs";
+    }
+    "general"
+}
+
+fn stage_database_profile(stage_id: &str) -> Option<&'static str> {
+    let needs = [
+        "align",
+        "index",
+        "deplete",
+        "screen",
+        "call",
+        "genotyp",
+        "imput",
+        "phase",
+        "taxonomy",
+        "reference",
+        "panel",
+    ];
+    if needs.iter().any(|needle| stage_id.contains(needle)) {
+        if stage_id.contains("taxonomy") {
+            return Some("taxonomy");
+        }
+        if stage_id.contains("rrna") {
+            return Some("rrna");
+        }
+        if stage_id.starts_with("vcf.") || stage_id.contains("call") || stage_id.contains("genotyp") {
+            return Some("vcf");
+        }
+        if stage_id.contains("align") {
+            return Some("align");
+        }
+        return Some("general");
+    }
+    None
+}
+
+fn tool_match_tokens(tool_id: &str) -> Vec<String> {
+    tool_id
+        .split("=>")
+        .flat_map(|part| part.split(','))
+        .map(str::trim)
+        .filter(|part| !part.is_empty())
+        .map(|part| part.split('_').next().unwrap_or(part))
+        .map(normalize_token)
+        .collect()
+}
+
+fn match_surface(required: &str, tokens: &[String]) -> BenchmarkSurfaceMatch {
+    let matched = if required == "general" {
+        tokens.first().cloned()
+    } else {
+        tokens
+            .iter()
+            .find(|token| token.contains(required))
+            .cloned()
+            .or_else(|| tokens.first().cloned())
+    };
+    BenchmarkSurfaceMatch {
+        required_profile: required.to_string(),
+        matched_profile: matched.unwrap_or_else(|| "<missing>".to_string()),
+        ready: if required == "general" {
+            !tokens.is_empty()
+        } else {
+            tokens.iter().any(|token| token.contains(required))
+        },
+    }
+}
+
+fn match_database_surface(stage_id: &str, tokens: &[String]) -> BenchmarkSurfaceMatch {
+    if let Some(required) = stage_database_profile(stage_id) {
+        match_surface(required, tokens)
+    } else {
+        BenchmarkSurfaceMatch {
+            required_profile: "not-required".to_string(),
+            matched_profile: "not-required".to_string(),
+            ready: true,
+        }
+    }
+}
+
+fn match_image_surface(tool_id: &str, image_tokens: &[String]) -> BenchmarkSurfaceMatch {
+    let required = tool_match_tokens(tool_id);
+    if required.is_empty() {
+        return BenchmarkSurfaceMatch {
+            required_profile: "unknown".to_string(),
+            matched_profile: "<missing>".to_string(),
+            ready: false,
+        };
+    }
+    let mut matched = Vec::new();
+    for token in required {
+        if image_tokens.iter().any(|image| image.contains(&token)) {
+            matched.push(token);
+        }
+    }
+    let ready = !matched.is_empty();
+    BenchmarkSurfaceMatch {
+        required_profile: "tool-images".to_string(),
+        matched_profile: if matched.is_empty() {
+            "<missing>".to_string()
+        } else {
+            matched.join(",")
+        },
+        ready,
+    }
+}
+
+fn classify_readiness(
+    corpus_match: &BenchmarkSurfaceMatch,
+    database_match: &BenchmarkSurfaceMatch,
+    image_match: &BenchmarkSurfaceMatch,
+) -> BenchmarkReadiness {
+    let mut reasons = Vec::new();
+    if !corpus_match.ready {
+        reasons.push(format!(
+            "corpus profile `{}` missing",
+            corpus_match.required_profile
+        ));
+    }
+    if !database_match.ready {
+        reasons.push(format!(
+            "database profile `{}` missing",
+            database_match.required_profile
+        ));
+    }
+    if !image_match.ready {
+        reasons.push("image match missing for tool binding".to_string());
+    }
+    let class = if reasons.is_empty() {
+        "ready"
+    } else if reasons.len() == 1 {
+        "degraded"
+    } else {
+        "refuse"
+    };
+    BenchmarkReadiness {
+        class: class.to_string(),
+        reasons,
+    }
+}
+
+fn repetition_policy(matrix_domain: &str, stage_id: &str, readiness_class: &str) -> u32 {
+    if readiness_class == "refuse" {
+        return 0;
+    }
+    let mut repeats = if readiness_class == "degraded" { 2 } else { 3 };
+    if matrix_domain == "cross" || stage_id.contains("call") || stage_id.contains("genotyp") {
+        repeats += 2;
+    }
+    if stage_id.contains("validate") || stage_id.contains("qc") {
+        repeats = repeats.max(2);
+    }
+    repeats
+}
+
 fn cross_bridges() -> &'static [CrossBridge] {
     &[
         CrossBridge {
@@ -131,6 +353,9 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
         campaign_dry_run(&args.config, args.env_file.as_deref(), args.user_overrides.as_deref())?;
     let root = workspace_root()?;
     let registry_path = registry_path_from_root(&root);
+    let corpus_tokens = collect_name_tokens(Path::new(&dry_run.layout.corpora_root), false)?;
+    let database_tokens = collect_name_tokens(Path::new(&dry_run.layout.databases_root), false)?;
+    let image_tokens = collect_name_tokens(Path::new(&dry_run.layout.images_root), true)?;
     let mut rows = Vec::new();
     for domain in &domains {
         if domain == "cross" {
@@ -143,11 +368,24 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
                     for right in &right_tools {
                         let stage_binding = format!("{}=>{}", bridge.from_stage, bridge.to_stage);
                         let tool_binding = format!("{left}=>{right}");
+                        let corpus_match = match_surface(
+                            stage_corpus_profile(&stage_binding),
+                            &corpus_tokens,
+                        );
+                        let database_match = match_database_surface(&stage_binding, &database_tokens);
+                        let image_match = match_image_surface(&tool_binding, &image_tokens);
+                        let readiness =
+                            classify_readiness(&corpus_match, &database_match, &image_match);
                         rows.push(BenchmarkMatrixRow {
                             row_id: format!("cross.{}::{}::{}", bridge.id, stage_binding, tool_binding),
                             matrix_domain: "cross".to_string(),
                             stage_id: stage_binding,
                             tool_id: tool_binding,
+                            repetitions: repetition_policy("cross", bridge.to_stage, &readiness.class),
+                            corpus_match,
+                            database_match,
+                            image_match,
+                            readiness,
                         });
                     }
                 }
@@ -157,11 +395,21 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
         let stages = domain_stage_ids(&root, domain)?;
         for stage_id in stages {
             for tool_id in registry_tools_for_stage(&registry_path, &stage_id, None, "all")? {
+                let corpus_match = match_surface(stage_corpus_profile(&stage_id), &corpus_tokens);
+                let database_match = match_database_surface(&stage_id, &database_tokens);
+                let image_match = match_image_surface(&tool_id, &image_tokens);
+                let readiness =
+                    classify_readiness(&corpus_match, &database_match, &image_match);
                 rows.push(BenchmarkMatrixRow {
                     row_id: format!("{stage_id}::{tool_id}"),
                     matrix_domain: domain.clone(),
                     stage_id: stage_id.clone(),
                     tool_id,
+                    repetitions: repetition_policy(domain, &stage_id, &readiness.class),
+                    corpus_match,
+                    database_match,
+                    image_match,
+                    readiness,
                 });
             }
         }
@@ -180,7 +428,10 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
 mod tests {
     #![allow(clippy::expect_used)]
 
-    use super::{cross_bridges, domain_stage_ids, resolve_matrix_domains};
+    use super::{
+        classify_readiness, cross_bridges, domain_stage_ids, match_database_surface, match_surface,
+        repetition_policy, resolve_matrix_domains, BenchmarkSurfaceMatch,
+    };
 
     #[test]
     fn stage_catalog_lists_non_schema_fastq_entries() {
@@ -234,5 +485,50 @@ mod tests {
         let bridges = cross_bridges();
         assert!(bridges.len() >= 3);
         assert!(bridges.iter().any(|bridge| bridge.id == "fastq_to_bam"));
+    }
+
+    #[test]
+    fn readiness_classifies_missing_surfaces_as_refuse() {
+        let corpus = BenchmarkSurfaceMatch {
+            required_profile: "wgs".to_string(),
+            matched_profile: "<missing>".to_string(),
+            ready: false,
+        };
+        let db = BenchmarkSurfaceMatch {
+            required_profile: "vcf".to_string(),
+            matched_profile: "<missing>".to_string(),
+            ready: false,
+        };
+        let image = BenchmarkSurfaceMatch {
+            required_profile: "tool-images".to_string(),
+            matched_profile: "<missing>".to_string(),
+            ready: false,
+        };
+        let readiness = classify_readiness(&corpus, &db, &image);
+        assert_eq!(readiness.class, "refuse");
+        assert!(readiness.reasons.len() >= 2);
+    }
+
+    #[test]
+    fn repetition_policy_increases_for_cross_and_call_paths() {
+        assert_eq!(repetition_policy("fastq", "fastq.validate_reads", "ready"), 3);
+        assert_eq!(repetition_policy("vcf", "vcf.call", "ready"), 5);
+        assert_eq!(repetition_policy("cross", "fastq.trim_reads=>bam.align", "degraded"), 4);
+        assert_eq!(repetition_policy("bam", "bam.align", "refuse"), 0);
+    }
+
+    #[test]
+    fn database_surface_marks_not_required_when_stage_is_independent() {
+        let match_result = match_database_surface("fastq.profile_reads", &[]);
+        assert_eq!(match_result.required_profile, "not-required");
+        assert!(match_result.ready);
+    }
+
+    #[test]
+    fn corpus_surface_uses_profile_matching_tokens() {
+        let match_result = match_surface("edna", &["modern_wgs".to_string(), "edna_sweden".to_string()]);
+        assert_eq!(match_result.required_profile, "edna");
+        assert!(match_result.ready);
+        assert!(match_result.matched_profile.contains("edna"));
     }
 }
