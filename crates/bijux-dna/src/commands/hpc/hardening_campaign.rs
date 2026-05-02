@@ -2152,6 +2152,26 @@ fn goal_specific_checks(
                 queue_entries.len()
             ),
         ],
+        "G211" => vec![
+            format!("long_read_boundary_rows_present={}", !rows.is_empty()),
+            format!(
+                "long_read_boundary_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "long_read_boundary_validate_align_summary_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+            ),
+            format!(
+                "long_read_boundary_degraded_or_refuse_rows={}",
+                rows.iter()
+                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .count()
+            ),
+            format!("long_read_boundary_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3641,6 +3661,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "cram_boundary_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_211_emits_long_read_boundary_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G211".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h5".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "readiness-degraded".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "long-read align stage is degraded".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "long_read_boundary_validate_align_summary_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "long_read_boundary_findings_count=1"));
     }
 
     #[test]
