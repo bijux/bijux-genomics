@@ -922,6 +922,31 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G155" => vec![
+            format!("demography_rows_present={}", !rows.is_empty()),
+            format!(
+                "demography_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "demography_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.demography")
+            ),
+            format!(
+                "demography_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "demography_critical_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.severity == "critical")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1539,5 +1564,31 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("roh_ibd_roh_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_155_emits_demography_boundary_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G155".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "v20".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("demography_refuse_rows=1")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("demography_stage_bound=true")));
     }
 }
