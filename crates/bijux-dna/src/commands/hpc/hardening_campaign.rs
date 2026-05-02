@@ -3887,6 +3887,37 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G258" => vec![
+            format!("stage_demotion_rows_present={}", !rows.is_empty()),
+            format!(
+                "stage_demotion_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "stage_demotion_profile_contamination_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.contamination")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "stage_demotion_requires_demotion={}",
+                rows.iter().any(|row| row.readiness_class == "refuse")
+                    || findings.iter().any(|finding| finding.severity == "critical")
+                    || queue_entries.iter().any(|entry| entry.severity == "critical")
+            ),
+            format!(
+                "stage_demotion_refuse_or_critical_signals={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+                    + findings
+                        .iter()
+                        .filter(|finding| finding.severity == "critical")
+                        .count()
+                    + queue_entries
+                        .iter()
+                        .filter(|entry| entry.severity == "critical")
+                        .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6578,6 +6609,22 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "stage_promotion_pass_gate=true"));
+    }
+
+    #[test]
+    fn goal_258_emits_stage_demotion_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G258".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "stage_demotion_profile_contamination_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "stage_demotion_requires_demotion=true"));
     }
 
     #[test]
