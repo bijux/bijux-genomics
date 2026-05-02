@@ -348,6 +348,17 @@ fn redacted(value: Option<&str>) -> String {
     format!("{}***{}", &value[0..2], &value[value.len() - 2..])
 }
 
+fn path_writable(path: &Path) -> bool {
+    if !path.exists() {
+        return false;
+    }
+    let nonce = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |delta| delta.as_nanos());
+    let probe = path.join(format!(".bijux_probe_{nonce}"));
+    std::fs::write(&probe, b"ok").and_then(|_| std::fs::remove_file(&probe)).is_ok()
+}
+
 fn is_secret_key_name(name: &str) -> bool {
     let lower = name.to_ascii_lowercase();
     let allowlist = ["secret_provider", "secret_ref", "secret_env_key", "encryption_recipients"];
@@ -851,6 +862,16 @@ pub fn campaign_preflight(
             ok: path.is_absolute(),
             detail: path.display().to_string(),
         });
+        checks.push(CampaignCheck {
+            name: format!("layout_{name}_exists"),
+            ok: path.exists(),
+            detail: path.display().to_string(),
+        });
+        checks.push(CampaignCheck {
+            name: format!("layout_{name}_writable"),
+            ok: path_writable(path),
+            detail: path.display().to_string(),
+        });
     }
 
     let default_template_exists =
@@ -1215,5 +1236,78 @@ partition = "debug"
         assert!(report.user_overrides_applied);
         assert_eq!(report.user_override_path, override_path.display().to_string());
         assert_eq!(report.resolved_slurm.partition, "debug");
+    }
+
+    #[test]
+    fn campaign_preflight_passes_when_layout_roots_are_writable() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let corpora_root = root.path().join("corpora");
+        let databases_root = root.path().join("databases");
+        let images_root = root.path().join("images");
+        let scratch_root = root.path().join("scratch");
+        let logs_root = root.path().join("logs");
+        let encrypted_results_root = root.path().join("results");
+        let encrypted_code_root = root.path().join("code");
+        let appraiser_imports_root = root.path().join("imports");
+        let baselines_root = root.path().join("baselines");
+        for dir in [
+            &corpora_root,
+            &databases_root,
+            &images_root,
+            &scratch_root,
+            &logs_root,
+            &encrypted_results_root,
+            &encrypted_code_root,
+            &appraiser_imports_root,
+            &baselines_root,
+        ] {
+            std::fs::create_dir_all(dir).expect("create dir");
+        }
+
+        let config = format!(
+            r#"
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "{corpora_root}"
+databases_root = "{databases_root}"
+images_root = "{images_root}"
+scratch_root = "{scratch_root}"
+logs_root = "{logs_root}"
+encrypted_results_root = "{encrypted_results_root}"
+encrypted_code_root = "{encrypted_code_root}"
+appraiser_imports_root = "{appraiser_imports_root}"
+baselines_root = "{baselines_root}"
+
+[slurm]
+site_profile = "generic"
+account = "a1"
+project = "p1"
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#,
+            corpora_root = corpora_root.display(),
+            databases_root = databases_root.display(),
+            images_root = images_root.display(),
+            scratch_root = scratch_root.display(),
+            logs_root = logs_root.display(),
+            encrypted_results_root = encrypted_results_root.display(),
+            encrypted_code_root = encrypted_code_root.display(),
+            appraiser_imports_root = appraiser_imports_root.display(),
+            baselines_root = baselines_root.display()
+        );
+        std::fs::write(&config_path, config).expect("write config");
+
+        let report = campaign_preflight(&config_path, None, None).expect("preflight");
+        assert!(report.ok);
     }
 }
