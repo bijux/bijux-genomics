@@ -44,11 +44,13 @@ pub trait AppraiserPlugin {
 
 struct RuntimePerformanceAppraiser;
 struct ArtifactValidityAppraiser;
+struct ScientificOutputAppraiser;
 
 fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
     vec![
         Box::new(RuntimePerformanceAppraiser),
         Box::new(ArtifactValidityAppraiser),
+        Box::new(ScientificOutputAppraiser),
     ]
 }
 
@@ -193,6 +195,31 @@ impl AppraiserPlugin for ArtifactValidityAppraiser {
     }
 }
 
+impl AppraiserPlugin for ScientificOutputAppraiser {
+    fn id(&self) -> &'static str {
+        "scientific-output"
+    }
+
+    fn appraise(&self, matrix: &BenchmarkMatrixReport) -> Vec<AppraisalFinding> {
+        let mut findings = Vec::new();
+        for row in &matrix.rows {
+            if row.readiness.class == "refuse" {
+                findings.push(AppraisalFinding {
+                    appraiser_id: self.id().to_string(),
+                    row_id: row.row_id.clone(),
+                    severity: "critical".to_string(),
+                    confidence: "high".to_string(),
+                    failure_class: "scientific-invalidity".to_string(),
+                    result_scope: "encrypted-results".to_string(),
+                    summary: "row classified as refuse is scientifically invalid".to_string(),
+                    recommendation: "resolve readiness mismatches before scientific evaluation".to_string(),
+                });
+            }
+        }
+        findings
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used)]
@@ -289,5 +316,6 @@ sample = "sample-1"
         assert!(report.summary.total_findings > 0);
         assert!(report.summary.by_appraiser.contains_key("runtime-performance"));
         assert!(report.summary.by_appraiser.contains_key("artifact-validity"));
+        assert!(report.summary.by_appraiser.contains_key("scientific-output"));
     }
 }
