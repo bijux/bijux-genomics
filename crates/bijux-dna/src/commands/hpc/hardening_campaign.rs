@@ -3861,6 +3861,32 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G257" => vec![
+            format!("stage_promotion_rows_present={}", !rows.is_empty()),
+            format!(
+                "stage_promotion_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "stage_promotion_validate_validate_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "stage_promotion_pass_gate={}",
+                rows.iter().all(|row| row.readiness_class == "ready")
+                    && findings.iter().all(|finding| finding.severity != "critical")
+                    && queue_entries.iter().all(|entry| entry.severity != "critical")
+            ),
+            format!(
+                "stage_promotion_critical_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity == "critical")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6536,6 +6562,22 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "image_dossier_drift_findings=1"));
+    }
+
+    #[test]
+    fn goal_257_emits_stage_promotion_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G257".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "stage_promotion_validate_validate_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "stage_promotion_pass_gate=true"));
     }
 
     #[test]
