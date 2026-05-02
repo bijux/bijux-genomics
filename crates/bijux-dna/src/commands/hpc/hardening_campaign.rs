@@ -4733,6 +4733,29 @@ fn goal_specific_checks(
                 queue_entries.iter().filter(|entry| entry.severity == "critical").count()
             ),
         ],
+        "G275" => vec![
+            format!("appraiser_budget_rows_present={}", !rows.is_empty()),
+            format!(
+                "appraiser_budget_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "appraiser_budget_validate_validate_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "appraiser_budget_findings_count={}",
+                findings.len()
+            ),
+            format!(
+                "appraiser_budget_triggered={}",
+                findings.len() >= 2
+                    || queue_entries.len() >= 2
+                    || findings.iter().any(|finding| finding.severity == "critical")
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7880,6 +7903,44 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "encryption_budget_critical_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_275_emits_appraiser_budget_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G275".to_string()];
+        let findings = vec![
+            AppraisalFinding {
+                appraiser_id: "failure-class".to_string(),
+                row_id: "h11".to_string(),
+                severity: "warning".to_string(),
+                confidence: "medium".to_string(),
+                failure_class: "readiness-degraded".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "appraiser health import reports degraded stats interpretation".to_string(),
+                recommendation: "monitor appraiser failure rate and pause if interpretation drops".to_string(),
+            },
+            AppraisalFinding {
+                appraiser_id: "scientific-output".to_string(),
+                row_id: "h11".to_string(),
+                severity: "critical".to_string(),
+                confidence: "high".to_string(),
+                failure_class: "scientific-invalidity".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "appraiser health import reports critical stats interpretation failure".to_string(),
+                recommendation: "pause campaign when appraiser health budget exceeds threshold".to_string(),
+            },
+        ];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "appraiser_budget_validate_validate_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "appraiser_budget_triggered=true"));
     }
 
     #[test]
