@@ -17,7 +17,7 @@ use std::collections::BTreeMap;
 /// # Errors
 /// Returns an error if the command cannot be executed.
 pub fn run_command(command: &str, args: &[String]) -> Result<CommandOutputV1> {
-    run_command_with_context(command, args, None, None)
+    run_command_with_context_and_stdin(command, args, None, None, None)
 }
 
 /// # Errors
@@ -27,6 +27,18 @@ pub fn run_command_with_context(
     args: &[String],
     current_dir: Option<&Path>,
     envs: Option<&BTreeMap<String, String>>,
+) -> Result<CommandOutputV1> {
+    run_command_with_context_and_stdin(command, args, current_dir, envs, None)
+}
+
+/// # Errors
+/// Returns an error if the command cannot be executed.
+pub fn run_command_with_context_and_stdin(
+    command: &str,
+    args: &[String],
+    current_dir: Option<&Path>,
+    envs: Option<&BTreeMap<String, String>>,
+    stdin_bytes: Option<&[u8]>,
 ) -> Result<CommandOutputV1> {
     if command.trim().is_empty() {
         bail!("command executable must not be empty");
@@ -40,18 +52,48 @@ pub fn run_command_with_context(
     if let Some(envs) = envs {
         child.envs(envs);
     }
+    if stdin_bytes.is_some() {
+        use std::io::Write;
+        use std::process::Stdio;
+
+        child.stdin(Stdio::piped());
+        child.stdout(Stdio::piped());
+        child.stderr(Stdio::piped());
+
+        let mut process = child.spawn().with_context(|| format!("run command {command}"))?;
+        if let Some(input) = stdin_bytes {
+            let stdin = process
+                .stdin
+                .as_mut()
+                .ok_or_else(|| anyhow::anyhow!("open stdin for command {command}"))?;
+            stdin.write_all(input).with_context(|| format!("write stdin for command {command}"))?;
+        }
+        let output = process
+            .wait_with_output()
+            .with_context(|| format!("collect output for command {command}"))?;
+        return Ok(command_output(command, args, start, &output));
+    }
     let output = child.output().with_context(|| format!("run command {command}"))?;
+    Ok(command_output(command, args, start, &output))
+}
+
+fn command_output(
+    command: &str,
+    args: &[String],
+    start: Instant,
+    output: &std::process::Output,
+) -> CommandOutputV1 {
     let runtime_s = start.elapsed().as_secs_f64();
     let exit_code = output.status.code().unwrap_or(-1);
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
-    Ok(CommandOutputV1 {
+    CommandOutputV1 {
         stdout,
         stderr,
         exit_code,
         runtime_s,
         command: build_command_string(command, args),
-    })
+    }
 }
 
 #[cfg(test)]
