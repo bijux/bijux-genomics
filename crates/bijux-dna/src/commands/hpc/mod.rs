@@ -7,6 +7,7 @@ mod fastq_campaign;
 mod layout;
 mod preparation;
 mod slurm;
+mod vcf_campaign;
 
 pub use bundle::*;
 pub use appraisers::*;
@@ -17,3 +18,4 @@ pub use fastq_campaign::*;
 pub use layout::*;
 pub use preparation::*;
 pub use slurm::*;
+pub use vcf_campaign::*;
