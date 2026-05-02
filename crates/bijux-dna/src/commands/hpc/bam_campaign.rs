@@ -350,12 +350,33 @@ fn status_for_goal(rows: &[BamMatrixRowRef], queue_entries: &[HardeningQueueEntr
 }
 
 fn goal_specific_checks(
-    _goal_id: &str,
-    _rows: &[BamMatrixRowRef],
-    _findings: &[AppraisalFinding],
-    _queue_entries: &[HardeningQueueEntry],
+    goal_id: &str,
+    rows: &[BamMatrixRowRef],
+    findings: &[AppraisalFinding],
+    queue_entries: &[HardeningQueueEntry],
 ) -> Vec<String> {
-    Vec::new()
+    match goal_id {
+        "G121" => vec![
+            format!("validation_rows_present={}", !rows.is_empty()),
+            format!(
+                "validation_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.validate")
+            ),
+            format!(
+                "validation_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "validation_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class.contains("readiness"))
+                    .count()
+            ),
+            format!("validation_findings={}", findings.len()),
+        ],
+        _ => Vec::new(),
+    }
 }
 
 fn build_goal_entries(
@@ -641,5 +662,27 @@ mod tests {
         assert_eq!(summary.total_goals, 2);
         assert_eq!(summary.status_counts.get("ready-for-benchmark-run"), Some(&1));
         assert_eq!(summary.status_counts.get("missing-stage-binding"), Some(&1));
+    }
+
+    #[test]
+    fn goal_121_emits_validation_boundary_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G121".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "b9".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("validation_stage_bound=true")));
     }
 }
