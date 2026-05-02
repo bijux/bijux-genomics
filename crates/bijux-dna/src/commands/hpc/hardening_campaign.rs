@@ -2570,6 +2570,24 @@ fn goal_specific_checks(
             ),
             format!("known_sites_findings_count={}", findings.len()),
         ],
+        "G222" => vec![
+            format!("imputation_panel_rows_present={}", !rows.is_empty()),
+            format!(
+                "imputation_panel_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "imputation_panel_call_impute_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.call")
+                    && rows.iter().any(|row| row.stage_id == "vcf.impute")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "imputation_panel_degraded_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "degraded").count()
+            ),
+            format!("imputation_panel_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -4343,6 +4361,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "known_sites_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_222_emits_imputation_panel_bundle_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G222".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "database-compatibility".to_string(),
+            row_id: "h12".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "database-mismatch".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "imputation panel map trust label mismatch".to_string(),
+            recommendation: "align panel-map trust profile before campaign promotion".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "imputation_panel_call_impute_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "imputation_panel_findings_count=1"));
     }
 
     #[test]
