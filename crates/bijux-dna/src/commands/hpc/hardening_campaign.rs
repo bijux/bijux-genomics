@@ -821,6 +821,156 @@ const G220_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G221_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "known-sites-filter-boundary",
+        focus: "validate known-sites usage for filter and recalibration boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "known-sites-annotation-signal-coverage",
+        focus: "validate known-sites annotation signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "known-sites-appraisal-proof",
+        focus: "capture known-sites bundle appraisal evidence",
+    },
+];
+
+const G222_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "imputation-panel-map-boundary",
+        focus: "validate panel and map boundary compatibility for imputation runs",
+    },
+    ScenarioDefinition {
+        scenario_id: "imputation-panel-trust-signals",
+        focus: "validate trust labels and caveat signal coverage for panel bundles",
+    },
+    ScenarioDefinition {
+        scenario_id: "imputation-panel-appraisal-proof",
+        focus: "capture imputation panel appraisal evidence",
+    },
+];
+
+const G223_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "taxonomy-variant-rank-boundary",
+        focus: "validate taxonomy variant rank-resolution boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "taxonomy-bias-signal-coverage",
+        focus: "validate taxonomy bias and drift signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "taxonomy-variant-appraisal-proof",
+        focus: "capture taxonomy variant appraisal evidence",
+    },
+];
+
+const G224_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "contaminant-variant-depletion-boundary",
+        focus: "validate contaminant bundle variants for depletion boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "contaminant-profile-signal-coverage",
+        focus: "validate contaminant profile signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "contaminant-variant-appraisal-proof",
+        focus: "capture contaminant variant appraisal evidence",
+    },
+];
+
+const G225_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "adapter-primer-platform-boundary",
+        focus: "validate platform-specific adapter and primer boundary behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "adapter-primer-edna-signal-coverage",
+        focus: "validate trim and eDNA signal coverage across adapter/primer variants",
+    },
+    ScenarioDefinition {
+        scenario_id: "adapter-primer-appraisal-proof",
+        focus: "capture adapter/primer bundle appraisal evidence",
+    },
+];
+
+const G226_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "annotation-db-variant-boundary",
+        focus: "validate annotation database variant boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "annotation-db-functional-signal-coverage",
+        focus: "validate functional annotation signal coverage across variants",
+    },
+    ScenarioDefinition {
+        scenario_id: "annotation-db-appraisal-proof",
+        focus: "capture annotation database appraisal evidence",
+    },
+];
+
+const G227_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "corpus-db-compatibility-boundary",
+        focus: "validate corpus/database compatibility matrix boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "corpus-db-tool-family-signal-coverage",
+        focus: "validate compatibility signals across tool families",
+    },
+    ScenarioDefinition {
+        scenario_id: "corpus-db-compatibility-appraisal-proof",
+        focus: "capture compatibility matrix appraisal evidence",
+    },
+];
+
+const G228_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "coverage-planner-stage-tool-boundary",
+        focus: "validate campaign coverage planner stage/tool boundary selection",
+    },
+    ScenarioDefinition {
+        scenario_id: "coverage-planner-corpus-db-signal-coverage",
+        focus: "validate corpus and database coverage planning signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "coverage-planner-appraisal-proof",
+        focus: "capture campaign coverage planner appraisal evidence",
+    },
+];
+
+const G229_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "budget-planner-resource-boundary",
+        focus: "validate budget planner CPU/memory/storage boundary accounting",
+    },
+    ScenarioDefinition {
+        scenario_id: "budget-planner-encryption-appraiser-signals",
+        focus: "validate encrypted output and appraiser cost signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "budget-planner-appraisal-proof",
+        focus: "capture budget planner appraisal evidence",
+    },
+];
+
+const G230_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "campaign-split-quota-boundary",
+        focus: "validate campaign splitting boundaries by quota/account/partition",
+    },
+    ScenarioDefinition {
+        scenario_id: "campaign-split-priority-window-signals",
+        focus: "validate split-window and priority signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "campaign-split-appraisal-proof",
+        focus: "capture campaign split appraisal evidence",
+    },
+];
+
 const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G171",
@@ -1121,6 +1271,66 @@ const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "add truth-set anchored corpus mode",
         stage_ids: &["fastq.validate_reads", "vcf.call", "vcf.filter"],
         scenarios: G220_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G221",
+        title: "add known-sites/dbSNP-like database bundles",
+        stage_ids: &["bam.validate", "vcf.filter", "vcf.postprocess"],
+        scenarios: G221_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G222",
+        title: "add imputation panel bundles",
+        stage_ids: &["vcf.call", "vcf.impute", "vcf.stats"],
+        scenarios: G222_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G223",
+        title: "add taxonomy database variants",
+        stage_ids: &["fastq.profile_reads", "bam.contamination", "vcf.stats"],
+        scenarios: G223_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G224",
+        title: "add contaminant database variants",
+        stage_ids: &["fastq.validate_reads", "bam.contamination", "vcf.filter"],
+        scenarios: G224_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G225",
+        title: "add adapter and primer bank variants",
+        stage_ids: &["fastq.trim_reads", "fastq.profile_reads", "bam.contamination"],
+        scenarios: G225_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G226",
+        title: "add annotation database variants",
+        stage_ids: &["vcf.call", "vcf.filter", "vcf.postprocess"],
+        scenarios: G226_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G227",
+        title: "add corpus/database compatibility matrix",
+        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.call"],
+        scenarios: G227_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G228",
+        title: "add campaign coverage planner",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.impute"],
+        scenarios: G228_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G229",
+        title: "add expensive-job budget planner",
+        stage_ids: &["bam.align", "bam.coverage", "vcf.postprocess"],
+        scenarios: G229_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G230",
+        title: "add campaign splitting by HPC quota",
+        stage_ids: &["fastq.validate_reads", "bam.mapping_summary", "vcf.stats"],
+        scenarios: G230_SCENARIOS,
     },
 ];
 
@@ -2551,10 +2761,10 @@ mod tests {
     }
 
     #[test]
-    fn hardening_catalog_includes_iteration_19_goals() {
-        assert_eq!(HARDENING_GOALS_CATALOG.len(), 50);
+    fn hardening_catalog_includes_iteration_20_goals() {
+        assert_eq!(HARDENING_GOALS_CATALOG.len(), 60);
         assert_eq!(HARDENING_GOALS_CATALOG[0].goal_id, "G171");
-        assert_eq!(HARDENING_GOALS_CATALOG[49].goal_id, "G220");
+        assert_eq!(HARDENING_GOALS_CATALOG[59].goal_id, "G230");
     }
 
     #[test]
