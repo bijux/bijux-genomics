@@ -39,6 +39,6 @@ This crate has one root README and exactly ten crate docs under `docs/`. Start w
 [docs/INDEX.md](docs/INDEX.md), then use [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the
 source/test tree and [docs/TESTS.md](docs/TESTS.md) for verification mapping.
 
-Repository work is governed by `/Users/bijan/bijux/bijux-genomics/README.md`,
+Repository work is governed by `/Users/bijan/bijux/bijux-g2/bijux-genomics/README.md`,
 `README.md`, and `README.md`; read those
 files before changing this crate or making commits.
