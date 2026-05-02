@@ -3086,6 +3086,24 @@ fn goal_specific_checks(
             ),
             format!("all_in_one_report_findings_count={}", findings.len()),
         ],
+        "G239" => vec![
+            format!("campaign_comparison_rows_present={}", !rows.is_empty()),
+            format!(
+                "campaign_comparison_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "campaign_comparison_align_call_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "campaign_comparison_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("campaign_comparison_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5293,6 +5311,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "all_in_one_report_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_239_emits_campaign_comparison_report_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G239".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "reproducibility".to_string(),
+            row_id: "h5".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "reproducibility-low-repeats".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "campaign comparison detected unstable align boundary".to_string(),
+            recommendation: "increase repetitions before campaign drift comparison".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "campaign_comparison_align_call_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "campaign_comparison_findings_count=1"));
     }
 
     #[test]
