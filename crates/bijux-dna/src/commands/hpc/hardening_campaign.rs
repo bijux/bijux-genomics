@@ -511,6 +511,29 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G178" => vec![
+            format!("io_hardening_rows_present={}", !rows.is_empty()),
+            format!(
+                "io_hardening_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "io_hardening_profile_to_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "io_hardening_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "io_hardening_code_freeze_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "code-freeze-incomplete")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -950,6 +973,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "resource_hardening_runtime_under_sampled_findings=1"));
+    }
+
+    #[test]
+    fn goal_178_emits_io_staging_hardening_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G178".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h11".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "code freeze missing lock metadata".to_string(),
+            recommendation: "bind tool and image lock before code freeze publication".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "io_hardening_profile_to_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "io_hardening_code_freeze_findings=1"));
     }
 
     #[test]
