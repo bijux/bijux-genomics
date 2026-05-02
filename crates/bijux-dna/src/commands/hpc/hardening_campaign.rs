@@ -888,6 +888,35 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G184" => vec![
+            format!("failure_taxonomy_rows_present={}", !rows.is_empty()),
+            format!(
+                "failure_taxonomy_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "failure_taxonomy_class_count={}",
+                findings
+                    .iter()
+                    .map(|finding| finding.failure_class.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "failure_taxonomy_runtime_tool_science_classes={}",
+                findings.iter().any(|finding| finding.failure_class.starts_with("runtime-"))
+                    && findings.iter().any(|finding| finding.failure_class == "missing-tool-binding")
+                    && findings.iter().any(|finding| finding.failure_class == "scientific-invalidity")
+            ),
+            format!(
+                "failure_taxonomy_queue_class_count={}",
+                queue_entries
+                    .iter()
+                    .map(|entry| entry.failure_class.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1527,6 +1556,72 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "caveat_hardening_scientific_findings=1"));
+    }
+
+    #[test]
+    fn goal_184_emits_failure_taxonomy_hardening_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G184".to_string()];
+        let findings = vec![
+            AppraisalFinding {
+                appraiser_id: "runtime-performance".to_string(),
+                row_id: "h5".to_string(),
+                severity: "warning".to_string(),
+                confidence: "medium".to_string(),
+                failure_class: "runtime-under-sampled".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "runtime under sampled".to_string(),
+                recommendation: "increase repetitions to at least 2".to_string(),
+            },
+            AppraisalFinding {
+                appraiser_id: "artifact-validity".to_string(),
+                row_id: "h5".to_string(),
+                severity: "critical".to_string(),
+                confidence: "high".to_string(),
+                failure_class: "missing-tool-binding".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "missing tool binding".to_string(),
+                recommendation: "bind stage to at least one governed tool".to_string(),
+            },
+            AppraisalFinding {
+                appraiser_id: "scientific-output".to_string(),
+                row_id: "h10".to_string(),
+                severity: "critical".to_string(),
+                confidence: "high".to_string(),
+                failure_class: "scientific-invalidity".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "scientific invalidity".to_string(),
+                recommendation: "resolve readiness mismatches before scientific evaluation".to_string(),
+            },
+        ];
+        let queue = vec![
+            HardeningQueueEntry {
+                queue_id: "hardening-0201".to_string(),
+                severity: "critical".to_string(),
+                failure_class: "missing-tool-binding".to_string(),
+                recommendation: "bind stage to at least one governed tool".to_string(),
+                affected_rows: vec!["h5".to_string()],
+                source_appraisers: vec!["artifact-validity".to_string()],
+            },
+            HardeningQueueEntry {
+                queue_id: "hardening-0202".to_string(),
+                severity: "warning".to_string(),
+                failure_class: "runtime-under-sampled".to_string(),
+                recommendation: "increase repetitions to at least 2".to_string(),
+                affected_rows: vec!["h5".to_string()],
+                source_appraisers: vec!["runtime-performance".to_string()],
+            },
+        ];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "failure_taxonomy_runtime_tool_science_classes=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "failure_taxonomy_queue_class_count=2"));
     }
 
     #[test]
