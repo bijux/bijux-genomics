@@ -5,6 +5,15 @@ use super::{
     Value, Workspace,
 };
 
+fn run_current_bijux_dna_dev(workspace: &Workspace, args: &[&str]) -> Result<OpsCommandOutcome> {
+    let current_exe = std::env::current_exe().context("resolve bijux-dna-dev executable")?;
+    run_program(
+        workspace,
+        &current_exe.to_string_lossy(),
+        &args.iter().map(|value| (*value).to_string()).collect::<Vec<_>>(),
+    )
+}
+
 pub(super) fn test_control_plane_smoke(
     workspace: &Workspace,
     args: &[String],
@@ -32,40 +41,15 @@ pub(super) fn test_control_plane_smoke(
     ];
     let mut failures = Vec::new();
     for probe in probes {
-        let outcome = run_program(
-            workspace,
-            "cargo",
-            &[
-                "run".to_string(),
-                "-q".to_string(),
-                "-p".to_string(),
-                "bijux-dna-dev".to_string(),
-                "--".to_string(),
-            ]
-            .into_iter()
-            .chain(probe.into_iter().map(ToOwned::to_owned))
-            .collect::<Vec<_>>(),
-        )?;
+        let outcome = run_current_bijux_dna_dev(workspace, &probe)?;
         if !outcome.is_success() {
             failures.push(format!("probe failed: {}", outcome.stderr.trim()));
         }
     }
     if dry_run {
-        let hpc_dry = run_program(
+        let hpc_dry = run_current_bijux_dna_dev(
             workspace,
-            "cargo",
-            &[
-                "run".to_string(),
-                "-q".to_string(),
-                "-p".to_string(),
-                "bijux-dna-dev".to_string(),
-                "--".to_string(),
-                "hpc".to_string(),
-                "run".to_string(),
-                "validate-frontend-constraints".to_string(),
-                "--".to_string(),
-                "--dry-run".to_string(),
-            ],
+            &["hpc", "run", "validate-frontend-constraints", "--", "--dry-run"],
         )?;
         if !hpc_dry.is_success() {
             failures.push("hpc dry-run probe failed".to_string());
