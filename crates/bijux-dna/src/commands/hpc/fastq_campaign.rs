@@ -992,6 +992,33 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G120" => vec![
+            format!("template_rows_present={}", !rows.is_empty()),
+            format!(
+                "template_core_stages_covered={}",
+                rows.iter()
+                    .filter(|row| {
+                        matches!(
+                            row.stage_id.as_str(),
+                            "fastq.validate_reads"
+                                | "fastq.trim_reads"
+                                | "fastq.extract_umis"
+                                | "fastq.deplete_host"
+                                | "fastq.trim_terminal_damage"
+                                | "fastq.normalize_primers"
+                        )
+                    })
+                    .count()
+            ),
+            format!(
+                "template_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "template_hardening_entries={}",
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1686,5 +1713,17 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("provenance_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_120_emits_full_template_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G120".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("template_core_stages_covered=")));
     }
 }
