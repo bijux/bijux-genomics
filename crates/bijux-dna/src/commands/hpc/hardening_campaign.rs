@@ -366,6 +366,17 @@ fn goal_specific_checks(
                 "stage_playbook_validate_bound={}",
                 rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
             ),
+            format!(
+                "stage_playbook_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "stage_playbook_non_info_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity != "info")
+                    .count()
+            ),
         ],
         "G172" => vec![
             format!("tool_playbook_rows_present={}", !rows.is_empty()),
@@ -848,12 +859,28 @@ mod tests {
     fn goal_171_emits_stage_playbook_checks() {
         let matrix = matrix_fixture();
         let selected = vec!["G171".to_string()];
-        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0101".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            affected_rows: vec!["h10".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
         assert_eq!(entries.len(), 1);
         assert!(entries[0]
             .goal_checks
             .iter()
             .any(|check| check.starts_with("stage_playbook_stage_count=3")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "stage_playbook_refuse_rows=1"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "stage_playbook_non_info_queue_entries=1"));
     }
 
     #[test]
