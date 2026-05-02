@@ -2978,6 +2978,24 @@ fn goal_specific_checks(
             ),
             format!("campaign_rerun_findings_count={}", findings.len()),
         ],
+        "G233" => vec![
+            format!("queue_subset_rows_present={}", !rows.is_empty()),
+            format!(
+                "queue_subset_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "queue_subset_validate_align_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "queue_subset_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!("queue_subset_queue_entries={}", queue_entries.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5033,6 +5051,30 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "campaign_rerun_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_233_emits_hardening_queue_subset_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G233".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-2001".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "rerun only hardening queue rows for validation".to_string(),
+            affected_rows: vec!["h10".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "queue_subset_validate_align_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "queue_subset_queue_entries=1"));
     }
 
     #[test]
