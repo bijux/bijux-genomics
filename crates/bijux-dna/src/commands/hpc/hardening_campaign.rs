@@ -3478,6 +3478,26 @@ fn goal_specific_checks(
             ),
             format!("database_version_findings_count={}", findings.len()),
         ],
+        "G249" => vec![
+            format!("corpus_scale_rows_present={}", !rows.is_empty()),
+            format!(
+                "corpus_scale_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "corpus_scale_profile_coverage_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "corpus_scale_degraded_or_refuse_rows={}",
+                rows.iter()
+                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .count()
+            ),
+            format!("corpus_scale_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5945,6 +5965,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "database_version_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_249_emits_corpus_scale_comparison_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G249".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "corpus-scale comparison exposes scale-only refusal path".to_string(),
+            recommendation: "partition scale tiers and isolate refusal-only large-corpus rows".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "corpus_scale_profile_coverage_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "corpus_scale_findings_count=1"));
     }
 
     #[test]
