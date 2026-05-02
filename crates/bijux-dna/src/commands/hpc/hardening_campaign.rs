@@ -671,6 +671,156 @@ const G210_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G211_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "long-read-fastq-bam-boundary",
+        focus: "validate long-read FASTQ and BAM boundary readiness semantics",
+    },
+    ScenarioDefinition {
+        scenario_id: "long-read-support-refusal-paths",
+        focus: "validate explicit support/refusal semantics for long-read boundary runs",
+    },
+    ScenarioDefinition {
+        scenario_id: "long-read-appraisal-proof",
+        focus: "capture long-read appraisal evidence",
+    },
+];
+
+const G212_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "sample-swap-metadata-genotype-boundary",
+        focus: "validate sample-swap metadata and genotype conflict boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "sample-swap-sex-coverage-conflict-signals",
+        focus: "validate sex and coverage conflict signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "sample-swap-appraisal-proof",
+        focus: "capture sample-swap appraisal evidence",
+    },
+];
+
+const G213_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "duplicate-cohort-cross-batch-boundary",
+        focus: "validate duplicate-cohort boundaries across repeated and related samples",
+    },
+    ScenarioDefinition {
+        scenario_id: "duplicate-cohort-consistency-signals",
+        focus: "validate cohort consistency signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "duplicate-cohort-appraisal-proof",
+        focus: "capture duplicate-cohort appraisal evidence",
+    },
+];
+
+const G214_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "panel-choice-imputation-map-boundary",
+        focus: "validate imputation panel and genetic-map boundary readiness",
+    },
+    ScenarioDefinition {
+        scenario_id: "panel-choice-sensitivity-signals",
+        focus: "validate panel-choice sensitivity signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "panel-choice-appraisal-proof",
+        focus: "capture panel-choice appraisal evidence",
+    },
+];
+
+const G215_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "annotation-drift-source-update-boundary",
+        focus: "validate annotation source update boundary behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "annotation-drift-impact-signals",
+        focus: "validate annotation-drift impact signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "annotation-drift-appraisal-proof",
+        focus: "capture annotation-drift appraisal evidence",
+    },
+];
+
+const G216_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "qc-threshold-near-boundary-cases",
+        focus: "validate near-threshold FASTQ/BAM/VCF boundary behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "qc-threshold-caveat-sensitivity-signals",
+        focus: "validate threshold-sensitivity caveat signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "qc-threshold-appraisal-proof",
+        focus: "capture QC-threshold appraisal evidence",
+    },
+];
+
+const G217_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "artifact-minimization-large-output-boundary",
+        focus: "validate large-output reviewer-bundle minimization boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "artifact-minimization-bundle-size-signals",
+        focus: "validate bundle-size minimization signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "artifact-minimization-appraisal-proof",
+        focus: "capture artifact-minimization appraisal evidence",
+    },
+];
+
+const G218_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "shared-storage-io-bottleneck-boundary",
+        focus: "validate shared-storage bottleneck and scratch-staging boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "shared-storage-io-stress-signals",
+        focus: "validate shared-storage IO stress signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "shared-storage-io-appraisal-proof",
+        focus: "capture shared-storage IO appraisal evidence",
+    },
+];
+
+const G219_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "database-build-input-benchmark-boundary",
+        focus: "validate reference/index/taxonomy/panel input benchmark boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "database-build-runtime-size-signals",
+        focus: "validate database-build runtime and size signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "database-build-appraisal-proof",
+        focus: "capture database-build appraisal evidence",
+    },
+];
+
+const G220_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "truth-set-anchor-legality-boundary",
+        focus: "validate truth-set anchored boundaries for meaningful and legal usage",
+    },
+    ScenarioDefinition {
+        scenario_id: "truth-set-caveat-coverage-signals",
+        focus: "validate truth-set caveat and coverage signal flow",
+    },
+    ScenarioDefinition {
+        scenario_id: "truth-set-appraisal-proof",
+        focus: "capture truth-set anchored appraisal evidence",
+    },
+];
+
 const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G171",
@@ -911,6 +1061,66 @@ const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "build CRAM boundary corpus",
         stage_ids: &["bam.validate", "bam.mapping_summary", "vcf.filter"],
         scenarios: G210_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G211",
+        title: "build long-read boundary corpus",
+        stage_ids: &["fastq.validate_reads", "bam.align", "bam.mapping_summary"],
+        scenarios: G211_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G212",
+        title: "build sample-swap corpus",
+        stage_ids: &["fastq.profile_reads", "bam.validate", "vcf.stats"],
+        scenarios: G212_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G213",
+        title: "build duplicate-cohort corpus",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.stats"],
+        scenarios: G213_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G214",
+        title: "build panel-choice sensitivity corpus",
+        stage_ids: &["vcf.impute", "vcf.call", "vcf.stats"],
+        scenarios: G214_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G215",
+        title: "build annotation-drift corpus",
+        stage_ids: &["vcf.call", "vcf.filter", "vcf.postprocess"],
+        scenarios: G215_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G216",
+        title: "build QC-threshold sensitivity corpus",
+        stage_ids: &["fastq.trim_reads", "bam.coverage", "vcf.filter"],
+        scenarios: G216_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G217",
+        title: "build artifact-minimization corpus",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        scenarios: G217_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G218",
+        title: "build shared-storage IO stress corpus",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        scenarios: G218_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G219",
+        title: "build database-build benchmark corpus",
+        stage_ids: &["bam.align", "vcf.call", "vcf.impute"],
+        scenarios: G219_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G220",
+        title: "add truth-set anchored corpus mode",
+        stage_ids: &["fastq.validate_reads", "vcf.call", "vcf.filter"],
+        scenarios: G220_SCENARIOS,
     },
 ];
 
@@ -2151,10 +2361,10 @@ mod tests {
     }
 
     #[test]
-    fn hardening_catalog_includes_iteration_15_goals() {
-        assert_eq!(HARDENING_GOALS_CATALOG.len(), 40);
+    fn hardening_catalog_includes_iteration_19_goals() {
+        assert_eq!(HARDENING_GOALS_CATALOG.len(), 50);
         assert_eq!(HARDENING_GOALS_CATALOG[0].goal_id, "G171");
-        assert_eq!(HARDENING_GOALS_CATALOG[39].goal_id, "G210");
+        assert_eq!(HARDENING_GOALS_CATALOG[49].goal_id, "G220");
     }
 
     #[test]
