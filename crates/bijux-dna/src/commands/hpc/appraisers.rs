@@ -46,6 +46,7 @@ struct RuntimePerformanceAppraiser;
 struct ArtifactValidityAppraiser;
 struct ScientificOutputAppraiser;
 struct ReproducibilityAppraiser;
+struct BackendEquivalenceAppraiser;
 
 fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
     vec![
@@ -53,6 +54,7 @@ fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
         Box::new(ArtifactValidityAppraiser),
         Box::new(ScientificOutputAppraiser),
         Box::new(ReproducibilityAppraiser),
+        Box::new(BackendEquivalenceAppraiser),
     ]
 }
 
@@ -240,6 +242,38 @@ impl AppraiserPlugin for ReproducibilityAppraiser {
                     result_scope: "encrypted-results".to_string(),
                     summary: "ready row has fewer than 3 repetitions".to_string(),
                     recommendation: "set repetitions >= 3 for reproducibility confidence".to_string(),
+                });
+            }
+        }
+        findings
+    }
+}
+
+impl AppraiserPlugin for BackendEquivalenceAppraiser {
+    fn id(&self) -> &'static str {
+        "backend-equivalence"
+    }
+
+    fn appraise(&self, matrix: &BenchmarkMatrixReport) -> Vec<AppraisalFinding> {
+        let mut stage_to_tools: BTreeMap<String, usize> = BTreeMap::new();
+        for row in &matrix.rows {
+            if row.tool_id != "<unbound>" {
+                *stage_to_tools.entry(row.stage_id.clone()).or_insert(0) += 1;
+            }
+        }
+        let mut findings = Vec::new();
+        for row in &matrix.rows {
+            let tool_count = stage_to_tools.get(&row.stage_id).copied().unwrap_or(0);
+            if tool_count < 2 {
+                findings.push(AppraisalFinding {
+                    appraiser_id: self.id().to_string(),
+                    row_id: row.row_id.clone(),
+                    severity: "warning".to_string(),
+                    confidence: "medium".to_string(),
+                    failure_class: "single-backend".to_string(),
+                    result_scope: "encrypted-results".to_string(),
+                    summary: "stage has fewer than two backend/tool alternatives".to_string(),
+                    recommendation: "add alternative backend/tool binding for equivalence checks".to_string(),
                 });
             }
         }
