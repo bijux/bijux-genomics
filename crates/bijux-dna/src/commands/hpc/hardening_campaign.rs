@@ -4207,6 +4207,30 @@ fn goal_specific_checks(
                 queue_entries.len()
             ),
         ],
+        "G262" => vec![
+            format!("reviewer_decrypt_rows_present={}", !rows.is_empty()),
+            format!(
+                "reviewer_decrypt_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "reviewer_decrypt_validate_validate_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "reviewer_decrypt_encrypted_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope.starts_with("encrypted-"))
+                    .count()
+            ),
+            format!(
+                "reviewer_decrypt_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6992,6 +7016,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "encrypted_sharing_code_and_results_findings=1"));
+    }
+
+    #[test]
+    fn goal_262_emits_reviewer_decrypt_profile_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G262".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "reviewer decrypt profile import indicates incomplete decrypt sidecars".to_string(),
+            recommendation: "scope decrypt profile to authorized bundles with complete sidecars".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "reviewer_decrypt_validate_validate_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "reviewer_decrypt_encrypted_findings=1"));
     }
 
     #[test]
