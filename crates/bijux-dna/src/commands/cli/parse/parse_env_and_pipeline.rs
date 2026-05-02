@@ -145,7 +145,23 @@ pub enum ConfigCommand {
         #[arg(long, default_value_t = false)]
         json: bool,
     },
+    #[command(name = "benchmark-matrix")]
+    BenchmarkMatrix(BenchmarkMatrixArgs),
     Doctor,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct BenchmarkMatrixArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
+    #[arg(long, default_value = "fastq")]
+    pub domain: String,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
 }
 
 #[derive(Debug, Subcommand)]

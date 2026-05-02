@@ -443,6 +443,16 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 );
             }
         }
+        cli::ConfigCommand::BenchmarkMatrix(args) => {
+            let report = hpc::benchmark_matrix(args)?;
+            if args.json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("campaign={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("rows={}", report.rows.len());
+            }
+        }
     }
     Ok(())
 }
