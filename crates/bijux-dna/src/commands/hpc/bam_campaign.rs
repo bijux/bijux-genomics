@@ -776,6 +776,26 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G132" => vec![
+            format!("authenticity_rows_present={}", !rows.is_empty()),
+            format!(
+                "authenticity_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.authenticity")
+            ),
+            format!(
+                "authenticity_degraded_or_refuse_rows={}",
+                rows.iter()
+                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .count()
+            ),
+            format!(
+                "authenticity_caveat_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "failure-class")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1308,5 +1328,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("adna_damage_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_132_emits_authenticity_advisory_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G132".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "b11".to_string(),
+            severity: "warning".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-degraded".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("authenticity_stage_bound=true")));
     }
 }
