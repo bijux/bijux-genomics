@@ -37,6 +37,7 @@ pub struct SubmittedJob {
     pub stage: String,
     pub tool: String,
     pub sample: String,
+    pub array_task: Option<u32>,
     pub planned_job_id: String,
     pub scheduler_job_id: String,
     pub dependency_scheduler_ids: Vec<String>,
@@ -534,9 +535,13 @@ fn build_slurm_script(
     } else {
         format!("#SBATCH --dependency=afterok:{}\n", dependency_scheduler_ids.join(":"))
     };
+    let array_line = job
+        .planned
+        .array_task
+        .map_or_else(String::new, |task| format!("#SBATCH --array={task}\n"));
 
     format!(
-        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\n# Placeholder command until full stage runner integration is finalized.\necho \\\"execute stage {} tool {} sample {}\\\"\n",
+        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\n# Placeholder command until full stage runner integration is finalized.\necho \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK\\\"\n",
         shell_quote(&job.name),
         job.planned.resources.cpus,
         job.planned.resources.mem_gb,
@@ -544,12 +549,14 @@ fn build_slurm_script(
         shell_quote(&report.resolved_slurm.partition),
         shell_quote(&report.resolved_slurm.qos),
         dependency_line,
+        array_line,
         report.campaign_id,
         report.domain,
         job.planned.stage,
         job.planned.tool,
         job.planned.sample,
         script_path.display(),
+        job.planned.array_task.unwrap_or(0),
         shell_quote(&report.env_file_path),
         shell_quote(&report.env_file_path),
         job.planned.stage,
@@ -701,6 +708,7 @@ fn run_submission(
             stage: selected_job.planned.stage.clone(),
             tool: selected_job.planned.tool.clone(),
             sample: selected_job.planned.sample.clone(),
+            array_task: selected_job.planned.array_task,
             planned_job_id: selected_job.planned.job_id.clone(),
             scheduler_job_id,
             dependency_scheduler_ids,
@@ -1627,6 +1635,97 @@ sample = "sample-2"
         .expect("submit stage");
         assert_eq!(report.jobs.len(), 1);
         assert_eq!(report.jobs[0].stage, "fastq.validate_reads");
+    }
+
+    #[test]
+    fn submit_stage_benchmark_emits_array_directive_when_array_task_is_set() {
+        let root = tempfile::tempdir().expect("tempdir");
+        for name in [
+            "corpora",
+            "databases",
+            "images",
+            "scratch",
+            "logs",
+            "results",
+            "code",
+            "imports",
+            "baselines",
+        ] {
+            std::fs::create_dir_all(root.path().join(name)).expect("create dir");
+        }
+        let env_path = root.path().join("campaign.env");
+        std::fs::write(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
+            .expect("write env");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&env_path).expect("env metadata").permissions();
+            perms.set_mode(0o600);
+            std::fs::set_permissions(&env_path, perms).expect("set env perms");
+        }
+
+        let config_path = root.path().join("campaign-array.toml");
+        let config = format!(
+            r#"
+[campaign]
+id = "mini-array"
+domain = "fastq"
+
+[layout]
+corpora_root = "{root}/corpora"
+databases_root = "{root}/databases"
+images_root = "{root}/images"
+scratch_root = "{root}/scratch"
+logs_root = "{root}/logs"
+encrypted_results_root = "{root}/results"
+encrypted_code_root = "{root}/code"
+appraiser_imports_root = "{root}/imports"
+baselines_root = "{root}/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 1
+mem_gb = 1
+walltime = "00:05:00"
+scratch_gb = 1
+
+[security]
+encryption_backend = "mock-envelope-v1"
+encryption_recipients = ["alice"]
+env_file = "{root}/campaign.env"
+
+[[jobs]]
+name = "fastq_validate_array"
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-array"
+array_task = 7
+"#,
+            root = root.path().display()
+        );
+        std::fs::write(&config_path, config).expect("write config");
+
+        let report = submit_stage_benchmark(&SlurmSubmitStageArgs {
+            config: config_path,
+            env_file: None,
+            user_overrides: None,
+            stage: "fastq.validate_reads".to_string(),
+            tool: None,
+            sample: None,
+            mock_submit: true,
+            json: false,
+        })
+        .expect("submit stage");
+        assert_eq!(report.jobs.len(), 1);
+        assert_eq!(report.jobs[0].array_task, Some(7));
+        let script = std::fs::read_to_string(&report.jobs[0].script_path).expect("read script");
+        assert!(script.contains("#SBATCH --array=7"));
+        assert!(script.contains("export BIJUX_ARRAY_TASK=${SLURM_ARRAY_TASK_ID:-7}"));
     }
 
     #[test]
