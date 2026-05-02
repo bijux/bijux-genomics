@@ -2624,6 +2624,24 @@ fn goal_specific_checks(
             ),
             format!("contaminant_variant_queue_entries={}", queue_entries.len()),
         ],
+        "G225" => vec![
+            format!("adapter_primer_rows_present={}", !rows.is_empty()),
+            format!(
+                "adapter_primer_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "adapter_primer_trim_profile_contam_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
+                    && rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.contamination")
+            ),
+            format!(
+                "adapter_primer_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("adapter_primer_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -4473,6 +4491,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "contaminant_variant_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_225_emits_adapter_primer_variant_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G225".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "h3".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "scientific-caveat".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "adapter-primer variant raises profile caveat".to_string(),
+            recommendation: "review platform/assay primer bank selection".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "adapter_primer_trim_profile_contam_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "adapter_primer_findings_count=1"));
     }
 
     #[test]
