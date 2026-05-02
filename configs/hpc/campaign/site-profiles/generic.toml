@@ -1,2 +1,8 @@
+# schema_version = 1
+# owner = platform
+# purpose = Generic Slurm site defaults for campaign profile expansion
+# authority = platform
+# stability = stable
+# last_updated = 2026-05-02
 partition = "compute"
 qos = "normal"

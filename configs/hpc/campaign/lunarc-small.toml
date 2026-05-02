@@ -1,3 +1,9 @@
+# schema_version = 1
+# owner = platform
+# purpose = Lunarc small HPC campaign profile for stage-level diagnostics
+# authority = platform
+# stability = stable
+# last_updated = 2026-05-02
 schema_version = "bijux.hpc.campaign.v1"
 
 [campaign]

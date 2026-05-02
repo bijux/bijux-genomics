@@ -1,3 +1,9 @@
+# schema_version = 1
+# owner = platform
+# purpose = Cross-domain HPC campaign profile for multi-stage handoff fixtures
+# authority = platform
+# stability = stable
+# last_updated = 2026-05-02
 schema_version = "bijux.hpc.campaign.v1"
 
 [campaign]

@@ -1,3 +1,9 @@
+# schema_version = 1
+# owner = platform
+# purpose = Envelope recipient contract for collaborator-a campaign sharing
+# authority = platform
+# stability = stable
+# last_updated = 2026-05-02
 profile_id = "collaborator-a"
 backend = "mock-envelope-v1"
 recipients = ["bio-team-review-a"]

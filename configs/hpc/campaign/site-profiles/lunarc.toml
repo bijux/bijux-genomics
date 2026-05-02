@@ -1,2 +1,8 @@
+# schema_version = 1
+# owner = platform
+# purpose = Lunarc Slurm site defaults for campaign profile expansion
+# authority = platform
+# stability = stable
+# last_updated = 2026-05-02
 partition = "main"
 qos = "normal"
