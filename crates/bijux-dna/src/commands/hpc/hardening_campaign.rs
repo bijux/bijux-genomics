@@ -4681,6 +4681,34 @@ fn goal_specific_checks(
                     || queue_entries.iter().any(|entry| entry.severity == "critical")
             ),
         ],
+        "G273" => vec![
+            format!("storage_budget_rows_present={}", !rows.is_empty()),
+            format!(
+                "storage_budget_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "storage_budget_profile_summary_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "storage_budget_runtime_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| {
+                        finding.failure_class == "runtime-outlier"
+                            || finding.failure_class == "runtime-under-sampled"
+                    })
+                    .count()
+            ),
+            format!(
+                "storage_budget_triggered={}",
+                rows.iter().any(|row| row.readiness_class != "ready")
+                    || findings.iter().any(|finding| finding.failure_class.starts_with("runtime-"))
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7768,6 +7796,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "failure_budget_triggered=true"));
+    }
+
+    #[test]
+    fn goal_273_emits_storage_budget_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G273".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-profile".to_string(),
+            row_id: "h6".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "storage budget import reports shared-storage runtime drift".to_string(),
+            recommendation: "pause before storage exhaustion and rebalance archive/staging policy".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "storage_budget_profile_summary_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "storage_budget_triggered=true"));
     }
 
     #[test]
