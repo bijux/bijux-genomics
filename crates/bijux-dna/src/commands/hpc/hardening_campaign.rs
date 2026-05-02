@@ -1811,6 +1811,27 @@ fn goal_specific_checks(
                 findings.len()
             ),
         ],
+        "G205" => vec![
+            format!("contamination_heavy_rows_present={}", !rows.is_empty()),
+            format!(
+                "contamination_heavy_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "contamination_heavy_validate_contam_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.contamination")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "contamination_heavy_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "contamination_heavy_queue_entries={}",
+                queue_entries.len()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3150,6 +3171,30 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "lowpass_corpus_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_205_emits_contamination_heavy_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G205".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-1401".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            affected_rows: vec!["h10".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "contamination_heavy_validate_contam_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "contamination_heavy_queue_entries=1"));
     }
 
     #[test]
