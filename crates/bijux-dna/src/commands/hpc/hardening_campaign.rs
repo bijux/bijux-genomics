@@ -1571,6 +1571,156 @@ const G270_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G271_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "cost-aware-pruning-boundary",
+        focus: "validate cost-aware campaign pruning selection boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "cost-aware-pruning-value-signals",
+        focus: "validate pruning value and coverage tradeoff signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "cost-aware-pruning-proof",
+        focus: "capture cost-aware pruning report evidence",
+    },
+];
+
+const G272_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "failure-budget-threshold-boundary",
+        focus: "validate campaign failure budget threshold boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "failure-budget-pause-signals",
+        focus: "validate failure-rate pause and stop signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "failure-budget-proof",
+        focus: "capture failure-budget enforcement evidence",
+    },
+];
+
+const G273_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "storage-budget-threshold-boundary",
+        focus: "validate campaign storage budget threshold boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "storage-budget-pause-signals",
+        focus: "validate storage exhaustion pause and stop signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "storage-budget-proof",
+        focus: "capture storage-budget enforcement evidence",
+    },
+];
+
+const G274_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "encryption-budget-threshold-boundary",
+        focus: "validate encryption health budget threshold boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "encryption-budget-failure-signals",
+        focus: "validate encryption failure and sidecar health signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "encryption-budget-proof",
+        focus: "capture encryption health budget evidence",
+    },
+];
+
+const G275_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "appraiser-budget-threshold-boundary",
+        focus: "validate appraiser health budget threshold boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "appraiser-budget-failure-signals",
+        focus: "validate appraiser failure and interpretability loss signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "appraiser-budget-proof",
+        focus: "capture appraiser health budget evidence",
+    },
+];
+
+const G276_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "retention-tier-classification-boundary",
+        focus: "validate benchmark retention tier classification boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "retention-tier-encryption-signals",
+        focus: "validate retention tier encryption and purge safety signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "retention-tier-proof",
+        focus: "capture retention tier policy evidence",
+    },
+];
+
+const G277_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "local-archive-structure-boundary",
+        focus: "validate local benchmark archive structure boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "local-archive-import-signals",
+        focus: "validate archive import and investigation signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "local-archive-proof",
+        focus: "capture local benchmark archive evidence",
+    },
+];
+
+const G278_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "benchmark-reencryption-boundary",
+        focus: "validate benchmark re-encryption and key rotation boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "benchmark-reencryption-health-signals",
+        focus: "validate re-encryption health and decryptability signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "benchmark-reencryption-proof",
+        focus: "capture benchmark re-encryption evidence",
+    },
+];
+
+const G279_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "methods-appendix-evidence-boundary",
+        focus: "validate methods appendix evidence extraction boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "methods-appendix-runtime-signals",
+        focus: "validate methods appendix runtime and environment signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "methods-appendix-proof",
+        focus: "capture methods appendix generation evidence",
+    },
+];
+
+const G280_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "public-caveat-summary-boundary",
+        focus: "validate public caveat summary evidence boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "public-caveat-summary-signal-coverage",
+        focus: "validate tested/weak/simulated/advisory caveat signal coverage",
+    },
+    ScenarioDefinition {
+        scenario_id: "public-caveat-summary-proof",
+        focus: "capture public caveat summary evidence",
+    },
+];
+
 const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G171",
@@ -2171,6 +2321,66 @@ const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "add monthly full-campaign mode",
         stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.call"],
         scenarios: G270_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G271",
+        title: "add cost-aware campaign pruning",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.filter"],
+        scenarios: G271_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G272",
+        title: "add campaign failure budget",
+        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        scenarios: G272_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G273",
+        title: "add campaign storage budget",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        scenarios: G273_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G274",
+        title: "add encryption health budget",
+        stage_ids: &["bam.contamination", "vcf.impute", "vcf.postprocess"],
+        scenarios: G274_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G275",
+        title: "add appraiser health budget",
+        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.stats"],
+        scenarios: G275_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G276",
+        title: "add benchmark result retention tiers",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.postprocess"],
+        scenarios: G276_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G277",
+        title: "add local benchmark archive format",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.postprocess"],
+        scenarios: G277_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G278",
+        title: "add benchmark re-encryption for archival",
+        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.postprocess"],
+        scenarios: G278_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G279",
+        title: "add methods appendix from HPC benchmark evidence",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        scenarios: G279_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G280",
+        title: "add public caveat summary from HPC benchmark evidence",
+        stage_ids: &["bam.contamination", "vcf.filter", "vcf.stats"],
+        scenarios: G280_SCENARIOS,
     },
 ];
 
@@ -4636,10 +4846,10 @@ mod tests {
     }
 
     #[test]
-    fn hardening_catalog_includes_iteration_24_goals() {
-        assert_eq!(HARDENING_GOALS_CATALOG.len(), 100);
+    fn hardening_catalog_includes_iteration_25_goals() {
+        assert_eq!(HARDENING_GOALS_CATALOG.len(), 110);
         assert_eq!(HARDENING_GOALS_CATALOG[0].goal_id, "G171");
-        assert_eq!(HARDENING_GOALS_CATALOG[99].goal_id, "G270");
+        assert_eq!(HARDENING_GOALS_CATALOG[109].goal_id, "G280");
     }
 
     #[test]
