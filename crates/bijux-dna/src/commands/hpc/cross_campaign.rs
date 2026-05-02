@@ -536,6 +536,28 @@ fn goal_specific_checks(
                 rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_TRIM_TO_VCF_GL)
             ),
         ],
+        "G167" => vec![
+            format!("sample_sheet_rows_present={}", !rows.is_empty()),
+            format!(
+                "sample_sheet_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "sample_sheet_validate_align_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_VALIDATE_TO_BAM_ALIGN)
+            ),
+            format!(
+                "sample_sheet_validate_contamination_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_VALIDATE_TO_BAM_CONTAMINATION)
+            ),
+            format!(
+                "sample_sheet_degraded_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "degraded").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -915,5 +937,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("partial_failure_vcf_bound=true")));
+    }
+
+    #[test]
+    fn goal_167_emits_sample_sheet_validation_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G167".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("sample_sheet_stage_count=2")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("sample_sheet_validate_align_bound=true")));
     }
 }
