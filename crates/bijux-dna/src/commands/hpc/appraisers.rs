@@ -538,6 +538,46 @@ sample = "sample-1"
         path
     }
 
+    fn write_matrix(path: &std::path::Path) {
+        let matrix = serde_json::json!({
+            "schema_version": "bijux.hpc.benchmark_matrix.v1",
+            "campaign_id": "matrix-fixture",
+            "domain": "fastq",
+            "domains": ["fastq"],
+            "generated_at": "0",
+            "summary": {
+                "total_rows": 2,
+                "readiness_counts": {"ready": 1, "refuse": 1},
+                "domain_counts": {"fastq": 2}
+            },
+            "rows": [
+                {
+                    "row_id": "row-refuse",
+                    "matrix_domain": "fastq",
+                    "stage_id": "fastq.validate_reads",
+                    "tool_id": "<unbound>",
+                    "corpus_match": {"required_profile": "general", "matched_profile": "<missing>", "ready": false},
+                    "database_match": {"required_profile": "not-required", "matched_profile": "not-required", "ready": true},
+                    "image_match": {"required_profile": "tool-images", "matched_profile": "<missing>", "ready": false},
+                    "readiness": {"class": "refuse", "reasons": ["missing corpus", "missing image"]},
+                    "repetitions": 0
+                },
+                {
+                    "row_id": "row-ready-low-repeat",
+                    "matrix_domain": "fastq",
+                    "stage_id": "fastq.trim_reads",
+                    "tool_id": "seqkit_v2",
+                    "corpus_match": {"required_profile": "general", "matched_profile": "general", "ready": true},
+                    "database_match": {"required_profile": "not-required", "matched_profile": "not-required", "ready": true},
+                    "image_match": {"required_profile": "tool-images", "matched_profile": "seqkit", "ready": true},
+                    "readiness": {"class": "ready", "reasons": []},
+                    "repetitions": 2
+                }
+            ]
+        });
+        std::fs::write(path, serde_json::to_vec_pretty(&matrix).expect("json")).expect("matrix");
+    }
+
     #[test]
     fn appraise_matrix_contract_is_stable() {
         let temp = tempfile::tempdir().expect("temp");
@@ -574,5 +614,38 @@ sample = "sample-1"
         .expect("queue");
         assert!(!report.entries.is_empty());
         assert!(report.entries[0].queue_id.starts_with("hardening-"));
+    }
+
+    #[test]
+    fn appraise_matrix_from_fixture_covers_all_registered_plugins() {
+        let temp = tempfile::tempdir().expect("temp");
+        let matrix = temp.path().join("matrix.json");
+        write_matrix(&matrix);
+        let report = appraise_matrix(&AppraiseMatrixArgs {
+            matrix: Some(matrix),
+            config: None,
+            env_file: None,
+            user_overrides: None,
+            domain: "all".to_string(),
+            out: None,
+            json: false,
+        })
+        .expect("appraise");
+
+        for appraiser in [
+            "runtime-performance",
+            "artifact-validity",
+            "scientific-output",
+            "reproducibility",
+            "backend-equivalence",
+            "failure-class",
+            "corpus-suitability",
+            "code-freeze",
+        ] {
+            assert!(
+                report.summary.by_appraiser.contains_key(appraiser),
+                "missing appraiser findings for {appraiser}"
+            );
+        }
     }
 }
