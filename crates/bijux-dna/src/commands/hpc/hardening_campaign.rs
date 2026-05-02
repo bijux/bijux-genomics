@@ -2714,6 +2714,24 @@ fn goal_specific_checks(
             ),
             format!("budget_planner_findings_count={}", findings.len()),
         ],
+        "G230" => vec![
+            format!("campaign_split_rows_present={}", !rows.is_empty()),
+            format!(
+                "campaign_split_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "campaign_split_validate_summary_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "campaign_split_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("campaign_split_queue_entries={}", queue_entries.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -4693,6 +4711,30 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "budget_planner_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_230_emits_campaign_split_quota_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G230".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-1901".to_string(),
+            severity: "warning".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            recommendation: "split campaign rows by quota windows".to_string(),
+            affected_rows: vec!["h6".to_string()],
+            source_appraisers: vec!["runtime-profile".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "campaign_split_validate_summary_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "campaign_split_queue_entries=1"));
     }
 
     #[test]
