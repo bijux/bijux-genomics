@@ -1832,6 +1832,30 @@ fn goal_specific_checks(
                 queue_entries.len()
             ),
         ],
+        "G206" => vec![
+            format!("nonhuman_corpus_rows_present={}", !rows.is_empty()),
+            format!(
+                "nonhuman_corpus_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "nonhuman_corpus_validate_align_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "nonhuman_corpus_code_scope_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope == "encrypted-code")
+                    .count()
+            ),
+            format!(
+                "nonhuman_corpus_findings_count={}",
+                findings.len()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3195,6 +3219,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "contamination_heavy_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_206_emits_nonhuman_reference_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G206".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "non-human reference bundle needs lock metadata".to_string(),
+            recommendation: "bind tool and image lock before code freeze publication".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "nonhuman_corpus_validate_align_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "nonhuman_corpus_code_scope_findings=1"));
     }
 
     #[test]
