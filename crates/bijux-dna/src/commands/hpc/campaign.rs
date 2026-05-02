@@ -381,9 +381,15 @@ fn looks_placeholder(value: &str) -> bool {
 
 fn validate_confidential_config(raw_toml: &str) -> Result<()> {
     let mut failures = Vec::new();
+    let mut section = String::new();
     for (index, line) in raw_toml.lines().enumerate() {
         let trimmed = line.trim();
         if trimmed.is_empty() || trimmed.starts_with('#') {
+            continue;
+        }
+        if trimmed.starts_with('[') && trimmed.ends_with(']') {
+            section =
+                trimmed.trim_start_matches('[').trim_end_matches(']').trim().to_ascii_lowercase();
             continue;
         }
         if trimmed.contains("BEGIN PRIVATE KEY") {
@@ -391,9 +397,20 @@ fn validate_confidential_config(raw_toml: &str) -> Result<()> {
             continue;
         }
         if let Some((key, value)) = trimmed.split_once('=') {
-            let key = key.trim();
+            let key = key.trim().to_ascii_lowercase();
             let value = value.trim().trim_matches('"').trim_matches('\'');
-            if is_secret_key_name(key) && !value.is_empty() && !looks_placeholder(value) {
+            if section == "slurm"
+                && (key == "account" || key == "project" || key == "mail_user")
+                && !value.is_empty()
+                && !looks_placeholder(value)
+            {
+                failures.push(format!(
+                    "line {} stores confidential slurm `{}` in tracked config; use env file",
+                    index + 1,
+                    key
+                ));
+            }
+            if is_secret_key_name(&key) && !value.is_empty() && !looks_placeholder(value) {
                 failures.push(format!(
                     "line {} stores sensitive key `{key}` in tracked config",
                     index + 1
@@ -1028,6 +1045,20 @@ mod tests {
     }
 
     #[test]
+    fn confidential_config_rejects_tracked_slurm_account_fields() {
+        let err = validate_confidential_config(
+            r#"
+[slurm]
+account = "lunarc-account"
+project = "lunarc-project"
+"#,
+        )
+        .expect_err("must reject tracked slurm account fields");
+        assert!(err.to_string().contains("confidential slurm `account`"));
+        assert!(err.to_string().contains("confidential slurm `project`"));
+    }
+
+    #[test]
     fn campaign_templates_require_core_tokens() {
         let root = tempfile::tempdir().expect("tempdir");
         let config_path = root.path().join("campaign.toml");
@@ -1056,8 +1087,6 @@ code = "{campaign}/{job_id}.code"
 
 [slurm]
 site_profile = "generic"
-account = "a1"
-project = "p1"
 
 [security]
 encryption_recipients = ["alice"]
@@ -1098,8 +1127,6 @@ baselines_root = "/shared/baselines"
 
 [slurm]
 site_profile = "generic"
-account = "a1"
-project = "p1"
 default_resource_template = "standard"
 
 [resources]
@@ -1162,8 +1189,6 @@ baselines_root = "/shared/baselines"
 
 [slurm]
 site_profile = "generic"
-account = "a1"
-project = "p1"
 default_resource_template = "standard"
 
 [security]
@@ -1214,8 +1239,6 @@ baselines_root = "/shared/baselines"
 
 [slurm]
 site_profile = "generic"
-account = "a1"
-project = "p1"
 
 [security]
 encryption_recipients = ["alice"]
@@ -1242,6 +1265,7 @@ partition = "debug"
     fn campaign_preflight_passes_when_layout_roots_are_writable() {
         let root = tempfile::tempdir().expect("tempdir");
         let config_path = root.path().join("campaign.toml");
+        let env_file_path = root.path().join("campaign.env");
         let corpora_root = root.path().join("corpora");
         let databases_root = root.path().join("databases");
         let images_root = root.path().join("images");
@@ -1284,8 +1308,6 @@ baselines_root = "{baselines_root}"
 
 [slurm]
 site_profile = "generic"
-account = "a1"
-project = "p1"
 
 [security]
 encryption_recipients = ["alice"]
@@ -1306,8 +1328,14 @@ sample = "sample-1"
             baselines_root = baselines_root.display()
         );
         std::fs::write(&config_path, config).expect("write config");
+        std::fs::write(
+            &env_file_path,
+            "BIJUX_SLURM_ACCOUNT=account-local\nBIJUX_SLURM_PROJECT=project-local\n",
+        )
+        .expect("write env");
 
-        let report = campaign_preflight(&config_path, None, None).expect("preflight");
+        let report =
+            campaign_preflight(&config_path, Some(&env_file_path), None).expect("preflight");
         assert!(report.ok);
     }
 }
