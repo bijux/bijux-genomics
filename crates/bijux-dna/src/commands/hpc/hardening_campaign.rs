@@ -1372,6 +1372,33 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G195" => vec![
+            format!("runtime_issue_bundle_rows_present={}", !rows.is_empty()),
+            format!(
+                "runtime_issue_bundle_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "runtime_issue_bundle_profile_summary_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "runtime_issue_bundle_runtime_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class.starts_with("runtime-"))
+                    .count()
+            ),
+            format!(
+                "runtime_issue_bundle_runtime_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class.starts_with("runtime-"))
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2421,6 +2448,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "data_issue_bundle_corpus_findings=1"));
+    }
+
+    #[test]
+    fn goal_195_emits_runtime_issue_bundle_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G195".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-performance".to_string(),
+            row_id: "h6".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "suspected runtime issue from under-sampled row".to_string(),
+            recommendation: "increase repetitions to at least 2".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-1201".to_string(),
+            severity: "warning".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            recommendation: "increase repetitions to at least 2".to_string(),
+            affected_rows: vec!["h6".to_string()],
+            source_appraisers: vec!["runtime-performance".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "runtime_issue_bundle_profile_summary_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "runtime_issue_bundle_runtime_findings=1"));
     }
 
     #[test]
