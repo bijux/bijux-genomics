@@ -10,11 +10,11 @@ This report tracks the first delivery slice for the HPC campaign foundation.
 | G035 | done | Added tracked-config confidentiality guard that refuses secret-like entries and tracked Slurm account/project fields. |
 | G036 | done | Added Slurm account/project resolution from env sources and redacted reporting in preflight/dry-run output. |
 | G037 | done | Added per-site profile resolution, including file-backed profiles (`site-profiles/*.toml`) and builtin fallbacks. |
-| G038 | done | Added per-user override loading from `user.override.toml` and explicit reporting of override application state. |
+| G038 | done | Added per-user policy loading from `user.policy.toml` and explicit reporting of policy application state. |
 | G039 | done | Added campaign preflight command and contract checks (schema, layout validity, Slurm resolution, template validity, env-file permissions, resource templates). |
 | G040 | done | Added campaign dry-run command with deterministic planned job expansion and resolved output locations. |
 | G074 | done | Added resource template catalog and stage-family template defaults for job-level resource selection. |
 
 Additional implemented support:
 
-- G065 path token templating and required placeholder validation.
+- G065 path token templating and required template-token validation.

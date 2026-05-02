@@ -2,6 +2,28 @@
 
 This runbook describes the campaign planning layer for HPC benchmark execution.
 
+## Purpose
+
+- Define deterministic preflight and dry-run behavior before HPC submissions.
+- Provide operator-safe commands for campaign planning, validation, and encrypted artifact handling.
+
+## Scope
+
+- Covers campaign profile generation, preflight checks, dry-run planning, submission entrypoints, and bundle operations.
+- Applies to `configs/hpc/campaign/*.toml` profiles and optional policy/env inputs.
+
+## Non-goals
+
+- Does not replace scientific stage/tool quality contracts.
+- Does not document cluster-specific scheduler administration outside campaign command inputs.
+- Does not permit committing secret-bearing env files.
+
+## Contracts
+
+- `campaign-preflight` and `campaign-dry-run` outputs must be deterministic for fixed inputs.
+- Security-sensitive values (account/project/env secrets) must remain redacted in reports.
+- User policy overrides must remain explicit, file-backed, and opt-in.
+
 ## Goals covered
 
 - Shared layout contract for corpora, databases, images, scratch, logs, and encrypted bundles.
@@ -24,7 +46,7 @@ Run campaign preflight:
 bijux-dna config campaign-preflight \
   --config configs/hpc/campaign/lunarc-small.toml \
   --env-file configs/hpc/.env \
-  --user-overrides configs/hpc/campaign/user.override.toml
+  --user-overrides configs/hpc/campaign/user.policy.toml
 ```
 
 Run campaign dry-run:
@@ -33,7 +55,7 @@ Run campaign dry-run:
 bijux-dna config campaign-dry-run \
   --config configs/hpc/campaign/lunarc-small.toml \
   --env-file configs/hpc/.env \
-  --user-overrides configs/hpc/campaign/user.override.toml
+  --user-overrides configs/hpc/campaign/user.policy.toml
 ```
 
 Print JSON reports:
