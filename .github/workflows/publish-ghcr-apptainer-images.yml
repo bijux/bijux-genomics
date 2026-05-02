@@ -53,8 +53,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rustup toolchain install 1.86.0 --profile minimal
-          rustup default 1.86.0
+          rustup toolchain install 1.88.0 --profile minimal
+          rustup default 1.88.0
 
       - name: Generate GHCR apptainer publish matrix
         id: plan
@@ -176,8 +176,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rustup toolchain install 1.86.0 --profile minimal
-          rustup default 1.86.0
+          rustup toolchain install 1.88.0 --profile minimal
+          rustup default 1.88.0
 
       - name: Install Apptainer
         shell: bash

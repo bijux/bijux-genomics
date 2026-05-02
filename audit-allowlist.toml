@@ -13,13 +13,6 @@ owner = "bijux-dna-infra"
 link = "https://rustsec.org/advisories/RUSTSEC-2024-0436"
 
 [[advisory]]
-id = "RUSTSEC-2026-0009"
-why = "The fixed time release requires Rust 1.88+, while the workspace is pinned to Rust 1.86. This temporary allowlist avoids breaking toolchain compatibility until the planned Rust version bump."
-expiry = "2026-09-30"
-owner = "platform/infra"
-link = "https://rustsec.org/advisories/RUSTSEC-2026-0009"
-
-[[advisory]]
 id = "RUSTSEC-2026-0097"
 why = "This advisory is currently transitive through opentelemetry_sdk and reqwest/quinn in workspace-critical runtime crates. Keep this temporary allowlist until upstream dependency releases provide a non-advisory path that can be adopted without destabilizing runtime telemetry and HTTP client stacks."
 expiry = "2026-09-30"
