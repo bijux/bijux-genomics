@@ -132,14 +132,33 @@ impl Default for ResourceTemplates {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CampaignSecurity {
     #[serde(default)]
     pub env_file: Option<PathBuf>,
     #[serde(default)]
     pub redacted_env_keys: Vec<String>,
+    #[serde(default = "default_encryption_backend")]
+    pub encryption_backend: String,
     #[serde(default)]
     pub encryption_recipients: Vec<String>,
+    #[serde(default)]
+    pub encryption_identity_files: Vec<PathBuf>,
+    #[serde(default)]
+    pub encrypt_operator_outputs: bool,
+}
+
+impl Default for CampaignSecurity {
+    fn default() -> Self {
+        Self {
+            env_file: None,
+            redacted_env_keys: Vec::new(),
+            encryption_backend: default_encryption_backend(),
+            encryption_recipients: Vec::new(),
+            encryption_identity_files: Vec::new(),
+            encrypt_operator_outputs: false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
@@ -210,7 +229,16 @@ pub struct CampaignDryRunReport {
     pub campaign_id: String,
     pub domain: String,
     pub resolved_slurm: ResolvedSlurm,
+    pub security: PlannedSecurity,
     pub planned_jobs: Vec<PlannedJob>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct PlannedSecurity {
+    pub encryption_backend: String,
+    pub encryption_recipients: Vec<String>,
+    pub encryption_identity_files: Vec<String>,
+    pub encrypt_operator_outputs: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -261,6 +289,14 @@ struct ResolutionMetadata {
 
 fn default_campaign_schema_version() -> String {
     CAMPAIGN_SCHEMA_VERSION.to_string()
+}
+
+fn default_encryption_backend() -> String {
+    "mock-envelope-v1".to_string()
+}
+
+pub fn is_supported_encryption_backend(backend: &str) -> bool {
+    matches!(backend, "mock-envelope-v1" | "age-cli")
 }
 
 fn default_resource_template_name() -> String {
@@ -1008,6 +1044,11 @@ pub fn campaign_preflight(
         detail: format!("count={}", config.security.encryption_recipients.len()),
     });
     checks.push(CampaignCheck {
+        name: "encryption_backend_supported".to_string(),
+        ok: is_supported_encryption_backend(&config.security.encryption_backend),
+        detail: config.security.encryption_backend.clone(),
+    });
+    checks.push(CampaignCheck {
         name: "env_file_private".to_string(),
         ok: env_file_private(&metadata.env_file_path).unwrap_or(true),
         detail: metadata.env_file_path.display().to_string(),
@@ -1167,6 +1208,17 @@ pub fn campaign_dry_run(
         campaign_id: config.campaign.id,
         domain: config.campaign.domain,
         resolved_slurm,
+        security: PlannedSecurity {
+            encryption_backend: config.security.encryption_backend,
+            encryption_recipients: config.security.encryption_recipients,
+            encryption_identity_files: config
+                .security
+                .encryption_identity_files
+                .iter()
+                .map(|path| path.display().to_string())
+                .collect(),
+            encrypt_operator_outputs: config.security.encrypt_operator_outputs,
+        },
         planned_jobs,
     })
 }
@@ -1177,7 +1229,7 @@ mod tests {
 
     use super::{
         campaign_dry_run, campaign_preflight, default_resource_template_map, parse_env_line,
-        validate_confidential_config, write_campaign_profiles, ENV_DEFAULT_PATH,
+        validate_confidential_config, write_campaign_profiles, CampaignSecurity, ENV_DEFAULT_PATH,
     };
 
     #[test]
@@ -1185,6 +1237,13 @@ mod tests {
         let row = parse_env_line("export BIJUX_SLURM_ACCOUNT=proj-123").expect("parsed");
         assert_eq!(row.0, "BIJUX_SLURM_ACCOUNT");
         assert_eq!(row.1, "proj-123");
+    }
+
+    #[test]
+    fn campaign_security_defaults_to_mock_backend() {
+        let security = CampaignSecurity::default();
+        assert_eq!(security.encryption_backend, "mock-envelope-v1");
+        assert!(!security.encrypt_operator_outputs);
     }
 
     #[test]
@@ -1250,6 +1309,50 @@ sample = "sample-1"
         let err =
             campaign_preflight(&config_path, None, None).expect_err("must reject missing tokens");
         assert!(err.to_string().contains("must include required token"));
+    }
+
+    #[test]
+    fn campaign_preflight_flags_unsupported_encryption_backend() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let config = r#"
+schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "/shared/corpora"
+databases_root = "/shared/databases"
+images_root = "/shared/images"
+scratch_root = "/shared/scratch"
+logs_root = "/shared/logs"
+encrypted_results_root = "/shared/results"
+encrypted_code_root = "/shared/code"
+appraiser_imports_root = "/shared/imports"
+baselines_root = "/shared/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[security]
+encryption_backend = "unsupported-v9"
+encryption_recipients = ["alice"]
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#;
+        std::fs::write(&config_path, config).expect("write config");
+
+        let report = campaign_preflight(&config_path, None, None).expect("preflight");
+        assert!(!report.ok);
+        assert!(report
+            .checks
+            .iter()
+            .any(|check| check.name == "encryption_backend_supported" && !check.ok));
     }
 
     #[test]
