@@ -4658,6 +4658,29 @@ fn goal_specific_checks(
                 findings.len()
             ),
         ],
+        "G272" => vec![
+            format!("failure_budget_rows_present={}", !rows.is_empty()),
+            format!(
+                "failure_budget_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "failure_budget_validate_align_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "failure_budget_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "failure_budget_triggered={}",
+                rows.iter().any(|row| row.readiness_class == "refuse")
+                    || findings.iter().any(|finding| finding.severity == "critical")
+                    || queue_entries.iter().any(|entry| entry.severity == "critical")
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7719,6 +7742,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "cost_pruning_signal_count=1"));
+    }
+
+    #[test]
+    fn goal_272_emits_failure_budget_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G272".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "failure budget import exceeds refusal threshold in filter stage".to_string(),
+            recommendation: "pause campaign when failure budget threshold is exceeded".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "failure_budget_validate_align_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "failure_budget_triggered=true"));
     }
 
     #[test]
