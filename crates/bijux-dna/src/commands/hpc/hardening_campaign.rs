@@ -1445,6 +1445,33 @@ fn goal_specific_checks(
                     .any(|finding| finding.confidence == "medium" && finding.severity == "warning")
             ),
         ],
+        "G198" => vec![
+            format!("history_analytics_rows_present={}", !rows.is_empty()),
+            format!(
+                "history_analytics_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "history_analytics_profile_coverage_impute_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.impute")
+            ),
+            format!(
+                "history_analytics_degraded_or_refuse_rows={}",
+                rows.iter()
+                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .count()
+            ),
+            format!(
+                "history_analytics_unique_failure_classes={}",
+                findings
+                    .iter()
+                    .map(|finding| finding.failure_class.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2592,6 +2619,44 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "confidence_scores_manual_review_proxy=true"));
+    }
+
+    #[test]
+    fn goal_198_emits_benchmark_history_analytics_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G198".to_string()];
+        let findings = vec![
+            AppraisalFinding {
+                appraiser_id: "failure-class".to_string(),
+                row_id: "h12".to_string(),
+                severity: "warning".to_string(),
+                confidence: "medium".to_string(),
+                failure_class: "readiness-degraded".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "history trend: degraded imputation row".to_string(),
+                recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            },
+            AppraisalFinding {
+                appraiser_id: "code-freeze".to_string(),
+                row_id: "h12".to_string(),
+                severity: "critical".to_string(),
+                confidence: "high".to_string(),
+                failure_class: "code-freeze-incomplete".to_string(),
+                result_scope: "encrypted-code".to_string(),
+                summary: "history trend: code drift in imputation branch".to_string(),
+                recommendation: "bind tool and image lock before code freeze publication".to_string(),
+            },
+        ];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "history_analytics_profile_coverage_impute_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "history_analytics_unique_failure_classes=2"));
     }
 
     #[test]
