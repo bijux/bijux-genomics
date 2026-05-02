@@ -35,6 +35,10 @@ Authority:
   `cargo run -q -p bijux-dna-dev -- examples run run -- <example-id>`
 - FASTQ workflow execution surface:
   `cargo run -q -p bijux-dna -- run run`
+- Slurm campaign stage submit (mock-safe):
+  `cargo run -q -p bijux-dna -- slurm submit-stage-benchmark --config configs/hpc/campaign/lunarc-small.toml --stage fastq.validate_reads --mock-submit`
+- Slurm campaign domain submit:
+  `cargo run -q -p bijux-dna -- slurm submit-domain-benchmark --config configs/hpc/campaign/lunarc-small.toml --domain fastq --mock-submit`
 
 ## Inspect
 - Current governed status view:

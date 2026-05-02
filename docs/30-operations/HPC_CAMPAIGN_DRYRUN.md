@@ -43,6 +43,48 @@ bijux-dna config campaign-preflight --json --config configs/hpc/campaign/lunarc-
 bijux-dna config campaign-dry-run --json --config configs/hpc/campaign/lunarc-small.toml
 ```
 
+Submit a single stage benchmark (mock mode):
+
+```bash
+bijux-dna slurm submit-stage-benchmark \
+  --config configs/hpc/campaign/lunarc-small.toml \
+  --stage fastq.validate_reads \
+  --mock-submit
+```
+
+Submit one domain benchmark set:
+
+```bash
+bijux-dna slurm submit-domain-benchmark \
+  --config configs/hpc/campaign/lunarc-small.toml \
+  --domain fastq \
+  --mock-submit
+```
+
+Submit a cross-domain subset:
+
+```bash
+bijux-dna slurm submit-cross-benchmark \
+  --config configs/hpc/campaign/lunarc-small.toml \
+  --domains fastq,bam \
+  --mock-submit
+```
+
+Submit a whole campaign:
+
+```bash
+bijux-dna slurm submit-campaign \
+  --config configs/hpc/campaign/lunarc-small.toml \
+  --mock-submit
+```
+
+Write a copy-back manifest:
+
+```bash
+bijux-dna slurm copy-back-manifest \
+  --config configs/hpc/campaign/lunarc-small.toml
+```
+
 ## Security notes
 
 - Do not commit Slurm account/project values in campaign config files.
@@ -71,3 +113,9 @@ Required placeholders for every template:
 - `{stage}`
 - `{tool}`
 - `{sample}`
+
+## Dependency model
+
+- `[[jobs]]` can declare `name` and `depends_on = ["job_name"]`.
+- When omitted, the scheduler layer still enforces in-sample ordering by default.
+- Generated Slurm scripts include `--dependency=afterok:...` when dependencies resolve.
