@@ -562,6 +562,33 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G180" => vec![
+            format!("replay_hardening_rows_present={}", !rows.is_empty()),
+            format!(
+                "replay_hardening_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "replay_hardening_chain_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "replay_hardening_code_freeze_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "code-freeze-incomplete")
+                    .count()
+            ),
+            format!(
+                "replay_hardening_code_freeze_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.source_appraisers.iter().any(|id| id == "code-freeze"))
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1073,6 +1100,40 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "security_hardening_critical_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_180_emits_replay_hardening_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G180".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "replay snapshot missing lock metadata".to_string(),
+            recommendation: "bind tool and image lock before code freeze publication".to_string(),
+        }];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0005".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            recommendation: "bind tool and image lock before code freeze publication".to_string(),
+            affected_rows: vec!["h13".to_string()],
+            source_appraisers: vec!["code-freeze".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "replay_hardening_chain_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "replay_hardening_code_freeze_queue_entries=1"));
     }
 
     #[test]
