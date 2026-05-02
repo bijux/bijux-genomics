@@ -463,6 +463,27 @@ fn goal_specific_checks(
                 queue_entries.iter().filter(|entry| entry.severity != "info").count()
             ),
         ],
+        "G106" => vec![
+            format!("demux_rows_present={}", !rows.is_empty()),
+            format!(
+                "demux_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.demultiplex_reads")
+            ),
+            format!(
+                "demux_refusal_pressure={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.severity == "critical")
+                    .count()
+            ),
+            format!(
+                "demux_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class.contains("readiness") || entry.failure_class.contains("runtime"))
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -856,5 +877,17 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("lane_concat_stage_bound=")));
+    }
+
+    #[test]
+    fn goal_106_emits_demultiplex_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G106".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("demux_stage_bound=")));
     }
 }
