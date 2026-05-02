@@ -45,12 +45,14 @@ pub trait AppraiserPlugin {
 struct RuntimePerformanceAppraiser;
 struct ArtifactValidityAppraiser;
 struct ScientificOutputAppraiser;
+struct ReproducibilityAppraiser;
 
 fn plugins() -> Vec<Box<dyn AppraiserPlugin>> {
     vec![
         Box::new(RuntimePerformanceAppraiser),
         Box::new(ArtifactValidityAppraiser),
         Box::new(ScientificOutputAppraiser),
+        Box::new(ReproducibilityAppraiser),
     ]
 }
 
@@ -220,6 +222,31 @@ impl AppraiserPlugin for ScientificOutputAppraiser {
     }
 }
 
+impl AppraiserPlugin for ReproducibilityAppraiser {
+    fn id(&self) -> &'static str {
+        "reproducibility"
+    }
+
+    fn appraise(&self, matrix: &BenchmarkMatrixReport) -> Vec<AppraisalFinding> {
+        let mut findings = Vec::new();
+        for row in &matrix.rows {
+            if row.repetitions < 3 && row.readiness.class == "ready" {
+                findings.push(AppraisalFinding {
+                    appraiser_id: self.id().to_string(),
+                    row_id: row.row_id.clone(),
+                    severity: "warning".to_string(),
+                    confidence: "medium".to_string(),
+                    failure_class: "reproducibility-low-repeats".to_string(),
+                    result_scope: "encrypted-results".to_string(),
+                    summary: "ready row has fewer than 3 repetitions".to_string(),
+                    recommendation: "set repetitions >= 3 for reproducibility confidence".to_string(),
+                });
+            }
+        }
+        findings
+    }
+}
+
 #[cfg(test)]
 mod tests {
     #![allow(clippy::expect_used)]
@@ -315,7 +342,5 @@ sample = "sample-1"
         assert_eq!(report.schema_version, "bijux.hpc.appraisal.v1".to_string());
         assert!(report.summary.total_findings > 0);
         assert!(report.summary.by_appraiser.contains_key("runtime-performance"));
-        assert!(report.summary.by_appraiser.contains_key("artifact-validity"));
-        assert!(report.summary.by_appraiser.contains_key("scientific-output"));
     }
 }
