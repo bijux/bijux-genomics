@@ -97,6 +97,7 @@ fastq.filter_low_complexity	dustmasker	missing_container_ref	advisory	dustmasker
 fastq.filter_low_complexity	dustmasker	missing_environment_qa_stage	advisory	dustmasker cannot be treated as world-class closed for fastq.filter_low_complexity until missing_environment_qa_stage is resolved
 fastq.filter_low_complexity	dustmasker	missing_runtime_surface	advisory	dustmasker cannot be treated as world-class closed for fastq.filter_low_complexity until missing_runtime_surface is resolved
 fastq.filter_low_complexity	dustmasker	registry_not_production	advisory	dustmasker cannot be treated as world-class closed for fastq.filter_low_complexity until registry_not_production is resolved
+fastq.filter_low_complexity	fastp	missing_environment_qa_stage	advisory	fastp cannot be treated as world-class closed for fastq.filter_low_complexity until missing_environment_qa_stage is resolved
 fastq.filter_low_complexity	prinseq	missing_environment_qa_stage	advisory	prinseq cannot be treated as world-class closed for fastq.filter_low_complexity until missing_environment_qa_stage is resolved
 fastq.index_reference	bowtie2_build	missing_environment_qa_stage	blocking	bowtie2_build cannot be treated as world-class closed for fastq.index_reference until missing_environment_qa_stage is resolved
 fastq.index_reference	star	missing_environment_qa_stage	advisory	star cannot be treated as world-class closed for fastq.index_reference until missing_environment_qa_stage is resolved
@@ -165,6 +166,9 @@ fastq.profile_read_lengths	seqfu	missing_environment_qa_stage	advisory	seqfu can
 fastq.profile_read_lengths	seqfu	missing_runtime_surface	advisory	seqfu cannot be treated as world-class closed for fastq.profile_read_lengths until missing_runtime_surface is resolved
 fastq.profile_read_lengths	seqfu	registry_not_production	advisory	seqfu cannot be treated as world-class closed for fastq.profile_read_lengths until registry_not_production is resolved
 fastq.profile_read_lengths	seqkit_stats	missing_environment_qa_stage	blocking	seqkit_stats cannot be treated as world-class closed for fastq.profile_read_lengths until missing_environment_qa_stage is resolved
+fastq.profile_reads	seqfu	missing_container_ref	advisory	seqfu cannot be treated as world-class closed for fastq.profile_reads until missing_container_ref is resolved
+fastq.profile_reads	seqfu	missing_runtime_surface	advisory	seqfu cannot be treated as world-class closed for fastq.profile_reads until missing_runtime_surface is resolved
+fastq.profile_reads	seqfu	registry_not_production	advisory	seqfu cannot be treated as world-class closed for fastq.profile_reads until registry_not_production is resolved
 fastq.remove_chimeras	vsearch	missing_environment_qa_stage	blocking	vsearch cannot be treated as world-class closed for fastq.remove_chimeras until missing_environment_qa_stage is resolved
 fastq.remove_duplicates	clumpify	missing_environment_qa_stage	blocking	clumpify cannot be treated as world-class closed for fastq.remove_duplicates until missing_environment_qa_stage is resolved
 fastq.remove_duplicates	fastuniq	missing_environment_qa_stage	advisory	fastuniq cannot be treated as world-class closed for fastq.remove_duplicates until missing_environment_qa_stage is resolved
