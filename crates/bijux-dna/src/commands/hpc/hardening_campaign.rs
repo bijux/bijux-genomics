@@ -861,6 +861,33 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class == "refuse").count()
             ),
         ],
+        "G183" => vec![
+            format!("caveat_hardening_rows_present={}", !rows.is_empty()),
+            format!(
+                "caveat_hardening_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "caveat_hardening_contam_filter_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.contamination")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "caveat_hardening_scientific_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "scientific-invalidity")
+                    .count()
+            ),
+            format!(
+                "caveat_hardening_corpus_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "corpus-mismatch")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1474,6 +1501,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "output_schema_code_freeze_findings=1"));
+    }
+
+    #[test]
+    fn goal_183_emits_caveat_hardening_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G183".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "h10".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "scientific-invalidity".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "invalid scientific readiness for caveat outputs".to_string(),
+            recommendation: "resolve readiness mismatches before scientific evaluation".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "caveat_hardening_contam_filter_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "caveat_hardening_scientific_findings=1"));
     }
 
     #[test]
