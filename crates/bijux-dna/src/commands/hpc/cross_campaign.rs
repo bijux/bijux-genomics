@@ -558,6 +558,28 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class == "degraded").count()
             ),
         ],
+        "G168" => vec![
+            format!("reference_change_rows_present={}", !rows.is_empty()),
+            format!(
+                "reference_change_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "reference_change_call_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_BAM_GENOTYPING_TO_VCF_CALL)
+            ),
+            format!(
+                "reference_change_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_BAM_SUMMARY_TO_VCF_STATS)
+            ),
+            format!(
+                "reference_change_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -953,5 +975,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("sample_sheet_validate_align_bound=true")));
+    }
+
+    #[test]
+    fn goal_168_emits_reference_change_propagation_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G168".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("reference_change_stage_count=3")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("reference_change_call_bound=true")));
     }
 }
