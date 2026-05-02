@@ -448,6 +448,21 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G105" => vec![
+            format!("lane_concat_rows_present={}", !rows.is_empty()),
+            format!(
+                "lane_concat_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.concatenate_lanes")
+            ),
+            format!(
+                "lane_concat_tool_diversity={}",
+                rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "lane_concat_queue_entries={}",
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -829,5 +844,17 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("interleave_stage_pair_covered=")));
+    }
+
+    #[test]
+    fn goal_105_emits_lane_concat_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G105".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("lane_concat_stage_bound=")));
     }
 }
