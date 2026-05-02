@@ -229,7 +229,157 @@ const G110_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
-const FASTQ_GOALS_ITERATION_08: &[GoalDefinition] = &[
+const G111_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "prealign-duplicate-signal",
+        focus: "prealignment duplicate signal consistency",
+    },
+    ScenarioDefinition {
+        scenario_id: "complexity-model-regimes",
+        focus: "library complexity model behavior across scales",
+    },
+    ScenarioDefinition {
+        scenario_id: "complexity-caveat-propagation",
+        focus: "duplicate/complexity caveat propagation",
+    },
+];
+
+const G112_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "host-reference-identity",
+        focus: "host reference identity and version boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "retained-rejected-balance",
+        focus: "retained vs rejected read artifact accounting",
+    },
+    ScenarioDefinition {
+        scenario_id: "depletion-failure-signals",
+        focus: "host depletion refusal and failure signatures",
+    },
+];
+
+const G113_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "rrna-db-versions",
+        focus: "rRNA database version comparison",
+    },
+    ScenarioDefinition {
+        scenario_id: "rrna-layout-effects",
+        focus: "layout-specific retained/rejected read behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "rrna-caveat-surface",
+        focus: "rRNA depletion caveat reporting stability",
+    },
+];
+
+const G114_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "contaminant-db-versions",
+        focus: "contaminant database version benchmarking",
+    },
+    ScenarioDefinition {
+        scenario_id: "contaminant-false-positive-pressure",
+        focus: "false positive pressure and retained read impact",
+    },
+    ScenarioDefinition {
+        scenario_id: "contaminant-caveat-propagation",
+        focus: "contaminant caveat propagation semantics",
+    },
+];
+
+const G115_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "taxonomy-rank-behavior",
+        focus: "taxonomy rank assignment behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "advisory-only-guard",
+        focus: "advisory-only classification guardrails",
+    },
+    ScenarioDefinition {
+        scenario_id: "taxonomy-report-stability",
+        focus: "taxonomy report stability across runs",
+    },
+];
+
+const G116_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "primer-normalization-paths",
+        focus: "primer normalization and trimming interplay",
+    },
+    ScenarioDefinition {
+        scenario_id: "chimera-asv-otu-branches",
+        focus: "chimera removal and ASV/OTU branch behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "abundance-caveats",
+        focus: "abundance normalization caveat handling",
+    },
+];
+
+const G117_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "chunk-equivalence",
+        focus: "chunked vs unchunked output equivalence",
+    },
+    ScenarioDefinition {
+        scenario_id: "chunk-memory-io-profile",
+        focus: "chunked processing memory and IO profile",
+    },
+    ScenarioDefinition {
+        scenario_id: "chunked-qc-aggregate",
+        focus: "chunked aggregate QC stability",
+    },
+];
+
+const G118_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "qc-count-and-quality",
+        focus: "read count and quality profile consistency",
+    },
+    ScenarioDefinition {
+        scenario_id: "qc-length-and-overrep",
+        focus: "length and overrepresented sequence profiling",
+    },
+    ScenarioDefinition {
+        scenario_id: "qc-report-stability",
+        focus: "QC manifest output stability over repeats",
+    },
+];
+
+const G119_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "provenance-capture-overhead",
+        focus: "provenance snapshot runtime overhead",
+    },
+    ScenarioDefinition {
+        scenario_id: "provenance-tool-db-image-delta",
+        focus: "provenance deltas across tool/db/image changes",
+    },
+    ScenarioDefinition {
+        scenario_id: "provenance-replay-utility",
+        focus: "replay and audit utility of provenance outputs",
+    },
+];
+
+const G120_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "qc-only-template",
+        focus: "QC-only template benchmark behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "trim-umi-depletion-template",
+        focus: "trim, UMI, and depletion workflow templates",
+    },
+    ScenarioDefinition {
+        scenario_id: "adna-edna-policy-diff-template",
+        focus: "aDNA, eDNA, and policy-diff template comparison",
+    },
+];
+
+const FASTQ_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G101",
         title: "benchmark FASTQ validation",
@@ -290,6 +440,86 @@ const FASTQ_GOALS_ITERATION_08: &[GoalDefinition] = &[
         stage_ids: &["fastq.extract_umis", "fastq.remove_duplicates"],
         scenarios: G110_SCENARIOS,
     },
+    GoalDefinition {
+        goal_id: "G111",
+        title: "benchmark FASTQ duplicate and complexity stages",
+        stage_ids: &[
+            "fastq.detect_duplicates_premerge",
+            "fastq.estimate_library_complexity_prealign",
+        ],
+        scenarios: G111_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G112",
+        title: "benchmark host depletion",
+        stage_ids: &["fastq.deplete_host"],
+        scenarios: G112_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G113",
+        title: "benchmark rRNA depletion",
+        stage_ids: &["fastq.deplete_rrna"],
+        scenarios: G113_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G114",
+        title: "benchmark contaminant depletion",
+        stage_ids: &["fastq.deplete_reference_contaminants"],
+        scenarios: G114_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G115",
+        title: "benchmark taxonomy screening",
+        stage_ids: &["fastq.screen_taxonomy"],
+        scenarios: G115_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G116",
+        title: "benchmark eDNA/metabarcoding preprocessing",
+        stage_ids: &[
+            "fastq.normalize_primers",
+            "fastq.remove_chimeras",
+            "fastq.infer_asvs",
+            "fastq.cluster_otus",
+            "fastq.normalize_abundance",
+        ],
+        scenarios: G116_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G117",
+        title: "benchmark chunked FASTQ processing",
+        stage_ids: &["fastq.filter_reads", "fastq.profile_reads"],
+        scenarios: G117_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G118",
+        title: "benchmark FASTQ QC manifest generation",
+        stage_ids: &[
+            "fastq.materialize_qc_manifest",
+            "fastq.profile_read_lengths",
+            "fastq.profile_overrepresented_sequences",
+        ],
+        scenarios: G118_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G119",
+        title: "benchmark FASTQ provenance capture",
+        stage_ids: &["fastq.capture_provenance_snapshot"],
+        scenarios: G119_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G120",
+        title: "benchmark full FASTQ templates",
+        stage_ids: &[
+            "fastq.validate_reads",
+            "fastq.trim_reads",
+            "fastq.extract_umis",
+            "fastq.deplete_host",
+            "fastq.trim_terminal_damage",
+            "fastq.normalize_primers",
+        ],
+        scenarios: G120_SCENARIOS,
+    },
 ];
 
 fn write_json_pretty(path: &Path, value: &impl Serialize) -> Result<()> {
@@ -302,7 +532,7 @@ fn write_json_pretty(path: &Path, value: &impl Serialize) -> Result<()> {
 }
 
 fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
-    let available = FASTQ_GOALS_ITERATION_08
+    let available = FASTQ_GOALS_CATALOG
         .iter()
         .map(|goal| goal.goal_id.to_string())
         .collect::<BTreeSet<_>>();
@@ -330,7 +560,7 @@ fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
             unknown.join(",")
         ));
     }
-    let mut ordered = FASTQ_GOALS_ITERATION_08
+    let mut ordered = FASTQ_GOALS_CATALOG
         .iter()
         .filter_map(|goal| {
             if selected.remove(goal.goal_id) {
@@ -572,7 +802,7 @@ fn build_goal_entries(
     let selected = selected_goal_ids.iter().cloned().collect::<BTreeSet<_>>();
     let mut entries = Vec::new();
 
-    for goal in FASTQ_GOALS_ITERATION_08.iter().filter(|goal| selected.contains(goal.goal_id)) {
+    for goal in FASTQ_GOALS_CATALOG.iter().filter(|goal| selected.contains(goal.goal_id)) {
         let stage_set = goal.stage_ids.iter().copied().collect::<BTreeSet<_>>();
         let matched_rows = matrix
             .rows
@@ -690,7 +920,7 @@ mod tests {
 
     use super::{
         build_goal_entries, selected_goal_ids, summarize, AppraisalFinding, FastqMatrixRowRef,
-        HardeningQueueEntry, FASTQ_GOALS_ITERATION_08,
+        HardeningQueueEntry, FASTQ_GOALS_CATALOG,
     };
     use crate::commands::hpc::{
         BenchmarkMatrixReport, BenchmarkMatrixRow, BenchmarkMatrixSummary, BenchmarkReadiness,
@@ -734,7 +964,7 @@ mod tests {
             domains: vec!["fastq".to_string()],
             generated_at: "0".to_string(),
             summary: BenchmarkMatrixSummary {
-                total_rows: 4,
+                total_rows: 14,
                 readiness_counts: std::collections::BTreeMap::new(),
                 domain_counts: std::collections::BTreeMap::new(),
             },
@@ -743,15 +973,27 @@ mod tests {
                 row("r2", "fastq.normalize_read_names", "refuse"),
                 row("r3", "fastq.trim_reads", "ready"),
                 row("r4", "fastq.extract_umis", "ready"),
+                row("r5", "fastq.detect_duplicates_premerge", "ready"),
+                row("r6", "fastq.deplete_host", "degraded"),
+                row("r7", "fastq.deplete_rrna", "ready"),
+                row("r8", "fastq.deplete_reference_contaminants", "ready"),
+                row("r9", "fastq.screen_taxonomy", "degraded"),
+                row("r10", "fastq.normalize_primers", "ready"),
+                row("r11", "fastq.filter_reads", "ready"),
+                row("r12", "fastq.materialize_qc_manifest", "ready"),
+                row("r13", "fastq.capture_provenance_snapshot", "ready"),
+                row("r14", "fastq.trim_terminal_damage", "ready"),
             ],
         }
     }
 
     #[test]
-    fn iteration_08_catalog_has_ten_fastq_goals() {
-        assert_eq!(FASTQ_GOALS_ITERATION_08.len(), 10);
-        assert_eq!(FASTQ_GOALS_ITERATION_08[0].goal_id, "G101");
-        assert_eq!(FASTQ_GOALS_ITERATION_08[9].goal_id, "G110");
+    fn fastq_catalog_includes_iteration_08_and_09_goals() {
+        assert_eq!(FASTQ_GOALS_CATALOG.len(), 20);
+        assert_eq!(FASTQ_GOALS_CATALOG[0].goal_id, "G101");
+        assert_eq!(FASTQ_GOALS_CATALOG[9].goal_id, "G110");
+        assert_eq!(FASTQ_GOALS_CATALOG[10].goal_id, "G111");
+        assert_eq!(FASTQ_GOALS_CATALOG[19].goal_id, "G120");
     }
 
     #[test]
