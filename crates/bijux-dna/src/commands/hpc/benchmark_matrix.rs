@@ -394,7 +394,11 @@ pub fn benchmark_matrix(args: &BenchmarkMatrixArgs) -> Result<BenchmarkMatrixRep
         }
         let stages = domain_stage_ids(&root, domain)?;
         for stage_id in stages {
-            for tool_id in registry_tools_for_stage(&registry_path, &stage_id, None, "all")? {
+            let tools = match registry_tools_for_stage(&registry_path, &stage_id, None, "all") {
+                Ok(value) if !value.is_empty() => value,
+                _ => vec!["<unbound>".to_string()],
+            };
+            for tool_id in tools {
                 let corpus_match = match_surface(stage_corpus_profile(&stage_id), &corpus_tokens);
                 let database_match = match_database_surface(&stage_id, &database_tokens);
                 let image_match = match_image_surface(&tool_id, &image_tokens);
@@ -432,6 +436,81 @@ mod tests {
         classify_readiness, cross_bridges, domain_stage_ids, match_database_surface, match_surface,
         repetition_policy, resolve_matrix_domains, BenchmarkSurfaceMatch,
     };
+    use crate::commands::cli::BenchmarkMatrixArgs;
+    use crate::commands::hpc::benchmark_matrix;
+
+    fn write_matrix_campaign(root: &std::path::Path) -> std::path::PathBuf {
+        for name in [
+            "corpora",
+            "databases",
+            "images",
+            "scratch",
+            "logs",
+            "results",
+            "code",
+            "imports",
+            "baselines",
+        ] {
+            std::fs::create_dir_all(root.join(name)).expect("create dir");
+        }
+        std::fs::write(root.join("corpora/modern_wgs"), b"x").expect("seed corpus token");
+        std::fs::write(root.join("databases/vcf_reference"), b"x").expect("seed db token");
+        std::fs::create_dir_all(root.join("images/apptainer")).expect("seed image dir");
+        std::fs::write(root.join("images/apptainer/seqkit.sif"), b"x").expect("seed image token");
+        let env_path = root.join("campaign.env");
+        std::fs::write(&env_path, "BIJUX_SLURM_ACCOUNT=a\nBIJUX_SLURM_PROJECT=p\n")
+            .expect("write env");
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&env_path).expect("env metadata").permissions();
+            perms.set_mode(0o600);
+            std::fs::set_permissions(&env_path, perms).expect("set env perms");
+        }
+        let config_path = root.join("campaign.toml");
+        let config = format!(
+            r#"
+[campaign]
+id = "matrix-mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "{root}/corpora"
+databases_root = "{root}/databases"
+images_root = "{root}/images"
+scratch_root = "{root}/scratch"
+logs_root = "{root}/logs"
+encrypted_results_root = "{root}/results"
+encrypted_code_root = "{root}/code"
+appraiser_imports_root = "{root}/imports"
+baselines_root = "{root}/baselines"
+
+[slurm]
+site_profile = "generic"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 1
+mem_gb = 1
+walltime = "00:05:00"
+scratch_gb = 1
+
+[security]
+encryption_recipients = ["alice"]
+env_file = "{root}/campaign.env"
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#,
+            root = root.display()
+        );
+        std::fs::write(&config_path, config).expect("write config");
+        config_path
+    }
 
     #[test]
     fn stage_catalog_lists_non_schema_fastq_entries() {
@@ -530,5 +609,75 @@ mod tests {
         assert_eq!(match_result.required_profile, "edna");
         assert!(match_result.ready);
         assert!(match_result.matched_profile.contains("edna"));
+    }
+
+    #[test]
+    fn benchmark_matrix_generates_fastq_rows() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_matrix_campaign(root.path());
+        let report = benchmark_matrix(&BenchmarkMatrixArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            domain: "fastq".to_string(),
+            json: false,
+        })
+        .expect("matrix");
+        assert_eq!(report.domain, "fastq");
+        assert!(report.rows.iter().any(|row| row.matrix_domain == "fastq"));
+    }
+
+    #[test]
+    fn benchmark_matrix_generates_bam_and_vcf_rows() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_matrix_campaign(root.path());
+        let bam = benchmark_matrix(&BenchmarkMatrixArgs {
+            config: config.clone(),
+            env_file: None,
+            user_overrides: None,
+            domain: "bam".to_string(),
+            json: false,
+        })
+        .expect("bam matrix");
+        let vcf = benchmark_matrix(&BenchmarkMatrixArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            domain: "vcf".to_string(),
+            json: false,
+        })
+        .expect("vcf matrix");
+        assert!(bam.rows.iter().any(|row| row.matrix_domain == "bam"));
+        assert!(vcf.rows.iter().any(|row| row.matrix_domain == "vcf"));
+    }
+
+    #[test]
+    fn benchmark_matrix_generates_cross_rows_and_all_domains() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = write_matrix_campaign(root.path());
+        let cross = benchmark_matrix(&BenchmarkMatrixArgs {
+            config: config.clone(),
+            env_file: None,
+            user_overrides: None,
+            domain: "cross".to_string(),
+            json: false,
+        })
+        .expect("cross matrix");
+        assert!(cross.rows.iter().all(|row| row.matrix_domain == "cross"));
+        assert!(cross.rows.iter().all(|row| row.stage_id.contains("=>")));
+
+        let all = benchmark_matrix(&BenchmarkMatrixArgs {
+            config,
+            env_file: None,
+            user_overrides: None,
+            domain: "all".to_string(),
+            json: false,
+        })
+        .expect("all matrix");
+        assert!(all.domains.contains(&"fastq".to_string()));
+        assert!(all.domains.contains(&"bam".to_string()));
+        assert!(all.domains.contains(&"vcf".to_string()));
+        assert!(all.domains.contains(&"cross".to_string()));
+        assert!(all.rows.iter().any(|row| row.matrix_domain == "cross"));
     }
 }
