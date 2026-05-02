@@ -837,6 +837,30 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G182" => vec![
+            format!("output_schema_rows_present={}", !rows.is_empty()),
+            format!(
+                "output_schema_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "output_schema_validate_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "output_schema_code_freeze_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "code-freeze-incomplete")
+                    .count()
+            ),
+            format!(
+                "output_schema_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1424,6 +1448,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "nondeterminism_repro_runtime_findings=1"));
+    }
+
+    #[test]
+    fn goal_182_emits_output_schema_hardening_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G182".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "schema bundle missing lock metadata".to_string(),
+            recommendation: "bind tool and image lock before code freeze publication".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "output_schema_validate_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "output_schema_code_freeze_findings=1"));
     }
 
     #[test]
