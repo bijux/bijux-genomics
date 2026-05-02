@@ -47,6 +47,7 @@ pub struct CopyBackManifestReport {
     pub manifest_path: String,
     pub campaign_id: String,
     pub domain: String,
+    pub suggested_copy_command: String,
     pub entries: Vec<CopyBackEntry>,
 }
 
@@ -60,6 +61,7 @@ pub struct CopyBackEntry {
     pub err_path: String,
     pub results_path: String,
     pub code_path: String,
+    pub script_path: String,
 }
 
 #[derive(Debug, Clone)]
@@ -453,14 +455,29 @@ pub fn write_copy_back_manifest(
             err_path: job.outputs.err.clone(),
             results_path: job.outputs.results.clone(),
             code_path: job.outputs.code.clone(),
+            script_path: script_path_for(Path::new(&job.outputs.log)).display().to_string(),
         })
         .collect::<Vec<_>>();
+
+    let suggested_copy_command = if let Some(first) = entries.first() {
+        format!(
+            "rsync -av {} {} {} {} {} <destination_dir>/",
+            shell_quote(&first.log_path),
+            shell_quote(&first.out_path),
+            shell_quote(&first.err_path),
+            shell_quote(&first.results_path),
+            shell_quote(&first.code_path)
+        )
+    } else {
+        "rsync -av <source> <destination_dir>/".to_string()
+    };
 
     let manifest = CopyBackManifestReport {
         schema_version: COPY_BACK_MANIFEST_SCHEMA_VERSION,
         manifest_path: manifest_path.display().to_string(),
         campaign_id: report.campaign_id,
         domain: report.domain,
+        suggested_copy_command,
         entries,
     };
 
@@ -681,6 +698,8 @@ sample = "sample-2"
         })
         .expect("write manifest");
         assert_eq!(report.entries.len(), 3);
+        assert!(report.suggested_copy_command.starts_with("rsync -av "));
+        assert!(report.entries.iter().all(|entry| !entry.script_path.is_empty()));
         assert!(out.is_file());
     }
 }
