@@ -114,6 +114,8 @@ pub struct ResourceTemplates {
     pub default: String,
     #[serde(default = "default_resource_template_map")]
     pub templates: BTreeMap<String, ResourceTemplate>,
+    #[serde(default)]
+    pub stage_defaults: BTreeMap<String, String>,
 }
 
 impl Default for ResourceTemplates {
@@ -121,6 +123,7 @@ impl Default for ResourceTemplates {
         Self {
             default: default_resource_template_name(),
             templates: default_resource_template_map(),
+            stage_defaults: BTreeMap::new(),
         }
     }
 }
@@ -683,6 +686,29 @@ fn resolve_slurm(config: &CampaignConfig, env_map: &BTreeMap<String, String>) ->
     }
 }
 
+fn resolve_job_resource_template(
+    job: &CampaignJob,
+    resources: &ResourceTemplates,
+    fallback_default: &str,
+) -> String {
+    if let Some(explicit) =
+        job.resource_template.as_deref().map(str::trim).filter(|value| !value.is_empty())
+    {
+        return explicit.to_string();
+    }
+    let mut best_match: Option<(&str, &str)> = None;
+    for (stage_prefix, template_name) in &resources.stage_defaults {
+        if job.stage == *stage_prefix || job.stage.starts_with(&format!("{stage_prefix}.")) {
+            if best_match.is_none_or(|(best_prefix, _)| stage_prefix.len() > best_prefix.len()) {
+                best_match = Some((stage_prefix.as_str(), template_name.as_str()));
+            }
+        }
+    }
+    best_match
+        .map(|(_, template_name)| template_name.to_string())
+        .unwrap_or_else(|| fallback_default.to_string())
+}
+
 fn now_timestamp_compact() -> String {
     let secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -944,13 +970,11 @@ pub fn campaign_preflight(
     });
 
     for job in &config.jobs {
-        let template_name = job
-            .resource_template
-            .as_deref()
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-            .unwrap_or(&resolved_slurm.default_resource_template)
-            .to_string();
+        let template_name = resolve_job_resource_template(
+            job,
+            &config.resources,
+            &resolved_slurm.default_resource_template,
+        );
         checks.push(CampaignCheck {
             name: format!("job_template_present:{}:{}", job.stage, job.sample),
             ok: config.resources.templates.contains_key(&template_name),
@@ -983,13 +1007,11 @@ pub fn campaign_dry_run(
 
     for (index, job) in config.jobs.iter().enumerate() {
         let job_id = format!("dryrun-{:04}", index + 1);
-        let template_name = job
-            .resource_template
-            .as_deref()
-            .map(str::trim)
-            .filter(|value| !value.is_empty())
-            .unwrap_or(&resolved_slurm.default_resource_template)
-            .to_string();
+        let template_name = resolve_job_resource_template(
+            job,
+            &config.resources,
+            &resolved_slurm.default_resource_template,
+        );
 
         let resources =
             config.resources.templates.get(&template_name).cloned().ok_or_else(|| {
@@ -1209,6 +1231,71 @@ resource_template = "standard"
             .contains("/shared/logs/mini/fastq/fastq.validate_reads/seqkit_v2/sample-1/"));
         assert!(job.outputs.results.ends_with(".results"));
         assert!(job.outputs.code.ends_with(".code"));
+    }
+
+    #[test]
+    fn campaign_resource_stage_defaults_choose_template_without_job_override() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let config = r#"
+schema_version = "bijux.hpc.campaign.v1"
+
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "/shared/corpora"
+databases_root = "/shared/databases"
+images_root = "/shared/images"
+scratch_root = "/shared/scratch"
+logs_root = "/shared/logs"
+encrypted_results_root = "/shared/results"
+encrypted_code_root = "/shared/code"
+appraiser_imports_root = "/shared/imports"
+baselines_root = "/shared/baselines"
+
+[slurm]
+site_profile = "generic"
+default_resource_template = "standard"
+
+[resources]
+default = "standard"
+
+[resources.templates.standard]
+cpus = 8
+mem_gb = 32
+walltime = "02:00:00"
+scratch_gb = 64
+
+[resources.templates.fastq_small]
+cpus = 4
+mem_gb = 16
+walltime = "01:00:00"
+scratch_gb = 16
+
+[resources.stage_defaults]
+fastq = "fastq_small"
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#;
+        std::fs::write(&config_path, config).expect("write config");
+
+        let report = campaign_dry_run(
+            &config_path,
+            None,
+            Some(root.path().join("missing.override").as_path()),
+        )
+        .expect("dry run");
+        assert_eq!(report.planned_jobs.len(), 1);
+        assert_eq!(report.planned_jobs[0].resource_template, "fastq_small");
+        assert_eq!(report.planned_jobs[0].resources.cpus, 4);
     }
 
     #[test]

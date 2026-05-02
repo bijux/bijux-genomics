@@ -8,3 +8,6 @@ These are baseline campaign profiles for Slurm dry-run and preflight validation.
 - `site-profiles/generic.toml`: generic site defaults.
 
 Secrets must not be committed in these profiles. Use `security.env_file` and user overrides.
+
+Resource templates can be selected globally with `resources.default`, or by stage family via
+`resources.stage_defaults`.
