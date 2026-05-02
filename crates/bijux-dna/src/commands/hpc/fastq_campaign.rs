@@ -387,6 +387,27 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G102" => vec![
+            format!("read_name_rows_present={}", !rows.is_empty()),
+            format!(
+                "normalization_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.normalize_read_names")
+            ),
+            format!(
+                "normalization_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "normalization_backend_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| {
+                        finding.failure_class.contains("readiness")
+                            || finding.failure_class.contains("runtime")
+                    })
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -708,5 +729,31 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("validation_queue_entries=")));
+    }
+
+    #[test]
+    fn goal_102_emits_read_name_specific_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G102".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "r2".to_string(),
+            severity: "critical".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("normalization_stage_bound=true")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("normalization_refuse_rows=")));
     }
 }
