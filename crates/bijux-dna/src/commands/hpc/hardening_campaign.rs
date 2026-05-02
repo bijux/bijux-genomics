@@ -1493,6 +1493,30 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class == "refuse").count()
             ),
         ],
+        "G200" => vec![
+            format!("acceptance_rerun_rows_present={}", !rows.is_empty()),
+            format!(
+                "acceptance_rerun_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "acceptance_rerun_validate_align_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "acceptance_rerun_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "acceptance_rerun_before_after_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity != "info")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -2704,6 +2728,30 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "stage_risk_ranking_refuse_rows=1"));
+    }
+
+    #[test]
+    fn goal_200_emits_hardening_acceptance_rerun_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G200".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-1301".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            affected_rows: vec!["h10".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "acceptance_rerun_validate_align_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "acceptance_rerun_before_after_queue_entries=1"));
     }
 
     #[test]
