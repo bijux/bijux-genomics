@@ -185,6 +185,9 @@ pub struct ResourceOverrides {
 pub struct CampaignPreflightReport {
     pub schema_version: &'static str,
     pub config_path: String,
+    pub env_file_path: String,
+    pub user_override_path: String,
+    pub user_overrides_applied: bool,
     pub checks: Vec<CampaignCheck>,
     pub resolved_slurm: ResolvedSlurm,
     pub ok: bool,
@@ -194,6 +197,9 @@ pub struct CampaignPreflightReport {
 pub struct CampaignDryRunReport {
     pub schema_version: &'static str,
     pub config_path: String,
+    pub env_file_path: String,
+    pub user_override_path: String,
+    pub user_overrides_applied: bool,
     pub campaign_id: String,
     pub domain: String,
     pub resolved_slurm: ResolvedSlurm,
@@ -235,6 +241,13 @@ pub struct ResolvedSlurm {
     pub partition: String,
     pub qos: String,
     pub default_resource_template: String,
+}
+
+#[derive(Debug, Clone)]
+struct ResolutionMetadata {
+    env_file_path: PathBuf,
+    user_override_path: PathBuf,
+    user_overrides_applied: bool,
 }
 
 fn default_campaign_schema_version() -> String {
@@ -629,16 +642,16 @@ fn load_override_file(path: &Path) -> Result<CampaignOverrides> {
 fn load_env_map(
     config: &CampaignConfig,
     env_file_override: Option<&Path>,
-) -> Result<BTreeMap<String, String>> {
+) -> Result<(BTreeMap<String, String>, PathBuf)> {
     let env_path = env_file_override
         .map(Path::to_path_buf)
         .or_else(|| config.security.env_file.clone())
         .unwrap_or_else(|| PathBuf::from(ENV_DEFAULT_PATH));
 
     if env_path.exists() {
-        load_env_file(&env_path)
+        Ok((load_env_file(&env_path)?, env_path))
     } else {
-        Ok(BTreeMap::new())
+        Ok((BTreeMap::new(), env_path))
     }
 }
 
@@ -646,21 +659,31 @@ fn resolve_campaign_config(
     config_path: &Path,
     env_file_override: Option<&Path>,
     user_override_path: Option<&Path>,
-) -> Result<(CampaignConfig, ResolvedSlurm)> {
+) -> Result<(CampaignConfig, ResolvedSlurm, ResolutionMetadata)> {
     let (mut config, _) = load_campaign_config_raw(config_path)?;
 
     let override_path = user_override_path
         .map(Path::to_path_buf)
         .unwrap_or_else(|| PathBuf::from(USER_OVERRIDE_DEFAULT_PATH));
+    let mut user_overrides_applied = false;
     if override_path.exists() {
         let overrides = load_override_file(&override_path)?;
         apply_overrides(&mut config, overrides);
+        user_overrides_applied = true;
     }
 
     validate_templates(&config.output_templates)?;
-    let env_map = load_env_map(&config, env_file_override)?;
+    let (env_map, env_file_path) = load_env_map(&config, env_file_override)?;
     let resolved_slurm = resolve_slurm(&config, &env_map);
-    Ok((config, resolved_slurm))
+    Ok((
+        config,
+        resolved_slurm,
+        ResolutionMetadata {
+            env_file_path,
+            user_override_path: override_path,
+            user_overrides_applied,
+        },
+    ))
 }
 
 pub fn write_campaign_profiles(out_dir: &Path) -> Result<Vec<PathBuf>> {
@@ -761,7 +784,7 @@ pub fn campaign_preflight(
     env_file_override: Option<&Path>,
     user_override_path: Option<&Path>,
 ) -> Result<CampaignPreflightReport> {
-    let (config, resolved_slurm) =
+    let (config, resolved_slurm, metadata) =
         resolve_campaign_config(config_path, env_file_override, user_override_path)?;
 
     let mut checks = Vec::new();
@@ -857,6 +880,9 @@ pub fn campaign_preflight(
     Ok(CampaignPreflightReport {
         schema_version: CAMPAIGN_SCHEMA_VERSION,
         config_path: config_path.display().to_string(),
+        env_file_path: metadata.env_file_path.display().to_string(),
+        user_override_path: metadata.user_override_path.display().to_string(),
+        user_overrides_applied: metadata.user_overrides_applied,
         checks,
         resolved_slurm,
         ok,
@@ -868,7 +894,7 @@ pub fn campaign_dry_run(
     env_file_override: Option<&Path>,
     user_override_path: Option<&Path>,
 ) -> Result<CampaignDryRunReport> {
-    let (config, resolved_slurm) =
+    let (config, resolved_slurm, metadata) =
         resolve_campaign_config(config_path, env_file_override, user_override_path)?;
     let timestamp = now_timestamp_compact();
     let mut planned_jobs = Vec::new();
@@ -948,6 +974,9 @@ pub fn campaign_dry_run(
     Ok(CampaignDryRunReport {
         schema_version: CAMPAIGN_SCHEMA_VERSION,
         config_path: config_path.display().to_string(),
+        env_file_path: metadata.env_file_path.display().to_string(),
+        user_override_path: metadata.user_override_path.display().to_string(),
+        user_overrides_applied: metadata.user_overrides_applied,
         campaign_id: config.campaign.id,
         domain: config.campaign.domain,
         resolved_slurm,
@@ -961,7 +990,7 @@ mod tests {
 
     use super::{
         campaign_dry_run, campaign_preflight, default_resource_template_map, parse_env_line,
-        validate_confidential_config,
+        validate_confidential_config, ENV_DEFAULT_PATH,
     };
 
     #[test]
@@ -1078,6 +1107,8 @@ resource_template = "standard"
             Some(root.path().join("missing.override").as_path()),
         )
         .expect("dry run");
+        assert!(report.env_file_path.ends_with(ENV_DEFAULT_PATH));
+        assert!(!report.user_overrides_applied);
         assert_eq!(report.planned_jobs.len(), 1);
         let job = &report.planned_jobs[0];
         assert!(job
@@ -1137,5 +1168,52 @@ resource_template = "missing"
             .iter()
             .any(|check| check.name.starts_with("job_template_present") && !check.ok));
         assert!(default_resource_template_map().contains_key("standard"));
+    }
+
+    #[test]
+    fn campaign_reports_mark_user_overrides_when_file_exists() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config_path = root.path().join("campaign.toml");
+        let override_path = root.path().join("user.override.toml");
+        let config = r#"
+[campaign]
+id = "mini"
+domain = "fastq"
+
+[layout]
+corpora_root = "/shared/corpora"
+databases_root = "/shared/databases"
+images_root = "/shared/images"
+scratch_root = "/shared/scratch"
+logs_root = "/shared/logs"
+encrypted_results_root = "/shared/results"
+encrypted_code_root = "/shared/code"
+appraiser_imports_root = "/shared/imports"
+baselines_root = "/shared/baselines"
+
+[slurm]
+site_profile = "generic"
+account = "a1"
+project = "p1"
+
+[security]
+encryption_recipients = ["alice"]
+
+[[jobs]]
+stage = "fastq.validate_reads"
+tool = "seqkit_v2"
+sample = "sample-1"
+"#;
+        let override_toml = r#"
+[slurm]
+partition = "debug"
+"#;
+        std::fs::write(&config_path, config).expect("write config");
+        std::fs::write(&override_path, override_toml).expect("write override");
+
+        let report = campaign_dry_run(&config_path, None, Some(&override_path)).expect("dry run");
+        assert!(report.user_overrides_applied);
+        assert_eq!(report.user_override_path, override_path.display().to_string());
+        assert_eq!(report.resolved_slurm.partition, "debug");
     }
 }

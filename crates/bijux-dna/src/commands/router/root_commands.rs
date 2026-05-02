@@ -321,6 +321,9 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
             } else {
                 println!("schema_version={}", report.schema_version);
                 println!("config_path={}", report.config_path);
+                println!("env_file_path={}", report.env_file_path);
+                println!("user_override_path={}", report.user_override_path);
+                println!("user_overrides_applied={}", report.user_overrides_applied);
                 println!("ok={}", report.ok);
                 println!("slurm_site_profile={}", report.resolved_slurm.site_profile);
                 println!("slurm_account={}", report.resolved_slurm.account_redacted);
@@ -341,6 +344,9 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
             } else {
                 println!("schema_version={}", report.schema_version);
                 println!("config_path={}", report.config_path);
+                println!("env_file_path={}", report.env_file_path);
+                println!("user_override_path={}", report.user_override_path);
+                println!("user_overrides_applied={}", report.user_overrides_applied);
                 println!("campaign_id={}", report.campaign_id);
                 println!("domain={}", report.domain);
                 println!("slurm_site_profile={}", report.resolved_slurm.site_profile);
