@@ -832,6 +832,28 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G151" => vec![
+            format!("imputation_rows_present={}", !rows.is_empty()),
+            format!(
+                "imputation_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "imputation_impute_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.impute")
+            ),
+            format!(
+                "imputation_panel_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "vcf.prepare_reference_panel")
+            ),
+            format!(
+                "imputation_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1385,5 +1407,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("phasing_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_151_emits_imputation_workflow_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G151".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("imputation_stage_count=4")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("imputation_impute_stage_bound=true")));
     }
 }
