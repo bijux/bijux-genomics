@@ -534,6 +534,34 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G179" => vec![
+            format!("security_hardening_rows_present={}", !rows.is_empty()),
+            format!(
+                "security_hardening_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "security_hardening_encrypted_scope_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope.starts_with("encrypted-"))
+                    .count()
+            ),
+            format!(
+                "security_hardening_critical_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.severity == "critical")
+                    .count()
+            ),
+            format!(
+                "security_hardening_code_freeze_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.failure_class == "code-freeze-incomplete")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -999,6 +1027,52 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "io_hardening_code_freeze_findings=1"));
+    }
+
+    #[test]
+    fn goal_179_emits_encryption_hardening_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G179".to_string()];
+        let findings = vec![
+            AppraisalFinding {
+                appraiser_id: "code-freeze".to_string(),
+                row_id: "h13".to_string(),
+                severity: "critical".to_string(),
+                confidence: "high".to_string(),
+                failure_class: "code-freeze-incomplete".to_string(),
+                result_scope: "encrypted-code".to_string(),
+                summary: "code freeze metadata incomplete".to_string(),
+                recommendation: "bind tool and image lock before code freeze publication".to_string(),
+            },
+            AppraisalFinding {
+                appraiser_id: "failure-class".to_string(),
+                row_id: "h12".to_string(),
+                severity: "warning".to_string(),
+                confidence: "medium".to_string(),
+                failure_class: "readiness-degraded".to_string(),
+                result_scope: "encrypted-results".to_string(),
+                summary: "readiness degraded".to_string(),
+                recommendation: "resolve readiness reasons and re-run appraisal".to_string(),
+            },
+        ];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-0004".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            recommendation: "bind tool and image lock before code freeze publication".to_string(),
+            affected_rows: vec!["h13".to_string()],
+            source_appraisers: vec!["code-freeze".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "security_hardening_encrypted_scope_findings=2"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "security_hardening_critical_queue_entries=1"));
     }
 
     #[test]
