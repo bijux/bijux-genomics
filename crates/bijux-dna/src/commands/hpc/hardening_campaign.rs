@@ -2588,6 +2588,24 @@ fn goal_specific_checks(
             ),
             format!("imputation_panel_findings_count={}", findings.len()),
         ],
+        "G223" => vec![
+            format!("taxonomy_variant_rows_present={}", !rows.is_empty()),
+            format!(
+                "taxonomy_variant_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "taxonomy_variant_profile_contam_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.contamination")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "taxonomy_variant_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("taxonomy_variant_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -4387,6 +4405,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "imputation_panel_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_223_emits_taxonomy_variant_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G223".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "corpus-suitability".to_string(),
+            row_id: "h3".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "corpus-mismatch".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "taxonomy variant profile requires rank-resolution caveat".to_string(),
+            recommendation: "bind taxonomy variant profile to intended rank boundary".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "taxonomy_variant_profile_contam_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "taxonomy_variant_findings_count=1"));
     }
 
     #[test]
