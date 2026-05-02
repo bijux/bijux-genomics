@@ -371,6 +371,156 @@ const G190_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G191_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "sprint-top-risk-selection",
+        focus: "select top-risk hardening items for sprint generation",
+    },
+    ScenarioDefinition {
+        scenario_id: "sprint-bookkeeping-exclusion",
+        focus: "exclude bookkeeping-only items from sprint backlog",
+    },
+    ScenarioDefinition {
+        scenario_id: "sprint-output-proof",
+        focus: "capture sprint output evidence from hardening queue",
+    },
+];
+
+const G192_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "ambiguous-finding-detection",
+        focus: "detect weak or conflicting findings for manual review",
+    },
+    ScenarioDefinition {
+        scenario_id: "manual-review-routing",
+        focus: "route ambiguous findings into manual review queue",
+    },
+    ScenarioDefinition {
+        scenario_id: "review-queue-proof",
+        focus: "capture manual review queue evidence",
+    },
+];
+
+const G193_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "upstream-tool-suspect-detection",
+        focus: "detect suspected upstream tool behavior from appraisals",
+    },
+    ScenarioDefinition {
+        scenario_id: "upstream-tool-bundle-selection",
+        focus: "select minimal rows for encrypted upstream tool issue bundles",
+    },
+    ScenarioDefinition {
+        scenario_id: "upstream-tool-bundle-proof",
+        focus: "capture issue bundle readiness proof for upstream reports",
+    },
+];
+
+const G194_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "data-issue-suspect-detection",
+        focus: "detect suspected corpus or database issue findings",
+    },
+    ScenarioDefinition {
+        scenario_id: "data-issue-bundle-selection",
+        focus: "select minimal rows for encrypted data issue bundles",
+    },
+    ScenarioDefinition {
+        scenario_id: "data-issue-bundle-proof",
+        focus: "capture data issue bundle readiness proof",
+    },
+];
+
+const G195_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "runtime-issue-suspect-detection",
+        focus: "detect runtime and wrapper issue findings",
+    },
+    ScenarioDefinition {
+        scenario_id: "runtime-issue-bundle-selection",
+        focus: "select minimal rows for encrypted runtime issue bundles",
+    },
+    ScenarioDefinition {
+        scenario_id: "runtime-issue-bundle-proof",
+        focus: "capture runtime issue bundle readiness proof",
+    },
+];
+
+const G196_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "partial-campaign-evidence-selection",
+        focus: "extract valid evidence from partial campaigns",
+    },
+    ScenarioDefinition {
+        scenario_id: "partial-campaign-noncompletion-guard",
+        focus: "guard against treating partial campaign as complete",
+    },
+    ScenarioDefinition {
+        scenario_id: "salvage-workflow-proof",
+        focus: "capture campaign salvage workflow evidence",
+    },
+];
+
+const G197_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "confidence-band-detection",
+        focus: "label findings into strong, weak, and manual-review-required bands",
+    },
+    ScenarioDefinition {
+        scenario_id: "confidence-score-routing",
+        focus: "route weak findings to review while preserving strong findings",
+    },
+    ScenarioDefinition {
+        scenario_id: "confidence-proof",
+        focus: "capture confidence scoring evidence in hardening outputs",
+    },
+];
+
+const G198_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "history-trend-anchor-selection",
+        focus: "anchor stage/tool/corpus/db/image/runtime trend evidence",
+    },
+    ScenarioDefinition {
+        scenario_id: "history-analytics-signal-coverage",
+        focus: "cover degraded and critical trend signals for analytics",
+    },
+    ScenarioDefinition {
+        scenario_id: "history-report-proof",
+        focus: "capture benchmark history analytics report evidence",
+    },
+];
+
+const G199_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "stage-risk-severity-selection",
+        focus: "rank stage risk by severity and failure frequency",
+    },
+    ScenarioDefinition {
+        scenario_id: "stage-risk-priority-ordering",
+        focus: "order stage hardening priorities from risk signals",
+    },
+    ScenarioDefinition {
+        scenario_id: "stage-risk-proof",
+        focus: "capture stage-risk ranking report evidence",
+    },
+];
+
+const G200_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "acceptance-rerun-anchor-selection",
+        focus: "select exact failing and neighboring rows for acceptance rerun",
+    },
+    ScenarioDefinition {
+        scenario_id: "acceptance-rerun-before-after-guard",
+        focus: "require before/after evidence for acceptance reruns",
+    },
+    ScenarioDefinition {
+        scenario_id: "acceptance-rerun-proof",
+        focus: "capture hardening acceptance rerun evidence",
+    },
+];
+
 const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G171",
@@ -491,6 +641,66 @@ const HARDENING_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "add regression workflow",
         stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.postprocess"],
         scenarios: G190_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G191",
+        title: "add hardening sprint generator",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.filter"],
+        scenarios: G191_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G192",
+        title: "add ambiguous-result review queue",
+        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        scenarios: G192_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G193",
+        title: "add suspected upstream tool issue bundle",
+        stage_ids: &["fastq.trim_reads", "bam.align", "vcf.call"],
+        scenarios: G193_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G194",
+        title: "add suspected data issue bundle",
+        stage_ids: &["fastq.validate_reads", "bam.contamination", "vcf.filter"],
+        scenarios: G194_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G195",
+        title: "add suspected runtime issue bundle",
+        stage_ids: &["fastq.profile_reads", "bam.mapping_summary", "vcf.stats"],
+        scenarios: G195_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G196",
+        title: "add campaign salvage workflow",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.filter"],
+        scenarios: G196_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G197",
+        title: "add appraiser confidence scores",
+        stage_ids: &["fastq.validate_reads", "bam.validate", "vcf.stats"],
+        scenarios: G197_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G198",
+        title: "add benchmark history analytics",
+        stage_ids: &["fastq.profile_reads", "bam.coverage", "vcf.impute"],
+        scenarios: G198_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G199",
+        title: "add stage-risk ranking",
+        stage_ids: &["fastq.trim_reads", "bam.coverage", "vcf.filter"],
+        scenarios: G199_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G200",
+        title: "add hardening acceptance rerun",
+        stage_ids: &["fastq.validate_reads", "bam.align", "vcf.filter"],
+        scenarios: G200_SCENARIOS,
     },
 ];
 
@@ -1272,9 +1482,9 @@ mod tests {
 
     #[test]
     fn hardening_catalog_includes_iteration_15_goals() {
-        assert_eq!(HARDENING_GOALS_CATALOG.len(), 20);
+        assert_eq!(HARDENING_GOALS_CATALOG.len(), 30);
         assert_eq!(HARDENING_GOALS_CATALOG[0].goal_id, "G171");
-        assert_eq!(HARDENING_GOALS_CATALOG[19].goal_id, "G190");
+        assert_eq!(HARDENING_GOALS_CATALOG[29].goal_id, "G200");
     }
 
     #[test]
