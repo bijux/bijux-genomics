@@ -871,6 +871,24 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G137" => vec![
+            format!("haplogroup_rows_present={}", !rows.is_empty()),
+            format!(
+                "haplogroup_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.haplogroups")
+            ),
+            format!(
+                "haplogroup_degraded_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "degraded").count()
+            ),
+            format!(
+                "haplogroup_readiness_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "scientific-output")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1513,5 +1531,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("sex_par_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_137_emits_haplogroup_readiness_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G137".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "b15".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "readiness-degraded".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("haplogroup_stage_bound=true")));
     }
 }
