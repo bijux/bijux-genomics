@@ -408,6 +408,27 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G103" => vec![
+            format!("pair_repair_rows_present={}", !rows.is_empty()),
+            format!(
+                "pair_repair_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.repair_pairs")
+            ),
+            format!(
+                "pair_repair_orphan_signals={}",
+                findings
+                    .iter()
+                    .filter(|finding| {
+                        finding.failure_class.contains("runtime")
+                            || finding.failure_class.contains("readiness")
+                    })
+                    .count()
+            ),
+            format!(
+                "pair_repair_queue_pressure={}",
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -755,5 +776,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("normalization_refuse_rows=")));
+    }
+
+    #[test]
+    fn goal_103_emits_pair_repair_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G103".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-performance".to_string(),
+            row_id: "r3".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("pair_repair_rows_present=")));
     }
 }
