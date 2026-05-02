@@ -159,6 +159,8 @@ pub enum ConfigCommand {
     VcfBenchmarkCampaign(VcfBenchmarkCampaignArgs),
     #[command(name = "cross-benchmark-campaign")]
     CrossBenchmarkCampaign(CrossBenchmarkCampaignArgs),
+    #[command(name = "hardening-benchmark-campaign")]
+    HardeningBenchmarkCampaign(HardeningBenchmarkCampaignArgs),
     Doctor,
 }
 
@@ -275,6 +277,22 @@ pub struct CrossBenchmarkCampaignArgs {
     #[arg(long, value_name = "PATH")]
     pub user_overrides: Option<PathBuf>,
     #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G161,G162")]
+    pub goals: Option<String>,
+    #[arg(long, value_name = "PATH")]
+    pub out: Option<PathBuf>,
+    #[arg(long, default_value_t = false)]
+    pub json: bool,
+}
+
+#[derive(Debug, Args, Clone)]
+pub struct HardeningBenchmarkCampaignArgs {
+    #[arg(long, value_name = "PATH")]
+    pub config: PathBuf,
+    #[arg(long, value_name = "PATH")]
+    pub env_file: Option<PathBuf>,
+    #[arg(long, value_name = "PATH")]
+    pub user_overrides: Option<PathBuf>,
+    #[arg(long, value_name = "GOALS", help = "Comma-separated goals like G171,G172")]
     pub goals: Option<String>,
     #[arg(long, value_name = "PATH")]
     pub out: Option<PathBuf>,
