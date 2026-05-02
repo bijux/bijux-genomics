@@ -481,6 +481,24 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G128" => vec![
+            format!("mapq_rows_present={}", !rows.is_empty()),
+            format!(
+                "mapq_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.mapq_filter")
+            ),
+            format!(
+                "mapq_repetition_floor={}",
+                rows.iter().map(|row| row.repetitions).min().unwrap_or(0)
+            ),
+            format!(
+                "mapq_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "scientific-output")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -916,5 +934,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("duplicate_metrics_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_128_emits_mapq_filtering_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G128".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "b6".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "readiness-degraded".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("mapq_stage_bound=true")));
     }
 }
