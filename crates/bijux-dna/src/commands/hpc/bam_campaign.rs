@@ -499,6 +499,27 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G129" => vec![
+            format!("mapping_summary_rows_present={}", !rows.is_empty()),
+            format!(
+                "mapping_summary_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+            ),
+            format!(
+                "mapping_summary_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "ready").count()
+            ),
+            format!(
+                "mapping_summary_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| {
+                        finding.appraiser_id == "artifact-validity"
+                            || finding.appraiser_id == "scientific-output"
+                    })
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -956,5 +977,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("mapq_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_129_emits_mapping_summary_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G129".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "artifact-validity".to_string(),
+            row_id: "b7".to_string(),
+            severity: "warning".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "image-mismatch".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("mapping_summary_stage_bound=true")));
     }
 }
