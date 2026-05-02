@@ -13,6 +13,15 @@ Repo sync belongs on the private frontend home. Benchmark artifacts belong on th
 
 `bijux-dna` is the benchmark execution surface. New benchmark orchestration and corpus dossier generation should land under the Rust CLI, especially `bijux-dna bench corpus-fastq` and `bijux-dna bench corpus-fastq-report`, rather than in new helper layers under `makes/bin/`.
 
+## Encrypted Slurm Bundle Workflow
+
+Campaign submissions now emit encrypted `.results` and `.code` bundles together with sidecar files.
+
+- Keep `security.encrypt_operator_outputs = false` by default so operators can inspect `.log/.out/.err`.
+- Use `bijux-dna slurm copy-back-manifest` to capture bundle and sidecar paths for local import.
+- Use `bijux-dna slurm verify-bundle` before decrypting copied artifacts.
+- Use `bijux-dna slurm decrypt-bundle --out-dir artifacts/investigation/decrypt` for local review.
+
 ## Mirror The Shared Cache Tree
 
 1. Sync the private benchmark repo checkout to `workspace.remote.repo_root`.
