@@ -2996,6 +2996,24 @@ fn goal_specific_checks(
             ),
             format!("queue_subset_queue_entries={}", queue_entries.len()),
         ],
+        "G234" => vec![
+            format!("priority_label_rows_present={}", !rows.is_empty()),
+            format!(
+                "priority_label_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "priority_label_profile_coverage_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "priority_label_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("priority_label_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5075,6 +5093,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "queue_subset_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_234_emits_campaign_priority_label_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G234".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-profile".to_string(),
+            row_id: "h7".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "priority labels need cost-value rebalance for coverage row".to_string(),
+            recommendation: "raise priority for high scientific value low-cost rows".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "priority_label_profile_coverage_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "priority_label_findings_count=1"));
     }
 
     #[test]
