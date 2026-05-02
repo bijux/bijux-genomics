@@ -907,6 +907,28 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G139" => vec![
+            format!("resource_rows_present={}", !rows.is_empty()),
+            format!(
+                "resource_qc_pre_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.qc_pre")
+            ),
+            format!(
+                "resource_summary_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+            ),
+            format!(
+                "resource_coverage_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.coverage")
+            ),
+            format!(
+                "resource_runtime_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "runtime-performance")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1593,5 +1615,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("kinship_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_139_emits_resource_estimation_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G139".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-performance".to_string(),
+            row_id: "b8".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("resource_qc_pre_bound=true")));
     }
 }
