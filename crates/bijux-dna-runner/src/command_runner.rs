@@ -98,7 +98,7 @@ fn command_output(
 
 #[cfg(test)]
 mod tests {
-    use super::run_command_with_context;
+    use super::{run_command_with_context, run_command_with_context_and_stdin};
 
     #[test]
     fn run_command_rejects_empty_executable() {
@@ -108,5 +108,15 @@ mod tests {
         };
 
         assert_eq!(err.to_string(), "command executable must not be empty");
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn run_command_supports_stdin_payload() {
+        let args = Vec::new();
+        let output = run_command_with_context_and_stdin("cat", &args, None, None, Some(b"bijux"))
+            .expect("run cat");
+        assert_eq!(output.exit_code, 0);
+        assert_eq!(output.stdout, "bijux");
     }
 }
