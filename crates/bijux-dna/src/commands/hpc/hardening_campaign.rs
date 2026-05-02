@@ -3404,6 +3404,24 @@ fn goal_specific_checks(
             ),
             format!("full_cross_domain_findings_count={}", findings.len()),
         ],
+        "G245" => vec![
+            format!("all_domain_series_rows_present={}", !rows.is_empty()),
+            format!(
+                "all_domain_series_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "all_domain_series_validate_validate_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "all_domain_series_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("all_domain_series_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5767,6 +5785,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "full_cross_domain_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_245_emits_all_domain_series_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G245".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "all-domain series lacks complete postprocess code-freeze fields".to_string(),
+            recommendation: "freeze series provenance for all-domain campaign replay".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "all_domain_series_validate_validate_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "all_domain_series_findings_count=1"));
     }
 
     #[test]
