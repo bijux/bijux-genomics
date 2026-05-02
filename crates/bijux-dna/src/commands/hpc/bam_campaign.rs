@@ -929,6 +929,36 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G140" => vec![
+            format!("full_template_rows_present={}", !rows.is_empty()),
+            format!(
+                "full_template_core_stages_covered={}",
+                rows.iter()
+                    .filter(|row| {
+                        matches!(
+                            row.stage_id.as_str(),
+                            "bam.qc_pre"
+                                | "bam.align"
+                                | "bam.markdup"
+                                | "bam.mapping_summary"
+                                | "bam.coverage"
+                                | "bam.damage"
+                                | "bam.authenticity"
+                        )
+                    })
+                    .count()
+            ),
+            format!(
+                "full_template_degraded_or_refuse_rows={}",
+                rows.iter()
+                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .count()
+            ),
+            format!(
+                "full_template_hardening_entries={}",
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1637,5 +1667,17 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("resource_qc_pre_bound=true")));
+    }
+
+    #[test]
+    fn goal_140_emits_full_bam_template_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G140".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("full_template_core_stages_covered=")));
     }
 }
