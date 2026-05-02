@@ -2942,6 +2942,24 @@ fn goal_specific_checks(
             ),
             format!("campaign_split_queue_entries={}", queue_entries.len()),
         ],
+        "G231" => vec![
+            format!("campaign_lock_rows_present={}", !rows.is_empty()),
+            format!(
+                "campaign_lock_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "campaign_lock_validate_validate_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "campaign_lock_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("campaign_lock_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -4945,6 +4963,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "campaign_split_queue_entries=1"));
+    }
+
+    #[test]
+    fn goal_231_emits_campaign_lock_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G231".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "campaign lock misses postprocess provenance anchor".to_string(),
+            recommendation: "freeze postprocess provenance and lock digest state".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "campaign_lock_validate_validate_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "campaign_lock_findings_count=1"));
     }
 
     #[test]
