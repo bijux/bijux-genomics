@@ -81,6 +81,33 @@ pub enum ConfigCommand {
         #[arg(long)]
         root: Option<PathBuf>,
     },
+    #[command(name = "campaign-preflight")]
+    CampaignPreflight {
+        #[arg(long, value_name = "PATH")]
+        config: PathBuf,
+        #[arg(long, value_name = "PATH")]
+        env_file: Option<PathBuf>,
+        #[arg(long, value_name = "PATH")]
+        user_overrides: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
+    #[command(name = "campaign-dry-run")]
+    CampaignDryRun {
+        #[arg(long, value_name = "PATH")]
+        config: PathBuf,
+        #[arg(long, value_name = "PATH")]
+        env_file: Option<PathBuf>,
+        #[arg(long, value_name = "PATH")]
+        user_overrides: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
+    #[command(name = "write-campaign-profiles")]
+    WriteCampaignProfiles {
+        #[arg(long, default_value = "configs/hpc/campaign")]
+        out_dir: PathBuf,
+    },
     Doctor,
 }
 

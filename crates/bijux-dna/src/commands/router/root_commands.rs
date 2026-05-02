@@ -313,6 +313,50 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 return Err(anyhow::anyhow!("config doctor failed"));
             }
         }
+        cli::ConfigCommand::CampaignPreflight { config, env_file, user_overrides, json } => {
+            let report =
+                hpc::campaign_preflight(config, env_file.as_deref(), user_overrides.as_deref())?;
+            if *json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("schema_version={}", report.schema_version);
+                println!("config_path={}", report.config_path);
+                println!("ok={}", report.ok);
+                println!("slurm_site_profile={}", report.resolved_slurm.site_profile);
+                println!("slurm_account={}", report.resolved_slurm.account_redacted);
+                println!("slurm_project={}", report.resolved_slurm.project_redacted);
+                println!("slurm_partition={}", report.resolved_slurm.partition);
+                println!("slurm_qos={}", report.resolved_slurm.qos);
+                println!("checks={}", report.checks.len());
+            }
+            if !report.ok {
+                return Err(anyhow::anyhow!("campaign preflight failed"));
+            }
+        }
+        cli::ConfigCommand::CampaignDryRun { config, env_file, user_overrides, json } => {
+            let report =
+                hpc::campaign_dry_run(config, env_file.as_deref(), user_overrides.as_deref())?;
+            if *json {
+                cli::render::json::print_pretty(&report)?;
+            } else {
+                println!("schema_version={}", report.schema_version);
+                println!("config_path={}", report.config_path);
+                println!("campaign_id={}", report.campaign_id);
+                println!("domain={}", report.domain);
+                println!("slurm_site_profile={}", report.resolved_slurm.site_profile);
+                println!("slurm_account={}", report.resolved_slurm.account_redacted);
+                println!("slurm_project={}", report.resolved_slurm.project_redacted);
+                println!("slurm_partition={}", report.resolved_slurm.partition);
+                println!("slurm_qos={}", report.resolved_slurm.qos);
+                println!("planned_jobs={}", report.planned_jobs.len());
+            }
+        }
+        cli::ConfigCommand::WriteCampaignProfiles { out_dir } => {
+            let written = hpc::write_campaign_profiles(out_dir)?;
+            for path in written {
+                println!("written={}", path.display());
+            }
+        }
     }
     Ok(())
 }
