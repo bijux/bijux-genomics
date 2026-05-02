@@ -4756,6 +4756,30 @@ fn goal_specific_checks(
                     || findings.iter().any(|finding| finding.severity == "critical")
             ),
         ],
+        "G276" => vec![
+            format!("retention_tier_rows_present={}", !rows.is_empty()),
+            format!(
+                "retention_tier_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "retention_tier_profile_summary_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "retention_tier_encrypted_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope.starts_with("encrypted-"))
+                    .count()
+            ),
+            format!(
+                "retention_tier_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7941,6 +7965,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "appraiser_budget_triggered=true"));
+    }
+
+    #[test]
+    fn goal_276_emits_retention_tier_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G276".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "retention tier import marks code bundles for full encrypted retention".to_string(),
+            recommendation: "retain high-value encrypted bundles and purge low-value intermediates safely".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "retention_tier_profile_summary_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "retention_tier_encrypted_findings=1"));
     }
 
     #[test]
