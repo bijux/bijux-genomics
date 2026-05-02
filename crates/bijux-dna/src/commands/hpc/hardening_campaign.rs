@@ -3918,6 +3918,33 @@ fn goal_specific_checks(
                         .count()
             ),
         ],
+        "G259" => vec![
+            format!("backend_selection_rows_present={}", !rows.is_empty()),
+            format!(
+                "backend_selection_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "backend_selection_trim_align_call_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+            ),
+            format!(
+                "backend_selection_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "backend_selection_runtime_repro_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| {
+                        finding.failure_class == "runtime-outlier"
+                            || finding.failure_class == "reproducibility-low-repeats"
+                    })
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6625,6 +6652,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "stage_demotion_requires_demotion=true"));
+    }
+
+    #[test]
+    fn goal_259_emits_backend_selection_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G259".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-profile".to_string(),
+            row_id: "h5".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "backend selection import reports runtime drift around align stage".to_string(),
+            recommendation: "prefer backend defaults with stable runtime evidence for scenario".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "backend_selection_trim_align_call_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "backend_selection_runtime_repro_findings=1"));
     }
 
     #[test]
