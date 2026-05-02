@@ -39,6 +39,8 @@ Authority:
   `cargo run -q -p bijux-dna -- slurm submit-stage-benchmark --config configs/hpc/campaign/lunarc-small.toml --stage fastq.validate_reads --mock-submit`
 - Slurm campaign domain submit:
   `cargo run -q -p bijux-dna -- slurm submit-domain-benchmark --config configs/hpc/campaign/lunarc-small.toml --domain fastq --mock-submit`
+- Generate benchmark matrix with readiness and repetition policy:
+  `cargo run -q -p bijux-dna -- config benchmark-matrix --config configs/hpc/campaign/lunarc-small.toml --domain all --out artifacts/benchmark/matrix.json --json`
 
 ## Inspect
 - Current governed status view:
