@@ -4283,6 +4283,33 @@ fn goal_specific_checks(
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
         ],
+        "G265" => vec![
+            format!("performance_regression_rows_present={}", !rows.is_empty()),
+            format!(
+                "performance_regression_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "performance_regression_trim_coverage_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.coverage")
+                    && rows.iter().any(|row| row.stage_id == "vcf.stats")
+            ),
+            format!(
+                "performance_regression_runtime_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| {
+                        finding.failure_class == "runtime-under-sampled"
+                            || finding.failure_class == "runtime-outlier"
+                    })
+                    .count()
+            ),
+            format!(
+                "performance_regression_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -7146,6 +7173,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "source_blame_drift_findings=1"));
+    }
+
+    #[test]
+    fn goal_265_emits_performance_regression_gate_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G265".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-performance".to_string(),
+            row_id: "h7".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-under-sampled".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "performance gate import reports runtime baseline drift at coverage stage".to_string(),
+            recommendation: "gate against accepted runtime and IO baseline envelopes".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "performance_regression_trim_coverage_stats_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "performance_regression_runtime_findings=1"));
     }
 
     #[test]
