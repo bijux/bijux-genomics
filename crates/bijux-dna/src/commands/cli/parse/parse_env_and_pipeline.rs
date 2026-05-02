@@ -108,6 +108,17 @@ pub enum ConfigCommand {
         #[arg(long, default_value = "configs/hpc/campaign")]
         out_dir: PathBuf,
     },
+    #[command(name = "preparation-graph")]
+    PreparationGraph {
+        #[arg(long, value_name = "PATH")]
+        config: PathBuf,
+        #[arg(long, value_name = "PATH")]
+        env_file: Option<PathBuf>,
+        #[arg(long, value_name = "PATH")]
+        user_overrides: Option<PathBuf>,
+        #[arg(long, default_value_t = false)]
+        json: bool,
+    },
     Doctor,
 }
 

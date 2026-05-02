@@ -252,9 +252,23 @@ pub struct CampaignDryRunReport {
     pub user_overrides_applied: bool,
     pub campaign_id: String,
     pub domain: String,
+    pub layout: PlannedLayout,
     pub resolved_slurm: ResolvedSlurm,
     pub security: PlannedSecurity,
     pub planned_jobs: Vec<PlannedJob>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct PlannedLayout {
+    pub corpora_root: String,
+    pub databases_root: String,
+    pub images_root: String,
+    pub scratch_root: String,
+    pub logs_root: String,
+    pub encrypted_results_root: String,
+    pub encrypted_code_root: String,
+    pub appraiser_imports_root: String,
+    pub baselines_root: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -1433,6 +1447,17 @@ pub fn campaign_dry_run(
         user_overrides_applied: metadata.user_overrides_applied,
         campaign_id: config.campaign.id,
         domain: config.campaign.domain,
+        layout: PlannedLayout {
+            corpora_root: config.layout.corpora_root.display().to_string(),
+            databases_root: config.layout.databases_root.display().to_string(),
+            images_root: config.layout.images_root.display().to_string(),
+            scratch_root: config.layout.scratch_root.display().to_string(),
+            logs_root: config.layout.logs_root.display().to_string(),
+            encrypted_results_root: config.layout.encrypted_results_root.display().to_string(),
+            encrypted_code_root: config.layout.encrypted_code_root.display().to_string(),
+            appraiser_imports_root: config.layout.appraiser_imports_root.display().to_string(),
+            baselines_root: config.layout.baselines_root.display().to_string(),
+        },
         resolved_slurm,
         security: PlannedSecurity {
             encryption_backend: config.security.encryption_backend,
