@@ -33,3 +33,16 @@ cargo run -q -p bijux-dna-dev -- tooling run operator-workflow-maturity -- --out
 - `G198` `g198_operator_command_recipes`: canonical run/inspect/replay/diff/export recipes mapped to concrete evidence paths.
 - `G199` `g199_scale_aware_progress_reporting`: sample/stage/artifact progress summaries with explicit failure rows.
 - `G200` `g200_resource_prediction_from_past_runs`: advisory CPU/memory/scratch suggestions from successful historical runs.
+
+## Purpose
+This document describes the governed intent and operator-facing meaning of this surface.
+
+## Scope
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
+
+## Non-goals
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
+
+## Contracts
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
+

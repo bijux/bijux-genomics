@@ -53,3 +53,13 @@ Route common change types to the right crate, config path, fixture path, and pro
 - prove run layout, retry, timeout, or executor behavior under tests
 - update operator docs for new failure/remediation behavior
 - avoid hidden CLI-only logic
+
+## Scope
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
+
+## Non-goals
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
+
+## Contracts
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
+

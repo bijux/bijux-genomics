@@ -87,3 +87,16 @@ Notes:
 - Use [examples/index.yaml](../../examples/index.yaml) to discover governed canonical example ids.
 - Use [RELEASE_RUNNABLE_EXAMPLES.md](RELEASE_RUNNABLE_EXAMPLES.md) for manifest/output/caveat links and release-facing example command paths.
 - Use [BACKLOG_SCOREBOARD.md](BACKLOG_SCOREBOARD.md) for Level 1 closure-scope routing and status policy.
+
+## Purpose
+This document describes the governed intent and operator-facing meaning of this surface.
+
+## Scope
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
+
+## Non-goals
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
+
+## Contracts
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
+

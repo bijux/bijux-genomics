@@ -35,3 +35,13 @@ flowchart LR
 
 `bijux-dna-dev`, `bijux-dna-bench`, and `bijux-dna-science` may consume the outputs in this map,
 but they are not allowed to become hidden authorities for workflow truth or execution truth.
+
+## Scope
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
+
+## Non-goals
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
+
+## Contracts
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
+

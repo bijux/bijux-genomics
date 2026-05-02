@@ -61,3 +61,16 @@ Promoted GHCR publication workflows attach command-IO smoke evidence artifacts p
 - Apptainer publish workflow artifact path: `artifacts/containers/ghcr/workflow/apptainer/<tool>.smoke_proof.json`
 
 These records capture executed smoke commands, expected and actual exit codes, output first lines, and output SHA-256 digests.
+
+## Purpose
+This document describes the governed intent and operator-facing meaning of this surface.
+
+## Scope
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
+
+## Non-goals
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
+
+## Contracts
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
+

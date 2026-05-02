@@ -18,3 +18,16 @@ Supporting truth:
 Smoke-only note:
 - The paired `benchmark-smoke-level1` and `certify-level1` outputs measure deterministic bundle flow and artifact size only.
 - They are not scientific-performance claims and must not be used as publication evidence.
+
+## Purpose
+This document describes the governed intent and operator-facing meaning of this surface.
+
+## Scope
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
+
+## Non-goals
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
+
+## Contracts
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
+

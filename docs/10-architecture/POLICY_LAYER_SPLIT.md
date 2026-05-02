@@ -32,3 +32,16 @@ Authoritative sources live under `configs/runtime/`, `configs/logging/`, and `co
 Operational profile files must not silently redefine scientific thresholds, reference
 compatibility, sample assumptions, or advisory/enforced scientific findings. Those changes must
 happen in scientific/domain authorities and be reviewed as scientific contract changes.
+
+## Purpose
+This document describes the governed intent and operator-facing meaning of this surface.
+
+## Scope
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
+
+## Non-goals
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
+
+## Contracts
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
+

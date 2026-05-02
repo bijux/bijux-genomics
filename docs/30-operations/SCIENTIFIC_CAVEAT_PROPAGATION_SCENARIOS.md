@@ -33,3 +33,16 @@ cargo run -q -p bijux-dna-dev -- tooling run scientific-caveat-propagation -- --
 - `G188` `g188_sample_identity_conflict_propagation`: sample/read-group conflict propagation into downstream refusal boundaries.
 - `G189` `g189_reference_build_conflict_propagation`: reference-build mismatch propagation into BAM/VCF/population refusal surfaces.
 - `G190` `g190_missing_evidence_propagation`: missing-evidence propagation from evidence-gap diagnostics into final report caveats.
+
+## Purpose
+This document describes the governed intent and operator-facing meaning of this surface.
+
+## Scope
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
+
+## Non-goals
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
+
+## Contracts
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
+

@@ -102,9 +102,7 @@ pub(in super::super) fn tooling_certify_level1(
     write_json_pretty(&certificate_path, &certificate)?;
     write_utf8(
         &out_dir.join("level1_certificate.md"),
-        &format!(
-            "# Level 1 Certificate\n\n- status: ok\n- gate: `cargo run -q -p bijux-dna-dev -- tooling run cargo-targets essential-release`\n- benchmark report: `artifacts/benchmarks/smoke/level1/level1_smoke_benchmark.json`\n- scoreboard: `artifacts/planning/scoreboard.yaml`\n- cards: `artifacts/planning/cards.yaml`\n"
-        ),
+        "# Level 1 Certificate\n\n- status: ok\n- gate: `cargo run -q -p bijux-dna-dev -- tooling run cargo-targets essential-release`\n- benchmark report: `artifacts/benchmarks/smoke/level1/level1_smoke_benchmark.json`\n- scoreboard: `artifacts/planning/scoreboard.yaml`\n- cards: `artifacts/planning/cards.yaml`\n",
     )?;
     success_line(format!("level1 certificate: {}", workspace.rel(&certificate_path).display()))
 }

@@ -39,3 +39,13 @@ No undocumented dependency exception is allowed.
   `crates/bijux-dna-policies/tests/fixtures/cargo_metadata_snapshot/workspace-deps.txt`.
 - The snapshot validator is
   `crates/bijux-dna-policies/tests/contracts/tooling/governance_core/cargo_metadata_snapshot_policy.rs`.
+
+## Scope
+The scope is limited to repository-owned behavior, contracts, and evidence paths for this topic.
+
+## Non-goals
+This document does not redefine source-of-truth schemas, code ownership boundaries, or release policy outside this surface.
+
+## Contracts
+Claims here are valid only when they remain consistent with governed configs, domain authorities, and policy checks.
+

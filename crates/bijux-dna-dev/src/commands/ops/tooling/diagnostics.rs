@@ -537,71 +537,6 @@ pub(in super::super) fn tooling_coverage_summary(
     Ok(OpsCommandOutcome::success(stdout))
 }
 
-#[cfg(test)]
-mod architecture_report_tests {
-    use super::{
-        extract_added_paths, extract_workspace_dependency_additions,
-        render_architecture_report_markdown, PathBuf, Value,
-    };
-
-    fn snapshot_path() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("tests/snapshots/bijux-dna-dev__tooling__architecture_report.md")
-    }
-
-    #[test]
-    fn architecture_report_extracts_added_workspace_dependencies_only() {
-        let diff = r#"
-+bijux-dna-api = { path = "../bijux-dna-api" }
-+serde = "1"
- other = "ignored"
-"#;
-        assert_eq!(extract_workspace_dependency_additions(diff), vec!["bijux-dna-api".to_string()]);
-    }
-
-    #[test]
-    fn architecture_report_extracts_added_config_and_schema_paths() {
-        let diff = "A\tconfigs/ci/example.toml\nM\tconfigs/ci/old.toml\nA\tscience/specs/data/example.json\n";
-        assert_eq!(
-            extract_added_paths(diff, "configs/"),
-            vec!["configs/ci/example.toml".to_string()]
-        );
-        assert_eq!(
-            extract_added_paths(diff, "science/specs/"),
-            vec!["science/specs/data/example.json".to_string()]
-        );
-    }
-
-    #[test]
-    fn architecture_report_markdown_matches_snapshot() {
-        let report: Value = serde_json::json!({
-            "generated_at": "1970-01-01T00:00:00Z",
-            "base_revision": "HEAD~1",
-            "crates": [
-                {
-                    "crate_name": "bijux-dna-api",
-                    "rust_file_count": 12,
-                    "rust_loc": 4200,
-                    "public_item_count": 44
-                },
-                {
-                    "crate_name": "bijux-dna-runtime",
-                    "rust_file_count": 9,
-                    "rust_loc": 2100,
-                    "public_item_count": 17
-                }
-            ],
-            "dependency_additions": ["bijux-dna-api"],
-            "new_config_files": ["configs/ci/crate-boundaries.toml"],
-            "new_schema_files": ["science/specs/data/example.json"]
-        });
-        let rendered = render_architecture_report_markdown(&report);
-        let expected = std::fs::read_to_string(snapshot_path())
-            .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path().display()));
-        assert_eq!(rendered, expected);
-    }
-}
-
 pub(in super::super) fn tooling_crash_triage(
     _workspace: &Workspace,
     args: &[String],
@@ -1518,4 +1453,69 @@ pub(in super::super) fn tooling_generate_docs(
     generate_compatibility_reference_docs(workspace, &out_root.join("50-reference"))?;
     generate_docs_graph(workspace, &out_root.join("DOCS_GRAPH.toml"))?;
     success_line(format!("generated docs into {}", out_root.display()))
+}
+
+#[cfg(test)]
+mod architecture_report_tests {
+    use super::{
+        extract_added_paths, extract_workspace_dependency_additions,
+        render_architecture_report_markdown, PathBuf, Value,
+    };
+
+    fn snapshot_path() -> PathBuf {
+        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/snapshots/bijux-dna-dev__tooling__architecture_report.md")
+    }
+
+    #[test]
+    fn architecture_report_extracts_added_workspace_dependencies_only() {
+        let diff = r#"
++bijux-dna-api = { path = "../bijux-dna-api" }
++serde = "1"
+ other = "ignored"
+"#;
+        assert_eq!(extract_workspace_dependency_additions(diff), vec!["bijux-dna-api".to_string()]);
+    }
+
+    #[test]
+    fn architecture_report_extracts_added_config_and_schema_paths() {
+        let diff = "A\tconfigs/ci/policy_layers.toml\nM\tconfigs/ci/public_api_tiers.toml\nA\tscience/specs/data/example.json\n";
+        assert_eq!(
+            extract_added_paths(diff, "configs/"),
+            vec!["configs/ci/policy_layers.toml".to_string()]
+        );
+        assert_eq!(
+            extract_added_paths(diff, "science/specs/"),
+            vec!["science/specs/data/example.json".to_string()]
+        );
+    }
+
+    #[test]
+    fn architecture_report_markdown_matches_snapshot() {
+        let report: Value = serde_json::json!({
+            "generated_at": "1970-01-01T00:00:00Z",
+            "base_revision": "HEAD~1",
+            "crates": [
+                {
+                    "crate_name": "bijux-dna-api",
+                    "rust_file_count": 12,
+                    "rust_loc": 4200,
+                    "public_item_count": 44
+                },
+                {
+                    "crate_name": "bijux-dna-runtime",
+                    "rust_file_count": 9,
+                    "rust_loc": 2100,
+                    "public_item_count": 17
+                }
+            ],
+            "dependency_additions": ["bijux-dna-api"],
+            "new_config_files": ["configs/ci/crate-boundaries.toml"],
+            "new_schema_files": ["science/specs/data/example.json"]
+        });
+        let rendered = render_architecture_report_markdown(&report);
+        let expected = std::fs::read_to_string(snapshot_path())
+            .unwrap_or_else(|err| panic!("read {}: {err}", snapshot_path().display()));
+        assert_eq!(rendered, expected);
+    }
 }

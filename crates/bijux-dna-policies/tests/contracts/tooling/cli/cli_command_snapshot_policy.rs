@@ -10,15 +10,7 @@ fn run_workspace_bijux_dna(
     context: &str,
 ) -> std::process::Output {
     let mut command = Command::new("cargo");
-    command.current_dir(root).args([
-        "run",
-        "-q",
-        "-p",
-        "bijux-dna",
-        "--bin",
-        "bijux-dna",
-        "--",
-    ]);
+    command.current_dir(root).args(["run", "-q", "-p", "bijux-dna", "--bin", "bijux-dna", "--"]);
     command.args(args).output().unwrap_or_else(|err| {
         panic!("{context}: {err}");
     })
