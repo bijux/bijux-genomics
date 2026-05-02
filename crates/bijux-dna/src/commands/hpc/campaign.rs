@@ -276,6 +276,7 @@ pub struct PlannedJob {
 
 #[derive(Debug, Clone, Serialize)]
 pub struct PlannedOutputs {
+    pub scratch_dir: String,
     pub log: String,
     pub out: String,
     pub err: String,
@@ -1323,6 +1324,21 @@ pub fn campaign_dry_run(
         values.insert("array_task".to_string(), job.array_task.unwrap_or(0).to_string());
 
         let outputs = PlannedOutputs {
+            scratch_dir: config
+                .layout
+                .scratch_root
+                .join(format!(
+                    "{}/{}/{}/{}/{}/{}-{}",
+                    config.campaign.id,
+                    config.campaign.domain,
+                    job.stage,
+                    job.tool,
+                    job.sample,
+                    job_id,
+                    timestamp
+                ))
+                .display()
+                .to_string(),
             log: config
                 .layout
                 .logs_root

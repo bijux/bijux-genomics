@@ -64,6 +64,7 @@ pub struct CopyBackEntry {
     pub stage: String,
     pub tool: String,
     pub sample: String,
+    pub scratch_dir: String,
     pub log_path: String,
     pub out_path: String,
     pub err_path: String,
@@ -541,7 +542,7 @@ fn build_slurm_script(
         .map_or_else(String::new, |task| format!("#SBATCH --array={task}\n"));
 
     format!(
-        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\n# Placeholder command until full stage runner integration is finalized.\necho \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK\\\"\n",
+        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\nexport BIJUX_SCRATCH_DIR={}\nexport BIJUX_SCRATCH_IN=$BIJUX_SCRATCH_DIR/in\nexport BIJUX_SCRATCH_OUT=$BIJUX_SCRATCH_DIR/out\nmkdir -p \"$BIJUX_SCRATCH_IN\" \"$BIJUX_SCRATCH_OUT\"\ncleanup() {{\n  rm -rf \"$BIJUX_SCRATCH_DIR\"\n}}\ntrap cleanup EXIT\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\n# Placeholder command until full stage runner integration is finalized.\necho \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK scratch=$BIJUX_SCRATCH_DIR\\\"\n",
         shell_quote(&job.name),
         job.planned.resources.cpus,
         job.planned.resources.mem_gb,
@@ -557,6 +558,7 @@ fn build_slurm_script(
         job.planned.sample,
         script_path.display(),
         job.planned.array_task.unwrap_or(0),
+        shell_quote(&job.planned.outputs.scratch_dir),
         shell_quote(&report.env_file_path),
         shell_quote(&report.env_file_path),
         job.planned.stage,
@@ -826,6 +828,7 @@ pub fn write_copy_back_manifest(
             stage: job.stage.clone(),
             tool: job.tool.clone(),
             sample: job.sample.clone(),
+            scratch_dir: job.outputs.scratch_dir.clone(),
             log_path: job.outputs.log.clone(),
             out_path: job.outputs.out.clone(),
             err_path: job.outputs.err.clone(),
@@ -1799,6 +1802,9 @@ array_task = 7
         let first_script =
             std::fs::read_to_string(&report.jobs[0].script_path).expect("read script 1");
         assert!(first_script.contains("set -euo pipefail"));
+        assert!(first_script.contains("export BIJUX_SCRATCH_DIR="));
+        assert!(first_script.contains("mkdir -p \"$BIJUX_SCRATCH_IN\" \"$BIJUX_SCRATCH_OUT\""));
+        assert!(first_script.contains("trap cleanup EXIT"));
         assert!(!first_script.contains("--dependency=afterok"));
 
         let second_script =
@@ -1823,6 +1829,7 @@ array_task = 7
         assert_eq!(report.entries.len(), 3);
         assert!(report.suggested_copy_command.starts_with("rsync -av "));
         assert!(report.entries.iter().all(|entry| !entry.script_path.is_empty()));
+        assert!(report.entries.iter().all(|entry| !entry.scratch_dir.is_empty()));
         assert!(out.is_file());
     }
 
