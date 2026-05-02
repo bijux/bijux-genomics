@@ -429,6 +429,25 @@ fn goal_specific_checks(
                 queue_entries.iter().filter(|entry| entry.severity != "info").count()
             ),
         ],
+        "G104" => vec![
+            format!("interleave_rows_present={}", !rows.is_empty()),
+            format!(
+                "interleave_stage_pair_covered={}",
+                rows.iter().any(|row| row.stage_id == "fastq.interleave_reads")
+                    && rows.iter().any(|row| row.stage_id == "fastq.deinterleave_reads")
+            ),
+            format!(
+                "interleave_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "interleave_queue_entries={}",
+                queue_entries
+                    .iter()
+                    .filter(|entry| entry.failure_class.contains("readiness"))
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -798,5 +817,17 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("pair_repair_rows_present=")));
+    }
+
+    #[test]
+    fn goal_104_emits_interleave_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G104".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("interleave_stage_pair_covered=")));
     }
 }
