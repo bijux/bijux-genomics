@@ -221,6 +221,156 @@ const G150_SCENARIOS: &[ScenarioDefinition] = &[
     },
 ];
 
+const G151_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "panel-map-identity",
+        focus: "panel and map identity compatibility",
+    },
+    ScenarioDefinition {
+        scenario_id: "simulation-vs-production-labels",
+        focus: "simulation and production label separation",
+    },
+    ScenarioDefinition {
+        scenario_id: "imputation-confidence-surface",
+        focus: "imputation confidence output surface",
+    },
+];
+
+const G152_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "sample-qc-and-missingness",
+        focus: "sample QC and missingness boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "heterozygosity-relatedness-flags",
+        focus: "heterozygosity and relatedness flag behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "cohort-filter-impact",
+        focus: "sample-count and filter impact on cohort QC",
+    },
+];
+
+const G153_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "ld-pruning-boundary",
+        focus: "LD pruning and marker count boundary",
+    },
+    ScenarioDefinition {
+        scenario_id: "small-cohort-caveats",
+        focus: "small cohort caveat and refusal behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "sample-inclusion-guardrail",
+        focus: "sample inclusion guardrail behavior",
+    },
+];
+
+const G154_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "roh-marker-density",
+        focus: "ROH marker density boundary",
+    },
+    ScenarioDefinition {
+        scenario_id: "ibd-missingness-cohort-size",
+        focus: "IBD missingness and cohort-size boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "method-assumption-caveats",
+        focus: "ROH/IBD method assumption caveats",
+    },
+];
+
+const G155_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "underpowered-cohort-refusal",
+        focus: "underpowered cohort refusal behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "missing-assumption-refusal",
+        focus: "missing demography assumption refusal",
+    },
+    ScenarioDefinition {
+        scenario_id: "incompatible-method-caveats",
+        focus: "incompatible demography method caveats",
+    },
+];
+
+const G156_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "annotation-source-version",
+        focus: "annotation source and version provenance",
+    },
+    ScenarioDefinition {
+        scenario_id: "field-coverage-drift",
+        focus: "annotation field coverage and drift",
+    },
+    ScenarioDefinition {
+        scenario_id: "gene-transcript-mapping",
+        focus: "gene/transcript mapping stability",
+    },
+];
+
+const G157_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "sv-like-record-detection",
+        focus: "SV-like record detection and classification",
+    },
+    ScenarioDefinition {
+        scenario_id: "small-variant-misuse-refusal",
+        focus: "refusal when small-variant workflow is unsuitable",
+    },
+    ScenarioDefinition {
+        scenario_id: "support-vs-refuse-boundary",
+        focus: "support versus refusal boundary for SV-like inputs",
+    },
+];
+
+const G158_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "population-handoff-trust-classes",
+        focus: "population handoff trust-class propagation",
+    },
+    ScenarioDefinition {
+        scenario_id: "filtered-normalized-handoff",
+        focus: "filtered and normalized handoff boundaries",
+    },
+    ScenarioDefinition {
+        scenario_id: "downstream-stage-caveat-flow",
+        focus: "downstream caveat flow across population stages",
+    },
+];
+
+const G159_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "stats-filter-scale",
+        focus: "stats and filter scale behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "normalize-annotation-scale",
+        focus: "normalization and annotation scale behavior",
+    },
+    ScenarioDefinition {
+        scenario_id: "runtime-memory-evidence-size",
+        focus: "runtime/memory/evidence-size pressure",
+    },
+];
+
+const G160_SCENARIOS: &[ScenarioDefinition] = &[
+    ScenarioDefinition {
+        scenario_id: "validation-normalization-template",
+        focus: "validation and normalization template baseline",
+    },
+    ScenarioDefinition {
+        scenario_id: "cohort-imputation-template",
+        focus: "cohort QC and imputation template baseline",
+    },
+    ScenarioDefinition {
+        scenario_id: "population-demography-template",
+        focus: "population, ROH/IBD, and demography template baseline",
+    },
+];
+
 const VCF_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G141",
@@ -281,6 +431,82 @@ const VCF_GOALS_CATALOG: &[GoalDefinition] = &[
         title: "benchmark phasing workflows",
         stage_ids: &["vcf.phasing", "vcf.prepare_reference_panel"],
         scenarios: G150_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G151",
+        title: "benchmark imputation workflows",
+        stage_ids: &[
+            "vcf.impute",
+            "vcf.imputation",
+            "vcf.prepare_reference_panel",
+            "vcf.postprocess",
+        ],
+        scenarios: G151_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G152",
+        title: "benchmark cohort QC",
+        stage_ids: &["vcf.qc", "vcf.stats", "vcf.filter"],
+        scenarios: G152_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G153",
+        title: "benchmark PCA/admixture guardrails",
+        stage_ids: &["vcf.pca", "vcf.admixture", "vcf.population_structure", "vcf.filter"],
+        scenarios: G153_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G154",
+        title: "benchmark ROH/IBD boundaries",
+        stage_ids: &["vcf.roh", "vcf.ibd", "vcf.filter"],
+        scenarios: G154_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G155",
+        title: "benchmark demography boundaries",
+        stage_ids: &["vcf.demography", "vcf.ibd", "vcf.roh"],
+        scenarios: G155_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G156",
+        title: "benchmark annotation provenance",
+        stage_ids: &["vcf.postprocess", "vcf.filter", "vcf.stats"],
+        scenarios: G156_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G157",
+        title: "benchmark structural-variant boundary",
+        stage_ids: &["vcf.call", "vcf.filter", "vcf.qc"],
+        scenarios: G157_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G158",
+        title: "benchmark population-analysis handoff",
+        stage_ids: &["vcf.postprocess", "vcf.pca", "vcf.roh", "vcf.ibd", "vcf.demography"],
+        scenarios: G158_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G159",
+        title: "benchmark VCF large-file behavior",
+        stage_ids: &["vcf.stats", "vcf.filter", "vcf.postprocess", "vcf.impute"],
+        scenarios: G159_SCENARIOS,
+    },
+    GoalDefinition {
+        goal_id: "G160",
+        title: "benchmark full VCF templates",
+        stage_ids: &[
+            "vcf.call",
+            "vcf.filter",
+            "vcf.stats",
+            "vcf.qc",
+            "vcf.impute",
+            "vcf.pca",
+            "vcf.roh",
+            "vcf.ibd",
+            "vcf.demography",
+            "vcf.phasing",
+        ],
+        scenarios: G160_SCENARIOS,
     },
 ];
 
@@ -781,7 +1007,7 @@ mod tests {
             domains: vec!["vcf".to_string()],
             generated_at: "0".to_string(),
             summary: BenchmarkMatrixSummary {
-                total_rows: 11,
+                total_rows: 20,
                 readiness_counts: std::collections::BTreeMap::new(),
                 domain_counts: std::collections::BTreeMap::new(),
             },
@@ -797,15 +1023,26 @@ mod tests {
                 row("v9", "vcf.call_gl", "ready"),
                 row("v10", "vcf.gl_propagation", "ready"),
                 row("v11", "vcf.phasing", "degraded"),
+                row("v12", "vcf.impute", "degraded"),
+                row("v13", "vcf.imputation", "ready"),
+                row("v14", "vcf.qc", "ready"),
+                row("v15", "vcf.pca", "degraded"),
+                row("v16", "vcf.admixture", "ready"),
+                row("v17", "vcf.population_structure", "ready"),
+                row("v18", "vcf.roh", "degraded"),
+                row("v19", "vcf.ibd", "ready"),
+                row("v20", "vcf.demography", "refuse"),
             ],
         }
     }
 
     #[test]
-    fn vcf_catalog_includes_iteration_12_goals() {
-        assert_eq!(VCF_GOALS_CATALOG.len(), 10);
+    fn vcf_catalog_includes_iteration_12_and_13_goals() {
+        assert_eq!(VCF_GOALS_CATALOG.len(), 20);
         assert_eq!(VCF_GOALS_CATALOG[0].goal_id, "G141");
         assert_eq!(VCF_GOALS_CATALOG[9].goal_id, "G150");
+        assert_eq!(VCF_GOALS_CATALOG[10].goal_id, "G151");
+        assert_eq!(VCF_GOALS_CATALOG[19].goal_id, "G160");
     }
 
     #[test]
