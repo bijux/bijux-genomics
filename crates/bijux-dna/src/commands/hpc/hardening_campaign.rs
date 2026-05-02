@@ -3032,6 +3032,24 @@ fn goal_specific_checks(
             ),
             format!("warm_start_findings_count={}", findings.len()),
         ],
+        "G236" => vec![
+            format!("all_in_one_preflight_rows_present={}", !rows.is_empty()),
+            format!(
+                "all_in_one_preflight_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "all_in_one_preflight_validate_validate_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "all_in_one_preflight_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!("all_in_one_preflight_queue_entries={}", queue_entries.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5163,6 +5181,30 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "warm_start_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_236_emits_all_in_one_preflight_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G236".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-2101".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "resolve preflight refusal row before campaign submit".to_string(),
+            affected_rows: vec!["h10".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "all_in_one_preflight_validate_validate_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "all_in_one_preflight_queue_entries=1"));
     }
 
     #[test]
