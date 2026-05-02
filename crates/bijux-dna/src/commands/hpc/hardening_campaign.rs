@@ -2264,6 +2264,30 @@ fn goal_specific_checks(
             ),
             format!("qc_threshold_findings_count={}", findings.len()),
         ],
+        "G217" => vec![
+            format!("artifact_minimization_rows_present={}", !rows.is_empty()),
+            format!(
+                "artifact_minimization_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "artifact_minimization_profile_summary_postprocess_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+                    && rows.iter().any(|row| row.stage_id == "vcf.postprocess")
+            ),
+            format!(
+                "artifact_minimization_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!(
+                "artifact_minimization_code_scope_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.result_scope == "encrypted-code")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -3909,6 +3933,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "qc_threshold_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_217_emits_artifact_minimization_corpus_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G217".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "code-freeze".to_string(),
+            row_id: "h13".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "code-freeze-incomplete".to_string(),
+            result_scope: "encrypted-code".to_string(),
+            summary: "artifact minimization bundle misses required provenance metadata".to_string(),
+            recommendation: "include provenance lock and script digest entries".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "artifact_minimization_profile_summary_postprocess_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "artifact_minimization_code_scope_findings=1"));
     }
 
     #[test]
