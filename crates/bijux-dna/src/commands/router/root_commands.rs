@@ -313,17 +313,17 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 return Err(anyhow::anyhow!("config doctor failed"));
             }
         }
-        cli::ConfigCommand::CampaignPreflight { config, env_file, user_overrides, json } => {
+        cli::ConfigCommand::CampaignPreflight { config, env_file, user_policies, json } => {
             let report =
-                hpc::campaign_preflight(config, env_file.as_deref(), user_overrides.as_deref())?;
+                hpc::campaign_preflight(config, env_file.as_deref(), user_policies.as_deref())?;
             if *json {
                 cli::render::json::print_pretty(&report)?;
             } else {
                 println!("schema_version={}", report.schema_version);
                 println!("config_path={}", report.config_path);
                 println!("env_file_path={}", report.env_file_path);
-                println!("user_override_path={}", report.user_override_path);
-                println!("user_overrides_applied={}", report.user_overrides_applied);
+                println!("user_policy_path={}", report.user_policy_path);
+                println!("user_policies_applied={}", report.user_policies_applied);
                 println!("ok={}", report.ok);
                 println!("slurm_site_profile={}", report.resolved_slurm.site_profile);
                 println!("slurm_account={}", report.resolved_slurm.account_redacted);
@@ -336,17 +336,17 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 return Err(anyhow::anyhow!("campaign preflight failed"));
             }
         }
-        cli::ConfigCommand::CampaignDryRun { config, env_file, user_overrides, json } => {
+        cli::ConfigCommand::CampaignDryRun { config, env_file, user_policies, json } => {
             let report =
-                hpc::campaign_dry_run(config, env_file.as_deref(), user_overrides.as_deref())?;
+                hpc::campaign_dry_run(config, env_file.as_deref(), user_policies.as_deref())?;
             if *json {
                 cli::render::json::print_pretty(&report)?;
             } else {
                 println!("schema_version={}", report.schema_version);
                 println!("config_path={}", report.config_path);
                 println!("env_file_path={}", report.env_file_path);
-                println!("user_override_path={}", report.user_override_path);
-                println!("user_overrides_applied={}", report.user_overrides_applied);
+                println!("user_policy_path={}", report.user_policy_path);
+                println!("user_policies_applied={}", report.user_policies_applied);
                 println!("campaign_id={}", report.campaign_id);
                 println!("domain={}", report.domain);
                 println!("slurm_site_profile={}", report.resolved_slurm.site_profile);
@@ -363,9 +363,12 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 println!("written={}", path.display());
             }
         }
-        cli::ConfigCommand::PreparationGraph { config, env_file, user_overrides, json } => {
-            let report =
-                hpc::preparation_dependency_graph(config, env_file.as_deref(), user_overrides.as_deref())?;
+        cli::ConfigCommand::PreparationGraph { config, env_file, user_policies, json } => {
+            let report = hpc::preparation_dependency_graph(
+                config,
+                env_file.as_deref(),
+                user_policies.as_deref(),
+            )?;
             if *json {
                 cli::render::json::print_pretty(&report)?;
             } else {
@@ -376,18 +379,24 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 println!("missing={}", report.missing_prerequisites.len());
             }
             if !report.ready {
-                return Err(anyhow::anyhow!("preparation dependency graph found missing prerequisites"));
+                return Err(anyhow::anyhow!(
+                    "preparation dependency graph found missing prerequisites"
+                ));
             }
         }
         cli::ConfigCommand::PrepareFoundation {
             config,
             env_file,
-            user_overrides,
+            user_policies,
             dry_run,
             json,
         } => {
-            let report =
-                hpc::prepare_foundation(config, env_file.as_deref(), user_overrides.as_deref(), *dry_run)?;
+            let report = hpc::prepare_foundation(
+                config,
+                env_file.as_deref(),
+                user_policies.as_deref(),
+                *dry_run,
+            )?;
             if *json {
                 cli::render::json::print_pretty(&report)?;
             } else {
@@ -405,23 +414,23 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 );
                 println!(
                     "would_prepare={}",
-                    report
-                        .actions
-                        .iter()
-                        .filter(|action| action.action == "would_prepare")
-                        .count()
+                    report.actions.iter().filter(|action| action.action == "would_prepare").count()
                 );
             }
         }
         cli::ConfigCommand::CleanupPreparation {
             config,
             env_file,
-            user_overrides,
+            user_policies,
             dry_run,
             json,
         } => {
-            let report =
-                hpc::cleanup_preparation(config, env_file.as_deref(), user_overrides.as_deref(), *dry_run)?;
+            let report = hpc::cleanup_preparation(
+                config,
+                env_file.as_deref(),
+                user_policies.as_deref(),
+                *dry_run,
+            )?;
             if *json {
                 cli::render::json::print_pretty(&report)?;
             } else {
@@ -431,11 +440,7 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 println!("entries={}", report.removed.len());
                 println!(
                     "would_remove={}",
-                    report
-                        .removed
-                        .iter()
-                        .filter(|entry| entry.action == "would_remove")
-                        .count()
+                    report.removed.iter().filter(|entry| entry.action == "would_remove").count()
                 );
                 println!(
                     "removed={}",
@@ -459,7 +464,10 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 println!("domain={}", report.domain);
                 println!("domains={}", report.domains.join(","));
                 println!("rows={}", report.rows.len());
-                println!("ready={}", report.summary.readiness_counts.get("ready").copied().unwrap_or(0));
+                println!(
+                    "ready={}",
+                    report.summary.readiness_counts.get("ready").copied().unwrap_or(0)
+                );
                 println!(
                     "degraded={}",
                     report.summary.readiness_counts.get("degraded").copied().unwrap_or(0)
@@ -473,13 +481,7 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 }
             }
             if args.fail_on_refuse
-                && report
-                    .summary
-                    .readiness_counts
-                    .get("refuse")
-                    .copied()
-                    .unwrap_or(0)
-                    > 0
+                && report.summary.readiness_counts.get("refuse").copied().unwrap_or(0) > 0
             {
                 return Err(anyhow::anyhow!("benchmark matrix contains refuse-class rows"));
             }
@@ -501,10 +503,7 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                     "warning={}",
                     report.summary.by_severity.get("warning").copied().unwrap_or(0)
                 );
-                println!(
-                    "info={}",
-                    report.summary.by_severity.get("info").copied().unwrap_or(0)
-                );
+                println!("info={}", report.summary.by_severity.get("info").copied().unwrap_or(0));
                 if let Some(path) = &args.out {
                     println!("appraisal_out={}", path.display());
                 }
@@ -558,21 +557,11 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 );
                 println!(
                     "requires_hardening={}",
-                    report
-                        .summary
-                        .status_counts
-                        .get("requires-hardening")
-                        .copied()
-                        .unwrap_or(0)
+                    report.summary.status_counts.get("requires-hardening").copied().unwrap_or(0)
                 );
                 println!(
                     "missing_stage_binding={}",
-                    report
-                        .summary
-                        .status_counts
-                        .get("missing-stage-binding")
-                        .copied()
-                        .unwrap_or(0)
+                    report.summary.status_counts.get("missing-stage-binding").copied().unwrap_or(0)
                 );
                 if let Some(path) = &args.out {
                     println!("fastq_campaign_out={}", path.display());
@@ -602,21 +591,11 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 );
                 println!(
                     "requires_hardening={}",
-                    report
-                        .summary
-                        .status_counts
-                        .get("requires-hardening")
-                        .copied()
-                        .unwrap_or(0)
+                    report.summary.status_counts.get("requires-hardening").copied().unwrap_or(0)
                 );
                 println!(
                     "missing_stage_binding={}",
-                    report
-                        .summary
-                        .status_counts
-                        .get("missing-stage-binding")
-                        .copied()
-                        .unwrap_or(0)
+                    report.summary.status_counts.get("missing-stage-binding").copied().unwrap_or(0)
                 );
                 if let Some(path) = &args.out {
                     println!("bam_campaign_out={}", path.display());
@@ -646,21 +625,11 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 );
                 println!(
                     "requires_hardening={}",
-                    report
-                        .summary
-                        .status_counts
-                        .get("requires-hardening")
-                        .copied()
-                        .unwrap_or(0)
+                    report.summary.status_counts.get("requires-hardening").copied().unwrap_or(0)
                 );
                 println!(
                     "missing_stage_binding={}",
-                    report
-                        .summary
-                        .status_counts
-                        .get("missing-stage-binding")
-                        .copied()
-                        .unwrap_or(0)
+                    report.summary.status_counts.get("missing-stage-binding").copied().unwrap_or(0)
                 );
                 if let Some(path) = &args.out {
                     println!("vcf_campaign_out={}", path.display());
@@ -690,21 +659,11 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 );
                 println!(
                     "requires_hardening={}",
-                    report
-                        .summary
-                        .status_counts
-                        .get("requires-hardening")
-                        .copied()
-                        .unwrap_or(0)
+                    report.summary.status_counts.get("requires-hardening").copied().unwrap_or(0)
                 );
                 println!(
                     "missing_stage_binding={}",
-                    report
-                        .summary
-                        .status_counts
-                        .get("missing-stage-binding")
-                        .copied()
-                        .unwrap_or(0)
+                    report.summary.status_counts.get("missing-stage-binding").copied().unwrap_or(0)
                 );
                 if let Some(path) = &args.out {
                     println!("cross_campaign_out={}", path.display());
@@ -734,21 +693,11 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 );
                 println!(
                     "requires_hardening={}",
-                    report
-                        .summary
-                        .status_counts
-                        .get("requires-hardening")
-                        .copied()
-                        .unwrap_or(0)
+                    report.summary.status_counts.get("requires-hardening").copied().unwrap_or(0)
                 );
                 println!(
                     "missing_stage_binding={}",
-                    report
-                        .summary
-                        .status_counts
-                        .get("missing-stage-binding")
-                        .copied()
-                        .unwrap_or(0)
+                    report.summary.status_counts.get("missing-stage-binding").copied().unwrap_or(0)
                 );
                 if let Some(path) = &args.out {
                     println!("hardening_campaign_out={}", path.display());

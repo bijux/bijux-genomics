@@ -2411,16 +2411,10 @@ fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
     if selected.is_empty() {
         return Err(anyhow!("hardening-benchmark-campaign requires at least one goal"));
     }
-    let unknown = selected
-        .iter()
-        .filter(|goal| !available.contains(*goal))
-        .cloned()
-        .collect::<Vec<_>>();
+    let unknown =
+        selected.iter().filter(|goal| !available.contains(*goal)).cloned().collect::<Vec<_>>();
     if !unknown.is_empty() {
-        return Err(anyhow!(
-            "unknown hardening goals requested: {}",
-            unknown.join(",")
-        ));
+        return Err(anyhow!("unknown hardening goals requested: {}", unknown.join(",")));
     }
     let mut ordered = HARDENING_GOALS_CATALOG
         .iter()
@@ -2436,7 +2430,10 @@ fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
     Ok(ordered)
 }
 
-fn status_for_goal(rows: &[HardeningMatrixRowRef], queue_entries: &[HardeningQueueEntry]) -> String {
+fn status_for_goal(
+    rows: &[HardeningMatrixRowRef],
+    queue_entries: &[HardeningQueueEntry],
+) -> String {
     if rows.is_empty() {
         return "missing-stage-binding".to_string();
     }
@@ -2472,10 +2469,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "stage_playbook_non_info_queue_entries={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity != "info")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
             ),
         ],
         "G172" => vec![
@@ -2501,10 +2495,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "tool_playbook_queue_non_info={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity != "info")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
             ),
         ],
         "G173" => vec![
@@ -2537,8 +2528,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "database_hardening_reference_panel_bound={}",
-                rows.iter()
-                    .any(|row| row.stage_id == "vcf.prepare_reference_panel")
+                rows.iter().any(|row| row.stage_id == "vcf.prepare_reference_panel")
             ),
             format!(
                 "database_hardening_alignment_and_call_bound={}",
@@ -2562,10 +2552,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "image_hardening_image_mismatch_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.failure_class == "image-mismatch")
-                    .count()
+                findings.iter().filter(|finding| finding.failure_class == "image-mismatch").count()
             ),
             format!(
                 "image_hardening_image_queue_entries={}",
@@ -2660,10 +2647,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "security_hardening_critical_queue_entries={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity == "critical")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity == "critical").count()
             ),
             format!(
                 "security_hardening_code_freeze_findings={}",
@@ -2795,8 +2779,12 @@ fn goal_specific_checks(
             format!(
                 "failure_taxonomy_runtime_tool_science_classes={}",
                 findings.iter().any(|finding| finding.failure_class.starts_with("runtime-"))
-                    && findings.iter().any(|finding| finding.failure_class == "missing-tool-binding")
-                    && findings.iter().any(|finding| finding.failure_class == "scientific-invalidity")
+                    && findings
+                        .iter()
+                        .any(|finding| finding.failure_class == "missing-tool-binding")
+                    && findings
+                        .iter()
+                        .any(|finding| finding.failure_class == "scientific-invalidity")
             ),
             format!(
                 "failure_taxonomy_queue_class_count={}",
@@ -2823,10 +2811,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "benchmark_minimizer_critical_queue_entries={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity == "critical")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity == "critical").count()
             ),
         ],
         "G186" => vec![
@@ -2843,15 +2828,9 @@ fn goal_specific_checks(
             ),
             format!(
                 "investigation_workspace_code_scope_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.result_scope == "encrypted-code")
-                    .count()
+                findings.iter().filter(|finding| finding.result_scope == "encrypted-code").count()
             ),
-            format!(
-                "investigation_workspace_queue_entries={}",
-                queue_entries.len()
-            ),
+            format!("investigation_workspace_queue_entries={}", queue_entries.len()),
         ],
         "G187" => vec![
             format!("result_diff_rows_present={}", !rows.is_empty()),
@@ -2891,10 +2870,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "code_diff_code_scope_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.result_scope == "encrypted-code")
-                    .count()
+                findings.iter().filter(|finding| finding.result_scope == "encrypted-code").count()
             ),
             format!(
                 "code_diff_code_freeze_queue_entries={}",
@@ -2922,10 +2898,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "baseline_workflow_noncritical_queue_entries={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity != "critical")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity != "critical").count()
             ),
         ],
         "G190" => vec![
@@ -2946,10 +2919,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "regression_workflow_non_info_queue_entries={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity != "info")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
             ),
         ],
         "G191" => vec![
@@ -2992,10 +2962,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "ambiguous_review_queue_warning_entries={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity == "warning")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity == "warning").count()
             ),
         ],
         "G193" => vec![
@@ -3019,10 +2986,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "upstream_tool_bundle_queue_non_info={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity != "info")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
             ),
         ],
         "G194" => vec![
@@ -3048,7 +3012,8 @@ fn goal_specific_checks(
                 "data_issue_bundle_security_queue_entries={}",
                 queue_entries
                     .iter()
-                    .filter(|entry| entry.failure_class.contains("readiness") || entry.failure_class == "corpus-mismatch")
+                    .filter(|entry| entry.failure_class.contains("readiness")
+                        || entry.failure_class == "corpus-mismatch")
                     .count()
             ),
         ],
@@ -3106,17 +3071,11 @@ fn goal_specific_checks(
             ),
             format!(
                 "confidence_scores_high_confidence_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.confidence == "high")
-                    .count()
+                findings.iter().filter(|finding| finding.confidence == "high").count()
             ),
             format!(
                 "confidence_scores_medium_confidence_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.confidence == "medium")
-                    .count()
+                findings.iter().filter(|finding| finding.confidence == "medium").count()
             ),
             format!(
                 "confidence_scores_manual_review_proxy={}",
@@ -3140,7 +3099,9 @@ fn goal_specific_checks(
             format!(
                 "history_analytics_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!(
@@ -3191,10 +3152,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "acceptance_rerun_before_after_queue_entries={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity != "info")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
             ),
         ],
         "G201" => vec![
@@ -3213,10 +3171,7 @@ fn goal_specific_checks(
                 "modern_wgs_non_ready_rows={}",
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
-            format!(
-                "modern_wgs_findings_count={}",
-                findings.len()
-            ),
+            format!("modern_wgs_findings_count={}", findings.len()),
         ],
         "G202" => vec![
             format!("adna_corpus_rows_present={}", !rows.is_empty()),
@@ -3234,7 +3189,8 @@ fn goal_specific_checks(
                 "adna_corpus_contamination_findings={}",
                 findings
                     .iter()
-                    .filter(|finding| finding.failure_class.contains("contamination") || finding.failure_class == "readiness-refuse")
+                    .filter(|finding| finding.failure_class.contains("contamination")
+                        || finding.failure_class == "readiness-refuse")
                     .count()
             ),
             format!("adna_corpus_queue_entries={}", queue_entries.len()),
@@ -3276,10 +3232,7 @@ fn goal_specific_checks(
                 "lowpass_corpus_degraded_rows={}",
                 rows.iter().filter(|row| row.readiness_class == "degraded").count()
             ),
-            format!(
-                "lowpass_corpus_findings_count={}",
-                findings.len()
-            ),
+            format!("lowpass_corpus_findings_count={}", findings.len()),
         ],
         "G205" => vec![
             format!("contamination_heavy_rows_present={}", !rows.is_empty()),
@@ -3297,10 +3250,7 @@ fn goal_specific_checks(
                 "contamination_heavy_refuse_rows={}",
                 rows.iter().filter(|row| row.readiness_class == "refuse").count()
             ),
-            format!(
-                "contamination_heavy_queue_entries={}",
-                queue_entries.len()
-            ),
+            format!("contamination_heavy_queue_entries={}", queue_entries.len()),
         ],
         "G206" => vec![
             format!("nonhuman_corpus_rows_present={}", !rows.is_empty()),
@@ -3316,15 +3266,9 @@ fn goal_specific_checks(
             ),
             format!(
                 "nonhuman_corpus_code_scope_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.result_scope == "encrypted-code")
-                    .count()
+                findings.iter().filter(|finding| finding.result_scope == "encrypted-code").count()
             ),
-            format!(
-                "nonhuman_corpus_findings_count={}",
-                findings.len()
-            ),
+            format!("nonhuman_corpus_findings_count={}", findings.len()),
         ],
         "G207" => vec![
             format!("microbial_corpus_rows_present={}", !rows.is_empty()),
@@ -3342,10 +3286,7 @@ fn goal_specific_checks(
                 "microbial_corpus_non_ready_rows={}",
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
-            format!(
-                "microbial_corpus_findings_count={}",
-                findings.len()
-            ),
+            format!("microbial_corpus_findings_count={}", findings.len()),
         ],
         "G208" => vec![
             format!("sv_boundary_rows_present={}", !rows.is_empty()),
@@ -3365,10 +3306,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "sv_boundary_non_info_queue_entries={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity != "info")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
             ),
         ],
         "G209" => vec![
@@ -3386,7 +3324,9 @@ fn goal_specific_checks(
             format!(
                 "cnv_boundary_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!("cnv_boundary_findings_count={}", findings.len()),
@@ -3407,10 +3347,7 @@ fn goal_specific_checks(
                 "cram_boundary_refuse_rows={}",
                 rows.iter().filter(|row| row.readiness_class == "refuse").count()
             ),
-            format!(
-                "cram_boundary_queue_entries={}",
-                queue_entries.len()
-            ),
+            format!("cram_boundary_queue_entries={}", queue_entries.len()),
         ],
         "G211" => vec![
             format!("long_read_boundary_rows_present={}", !rows.is_empty()),
@@ -3427,7 +3364,9 @@ fn goal_specific_checks(
             format!(
                 "long_read_boundary_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!("long_read_boundary_findings_count={}", findings.len()),
@@ -3519,7 +3458,9 @@ fn goal_specific_checks(
             format!(
                 "qc_threshold_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!("qc_threshold_findings_count={}", findings.len()),
@@ -3542,10 +3483,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "artifact_minimization_code_scope_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.result_scope == "encrypted-code")
-                    .count()
+                findings.iter().filter(|finding| finding.result_scope == "encrypted-code").count()
             ),
         ],
         "G218" => vec![
@@ -4067,7 +4005,9 @@ fn goal_specific_checks(
             format!(
                 "local_slurm_parity_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!("local_slurm_parity_findings_count={}", findings.len()),
@@ -4123,7 +4063,9 @@ fn goal_specific_checks(
             format!(
                 "corpus_scale_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!("corpus_scale_findings_count={}", findings.len()),
@@ -4301,10 +4243,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "stage_promotion_critical_queue_entries={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity == "critical")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity == "critical").count()
             ),
         ],
         "G258" => vec![
@@ -4328,14 +4267,8 @@ fn goal_specific_checks(
             format!(
                 "stage_demotion_refuse_or_critical_signals={}",
                 rows.iter().filter(|row| row.readiness_class == "refuse").count()
-                    + findings
-                        .iter()
-                        .filter(|finding| finding.severity == "critical")
-                        .count()
-                    + queue_entries
-                        .iter()
-                        .filter(|entry| entry.severity == "critical")
-                        .count()
+                    + findings.iter().filter(|finding| finding.severity == "critical").count()
+                    + queue_entries.iter().filter(|entry| entry.severity == "critical").count()
             ),
         ],
         "G259" => vec![
@@ -4412,10 +4345,7 @@ fn goal_specific_checks(
                         || finding.result_scope == "encrypted-results")
                     .count()
             ),
-            format!(
-                "encrypted_sharing_queue_entries={}",
-                queue_entries.len()
-            ),
+            format!("encrypted_sharing_queue_entries={}", queue_entries.len()),
         ],
         "G262" => vec![
             format!("reviewer_decrypt_rows_present={}", !rows.is_empty()),
@@ -4611,10 +4541,7 @@ fn goal_specific_checks(
                 "nightly_campaign_non_ready_rows={}",
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
-            format!(
-                "nightly_campaign_findings_count={}",
-                findings.len()
-            ),
+            format!("nightly_campaign_findings_count={}", findings.len()),
         ],
         "G270" => vec![
             format!("monthly_campaign_rows_present={}", !rows.is_empty()),
@@ -4632,10 +4559,7 @@ fn goal_specific_checks(
                 "monthly_campaign_non_ready_rows={}",
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
-            format!(
-                "monthly_campaign_findings_count={}",
-                findings.len()
-            ),
+            format!("monthly_campaign_findings_count={}", findings.len()),
         ],
         "G271" => vec![
             format!("cost_pruning_rows_present={}", !rows.is_empty()),
@@ -4653,10 +4577,7 @@ fn goal_specific_checks(
                 "cost_pruning_non_ready_rows={}",
                 rows.iter().filter(|row| row.readiness_class != "ready").count()
             ),
-            format!(
-                "cost_pruning_signal_count={}",
-                findings.len()
-            ),
+            format!("cost_pruning_signal_count={}", findings.len()),
         ],
         "G272" => vec![
             format!("failure_budget_rows_present={}", !rows.is_empty()),
@@ -4745,10 +4666,7 @@ fn goal_specific_checks(
                     && rows.iter().any(|row| row.stage_id == "bam.validate")
                     && rows.iter().any(|row| row.stage_id == "vcf.stats")
             ),
-            format!(
-                "appraiser_budget_findings_count={}",
-                findings.len()
-            ),
+            format!("appraiser_budget_findings_count={}", findings.len()),
             format!(
                 "appraiser_budget_triggered={}",
                 findings.len() >= 2
@@ -4825,9 +4743,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "reencryption_gate_triggered={}",
-                findings
-                    .iter()
-                    .any(|finding| finding.result_scope.starts_with("encrypted-"))
+                findings.iter().any(|finding| finding.result_scope.starts_with("encrypted-"))
                     || queue_entries.iter().any(|entry| entry.severity == "critical")
             ),
         ],
@@ -4917,10 +4833,7 @@ fn build_goal_entries(
             })
             .collect::<Vec<_>>();
 
-        let row_ids = matched_rows
-            .iter()
-            .map(|row| row.row_id.clone())
-            .collect::<BTreeSet<_>>();
+        let row_ids = matched_rows.iter().map(|row| row.row_id.clone()).collect::<BTreeSet<_>>();
 
         let appraisal_findings = findings
             .iter()
@@ -4935,8 +4848,12 @@ fn build_goal_entries(
             .collect::<Vec<_>>();
 
         let status = status_for_goal(&matched_rows, &hardening_entries);
-        let goal_checks =
-            goal_specific_checks(goal.goal_id, &matched_rows, &appraisal_findings, &hardening_entries);
+        let goal_checks = goal_specific_checks(
+            goal.goal_id,
+            &matched_rows,
+            &appraisal_findings,
+            &hardening_entries,
+        );
 
         entries.push(HardeningBenchmarkGoalEntry {
             goal_id: goal.goal_id.to_string(),
@@ -4987,7 +4904,7 @@ pub fn hardening_benchmark_campaign(
     let matrix = benchmark_matrix(&BenchmarkMatrixArgs {
         config: args.config.clone(),
         env_file: args.env_file.clone(),
-        user_overrides: args.user_overrides.clone(),
+        user_policies: args.user_policies.clone(),
         domain: "all".to_string(),
         out: None,
         fail_on_refuse: false,
@@ -4996,12 +4913,7 @@ pub fn hardening_benchmark_campaign(
     let appraisal = appraise_matrix_report(matrix.clone());
     let queue = hardening_queue_from_appraisal(appraisal.clone());
     let selected_goals = selected_goal_ids(args.goals.as_deref())?;
-    let entries = build_goal_entries(
-        &selected_goals,
-        &matrix,
-        &appraisal.findings,
-        &queue.entries,
-    );
+    let entries = build_goal_entries(&selected_goals, &matrix, &appraisal.findings, &queue.entries);
     let report = HardeningBenchmarkCampaignReport {
         schema_version: HARDENING_CAMPAIGN_SCHEMA_VERSION.to_string(),
         campaign_id: matrix.campaign_id,
@@ -5054,10 +4966,7 @@ mod tests {
                 matched_profile: "tool".to_string(),
                 ready: true,
             },
-            readiness: BenchmarkReadiness {
-                class: readiness.to_string(),
-                reasons: Vec::new(),
-            },
+            readiness: BenchmarkReadiness { class: readiness.to_string(), reasons: Vec::new() },
             repetitions: if readiness == "refuse" { 0 } else { 3 },
         }
     }
@@ -5162,10 +5071,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("stage_playbook_stage_count=3")));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "stage_playbook_refuse_rows=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "stage_playbook_refuse_rows=1"));
         assert!(entries[0]
             .goal_checks
             .iter()
@@ -5196,10 +5102,7 @@ mod tests {
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
         assert_eq!(entries.len(), 1);
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "tool_playbook_tool_count=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "tool_playbook_tool_count=1"));
         assert!(entries[0]
             .goal_checks
             .iter()
@@ -5218,7 +5121,8 @@ mod tests {
             failure_class: "corpus-mismatch".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "corpus profile mismatch".to_string(),
-            recommendation: "materialize corpus profile matching stage scientific claim".to_string(),
+            recommendation: "materialize corpus profile matching stage scientific claim"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -5385,7 +5289,8 @@ mod tests {
                 failure_class: "code-freeze-incomplete".to_string(),
                 result_scope: "encrypted-code".to_string(),
                 summary: "code freeze metadata incomplete".to_string(),
-                recommendation: "bind tool and image lock before code freeze publication".to_string(),
+                recommendation: "bind tool and image lock before code freeze publication"
+                    .to_string(),
             },
             AppraisalFinding {
                 appraiser_id: "failure-class".to_string(),
@@ -5563,7 +5468,8 @@ mod tests {
                 failure_class: "scientific-invalidity".to_string(),
                 result_scope: "encrypted-results".to_string(),
                 summary: "scientific invalidity".to_string(),
-                recommendation: "resolve readiness mismatches before scientific evaluation".to_string(),
+                recommendation: "resolve readiness mismatches before scientific evaluation"
+                    .to_string(),
             },
         ];
         let queue = vec![
@@ -5654,10 +5560,13 @@ mod tests {
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
         assert_eq!(entries.len(), 1);
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "investigation_workspace_profile_summary_postprocess_bound=true"));
+        assert!(
+            entries[0]
+                .goal_checks
+                .iter()
+                .any(|check| check
+                    == "investigation_workspace_profile_summary_postprocess_bound=true")
+        );
         assert!(entries[0]
             .goal_checks
             .iter()
@@ -5781,7 +5690,8 @@ mod tests {
                 failure_class: "code-freeze-incomplete".to_string(),
                 result_scope: "encrypted-code".to_string(),
                 summary: "regression rerun surfaced replay/code drift".to_string(),
-                recommendation: "bind tool and image lock before code freeze publication".to_string(),
+                recommendation: "bind tool and image lock before code freeze publication"
+                    .to_string(),
             },
         ];
         let queue = vec![HardeningQueueEntry {
@@ -5918,13 +5828,15 @@ mod tests {
             failure_class: "corpus-mismatch".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "suspected data issue from corpus mismatch".to_string(),
-            recommendation: "materialize corpus profile matching stage scientific claim".to_string(),
+            recommendation: "materialize corpus profile matching stage scientific claim"
+                .to_string(),
         }];
         let queue = vec![HardeningQueueEntry {
             queue_id: "hardening-1101".to_string(),
             severity: "warning".to_string(),
             failure_class: "corpus-mismatch".to_string(),
-            recommendation: "materialize corpus profile matching stage scientific claim".to_string(),
+            recommendation: "materialize corpus profile matching stage scientific claim"
+                .to_string(),
             affected_rows: vec!["h10".to_string()],
             source_appraisers: vec!["corpus-suitability".to_string()],
         }];
@@ -6061,7 +5973,8 @@ mod tests {
                 failure_class: "code-freeze-incomplete".to_string(),
                 result_scope: "encrypted-code".to_string(),
                 summary: "history trend: code drift in imputation branch".to_string(),
-                recommendation: "bind tool and image lock before code freeze publication".to_string(),
+                recommendation: "bind tool and image lock before code freeze publication"
+                    .to_string(),
             },
         ];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
@@ -6146,10 +6059,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "modern_wgs_validate_align_call_bound=true"));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "modern_wgs_findings_count=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "modern_wgs_findings_count=1"));
     }
 
     #[test]
@@ -6190,7 +6100,8 @@ mod tests {
             failure_class: "corpus-mismatch".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "eDNA corpus boundary warning".to_string(),
-            recommendation: "materialize corpus profile matching stage scientific claim".to_string(),
+            recommendation: "materialize corpus profile matching stage scientific claim"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -6426,10 +6337,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "sample_swap_profile_validate_stats_bound=true"));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "sample_swap_findings_count=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "sample_swap_findings_count=1"));
     }
 
     #[test]
@@ -6598,7 +6506,8 @@ mod tests {
             failure_class: "runtime-outlier".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "database-build benchmark impute stage has runtime outlier".to_string(),
-            recommendation: "profile database build assets and rebuild expensive indexes".to_string(),
+            recommendation: "profile database build assets and rebuild expensive indexes"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -6632,10 +6541,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "truth_set_validate_call_filter_bound=true"));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "truth_set_findings_count=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "truth_set_findings_count=1"));
     }
 
     #[test]
@@ -6658,10 +6564,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "known_sites_validate_filter_postprocess_bound=true"));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "known_sites_findings_count=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "known_sites_findings_count=1"));
     }
 
     #[test]
@@ -6804,7 +6707,8 @@ mod tests {
             failure_class: "database-mismatch".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "corpus/database matrix mismatch for align boundary".to_string(),
-            recommendation: "update compatibility matrix for selected corpus and DB bundle".to_string(),
+            recommendation: "update compatibility matrix for selected corpus and DB bundle"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -6830,7 +6734,8 @@ mod tests {
             failure_class: "runtime-outlier".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "coverage planner includes runtime outlier row".to_string(),
-            recommendation: "rebalance coverage planner row selection by runtime budget".to_string(),
+            recommendation: "rebalance coverage planner row selection by runtime budget"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -6964,10 +6869,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "queue_subset_validate_align_filter_bound=true"));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "queue_subset_queue_entries=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "queue_subset_queue_entries=1"));
     }
 
     #[test]
@@ -7016,10 +6918,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "warm_start_validate_summary_call_bound=true"));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "warm_start_findings_count=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "warm_start_findings_count=1"));
     }
 
     #[test]
@@ -7084,7 +6983,8 @@ mod tests {
             failure_class: "scientific-caveat".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "all-in-one report requires caveat link to postprocess drift".to_string(),
-            recommendation: "include postprocess caveat links in generated summary reports".to_string(),
+            recommendation: "include postprocess caveat links in generated summary reports"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7135,8 +7035,10 @@ mod tests {
             confidence: "high".to_string(),
             failure_class: "readiness-refuse".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "benchmark output indicates docs caveat for filter refusal behavior".to_string(),
-            recommendation: "add docs hint when refusal behavior changes user-visible guidance".to_string(),
+            summary: "benchmark output indicates docs caveat for filter refusal behavior"
+                .to_string(),
+            recommendation: "add docs hint when refusal behavior changes user-visible guidance"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7170,10 +7072,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "full_fastq_validate_trim_profile_bound=true"));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "full_fastq_findings_count=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "full_fastq_findings_count=1"));
     }
 
     #[test]
@@ -7196,10 +7095,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "full_bam_validate_align_summary_bound=true"));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "full_bam_findings_count=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "full_bam_findings_count=1"));
     }
 
     #[test]
@@ -7222,10 +7118,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "full_vcf_call_filter_stats_bound=true"));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "full_vcf_findings_count=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "full_vcf_findings_count=1"));
     }
 
     #[test]
@@ -7370,7 +7263,8 @@ mod tests {
             failure_class: "readiness-refuse".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "corpus-scale comparison exposes scale-only refusal path".to_string(),
-            recommendation: "partition scale tiers and isolate refusal-only large-corpus rows".to_string(),
+            recommendation: "partition scale tiers and isolate refusal-only large-corpus rows"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7396,7 +7290,8 @@ mod tests {
             failure_class: "runtime-outlier".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "cold/warm storage comparison shows profile-stage IO drift".to_string(),
-            recommendation: "benchmark cache-state and staging policy across storage modes".to_string(),
+            recommendation: "benchmark cache-state and staging policy across storage modes"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7421,8 +7316,10 @@ mod tests {
             confidence: "high".to_string(),
             failure_class: "scientific-invalidity".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "flagship dashboard import shows scientific fail row in stats stage".to_string(),
-            recommendation: "highlight pass/fail and appraiser scientific status in dashboard".to_string(),
+            summary: "flagship dashboard import shows scientific fail row in stats stage"
+                .to_string(),
+            recommendation: "highlight pass/fail and appraiser scientific status in dashboard"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7447,8 +7344,10 @@ mod tests {
             confidence: "high".to_string(),
             failure_class: "scientific-invalidity".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "stage dossier import includes refused filter row for scientific caveat".to_string(),
-            recommendation: "expose failed stage caveat details in per-stage dossier output".to_string(),
+            summary: "stage dossier import includes refused filter row for scientific caveat"
+                .to_string(),
+            recommendation: "expose failed stage caveat details in per-stage dossier output"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7456,10 +7355,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "stage_dossier_validate_validate_filter_bound=true"));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "stage_dossier_refuse_rows=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "stage_dossier_refuse_rows=1"));
     }
 
     #[test]
@@ -7473,8 +7369,10 @@ mod tests {
             confidence: "medium".to_string(),
             failure_class: "missing-tool-binding".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "tool dossier import reports missing tool-binding around align stage".to_string(),
-            recommendation: "record tool support and binding caveats in per-tool dossier output".to_string(),
+            summary: "tool dossier import reports missing tool-binding around align stage"
+                .to_string(),
+            recommendation: "record tool support and binding caveats in per-tool dossier output"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7499,8 +7397,10 @@ mod tests {
             confidence: "high".to_string(),
             failure_class: "corpus-mismatch".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "corpus dossier import includes corpus mismatch at filter boundary".to_string(),
-            recommendation: "record corpus suitability weaknesses and mismatch caveats per stage".to_string(),
+            summary: "corpus dossier import includes corpus mismatch at filter boundary"
+                .to_string(),
+            recommendation: "record corpus suitability weaknesses and mismatch caveats per stage"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7525,8 +7425,10 @@ mod tests {
             confidence: "medium".to_string(),
             failure_class: "database-mismatch".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "database dossier import reports panel mismatch at impute boundary".to_string(),
-            recommendation: "record source compatibility and update impact in database dossiers".to_string(),
+            summary: "database dossier import reports panel mismatch at impute boundary"
+                .to_string(),
+            recommendation: "record source compatibility and update impact in database dossiers"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7551,8 +7453,10 @@ mod tests {
             confidence: "medium".to_string(),
             failure_class: "runtime-outlier".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "image dossier import reports runtime drift at mapping-summary stage".to_string(),
-            recommendation: "track smoke and drift outcomes in per-image dossier output".to_string(),
+            summary: "image dossier import reports runtime drift at mapping-summary stage"
+                .to_string(),
+            recommendation: "track smoke and drift outcomes in per-image dossier output"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7609,8 +7513,10 @@ mod tests {
             confidence: "medium".to_string(),
             failure_class: "runtime-outlier".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "backend selection import reports runtime drift around align stage".to_string(),
-            recommendation: "prefer backend defaults with stable runtime evidence for scenario".to_string(),
+            summary: "backend selection import reports runtime drift around align stage"
+                .to_string(),
+            recommendation: "prefer backend defaults with stable runtime evidence for scenario"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7635,8 +7541,10 @@ mod tests {
             confidence: "medium".to_string(),
             failure_class: "runtime-under-sampled".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "resource-default import reports under-sampled runtime at coverage stage".to_string(),
-            recommendation: "raise baseline Slurm defaults from observed usage intervals".to_string(),
+            summary: "resource-default import reports under-sampled runtime at coverage stage"
+                .to_string(),
+            recommendation: "raise baseline Slurm defaults from observed usage intervals"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7662,7 +7570,8 @@ mod tests {
             failure_class: "code-freeze-incomplete".to_string(),
             result_scope: "encrypted-code".to_string(),
             summary: "sharing package import indicates missing code bundle fields".to_string(),
-            recommendation: "include required code sidecars for encrypted sharing packages".to_string(),
+            recommendation: "include required code sidecars for encrypted sharing packages"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7687,8 +7596,10 @@ mod tests {
             confidence: "medium".to_string(),
             failure_class: "code-freeze-incomplete".to_string(),
             result_scope: "encrypted-code".to_string(),
-            summary: "reviewer decrypt profile import indicates incomplete decrypt sidecars".to_string(),
-            recommendation: "scope decrypt profile to authorized bundles with complete sidecars".to_string(),
+            summary: "reviewer decrypt profile import indicates incomplete decrypt sidecars"
+                .to_string(),
+            recommendation: "scope decrypt profile to authorized bundles with complete sidecars"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7713,8 +7624,10 @@ mod tests {
             confidence: "high".to_string(),
             failure_class: "readiness-refuse".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "confidential issue bundle import includes refused filter row evidence".to_string(),
-            recommendation: "minimize and encrypt only relevant artifacts in issue bundle output".to_string(),
+            summary: "confidential issue bundle import includes refused filter row evidence"
+                .to_string(),
+            recommendation: "minimize and encrypt only relevant artifacts in issue bundle output"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7740,7 +7653,8 @@ mod tests {
             failure_class: "database-mismatch".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "source blame import points to database drift at align boundary".to_string(),
-            recommendation: "attribute likely source changes from code/database/corpus locks".to_string(),
+            recommendation: "attribute likely source changes from code/database/corpus locks"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7765,7 +7679,8 @@ mod tests {
             confidence: "medium".to_string(),
             failure_class: "runtime-under-sampled".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "performance gate import reports runtime baseline drift at coverage stage".to_string(),
+            summary: "performance gate import reports runtime baseline drift at coverage stage"
+                .to_string(),
             recommendation: "gate against accepted runtime and IO baseline envelopes".to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
@@ -7791,7 +7706,9 @@ mod tests {
             confidence: "high".to_string(),
             failure_class: "scientific-invalidity".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "scientific gate import reports changed variant/caveat outcome at filter stage".to_string(),
+            summary:
+                "scientific gate import reports changed variant/caveat outcome at filter stage"
+                    .to_string(),
             recommendation: "gate against accepted scientific baseline outputs".to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
@@ -7818,22 +7735,23 @@ mod tests {
             failure_class: "code-freeze-incomplete".to_string(),
             result_scope: "encrypted-code".to_string(),
             summary: "security gate import reports code-bundle encryption regression".to_string(),
-            recommendation: "gate on encryption health and redact failures before promotion".to_string(),
+            recommendation: "gate on encryption health and redact failures before promotion"
+                .to_string(),
         }];
         let queue = vec![HardeningQueueEntry {
             queue_id: "hardening-0267".to_string(),
             severity: "critical".to_string(),
             failure_class: "code-freeze-incomplete".to_string(),
-            recommendation: "gate on encryption health and redact failures before promotion".to_string(),
+            recommendation: "gate on encryption health and redact failures before promotion"
+                .to_string(),
             affected_rows: vec!["h13".to_string()],
             source_appraisers: vec!["code-freeze".to_string()],
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &queue);
         assert_eq!(entries.len(), 1);
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "security_regression_contamination_impute_postprocess_bound=true"));
+        assert!(entries[0].goal_checks.iter().any(
+            |check| check == "security_regression_contamination_impute_postprocess_bound=true"
+        ));
         assert!(entries[0]
             .goal_checks
             .iter()
@@ -7912,7 +7830,8 @@ mod tests {
             failure_class: "runtime-outlier".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "monthly full-campaign import reports coverage runtime drift".to_string(),
-            recommendation: "compare monthly full-campaign outcomes against accepted baselines".to_string(),
+            recommendation: "compare monthly full-campaign outcomes against accepted baselines"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7937,8 +7856,11 @@ mod tests {
             confidence: "high".to_string(),
             failure_class: "readiness-refuse".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "cost-aware pruning import marks refusal row as high-value keep candidate".to_string(),
-            recommendation: "prune low-value rows while preserving refusal and high-risk evidence rows".to_string(),
+            summary: "cost-aware pruning import marks refusal row as high-value keep candidate"
+                .to_string(),
+            recommendation:
+                "prune low-value rows while preserving refusal and high-risk evidence rows"
+                    .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -7946,10 +7868,7 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "cost_pruning_profile_coverage_filter_bound=true"));
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check == "cost_pruning_signal_count=1"));
+        assert!(entries[0].goal_checks.iter().any(|check| check == "cost_pruning_signal_count=1"));
     }
 
     #[test]
@@ -7990,7 +7909,8 @@ mod tests {
             failure_class: "runtime-outlier".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "storage budget import reports shared-storage runtime drift".to_string(),
-            recommendation: "pause before storage exhaustion and rebalance archive/staging policy".to_string(),
+            recommendation: "pause before storage exhaustion and rebalance archive/staging policy"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -8015,14 +7935,17 @@ mod tests {
             confidence: "high".to_string(),
             failure_class: "code-freeze-incomplete".to_string(),
             result_scope: "encrypted-code".to_string(),
-            summary: "encryption budget import reports sidecar/encryption health regression".to_string(),
-            recommendation: "pause when encryption or sidecar health drops below threshold".to_string(),
+            summary: "encryption budget import reports sidecar/encryption health regression"
+                .to_string(),
+            recommendation: "pause when encryption or sidecar health drops below threshold"
+                .to_string(),
         }];
         let queue = vec![HardeningQueueEntry {
             queue_id: "hardening-0274".to_string(),
             severity: "critical".to_string(),
             failure_class: "code-freeze-incomplete".to_string(),
-            recommendation: "pause when encryption or sidecar health drops below threshold".to_string(),
+            recommendation: "pause when encryption or sidecar health drops below threshold"
+                .to_string(),
             affected_rows: vec!["h13".to_string()],
             source_appraisers: vec!["code-freeze".to_string()],
         }];
@@ -8050,8 +7973,10 @@ mod tests {
                 confidence: "medium".to_string(),
                 failure_class: "readiness-degraded".to_string(),
                 result_scope: "encrypted-results".to_string(),
-                summary: "appraiser health import reports degraded stats interpretation".to_string(),
-                recommendation: "monitor appraiser failure rate and pause if interpretation drops".to_string(),
+                summary: "appraiser health import reports degraded stats interpretation"
+                    .to_string(),
+                recommendation: "monitor appraiser failure rate and pause if interpretation drops"
+                    .to_string(),
             },
             AppraisalFinding {
                 appraiser_id: "scientific-output".to_string(),
@@ -8060,8 +7985,10 @@ mod tests {
                 confidence: "high".to_string(),
                 failure_class: "scientific-invalidity".to_string(),
                 result_scope: "encrypted-results".to_string(),
-                summary: "appraiser health import reports critical stats interpretation failure".to_string(),
-                recommendation: "pause campaign when appraiser health budget exceeds threshold".to_string(),
+                summary: "appraiser health import reports critical stats interpretation failure"
+                    .to_string(),
+                recommendation: "pause campaign when appraiser health budget exceeds threshold"
+                    .to_string(),
             },
         ];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
@@ -8087,8 +8014,11 @@ mod tests {
             confidence: "medium".to_string(),
             failure_class: "code-freeze-incomplete".to_string(),
             result_scope: "encrypted-code".to_string(),
-            summary: "retention tier import marks code bundles for full encrypted retention".to_string(),
-            recommendation: "retain high-value encrypted bundles and purge low-value intermediates safely".to_string(),
+            summary: "retention tier import marks code bundles for full encrypted retention"
+                .to_string(),
+            recommendation:
+                "retain high-value encrypted bundles and purge low-value intermediates safely"
+                    .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -8113,8 +8043,10 @@ mod tests {
             confidence: "medium".to_string(),
             failure_class: "code-freeze-incomplete".to_string(),
             result_scope: "encrypted-code".to_string(),
-            summary: "local archive import reports missing investigation metadata fields".to_string(),
-            recommendation: "archive decrypted investigations in a structured local private format".to_string(),
+            summary: "local archive import reports missing investigation metadata fields"
+                .to_string(),
+            recommendation: "archive decrypted investigations in a structured local private format"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -8140,7 +8072,8 @@ mod tests {
             failure_class: "code-freeze-incomplete".to_string(),
             result_scope: "encrypted-code".to_string(),
             summary: "re-encryption import reports archival rewrap readiness gaps".to_string(),
-            recommendation: "re-encrypt accepted bundles with key-rotation compatible metadata".to_string(),
+            recommendation: "re-encrypt accepted bundles with key-rotation compatible metadata"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -8166,7 +8099,8 @@ mod tests {
             failure_class: "runtime-outlier".to_string(),
             result_scope: "encrypted-results".to_string(),
             summary: "methods appendix import captures runtime envelope drift evidence".to_string(),
-            recommendation: "derive methods/runtime appendix directly from benchmark evidence".to_string(),
+            recommendation: "derive methods/runtime appendix directly from benchmark evidence"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
@@ -8191,8 +8125,10 @@ mod tests {
             confidence: "high".to_string(),
             failure_class: "scientific-invalidity".to_string(),
             result_scope: "encrypted-results".to_string(),
-            summary: "public caveat import captures scientific-invalidity at filter stage".to_string(),
-            recommendation: "publish tested/weak/simulated caveats from benchmark findings".to_string(),
+            summary: "public caveat import captures scientific-invalidity at filter stage"
+                .to_string(),
+            recommendation: "publish tested/weak/simulated caveats from benchmark findings"
+                .to_string(),
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);

@@ -106,10 +106,7 @@ const G123_SCENARIOS: &[ScenarioDefinition] = &[
         scenario_id: "local-vs-end-to-end",
         focus: "local and end-to-end parameter differences",
     },
-    ScenarioDefinition {
-        scenario_id: "short-read-stress",
-        focus: "short-read alignment behavior",
-    },
+    ScenarioDefinition { scenario_id: "short-read-stress", focus: "short-read alignment behavior" },
     ScenarioDefinition {
         scenario_id: "backend-diff-surface",
         focus: "backend equivalence and divergence surface",
@@ -147,10 +144,7 @@ const G125_SCENARIOS: &[ScenarioDefinition] = &[
 ];
 
 const G126_SCENARIOS: &[ScenarioDefinition] = &[
-    ScenarioDefinition {
-        scenario_id: "compatible-merge-path",
-        focus: "compatible BAM merge path",
-    },
+    ScenarioDefinition { scenario_id: "compatible-merge-path", focus: "compatible BAM merge path" },
     ScenarioDefinition {
         scenario_id: "reference-and-rg-conflicts",
         focus: "reference and read-group conflict handling",
@@ -512,10 +506,8 @@ fn write_json_pretty(path: &Path, value: &impl Serialize) -> Result<()> {
 }
 
 fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
-    let available = BAM_GOALS_CATALOG
-        .iter()
-        .map(|goal| goal.goal_id.to_string())
-        .collect::<BTreeSet<_>>();
+    let available =
+        BAM_GOALS_CATALOG.iter().map(|goal| goal.goal_id.to_string()).collect::<BTreeSet<_>>();
     let mut selected = if let Some(value) = raw {
         value
             .split(',')
@@ -529,16 +521,10 @@ fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
     if selected.is_empty() {
         return Err(anyhow!("bam-benchmark-campaign requires at least one goal"));
     }
-    let unknown = selected
-        .iter()
-        .filter(|goal| !available.contains(*goal))
-        .cloned()
-        .collect::<Vec<_>>();
+    let unknown =
+        selected.iter().filter(|goal| !available.contains(*goal)).cloned().collect::<Vec<_>>();
     if !unknown.is_empty() {
-        return Err(anyhow!(
-            "unknown bam goals requested: {}",
-            unknown.join(",")
-        ));
+        return Err(anyhow!("unknown bam goals requested: {}", unknown.join(",")));
     }
     let mut ordered = BAM_GOALS_CATALOG
         .iter()
@@ -674,10 +660,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "bam_merge_conflict_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.severity == "critical")
-                    .count()
+                findings.iter().filter(|finding| finding.severity == "critical").count()
             ),
         ],
         "G127" => vec![
@@ -688,8 +671,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "duplicate_metrics_stage_bound={}",
-                rows.iter()
-                    .any(|row| row.stage_id == "bam.duplication_metrics")
+                rows.iter().any(|row| row.stage_id == "bam.duplication_metrics")
             ),
             format!(
                 "duplicate_method_findings={}",
@@ -747,7 +729,9 @@ fn goal_specific_checks(
             format!(
                 "coverage_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!(
@@ -785,15 +769,14 @@ fn goal_specific_checks(
             format!(
                 "authenticity_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!(
                 "authenticity_caveat_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.appraiser_id == "failure-class")
-                    .count()
+                findings.iter().filter(|finding| finding.appraiser_id == "failure-class").count()
             ),
         ],
         "G133" => vec![
@@ -855,20 +838,14 @@ fn goal_specific_checks(
         ],
         "G136" => vec![
             format!("sex_par_rows_present={}", !rows.is_empty()),
-            format!(
-                "sex_par_stage_bound={}",
-                rows.iter().any(|row| row.stage_id == "bam.sex")
-            ),
+            format!("sex_par_stage_bound={}", rows.iter().any(|row| row.stage_id == "bam.sex")),
             format!(
                 "sex_par_ready_rows={}",
                 rows.iter().filter(|row| row.readiness_class == "ready").count()
             ),
             format!(
                 "sex_par_caveat_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.appraiser_id == "failure-class")
-                    .count()
+                findings.iter().filter(|finding| finding.appraiser_id == "failure-class").count()
             ),
         ],
         "G137" => vec![
@@ -891,20 +868,14 @@ fn goal_specific_checks(
         ],
         "G138" => vec![
             format!("kinship_rows_present={}", !rows.is_empty()),
-            format!(
-                "kinship_stage_bound={}",
-                rows.iter().any(|row| row.stage_id == "bam.kinship")
-            ),
+            format!("kinship_stage_bound={}", rows.iter().any(|row| row.stage_id == "bam.kinship")),
             format!(
                 "kinship_ready_rows={}",
                 rows.iter().filter(|row| row.readiness_class == "ready").count()
             ),
             format!(
                 "kinship_refusal_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.severity == "critical")
-                    .count()
+                findings.iter().filter(|finding| finding.severity == "critical").count()
             ),
         ],
         "G139" => vec![
@@ -951,7 +922,9 @@ fn goal_specific_checks(
             format!(
                 "full_template_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!(
@@ -987,10 +960,7 @@ fn build_goal_entries(
             })
             .collect::<Vec<_>>();
 
-        let row_ids = matched_rows
-            .iter()
-            .map(|row| row.row_id.clone())
-            .collect::<BTreeSet<_>>();
+        let row_ids = matched_rows.iter().map(|row| row.row_id.clone()).collect::<BTreeSet<_>>();
 
         let appraisal_findings = findings
             .iter()
@@ -1005,8 +975,12 @@ fn build_goal_entries(
             .collect::<Vec<_>>();
 
         let status = status_for_goal(&matched_rows, &hardening_entries);
-        let goal_checks =
-            goal_specific_checks(goal.goal_id, &matched_rows, &appraisal_findings, &hardening_entries);
+        let goal_checks = goal_specific_checks(
+            goal.goal_id,
+            &matched_rows,
+            &appraisal_findings,
+            &hardening_entries,
+        );
 
         entries.push(BamBenchmarkGoalEntry {
             goal_id: goal.goal_id.to_string(),
@@ -1051,11 +1025,13 @@ fn summarize(entries: &[BamBenchmarkGoalEntry]) -> BamBenchmarkCampaignSummary {
     }
 }
 
-pub fn bam_benchmark_campaign(args: &BamBenchmarkCampaignArgs) -> Result<BamBenchmarkCampaignReport> {
+pub fn bam_benchmark_campaign(
+    args: &BamBenchmarkCampaignArgs,
+) -> Result<BamBenchmarkCampaignReport> {
     let matrix = benchmark_matrix(&BenchmarkMatrixArgs {
         config: args.config.clone(),
         env_file: args.env_file.clone(),
-        user_overrides: args.user_overrides.clone(),
+        user_policies: args.user_policies.clone(),
         domain: "bam".to_string(),
         out: None,
         fail_on_refuse: false,
@@ -1064,12 +1040,7 @@ pub fn bam_benchmark_campaign(args: &BamBenchmarkCampaignArgs) -> Result<BamBenc
     let appraisal = appraise_matrix_report(matrix.clone());
     let queue = hardening_queue_from_appraisal(appraisal.clone());
     let selected_goals = selected_goal_ids(args.goals.as_deref())?;
-    let entries = build_goal_entries(
-        &selected_goals,
-        &matrix,
-        &appraisal.findings,
-        &queue.entries,
-    );
+    let entries = build_goal_entries(&selected_goals, &matrix, &appraisal.findings, &queue.entries);
     let report = BamBenchmarkCampaignReport {
         schema_version: BAM_CAMPAIGN_SCHEMA_VERSION.to_string(),
         campaign_id: matrix.campaign_id,
@@ -1118,10 +1089,7 @@ mod tests {
                 matched_profile: "samtools".to_string(),
                 ready: true,
             },
-            readiness: BenchmarkReadiness {
-                class: readiness.to_string(),
-                reasons: Vec::new(),
-            },
+            readiness: BenchmarkReadiness { class: readiness.to_string(), reasons: Vec::new() },
             repetitions: if readiness == "refuse" { 0 } else { 3 },
         }
     }

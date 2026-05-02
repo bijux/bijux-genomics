@@ -19,8 +19,7 @@ const BRIDGE_BAM_GENOTYPING_TO_VCF_CALL: &str = "bam.genotyping=>vcf.call";
 const BRIDGE_FASTQ_TRIM_TO_VCF_GL: &str = "fastq.trim_reads=>vcf.call_gl";
 const BRIDGE_BAM_SUMMARY_TO_VCF_STATS: &str = "bam.mapping_summary=>vcf.stats";
 const BRIDGE_FASTQ_PROFILE_TO_BAM_SUMMARY: &str = "fastq.profile_reads=>bam.mapping_summary";
-const BRIDGE_FASTQ_VALIDATE_TO_BAM_CONTAMINATION: &str =
-    "fastq.validate_reads=>bam.contamination";
+const BRIDGE_FASTQ_VALIDATE_TO_BAM_CONTAMINATION: &str = "fastq.validate_reads=>bam.contamination";
 const BRIDGE_BAM_CONTAMINATION_TO_VCF_FILTER: &str = "bam.contamination=>vcf.filter";
 const BRIDGE_VCF_FILTER_TO_VCF_STATS: &str = "vcf.filter=>vcf.stats";
 
@@ -248,10 +247,7 @@ const CROSS_GOALS_CATALOG: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G162",
         title: "benchmark FASTQ-to-BAM aDNA workflow",
-        stage_ids: &[
-            BRIDGE_FASTQ_ADNA_TO_BAM_DAMAGE,
-            BRIDGE_FASTQ_VALIDATE_TO_BAM_CONTAMINATION,
-        ],
+        stage_ids: &[BRIDGE_FASTQ_ADNA_TO_BAM_DAMAGE, BRIDGE_FASTQ_VALIDATE_TO_BAM_CONTAMINATION],
         scenarios: G162_SCENARIOS,
     },
     GoalDefinition {
@@ -346,10 +342,8 @@ fn write_json_pretty(path: &Path, value: &impl Serialize) -> Result<()> {
 }
 
 fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
-    let available = CROSS_GOALS_CATALOG
-        .iter()
-        .map(|goal| goal.goal_id.to_string())
-        .collect::<BTreeSet<_>>();
+    let available =
+        CROSS_GOALS_CATALOG.iter().map(|goal| goal.goal_id.to_string()).collect::<BTreeSet<_>>();
     let mut selected = if let Some(value) = raw {
         value
             .split(',')
@@ -363,16 +357,10 @@ fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
     if selected.is_empty() {
         return Err(anyhow!("cross-benchmark-campaign requires at least one goal"));
     }
-    let unknown = selected
-        .iter()
-        .filter(|goal| !available.contains(*goal))
-        .cloned()
-        .collect::<Vec<_>>();
+    let unknown =
+        selected.iter().filter(|goal| !available.contains(*goal)).cloned().collect::<Vec<_>>();
     if !unknown.is_empty() {
-        return Err(anyhow!(
-            "unknown cross goals requested: {}",
-            unknown.join(",")
-        ));
+        return Err(anyhow!("unknown cross goals requested: {}", unknown.join(",")));
     }
     let mut ordered = CROSS_GOALS_CATALOG
         .iter()
@@ -412,10 +400,7 @@ fn goal_specific_checks(
             format!("modern_workflow_rows_present={}", !rows.is_empty()),
             format!(
                 "modern_workflow_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "modern_workflow_fastq_to_bam_bound={}",
@@ -430,10 +415,7 @@ fn goal_specific_checks(
             format!("adna_workflow_rows_present={}", !rows.is_empty()),
             format!(
                 "adna_workflow_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "adna_workflow_damage_bound={}",
@@ -452,10 +434,7 @@ fn goal_specific_checks(
             format!("bam_to_vcf_rows_present={}", !rows.is_empty()),
             format!(
                 "bam_to_vcf_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "bam_to_vcf_call_bound={}",
@@ -474,10 +453,7 @@ fn goal_specific_checks(
             format!("fastq_to_vcf_rows_present={}", !rows.is_empty()),
             format!(
                 "fastq_to_vcf_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "fastq_to_vcf_gl_bound={}",
@@ -496,10 +472,7 @@ fn goal_specific_checks(
             format!("batch_fan_rows_present={}", !rows.is_empty()),
             format!(
                 "batch_fan_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "batch_fan_fastq_align_bound={}",
@@ -518,10 +491,7 @@ fn goal_specific_checks(
             format!("partial_failure_rows_present={}", !rows.is_empty()),
             format!(
                 "partial_failure_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "partial_failure_fastq_bound={}",
@@ -540,10 +510,7 @@ fn goal_specific_checks(
             format!("sample_sheet_rows_present={}", !rows.is_empty()),
             format!(
                 "sample_sheet_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "sample_sheet_validate_align_bound={}",
@@ -562,10 +529,7 @@ fn goal_specific_checks(
             format!("reference_change_rows_present={}", !rows.is_empty()),
             format!(
                 "reference_change_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "reference_change_call_bound={}",
@@ -584,10 +548,7 @@ fn goal_specific_checks(
             format!("contamination_flow_rows_present={}", !rows.is_empty()),
             format!(
                 "contamination_flow_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "contamination_flow_fastq_to_bam_bound={}",
@@ -606,10 +567,7 @@ fn goal_specific_checks(
             format!("reviewer_bundle_rows_present={}", !rows.is_empty()),
             format!(
                 "reviewer_bundle_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "reviewer_bundle_gl_bound={}",
@@ -652,10 +610,7 @@ fn build_goal_entries(
             })
             .collect::<Vec<_>>();
 
-        let row_ids = matched_rows
-            .iter()
-            .map(|row| row.row_id.clone())
-            .collect::<BTreeSet<_>>();
+        let row_ids = matched_rows.iter().map(|row| row.row_id.clone()).collect::<BTreeSet<_>>();
 
         let appraisal_findings = findings
             .iter()
@@ -670,8 +625,12 @@ fn build_goal_entries(
             .collect::<Vec<_>>();
 
         let status = status_for_goal(&matched_rows, &hardening_entries);
-        let goal_checks =
-            goal_specific_checks(goal.goal_id, &matched_rows, &appraisal_findings, &hardening_entries);
+        let goal_checks = goal_specific_checks(
+            goal.goal_id,
+            &matched_rows,
+            &appraisal_findings,
+            &hardening_entries,
+        );
 
         entries.push(CrossBenchmarkGoalEntry {
             goal_id: goal.goal_id.to_string(),
@@ -716,11 +675,13 @@ fn summarize(entries: &[CrossBenchmarkGoalEntry]) -> CrossBenchmarkCampaignSumma
     }
 }
 
-pub fn cross_benchmark_campaign(args: &CrossBenchmarkCampaignArgs) -> Result<CrossBenchmarkCampaignReport> {
+pub fn cross_benchmark_campaign(
+    args: &CrossBenchmarkCampaignArgs,
+) -> Result<CrossBenchmarkCampaignReport> {
     let matrix = benchmark_matrix(&BenchmarkMatrixArgs {
         config: args.config.clone(),
         env_file: args.env_file.clone(),
-        user_overrides: args.user_overrides.clone(),
+        user_policies: args.user_policies.clone(),
         domain: "cross".to_string(),
         out: None,
         fail_on_refuse: false,
@@ -729,12 +690,7 @@ pub fn cross_benchmark_campaign(args: &CrossBenchmarkCampaignArgs) -> Result<Cro
     let appraisal = appraise_matrix_report(matrix.clone());
     let queue = hardening_queue_from_appraisal(appraisal.clone());
     let selected_goals = selected_goal_ids(args.goals.as_deref())?;
-    let entries = build_goal_entries(
-        &selected_goals,
-        &matrix,
-        &appraisal.findings,
-        &queue.entries,
-    );
+    let entries = build_goal_entries(&selected_goals, &matrix, &appraisal.findings, &queue.entries);
     let report = CrossBenchmarkCampaignReport {
         schema_version: CROSS_CAMPAIGN_SCHEMA_VERSION.to_string(),
         campaign_id: matrix.campaign_id,
@@ -755,12 +711,12 @@ mod tests {
 
     use super::{
         build_goal_entries, selected_goal_ids, summarize, AppraisalFinding, CrossMatrixRowRef,
-        HardeningQueueEntry, BRIDGE_BAM_CONTAMINATION_TO_VCF_FILTER, BRIDGE_BAM_GENOTYPING_TO_VCF_CALL,
-        BRIDGE_BAM_SUMMARY_TO_VCF_STATS, BRIDGE_FASTQ_ADNA_TO_BAM_DAMAGE,
-        BRIDGE_FASTQ_PROFILE_TO_BAM_SUMMARY, BRIDGE_FASTQ_TRIM_TO_BAM_ALIGN,
-        BRIDGE_FASTQ_TRIM_TO_VCF_GL, BRIDGE_FASTQ_VALIDATE_TO_BAM_ALIGN,
-        BRIDGE_FASTQ_VALIDATE_TO_BAM_CONTAMINATION, BRIDGE_VCF_FILTER_TO_VCF_STATS,
-        CROSS_GOALS_CATALOG,
+        HardeningQueueEntry, BRIDGE_BAM_CONTAMINATION_TO_VCF_FILTER,
+        BRIDGE_BAM_GENOTYPING_TO_VCF_CALL, BRIDGE_BAM_SUMMARY_TO_VCF_STATS,
+        BRIDGE_FASTQ_ADNA_TO_BAM_DAMAGE, BRIDGE_FASTQ_PROFILE_TO_BAM_SUMMARY,
+        BRIDGE_FASTQ_TRIM_TO_BAM_ALIGN, BRIDGE_FASTQ_TRIM_TO_VCF_GL,
+        BRIDGE_FASTQ_VALIDATE_TO_BAM_ALIGN, BRIDGE_FASTQ_VALIDATE_TO_BAM_CONTAMINATION,
+        BRIDGE_VCF_FILTER_TO_VCF_STATS, CROSS_GOALS_CATALOG,
     };
     use crate::commands::hpc::{
         BenchmarkMatrixReport, BenchmarkMatrixRow, BenchmarkMatrixSummary, BenchmarkReadiness,
@@ -788,10 +744,7 @@ mod tests {
                 matched_profile: "apptainer".to_string(),
                 ready: true,
             },
-            readiness: BenchmarkReadiness {
-                class: readiness.to_string(),
-                reasons: Vec::new(),
-            },
+            readiness: BenchmarkReadiness { class: readiness.to_string(), reasons: Vec::new() },
             repetitions: if readiness == "refuse" { 0 } else { 5 },
         }
     }

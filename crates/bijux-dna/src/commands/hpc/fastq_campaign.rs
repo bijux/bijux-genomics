@@ -80,10 +80,7 @@ const G101_SCENARIOS: &[ScenarioDefinition] = &[
         scenario_id: "compressed-layouts",
         focus: "gzip and mixed compression handling",
     },
-    ScenarioDefinition {
-        scenario_id: "truncated-stream",
-        focus: "truncated file detection",
-    },
+    ScenarioDefinition { scenario_id: "truncated-stream", focus: "truncated file detection" },
     ScenarioDefinition {
         scenario_id: "paired-interleaved-mixed",
         focus: "paired and interleaved layout validation",
@@ -159,10 +156,7 @@ const G106_SCENARIOS: &[ScenarioDefinition] = &[
         scenario_id: "barcode-mismatch-policy",
         focus: "barcode mismatch threshold behavior",
     },
-    ScenarioDefinition {
-        scenario_id: "index-collision",
-        focus: "index collision resolution",
-    },
+    ScenarioDefinition { scenario_id: "index-collision", focus: "index collision resolution" },
     ScenarioDefinition {
         scenario_id: "undetermined-and-sheet-errors",
         focus: "undetermined reads and sample sheet validation",
@@ -170,10 +164,7 @@ const G106_SCENARIOS: &[ScenarioDefinition] = &[
 ];
 
 const G107_SCENARIOS: &[ScenarioDefinition] = &[
-    ScenarioDefinition {
-        scenario_id: "count-mode",
-        focus: "count-based subsampling correctness",
-    },
+    ScenarioDefinition { scenario_id: "count-mode", focus: "count-based subsampling correctness" },
     ScenarioDefinition {
         scenario_id: "fraction-mode",
         focus: "fraction-based subsampling consistency",
@@ -189,10 +180,7 @@ const G108_SCENARIOS: &[ScenarioDefinition] = &[
         scenario_id: "adapter-rich",
         focus: "adapter-rich corpus detection sensitivity",
     },
-    ScenarioDefinition {
-        scenario_id: "adapter-free",
-        focus: "adapter-free corpus specificity",
-    },
+    ScenarioDefinition { scenario_id: "adapter-free", focus: "adapter-free corpus specificity" },
     ScenarioDefinition {
         scenario_id: "backend-equivalence-window",
         focus: "cross-backend adapter detection equivalence",
@@ -204,21 +192,12 @@ const G109_SCENARIOS: &[ScenarioDefinition] = &[
         scenario_id: "quality-minlen-policy",
         focus: "quality and min-length trimming policy",
     },
-    ScenarioDefinition {
-        scenario_id: "pair-retention",
-        focus: "paired-end retention semantics",
-    },
-    ScenarioDefinition {
-        scenario_id: "adna-damage-policy",
-        focus: "aDNA-aware trimming policy",
-    },
+    ScenarioDefinition { scenario_id: "pair-retention", focus: "paired-end retention semantics" },
+    ScenarioDefinition { scenario_id: "adna-damage-policy", focus: "aDNA-aware trimming policy" },
 ];
 
 const G110_SCENARIOS: &[ScenarioDefinition] = &[
-    ScenarioDefinition {
-        scenario_id: "umi-patterns",
-        focus: "UMI pattern extraction coverage",
-    },
+    ScenarioDefinition { scenario_id: "umi-patterns", focus: "UMI pattern extraction coverage" },
     ScenarioDefinition {
         scenario_id: "failed-extraction",
         focus: "failed UMI extraction reporting",
@@ -532,10 +511,8 @@ fn write_json_pretty(path: &Path, value: &impl Serialize) -> Result<()> {
 }
 
 fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
-    let available = FASTQ_GOALS_CATALOG
-        .iter()
-        .map(|goal| goal.goal_id.to_string())
-        .collect::<BTreeSet<_>>();
+    let available =
+        FASTQ_GOALS_CATALOG.iter().map(|goal| goal.goal_id.to_string()).collect::<BTreeSet<_>>();
     let mut selected = if let Some(value) = raw {
         value
             .split(',')
@@ -549,16 +526,10 @@ fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
     if selected.is_empty() {
         return Err(anyhow!("fastq-benchmark-campaign requires at least one goal"));
     }
-    let unknown = selected
-        .iter()
-        .filter(|goal| !available.contains(*goal))
-        .cloned()
-        .collect::<Vec<_>>();
+    let unknown =
+        selected.iter().filter(|goal| !available.contains(*goal)).cloned().collect::<Vec<_>>();
     if !unknown.is_empty() {
-        return Err(anyhow!(
-            "unknown fastq goals requested: {}",
-            unknown.join(",")
-        ));
+        return Err(anyhow!("unknown fastq goals requested: {}", unknown.join(",")));
     }
     let mut ordered = FASTQ_GOALS_CATALOG
         .iter()
@@ -613,7 +584,8 @@ fn goal_specific_checks(
                 "validation_queue_entries={}",
                 queue_entries
                     .iter()
-                    .filter(|entry| entry.failure_class.contains("runtime") || entry.failure_class.contains("readiness"))
+                    .filter(|entry| entry.failure_class.contains("runtime")
+                        || entry.failure_class.contains("readiness"))
                     .count()
             ),
         ],
@@ -701,16 +673,14 @@ fn goal_specific_checks(
             ),
             format!(
                 "demux_refusal_pressure={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.severity == "critical")
-                    .count()
+                findings.iter().filter(|finding| finding.severity == "critical").count()
             ),
             format!(
                 "demux_queue_entries={}",
                 queue_entries
                     .iter()
-                    .filter(|entry| entry.failure_class.contains("readiness") || entry.failure_class.contains("runtime"))
+                    .filter(|entry| entry.failure_class.contains("readiness")
+                        || entry.failure_class.contains("runtime"))
                     .count()
             ),
         ],
@@ -726,10 +696,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "subsample_repro_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.appraiser_id == "reproducibility")
-                    .count()
+                findings.iter().filter(|finding| finding.appraiser_id == "reproducibility").count()
             ),
         ],
         "G108" => vec![
@@ -783,10 +750,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "umi_code_freeze_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.appraiser_id == "code-freeze")
-                    .count()
+                findings.iter().filter(|finding| finding.appraiser_id == "code-freeze").count()
             ),
         ],
         "G111" => vec![
@@ -797,8 +761,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "complexity_stage_bound={}",
-                rows.iter()
-                    .any(|row| row.stage_id == "fastq.estimate_library_complexity_prealign")
+                rows.iter().any(|row| row.stage_id == "fastq.estimate_library_complexity_prealign")
             ),
             format!(
                 "duplicate_complexity_findings={}",
@@ -854,15 +817,11 @@ fn goal_specific_checks(
             format!("contaminant_depletion_rows_present={}", !rows.is_empty()),
             format!(
                 "contaminant_stage_bound={}",
-                rows.iter()
-                    .any(|row| row.stage_id == "fastq.deplete_reference_contaminants")
+                rows.iter().any(|row| row.stage_id == "fastq.deplete_reference_contaminants")
             ),
             format!(
                 "contaminant_critical_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.severity == "critical")
-                    .count()
+                findings.iter().filter(|finding| finding.severity == "critical").count()
             ),
             format!(
                 "contaminant_queue_entries={}",
@@ -946,8 +905,7 @@ fn goal_specific_checks(
             format!("qc_manifest_rows_present={}", !rows.is_empty()),
             format!(
                 "qc_manifest_stage_bound={}",
-                rows.iter()
-                    .any(|row| row.stage_id == "fastq.materialize_qc_manifest")
+                rows.iter().any(|row| row.stage_id == "fastq.materialize_qc_manifest")
             ),
             format!(
                 "qc_profile_stages_covered={}",
@@ -964,25 +922,18 @@ fn goal_specific_checks(
             ),
             format!(
                 "qc_stability_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.appraiser_id == "reproducibility")
-                    .count()
+                findings.iter().filter(|finding| finding.appraiser_id == "reproducibility").count()
             ),
         ],
         "G119" => vec![
             format!("provenance_rows_present={}", !rows.is_empty()),
             format!(
                 "provenance_stage_bound={}",
-                rows.iter()
-                    .any(|row| row.stage_id == "fastq.capture_provenance_snapshot")
+                rows.iter().any(|row| row.stage_id == "fastq.capture_provenance_snapshot")
             ),
             format!(
                 "provenance_code_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.result_scope == "encrypted-code")
-                    .count()
+                findings.iter().filter(|finding| finding.result_scope == "encrypted-code").count()
             ),
             format!(
                 "provenance_queue_entries={}",
@@ -1047,10 +998,7 @@ fn build_goal_entries(
             })
             .collect::<Vec<_>>();
 
-        let row_ids = matched_rows
-            .iter()
-            .map(|row| row.row_id.clone())
-            .collect::<BTreeSet<_>>();
+        let row_ids = matched_rows.iter().map(|row| row.row_id.clone()).collect::<BTreeSet<_>>();
 
         let appraisal_findings = findings
             .iter()
@@ -1065,8 +1013,12 @@ fn build_goal_entries(
             .collect::<Vec<_>>();
 
         let status = status_for_goal(&matched_rows, &hardening_entries);
-        let goal_checks =
-            goal_specific_checks(goal.goal_id, &matched_rows, &appraisal_findings, &hardening_entries);
+        let goal_checks = goal_specific_checks(
+            goal.goal_id,
+            &matched_rows,
+            &appraisal_findings,
+            &hardening_entries,
+        );
 
         entries.push(FastqBenchmarkGoalEntry {
             goal_id: goal.goal_id.to_string(),
@@ -1111,11 +1063,13 @@ fn summarize(entries: &[FastqBenchmarkGoalEntry]) -> FastqBenchmarkCampaignSumma
     }
 }
 
-pub fn fastq_benchmark_campaign(args: &FastqBenchmarkCampaignArgs) -> Result<FastqBenchmarkCampaignReport> {
+pub fn fastq_benchmark_campaign(
+    args: &FastqBenchmarkCampaignArgs,
+) -> Result<FastqBenchmarkCampaignReport> {
     let matrix = benchmark_matrix(&BenchmarkMatrixArgs {
         config: args.config.clone(),
         env_file: args.env_file.clone(),
-        user_overrides: args.user_overrides.clone(),
+        user_policies: args.user_policies.clone(),
         domain: "fastq".to_string(),
         out: None,
         fail_on_refuse: false,
@@ -1124,12 +1078,7 @@ pub fn fastq_benchmark_campaign(args: &FastqBenchmarkCampaignArgs) -> Result<Fas
     let appraisal = appraise_matrix_report(matrix.clone());
     let queue = hardening_queue_from_appraisal(appraisal.clone());
     let selected_goals = selected_goal_ids(args.goals.as_deref())?;
-    let entries = build_goal_entries(
-        &selected_goals,
-        &matrix,
-        &appraisal.findings,
-        &queue.entries,
-    );
+    let entries = build_goal_entries(&selected_goals, &matrix, &appraisal.findings, &queue.entries);
     let report = FastqBenchmarkCampaignReport {
         schema_version: FASTQ_CAMPAIGN_SCHEMA_VERSION.to_string(),
         campaign_id: matrix.campaign_id,
@@ -1178,10 +1127,7 @@ mod tests {
                 matched_profile: "seqkit".to_string(),
                 ready: true,
             },
-            readiness: BenchmarkReadiness {
-                class: readiness.to_string(),
-                reasons: Vec::new(),
-            },
+            readiness: BenchmarkReadiness { class: readiness.to_string(), reasons: Vec::new() },
             repetitions: if readiness == "refuse" { 0 } else { 3 },
         }
     }
@@ -1433,10 +1379,7 @@ mod tests {
         let selected = vec!["G106".to_string()];
         let entries = build_goal_entries(&selected, &matrix, &[], &[]);
         assert_eq!(entries.len(), 1);
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check.starts_with("demux_stage_bound=")));
+        assert!(entries[0].goal_checks.iter().any(|check| check.starts_with("demux_stage_bound=")));
     }
 
     #[test]

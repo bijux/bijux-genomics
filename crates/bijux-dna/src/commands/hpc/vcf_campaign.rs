@@ -95,10 +95,7 @@ const G142_SCENARIOS: &[ScenarioDefinition] = &[
         scenario_id: "missingness-het-titv",
         focus: "missingness, heterozygosity, and Ti/Tv stability",
     },
-    ScenarioDefinition {
-        scenario_id: "sample-level-stats",
-        focus: "per-sample summary stability",
-    },
+    ScenarioDefinition { scenario_id: "sample-level-stats", focus: "per-sample summary stability" },
 ];
 
 const G143_SCENARIOS: &[ScenarioDefinition] = &[
@@ -151,10 +148,7 @@ const G146_SCENARIOS: &[ScenarioDefinition] = &[
         scenario_id: "damage-remove-policy",
         focus: "damage remove policy boundary",
     },
-    ScenarioDefinition {
-        scenario_id: "damage-mask-policy",
-        focus: "damage mask policy boundary",
-    },
+    ScenarioDefinition { scenario_id: "damage-mask-policy", focus: "damage mask policy boundary" },
     ScenarioDefinition {
         scenario_id: "damage-annotate-policy",
         focus: "damage annotate policy and caveats",
@@ -267,10 +261,7 @@ const G153_SCENARIOS: &[ScenarioDefinition] = &[
 ];
 
 const G154_SCENARIOS: &[ScenarioDefinition] = &[
-    ScenarioDefinition {
-        scenario_id: "roh-marker-density",
-        focus: "ROH marker density boundary",
-    },
+    ScenarioDefinition { scenario_id: "roh-marker-density", focus: "ROH marker density boundary" },
     ScenarioDefinition {
         scenario_id: "ibd-missingness-cohort-size",
         focus: "IBD missingness and cohort-size boundaries",
@@ -520,10 +511,8 @@ fn write_json_pretty(path: &Path, value: &impl Serialize) -> Result<()> {
 }
 
 fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
-    let available = VCF_GOALS_CATALOG
-        .iter()
-        .map(|goal| goal.goal_id.to_string())
-        .collect::<BTreeSet<_>>();
+    let available =
+        VCF_GOALS_CATALOG.iter().map(|goal| goal.goal_id.to_string()).collect::<BTreeSet<_>>();
     let mut selected = if let Some(value) = raw {
         value
             .split(',')
@@ -537,16 +526,10 @@ fn selected_goal_ids(raw: Option<&str>) -> Result<Vec<String>> {
     if selected.is_empty() {
         return Err(anyhow!("vcf-benchmark-campaign requires at least one goal"));
     }
-    let unknown = selected
-        .iter()
-        .filter(|goal| !available.contains(*goal))
-        .cloned()
-        .collect::<Vec<_>>();
+    let unknown =
+        selected.iter().filter(|goal| !available.contains(*goal)).cloned().collect::<Vec<_>>();
     if !unknown.is_empty() {
-        return Err(anyhow!(
-            "unknown vcf goals requested: {}",
-            unknown.join(",")
-        ));
+        return Err(anyhow!("unknown vcf goals requested: {}", unknown.join(",")));
     }
     let mut ordered = VCF_GOALS_CATALOG
         .iter()
@@ -586,10 +569,7 @@ fn goal_specific_checks(
             format!("validation_rows_present={}", !rows.is_empty()),
             format!(
                 "validation_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "validation_call_stage_bound={}",
@@ -605,18 +585,12 @@ fn goal_specific_checks(
             ),
             format!(
                 "validation_failure_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.appraiser_id == "failure-class")
-                    .count()
+                findings.iter().filter(|finding| finding.appraiser_id == "failure-class").count()
             ),
         ],
         "G142" => vec![
             format!("stats_rows_present={}", !rows.is_empty()),
-            format!(
-                "stats_stage_bound={}",
-                rows.iter().any(|row| row.stage_id == "vcf.stats")
-            ),
+            format!("stats_stage_bound={}", rows.iter().any(|row| row.stage_id == "vcf.stats")),
             format!(
                 "stats_degraded_rows={}",
                 rows.iter().filter(|row| row.readiness_class == "degraded").count()
@@ -635,10 +609,7 @@ fn goal_specific_checks(
         ],
         "G143" => vec![
             format!("filter_rows_present={}", !rows.is_empty()),
-            format!(
-                "filter_stage_bound={}",
-                rows.iter().any(|row| row.stage_id == "vcf.filter")
-            ),
+            format!("filter_stage_bound={}", rows.iter().any(|row| row.stage_id == "vcf.filter")),
             format!(
                 "filter_degraded_rows={}",
                 rows.iter().filter(|row| row.readiness_class == "degraded").count()
@@ -668,7 +639,9 @@ fn goal_specific_checks(
             format!(
                 "normalization_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!(
@@ -686,10 +659,7 @@ fn goal_specific_checks(
             format!("reference_context_rows_present={}", !rows.is_empty()),
             format!(
                 "reference_context_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "reference_context_call_bound={}",
@@ -705,10 +675,7 @@ fn goal_specific_checks(
             ),
             format!(
                 "reference_context_failure_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.appraiser_id == "failure-class")
-                    .count()
+                findings.iter().filter(|finding| finding.appraiser_id == "failure-class").count()
             ),
         ],
         "G146" => vec![
@@ -749,15 +716,14 @@ fn goal_specific_checks(
             format!(
                 "diploid_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!(
                 "diploid_refusal_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.severity == "critical")
-                    .count()
+                findings.iter().filter(|finding| finding.severity == "critical").count()
             ),
         ],
         "G148" => vec![
@@ -776,25 +742,16 @@ fn goal_specific_checks(
             ),
             format!(
                 "pseudohaploid_caveat_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.appraiser_id == "failure-class")
-                    .count()
+                findings.iter().filter(|finding| finding.appraiser_id == "failure-class").count()
             ),
         ],
         "G149" => vec![
             format!("gl_rows_present={}", !rows.is_empty()),
             format!(
                 "gl_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
-            format!(
-                "gl_call_stage_bound={}",
-                rows.iter().any(|row| row.stage_id == "vcf.call_gl")
-            ),
+            format!("gl_call_stage_bound={}", rows.iter().any(|row| row.stage_id == "vcf.call_gl")),
             format!(
                 "gl_propagation_stage_bound={}",
                 rows.iter().any(|row| row.stage_id == "vcf.gl_propagation")
@@ -811,35 +768,23 @@ fn goal_specific_checks(
             format!("phasing_rows_present={}", !rows.is_empty()),
             format!(
                 "phasing_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
-            format!(
-                "phasing_stage_bound={}",
-                rows.iter().any(|row| row.stage_id == "vcf.phasing")
-            ),
+            format!("phasing_stage_bound={}", rows.iter().any(|row| row.stage_id == "vcf.phasing")),
             format!(
                 "phasing_panel_stage_bound={}",
                 rows.iter().any(|row| row.stage_id == "vcf.prepare_reference_panel")
             ),
             format!(
                 "phasing_queue_entries={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity != "info")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
             ),
         ],
         "G151" => vec![
             format!("imputation_rows_present={}", !rows.is_empty()),
             format!(
                 "imputation_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "imputation_impute_stage_bound={}",
@@ -858,15 +803,9 @@ fn goal_specific_checks(
             format!("cohort_qc_rows_present={}", !rows.is_empty()),
             format!(
                 "cohort_qc_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
-            format!(
-                "cohort_qc_qc_stage_bound={}",
-                rows.iter().any(|row| row.stage_id == "vcf.qc")
-            ),
+            format!("cohort_qc_qc_stage_bound={}", rows.iter().any(|row| row.stage_id == "vcf.qc")),
             format!(
                 "cohort_qc_stats_stage_bound={}",
                 rows.iter().any(|row| row.stage_id == "vcf.stats")
@@ -880,10 +819,7 @@ fn goal_specific_checks(
             format!("population_guardrail_rows_present={}", !rows.is_empty()),
             format!(
                 "population_guardrail_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "population_guardrail_pca_stage_bound={}",
@@ -902,23 +838,16 @@ fn goal_specific_checks(
             format!("roh_ibd_rows_present={}", !rows.is_empty()),
             format!(
                 "roh_ibd_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
-            format!(
-                "roh_ibd_roh_stage_bound={}",
-                rows.iter().any(|row| row.stage_id == "vcf.roh")
-            ),
-            format!(
-                "roh_ibd_ibd_stage_bound={}",
-                rows.iter().any(|row| row.stage_id == "vcf.ibd")
-            ),
+            format!("roh_ibd_roh_stage_bound={}", rows.iter().any(|row| row.stage_id == "vcf.roh")),
+            format!("roh_ibd_ibd_stage_bound={}", rows.iter().any(|row| row.stage_id == "vcf.ibd")),
             format!(
                 "roh_ibd_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
         ],
@@ -926,10 +855,7 @@ fn goal_specific_checks(
             format!("demography_rows_present={}", !rows.is_empty()),
             format!(
                 "demography_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "demography_stage_bound={}",
@@ -941,20 +867,14 @@ fn goal_specific_checks(
             ),
             format!(
                 "demography_critical_findings={}",
-                findings
-                    .iter()
-                    .filter(|finding| finding.severity == "critical")
-                    .count()
+                findings.iter().filter(|finding| finding.severity == "critical").count()
             ),
         ],
         "G156" => vec![
             format!("annotation_rows_present={}", !rows.is_empty()),
             format!(
                 "annotation_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "annotation_postprocess_stage_bound={}",
@@ -979,10 +899,7 @@ fn goal_specific_checks(
             format!("sv_boundary_rows_present={}", !rows.is_empty()),
             format!(
                 "sv_boundary_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "sv_boundary_call_stage_bound={}",
@@ -995,7 +912,9 @@ fn goal_specific_checks(
             format!(
                 "sv_boundary_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
         ],
@@ -1003,10 +922,7 @@ fn goal_specific_checks(
             format!("population_handoff_rows_present={}", !rows.is_empty()),
             format!(
                 "population_handoff_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "population_handoff_postprocess_bound={}",
@@ -1018,20 +934,14 @@ fn goal_specific_checks(
             ),
             format!(
                 "population_handoff_queue_entries={}",
-                queue_entries
-                    .iter()
-                    .filter(|entry| entry.severity != "info")
-                    .count()
+                queue_entries.iter().filter(|entry| entry.severity != "info").count()
             ),
         ],
         "G159" => vec![
             format!("large_file_rows_present={}", !rows.is_empty()),
             format!(
                 "large_file_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "large_file_impute_bound={}",
@@ -1040,7 +950,9 @@ fn goal_specific_checks(
             format!(
                 "large_file_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!(
@@ -1055,10 +967,7 @@ fn goal_specific_checks(
             format!("full_template_rows_present={}", !rows.is_empty()),
             format!(
                 "full_template_stage_count={}",
-                rows.iter()
-                    .map(|row| row.stage_id.clone())
-                    .collect::<BTreeSet<_>>()
-                    .len()
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
             ),
             format!(
                 "full_template_core_stages_covered={}",
@@ -1083,7 +992,9 @@ fn goal_specific_checks(
             format!(
                 "full_template_degraded_or_refuse_rows={}",
                 rows.iter()
-                    .filter(|row| row.readiness_class == "degraded" || row.readiness_class == "refuse")
+                    .filter(
+                        |row| row.readiness_class == "degraded" || row.readiness_class == "refuse"
+                    )
                     .count()
             ),
             format!(
@@ -1119,10 +1030,7 @@ fn build_goal_entries(
             })
             .collect::<Vec<_>>();
 
-        let row_ids = matched_rows
-            .iter()
-            .map(|row| row.row_id.clone())
-            .collect::<BTreeSet<_>>();
+        let row_ids = matched_rows.iter().map(|row| row.row_id.clone()).collect::<BTreeSet<_>>();
 
         let appraisal_findings = findings
             .iter()
@@ -1137,8 +1045,12 @@ fn build_goal_entries(
             .collect::<Vec<_>>();
 
         let status = status_for_goal(&matched_rows, &hardening_entries);
-        let goal_checks =
-            goal_specific_checks(goal.goal_id, &matched_rows, &appraisal_findings, &hardening_entries);
+        let goal_checks = goal_specific_checks(
+            goal.goal_id,
+            &matched_rows,
+            &appraisal_findings,
+            &hardening_entries,
+        );
 
         entries.push(VcfBenchmarkGoalEntry {
             goal_id: goal.goal_id.to_string(),
@@ -1183,11 +1095,13 @@ fn summarize(entries: &[VcfBenchmarkGoalEntry]) -> VcfBenchmarkCampaignSummary {
     }
 }
 
-pub fn vcf_benchmark_campaign(args: &VcfBenchmarkCampaignArgs) -> Result<VcfBenchmarkCampaignReport> {
+pub fn vcf_benchmark_campaign(
+    args: &VcfBenchmarkCampaignArgs,
+) -> Result<VcfBenchmarkCampaignReport> {
     let matrix = benchmark_matrix(&BenchmarkMatrixArgs {
         config: args.config.clone(),
         env_file: args.env_file.clone(),
-        user_overrides: args.user_overrides.clone(),
+        user_policies: args.user_policies.clone(),
         domain: "vcf".to_string(),
         out: None,
         fail_on_refuse: false,
@@ -1196,12 +1110,7 @@ pub fn vcf_benchmark_campaign(args: &VcfBenchmarkCampaignArgs) -> Result<VcfBenc
     let appraisal = appraise_matrix_report(matrix.clone());
     let queue = hardening_queue_from_appraisal(appraisal.clone());
     let selected_goals = selected_goal_ids(args.goals.as_deref())?;
-    let entries = build_goal_entries(
-        &selected_goals,
-        &matrix,
-        &appraisal.findings,
-        &queue.entries,
-    );
+    let entries = build_goal_entries(&selected_goals, &matrix, &appraisal.findings, &queue.entries);
     let report = VcfBenchmarkCampaignReport {
         schema_version: VCF_CAMPAIGN_SCHEMA_VERSION.to_string(),
         campaign_id: matrix.campaign_id,
@@ -1250,10 +1159,7 @@ mod tests {
                 matched_profile: "bcftools".to_string(),
                 ready: true,
             },
-            readiness: BenchmarkReadiness {
-                class: readiness.to_string(),
-                reasons: Vec::new(),
-            },
+            readiness: BenchmarkReadiness { class: readiness.to_string(), reasons: Vec::new() },
             repetitions: if readiness == "refuse" { 0 } else { 5 },
         }
     }
@@ -1612,10 +1518,7 @@ mod tests {
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
-        assert!(entries[0]
-            .goal_checks
-            .iter()
-            .any(|check| check.starts_with("gl_stage_count=2")));
+        assert!(entries[0].goal_checks.iter().any(|check| check.starts_with("gl_stage_count=2")));
         assert!(entries[0]
             .goal_checks
             .iter()
