@@ -452,6 +452,26 @@ pub(crate) fn handle_config_root(command: &cli::ConfigCommand, cwd: &Path) -> Re
                 println!("domain={}", report.domain);
                 println!("domains={}", report.domains.join(","));
                 println!("rows={}", report.rows.len());
+                println!("ready={}", report.summary.readiness_counts.get("ready").copied().unwrap_or(0));
+                println!(
+                    "degraded={}",
+                    report.summary.readiness_counts.get("degraded").copied().unwrap_or(0)
+                );
+                println!(
+                    "refuse={}",
+                    report.summary.readiness_counts.get("refuse").copied().unwrap_or(0)
+                );
+            }
+            if args.fail_on_refuse
+                && report
+                    .summary
+                    .readiness_counts
+                    .get("refuse")
+                    .copied()
+                    .unwrap_or(0)
+                    > 0
+            {
+                return Err(anyhow::anyhow!("benchmark matrix contains refuse-class rows"));
             }
         }
     }

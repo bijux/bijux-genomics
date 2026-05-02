@@ -161,6 +161,8 @@ pub struct BenchmarkMatrixArgs {
     #[arg(long, default_value = "all", help = "fastq|bam|vcf|cross|all")]
     pub domain: String,
     #[arg(long, default_value_t = false)]
+    pub fail_on_refuse: bool,
+    #[arg(long, default_value_t = false)]
     pub json: bool,
 }
 

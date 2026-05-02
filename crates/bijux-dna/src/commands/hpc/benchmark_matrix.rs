@@ -644,6 +644,7 @@ sample = "sample-1"
             env_file: None,
             user_overrides: None,
             domain: "fastq".to_string(),
+            fail_on_refuse: false,
             json: false,
         })
         .expect("matrix");
@@ -660,6 +661,7 @@ sample = "sample-1"
             env_file: None,
             user_overrides: None,
             domain: "bam".to_string(),
+            fail_on_refuse: false,
             json: false,
         })
         .expect("bam matrix");
@@ -668,6 +670,7 @@ sample = "sample-1"
             env_file: None,
             user_overrides: None,
             domain: "vcf".to_string(),
+            fail_on_refuse: false,
             json: false,
         })
         .expect("vcf matrix");
@@ -684,6 +687,7 @@ sample = "sample-1"
             env_file: None,
             user_overrides: None,
             domain: "cross".to_string(),
+            fail_on_refuse: false,
             json: false,
         })
         .expect("cross matrix");
@@ -695,6 +699,7 @@ sample = "sample-1"
             env_file: None,
             user_overrides: None,
             domain: "all".to_string(),
+            fail_on_refuse: false,
             json: false,
         })
         .expect("all matrix");
