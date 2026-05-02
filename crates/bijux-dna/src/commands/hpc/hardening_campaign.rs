@@ -2606,6 +2606,24 @@ fn goal_specific_checks(
             ),
             format!("taxonomy_variant_findings_count={}", findings.len()),
         ],
+        "G224" => vec![
+            format!("contaminant_variant_rows_present={}", !rows.is_empty()),
+            format!(
+                "contaminant_variant_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "contaminant_variant_validate_contam_filter_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.validate_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.contamination")
+                    && rows.iter().any(|row| row.stage_id == "vcf.filter")
+            ),
+            format!(
+                "contaminant_variant_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!("contaminant_variant_queue_entries={}", queue_entries.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -4431,6 +4449,30 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "taxonomy_variant_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_224_emits_contaminant_variant_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G224".to_string()];
+        let queue = vec![HardeningQueueEntry {
+            queue_id: "hardening-1801".to_string(),
+            severity: "critical".to_string(),
+            failure_class: "readiness-refuse".to_string(),
+            recommendation: "resolve contaminant boundary refusal reasons".to_string(),
+            affected_rows: vec!["h10".to_string()],
+            source_appraisers: vec!["failure-class".to_string()],
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &[], &queue);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "contaminant_variant_validate_contam_filter_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "contaminant_variant_queue_entries=1"));
     }
 
     #[test]
