@@ -492,6 +492,28 @@ fn goal_specific_checks(
                 rows.iter().any(|row| row.stage_id == BRIDGE_VCF_FILTER_TO_VCF_STATS)
             ),
         ],
+        "G165" => vec![
+            format!("batch_fan_rows_present={}", !rows.is_empty()),
+            format!(
+                "batch_fan_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
+                "batch_fan_fastq_align_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_FASTQ_TRIM_TO_BAM_ALIGN)
+            ),
+            format!(
+                "batch_fan_summary_stats_bound={}",
+                rows.iter().any(|row| row.stage_id == BRIDGE_BAM_SUMMARY_TO_VCF_STATS)
+            ),
+            format!(
+                "batch_fan_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -839,5 +861,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("fastq_to_vcf_gl_bound=true")));
+    }
+
+    #[test]
+    fn goal_165_emits_batch_fanout_fanin_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G165".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("batch_fan_stage_count=4")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("batch_fan_summary_stats_bound=true")));
     }
 }
