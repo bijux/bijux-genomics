@@ -411,6 +411,21 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G124" => vec![
+            format!("sort_index_rows_present={}", !rows.is_empty()),
+            format!(
+                "sort_index_validate_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.validate")
+            ),
+            format!(
+                "sort_index_mapping_summary_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+            ),
+            format!(
+                "sort_index_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -764,5 +779,21 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("bowtie2_alignment_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_124_emits_sort_index_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G124".to_string()];
+        let entries = build_goal_entries(&selected, &matrix, &[], &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("sort_index_validate_stage_bound=true")));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("sort_index_mapping_summary_bound=true")));
     }
 }
