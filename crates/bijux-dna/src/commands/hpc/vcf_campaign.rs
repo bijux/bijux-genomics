@@ -359,6 +359,13 @@ fn goal_specific_checks(
         "G141" => vec![
             format!("validation_rows_present={}", !rows.is_empty()),
             format!(
+                "validation_stage_count={}",
+                rows.iter()
+                    .map(|row| row.stage_id.clone())
+                    .collect::<BTreeSet<_>>()
+                    .len()
+            ),
+            format!(
                 "validation_call_stage_bound={}",
                 rows.iter().any(|row| row.stage_id == "vcf.call")
             ),
@@ -863,6 +870,10 @@ mod tests {
         }];
         let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
         assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("validation_stage_count=2")));
         assert!(entries[0]
             .goal_checks
             .iter()
