@@ -3768,6 +3768,24 @@ fn goal_specific_checks(
             ),
             format!("stage_dossier_findings_count={}", findings.len()),
         ],
+        "G253" => vec![
+            format!("tool_dossier_rows_present={}", !rows.is_empty()),
+            format!(
+                "tool_dossier_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "tool_dossier_trim_align_call_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.trim_reads")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "vcf.call")
+            ),
+            format!(
+                "tool_dossier_tool_count={}",
+                rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!("tool_dossier_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -6339,6 +6357,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "stage_dossier_refuse_rows=1"));
+    }
+
+    #[test]
+    fn goal_253_emits_tool_dossier_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G253".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "artifact-validity".to_string(),
+            row_id: "h5".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "missing-tool-binding".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "tool dossier import reports missing tool-binding around align stage".to_string(),
+            recommendation: "record tool support and binding caveats in per-tool dossier output".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "tool_dossier_trim_align_call_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "tool_dossier_findings_count=1"));
     }
 
     #[test]
