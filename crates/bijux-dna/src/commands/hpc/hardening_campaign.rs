@@ -3350,6 +3350,24 @@ fn goal_specific_checks(
             ),
             format!("full_fastq_findings_count={}", findings.len()),
         ],
+        "G242" => vec![
+            format!("full_bam_rows_present={}", !rows.is_empty()),
+            format!(
+                "full_bam_stage_count={}",
+                rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len()
+            ),
+            format!(
+                "full_bam_validate_align_summary_bound={}",
+                rows.iter().any(|row| row.stage_id == "bam.validate")
+                    && rows.iter().any(|row| row.stage_id == "bam.align")
+                    && rows.iter().any(|row| row.stage_id == "bam.mapping_summary")
+            ),
+            format!(
+                "full_bam_non_ready_rows={}",
+                rows.iter().filter(|row| row.readiness_class != "ready").count()
+            ),
+            format!("full_bam_findings_count={}", findings.len()),
+        ],
         _ => Vec::new(),
     }
 }
@@ -5635,6 +5653,32 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check == "full_fastq_findings_count=1"));
+    }
+
+    #[test]
+    fn goal_242_emits_full_bam_campaign_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G242".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "runtime-profile".to_string(),
+            row_id: "h5".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "runtime-outlier".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "full BAM campaign has align-stage runtime outlier".to_string(),
+            recommendation: "tune BAM-stage runtime before full campaign promotion".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "full_bam_validate_align_summary_bound=true"));
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check == "full_bam_findings_count=1"));
     }
 
     #[test]
