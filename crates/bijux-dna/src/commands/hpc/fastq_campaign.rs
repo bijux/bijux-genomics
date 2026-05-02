@@ -896,6 +896,34 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G116" => vec![
+            format!("edna_rows_present={}", !rows.is_empty()),
+            format!(
+                "edna_primer_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.normalize_primers")
+            ),
+            format!(
+                "edna_branch_stages_covered={}",
+                rows.iter()
+                    .filter(|row| {
+                        matches!(
+                            row.stage_id.as_str(),
+                            "fastq.remove_chimeras"
+                                | "fastq.infer_asvs"
+                                | "fastq.cluster_otus"
+                                | "fastq.normalize_abundance"
+                        )
+                    })
+                    .count()
+            ),
+            format!(
+                "edna_scientific_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| finding.appraiser_id == "scientific-output")
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1501,5 +1529,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("taxonomy_stage_bound=true")));
+    }
+
+    #[test]
+    fn goal_116_emits_edna_preprocessing_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G116".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "scientific-output".to_string(),
+            row_id: "r10".to_string(),
+            severity: "warning".to_string(),
+            confidence: "medium".to_string(),
+            failure_class: "readiness-degraded".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("edna_primer_stage_bound=true")));
     }
 }
