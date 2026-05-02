@@ -811,6 +811,27 @@ fn goal_specific_checks(
                     .count()
             ),
         ],
+        "G112" => vec![
+            format!("host_depletion_rows_present={}", !rows.is_empty()),
+            format!(
+                "host_depletion_stage_bound={}",
+                rows.iter().any(|row| row.stage_id == "fastq.deplete_host")
+            ),
+            format!(
+                "host_depletion_refuse_rows={}",
+                rows.iter().filter(|row| row.readiness_class == "refuse").count()
+            ),
+            format!(
+                "host_depletion_db_findings={}",
+                findings
+                    .iter()
+                    .filter(|finding| {
+                        finding.failure_class.contains("readiness")
+                            || finding.failure_class.contains("corpus")
+                    })
+                    .count()
+            ),
+        ],
         _ => Vec::new(),
     }
 }
@@ -1338,5 +1359,27 @@ mod tests {
             .goal_checks
             .iter()
             .any(|check| check.starts_with("complexity_stage_bound=")));
+    }
+
+    #[test]
+    fn goal_112_emits_host_depletion_checks() {
+        let matrix = matrix_fixture();
+        let selected = vec!["G112".to_string()];
+        let findings = vec![AppraisalFinding {
+            appraiser_id: "failure-class".to_string(),
+            row_id: "r6".to_string(),
+            severity: "warning".to_string(),
+            confidence: "high".to_string(),
+            failure_class: "readiness-degraded".to_string(),
+            result_scope: "encrypted-results".to_string(),
+            summary: "x".to_string(),
+            recommendation: "y".to_string(),
+        }];
+        let entries = build_goal_entries(&selected, &matrix, &findings, &[]);
+        assert_eq!(entries.len(), 1);
+        assert!(entries[0]
+            .goal_checks
+            .iter()
+            .any(|check| check.starts_with("host_depletion_stage_bound=true")));
     }
 }
